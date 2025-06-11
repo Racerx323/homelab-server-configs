@@ -1,0 +1,15 @@
+# Terraform specific ignores
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+*.tfvars
+*.tfvars.json
+.vscode/
+
+# General ignores
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
