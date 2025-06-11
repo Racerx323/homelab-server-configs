@@ -1,15 +1,12 @@
-# Terraform specific ignores
-.terraform/
-*.tfstate
-*.tfstate.backup
-crash.log
-*.tfvars
-*.tfvars.json
-.vscode/
-
-# General ignores
+# Server configurations specific ignores
 *.log
 *.tmp
 *.bak
+*.out
+*.err
+*.pid
+.vscode/
+
+# General ignores
 .DS_Store
 Thumbs.db
