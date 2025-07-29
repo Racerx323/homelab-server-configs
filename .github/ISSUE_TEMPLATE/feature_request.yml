@@ -65,12 +65,17 @@ body:
       required: false
 
   - type: checkboxes
-    id: checklist
+    id: pre-submission
     attributes:
       label: Pre-Submission Checklist
       description: Please confirm the following before submitting.
       options:
-        - label: I have searched the existing issues for a similar feature request.
+        - label: I have searched the [existing issues](https://github.com/Racerx323/homelab-server-configs/issues) for a similar feature request.
+          required: true
         - label: I have provided a clear and descriptive title.
         - label: I have described the problem and my proposed solution.
         - label: I have considered potential alternatives.
+        - label: I would be willing to submit a Pull Request to fix this issue.
+          required: false
+        - label: I agree to follow this project's Code of Conduct.
+          required: true
