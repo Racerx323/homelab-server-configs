@@ -1,4 +1,8 @@
-# Homelab Server Configs
+# Homelab Server
+
+![License](https://badgen.net/github/license/Racerx323/homelab-server-configs)
+![last commit](https://badgen.net/github/last-commit/Racerx323/homelab-server-configs)
+[![Open Issues](https://badgen.net/github/open-issues/Racerx323/homelab-server-configs)](https://github.com/Racerx323/homelab-server-configs/issues?q=is%3Aissue%20state%3Aopen)
 
 Infrastructure as Code (IaC) configurations to build and manage my home lab.
 
