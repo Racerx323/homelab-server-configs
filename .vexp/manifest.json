@@ -6,15 +6,15 @@
     ".github/README.md": "61691b7288be9e61c3ac1e485beb8fb0e5858e25bfa4d92fd3709296e4c2d050",
     ".github/SECURITY.md": "9348e85c44aba4281b76903c654a7a0364860c5cbb3f25caaf6706bda038e50f",
     "AGENTS.md": "10689b6c8be3e2466d71b419db3a1435f7d89ea5fe3233b91e60df431d79993c",
-    "LICENSE.md": "d8cc175db55c0f01f6803280bff205099aef6b3965feeb430f7b71af583c7345"
+    "LICENSE.md": "54f40efb10a9ea0b2c897d54c2e642960b78f86dbf7cc1f4b5ae168044aa3011"
   },
-  "indexed_at_commit": "18880fb992f4c70ec3d86ad56e573438de06f347",
-  "indexed_at_timestamp": "2026-07-07T17:14:11.667424031+00:00",
+  "indexed_at_commit": "0e0fd9b1a1e53e9ff5778057539f89076265dd28",
+  "indexed_at_timestamp": "2026-07-13T17:56:26.361331574+00:00",
   "schema_version": 3,
   "stats": {
     "total_edges": 92,
     "total_files": 7,
     "total_nodes": 99
   },
-  "vexp_version": "2.1.0"
+  "vexp_version": "2.1.7"
 }
