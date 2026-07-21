@@ -72,6 +72,10 @@ sudo install -o root -g root -m 644 \
 Files under `/etc/cron.d` must be owned by root and must not be group- or
 world-writable. They do not need to be executable.
 
+Raspberry Pi 5 hosts may also require a kernel-image filter to prevent false
+upgrade reports. Follow [Configure the Raspberry Pi kernel filter](kernel-filter.md)
+before installing the supplied host-specific configuration.
+
 ## Test delivery
 
 Complete the transport-specific connectivity and delivery tests before relying
