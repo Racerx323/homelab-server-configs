@@ -46,9 +46,10 @@ MAILTO=recipient@example.com
 RECIPIENT=recipient@example.com
 ```
 
-`RECIPIENT` receives direct alerts from `needrestart.sh`. `MAILTO` receives the
-script's stdout and stderr from cron. These are separate reporting paths, but
-both use the same sendmail-compatible MTA and are not independent delivery
+`RECIPIENT` receives direct alerts from `needrestart.sh`. `MAILTO` receives
+captured script output from cron only when the command exits unsuccessfully.
+Routine successful output is suppressed. These are separate reporting paths,
+but both use the same sendmail-compatible MTA and are not independent delivery
 channels.
 
 The supplied schedule runs daily at 05:30. Change its five time fields if a
@@ -130,6 +131,10 @@ The script:
 6. Sends a direct notification when attention is required.
 
 Configuration and scan failures are written in full to stderr for cron capture.
+The cron command buffers stdout and stderr and emits that buffer only for a
+nonzero exit status, so successful scans do not generate cron mail. If `flock`
+cannot acquire the lock and produces no output, the cron command emits a short
+failure message instead.
 When direct delivery is possible, the script also sends a failure notification.
 Direct failure emails are capped at 12,000 characters; cron captures the
 complete report. Direct and cron-generated messages share the configured MTA.
