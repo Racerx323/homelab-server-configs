@@ -37,6 +37,14 @@ This document outlines the various automated agents and services that have acces
 
 ---
 
+## CodeRabbit reviews
+
+CodeRabbit requires external network access. Run all `coderabbit review` commands with network escalation (`sandbox_permissions: "require_escalated"`). Request the reusable approval prefix `["coderabbit", "review"]`.
+
+Do not wait for a sandboxed review to time out. If it stalls while connecting, rerun it immediately with network escalation.
+
+---
+
 ## Security Considerations
 
 - **Least Privilege**: Each automated agent should operate with the minimum permissions necessary to perform its tasks. Review and adjust permissions regularly.

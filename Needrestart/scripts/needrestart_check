@@ -1,0 +1,14 @@
+# Install as /etc/cron.d/needrestart_check; see Needrestart/README.md in the repository.
+
+SHELL=/bin/bash
+
+# Mailgun account
+# MAILTO=system@theama.me
+# RECIPIENT=system@theama.me
+
+# Mailrise account
+MAILTO=notify.failure@mailrise.xyz
+RECIPIENT=notify@mailrise.xyz
+
+# Run daily at 05:30 as root and skip overlapping executions.
+30 5 * * * root /usr/bin/flock -n /run/lock/needrestart-check.lock /usr/local/sbin/needrestart.sh
