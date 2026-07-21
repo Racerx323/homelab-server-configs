@@ -3,6 +3,8 @@
 ![License](https://badgen.net/github/license/Racerx323/homelab-server-configs)
 ![Last commit](https://badgen.net/github/last-commit/Racerx323/homelab-server-configs)
 [![Open issues](https://badgen.net/github/open-issues/Racerx323/homelab-server-configs)](https://github.com/Racerx323/homelab-server-configs/issues?q=is%3Aissue%20state%3Aopen)
+<!-- markdownlint-disable-next-line MD033 -->
+<a href="https://app.thecoderegistry.com/verify/vault/a2422c18-4ef8-45e3-86ce-e926d3c4e1aa" target="_blank" rel="noopener noreferrer"><img src="https://thecoderegistryprod.blob.core.windows.net/public-web/verification-badges/level-1/vault/a2422c18-4ef8-45e3-86ce-e926d3c4e1aa/default-style_1-2ff3a6964bbc.png?v=1784595717" alt="The Code Registry Verification Badge" width="100" /></a>
 
 Configuration, automation, and operational documentation for services running
 in my homelab. The repository keeps host maintenance tasks reproducible and
