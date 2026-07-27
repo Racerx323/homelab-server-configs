@@ -1,0 +1,8 @@
+---
+display_name: Primary DNS node
+
+dns:
+  ha_role: primary
+
+hardware:
+  platform: raspberry_pi

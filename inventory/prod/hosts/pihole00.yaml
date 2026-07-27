@@ -1,0 +1,8 @@
+---
+display_name: Backup DNS node
+
+dns:
+  ha_role: backup
+
+hardware:
+  platform: raspberry_pi

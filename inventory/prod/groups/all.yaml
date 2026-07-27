@@ -1,0 +1,12 @@
+---
+environment: production
+timezone: America/Chicago
+
+common_configuration:
+  automatic_security_updates: true
+  needrestart: true
+  watchdog: true
+
+notification:
+  smtp_host: mailrise.local.theama.co
+  smtp_port: 8025

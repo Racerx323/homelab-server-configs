@@ -1,0 +1,7 @@
+---
+functions:
+  - notification
+
+components:
+  - apprise_api
+  - mailrise

@@ -1,0 +1,13 @@
+---
+functions:
+  - dns
+
+components:
+  - keepalived
+  - pihole
+  - unbound
+
+dns:
+  domain: local.theama.co
+  resolver_port: 5335
+  virtual_endpoint: pihole.local.theama.co

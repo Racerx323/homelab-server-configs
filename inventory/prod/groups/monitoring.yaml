@@ -1,0 +1,6 @@
+---
+functions:
+  - monitoring
+
+monitoring:
+  enabled: true

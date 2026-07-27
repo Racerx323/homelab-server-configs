@@ -1,0 +1,19 @@
+---
+all:
+  children:
+    dns:
+      hosts:
+        pihole0:
+          management_fqdn: pihole0.local.theama.co
+        pihole00:
+          management_fqdn: pihole00.local.theama.co
+
+    monitoring:
+      hosts:
+        monitoring:
+          management_fqdn: monitoring.local.theama.co
+
+    notification:
+      hosts:
+        notification:
+          management_fqdn: notification.local.theama.co

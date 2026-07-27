@@ -1,0 +1,8 @@
+---
+environment: development
+timezone: America/Chicago
+
+common_configuration:
+  automatic_security_updates: false
+  needrestart: true
+  watchdog: false
