@@ -1,0 +1,8 @@
+[Unit]
+Description=Validate Caddy HA synchronization health
+OnFailure=caddy-sync-failure@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/validate-sync-health.sh
+

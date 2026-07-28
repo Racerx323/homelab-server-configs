@@ -1,0 +1,11 @@
+https://localhost {
+	bind 127.0.0.1 ::1
+	import local_tls
+	respond / 204
+}
+
+proxy.local.theama.co {
+	bind 10.1.0.56 fd36:5aa8:6971:1::56
+	import local_tls
+	respond / 204
+}

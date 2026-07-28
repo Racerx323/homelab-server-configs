@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+command_value=${SSH_ORIGINAL_COMMAND:-}
+
+if [[ "$command_value" != rsync\ --server\ * ]]; then
+    printf 'Only the rsync server protocol is permitted.\n' >&2
+    exit 126
+fi
+
+if [[ "$command_value" == *--delete* ]]; then
+    printf 'Remote deletion is not permitted.\n' >&2
+    exit 126
+fi
+
+exec /usr/bin/rrsync -wo -no-del /var/lib/caddy-sync/incoming

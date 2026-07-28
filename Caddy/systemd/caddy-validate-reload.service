@@ -1,0 +1,11 @@
+[Unit]
+Description=Validate and gracefully reload Caddy
+After=caddy.service
+OnFailure=caddy-sync-failure@%n.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/caddy-ha
+ExecStart=/usr/bin/caddy validate --config /etc/caddy/current/Caddyfile --adapter caddyfile
+ExecStart=/bin/systemctl reload caddy.service
+

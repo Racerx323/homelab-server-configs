@@ -1,0 +1,65 @@
+---
+status: intended
+apply_only_after: caddy_vrrp_activation_and_validation
+zone: local.theama.co
+
+records:
+  - type: A
+    name: proxy.local.theama.co
+    value: 10.1.0.56
+  - type: AAAA
+    name: proxy.local.theama.co
+    value: fd36:5aa8:6971:1::56
+  - type: A
+    name: pihole-admin.local.theama.co
+    value: 10.1.0.56
+  - type: AAAA
+    name: pihole-admin.local.theama.co
+    value: fd36:5aa8:6971:1::56
+  - type: PTR
+    name: 56.0.1.10.in-addr.arpa
+    value: proxy.local.theama.co.
+  - type: PTR
+    name: 6.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.1.7.9.6.8.a.a.5.6.3.d.f.ip6.arpa
+    value: proxy.local.theama.co.
+  - type: SRV
+    name: _https._tcp.proxy.local.theama.co
+    priority: 0
+    weight: 0
+    port: 443
+    target: proxy.local.theama.co.
+
+preserve:
+  - name: pihole0.local.theama.co
+    ipv4: 10.1.0.53
+    ipv6: fd36:5aa8:6971:1::53
+  - name: pihole00.local.theama.co
+    ipv4: 10.1.0.54
+    ipv6: fd36:5aa8:6971:1::54
+  - name: pihole.local.theama.co
+    ipv4: 10.1.0.55
+    ipv6: fd36:5aa8:6971:1::55
+
+inventory_intent:
+  hosts:
+    - pihole0
+    - pihole00
+  functions:
+    - reverse_proxy
+  components:
+    - caddy
+    - keepalived
+    - lsyncd
+
+likec4_intent:
+  system: reverseProxyPlatform
+  elements:
+    - virtualIp
+    - nodeA.caddy
+    - nodeA.lsyncd
+    - nodeB.caddy
+    - nodeB.lsyncd
+    - wildcardCertificate
+  views:
+    - reverse-proxy-ha
+    - reverse-proxy-failover

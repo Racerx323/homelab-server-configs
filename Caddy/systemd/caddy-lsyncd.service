@@ -1,0 +1,24 @@
+[Unit]
+Description=Caddy HA release synchronization
+Wants=network-online.target
+After=network-online.target
+OnFailure=caddy-sync-failure@%n.service
+
+[Service]
+Type=simple
+User=caddy-sync
+Group=caddy-sync
+RuntimeDirectory=caddy-lsyncd
+RuntimeDirectoryMode=0750
+ExecStart=/usr/bin/lsyncd -nodaemon /etc/lsyncd/caddy.lua
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/caddy-sync /run/caddy-lsyncd
+
+[Install]
+WantedBy=multi-user.target
+

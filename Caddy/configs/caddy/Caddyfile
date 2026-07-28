@@ -1,0 +1,28 @@
+{
+	admin 127.0.0.1:2019
+	persist_config off
+	skip_install_trust
+	grace_period 10s
+	shutdown_delay 5s
+
+	servers {
+		protocols h1 h2 h3
+		strict_sni_host on
+	}
+
+	metrics {
+		per_host
+	}
+
+	log default {
+		output stdout
+		format json
+		level INFO
+	}
+}
+
+(local_tls) {
+	tls {$CADDY_CONFIG_ROOT:/etc/caddy/current}/tls/fullchain.pem {$CADDY_CONFIG_ROOT:/etc/caddy/current}/tls/privkey.pem
+}
+
+import {$CADDY_CONFIG_ROOT:/etc/caddy/current}/conf.d/*.caddy

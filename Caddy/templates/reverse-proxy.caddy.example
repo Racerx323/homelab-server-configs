@@ -1,0 +1,9 @@
+service.local.theama.co {
+	import local_tls
+	reverse_proxy 10.1.0.100:8080 {
+		health_uri /health
+		health_interval 30s
+		health_timeout 3s
+	}
+}
+

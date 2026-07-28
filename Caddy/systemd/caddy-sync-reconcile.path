@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch for incoming Caddy HA releases
+
+[Path]
+PathChanged=/var/lib/caddy-sync/incoming
+Unit=caddy-sync-reconcile.service
+
+[Install]
+WantedBy=multi-user.target
+

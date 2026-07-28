@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch the active Caddy release
+
+[Path]
+PathChanged=/etc/caddy/current
+Unit=caddy-validate-reload.service
+
+[Install]
+WantedBy=multi-user.target
+

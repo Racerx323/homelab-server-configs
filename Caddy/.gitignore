@@ -1,0 +1,14 @@
+# Runtime TLS material and synchronization state
+*.pem
+*.key
+*.cert
+*.ca-bundle
+releases/
+incoming/
+outbound/
+quarantine/
+state/
+
+# Test output
+tests/.work/
+

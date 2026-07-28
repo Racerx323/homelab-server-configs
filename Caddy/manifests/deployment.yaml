@@ -1,0 +1,112 @@
+---
+service: caddy-ha
+environment: production
+interface: eth0
+
+virtual_endpoints:
+  ipv4: 10.1.0.56/22
+  ipv6: fd36:5aa8:6971:1::56/128
+  fqdn: proxy.local.theama.co
+  pihole_admin_fqdn: pihole-admin.local.theama.co
+
+nodes:
+  node-a:
+    hostname: j1-svpihole0
+    management_fqdn: pihole0.local.theama.co
+    ipv4: 10.1.0.53
+    ipv6: fd36:5aa8:6971:1::53
+    peer_ipv4: 10.1.0.54
+    peer_ipv6: fd36:5aa8:6971:1::54
+    priority: 140
+    peer_role: node-b
+  node-b:
+    hostname: j1-svpihole00
+    management_fqdn: pihole00.local.theama.co
+    ipv4: 10.1.0.54
+    ipv6: fd36:5aa8:6971:1::54
+    peer_ipv4: 10.1.0.53
+    peer_ipv6: fd36:5aa8:6971:1::53
+    priority: 100
+    peer_role: node-a
+
+vrrp:
+  version: 3
+  ipv4_vrid: 110
+  ipv6_vrid: 111
+  advert_interval_seconds: 1
+  preempt_delay_seconds: 30
+  health_rise: 3
+  health_fall: 3
+
+ports:
+  http_tcp: 80
+  https_tcp: 443
+  http3_udp: 443
+  caddy_admin_loopback_tcp: 2019
+  lighttpd_loopback_tcp: 8080
+  munin_node_tcp: 4949
+  apprise_tcp: 8000
+
+secrets:
+  provider: doppler
+  project: homelab-dev
+  config: prd_caddy
+  variables:
+    - CADDY_TLS_CERT_PEM
+    - CADDY_TLS_CA_BUNDLE_PEM
+    - CADDY_TLS_PRIVATE_KEY_PEM
+
+apprise:
+  endpoint: http://10.1.3.83:8000/notify/apprise
+
+unifi:
+  controller: https://udmse.local.theama.co
+  api_key_name: audit
+  doppler_project: homelab-dev
+  doppler_config: prd_unifi
+  api_key_variable: AUDIT
+
+firewall_intent:
+  - source: default_lan_vlan_1
+    destination: caddy_virtual_endpoints
+    protocol: tcp
+    ports: [80, 443]
+  - source: default_lan_vlan_1
+    destination: caddy_virtual_endpoints
+    protocol: udp
+    ports: [443]
+  - source: default_lan_vlan_1
+    destination: caddy_node_management_addresses
+    protocol: tcp
+    ports: [80, 443]
+  - source: default_lan_vlan_1
+    destination: caddy_node_management_addresses
+    protocol: udp
+    ports: [443]
+  - source: node_a
+    destination: node_b
+    protocol: vrrp
+    protocol_number: 112
+  - source: node_b
+    destination: node_a
+    protocol: vrrp
+    protocol_number: 112
+  - source: node_pair
+    destination: peer
+    protocol: tcp
+    ports: [22]
+  - source: node_pair
+    destination: 10.1.3.83
+    protocol: tcp
+    ports: [8000]
+  - source: 10.1.3.83
+    destination: node_pair
+    protocol: tcp
+    ports: [4949]
+
+deferred_current_state:
+  - authoritative_unbound_records
+  - production_inventory
+  - repository_readme
+  - canonical_likec4
+  - unifi_firewall

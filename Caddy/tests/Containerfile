@@ -1,0 +1,41 @@
+FROM docker.io/library/debian:12-slim
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        bash \
+        ca-certificates \
+        coreutils \
+        curl \
+        debian-archive-keyring \
+        debian-keyring \
+        findutils \
+        gnupg \
+    && curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
+        | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt \
+        -o /etc/apt/sources.list.d/caddy-stable.list \
+    && chmod o+r \
+        /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+        /etc/apt/sources.list.d/caddy-stable.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        caddy \
+        iproute2 \
+        jq \
+        keepalived \
+        lighttpd \
+        lsyncd \
+        munin-node \
+        openssh-client \
+        openssl \
+        procps \
+        rsync \
+        shellcheck \
+        shfmt \
+        systemd \
+        util-linux \
+        uuid-runtime \
+    && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["/bin/bash"]

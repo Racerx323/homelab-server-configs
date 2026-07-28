@@ -1,0 +1,1 @@
+from="<peer-ipv4>,<peer-ipv6>",restrict,command="/usr/local/libexec/caddy-sync-rsync-receiver"

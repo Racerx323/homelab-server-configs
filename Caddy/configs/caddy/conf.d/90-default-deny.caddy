@@ -1,0 +1,9 @@
+http:// {
+	respond 421
+}
+
+https:// {
+	import local_tls
+	respond 421
+}
+
