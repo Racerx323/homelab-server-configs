@@ -5,12 +5,19 @@
 | Field | Value |
 | --- | --- |
 | Phase | Controlled deployment |
-| Current scope | Deployment actions 1 through 14 complete and validated |
-| Live deployment | Node B actions 1–15 are accepted through independent read-only cutover validation; Caddy is active/healthy on TCP 80/443 and UDP 443, lighttpd is loopback-only on TCP 8080, the wildcard certificate is served correctly, and Caddy VRRP remains absent |
-| Temporary operational hold | Do not reboot Node B before Caddy boot persistence is explicitly enabled and validated: Caddy is currently active but disabled, while enabled lighttpd is configured only for loopback TCP 8080 |
-| Repository protection | The complete `Caddy/` tree is present locally but remains untracked by Git; create an intentional commit and preferably push it before relying on Git for recovery |
+| Current scope | Node B deployment actions 1–15 and Node A actions 16a–16ab are accepted; historical continuity action 16ac is not accepted; diagnostic 16ac-a proved the old stage absent; workstation preparation 16ad, Node A certificate transfer 16ae, minimal non-secret Node A Caddy source transfer 16af, corrected real-host installer dry-run Action 16ag retry, transactional Node A Caddy configuration-installation Action 16ah, and read-only synchronization/SSH preflight Action 16ai are accepted; protected staging Action 16aj failed silently and is not accepted; read-only Action 16aj-a independently accepted its rollback with zero mismatches and proved the local payload/archive/extraction contract; bounded transient labeled staging diagnostic Action 16aj-b also exited `1` without remote output and is not accepted; fail-closed read-only continuity Action 16aj-c is accepted; corrected bounded transient labeled staging diagnostic Action 16aj-d is accepted with zero failures; corrected transactional retained public synchronization-artifact staging Action 16aj-e has accepted exact five-file content but its root-mode acceptance is superseded; the initial transactional Action 16ak attempt is unaccepted and stopped pre-write; accepted read-only Actions 16ak-a and 16ak-b proved the only preflight mismatch was retained-stage mode `0700` instead of `0750`; corrected post-extraction enforcement is locally validated, accepted Action 16ak-c changed only the retained-stage root mode to `0750`, and accepted independent read-only Action 16ak-d reported zero mismatches; the corrected transactional Action 16ak retry and independent read-only Action 16ak-e are accepted with Node A fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`, exact private/public correspondence, one restricted Node B authorization, accepted host pin and three-helper set, retained stage, zero post-install mismatches, no peer connection or helper execution, no lsyncd configuration, and no service mutation; read-only Node A systemd-unit preflight Action 16al is accepted with zero mismatches, all 16 intended installation targets absent, the accepted three-helper state intact, Caddy and lsyncd inactive/masked, and no peer connection, helper execution, or service mutation; inactive Node A systemd artifact staging Action 16am is accepted through the corrected independent read-only Action 16am-a retry, which reported zero mismatches, exact retained 16-file stage metadata and digest, the complete protected baseline, SSH `0`, no mutation, and complete local cleanup; transactional Node A systemd installation Action 16an and corrected independent read-only post-install Action 16an-a retry are accepted with all 16 targets installed, inactive disabled/static custom units, both stages preserved, protected state unchanged, 264 true assertions, zero mismatches, SSH/runner `0`, and no peer, helper, daemon-reload, or service mutation during the retry; read-only Node A cutover-preflight Action 16ao is unaccepted after reporting 63 true assertions and three mismatches for exact ULA presence, Caddy unit type, and TCP 80 socket count; SSH/runner status `1`, no mutation, and complete cleanup passed; accepted non-enforcing read-only diagnostic Action 16ao-a observed Node A `::53/64`, two dual-stack lighttpd TCP 80 sockets, and an empty effective Caddy `Type` through the active mask fragment; accepted read-only Action 16ao-b proved the mask is `/etc/systemd/system/caddy.service -> /dev/null` and the installed Caddy `2.11.4` arm64 package owns one vendor unit at `/lib/systemd/system/caddy.service`, canonically `/usr/lib/systemd/system/caddy.service`, SHA-256 `6c271e03...93ff`, with `Type=notify` at line 23; the first Action 16an-a attempt remains unaccepted historical workstation-validation evidence because its runner rejected one uppercase-derived label; the initial Action 16am and Action 16am-a runner failures remain unaccepted historical workstation-validation evidence; the initial Action 16ag attempt remains unaccepted historical evidence |
+| Corrected Action 16ao retry | Accepted with 75 true assertions, zero mismatches, SSH/runner `0`, no mutation, and complete cleanup |
+| Transactional Action 16ap cutover | Failed and remains unaccepted; independently verified Actions 16ap-a and 16ap-b prove Node A returned to its pre-cutover operational baseline without a repair |
+| Read-only recovery diagnostic Action 16ap-a | Accepted as complete recovery-state evidence; its bare Caddy validation result was later proven to be a missing-environment false negative |
+| Dual-node Caddy validation/provenance diagnostic Action 16ap-b | Executed and accepted; both nodes fail bare validation identically and pass with `/etc/default/caddy-ha`, while their binary, package, Caddyfile, and configuration-tree hashes match |
+| Corrected transactional Action 16ap retry | Executed and accepted with SSH/runner `0`; Caddy was inactive rather than failed, so the guarded reset correctly skipped `reset-failed`, and every embedded cutover and validation check passed |
+| Independent read-only post-cutover Action 16aq | Executed but unaccepted: 100 of 104 assertions passed, four mismatches were recorded, SSH returned `1`, and a runner-contract defect normalized valid mismatch evidence to `97`; no mutation occurred |
+| Narrow read-only Action 16aq-a | Executed once but not accepted: remote collector and SSH returned `0`, complete read-only evidence and cleanup markers were emitted, but the runner returned `97` because its probe regex rejected the collector's intentional `%7C` field encoding; no mutation occurred |
+| Live deployment | Node B actions 1–15 and Node A through the corrected Action 16ap retry are accepted; Caddy is active/healthy on TCP 80/443 and UDP 443 on both physical nodes, lighttpd is loopback-only on TCP 8080, and Caddy VRRP remains absent |
+| Temporary operational hold | Do not reboot either Caddy node before Caddy boot persistence is explicitly enabled and validated: Caddy is active but disabled on each node, while enabled lighttpd is configured only for loopback TCP 8080 |
+| Repository protection | The `Caddy/` tree is committed and synchronized at `07a67d9` on `main`/`origin/main` |
 | Current-state DNS, inventory, README, and LikeC4 updates | Deferred until validated deployment |
-| Next gate | After the overnight pause, first perform a separately authorized read-only Node B continuity check; if accepted, deployment action 16 begins with the separately authorized read-only Node A refresh using the pinned preflight collector |
+| Next gate | Define a corrected read-only Action 16aq-a retry that validates the intentional `%7C` probe encoding and captures enough static-response handler detail to explain the unknown-default `200`; no correction definition, diagnostic retry, configuration change, Action 16aq retry, service mutation, Node B authorization change, lsyncd configuration, node-to-node peer connection, VRRP change, retained-stage change, or later action is currently authorized |
 
 ## Locked Decisions
 
@@ -158,12 +165,8855 @@
 | 2026-07-28T04:42:45Z | Local workspace | Define read-only action 15o cutover acceptance | No Node B inspection or mutation authorized yet | Transactional readiness passed; independent protocol, certificate, journal, and exact-state evidence remains required | Added a bounded inspector that pins promoted/original/evidence/Caddy trees and override; checks unit states and runtime type/timeout; proves listener ownership and loopback restriction; validates backend, Caddy, localhost, HTTP/1.1 and HTTP/2; inspects served certificate; rejects active health-status and trust-install errors; prints bounded journal | None; proposed action is read-only | Bash syntax, ShellCheck, repository-profile shfmt, and `git diff --check` passed | Inspector `22c04d80ffb7f8c6ba34b6e78894664e432f1160dd22668b48663d702876f336` | Exact acceptance inspection is ready; no further Node B command executed | Stop and obtain explicit authorization for action 15o |
 | 2026-07-28T04:44:59Z | Node B (`j1-svpihole00`) | Read-only action 15o: independent cutover acceptance | User explicitly authorized inspector SHA-256 `22c04d80ffb7f8c6ba34b6e78894664e432f1160dd22668b48663d702876f336`; no mutation authorized | Retry3 transaction reported success; exact independent evidence remained required | Streamed pinned inspector; verified all live/original/evidence/Caddy hashes, unit properties, listener ownership/restriction, backend and Caddy validation, localhost health, HTTP/1.1 and HTTP/2, served certificate, and bounded service journal | None; inspection only | SSH exit `0`; emitted `action_15_cutover_validation_complete=true`; backend HTTP `302`; no health-status or trust-install attempt was found | Caddy `active/running`, `Result=success`, disabled, `Type=notify`, timeout 30 seconds; lighttpd PID `3282796` only on `127.0.0.1:8080`; Caddy PID `3282921` owns TCP 80/443, UDP 443, and `127.0.0.1:2019`; journal records h1/h2/h3 on physical and future VIP addresses | Served subject `CN=*.local.theama.co`; issuer Sectigo Public Server Authentication CA DV R36; SANs `*.local.theama.co` and `local.theama.co`; validity `2026-07-05` through `2027-01-19`; skip-install-trust logged as intended | Accept Node B action 15; retain end-to-end HTTP/3 client testing for deployment action 26; begin Node A only with a refreshed read-only preflight |
 | 2026-07-28T04:50:00Z | Local workspace and Node B operational handoff | Pause deployment overnight after Node B action 15 acceptance | User paused deployment until the next session; no additional live action authorized | Action 15o accepted; Caddy active but disabled; lighttpd active/enabled on loopback only; Caddy VRRP absent; action 16a not authorized | Audited living-plan checkpoint and Git status; recorded the exact resume point, boot-persistence risk, and repository-protection gap | No live command or rollback; avoid rebooting Node B until persistence is separately authorized and validated | Living plan current; Git reports only `?? Caddy/`; branch `main` matches `origin/main`; no commit or push performed | Resume with a fresh read-only Node B continuity check, then re-present action 16a if Node B remains accepted | Local artifacts are not protected by Git until committed; Node B loses frontend listeners after a reboot because Caddy is disabled and lighttpd is loopback-only | Pause safely; request intentional commit/push separately if desired, and do not infer overnight continuity tomorrow |
+| 2026-07-28T18:35:18Z | Node A (`j1-svpihole0`) | Read-only action 16a: refresh Node A preflight | User explicitly authorized read-only action 16a; no Node B continuity check, Node A mutation, or later action authorized | Earlier action 2 preflight was accepted; Node A deployment state required a fresh read before any installation work | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole0.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.53 'sudo -n /bin/bash -s --' < Caddy/scripts/collect-node-preflight.sh` | None; the streamed collector was read-only | SSH exit `0`; all critical reads completed; native lighttpd validation passed; output ended `node_preflight_complete=true` | Collector SHA-256 `5d6e6e8e18228ca6be00518715caefcc4d6a0ba640bc669448058537a325f5d6`; Keepalived `cf4858888ae80772f1a50dda7c0ea120ff083eafae33a0ad4ca291d44755c1e2`; lighttpd main `568507d5604cb2794106de3de29d1603c3f12c9045bf7fc1ad4342592a1395c1`; external TLS `6da587363054a4db69fb742d23bddde06aec866e11fb7a91bff1a8d75a713f7a` | Node A remains in the accepted pre-deployment state: Caddy/lsyncd packages, identities, units, and targets absent; lighttpd active/enabled on TCP 80/443; Keepalived active/enabled with only DNS VRIDs 100/101; IPv4 non-local bind `1`, IPv6 non-local bind `0` | Accept action 16a; do not mutate Node A until the outstanding Node B continuity gate is separately authorized and accepted |
+| 2026-07-28T18:37:58Z | Node B (`j1-svpihole00`) | Read-only overnight continuity check after action 15 acceptance | User explicitly authorized the outstanding read-only Node B continuity check; no service mutation or Node A action authorized | Action 15o was accepted before the overnight pause; Caddy remained intentionally disabled for boot while active, so continuity could not be inferred | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole00.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.54 'sudo -n /bin/bash -s --' < Caddy/scripts/validate-node-b-action15-cutover.sh` | None; the pinned inspector was read-only | SSH exit `0`; configuration validation, backend, localhost, HTTP/1.1, HTTP/2, certificate, listener, unit, hash, and bounded-journal assertions passed; output ended `action_15_cutover_validation_complete=true`; backend HTTP `302` | Inspector SHA-256 `22c04d80ffb7f8c6ba34b6e78894664e432f1160dd22668b48663d702876f336`; Caddy `2.11.4`; accepted configuration hashes unchanged; Caddy PID `3282921`; lighttpd PID `3282796` | Node B remained continuously accepted: Caddy active/running with `Result=success`, disabled, `Type=notify`, 30-second stop timeout, TCP 80/443 and UDP 443; lighttpd active/enabled only on `127.0.0.1:8080`; wildcard chain unchanged; expected internal `localhost` certificate renewed successfully | Accept continuity gate; action 16a is accepted and the next Node A action must be separately defined and authorized |
+| 2026-07-28T18:42:05Z | Local workspace | Define deployment action 16b: create Node A rollback baseline | User authorized definition of the next single Node A action; no Node A execution authorized | Action 16a and the Node B continuity gate were accepted; the existing backup script was hard-coded to Node B and refused `node-a` | Generalized `Caddy/scripts/create-node-rollback-backup.sh` with explicit role-to-hostname/address mappings while preserving Node B behavior; added regression assertions and defined the exact Node A SSH stream below | Local Git working tree; no live rollback required | Bash syntax, ShellCheck, repository-profile shfmt, unknown-role rejection, `git diff --check -- Caddy`, and `./Caddy/tests/run.sh --skip-container` passed | Backup script SHA-256 `83790ff984563fac8471eb4492cd1b893112c4c46ea4d1fb3398f6f0188eaddb`; test runner `4cce7c59443ddb50170a40b964ca13bb57b965bd35f6812e4b027d0e3ee6868c` | Exact action 16b is locally validated; Node A and Node B remained unchanged | Stop and require separate authorization for the pinned action 16b command |
+| 2026-07-28T18:46:26Z | Node A (`j1-svpihole0`) | Deployment action 16b: create protected predeployment rollback baseline | User explicitly authorized action 16b as defined; no dependency query, package installation, or later Node A action authorized | Action 16a and Node B continuity accepted; corrected backup script matched its pinned hash; no prior Node A Caddy rollback baseline had been created during this deployment | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole0.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.53 'sudo -n /bin/bash -s -- --node node-a' < Caddy/scripts/create-node-rollback-backup.sh` | Protected additive baseline `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`; failed hidden staging would be removed automatically | SSH exit `0`; internal archive checksum, archive listing, post-rename checksum, and completion-manifest checks passed; output ended `backup_complete=true` | Backup script SHA-256 `83790ff984563fac8471eb4492cd1b893112c4c46ea4d1fb3398f6f0188eaddb` | Complete Node A predeployment rollback baseline created without package, configuration, listener, or service mutation | Accept action 16b; stop and define the next single Node A dependency gate before requesting separate authorization |
+| 2026-07-28T18:48:18Z | Local workspace | Define read-only action 16c: simulate Node A Caddy repository prerequisites | User authorized definition of the next single Node A dependency action; no SSH execution or package installation authorized | Action 16b baseline accepted; Node A preflight did not establish the complete installation transaction for the six repository prerequisites | Reused the exact Node B action 6a package group from `Caddy/manifests/dependencies.yaml` and defined the Node A APT simulation below | None; the proposed command is read-only and has no rollback requirement | Command and package scope reviewed against the intended-state manifest and accepted Node B action 6a evidence; no live command executed | Packages: `debian-keyring`, `debian-archive-keyring`, `apt-transport-https`, `ca-certificates`, `curl`, and `gnupg` | Exact action 16c is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact read-only action 16c command |
+| 2026-07-28T18:50:15Z | Node A (`j1-svpihole0`) | Read-only action 16c: simulate Caddy repository prerequisite group | User explicitly authorized read-only action 16c; no package installation or later Node A action authorized | Action 16b rollback baseline accepted; exact six-package transaction unknown on Node A | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole0.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.53 'sudo -n apt-get -s install --no-install-recommends debian-keyring debian-archive-keyring apt-transport-https ca-certificates curl gnupg'` | None; APT simulation made no persistent change | SSH exit `0`; two new packages, zero upgrades, zero removals, and zero not-upgraded packages; only the two additions produced `Inst`/`Conf` lines | Proposed additions: `apt-transport-https` `2.6.1` and `debian-keyring` `2022.12.24`; already current: `debian-archive-keyring` `2023.3+deb12u2`, `ca-certificates` `20230311+deb12u1`, `curl` `7.88.1-10+deb12u15`, and `gnupg` `2.2.40-1.1+deb12u2` | Bounded prerequisite transaction established; unrelated kernel-header, kernel-image, kernel-build, and `qrencode` autoremove candidates were reported but not selected | Accept action 16c; stop and define the exact bounded installation and immediate validation before requesting separate authorization |
+| 2026-07-28T18:55:58Z | Local workspace | Define deployment action 16d: install and immediately validate Node A Caddy repository prerequisites | User authorized the bounded two-package scope before exact commands were presented; per the locked workflow, this does not authorize execution of commands defined afterward | Action 16c accepted exactly two additions with zero upgrades/removals; protected baseline available | Defined a two-package install with explicit no-upgrade/no-remove guards, followed by a separate six-package status and command-path validation; corrected two Node A observation rows that had been mechanically placed in the Node B table | Protected baseline `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`; if separately authorized later, purge only the two additions without `autoremove` | Command scope reviewed against action 16c and Node B action 6; documentation correction validated locally; no live command executed | Proposed additions remain `apt-transport-https` `2.6.1` and `debian-keyring` `2022.12.24` | Exact action 16d is defined; Node A and Node B remained unchanged | Stop and require fresh authorization for these exact action 16d commands |
+| 2026-07-28T19:01:07Z (journaled immediately after validation) | Node A (`j1-svpihole0`) | Deployment action 16d: install and immediately validate Caddy repository prerequisites | User explicitly authorized both exact action 16d commands; no convergence simulation or later action authorized | Action 16c predicted exactly two additions, zero upgrades/removals; protected baseline available | Ran the exact guarded two-package APT installation, then the exact six-package `dpkg-query` and `curl`/`gpg` path validation | Baseline `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`; if separately authorized, purge only the two additions without `autoremove` | Both SSH commands exited `0`; APT installed exactly two packages with zero upgrades/removals/not-upgraded; all six packages returned `ii`; `/usr/bin/curl` and `/usr/bin/gpg` resolved | New: `apt-transport-https` `2.6.1`, `debian-keyring` `2022.12.24`; existing four versions unchanged | Package scope and immediate package validation passed; Needrestart printed `Services to be restarted: systemctl restart webmin.service`, which does not prove whether the restart executed | Stop action acceptance pending separately authorized read-only Webmin unit and journal inspection; do not roll back or continue |
+| 2026-07-28T19:05:23Z | Node A (`j1-svpihole0`) | Accept deployment action 16d after Webmin restart confirmation | User confirmed `webmin.service` restarted and explicitly directed acceptance because Webmin is an independent application | Package installation and validation passed; only the Needrestart Webmin effect remained unresolved | Recorded the user-confirmed restart, accepted the independent-application impact, and withdrew diagnostic action 16d-a without executing it | Existing protected baseline retained; no rollback requested or required | User-supplied service-impact confirmation plus the already passed package/version/path evidence | Six prerequisite packages installed at the recorded versions; no additional package state changed | Action 16d accepted; Webmin restart is an approved deviation and does not affect Caddy, Pi-hole, Unbound, Keepalived, or the deployment rollback baseline | Stop and define the next read-only prerequisite convergence gate before requesting separate authorization |
+| 2026-07-28T19:10:06Z | Local workspace | Define read-only action 16e: validate Node A prerequisite convergence | User authorized definition only; no SSH execution or later dependency action authorized | Action 16d accepted with all six prerequisites installed and validated | Defined the exact post-install six-package APT simulation followed by `curl` and `gpg` command-path checks | None; proposed action is read-only | Command and expected zero-change transaction reviewed against accepted Node B action 7 and Node A action 16d evidence; no live command executed | Expected installed versions remain those recorded by action 16d | Exact action 16e is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact read-only action 16e command |
+| 2026-07-28T19:13:24Z | Node A (`j1-svpihole0`) | Read-only action 16e: validate prerequisite convergence | User explicitly authorized the exact read-only action 16e command; no repository inspection or later action authorized | Action 16d accepted; all six prerequisites reported `ii` before the independent convergence gate | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole0.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.53 'sudo -n apt-get -s install --no-install-recommends debian-keyring debian-archive-keyring apt-transport-https ca-certificates curl gnupg && command -v curl && command -v gpg'` | None; simulation and command lookups were read-only | SSH exit `0`; `0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded`; no `Inst`, `Conf`, or `Remv` lines; `/usr/bin/curl` and `/usr/bin/gpg` resolved | All six package versions remained those recorded by action 16d | Node A Caddy repository prerequisite group is converged; unrelated autoremove candidates were only reported and remained untouched | Accept action 16e; stop before defining the read-only Caddy repository-state inspection |
+| 2026-07-28T19:18:57Z | Local workspace | Define read-only action 16f: inspect Node A Caddy APT repository state | User authorized the read-only inspection scope before the exact command was presented; no SSH execution authorized | Action 16e accepted; Node A Caddy stable keyring/source state and current package policy remained unknown | Adapted the accepted Node B action 8a scope to Node A; defined explicit absent/file/symlink/broken-symlink metadata and hash reporting for both canonical repository files, followed by `apt-cache policy caddy` | None; proposed action is read-only | Command scope reviewed against Node B action 8a and the canonical paths used by repository validation; no live command executed | Canonical targets: `/usr/share/keyrings/caddy-stable-archive-keyring.gpg` and `/etc/apt/sources.list.d/caddy-stable.list` | Exact action 16f is defined; Node A and Node B remained unchanged | Stop and require fresh authorization for the exact read-only action 16f command |
+| 2026-07-28T19:21:04Z | Node A (`j1-svpihole0`) | Read-only action 16f: inspect current Caddy APT repository state | User explicitly authorized the exact read-only action 16f command; no download, refresh, repository change, installation, or later action authorized | Action 16e accepted; canonical Caddy stable repository paths and current package policy unknown | Streamed the exact fail-closed inspector for both repository paths and `apt-cache policy caddy` | None; all commands were read-only | SSH exit `0`; both canonical paths returned explicit states and the policy query completed | Keyring path absent; source-list path absent; Caddy not installed; Debian bookworm candidate `2.6.2-5` at priority `500` | Official Caddy stable repository is not configured on Node A; the available Debian candidate is older than the repository-validated Caddy configuration | Accept action 16f; stop before defining any transient official-asset retrieval |
+| 2026-07-28T19:23:06Z | Local workspace | Define transient action 16g: retrieve and inspect current official Caddy stable repository assets | User authorized definition only; no Node A download or SSH execution authorized | Action 16f accepted both canonical targets absent and Debian-only Caddy policy; current official asset bytes required validation before any persistent repository action | Defined protected temporary staging, TLS-restricted downloads, raw hashes, isolated GnuPG inspection, pinned primary fingerprint, exact HTTPS source-line checks, explicit cleanup verification, and unchanged canonical-target assertions | Failure trap removes only the action-created temporary tree; no persistent target is created | Exact command syntax and scope reviewed against Node B actions 8b–8e and the prior GnuPG-home side effect; no live command executed | Expected primary fingerprint `65760C51EDEA2017CEA2CA15155B6D79CA56EA34`; URLs and canonical signed-by path pinned below | Exact action 16g is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact transient action 16g command |
+| 2026-07-28T19:26:51Z | Node A (`j1-svpihole0`) | Transient action 16g: retrieve and inspect current official Caddy stable repository assets | User explicitly authorized the exact transient action 16g command; no persistent repository file, APT refresh, package installation, or later action authorized | Action 16f accepted canonical targets absent and Debian-only Caddy policy | Streamed the exact protected audit with TLS-restricted downloads, isolated GnuPG home, fingerprint/source checks, unchanged-target assertions, explicit cleanup, and completion marker | Failure trap bounded to `/tmp/caddy-repo-audit-node-a.gTGw8T`; successful action removed and verified absence of that exact tree | SSH exit `0`; both hashes, pinned fingerprint, exact `deb`/`deb-src` lines, absent canonical targets, cleanup, and `caddy_repository_asset_audit_complete=true` passed | Raw key SHA-256 `783dfee04b19e851a928cd87b34710213ebbe7628f98d9f34595ab83be578c00`; source SHA-256 `b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199`; primary fingerprint `65760C51EDEA2017CEA2CA15155B6D79CA56EA34` | Current official assets exactly match accepted Node B evidence; GnuPG state remained inside removed staging; no persistent repository or user-home file was created | Accept action 16g; stop before defining persistent repository-file installation |
+| 2026-07-28T19:30:38Z | Local workspace | Define persistent action 16h: install validated official Caddy stable repository files | User authorized definition only; no Node A SSH execution or repository mutation authorized | Action 16g validated current raw hashes, primary fingerprint, exact source lines, absent canonical targets, and complete transient cleanup | Defined a two-target transaction that repeats pinned TLS downloads, isolated GnuPG validation/dearmor, raw and installed hashes, exact source validation, root ownership/mode checks, automatic failure cleanup, and successful staging cleanup | On failure, remove only canonical targets created by this action and the exact temporary tree; successful rollback remains separately authorized | Exact command prepared from accepted Node B actions 8e/8f and Node A action 16g evidence; no live command executed | Raw key `783dfee04b...578c00`; binary keyring `c17cd5298a...b90b37`; source `b27d8e3f35...e199`; fingerprint `65760C51EDEA2017CEA2CA15155B6D79CA56EA34` | Exact action 16h is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact persistent action 16h command |
+| 2026-07-28T19:36:17Z | Node A (`j1-svpihole0`) | Persistent action 16h: install validated official Caddy stable repository files | User explicitly authorized the exact persistent action 16h command; no APT refresh, package installation, listener, unit, service, or later action authorized | Action 16g accepted pinned assets; both canonical repository targets absent | Streamed the exact two-target transaction with repeated pinned downloads, isolated GnuPG validation/dearmor, installed ownership/mode/hash/fingerprint/source checks, failure cleanup, explicit staging cleanup, and completion marker | Failure trap bounded to the two targets created by this action and `/tmp/caddy-repo-install-node-a.J7yToN`; no rollback ran | SSH exit `0`; installed hashes printed and output ended `caddy_repository_files_installed=true`; all internal validations and staging cleanup passed | Keyring SHA-256 `c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37`; source SHA-256 `b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199`; fingerprint unchanged | Exactly two `root:root` mode `0644` repository files installed; APT metadata, packages, listeners, units, and services unchanged | Accept transactional result pending independent read-only file and cleanup validation |
+| 2026-07-28T19:38:11Z | Local workspace | Define independent read-only action 16i: validate installed repository files and staging cleanup | User authorized definition only; no Node A SSH execution authorized | Action 16h transaction succeeded; independent evidence for file metadata, content, staging cleanup, and unchanged cached policy remained required | Defined exact type/owner/mode/size/hash/source checks, exact and patterned staging-absence checks, and `apt-cache policy caddy`; deliberately omitted GnuPG to avoid creating validation state | None; proposed action is entirely read-only | Exact command prepared from accepted Node B action 8f and Node A action 16h evidence; no live command executed | Expected keyring 5,024 bytes and `c17cd529...b90b37`; source 449 bytes and `b27d8e3...e199` | Exact action 16i is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact independent read-only action 16i command |
+| 2026-07-28T19:42:13Z | Node A (`j1-svpihole0`) | Independent read-only action 16i: validate installed repository files and staging cleanup | User explicitly authorized the exact independent read-only action 16i command; no APT refresh, package installation, or later action authorized | Action 16h transactional validation passed; installed file and cleanup evidence required independent confirmation | Streamed the exact non-GnuPG inspector for file type/metadata/hashes/source content, exact and patterned staging absence, and cached Caddy policy | None; every command was read-only | SSH exit `0`; both metadata and hash checks, source-content checks, zero staging matches, cached policy, and `caddy_repository_post_validation=true` passed | Keyring 5,024 bytes, `root:root` `0644`, SHA-256 `c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37`; source 449 bytes, `root:root` `0644`, SHA-256 `b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199` | Repository-file installation and staging cleanup independently accepted; cached policy remains Debian-only candidate `2.6.2-5` until a separately authorized refresh | Accept action 16i; stop before defining source-isolated official metadata retrieval |
+| 2026-07-28T19:44:31Z | Local workspace | Define source-isolated action 16j: refresh official Caddy stable metadata and validate candidate | User requested definition only; no Node A SSH execution or APT refresh authorized | Action 16i accepted repository files and cleanup; cached policy remained Debian-only | Defined an APT refresh scoped to the single Caddy source file, before/after byte snapshots of every non-Cloudsmith list file, Cloudsmith-list evidence, package policy/origin/architecture checks, exact HA-parity candidate `2.11.4`, temporary-state cleanup, and completion marker | Temporary comparison files are removed automatically; APT's official Caddy list cache is the intended persistent change and requires separate authorization to remove or refresh | Exact command prepared from accepted Node B action 8g and Node A action 16i evidence; no live command executed | Required candidate `2.11.4` arm64 from `https://dl.cloudsmith.io/public/caddy/stable/deb/debian` | Exact action 16j is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact source-isolated action 16j command |
+| 2026-07-28T19:47:37Z | Node A (`j1-svpihole0`) | Source-isolated action 16j: refresh official Caddy stable metadata and validate candidate | User explicitly authorized the exact source-isolated action 16j command; no package installation, listener, unit, service, or later action authorized | Action 16i accepted the official repository files; Caddy was uninstalled and cached policy remained Debian-only candidate `2.6.2-5` | Streamed the exact guarded refresh scoped to the installed Caddy source file; compared before/after hashes of every non-Cloudsmith list file; inspected Cloudsmith list files; validated policy, origin, architecture, exact candidate, cleanup, and completion marker | Temporary comparison directory removed automatically; the three official Caddy list-cache files are intentional persistent APT cache state | SSH exit `0`; fetched 24.2 kB only from the official Caddy stable source; non-Cloudsmith snapshots compared identically; three Cloudsmith cache files were found; output ended `caddy_candidate=2.11.4` and `caddy_repository_metadata_valid=true` | Candidate `2.11.4` arm64 at priority `500` from `https://dl.cloudsmith.io/public/caddy/stable/deb/debian`; InRelease SHA-256 `4e2df5f073fcc70eeb8c90ab84aee19e760ea943a6f24cdb2b66148c81a6e6e2`; arm64 Packages `995d4769a5ec8844d0fc9272c7b7c53eaa9c25dfae9aea2992bafb7a584c0b3e`; armhf Packages `4e5d015c99121d04df4da79ccca00e14ebab339d6a8f4e1d45044b2281b27cb3` | Official metadata and exact HA-parity candidate accepted; Caddy remains uninstalled and no service state changed | Accept action 16j; stop before defining the read-only version-pinned Caddy installation simulation |
+| 2026-07-28T19:49:46Z | Local workspace | Define read-only action 16k: simulate version-pinned Caddy installation | User authorized definition only; no Node A SSH execution, package installation, or service action authorized | Action 16j accepted official arm64 candidate `2.11.4`; Caddy remained uninstalled | Defined a fail-closed simulation that revalidates repository files, candidate, origin, architecture, package absence, and absent unit state; requires exactly one `Inst` and one `Conf` for Caddy `2.11.4` arm64, zero removals/upgrades/held packages, and byte-identical repository/cache hashes and service state before and after | None; the proposed command stores comparison evidence only in shell memory and performs no persistent write | Bash syntax, ShellCheck, and documentation validation required before presentation; no live command executed | Expected transaction: one new package, `caddy` `2.11.4` arm64; zero upgrades, removals, and not-upgraded packages | Exact action 16k is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact read-only action 16k command |
+| 2026-07-28T19:55:09Z | Node A (`j1-svpihole0`) | Read-only action 16k: simulate version-pinned Caddy installation | User explicitly authorized the exact read-only action 16k command; no package installation, listener, unit, service, or later action authorized | Action 16j accepted official candidate `2.11.4` arm64; Caddy package and both Caddy units were absent | Streamed the exact fail-closed simulation with repository hash, Cloudsmith cache hash, package status, unit state, candidate, origin, architecture, transaction-line, and APT-summary comparisons | None; all comparison values remained in shell memory and APT ran with `-s` | SSH exit `0`; exactly one `Inst` and one `Conf` line for Caddy, zero `Remv` lines, exact zero-upgrade/removal/not-upgraded summary, unchanged pre/post state, and `caddy_install_simulation_valid=true` | Proposed package `caddy` `2.11.4` arm64; transaction summary `0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded` | Exact one-package transaction accepted; Caddy remains uninstalled, both Caddy units remain absent/inactive, and unrelated autoremove candidates were reported but not selected | Accept action 16k; stop before defining transient package lifecycle and service-start-policy inspection |
+| 2026-07-28T19:57:02Z | Local workspace | Define transient action 16l: inspect Caddy package lifecycle, service artifacts, service-start policy, and listeners | User authorized definition and requested reference to Node B installation activity; no Node A SSH execution, download, installation, or service action authorized | Action 16k accepted exactly one proposed Caddy `2.11.4` arm64 package; Node B action 8i established package SHA-256 and unsafe automatic service behavior before inhibited action 8k | Adapted the accepted Node B action 8i audit to Node A with the Node B package hash pinned; added full bounded inspection of `postinst`, `prerm`, `postrm`, packaged Caddy service artifacts, canonical `policy-rc.d`, package/unit/listener state, exact cleanup, and pre/post equality | Failure trap removes only the action-created `/tmp/caddy-package-audit-node-a.*` tree; successful action also verifies patterned staging absence | Bash syntax, ShellCheck, `git diff --check`, and Markdown lint passed; no live command executed | Expected package SHA-256 `aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd`; Node B observed first-install enable/start behavior requiring inhibition | Exact action 16l is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact transient action 16l command |
+| 2026-07-28T20:00:41Z | Node A (`j1-svpihole0`) | Transient action 16l: inspect Caddy package lifecycle, service artifacts, service-start policy, and listeners | User explicitly authorized the exact transient action 16l command; no package installation, persistent file, listener, unit, service, or later action authorized | Action 16k accepted exactly one proposed package; Caddy and both units absent; Node B action 8i package hash and lifecycle behavior available for comparison | Streamed the exact protected package audit; downloaded and hash-checked the package, extracted and displayed lifecycle scripts and packaged units, inspected canonical start policy, compared package/unit/listener/policy state, and removed all staging | `/tmp/caddy-package-audit-node-a.zLipKa` removed successfully; zero matching staging paths remained | SSH exit `0`; exact package identity/hash, three scripts, two units, absent policy, unchanged pre/post state, staging cleanup, and `caddy_package_audit_complete=true` passed | Package SHA-256 `aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd`; `postinst` `1fee9388009745112e36d907eda37246b2d47e655eefb70ee3e3794b0ae65242`; `prerm` `7bc9264d9c99efd82ed9527b7a827f407abf970744a7f7925ed57081d79e8401`; `postrm` `0d998cf54a87ba085ae2dedf463df5a99df4787d388af08fae031f4552943ae2`; `caddy.service` `6c271e030644bd36a0c8956885934f16c928f88202bc126f12cde519ef9693ff`; `caddy-api.service` `a794bbf7d890eb9e1231bbad251890f87870815a96e3820b28a71819ba9f9c14` | Package matches Node B action 8i exactly; protected mode `0700` staging caused APT to download as root after `_apt` access was denied, as expected; the pinned hash validated the result; first install creates the Caddy identity/home/log directory, enables and attempts to start `caddy.service`, and reloads systemd, so ordinary installation would contend with lighttpd and is unsafe | Accept action 16l; define a fresh read-only immediate preinstallation-state gate before designing the Node A inhibited installation |
+| 2026-07-28T20:04:14Z | Local workspace | Define read-only action 16m: capture immediate Caddy preinstallation state | User authorized definition based on Node B action 8j; no Node A SSH execution, package installation, mask, policy, listener, unit, or service action authorized | Action 16l reconfirmed automatic first-install enable/start behavior and removed all staging; Node B action 8j retry accepted the equivalent immediate state before inhibited action 8k | Adapted the corrected Node B action 8j retry to Node A; added pinned repository/candidate checks, package and identity absence, package-owned path and administrative-mask absence, unit state, canonical start-policy absence, protected service activity, lighttpd-only TCP 80/443 ownership, absent UDP 443, and zero staging matches | None; the proposed command is entirely read-only and stores evidence only in shell memory | Bash syntax, ShellCheck, `git diff --check`, and Markdown lint passed; no live command executed | Required candidate `2.11.4` arm64; expected protected services active; Caddy package, identities, paths, units, masks, policy, process, and UDP 443 listener absent | Exact action 16m is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact read-only action 16m command |
+| 2026-07-28T20:06:57Z | Node A (`j1-svpihole0`) | Read-only action 16m: capture immediate Caddy preinstallation state | User explicitly authorized the exact read-only action 16m command; no package installation, mask, policy, listener, unit, service, or later action authorized | Action 16l accepted package behavior and cleanup; a fresh no-write state gate was required immediately before installation design | Streamed the exact fail-closed inspector for repository/candidate, package, binary, process, identities, package paths, unit/mask/policy state, protected services, listener ownership, UDP 443, and staging patterns | None; every command was read-only | SSH exit `0`; all assertions passed and output ended `caddy_preinstall_state_complete=true` | Candidate `2.11.4` arm64 at priority `500`; dpkg status absent; both units `not-found`/inactive; lighttpd PID `916` exclusively owns IPv4/IPv6 TCP 80 and IPv4 TCP 443; UDP 443 unused; lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL, and Munin Node active | Node A is in the accepted clean preinstallation state; no Caddy package, binary, process, identity, path, mask, policy, listener, unit, or staging artifact exists | Accept action 16m; define a transactional inhibited installation based on accepted Node B action 8k before requesting any mutation |
+| 2026-07-28T20:09:27Z | Local workspace | Define transactional action 16n: install Caddy `2.11.4` with activation inhibited | User authorized definition only; no Node A SSH execution, package installation, mask, policy, service, or listener mutation authorized | Action 16m accepted clean preinstallation state; Node B action 8k proved the required policy-plus-mask pattern | Defined a version-pinned, one-package transaction with a temporary exit-101 start policy, pre-masked Caddy units, Needrestart list-only mode, non-Caddy package inventory protection, protected file/service/listener snapshots, immediate package/binary/identity/path/integrity/unit validation, explicit policy cleanup, and persistent success-state masks | On failure, stop Caddy, attempt purge while inhibition remains, remove only pre-proven-absent Caddy paths, remove the temporary policy and staging, and unmask only after package removal is proven; retain/reassert masks and return rollback failure if purge cannot complete; protected baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | Bash syntax, ShellCheck, `git diff --check`, and Markdown lint passed; no live command executed | Expected installed binary `v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU2qA61w2tKkCWi0=`; success state is installed but inactive and masked, with lighttpd retaining all frontend listeners | Exact action 16n is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact transactional action 16n command and its bounded rollback |
+| 2026-07-28T20:16:57Z | Node A (`j1-svpihole0`) | Transactional action 16n attempt: install Caddy `2.11.4` with activation inhibited | User explicitly authorized the exact action 16n command and included rollback; no Caddy configuration, activation, or later action authorized | Action 16m accepted clean preinstallation state; exact command block SHA-256 `78cda3383e5d3d8a1c43624555103329f4fdfb23ed1e16f4b76937e6250bc25c` | Executed the living-plan command unchanged; prechecks and simulation passed; temporary exit-101 policy and both masks were installed; Caddy was installed; validation stopped on one expected-log-string assertion; automatic rollback stopped and purged Caddy, removed temporary state, restored package absence, unmasked, and internally compared protected state | Automatic rollback used the action-created policy/masks/staging and protected baseline `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`; output ended `caddy_install_rollback_complete=true` | SSH exit `1`; APT installed exactly Caddy `2.11.4`, policy exit `101` prevented start, both preset masks held, Needrestart reported no restart, then rollback purged exactly Caddy and passed its internal package/path/identity/service/listener/hash restoration checks | Actual inhibition evidence: `/usr/sbin/policy-rc.d returned 101, not running 'start caddy.service'`; validation expected `policy-rc.d denied execution of start`; Caddy package was purged | Installation result rejected because the textual assertion was not portable across the observed invocation path; rollback reported complete, but current state is not independently accepted | Stop; define and separately authorize read-only action 16n-a to confirm rollback before correcting or retrying |
+| 2026-07-28T20:19:31Z | Local workspace | Define independent read-only action 16n-a: verify action 16n rollback state | User authorized definition only; no Node A SSH execution, cleanup, retry, package, identity, file, mask, policy, listener, unit, or service mutation authorized | Action 16n rollback reported complete after the log-text mismatch, but no independent state had been collected | Defined a no-write audit of host identity, protected baseline, repository/candidate, dpkg status/audit/info residue, APT manual/cache state, active and backup identity files without exposing contents, package-owned paths, systemd helper residue, unit/process/policy/mask state, protected configuration hashes/services, listener ownership, UDP 443, and all action staging patterns | None; every proposed command is read-only; any inactive identity-backup residue is reported by filename and count only | Bash syntax, ShellCheck, `git diff --check`, and Markdown lint passed; no live command executed | Expected active Caddy state is entirely absent; APT archive cache is observational; strict acceptance also requires zero Caddy references in account backup files | Exact action 16n-a is defined; Node A and Node B remained otherwise unchanged | Stop and require separate authorization for the exact independent read-only action 16n-a command |
+| 2026-07-28T20:22:42Z | Node A (`j1-svpihole0`) | Independent read-only action 16n-a: verify action 16n rollback state | User explicitly authorized the exact independent read-only action 16n-a command; no cleanup, retry, package, identity, file, mask, policy, listener, unit, or service mutation authorized | Action 16n rollback reported complete; active and inactive residue required independent classification | Executed exact command block SHA-256 `ba7bbe5ed566613085c052f7f41120a8de58d9052af5fa74e37f319fc21956f5`; checked every defined package, identity, path, systemd, service, listener, staging, backup-file, and cache condition without printing protected contents | None; inspection only | SSH exit `1` only at the final strict zero-backup-residue assertion; every preceding active-state, repository, dpkg, path, systemd, process, policy, mask, protected hash/service, listener, UDP, and staging assertion passed | Caddy dpkg status empty; units `not-found`/inactive; lighttpd PID `916` retained all TCP 80/443 listeners; `/etc/passwd-`, `/etc/group-`, `/etc/shadow-`, and `/etc/gshadow-` contain inactive Caddy references; subuid/subgid backups do not; APT cache contains one root-owned mode `0644` Caddy `2.11.4` package with expected SHA-256 `aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd` | Operational rollback is independently clean; strict byte-level artifact restoration is not accepted because standard account backup files retain historical Caddy records; APT cache is verified non-runtime state | Stop; obtain explicit acceptance of the non-active backup/cache artifacts or separately define cleanup; recommendation is acceptance without editing account backup files |
+| 2026-07-28T20:24:26Z | Local workspace decision gate | Accept action 16n non-runtime rollback artifacts without cleanup | User accepted the four inactive account-backup references and verified APT cache object; no cleanup or retry authorized | Action 16n-a independently proved active operational rollback state clean and classified only non-runtime artifacts | Recorded acceptance without changing Node A; retained exact artifact paths and package hash as audit evidence | None; no cleanup was requested or performed | User decision plus action 16n-a evidence | Accepted backup references: `/etc/passwd-`, `/etc/group-`, `/etc/shadow-`, `/etc/gshadow-`; accepted cache: `/var/cache/apt/archives/caddy_2.11.4_arm64.deb`, SHA-256 `aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd` | Action 16n rollback is accepted as operationally complete; the failed installation remains rejected | Define a corrected retry separately; do not mutate or remove accepted account backup/cache artifacts |
+| 2026-07-28T20:28:32Z | Local workspace | Define corrected transactional action 16n retry with semantic inhibition evidence | User authorized definition only; no Node A SSH execution, package installation, identity creation, mask, policy, service, listener, configuration, or activation mutation authorized | Action 16n failed only on human-readable inhibition text; action 16n-a and user decision accepted operational rollback plus non-runtime artifacts | Added `Caddy/scripts/install-node-a-caddy-action16n-retry.sh`; preserved the original transaction protections and rollback while replacing log-text matching with a protected policy event file, direct exit-101 probe, and actual Caddy start-invocation evidence; no command manually reads, edits, or removes accepted account backup contents or the accepted APT cache | Same bounded rollback as action 16n: purge only newly installed Caddy, remove only active paths proven absent, preserve accepted non-runtime artifacts, and retain/reassert masks with exit `97` if restoration is incomplete | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Script SHA-256 `d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae`; expected policy probe exit `101`; expected actual start-inhibition event count at least one | Exact corrected action 16n retry is defined; Node A and Node B remained unchanged | Stop and require separate authorization for the exact hash-pinned retry command and its included rollback |
+| 2026-07-28T20:32:57Z | Node A (`j1-svpihole0`) | Corrected transactional action 16n retry: install Caddy `2.11.4` with semantic activation-inhibition evidence | User explicitly authorized the exact hash-pinned action 16n retry command and its included rollback; no Caddy configuration, activation, or later action authorized | Action 16n rollback and its accepted non-runtime artifacts were the pinned starting state; official candidate remained `2.11.4` arm64; Caddy active state was absent; lighttpd retained frontend listeners | Verified local script mode and hash, streamed the exact script, revalidated protected state and one-package simulation, installed protected exit-101 policy and both unit masks, installed only Caddy, captured the actual Caddy start request, removed temporary policy/staging, and ran immediate state validation | Included bounded rollback would purge only newly installed Caddy and remove only action-created active state while preserving accepted artifacts; rollback was not invoked | SSH exit `0`; `policy_probe_exit=101`; `policy_start_inhibition_events=1`; Caddy package/integrity, inactive/masked units, absent process, unchanged protected services/listeners/hashes, and cleanup assertions passed; output ended `caddy_inhibited_install_retry_complete=true` | Script SHA-256 `d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae`; Caddy `v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU2qA61w2tKkCWi0=`; protected policy SHA-256 `9625bd958e0fcde91aac4abe4fbe76892ff23ac92a9c0ab0615954791f285c40` | Caddy `2.11.4` is installed on Node A but inactive and masked; no Caddy configuration or activation occurred; lighttpd and protected state remained unchanged | Accept corrected action 16n retry; define an independent read-only post-install acceptance check before any configuration or activation |
+| 2026-07-28T20:36:37Z | Local workspace | Define read-only action 16n-b: independently validate Node A Caddy package convergence | User authorized definition only; no Node A SSH execution, package, file, identity, unit, process, listener, service, configuration, or activation mutation authorized | Corrected action 16n retry reported success; independent package and inactive-state acceptance remained outstanding | Added `Caddy/scripts/validate-node-a-caddy-action16n-install.sh`, derived from accepted Node B action 8l and pinned to Node A identity, rollback baseline, repository, package/unit hashes, protected configuration, services, listeners, masks, and all known transient staging patterns | None; proposed inspector is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Inspector SHA-256 `4316d13dce76b0b817ee32f231c7c166654226641f7826eb0b7043480eb5adba`; expected Caddy `2.11.4` arm64 and binary `v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU2qA61w2tKkCWi0=` | Exact independent acceptance scope defined; Node A and Node B remained unchanged | Stop and require separate authorization for exact read-only action 16n-b |
+| 2026-07-28T20:39:38Z | Node A (`j1-svpihole0`) | Read-only action 16n-b attempt: independently validate Caddy package convergence | User explicitly authorized exact inspector SHA-256 `4316d13dce76b0b817ee32f231c7c166654226641f7826eb0b7043480eb5adba`; no mutation or later action authorized | Corrected action 16n retry reported Caddy installed, inactive, and masked | Verified the local artifact and streamed it unchanged; host, baseline, repository, installed candidate, architecture, and zero-change APT simulation assertions ran before the inspector stopped | None; inspector was read-only and created no files | SSH exit `141`; APT reported Caddy already newest at `2.11.4` and exactly zero upgrades, additions, removals, or not-upgraded packages; no completion marker because later assertions did not run | Inspector `4316d13d...5adba`; observed installed/candidate Caddy `2.11.4` arm64 before stop | Read-only acceptance incomplete; `apt-mark showmanual \| grep -q` caused upstream SIGPIPE under `pipefail` after finding Caddy; no Node A mutation occurred | Correct the local pipeline without changing scope; require separate authorization before retry |
+| 2026-07-28T20:39:38Z | Local workspace | Correct read-only action 16n-b SIGPIPE handling | Minor mechanical failure correction only; no Node A retry authorized | The accepted zero-change APT evidence preceded exit `141`; the remaining read-only assertions were not reached | Capture complete `apt-mark showmanual` output in shell memory before exact-match validation, preventing early consumer closure; no assertion, target, or authorization scope changed | None; local artifact only | Bash syntax, ShellCheck, repository-profile shfmt, and `./Caddy/tests/run.sh --skip-container` passed | Corrected inspector SHA-256 `032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3` | Corrected exact retry is ready; Node A and Node B remained unchanged by this correction | Stop and require separate authorization for the corrected exact read-only action 16n-b retry |
+| 2026-07-28T20:41:47Z | Node A (`j1-svpihole0`) | Corrected read-only action 16n-b retry: independently validate Caddy package convergence | User explicitly authorized corrected inspector SHA-256 `032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3`; no mutation or later action authorized | Corrected action 16n installed Caddy inactive and masked; initial 16n-b attempt established only zero-change APT convergence before its local SIGPIPE stop | Verified local mode/hash and streamed the corrected inspector unchanged; independently checked rollback baseline, repository/candidate, zero-change simulation, package integrity, identity/directories, vendor units, masks/inactivity, process/policy absence, protected hashes/services, listeners, staging cleanup, and accepted cache | None; inspector was read-only and created no files | SSH exit `0`; zero package changes; clean package verification/audit; both units inactive/masked; all protected services active; output ended `caddy_package_convergence_valid=true` | Inspector `032b34bf...d3ea3`; Caddy `v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU2qA61w2tKkCWi0=`; identity UID `995`, GID `992`, supplemental `www-data`; accepted package cache present and hash-valid | Node A Caddy package installation is independently accepted; lighttpd PID `916` exclusively retains TCP 80/443; UDP 443 unused; no Caddy process, temporary policy, or staging remains | Accept action 16n-b; define the next single Node A dependency gate before requesting separate authorization |
+| 2026-07-28T20:44:15Z | Local workspace | Define read-only action 16o: simulate Node A HA/synchronization dependencies | User authorized definition only; no Node A SSH execution, package installation, service mutation, configuration, or activation authorized | Action 16n-b accepted the Caddy package; Node A's exact state for the manifest availability group must be observed without assuming Node B's action 8m result | Added `Caddy/scripts/simulate-node-a-ha-sync-dependencies.sh`; pins Node A identity and accepted Caddy inactive state, reports current requested-package versions, simulates exactly the five manifest packages, rejects removals, and proves package inventory, protected services, and listeners unchanged | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Simulator SHA-256 `fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f`; packages: `keepalived`, `lsyncd`, `rsync`, `openssh-client`, `openssh-server` | Exact read-only dependency simulation is defined; Node A and Node B remained unchanged | Stop and require separate authorization for exact action 16o |
+| 2026-07-28T20:46:18Z | Node A (`j1-svpihole0`) | Read-only action 16o: simulate HA/synchronization dependencies | User explicitly authorized simulator SHA-256 `fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f`; no package installation, service mutation, configuration, or later action authorized | Action 16n-b accepted Caddy `2.11.4` inactive/masked; exact Node A availability-group transaction remained unknown | Verified local mode/hash and streamed the simulator unchanged; checked Node A/Caddy state, reported five requested packages, simulated the exact manifest group, derived transaction counts, rejected removals, and compared package inventory, protected services, and listeners | None; action was read-only and created no files | SSH exit `0`; three install/configure actions, zero upgrades/removals/not-upgraded packages; unchanged package inventory, service state, and listeners; output ended `ha_sync_dependency_simulation_complete=true` | Proposed: `lsyncd` `2.2.3-1`, `lua5.3` `5.3.6-2`, `liblua5.3-0` `5.3.6-2`; current: Keepalived `1:2.2.7-1+b2`, rsync `3.2.7-1+deb12u6`, OpenSSH client/server `1:9.2p1-2+deb12u10` | Exact three-package addition is bounded; Caddy remained inactive/masked, protected services and listeners unchanged, and unrelated autoremove candidates unselected | Accept action 16o; inspect lsyncd package lifecycle and service artifacts under a separately defined and authorized transient gate |
+| 2026-07-28T20:48:29Z | Local workspace | Define transient action 16p: inspect Node A lsyncd package lifecycle and service artifacts | User authorized definition only; no Node A SSH execution, package installation, service mutation, configuration, or activation authorized | Action 16o bounded exactly three additions; accepted Node B action 8n established the expected lsyncd package hash and first-install service behavior | Added `Caddy/scripts/inspect-node-a-lsyncd-package.sh`; pins Node A/Caddy and lsyncd pre-state, downloads exact lsyncd `2.2.3-1` into protected temporary staging, verifies the Node B package hash, extracts and validates package metadata, `postinst`, and SysV init artifact, then removes staging and compares package/service/listener state | EXIT cleanup removes only `/tmp/lsyncd-package-audit-node-a.*` created by the action; no installed-state rollback because no installation occurs | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Inspector SHA-256 `8e39f3a422b6819616413977dd31d732fbca2be0459335c63802cac0d8464764`; expected package SHA-256 `25fc747c79502cab339be19e1ffe10155cf098b2621dd3f28fd47c19ffdfe45a` | Exact transient inspection is defined; Node A and Node B remained unchanged | Stop and require separate authorization for exact action 16p |
+| 2026-07-28T20:51:58Z | Node A (`j1-svpihole0`) | Transient action 16p attempt: inspect lsyncd package lifecycle and service artifacts | User explicitly authorized inspector SHA-256 `8e39f3a422b6819616413977dd31d732fbca2be0459335c63802cac0d8464764`; no installation, service mutation, or later action authorized | Action 16o bounded three additions; lsyncd, Lua dependencies, lsyncd paths/unit/mask, and start policy were required absent before staging | Verified local mode/hash and streamed the inspector unchanged; downloaded exact lsyncd package, verified its pinned hash, extracted control/payload, and printed package metadata and content listing before a lifecycle-text assertion stopped execution | EXIT trap was armed to remove only `/tmp/lsyncd-package-audit-node-a.sLH9Io`; cleanup has not yet been independently verified | SSH exit `1`; package download/hash, identity `2.2.3-1` arm64, extraction, and content listing passed; no completion marker and post-state assertions were not reached | Inspector `8e39f3a4...4764`; package `25fc747c...45a`; package contains executable `/etc/init.d/lsyncd` and no native systemd artifact in its listing | No package installation or service command ran; acceptance incomplete because the inspector expected literal `invoke-rc.d lsyncd start`, while package code dispatches through `$_dh_action` | Stop; independently verify cleanup/state before any retry |
+| 2026-07-28T20:51:58Z | Local workspace | Correct action 16p lifecycle semantics and define cleanup gate 16p-a | Minor mechanical failure correction; no Node A cleanup inspection or audit retry authorized | Local inspection of the same hash-pinned public package showed first-install assigns `_dh_action=start` and invokes `invoke-rc.d lsyncd $_dh_action`; failed remote staging cleanup remains unconfirmed | Pin `postinst` SHA-256, require both dynamic-action lines, and add a separate read-only inspector for staging absence, package/path/unit/policy absence, Caddy masks, protected services, and listener ownership | None; local artifacts only | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Corrected audit inspector `61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d`; cleanup inspector `ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93`; `postinst` `729e7b309d25efccb425c8b832de4a20567553509fbf7cced30f352b5c0287b4` | Corrected audit and cleanup gate are locally defined; Node A retry not performed | Stop and require separate authorization for exact read-only action 16p-a |
+| 2026-07-28T20:54:38Z | Node A (`j1-svpihole0`) | Read-only action 16p-a: verify failed lsyncd-audit cleanup and unchanged state | User explicitly authorized cleanup inspector SHA-256 `ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93`; no cleanup mutation, audit retry, installation, service mutation, or later action authorized | Initial action 16p exited after protected staging and package extraction; its EXIT cleanup had not been independently confirmed | Verified local mode/hash and streamed the read-only inspector unchanged; checked staging, package/path/unit/policy absence, dpkg audit, Caddy package/masks/process, protected services, and listener ownership | None; inspector was read-only and created no files | SSH exit `0`; all assertions passed; protected services active; output ended `lsyncd_audit_cleanup_valid=true` | Cleanup inspector `ad5e879e...fe93`; lsyncd, `lua5.3`, and `liblua5.3-0` remain absent; Caddy remains `2.11.4` inactive/masked | Failed action 16p staging is absent and Node A operational state remains accepted; lighttpd retains TCP 80/443 and UDP 443 is unused | Accept action 16p-a; require separate authorization for the exact corrected transient action 16p retry |
+| 2026-07-28T20:56:16Z | Node A (`j1-svpihole0`) | Corrected transient action 16p retry: inspect lsyncd lifecycle and service artifacts | User explicitly authorized corrected inspector SHA-256 `61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d`; no installation, service mutation, configuration, or later action authorized | Action 16p-a accepted complete cleanup and unchanged state; lsyncd and Lua dependencies remained absent | Verified local mode/hash and streamed the corrected inspector unchanged; downloaded and hash-checked exact lsyncd package, extracted metadata/control/payload, validated pinned `postinst`, dynamic first-install semantics, SysV artifact, native-unit absence, cleanup, and unchanged state | EXIT trap bounded to the action-created staging; normal cleanup completed and zero matching paths remained | SSH exit `0`; all lifecycle, artifact, package, dpkg-audit, cleanup, protected-service, listener, Caddy-mask, and lsyncd-absence assertions passed; output ended `lsyncd_package_audit_complete=true` | Inspector `61bd89b8...ee9d`; package `25fc747c...45a`; `postinst` `729e7b30...b4`; `/etc/init.d/lsyncd` artifact `27e0a67166e36a75f04c6b8548520a59d013442dcbc52542c30836c8e53a3611` | lsyncd first install runs `update-rc.d`, selects `_dh_action=start`, and invokes `invoke-rc.d`; later installation requires explicit inhibition and persistent masking; Node A remains unchanged | Accept corrected action 16p; define a fresh read-only lsyncd preinstallation-state gate before any installation |
+| 2026-07-28T20:58:18Z | Local workspace | Define read-only action 16q: capture immediate Node A lsyncd preinstallation state | User authorized definition only; no Node A SSH execution, package installation, unit/service mutation, configuration, or activation authorized | Corrected action 16p accepted package lifecycle and cleanup; a fresh fail-closed state gate is required immediately before designing inhibited installation | Added `Caddy/scripts/validate-node-a-lsyncd-preinstall-state.sh`; pins Node A identity, exact lsyncd/Lua candidates and three-package simulation, package/path/SysV/unit/mask/policy/staging absence, accepted Caddy masks, protected services, dpkg audit, package inventory, and listeners | None; proposed inspector is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Inspector SHA-256 `5a7189b6e81f028be32d2f63c9b8f48d7aeb078b6221fb7de1cf45f989f4c31b`; expected lsyncd `2.2.3-1`, Lua `5.3.6-2` | Exact immediate preinstallation gate is defined; Node A and Node B remained unchanged | Stop and require separate authorization for exact action 16q |
+| 2026-07-28T21:01:01Z | Node A (`j1-svpihole0`) | Read-only action 16q attempt: capture immediate lsyncd preinstallation state | User explicitly authorized inspector SHA-256 `5a7189b6e81f028be32d2f63c9b8f48d7aeb078b6221fb7de1cf45f989f4c31b`; no installation, service mutation, or later action authorized | Corrected action 16p accepted lifecycle and cleanup; lsyncd and Lua dependencies expected absent | Verified local mode/hash and streamed the inspector unchanged | None; inspector was read-only and creates no files | SSH exit `1` with no output; failure occurred before the APT simulation and completion marker, so the exact pre-simulation assertion is not established | Inspector `5a7189b6...c31b`; no new live version evidence returned | Action 16q is not accepted; no mutation occurred, but silent assertion ordering prevents evidence-based correction | Stop; run a separately authorized read-only diagnostic before changing or retrying the inspector |
+| 2026-07-28T21:01:01Z | Local workspace | Define read-only diagnostic action 16q-a | Failure-resolution definition only; no Node A diagnostic execution or retry authorized | Action 16q stopped before emitting any fact, and its assertions cover packages, candidates, paths, units, SysV links, staging, Caddy, protected services, and dpkg audit | Added `Caddy/scripts/diagnose-node-a-lsyncd-preinstall-stop.sh` to print each pre-simulation fact explicitly without asserting the planned value or running APT simulation | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba` | Exact bounded diagnostic is defined; Node A and Node B remained unchanged | Stop and require separate authorization for exact action 16q-a |
+| 2026-07-28T21:03:09Z | Node A (`j1-svpihole0`) | Read-only diagnostic action 16q-a: identify pre-simulation assertion drift | User explicitly authorized diagnostic SHA-256 `0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba`; no correction execution, retry, installation, service mutation, or later action authorized | Action 16q stopped silently before simulation; failure category unknown | Verified local mode/hash and streamed the diagnostic unchanged; printed every package/candidate, target, unit, SysV, staging, Caddy, protected-service, and dpkg-audit fact | None; diagnostic was read-only and created no files | SSH exit `0`; output ended `lsyncd_preinstall_diagnostic_complete=true`; every substantive prerequisite matched | lsyncd/Lua absent with candidates `2.2.3-1`/`5.3.6-2`; lsyncd load `not-found`, active `inactive`, enabled output empty; Caddy `2.11.4` inactive/masked; protected services active; dpkg audit empty | Exact failure identified: absent `lsyncd.service` produces an empty `systemctl is-enabled` value on Node A rather than literal `not-found`; no operational drift | Accept diagnostic; correct only the absent-unit enabled-state representation and require separate retry authorization |
+| 2026-07-28T21:03:09Z | Local workspace | Correct action 16q absent-unit enabled-state semantics | Minor mechanical correction only; no Node A retry authorized | Diagnostic proved every planned value except the textual representation of absent-unit enablement | Accept either empty or `not-found` from the already guarded `systemctl is-enabled` query; no other assertion or scope changed | None; local artifact only | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Corrected inspector SHA-256 `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73` | Corrected exact read-only retry is defined; Node A and Node B unchanged by local correction | Stop and require separate authorization for corrected action 16q retry |
+| 2026-07-28T21:06:03Z | Node A (`j1-svpihole0`) | Corrected read-only action 16q retry: capture immediate lsyncd preinstallation state | User explicitly authorized corrected inspector SHA-256 `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73`; no installation, service mutation, or later action authorized | Diagnostic action 16q-a established matching pre-simulation state and the local absent-unit correction passed repository validation | Verified local mode/hash and streamed the corrected inspector unchanged; all pre-simulation assertions reached the printed APT simulation before a later assertion stopped | None; inspector was read-only and created no files | SSH exit `1`; visible simulation reported exactly three new packages, zero upgrades/removals/not-upgraded packages, and the expected lsyncd/Lua versions; no completion marker was emitted | Inspector `2a662901...19d73`; proposed lsyncd `2.2.3-1`, Lua packages `5.3.6-2`; installed package state was not changed | Corrected retry remains unaccepted; failure is bounded to a simulation-output or unchanged-state assertion after the simulation was printed | Stop; define and separately authorize a read-only post-simulation diagnostic before any correction, retry, or installation |
+| 2026-07-28T21:06:03Z | Local workspace | Define read-only diagnostic action 16q-b | Failure-resolution definition only; no Node A diagnostic execution, correction, retry, installation, or service mutation authorized | Corrected action 16q reached and printed the expected APT simulation, then stopped before the completion marker | Added `Caddy/scripts/diagnose-node-a-lsyncd-post-simulation-stop.sh` to label simulation counts, each exact output match, before/after package/service/listener hashes and equality, and dpkg audit without enforcing the planned result | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Diagnostic SHA-256 `65fd94316aa2f1837ea7bdcc9530dec659fd50d9997333fa2a7e71a7ce0c386e` | Exact bounded post-simulation diagnostic is defined; Node A and Node B unchanged by local definition | Stop and require separate authorization for exact read-only action 16q-b |
+| 2026-07-28T21:09:37Z | Node A (`j1-svpihole0`) | Read-only diagnostic action 16q-b: identify post-simulation assertion mismatch | User explicitly authorized diagnostic SHA-256 `65fd94316aa2f1837ea7bdcc9530dec659fd50d9997333fa2a7e71a7ce0c386e`; no correction, retry, installation, or service mutation authorized | Corrected action 16q retry printed the expected simulation but exited before its completion marker | Verified local mode/hash and streamed the diagnostic unchanged; repeated the simulation and labeled every output and unchanged-state assertion | None; diagnostic was read-only and created no files | SSH exit `0`; counts `3`/`3`/`0`; all four output matches true; package inventory, protected-service state, and listeners byte-equivalent by hashes; dpkg audit empty; completion marker true | Inventory `21b39b46...f0dac`; services `d960f5d3...82a64`; listeners `10ef3d25...8ad50`; diagnostic `65fd9431...c386e` | No deterministic mismatch reproduced; all planned post-simulation assertions passed and Node A remained unchanged; the prior run's exact transient comparison cannot be reconstructed | Accept diagnostic 16q-b; require separate authorization for the unchanged corrected action 16q second retry |
+| 2026-07-28T21:11:21Z | Node A (`j1-svpihole0`) | Corrected read-only action 16q second retry: validate immediate lsyncd preinstallation state | User explicitly authorized corrected inspector SHA-256 `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73`; no installation, service mutation, or later action authorized | Diagnostic 16q-b immediately passed every post-simulation assertion; lsyncd and Lua dependencies remained absent | Verified local mode/hash and streamed the unchanged corrected inspector; validated host, packages/candidates, paths, unit/SysV/policy/staging absence, Caddy masks, protected services, dpkg audit, exact simulation, and before/after state | None; inspector was read-only and created no files | SSH exit `0`; exact three-package simulation, zero upgrades/removals/not-upgraded packages, unchanged state assertions, and `lsyncd_preinstall_state_complete=true` passed | Inspector `2a662901...19d73`; proposed lsyncd `2.2.3-1`, Lua packages `5.3.6-2`; Keepalived, rsync, and OpenSSH remained current | Immediate Node A lsyncd preinstallation state is accepted; unrelated autoremove candidates were reported but untouched | Accept action 16q; stop before defining or authorizing transactional inhibited lsyncd installation |
+| 2026-07-28T21:14:31Z | Local workspace | Define deployment action 16r: install Node A lsyncd with package-time activation inhibited | User authorized definition only; no Node A installation, service mutation, configuration, or activation authorized | Action 16q accepted the immediate absent state and exact three-package simulation; Node B action 8p proved the required inhibition/mask pattern | Added `Caddy/scripts/install-node-a-lsyncd-action16r.sh`; pins Node A/baseline/package versions, repeats prechecks and simulation, installs an exit-101 policy and pre-mask, installs only lsyncd and its two dependencies, records semantic start-inhibition events, disables/stops/re-masks the distribution service, removes transient policy/staging, and validates protected state | Automatic failure trap purges exactly lsyncd/Lua additions, removes only action-created `/etc/lsyncd`, policy, staging, and mask when full restoration succeeds; otherwise retains the lsyncd mask and exits `97`; baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Installer SHA-256 `db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b`; lsyncd `2.2.3-1`; Lua `5.3.6-2`; init artifact `27e0a671...a3611` | Exact action 16r is defined; Node A and Node B remain unchanged by local definition | Stop and require separate authorization for exact deployment action 16r and its included rollback |
+| 2026-07-28T21:17:16Z | Node A (`j1-svpihole0`) | Deployment action 16r: install lsyncd with package-time activation inhibited | User explicitly authorized exact installer SHA-256 `db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b` and its included bounded automatic rollback; no lsyncd configuration, custom service activation, or later action authorized | Action 16q accepted the immediate absent state, exact candidates, and three-package simulation; protected rollback baseline remained available | Verified the local artifact and streamed it unchanged; repeated all prechecks/simulation, installed a temporary exit-101 policy and pre-mask, installed exactly lsyncd plus two Lua dependencies, captured semantic start evidence, disabled/stopped/re-masked lsyncd, removed transient state, and validated packages, masks, processes, SysV links, Caddy, protected state, listeners, and hashes | Automatic rollback was armed against exactly the three additions and action-created state; it did not run because every assertion passed; baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | SSH exit `0`; exactly three additions and zero upgrades/removals/not-upgraded packages; policy probe `101`; one actual lsyncd start request inhibited; Needrestart reported no restart; output ended `lsyncd_inhibited_install_complete=true` | Installer `db41caaf...d065b`; transient policy `626935cf4069229afa6bdf49457bc438e38fac8038e1e472be36adbc3f3dff28`; lsyncd `2.2.3-1`/binary `Version: 2.2.3`; Lua packages `5.3.6-2` | Distribution lsyncd is installed but inactive/masked with no process or SysV start link; Caddy remains inactive/masked; protected services, listeners, and configuration remained unchanged; unrelated autoremove candidates untouched | Accept immediate action 16r result; independently validate full HA/synchronization dependency convergence before any further package group |
+| 2026-07-28T21:19:57Z | Local workspace | Define read-only action 16s: independently validate Node A HA/synchronization dependency convergence | User authorized definition only; no Node A validation execution, package, configuration, or service mutation authorized | Action 16r installed exactly lsyncd and its Lua dependencies under inhibition; immediate assertions passed but independent convergence remained required | Added `Caddy/scripts/validate-node-a-ha-sync-convergence-action16s.sh`; pins seven package versions/architectures/integrity, zero-change APT simulation, tool versions, Lua alternatives, lsyncd mask/process/SysV state, transient cleanup, Caddy masks, protected hashes/services/listeners, dpkg audit, and before/after state equality | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Validator SHA-256 `fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda`; expected seven-package group matches accepted Node B action 8q retry and Node A action 16r | Exact action 16s is defined; Node A and Node B remain unchanged by local definition | Stop and require separate authorization for exact read-only action 16s |
+| 2026-07-28T21:22:10Z | Node A (`j1-svpihole0`) | Read-only action 16s: independently validate HA/synchronization dependency convergence | User explicitly authorized validator SHA-256 `fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda`; no package, configuration, service mutation, or later action authorized | Action 16r installed exactly three packages under inhibition and left lsyncd inactive/masked; independent convergence remained required | Verified local mode/hash and streamed the validator unchanged; ran zero-change simulation, package version/architecture/integrity checks, tool and Lua alternative checks, lsyncd/Caddy protection, SysV/transient cleanup, protected hashes/services/listeners, dpkg audit, and before/after equality | None; validator was read-only and created no files | SSH exit `0`; zero pending package changes; seven packages validated; lsyncd had seven kill links and no start link/process; all protected assertions passed; completion marker true | Keepalived `2.2.7`; lsyncd `2.2.3`; rsync `3.2.7` protocol `32`; OpenSSH `9.2p1` with OpenSSL `3.0.20`; validator `fdfcec19...14eda` | Node A HA/synchronization dependency group is independently converged; lsyncd and Caddy remain inactive/masked; unrelated autoremove candidates untouched | Accept action 16s; stop before defining the validation/scripting dependency simulation |
+| 2026-07-28T21:24:07Z | Local workspace | Define read-only action 16t: simulate Node A validation/scripting dependencies | User authorized definition only; no Node A simulation execution, package, configuration, or service mutation authorized | Action 16s accepted HA/synchronization convergence; Node B action 8r proposed four additions, while Node A already retains three of them from authorized action 3c | Added `Caddy/scripts/simulate-node-a-validation-dependencies-action16t.sh`; pins the 12-package manifest group, accepted Caddy/lsyncd masks, exact action 3c package versions, absent uuid-runtime and candidate, one-package APT transaction, zero removals/upgrades, and before/after package/service/listener equality | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Simulator SHA-256 `4c093b94720d594863b9d37c39c4485db1c268098f61e04d0ff6e111c193697d`; expected sole addition uuid-runtime `2.38.1-5+deb12u3` | Exact action 16t is defined; Node A and Node B remain unchanged by local definition | Stop and require separate authorization for exact read-only action 16t |
+| 2026-07-28T21:26:13Z | Node A (`j1-svpihole0`) | Read-only action 16t attempt: simulate validation/scripting dependencies | User explicitly authorized simulator SHA-256 `4c093b94720d594863b9d37c39c4485db1c268098f61e04d0ff6e111c193697d`; no package, configuration, service mutation, or later action authorized | Action 16s accepted HA/synchronization convergence; uuid-runtime expected absent and the simulation expected one addition | Verified local mode/hash and streamed the simulator unchanged; execution stopped during its pre-simulation checks | None; simulator was read-only and created no files | SSH exit `141` with no output; no current-package listing, APT simulation, or completion marker was reached | Simulator `4c093b94...3697d`; no new live package/version evidence returned | Action 16t is unaccepted; no mutation occurred, and empty output does not distinguish the early `ip`/match or candidate-extraction pipelines under `pipefail` | Stop; run a separately authorized labeled read-only diagnostic before any correction or retry |
+| 2026-07-28T21:26:13Z | Local workspace | Define read-only diagnostic action 16t-a | Failure-resolution definition only; no Node A diagnostic execution, correction, retry, package, configuration, or service mutation authorized | Action 16t exited `141` before emitting its first labeled section; the exact early pipeline is unknown | Added `Caddy/scripts/diagnose-node-a-validation-simulation-stop-action16t-a.sh` to print Node identity/IPv4, Caddy and lsyncd package/unit/process state, action 3c packages, uuid-runtime status/policy/candidate, policy-file state, protected services, and dpkg audit without enforcing planned values or running APT simulation | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Diagnostic SHA-256 `49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39` | Exact diagnostic 16t-a is defined; Node A and Node B remain unchanged by local definition | Stop and require separate authorization for exact read-only diagnostic action 16t-a |
+| 2026-07-28T21:28:52Z | Node A (`j1-svpihole0`) | Read-only diagnostic action 16t-a: identify pre-simulation exit `141` | User explicitly authorized diagnostic SHA-256 `49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39`; no correction, retry, package, configuration, or service mutation authorized | Action 16t exited before its first label; either of two early producer pipelines could close under `pipefail` | Verified local mode/hash and streamed the diagnostic unchanged; captured complete IPv4 and uuid-runtime policy outputs before matching and printed every remaining pre-simulation fact | None; diagnostic was read-only and created no files | SSH exit `0`; completion marker true; every planned precondition matched | Node IPv4 `.53/22` plus Pi-hole VIP `.55/22`; Caddy `2.11.4` and lsyncd `2.2.3-1` inactive/masked; action 3c packages exact; uuid-runtime `un` with candidate `2.38.1-5+deb12u3`; policy absent; protected services active; dpkg audit empty | No operational drift; exit `141` is confined to early-closing output pipelines, not a failed state assertion; Node A unchanged | Accept diagnostic; capture complete producer output in both at-risk probes and require separate corrected retry authorization |
+| 2026-07-28T21:28:52Z | Local workspace | Correct action 16t early-pipeline handling | Minor mechanical correction only; no Node A retry or later action authorized | Diagnostic proved every planned pre-simulation value while the original pipelines could terminate producers early under `pipefail` | Capture complete `ip` and `apt-cache policy` output in shell memory before matching/extracting; preserve every value, package, count, state-comparison, and authorization assertion | None; local artifact only | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed | Corrected simulator SHA-256 `d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9` | Corrected exact read-only retry is defined; Node A and Node B unchanged by local correction | Stop and require separate authorization for corrected action 16t retry |
+| 2026-07-28T21:30:39Z | Node A (`j1-svpihole0`) | Corrected read-only action 16t retry: simulate validation/scripting dependencies | User explicitly authorized corrected simulator SHA-256 `d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9`; no package, configuration, service mutation, or later action authorized | Diagnostic 16t-a proved all preconditions; corrected producer handling passed full local validation | Verified local mode/hash and streamed the corrected simulator unchanged; validated Caddy/lsyncd protection, action 3c packages, uuid-runtime absence/candidate, all 12 current package states, exact APT transaction, dpkg audit, and before/after package/service/listener equality | None; simulator was read-only and created no files | SSH exit `0`; planned install/configure/remove counts `1`/`1`/`0`; zero upgrades/not-upgraded packages; completion marker true | Sole addition uuid-runtime `2.38.1-5+deb12u3`; simulator `d40f3422...323d9`; all 11 other manifest packages current at the versions recorded below | Node A validation/scripting transaction is bounded to one package because action 3c already supplied the other three Node B additions; protected state unchanged and autoremove candidates untouched | Accept action 16t; inspect uuid-runtime lifecycle and uuidd artifacts before any installation |
+| 2026-07-28T21:33:56Z | Local workspace | Define transient action 16u: inspect Node A uuid-runtime lifecycle and uuidd service artifacts | User authorized definition based on accepted Node B action 8s; no Node A execution, package installation, configuration, service command, or later action authorized | Corrected action 16t accepted uuid-runtime `2.38.1-5+deb12u3` as the sole proposed addition; Node B action 8s supplied the accepted package and lifecycle baseline | Added `Caddy/scripts/inspect-node-a-uuid-runtime-package-action16u.sh`; pins Node A identity and absence state, exact package/control/service/socket hashes, identity and directory side effects, SysV and systemd start semantics, payload paths, protected services, listeners, cleanup, and before/after equality | EXIT trap removes only the action-created `/tmp/uuid-runtime-package-audit-node-a.*` staging directory; the proposed action installs nothing | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Inspector `ddcb3c742549a41475d4a8fbbf5d7d4d9c453d8aa90b105288bd6f71004f18af`; package `ec805773...411`; postinst `5bf87cf7...460`; service `a8090eeb...a4b9`; socket `21f7cc7b...897` | Exact transient inspection is defined and fail-closed; Node A and Node B remain unchanged | Stop and require separate authorization for exact transient action 16u |
+| 2026-07-28T21:36:54Z | Node A (`j1-svpihole0`) | Transient action 16u: inspect uuid-runtime lifecycle and uuidd service artifacts | User explicitly authorized inspector SHA-256 `ddcb3c742549a41475d4a8fbbf5d7d4d9c453d8aa90b105288bd6f71004f18af`; no package installation, configuration, service command, or later action authorized | Corrected action 16t accepted only uuid-runtime as pending; uuid-runtime, uuidd identity/state/artifacts, policy, and audit staging were absent; Caddy and lsyncd inactive/masked | Verified local mode/hash and streamed the inspector unchanged; downloaded and verified the exact package, extracted control/payload, validated and printed lifecycle/service artifacts, then proved cleanup and before/after package/service/listener equality | EXIT trap was bounded to `/tmp/uuid-runtime-package-audit-node-a.5Kjiju`; normal cleanup completed and the script asserted zero matching staging paths | SSH exit `0`; all absence, hash, lifecycle, payload, cleanup, dpkg-audit, protected-service, listener, and unchanged-state assertions passed; output ended `uuid_runtime_package_audit_complete=true` | Package `ec805773...411`; postinst `5bf87cf7...460`; init script `4b93a446...6ad`; service `a8090eeb...a4b9`; socket `21f7cc7b...897` | Node A candidate exactly matches accepted Node B lifecycle: installation creates uuidd identity/state, enables service/socket, and requests start; Node A remained unchanged | Accept action 16u; define a fresh immediate preinstallation-state gate before inhibited installation |
+| 2026-07-28T21:39:57Z | Local workspace | Define read-only action 16v: capture immediate Node A uuid-runtime/uuidd preinstallation state | User authorized definition based on accepted Node B action 8t retry; no Node A execution, package installation, configuration, service command, or later action authorized | Action 16u accepted exact lifecycle evidence and cleanup; Node A still requires a fresh fail-closed state gate immediately before any inhibited installation | Added `Caddy/scripts/validate-node-a-uuid-runtime-preinstall-state-action16v.sh`; pins explicit non-`ii` package semantics, exact candidate and one-package simulation, uuidd identity/directory/artifact/unit/link/process absence, staging and policy absence, accepted Caddy/lsyncd masks, existing validation packages, protected services, dpkg audit, and before/after equality | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Validator SHA-256 `cdb24eb1a4e5e22961b421bfe899045fe295e203d6184904ff85903f1c125f75`; expected uuid-runtime `2.38.1-5+deb12u3` as the sole addition | Exact action 16v is defined and corrects the Node B initial 8t status-semantics defect from the outset; Node A and Node B remain unchanged | Stop and require separate authorization for exact read-only action 16v |
+| 2026-07-28T21:42:11Z | Node A (`j1-svpihole0`) | Read-only action 16v: capture immediate uuid-runtime/uuidd preinstallation state | User explicitly authorized validator SHA-256 `cdb24eb1a4e5e22961b421bfe899045fe295e203d6184904ff85903f1c125f75`; no package installation, configuration, service command, or later action authorized | Action 16u accepted lifecycle and cleanup; uuid-runtime expected dpkg status `un`; all uuidd active-state artifacts expected absent | Verified local mode/hash and streamed the validator unchanged; checked package/candidate, identities, paths, units, links, processes, policy/staging, accepted dependency and mask state, protected services, dpkg audit, exact APT simulation, and before/after equality | None; validator was read-only and created no files | SSH exit `0`; planned install/configure/remove counts `1`/`1`/`0`; zero upgrades and zero held-back packages; every absence and unchanged-state assertion passed; output ended `uuid_runtime_preinstall_state_complete=true` | uuid-runtime status `un`; candidate `2.38.1-5+deb12u3`; validator `cdb24eb1...5f75` | Clean immediate pre-state accepted; only uuid-runtime would be added, while existing autoremove candidates were reported but not selected; Node A remained unchanged | Accept action 16v; define a separately authorized transactional inhibited installation with persistent uuidd masks |
+| 2026-07-28T21:46:39Z | Local workspace | Define transactional action 16w: install only uuid-runtime under inhibition with persistent uuidd masks | User authorized definition only; no Node A execution, package installation, configuration, service command, or later action authorized | Action 16v accepted a clean immediate pre-state and exact one-package transaction; action 16u proved first-install identity, directory, enablement, and start side effects | Added `Caddy/scripts/install-node-a-uuid-runtime-action16w.sh`; pins candidate/version/artifact hashes, baseline and protected hashes, exact simulation, temporary semantic exit-101 policy, pre/post uuidd masks, package-time start evidence, identity/state/integrity checks, SysV disablement, protected-state equality, and bounded rollback | Before mutation, failures make no change; after mutation begins, rollback removes policy/staging, stops and masks uuidd, purges uuid-runtime, removes only transaction-created active uuidd identity/state, validates protected state, and deliberately retains both masks; incomplete rollback exits `97` | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Installer SHA-256 `9878613134e5af56a94e30bddb89f66cf8a2337e75001a66a48dfe3f486bdf09`; uuid-runtime `2.38.1-5+deb12u3`; init/service/socket hashes pinned from action 16u | Exact action 16w and rollback are defined; Node A and Node B remain unchanged | Stop and require separate authorization for exact transactional action 16w and included rollback |
+| 2026-07-28T21:49:31Z | Node A (`j1-svpihole0`) | Transactional action 16w: install only uuid-runtime under inhibition with persistent uuidd masks | User explicitly authorized installer SHA-256 `9878613134e5af56a94e30bddb89f66cf8a2337e75001a66a48dfe3f486bdf09` and its included bounded automatic rollback; no later action authorized | Action 16v accepted clean immediate pre-state, exact candidate, and sole-package transaction; uuidd identity/state/units/masks/process/policy/staging absent | Verified local mode/hash and streamed the installer unchanged; validated baseline/protected hashes and simulation, installed temporary exit-101 policy and both masks, installed only uuid-runtime, captured start evidence, disabled/stopped/re-masked uuidd, removed policy/staging, and validated package/artifacts/identity/state/protected equality | Rollback was armed after all read-only preconditions and before mutation but was not invoked because every assertion passed | SSH exit `0`; direct policy probe `101`; two actual start inhibition events; one package installed with zero upgrades/removals/held-back packages; final marker `uuid_runtime_inhibited_install_complete=true` | uuid-runtime `2.38.1-5+deb12u3` arm64; uuidd UID/GID `109/115`; state `uuidd:uuidd` mode `2775`; policy SHA-256 `3dac8badb4fda22ed852d2ec3c30372f010fe0cf1388832efa77697513e918d1` | uuid-runtime installed and validated; uuidd service/socket inactive/masked, process absent, temporary policy/staging removed, protected state unchanged, and autoremove candidates untouched | Accept action 16w; define a separately authorized independent validation/scripting convergence check |
+| 2026-07-28T21:51:53Z | Local workspace | Define read-only action 16x: independently validate Node A validation/scripting dependency convergence | User authorized definition only; no Node A execution, package, configuration, service mutation, or later action authorized | Action 16w installed the sole missing package under inhibition; Node B action 8v defines the accepted full-group convergence pattern | Added `Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x.sh`; independently pins all 12 package versions/architectures/integrity, zero-change APT state, key command versions and paths, manual uuid-runtime state, observed uuidd identity/directory/artifact/mask/SysV/process state, policy/staging absence, Caddy/lsyncd masks, protected hashes/services, listener ownership, UDP 443 absence, dpkg audit, and before/after equality | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Validator SHA-256 `40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537`; 12 exact package versions pinned | Exact independent convergence gate is defined; Node A and Node B remain unchanged by local definition | Stop and require separate authorization for exact read-only action 16x |
+| 2026-07-28T21:54:12Z | Execution platform; Node A not contacted | Read-only action 16x authorized attempt | User explicitly authorized validator SHA-256 `40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537`; no mutation or later action authorized | Action 16w accepted; exact action 16x remained locally validated and unexecuted | Submitted the exact pinned command for approved SSH execution; the platform rejected process creation because the Codex execution quota was exhausted | None; no process was created, no SSH connection occurred, and the validator did not run | No SSH exit status or Node A output; platform rejection occurred before execution | Validator remains `40f54596...e537`; no new live package, service, or hash evidence | Action 16x remains unexecuted and unaccepted; Node A state was not observed or changed | Stop; do not retry or circumvent the platform restriction; resume the exact action only after execution capacity is restored |
+| 2026-07-28T21:57:00Z | Node A (`j1-svpihole0`) | Exact read-only action 16x retry: independently validate validation/scripting convergence | User explicitly requested retry after being informed of the platform rejection; validator SHA-256 remained `40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537`; no mutation or later action authorized | Action 16w accepted; action 16x definition and local validation unchanged | Verified local mode/hash and streamed the exact validator unchanged; the complete 12-package APT convergence simulation ran before a silent post-simulation assertion stopped further evidence | None; validator was read-only and created no files | Zero-change APT result passed and all 12 packages reported current; no command-version, package-integrity, uuidd, protected-state, or completion output followed; wrapper transcript did not expose an SSH status | All 12 planned versions were printed as newest; validator `40f54596...e537`; no new accepted integrity or service evidence | Action 16x remains unaccepted; absence of the completion marker bounds the stop to the silent package-state/version/architecture/integrity block beginning with bash; Node A was not mutated | Stop; define and separately authorize a labeled read-only diagnostic before any correction or retry |
+| 2026-07-28T21:58:55Z | Local workspace | Define read-only diagnostic action 16x-a: identify exact package assertion mismatch | User authorized definition only; no Node A execution, correction, retry, package, configuration, service mutation, or later action authorized | Action 16x retry passed zero-change APT output then stopped silently in the package assertion block | Added `Caddy/scripts/diagnose-node-a-validation-dependency-stop-action16x-a.sh`; for each of the same 12 packages it captures and labels expected/observed dpkg status, version, architecture, query return codes, verification return/output, match booleans, first mismatch, total mismatch count, dpkg audit size, and before/after package inventory | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `9523fb7a6bdf48895ff67624330cfa46f4b86d66d49d533b053f863d2e461f0c`; 12 expected package versions unchanged | Exact diagnostic 16x-a is defined to collect mismatches without failing on them; Node A and Node B remain unchanged | Stop and require separate authorization for exact read-only diagnostic action 16x-a |
+| 2026-07-28T22:01:54Z | Node A (`j1-svpihole0`) | Read-only diagnostic action 16x-a: identify exact package assertion mismatch | User explicitly authorized diagnostic SHA-256 `9523fb7a6bdf48895ff67624330cfa46f4b86d66d49d533b053f863d2e461f0c`; no correction, retry, package, configuration, service mutation, or later action authorized | Action 16x had passed zero-change APT output and then stopped in its first package assertion block | Verified local mode/hash and streamed the diagnostic unchanged; it printed labeled results for bash, coreutils, findutils, and iproute2 before its own expected-version lookup failed | None; diagnostic was read-only and created no files | SSH exit `1`; bash status/version/architecture matched, but `dpkg --verify bash` returned `??5?????? c /etc/skel/.bashrc`; coreutils, findutils, and iproute2 were clean; diagnostic then exited at line 63 with `expected_versions[$package]: unbound variable`, without a completion marker | Exact original failing assertion is `[[ -z "$(dpkg --verify bash)" ]]`; the modified conffile is `/etc/skel/.bashrc`; diagnostic hash `9523fb7a...1f0c` | Action 16x failure is identified, but action 16x-a is incomplete because shfmt changed the unquoted hyphenated associative-array keys into arithmetic expressions (`iputils - arping`, `util - linux`, and `uuid - runtime`) | Stop; record the diagnostic defect and require separate authorization before defining or executing any correction or retry |
+| 2026-07-28T22:06:58Z | Local workspace | Define corrected read-only action 16x retry | User authorized definition only; no Node A execution, package, configuration, service mutation, or later action authorized | Action 16x-a identified the exact Bash conffile assertion and then exposed unsafe unquoted hyphenated associative-array keys | Added a separate retry validator preserving both failed artifacts; it labels all 12 package checks, accepts only the exact observed Bash conffile verification record, rejects every other conffile or payload difference, records `/etc/skel/.bashrc` metadata/hash and proves it unchanged, and retains all original convergence assertions | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, self-test, `git diff --check`, Markdown lint, focused pre-commit hooks, and `./Caddy/tests/run.sh --skip-container` passed; two full-suite attempts stopped before Podman build because configured rootless RunRoot `/run/user/1000` is read-only, including with a temporary `XDG_RUNTIME_DIR`; no live command executed | Validator SHA-256 `8cd4d7aac4fd25dd34bf79e75f1558abb4dfe7f4a9e8e1afbd05edb8fc0ca2f1`; mode `0755`; self-test covers `iputils-arping`, `util-linux`, `uuid-runtime`, unexpected conffile, and payload differences | Corrected fail-closed convergence validator is defined; it records but does not approve the content of the modified Bash conffile; current host validation passed, current container validation was not reached, and Node A and Node B remain unchanged | Stop and require separate authorization for the exact corrected read-only action 16x retry |
+| 2026-07-28T22:11:56Z | Node A (`j1-svpihole0`) | Exact corrected read-only action 16x retry | User explicitly authorized validator SHA-256 `8cd4d7aac4fd25dd34bf79e75f1558abb4dfe7f4a9e8e1afbd05edb8fc0ca2f1`; no package, configuration, service mutation, or later action authorized | Action 16x-a had established the Bash conffile difference; the corrected validator allowed only that exact difference and rejected all others | Verified local mode/hash and streamed the validator unchanged; zero-change APT simulation and labeled checks through procps ran | None; validator was read-only and created no files | SSH exit `1`; APT reported all 12 packages current and zero changes; bash through openssl passed; procps status/version/architecture matched but verification returned `??5?????? c /etc/sysctl.conf`; no tcpdump, util-linux, uuid-runtime, later-state, or completion evidence followed | Bash difference remained `??5?????? c /etc/skel/.bashrc`; newly observed procps difference is `??5?????? c /etc/sysctl.conf`; validator `8cd4d7aa...a2f1` | Fail-closed behavior was correct, but action 16x remains unaccepted and the final three package verification states remain unknown; Node A was unchanged | Stop; define and separately authorize a corrected non-enforcing all-package diagnostic before any expanded allow-list or validator retry |
+| 2026-07-28T22:15:47Z | Local workspace | Define non-enforcing read-only diagnostic action 16x-b | User authorized definition only; no Node A execution, validator correction, retry, package, configuration, service mutation, or later action authorized | Corrected action 16x retry exposed procps conffile drift and stopped before the final three packages | Added a separate 12-package collector with parallel package/version arrays, labeled metadata and query results, conffile/payload classification, per-conffile stat and SHA-256 evidence, aggregate counts, first-difference reporting, and unchanged inventory/audit enforcement | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, embedded self-test, `git diff --check`, focused pre-commit hooks, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `28beab618f313c10040006729f1c3ec39b7b88f1aa2aff640e0555defd7ee393`; mode `0755`; self-test covers 12-entry alignment, all three hyphenated names, mixed conffile/payload classification, and empty output | Diagnostic is non-enforcing for discovered package/query differences but fail-closed on Node identity or before/after inventory/audit change; Node A and Node B remain unchanged | Stop and require separate authorization for exact non-enforcing read-only diagnostic action 16x-b |
+| 2026-07-28T22:21:11Z | Node A (`j1-svpihole0`) | Exact non-enforcing read-only diagnostic action 16x-b | User explicitly authorized diagnostic SHA-256 `28beab618f313c10040006729f1c3ec39b7b88f1aa2aff640e0555defd7ee393`; no validator correction, retry, package, configuration, service mutation, or later action authorized | Corrected action 16x stopped at procps; tcpdump, util-linux, uuid-runtime, and aggregate verification state were unknown | Verified local mode/hash and streamed the diagnostic unchanged; collected all 12 labeled package sections, classified every verification record, captured conffile metadata/hashes, and proved inventory/audit equality | None; diagnostic was read-only and created no files | SSH exit `0`; 12 packages collected; metadata mismatches `0`; query failures `0`; differing packages `2`; conffile records/evidence `2`/`2`; payload records `0`; dpkg audit bytes `0` before/after; completion marker true | Bash `/etc/skel/.bashrc`: root:root `0644`, 3523 bytes, SHA-256 `16d4851cb36ab8003eb45e2a8ab12ef971db898e42513f8bb826482ccd97c77d`; procps `/etc/sysctl.conf`: root:root `0644`, 2348 bytes, SHA-256 `f5f0f57fffcca760b5aa56b008c44c0ac8f3cc2a868e9831777e92a5614aa08d` | Complete package-verification evidence is accepted as diagnostic only; all 12 package metadata values match and no payload drift exists; conffile contents were not printed or semantically reviewed; Node A remained unchanged | Accept action 16x-b; separately define a revised fail-closed validator before any execution |
+| 2026-07-28T22:25:29Z | Local workspace | Define revised fail-closed read-only action 16x retry2 | User authorized definition only; no Node A execution, package, configuration, service mutation, or later action authorized | Action 16x-b completed all 12 checks and established exactly two conffile records, exact metadata/hashes, and zero payload drift | Added a separate retry2 validator preserving all prior artifacts; it pins both exact verification records, both file metadata/hash states before and after, zero other conffile/payload records, and every original convergence assertion | None; proposed validator is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, embedded self-test, `git diff --check`, focused pre-commit hooks, and `./Caddy/tests/run.sh --skip-container` passed; current full Podman execution remains unavailable because the workstation RunRoot is read-only; no live command executed | Validator SHA-256 `99c267308c859579565332c037dbe8b9d873e923183d3541ef8e99d20f4b4a3b`; mode `0755`; test-runner SHA-256 `558c5941807bbe3e4747020af144e31b5867be7aa334d713b9c86923211a1d78` | Revised validator is fail-closed and state-pinned; neither conffile content is represented as semantically reviewed or approved; Node A and Node B remain unchanged | Stop and require separate authorization for exact revised fail-closed read-only action 16x retry2 |
+| 2026-07-28T22:27:41Z | Node A (`j1-svpihole0`) | Exact revised fail-closed read-only action 16x retry2 | User explicitly authorized validator SHA-256 `99c267308c859579565332c037dbe8b9d873e923183d3541ef8e99d20f4b4a3b`; no package, configuration, service mutation, or later action authorized | Action 16x-b established the exact two-conffile policy and clean remaining package state | Verified local mode/hash and streamed the validator unchanged; both pinned files, zero-change APT, and all 12 labeled package checks ran | None; validator was read-only and created no files | SSH exit `1`; both metadata/hash pins matched; all package metadata/version/architecture/verification policies matched; zero payload differences; output stopped after uuid-runtime and before any command-version or later convergence evidence; completion marker absent | Validator `99c26730...4a3b`; Bash and procps exact pinned records accepted; all ten other packages clean | The two-conffile package-verification policy is validated, but action 16x remains unaccepted because a silent assertion or command failure occurred in the immediately following command/version block; Node A was unchanged | Stop; define and separately authorize a labeled read-only diagnostic action 16x-c before any correction or retry |
+| 2026-07-28T22:30:20Z | Local workspace | Define labeled non-enforcing read-only diagnostic action 16x-c | User authorized definition only; no Node A execution, validator correction, retry, package, configuration, service mutation, or later action authorized | Retry2 passed all package checks then stopped before command-version evidence | Added a separate collector for all ten exact version commands and 13 exact executable paths; it captures command text, output, return code, match mode/result, existence, executable/symlink state, stat evidence, aggregate counts, and first failure without stopping on observed mismatches | None; proposed diagnostic is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, embedded matcher self-test, `git diff --check`, focused pre-commit hooks, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `fad25b75949b3dc0de9d224e0232cae299277fa020a31505173b34e211f01859`; mode `0755`; test-runner SHA-256 `853303563d2362191b54335bfde8ce569a7b959194572918834decb99803521e` | Diagnostic distinguishes query failure, version-text mismatch, and command-path mismatch; it is non-enforcing for those observations but fail-closed on Node identity or inventory/audit change; Node A and Node B remain unchanged | Stop and require separate authorization for exact labeled read-only diagnostic action 16x-c |
+| 2026-07-28T22:32:39Z | Node A (`j1-svpihole0`) | Exact labeled non-enforcing read-only diagnostic action 16x-c | User explicitly authorized diagnostic SHA-256 `fad25b75949b3dc0de9d224e0232cae299277fa020a31505173b34e211f01859`; no validator correction, retry, package, configuration, service mutation, or later action authorized | Retry2 had passed every package assertion and stopped before its unlabeled command-version assertions | Verified local mode/hash and streamed the diagnostic unchanged; collected all ten version probes and all 13 command-path probes while enforcing unchanged package inventory and dpkg audit | None; diagnostic was read-only and created no files | SSH exit `0`; ten version matches, zero query failures, 13 path probes, one path mismatch, unchanged zero-byte dpkg audit, and completion marker true | All ten expected version strings matched; diagnostic `fad25b75...1859`; `/usr/sbin/ip` was executable and a root-owned mode-`0777` symlink of length 7; the other 12 paths matched the regular-file policy | Action 16x-c is accepted as diagnostic evidence only; the retry2 stop is localized to its non-symlink assertion for `/usr/sbin/ip`; the link target was not collected, action 16x remains unaccepted, and Node A remained unchanged | Stop; define a separately authorized labeled read-only action 16x-d to resolve and verify the symlink and its package ownership before correcting the validator |
+| 2026-07-28T22:35:48Z | Local workspace | Define labeled read-only action 16x-d | User authorized definition only; no Node A execution, validator correction, retry, package, configuration, service mutation, or later action authorized | Action 16x-c localized the retry2 stop to `/usr/sbin/ip`, but did not collect its link text, canonical target, target metadata, or package ownership | Added `Caddy/scripts/diagnose-node-a-ip-symlink-action16x-d.sh` and its host-suite self-test; the collector records literal and canonical targets, link and target metadata, canonical SHA-256, three ownership queries, iproute2 package state/file-list membership/integrity, and unchanged inventory/audit | None; proposed action is read-only and creates no files on Node A | Bash syntax, ShellCheck, repository-profile shfmt, embedded target-resolution self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `cc1fccbd861201ba2844c40144995f009861d893e0bae93a0615ac17261c629b`; mode `0755`; test-runner SHA-256 `8c2d04d0d40219b397e548a564550b1ae6f59168be97e07fec56ad1ccc235179` | Exact diagnostic is locally validated; ownership results remain observations until collected from Node A, and no validator policy was changed | Stop and require separate authorization for exact labeled read-only action 16x-d |
+| 2026-07-28T22:37:55Z | Node A (`j1-svpihole0`) | Exact labeled read-only action 16x-d | User explicitly authorized diagnostic SHA-256 `cc1fccbd861201ba2844c40144995f009861d893e0bae93a0615ac17261c629b`; no validator correction, retry, package, configuration, service mutation, or later action authorized | Action 16x-c established an executable `/usr/sbin/ip` symlink but not its target or package ownership | Verified local mode/hash and streamed the diagnostic unchanged; captured link chain, dereferenced and canonical metadata, canonical SHA-256, ownership queries, iproute2 state/integrity, and unchanged inventory/audit | None; diagnostic was read-only and created no files | SSH exit `0`; `/usr/sbin/ip` links to `/bin/ip` and canonicalizes to `/usr/bin/ip`; target is root:root mode `0755`, 746760 bytes; all three ownership queries returned `1`; iproute2 was installed and clean; completion marker true | Canonical target SHA-256 `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`; iproute2 `6.1.0-3` arm64; diagnostic `cc1fccbd...c629b` | Link chain and target metadata are accepted as diagnostic evidence, but package ownership remains unresolved because the collector normalized literal `/bin/ip` to `/usr/bin/ip` before both ownership and file-list checks; Node A was unchanged and action 16x remains unaccepted | Stop; define a separately authorized read-only action 16x-e that preserves and queries raw `/bin/ip` before any validator correction |
+| 2026-07-28T22:40:49Z | Local workspace | Define labeled read-only action 16x-e | User authorized definition only; no Node A execution, validator correction, retry, package, configuration, service mutation, or later action authorized | Action 16x-d established `/bin/ip` as the raw link target but normalized it before package ownership and file-list queries | Added `Caddy/scripts/diagnose-node-a-iproute2-ownership-action16x-e.sh` and its host-suite self-test; the collector preserves raw `/bin/ip`, captures raw/canonical/frontend ownership results, iproute2 list-file provenance and relevant entries, package integrity, and raw/canonical inode and hash equality | None; proposed action is read-only and creates no files on Node A | Bash syntax, ShellCheck, repository-profile shfmt, embedded owner/filter self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live command executed | Diagnostic SHA-256 `91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d`; mode `0755`; test-runner SHA-256 `9fe3ce6d8ddf3d57311068c057079f48118aae7e659f15583d7b61d75308c904` | Exact diagnostic is locally validated; it distinguishes dpkg's registered raw path from merged-/usr aliases and does not modify the fail-closed validator | Stop and require separate authorization for exact labeled read-only action 16x-e |
+| 2026-07-28T22:42:32Z | Node A (`j1-svpihole0`) | Exact labeled read-only action 16x-e | User explicitly authorized diagnostic SHA-256 `91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d`; no validator correction, retry, package, configuration, service mutation, or later action authorized | Action 16x-d had established the link chain but left raw `/bin/ip` ownership unresolved | Verified local mode/hash and streamed the diagnostic unchanged; identity and link-chain guards passed and read-only ownership/package queries began | None; diagnostic was read-only and created no files | SSH exit `2`; `dpkg-query --control-path iproute2 .list` returned `control file contains .`; buffered evidence sections and completion marker were not emitted | Diagnostic `91571f9f...56d2d`; local and Node A dpkg-query usage identifies the optional argument as a logical control-file name rather than a dotted filename | Action 16x-e is incomplete; no ownership or reconciliation result is accepted from the absent transcript, Node A was unchanged, and action 16x remains unaccepted | Stop; define a corrected read-only retry using control-file name `list`, validate that grammar, and require separate authorization before execution |
+| 2026-07-28T22:46:11Z | Local workspace | Define corrected labeled read-only action 16x-e retry | User authorized definition only; no Node A retry execution, validator correction, package, configuration, service mutation, or later action authorized | Original action 16x-e rejected `.list`; initial correction candidate `dpkg-query --control-path package list` returned an empty path with exit `0` during local grammar validation | Preserved the failed artifact and added `Caddy/scripts/diagnose-node-a-iproute2-ownership-action16x-e-retry.sh`; it resolves a valid `md5sums` control-file anchor, derives the package-info directory and architecture-qualified `${binary:Package}.list` path, and retains all ownership/reconciliation checks | None; proposed retry is read-only and creates no files on Node A | Bash syntax, ShellCheck, repository-profile shfmt, live local dpkg grammar self-test, failed-artifact hash check, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live node contacted | Retry SHA-256 `ab348a90a31d8cb2d53415b3456c8fc2b2bcb147c5b3ec5b722c21b7b03b6d45`; mode `0755`; failed artifact remains `91571f9f...56d2d`; test-runner SHA-256 `3d3b20b3b2cd94b9920e90f60defd3649430a0c52b40985504dc22a9f7ac4b1e` | Corrected retry is locally validated without relying on the empty `list` lookup; Node A and the fail-closed validator remain unchanged | Stop and require separate authorization for exact corrected read-only action 16x-e retry |
+| 2026-07-28T22:47:47Z | Node A (`j1-svpihole0`) | Exact corrected labeled read-only action 16x-e retry | User explicitly authorized retry SHA-256 `ab348a90a31d8cb2d53415b3456c8fc2b2bcb147c5b3ec5b722c21b7b03b6d45`; no validator correction, package, configuration, service mutation, or later action authorized | Corrected retry was locally validated; raw `/bin/ip` ownership remained the final unresolved command-path fact | Verified retry mode/hash and preserved failed-artifact hash, then streamed the corrected collector unchanged; captured raw/alias ownership, package-control provenance, relevant file entries, package integrity, raw/canonical identity, and unchanged inventory/audit | None; retry was read-only and created no files | SSH exit `0`; raw `/bin/ip` is owned by iproute2 and appears in its file list; `/bin/ip` and `/usr/bin/ip` have identical device/inode and SHA-256; iproute2 integrity and audit clean; completion marker true | iproute2 `6.1.0-3` arm64; list `/var/lib/dpkg/info/iproute2.list`, root:root `0644`, 6170 bytes, SHA-256 `72b1b6ce7f4f4ee3b27897116329ea119de664a71a2f642fd326e889cfac471b`; target SHA-256 `2c9d712b...cb835` | Package ownership and merged-/usr equivalence are accepted as diagnostic evidence; Node A was unchanged, but action 16x remains unaccepted until a revised fail-closed validator completes | Stop; define a separate fail-closed action 16x retry3 before any execution |
+| 2026-07-28T22:53:03Z | Local workspace | Define fail-closed read-only action 16x retry3 | User authorized definition only; no Node A execution, package, configuration, service mutation, or later action authorized | Corrected action 16x-e retry established the exact `/usr/sbin/ip` → `/bin/ip` → `/usr/bin/ip` chain, iproute2 ownership/list provenance, target identity, and clean package state | Preserved retry2 and added a separate retry3 validator; retained every package, conffile, version, service, listener, identity, and integrity gate; replaced only the generic `/usr/sbin/ip` non-symlink assertion with an exact pinned chain policy and before/after immutability proof | None; proposed validator is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, embedded positive and negative chain-policy self-tests, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live node contacted | Validator SHA-256 `acced80dbdcc2eeae2e7783681c887165f82f03f7c117e4d3f036896472da13f`; mode `0755`; retry2 remains `99c26730...4a3b`; test runner `06d35976...d66af` | Retry3 accepts only the evidenced merged-/usr chain and rejects altered link text, ownership, file-list entries, metadata, hashes, or identity; Node A and Node B remain unchanged | Stop and require separate authorization for the exact pinned read-only action 16x retry3 |
+| 2026-07-28T22:55:16Z | Node A (`j1-svpihole0`) | Exact fail-closed read-only action 16x retry3 | User explicitly authorized validator SHA-256 `acced80dbdcc2eeae2e7783681c887165f82f03f7c117e4d3f036896472da13f`; no package, identity, permission, configuration, service, listener, or later mutation authorized | Retry3 was locally validated and retry2 remained pinned; action 16x was unaccepted pending complete convergence | Verified local mode and both validator hashes, then streamed retry3 unchanged; validated both pinned conffiles, exact iproute2 chain, zero-change APT, all 12 packages, ten command versions, executable paths, integrity, uuidd masks/inactivity, protected services/listeners, and unchanged inventory/audit/chain state | None; validator was read-only and created no files | SSH exit `0`; all fail-closed assertions passed; `validated_package_count=12`, two pinned and zero unexpected conffile differences, zero payload differences, seven uuidd SysV kill links, and both completion markers true | Validator `acced80d...a13f`; ip target `2c9d712b...cb835`; iproute2 list `72b1b6ce...471b`; Bash conffile `16d4851c...77d`; procps conffile `f5f0f57f...08d` | Node A validation/scripting dependencies are accepted as converged; package versions and chain state matched all pins; Node A remained unchanged | Accept action 16x; stop and define the next single Node A service-identity and permission action based on accepted Node B action 9 |
+| 2026-07-28T23:01:39Z | Local workspace | Define transactional Node A action 16y: service identities, TLS memberships, and protected directories | User authorized definition only; no Node A execution or mutation authorized | Action 16x accepted dependencies and protected state; action 16n-b established Caddy UID/GID `995/992` and `www-data` membership; action 16b baseline retained; new namespace and paths were last observed absent | Added a dedicated transaction preserving Node B action 9’s identity/permission contract while pinning Node A state; it freshly rejects occupied names/paths, creates three system groups, two locked users without skeleton content, exact TLS memberships, and six protected directories, then proves package/service/listener/configuration invariance | On failure, per-object creation flags limit automatic removal to action-created identities/membership and exact empty paths; semantic pre-state must be restored or exit `97` with manual intervention; baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | Bash syntax, ShellCheck, repository-profile shfmt, group-set self-test, exact command-path correction, nonrecursive rollback review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live node contacted | Installer SHA-256 `e992fa3d85debfbbc1275e925e7e159fddd4b1a306d54a80ca32b8ced960bdcf`; mode `0755`; test runner `562c0d49...7b01` | Exact action is locally validated; numeric IDs for new system identities intentionally remain runtime observations; Node A and Node B unchanged | Stop and require separate authorization for exact action 16y and its bounded automatic semantic rollback |
+| 2026-07-28T23:05:24Z | Node A (`j1-svpihole0`) | Transactional action 16y: create service identities, TLS memberships, and protected directories | User explicitly authorized exact installer SHA-256 `e992fa3d85debfbbc1275e925e7e159fddd4b1a306d54a80ca32b8ced960bdcf` and its included bounded automatic semantic rollback; no later action authorized | Action 16x accepted dependencies/protected state; Caddy UID/GID `995/992` with `www-data`; new identity namespace and paths were required absent before mutation | Verified local mode/hash and streamed the installer unchanged; all fresh preconditions passed; created three groups, two locked system users, exact TLS memberships, and six protected directories; immediately verified identities, permissions, package/service/listener/configuration invariance, masks, processes, and dpkg audit | Automatic rollback was armed with per-object flags but was not invoked; protected baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | SSH exit `0`; all assertions passed; output ended `service_identity_install_action16y_complete=true`; no rollback or manual-intervention marker | `caddy-tls` GID `991`; `caddy-sync` UID/GID `994/990`; `keepalived_script` UID/GID `993/989`; installer `e992fa3d...bdcf` | Caddy retained UID/GID `995/992` and `www-data`, and gained `caddy-tls`; all three intended users are the only `caddy-tls` members; exact directories/modes accepted; protected state unchanged | Accept action 16y; stop and define a read-only Node A non-local-binding sysctl preflight based on the accepted Node B action 10 sequence |
+| 2026-07-28T23:08:16Z | Local workspace | Define read-only Node A action 16z: non-local-binding sysctl preflight | User authorized definition only; no Node A inspection or mutation authorized | Action 16y accepted identities/directories; historical and invariant evidence retained IPv4 non-local bind `1`, IPv6 `0`, and absent Node A target | Added a dedicated collector using absolute `/usr/sbin/sysctl`; it pins procps and Action 16y state, requires target/staging absence, records both runtime values before/after, and proves package/service/listener/configuration invariance | None; proposed action is read-only and creates no files | Bash syntax, ShellCheck, repository-profile shfmt, binary-value self-test, exact procps verification correction, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live node contacted | Inspector SHA-256 `904992007e0bffa5028a2a3857ffee20be1c2fc4a4a838b24863c99e6b7e123d`; intended sysctl artifact `d7036eae...e8`; test runner `d10dcfe0...deb` | Exact preflight is locally validated; it will fail closed if either runtime value or any accepted identity/protected-state pin drifted; Node A and Node B unchanged | Stop and require separate authorization for exact read-only action 16z |
+| 2026-07-28T23:10:11Z | Node A (`j1-svpihole0`) | Exact read-only action 16z: non-local-binding sysctl preflight | User explicitly authorized inspector SHA-256 `904992007e0bffa5028a2a3857ffee20be1c2fc4a4a838b24863c99e6b7e123d`; no sysctl file, runtime-value, service, listener, configuration, or later mutation authorized | Action 16y accepted identities/directories; target and staging expected absent; accepted runtime state IPv4 `1`, IPv6 `0` | Verified local inspector and intended-artifact hashes, then streamed the inspector unchanged; validated procps/sysctl, target/staging absence, both runtime values before/after, all Action 16y state, masks/processes, and package/service/listener/configuration invariants | None; inspector was read-only and created no files | SSH exit `0`; output reported `/usr/sbin/sysctl`, procps-ng `4.0.2`, IPv4 `1`, IPv6 `0`, absent target, zero staging, and completion marker; all silent invariants passed | Inspector `90499200...123d`; intended artifact `d7036eae...e8`; procps `2:4.0.2-3` | Exact pre-state accepted: Node A target absent, runtime values stable at `1/0`, identities/directories and protected state unchanged | Accept action 16z; stop and define the transactional Node A sysctl installation based on this evidence and accepted Node B action 10 second retry |
+| 2026-07-28T23:13:54Z | Local workspace | Define transactional Node A action 16aa: install and apply non-local-binding sysctl state | User authorized definition only; no Node A execution, file installation, runtime sysctl write, or later mutation authorized | Action 16z accepted exact target/staging absence, runtime IPv4 `1` and IPv6 `0`, Action 16y identities, and protected state | Added a dedicated transaction with a self-tested byte-exact renderer, protected randomized same-directory stage, exclusive hard-link target creation, conditional runtime writes, complete before/after invariants, and bounded rollback | On failure, restore only runtime values marked changed, remove only the exclusively action-created target and exact randomized stage, and prove accepted pre-state; exit `97` on incomplete rollback | Bash syntax, ShellCheck, repository-profile shfmt, 136-byte renderer/hash self-test, race-safe target/rollback review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no live node contacted | Installer SHA-256 `a7a0766c2777a4c7fcdc8f19f4af8e7ba40480313b60b03ea5520d50a3c7adb2`; artifact `d7036eae...e8`; test runner `0471a7c8...c35` | Exact transaction is locally validated; expected writes are IPv4 `false` and IPv6 `true`; Node A and Node B unchanged | Stop and require separate authorization for exact action 16aa and its included bounded automatic rollback |
+| 2026-07-28T23:17:10Z | Node A (`j1-svpihole0`) | Exact transactional action 16aa: install and apply non-local-binding sysctl state | User explicitly authorized installer SHA-256 `a7a0766c2777a4c7fcdc8f19f4af8e7ba40480313b60b03ea5520d50a3c7adb2` and its included bounded automatic rollback; no later action authorized | Action 16z accepted absent target/staging, runtime IPv4 `1` and IPv6 `0`, Action 16y identities, and protected state | Verified local script/artifact hashes and streamed the exact installer unchanged; exclusively created the persistent file, skipped the already-satisfied IPv4 write, applied IPv6 non-local binding, and ran all immediate invariant checks | Automatic rollback was armed but not invoked; protected baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | SSH exit `0`; output reported the exact target hash, IPv4 `1` to `1` with write `false`, IPv6 `0` to `1` with write `true`, and completion marker true; all silent protected-state checks passed | Installer `a7a0766c...adb2`; target `d7036eae...e8`; target is 136-byte `root:root` mode `0644` by enforced transaction assertions | Node A persistent sysctl state and runtime values are accepted at `1/1`; no rollback or manual-intervention marker appeared | Accept action 16aa; stop and require separate authorization before defining the next single Node A inactive lighttpd-preparation action |
+| 2026-07-28T23:26:38Z | Local workspace | Define inactive Node A action 16ab: prepare and validate a staged lighttpd tree | User authorized definition only; no Node A execution, staging transfer, live configuration write, listener change, service mutation, or later action authorized | Action 16aa accepted exact `1/1` sysctl state; Node B action 11 accepted the corrected `0750` staging-root behavior after its initial split validation exposed a mode mismatch | Added a hash-pinned workstation runner and Node A driver; one SSH stream carries only the driver, corrected renderer, and desired-state record; a root-only source stage is removed and only a strictly validated candidate may remain | On failure, remove only the exact source and candidate stages, prove live packages, identities, services, listeners, complete lighttpd file content, protected hashes, and dpkg audit unchanged; exit `97` on incomplete cleanup | Bash and remote-wrapper syntax, ShellCheck, shfmt, both self-tests, focused and full pre-commit, `git diff --check`, and the complete host suite passed; full `tests/run.sh` then stopped at Podman because `/run/user/1000/libpod` is read-only; no live node contacted | Runner `6b07016f...0e21`; driver `064fae66...c1a5`; renderer `ce9a78aa...166f`; desired state `8299970d...9027`; test runner `eb1249a0...4e9` | Exact inactive preparation is locally validated at the host layer; existing renderer container coverage remains historical, but fresh Podman execution was not reached; successful execution can create only the candidate under `/var/tmp` | Stop and require separate authorization for exact action 16ab and its included bounded cleanup |
+| 2026-07-28T23:30:43Z | Node A (`j1-svpihole0`) | Exact inactive action 16ab: prepare and validate a staged lighttpd tree | User explicitly authorized runner SHA-256 `6b07016f2cd7381ff46dbb857652f8cbd6d587fb9bbaa497eaccd6fbf8df0e21` and its included bounded cleanup; no live configuration, listener, service, or later action authorized | Action 16aa accepted `1/1` sysctl state; source and candidate stages required absent; accepted live lighttpd main/external and Keepalived hashes plus protected state were pinned | Verified all local modes/hashes and both self-tests, then ran the exact runner; transferred only the three pinned artifacts, rendered and natively validated the candidate, proved all live/protected invariants, removed source staging, and removed the workstation archive | Driver and wrapper cleanup were armed but not invoked for the candidate; normal source/archive cleanup completed; protected baseline remains `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` | Runner/SSH exit `0`; renderer preparation marker, driver completion marker, and source-cleanup marker present; candidate mode `root:root:750`; local archive search empty; all silent invariants passed | Candidate main `c48b3f0a...6a99`; candidate tree `6e178911...6c13`; live tree `b15ff54d...cb92`; runner `6b07016f...0e21` | Inactive Node A candidate is accepted at `/var/tmp/caddy-ha-lighttpd-node-a-action16ab`; live `/etc/lighttpd`, listeners, processes, services, identities, package inventory, protected hashes, and audit remained unchanged | Accept action 16ab; stop and require separate authorization before defining the next read-only workstation certificate-stage continuity check |
+| 2026-07-28T23:34:48Z | Local workspace | Define read-only workstation action 16ac: verify certificate-stage continuity before Node A transfer | User authorized definition only; no stage inspection, Doppler access, certificate regeneration, Node A transfer, or later action authorized | The certificate stage was accepted at `/tmp/caddy-cert-node-b-action12` before Node B transfer, but its continued presence and unchanged state cannot be assumed | Added a secret-safe fail-closed validator for the exact five-file set, ownership/modes, four non-secret hashes, certificate validity/SAN, ordered non-root served chain, workstation trust, exact full-chain concatenation, private-key integrity/key match, exact manifest schema/content, and before/after equality | None; proposed action is read-only and contains no filesystem-writing, Doppler, network, SSH, or secret-output command | Bash syntax, ShellCheck, repository-profile shfmt, pinned-constant self-test, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; stage was not inspected | Validator `fbca4722...aacb`; test runner `7d70da3b...cbdf`; accepted public certificate hashes remain pinned; private-key hash is intentionally neither output nor recorded | Exact continuity check is locally validated and will stop if the retained stage is absent, altered, expired within 30 days, incomplete, untrusted, mismatched, or metadata-drifted | Stop and require separate authorization for exact read-only action 16ac |
+| 2026-07-28T23:40:58Z | Ubuntu development workstation | Exact read-only action 16ac: verify certificate-stage continuity before Node A transfer | User explicitly authorized validator SHA-256 `fbca4722dc3da0f28ab44bea9fb8b846cac9bb25439658ad3d3b33815250aacb`; no Doppler access, transfer, regeneration, mutation, or later action authorized | Retained stage continuity was unknown; exact validator mode/hash and self-test passed locally before execution | Ran the exact validator once with xtrace disabled and secret-output suppression intact | None; validator contains no filesystem-writing command and issued no fallback action | Exit `1`; zero stdout/stderr; no completion or partial evidence marker; the unlabeled assertion sequence does not identify the failing boundary | Validator `fbca4722...aacb`; no certificate, private-key, or private-key-hash content emitted | Action 16ac is not accepted; stage presence, metadata, hashes, certificate, chain, trust, key match, manifest, and unchanged state remain unresolved by this transcript | Stop before any transfer; require separate authorization to define a labeled secret-safe read-only diagnostic action 16ac-a |
+| 2026-07-28T23:45:51Z | Local workspace | Define labeled secret-safe read-only diagnostic action 16ac-a | User authorized definition only; no certificate-stage inspection, diagnostic execution, retry, Doppler access, transfer, or later action authorized | Action 16ac exited silently, leaving every certificate-stage boundary unresolved | Added a non-enforcing collector that emits `pass`/`fail`/`skipped` for environment, stage shape/metadata, exact file set, symlinks, public hashes, leaf/key parsing, validity/SAN, key match, intermediates, chain composition/trust, every manifest comparison, and final unchanged state; it reports totals and first failure | None; proposed diagnostic contains no filesystem-writing, Doppler, network, SSH, `sudo`, package, or service command | Bash syntax, ShellCheck, repository-profile shfmt, pinned-constant self-test, secret-output review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; stage was not inspected | Diagnostic `0034156f...c692`; test runner `7d558df6...a14f`; unknown hashes are reported only as `mismatch_or_unavailable`; private-key and derived hashes are never output | Exact diagnostic is locally validated; missing prerequisites produce labeled failures/skips and a completion marker instead of an early exit | Stop and require separate authorization for exact read-only diagnostic action 16ac-a |
+| 2026-07-28T23:48:19Z | Ubuntu development workstation | Exact labeled, secret-safe, read-only diagnostic action 16ac-a | User explicitly authorized diagnostic SHA-256 `0034156f61c56981ce0ab132d6762a2a9493ae24bf9f99030bca986c6d72c692`; no retry, Doppler access, certificate preparation, transfer, mutation, or later action authorized | Action 16ac was unaccepted; exact diagnostic mode/hash and self-test passed immediately before execution | Ran the exact diagnostic once with xtrace disabled and its secret-safe output contract | None; diagnostic is read-only and issued no fallback action | Exit `0`; workstation user, group, and command environment passed; `stage_exists=fail`; 36 dependent checks were skipped; counts were pass `3`, fail `1`, skipped `36`; first failure was `stage_exists`; completion marker present | Diagnostic `0034156f...c692`; no PEM, certificate identity fields, unknown hashes, private-key content, private-key hash, or derived key value emitted | Diagnostic collection is accepted, but certificate-stage continuity and action 16ac are not: `/tmp/caddy-cert-node-b-action12` is absent | Stop before transfer; define a fresh protected workstation certificate-preparation action using Doppler, then require separate execution authorization |
+| 2026-07-28T23:52:18Z | Local workspace | Define fresh protected workstation certificate-preparation action 16ad | User authorized definition only; no Doppler access, stage creation, certificate retrieval, Node A transfer, or later action authorized | Diagnostic 16ac-a accepted exact stage absence; Doppler CLI `v3.76.1`, preparer, and fail-closed validator were present with accepted hashes | Added a dedicated runner that pins workstation identity, Doppler version/scope, preparer and validator metadata/hashes; removes inherited certificate variables before Doppler injection; prepares the exact absent stage; validates exact files, modes, hashes, certificate, chain, key match, manifest, and unchanged state; retains the stage only after complete validation | If any command, validation, signal, or shell teardown fails, the EXIT cleanup removes only `/tmp/caddy-cert-node-b-action12`, whose precondition is exact absence; no recursive EXIT-handler call or Node A action exists | Bash syntax, ShellCheck, repository-profile shfmt, constant self-test, secret/argument and cleanup review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; stage absence was reconfirmed; no Doppler command ran | Runner `d7506f72...5174`; preparer `b2c6fa80...feb9`; validator `fbca4722...aacb`; Doppler `v3.76.1`; test runner `cf5ec5e3...34ad` | Exact action is defined; reuse of the absent workstation-local Action 12 path preserves the accepted validator contract while a new action marker distinguishes this preparation | Stop and require separate authorization for exact action 16ad; no Doppler access or transfer is authorized |
+| 2026-07-28T23:55:56Z | Ubuntu development workstation | Exact protected workstation certificate-preparation action 16ad | User explicitly authorized runner SHA-256 `d7506f72d4042caf45a1387ef6244b9d9b0e762972925358ef39e78818c95174`; no Node A transfer, configuration installation, service mutation, or later action authorized | Action 16ac-a accepted exact stage absence; runner mode, ownership, and hash were required before execution | Ran the exact runner once; it removed inherited certificate variables, used Doppler `homelab-dev/prd_caddy`, prepared five protected artifacts, and ran the hash-pinned fail-closed validator before disarming cleanup | Automatic cleanup was armed but not invoked; the fully validated stage was retained at `/tmp/caddy-cert-node-b-action12` | Exit `0`; certificate preparation, Action 16ac validation, and Action 16ad completion markers present; accepted expiry, wildcard SAN, key match, two-intermediate root-excluded chain, trust, manifest, and unchanged-stage checks passed | Runner `d7506f72...5174`; leaf `4d0eb710...f319`; intermediates `6802a694...50d`; full chain `d8d850a9...aa83`; manifest `0a910e43...9df`; Doppler `v3.76.1` | Action 16ad and the fresh protected workstation stage are accepted; no PEM, private-key content/hash, unknown hash, or secret value was emitted | Stop before Node A access; define a protected Node A certificate-transfer action for separate authorization |
+| 2026-07-29T00:04:04Z | Local workspace | Define protected Node A certificate-transfer action 16ae | User authorized definition only; no SSH connection, archive stream, transfer, remote staging, Caddy installation, service mutation, or later action authorized | Action 16ad accepted the exact workstation stage; Action 16ab accepted Node A’s inactive lighttpd candidate and complete protected state | Added a hash-pinned workstation runner and Node A driver; the runner revalidates the workstation stage, streams exactly five named files directly through encrypted SSH without a local archive, and executes the non-secret driver as root; the driver requires exact Node A identity/state, creates one isolated stage, applies protected ownership/modes, validates hashes/certificate/key/chain/manifest, and proves all accepted protected state unchanged | Failure after remote preconditions removes only `/var/tmp/caddy-cert-node-a-action16ae`, verifies its absence and the complete protected-state snapshot, and exits `97` with a manual-intervention marker if rollback is incomplete; workstation stage is read-only and retained | Bash syntax, ShellCheck, repository-profile shfmt, both self-tests, driver-hash linkage, exact-file extraction, secret-output and rollback review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; workstation stage remained present; no SSH connection or certificate read occurred during definition | Runner `afb5e5dd...6ba0`; driver `4151960c...6378`; validator `fbca4722...aacb`; test runner `4dd514f2...8a0e` | Exact transfer is defined for Node A’s current accepted post-16ab state; no local secret archive or remote source staging is used | Stop and require separate authorization for exact action 16ae and its included bounded automatic rollback |
+| 2026-07-29T00:07:21Z | Node A (`j1-svpihole0`) | Exact protected certificate-transfer action 16ae | User explicitly authorized runner SHA-256 `afb5e5ddc73d61a29f196f2a2e20745e43a48c1b077536627090788d1f2c6ba0` and its included bounded rollback; no Caddy source transfer, dry-run, installation, service mutation, or later action authorized | Action 16ad accepted the workstation stage; remote Action 16ae stage required absent; Action 16ab candidate and complete protected state were pinned | Verified runner ownership/mode/hash; revalidated the workstation stage; streamed exactly five files directly through encrypted SSH; created and validated the root/caddy-tls remote stage; proved all accepted post-16ab protected state unchanged | Automatic remote rollback was armed but not invoked; workstation stage and accepted remote stage were retained | Runner/SSH exit `0`; workstation continuity and remote Action 16ae markers present; exact public hashes, accepted expiry, wildcard SAN, key match, chain, manifest, ownership/modes, and protected-state equality passed | Runner `afb5e5dd...6ba0`; leaf `4d0eb710...f319`; intermediates `6802a694...50d`; full chain `d8d850a9...aa83`; manifest `0a910e43...9df` | Action 16ae accepted at `/var/tmp/caddy-cert-node-a-action16ae` as `root:caddy-tls` mode `0750`; no secret output, rollback, Caddy configuration, service, listener, package, identity, sysctl, or lighttpd change | Stop before further Node A writes; define the minimal non-secret Caddy source-bundle transfer for separate authorization |
+| 2026-07-29T00:11:57Z | Local workspace | Define minimal non-secret Node A Caddy source-transfer action 16af | User authorized definition only; no SSH connection, source stream, remote staging, Caddy dry-run, installation, service mutation, or later action authorized | Action 16ae accepted the remote certificate stage and complete Node A protected state; the original Node B 12-file bundle contract remained structurally required, but four current source hashes differ | Added a hash-pinned runner and Node A driver for the exact current 12-file installer bundle; the runner verifies every local file/hash and streams directly through SSH; the driver pins Node A identity, package, service, listener, sysctl, lighttpd, certificate-stage, and Caddy-target state, creates one root-only source stage, enforces file modes/hashes, and proves protected state unchanged | Failure after remote snapshots removes only `/var/tmp/caddy-source-node-a-action16af`, verifies its absence and complete state restoration, and exits `97` with a manual-intervention marker if rollback is incomplete; accepted certificate stages remain read-only | Bash syntax, ShellCheck, repository-profile shfmt, both self-tests, exact 12-file/hash alignment, driver linkage, non-secret and rollback review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection or certificate read occurred | Runner `5a1d81c7...b0c2`; driver `632de019...a383b`; test runner `4cd0fd5d...4970`; all 12 individual hashes are pinned in both artifacts | Exact current source transfer is defined without a local archive or secret payload; Node A remains unchanged | Stop and require separate authorization for exact action 16af and its included bounded automatic rollback |
+| 2026-07-29T00:21:24Z | Node A (`j1-svpihole0`) | Exact minimal non-secret Caddy source-transfer action 16af | User explicitly authorized runner SHA-256 `5a1d81c7aef708be0ae823c56f071aa415e02d27b0edcfe8276e6dcf2e43b0c2` and its included bounded rollback; no Caddy dry-run, installation, service mutation, or later action authorized | Action 16ae certificate stage and complete protected state were pinned; source target required absent; local runner ownership, mode, and hash passed immediately before execution | Ran the exact runner once; verified all 12 current local source hashes; streamed the exact non-secret set directly over SSH; created and validated the isolated root-only source stage; proved certificate and protected state unchanged | Automatic rollback was armed but not invoked; the accepted source stage was retained and the certificate stage remained read-only | Runner/SSH exit `0`; output reported source stage `root:root:750`, file count `12`, valid bundle hashes, unchanged certificate stage, unchanged protected state, and completion marker true | Runner `5a1d81c7...b0c2`; driver `632de019...a383b`; all 12 individual source hashes passed | Action 16af accepted at `/var/tmp/caddy-source-node-a-action16af`; no archive, secret payload/output, Caddy dry-run, configuration installation, listener change, or service mutation occurred | Accept action 16af; stop and require separate authorization before defining the next single Node A real-host installer dry-run action |
+| 2026-07-29T00:29:47Z | Local workspace | Define read-only Node A real-host Caddy installer dry-run action 16ag | User authorized definition only; no SSH connection, installer execution, transient remote file, configuration installation, service mutation, or later action authorized | Actions 16ae and 16af accepted exact certificate and source stages; Node A bootstrap release, current symlink, and environment target remain absent; Node B action 12c established the 14-change dry-run contract | Added a hash-pinned runner and streamed Node A validator; it verifies the complete accepted post-16af state, runs only staged `install-caddy-ha.sh --node node-a --component caddy --manifest ... --certificate-dir ... --dry-run`, requires the exact six-field JSON and exact normalized 14-line plan, removes its isolated capture/render directory, and proves complete before/after state equality | On any failure, remove only the exact `/tmp/caddy-action16ag.*` directory created by the action and prove no matching temporary path or protected-state difference remains; emit `manual_intervention_required=true` and exit `97` if cleanup or equality fails; no live target rollback is defined because no live target write is authorized | Bash syntax, ShellCheck, repository-profile shfmt, both self-tests, mutation-token review, exact Node B contract comparison, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `38a70007...e886`; validator `382637a3...44f9`; staged installer `851e93e7...9ab7`; deployment manifest `ee58ae3d...fd0`; test runner `7b58fa51...75e1` | Exact real-host dry-run is locally defined; it may create only bounded transient files and must report 14 planned changes with no service mutation; Node A remains unchanged | Stop and require separate authorization for exact action 16ag |
+| 2026-07-29T00:33:34Z | Node A (`j1-svpihole0`) | Exact read-only Caddy installer dry-run action 16ag | User explicitly authorized runner SHA-256 `38a70007eb0f1d33d200150a9a4541d553504423fac14f9bd222623b3834e886`; no configuration installation, service mutation, retry, or later action authorized | Local runner ownership, mode, hash, embedded validator hash, syntax, and self-test passed; Actions 16ae and 16af remained the required remote baseline | Ran the exact runner once; the validator passed its pre-state gates and invoked the staged installer dry-run, then stopped when its log-validation function attempted to redeclare global readonly variable `normalized_log` as a local | Failure trap removed the exact transient capture/render tree, found zero matching temporary paths, and proved complete protected-state equality; output reported `action_16ag_transient_cleanup_complete=true`; no manual-intervention marker appeared | Runner/SSH exit `1`; stderr contained only `main: line 285: local: normalized_log: readonly variable` and the successful cleanup marker; no dry-run completion marker was emitted | Runner `38a70007...e886`; validator `382637a3...44f9` | Initial Action 16ag is not accepted; cleanup and protected-state restoration are accepted, so Node A retains the complete post-16af state with no live Caddy target or service change | Stop; correct the validator locally, exercise the missed function path in self-test, and require separate retry authorization |
+| 2026-07-29T00:34:16Z | Local workspace | Define corrected read-only Action 16ag retry | Minor mechanical correction permitted under plan governance; no SSH retry, installer execution, configuration installation, service mutation, or later action authorized | Initial Action 16ag stopped on a readonly/local name collision after its staged installer invocation; bounded cleanup and protected-state equality passed | Changed the log validator to accept explicit input/output paths under distinct local names; added a synthetic exact-14-line self-test that exercises render-path normalization, sorting, comparison, and line count; repinned the validator in the runner | No live rollback required; local files only; future retry retains the original exact transient cleanup and protected-state equality contract | Bash syntax, ShellCheck, repository-profile shfmt, corrected validator self-test, runner self-test, and exact driver-hash linkage passed; no SSH retry occurred | Corrected runner `d133d0bd...c6dbc`; corrected validator `b2fb4851...fc8b8`; staged installer and manifests unchanged | Corrected retry is locally defined; Node A remains in accepted post-16af state | Stop and require separate authorization for exact corrected Action 16ag retry |
+| 2026-07-29T00:37:30Z | Node A (`j1-svpihole0`) | Exact corrected read-only Caddy installer dry-run Action 16ag retry | User explicitly authorized corrected runner SHA-256 `d133d0bdce6148180bccf59b4e5905cb7ba19640af60ab7892da30ec116c6dbc`; no configuration installation, service mutation, or later action authorized | Initial attempt cleanup and protected-state restoration accepted; corrected local runner/validator hashes and functional self-test passed; Actions 16ae and 16af remained pinned | Ran the exact corrected runner once; required the six-field installer JSON and exact normalized 14-line plan; removed the isolated capture/render tree; repeated all stage, target, package, identity, service, listener, sysctl, lighttpd, Keepalived, baseline, and audit checks | Normal bounded transient cleanup completed on the success path; no rollback or manual-intervention marker occurred because no persistent change was made | Runner/SSH exit `0`; output reported node `node-a`, component `caddy`, root `/`, `dry_run=true`, `changes=14`, `service_mutations=false`, unchanged source/certificate/protected state, and completion marker true | Runner `d133d0bd...c6dbc`; validator `b2fb4851...fc8b8`; staged installer `851e93e7...9ab7`; deployment manifest `ee58ae3d...fd0` | Corrected Action 16ag retry is accepted; no transient path, live Caddy target, package, configuration, listener, or service change remains | Accept Action 16ag retry; stop before defining the separately authorized transactional Node A Caddy configuration installation |
+| 2026-07-29T00:46:40Z | Local workspace | Define transactional Node A Caddy configuration-installation Action 16ah | User authorized definition only and requested Node B experience be applied; no SSH connection, live target write, Caddy execution on Node A, service mutation, or later action authorized | Corrected Action 16ag retry accepted the exact 14-change live-root plan and complete post-16af state; Node B Action 12 accepted the same three-target installation, Caddy validation, zero-change repeat dry-run, and rollback boundary | Added a hash-pinned runner and streamed transaction; it revalidates all accepted Node A inputs/state, installs only the Caddy component, requires exact 14-change JSON and empty installer stderr, validates exact target files/modes/hashes and certificate byte identity, formats/adapts/validates Caddy as user `caddy`, requires an exact zero-change idempotent dry-run, removes isolated validation state, proves protected-state equality, and keeps rollback armed through all success-marker writes | On any failure after mutation begins or before every success marker is emitted, remove only initially absent `/etc/caddy/current`, `/etc/default/caddy-ha`, and `/etc/caddy/releases/bootstrap`, plus the exact action-owned `/tmp/caddy-action16ah.*` tree; retain `/etc/caddy/releases` and both accepted input stages; prove target absence and complete semantic protected-state restoration; exit `97` with manual intervention if incomplete | Bash syntax, ShellCheck, repository-profile shfmt, both self-tests including exact install/idempotency JSON contracts, mutation-token review, rollback-target and output-boundary review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `1a757416...7c25`; transaction `7324f3de...669e`; staged installer `851e93e7...9ab7`; Node A environment `2e439dd4...a2b8`; test runner `9705c71f...a58f` | Exact transaction is locally defined; successful execution creates only the bootstrap release, current symlink, and node-local environment file while leaving services inactive/masked and listeners unchanged | Stop and require separate authorization for exact Action 16ah and its included bounded automatic rollback |
+| 2026-07-29T00:52:07Z | Node A (`j1-svpihole0`) | Transactional Node A Caddy configuration-installation Action 16ah | User explicitly authorized runner SHA-256 `1a75741626355c5bf3d61b65f33bdf64af8d41ee4ff200b98caf02f0aea27c25` and its included bounded automatic rollback; no synchronization identity, SSH, service mutation, or later action authorized | Corrected Action 16ag retry accepted the exact 14-change plan; local runner and transaction ownership, modes, hashes, and runner self-test passed immediately before execution; source and certificate stages remained the accepted inputs | Ran the exact runner once; the transaction installed only the Caddy component, validated the exact install contract and target topology, validated certificate byte identity, formatted, adapted, and validated Caddy as unprivileged user `caddy`, ran the repeat dry-run, and proved source, certificate, and protected state unchanged | Automatic rollback remained armed through all success-marker writes but was not invoked because every assertion passed; its bounded targets remain the initially absent bootstrap release, current symlink, node-local environment file, and exact action-owned temporary tree | Runner/SSH exit `0`; initial changes `14`; idempotent changes `0`; both installer runs reported `service_mutations=false`; Caddy format, adapt, and unprivileged validation passed; all unchanged-state markers and `action_16ah_caddy_install_complete=true` were emitted | Runner `1a757416...7c25`; transaction `7324f3de...669e`; Node A environment `2e439dd4...a2b8`; installed certificate matched the accepted stage without emitting private-key material | Action 16ah is accepted: `/etc/caddy/releases/bootstrap`, `/etc/caddy/current`, and `/etc/default/caddy-ha` are installed and validated; services and listeners were not mutated; both accepted input stages remain unchanged | Accept Action 16ah; stop before separately defining the next single Node A synchronization-identity and restricted-SSH action |
+| 2026-07-29T00:57:47Z | Local workspace | Define read-only synchronization/SSH preflight Action 16ai before Node A identity and restricted-SSH mutation | User authorized definition only; no SSH connection, key generation, public-key authorization, file installation, service mutation, or later action authorized | Action 16ah is accepted; Node B Action 13 created Node B's node-local synchronization key and pinned Node A's host key, but Node B's actual public synchronization key and host public key were not stored in the repository or living plan | Added two hash-pinned remote inspectors and one workstation runner; the Node A inspector requires the accepted post-16ah state and absence of synchronization targets; the Node B inspector validates its existing key pair and installed restricted receiver artifacts, then emits only public key material; the runner uses strict host verification, validates the exact output contract, and removes its protected local capture directory | No remote rollback applies because both inspectors are read-only; the runner's EXIT trap removes only its exact `mktemp` directory `/tmp/caddy-action16ai.*` | Bash syntax, ShellCheck, repository-profile shfmt, all three self-tests, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `af3fe540...a8f2`; Node A inspector `7228e30e...54a4`; Node B inspector `4721428e...f11`; test runner `60738ecb...b1c1` | Exact read-only identity/state gate is defined; it emits only Ed25519 public keys and fingerprints, rejects private-key markers, and makes no live-node change | Stop and require separate authorization for exact read-only Action 16ai |
+| 2026-07-29T01:01:24Z | Nodes A and B | Exact read-only synchronization/SSH preflight Action 16ai | User explicitly authorized runner SHA-256 `af3fe540758d142636ae4e1881c5523dc68ea36e3f6e9133c71349b9374fa8f2`; no staging, key generation, public-key authorization, file installation, service mutation, or later action authorized | Local artifact ownership, modes, hashes, and runner self-test passed; Action 16ah and Node B Action 13 supplied the required accepted baselines | Ran the exact runner once through strict host-verified administrative SSH; validated Node A post-16ah synchronization absence and SSH policy; validated Node B's existing synchronization key pair, restricted scripts, known-host pin, service state, and public host identity; emitted only public keys and fingerprints | No remote rollback applied because both inspectors were read-only; the workstation EXIT trap removed only its exact action-owned `mktemp` directory | Runner and both SSH commands exited `0`; exact six-line output contracts for both nodes and `action_16ai_sync_ssh_preflight_complete=true` passed; no private-key marker appeared | Node A host fingerprint `SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI`; Node B host fingerprint `SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo`; Node B synchronization fingerprint `SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g` | Node A has no synchronization key, authorization, or live scripts; Node B's accepted key pair and restricted receiver state remain valid; exact public material is recorded below; no live state changed | Accept Action 16ai; stop before separately defining protected Node A public-artifact staging |
+| 2026-07-29T01:07:48Z | Local workspace | Define protected Node A public synchronization-artifact staging Action 16aj | User authorized definition only; no SSH connection, staging, key generation, public-key authorization, live script installation, service mutation, or later action authorized | Action 16ai accepted exact Node B public host and synchronization keys; Node A retained the accepted post-16ah state with the staging target and all live synchronization paths absent | Added a hash-pinned direct-stream runner and transactional Node A staging driver; the runner constructs an ephemeral five-file public payload without an archive, verifies exact hashes, and streams it through strict host-verified SSH; the driver revalidates protected state, creates one root-only stage, extracts with ownership/mode suppression, validates exact files/hashes/fingerprints, and proves protected state unchanged | Before mutation, failures make no remote change; after stage creation, rollback removes only `/var/tmp/caddy-sync-ssh-node-a-action16aj`, requires its absence and complete protected-state equality, retains all accepted stages/live paths, and exits `97` with manual intervention if incomplete; workstation cleanup removes only `/tmp/caddy-action16aj.*` | Bash syntax, ShellCheck, repository-profile shfmt, both self-tests, mutation-token and rollback-boundary review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `f3e4332d...3262`; driver `62d10ca5...af15`; public host key `909ee3ca...0fbd`; public synchronization key `c9a2ecfc...20b0`; test runner `7f86f9f2...221f` | Exact protected staging transaction is locally defined; successful execution creates only the isolated five-file public stage and leaves every live synchronization target and service unchanged | Stop and require separate authorization for exact Action 16aj and its included bounded automatic rollback |
+| 2026-07-29T01:11:33Z | Node A (`j1-svpihole0`) | Protected public synchronization-artifact staging Action 16aj attempt | User explicitly authorized runner SHA-256 `f3e4332d8b52a91ca687cea8310966ceebc96eac9997e59d3032008ef2543262` and its bounded automatic rollback; no retry, key generation, public-key authorization, live installation, service mutation, or later action authorized | Local runner/driver ownership, modes, hashes, and runner self-test passed immediately before execution; Action 16ai supplied the accepted public payload and Node A baseline | Ran the exact runner once; local payload validation passed and the streamed remote transaction reached an unidentified fail-closed assertion after its protected snapshot was available | The remote EXIT trap removed only `/var/tmp/caddy-sync-ssh-node-a-action16aj`, then its live-state and complete protected-state restoration checks passed; output contained `action_16aj_stage_rollback_complete=true`; workstation EXIT cleanup remained armed | Runner/SSH exit `1`; no normal stage output or completion marker; stderr contained only the successful rollback marker; no manual-intervention marker appeared | Runner `f3e4332d...3262`; driver `62d10ca5...af15`; exact failing assertion and whether stage creation was reached were not labeled | Action 16aj is not accepted; its built-in semantic rollback reports restoration, but independent stage-absence and protected-state evidence remains required before diagnosis or retry | Stop; define and separately authorize read-only Action 16aj-a for independent rollback verification and labeled failure-boundary diagnosis |
+| 2026-07-29T01:18:40Z | Local workspace | Define read-only rollback and failure-boundary diagnostic Action 16aj-a | User authorized definition only; no SSH connection, remote write, cleanup, retry, staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Action 16aj failed without normal output and reported successful rollback; the failed remote stage is unavailable for inspection, while exact public payload and transaction code remain locally available | Added a non-enforcing labeled Node A inspector and hash-pinned runner; the runner reconstructs, archives, lists, extracts, and validates the exact five-file public payload solely under a protected workstation temp directory, then the remote inspector reports stage/live-target absence, accepted packages/identity/Caddy/lighttpd/Keepalived/sysctl/service/listener/baseline state, required command support, and in-memory public-key parsing without writing Node A | No remote rollback applies because the inspector is read-only; the workstation EXIT trap removes only `/tmp/caddy-action16aj-a.*`; no cleanup command targets Node A | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, exact local payload/archive/extraction execution, non-enforcing output-consistency review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `9e478509...d3e4`; inspector `a6c2220c...f6f1`; test runner `4a3f338f...ae89` | Exact diagnostic is locally defined; it separates workstation payload/archive correctness from current Node A rollback state and collects all labeled mismatches before deciding validity | Stop and require separate authorization for exact read-only Action 16aj-a |
+| 2026-07-29T01:21:48Z | Node A (`j1-svpihole0`) and workstation | Exact read-only rollback and failure-boundary diagnostic Action 16aj-a | User explicitly authorized runner SHA-256 `9e47850956a88f046a1e88b29f89fdcb31346bc36a74b417009dbd7fe2e6d3e4`; no remote write, cleanup, retry, staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Local runner/inspector ownership, modes, hashes, self-test, and exact payload/archive local test passed immediately before SSH; Action 16aj remained unaccepted with rollback reported complete | Ran the exact runner once; rebuilt and locally validated the five-file payload/archive/extraction contract, then streamed only the non-enforcing inspector to Node A and collected every labeled rollback/prerequisite/tool/key/listener fact | No remote rollback applied because Node A inspection was read-only; workstation cleanup removed only `/tmp/caddy-action16aj-a.*` and emitted its completion marker | Runner/SSH exit `0`; local payload/hash/archive/extraction markers true; `diagnostic_mismatch_count=0`; `rollback_state_valid=true`; both remote and local completion markers emitted | Stage absent; zero matching stage paths; all eight live synchronization targets absent; every accepted Node A state, tool-support, public-key parsing, listener, baseline, and audit check matched | Action 16aj rollback is independently accepted; exact payload/archive/extraction behavior is valid, narrowing the original failure to the removed remote stage's extraction/metadata/hash/fingerprint validation or final protected-state comparison | Accept Action 16aj-a; stop before separately defining a bounded transient labeled staging diagnostic |
+| 2026-07-29T01:27:37Z | Local workspace | Define bounded transient labeled staging diagnostic Action 16aj-b | User authorized definition only; no SSH connection, diagnostic stage creation/removal, staging retry, key generation, public-key authorization, live installation, service mutation, or later action authorized | Action 16aj-a accepted rollback and local payload/archive behavior but could not inspect the removed post-write stage; exact failure remained within remote extraction/validation or protected-state comparison | Added a hash-pinned runner and transient diagnostic driver using a distinct `/var/tmp/caddy-sync-ssh-node-a-action16aj-b` path; it replays the exact public tar stream, labels stage creation/extraction/file-set/symlink/chown/chmod, every file hash/owner/mode, both fingerprints, live state, original-stage absence, protected-state comparisons, cleanup, and post-cleanup state; sensitive protected snapshots are compared silently | Before mutation, preflight failure makes no change; after mutation, EXIT cleanup always removes only the diagnostic stage and validates protected restoration; normal flow also removes and verifies it; incomplete cleanup exits `97` with manual intervention; workstation cleanup removes only `/tmp/caddy-action16aj-b.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, mutation-token and secret-output review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` passed; no SSH connection occurred | Runner `6e875851...07db`; driver `e6148832...1897`; test runner `ddc8f0da...fe08` | Exact transient diagnostic is locally defined; it collects all post-write results, reports the first failure, and guarantees the diagnostic stage is not retained | Stop and require separate authorization for exact Action 16aj-b and its mandatory cleanup |
+| 2026-07-29T01:31:29Z | Node A (`j1-svpihole0`) and workstation | Execute bounded transient labeled staging diagnostic Action 16aj-b | User explicitly authorized exact Action 16aj-b and its mandatory cleanup; no retry or later action authorized | Runner and driver regular-file metadata and pinned hashes passed; runner self-test passed; Action 16aj-a was the last independently accepted Node A continuity evidence | Executed exact hash-pinned `run-node-a-sync-stage-transient-diagnostic-action16aj-b.sh`; afterward, locally rechecked the two generated public-key payload hashes and `/tmp/caddy-action16aj-b.*` absence | Runner EXIT trap removed its exact workstation work directory; intended remote EXIT cleanup could not be evidenced because the command emitted no remote output | Runner exited `1` with zero stdout/stderr; no labeled remote diagnostic, completion marker, cleanup marker, or manual-intervention marker was received; local public-key payload hashes matched and workstation temporary-stage search was empty | Runner `6e875851...07db`; driver `e6148832...1897`; public-key payloads `909ee3ca...0fbd` and `c9a2ecfc...b0b0` | Action 16aj-b is failed and unaccepted; empty remote output leaves the SSH/remote-preflight boundary and Node A cleanup state unproven | Stop; do not retry; require a separately defined and authorized fail-closed read-only Node A continuity diagnostic |
+| 2026-07-29T01:36:20Z | Local workspace | Define fail-closed read-only Node A continuity Action 16aj-c | User authorized definition only; no SSH execution, remote cleanup, Action 16aj-b retry, staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Action 16aj-b exited `1` without remote evidence; workstation cleanup passed, but both remote stage paths and the accepted post-16ah Node A state require independent confirmation | Added a hash-pinned read-only runner and streamed inspector; the inspector emits a remote-reached marker, verifies both exact stage paths plus wildcard-equivalent stage count, all eight live synchronization targets, and the complete accepted Action 16aj-a post-16ah package, identity, Caddy, service, listener, lighttpd, Keepalived, sysctl, source/certificate-stage, rollback-baseline, tool-support, public-key, and dpkg-audit invariants; it stops at the first safe labeled failure | No remote rollback applies because the inspector contains no write operation; the workstation EXIT trap removes only `/tmp/caddy-action16aj-c.*` | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, locally exercised fail-closed output path, read-only command scan, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `69e9160c...5f87`; inspector `b347376d...65a6`; test runner `0c64d239...a46` | Exact read-only continuity gate is locally defined; output is boolean/label-only and distinguishes SSH reachability from the first Node A invariant failure without exposing protected content | Stop and require separate authorization for exact read-only Action 16aj-c |
+| 2026-07-29T01:42:09Z | Node A (`j1-svpihole0`) and workstation | Execute fail-closed read-only Node A continuity Action 16aj-c | User explicitly authorized exact Action 16aj-c; no cleanup, retry, staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Runner and inspector regular-file metadata, pinned hashes, and runner self-test passed immediately before execution; Action 16aj-b remained failed and Node A continuity was unconfirmed | Executed exact hash-pinned `run-node-a-sync-continuity-action16aj-c.sh` once through strict host-verified SSH; streamed only the read-only inspector and collected safe boolean labels | No remote rollback applied because the inspector was read-only; workstation EXIT cleanup removed only `/tmp/caddy-action16aj-c.*` | Runner/SSH exit `0`; remote reached; both exact stages absent; matching-stage count zero; all eight live targets absent; every post-16ah invariant true; `first_failure=none`; continuity valid and completion markers true; local cleanup marker true | Runner `69e9160c...5f87`; inspector `b347376d...65a6`; SSH status `0` | Action 16aj-c accepted; Node A remains at the accepted post-16ah state with no retained or live synchronization artifacts | Stop; require separate authorization before defining a corrected bounded transient staging diagnostic |
+| 2026-07-29T01:50:11Z | Local workspace | Define corrected bounded transient labeled Node A staging diagnostic Action 16aj-d | User authorized definition only; no SSH execution, staging, remote cleanup, key generation, public-key authorization, live installation, service mutation, or later action authorized | Action 16aj-c accepted exact Node A continuity; Action 16aj-b remained failed because its unlabeled preflight/protected capture and fail-fast `tar \| ssh` runner boundary suppressed remote evidence | Added a distinct-stage driver and hash-pinned runner; safe labels cover remote reachability, aggregate accepted live state, all prior/current stage paths, matching-stage count, and protected-state capture before writes; the public-only stage then reports all creation, extraction, file, metadata, hash, fingerprint, live/protected-state, and cleanup results; the runner always reports tar, SSH, and pipeline statuses and replays captured stdout/stderr before deciding success | Before any write, failure exits without remote cleanup; immediately before first stage creation, an EXIT trap is armed and removes only `/var/tmp/caddy-sync-ssh-node-a-action16aj-d`; it then requires stage absence, accepted live state, and protected-state equality; incomplete restoration exits `97` with manual intervention; local cleanup removes only `/tmp/caddy-action16aj-d.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, local archive/extraction test, locally exercised pre-write failure labels, explicit assertion-accumulator and pipeline-status tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `2daadf51...58ba`; driver `fbe55c4b...bbce`; test runner `425516af...c548` | Corrected transient diagnostic is locally defined; it cannot silently cross the preflight or pipeline boundary and never retains the diagnostic stage on a valid completion | Stop and require separate authorization for exact Action 16aj-d and its mandatory stage-only cleanup |
+| 2026-07-29T01:53:34Z | Node A (`j1-svpihole0`) and workstation | Execute corrected bounded transient labeled staging diagnostic Action 16aj-d | User explicitly authorized exact Action 16aj-d and mandatory stage-only cleanup; no retained staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Runner and driver regular-file metadata and pinned hashes passed; runner self-test, local payload/archive/extraction test, and local cleanup passed; Action 16aj-c supplied the accepted continuity baseline | Executed exact hash-pinned runner once; streamed the exact five-file public payload through strict host-verified SSH into the distinct transient stage; collected every preflight, stage, payload, fingerprint, live/protected-state, and cleanup label | Normal cleanup removed only `/var/tmp/caddy-sync-ssh-node-a-action16aj-d`; accepted live state and protected-state equality passed afterward; workstation cleanup removed only `/tmp/caddy-action16aj-d.*`; EXIT rollback was not invoked | All preflight/stage checks true; diagnostic failures `0`; first failure none; cleanup valid true; tar, SSH, and pipeline statuses `0`; remote and local completion markers true; independent workstation temporary search empty | Runner `2daadf51...58ba`; driver `fbe55c4b...bbce`; exact five public hashes and both accepted fingerprints passed | Action 16aj-d accepted; complete staging mechanics are valid, no diagnostic or live synchronization artifact remains, and Node A retains the accepted post-16ah state | Stop; require separate authorization before defining corrected retained public-artifact staging |
+| 2026-07-29T01:58:23Z | Local workspace | Define corrected transactional retained Node A public synchronization-artifact staging Action 16aj-e | User authorized definition only; no SSH execution, retained staging, key generation, public-key authorization, live installation, service mutation, or later action authorized | Action 16aj-d accepted every preflight, payload, stage, fingerprint, protected-state, and cleanup assertion with no retained artifact; all earlier stage paths and live synchronization targets were absent | Added a distinct retained-stage driver and hash-pinned runner; labeled preflight checks all historical/current stage paths, matching-stage count, accepted live state, and protected-state capture; the exact five-file public payload is validated fail-closed; success retains only `/var/tmp/caddy-sync-ssh-node-a-action16aj-e`; runner always reports captured remote output and tar/SSH/pipeline statuses | EXIT rollback is armed immediately before the first stage write; any failed stage assertion removes only the Action 16aj-e path and proves its absence, accepted live state, and protected-state equality; incomplete rollback exits `97` with manual intervention; workstation cleanup removes only `/tmp/caddy-action16aj-e.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, local payload/archive/extraction test, locally exercised pre-write failure labels, pipeline-status capture, mutation-target review, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `8656cae4...410c`; driver `a41f0924...6d2a`; test runner `91c2e1e7...8280` | Corrected retained-stage transaction is locally defined; the protected public stage can exist only after every validation passes, while any failure removes it and restores the accepted baseline | Stop and require separate authorization for exact Action 16aj-e and its included bounded rollback |
+| 2026-07-29T02:01:19Z | Node A (`j1-svpihole0`) and workstation | Execute corrected transactional retained public synchronization-artifact staging Action 16aj-e | User explicitly authorized exact Action 16aj-e and included bounded rollback; no key generation, public-key authorization, live installation, service mutation, retained-stage removal, or later action authorized | Runner and driver regular-file metadata and pinned hashes passed; runner self-test, local payload/archive/extraction validation, and local cleanup passed; Action 16aj-d supplied the accepted zero-failure staging baseline | Executed exact hash-pinned runner once; streamed the five public files through strict host-verified SSH; validated every preflight, stage, hash, metadata, fingerprint, live-state, and protected-state assertion; intentionally retained only the Action 16aj-e stage | Failure-only rollback was armed but not invoked; workstation cleanup removed only `/tmp/caddy-action16aj-e.*`; successful transaction intentionally retained `/var/tmp/caddy-sync-ssh-node-a-action16aj-e` | Every label true; first failure none; retained path `root:root:0750`, five files; protected state unchanged; tar, SSH, and pipeline statuses `0`; remote and local completion markers true; independent workstation temporary search empty | Runner `8656cae4...410c`; driver `a41f0924...6d2a`; all five accepted public hashes and both fingerprints passed | Action 16aj-e accepted; the validated public-only stage is retained, all earlier stage paths and all eight live targets remain absent, and Node A retains the accepted post-16ah state otherwise | Stop; require separate authorization before defining Node A synchronization identity and restricted-SSH installation |
+| 2026-07-29T02:09:49Z | Local workspace | Define transactional Node A synchronization identity and restricted-SSH installation Action 16ak | User authorized definition only; no SSH execution, key generation, public-key authorization, `known_hosts`, live helper installation, retained-stage removal, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16aj-e retains the exact validated five-file public stage; all eight live synchronization targets remain absent; Node A has the accepted locked `/bin/sh` identity and post-16ah state; Node B Action 13 supplies the accepted helper, key-generation, host-pin, non-connecting validation, idempotency, and rollback behavior | Added a hash-pinned workstation runner and transactional Node A driver; the driver revalidates the retained stage and accepted host state, installs three root-owned helpers, pins Node B's host key, generates Node A's local Ed25519 key, authorizes Node B's accepted key with source-address restriction, `restrict`, and the forced receiver, runs the non-connecting validator, repeats setup for idempotency, emits only public key evidence, and preserves the stage | Before writes, any failure changes nothing; after writes begin, rollback removes only the four created SSH targets and three installed helpers, removes `/usr/local/libexec` only if this action created it and it is empty, retains and revalidates the Action 16aj-e stage, requires accepted state and protected-state equality, and exits `97` with a manual-intervention marker if incomplete; workstation cleanup removes only `/tmp/caddy-action16ak.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, restricted-authorization and no-connect regression checks, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `1b456086...9f6d`; driver `6c5a4694...825f`; test runner `ef4a3498...3fe` | Exact transaction is locally defined; successful execution creates Node A's local identity and restricted Node B receiver authorization without installing lsyncd configuration or mutating a service; Node A's public key becomes evidence for a later separately authorized Node B authorization action | Stop and require separate authorization for exact Action 16ak and its included bounded automatic rollback |
+| 2026-07-29T02:13:55Z | Node A (`j1-svpihole0`) and workstation | Execute exact transactional synchronization identity and restricted-SSH installation Action 16ak | User explicitly authorized runner SHA-256 `1b456086ab480b011c69f65cdf96fe2ab4f719952b3670df8bc8baef491b9f6d` and its included bounded automatic rollback; no cleanup, retry, diagnostic, lsyncd configuration, peer connection, service mutation, or later action authorized | Runner path, regular-file shape, `aaron:aaron:0755` metadata, and pinned hash passed before execution; Action 16aj-e was the last accepted Node A synchronization state | Executed the exact hash-pinned runner once through strict host-verified SSH; the runner created only its bounded workstation capture directory and replayed the captured remote streams | Workstation EXIT cleanup removed `/tmp/caddy-action16ak.*`; the remote transaction emitted neither a rollback marker nor a completion marker, so no remote restoration claim is accepted | Runner and SSH exited `1`; stdout contained only `ssh_exit_status=1`; remote stdout/stderr were empty; no phase, public-key, completion, rollback, or manual-intervention marker appeared; independent workstation temporary-path search was empty | Runner `1b456086...9f6d`; driver `6c5a4694...825f`; elapsed SSH attempt approximately `0.46` seconds | Action 16ak is failed and unaccepted; because the first defined phase marker follows the aggregate preflight, the exact assertion and current live-target state are unknown and must not be inferred | Stop; do not retry or clean up; separately define and authorize fail-closed read-only Action 16ak-a |
+| 2026-07-29T02:19:51Z | Local workspace | Define fail-closed read-only Node A synchronization continuity and preflight diagnostic Action 16ak-a | User authorized definition only; no SSH execution, remote cleanup, Action 16ak retry, key generation, public-key authorization, live helper or retained-stage change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak exited `1` with empty remote streams before any phase or rollback marker; Action 16aj-e is the last accepted synchronization state, but current Node A targets and the exact preflight failure are unverified | Added a hash-pinned runner and read-only inspector; the inspector evaluates every Action 16ak preflight assertion in original order without stopping, validates every retained-stage file/hash/mode/fingerprint, characterizes all eight live targets without emitting contents, validates libexec and protected state, and separately assesses whether a complete installed artifact shape exists | No remote rollback or cleanup applies because the inspector contains no write or service command and creates no remote temporary path; the runner removes only `/tmp/caddy-action16ak-a.*` on every exit and suppresses unexpected key material | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, read-only command and no-connect scans, exact output-contract review, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `2af8f65c...0238`; inspector `3fc6ff00...9d5f`; test runner `e9b35ad5...31ab` | Exact diagnostic is locally defined; it collects all mismatches and the first Action 16ak failure boundary, returns nonzero when preflight would fail, and never emits private-key content or a private-key hash | Stop and require separate authorization for exact read-only Action 16ak-a |
+| 2026-07-29T02:23:13Z | Node A (`j1-svpihole0`) and workstation | Execute exact fail-closed read-only synchronization continuity and preflight diagnostic Action 16ak-a | User explicitly authorized runner SHA-256 `2af8f65c9559eaaf43abab255a4e50fc8137ff1aa5cad3b3f27218306e520238`; no cleanup, retry, metadata correction, key generation, public-key authorization, live helper or retained-stage change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak was unaccepted with empty remote streams; current retained-stage metadata, live targets, and protected state required independent evidence | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; the inspector collected every preflight, stage, target, libexec, protected-state, listener, and installed-shape result without writing Node A | No remote rollback or cleanup applied; runner cleanup removed only `/tmp/caddy-action16ak-a.*` and emitted its completion marker | Complete output contract passed; inspector/SSH/runner intentionally exited `1` for one state mismatch; `diagnostic_mismatch_count=1`; `first_failure=retained_stage_meta`; preflight false; all other assertions true; all eight targets and libexec absent; installed shape false; package-inventory hash `6377ab14...da5c`; remote inspection and local cleanup markers present | Runner `2af8f65c...0238`; inspector `3fc6ff00...9d5f`; elapsed SSH inspection approximately `0.60` seconds | Accept Action 16ak-a as complete read-only evidence: Action 16ak stopped before writes solely because the retained stage root no longer matched `root:root:0750`; stage contents and protected state remain valid; exact current root metadata was not emitted and is not inferred | Stop; do not retry or correct metadata; separately define and authorize narrow read-only Action 16ak-b |
+| 2026-07-29T02:28:55Z | Local workspace | Define narrow read-only retained-stage metadata and ACL inspection Action 16ak-b | User authorized definition only; no SSH execution, cleanup, Action 16ak retry, metadata correction, key generation, public-key authorization, live helper or retained-stage content change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak-a accepted every continuity check except the retained-stage root metadata tuple, but intentionally did not emit its observed value | Added a hash-pinned runner and read-only inspector; the inspector preserves the Action 16ak-a content/target/libexec continuity anchor, then reports stage and parent name/numeric ownership, octal/symbolic/ls modes, inode/device/link/size data, birth/access/modify/change timestamps, filesystem target/type/options, and exact ACL entries/hashes when `getfacl` is available or an explicit fallback state otherwise | No remote rollback or cleanup applies because the inspector contains no write, service, helper, or peer command and creates no remote path; the runner removes only `/tmp/caddy-action16ak-b.*` on every exit and suppresses unexpected key material | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, read-only/no-connect/service-mutation scans, metadata/ACL output-contract review, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `32bce6b1...5b89`; inspector `3a38e6a7...f5a5`; test runner `8479f283...0043` | Exact narrow inspector is locally defined; it captures sufficient non-secret metadata and ACL context to design a correction without assuming the current tuple | Stop and require separate authorization for exact read-only Action 16ak-b |
+| 2026-07-29T02:32:15Z | Node A (`j1-svpihole0`) and workstation | Execute exact narrow read-only retained-stage metadata and ACL inspection Action 16ak-b | User explicitly authorized runner SHA-256 `32bce6b135448c06c665bcd12b4ccd3ca06e3e22f627c45a78c1e34dc2c85b89`; no cleanup, Action 16ak retry, metadata correction, key generation, public-key authorization, live helper or retained-stage content change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak-a proved the sole mismatch but not the actual stage tuple; exact content and all live-target absence remained the continuity prerequisite | Executed the exact hash-pinned read-only runner once through strict host-verified SSH, then reproduced the archive-root mode behavior solely in a disposable workstation directory | No remote rollback or cleanup applied; runner cleanup removed only `/tmp/caddy-action16ak-b.*`; local reproduction cleanup removed only its randomized `/tmp/caddy-action16ak-b-tar-probe.*` directory | Inspector/SSH/runner exit `0`; stage `root:root`/`0:0`, mode `0700`/`drwx------`, inode `1670964`, birth/change `2026-07-28 21:01:10.668781403 -0500`; parent `root:root:1777`; ext4 `/`, `rw,noatime`; no ACL marker; `getfacl` unavailable; content/target/libexec continuity and all completion markers passed; local tar reproduction changed destination `0750` to `0700` | Runner `32bce6b1...5b89`; inspector `3a38e6a7...f5a5`; elapsed SSH inspection approximately `0.43` seconds | Accept Action 16ak-b: ownership is correct and mode alone is wrong; tar extracted the mode-`0700` payload-root `.` entry after the driver's pre-extraction `0750` check, and the driver omitted a post-extraction reassertion | Stop; do not chmod or retry; separately define corrected post-extraction enforcement and bounded metadata-only repair Action 16ak-c |
+| 2026-07-29T02:38:43Z | Local workspace | Define corrected post-extraction root-mode enforcement and bounded metadata-only repair Action 16ak-c | User authorized definition only and explicitly withheld repair and Action 16ak retry; no SSH execution, Node A metadata change, key generation, public-key authorization, live helper or retained-stage content change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak-b accepted exact root ownership, mode `0700`, inode `1670964`, device `66306`, five-file content, absent live targets/libexec, and the tar-root cause | Corrected the Action 16aj-e driver to reassert `root:root:0750` after extraction, validate it, and emit observed metadata; added a hash-pinned Action 16ak-c runner and remote transaction that binds the validated directory inode through a file descriptor and permits only `chmod 0750` | Before mutation, failure changes nothing; after mutation starts, any failed continuity check restores mode `0700` through the same open directory descriptor and requires exact stage content, inode/device, ownership, live-target absence, and protected Caddy/lsyncd states; missing rollback evidence or incomplete restoration exits `97` with manual intervention; workstation cleanup removes only `/tmp/caddy-action16ak-c.*` | Focused syntax, ShellCheck, shfmt, self-tests, corrected extraction-mode local test, file-descriptor repair/rollback local test, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Repair runner `3200ee83...e755f`; repair driver `1654d9e9...e4fa3`; corrected staging runner `7369815c...b7a`; corrected staging driver `377e58fe...0145` | Exact correction and repair transaction are locally defined; current Node A mode remains `0700` because no remote command ran | Stop and require separate authorization for exact Action 16ak-c and its included bounded automatic rollback; Action 16ak retry remains a later gate |
+| 2026-07-29T02:43:43Z | Node A (`j1-svpihole0`) and workstation | Execute exact bounded metadata-only retained-stage repair Action 16ak-c | User explicitly authorized runner SHA-256 `3200ee834173c2d9f6f84403d931ec0ceaa660845d4ef9d242a09fab2e1e755f` and its included bounded rollback; no Action 16ak retry, key generation, public-key authorization, live helper or retained-stage content change, lsyncd configuration, peer connection, service mutation, or later action authorized | Exact runner regular-file metadata and hash passed; remote preflight independently required the Action 16ak-b mode `0700`, inode `1670964`, device `66306`, accepted five-file state, absent live targets/libexec, and inactive/masked Caddy and lsyncd | Executed the exact hash-pinned runner once through strict host-verified SSH; the remote transaction bound the validated directory through an open file descriptor and applied only `chmod 0750` | Failure-only rollback was armed to restore `0700` through the same descriptor but was not invoked; workstation cleanup removed only `/tmp/caddy-action16ak-c.*` | Runner/SSH exit `0`; every preflight true; mutation marker and repair true; post-repair continuity and staged-file-state equality true; mode `700` to `750`; owner `root:root`; inode `1670964`; device `66306`; service mutations false; first failure none; repair and local-cleanup completion markers true; no rollback or manual-intervention marker; independent workstation temporary search empty | Runner `3200ee83...e755f`; repair driver `1654d9e9...e4fa3`; elapsed execution approximately `5.5` seconds | Accept Action 16ak-c: only the retained-stage root mode changed, exact child content/metadata and identity remained unchanged, and no service or synchronization installation occurred | Stop; require separate authorization to define independent read-only post-repair continuity Action 16ak-d before deciding whether to retry Action 16ak |
+| 2026-07-29T02:47:23Z | Local workspace | Define independent read-only post-repair continuity Action 16ak-d | User authorized definition only; no SSH execution, repair, Action 16ak retry, key generation, public-key authorization, live helper or retained-stage change, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak-c accepted exact mode `0750`, owner, inode/device, five-file state, live-target absence, and protected Caddy/lsyncd state, but no separate post-transaction SSH session has confirmed continuity | Added a new hash-pinned runner and independent fail-closed inspector; it collects every mismatch, validates the repaired stage root and child state, fingerprints, all eight live-target absences, libexec absence, exact packages and package-inventory hash, identity, environment/release, lighttpd/Keepalived/sysctl state, non-local binding, services/processes, certificate/source stages, rollback baseline, dpkg audit, and listener state | No rollback or remote cleanup applies because the inspector contains no write, service mutation, helper execution, or peer connection and creates no remote path; runner cleanup removes only `/tmp/caddy-action16ak-d.*` | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, read-only/no-connect/service-mutation scans, exact output-contract tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `8bc6a964...1c9ee`; inspector `3683b999...73ed6`; test runner `0d02bb44...c7aa7` | Exact independent continuity gate is locally defined; it exits `0` only for zero mismatches and returns fail-closed evidence otherwise | Stop and require separate authorization for exact read-only Action 16ak-d; Action 16ak retry remains a later gate |
+| 2026-07-29T02:50:09Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only post-repair continuity Action 16ak-d | User explicitly authorized runner SHA-256 `8bc6a964bd5615af482a4df63f09194732a5b998c0aa9791f9611d9013f1c9ee`; no repair, Action 16ak retry, key generation, public-key authorization, live helper or retained-stage change, lsyncd configuration, peer connection, service mutation, or later action authorized | Exact runner regular-file metadata and hash passed; Action 16ak-c was accepted, but a separate post-transaction session had not yet reconfirmed complete Node A continuity | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; streamed only the independent inspector and collected every continuity label | No remote rollback or cleanup applied; the inspector contained no write and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ak-d.*` | Runner/SSH exit `0`; every stage, package, inventory, identity, configuration, sysctl, service, process, source/certificate stage, rollback baseline, dpkg audit, listener, live-target, and libexec check true; protected package inventory `6377ab14...da5c`; mismatch count `0`; first failure none; continuity valid, read-only completion, service-mutation false, and local-cleanup markers passed; independent workstation temporary search empty | Runner `8bc6a964...1c9ee`; inspector `3683b999...73ed6`; elapsed execution approximately `3.4` seconds | Accept Action 16ak-d: the repaired stage and complete protected Node A state independently match the intended pre-Action 16ak transaction baseline | Stop; require separate authorization to define the exact transactional Action 16ak retry gate |
+| 2026-07-29T02:53:25Z | Local workspace | Define exact corrected transactional Action 16ak retry using accepted Action 16ak-d baseline | User authorized definition only; no SSH execution, key generation, public-key authorization, `known_hosts`, live helper installation, retained-stage removal, lsyncd configuration, peer connection, service mutation, or later action authorized | Action 16ak-d independently accepted exact stage `root:root:0750`, inode `1670964`, device `66306`, package inventory `6377ab14...da5c`, absent live targets/libexec, and complete protected state | Updated the transactional driver to pin the accepted inode/device and package inventory and emit a mutation-start marker; updated the runner to clean up on every result, reject secret output before status handling, require explicit successful rollback evidence after any post-mutation failure, and treat missing or failed rollback evidence as exit `97`; retained the accepted helper/key/authorization, no-connect, idempotency, stage-preservation, and no-service-mutation behavior | Pre-write failure changes nothing; after mutation starts, rollback removes only action-created keys, authorization, known-host pin, and three helpers plus an action-created empty libexec, then proves all targets absent and exact protected/stage restoration; incomplete or unproven rollback exits `97`; workstation cleanup removes only `/tmp/caddy-action16ak.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, exact 16ak-d pin checks, restricted authorization, no-connect, mutation marker and rollback-evidence tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `286a3fe5...825e`; driver `b46ff5cd...6292`; test runner `856e9468...4da2` | Exact corrected retry is locally defined; success will create Node A's local synchronization identity and restricted Node B receiver authorization while preserving the stage and leaving lsyncd configuration and services unchanged | Stop and require separate authorization for the exact corrected Action 16ak retry and its included bounded automatic rollback |
+| 2026-07-29T02:56:47Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected transactional Action 16ak retry | User explicitly authorized runner SHA-256 `286a3fe59118589972e4885a6c4390c0513c83851d2e5ca9a667e07ec2a8825e` and its included bounded rollback; no Node B authorization change, lsyncd configuration, peer connection, service mutation, retained-stage change, or later action authorized | Exact runner regular-file metadata/hash and driver pin passed; Action 16ak-d supplied the accepted zero-mismatch pre-transaction baseline | Executed the exact hash-pinned runner once through strict host-verified SSH; installed three helpers and Node B host pin, generated Node A's local Ed25519 identity, installed exactly one restricted Node B receiver authorization, ran non-connecting validation, repeated setup, and emitted only the public key and fingerprints | Failure-only rollback was armed but not invoked; workstation cleanup removed only `/tmp/caddy-action16ak.*` | Runner/SSH exit `0`; all preflight, mutation, helper, host-pin, identity/authorization, initial/repeat validation, and completion markers true; Node A fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`; exactly one restricted authorization; accepted Node B fingerprints; non-connecting and idempotency true; stage preserved; lsyncd configuration false; service mutations false; local cleanup true; no rollback/manual-intervention marker; independent workstation temporary search empty; two benign pseudo-terminal warnings were emitted by non-interactive nested SSH construction | Runner `286a3fe5...825e`; driver `b46ff5cd...6292`; elapsed execution approximately `8.4` seconds | Accept corrected Action 16ak retry: Node A synchronization identity and restricted receiver-side SSH artifacts are installed and validated without contacting Node B or changing services | Stop; require separate authorization to define independent read-only post-install acceptance Action 16ak-e before any Node B authorization or synchronization action |
+| 2026-07-29T03:02:16Z | Local workspace | Define independent read-only post-install acceptance Action 16ak-e | User authorized definition only; no SSH execution, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained-stage change, or later action authorized | Corrected Action 16ak retry accepted Node A's public key/fingerprint, key correspondence, Node B host pin and restricted authorization, three helpers, retained stage, idempotency, and protected state in the transaction session; independent post-install evidence is still required | Added a new hash-pinned runner and fail-closed inspector; it independently derives the public key from the private key, validates the exact public key/fingerprint, private/public metadata, exact Node B host pin and restricted authorization, helper directory/file set/hashes/no-delete receiver contract, retained stage, packages/inventory, identity, configuration/sysctls, services/processes, source/certificate stages, rollback baseline, dpkg audit, and listeners; only direct `ssh -G` construction is allowed | No rollback or remote cleanup applies because the inspector contains no write, transfer, helper execution, service mutation, or peer connection and creates no remote path; runner cleanup removes only `/tmp/caddy-action16ak-e.*` | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, private-material suppression, read-only/no-transfer/no-service/no-helper-execution scans, exact public evidence and output-contract tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `ea26d143...98212`; inspector `706ff3c6...2fc43`; test runner `5144d5b2...4eb41` | Exact independent post-install gate is locally defined; it exits `0` only for zero mismatches and emits only the accepted public key/fingerprint plus non-secret state evidence | Stop and require separate authorization for exact read-only Action 16ak-e before any Node B authorization or synchronization action |
+| 2026-07-29T03:05:02Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only post-install acceptance Action 16ak-e | User explicitly authorized runner SHA-256 `ea26d143f513ed65257157d66576377219a10d7c2fda1285986e494a46d98212`; no Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained-stage change, or later action authorized | Exact runner regular-file metadata/hash and inspector pin passed; corrected Action 16ak retry was accepted but independent post-install state remained unverified | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; streamed only the independent inspector, derived the public key from the private key, expanded SSH configuration with `ssh -G`, and collected every installed/protected-state label | No remote rollback or cleanup applied; the inspector contained no write and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ak-e.*` | Runner/SSH exit `0`; every key, public evidence, host-pin, authorization, helper, receiver, retained-stage, package/inventory, identity, configuration/sysctl, service/process, source/certificate stage, rollback baseline, dpkg audit, and listener check true; mismatch count `0`; first failure none; fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`; peer connections, installed-helper execution, and service mutations false; remote and local completion true; independent workstation temporary search empty | Runner `ea26d143...98212`; inspector `706ff3c6...2fc43`; elapsed execution approximately `4.4` seconds | Accept Action 16ak-e: Node A's synchronization identity and restricted receiver-side SSH installation independently match the intended state | Stop; require separate authorization to define read-only Node A systemd-unit preflight Action 16al before any Node A unit installation or Node B synchronization change |
+| 2026-07-29T03:10:43Z | Local workspace | Define read-only Node A systemd-unit preflight Action 16al | User authorized definition only; no SSH execution, systemd staging or installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained-stage change, or later action authorized | Accepted Action 16ak-e supplied a zero-mismatch Node A synchronization/SSH and protected-state baseline; accepted Node B Action 14a supplied the corrected template-instance and optional-unit inspection behavior | Added a hash-pinned runner and fail-closed inspector that checks all 12 intended systemd targets, four directly required helpers, ten concrete custom-unit probes, optional-unit properties, protected and baseline units, exact three existing synchronization helpers, prerequisites, identities, configuration hashes, package inventory, dpkg audit, processes, deferred targets, effective-unit hashes, and journald disk usage | No remote rollback or cleanup applies because the inspector contains no write, transfer, daemon reload, service mutation, installed-helper execution, or peer connection and creates no remote path; runner cleanup removes only `/tmp/caddy-action16al.*` | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, read-only/no-transfer/no-service/no-helper-execution scans, template-instance and optional-unit regression checks, output-contract checks, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `059a7689...a539`; inspector `1ce571c8...b472`; test runner `98972121...af5f` | Exact read-only systemd preflight is locally defined; it collects every mismatch, handles the notification template through a concrete instance, permits the accepted optional socket absence, and preserves the post-16ak-e helper state | Stop and require separate authorization for exact read-only Action 16al before any Node A systemd staging or installation |
+| 2026-07-29T03:14:36Z | Node A (`j1-svpihole0`) and workstation | Execute exact read-only Node A systemd-unit preflight Action 16al | User explicitly authorized runner SHA-256 `059a76891b5ba37b68962c01deb4c0b178cdeca01783bbace089efa77f08a539`; no systemd staging or installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained-stage change, or later action authorized | Exact runner and inspector regular-file ownership, modes, hashes, Bash syntax, and runner self-test passed; Action 16ak-e supplied the accepted protected baseline | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; streamed only the inspector and collected every intended target, unit property, prerequisite, helper, identity, configuration, process, package, effective-unit, and journal-usage result | No remote rollback or cleanup applied; the inspector contained no write and created no remote path; workstation cleanup removed only `/tmp/caddy-action16al.*` and an independent search found none | Runner/SSH exit `0`; every assertion true; mismatch count `0`; first failure none; systemd `252.39-1~deb12u2`; effective Caddy unit `3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`; effective lighttpd unit `fdd4ccfc6ffcf219d2d51e721798ee7fee0393356198e294e03b6e69f3c8ec67`; journals `3.4G`; peer connections, installed-helper execution, and service mutations false; remote and local completion markers present | Runner `059a7689...a539`; inspector `1ce571c8...b472`; elapsed runner execution approximately `0.82` seconds | Accept Action 16al: all 12 unit/drop-in targets and four new helper targets are absent; custom probes are not found/inactive; protected and baseline units, prerequisites, accepted three-helper set, package inventory, and deferred-target absence match intended pre-install state | Stop; require separate authorization to define inactive Node A systemd artifact staging Action 16am before any transfer, installation, or daemon reload |
+| 2026-07-29T03:21:08Z | Local workspace | Define inactive Node A systemd artifact staging Action 16am | User authorized definition only; no SSH execution, staging transfer, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Action 16al accepted all 16 live-target absences and complete protected state; Node B Action 14b established the 12-unit/four-helper stage shape, while the later accepted Caddy timeout correction superseded its original override bytes | Added a hash-pinned runner and transactional remote staging driver; the runner verifies all 16 local sources, constructs an exact POSIX archive, and streams it only to Node A; the driver revalidates Action 16al, creates and normalizes one protected stage, verifies exact files/directories/hashes/modes, Bash syntax, aggregate digest, and unchanged protected state | Before the first write, failure changes nothing; after stage creation starts, any failure removes only `/var/tmp/caddy-systemd-node-a-action16am`, proves exact Action 16al and protected-state restoration, and requires rollback evidence; incomplete rollback exits `97`; workstation cleanup removes only `/tmp/caddy-action16am.*` | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, exact archive/hash/digest local test, bounded-cleanup and no-systemd-mutation checks, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `dc458922...f5977`; driver `86452d84...9bab`; stage digest `305120fd...6e15`; test runner `de3013e0...4f06` | Exact inactive stage transaction is locally defined; it uses the current accepted 30-second Caddy override, retains the exact stage only on success, and cannot install or load any unit | Stop and require separate authorization for exact Action 16am and its included bounded automatic stage cleanup |
+| 2026-07-29T03:26:14Z | Node A (`j1-svpihole0`) and workstation | Execute exact inactive Node A systemd artifact staging Action 16am | User explicitly authorized runner SHA-256 `dc458922aed13e273036549d409632176b54042aca1943497837770a28ff5977` and its bounded stage cleanup; no retry, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Exact runner regular-file metadata/hash, driver pin, Bash syntax, and prior local validation passed; Action 16al supplied the accepted live and protected baseline; the intended systemd stage was absent | Executed the exact hash-pinned runner once through strict host-verified SSH; its in-memory driver performed the bounded preflight, created and normalized the exact inactive stage, validated every artifact and protected invariant, and retained the stage; the workstation then applied its final transcript checks | No remote rollback ran because the remote transaction succeeded; workstation cleanup removed `/tmp/caddy-action16am.*`; no retry or compensating stage removal was attempted after the local validator failure | Remote SSH status `0`; every preflight, stage, per-file hash/owner/mode, script syntax, aggregate digest, live-state, and protected-state marker true; `first_failure=none`; exact stage `/var/tmp/caddy-systemd-node-a-action16am` is reported `root:root:750`, 16 files, digest `305120fd...6e15`, retained; daemon reload and service mutations false; remote completion true; local cleanup true; the runner nevertheless exited `97` because its broad `=false$` negative scan matched those two required negative markers | Runner `dc458922...f5977`; driver `86452d84...9bab`; stage digest `305120fd...6e15`; SSH `0`; runner `97` | Do not accept Action 16am yet: remote evidence is internally complete and indicates the exact inactive stage is retained with protected state unchanged, but the workstation success validator has a proven false-positive defect | Stop; define and separately authorize read-only Action 16am-a to independently confirm the retained stage and complete protected state before correcting the local validator or considering installation |
+| 2026-07-29T03:32:42Z | Local workspace | Define independent read-only retained-stage verification Action 16am-a | User authorized definition only; no SSH execution, Action 16am runner correction or retry, stage cleanup, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Action 16am's remote transaction reported complete success and retained the exact inactive stage, but the workstation runner exited `97` because its final broad false-marker scan was defective; current Node A state cannot be inferred without an independent read | Added a new standalone fail-closed inspector and hash-pinned runner; the inspector collects every stage and protected-state mismatch, validates the exact 16-file set, four directories, hashes, ownership, modes, script syntax and aggregate digest, and independently repeats the complete accepted Action 16al package, target, unit, process, listener, configuration, sysctl, identity, synchronization, effective-unit and journal checks | None on Node A because the proposed action is read-only and creates no remote path; runner cleanup removes only `/tmp/caddy-action16am-a.*`; output-contract failure exits `97`, while a complete observed-state mismatch exits `1` without cleanup or repair | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, read-only/no-transfer/no-service/no-helper-execution scans, exact stage pins, listener and protected-state coverage, explicit false-line/mismatch reconciliation, false-marker regression guard, host suite, full pre-commit suite including gitleaks, and `git diff --check` passed; no SSH connection occurred | Runner `5b1dc7eb...5b91`; inspector `7b890a42...546d`; stage digest `305120fd...6e15`; test runner `fef2d0d0...7792` | Exact read-only Action 16am-a is locally defined; it does not invoke or modify the defective Action 16am runner and accepts required negative no-mutation markers explicitly | Stop and require separate authorization for exact read-only Action 16am-a before any runner correction, stage cleanup, or installation |
+| 2026-07-29T03:40:24Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only retained-stage verification Action 16am-a | User explicitly authorized runner SHA-256 `5b1dc7eb258e2bb1e9c908eecf2392145e818040f01b8b5f91c4acce2c6c5b91`; no runner correction or retry, Action 16am retry, stage cleanup, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Exact runner and inspector metadata/hashes, Bash syntax, and runner self-test passed; Action 16am remote evidence indicated a retained stage but independent acceptance remained required | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; streamed only the standalone inspector, collected every stage and protected-state result, and then applied the workstation output contract | No remote rollback or cleanup applied because the inspector is read-only and creates no remote path; workstation cleanup removed only `/tmp/caddy-action16am-a.*`; independent local search found no remainder; no retry or repair followed | Remote SSH `0`; every Node identity, command, package/inventory, dpkg audit, live-target absence, unit/process/listener, configuration/sysctl, synchronization, effective-unit, stage file/hash/owner/mode/syntax/digest, and journal assertion true; mismatch count `0`; first failure none; stage `root:root:750`, 16 files, digest `305120fd...6e15`; peer connections, helper execution, daemon reload, and service mutations false; remote completion true; the runner then exited `97` because `stage_file_count=true` plus `stage_file_count=16`, and `stage_digest=true` plus `stage_digest=<hash>`, violated its one-line-per-prefix contract | Runner `5b1dc7eb...5b91`; inspector `7b890a42...546d`; stage digest `305120fd...6e15`; SSH `0`; runner `97`; journals `3.4G` | Do not accept Action 16am-a: the complete remote evidence is internally consistent and confirms the intended retained stage and unchanged protected baseline, but the local contract has a proven two-prefix cardinality defect | Stop; define a corrected read-only retry with disjoint Boolean and observed-value labels plus transcript regression tests before any further SSH or installation |
+| 2026-07-29T03:44:39Z | Local workspace | Define corrected read-only Action 16am-a retry | User authorized definition only; no SSH execution, Action 16am retry, stage cleanup, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Exact Action 16am-a produced complete zero-mismatch remote evidence but its runner rejected two intentionally duplicated prefixes; the inspector and contract needed disjoint assertion/value labels and exercised transcript behavior | Renamed only the two Boolean assertions to `stage_file_count_valid` and `stage_digest_valid`; retained `stage_file_count` and `stage_digest` for observed values; refactored the runner to use one contract evaluator for live and synthetic input; added local success, valid-mismatch, duplicate, malformed, missing-marker, inconsistent-count, and secret-suppression transcript cases | None on Node A because no SSH connection occurred and all changes are workstation repository artifacts; contract-test temporary directories are removed locally; the future retry remains read-only with no remote rollback or cleanup | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, all synthetic transcript cases, read-only/no-transfer/no-service/no-helper-execution scans, host suite, full pre-commit suite including gitleaks, Markdown lint, and `git diff --check` passed | Runner `b0b033cf...1d50`; inspector `5ec3f551...fa1d`; stage digest `305120fd...6e15`; test runner `7398f6bc...33ff` | Corrected retry is locally defined; Boolean and observed-value cardinalities are disjoint and the same evaluator now processes both synthetic and future live transcripts | Stop and require separate authorization for the exact corrected read-only Action 16am-a retry before any further SSH or installation |
+| 2026-07-29T03:47:00Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected read-only Action 16am-a retry | User explicitly authorized runner SHA-256 `b0b033cff505ecbc3809ff6d157aa1a565605e6a2a8c451925a33438c2fc1d50`; no Action 16am retry, stage cleanup, systemd installation, enablement, daemon reload, Node B authorization change, lsyncd configuration, peer connection, installed-helper execution, service mutation, retained synchronization-stage change, or later action authorized | Exact runner/inspector metadata and hashes, Bash syntax, self-test, and all synthetic transcript contract cases passed; earlier independent live evidence was zero-mismatch but rejected by ambiguous labels | Executed the exact corrected hash-pinned read-only runner once through strict host-verified SSH; streamed only the corrected inspector, collected all stage and protected-state evidence, and processed it through the same regression-tested evaluator | No remote rollback or cleanup applied because the inspector is read-only and creates no remote path; workstation cleanup removed only `/tmp/caddy-action16am-a.*`; independent local search found neither runner nor contract-test temporary directories | Runner/SSH exit `0`; every Node identity, command, package/inventory, dpkg audit, live-target absence, unit/process/listener, configuration/sysctl, synchronization, effective-unit, stage file/hash/owner/mode/syntax/digest, and journal assertion true; mismatch count `0`; first failure none; stage `root:root:750`, 16 files, digest `305120fd...6e15`; peer connections, helper execution, daemon reload, and service mutations false; remote and local completion markers present; journals `3.4G` | Runner `b0b033cf...1d50`; inspector `5ec3f551...fa1d`; stage digest `305120fd...6e15`; SSH/runner `0`; elapsed approximately `4.0` seconds | Accept corrected Action 16am-a retry and, through its independent evidence, accept inactive systemd artifact staging Action 16am: the exact stage is retained and the complete protected baseline remains unchanged | Stop; define transactional Node A systemd installation Action 16an before any live target installation, daemon reload, enablement, or service mutation |
+| 2026-07-29T03:54:28Z | Local workspace | Define transactional Node A systemd installation Action 16an | User authorized definition only; no SSH execution, stage cleanup, live target installation, daemon reload, enablement, service mutation, Node B authorization change, lsyncd configuration, peer connection, retained synchronization-stage change, or later action authorized | Accepted Action 16am-a retry proved the exact retained 16-file stage and unchanged protected baseline; Node B Action 14 established the installation and rollback pattern; Node B later superseded its original Caddy override with `TimeoutStopSec=30s` | Added a hash-pinned remote transaction and workstation runner; revalidate the full accepted pre-state, install only 16 absent targets, perform one daemon reload, require every custom unit inactive and disabled/static, and preserve both retained stages; added strict transcript cardinality and synthetic failure cases | Before the first write, failure changes nothing; after mutation starts, remove only the 16 new targets and the two action-created drop-in directories, reload systemd, and prove target absence, custom-unit disappearance, protected-state identity, and retained-stage integrity; incomplete rollback exits `97` with manual-intervention evidence | Bash syntax, ShellCheck, shfmt, installer/runner self-tests, duplicate/missing/rollback/nonzero transcript rejection, static no-enable/no-service/no-peer assertions, host suite, pre-commit including gitleaks, Markdown lint, diff checks, and full Debian 12 Podman integration passed; the first sandboxed Podman attempt stopped only because `/run/user/1000/libpod` was read-only, and the unchanged host-permitted rerun passed | Installer `192a6827...b9c2`; runner `b641000e...450f`; stage digest `305120fd...6e15` | Exact Action 16an is defined and fully locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned runner command |
+| 2026-07-29T03:59:55Z | Node A (`j1-svpihole0`) and workstation | Execute exact transactional Node A systemd installation Action 16an | User explicitly authorized runner SHA-256 `b641000e28e681f92c329a64cc67a7d5cc0348c211c60f8d40d67bb5f504450f` and its included bounded rollback; no post-install inspection, stage cleanup, enablement, activation, service mutation, Node B authorization change, lsyncd configuration, peer connection, retained-stage change, or later action authorized | Runner ownership/mode/hash, self-test, transcript regression tests, accepted 16am-a retained-stage evidence, and locally validated transaction all passed immediately before execution | Executed the exact hash-pinned runner once through strict host-verified SSH; the remote installer revalidated the accepted baseline, installed exactly 16 targets, performed one daemon reload, and ran its immediate systemd, unit-state, protected-state, and retained-stage validations | Failure-only rollback was armed but not invoked; it would have removed only the 16 new targets and two action-created empty drop-in directories, reloaded systemd, and proved restoration; workstation cleanup removed only `/tmp/caddy-action16an.*` | Runner/SSH exit `0`; remote reached, preflight, mutation, file installation, daemon reload, systemd validation, protected-state identity, both retained-stage, no-enable/no-activity, no-peer, no-helper, no-service-mutation, deferred-configuration, remote completion, and local cleanup markers each passed; no rollback or manual-intervention evidence appeared | Installer `192a6827...b9c2`; runner `b641000e...450f`; stage digest `305120fd...6e15`; SSH/runner `0` | Accept Action 16an: all 16 intended systemd/helper targets are installed, custom units remain inactive and disabled/static, Caddy and lsyncd remain protected, both stages are retained, and no service or peer action occurred | Stop; define an independent read-only post-install acceptance Action 16an-a before any enablement, activation, stage cleanup, or later deployment action |
+| 2026-07-29T04:05:31Z | Local workspace | Define independent read-only Node A post-install acceptance Action 16an-a | User authorized definition only; no SSH inspection, stage cleanup, enablement, activation, service mutation, Node B authorization change, lsyncd configuration, peer connection, retained-stage change, or later action authorized | Action 16an completed with immediate success evidence, but an independently implemented post-install check remained required before later actions | Added a standalone fail-closed inspector and hash-pinned runner that recompute all installed and staged hashes/modes, systemd load/activity/unit-file/drop-in state, complete retained synchronization-stage contents, package/configuration/sysctl/service/process/listener state, deferred-target absence, and safe observed hashes without invoking installed helpers | Read-only action; no remote rollback applies; the runner removes only `/tmp/caddy-action16an-a.*`; a complete mismatch returns `1`, while malformed, duplicate, inconsistent, secret-bearing, or SSH-status-inconsistent evidence returns `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic success and complete mismatch, duplicate/malformed/inconsistent/secret rejection, static read-only/no-service/no-peer scans, focused diff checks, complete host suite, pre-commit including gitleaks, Markdown lint, and full Debian 12 Podman integration passed | Inspector `9af0b994...2606`; runner `6675cef6...7489`; stage digest `305120fd...6e15` | Exact Action 16an-a is defined and fully locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned read-only runner command |
+| 2026-07-29T04:09:26Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only Node A post-install acceptance Action 16an-a | User explicitly authorized runner SHA-256 `6675cef62e6ea81066334226c98e505417489516a651dc5d35b8bdddbe357489`; no retry, stage cleanup, enablement, activation, service mutation, Node B authorization change, lsyncd configuration, peer connection, retained-stage change, or later action authorized | Exact runner ownership, mode, hash, Bash syntax, self-test, and transcript regression test passed before the single SSH execution; Action 16an supplied the accepted immediate post-install baseline | Executed the exact hash-pinned read-only runner once through strict host-verified SSH; streamed only the standalone inspector and collected all installed, staged, systemd, synchronization, and protected-state evidence | No remote rollback or cleanup applied because the inspector is read-only and creates no remote path; workstation cleanup removed only `/tmp/caddy-action16an-a.*`; no retry followed | Remote SSH `0`; all 264 assertions true; mismatch count `0`; first failure none; exact 16-file stage digest `305120fd...6e15`; effective Caddy unit `3a5f3f84...1a40`; effective lighttpd unit `ad6c3811...75ca`; journals `3.4G`; peer connections, helper execution, daemon reload, and service mutations false; remote and local completion true; runner nevertheless exited `97` because `check_baseline_unit_pihole_FTL_service_active=true` violated its lowercase-only label grammar | Runner `6675cef6...7489`; inspector `9af0b994...2606`; SSH `0`; runner `97` | Do not accept Action 16an-a: Node A evidence is complete and zero-mismatch, but the workstation contract failure prevents formal acceptance | Stop; correct and validate label normalization locally, then require separate authorization before any SSH retry |
+| 2026-07-29T04:09:26Z | Local workspace | Define corrected independent read-only Action 16an-a retry | No new authorization required for workstation-only correction; no SSH retry or node change authorized | The first attempt proved exactly one unit-derived label retained uppercase characters while every remote assertion passed | Normalize every derived unit label to lowercase before emission and add transcript tests for the real Pi-hole FTL label plus rejection of uppercase evidence; retain all inspected state and strict result semantics | Workstation-only artifact change; no remote rollback applies; the future retry remains read-only and removes only `/tmp/caddy-action16an-a.*` | Inspector/runner self-tests, transcript regression tests, complete host suite, pre-commit including Markdown and gitleaks, `git diff --check`, and full Debian 12 Podman integration passed | Inspector `68716f33...cf9e`; runner `54f7d249...c2fe`; stage digest `305120fd...6e15` | Corrected retry is defined; it changes only output-label normalization and preserves all 264 state assertions | Stop; require separate authorization for the corrected hash-pinned read-only retry |
+| 2026-07-29T04:14:59Z | Node A (`j1-svpihole0`) and workstation | Execute corrected independent read-only Action 16an-a retry | User explicitly authorized corrected runner SHA-256 `54f7d24999b2dc6f00a49735e71405db365642c10a798225911f91308abdc2fe`; no later action or mutation authorized | Corrected runner and inspector regular-file ownership, modes, hashes, Bash syntax, self-tests, lowercase Pi-hole FTL regression, contract marker, and static read-only/no-service/no-peer checks passed; the initial local preflight's nonexistent standalone-test reference was discarded before SSH and replaced with the repository's embedded contract validation | Executed the exact corrected hash-pinned runner once through strict host-verified SSH; streamed only the standalone inspector and collected the complete post-install evidence | No remote rollback or cleanup applied because the inspector is read-only and creates no remote path; workstation cleanup removed only `/tmp/caddy-action16an-a.*` | SSH/runner `0`; all 264 assertions true; mismatch count `0`; first failure none; 16 staged files and 16 installed targets; stage digest `305120fd...6e15`; effective Caddy unit `3a5f3f84...1a40`; effective lighttpd unit `ad6c3811...75ca`; journals `3.4G`; peer connections, helper execution, daemon reload, and service mutations false; remote and local completion true | Inspector `68716f33...cf9e`; runner `54f7d249...c2fe`; SSH/runner `0` | Accept corrected Action 16an-a retry and independently accept the installed Node A systemd state | Stop; define the next single Node A deployment action for separate authorization |
+| 2026-07-29T04:19:34Z | Local workspace | Define read-only Node A listener/service-cutover preflight Action 16ao | User authorized definition only; no SSH inspection, stage cleanup, listener or service cutover, enablement, activation, service mutation, Node B authorization change, lsyncd configuration, peer connection, retained-stage change, or later action authorized | Corrected Action 16an-a accepted the installed systemd state; Node B Action 15 proved that exact inactive-candidate, health, listener, timeout, certificate, and rollback prerequisites must be reconfirmed immediately before cutover | Added a standalone fail-closed inspector and hash-pinned runner covering dual-stack Node A identity, rollback-backup integrity, exact live and inactive lighttpd trees, native candidate parsing, Caddy release/environment/configuration/certificate integrity, unit type and stop timeout, current direct-management HTTP/HTTPS health, exact listener ownership, and deferred lsyncd/VRRP absence | Read-only action; no remote rollback applies; the inspector creates no path and the runner removes only `/tmp/caddy-action16ao.*`; a complete state mismatch returns `1`, while malformed, duplicate, inconsistent, secret-bearing, or SSH-status-inconsistent evidence returns `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic success/mismatch/duplicate/malformed/secret transcript cases, static read-only/no-service/no-peer scans, complete host suite, and `git diff --check` passed; full Podman and pre-commit results are recorded separately | Inspector `32f7fb6e...83a`; runner `0183eca0...b43b`; test runner `5052a8c2...877` | Exact Action 16ao is defined; it can only inspect Node A and cannot perform the cutover | Stop; require separate authorization for the exact hash-pinned read-only runner command |
+| 2026-07-29T04:23:41Z | Node A (`j1-svpihole0`) and workstation | Execute exact read-only Node A cutover-preflight Action 16ao | User explicitly authorized runner SHA-256 `0183eca00ab1431f934744f926534022f1e2c965ead7445225be349e6676b43b`; no diagnostic, retry, stage cleanup, listener/service cutover, enablement, activation, service mutation, or later action authorized | Exact runner and inspector ownership, modes, hashes, Bash syntax, self-tests, synthetic contract tests, and static read-only/no-service/no-peer scans passed immediately before execution | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the inspector and collected all 66 assertions | No remote rollback or cleanup applied because the inspector is read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ao.*` | SSH/runner `1`; 63 assertions true and three false; mismatch count `3`; first failure `node_ipv6_present`; exact failures were `node_ipv6_present`, `caddy_unit_type`, and `tcp_80_count`; all other candidate, native-parse, rollback, configuration, certificate, service, listener-ownership, direct HTTP/HTTPS, deferred-state, no-mutation, completion, and cleanup checks passed | Inspector `32f7fb6e...83a`; runner `0183eca0...b43b`; SSH/runner `1` | Do not accept Action 16ao and do not infer the three actual values from Boolean-only evidence | Stop; define and separately authorize a narrow read-only Action 16ao-a diagnostic before correcting or retrying Action 16ao |
+| 2026-07-29T04:27:15Z | Local workspace | Define narrow non-enforcing read-only Node A Action 16ao-a diagnostic | User authorized definition only; no SSH inspection, Action 16ao correction or retry, stage cleanup, listener/service cutover, enablement, activation, service mutation, or later action authorized | Action 16ao identified exactly three Boolean mismatches but intentionally did not expose their actual values | Added a standalone diagnostic and hash-pinned runner that emit all IPv6 address/interface records, effective Caddy type and service state, fragment/drop-in paths and every explicit `Type=` directive with source/line provenance, and every TCP 80 listener record; record counts and command statuses are explicit | Read-only action; no remote rollback applies; the inspector creates no path and exits after complete collection; the runner removes only `/tmp/caddy-action16ao-a.*`; malformed, duplicate, count-inconsistent, secret-bearing, nonzero-SSH, or cleanup-invalid evidence exits `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic success/duplicate/count-inconsistent/secret cases, static read-only/no-service/no-peer scans, complete host suite, and `git diff --check` passed; full Podman and pre-commit results are recorded separately | Diagnostic `6f75baf2...eb2e`; runner `120a4479...b1bc`; test runner `de919c77...836b` | Exact diagnostic is defined; unexpected values are reported without preventing its completion | Stop; require separate authorization for the exact hash-pinned read-only diagnostic runner |
+| 2026-07-29T04:38:02Z | Node A (`j1-svpihole0`) and workstation | Execute exact non-enforcing read-only Action 16ao-a diagnostic | User explicitly authorized runner SHA-256 `120a4479b2b81927715e644ed22a70f42286903dd683e9ab1d29d98e9977b1bc`; no Action 16ao correction or retry, IPv6 change, cutover, service mutation, or later action authorized | Exact runner and diagnostic ownership, modes, hashes, Bash syntax, self-tests, synthetic contract tests, and static read-only/no-service/no-peer scans passed immediately before execution | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the diagnostic and collected all count-reconciled evidence | No remote rollback or cleanup applied because the diagnostic is read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ao-a.*` | SSH/runner `0`; six IPv6 records included `fd36:5aa8:6971:1::53/64` on `eth0`; effective Caddy type empty, load state masked, fragment `/etc/systemd/system/caddy.service`, drop-in `/etc/systemd/system/caddy.service.d/override.conf`, type-directive status `1`, zero directive records; two TCP 80 listeners at `0.0.0.0:80` and `[::]:80`, both lighttpd PID `916`; all command statuses except type-directive provenance were zero; no-mutation and completion markers passed | Diagnostic `6f75baf2...eb2e`; runner `120a4479...b1bc`; SSH/runner `0` | Accept Action 16ao-a as diagnostic evidence; resolve IPv6 prefix and TCP count assumptions, but retain Caddy vendor-type provenance as unresolved | Stop; define and separately authorize narrow read-only Action 16ao-b before correcting Action 16ao |
+| 2026-07-29T04:44:24Z | Local workspace | Define narrow non-enforcing read-only Node A Action 16ao-b diagnostic | User authorized definition only; no SSH inspection, Action 16ao correction or retry, IPv6 change, listener/service cutover, enablement, activation, service mutation, or later action authorized | Accepted Action 16ao-a proved that the active mask hides the underlying packaged unit and therefore could not expose its `Type=` provenance | Added a standalone diagnostic and hash-pinned runner that collect exact mask lstat/link/canonical metadata, installed Caddy package identity, every deduplicated package-listed `caddy.service` path, canonical path, hash, package ownership, and explicit `Type=` directive with independent statuses and reconciled counts | Read-only action; no remote rollback applies; the inspector creates no remote path; the runner removes only `/tmp/caddy-action16ao-b.*`; malformed, duplicate, count-inconsistent, secret-bearing, nonzero-SSH, or cleanup-invalid evidence exits `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH cases, static read-only/no-service/no-peer scans, complete host suite, full Debian 12 Podman integration, pre-commit including gitleaks and Markdown, and `git diff --check` passed; the first sandboxed Podman attempt stopped at read-only rootless runtime state and the unchanged host-permitted rerun passed | Diagnostic `6a67da4d...5911`; runner `9b093513...0d17`; test runner `85931e2f...57f1` | Exact Action 16ao-b is defined and fully locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned read-only runner command |
+| 2026-07-29T04:46:56Z | Node A (`j1-svpihole0`) and workstation | Execute exact non-enforcing read-only Action 16ao-b diagnostic | User explicitly authorized runner SHA-256 `9b0935134c7f134d063af7446eee033158a71f328fc0160622582eafb8580d17`; no Action 16ao correction or retry, IPv6 change, listener/service cutover, enablement, activation, service mutation, or later action authorized | Exact runner and diagnostic ownership, modes, hashes, Bash syntax, self-tests, synthetic contract tests, and static read-only/no-service/no-peer scans passed immediately before execution | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the diagnostic and collected the mask, package, vendor-unit, and `Type=` provenance evidence | No remote rollback or cleanup applied because the diagnostic is read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ao-b.*` | SSH/runner `0`; mask `/etc/systemd/system/caddy.service -> /dev/null`; installed `caddy` `2.11.4` arm64; one package-listed vendor unit at `/lib/systemd/system/caddy.service`, canonical `/usr/lib/systemd/system/caddy.service`, `root:root:0644`, 1,029 bytes, SHA-256 `6c271e03...93ff`, package owner `caddy`; one directive at line 23, `Type=notify`; every observation status zero and all no-mutation/completion markers passed | Diagnostic `6a67da4d...5911`; runner `9b093513...0d17`; SSH/runner `0` | Accept Action 16ao-b as diagnostic evidence; all three original Action 16ao mismatch values are now resolved | Stop; define and separately authorize a corrected read-only Action 16ao validator before any SSH retry or cutover |
+| 2026-07-29T04:50:51Z | Local workspace | Define corrected fail-closed read-only Node A Action 16ao retry | User authorized definition only; no SSH retry, listener/service cutover, enablement, activation, service mutation, synchronization, VRRP, or later action authorized | Action 16ao-a resolved the ULA and dual-stack listener values; Action 16ao-b resolved the `/dev/null` mask and packaged vendor-unit `Type=notify` provenance; the other 63 original checks passed | Corrected only the disproven policies while strengthening their provenance: `/64` ULA, exact two-address lighttpd TCP 80 set, and exact mask/package/vendor-unit/hash/ownership/type checks; retained every previously passing assertion and the existing transcript/cleanup contract | Read-only action; no remote rollback applies; future execution streams the inspector without retaining it and removes only `/tmp/caddy-action16ao.*`; state mismatch returns `1`, contract failure returns `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic contract and dual-stack positive/negative tests, static no-write/no-service/no-peer scans, complete host suite, and full Debian 12 Podman integration passed; pre-commit and diff results are recorded separately | Inspector `370e40f3...1eb0`; runner `1a9a2e77...5f93`; test runner `9b34998d...9a6d` | Corrected Action 16ao retry is defined and locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact corrected hash-pinned read-only runner |
+| 2026-07-29T04:54:04Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected fail-closed read-only Action 16ao retry | User explicitly authorized runner SHA-256 `1a9a2e77169ce17a6f9c524c9029971fa33df26090fcf15246c9188a7a8a5f93`; no listener/service cutover, enablement, activation, service mutation, synchronization, VRRP, or later action authorized | Exact runner and inspector ownership, modes, hashes, Bash syntax, self-tests, synthetic contract tests, and static read-only/no-service/no-peer scans passed immediately before execution | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the corrected inspector and collected all 75 pre-cutover assertions | No remote rollback or cleanup applied because the inspector is read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16ao.*` | SSH/runner `0`; all 75 assertions true; zero mismatches; first failure none; exact `/64` ULA, dual-stack lighttpd TCP 80 set, Caddy mask/package/vendor-unit provenance, all retained original prerequisites, preflight-valid, completion, no-mutation, and cleanup markers passed | Inspector `370e40f3...1eb0`; runner `1a9a2e77...5f93`; SSH/runner `0` | Accept corrected Action 16ao and supersede the original failed preflight with this accepted retry; Node A remains unchanged | Stop; define the transactional Node A listener/service cutover with bounded readiness polling and automatic rollback as a separate action |
+| 2026-07-29T05:02:44Z | Local workspace | Define transactional Node A listener/service cutover Action 16ap | User authorized definition only; no SSH execution, live listener/service mutation, stage cleanup, enablement, synchronization, VRRP, or later action authorized | Corrected Action 16ao accepted all 75 immediate pre-cutover prerequisites; accepted Node B Action 15 retry3 supplied the bounded readiness and semantic rollback model | Added a hash-pinned Node A transaction and workstation runner: preserve the Action 16ab source candidate, create a same-filesystem cutover copy, atomically retain/promote lighttpd trees, poll loopback backend and dual-stack Caddy health, keep Caddy disabled after start, and preserve all deferred state | Before any service change, remove only a partial action-created cutover copy; after promotion, stop/remask Caddy, restore/restart original lighttpd, remove only action-created copies, and prove service/listener/configuration/tree restoration; incomplete rollback exits `97` with manual-intervention evidence | Bash syntax, ShellCheck, shfmt, driver/runner self-tests, success/pre-write-failure/complete-rollback/incomplete-rollback/duplicate/secret transcript tests, bounded readiness and rollback static checks, complete host suite, full Debian 12 Podman integration, pre-commit including Markdown and gitleaks, and `git diff --check` passed | Driver `de3bea3d...159a`; runner `a2dbfa9e...c7f0`; test runner `3c7d07f3...7c41` | Exact Action 16ap is defined and fully locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned transactional runner and its included bounded automatic rollback |
+| 2026-07-29T05:06:27Z | Node A (`j1-svpihole0`) and workstation | Execute exact transactional Node A listener/service cutover Action 16ap | User explicitly authorized runner SHA-256 `a2dbfa9e686cfd375548bfa6c2fa5233d173654b036a787c9ff4259b8775c7f0` and its included bounded automatic rollback; no diagnostic, retry, repair, cleanup, post-cutover acceptance, or later action authorized | Runner and driver regular-file ownership/mode/hash checks, Bash syntax, self-tests, and contract test passed immediately before SSH; corrected Action 16ao was the accepted remote baseline | Executed the exact hash-pinned runner once through strict host-verified SSH; preflight completed, mutation began, lighttpd backend became ready, Caddy was unmasked, and its start sequence was attempted | Transaction attempted to remask Caddy and restore the baseline; it emitted `action_16ap_rollback_incomplete=true` and `manual_intervention_required=true`, so no restoration claim is accepted | Remote evidence included valid Caddy configuration, `action_16ap_preflight_complete=true`, `action_16ap_mutation_started=true`, `lighttpd_backend_ready=true`, `original_lighttpd_ready=true`, Caddy mask removal and recreation messages, `action_16ap_failure_status=1`, remote semantic status `125`, runner exit `97`, and complete workstation cleanup | Driver `de3bea3d...159a`; runner `a2dbfa9e...c7f0`; runner exit `97`; remote semantic status `125` | Action 16ap is not accepted; Node A's exact service, listener, lighttpd-tree, mask, and action-owned-path state is unknown until independently inspected | Stop with manual intervention required; define and separately authorize a fail-closed read-only recovery-state diagnostic before any retry, repair, cleanup, or later action |
+| 2026-07-29T05:13:31Z | Local workspace | Define read-only Node A recovery diagnostic Action 16ap-a | User authorized definition only; no SSH execution, retry, repair, cleanup, service mutation, post-cutover acceptance, or later action authorized | Action 16ap ended with incomplete-rollback status `97`; Node A's exact service, listener, filesystem, mask, and action-owned-path state is unknown | Added a streamed root inspector and hash-pinned workstation runner that collect six service states, ten exact paths, five possible lighttpd trees and parse/include evidence, Caddy and Keepalived tree hashes, Caddy validation, relevant processes/listeners, five bounded health probes, and at most 25 recent Caddy/lighttpd journal records | Read-only diagnostic; no remote rollback applies because it creates no remote path and performs no service/filesystem mutation; the runner removes only `/tmp/caddy-action16ap-a.*` locally | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, success/duplicate/count-inconsistent/secret/nonzero-SSH transcript tests, static no-write/no-service/no-peer checks, complete host suite, full Debian 12 Podman integration, pre-commit and diff checks are recorded separately | Inspector `d4402abf...a77`; runner `c7c002af...06d`; test runner `fb92764f...54c` | Exact non-enforcing recovery diagnostic is defined and fully locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned read-only runner |
+| 2026-07-29T05:16:32Z | Node A (`j1-svpihole0`) and workstation | Execute exact read-only recovery diagnostic Action 16ap-a | User explicitly authorized runner SHA-256 `c7c002af58eb5c33369dbc43fbd9676469bdfe2da06978128699cf42a6abc06d`; explicitly excluded repair, remote cleanup, retry, and service mutation | Inspector/runner ownership, modes, hashes, Bash syntax, self-tests, transcript contract, and the prior incomplete-rollback boundary passed locally before SSH | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the read-only inspector and collected all count-reconciled evidence | No remote rollback or cleanup applied because the inspector created no remote path and performed no mutation; workstation cleanup removed only `/tmp/caddy-action16ap-a.*` | SSH/runner `0`; six services, ten paths, five lighttpd roots, three listeners, three processes, five health probes, and 25 journal records reconciled; no peer/helper/daemon-reload/service/filesystem mutation; completion and local cleanup passed | Inspector `d4402abf...a77`; runner `c7c002af...06d`; SSH/runner `0`; live lighttpd `b15ff54d...cb92`; retained candidate `6e178911...c13`; Caddy tree `6ae99faf...2161`; Keepalived tree `dad64e4a...2f66` | Accept Action 16ap-a as complete diagnostic evidence; service/listener/path state largely matches the pre-cutover baseline, but do not accept recovery because `caddy validate` returned `1` | Stop; define and separately authorize a narrow read-only Caddy validation/provenance diagnostic before any repair, cleanup, retry, or later action |
+| 2026-07-29T05:25:22Z | Local workspace | Define read-only dual-node Caddy validation/provenance diagnostic Action 16ap-b | User authorized definition and requested Node B comparison; exact live runner has not yet been separately authorized | Action 16ap-a's validator did not source `/etc/default/caddy-ha`, while every identified accepted deployment validator does; Node B's working Caddy state provides the comparison baseline, but the environment hypothesis is not yet treated as fact | Added one node-role-bound streamed inspector and a hash-pinned runner that query Nodes A and B separately, collect package/binary/unit/environment/release/config provenance, and run Caddy validation once with node variables explicitly absent and once with the non-secret node environment exported | Read-only action; no remote rollback applies because it creates no remote path and performs no service/filesystem mutation; runner removes only `/tmp/caddy-action16ap-b.*` locally | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, success/duplicate/count-inconsistent/secret/nonzero-SSH transcript cases, two-host identity/host-key checks, static no-write/no-service/no-peer checks, complete host suite, full Debian 12 Podman integration, pre-commit and diff checks recorded separately | Inspector `43fb0866...13d8`; runner `325dce1f...6daf`; test runner `bd623c27...a758` | Exact two-node comparison is defined and locally validated; neither node was contacted or changed | Stop; require separate authorization for the exact hash-pinned read-only runner |
+| 2026-07-29T05:27:44Z | Nodes A (`j1-svpihole0`) and B (`j1-svpihole00`) plus workstation | Execute exact read-only dual-node Caddy validation/provenance Action 16ap-b | User explicitly authorized runner SHA-256 `325dce1f2aaac8cc82e23b075554cabcc32121e4a5df0af044ed3639cb3e6daf`; no repair, cleanup, retry, or service mutation authorized | Inspector/runner ownership, modes, hashes, Bash syntax, self-tests, two-node transcript contract, and exact host identities passed locally before SSH | Executed the exact hash-pinned runner once; streamed the same role-bound inspector separately to Nodes A and B and collected bare and environment-backed validator evidence plus package/binary/unit/release/config provenance | No remote rollback or cleanup applied because the inspector created no remote path and performed no mutation; workstation cleanup removed only `/tmp/caddy-action16ap-b.*` | Both SSH statuses and runner status `0`; both bare validations returned `1` with the same empty-server-key adaptation error; both environment-backed validations returned `0` and `Valid configuration`; all record counts, no-mutation markers, comparison completion, and local cleanup passed | Caddy `2.11.4` arm64; binary `e1f90403...2afe`; Caddyfile `a41c7816...86e`; configuration tree `763f6a66...2fa2`; Node A environment `2e439dd4...a2b8`; Node B environment `f692d5b7...8113` | Accept Action 16ap-b; supersede Action 16ap-a's bare validation concern as a diagnostic-context false negative and accept Node A's independently proven pre-cutover recovery baseline | Stop; do not retry Action 16ap unchanged; define a corrected transaction as a separate action |
+
+| 2026-07-29T05:35:44Z | Local workspace | Define corrected transactional Node A listener/service cutover Action 16ap retry | User authorized definition only; no SSH execution, retry, listener/service mutation, retained-stage change, synchronization, VRRP, or later action authorized | Actions 16ap-a and 16ap-b independently accepted Node A's restored pre-cutover baseline; the original transaction's unconditional reset failed on an inactive non-failed unit | Preserved the original Action 16ap artifacts and added a separately hash-pinned retry whose single `reset-failed` invocation is guarded by exact `ActiveState=failed` checks before Caddy start and during rollback; all other transaction bounds and validations remain unchanged | Retains the accepted bounded rollback: stop and remask Caddy, restore and restart the original lighttpd tree, remove only action-created paths, and prove the complete service/listener/configuration/tree baseline; unsupported or empty Caddy states fail closed | Bash syntax, ShellCheck, shfmt, driver/runner self-tests, transcript contract, single guarded-reset regression check, complete host suite, and full Debian 12 Podman integration passed; pre-commit and diff checks recorded separately | Driver `ff413bb0...b9e`; runner `a8cceb3a...573`; test runner `b76d612d...126` | Corrected retry is defined and locally validated; neither live node was contacted or changed | Stop; require separate authorization for the exact hash-pinned retry runner and its included bounded automatic rollback |
+| 2026-07-29T05:40:19Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected transactional listener/service cutover Action 16ap retry | User explicitly authorized runner SHA-256 `a8cceb3a43f984060afa62ad2cacf001235c5b5f6f96e728dc84f87125d82573` and its included bounded automatic rollback; no independent follow-up inspection, persistence change, synchronization, VRRP, or later action authorized | Local regular-file ownership/mode/hash checks passed; Actions 16ap-a and 16ap-b had independently accepted the restored pre-cutover baseline | Executed the exact hash-pinned runner once through strict host-verified SSH; promoted the prepared lighttpd configuration, moved lighttpd to loopback TCP 8080, unmasked and started Caddy, and ran the complete embedded health and state contract | Rollback was armed but not invoked because every mutation and validation completed; had any check failed, the transaction would have stopped/remasked Caddy, restored the original lighttpd tree, removed only action-owned paths, and proven the baseline or emitted manual-intervention evidence | SSH/runner `0`; preflight and mutation markers passed; `lighttpd_backend_ready=true`; Caddy state was inactive so `caddy_reset_before_start=false`; `caddy_ready=true`; environment-backed configuration validation passed twice; all transcript, no-peer, unchanged-tree, completion, and workstation-cleanup checks passed | Driver `ff413bb0...b9e`; runner `a8cceb3a...573`; original listeners `ec95b617...13db`; promoted lighttpd `95a8752f...3372`; original lighttpd `b15ff54d...cb92`; Caddy tree `6ae99faf...2161`; Keepalived tree `dad64e4a...2f66`; `TimeoutStopUSec=30s` | Accept the corrected Action 16ap retry and Node A cutover; Caddy is active but disabled, lighttpd is active/enabled on loopback TCP 8080, and deferred lsyncd/VRRP state is unchanged | Stop; define and separately authorize an independent read-only Node A post-cutover acceptance action |
+| 2026-07-29T05:48:56Z | Local workspace | Define independent fail-closed read-only Node A post-cutover acceptance Action 16aq | User authorized definition only; no SSH inspection, service mutation, persistence change, synchronization, VRRP, or later action authorized | Corrected Action 16ap retry reported complete success; independent current-state evidence remains required before advancing | Added a Node A inspector and hash-pinned workstation runner that verify node identity and addresses, commands, exact live/original/candidate lighttpd trees, absent action paths, exact Caddy and Keepalived trees, Caddy release/environment/routes/unit/package/certificate, all service and deferred states, exclusive listener ownership, process counts, backend/localhost/dual-stack HTTP/1.1 and HTTP/2, unknown-host rejection, served-certificate identity, and bounded Caddy journal policy | Read-only action; no remote rollback applies because the inspector creates no path and performs no mutation; the runner removes only `/tmp/caddy-action16aq.*`; state mismatch returns `1`, malformed or secret-bearing evidence returns `97` | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, success/mismatch/duplicate/malformed/secret/nonzero-SSH transcript cases, static no-write/no-service/no-peer checks, complete host suite, full Debian 12 Podman integration, focused pre-commit, Markdown, and diff checks recorded separately | Inspector `67c6c1ec...d90f`; runner `b312257a...e348`; test runner `c86cb449...e03b` | Exact Action 16aq is defined and fully locally validated; neither live node was contacted or changed | Stop; require separate authorization for the exact hash-pinned read-only runner |
+| 2026-07-29T05:52:24Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only post-cutover Action 16aq | User explicitly authorized runner SHA-256 `b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348`; no correction, retry, diagnostic, service mutation, persistence change, synchronization, VRRP, or later action authorized | Local runner ownership/mode/hash, inspector hash, Bash syntax, self-tests, and transcript contract passed before SSH; corrected Action 16ap retry remained the accepted cutover baseline | Executed the exact runner once through strict host-verified SSH; streamed only the inspector and collected all 104 labeled assertions plus bounded evidence | No remote rollback applied because the inspector was read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16aq.*` | SSH status `1`; 100 checks true and four false; exact trees, configuration, certificate, service states, listeners, processes, backend, localhost, dual-stack HTTP/1.1 and HTTP/2, served leaf, and journal policy passed; three assumed lighttpd-fragment checks failed and unknown-host returned `200`; no-mutation and cleanup markers passed; runner returned `97` because it incorrectly required `421` even for a valid mismatch transcript | Inspector `67c6c1ec...d90f`; runner `b312257a...e348`; live lighttpd `95a8752f...3372`; original `b15ff54d...cb92`; candidate `6e178911...6c13`; Caddy `6ae99faf...2161`; Keepalived `dad64e4a...2f66`; served leaf `9480cfd6...580c`; journal records `72` | Action 16aq is not accepted; operational cutover evidence remains strongly positive, but the three location assumptions, unknown-host behavior, and runner mismatch contract require resolution | Stop; define and separately authorize a narrow read-only Action 16aq-a diagnostic before any correction, retry, persistence, synchronization, VRRP, or later action |
+| 2026-07-29T06:01:18Z | Local workspace | Define narrow read-only Action 16aq-a for effective lighttpd directive provenance and unknown-host routing | User authorized definition only; no Node A diagnostic execution, correction, retry, or mutation authorized | Action 16aq was unaccepted after three fragment-location assumptions and an unexplained unknown-host `200`; accepted runtime evidence remained intact | Added a non-enforcing remote collector and fail-closed workstation runner for recursive lighttpd provenance, effective parser/listener state, adapted and live Caddy routes, and five distinct direct SNI/Host probes | Local Git working tree; remote rollback is inapplicable because the defined action is read-only and creates no remote path | Bash syntax, ShellCheck, shfmt, self-tests, synthetic transcript contract tests, complete host suite, full Debian 12 Podman integration, focused pre-commit, and `git diff --check` passed | Diagnostic `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`; runner `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc`; test runner `7e6c9a7ba5e72da84b8c8f5dbf62e285e2ebd30479f4bc42ef4a52bd80a939f8` | Exact read-only diagnostic is locally validated; neither node was contacted or changed | Stop and require separate authorization for the exact hash-pinned Action 16aq-a runner |
+| 2026-07-29T06:07:59Z | Node A (`j1-svpihole0`) and workstation | Execute exact narrow read-only Action 16aq-a | User explicitly authorized Action 16aq-a; no correction, retry, configuration, service, synchronization, VRRP, or later action authorized | Exact runner metadata and SHA-256 passed; Action 16aq remained unaccepted; corrected Action 16ap retry remained the accepted operational baseline | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the read-only collector and gathered lighttpd provenance, effective listeners, adapted/runtime Caddy routes, and five SNI/Host probes | No remote rollback applied because the collector created no path and performed no mutation; runner removed only its protected `/tmp/caddy-action16aq-a.*` workspace | Remote completion and every no-mutation marker passed; SSH `0`; runner `97`; local cleanup passed; the runner rejected percent-encoded probe metadata despite the collector's self-test explicitly requiring that encoding | Diagnostic `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`; runner `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc`; lighttpd `1.4.69`; route counts adapted/runtime `6/6` | Main lighttpd configuration owns loopback/8080; no enabled TLS directive was observed; known management routing works; mismatched SNI/Host returns `421`; matching unknown SNI/Host returns empty Caddy `200`; IP-SNI probe failed TLS with curl `35`; no state changed | Reject Action 16aq-a as a validated runner transaction but retain its complete read-only observations; stop before separately defining a corrected diagnostic retry |
+
+### Defined next gate: deployment action 16b
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s -- --node node-a' \
+  < Caddy/scripts/create-node-rollback-backup.sh
+```
+
+Pinned script SHA-256:
+`83790ff984563fac8471eb4492cd1b893112c4c46ea4d1fb3398f6f0188eaddb`.
+
+Expected effect:
+
+- Refuse execution unless the role is `node-a`, the hostname is
+  `j1-svpihole0`, and `10.1.0.53/22` is present on `eth0`.
+- Create one root-owned mode `0700` baseline at
+  `/var/backups/caddy-ha/predeploy-node-a-<UTC timestamp>`.
+- Capture present/absent target paths, a checksummed configuration archive,
+  individual file hashes, package/manual-package state, systemd unit and
+  service state, sysctls, addresses, routes, and listeners.
+- Make no package, configuration, listener, or service-state change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require both `backup_root=/var/backups/caddy-ha/predeploy-node-a-...` and
+  `backup_complete=true`.
+- The script verifies the archive checksum, archive readability, and completion
+  manifest both before and after the atomic final rename.
+
+Rollback boundary:
+
+- Before completion, the EXIT trap removes only the action-created hidden
+  staging directory.
+- After completion, retain the additive protected baseline for later recovery.
+  Any deletion of that exact baseline requires separate authorization.
+
+### Defined next gate: read-only action 16c
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n apt-get -s install --no-install-recommends debian-keyring debian-archive-keyring apt-transport-https ca-certificates curl gnupg'
+```
+
+Expected effect:
+
+- Query Node A's current APT metadata and simulate only the six named packages.
+- Report exact additions, upgrades, removals, held packages, versions, download
+  size, and installed-size change.
+- Make no package, repository, configuration, listener, or service-state change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require APT's transaction summary and inspect every `Inst`, `Conf`, and `Remv`
+  line.
+- Reject any removal, unexpected upgrade, held-package change, or package outside
+  the simulated dependency closure.
+- Do not infer that Node A matches Node B; use only the observed simulation.
+
+Rollback boundary:
+
+- None. `apt-get -s` is simulation-only and performs no persistent mutation.
+
+### Defined next gate: deployment action 16d
+
+Exact installation command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n apt-get install -y --no-install-recommends --no-remove --no-upgrade apt-transport-https debian-keyring'
+```
+
+Exact immediate-validation command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  "dpkg-query -W -f='\${binary:Package}\t\${Version}\t\${db:Status-Abbrev}\n' apt-transport-https debian-keyring debian-archive-keyring ca-certificates curl gnupg && command -v curl && command -v gpg"
+```
+
+Expected effect:
+
+- Install only `apt-transport-https` `2.6.1` and `debian-keyring`
+  `2022.12.24`.
+- Permit no package upgrade or removal.
+- Do not invoke `autoremove` or select any reported autoremove candidate.
+- Make no repository, Caddy, lighttpd, Keepalived, listener, or service
+  configuration change.
+
+Immediate validation:
+
+- Require both SSH commands to exit `0`.
+- Require all six package rows to report status `ii`.
+- Require the two new package versions to match action 16c.
+- Require `/usr/bin/curl` and `/usr/bin/gpg`.
+- Inspect APT and needrestart output for any unplanned package or service action.
+- A later convergence simulation remains a separate authorization gate.
+
+Rollback boundary:
+
+- Protected pre-change baseline:
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+- If rollback is separately authorized, purge only `apt-transport-https` and
+  `debian-keyring`; never run implicit `autoremove`.
+
+### Canceled read-only diagnostic action 16d-a
+
+Status: not executed. The user confirmed that `webmin.service` restarted and
+explicitly accepted that impact because Webmin is an independent application.
+The command is retained below only as provenance for the stopped diagnostic
+branch.
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n systemctl show webmin.service -p LoadState -p ActiveState -p SubState -p MainPID -p Result -p ExecMainStartTimestamp -p ActiveEnterTimestamp && sudo -n journalctl --unit webmin.service --since "2026-07-28 18:55:00 UTC" --no-pager --output=short-iso'
+```
+
+Expected effect:
+
+- Read the current Webmin unit state, result, PID, and activation timestamps.
+- Read only Webmin journal entries covering the action 16d package transaction.
+- Make no package, unit, listener, or service-state change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Establish whether Webmin stopped, started, restarted, failed, or remained
+  untouched during the package transaction.
+- If a restart occurred, require a successful active/running result before
+  accepting action 16d.
+
+Rollback boundary:
+
+- None. The diagnostic is read-only.
+
+### Defined next gate: read-only action 16e
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n apt-get -s install --no-install-recommends debian-keyring debian-archive-keyring apt-transport-https ca-certificates curl gnupg && command -v curl && command -v gpg'
+```
+
+Expected effect:
+
+- Simulate the complete six-package prerequisite group after action 16d.
+- Resolve the `curl` and `gpg` executable paths.
+- Make no package, repository, configuration, listener, unit, or service-state
+  change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require `0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded`.
+- Reject every `Inst`, `Conf`, or `Remv` line.
+- Require `/usr/bin/curl` and `/usr/bin/gpg`.
+- Ignore reported autoremove candidates; do not select or remove them.
+
+Rollback boundary:
+
+- None. `apt-get -s` and `command -v` are read-only.
+
+### Defined next gate: read-only action 16f
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_REPOSITORY_STATE'
+set -euo pipefail
+
+for path in \
+  /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+  /etc/apt/sources.list.d/caddy-stable.list; do
+  if [[ -L "$path" ]]; then
+    printf 'path=%s state=symlink target=%s\n' "$path" "$(readlink -- "$path")"
+    stat -c 'metadata=%F %U:%G %a %s %y %n' -- "$path"
+    if [[ -e "$path" ]]; then
+      [[ ! -f "$path" ]] || sha256sum -- "$path"
+    else
+      printf 'path=%s target_state=missing\n' "$path"
+    fi
+  elif [[ -e "$path" ]]; then
+    printf 'path=%s state=present\n' "$path"
+    stat -c 'metadata=%F %U:%G %a %s %y %n' -- "$path"
+    [[ ! -f "$path" ]] || sha256sum -- "$path"
+  else
+    printf 'path=%s state=absent\n' "$path"
+  fi
+done
+
+printf '%s\n' '--- apt-cache policy caddy ---'
+apt-cache policy caddy
+NODE_A_CADDY_REPOSITORY_STATE
+```
+
+Expected effect:
+
+- Report the exact state of the official stable keyring and source-list paths.
+- For present objects, report type, owner, group, mode, size, timestamp, link
+  target when applicable, and SHA-256 for regular-file content.
+- Report the installed Caddy version, candidate, priorities, and configured APT
+  origins.
+- Make no download, APT refresh, repository, package, file, listener, unit, or
+  service-state change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require one explicit state result for each canonical repository path.
+- Require a complete `apt-cache policy caddy` result.
+- Do not assume Node A matches Node B; use the observed file states and policy to
+  define the next gate.
+
+Rollback boundary:
+
+- None. Every command is read-only.
+
+### Defined next gate: transient action 16g
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_ASSET_AUDIT'
+set -euo pipefail
+umask 077
+
+key_url=https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+source_url=https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt
+expected_fingerprint=65760C51EDEA2017CEA2CA15155B6D79CA56EA34
+expected_deb='deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+expected_deb_src='deb-src [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+
+[[ ! -e "$key_target" && ! -L "$key_target" ]]
+[[ ! -e "$source_target" && ! -L "$source_target" ]]
+
+work_dir=$(mktemp -d /tmp/caddy-repo-audit-node-a.XXXXXX)
+cleanup() {
+  rm -rf -- "$work_dir"
+}
+trap cleanup EXIT
+
+key_file=$work_dir/gpg.key
+source_file=$work_dir/caddy-stable.list
+gpg_home=$work_dir/gnupg
+install -d -m 0700 "$gpg_home"
+
+curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+  "$key_url" --output "$key_file"
+curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+  "$source_url" --output "$source_file"
+
+printf '%s\n' '--- downloaded asset hashes ---'
+sha256sum -- "$key_file" "$source_file"
+
+primary_fingerprint=$(
+  gpg --homedir "$gpg_home" --batch --with-colons --show-keys "$key_file" |
+    awk -F: '
+      $1 == "pub" { want_fingerprint = 1; next }
+      want_fingerprint && $1 == "fpr" { print $10; exit }
+    '
+)
+printf 'primary_fingerprint=%s\n' "$primary_fingerprint"
+[[ "$primary_fingerprint" == "$expected_fingerprint" ]]
+
+[[ "$(grep -Fxc "$expected_deb" "$source_file")" -eq 1 ]]
+[[ "$(grep -Fxc "$expected_deb_src" "$source_file")" -eq 1 ]]
+if grep -Ev \
+  '^[[:space:]]*$|^[[:space:]]*#|^deb(-src)? \[signed-by=/usr/share/keyrings/caddy-stable-archive-keyring[.]gpg\] https://dl[.]cloudsmith[.]io/public/caddy/stable/deb/debian any-version main$' \
+  "$source_file"; then
+  printf 'Unexpected active source-list content.\n' >&2
+  exit 1
+fi
+
+printf '%s\n' '--- validated source asset ---'
+sed -n '/^[[:space:]]*deb/p' "$source_file"
+
+[[ ! -e "$key_target" && ! -L "$key_target" ]]
+[[ ! -e "$source_target" && ! -L "$source_target" ]]
+
+rm -rf -- "$work_dir"
+trap - EXIT
+[[ ! -e "$work_dir" ]]
+printf 'caddy_repository_asset_audit_complete=true\n'
+NODE_A_CADDY_ASSET_AUDIT
+```
+
+Expected effect:
+
+- Download the current raw official key and source-list assets over HTTPS with
+  TLS 1.2 or newer into a root-only temporary directory.
+- Print both raw SHA-256 hashes.
+- Inspect the key only with an isolated temporary GnuPG home and require the
+  pinned primary fingerprint.
+- Require exactly one expected `deb` and one expected `deb-src` line and reject
+  unexpected active source content.
+- Verify both canonical repository targets remain absent.
+- Remove the temporary staging and GnuPG directories before emitting the
+  completion marker.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require both raw hashes, the exact pinned primary fingerprint, both validated
+  source lines, and `caddy_repository_asset_audit_complete=true`.
+- Reject any persistent canonical target, user GnuPG-home creation, incomplete
+  cleanup, unexpected source, fingerprint mismatch, or non-HTTPS retrieval.
+
+Rollback boundary:
+
+- The failure trap removes only the exact action-created temporary directory.
+- Successful completion leaves no persistent file and requires no rollback.
+
+### Defined next gate: persistent action 16h
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_REPOSITORY_INSTALL'
+set -euo pipefail
+umask 077
+
+key_url=https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+source_url=https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt
+expected_raw_key_sha=783dfee04b19e851a928cd87b34710213ebbe7628f98d9f34595ab83be578c00
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_fingerprint=65760C51EDEA2017CEA2CA15155B6D79CA56EA34
+expected_deb='deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+expected_deb_src='deb-src [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+
+[[ ! -e "$key_target" && ! -L "$key_target" ]]
+[[ ! -e "$source_target" && ! -L "$source_target" ]]
+
+work_dir=$(mktemp -d /tmp/caddy-repo-install-node-a.XXXXXX)
+key_created=false
+source_created=false
+success=false
+cleanup() {
+  if [[ "$success" != true ]]; then
+    [[ "$source_created" != true ]] || rm -f -- "$source_target"
+    [[ "$key_created" != true ]] || rm -f -- "$key_target"
+  fi
+  rm -rf -- "$work_dir"
+}
+trap cleanup EXIT
+
+raw_key=$work_dir/gpg.key
+staged_keyring=$work_dir/caddy-stable-archive-keyring.gpg
+staged_source=$work_dir/caddy-stable.list
+gpg_home=$work_dir/gnupg
+install -d -m 0700 "$gpg_home"
+
+curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+  "$key_url" --output "$raw_key"
+curl --proto '=https' --tlsv1.2 --fail --show-error --silent --location \
+  "$source_url" --output "$staged_source"
+
+printf '%s  %s\n' "$expected_raw_key_sha" "$raw_key" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_source_sha" "$staged_source" |
+  sha256sum --check --status
+
+primary_fingerprint() {
+  gpg --homedir "$gpg_home" --batch --with-colons --show-keys "$1" |
+    awk -F: '
+      $1 == "pub" { want_fingerprint = 1; next }
+      want_fingerprint && $1 == "fpr" && !printed {
+        print $10
+        printed = 1
+        want_fingerprint = 0
+      }
+    '
+}
+
+[[ "$(primary_fingerprint "$raw_key")" == "$expected_fingerprint" ]]
+[[ "$(grep -Fxc "$expected_deb" "$staged_source")" -eq 1 ]]
+[[ "$(grep -Fxc "$expected_deb_src" "$staged_source")" -eq 1 ]]
+
+gpg --homedir "$gpg_home" --batch --yes --dearmor \
+  --output "$staged_keyring" "$raw_key"
+printf '%s  %s\n' "$expected_keyring_sha" "$staged_keyring" |
+  sha256sum --check --status
+[[ "$(primary_fingerprint "$staged_keyring")" == "$expected_fingerprint" ]]
+
+install -o root -g root -m 0644 -- "$staged_keyring" "$key_target"
+key_created=true
+install -o root -g root -m 0644 -- "$staged_source" "$source_target"
+source_created=true
+
+[[ "$(stat -c '%U:%G:%a' -- "$key_target")" == root:root:644 ]]
+[[ "$(stat -c '%U:%G:%a' -- "$source_target")" == root:root:644 ]]
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+[[ "$(primary_fingerprint "$key_target")" == "$expected_fingerprint" ]]
+[[ "$(grep -Fxc "$expected_deb" "$source_target")" -eq 1 ]]
+[[ "$(grep -Fxc "$expected_deb_src" "$source_target")" -eq 1 ]]
+
+success=true
+rm -rf -- "$work_dir"
+trap - EXIT
+[[ ! -e "$work_dir" ]]
+
+sha256sum -- "$key_target" "$source_target"
+printf 'caddy_repository_files_installed=true\n'
+NODE_A_CADDY_REPOSITORY_INSTALL
+```
+
+Expected effect:
+
+- Re-download and revalidate the exact action 16g assets.
+- Produce the deterministic binary OpenPGP keyring in an isolated temporary
+  GnuPG home.
+- Install exactly two `root:root` mode `0644` files at the canonical keyring and
+  source-list paths.
+- Validate installed hashes, fingerprint, and exact `deb`/`deb-src` lines.
+- Remove all temporary download and GnuPG state.
+- Perform no APT refresh, package installation, listener, unit, or service
+  action.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require installed keyring SHA-256
+  `c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37`.
+- Require source SHA-256
+  `b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199`.
+- Require the pinned fingerprint, both exact source lines, protected ownership
+  and modes, verified staging cleanup, and
+  `caddy_repository_files_installed=true`.
+
+Rollback boundary:
+
+- On failure, the trap removes only targets created by this action and its exact
+  temporary tree.
+- After success, removal of the two installed repository files requires separate
+  authorization; the protected predeployment baseline remains available.
+
+### Defined next gate: independent read-only action 16i
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_REPOSITORY_POST_VALIDATION'
+set -euo pipefail
+
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_deb='deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+expected_deb_src='deb-src [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main'
+exact_stage=/tmp/caddy-repo-install-node-a.J7yToN
+
+[[ -f "$key_target" && ! -L "$key_target" ]]
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ "$(stat -c '%U:%G:%a:%s' -- "$key_target")" == root:root:644:5024 ]]
+[[ "$(stat -c '%U:%G:%a:%s' -- "$source_target")" == root:root:644:449 ]]
+
+printf '%s\n' '--- installed repository files ---'
+stat -c 'metadata=%F %U:%G %a %s %y %n' -- "$key_target" "$source_target"
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+sha256sum -- "$key_target" "$source_target"
+
+[[ "$(grep -Fxc "$expected_deb" "$source_target")" -eq 1 ]]
+[[ "$(grep -Fxc "$expected_deb_src" "$source_target")" -eq 1 ]]
+if grep -Ev \
+  '^[[:space:]]*$|^[[:space:]]*#|^deb(-src)? \[signed-by=/usr/share/keyrings/caddy-stable-archive-keyring[.]gpg\] https://dl[.]cloudsmith[.]io/public/caddy/stable/deb/debian any-version main$' \
+  "$source_target"; then
+  printf 'Unexpected active source-list content.\n' >&2
+  exit 1
+fi
+
+[[ ! -e "$exact_stage" && ! -L "$exact_stage" ]]
+mapfile -t stage_matches < <(
+  find /tmp -mindepth 1 -maxdepth 1 \
+    -name 'caddy-repo-install-node-a.*' -print
+)
+if ((${#stage_matches[@]} != 0)); then
+  printf 'Unexpected repository staging path: %s\n' "${stage_matches[@]}" >&2
+  exit 1
+fi
+
+printf '%s\n' '--- cached apt policy ---'
+apt-cache policy caddy
+printf 'caddy_repository_post_validation=true\n'
+NODE_A_CADDY_REPOSITORY_POST_VALIDATION
+```
+
+Expected effect:
+
+- Independently validate both installed objects as non-symlink regular files.
+- Validate exact root ownership, mode, size, hashes, and source-list content.
+- Prove the exact action 16h staging path and every matching staging path are
+  absent.
+- Display cached Caddy policy without refreshing APT.
+- Create no GnuPG home or other validation state.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require both metadata rows and both pinned hashes.
+- Require exactly one expected `deb` and `deb-src` line and no unexpected active
+  source.
+- Require zero staging matches.
+- Require a complete cached policy result and
+  `caddy_repository_post_validation=true`.
+
+Rollback boundary:
+
+- None. Every command is read-only.
+
+### Defined next gate: source-isolated action 16j
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_METADATA_REFRESH'
+set -euo pipefail
+umask 077
+
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+expected_version=2.11.4
+expected_origin=https://dl.cloudsmith.io/public/caddy/stable/deb/debian
+lists_dir=/var/lib/apt/lists
+
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ -f "$key_target" && ! -L "$key_target" ]]
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+if dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null |
+  grep -Fxq 'ii '; then
+  printf 'Caddy is already installed.\n' >&2
+  exit 1
+fi
+
+work_dir=$(mktemp -d /tmp/caddy-metadata-refresh-node-a.XXXXXX)
+cleanup() {
+  rm -rf -- "$work_dir"
+}
+trap cleanup EXIT
+
+snapshot_non_caddy_lists() {
+  find "$lists_dir" -mindepth 1 -maxdepth 1 -type f \
+    ! -name '*cloudsmith*' -print0 |
+    sort -z |
+    xargs -0 -r sha256sum
+}
+
+snapshot_non_caddy_lists >"$work_dir/non-caddy.before"
+
+apt-get update \
+  -o "Dir::Etc::sourcelist=$source_target" \
+  -o 'Dir::Etc::sourceparts=-' \
+  -o 'APT::Get::List-Cleanup=0' \
+  -o 'Acquire::Languages=none'
+
+snapshot_non_caddy_lists >"$work_dir/non-caddy.after"
+cmp --silent \
+  "$work_dir/non-caddy.before" \
+  "$work_dir/non-caddy.after"
+
+mapfile -t caddy_lists < <(
+  find "$lists_dir" -mindepth 1 -maxdepth 1 -type f \
+    -name '*cloudsmith*' -print | sort
+)
+if ((${#caddy_lists[@]} == 0)); then
+  printf 'No Caddy repository list files were created.\n' >&2
+  exit 1
+fi
+printf '%s\n' '--- Caddy repository list files ---'
+stat -c 'metadata=%F %U:%G %a %s %y %n' -- "${caddy_lists[@]}"
+sha256sum -- "${caddy_lists[@]}"
+
+policy=$(apt-cache policy caddy)
+printf '%s\n' '--- Caddy package policy ---'
+printf '%s\n' "$policy"
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq "$expected_origin" <<<"$policy"
+dpkg --compare-versions "$candidate" eq "$expected_version"
+
+package_metadata=$(apt-cache show "caddy=$expected_version")
+grep -Fxq 'Architecture: arm64' <<<"$package_metadata"
+
+rm -rf -- "$work_dir"
+trap - EXIT
+[[ ! -e "$work_dir" ]]
+printf 'caddy_candidate=%s\n' "$candidate"
+printf 'caddy_repository_metadata_valid=true\n'
+NODE_A_CADDY_METADATA_REFRESH
+```
+
+Expected effect:
+
+- Refresh metadata using only the installed Caddy stable source file.
+- Persist only official Caddy list-cache data under `/var/lib/apt/lists`.
+- Prove every non-Cloudsmith list file remains byte-identical.
+- Validate Cloudsmith list files, repository origin, arm64 package metadata, and
+  exact candidate `2.11.4` for HA parity with Node B.
+- Leave Caddy uninstalled and make no listener, unit, or service change.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require at least one Cloudsmith list file and print its metadata and hash.
+- Require the non-Caddy before/after snapshots to compare identically.
+- Require Cloudsmith origin, arm64 package metadata, candidate `2.11.4`, staging
+  cleanup, `caddy_candidate=2.11.4`, and
+  `caddy_repository_metadata_valid=true`.
+
+Rollback boundary:
+
+- The EXIT trap removes only the action-created comparison directory.
+- Official Caddy APT list data is intentional cache state. Removing it, changing
+  the repository files, or performing another refresh requires separate
+  authorization.
+
+### Defined next gate: read-only action 16k
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_INSTALL_SIMULATION'
+set -euo pipefail
+
+expected_version=2.11.4
+expected_origin=https://dl.cloudsmith.io/public/caddy/stable/deb/debian
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+lists_dir=/var/lib/apt/lists
+
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ -f "$key_target" && ! -L "$key_target" ]]
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+
+package_status_before=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+if [[ "$package_status_before" == ii\ * ]]; then
+  printf 'Caddy is already installed.\n' >&2
+  exit 1
+fi
+
+policy=$(apt-cache policy caddy)
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq "$expected_origin" <<<"$policy"
+package_metadata=$(apt-cache show "caddy=$expected_version")
+grep -Fxq 'Architecture: arm64' <<<"$package_metadata"
+
+repository_hashes_before=$(
+  sha256sum -- "$key_target" "$source_target"
+)
+caddy_lists_before=$(
+  find "$lists_dir" -mindepth 1 -maxdepth 1 -type f \
+    -name '*cloudsmith*' -print0 |
+    sort -z |
+    xargs -0 -r sha256sum
+)
+[[ -n "$caddy_lists_before" ]]
+unit_state_before=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)"
+  done
+)
+grep -Fxq 'caddy.service:not-found:inactive' <<<"$unit_state_before"
+grep -Fxq 'caddy-api.service:not-found:inactive' <<<"$unit_state_before"
+
+simulation=$(
+  apt-get -s install --no-install-recommends "caddy=$expected_version" 2>&1
+)
+printf '%s\n' '--- version-pinned Caddy installation simulation ---'
+printf '%s\n' "$simulation"
+
+inst_count=$(
+  awk '$1 == "Inst" { count++ } END { print count + 0 }' <<<"$simulation"
+)
+conf_count=$(
+  awk '$1 == "Conf" { count++ } END { print count + 0 }' <<<"$simulation"
+)
+remv_count=$(
+  awk '$1 == "Remv" { count++ } END { print count + 0 }' <<<"$simulation"
+)
+[[ "$inst_count" -eq 1 ]]
+[[ "$conf_count" -eq 1 ]]
+[[ "$remv_count" -eq 0 ]]
+grep -Eq '^Inst caddy \(2[.]11[.]4 .*\[arm64\]\)$' <<<"$simulation"
+grep -Eq '^Conf caddy \(2[.]11[.]4 .*\[arm64\]\)$' <<<"$simulation"
+grep -Fxq \
+  '0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.' \
+  <<<"$simulation"
+
+package_status_after=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+repository_hashes_after=$(
+  sha256sum -- "$key_target" "$source_target"
+)
+caddy_lists_after=$(
+  find "$lists_dir" -mindepth 1 -maxdepth 1 -type f \
+    -name '*cloudsmith*' -print0 |
+    sort -z |
+    xargs -0 -r sha256sum
+)
+unit_state_after=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)"
+  done
+)
+
+[[ "$package_status_after" == "$package_status_before" ]]
+[[ "$repository_hashes_after" == "$repository_hashes_before" ]]
+[[ "$caddy_lists_after" == "$caddy_lists_before" ]]
+[[ "$unit_state_after" == "$unit_state_before" ]]
+printf 'caddy_install_simulation_valid=true\n'
+NODE_A_CADDY_INSTALL_SIMULATION
+```
+
+Expected effect:
+
+- Revalidate the installed repository objects, official candidate, origin, and
+  arm64 package metadata.
+- Simulate installing only version-pinned `caddy=2.11.4`.
+- Require exactly one new package with no upgrade, removal, or held-package
+  transaction.
+- Prove package status, repository files, Caddy list-cache files, and both Caddy
+  unit states remain identical.
+- Perform no package installation, file mutation, listener, unit, or service
+  action.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require exactly one `Inst` and one `Conf` line for Caddy `2.11.4` arm64 and
+  zero `Remv` lines.
+- Require the exact APT summary:
+  `0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.`
+- Require byte-identical repository and cache hashes, unchanged absent package
+  and unit state, and `caddy_install_simulation_valid=true`.
+
+Rollback boundary:
+
+- None. The command performs a read-only APT simulation and keeps all comparison
+  values in shell memory.
+
+### Defined next gate: transient action 16l
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_PACKAGE_AUDIT'
+set -euo pipefail
+umask 077
+
+expected_version=2.11.4
+expected_package_sha=aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd
+expected_origin=https://dl.cloudsmith.io/public/caddy/stable/deb/debian
+policy_target=/usr/sbin/policy-rc.d
+
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+package_status_before=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+if [[ "$package_status_before" == ii\ * ]]; then
+  printf 'Caddy is already installed.\n' >&2
+  exit 1
+fi
+
+policy=$(apt-cache policy caddy)
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq "$expected_origin" <<<"$policy"
+
+unit_state_before=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)" \
+      "$(systemctl is-enabled "$unit" 2>/dev/null || true)"
+  done
+)
+grep -Eq '^caddy[.]service:not-found:inactive:(|not-found)$' \
+  <<<"$unit_state_before"
+grep -Eq '^caddy-api[.]service:not-found:inactive:(|not-found)$' \
+  <<<"$unit_state_before"
+
+listener_state_before=$(
+  ss -H -ltnup |
+    awk '$5 ~ /:80$|:443$/ { print }' |
+    sort
+)
+[[ -n "$listener_state_before" ]]
+
+if [[ -e "$policy_target" || -L "$policy_target" ]]; then
+  policy_state_before=$(
+    stat -c '%F %U:%G %a %s %n' -- "$policy_target"
+    sha256sum -- "$policy_target"
+  )
+  printf 'policy_rc_d_present=true\n'
+  printf '%s\n' "$policy_state_before"
+  sed -n '1,240p' "$policy_target"
+else
+  policy_state_before=absent
+  printf 'policy_rc_d_present=false\n'
+fi
+
+work_dir=$(mktemp -d /tmp/caddy-package-audit-node-a.XXXXXX)
+cleanup() {
+  rm -rf -- "$work_dir"
+}
+trap cleanup EXIT
+
+cd "$work_dir"
+apt-get download "caddy=$expected_version"
+mapfile -t packages < <(
+  find "$work_dir" -mindepth 1 -maxdepth 1 -type f \
+    -name 'caddy_*.deb' -print | sort
+)
+if ((${#packages[@]} != 1)); then
+  printf 'Expected exactly one downloaded Caddy package.\n' >&2
+  exit 1
+fi
+package=${packages[0]}
+printf '%s  %s\n' "$expected_package_sha" "$package" |
+  sha256sum --check --status
+sha256sum -- "$package"
+[[ "$(dpkg-deb --field "$package" Package)" == caddy ]]
+[[ "$(dpkg-deb --field "$package" Version)" == "$expected_version" ]]
+[[ "$(dpkg-deb --field "$package" Architecture)" == arm64 ]]
+
+control_root="$work_dir/control"
+data_root="$work_dir/data"
+mkdir -p -- "$control_root" "$data_root"
+dpkg-deb --control "$package" "$control_root"
+dpkg-deb --extract "$package" "$data_root"
+
+printf '%s\n' '--- package control metadata ---'
+dpkg-deb --info "$package"
+for script in postinst prerm postrm; do
+  script_path="$control_root/$script"
+  [[ -f "$script_path" && ! -L "$script_path" ]]
+  line_count=$(wc -l <"$script_path")
+  [[ "$line_count" -le 500 ]]
+  printf '%s\n' "--- $script ($line_count lines) ---"
+  sha256sum -- "$script_path"
+  sed -n '1,500p' "$script_path"
+done
+
+mapfile -t service_files < <(
+  find "$data_root" -type f \
+    \( -name 'caddy*.service' -o -name 'caddy*.socket' \) -print |
+    sort
+)
+if ((${#service_files[@]} < 2)); then
+  printf 'Expected packaged Caddy service artifacts were not found.\n' >&2
+  exit 1
+fi
+printf '%s\n' "${service_files[@]}" |
+  grep -Eq '/caddy[.]service$'
+printf '%s\n' "${service_files[@]}" |
+  grep -Eq '/caddy-api[.]service$'
+for service_file in "${service_files[@]}"; do
+  line_count=$(wc -l <"$service_file")
+  [[ "$line_count" -le 300 ]]
+  relative_path=${service_file#"$data_root"}
+  printf '%s\n' "--- packaged service $relative_path ($line_count lines) ---"
+  sha256sum -- "$service_file"
+  sed -n '1,300p' "$service_file"
+done
+
+package_status_after=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+unit_state_after=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)" \
+      "$(systemctl is-enabled "$unit" 2>/dev/null || true)"
+  done
+)
+listener_state_after=$(
+  ss -H -ltnup |
+    awk '$5 ~ /:80$|:443$/ { print }' |
+    sort
+)
+if [[ -e "$policy_target" || -L "$policy_target" ]]; then
+  policy_state_after=$(
+    stat -c '%F %U:%G %a %s %n' -- "$policy_target"
+    sha256sum -- "$policy_target"
+  )
+else
+  policy_state_after=absent
+fi
+
+[[ "$package_status_after" == "$package_status_before" ]]
+[[ "$unit_state_after" == "$unit_state_before" ]]
+[[ "$listener_state_after" == "$listener_state_before" ]]
+[[ "$policy_state_after" == "$policy_state_before" ]]
+
+cd /
+rm -rf -- "$work_dir"
+trap - EXIT
+[[ ! -e "$work_dir" ]]
+mapfile -t stage_matches < <(
+  find /tmp -mindepth 1 -maxdepth 1 \
+    -name 'caddy-package-audit-node-a.*' -print
+)
+if ((${#stage_matches[@]} != 0)); then
+  printf 'Unexpected Caddy package-audit staging path: %s\n' \
+    "${stage_matches[@]}" >&2
+  exit 1
+fi
+printf 'caddy_package_audit_complete=true\n'
+NODE_A_CADDY_PACKAGE_AUDIT
+```
+
+Expected effect:
+
+- Download the exact Caddy `2.11.4` arm64 package only into a protected
+  temporary directory.
+- Require the package SHA-256 previously observed during accepted Node B action
+  8i.
+- Display complete, bounded `postinst`, `prerm`, and `postrm` scripts and
+  packaged `caddy.service` and `caddy-api.service` artifacts.
+- Inspect the canonical service-start policy, current Caddy unit state, and
+  current TCP/UDP 80/443 listeners.
+- Prove package, unit, policy, and listener states remain identical.
+- Remove and verify absence of all action-specific staging.
+- Perform no package installation, persistent file, unit, listener, or service
+  action.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require package `caddy`, version `2.11.4`, architecture `arm64`, and SHA-256
+  `aeab2e38bf77a0162611a1703a5e16c09475b000d41f7edaa9337734d16642fd`.
+- Require all three lifecycle scripts and both packaged service units.
+- Require explicit `policy_rc_d_present=true|false` evidence.
+- Require unchanged package, unit, listener, and service-start-policy state.
+- Require zero matching staging paths and
+  `caddy_package_audit_complete=true`.
+
+Rollback boundary:
+
+- The EXIT trap removes only the action-created temporary audit directory.
+- No successful-state rollback is required because the downloaded and extracted
+  package artifacts are deleted before completion.
+
+### Defined next gate: read-only action 16m
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_PREINSTALL_STATE'
+set -euo pipefail
+
+expected_version=2.11.4
+expected_origin=https://dl.cloudsmith.io/public/caddy/stable/deb/debian
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ -f "$key_target" && ! -L "$key_target" ]]
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+
+policy=$(apt-cache policy caddy)
+printf '%s\n' '--- Caddy package policy ---'
+printf '%s\n' "$policy"
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq "$expected_origin" <<<"$policy"
+package_metadata=$(apt-cache show "caddy=$expected_version")
+grep -Fxq 'Architecture: arm64' <<<"$package_metadata"
+
+package_status=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+printf 'caddy_dpkg_status=%q\n' "$package_status"
+if [[ "$package_status" == ii\ * ]]; then
+  printf 'Caddy is already installed.\n' >&2
+  exit 1
+fi
+[[ ! -e /usr/bin/caddy && ! -L /usr/bin/caddy ]]
+
+for identity in caddy caddy-sync keepalived_script; do
+  if getent passwd "$identity" >/dev/null ||
+    getent group "$identity" >/dev/null; then
+    printf 'Unexpected identity exists: %s\n' "$identity" >&2
+    exit 1
+  fi
+done
+
+for target in \
+  /etc/caddy \
+  /var/lib/caddy \
+  /var/log/caddy \
+  /lib/systemd/system/caddy.service \
+  /lib/systemd/system/caddy-api.service \
+  /etc/systemd/system/caddy.service \
+  /etc/systemd/system/caddy-api.service \
+  /usr/sbin/policy-rc.d; do
+  if [[ -e "$target" || -L "$target" ]]; then
+    printf 'Unexpected Caddy preinstallation target: %s\n' "$target" >&2
+    exit 1
+  fi
+done
+
+unit_state=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)" \
+      "$(systemctl is-enabled "$unit" 2>/dev/null || true)"
+  done
+)
+printf '%s\n' '--- Caddy unit state ---'
+printf '%s\n' "$unit_state"
+grep -Eq '^caddy[.]service:not-found:inactive:(|not-found)$' <<<"$unit_state"
+grep -Eq '^caddy-api[.]service:not-found:inactive:(|not-found)$' \
+  <<<"$unit_state"
+
+for service in lighttpd keepalived ssh unbound pihole-FTL munin-node; do
+  systemctl is-active --quiet "$service"
+  printf 'protected_service_active=%s\n' "$service"
+done
+
+tcp_frontend=$(
+  ss -H -ltnp |
+    awk '$4 ~ /:80$|:443$/ { print }' |
+    sort
+)
+printf '%s\n' '--- TCP 80/443 listeners ---'
+printf '%s\n' "$tcp_frontend"
+[[ -n "$tcp_frontend" ]]
+if grep -Fv 'users:(("lighttpd"' <<<"$tcp_frontend"; then
+  printf 'A non-lighttpd process owns TCP 80 or 443.\n' >&2
+  exit 1
+fi
+grep -Eq '[[:space:]][^[:space:]]*:80[[:space:]]' <<<"$tcp_frontend"
+grep -Eq '[[:space:]][^[:space:]]*:443[[:space:]]' <<<"$tcp_frontend"
+
+udp_443=$(
+  ss -H -lunp |
+    awk '$4 ~ /:443$/ { print }' |
+    sort
+)
+[[ -z "$udp_443" ]]
+if pgrep -x caddy >/dev/null; then
+  printf 'Unexpected Caddy process is running.\n' >&2
+  exit 1
+fi
+
+mapfile -t stage_matches < <(
+  find /tmp -mindepth 1 -maxdepth 1 \
+    \( -name 'caddy-package-audit-node-a.*' \
+    -o -name 'caddy-repo-audit-node-a.*' \
+    -o -name 'caddy-repo-install-node-a.*' \
+    -o -name 'caddy-metadata-refresh-node-a.*' \) -print |
+    sort
+)
+if ((${#stage_matches[@]} != 0)); then
+  printf 'Unexpected Caddy staging path: %s\n' "${stage_matches[@]}" >&2
+  exit 1
+fi
+
+printf 'caddy_preinstall_state_complete=true\n'
+NODE_A_CADDY_PREINSTALL_STATE
+```
+
+Expected effect:
+
+- Revalidate the official repository files, exact `2.11.4` arm64 candidate, and
+  Cloudsmith origin.
+- Require the Caddy package, binary, process, package-created identities,
+  directories, distribution units, administrative masks, and start policy to be
+  absent.
+- Require Caddy unit names to remain not found and inactive.
+- Require lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL, and Munin Node to be
+  active.
+- Require lighttpd alone to own current TCP 80/443 listeners and require UDP 443
+  to remain unused.
+- Require all earlier Node A Caddy temporary staging patterns to be absent.
+- Perform no package, filesystem, listener, unit, or service mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require the pinned repository hashes, official origin, exact candidate, and
+  arm64 metadata.
+- Require all absence, service-health, listener-ownership, UDP, process, and
+  staging assertions to pass.
+- Require `caddy_preinstall_state_complete=true`.
+
+Rollback boundary:
+
+- None. Every command is read-only.
+
+### Defined next gate: transactional action 16n
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_INHIBITED_INSTALL'
+set -euo pipefail
+umask 077
+
+expected_version=2.11.4
+expected_binary_version='v2.11.4 h1:XKxkMTgNSizEvKG6QHue6cAsFOteU2qA61w2tKkCWi0='
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+baseline=/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z
+policy_target=/usr/sbin/policy-rc.d
+work_dir=
+policy_created=false
+masks_created=false
+package_install_started=false
+transaction_complete=false
+
+package_status() {
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+}
+
+non_caddy_inventory() {
+  dpkg-query -W \
+    -f='${binary:Package}\t${db:Status-Abbrev}\t${Version}\n' |
+    awk -F '\t' '$1 != "caddy"' |
+    sort
+}
+
+protected_service_state() {
+  for service in \
+    lighttpd.service keepalived.service ssh.service unbound.service \
+    pihole-FTL.service munin-node.service; do
+    printf '### %s\n' "$service"
+    systemctl show "$service" --no-pager \
+      -p ActiveState -p SubState -p MainPID -p NRestarts
+  done
+}
+
+rollback() {
+  original_rc=$?
+  trap - EXIT
+  if [[ "$transaction_complete" == true ]]; then
+    return
+  fi
+
+  set +e
+  printf 'caddy_install_rollback_started=true\n' >&2
+  rollback_failed=false
+
+  systemctl stop caddy.service caddy-api.service >/dev/null 2>&1
+  current_status=$(package_status)
+  if [[ -n "$current_status" && "$current_status" != 'un ' ]]; then
+    DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l \
+      apt-get purge --yes caddy
+    purge_rc=$?
+    if ((purge_rc != 0)); then
+      rollback_failed=true
+    fi
+  fi
+
+  if [[ "$policy_created" == true ]]; then
+    rm -f -- "$policy_target"
+    policy_created=false
+  fi
+  current_status=$(package_status)
+  if [[ -z "$current_status" || "$current_status" == 'un ' ]]; then
+    if [[ "$package_install_started" == true ]]; then
+      rm -rf -- /etc/caddy /var/lib/caddy /var/log/caddy
+    fi
+    if [[ "$masks_created" == true ]]; then
+      systemctl unmask caddy.service caddy-api.service >/dev/null 2>&1
+    fi
+    systemctl daemon-reload
+    for target in \
+      /usr/bin/caddy \
+      /lib/systemd/system/caddy.service \
+      /lib/systemd/system/caddy-api.service \
+      /etc/systemd/system/caddy.service \
+      /etc/systemd/system/caddy-api.service; do
+      if [[ -e "$target" || -L "$target" ]]; then
+        rollback_failed=true
+      fi
+    done
+  else
+    systemctl mask caddy.service caddy-api.service >/dev/null 2>&1
+    systemctl daemon-reload
+    rollback_failed=true
+  fi
+
+  if [[ -n "$work_dir" && -d "$work_dir" ]]; then
+    rm -rf -- "$work_dir"
+  fi
+
+  if [[ -z "$current_status" || "$current_status" == 'un ' ]]; then
+    if getent passwd caddy >/dev/null ||
+      getent group caddy >/dev/null; then
+      rollback_failed=true
+    fi
+    for target in \
+      /usr/bin/caddy \
+      /etc/caddy \
+      /var/lib/caddy \
+      /var/log/caddy \
+      /lib/systemd/system/caddy.service \
+      /lib/systemd/system/caddy-api.service \
+      "$policy_target"; do
+      if [[ -e "$target" || -L "$target" ]]; then
+        rollback_failed=true
+      fi
+    done
+    [[ "$(protected_service_state)" == "$services_before" ]] ||
+      rollback_failed=true
+    [[ "$(ss -H -lntup | sort)" == "$listeners_before" ]] ||
+      rollback_failed=true
+    current_protected_hashes=$(
+      sha256sum -- \
+        /etc/lighttpd/lighttpd.conf \
+        /etc/lighttpd/conf-enabled/external.conf \
+        /etc/keepalived/keepalived.conf
+    )
+    [[ "$current_protected_hashes" == "$protected_hashes_before" ]] ||
+      rollback_failed=true
+  fi
+
+  if [[ "$rollback_failed" == true ]]; then
+    systemctl mask caddy.service caddy-api.service >/dev/null 2>&1
+    systemctl daemon-reload
+    printf 'caddy_install_rollback_complete=false\n' >&2
+    printf 'Caddy masks were retained for listener safety.\n' >&2
+    exit 97
+  fi
+  printf 'caddy_install_rollback_complete=true\n' >&2
+  exit "$original_rc"
+}
+
+[[ "$(hostname)" == j1-svpihole0 ]]
+ip -o -4 address show dev eth0 |
+  grep -Fq '10.1.0.53/22'
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+[[ -d "$baseline" && ! -L "$baseline" ]]
+(
+  cd "$baseline"
+  sha256sum --check --status configuration.tar.sha256
+  grep -Fxq 'backup_complete=true' backup-manifest.txt
+)
+
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ -f "$key_target" && ! -L "$key_target" ]]
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+initial_package_status=$(package_status)
+[[ -z "$initial_package_status" || "$initial_package_status" == 'un ' ]]
+
+policy=$(apt-cache policy caddy)
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq 'https://dl.cloudsmith.io/public/caddy/stable/deb/debian' \
+  <<<"$policy"
+grep -Fxq 'Architecture: arm64' \
+  < <(apt-cache show "caddy=$expected_version")
+
+for identity in caddy caddy-sync keepalived_script; do
+  if getent passwd "$identity" >/dev/null ||
+    getent group "$identity" >/dev/null; then
+    printf 'Unexpected preinstallation identity: %s\n' "$identity" >&2
+    exit 1
+  fi
+done
+for target in \
+  /usr/bin/caddy \
+  /etc/caddy \
+  /var/lib/caddy \
+  /var/log/caddy \
+  /lib/systemd/system/caddy.service \
+  /lib/systemd/system/caddy-api.service \
+  /etc/systemd/system/caddy.service \
+  /etc/systemd/system/caddy-api.service \
+  "$policy_target"; do
+  [[ ! -e "$target" && ! -L "$target" ]]
+done
+for unit in caddy.service caddy-api.service; do
+  [[ "$(systemctl show --property=LoadState --value "$unit")" == not-found ]]
+  [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" == inactive ]]
+done
+if pgrep -x caddy >/dev/null; then
+  printf 'Unexpected preinstallation Caddy process.\n' >&2
+  exit 1
+fi
+
+tcp_frontend=$(
+  ss -H -ltnp |
+    awk '$4 ~ /:80$|:443$/ { print }' |
+    sort
+)
+[[ -n "$tcp_frontend" ]]
+if grep -Fv 'users:(("lighttpd"' <<<"$tcp_frontend"; then
+  printf 'A non-lighttpd process owns TCP 80 or 443.\n' >&2
+  exit 1
+fi
+grep -Eq '[[:space:]][^[:space:]]*:80[[:space:]]' <<<"$tcp_frontend"
+grep -Eq '[[:space:]][^[:space:]]*:443[[:space:]]' <<<"$tcp_frontend"
+udp_443=$(
+  ss -H -lunp |
+    awk '$4 ~ /:443$/ { print }' |
+    sort
+)
+[[ -z "$udp_443" ]]
+
+printf '%s  %s\n' \
+  568507d5604cb2794106de3de29d1603c3f12c9045bf7fc1ad4342592a1395c1 \
+  /etc/lighttpd/lighttpd.conf |
+  sha256sum --check --status
+printf '%s  %s\n' \
+  6da587363054a4db69fb742d23bddde06aec866e11fb7a91bff1a8d75a713f7a \
+  /etc/lighttpd/conf-enabled/external.conf |
+  sha256sum --check --status
+printf '%s  %s\n' \
+  cf4858888ae80772f1a50dda7c0ea120ff083eafae33a0ad4ca291d44755c1e2 \
+  /etc/keepalived/keepalived.conf |
+  sha256sum --check --status
+
+dpkg_audit_before=$(dpkg --audit)
+[[ -z "$dpkg_audit_before" ]]
+non_caddy_before=$(non_caddy_inventory)
+services_before=$(protected_service_state)
+listeners_before=$(ss -H -lntup | sort)
+protected_hashes_before=$(
+  sha256sum -- \
+    /etc/lighttpd/lighttpd.conf \
+    /etc/lighttpd/conf-enabled/external.conf \
+    /etc/keepalived/keepalived.conf
+)
+for service in lighttpd keepalived ssh unbound pihole-FTL munin-node; do
+  systemctl is-active --quiet "$service"
+done
+
+simulation=$(
+  apt-get -s install --no-install-recommends "caddy=$expected_version" 2>&1
+)
+printf '%s\n' "$simulation"
+[[ "$(
+  awk '$1 == "Inst" { count++ } END { print count + 0 }' <<<"$simulation"
+)" -eq 1 ]]
+[[ "$(
+  awk '$1 == "Conf" { count++ } END { print count + 0 }' <<<"$simulation"
+)" -eq 1 ]]
+[[ "$(
+  awk '$1 == "Remv" { count++ } END { print count + 0 }' <<<"$simulation"
+)" -eq 0 ]]
+grep -Eq '^Inst caddy \(2[.]11[.]4 .*\[arm64\]\)$' <<<"$simulation"
+grep -Fxq \
+  '0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.' \
+  <<<"$simulation"
+
+work_dir=$(mktemp -d /tmp/caddy-inhibited-install-node-a.XXXXXX)
+trap rollback EXIT
+printf '#!/bin/sh\nexit 101\n' >"$work_dir/policy-rc.d"
+install -o root -g root -m 0755 \
+  "$work_dir/policy-rc.d" "$policy_target"
+policy_created=true
+
+masks_created=true
+systemctl mask caddy.service caddy-api.service
+systemctl daemon-reload
+[[ "$(systemctl is-enabled caddy.service 2>/dev/null || true)" == masked ]]
+[[ "$(systemctl is-enabled caddy-api.service 2>/dev/null || true)" == masked ]]
+
+install_log="$work_dir/apt-install.log"
+package_install_started=true
+if ! DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l \
+  apt-get install --yes --no-install-recommends \
+    "caddy=$expected_version" >"$install_log" 2>&1; then
+  sed -n '1,500p' "$install_log" >&2
+  exit 1
+fi
+sed -n '1,500p' "$install_log"
+grep -Fq \
+  '0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.' \
+  "$install_log"
+grep -Fq 'policy-rc.d denied execution of start' "$install_log"
+
+systemctl disable caddy.service caddy-api.service >/dev/null 2>&1 || true
+systemctl stop caddy.service caddy-api.service
+systemctl mask caddy.service caddy-api.service
+systemctl daemon-reload
+
+rm -f -- "$policy_target"
+policy_created=false
+[[ ! -e "$policy_target" && ! -L "$policy_target" ]]
+
+[[ "$(package_status)" == 'ii ' ]]
+[[ "$(dpkg-query -W -f='${Version}' caddy)" == "$expected_version" ]]
+[[ "$(dpkg-query -W -f='${Architecture}' caddy)" == arm64 ]]
+[[ "$(/usr/bin/caddy version)" == "$expected_binary_version" ]]
+dpkg_verify=$(dpkg --verify caddy)
+[[ -z "$dpkg_verify" ]]
+dpkg_audit_after=$(dpkg --audit)
+[[ -z "$dpkg_audit_after" ]]
+
+non_caddy_after=$(non_caddy_inventory)
+[[ "$non_caddy_after" == "$non_caddy_before" ]]
+services_after=$(protected_service_state)
+[[ "$services_after" == "$services_before" ]]
+listeners_after=$(ss -H -lntup | sort)
+[[ "$listeners_after" == "$listeners_before" ]]
+protected_hashes_after=$(
+  sha256sum -- \
+    /etc/lighttpd/lighttpd.conf \
+    /etc/lighttpd/conf-enabled/external.conf \
+    /etc/keepalived/keepalived.conf
+)
+[[ "$protected_hashes_after" == "$protected_hashes_before" ]]
+
+for service in lighttpd keepalived ssh unbound pihole-FTL munin-node; do
+  systemctl is-active --quiet "$service"
+done
+for unit in caddy.service caddy-api.service; do
+  [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" == inactive ]]
+  [[ "$(systemctl is-enabled "$unit" 2>/dev/null || true)" == masked ]]
+done
+if pgrep -x caddy >/dev/null; then
+  printf 'Unexpected Caddy process after inhibited installation.\n' >&2
+  exit 1
+fi
+
+[[ "$(getent passwd caddy | cut -d: -f6)" == /var/lib/caddy ]]
+[[ "$(getent passwd caddy | cut -d: -f7)" == /usr/sbin/nologin ]]
+getent group caddy >/dev/null
+id -nG caddy | tr ' ' '\n' | grep -Fxq www-data
+[[ "$(stat -c '%U:%G:%a' /etc/caddy)" == root:root:755 ]]
+[[ "$(stat -c '%U:%G:%a' /etc/caddy/Caddyfile)" == root:root:644 ]]
+[[ "$(stat -c '%U:%G:%a' /var/lib/caddy)" == caddy:caddy:755 ]]
+[[ "$(stat -c '%U:%G:%a' /var/log/caddy)" == caddy:caddy:755 ]]
+
+rm -rf -- "$work_dir"
+work_dir=
+transaction_complete=true
+trap - EXIT
+printf 'caddy_version=%s\n' "$(/usr/bin/caddy version)"
+printf 'caddy_inhibited_install_complete=true\n'
+NODE_A_CADDY_INHIBITED_INSTALL
+```
+
+Expected effect:
+
+- Revalidate Node A identity, backup, repository, package candidate, package
+  absence, protected configuration hashes, protected service state, and
+  listeners immediately before mutation.
+- Re-simulate exactly one new `caddy=2.11.4` arm64 package.
+- Install a temporary root-owned exit-101 `policy-rc.d` and pre-mask
+  `caddy.service` and `caddy-api.service`.
+- Install only the version-pinned Caddy package with Needrestart in list-only
+  mode.
+- Stop, disable, and re-mask both Caddy units before removing the temporary
+  start policy.
+- Leave Caddy installed but inactive and masked, while lighttpd retains every
+  frontend listener.
+- Leave every non-Caddy package, protected configuration hash, protected service
+  PID/restart state, and listener unchanged.
+- Perform no Caddy configuration or activation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require exactly one package addition and no upgrade, removal, held package, or
+  non-Caddy package-state change.
+- Require the package start attempt to be denied by `policy-rc.d`.
+- Require Caddy `2.11.4` arm64, the pinned binary version, clean `dpkg --verify`
+  and `dpkg --audit`, package-created identity/directories, absent temporary
+  policy, inactive/masked units, no Caddy process, and unchanged protected state.
+- Require `caddy_inhibited_install_complete=true`.
+
+Rollback boundary:
+
+- Any failure before the completion marker invokes the included rollback.
+- Rollback stops both Caddy units, attempts to purge only Caddy while the masks
+  and start inhibition remain, removes only the Caddy paths proven absent by
+  action 16m, removes the action staging and policy, and unsets the masks only
+  after package removal is proven.
+- If purge or cleanup cannot restore package absence, rollback reasserts both
+  masks, returns exit `97`, and requires a separate read-only recovery
+  inspection.
+- The protected predeployment baseline remains
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+
+### Defined next gate: independent read-only action 16n-a
+
+Exact command:
+
+```bash
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <<'NODE_A_CADDY_ROLLBACK_INSPECTION'
+set -euo pipefail
+
+expected_version=2.11.4
+source_target=/etc/apt/sources.list.d/caddy-stable.list
+key_target=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+expected_source_sha=b27d8e3f353b8e77214793ab7dfa5111cd502978461c43b4e54e0833ba49e199
+expected_keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37
+baseline=/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z
+
+identity_file_contains_caddy() {
+  local file=$1
+  case "${file##*/}" in
+    group* | gshadow*)
+      awk -F: '
+        $1 == "caddy" ||
+        ("," $3 ",") ~ /,caddy,/ ||
+        ("," $4 ",") ~ /,caddy,/ { found = 1 }
+        END { exit !found }
+      ' "$file"
+      ;;
+    *)
+      awk -F: '$1 == "caddy" { found = 1 } END { exit !found }' "$file"
+      ;;
+  esac
+}
+
+[[ "$(hostname)" == j1-svpihole0 ]]
+ip -o -4 address show dev eth0 |
+  grep -Fq '10.1.0.53/22'
+[[ "$(dpkg --print-architecture)" == arm64 ]]
+[[ -d "$baseline" && ! -L "$baseline" ]]
+(
+  cd "$baseline"
+  sha256sum --check --status configuration.tar.sha256
+  grep -Fxq 'backup_complete=true' backup-manifest.txt
+)
+
+[[ -f "$source_target" && ! -L "$source_target" ]]
+[[ -f "$key_target" && ! -L "$key_target" ]]
+printf '%s  %s\n' "$expected_source_sha" "$source_target" |
+  sha256sum --check --status
+printf '%s  %s\n' "$expected_keyring_sha" "$key_target" |
+  sha256sum --check --status
+policy=$(apt-cache policy caddy)
+candidate=$(
+  awk '/^[[:space:]]*Candidate:/ { print $2; exit }' <<<"$policy"
+)
+[[ "$candidate" == "$expected_version" ]]
+grep -Fq 'https://dl.cloudsmith.io/public/caddy/stable/deb/debian' \
+  <<<"$policy"
+grep -Fxq 'Architecture: arm64' \
+  < <(apt-cache show "caddy=$expected_version")
+
+package_status=$(
+  dpkg-query -W -f='${db:Status-Abbrev}' caddy 2>/dev/null || true
+)
+printf 'caddy_dpkg_status=%q\n' "$package_status"
+[[ -z "$package_status" || "$package_status" == 'un ' ]]
+dpkg_audit=$(dpkg --audit)
+[[ -z "$dpkg_audit" ]]
+if apt-mark showmanual | grep -Fxq caddy; then
+  printf 'Caddy remains manually marked.\n' >&2
+  exit 1
+fi
+
+mapfile -t dpkg_info_residue < <(
+  find /var/lib/dpkg/info -mindepth 1 -maxdepth 1 \
+    \( -type f -o -type l \) -name 'caddy.*' -print |
+    sort
+)
+if ((${#dpkg_info_residue[@]} != 0)); then
+  printf 'Unexpected dpkg Caddy residue: %s\n' \
+    "${dpkg_info_residue[@]}" >&2
+  exit 1
+fi
+
+if getent passwd caddy >/dev/null ||
+  getent group caddy >/dev/null; then
+  printf 'Unexpected active identity: caddy\n' >&2
+  exit 1
+fi
+if getent group www-data |
+  awk -F: '{ print $4 }' |
+  tr ',' '\n' |
+  grep -Fxq caddy; then
+  printf 'Caddy remains in the www-data group.\n' >&2
+  exit 1
+fi
+
+active_identity_files=(
+  /etc/passwd /etc/group /etc/shadow /etc/gshadow /etc/subuid /etc/subgid
+)
+for file in "${active_identity_files[@]}"; do
+  if [[ -f "$file" ]] && identity_file_contains_caddy "$file"; then
+    printf 'Active identity file contains Caddy: %s\n' "$file" >&2
+    exit 1
+  fi
+done
+
+backup_identity_files=(
+  /etc/passwd- /etc/group- /etc/shadow- /etc/gshadow-
+  /etc/subuid- /etc/subgid-
+)
+identity_backup_residue_count=0
+for file in "${backup_identity_files[@]}"; do
+  residue=false
+  if [[ -f "$file" ]] && identity_file_contains_caddy "$file"; then
+    residue=true
+    ((identity_backup_residue_count += 1))
+  fi
+  printf 'identity_backup_contains_caddy=%s:%s\n' "$file" "$residue"
+done
+
+for target in \
+  /usr/bin/caddy \
+  /etc/caddy \
+  /var/lib/caddy \
+  /var/log/caddy \
+  /var/mail/caddy \
+  /usr/share/caddy \
+  /usr/share/doc/caddy \
+  /usr/share/man/man8/caddy.8.gz \
+  /usr/share/bash-completion/completions/caddy \
+  /usr/share/fish/vendor_completions.d/caddy.fish \
+  /usr/share/zsh/vendor-completions/_caddy \
+  /lib/systemd/system/caddy.service \
+  /lib/systemd/system/caddy-api.service \
+  /etc/systemd/system/caddy.service \
+  /etc/systemd/system/caddy-api.service \
+  /usr/sbin/policy-rc.d; do
+  if [[ -e "$target" || -L "$target" ]]; then
+    printf 'Unexpected Caddy rollback target: %s\n' "$target" >&2
+    exit 1
+  fi
+done
+
+mapfile -t systemd_residue < <(
+  find /etc/systemd /var/lib/systemd -xdev \
+    \( -type f -o -type l \) -iname '*caddy*' -print |
+    sort
+)
+if ((${#systemd_residue[@]} != 0)); then
+  printf 'Unexpected systemd Caddy residue: %s\n' \
+    "${systemd_residue[@]}" >&2
+  exit 1
+fi
+
+unit_state=$(
+  for unit in caddy.service caddy-api.service; do
+    printf '%s:%s:%s:%s\n' \
+      "$unit" \
+      "$(systemctl show --property=LoadState --value "$unit")" \
+      "$(systemctl is-active "$unit" 2>/dev/null || true)" \
+      "$(systemctl is-enabled "$unit" 2>/dev/null || true)"
+  done
+)
+printf '%s\n' '--- Caddy unit state ---'
+printf '%s\n' "$unit_state"
+grep -Eq '^caddy[.]service:not-found:inactive:(|not-found)$' <<<"$unit_state"
+grep -Eq '^caddy-api[.]service:not-found:inactive:(|not-found)$' \
+  <<<"$unit_state"
+if pgrep -x caddy >/dev/null; then
+  printf 'Unexpected Caddy process.\n' >&2
+  exit 1
+fi
+
+printf '%s  %s\n' \
+  568507d5604cb2794106de3de29d1603c3f12c9045bf7fc1ad4342592a1395c1 \
+  /etc/lighttpd/lighttpd.conf |
+  sha256sum --check --status
+printf '%s  %s\n' \
+  6da587363054a4db69fb742d23bddde06aec866e11fb7a91bff1a8d75a713f7a \
+  /etc/lighttpd/conf-enabled/external.conf |
+  sha256sum --check --status
+printf '%s  %s\n' \
+  cf4858888ae80772f1a50dda7c0ea120ff083eafae33a0ad4ca291d44755c1e2 \
+  /etc/keepalived/keepalived.conf |
+  sha256sum --check --status
+
+for service in lighttpd keepalived ssh unbound pihole-FTL munin-node; do
+  systemctl is-active --quiet "$service"
+  printf 'protected_service_active=%s\n' "$service"
+done
+
+lighttpd_pid=$(systemctl show --property=MainPID --value lighttpd.service)
+[[ "$lighttpd_pid" =~ ^[1-9][0-9]*$ ]]
+tcp_frontend=$(
+  ss -H -ltnp |
+    awk '$4 ~ /:80$|:443$/ { print }' |
+    sort
+)
+printf '%s\n' '--- TCP 80/443 listeners ---'
+printf '%s\n' "$tcp_frontend"
+[[ -n "$tcp_frontend" ]]
+if grep -Fv 'users:(("lighttpd"' <<<"$tcp_frontend"; then
+  printf 'A non-lighttpd process owns TCP 80 or 443.\n' >&2
+  exit 1
+fi
+grep -Fq "pid=$lighttpd_pid" <<<"$tcp_frontend"
+grep -Eq '[[:space:]][^[:space:]]*:80[[:space:]]' <<<"$tcp_frontend"
+grep -Eq '[[:space:]][^[:space:]]*:443[[:space:]]' <<<"$tcp_frontend"
+udp_443=$(
+  ss -H -lunp |
+    awk '$4 ~ /:443$/ { print }' |
+    sort
+)
+[[ -z "$udp_443" ]]
+
+mapfile -t stage_matches < <(
+  find /tmp -mindepth 1 -maxdepth 1 \
+    \( -name 'caddy-package-audit-node-a.*' \
+    -o -name 'caddy-repo-audit-node-a.*' \
+    -o -name 'caddy-repo-install-node-a.*' \
+    -o -name 'caddy-metadata-refresh-node-a.*' \
+    -o -name 'caddy-inhibited-install-node-a.*' \) -print |
+    sort
+)
+if ((${#stage_matches[@]} != 0)); then
+  printf 'Unexpected Caddy staging path: %s\n' "${stage_matches[@]}" >&2
+  exit 1
+fi
+
+mapfile -t apt_cache_files < <(
+  find /var/cache/apt/archives -mindepth 1 -maxdepth 1 -type f \
+    -name 'caddy_*.deb' -print |
+    sort
+)
+printf 'caddy_apt_cache_file_count=%s\n' "${#apt_cache_files[@]}"
+if ((${#apt_cache_files[@]} > 0)); then
+  stat -c 'apt_cache=%F %U:%G %a %s %y %n' -- "${apt_cache_files[@]}"
+  sha256sum -- "${apt_cache_files[@]}"
+fi
+
+printf 'identity_backup_residue_count=%s\n' \
+  "$identity_backup_residue_count"
+[[ "$identity_backup_residue_count" -eq 0 ]]
+printf 'caddy_rollback_inspection_complete=true\n'
+NODE_A_CADDY_ROLLBACK_INSPECTION
+```
+
+Expected effect:
+
+- Independently revalidate the protected baseline, repository files, official
+  candidate, architecture, and package-manager health.
+- Require Caddy to be absent from dpkg installed/manual state, active identity
+  databases, supplementary groups, package info, installed paths, systemd
+  helper state, unit state, processes, masks, and start policy.
+- Inspect account backup files by filename and boolean result only; never print
+  password, shadow, or group contents.
+- Require protected configuration hashes and services, lighttpd-only TCP
+  80/443 ownership, unused UDP 443, and all action staging cleanup.
+- Report any Caddy APT archive cache object as observational cache evidence
+  without changing or automatically rejecting it.
+- Perform no cleanup or other mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require zero active package, identity, path, systemd, process, policy, mask,
+  and staging residue.
+- Require zero Caddy references in inactive account backup files for strict
+  rollback acceptance.
+- Require protected hashes/services/listeners and
+  `caddy_rollback_inspection_complete=true`.
+
+Rollback boundary:
+
+- None. Every command is read-only.
+- Any discovered residue stops acceptance and requires a separately defined
+  correction or an explicit decision to accept a non-active artifact.
+
+### Defined next gate: corrected transactional action 16n retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/install-node-a-caddy-action16n-retry.sh
+expected_sha=d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate the accepted operational rollback, protected baseline, official
+  repository, exact one-package simulation, protected configuration, services,
+  and listener ownership immediately before mutation.
+- Observe but never manually remove the accepted APT package cache.
+- Never read, print, edit, restore, or remove the accepted account backup-file
+  contents. Normal package-managed account creation may rotate those backup
+  files; exact-byte preservation would conflict with account-management safety.
+- Create a protected temporary `policy-rc.d` that logs only its invocation
+  arguments and always exits `101`.
+- Prove exit `101` directly before installation and require at least one
+  non-probe Caddy start invocation in the protected policy event log.
+- Pre-mask both Caddy units, install only `caddy=2.11.4` arm64 with Needrestart
+  list-only mode, then stop, disable, and re-mask both units.
+- Remove the temporary policy and action staging.
+- Leave Caddy installed but inactive and masked, with no Caddy process and no
+  change to protected packages, configuration, services, or listeners.
+- Perform no Caddy configuration or activation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae`.
+- Require direct policy probe exit `101`, at least one actual Caddy
+  start-inhibition event, and no dependency on human-readable APT inhibition
+  text.
+- Require Caddy `2.11.4` arm64, the pinned binary version, clean dpkg integrity,
+  expected identity/directories, removed temporary policy, inactive/masked
+  units, no Caddy process, and unchanged protected state.
+- Require `caddy_inhibited_install_retry_complete=true`.
+
+Rollback boundary:
+
+- Any failure after the transaction trap is armed invokes the included rollback.
+- Rollback stops both Caddy units, attempts to purge only Caddy while inhibition
+  remains, removes only active Caddy paths proven absent before retry, removes
+  action staging/policy, and unsets masks only after package absence is proven.
+- Rollback never manually cleans accepted account backup files or the accepted
+  APT cache.
+- Incomplete rollback reasserts both masks, emits
+  `caddy_install_retry_rollback_complete=false`, and exits `97`.
+- Complete rollback emits `caddy_install_retry_rollback_complete=true`.
+
+### Defined next gate: corrected read-only action 16n-b retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-caddy-action16n-install.sh
+expected_sha=032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Read only Node A host identity, the protected rollback baseline, repository
+  state, APT simulation, package metadata and integrity, Caddy identity and
+  directory metadata, vendor units, administrative masks, unit/process state,
+  protected configuration hashes and services, listener ownership, transient
+  staging absence, and the accepted APT cache object when present.
+- Require an exact zero-change simulation for Caddy `2.11.4` arm64 and require
+  Caddy to remain manually installed.
+- Require both Caddy units to remain inactive and masked, the temporary
+  `policy-rc.d` to remain absent, and no Caddy process to exist.
+- Require lighttpd alone to retain TCP 80/443 and require UDP 443 to remain
+  unused.
+- Do not read, print, edit, restore, or remove the accepted historical account
+  backup-file contents.
+- Perform no package, filesystem, identity, unit, process, listener, service,
+  configuration, or activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3`.
+- Require the pinned repository, package, vendor-unit, lighttpd, and Keepalived
+  hashes; clean `dpkg --verify` and `dpkg --audit`; expected identity and
+  directory semantics; inactive/masked units; absent Caddy process and
+  temporary policy; active protected services; unchanged listener ownership;
+  and zero known staging paths.
+- Record the observed Caddy numeric identity without assuming Node B's UID/GID.
+- Require `caddy_package_convergence_valid=true`.
+
+Rollback boundary:
+
+- None; action 16n-b is read-only and creates no files.
+- Any failed assertion stops acceptance without changing Node A.
+
+### Defined next gate: read-only action 16o
+
+Exact command:
+
+```bash
+script=Caddy/scripts/simulate-node-a-ha-sync-dependencies.sh
+expected_sha=fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate Node A identity and the accepted installed-but-inactive Caddy
+  state.
+- Report current package status and version for `keepalived`, `lsyncd`, `rsync`,
+  `openssh-client`, and `openssh-server`.
+- Run only an APT simulation for that exact manifest group and report the
+  complete proposed transaction.
+- Derive installation/configuration/removal counts from observed Node A output
+  rather than assuming the Node B action 8m result.
+- Reject any proposed removal or inconsistent installation/configuration count.
+- Prove the complete dpkg package inventory, protected service state, and
+  listener state remain unchanged by the simulation.
+- Perform no package, filesystem, unit, service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f`.
+- Require Caddy `2.11.4` to remain inactive and masked with no process.
+- Require lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL, and Munin Node to
+  remain active.
+- Require `planned_remove_count=0`, equal planned install/configure counts, and
+  unchanged package, service, and listener snapshots.
+- Require `ha_sync_dependency_simulation_complete=true`.
+
+Rollback boundary:
+
+- None; action 16o is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined transient action 16p attempt
+
+Exact command:
+
+```bash
+script=Caddy/scripts/inspect-node-a-lsyncd-package.sh
+expected_sha=8e39f3a422b6819616413977dd31d732fbca2be0459335c63802cac0d8464764
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate Node A identity, accepted Caddy inactive/masked state, and absence
+  of lsyncd, Lua dependencies, lsyncd paths/unit/mask, and `policy-rc.d`.
+- Create one mode-`0700` temporary directory matching
+  `/tmp/lsyncd-package-audit-node-a.*`.
+- Download only lsyncd `2.2.3-1` arm64 into that directory without installing
+  it.
+- Require package SHA-256
+  `25fc747c79502cab339be19e1ffe10155cf098b2621dd3f28fd47c19ffdfe45a`.
+- Extract and inspect public package metadata, the `postinst` lifecycle script,
+  the packaged `/etc/init.d/lsyncd` artifact, and their hashes.
+- Require first-install calls to `update-rc.d lsyncd defaults` and
+  `invoke-rc.d lsyncd start`, confirming that later installation needs explicit
+  start inhibition and a persistent distribution-service mask.
+- Remove all temporary staging and prove package inventory, dpkg audit,
+  protected services, listeners, Caddy masks, and lsyncd absence remain
+  unchanged.
+- Perform no package installation, unit/service mutation, configuration, or
+  activation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `8e39f3a422b6819616413977dd31d732fbca2be0459335c63802cac0d8464764`.
+- Require exact package identity, version, architecture, package hash,
+  lifecycle calls, executable SysV init artifact, and absence of a packaged
+  native systemd service.
+- Require zero matching staging paths after cleanup and unchanged package,
+  service, listener, Caddy-mask, lsyncd-unit, and dpkg-audit state.
+- Require `lsyncd_package_audit_complete=true`.
+
+Rollback boundary:
+
+- The EXIT trap removes only the action-created protected temporary directory.
+- No installed-state rollback exists because action 16p performs no
+  installation or service mutation.
+- Any failed assertion stops progression after bounded staging cleanup.
+
+### Defined next gate: read-only action 16p-a
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-lsyncd-audit-cleanup.sh
+expected_sha=ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Confirm no `/tmp/lsyncd-package-audit-node-a.*` staging path remains.
+- Require lsyncd, `lua5.3`, and `liblua5.3-0` to remain uninstalled.
+- Require all lsyncd init, configuration, unit, mask, and policy targets to
+  remain absent and `lsyncd.service` to remain not found/inactive.
+- Require Caddy `2.11.4` to remain installed with both units inactive/masked
+  and no Caddy process.
+- Require protected services active, lighttpd alone on TCP 80/443, and UDP 443
+  unused.
+- Perform no package, filesystem, unit, service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93`.
+- Require every absence, package, dpkg-audit, unit, mask, process, protected
+  service, and listener assertion to pass.
+- Require `lsyncd_audit_cleanup_valid=true`.
+
+Rollback boundary:
+
+- None; action 16p-a is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined next gate: corrected transient action 16p retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/inspect-node-a-lsyncd-package.sh
+expected_sha=61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Repeat the bounded, no-install lsyncd `2.2.3-1` arm64 package audit after the
+  accepted cleanup gate.
+- Require package SHA-256
+  `25fc747c79502cab339be19e1ffe10155cf098b2621dd3f28fd47c19ffdfe45a`
+  and `postinst` SHA-256
+  `729e7b309d25efccb425c8b832de4a20567553509fbf7cced30f352b5c0287b4`.
+- Validate the actual Debian helper semantics:
+  `update-rc.d lsyncd defaults`, first-install `_dh_action=start`, and
+  `invoke-rc.d lsyncd $_dh_action`.
+- Confirm the executable SysV init artifact and absence of a packaged native
+  systemd service.
+- Remove all temporary staging and prove package inventory, dpkg audit,
+  protected services, listeners, Caddy masks, and lsyncd absence remain
+  unchanged.
+- Perform no package installation, unit/service mutation, configuration, or
+  activation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d`.
+- Require exact package/post-install hashes, metadata, lifecycle semantics,
+  artifact state, cleanup, and unchanged operational-state assertions.
+- Require `lsyncd_package_audit_complete=true`.
+
+Rollback boundary:
+
+- The EXIT trap removes only the action-created protected temporary directory.
+- No installed-state rollback exists because the corrected retry performs no
+  installation or service mutation.
+- Any failed assertion stops progression after bounded staging cleanup.
+
+### Defined next gate: read-only action 16q
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-lsyncd-preinstall-state.sh
+expected_sha=5a7189b6e81f028be32d2f63c9b8f48d7aeb078b6221fb7de1cf45f989f4c31b
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate Node A identity and architecture.
+- Require lsyncd, `lua5.3`, and `liblua5.3-0` to remain uninstalled while exact
+  candidates remain lsyncd `2.2.3-1` and Lua `5.3.6-2`.
+- Require the lsyncd binary, init/configuration paths, SysV links, native unit,
+  administrative mask, `policy-rc.d`, and audit staging to remain absent.
+- Require `lsyncd.service` to remain not found, inactive, and not enabled.
+- Revalidate Caddy `2.11.4` as installed with both units inactive/masked and no
+  Caddy process.
+- Re-run the exact five-package HA/synchronization simulation and require only
+  the three observed additions, with zero upgrades or removals.
+- Prove package inventory, dpkg audit, protected services, and listeners remain
+  unchanged.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `5a7189b6e81f028be32d2f63c9b8f48d7aeb078b6221fb7de1cf45f989f4c31b`.
+- Require every package-candidate, absence, unit/mask, Caddy, protected-service,
+  three-package simulation, dpkg-audit, inventory, and listener assertion to
+  pass.
+- Require `lsyncd_preinstall_state_complete=true`.
+
+Rollback boundary:
+
+- None; action 16q is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined diagnostic action 16q-a
+
+Exact command:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-lsyncd-preinstall-stop.sh
+expected_sha=0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Print Node A hostname, architecture, and physical IPv4 state.
+- Print package status, installed version, and candidate for lsyncd, `lua5.3`,
+  and `liblua5.3-0`.
+- Print existence, type, ownership, mode, and link target when present for every
+  lsyncd binary/configuration/unit/mask/policy target.
+- Print lsyncd load, active, and enabled state, any SysV links, and any audit
+  staging.
+- Print Caddy package/unit/process state, protected-service activity, and
+  whether the dpkg audit is empty.
+- Run no APT simulation and make no package, filesystem, unit/service,
+  listener, configuration, or activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba`.
+- Require bounded output for every pre-simulation state category.
+- Require `lsyncd_preinstall_diagnostic_complete=true`.
+- Use the observed output to identify the exact failed assertion before
+  defining any correction.
+
+Rollback boundary:
+
+- None; action 16q-a is read-only and creates no files.
+- Diagnostic output does not authorize remediation or retry.
+
+### Defined next gate: corrected read-only action 16q retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-lsyncd-preinstall-state.sh
+expected_sha=2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Repeat the full read-only immediate lsyncd preinstallation gate.
+- Preserve every package, candidate, path, SysV, unit, mask, policy, staging,
+  Caddy, protected-service, simulation, dpkg-audit, inventory, and listener
+  assertion from the initial action.
+- Treat either an empty value or `not-found` as the valid `is-enabled` result
+  when `lsyncd.service` has confirmed `LoadState=not-found`.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73`.
+- Require the exact three-package simulation, zero removals/upgrades, all
+  absence/safety assertions, and unchanged state comparisons.
+- Require `lsyncd_preinstall_state_complete=true`.
+
+Rollback boundary:
+
+- None; the corrected action 16q retry is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined diagnostic action 16q-b
+
+Exact command:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-lsyncd-post-simulation-stop.sh
+expected_sha=65fd94316aa2f1837ea7bdcc9530dec659fd50d9997333fa2a7e71a7ce0c386e
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Repeat the exact five-package APT simulation without installing anything.
+- Print labeled counts and match results for every simulation assertion after
+  the initial action's output point.
+- Print hashes and equality results for package inventory, protected-service
+  state, and listening sockets before and after the simulation.
+- Print whether `dpkg --audit` remains empty.
+- Do not enforce the planned values so the first mismatch is observable.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `65fd94316aa2f1837ea7bdcc9530dec659fd50d9997333fa2a7e71a7ce0c386e`.
+- Require `lsyncd_post_simulation_diagnostic_complete=true`.
+- Use the labeled results only to identify the failed assertion; do not accept
+  action 16q or authorize installation from diagnostic evidence alone.
+
+Rollback boundary:
+
+- None; action 16q-b is read-only and creates no files.
+- Any diagnostic command failure stops progression without changing Node A.
+
+### Defined next gate: corrected read-only action 16q second retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-lsyncd-preinstall-state.sh
+expected_sha=2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Repeat the complete corrected immediate lsyncd preinstallation validation
+  without changing the validated artifact or weakening any assertion.
+- Require the exact three-package simulation and unchanged package, protected
+  service, and listener state.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73`.
+- Require `lsyncd_preinstall_state_complete=true`.
+- Accept action 16q only if every assertion passes in this single run.
+
+Rollback boundary:
+
+- None; the second retry is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined deployment action 16r: inhibited lsyncd installation
+
+Exact command:
+
+```bash
+script=Caddy/scripts/install-node-a-lsyncd-action16r.sh
+expected_sha=db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate Node A identity, rollback baseline, accepted Caddy masks, protected
+  configuration/services/listeners, absent lsyncd state, exact candidates, and
+  the three-package simulation.
+- Create a protected temporary exit-101 `policy-rc.d` that records only its
+  invocation arguments, and prove its exit status with a direct probe.
+- Pre-mask `lsyncd.service` before package installation.
+- Install only lsyncd `2.2.3-1`, lua5.3 `5.3.6-2`, and liblua5.3-0
+  `5.3.6-2`, with noninteractive APT and Needrestart list-only mode.
+- Require at least one recorded package-time lsyncd start request to have been
+  rejected by the exit-101 policy.
+- Disable and stop the distribution lsyncd service, reassert its persistent
+  mask, remove the temporary start policy, and clean the protected staging
+  directory.
+- Do not install lsyncd configuration, start the distribution or custom
+  lsyncd service, activate Caddy, or change listener ownership.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b`.
+- Require exactly three new packages, zero upgrades/removals/not-upgraded
+  packages, exact versions and arm64 architecture, clean `dpkg --verify` and
+  `dpkg --audit`, lsyncd binary version `2.2.3`, and the pinned SysV init
+  artifact hash.
+- Require `lsyncd.service` inactive and masked, no lsyncd process, no SysV
+  start links, and at least one SysV kill link.
+- Require Caddy and Caddy API inactive/masked with no Caddy process.
+- Require package inventory outside the three additions, protected service
+  state, listeners, and protected configuration hashes to remain unchanged.
+- Require `policy-rc.d` and action staging absent afterward.
+- Require `lsyncd_inhibited_install_complete=true`.
+
+Bounded automatic rollback:
+
+- The failure trap stops lsyncd and purges exactly `lsyncd`, `lua5.3`, and
+  `liblua5.3-0`; it never runs `autoremove`.
+- When all three packages are absent, it removes only action-created
+  `/etc/lsyncd`, the temporary policy and staging, and the action-created mask;
+  it reloads systemd and requires the complete preinstallation state,
+  protected state, listeners, and protected hashes to be restored.
+- Successful rollback emits `lsyncd_install_rollback_complete=true` and
+  returns the original failure status.
+- If package removal or restoration is incomplete, it retains
+  `lsyncd.service` masked, emits
+  `lsyncd_install_rollback_complete=false`, and exits `97`.
+- The protected baseline remains
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+- Any successful purge, mask removal, or other manual cleanup after a retained
+  safety mask requires a separately defined and authorized action.
+
+### Defined read-only action 16s: validate HA/synchronization convergence
+
+Exact command:
+
+```bash
+script=Caddy/scripts/validate-node-a-ha-sync-convergence-action16s.sh
+expected_sha=fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Simulate the exact five requested HA/synchronization packages and require a
+  zero-change transaction.
+- Independently validate installed status, exact versions, arm64 architecture,
+  and `dpkg --verify` for Keepalived, lsyncd, rsync, OpenSSH client/server,
+  lua5.3, and liblua5.3-0.
+- Validate Keepalived, lsyncd, rsync, and OpenSSH runtime versions, the Lua
+  interpreter/compiler alternatives, and the pinned lsyncd SysV init artifact.
+- Require lsyncd inactive/masked with no process or SysV start link and at
+  least one SysV kill link.
+- Require the temporary start policy and every known lsyncd action staging
+  path to remain absent.
+- Require Caddy and Caddy API inactive/masked with no Caddy process.
+- Require protected configuration hashes and services, lighttpd ownership of
+  TCP 80/443, unused UDP 443, package inventory, listeners, and dpkg audit to
+  remain accepted and unchanged.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda`.
+- Require `validated_package_count=7`.
+- Require `ha_sync_dependency_convergence_valid=true`.
+
+Rollback boundary:
+
+- None; action 16s is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined read-only action 16t: simulate validation/scripting dependencies
+
+Exact command:
+
+```bash
+script=Caddy/scripts/simulate-node-a-validation-dependencies-action16t.sh
+expected_sha=4c093b94720d594863b9d37c39c4485db1c268098f61e04d0ff6e111c193697d
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Revalidate Node A identity and accepted Caddy/lsyncd inactive masked state.
+- Simulate all 12 validation packages from `dependencies.yaml`.
+- Require the three action 3c packages to remain installed at their accepted
+  versions:
+  - iputils-arping `3:20221126-1+deb12u1`
+  - ndisc6 `1.0.5-1+b2`
+  - tcpdump `4.99.3-1`
+- Require uuid-runtime to remain absent with candidate
+  `2.38.1-5+deb12u3`.
+- Require exactly one install/configure action for uuid-runtime, zero upgrades
+  and removals, and zero not-upgraded packages.
+- Print the current state of all 12 manifest packages without changing them.
+- Require package inventory, protected-service state, listeners, and dpkg
+  audit to remain unchanged.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `4c093b94720d594863b9d37c39c4485db1c268098f61e04d0ff6e111c193697d`.
+- Require planned install/configure/remove counts `1`/`1`/`0`.
+- Require `validation_dependency_simulation_complete=true`.
+
+Rollback boundary:
+
+- None; action 16t is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined diagnostic action 16t-a
+
+Exact command:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-validation-simulation-stop-action16t-a.sh
+expected_sha=49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Print each pre-simulation fact in labeled sections without asserting the
+  planned value.
+- Capture the complete IPv4 and uuid-runtime policy outputs before matching or
+  candidate extraction so no producer is closed early under `pipefail`.
+- Do not run the 12-package APT simulation.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39`.
+- Require `validation_simulation_diagnostic_complete=true`.
+- Use the output only to identify the pre-simulation stop; do not accept action
+  16t or authorize package installation from diagnostic evidence alone.
+
+Rollback boundary:
+
+- None; action 16t-a is read-only and creates no files.
+- Any diagnostic failure stops progression without changing Node A.
+
+### Defined next gate: corrected read-only action 16t retry
+
+Exact command:
+
+```bash
+script=Caddy/scripts/simulate-node-a-validation-dependencies-action16t.sh
+expected_sha=d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Expected effect:
+
+- Repeat the complete read-only 12-package validation/scripting simulation.
+- Preserve the exact one-package uuid-runtime transaction and every
+  Caddy/lsyncd/package/service/listener/dpkg assertion.
+- Capture complete IPv4 and uuid-runtime policy output before matching to
+  prevent producer SIGPIPE under `pipefail`.
+- Perform no package, filesystem, unit/service, listener, configuration, or
+  activation mutation.
+
+Immediate validation:
+
+- Require SSH exit `0`.
+- Require local script mode `0755` and SHA-256
+  `d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9`.
+- Require planned install/configure/remove counts `1`/`1`/`0`.
+- Require `validation_dependency_simulation_complete=true`.
+
+Rollback boundary:
+
+- None; the corrected action 16t retry is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined transient action 16u: inspect uuid-runtime lifecycle
+
+Action 16u was executed and accepted at `2026-07-28T21:36:54Z`. The exact
+command run from `/home/aaron/code/homelab-server-configs` was:
+
+```bash
+script=Caddy/scripts/inspect-node-a-uuid-runtime-package-action16u.sh
+expected_sha=ddcb3c742549a41475d4a8fbbf5d7d4d9c453d8aa90b105288bd6f71004f18af
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- No persistent change is intended. The script downloads only
+  `uuid-runtime=2.38.1-5+deb12u3` into a protected, action-specific directory
+  under `/tmp`, verifies package SHA-256
+  `ec80577364ed7bdd1dfcd8d0db9a7878f1c335d17867b20822077aa6242de411`,
+  extracts its control and payload files, prints the package metadata,
+  contents, lifecycle script, native service/socket definitions, and selected
+  artifact hashes, then deletes the staging directory.
+- It validates the accepted Node B action 8s lifecycle evidence against the
+  Node A candidate: first install creates the `uuidd` system group and user,
+  changes `/var/lib/libuuid` to `uuidd:uuidd` mode `2775`, enables both
+  `uuidd.service` and `uuidd.socket`, and requests start through both the SysV
+  compatibility and native systemd helper paths.
+- It pins `postinst` SHA-256
+  `5bf87cf7e0bf4a99d67ae91cd0279b1d316e10cc4b60007283d29762210ae460`,
+  `uuidd.service` SHA-256
+  `a8090eeb6f09b0e895c97e2f27f9c656b27c269d3755f8da26e7f85f3aaaa4b9`,
+  and `uuidd.socket` SHA-256
+  `21f7cc7b5ffaf73b27f00689e628797a2be947df144b1a0f7ba9356c8d0a4897`.
+- Before and after inspection, it requires uuid-runtime, the `uuidd` identity,
+  `/var/lib/libuuid`, binaries, init script, native units, masks, process, and
+  start-policy file to be absent. It also requires Caddy and lsyncd to remain
+  inactive/masked, protected services and listeners to remain byte-for-byte
+  equal, package inventory to remain equal, and `dpkg --audit` to remain empty.
+
+Expected effect:
+
+- SSH exits `0`.
+- No package is installed and no service or systemd command mutates state.
+- Output includes the exact package, `postinst`, service, and socket evidence,
+  followed by:
+
+  ```text
+  uuid_runtime_package_sha256=ec80577364ed7bdd1dfcd8d0db9a7878f1c335d17867b20822077aa6242de411
+  uuid_runtime_postinst_sha256=5bf87cf7e0bf4a99d67ae91cd0279b1d316e10cc4b60007283d29762210ae460
+  uuid_runtime_package_audit_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0` and the completion marker.
+- Require all pinned package/lifecycle/artifact assertions and every
+  before/after state comparison to pass.
+- Require zero remaining
+  `/tmp/uuid-runtime-package-audit-node-a.*` directories.
+
+Rollback:
+
+- The EXIT trap removes only the exact action-created protected staging
+  directory on success or failure.
+- No package, identity, path, unit, mask, or service state is created, so no
+  persistent rollback is expected. If the command fails, stop and perform a
+  separately authorized read-only cleanup/state inspection before retrying.
+
+### Defined read-only action 16v: capture uuid-runtime preinstall state
+
+Action 16v was executed and accepted at `2026-07-28T21:42:11Z`. The exact
+command run from `/home/aaron/code/homelab-server-configs` was:
+
+```bash
+script=Caddy/scripts/validate-node-a-uuid-runtime-preinstall-state-action16v.sh
+expected_sha=cdb24eb1a4e5e22961b421bfe899045fe295e203d6184904ff85903f1c125f75
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed script is read-only and creates no local or remote file.
+- It corrects the rejected initial Node B action 8t semantics by accepting only
+  an empty dpkg result or the three-character status `"un "` for uuid-runtime
+  and explicitly rejecting `"ii "` as already installed.
+- It requires candidate `2.38.1-5+deb12u3` and simulates only the exact
+  version-pinned uuid-runtime installation. The transaction must contain one
+  install, one configure, zero removals, zero upgrades, and zero held-back
+  packages.
+- It requires the uuidd user/group, `/var/lib/libuuid`, uuid-runtime binaries,
+  SysV script, native units, masks, enablement links, processes, start-policy
+  file, and all `/tmp/uuid-runtime-*` staging to be absent.
+- It revalidates Caddy `2.11.4`, lsyncd `2.2.3-1`, and the three Node A action
+  3c packages at their accepted versions. Caddy and lsyncd must remain
+  inactive/masked with no processes.
+- It requires all protected services active, an empty `dpkg --audit`, and
+  byte-for-byte equal package inventory, protected-service state, and listener
+  state before and after the APT simulation.
+
+Expected effect:
+
+- SSH exits `0`.
+- No package, identity, path, unit, mask, process, listener, configuration, or
+  service state changes.
+- Output reports the immediate absence and candidate state, prints the exact
+  APT simulation, and ends:
+
+  ```text
+  planned_install_count=1
+  planned_configure_count=1
+  planned_remove_count=0
+  uuid_runtime_preinstall_state_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0` and
+  `uuid_runtime_preinstall_state_complete=true`.
+- Require uuid-runtime status to remain empty or `"un "`, with no uuidd
+  identity, path, unit, link, process, policy, or staging artifact.
+- Require the exact one-package APT transaction and every before/after state
+  comparison to pass.
+
+Rollback:
+
+- None; action 16v is read-only and creates no files.
+- Any failed assertion stops progression. Diagnose or inspect state under a
+  separately authorized read-only action before correcting or retrying.
+
+### Defined transactional action 16w: inhibited uuid-runtime installation
+
+Action 16w was executed and accepted at `2026-07-28T21:49:31Z`. The exact
+command run from `/home/aaron/code/homelab-server-configs` was:
+
+```bash
+script=Caddy/scripts/install-node-a-uuid-runtime-action16w.sh
+expected_sha=9878613134e5af56a94e30bddb89f66cf8a2337e75001a66a48dfe3f486bdf09
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- Install only `uuid-runtime=2.38.1-5+deb12u3`; the exact APT simulation must
+  report one install/configure, zero upgrades/removals, and zero held-back
+  packages before mutation begins.
+- Create a protected temporary exit-101 `/usr/sbin/policy-rc.d`, verify its
+  behavior directly, and record package-time start requests without relying on
+  helper-specific human-readable APT messages.
+- Mask `uuidd.service` and `uuidd.socket` before package configuration. The
+  package may temporarily remove those masks through its generated `postinst`,
+  but the exit-101 policy remains the activation barrier throughout the
+  package transaction.
+- After installation, disable the native units, disable SysV startup, stop both
+  units, and reassert persistent masks. Remove the temporary start policy.
+- Validate the exact package version/architecture/integrity; pinned SysV,
+  service, and socket hashes; util-linux `2.38.1` command versions; locked
+  non-root uuidd identity with `/run/uuidd` home and uuidd primary group; and
+  `/var/lib/libuuid` as `uuidd:uuidd` mode `2775`.
+- Require uuidd inactive/masked with no process and no SysV start links.
+  Existing Caddy and lsyncd masks, protected services, listeners, protected
+  configuration hashes, non-target package inventory, and dpkg integrity must
+  remain unchanged. Existing autoremove candidates are never selected.
+
+Expected effect:
+
+- SSH exits `0`.
+- Only uuid-runtime is installed.
+- At least one actual uuidd start request is recorded as inhibited after the
+  direct exit-101 probe succeeds.
+- `uuidd.service` and `uuidd.socket` finish inactive and persistently masked;
+  no uuidd process or SysV start link remains.
+- Output ends:
+
+  ```text
+  uuid_runtime_inhibited_install_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require the predeployment baseline
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` and its manifest
+  hash to validate before any mutation.
+- Require `policy_probe_exit=101`, at least one
+  `policy_start_inhibition_events`, exact package/artifact/integrity checks,
+  locked uuidd identity/state-directory checks, persistent unit masks, absent
+  process/start links/policy/staging, and all protected-state comparisons.
+- Require SSH exit `0` and
+  `uuid_runtime_inhibited_install_complete=true`.
+
+Bounded automatic rollback:
+
+- A failure before the transaction trap is installed makes no change.
+- After mutation starts, any failure stops uuidd, reasserts both masks, removes
+  the temporary start policy, purges uuid-runtime if present, and removes only
+  the active uuidd identity and state directories that were absent in accepted
+  action 16v and created by this transaction.
+- Rollback removes only its exact
+  `/tmp/uuid-runtime-inhibited-install-node-a.*` staging directory and verifies
+  target-package absence, active uuidd identity/state absence, SysV-link
+  absence, protected hashes/services/listeners, and non-target package
+  inventory.
+- Both uuidd masks deliberately remain after any post-mutation failure, matching
+  accepted Node B action 8u safety behavior. Standard account backup references
+  or an APT archive object may remain as non-runtime audit artifacts.
+- A complete rollback reports
+  `uuid_runtime_install_rollback_complete=true` and returns the original
+  failure status. An incomplete rollback reports `false`, exits `97`, retains
+  both masks, and requires an independently authorized read-only state
+  inspection before any retry or cleanup.
+
+### Defined read-only action 16x: validate dependency convergence
+
+Action 16x was retried at `2026-07-28T21:57:00Z` but is not accepted because
+it stopped after the zero-change APT simulation without its completion marker.
+The exact command run from `/home/aaron/code/homelab-server-configs` was:
+
+```bash
+script=Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x.sh
+expected_sha=40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed validator is read-only and creates no files.
+- Simulate the complete 12-package validation/scripting group and require zero
+  installs, configurations, upgrades, removals, and held-back packages.
+- Require exact installed versions, arm64 architecture, and clean
+  `dpkg --verify` results for bash, coreutils, findutils, iproute2,
+  iputils-arping, jq, ndisc6, OpenSSL, procps, tcpdump, util-linux, and
+  uuid-runtime.
+- Validate executable paths and observed runtime versions for Bash,
+  `sha256sum`, GNU find, `ip`, `arping`, jq, OpenSSL, `ps`, tcpdump, and
+  `uuidgen`; require uuid-runtime to remain manually installed.
+- Independently validate the observed uuidd UID/GID `109/115`, locked
+  password, `/run/uuidd` home, `/var/lib/libuuid` ownership/mode, pinned
+  init/service/socket hashes, inactive persistent masks, absent process and
+  SysV start links, present SysV kill links, and absent policy/staging.
+- Require Caddy and lsyncd installed at their accepted versions but
+  inactive/masked with no processes. Require the protected configuration
+  hashes and services, lighttpd-only TCP 80/443 ownership, unused UDP 443,
+  package inventory, listener state, and dpkg audit to remain unchanged.
+
+Expected effect:
+
+- SSH exits `0`.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output includes the zero-change APT simulation, selected command versions,
+  the validated package and uuidd SysV kill-link counts, and:
+
+  ```text
+  validated_package_count=12
+  validation_dependency_convergence_valid=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, exactly 12 validated packages, a zero-change APT
+  result, clean package integrity and dpkg audit, accepted command versions,
+  and all uuidd/Caddy/lsyncd/protected-state assertions.
+- Require `validation_dependency_convergence_valid=true`.
+
+Rollback:
+
+- None; action 16x is read-only and creates no files.
+- Any failed assertion stops progression and requires separate diagnosis before
+  correction, retry, or further deployment.
+
+### Defined diagnostic action 16x-a: identify package mismatch
+
+Action 16x-a was executed once under explicit authorization. It identified the
+original action 16x failure, then stopped because of a defect in its own
+associative-array keys. The command below is retained as executed evidence and
+must not be rerun without a corrected artifact and separate authorization. It
+was run from `/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-validation-dependency-stop-action16x-a.sh
+expected_sha=9523fb7a6bdf48895ff67624330cfa46f4b86d66d49d533b053f863d2e461f0c
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed diagnostic is read-only and creates no files.
+- For each of the 12 action 16x packages, independently capture the dpkg status,
+  version, architecture, and verification output plus each command's return
+  code.
+- Print the expected value, observed value, and match result for every field.
+  Package mismatches are counted and reported but deliberately do not terminate
+  collection.
+- Report the first package and field mismatch, total mismatch count, complete
+  per-package `dpkg --verify` output, and before/after dpkg audit sizes.
+- Require only the locked Node A identity and unchanged package inventory/audit
+  during collection; do not run APT simulation, command-version probes, service
+  commands, or the original convergence validator.
+
+Expected effect:
+
+- SSH exits `0` when diagnostic collection completes, even when package
+  mismatches are present.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains 12 labeled package sections and ends:
+
+  ```text
+  diagnostic_package_count=12
+  diagnostic_mismatch_count=<observed-count>
+  diagnostic_first_mismatch=<package:field-or-none>
+  validation_dependency_stop_diagnostic_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, 12 complete labeled sections, unchanged package
+  inventory/audit, a mismatch count and first-mismatch value, and
+  `validation_dependency_stop_diagnostic_complete=true`.
+- Use the output only to identify the action 16x assertion defect or observed
+  package drift. Do not accept convergence or authorize a correction/retry from
+  incomplete diagnostic output.
+
+Observed result:
+
+- SSH exited `1`; the diagnostic completion marker was absent.
+- The exact action 16x failure is the Bash integrity assertion:
+
+  ```text
+  dpkg_verify_rc=0
+  integrity_clean=false
+  dpkg_verify_output_begin
+  ??5?????? c /etc/skel/.bashrc
+  dpkg_verify_output_end
+  ```
+
+- Bash package status `ii`, version `5.2.15-2+b13`, and architecture `arm64`
+  matched their expected values.
+- Coreutils, findutils, and iproute2 passed every labeled package check.
+- Collection then failed with
+  `expected_versions[$package]: unbound variable`. Repository-profile `shfmt`
+  had rewritten the unquoted associative-array keys for `iputils-arping`,
+  `util-linux`, and `uuid-runtime` as arithmetic expressions with spaces.
+- Node A was not changed. The incomplete diagnostic is not accepted as a
+  12-package convergence result.
+
+Rollback:
+
+- None; action 16x-a is read-only and creates no files.
+- Any diagnostic collection failure stops progression without changing Node A.
+
+### Defined corrected read-only action 16x retry
+
+The corrected retry was executed once under explicit authorization. It stopped
+at an additional procps conffile difference. The command below is retained as
+executed evidence and must not be rerun without a new artifact and separate
+authorization. It was run from `/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x-retry.sh
+expected_sha=8cd4d7aac4fd25dd34bf79e75f1558abb4dfe7f4a9e8e1afbd05edb8fc0ca2f1
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed validator is read-only and creates no files.
+- Preserve the original action 16x validator and failed action 16x-a diagnostic
+  unchanged as historical evidence.
+- Label status, version, architecture, query return codes, verification policy,
+  conffile verification output, and non-conffile payload verification output
+  for each of the same 12 packages.
+- Require the exact observed Bash conffile record
+  `??5?????? c /etc/skel/.bashrc`; reject a missing, additional, or different
+  Bash conffile record.
+- Require no conffile verification record for the other 11 packages and no
+  package-payload verification record for any package.
+- Capture `/etc/skel/.bashrc` ownership, mode, size, and SHA-256 and require that
+  evidence to remain unchanged during the validator. This records the current
+  local content but does not represent a review or approval of that content.
+- Retain the original zero-change APT simulation, command/version/path checks,
+  uuid-runtime and uuidd state, Caddy/lsyncd masks, protected configuration
+  hashes, services, listeners, dpkg audit, and before/after equality checks.
+- Avoid associative version maps entirely. The repository self-test runs the
+  three hyphenated names `iputils-arping`, `util-linux`, and `uuid-runtime`
+  after the repository formatting gate and rejects unexpected conffile and
+  payload examples.
+
+Expected effect:
+
+- SSH exits `0` only when every corrected convergence assertion passes.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains 12 complete `--- package validation: <package> ---` sections.
+- The Bash section reports
+  `verification_policy=declared-conffile-difference`,
+  `verification_match=true`, the exact declared conffile record, and empty
+  package-payload output.
+- Every other package reports `verification_policy=clean`,
+  `verification_match=true`, and empty conffile and payload outputs.
+- Output ends with:
+
+  ```text
+  validated_package_count=12
+  declared_conffile_difference_count=1
+  unexpected_payload_difference_count=0
+  validation_dependency_convergence_valid=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, all 12 labeled sections, the exact declared Bash
+  conffile record, zero unexpected payload differences, unchanged Bash
+  conffile evidence, and the final completion marker.
+- Require the zero-change APT result and every retained package, command,
+  uuidd, Caddy/lsyncd, protected-service, hash, listener, audit, and
+  before/after assertion.
+- A missing completion marker or any nonzero exit leaves action 16x unaccepted
+  and stops progression.
+
+Observed result:
+
+- SSH exited `1`; the completion marker was absent.
+- The zero-change APT simulation passed and reported all 12 packages at their
+  expected current versions.
+- Bash, coreutils, findutils, iproute2, iputils-arping, jq, ndisc6, and openssl
+  passed their complete labeled package checks.
+- The Bash section matched the declared conffile record
+  `??5?????? c /etc/skel/.bashrc` with empty package-payload output.
+- Procps status `ii`, version `2:4.0.2-3`, and architecture `arm64` matched, but
+  its verification check reported:
+
+  ```text
+  ??5?????? c /etc/sysctl.conf
+  ```
+
+- Because procps was not allow-listed for any conffile difference,
+  `verification_match=false` and the validator stopped as designed.
+- Tcpdump, util-linux, uuid-runtime, command versions, uuidd, Caddy/lsyncd,
+  protected services and hashes, listeners, audits, and final before/after
+  comparisons were not reached. Their state cannot be inferred from this
+  incomplete run.
+- Node A was not changed. Action 16x remains unaccepted.
+
+Rollback:
+
+- None; the corrected action 16x retry is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined non-enforcing read-only diagnostic action 16x-b
+
+Action 16x-b was executed once under explicit authorization and completed. The
+command below is retained as executed evidence and must not be rerun without
+separate authorization. It was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-validation-dependencies-action16x-b.sh
+expected_sha=28beab618f313c10040006729f1c3ec39b7b88f1aa2aff640e0555defd7ee393
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed diagnostic is read-only and creates no files.
+- Preserve every prior action 16x validator and diagnostic as historical
+  evidence.
+- Use aligned package and version arrays, not associative-array keys.
+- For each of the same 12 packages, capture and label expected and observed
+  status, version, architecture, all query return codes, complete
+  `dpkg --verify` output, and independent conffile and payload record counts.
+- Continue through all packages when metadata differs, a query returns nonzero,
+  or verification output is present. These observations are counted, not used
+  as early-exit assertions.
+- For every conffile verification record, capture its parsed path, file type,
+  ownership, mode, size, SHA-256 output, and the stat/hash return codes. File
+  contents are not printed.
+- Report aggregate metadata mismatches, packages with query failures, packages
+  with differences, conffile and payload record totals, conffile evidence
+  count, and the first package with a verification difference.
+- Fail closed only if Node A identity is wrong, the package/version arrays are
+  incomplete, collection itself cannot continue, or package inventory or
+  `dpkg --audit` output changes during collection.
+- Do not run APT simulation, command-version checks, service commands, or the
+  convergence validator.
+
+Expected effect:
+
+- SSH exits `0` when collection completes, regardless of discovered package
+  metadata or verification differences.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains exactly 12 complete
+  `--- package diagnostic: <package> ---` sections and zero or more labeled
+  conffile-evidence sections.
+- Output ends with:
+
+  ```text
+  diagnostic_package_count=12
+  metadata_mismatch_count=<observed-count>
+  query_failure_count=<observed-package-count>
+  package_difference_count=<observed-count>
+  conffile_record_count=<observed-count>
+  payload_record_count=<observed-count>
+  conffile_evidence_count=<observed-count>
+  first_difference=<package-or-none>
+  validation_dependency_diagnostic_16x_b_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, 12 complete package sections, aggregate counts, matching
+  before/after package inventory and audit output, and the completion marker.
+- Reconcile every conffile and payload count with its detailed records.
+- Treat nonzero metadata, query-failure, conffile, or payload counts as
+  diagnostic evidence only. Do not accept action 16x or revise the validator
+  until the complete output is reviewed and any content-review boundary is
+  explicitly decided.
+- A missing completion marker or nonzero SSH exit leaves action 16x-b
+  incomplete and stops progression.
+
+Observed result:
+
+- SSH exited `0`; all 12 package sections and the completion marker were
+  present.
+- All package status, expected version, and `arm64` architecture comparisons
+  matched.
+- Every query returned `0`; `query_failure_count=0` and
+  `metadata_mismatch_count=0`.
+- Exactly two packages had verification differences, both classified as
+  conffiles:
+
+  | Package | Verification record | Metadata | SHA-256 |
+  | --- | --- | --- | --- |
+  | Bash | `??5?????? c /etc/skel/.bashrc` | Regular file, `root:root`, mode `0644`, 3523 bytes | `16d4851cb36ab8003eb45e2a8ab12ef971db898e42513f8bb826482ccd97c77d` |
+  | Procps | `??5?????? c /etc/sysctl.conf` | Regular file, `root:root`, mode `0644`, 2348 bytes | `f5f0f57fffcca760b5aa56b008c44c0ac8f3cc2a868e9831777e92a5614aa08d` |
+
+- Tcpdump, util-linux, and uuid-runtime were clean, resolving the unknown state
+  left by the fail-closed validator.
+- Aggregate result:
+
+  ```text
+  diagnostic_package_count=12
+  metadata_mismatch_count=0
+  query_failure_count=0
+  package_difference_count=2
+  conffile_record_count=2
+  payload_record_count=0
+  conffile_evidence_count=2
+  first_difference=bash
+  dpkg_audit_before_bytes=0
+  dpkg_audit_after_bytes=0
+  validation_dependency_diagnostic_16x_b_complete=true
+  ```
+
+- Package inventory and `dpkg --audit` output were unchanged. Node A was not
+  changed.
+- This accepts the completeness of the diagnostic evidence only. Neither
+  conffile's content was printed, semantically reviewed, or approved.
+
+Rollback:
+
+- None; action 16x-b is read-only and creates no files.
+- Any collection failure stops progression without changing Node A.
+
+### Defined revised fail-closed read-only action 16x retry2
+
+The revised validator was executed once under explicit authorization. It
+validated the complete package-verification policy, then stopped in the
+following silent command/version block. The command below is retained as
+executed evidence and must not be rerun without a corrected artifact and
+separate authorization. It was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x-retry2.sh
+expected_sha=99c267308c859579565332c037dbe8b9d873e923183d3541ef8e99d20f4b4a3b
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed validator is read-only and creates no files.
+- Preserve every earlier action 16x validator and diagnostic unchanged as
+  historical evidence.
+- Require exactly these two package-verification records:
+
+  ```text
+  bash:   ??5?????? c /etc/skel/.bashrc
+  procps: ??5?????? c /etc/sysctl.conf
+  ```
+
+- Pin `/etc/skel/.bashrc` as a regular, non-symlink `root:root` file, mode
+  `0644`, 3523 bytes, SHA-256
+  `16d4851cb36ab8003eb45e2a8ab12ef971db898e42513f8bb826482ccd97c77d`.
+- Pin `/etc/sysctl.conf` as a regular, non-symlink `root:root` file, mode
+  `0644`, 2348 bytes, SHA-256
+  `f5f0f57fffcca760b5aa56b008c44c0ac8f3cc2a868e9831777e92a5614aa08d`.
+- Require the same metadata and hashes before and after validation.
+- Require zero conffile records for every other package, zero additional
+  records for Bash or procps, and zero package-payload records for all 12
+  packages.
+- Label every package's metadata, query return codes, verification policy,
+  conffile output, payload output, and match result before enforcing it.
+- Retain the original zero-change APT simulation, all 12 exact package
+  versions/architectures, command versions and paths, manual uuid-runtime
+  state, uuidd identity/artifacts/masks/SysV/process state, Caddy/lsyncd
+  package and mask state, protected hashes and services, listeners, dpkg audit,
+  and before/after equality checks.
+- The pinned hashes establish unchanged observed state only. They do not
+  represent semantic review or approval of either conffile's contents.
+
+Expected effect:
+
+- SSH exits `0` only when every fail-closed convergence assertion passes.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains two labeled pinned-conffile sections and 12 complete package
+  validation sections.
+- Bash and procps report
+  `verification_policy=pinned-conffile-difference`; the other ten packages
+  report `verification_policy=clean`.
+- Every package reports `verification_match=true` and empty payload output.
+- Output ends with:
+
+  ```text
+  validated_package_count=12
+  pinned_conffile_difference_count=2
+  unexpected_conffile_difference_count=0
+  unexpected_payload_difference_count=0
+  validation_dependency_convergence_valid=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, exact pinned metadata/hashes, exactly two declared
+  conffile records, all 12 package sections, zero unexpected conffile/payload
+  differences, unchanged state, and the final completion marker.
+- Require every retained APT, package, command, uuidd, Caddy/lsyncd,
+  protected-service, hash, listener, audit, and before/after assertion.
+- Any mismatch, nonzero exit, or missing completion marker leaves action 16x
+  unaccepted and stops progression.
+
+Observed result:
+
+- SSH exited `1`; the completion marker was absent.
+- Both pinned conffile metadata and SHA-256 checks matched.
+- The zero-change APT simulation passed.
+- All 12 package status, version, architecture, verification record, and
+  package-payload assertions passed.
+- Bash and procps matched their exact pinned conffile policies; every other
+  package was clean.
+- Output stopped immediately after the uuid-runtime package section. No
+  command-version output, uuidd state, Caddy/lsyncd state, protected hashes or
+  services, listener state, final audits, or before/after comparisons were
+  emitted.
+- The validator captures command outputs before it prints them, so the observed
+  boundary does not distinguish a nonzero command substitution from a
+  subsequent silent version assertion. No exact failing command or assertion
+  is inferred.
+- Node A was not changed. Action 16x remains unaccepted.
+
+Rollback:
+
+- None; revised action 16x retry2 is read-only and creates no files.
+- Any failed assertion stops progression without changing Node A.
+
+### Defined labeled read-only diagnostic action 16x-c
+
+Action 16x-c was executed at `2026-07-28T22:32:39Z` from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-command-versions-action16x-c.sh
+expected_sha=fad25b75949b3dc0de9d224e0232cae299277fa020a31505173b34e211f01859
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None. The streamed diagnostic is read-only and creates no files.
+- Preserve every earlier action 16x validator and diagnostic unchanged.
+- Run the exact ten version commands used by retry2, capturing combined output
+  and return code without terminating on a nonzero result:
+
+  - Bash, sha256sum, find, ip, arping, jq, OpenSSL, ps, tcpdump, and uuidgen.
+
+- For every probe, print its shell-quoted command, match mode, expected text,
+  return code, complete output, and match result.
+- Use the same exact, prefix, or contains semantics as the retry2 validator.
+- Independently inspect the same 13 required paths, including `ndisc6`,
+  `uuidparse`, and `uuidd`, and print existence, executability, symlink state,
+  match result, stat return code, and metadata.
+- Continue across query, version, and path mismatches and report aggregate
+  counts plus the first failure.
+- Fail closed only if Node A identity is wrong, the 13-path manifest is
+  incomplete, collection itself cannot continue, or package inventory or
+  `dpkg --audit` output changes during collection.
+- Do not run APT simulation, package verification, service commands, listener
+  probes, or the convergence validator.
+
+Expected effect:
+
+- SSH exits `0` when diagnostic collection completes, regardless of observed
+  version-command or path mismatches.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains ten complete command-version sections and 13 complete
+  command-path sections.
+- Output ends with:
+
+  ```text
+  version_probe_count=10
+  version_mismatch_count=<observed-count>
+  query_failure_count=<observed-count>
+  path_probe_count=13
+  path_mismatch_count=<observed-count>
+  first_failure=<label:field-or-none>
+  command_version_diagnostic_16x_c_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, ten command sections, 13 path sections, internally
+  consistent summary counts, unchanged package inventory/audit, and the final
+  completion marker.
+- Use the output to distinguish a command exit failure from expected-text or
+  path-state mismatch.
+- Treat mismatches as diagnostic evidence only. Do not accept action 16x or
+  modify/retry the validator until the complete output is reviewed.
+- A missing completion marker or nonzero SSH exit leaves action 16x-c
+  incomplete and stops progression.
+
+Rollback:
+
+- None; action 16x-c is read-only and creates no files.
+- Any collection failure stops progression without changing Node A.
+
+Observed result:
+
+- Local mode `0755` and SHA-256
+  `fad25b75949b3dc0de9d224e0232cae299277fa020a31505173b34e211f01859`
+  matched before SSH.
+- SSH exited `0`; all ten version probes returned `0` and matched their exact,
+  prefix, or contains policy.
+- All 13 path probes completed. Twelve paths matched; `/usr/sbin/ip` was
+  executable but was a root-owned mode-`0777` symbolic link with link length
+  7, so it failed only the diagnostic's no-symlink policy.
+- Summary values were `version_probe_count=10`,
+  `version_mismatch_count=0`, `query_failure_count=0`,
+  `path_probe_count=13`, `path_mismatch_count=1`, and
+  `first_failure=/usr/sbin/ip:path`.
+- `dpkg --audit` remained empty before and after collection and the transcript
+  ended with `command_version_diagnostic_16x_c_complete=true`.
+- The diagnostic did not collect the link text, resolved target, resolved
+  target metadata, or owning package. Those values must be established by a
+  separately defined and authorized read-only action before the fail-closed
+  validator is revised.
+- Node A was unchanged. Action 16x-c is accepted as diagnostic evidence only;
+  action 16x remains unaccepted.
+
+### Defined labeled read-only action 16x-d
+
+Action 16x-d was executed at `2026-07-28T22:37:55Z` from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-ip-symlink-action16x-d.sh
+expected_sha=cc1fccbd861201ba2844c40144995f009861d893e0bae93a0615ac17261c629b
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None on Node A. The new repository diagnostic is streamed through Bash,
+  performs read-only queries, and creates no files.
+- Require hostname `j1-svpihole0`, IPv4 `10.1.0.53/22` on `eth0`, and arm64
+  architecture before collecting evidence.
+- Require `/usr/sbin/ip` to be an executable symbolic link, then record:
+
+  - Literal `readlink` text.
+  - Normalized literal-target path.
+  - Canonical existing target from `readlink -e`.
+  - Link `lstat`, dereferenced target `stat`, canonical-target `lstat`, and
+    canonical-target SHA-256.
+
+- Run separate `dpkg-query --search` ownership probes for the link path,
+  normalized literal target, and canonical target. Print query status, complete
+  shell-quoted output, and whether each result names `iproute2`.
+- Record exact iproute2 package status, version, architecture,
+  `dpkg --verify` output, and whether its package file list contains each of
+  the three paths.
+- Treat ownership and package-file-list matches as observations so merged-/usr
+  aliases cannot truncate evidence. Fail closed on wrong node identity,
+  missing/broken/non-executable link resolution, collection failure, or changed
+  package inventory or `dpkg --audit` output.
+- Do not run APT, alter the symlink, edit the validator, invoke systemd, inspect
+  listeners, or change any package, file, process, or service.
+
+Expected effect:
+
+- SSH exits `0` when complete evidence is collected.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains the symlink/target section, three ownership sections, the
+  iproute2 state section, and ends with:
+
+  ```text
+  dpkg_audit_before_bytes=<observed-count>
+  dpkg_audit_after_bytes=<observed-count>
+  ip_symlink_diagnostic_16x_d_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, nonempty literal and canonical targets, complete link
+  and target metadata, a 64-character canonical-target SHA-256, three complete
+  ownership results, complete iproute2 state, unchanged package inventory and
+  audit, and the final completion marker.
+- Reconcile ownership queries with the iproute2 file list without assuming
+  that the literal and canonical aliases are both registered package paths.
+- Do not modify the retry2 validator until the output establishes the exact
+  accepted link chain and package ownership.
+- A missing completion marker or nonzero SSH exit leaves action 16x-d
+  incomplete and stops progression.
+
+Rollback:
+
+- None; action 16x-d is read-only and creates no files on Node A.
+- Any collection failure stops progression without changing Node A.
+
+Observed result:
+
+- Local mode `0755` and SHA-256
+  `cc1fccbd861201ba2844c40144995f009861d893e0bae93a0615ac17261c629b`
+  matched before SSH.
+- SSH exited `0`; `/usr/sbin/ip` is a root-owned mode-`0777` symlink whose
+  literal text is `/bin/ip`, and both the normalized literal target and
+  canonical target were reported as `/usr/bin/ip`.
+- Dereferencing `/usr/sbin/ip` and inspecting `/usr/bin/ip` both returned a
+  root-owned regular file, mode `0755`, size 746760 bytes. Its SHA-256 is
+  `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`.
+- iproute2 is installed with status `ii`, version `6.1.0-3`, architecture
+  arm64, and empty `dpkg --verify` output.
+- Ownership queries for `/usr/sbin/ip` and `/usr/bin/ip` all returned `1` with
+  no registered match. The iproute2 file-list checks for those same normalized
+  paths were also false.
+- The collector did not preserve `/bin/ip` as a separate ownership or package
+  file-list query. Package ownership therefore remains unverified; it is not
+  inferred from the clean installed iproute2 package.
+- `dpkg --audit` remained empty before and after collection and the transcript
+  ended with `ip_symlink_diagnostic_16x_d_complete=true`.
+- Node A was unchanged. Action 16x-d is accepted as bounded diagnostic evidence
+  only; action 16x remains unaccepted and the validator remains unchanged.
+
+### Defined labeled read-only action 16x-e
+
+Action 16x-e was attempted at `2026-07-28T22:42:32Z` from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-iproute2-ownership-action16x-e.sh
+expected_sha=91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None on Node A. The new repository diagnostic is streamed through Bash,
+  performs read-only queries, and creates no files.
+- Require hostname `j1-svpihole0`, IPv4 `10.1.0.53/22` on `eth0`, and arm64
+  architecture before collecting evidence.
+- Require the already observed chain `/usr/sbin/ip` with literal target
+  `/bin/ip`, require raw `/bin/ip` to canonicalize to `/usr/bin/ip`, and require
+  the canonical target to be a regular executable.
+- Preserve `/bin/ip` without normalization and run independent
+  `dpkg-query --search` probes for:
+
+  - Raw registered path `/bin/ip`.
+  - Canonical merged-/usr alias `/usr/bin/ip`.
+  - Frontend symlink `/usr/sbin/ip`.
+
+- Report each ownership query's complete shell-quoted output and return code,
+  and separately report whether the raw result names iproute2.
+- Capture iproute2 status, version, architecture, empty-or-observed
+  `dpkg --verify` output, the exact dpkg `.list` path, its metadata and SHA-256,
+  every package-file-list entry ending in `/ip`, and exact membership booleans
+  for all three paths.
+- Reconcile raw `/bin/ip` and canonical `/usr/bin/ip` using dereferenced
+  metadata, device/inode identity, and independent SHA-256 values.
+- Treat ownership and reconciliation matches as observations so the collector
+  completes even if the package database differs from expectation. Fail closed
+  on wrong node identity, changed link chain, missing/non-executable target,
+  collection failure, or changed package inventory or `dpkg --audit` output.
+- Do not run APT, alter any path, edit the validator, invoke systemd, inspect
+  listeners, or change any package, file, process, or service.
+
+Expected effect:
+
+- SSH exits `0` when complete evidence is collected.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains raw ownership, alias ownership, package-file-list, and
+  raw/canonical reconciliation sections and ends with:
+
+  ```text
+  dpkg_audit_before_bytes=<observed-count>
+  dpkg_audit_after_bytes=<observed-count>
+  iproute2_ownership_diagnostic_16x_e_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, complete ownership results for all three paths,
+  nonempty relevant file-list entries, `.list` provenance and SHA-256,
+  raw/canonical metadata and hashes, unchanged package inventory and audit, and
+  the final completion marker.
+- Accept package ownership only if the raw `/bin/ip` ownership query names
+  iproute2 and `/bin/ip` appears exactly in the package file list.
+- Accept raw/canonical equivalence only if both device/inode and SHA-256 values
+  match.
+- Do not modify the retry2 validator until the complete output is reviewed.
+- A missing completion marker or nonzero SSH exit leaves action 16x-e
+  incomplete and stops progression.
+
+Rollback:
+
+- None; action 16x-e is read-only and creates no files on Node A.
+- Any collection failure stops progression without changing Node A.
+
+Observed result:
+
+- Local mode `0755` and SHA-256
+  `91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d`
+  matched before SSH.
+- SSH exited `2` when `dpkg-query --control-path iproute2 .list` rejected the
+  dotted control-file argument with `control file contains .`.
+- The command expects the logical control-file name `list`; it constructs the
+  underlying dotted filename itself.
+- The script collected values into shell variables before the failure, but
+  emitted no labeled evidence sections and no
+  `iproute2_ownership_diagnostic_16x_e_complete=true` marker. No ownership,
+  package-list, or reconciliation result is therefore accepted.
+- Node A was unchanged. Action 16x-e is incomplete, action 16x remains
+  unaccepted, and the fail-closed validator remains unchanged.
+
+### Defined corrected read-only action 16x-e retry
+
+The corrected action 16x-e retry is defined but has not been executed. Run
+from `/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/diagnose-node-a-iproute2-ownership-action16x-e-retry.sh
+expected_sha=ab348a90a31d8cb2d53415b3456c8fc2b2bcb147c5b3ec5b722c21b7b03b6d45
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+[[ "$(
+  sha256sum \
+    Caddy/scripts/diagnose-node-a-iproute2-ownership-action16x-e.sh |
+    awk '{ print $1 }'
+)" == 91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None on Node A. Preserve the failed action 16x-e artifact unchanged and
+  stream the separate corrected retry through Bash.
+- Retain all identity, link-chain, raw ownership, alias ownership, iproute2
+  integrity, relevant file-list, raw/canonical inode/hash, inventory, and audit
+  checks from action 16x-e.
+- Do not use `.list` or logical name `list` with `--control-path`:
+
+  - `.list` is rejected as an invalid logical control-file name.
+  - `list` returned an empty path with exit `0` during the live local dpkg
+    grammar self-test and cannot safely feed `stat` or `sha256sum`.
+
+- Query `${binary:Package}` for the exact architecture-qualified package name.
+- Resolve the existing iproute2 `md5sums` control file using
+  `dpkg-query --control-path`, use its parent as the authoritative package-info
+  directory, and construct `<binary-package-name>.list` within that directory.
+- Require the derived list file to exist by successfully collecting its
+  metadata and SHA-256; print the binary package name, anchor name/path,
+  package-info directory, and derived list path as labeled evidence.
+- The embedded regression test invokes the same `md5sums` control-path grammar
+  against installed Bash and requires a nonempty existing `.md5sums` file.
+- Treat ownership and reconciliation matches as observations so collection
+  continues across an unexpected result. Fail closed on identity, link chain,
+  target, package-control provenance, collection, inventory, or audit failure.
+- Do not run APT, alter any path, edit the validator, invoke systemd, inspect
+  listeners, or change any package, file, process, or service.
+
+Expected effect:
+
+- SSH exits `0` when complete evidence is collected.
+- No package, filesystem, identity, unit, process, listener, configuration, or
+  service state changes.
+- Output contains raw ownership, alias ownership, package-file-list provenance,
+  and raw/canonical reconciliation sections and ends with:
+
+  ```text
+  dpkg_audit_before_bytes=<observed-count>
+  dpkg_audit_after_bytes=<observed-count>
+  iproute2_ownership_diagnostic_16x_e_retry_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm corrected script mode `755`, its exact SHA-256, and the unchanged
+  failed-artifact SHA-256 before SSH.
+- Require SSH exit `0`, complete ownership results for all three paths,
+  nonempty relevant file-list entries, nonempty package binary name, valid
+  md5sums anchor and derived `.list` provenance, raw/canonical metadata and
+  hashes, unchanged package inventory and audit, and the completion marker.
+- Accept package ownership only if the raw `/bin/ip` ownership query names
+  iproute2 and `/bin/ip` appears exactly in the package file list.
+- Accept raw/canonical equivalence only if device/inode and SHA-256 match.
+- Do not modify the retry2 validator until the complete output is reviewed.
+- A missing completion marker or nonzero SSH exit leaves the retry incomplete
+  and stops progression.
+
+Rollback:
+
+- None; the corrected action 16x-e retry is read-only and creates no files on
+  Node A.
+- Any collection failure stops progression without changing Node A.
+
+Observed result:
+
+- Corrected script mode `0755` and SHA-256
+  `ab348a90a31d8cb2d53415b3456c8fc2b2bcb147c5b3ec5b722c21b7b03b6d45`
+  matched, and the failed artifact remained at its pinned SHA-256 before SSH.
+- SSH exited `0`; `dpkg-query --search /bin/ip` returned `iproute2: /bin/ip`
+  with return code `0` and `raw_owner_matches_iproute2=true`.
+- As expected for unregistered merged-/usr aliases, `/usr/bin/ip` and
+  `/usr/sbin/ip` ownership queries returned `1`.
+- iproute2 is installed with status `ii`, version `6.1.0-3`, architecture
+  arm64, and empty `dpkg --verify` output.
+- The validated control anchor is `/var/lib/dpkg/info/iproute2.md5sums`. The
+  derived package list is `/var/lib/dpkg/info/iproute2.list`, a root-owned
+  regular file mode `0644`, 6170 bytes, with SHA-256
+  `72b1b6ce7f4f4ee3b27897116329ea119de664a71a2f642fd326e889cfac471b`.
+- The complete relevant iproute2 file-list entries are `/bin/ip` and
+  `/sbin/ip`; raw `/bin/ip` membership is true, while canonical
+  `/usr/bin/ip` and frontend `/usr/sbin/ip` membership are false.
+- Raw `/bin/ip` and canonical `/usr/bin/ip` are the same device/inode
+  `66306:1995`, both root-owned mode `0755`, 746760 bytes, and both have
+  SHA-256
+  `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`.
+- `dpkg --audit` remained empty before and after collection and the transcript
+  ended with `iproute2_ownership_diagnostic_16x_e_retry_complete=true`.
+- Node A was unchanged. The corrected action 16x-e retry is accepted as
+  diagnostic evidence; action 16x remains unaccepted and the validator remains
+  unchanged.
+
+### Defined fail-closed read-only action 16x retry3
+
+Action 16x retry3 is defined but has not been executed. Run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x-retry3.sh
+expected_sha=acced80dbdcc2eeae2e7783681c887165f82f03f7c117e4d3f036896472da13f
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+[[ "$(
+  sha256sum \
+    Caddy/scripts/validate-node-a-validation-dependency-convergence-action16x-retry2.sh |
+    awk '{ print $1 }'
+)" == 99c267308c859579565332c037dbe8b9d873e923183d3541ef8e99d20f4b4a3b ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- None on Node A. Preserve retry2 and every diagnostic artifact unchanged and
+  stream the separate retry3 validator through Bash.
+- Retain retry2's exact Node identity, zero-change APT simulation, 12-package
+  status/version/architecture checks, two pinned conffile records and
+  metadata/hashes, zero additional conffile or payload differences, ten
+  command-version assertions, remaining executable-path policy, package
+  integrity, uuidd masks/inactivity, protected-service/listener state, and
+  unchanged inventory/audit assertions.
+- Exempt only `/usr/sbin/ip` from the generic regular non-symlink executable
+  policy. Require this exact chain and evidence instead:
+
+  - `/usr/sbin/ip` is a root-owned mode `0777` symbolic link of length 7 whose
+    literal link text is `/bin/ip`.
+  - `/bin/ip` canonicalizes exactly to `/usr/bin/ip`.
+  - Raw and canonical targets are the same root-owned mode `0755` regular file,
+    746760 bytes, on device/inode `66306:1995`.
+  - Both target paths have SHA-256
+    `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`.
+  - `dpkg-query --search /bin/ip` returns exactly `iproute2: /bin/ip`.
+  - `${binary:Package}` is exactly `iproute2`; the control anchor and derived
+    list are exactly `/var/lib/dpkg/info/iproute2.md5sums` and
+    `/var/lib/dpkg/info/iproute2.list`.
+  - The list is a root-owned mode `0644` regular file, 6170 bytes, with SHA-256
+    `72b1b6ce7f4f4ee3b27897116329ea119de664a71a2f642fd326e889cfac471b`.
+  - The complete iproute2 file-list entries ending in `ip` are exactly
+    `/bin/ip` and `/sbin/ip`.
+
+- Capture the complete chain state before the remaining convergence checks and
+  again afterward; require byte-identical evidence.
+- Fail immediately on any unexpected link text, canonical target, metadata,
+  ownership, package name, control/list path, list content, target hash,
+  device/inode, package/conffile result, version, service, listener, identity,
+  inventory, or audit result.
+- Do not run an APT transaction, write a file, invoke a mutating systemd
+  operation, or change any package, identity, configuration, process, listener,
+  or service.
+
+Expected effect:
+
+- SSH exits `0` only if the exact chain and every retained convergence
+  assertion pass.
+- Node A remains unchanged.
+- Output includes the pinned chain evidence and ends with:
+
+  ```text
+  ip_command_chain_valid=true
+  validation_dependency_convergence_retry3_valid=true
+  ```
+
+Immediate validation:
+
+- Confirm retry3 mode `755`, exact SHA-256, and unchanged retry2 SHA-256 before
+  SSH.
+- Require SSH exit `0`, both final markers, the complete exact chain evidence,
+  all 12 package labels, all ten version results, zero unexpected conffile and
+  payload differences, clean package integrity/audit, unchanged inventory,
+  masked/inactive uuidd units, protected services and listeners, and identical
+  before/after chain state.
+- A missing marker, nonzero SSH exit, changed state, or unmatched assertion
+  leaves action 16x unaccepted and stops progression.
+
+Rollback:
+
+- None; action 16x retry3 is read-only and creates no files on Node A.
+- Any validation failure stops progression without changing Node A.
+
+Observed result:
+
+- Local retry3 mode `0755` and SHA-256
+  `acced80dbdcc2eeae2e7783681c887165f82f03f7c117e4d3f036896472da13f`
+  matched, and retry2 remained at its pinned SHA-256 before SSH.
+- SSH exited `0`; all 12 packages matched their exact installed status,
+  versions, arm64 architecture, and verification policies. APT proposed zero
+  upgrades, installations, removals, or held-back packages.
+- The two expected conffile records were the only verification differences:
+
+  - `/etc/skel/.bashrc`: root-owned regular file mode `0644`, 3523 bytes,
+    SHA-256
+    `16d4851cb36ab8003eb45e2a8ab12ef971db898e42513f8bb826482ccd97c77d`.
+  - `/etc/sysctl.conf`: root-owned regular file mode `0644`, 2348 bytes,
+    SHA-256
+    `f5f0f57fffcca760b5aa56b008c44c0ac8f3cc2a868e9831777e92a5614aa08d`.
+
+- The exact `/usr/sbin/ip` → `/bin/ip` → `/usr/bin/ip` chain, raw iproute2
+  ownership, target device/inode `66306:1995`, target SHA-256
+  `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`,
+  and package-list SHA-256
+  `72b1b6ce7f4f4ee3b27897116329ea119de664a71a2f642fd326e889cfac471b`
+  matched every pin before and after the remaining checks.
+- All ten command-version assertions passed. Package integrity and dpkg audit
+  were clean, inventory was unchanged, all seven expected uuidd SysV kill
+  links were present, uuidd service/socket remained masked and inactive, and
+  protected services/listeners retained their expected state.
+- Output ended with `ip_command_chain_valid=true` and
+  `validation_dependency_convergence_retry3_valid=true`.
+- Node A was unchanged. Action 16x retry3 and Node A validation/scripting
+  dependency convergence are accepted.
+
+### Defined transactional Node A action 16y
+
+Action 16y is defined but has not been executed. Run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/install-node-a-service-identities-action16y.sh
+expected_sha=e992fa3d85debfbbc1275e925e7e159fddd4b1a306d54a80ca32b8ced960bdcf
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$expected_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- Revalidate Node A hostname, physical IPv4, arm64 architecture, and protected
+  rollback baseline before arming any mutation.
+- Require Caddy `2.11.4`, its existing UID/GID `995/992`, home
+  `/var/lib/caddy`, shell `/usr/sbin/nologin`, and exact current group set
+  `caddy` plus `www-data`.
+- Require `caddy-sync`, `keepalived_script`, the `caddy-tls` group, and the
+  `caddy-sync` group to be absent through both passwd and group NSS lookups.
+- Require `/etc/caddy/releases`, `/var/lib/caddy-sync`, and
+  `/home/keepalived_script` to be absent.
+- Require the exact account-management and directory-installation commands,
+  Caddy/lsyncd/uuidd masks and inactivity, active protected services, absent
+  Caddy/lsyncd/uuidd processes, absent package-start policy, clean dpkg audit,
+  and captured package inventory, service state, listeners, and protected
+  configuration hashes.
+- Create system groups `caddy-tls`, `caddy-sync`, and `keepalived_script`.
+  Numeric GIDs are allocated by Node A and must be recorded, not copied from
+  Node B.
+- Create:
+
+  - `caddy-sync` as a system user with primary group `caddy-sync`, home
+    `/var/lib/caddy-sync`, shell `/bin/sh`, and a locked password. `/bin/sh` is
+    required for the later restricted forced-command SSH transport. The account
+    command does not populate the home from `/etc/skel`; the protected home and
+    its exact subdirectories are created explicitly afterward.
+  - `keepalived_script` as a system user with primary group
+    `keepalived_script`, no created home, shell `/usr/sbin/nologin`, and a
+    locked password.
+
+- Add exactly `caddy`, `caddy-sync`, and `keepalived_script` to `caddy-tls`
+  without removing Caddy's existing `www-data` membership.
+- Install:
+
+  | Path | Owner | Mode |
+  | --- | --- | --- |
+  | `/etc/caddy/releases` | `root:caddy-tls` | `0750` |
+  | `/var/lib/caddy-sync` | `caddy-sync:caddy-sync` | `0750` |
+  | `/var/lib/caddy-sync/outbound` | `caddy-sync:caddy-sync` | `0750` |
+  | `/var/lib/caddy-sync/incoming` | `caddy-sync:caddy-sync` | `0750` |
+  | `/var/lib/caddy-sync/quarantine` | `caddy-sync:caddy-sync` | `0750` |
+  | `/var/lib/caddy-sync/.ssh` | `caddy-sync:caddy-sync` | `0700` |
+
+- Require dynamically allocated user and group IDs to be nonzero system IDs
+  below `1000`, primary groups to have no unexpected member-list entries, and
+  `caddy-tls` to contain exactly the three intended members.
+- Make no package, sysctl, Caddy configuration, synchronization key, systemd
+  manager, unit, process, listener, lighttpd, Keepalived, Unbound, Pi-hole, or
+  Munin change.
+
+Expected effect:
+
+- SSH exits `0`.
+- The three groups, two locked service users, TLS memberships, and six
+  protected directories exist with the exact properties above.
+- Package inventory, service state, listeners, protected configuration hashes,
+  Caddy's existing identity and `www-data` membership, masks, and dpkg audit
+  remain unchanged.
+- Output records the runtime-allocated IDs and ends with:
+
+  ```text
+  service_identity_install_action16y_complete=true
+  ```
+
+Immediate validation:
+
+- Confirm local script mode `755` and exact SHA-256 before SSH.
+- Require SSH exit `0`, the completion marker, all three printed identity/group
+  records, exact account shells and locked-password states, exact memberships,
+  exact directory ownership/modes, and all invariant checks.
+- Record the runtime UID/GID values; do not require equality with Node B.
+- Any missing marker, nonzero exit, unexpected identity/path, changed protected
+  state, or failed rollback stops progression.
+
+Rollback:
+
+- The EXIT trap is armed only after all fail-closed preconditions and protected
+  snapshots pass.
+- Per-object flags are set only after each group, user, or Caddy TLS membership
+  is successfully created. Rollback removes only objects whose flags prove
+  they were created by this action.
+- Rollback removes Caddy's new TLS membership, deletes the two action-created
+  users without recursive home deletion, deletes the three groups, and removes
+  only the exact action-created directories with `rmdir` when empty.
+- Rollback must restore the absent namespace/path state, Caddy's original group
+  set, package inventory, protected service/listener/configuration state, and
+  clean dpkg audit. It emits `service_identity_rollback_complete=true` on
+  success.
+- Account-management backup files may record the transaction, so rollback is
+  semantic rather than a byte-for-byte restoration of `/etc/passwd*`,
+  `/etc/group*`, or shadow backup files.
+- Any incomplete rollback exits `97`, emits
+  `service_identity_rollback_complete=false` and
+  `manual_intervention_required=true`, and stops all progression.
+- The protected predeployment baseline remains
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+
+Observed result:
+
+- Local script mode `0755` and SHA-256
+  `e992fa3d85debfbbc1275e925e7e159fddd4b1a306d54a80ca32b8ced960bdcf`
+  matched before SSH.
+- SSH exited `0`; the automatic rollback was not invoked and no
+  manual-intervention marker appeared.
+- Node A allocated:
+
+  | Identity | UID | Primary GID |
+  | --- | ---: | ---: |
+  | `caddy-sync` | `994` | `990` (`caddy-sync`) |
+  | `keepalived_script` | `993` | `989` (`keepalived_script`) |
+
+- Node A allocated GID `991` to `caddy-tls`. Its exact member list is `caddy`,
+  `caddy-sync`, and `keepalived_script`.
+- Existing Caddy remained UID/GID `995/992`, retained `www-data`, and gained
+  `caddy-tls`.
+- `caddy-sync` is password-locked with `/bin/sh`; `keepalived_script` is
+  password-locked with `/usr/sbin/nologin`.
+- `/etc/caddy/releases` is `root:caddy-tls` mode `0750`. The synchronization
+  home, outbound, incoming, and quarantine directories are
+  `caddy-sync:caddy-sync` mode `0750`; `.ssh` is mode `0700`.
+- Package inventory, protected service state, listeners, lighttpd and
+  Keepalived hashes, Caddy/lsyncd/uuidd masks and inactivity, process absence,
+  and clean dpkg audit matched their pre-change values.
+- Output ended with `service_identity_install_action16y_complete=true`.
+  Action 16y is accepted.
+
+### Defined read-only Node A action 16z
+
+Action 16z is defined but has not been executed. Run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/inspect-node-a-sysctl-preflight-action16z.sh
+script_sha=904992007e0bffa5028a2a3857ffee20be1c2fc4a4a838b24863c99e6b7e123d
+artifact=Caddy/configs/sysctl/70-caddy-ha.conf
+artifact_sha=d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$script_sha" ]]
+[[ -f "$artifact" && ! -L "$artifact" ]]
+[[ "$(sha256sum "$artifact" | awk '{ print $1 }')" == "$artifact_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact inspection:
+
+- Verify the pinned inspector and byte-exact intended sysctl artifact locally
+  before contacting Node A. The artifact includes its final blank line and has
+  SHA-256
+  `d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8`.
+- Use absolute `/usr/sbin/sysctl` so the non-login SSH path cannot reproduce
+  the first Node B action 10a failure.
+- Require Node A hostname, physical IPv4, arm64 architecture, and the protected
+  rollback baseline.
+- Require procps `2:4.0.2-3`, `sysctl from procps-ng 4.0.2`, and exactly the
+  accepted `/etc/sysctl.conf` conffile verification record.
+- Require `/etc/sysctl.d/70-caddy-ha.conf` and every defined Node A sysctl
+  staging pattern under `/tmp`, `/var/tmp`, and `/etc/sysctl.d` to be absent.
+- Require the complete accepted Action 16y identity, group-membership, shell,
+  password-lock, directory-ownership, and mode state using the runtime IDs
+  observed on Node A.
+- Require Caddy, Caddy API, lsyncd, uuidd service, and uuidd socket to remain
+  masked and inactive; require lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL,
+  and Munin node to remain active; reject Caddy, lsyncd, or uuidd processes.
+- Capture package inventory, protected unit state, all listeners, lighttpd and
+  Keepalived hashes, and dpkg audit before reading runtime values.
+- Read both values before and after using:
+
+  ```text
+  /usr/sbin/sysctl -n net.ipv4.ip_nonlocal_bind
+  /usr/sbin/sysctl -n net.ipv6.ip_nonlocal_bind
+  ```
+
+- Require binary values, exact accepted pre-state IPv4 `1` and IPv6 `0`, and
+  equality before and after collection.
+- Recheck target/staging absence and every protected snapshot after collection.
+- Do not invoke `/usr/sbin/sysctl -w`, `sysctl --system`, `sysctl -p`,
+  `install`, `tee`, redirection to a remote file, or any mutating systemd
+  command.
+
+Expected effect:
+
+- SSH exits `0`.
+- Node A retains IPv4 non-local binding `1` and IPv6 non-local binding `0`.
+- The intended target and staging remain absent.
+- All Action 16y identities/directories and protected state remain unchanged.
+- Output ends with:
+
+  ```text
+  sysctl_path=<observed-canonical-path>
+  sysctl_version=sysctl from procps-ng 4.0.2
+  ipv4_nonlocal_bind=1
+  ipv6_nonlocal_bind=0
+  sysctl_target_present=false
+  sysctl_staging_count=0
+  node_a_sysctl_preflight_action16z_complete=true
+  ```
+
+Immediate validation:
+
+- Require SSH exit `0`, every expected output line, and the completion marker.
+- Accept the preflight only if both runtime values match their pins before and
+  after, target/staging remain absent, identities and permissions match Action
+  16y, protected snapshots match, and dpkg audit remains clean.
+- A missing marker, nonzero exit, drifted runtime value, unexpected path, or
+  changed protected state stops progression before defining a write action.
+
+Rollback:
+
+- None; action 16z is read-only and creates no files.
+- Any failure stops progression without changing Node A.
+
+Observed result:
+
+- Local inspector mode/hash and intended-artifact SHA-256
+  `d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8`
+  matched before SSH.
+- SSH exited `0`; `/usr/sbin/sysctl` reported
+  `sysctl from procps-ng 4.0.2`.
+- `net.ipv4.ip_nonlocal_bind` remained `1` and
+  `net.ipv6.ip_nonlocal_bind` remained `0` before and after collection.
+- `/etc/sysctl.d/70-caddy-ha.conf` remained absent and the defined staging
+  search returned zero paths.
+- All accepted Action 16y identities, groups, memberships, shells, password
+  locks, directory ownership, and modes passed.
+- Caddy, Caddy API, lsyncd, uuidd service, and uuidd socket remained
+  masked/inactive; protected services, processes, package inventory, listeners,
+  lighttpd and Keepalived hashes, and clean dpkg audit were unchanged.
+- Output ended with `node_a_sysctl_preflight_action16z_complete=true`.
+  Action 16z is accepted and Node A was unchanged.
+
+### Defined transactional Node A action 16aa
+
+Action 16aa was executed and accepted at `2026-07-28T23:17:10Z`. The exact
+authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+script=Caddy/scripts/install-node-a-sysctl-action16aa.sh
+script_sha=a7a0766c2777a4c7fcdc8f19f4af8e7ba40480313b60b03ea5520d50a3c7adb2
+artifact=Caddy/configs/sysctl/70-caddy-ha.conf
+artifact_sha=d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8
+[[ -f "$script" && ! -L "$script" ]]
+[[ "$(stat -c '%a' "$script")" == 755 ]]
+[[ "$(sha256sum "$script" | awk '{ print $1 }')" == "$script_sha" ]]
+[[ -f "$artifact" && ! -L "$artifact" ]]
+[[ "$(stat -c '%s' "$artifact")" == 136 ]]
+[[ "$(sha256sum "$artifact" | awk '{ print $1 }')" == "$artifact_sha" ]]
+ssh -T \
+  -o BatchMode=yes \
+  -o ConnectTimeout=5 \
+  -o HostKeyAlias=pihole0.local.theama.co \
+  -o StrictHostKeyChecking=yes \
+  pi@10.1.0.53 \
+  'sudo -n /bin/bash -s --' <"$script"
+```
+
+Exact change:
+
+- Repeat every accepted action 16z host, baseline, procps, target/staging,
+  Action 16y identity/permission, mask/process, protected-service, package,
+  listener, configuration-hash, and dpkg-audit precondition.
+- Require the accepted runtime pre-state:
+
+  ```text
+  net.ipv4.ip_nonlocal_bind = 1
+  net.ipv6.ip_nonlocal_bind = 0
+  ```
+
+- Render the repository artifact internally with its required final blank line.
+  Require exactly 136 bytes and SHA-256
+  `d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8`
+  before installation.
+- Create a root-only randomized stage in `/etc/sysctl.d` using `mktemp`.
+- Create `/etc/sysctl.d/70-caddy-ha.conf` as an exclusive same-filesystem hard
+  link from that protected stage. This fails instead of overwriting if another
+  process creates the target after preflight.
+- Set the target to `root:root` mode `0644`, verify its type, size, and hash,
+  then remove the randomized stage.
+- Apply runtime state only when a value differs from `1`:
+
+  - IPv4 is already `1`, so no IPv4 runtime write is expected.
+  - IPv6 is `0`, so run exactly
+    `/usr/sbin/sysctl -w net.ipv6.ip_nonlocal_bind=1`.
+
+- Require both runtime values at `1`, exact persistent target bytes and
+  permissions, zero staging residue, and unchanged Action 16y identities,
+  packages, services, listeners, masks, processes, protected hashes, and dpkg
+  audit.
+- Do not invoke `sysctl --system`, `sysctl -p`, any service or systemd command,
+  package manager, or any unrelated configuration write.
+
+Expected effect:
+
+- SSH exits `0`.
+- `/etc/sysctl.d/70-caddy-ha.conf` exists as a root-owned non-symlink regular
+  file, mode `0644`, 136 bytes, with the pinned SHA-256.
+- IPv4 remains `1` without a runtime write; IPv6 changes from `0` to `1` with
+  exactly one conditional runtime write.
+- All other accepted state remains unchanged.
+- Output ends with:
+
+  ```text
+  sysctl_target=/etc/sysctl.d/70-caddy-ha.conf
+  sysctl_target_sha256=d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8
+  ipv4_nonlocal_bind_before=1
+  ipv4_nonlocal_bind_after=1
+  ipv4_runtime_write_performed=false
+  ipv6_nonlocal_bind_before=0
+  ipv6_nonlocal_bind_after=1
+  ipv6_runtime_write_performed=true
+  sysctl_install_action16aa_complete=true
+  ```
+
+Immediate validation:
+
+- Require local script/artifact mode, size, and hash checks before SSH.
+- Require SSH exit `0`, every expected output line, and the completion marker.
+- Require the persistent target, final `1/1` runtime values, zero staging,
+  unchanged Action 16y identity/permission snapshot, and every protected-state
+  invariant.
+- A missing marker, unexpected write decision, nonzero exit, changed unrelated
+  state, rollback failure, or manual-intervention marker stops progression.
+
+Rollback:
+
+- The EXIT trap is armed only after all preconditions, accepted runtime values,
+  and protected snapshots pass.
+- A change flag is set before each conditional runtime write. Rollback restores
+  only values whose write was attempted, in reverse order.
+- The target flag is set only after exclusive hard-link creation. If
+  interruption occurs between link creation and flag assignment, rollback may
+  remove the target only when it and the still-present randomized stage have
+  identical device/inode values.
+- Remove only the action-created target and exact randomized stage.
+- Require restored runtime IPv4 `1` and IPv6 `0`, absent target/staging,
+  unchanged Action 16y identity/permission snapshot, and all protected-state
+  invariants.
+- Successful rollback emits
+  `sysctl_install_action16aa_rollback_complete=true`.
+- Incomplete rollback exits `97`, emits
+  `sysctl_install_action16aa_rollback_complete=false` and
+  `manual_intervention_required=true`, and stops progression.
+- The protected baseline remains
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+
+Observed result:
+
+- Local installer and artifact mode, size, and SHA-256 checks passed before
+  SSH.
+- SSH exited `0`; the transaction installed
+  `/etc/sysctl.d/70-caddy-ha.conf` with SHA-256
+  `d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8`.
+- IPv4 remained `1` and its conditional write marker was `false`.
+- IPv6 changed from `0` to `1` and its conditional write marker was `true`.
+- Output ended with `sysctl_install_action16aa_complete=true`.
+- The transaction's target, staging, Action 16y identity/permission, package,
+  service, process, listener, protected-configuration, mask, and dpkg-audit
+  assertions all passed.
+- No rollback or manual-intervention marker appeared. Action 16aa is accepted.
+
+### Defined inactive Node A action 16ab
+
+Action 16ab was executed and accepted at `2026-07-28T23:30:43Z`. The exact
+authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-lighttpd-action16ab.sh
+runner_sha=6b07016f2cd7381ff46dbb857652f8cbd6d587fb9bbaa497eaccd6fbf8df0e21
+driver=Caddy/scripts/stage-node-a-lighttpd-action16ab.sh
+driver_sha=064fae668c82624729b410490b3a5dd18fd2da0d9bde60e20488b3817729c1a5
+renderer=Caddy/scripts/prepare-lighttpd-config.sh
+renderer_sha=ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f
+desired=Caddy/configs/lighttpd/desired-state.conf
+desired_sha=8299970d5bb3793859071cd82f794dbae84955a6af931cf35d1509141f689027
+for file in "$runner" "$driver" "$renderer" "$desired"; do
+  [[ -f "$file" && ! -L "$file" ]]
+done
+[[ "$(stat -c '%a' "$runner")" == 755 ]]
+[[ "$(stat -c '%a' "$driver")" == 755 ]]
+[[ "$(stat -c '%a' "$renderer")" == 755 ]]
+[[ "$(stat -c '%a' "$desired")" == 644 ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+[[ "$(sha256sum "$driver" | awk '{ print $1 }')" == "$driver_sha" ]]
+[[ "$(sha256sum "$renderer" | awk '{ print $1 }')" == "$renderer_sha" ]]
+[[ "$(sha256sum "$desired" | awk '{ print $1 }')" == "$desired_sha" ]]
+"$runner"
+```
+
+Exact change:
+
+- Revalidate the accepted Node A hostname, physical IPv4, architecture,
+  rollback baseline, lighttpd package/version, live main and regular
+  `external.conf` hashes, Keepalived hash, Action 16y identities and
+  permissions, and Action 16aa persistent and runtime sysctl state.
+- Require lighttpd and Keepalived active/enabled; require Caddy, Caddy API,
+  lsyncd, uuidd service, and uuidd socket inactive/masked; reject Caddy,
+  lsyncd, or uuidd processes.
+- Create a local mode-`0600` temporary tar archive containing exactly the
+  driver, corrected renderer, and non-secret intended-state record.
+- Stream that archive through one host-key-pinned SSH connection. Create only
+  `/var/tmp/caddy-ha-lighttpd-node-a-action16ab-source` as a temporary
+  `root:root` mode-`0700` source stage; reject unexpected files or symlinks and
+  verify all three hashes.
+- Transform a copy of `/etc/lighttpd` into
+  `/var/tmp/caddy-ha-lighttpd-node-a-action16ab`. Reassert its root as
+  `root:root` mode `0750` after `cp -a`.
+- Require exactly one loopback `127.0.0.1` binding and port `8080`, syslog-only
+  error and access logging, `mod_accesslog`, no enabled HTTPS or `:443`
+  directive, and the byte-identical Node A `external.conf` moved under
+  `conf-disabled-by-caddy-ha`.
+- Run `/usr/sbin/lighttpd -tt` against the staged main configuration.
+- Prove package inventory, Action 16y identities and permissions, service
+  states and restart counters, listeners, the complete live lighttpd file
+  content hash, protected hashes, and dpkg audit unchanged.
+- Remove the remote source stage and local tar archive. Retain only the
+  validated candidate on success.
+- Do not write `/etc/lighttpd`, invoke systemd or a service command, alter a
+  listener or process, install a persistent helper, or activate Caddy.
+
+Expected effect:
+
+- The runner and SSH exit `0`.
+- `/var/tmp/caddy-ha-lighttpd-node-a-action16ab` is retained as a root-owned
+  mode-`0750` inactive tree.
+- `/var/tmp/caddy-ha-lighttpd-node-a-action16ab-source` and the workstation
+  archive are absent.
+- Live lighttpd remains active/enabled on its existing listeners and its
+  configuration remains byte-equivalent.
+- Caddy and all other protected units remain in their accepted states.
+- Output ends with:
+
+  ```text
+  lighttpd_stage_action16ab_complete=true
+  lighttpd_stage_action16ab_source_cleanup_complete=true
+  ```
+
+Immediate validation:
+
+- Require every local mode and SHA-256 check before the runner creates its
+  temporary archive.
+- Require SSH exit `0`, both completion markers, staged main/tree hashes, live
+  tree hash, exact candidate path and mode, native parsing, and all silent
+  protected-state assertions.
+- A nonzero exit, missing marker, unexpected staged entry, source-stage
+  residue, live-state drift, cleanup failure, or manual-intervention marker
+  stops progression.
+- Candidate main and tree hashes are observed deployment values and will be
+  recorded only after successful execution; they are not assumed here.
+
+Rollback:
+
+- The Node A driver arms its EXIT trap immediately before invoking the
+  renderer. Any renderer or strict-validation failure removes only the exact
+  candidate and proves all protected state unchanged.
+- The remote wrapper always removes only the exact source stage. On any
+  unsuccessful run it also removes only the exact candidate, including
+  failures before the driver's trap is armed.
+- The local EXIT trap removes only its randomized temporary archive.
+- Successful driver rollback emits
+  `lighttpd_stage_action16ab_rollback_complete=true`; wrapper cleanup emits
+  `lighttpd_stage_action16ab_source_cleanup_complete=true`.
+- Incomplete driver or wrapper cleanup exits `97`, emits
+  `manual_intervention_required=true`, and stops progression.
+- The protected baseline remains
+  `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`.
+
+Observed result:
+
+- Every local mode and SHA-256 check and both self-tests passed before the
+  runner created its temporary archive.
+- The runner and SSH exited `0`; the corrected renderer and native lighttpd
+  parser accepted the staged tree.
+- `/var/tmp/caddy-ha-lighttpd-node-a-action16ab` is retained as
+  `root:root` mode `0750`.
+- The observed staged main SHA-256 is
+  `c48b3f0a8c256185233b302952f0b4ee138e745fb17ede92ae3f16d7fa4a6a99`.
+- The observed staged tree SHA-256 is
+  `6e178911d34a783e16fca001f7c91dc29098598043bd4c4c4c19af59e81a6c13`;
+  the unchanged live tree SHA-256 is
+  `b15ff54d2e91bbecd1d21b762818599d732f01b66ee5d1ef7c24147c72e2cb92`.
+- Output ended with `lighttpd_stage_action16ab_complete=true` and
+  `lighttpd_stage_action16ab_source_cleanup_complete=true`.
+- The remote source stage was removed and the workstation temporary-archive
+  search returned no matches.
+- No rollback or manual-intervention marker appeared. Live lighttpd,
+  listeners, processes, services, identities, packages, protected hashes,
+  sysctl state, and dpkg audit passed the unchanged-state assertions.
+- Action 16ab is accepted; no live configuration or service state changed.
+
+### Read-only workstation action 16ac
+
+Action 16ac was executed at `2026-07-28T23:40:58Z` but is not accepted. The
+exact authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+validator=Caddy/scripts/validate-workstation-certificate-stage-action16ac.sh
+validator_sha=fbca4722dc3da0f28ab44bea9fb8b846cac9bb25439658ad3d3b33815250aacb
+[[ -f "$validator" && ! -L "$validator" ]]
+[[ "$(stat -c '%a' "$validator")" == 755 ]]
+[[ "$(sha256sum "$validator" | awk '{ print $1 }')" == "$validator_sha" ]]
+"$validator"
+```
+
+Exact check:
+
+- Run only as workstation user and group `aaron`; require the retained
+  `/tmp/caddy-cert-node-b-action12` directory to be a non-symlink
+  `aaron:aaron` mode-`0750` directory.
+- Require exactly these five direct entries and no symlink anywhere in the
+  stage:
+
+  ```text
+  certificate-manifest.json
+  fullchain.pem
+  intermediates.pem
+  leaf.pem
+  privkey.pem
+  ```
+
+- Require the four public/manifest files to be `aaron:aaron` mode `0644` and
+  `privkey.pem` to be `aaron:aaron` mode `0640`.
+- Require the accepted SHA-256 values for leaf, intermediates, full chain, and
+  manifest. Compute the private-key SHA-256 only into shell memory for
+  before/after equality; never print or record it.
+- Parse the leaf and private key; require the private key to pass its internal
+  check and its derived public key to match the certificate.
+- Require `DNS:*.local.theama.co`, the accepted expiry
+  `Jan 19 23:59:59 2027 GMT`, and at least 30 remaining validity days.
+- Require every served intermediate to follow issuer order and reject any
+  self-signed certificate from `intermediates.pem`.
+- Require `fullchain.pem` to be byte-identical to the concatenation of
+  `leaf.pem` followed by `intermediates.pem`.
+- Validate the server-purpose chain through the workstation trust store using
+  `/etc/ssl/certs`.
+- Require the manifest to contain exactly its nine defined keys and require
+  every subject, issuer, validity, fingerprint, public-key, SAN, leaf-hash,
+  and full-chain-hash value to match the certificate artifacts.
+- Capture exact file set, metadata, four non-secret hashes, and the
+  non-output private-key hash before validation and require equality after.
+- Do not call Doppler, SSH, a network client, `sudo`, a package manager, or any
+  filesystem-writing command. Do not print PEM, private-key content, or the
+  private-key hash.
+
+Expected effect:
+
+- The validator exits `0`.
+- The retained certificate stage remains byte- and metadata-equivalent for
+  every checked property.
+- Output contains only non-secret stage, public-hash, expiry, certificate
+  count, and Boolean validation evidence, ending with:
+
+  ```text
+  certificate_wildcard_san_present=true
+  certificate_key_match=true
+  certificate_chain_complete=true
+  certificate_stage_unchanged=true
+  certificate_stage_continuity_action16ac_complete=true
+  ```
+
+Immediate validation:
+
+- Require the local validator mode and SHA-256 before execution.
+- Require exit `0`, the exact four accepted non-secret hashes, accepted expiry,
+  a positive intermediate count, and all five final Boolean markers.
+- Any absent or additional path, symlink, metadata/hash drift, invalid PEM,
+  expiring certificate, missing wildcard, self-signed served root, chain
+  failure, key mismatch, manifest difference, nonzero exit, or missing marker
+  stops progression before any transfer is designed.
+
+Rollback:
+
+- None. Action 16ac is read-only and creates no file.
+- Failure leaves the stage untouched and does not fall back to Doppler or
+  regeneration. Diagnosis, cleanup, or fresh preparation requires a separate
+  definition and authorization.
+
+Observed result:
+
+- The validator mode and SHA-256 matched, and its self-test completed before
+  the continuity invocation.
+- The exact validator exited `1` with zero stdout or stderr.
+- No stage path, public hash, expiry, certificate count, Boolean validation,
+  or completion marker was emitted.
+- No PEM, private-key content, private-key hash, or other secret was emitted.
+- The validator issued no Doppler, network, SSH, `sudo`, package, or explicit
+  filesystem-writing command.
+- Because the assertions are unlabeled, the transcript cannot distinguish
+  stage absence from metadata, hash, certificate, chain, trust-store,
+  private-key, manifest, or final unchanged-state failure.
+- Action 16ac is not accepted. No Node A certificate transfer may be defined
+  from this result.
+
+### Read-only workstation diagnostic action 16ac-a
+
+Action 16ac-a was executed once from
+`/home/aaron/code/homelab-server-configs` at `2026-07-28T23:48:19Z`:
+
+```bash
+diagnostic=Caddy/scripts/diagnose-workstation-certificate-stage-action16ac-a.sh
+diagnostic_sha=0034156f61c56981ce0ab132d6762a2a9493ae24bf9f99030bca986c6d72c692
+[[ -f "$diagnostic" && ! -L "$diagnostic" ]]
+[[ "$(stat -c '%a' "$diagnostic")" == 755 ]]
+[[ "$(sha256sum "$diagnostic" | awk '{ print $1 }')" == "$diagnostic_sha" ]]
+"$diagnostic"
+```
+
+Exact check:
+
+- Disable xtrace and pin `PATH` before any certificate-stage operation.
+- Report the workstation identity, command environment, stage presence,
+  directory shape, and expected metadata as labeled results.
+- If the stage or command prerequisites are unavailable, mark every dependent
+  check `skipped`, emit aggregate counts and the first failed label, and still
+  emit the diagnostic completion marker.
+- When the stage is safely readable, report its direct-entry count and labeled
+  results for exact file set, symlink absence, public-file metadata, and
+  private-key metadata.
+- Calculate accepted public artifact hashes. Print the known accepted hash only
+  when it matches; otherwise print `mismatch_or_unavailable`, never an unknown
+  content hash.
+- Parse the leaf and private key with all content suppressed; report validity,
+  accepted expiry, wildcard SAN, and certificate/private-key match as Boolean
+  status labels.
+- Never print private-key bytes, a raw private-key hash, either derived
+  public-key hash, certificate subject/issuer, full SAN text, manifest values,
+  or PEM data.
+- Parse every intermediate in memory and report count, PEM validity,
+  self-signed-root exclusion, leaf-to-root order, full-chain composition, and
+  workstation trust-store validation separately.
+- Report manifest parsing, exact schema, and each subject, issuer, validity,
+  fingerprint, public-key, SAN, leaf-hash, and full-chain-hash comparison as
+  separate status labels without printing their values.
+- Capture file set, metadata, accepted public hashes, and the non-output
+  private-key hash before collection and report each unchanged-state result
+  afterward.
+- Emit pass/fail/skipped totals and `diagnostic_first_failure`.
+- Do not call Doppler, SSH, a network client, `sudo`, a package manager,
+  systemd, a service, or any filesystem-writing command.
+
+Expected effect:
+
+- The diagnostic exits `0` after safely collecting observed mismatches.
+- Each check is labeled `pass`, `fail`, or `skipped`.
+- Unknown artifact hashes are never output.
+- The private-key hash remains only in shell memory for unchanged-state
+  comparison.
+- Output ends with:
+
+  ```text
+  diagnostic_pass_count=<non-negative integer>
+  diagnostic_failure_count=<non-negative integer>
+  diagnostic_skipped_count=<non-negative integer>
+  diagnostic_first_failure=<safe label or none>
+  certificate_stage_diagnostic_action16ac_a_complete=true
+  ```
+
+Immediate validation:
+
+- Require the local diagnostic mode and SHA-256 before execution.
+- Require exit `0`, the completion marker, all four aggregate fields, and a
+  first-failure label consistent with the failure count.
+- Review every emitted line against the defined key/value contract before
+  recording it. Any PEM marker, subject/issuer/SAN value, unknown hash,
+  private-key-derived value, unexpected free text, nonzero exit, or missing
+  completion marker rejects the diagnostic evidence.
+- Diagnostic success means collection completed; it does not accept the
+  certificate stage. Any failed or skipped continuity requirement must be
+  resolved before a corrected fail-closed retry or transfer.
+
+Rollback:
+
+- None. Action 16ac-a is read-only and creates no file.
+- Failure or incomplete output leaves the stage untouched and stops
+  progression. Cleanup, Doppler regeneration, retry, or transfer requires a
+  separate definition and authorization.
+
+Observed result:
+
+- The command exited `0` and emitted the completion marker.
+- `workstation_user`, `workstation_group`, and `command_environment` passed.
+- `stage_exists` failed. All 36 checks that depend on a safe, readable stage
+  were marked `skipped`.
+- Aggregate counts were pass `3`, fail `1`, and skipped `36`; the first failure
+  was `stage_exists`.
+- No secret, certificate identity field, unknown hash, or private-key-derived
+  value was emitted.
+- The diagnostic evidence is accepted, but certificate-stage continuity and
+  action 16ac are not accepted. A fresh protected stage must be prepared and
+  validated before any Node A certificate transfer can be defined.
+
+### Protected workstation certificate-preparation action 16ad
+
+Action 16ad was executed once from
+`/home/aaron/code/homelab-server-configs` at `2026-07-28T23:55:56Z`:
+
+```bash
+runner=Caddy/scripts/prepare-workstation-certificate-stage-action16ad.sh
+runner_sha=d7506f72d4042caf45a1387ef6244b9d9b0e762972925358ef39e78818c95174
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact change:
+
+- Access Doppler project `homelab-dev`, config `prd_caddy`, from the Ubuntu
+  operator workstation only.
+- Remove any inherited values for `CADDY_TLS_CERT_PEM`,
+  `CADDY_TLS_CA_BUNDLE_PEM`, and `CADDY_TLS_PRIVATE_KEY_PEM` before Doppler
+  injects the three values into the certificate preparer child process.
+- Invoke the hash-pinned `prepare-certificate.sh` without putting a secret in
+  an argument, file name, log message, or parent-shell variable.
+- Create `/tmp/caddy-cert-node-b-action12` only after proving that path absent.
+  The historical name is retained because the accepted fail-closed validator
+  is pinned to it; the stage is workstation-local and its contents are
+  node-neutral.
+- Produce exactly `leaf.pem`, `intermediates.pem`, `fullchain.pem`,
+  `privkey.pem`, and `certificate-manifest.json`.
+- Run the hash-pinned Action 16ac fail-closed validator before disarming
+  cleanup. It checks exact ownership/modes and public hashes, at least 30 days
+  of validity, accepted expiry, wildcard SAN, private-key match, ordered
+  root-excluded served chain, workstation trust, exact full-chain composition,
+  manifest schema/content, and before/after equality.
+- Retain the protected stage only if preparation and every validation pass.
+- Do not contact either Caddy node, transfer a certificate, install Caddy
+  configuration, or mutate a service.
+
+Expected effect:
+
+- Doppler CLI `v3.76.1` reads the three existing multiline secrets from
+  `homelab-dev/prd_caddy`.
+- The retained stage is `aaron:aaron` mode `0750`; public artifacts and the
+  manifest are mode `0644`; `privkey.pem` is mode `0640`.
+- Output contains only the preparer's safe path message, the validator's
+  accepted public hashes and Boolean/status evidence, Doppler scope/version,
+  and these final markers:
+
+  ```text
+  certificate_stage_continuity_action16ac_complete=true
+  workstation_certificate_preparation_action16ad_complete=true
+  ```
+
+- PEM data, private-key bytes, private-key hashes, and Doppler secret values
+  never appear in output.
+
+Immediate validation:
+
+- Require local runner mode, ownership, and SHA-256 before execution.
+- Require exit `0`, both completion markers, all four accepted public hashes,
+  accepted expiry, wildcard SAN, key match, chain completeness, and unchanged
+  stage.
+- Reject the action if output contains a PEM marker, an unknown hash, secret
+  value, private-key-derived value, shell diagnostic, cleanup error, or a
+  missing marker.
+- After successful preparation, stop before defining or authorizing Node A
+  transfer.
+
+Bounded automatic cleanup:
+
+- Exact stage absence is a mandatory precondition, so the action owns only
+  `/tmp/caddy-cert-node-b-action12` if preparation begins.
+- An EXIT cleanup remains armed across Doppler execution and validation. Any
+  failure removes only that exact stage with `rm --one-file-system`.
+- HUP, INT, and TERM convert to a failing exit and therefore trigger the same
+  cleanup.
+- The EXIT cleanup function never calls `exit`; this avoids the
+  `pop_var_context` teardown pattern observed during the earlier preparation.
+- Cleanup is disarmed only after the fail-closed validator returns success.
+
+Observed result:
+
+- The runner exited `0`; automatic cleanup was not invoked.
+- All four public artifact hashes matched their accepted values.
+- The certificate expires `Jan 19 23:59:59 2027 GMT`.
+- The wildcard SAN, private-key match, two-intermediate served chain,
+  workstation trust, exact manifest, and unchanged-stage checks passed.
+- Both required completion markers were emitted.
+- No PEM, private-key content or hash, unknown hash, or Doppler secret value
+  was emitted.
+- Action 16ad and the retained protected workstation stage are accepted.
+- No Node A access or transfer occurred.
+
+### Protected Node A certificate-transfer action 16ae
+
+Action 16ae was executed once from
+`/home/aaron/code/homelab-server-configs` at `2026-07-29T00:07:21Z`:
+
+```bash
+runner=Caddy/scripts/run-node-a-certificate-transfer-action16ae.sh
+runner_sha=afb5e5ddc73d61a29f196f2a2e20745e43a48c1b077536627090788d1f2c6ba0
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact change:
+
+- Re-run the hash-pinned Action 16ac fail-closed validator against the accepted
+  workstation stage before opening SSH.
+- Stream exactly `certificate-manifest.json`, `fullchain.pem`,
+  `intermediates.pem`, `leaf.pem`, and `privkey.pem` directly from tar to
+  `pi@10.1.0.53` using the strict host-key alias
+  `pihole0.local.theama.co`.
+- Create only `/var/tmp/caddy-cert-node-a-action16ae` on Node A as
+  `root:caddy-tls` mode `0750`.
+- Install the four public artifacts and manifest as `root:caddy-tls` mode
+  `0644`; install `privkey.pem` as `root:caddy-tls` mode `0640`.
+- Validate the exact direct-entry set, absence of symlinks, four accepted
+  public hashes, at least 30 days of validity, accepted expiry, wildcard SAN,
+  private-key integrity and match, exact full-chain composition, system trust,
+  and exact manifest schema/content.
+- Pin Node A hostname, IPv4, architecture, rollback baseline, Caddy `2.11.4`,
+  lsyncd `2.2.3-1`, uuid-runtime, service identities and memberships, `1/1`
+  non-local binding, absent Caddy bootstrap/current/default configuration,
+  active Pi-hole dependencies, inactive/masked protected units, and absent
+  protected processes.
+- Require the accepted inactive Action 16ab candidate and live lighttpd tree,
+  Keepalived configuration, sysctl artifact, package inventory, identities,
+  services, listeners, and dpkg audit to remain unchanged.
+- Do not create a local secret archive or remote source-stage copy.
+- Do not install Caddy configuration, alter lighttpd, start or enable a
+  service, change a listener, or contact Node B.
+
+Expected effect:
+
+- The workstation certificate stage remains in place and read-only.
+- Node A gains only the isolated protected certificate stage.
+- Output contains the workstation validator’s accepted public evidence and
+  the remote driver’s safe hashes/status fields.
+- Output ends with:
+
+  ```text
+  certificate_key_match=true
+  certificate_chain_complete=true
+  protected_state_unchanged=true
+  certificate_transfer_action16ae_complete=true
+  ```
+
+- No PEM, private-key bytes or hash, derived key value, manifest identity
+  value, or secret appears in output.
+
+Immediate validation:
+
+- Require local runner ownership/mode and SHA-256 before execution.
+- Require SSH exit `0`, the workstation continuity marker, the four exact
+  public hashes, accepted expiry, wildcard SAN, key match, chain completeness,
+  protected-state equality, and Action 16ae completion marker.
+- Require no rollback, manual-intervention, PEM, secret, unknown-hash, shell
+  diagnostic, or service-mutation output.
+- Stop after successful staging. Node A Caddy source transfer, dry-run,
+  configuration installation, and activation each require later gates.
+
+Bounded automatic rollback:
+
+- Exact remote-stage absence is required before any write.
+- The rollback is armed only after all read-only preconditions and protected
+  snapshots pass.
+- Any extraction, metadata, cryptographic, manifest, or protected-state
+  failure removes only `/var/tmp/caddy-cert-node-a-action16ae`.
+- Rollback proves that stage absent and all package, identity, service,
+  listener, configuration, candidate, sysctl, and audit state restored.
+- Incomplete rollback emits `manual_intervention_required=true` and exits
+  `97`.
+- The accepted workstation stage is never removed or changed by this action.
+
+Observed result:
+
+- The runner and SSH pipeline exited `0`; rollback was not invoked.
+- The workstation stage passed its complete continuity validation before
+  transfer and remained unchanged.
+- Node A retained `/var/tmp/caddy-cert-node-a-action16ae` as
+  `root:caddy-tls` mode `0750`.
+- All four public hashes, accepted expiry, wildcard SAN, private-key match,
+  chain, system trust, manifest, and file ownership/modes passed.
+- Node A package, identity, service, listener, live lighttpd, inactive
+  candidate, Keepalived, sysctl, Caddy-target, and dpkg-audit state remained
+  unchanged.
+- No PEM, private-key content or hash, derived key value, unknown hash, or
+  secret was emitted.
+- Action 16ae is accepted. No Caddy source, configuration, or activation
+  change occurred.
+
+### Defined minimal non-secret Node A Caddy source-transfer action 16af
+
+Action 16af was executed and accepted at `2026-07-29T00:21:24Z`. The exact
+authorized command was run from `/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-source-transfer-action16af.sh
+runner_sha=5a1d81c7aef708be0ae823c56f071aa415e02d27b0edcfe8276e6dcf2e43b0c2
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact change:
+
+- Verify the exact current hashes of these 12 non-secret repository files:
+  four Caddy configuration files, three manifests, the installer and renderer,
+  and three node-rendering templates.
+- Stream those named files directly from tar over strict-host-key SSH to
+  `pi@10.1.0.53`; create no local archive.
+- Create only `/var/tmp/caddy-source-node-a-action16af` on Node A as
+  `root:root` mode `0750`.
+- Set directories to `0750`, the installer and renderer to `0750`, and the
+  other ten files to `0640`.
+- Require the exact 12-file set, no symlinks, and all 12 pinned SHA-256 values.
+- Pin Node A hostname, IPv4, architecture, rollback baseline, Caddy version,
+  service identities and memberships, `1/1` sysctls, accepted live and staged
+  lighttpd trees, Keepalived and sysctl hashes, protected units/processes,
+  package inventory, services, listeners, Caddy-target absence, and dpkg audit.
+- Require the Action 16ae certificate stage’s exact file set, metadata, and
+  four accepted public hashes; compare all five certificate-file hashes
+  before and after without printing the private-key hash.
+- Do not run the installer, renderer, Caddy, or a service command that changes
+  state. Do not contact Node B.
+
+Expected effect:
+
+- Node A gains only the isolated non-secret source stage.
+- The accepted certificate stage remains byte- and metadata-identical.
+- Output ends with:
+
+  ```text
+  source_file_count=12
+  source_bundle_hashes_valid=true
+  certificate_stage_unchanged=true
+  protected_state_unchanged=true
+  source_transfer_action16af_complete=true
+  ```
+
+- No certificate, private-key, Doppler, webhook, or SSH-key material is part
+  of the source bundle or output.
+
+Immediate validation:
+
+- Require local runner ownership/mode and SHA-256 before execution.
+- Require SSH exit `0`, exact source-stage path/mode, file count `12`, all
+  source hashes valid, unchanged certificate stage, unchanged protected state,
+  and the Action 16af completion marker.
+- Reject any rollback, manual-intervention, unexpected file, symlink, hash
+  mismatch, secret output, shell diagnostic, or service mutation.
+- Stop after successful staging. A real-host Caddy installer dry-run requires
+  a separately defined and authorized action.
+
+Bounded automatic rollback:
+
+- Exact source-stage absence is mandatory before any write.
+- Rollback is armed only after all read-only preconditions and protected-state
+  snapshots pass.
+- Any extraction, file-set, metadata, hash, certificate-stage, or
+  protected-state failure removes only
+  `/var/tmp/caddy-source-node-a-action16af`.
+- Rollback proves source-stage absence and complete restoration of package,
+  identity, service, listener, certificate, lighttpd, Keepalived, sysctl,
+  Caddy-target, and audit state.
+- Incomplete rollback emits `manual_intervention_required=true` and exits
+  `97`.
+
+### Defined corrected read-only Node A Caddy installer dry-run Action 16ag retry
+
+The initial Action 16ag attempt stopped on a validator-local name collision.
+Its bounded transient cleanup and complete protected-state equality checks
+passed, so that attempt is not accepted. The corrected retry was executed and
+accepted at `2026-07-29T00:37:30Z`. The exact authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-installer-dry-run-action16ag.sh
+runner_sha=d133d0bdce6148180bccf59b4e5905cb7ba19640af60ab7892da30ec116c6dbc
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact action:
+
+- Stream only the hash-pinned validator over strict-host-key SSH to
+  `pi@10.1.0.53` and execute it through noninteractive `sudo`; do not persist
+  the validator on Node A.
+- Require the exact accepted Action 16af 12-file source stage, all pinned
+  hashes and modes, and no symlinks.
+- Require the exact accepted Action 16ae five-file certificate stage,
+  protected ownership and modes, four public hashes, and no symlinks. The
+  private-key hash is used only inside before/after state comparison and is
+  never printed.
+- Pin Node A hostname, IPv4, architecture, rollback baseline, Caddy `2.11.4`,
+  identities and memberships, active and protected services, listener state,
+  `1/1` non-local-binding sysctls, accepted live and staged lighttpd trees,
+  Keepalived and sysctl hashes, package inventory, and clean dpkg audit.
+- Require `/etc/caddy/releases/bootstrap`, `/etc/caddy/current`, and
+  `/etc/default/caddy-ha` to remain absent.
+- Run exactly:
+
+  ```text
+  install-caddy-ha.sh \
+    --node node-a \
+    --component caddy \
+    --manifest /var/tmp/caddy-source-node-a-action16af/Caddy/manifests/deployment.yaml \
+    --certificate-dir /var/tmp/caddy-cert-node-a-action16ae \
+    --dry-run
+  ```
+
+- Require the installer’s only JSON fields to report node `node-a`, component
+  `caddy`, root `/`, `dry_run=true`, `changes=14`, and
+  `service_mutations=false`.
+- Normalize only the random render path and require the exact 14 planned
+  directory, file, and symlink operations. Reject any additional, missing, or
+  changed plan line.
+
+Expected effect:
+
+- No persistent Node A path, package, identity, listener, configuration, or
+  service state changes.
+- The installer and validator may create files only inside one randomized
+  `/tmp/caddy-action16ag.*` directory. The installer render directory is
+  nested inside it, and the complete action-owned tree is removed before
+  success.
+- Output ends with:
+
+  ```text
+  installer_node=node-a
+  installer_component=caddy
+  installer_root=/
+  installer_dry_run=true
+  installer_changes=14
+  installer_service_mutations=false
+  source_stage_unchanged=true
+  certificate_stage_unchanged=true
+  protected_state_unchanged=true
+  action_16ag_installer_dry_run_complete=true
+  ```
+
+Immediate validation:
+
+- Require local runner ownership/mode and SHA-256 before execution.
+- Require SSH exit `0`, the exact JSON contract, exact normalized 14-line
+  change plan, removal of all matching temporary paths, unchanged source and
+  certificate stages, absent live Caddy targets, and complete protected-state
+  equality.
+- Reject any cleanup-failure, manual-intervention, shell diagnostic, secret
+  output, target creation, service mutation, or missing completion marker.
+- Stop after successful dry-run. Transactional Caddy configuration
+  installation requires a separately defined and authorized action.
+
+Bounded transient cleanup:
+
+- The validator creates its capture directory with `mktemp` under `/tmp` and
+  points the staged installer’s `TMPDIR` inside that directory.
+- Success and failure paths remove only that exact
+  `/tmp/caddy-action16ag.*` tree.
+- Cleanup then requires zero matching temporary paths and byte/metadata
+  equality for both accepted stages and all protected state.
+- Because this action authorizes no live target write, it does not attempt a
+  speculative live rollback. Any unexpected persistent difference causes
+  `manual_intervention_required=true` and exit `97`.
+
+### Defined transactional Node A Caddy configuration-installation Action 16ah
+
+Action 16ah is accepted. The authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-configuration-install-action16ah.sh
+runner_sha=1a75741626355c5bf3d61b65f33bdf64af8d41ee4ff200b98caf02f0aea27c25
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Node B experience applied:
+
+- Node B Action 12 accepted the same staged Caddy-component installer after a
+  14-change dry-run, then required exactly 14 installed changes,
+  `service_mutations=false`, protected target metadata and hashes, certificate
+  byte identity, Caddy adaptation/validation as user `caddy`, and a zero-change
+  repeat dry-run.
+- Its rollback boundary was exactly the initially absent bootstrap release,
+  current symlink, and environment file. Action 16ah preserves that boundary
+  and the predeployment rollback baseline.
+- Action 16ah uses the current Action 16af source bytes rather than historical
+  Node B installer/configuration bytes.
+- Caddy format/adapt/validate commands receive isolated `HOME`,
+  `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` paths inside the action-owned
+  temporary tree. Node A’s existing Caddy data/log directory state and backup
+  inventory are included in before/after equality.
+
+Exact change:
+
+- Revalidate Node A identity, Caddy `2.11.4`, service identities and
+  memberships, rollback baseline, accepted source and certificate stages,
+  package inventory, services, listeners, `1/1` sysctls, lighttpd trees,
+  Keepalived/sysctl hashes, Caddy runtime directories, backup inventory, and
+  clean dpkg audit.
+- Require these three action targets to be exactly absent:
+
+  ```text
+  /etc/caddy/releases/bootstrap
+  /etc/caddy/current
+  /etc/default/caddy-ha
+  ```
+
+- Run the accepted staged installer exactly once without `--dry-run`:
+
+  ```text
+  install-caddy-ha.sh \
+    --node node-a \
+    --component caddy \
+    --manifest /var/tmp/caddy-source-node-a-action16af/Caddy/manifests/deployment.yaml \
+    --certificate-dir /var/tmp/caddy-cert-node-a-action16ae
+  ```
+
+- Require the installer’s only JSON fields to report node `node-a`, component
+  `caddy`, root `/`, `dry_run=false`, `changes=14`, and
+  `service_mutations=false`; require empty installer stderr.
+- Install `/etc/caddy/releases/bootstrap` as `root:caddy-tls` mode `0750`,
+  with protected `conf.d` and `tls` directories, nine exact regular files, no
+  internal symlinks, current source hashes, and byte-identical certificate
+  artifacts.
+- Install `/etc/default/caddy-ha` as `root:caddy-tls` mode `0640` with
+  SHA-256
+  `2e439dd4c868736fd7a9dceff7ba3627a1d9fe8780ba7dcef2ce5d0e5e62a2b8`
+  and the ten exact Node A values.
+- Create `/etc/caddy/current` as a root-owned symlink to
+  `/etc/caddy/releases/bootstrap`.
+- As user `caddy`, require canonical formatting, successful Caddy adaptation
+  to valid JSON, and successful Caddy validation using the locked Node A
+  environment and isolated runtime directories.
+- Repeat the staged installer with `--dry-run`; require `dry_run=true`,
+  `changes=0`, `service_mutations=false`, and empty stderr.
+
+Expected effect:
+
+- The bootstrap release, current symlink, and node-local environment file are
+  installed and locally validated.
+- No Caddy, Caddy API, lsyncd, or uuidd unit is unmasked, started, enabled, or
+  reloaded. lighttpd continues serving the existing TCP 80/443 listeners, UDP
+  443 remains unused, and Caddy VRRP remains absent.
+- Source and certificate stages remain byte- and metadata-identical.
+- Output ends with:
+
+  ```text
+  installer_node=node-a
+  installer_component=caddy
+  installer_initial_changes=14
+  installer_idempotent_changes=0
+  installer_service_mutations=false
+  caddy_format_valid=true
+  caddy_adapt_valid=true
+  caddy_validate_as_user=caddy
+  installed_certificate_matches_stage=true
+  source_stage_unchanged=true
+  certificate_stage_unchanged=true
+  protected_state_unchanged=true
+  action_16ah_caddy_install_complete=true
+  ```
+
+Immediate validation:
+
+- Require local runner ownership/mode, SHA-256, syntax, and self-test before
+  execution.
+- Require SSH exit `0`, exact initial and idempotent JSON contracts, installed
+  topology/modes/hashes, private-key byte equality without outputting its hash,
+  successful unprivileged Caddy format/adapt/validate, zero matching temporary
+  paths, unchanged stages and protected state, and the completion marker.
+- Reject any rollback, manual-intervention, secret output, unexpected file,
+  installer stderr, nonzero idempotent change, service/listener difference, or
+  missing completion marker.
+- Stop after successful installation. Synchronization identity/configuration,
+  systemd-unit installation, and listener cutover require later separately
+  defined and authorized actions.
+
+Bounded automatic rollback:
+
+- Rollback is armed only after exact target absence and the complete protected
+  snapshot pass, and remains armed until every success marker is emitted.
+- Any failure after mutation begins removes only:
+
+  ```text
+  /etc/caddy/current
+  /etc/default/caddy-ha
+  /etc/caddy/releases/bootstrap
+  /tmp/caddy-action16ah.<action-owned-random-suffix>
+  ```
+
+- `/etc/caddy/releases`, both accepted staging trees, the rollback baseline,
+  package state, service identities, and every other live path are retained.
+- Rollback requires all three targets and all matching temporary paths absent,
+  then repeats common-state validation and complete protected-state equality.
+- Complete cleanup emits `action_16ah_rollback_complete=true` and retains the
+  original failure status. Incomplete cleanup emits
+  `action_16ah_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+
+Observed result:
+
+- Runner and SSH exited `0`.
+- The initial installation reported exactly 14 changes and the repeat dry-run
+  reported zero changes. Both reported `service_mutations=false`.
+- Caddy formatting, adaptation, and validation as user `caddy` passed.
+- Installed certificate files matched the accepted protected stage without
+  emitting private-key material.
+- Source, certificate, and protected state remained unchanged; all completion
+  markers were emitted and rollback was not invoked.
+- Action 16ah is accepted.
+
+### Defined read-only synchronization/SSH preflight Action 16ai
+
+Action 16ai is accepted. The authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-preflight-action16ai.sh
+runner_sha=af3fe540758d142636ae4e1881c5523dc68ea36e3f6e9133c71349b9374fa8f2
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Why this read-only gate is required:
+
+- Node B Action 13 created Node B's node-local synchronization private/public
+  key pair and pinned Node A's SSH host key.
+- The living plan records Node B's synchronization-key fingerprint, but the
+  actual Node B public synchronization key and Node B public SSH host key were
+  deliberately not stored in Git.
+- Node A cannot safely authorize Node B or construct its `known_hosts` file
+  from fingerprints alone. Those exact public values must be collected through
+  already host-verified administrative SSH before defining a mutation.
+- This follows the accepted Node B sequence: observe identity and state first,
+  then stage public artifacts, then execute a separately authorized
+  transaction.
+
+Exact read-only work:
+
+- Verify the three local scripts are regular, non-symlink files owned by
+  `aaron:aaron`, mode `0755`, with these SHA-256 values:
+
+  | Artifact | SHA-256 |
+  | --- | --- |
+  | Node A inspector | `7228e30eae408c88b30ed0ff5679f34bd8eaaddf891c1d7fbea16d3ff15554a4` |
+  | Node B inspector | `4721428e0ff94b1b4b9be456e954ef09891705b8828b3dbb39d506bffc09bf11` |
+  | Workstation runner | `af3fe540758d142636ae4e1881c5523dc68ea36e3f6e9133c71349b9374fa8f2` |
+
+- Connect to Node A as `pi@10.1.0.53` with
+  `HostKeyAlias=pihole0.local.theama.co`, batch mode, strict host-key checking,
+  and a five-second connection timeout.
+- On Node A, validate:
+
+  - Hostname, physical IPv4, arm64 architecture, exact Caddy, lsyncd, rsync,
+    and OpenSSH package versions.
+  - Accepted `caddy-sync` identity, locked password, `/bin/sh` shell, group
+    membership, home, and `.ssh` ownership/modes.
+  - Accepted Action 16ah environment hash, bootstrap release, and current
+    symlink.
+  - Absence of the synchronization key pair, `known_hosts`,
+    `authorized_keys`, receiver/setup/validator scripts, lsyncd configuration,
+    and Action 16ai staging residue.
+  - Caddy and lsyncd remain inactive/masked; SSH remains active/enabled.
+  - Effective SSH permits public-key authentication and uses the expected
+    per-user authorized-key paths.
+  - The Node A host public key still matches fingerprint
+    `SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI`.
+
+- Connect independently to Node B as `pi@10.1.0.54` with
+  `HostKeyAlias=pihole00.local.theama.co` and the same strict SSH options.
+- On Node B, validate:
+
+  - Hostname, physical IPv4, arm64 architecture, and exact rsync/OpenSSH
+    versions.
+  - The locked `/bin/sh` `caddy-sync` account and protected key metadata.
+  - Its private key derives the recorded public key after two-field
+    normalization, without printing or transferring the private key.
+  - Its synchronization public-key fingerprint remains
+    `SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g`.
+  - Receiver, setup, and validator scripts retain their accepted hashes and
+    `root:root` mode `0755`.
+  - `known_hosts` still pins Node A's accepted host key; `authorized_keys` and
+    `/etc/lsyncd/caddy.lua` remain absent.
+  - Caddy and SSH remain active, while lsyncd remains inactive/masked.
+
+- Emit only the two nodes' Ed25519 public host keys, Node B's public
+  synchronization key, and their fingerprints. Reject any private-key marker.
+- Remove the protected workstation capture directory on every exit.
+
+Expected effect and validation:
+
+- Both SSH commands and the runner exit `0`.
+- Output contains exactly six validated Node A lines, six validated Node B
+  lines, and ends with:
+
+  ```text
+  action_16ai_sync_ssh_preflight_complete=true
+  ```
+
+- The observed Node B host-key fingerprint and public host/synchronization keys
+  are recorded in the living plan after execution. Public key material is not
+  a secret, but it is retained only as deployment evidence until the later
+  protected staging action is defined.
+- No key is generated, no authorized-key or known-hosts file is written, no
+  remote temporary path is created, and no service, listener, package,
+  configuration, or account state changes.
+- Any nonzero exit, fingerprint mismatch, missing completion marker, unexpected
+  synchronization target, or private-key marker stops progression.
+
+Observed result:
+
+- Runner and both SSH inspections exited `0`; the final completion marker was
+  emitted.
+- Node A retains no synchronization private key, `authorized_keys`, or live
+  synchronization scripts. Its host-key fingerprint remains:
+
+  ```text
+  SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI
+  ```
+
+- Node B's observed SSH host-key fingerprint is:
+
+  ```text
+  SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo
+  ```
+
+- Node B's synchronization-key fingerprint remains:
+
+  ```text
+  SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g
+  ```
+
+- Exact accepted public material for the later protected staging action:
+
+  ```text
+  node_a_host_ed25519_public_key=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPm6/NB7dMyuLPW66D1lbk5EVwEDcJb7/f3WBe7xRfVX root@(none)
+  node_b_host_ed25519_public_key=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDsoJtJAFw7LCD85Jwfen/kzYhH13I5NuvkmgIy1jmyJ root@(none)
+  node_b_sync_ed25519_public_key=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBwBAlvUOqcazWjzfUOnwk1AHath8Xn8eoUDXBFQIG7e caddy-ha-sync
+  ```
+
+- Node B's accepted restricted scripts, key-pair derivation, Node A
+  `known_hosts` pin, and service state passed. No private key or secret marker
+  was emitted.
+- No live-node state changed. Action 16ai is accepted.
+
+Cleanup:
+
+- There is no remote rollback because both remote inspectors are read-only.
+- The workstation runner creates one mode-`0700` `mktemp` directory matching
+  `/tmp/caddy-action16ai.*`, captures the two public-evidence streams there,
+  and removes only that exact directory through its EXIT trap.
+- After successful Action 16ai evidence is accepted, define public-artifact
+  staging separately. Node A key generation and restricted-SSH installation
+  remain later, independently authorized mutations.
+
+### Defined protected Node A synchronization-artifact staging Action 16aj
+
+Action 16aj was attempted but is not accepted. The authorized command was run
+from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-stage-action16aj.sh
+runner_sha=f3e4332d8b52a91ca687cea8310966ceebc96eac9997e59d3032008ef2543262
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact change:
+
+- Revalidate the runner, remote driver, and the current repository copies of:
+
+  ```text
+  caddy-sync-rsync-receiver
+  setup-sync-ssh.sh
+  validate-sync-ssh.sh
+  ```
+
+- Construct a mode-`0700` workstation payload directory beneath an exact
+  `/tmp/caddy-action16aj.*` directory. Write only the accepted Action 16ai
+  Node B public host and synchronization keys; create no persistent local
+  archive.
+- Require these five exact payload hashes:
+
+  | File | SHA-256 |
+  | --- | --- |
+  | `caddy-sync-rsync-receiver` | `65d872f63a7a7e9dc108111057164c1785a77bf00429672452cfd3f9f3fe7134` |
+  | `node-b-host-ed25519.pub` | `909ee3ca843757d8d956ac6d442d6079134b0235fa7d37c97d80590eb5870fbd` |
+  | `node-b-sync-ed25519.pub` | `c9a2ecfcc6a44c0cd30d06bbb2841ec50ffd11866ce1da77ff69f2b5ff8320b0` |
+  | `setup-sync-ssh.sh` | `d1d1e4fd0fd3787e43d7801babfbcdec20015b6517282cdba67904aa1b554140` |
+  | `validate-sync-ssh.sh` | `85df8a934c8dd9561a6f567f42549ebc01ee2605ca630150265004b9ec108072` |
+
+- Stream the payload directly through strict host-verified administrative SSH
+  to Node A. The public keys are not command arguments and no private key is
+  transferred.
+- Before writing, revalidate Node A identity, packages, accepted Action 16ah
+  Caddy release/environment, service identities, live/candidate lighttpd
+  trees, Keepalived/sysctl hashes, `1/1` non-local binding, protected services,
+  listeners, source/certificate stages, Caddy state, backup inventory, clean
+  dpkg audit, and absence of every live synchronization key/script/configuration
+  target.
+- Require `/var/tmp/caddy-sync-ssh-node-a-action16aj` to be absent.
+- Create only that stage as `root:root` mode `0750`; extract with archive
+  ownership and permission restoration disabled.
+- Require exactly five non-symlink regular files. Protect the three scripts as
+  `root:root` mode `0750` and the two public keys as `root:root` mode `0640`.
+- Validate every hash and require fingerprints:
+
+  ```text
+  Node B SSH host: SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo
+  Node B sync key: SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g
+  ```
+
+- Repeat live-state validation and require complete protected-state equality.
+
+Expected effect:
+
+- The isolated stage contains only the three validated helpers and two accepted
+  public keys.
+- No Node A private key is generated. No `known_hosts`, `authorized_keys`, live
+  helper, account, package, service, listener, systemd, lsyncd, Caddy,
+  lighttpd, Keepalived, sysctl, certificate, or source-stage state changes.
+- Remote output is exactly:
+
+  ```text
+  stage_path=/var/tmp/caddy-sync-ssh-node-a-action16aj
+  stage_owner_mode=root:root:750
+  stage_file_count=5
+  node_b_host_fingerprint=SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo
+  node_b_sync_fingerprint=SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g
+  protected_state_unchanged=true
+  action_16aj_sync_ssh_stage_complete=true
+  ```
+
+- After validating that output, the runner removes its exact workstation
+  temporary directory and ends:
+
+  ```text
+  action_16aj_local_cleanup_complete=true
+  ```
+
+Bounded automatic rollback:
+
+- Before the remote stage is created, failure makes no remote change.
+- After creation, the EXIT trap remains armed through every remote success
+  marker. On failure it removes only
+  `/var/tmp/caddy-sync-ssh-node-a-action16aj`.
+- Rollback requires the stage absent, repeats the accepted live-state checks,
+  and requires complete protected-state equality. Success emits
+  `action_16aj_stage_rollback_complete=true` and retains the original failure
+  status.
+- Incomplete rollback emits `action_16aj_stage_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- The workstation EXIT trap removes only its exact
+  `/tmp/caddy-action16aj.*` directory on every local exit.
+- A successful stage is retained for the later, separately defined
+  synchronization-identity and restricted-SSH installation transaction.
+
+Observed attempt:
+
+- Runner/SSH exited `1`.
+- No normal stage output or `action_16aj_sync_ssh_stage_complete=true` marker
+  was emitted, so no stage result is accepted.
+- The remote rollback emitted:
+
+  ```text
+  action_16aj_stage_rollback_complete=true
+  ```
+
+- No `manual_intervention_required=true` marker appeared. The rollback
+  therefore reports that it removed the exact action stage, revalidated live
+  state, and restored complete protected-state equality.
+- The driver did not label individual staging assertions, so the transcript
+  cannot establish whether failure occurred during extraction, metadata/hash/
+  fingerprint validation, or the final protected-state comparison.
+- Action 16aj is stopped and unaccepted. No retry is authorized. Independent
+  read-only rollback verification and labeled diagnosis must precede any
+  correction or retry.
+
+### Defined read-only rollback diagnostic Action 16aj-a
+
+Action 16aj-a is accepted. The authorized command was run from
+`/home/aaron/code/homelab-server-configs`:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-stage-rollback-diagnostic-action16aj-a.sh
+runner_sha=9e47850956a88f046a1e88b29f89fdcb31346bc36a74b417009dbd7fe2e6d3e4
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Workstation-only diagnosis:
+
+- Revalidate the runner, inspector, and exact three repository helper hashes.
+- Reconstruct the same five-file public payload beneath a protected
+  `/tmp/caddy-action16aj-a.*` directory.
+- Verify every payload hash, create the exact tar stream as a local archive,
+  require the normalized archive listing to contain only the five expected
+  flat paths, and reject nested paths.
+- Extract locally using the same `--no-same-owner` and
+  `--no-same-permissions` options as Action 16aj, then apply and validate the
+  same script/public-key modes, hashes, symlink prohibition, and both
+  fingerprints.
+- This exact local payload/archive/extraction contract has already run during
+  repository validation and ended:
+
+  ```text
+  action_16aj_a_local_payload_test_complete=true
+  ```
+
+Read-only Node A diagnosis:
+
+- Connect through strict host-verified administrative SSH and stream only the
+  inspector.
+- Collect all checks without stopping at the first mismatch. Each fact prints
+  an observed value, expected value, and match boolean, or a direct boolean.
+- Check:
+
+  - Exact stage absence and zero matching Action 16aj stage paths.
+  - Absence of all eight live synchronization key, authorization, helper, and
+    lsyncd configuration targets.
+  - Node identity, architecture, exact Caddy/lsyncd/rsync/OpenSSH packages,
+    locked `caddy-sync` account, and protected `.ssh` directory.
+  - Accepted Action 16ah environment, current link, release metadata, source
+    and certificate stages, certificate/private-key byte equality, and
+    predeployment rollback baseline.
+  - Caddy/lsyncd inactivity and masks; active lighttpd, Keepalived, SSH,
+    Unbound, Pi-hole FTL, and Munin.
+  - Exact lighttpd-tree, Keepalived, sysctl-file, and `1/1` non-local-binding
+    values; clean dpkg audit.
+  - Required `tar`, `install`, and `ssh-keygen` paths plus Node A support for
+    both tar extraction options.
+  - In-memory parsing of both accepted Node B public keys and exact
+    fingerprints, without creating a file.
+  - lighttpd-only TCP 80/443 ownership and absence of UDP 443.
+
+Result contract:
+
+- The inspector always collects the complete labeled set unless an
+  unrecoverable shell/runtime failure prevents completion.
+- It emits:
+
+  ```text
+  diagnostic_mismatch_count=<nonnegative integer>
+  rollback_state_valid=true|false
+  action_16aj_a_rollback_diagnostic_complete=true
+  ```
+
+- `rollback_state_valid=true` is permitted only when the mismatch count is
+  zero. Any positive count requires `rollback_state_valid=false`; the runner
+  enforces that relationship without suppressing the diagnostic evidence.
+- The runner additionally emits:
+
+  ```text
+  local_payload_hashes_valid=true
+  local_archive_file_set_valid=true
+  local_extraction_contract_valid=true
+  action_16aj_a_local_cleanup_complete=true
+  ```
+
+Safety and cleanup:
+
+- Node A receives no tar payload and no mutation command. The action does not
+  create, remove, chmod, chown, install, generate, authorize, start, stop,
+  reload, enable, disable, mask, or unmask anything remotely.
+- Public keys are parsed from in-memory process substitutions only.
+- There is no remote rollback because the remote action is read-only.
+- The workstation EXIT trap removes only its exact
+  `/tmp/caddy-action16aj-a.*` directory.
+- A zero-mismatch result independently accepts the Action 16aj rollback but
+  does not authorize a staging retry. Any correction and retry remain separate
+  gates.
+
+Observed result:
+
+- Runner and SSH exited `0`.
+- The workstation independently reproduced the exact payload hashes, flat
+  archive file set, extraction options, modes, symlink prohibition, and both
+  public-key fingerprints.
+- Node A reported:
+
+  ```text
+  stage_absent=true
+  action_staging_count_observed=0
+  diagnostic_mismatch_count=0
+  rollback_state_valid=true
+  action_16aj_a_rollback_diagnostic_complete=true
+  ```
+
+- All eight live synchronization targets remain absent.
+- Every package, account, Caddy environment/release, source/certificate stage,
+  certificate byte match, service, lighttpd tree, Keepalived/sysctl hash,
+  `1/1` non-local binding, rollback baseline, command support, public-key
+  parsing, listener, and dpkg-audit check matched.
+- The workstation temporary directory was removed and output ended
+  `action_16aj_a_local_cleanup_complete=true`.
+- Action 16aj rollback is independently accepted. The original staging failure
+  is narrowed to the removed remote stage's extraction/metadata/hash/
+  fingerprint validation or the final protected-state comparison; read-only
+  evidence cannot distinguish those post-write assertions.
+
+### Failed bounded transient staging diagnostic Action 16aj-b
+
+Action 16aj-b was executed at `2026-07-29T01:31:29Z` from
+`/home/aaron/code/homelab-server-configs` using the exact authorized command:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-stage-transient-diagnostic-action16aj-b.sh
+runner_sha=6e87585181518c3d45fd29eb9ac3f02366f4656fa0dd40845a4ad05a209907db
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Scope and prerequisite boundary:
+
+- Revalidate the exact runner/driver hashes and current three helper hashes.
+- Require the accepted Action 16aj-a pre-state through the same fail-closed
+  Node A package, identity, Caddy, live-target, service, lighttpd,
+  Keepalived/sysctl, non-local-binding, and dpkg-audit checks.
+- Require both the failed Action 16aj stage and the distinct diagnostic target
+  `/var/tmp/caddy-sync-ssh-node-a-action16aj-b` to be absent before mutation.
+- Capture the complete protected-state snapshot before arming cleanup.
+- Stream the same five public/non-secret payload files used by Action 16aj.
+  No private key, certificate, or secret-derived value is transferred or
+  printed.
+
+Per-step diagnostic:
+
+- Create only the diagnostic stage as `root:root` mode `0750`.
+- Extract the direct tar stream using `--no-same-owner` and
+  `--no-same-permissions`.
+- Collect every result without stopping at the first mismatch:
+
+  - Stage creation and root metadata.
+  - Tar extraction.
+  - Exact five-file set/count and zero symlinks.
+  - Recursive file chown and script/public-key chmod operations.
+  - Each file's exact hash, owner/group, and mode.
+  - Both Node B public-key fingerprints.
+  - Accepted live state while the diagnostic stage exists.
+  - Boolean-only complete protected-state equality while staged; protected
+    snapshot content and certificate/private-key-derived hashes are never
+    printed.
+  - Continued absence of the original Action 16aj stage.
+  - Diagnostic-stage removal.
+  - Accepted live state and protected-state equality after removal.
+
+- Record:
+
+  ```text
+  diagnostic_failure_count=<nonnegative integer>
+  first_failure=none|<exact labeled check>
+  diagnostic_stage_cleanup_valid=true|false
+  action_16aj_b_transient_diagnostic_complete=true
+  ```
+
+- The runner requires cleanup, post-cleanup live state, and protected-state
+  equality to be true regardless of diagnostic failures. It enforces
+  `first_failure=none` only when the failure count is zero.
+
+Mandatory cleanup:
+
+- The normal path removes
+  `/var/tmp/caddy-sync-ssh-node-a-action16aj-b` before reporting completion.
+- An EXIT trap remains armed from the first possible write through completion.
+  Any abrupt failure removes only that exact diagnostic stage and revalidates
+  live/protected state.
+- Successful emergency cleanup emits
+  `action_16aj_b_exit_cleanup_valid=true`. Incomplete cleanup emits
+  `action_16aj_b_exit_cleanup_valid=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- The workstation EXIT trap removes only `/tmp/caddy-action16aj-b.*`; normal
+  output ends:
+
+  ```text
+  action_16aj_b_local_cleanup_complete=true
+  ```
+
+Expected effect:
+
+- The temporary public stage exists only during the bounded diagnostic and is
+  absent afterward.
+- No synchronization key is generated, no public key is authorized, no
+  `known_hosts` or live helper is installed, and no account, package, service,
+  listener, systemd, lsyncd, Caddy, lighttpd, Keepalived, sysctl, certificate,
+  or source-stage state changes.
+- Action 16aj-b diagnoses but does not retry Action 16aj. Any correction,
+  retained staging attempt, or live restricted-SSH installation remains a
+  separate authorization gate.
+
+Observed result:
+
+- The runner and driver metadata, pinned hashes, and runner self-test passed
+  immediately before execution.
+- The runner exited `1` with no stdout or stderr. No labeled remote result,
+  remote completion marker, remote cleanup marker, or
+  `manual_intervention_required` marker was received.
+- The two generated public-key payload hashes matched their pins after the
+  failure, and no `/tmp/caddy-action16aj-b.*` workstation directory remained.
+- Because the remote command emitted no evidence, this run cannot distinguish
+  an SSH/remote-command failure from a remote pre-mutation preflight failure,
+  and it cannot prove that either Node A stage path is absent.
+- Action 16aj-b is not accepted. No retry is authorized. The next action must
+  be separately defined and authorized as a fail-closed read-only Node A
+  continuity diagnostic before any further staging or synchronization work.
+
+### Accepted fail-closed read-only continuity Action 16aj-c
+
+Action 16aj-c was executed and accepted at `2026-07-29T01:42:09Z` from
+`/home/aaron/code/homelab-server-configs` using the exact authorized command:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-continuity-action16aj-c.sh
+runner_sha=69e9160cd389d8db0a9abd5f5b29ae0eab332d0196c3075e1d3143689bb55f87
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact read-only scope:
+
+- Revalidate the regular-file status, ownership, mode, and pinned SHA-256 of
+  the runner and streamed inspector before connecting.
+- Connect only to `pi@10.1.0.53` with batch mode, a five-second connection
+  timeout, strict host-key checking, and host alias
+  `pihole0.local.theama.co`.
+- Stream the inspector through `sudo -n /bin/bash -s --`; do not transfer or
+  retain a remote script.
+- Emit `action_16aj_c_remote_reached=true` before the first Node A assertion,
+  distinguishing an SSH or sudo boundary failure from a Node A state mismatch.
+- Require both exact paths to be absent:
+
+  - `/var/tmp/caddy-sync-ssh-node-a-action16aj`
+  - `/var/tmp/caddy-sync-ssh-node-a-action16aj-b`
+
+- Require zero immediate children of `/var/tmp` matching
+  `caddy-sync-ssh-node-a-action16aj*`, preventing an unrecognized sibling
+  stage from passing the two exact-path checks.
+- Require all eight synchronization live targets to remain absent, including
+  private/public keys, `known_hosts`, `authorized_keys`, the three restricted
+  helper destinations, and `/etc/lsyncd/caddy.lua`.
+- Revalidate the accepted post-16ah state used by Action 16aj-a:
+
+  - Node identity, IPv4, architecture, and exact Caddy, lsyncd, rsync, and
+    OpenSSH package versions.
+  - `caddy-sync` home, shell, lock state, and `.ssh` directory metadata.
+  - Caddy environment/release target and metadata.
+  - Caddy and lsyncd inactive/masked state; active protected services.
+  - Exact live/candidate lighttpd tree hashes, Keepalived and sysctl hashes,
+    and both non-local-binding runtime values.
+  - Required source and certificate stages, installed private-key equality
+    checked silently, rollback baseline integrity, and empty `dpkg --audit`.
+  - Required command paths, tar option support, in-memory public-key parsing,
+    lighttpd-only TCP 80/443 ownership, and no UDP 443 listener.
+
+Fail-closed and output contract:
+
+- Every successful assertion emits only `<safe_label>=true`.
+- The first mismatch emits:
+
+  ```text
+  <safe_label>=false
+  first_failure=<safe_label>
+  action_16aj_c_continuity_valid=false
+  ```
+
+  and exits `1` immediately.
+- A complete match ends:
+
+  ```text
+  first_failure=none
+  action_16aj_c_continuity_valid=true
+  action_16aj_c_continuity_inspection_complete=true
+  ```
+
+- The runner always emits `ssh_exit_status=<status>`, requires every acceptance
+  marker on exit `0`, rejects a failed marker, removes only its exact
+  `/tmp/caddy-action16aj-c.*` directory, and then emits
+  `action_16aj_c_local_cleanup_complete=true`.
+- Observed hashes, certificate or private-key content, protected snapshots,
+  package inventories, listener details, and public-key strings are not
+  printed.
+- The remote inspector contains no write, removal, cleanup, reload, restart,
+  enable, disable, mask, unmask, package, account, or file-installation
+  operation. No remote rollback applies.
+- Action 16aj-c confirms continuity only. Any cleanup, Action 16aj-b retry,
+  corrected staging attempt, or live synchronization installation remains a
+  separate authorization gate.
+
+Observed result:
+
+- Runner and inspector ownership, modes, pinned hashes, and runner self-test
+  passed immediately before execution.
+- The remote-reached marker proved the strict host-verified SSH and
+  non-interactive sudo boundary was crossed successfully.
+- Both exact stage paths were absent, the matching-stage count was zero, and
+  all eight live synchronization targets were absent.
+- Every package, identity, Caddy, service, listener, lighttpd, Keepalived,
+  sysctl, source/certificate-stage, rollback-baseline, tool-support,
+  public-key, and dpkg-audit invariant passed.
+- Output ended with `first_failure=none`,
+  `action_16aj_c_continuity_valid=true`,
+  `action_16aj_c_continuity_inspection_complete=true`,
+  `ssh_exit_status=0`, and
+  `action_16aj_c_local_cleanup_complete=true`.
+- An independent workstation search found no retained
+  `/tmp/caddy-action16aj-c.*` directory. No remote change occurred.
+
+### Accepted corrected bounded transient staging diagnostic Action 16aj-d
+
+Action 16aj-d was executed and accepted at `2026-07-29T01:53:34Z` from
+`/home/aaron/code/homelab-server-configs` using the exact authorized command:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-stage-transient-diagnostic-action16aj-d.sh
+runner_sha=2daadf510cd7f6ea6a2219c5dcca763b81274337f62dba5eea146360f64258ba
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Corrected pre-write boundary:
+
+- Revalidate the runner, driver, and three repository helper files against
+  pinned hashes; reconstruct and hash the same five-file public-only payload.
+- Connect only to `pi@10.1.0.53` through strict host-key verification.
+- Emit `action_16aj_d_remote_reached=true` before the first remote check.
+- Before any write, emit safe pass/fail labels for:
+
+  - The complete accepted post-16ah live-state aggregate.
+  - Absence of the original Action 16aj stage.
+  - Absence of the failed Action 16aj-b diagnostic stage.
+  - Absence of the distinct Action 16aj-d diagnostic stage.
+  - Zero `/var/tmp/caddy-sync-ssh-node-a-action16aj*` matches.
+  - Successful in-memory protected-state capture.
+
+- A preflight failure prints the exact safe label, `first_failure=<label>`,
+  and `action_16aj_d_preflight_valid=false`, then exits before the cleanup
+  trap or any remote write is armed.
+- The aggregate live-state validator explicitly accumulates every assertion;
+  it does not rely on Bash `errexit` behavior inside a conditional.
+
+Bounded transient diagnostic:
+
+- Arm the EXIT cleanup trap immediately before the first possible stage write.
+- Create only `/var/tmp/caddy-sync-ssh-node-a-action16aj-d` as `root:root`
+  mode `0750`.
+- Extract the exact direct tar stream with ownership and mode suppression.
+- Collect all diagnostic results rather than stopping at the first staged
+  mismatch:
+
+  - Stage creation, metadata, extraction, exact file set/count, and zero
+    symlinks.
+  - File ownership and modes.
+  - All five pinned payload hashes.
+  - Both Node B public-key fingerprints.
+  - Accepted live state and silent protected-state equality while staged.
+  - Continued absence of the Action 16aj and 16aj-b stages.
+  - Stage removal, post-cleanup live state, and protected-state equality.
+
+- Print only safe booleans, public-artifact validation results, the failure
+  count, and the first failed label. Protected snapshots, private-key or
+  certificate contents, secret-derived hashes, package inventories, and
+  listener details are never emitted.
+
+Mandatory cleanup:
+
+- Normal completion removes only the Action 16aj-d diagnostic stage and
+  requires:
+
+  ```text
+  stage_cleanup=true
+  live_state_after_cleanup=true
+  protected_state_after_cleanup=true
+  diagnostic_stage_cleanup_valid=true
+  action_16aj_d_transient_diagnostic_complete=true
+  ```
+
+- Any abrupt failure after the first possible write invokes the EXIT trap,
+  removes only that stage, and revalidates stage absence, accepted live state,
+  and protected-state equality.
+- Successful emergency cleanup emits
+  `action_16aj_d_exit_cleanup_valid=true`. Incomplete restoration emits
+  `action_16aj_d_exit_cleanup_valid=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- The runner captures remote stdout and stderr separately and always replays
+  both before reporting:
+
+  ```text
+  tar_exit_status=<status>
+  ssh_exit_status=<status>
+  pipeline_exit_status=<status>
+  ```
+
+  This removes Action 16aj-b's silent pipeline failure boundary.
+- Workstation cleanup removes only `/tmp/caddy-action16aj-d.*` and reports
+  `action_16aj_d_local_cleanup_complete=true`.
+- No synchronization key is generated, no key is authorized, no
+  `known_hosts`, live helper, or lsyncd configuration is installed, and no
+  account, package, service, listener, systemd, Caddy, lighttpd, Keepalived,
+  sysctl, certificate, or retained source-stage state changes.
+- Action 16aj-d diagnoses only. Any retained staging attempt or live
+  restricted-SSH installation remains a separate authorization gate.
+
+Observed result:
+
+- Runner and driver ownership, modes, pinned hashes, runner self-test, local
+  payload/archive/extraction test, and local cleanup passed before SSH.
+- Remote reachability and every preflight label passed before stage creation.
+- Stage creation, root metadata, extraction, exact file set/count, zero
+  symlinks, ownership, modes, all five hashes, and both public-key
+  fingerprints passed.
+- Accepted live state and protected-state equality passed while staged; the
+  Action 16aj and 16aj-b paths remained absent.
+- Normal cleanup removed the Action 16aj-d stage. Post-cleanup live state and
+  protected-state equality passed.
+- Output ended with diagnostic failure count `0`, `first_failure=none`,
+  cleanup valid true, the remote completion marker, tar/SSH/pipeline statuses
+  `0`, and the workstation cleanup marker.
+- An independent workstation search found no retained
+  `/tmp/caddy-action16aj-d.*` directory. No remote diagnostic or live
+  synchronization artifact remains.
+
+### Accepted corrected retained public-artifact staging Action 16aj-e
+
+Action 16aj-e was executed and accepted at `2026-07-29T02:01:19Z` from
+`/home/aaron/code/homelab-server-configs` using the exact authorized command:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-stage-action16aj-e.sh
+runner_sha=8656cae4b2211ffc9bcc38bed55eed2662eaff3879e537d86b19289b7ead410c
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Pre-write boundary:
+
+- Revalidate the runner, driver, and three repository helper files against
+  pinned hashes; reconstruct and validate the accepted five-file public-only
+  payload.
+- Connect only to `pi@10.1.0.53` using strict host-key verification.
+- Before any write, emit safe pass/fail labels for:
+
+  - Accepted post-16ah live state.
+  - Absence of the Action 16aj, 16aj-b, 16aj-d, and new 16aj-e stage paths.
+  - Zero `/var/tmp/caddy-sync-ssh-node-a-action16aj*` matches.
+  - Successful in-memory protected-state capture.
+
+- A failed preflight reports its first safe label and exits before the
+  rollback trap or any remote write is armed.
+
+Transactional retained stage:
+
+- Arm failure-only rollback immediately before the first possible stage write.
+- Create only `/var/tmp/caddy-sync-ssh-node-a-action16aj-e` as `root:root`
+  mode `0750`.
+- Extract the direct tar stream with ownership and permission suppression.
+- Fail on the first staged mismatch and report its safe label.
+- Require:
+
+  - Exact five-file set/count and zero symlinks.
+  - `root:root` ownership on all files.
+  - Mode `0750` for the receiver and scripts; mode `0640` for public keys.
+  - All five accepted payload hashes.
+  - Both accepted Node B public-key fingerprints.
+  - All eight live synchronization targets still absent.
+  - Accepted live state and silent protected-state equality.
+  - All earlier Action 16aj stage paths still absent.
+
+- Only a completely valid transaction emits:
+
+  ```text
+  first_failure=none
+  stage_path=/var/tmp/caddy-sync-ssh-node-a-action16aj-e
+  stage_owner_mode=root:root:750
+  stage_file_count=5
+  stage_retained=true
+  action_16aj_e_retained_stage_complete=true
+  ```
+
+Bounded automatic rollback:
+
+- Any failure after the first possible stage write removes only
+  `/var/tmp/caddy-sync-ssh-node-a-action16aj-e`.
+- Rollback then requires the retained stage to be absent, accepted live state
+  to pass, and the complete protected state to equal its pre-write snapshot.
+- Successful rollback emits
+  `action_16aj_e_stage_rollback_complete=true`. Incomplete rollback emits
+  `action_16aj_e_stage_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- The runner always replays captured stdout/stderr and reports tar, SSH, and
+  pipeline statuses before deciding success.
+- Workstation cleanup removes only `/tmp/caddy-action16aj-e.*` and reports
+  `action_16aj_e_local_cleanup_complete=true`.
+- The retained stage contains only public keys and non-secret helper scripts.
+  No private synchronization key, certificate, secret, `authorized_keys`,
+  `known_hosts`, live helper, lsyncd configuration, account, package, service,
+  listener, systemd, Caddy, lighttpd, Keepalived, or sysctl state is changed.
+- Any key generation, public-key authorization, live restricted-SSH
+  installation, or retained-stage removal remains a separate authorization
+  gate.
+
+Observed result:
+
+- Runner and driver ownership, modes, pinned hashes, runner self-test, local
+  payload/archive/extraction test, and local cleanup passed before SSH.
+- Every preflight, stage creation, extraction, file-set, symlink, ownership,
+  mode, hash, and public-key fingerprint label passed.
+- Accepted live state and protected-state equality passed with the retained
+  stage present; all earlier Action 16aj stage paths remained absent.
+- Output ended with `first_failure=none`, the exact retained path,
+  `stage_owner_mode=root:root:750`, `stage_file_count=5`,
+  `stage_retained=true`, the remote completion marker, tar/SSH/pipeline
+  statuses `0`, and the workstation cleanup marker.
+- The failure-only rollback was not invoked. An independent workstation search
+  found no `/tmp/caddy-action16aj-e.*` directory.
+- `/var/tmp/caddy-sync-ssh-node-a-action16aj-e` is now intentionally retained
+  as the accepted public source for a separately defined and authorized Node A
+  synchronization identity and restricted-SSH installation action.
+
+### Defined transactional synchronization/SSH installation Action 16ak
+
+Action 16ak was defined locally and then attempted under separate
+authorization, but it is not accepted. The exact command executed from
+`/home/aaron/code/homelab-server-configs` was:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-install-action16ak.sh
+runner_sha=1b456086ab480b011c69f65cdf96fe2ab4f719952b3670df8bc8baef491b9f6d
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Pre-write boundary:
+
+- The runner requires its driver to be an `aaron:aaron` regular file, mode
+  `0755`, with SHA-256
+  `6c5a4694f8deeb9984fdffb8b72030af723bae4736682c01d5f0f4d58c78825f`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- On Node A, revalidate the accepted hostname, address, architecture, exact
+  Caddy, lsyncd, rsync, and OpenSSH package versions, locked `/bin/sh`
+  `caddy-sync` identity, environment hash and node/peer values, current Caddy
+  release, lighttpd trees, Keepalived and sysctl hashes, non-local binding,
+  package audit, and protected service/process state.
+- Revalidate the retained Action 16aj-e directory as `root:root` mode `0750`,
+  with exactly five regular non-symlink files, their accepted hashes and
+  modes, Node B host fingerprint
+  `SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo`, and Node B
+  synchronization fingerprint
+  `SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g`.
+- Require the Node A private/public key, `known_hosts`, `authorized_keys`,
+  three live helpers, and `/etc/lsyncd/caddy.lua` to remain absent.
+- Accept `/usr/local/libexec` only if absent or already a non-symlink
+  `root:root` directory with mode `0755`.
+- Capture protected state in memory and emit
+  `action_16ak_preflight_complete=true` before the rollback trap or first
+  write is reached.
+
+Transactional change:
+
+- Create `/usr/local/libexec` as `root:root` mode `0755` only if it does not
+  exist, tracking whether this action created it.
+- Install the accepted receiver, setup helper, and validator as `root:root`
+  mode `0755`, retaining their accepted hashes.
+- Create `known_hosts` as `caddy-sync:caddy-sync` mode `0600`, containing only
+  the accepted Node B Ed25519 host key for
+  `pihole00.local.theama.co`.
+- Run the accepted setup helper with the staged Node B synchronization public
+  key. This creates Node A's node-local Ed25519 key pair and exactly one
+  authorization:
+
+  ```text
+  from="10.1.0.54,fd36:5aa8:6971:1::54",restrict,command="/usr/local/libexec/caddy-sync-rsync-receiver"
+  ```
+
+  followed by Node B's accepted public synchronization key.
+- Require the private key to be `caddy-sync:caddy-sync` mode `0600`, its
+  public key mode `0644`, and `authorized_keys` mode `0600`. Normalize the
+  derived and recorded public keys to key type plus base64 before comparison,
+  matching the accepted Node B Action 13 correction.
+- Require the receiver to invoke
+  `/usr/bin/rrsync -wo -no-del /var/lib/caddy-sync/incoming`.
+- Run `validate-sync-ssh.sh` without `--connect`; this checks strict SSH client
+  construction and the host pin but makes no peer connection.
+- Repeat setup, then require byte-identical private key, public key,
+  `known_hosts`, and `authorized_keys` hashes and repeat full validation.
+- Preserve the retained stage, leave `/etc/lsyncd/caddy.lua` absent, and
+  require complete protected-state equality. No service command is present.
+- Emit only Node A's public synchronization key and fingerprint plus accepted
+  Node B fingerprints; private key bytes and their hash are never emitted.
+
+Bounded automatic rollback:
+
+- A preflight failure occurs before any write and requires no rollback.
+- After mutation begins, any failure removes only:
+
+  - Node A's generated private/public synchronization key.
+  - The new `known_hosts` and `authorized_keys`.
+  - The three installed synchronization helpers.
+  - `/usr/local/libexec` only if this action created it and it is empty.
+
+- Rollback never removes or changes the retained Action 16aj-e stage. It
+  requires all eight original live targets to be absent, revalidates the
+  complete accepted Node A state and retained stage, and requires the
+  protected-state snapshot to match.
+- Successful rollback emits `action_16ak_rollback_complete=true`. Incomplete
+  rollback emits `action_16ak_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- The workstation runner captures and replays remote output, rejects
+  private-key markers, requires all completion markers, reports the SSH exit
+  status, and removes only `/tmp/caddy-action16ak.*`.
+
+Expected effect and validation:
+
+- SSH and runner exit `0`.
+- All six phase markers, Node A public-key/fingerprint records, both accepted
+  Node B fingerprints, and these final markers appear:
+
+  ```text
+  restricted_authorization_count=1
+  non_connecting_validation=true
+  idempotency_validation=true
+  retained_stage_preserved=true
+  lsyncd_configuration_installed=false
+  service_mutations=false
+  action_16ak_sync_ssh_install_complete=true
+  ssh_exit_status=0
+  action_16ak_local_cleanup_complete=true
+  ```
+
+- The Node A public synchronization key and fingerprint will be recorded as
+  observed evidence after execution. Authorizing that key on Node B is a
+  separate later action.
+- Any nonzero exit, rollback marker, missing completion marker, fingerprint or
+  hash mismatch, unexpected target, private-key marker, protected-state
+  difference, peer connection, lsyncd configuration, or service mutation
+  stops progression.
+
+Observed result:
+
+- The exact runner was executed once at `2026-07-29T02:13:55Z` after its
+  regular-file shape, `aaron:aaron:0755` metadata, and pinned SHA-256 passed.
+- SSH and the runner exited `1` after approximately `0.46` seconds. Captured
+  remote stdout and stderr were empty; the only output was:
+
+  ```text
+  ssh_exit_status=1
+  ```
+
+- No `action_16ak_preflight_complete`, mutation-phase, Node A public-key,
+  completion, rollback, or manual-intervention marker appeared.
+- The runner's workstation cleanup completed through its EXIT trap. An
+  independent search found no `/tmp/caddy-action16ak.*` path.
+- Action 16ak is not accepted. The absence of a preflight marker narrows the
+  stop to SSH command startup or one of the aggregate pre-write assertions,
+  but it does not prove whether the remote driver began or whether any live
+  target exists. No Node A state or rollback is inferred from empty output.
+- No retry or cleanup is authorized. The next safe gate is a separately
+  defined and authorized fail-closed read-only Action 16ak-a that reports the
+  retained stage, every live target, accepted protected state, and each
+  preflight assertion independently.
+
+### Defined fail-closed read-only diagnostic Action 16ak-a
+
+Action 16ak-a was defined and then executed under separate authorization. The
+exact command run from `/home/aaron/code/homelab-server-configs` was:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-diagnostic-action16ak-a.sh
+runner_sha=2af8f65c9559eaaf43abab255a4e50fc8137ff1aa5cad3b3f27218306e520238
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only inspection:
+
+- The runner requires its inspector to be an `aaron:aaron` regular file,
+  mode `0755`, with SHA-256
+  `3fc6ff00132c6900b1a1b3d01d6ed65cf974de3466ab5f8b5ad829755b029d5f`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Emit `action_16ak_a_remote_reached=true` before inspecting Node A.
+- Evaluate every assertion from Action 16ak's
+  `validate_accepted_state()` in its original order, including:
+
+  - Root execution, hostname, physical IPv4, architecture, exact package
+    versions, locked `/bin/sh` synchronization identity, and `.ssh` metadata.
+  - Environment hash and exact node/peer values.
+  - Current Caddy release links.
+  - Live and candidate lighttpd tree hashes.
+  - Keepalived and sysctl hashes, runtime non-local binding, and package audit.
+  - Caddy and lsyncd inactive/masked state, all protected active services, and
+    absence of Caddy and lsyncd processes.
+
+- Evaluate every assertion from Action 16ak's `validate_stage()` in its
+  original order:
+
+  - Retained stage directory, non-symlink shape, ownership, and mode.
+  - Zero stage symlinks and the exact five-file set.
+  - Regular/non-symlink shape, accepted hash, ownership, and mode for every
+    file.
+  - Both Node B fingerprints, one-line public-key files, and Ed25519 syntax.
+
+- Evaluate all eight Action 16ak target-absence assertions and always report
+  each target's state and owner/mode:
+
+  - Node A private and public synchronization keys.
+  - `known_hosts` and `authorized_keys`.
+  - Receiver, setup helper, and validator.
+  - `/etc/lsyncd/caddy.lua`.
+
+- Evaluate Action 16ak's `/usr/local/libexec` pre-state contract and report
+  whether the path is absent or a valid `root:root:0755` directory.
+- Independently check the remaining protected state: Caddy API and uuidd
+  masks, source and certificate stages, installed private-key equality without
+  output, rollback baseline, TCP frontend ownership, UDP 443 absence, and a
+  non-secret package-inventory hash.
+- If all seven synchronization SSH artifacts exist, validate their complete
+  installed shape in memory: ownership/modes, private/public key matching,
+  host pin, exact restricted authorization, and helper hashes. Emit only
+  `installed_shape_valid` and Node A's public-key fingerprint. Never emit a
+  public-key line, private-key bytes, or a private-key hash.
+- Run no installed helper, `ssh --connect` probe, peer connection, write
+  command, service command, or remote temporary-file operation.
+
+Result contract:
+
+- Continue through every assertion even after a mismatch.
+- Emit a Boolean for every check, then:
+
+  ```text
+  diagnostic_mismatch_count=<integer>
+  first_failure=<label-or-none>
+  action_16ak_preflight_would_pass=<true-or-false>
+  action_16ak_a_read_only_inspection_complete=true
+  ```
+
+- If the mismatch count is zero, require `first_failure=none`,
+  `action_16ak_preflight_would_pass=true`, and SSH/runner exit `0`.
+- If one or more mismatches exist, require the first failed label,
+  `action_16ak_preflight_would_pass=false`, and inspector/runner exit `1`.
+  This nonzero result is an intentional fail-closed state verdict, not loss of
+  diagnostic output.
+- The runner validates the complete summary and eight-target output contract,
+  rejects unexpected key material, replays the safe output, reports the SSH
+  status, removes only `/tmp/caddy-action16ak-a.*`, and emits
+  `action_16ak_a_local_cleanup_complete=true`.
+- Missing remote reachability or completion evidence, inconsistent
+  status/summary values, an output-contract failure, or unexpected key
+  material exits fail closed. No state conclusion is accepted from an
+  incomplete diagnostic.
+
+Expected effect:
+
+- Node A's persistent configuration and operational service state remain
+  unchanged because the inspector contains no write or service mutation.
+- The result identifies the first silent Action 16ak preflight failure while
+  retaining all later assertion results.
+- The live-target descriptions establish whether Action 16ak remained
+  pre-write, left a partial artifact set, or produced a complete installed
+  shape. No cleanup or retry follows without a separate decision and
+  authorization.
+
+Observed result:
+
+- The runner and inspector ownership, mode, pinned hashes, and self-test passed
+  before SSH. Remote reachability and the complete read-only inspection marker
+  were emitted.
+- The inspector evaluated every check and reported exactly one mismatch:
+
+  ```text
+  retained_stage_meta=false
+  diagnostic_mismatch_count=1
+  first_failure=retained_stage_meta
+  action_16ak_preflight_would_pass=false
+  ```
+
+- The intentional fail-closed result produced inspector, SSH, and runner exit
+  `1`; the summary and status were internally consistent and therefore
+  accepted as complete diagnostic evidence.
+- The retained stage remains a directory and not a symlink. Its exact
+  five-file set, zero symlinks, every file hash and metadata value, both Node B
+  fingerprints, line counts, and Ed25519 syntax all passed. Only the retained
+  directory's root ownership/mode tuple differs from expected
+  `root:root:0750`; this diagnostic intentionally emitted only the Boolean, so
+  the actual tuple remains unknown.
+- Every Action 16ak live target is absent:
+
+  - Node A private/public synchronization keys.
+  - `known_hosts` and `authorized_keys`.
+  - Receiver, setup helper, and validator.
+  - `/etc/lsyncd/caddy.lua`.
+
+- `/usr/local/libexec` is absent and valid for the original preflight.
+  `installed_shape_valid=false` and the Node A public fingerprint is
+  unavailable because no synchronization identity exists.
+- Every other accepted-state and protected-state assertion passed: exact
+  packages and environment, Caddy release, lighttpd trees, Keepalived,
+  non-local binding, package audit, masks and active services, process
+  absence, source/certificate stages, installed certificate equality,
+  rollback baseline, lighttpd-only TCP frontend, and zero UDP 443 listeners.
+  The observed non-secret package-inventory SHA-256 is
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`.
+- Runner cleanup completed and an independent workstation search found no
+  `/tmp/caddy-action16ak-a.*` path. No remote state changed.
+- Action 16ak-a is accepted. It proves Action 16ak stopped in its pre-write
+  stage validation and requires no rollback or live-target cleanup. No retry
+  or metadata correction is authorized.
+- The next safe gate is a separately defined and authorized narrow read-only
+  Action 16ak-b that captures the retained directory's exact current
+  ownership, numeric and symbolic mode, timestamps, parent metadata, and
+  available ACL state before a correction is designed.
+
+### Defined narrow retained-stage metadata Action 16ak-b
+
+Action 16ak-b was defined locally and executed once under separate explicit
+authorization. The exact command from
+`/home/aaron/code/homelab-server-configs` was:
+
+```bash
+runner=Caddy/scripts/run-node-a-retained-stage-metadata-action16ak-b.sh
+runner_sha=32bce6b135448c06c665bcd12b4ccd3ca06e3e22f627c45a78c1e34dc2c85b89
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only continuity boundary:
+
+- Require the inspector to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `3a38e6a76c7fb94dbb0bfbf7caf3c1f01627603c5983639d49a541ef9e6bf5a5`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Before reporting metadata, require:
+
+  - Root execution and Node A hostname.
+  - The retained stage and `/var/tmp` are directories, not symlinks.
+  - The exact accepted five-file stage set, zero stage symlinks, and all five
+    accepted content hashes.
+  - All eight Action 16ak live synchronization targets remain absent.
+  - `/usr/local/libexec` remains absent.
+  - `/usr/bin/findmnt` is available.
+
+- A continuity failure reports its safe label and stops without inferring
+  metadata validity.
+
+Exact metadata capture:
+
+- For both the retained stage and parent `/var/tmp`, emit:
+
+  - Name-based and numeric owner/group.
+  - Octal mode from `stat`, symbolic mode from `stat`, and the `ls` mode field
+    that preserves an extended-ACL marker.
+  - Inode, device, hard-link count, and size.
+  - Birth, access, modification, and status-change timestamps.
+
+- Emit the backing filesystem's mount target, type, and options.
+- Detect `getfacl` without assuming the `acl` package is installed.
+- When `getfacl` is available, use numeric, comment-free, absolute-path-safe
+  output for both paths and emit:
+
+  - Every non-empty ACL entry.
+  - ACL line count and SHA-256.
+  - Whether a named entry, mask, or default ACL makes the ACL extended.
+
+- When `getfacl` is unavailable, emit explicit unavailable/unknown fields;
+  retain the `ls` mode marker as the available ACL indicator.
+- Emit no private key, public-key line, certificate, secret, or protected file
+  content.
+
+Validation and safety:
+
+- The runner requires exactly one complete metadata field set for both paths,
+  validates timestamp and filesystem field syntax, and reconciles emitted ACL
+  entry counts with their reported counts.
+- The runner suppresses unexpected key material before replaying output,
+  reports SSH status, removes only `/tmp/caddy-action16ak-b.*`, and emits
+  `action_16ak_b_local_cleanup_complete=true`.
+- Success requires all continuity markers, `first_failure=none`,
+  `service_mutations=false`,
+  `action_16ak_b_read_only_inspection_complete=true`, and SSH/runner exit `0`.
+- The inspector contains no write, service mutation, installed-helper
+  execution, peer connection, or remote temporary-path operation. No cleanup,
+  correction, or Action 16ak retry follows without a separate decision and
+  authorization.
+
+Expected effect:
+
+- Node A's persistent configuration and operational service state remain
+  unchanged.
+- The exact non-secret retained-stage and parent metadata establishes whether
+  the mismatch is ownership, mode bits, ACL-related, or filesystem context,
+  allowing a bounded correction to be designed without assumption.
+
+Observed result:
+
+- The runner, SSH command, and inspector exited `0`. All content, target,
+  `/usr/local/libexec`, read-only, and completion assertions passed with
+  `first_failure=none` and `service_mutations=false`.
+- The retained stage is `root:root` (`0:0`) mode `0700`
+  (`drwx------`), inode `1670964`, device `66306`, link count `2`, and size
+  `4096`. Its birth and status-change timestamp is
+  `2026-07-28 21:01:10.668781403 -0500`; its access timestamp is identical,
+  and its modification timestamp is
+  `2026-07-28 21:01:09.000000000 -0500`.
+- Parent `/var/tmp` is `root:root` (`0:0`) mode `1777`
+  (`drwxrwxrwt`), inode `56011`, device `66306`, link count `10`, and size
+  `4096`. Its birth and access timestamp is
+  `2024-03-15 10:08:06.189443658 -0500`; its modification and status-change
+  timestamp is `2026-07-28 21:09:00.463004505 -0500`.
+- The backing mount is `/`, type `ext4`, with `rw,noatime`. `getfacl` is not
+  installed, and the `ls` mode has no extended-ACL marker.
+- A disposable workstation reproduction proved the mechanism: extracting an
+  archive whose root `.` entry came from a mode-`0700` payload directory
+  changed a pre-created mode-`0750` destination to `0700`. The Action 16aj-e
+  driver checked `0750` before extraction, then did not reassert or observe
+  the stage-root mode afterward; its final `stage_owner_mode=root:root:750`
+  marker was therefore asserted text rather than observed state.
+- Action 16ak-b is accepted as read-only evidence. The exact five-file content
+  acceptance from Action 16aj-e remains valid, but its retained-stage
+  root-mode acceptance is superseded. No Node A metadata, file, listener, or
+  service state was changed, and all workstation temporary paths were removed.
+- The next gate is separate authorization to define corrected post-extraction
+  mode enforcement and a bounded metadata-only repair as Action 16ak-c. No
+  `chmod`, Action 16ak retry, synchronization installation, or service
+  mutation is authorized.
+
+### Defined bounded retained-stage mode repair Action 16ak-c
+
+Action 16ak-c was defined locally and executed once under separate explicit
+authorization. The exact command from
+`/home/aaron/code/homelab-server-configs` was:
+
+```bash
+runner=Caddy/scripts/run-node-a-retained-stage-mode-repair-action16ak-c.sh
+runner_sha=3200ee834173c2d9f6f84403d931ec0ceaa660845d4ef9d242a09fab2e1e755f
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Repository correction:
+
+- `stage-node-a-sync-ssh-artifacts-action16aj-e.sh`, SHA-256
+  `377e58fe29f8a8ed1ef8fe32c28f33e46d025f4ea906e68c3e92800d07fa0145`,
+  now reapplies root ownership and mode `0750` after tar extraction.
+- The driver immediately observes and requires `root:root:750` after those
+  operations. Its final `stage_owner_mode` value is derived from `stat`, not
+  hard-coded.
+- `run-node-a-sync-ssh-stage-action16aj-e.sh`, SHA-256
+  `7369815c6d099cc2dcf4005f3d34caeb00ad80ac0c35843c533ce8495ebc7b7a`,
+  requires all three post-extraction enforcement markers. Its local test first
+  proves extraction produces mode `0700`, then applies and verifies `0750`.
+- These repository corrections affect future staging only. They do not
+  retroactively alter Node A.
+
+Exact pre-change boundary:
+
+- Require the repair driver to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `1654d9e9e8aff0f77fa851c708352802954231b011ba550644fdb14bb0ce4fa3`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Require root execution, hostname `j1-svpihole0`, and physical IPv4
+  `10.1.0.53/22`.
+- Require the retained path to be a non-symlink directory with exact
+  `root:root:0700`, inode `1670964`, and device `66306`; require `/var/tmp` to
+  remain `root:root:1777`.
+- Require exactly the accepted five files, hashes, owners, and modes; zero
+  staged symlinks; all eight live synchronization targets absent; and
+  `/usr/local/libexec` absent.
+- Require Caddy and lsyncd to remain inactive and masked.
+- Capture the complete staged-file metadata and content-hash state before
+  mutation.
+- Open the validated directory and revalidate its inode and device through
+  `/proc/self/fd` before changing metadata. This binds the mutation to the
+  inspected directory rather than following a subsequently substituted path.
+
+Only authorized mutation when executed:
+
+- Run `chmod 0750` through the open retained-stage directory descriptor.
+- Do not change ownership, file contents, child modes, paths, services,
+  listeners, accounts, keys, SSH authorization, lsyncd configuration, or peer
+  state.
+- Revalidate exact `root:root:0750`, inode/device identity, all five child
+  files and hashes, all live-target absences, `/usr/local/libexec` absence,
+  Caddy/lsyncd state, and byte-identical captured staged-file state.
+
+Bounded automatic rollback:
+
+- The rollback trap is armed before `chmod 0750`.
+- The transaction emits a mutation-start marker before chmod; if SSH fails
+  after that marker, the workstation runner requires an explicit successful
+  rollback marker or exits `97`.
+- Any failure after mutation begins applies only `chmod 0700` through the same
+  open directory descriptor.
+- Rollback must then prove exact `root:root:0700`, inode/device identity,
+  staged-file state equality, all live-target absences, `/usr/local/libexec`
+  absence, and unchanged Caddy/lsyncd state.
+- A complete restoration emits
+  `action_16ak_c_rollback_complete=true` and preserves the original failure
+  status. Incomplete restoration emits `manual_intervention_required=true`
+  and exits `97`.
+- A chmod operation necessarily changes the directory status-change time.
+  Restoring mode `0700` cannot restore the old ctime; rollback restores the
+  security-relevant mode and all explicitly validated content/identity state.
+
+Expected successful evidence:
+
+- `stage_mode_before=700`, `stage_mode_after=750`,
+  `stage_owner_after=root:root`, inode `1670964`, and device `66306`.
+- `stage_file_state_unchanged=true`, `service_mutations=false`,
+  `first_failure=none`, and
+  `action_16ak_c_retained_stage_mode_repair_complete=true`.
+- SSH status `0`, no rollback marker, no manual-intervention marker, and
+  `action_16ak_c_local_cleanup_complete=true`.
+
+Expected effect and next boundary:
+
+- Node A's retained public stage changes only from mode `0700` to `0750`.
+- The validated five-file content and all other accepted Node A state remain
+  unchanged.
+- Successful Action 16ak-c does not authorize or automatically invoke Action
+  16ak. A fresh separately authorized continuity check or exact Action 16ak
+  retry decision remains required.
+
+Observed result:
+
+- Every preflight assertion passed, including exact stage mode `0700`, inode
+  `1670964`, device `66306`, child metadata/hashes, all live-target absences,
+  `/usr/local/libexec` absence, and inactive/masked Caddy and lsyncd.
+- The mutation-start and `stage_root_mode_repair=true` markers were emitted.
+  Post-repair continuity and staged-file-state equality passed.
+- The observed transition was mode `700` to `750`, with owner `root:root`,
+  inode `1670964`, and device `66306` unchanged.
+- `service_mutations=false`, `first_failure=none`, SSH status `0`, the remote
+  repair-completion marker, and workstation cleanup marker all passed.
+- Rollback was not invoked, no manual-intervention marker appeared, and an
+  independent workstation search found no `/tmp/caddy-action16ak-c.*` path.
+- Action 16ak-c is accepted. The next gate is separately authorized definition
+  of read-only post-repair continuity Action 16ak-d; Action 16ak retry remains
+  unauthorized.
+
+### Defined independent post-repair continuity Action 16ak-d
+
+Action 16ak-d was defined locally and executed once under separate explicit
+authorization. The exact command from
+`/home/aaron/code/homelab-server-configs` was:
+
+```bash
+runner=Caddy/scripts/run-node-a-post-repair-continuity-action16ak-d.sh
+runner_sha=8bc6a964bd5615af482a4df63f09194732a5b998c0aa9791f9611d9013f1c9ee
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only boundary:
+
+- Require the inspector to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `3683b999e7d9196cdf07e3ad25265ca72bb4012ea4e8f18767f047a873173ed6`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Stream the inspector through `sudo -n /bin/bash -s --`; do not install or
+  retain it on Node A.
+- The inspector contains no write, cleanup, service mutation, installed-helper
+  execution, or peer connection. It creates no remote path.
+- The runner suppresses unexpected private-key or certificate-secret output
+  and removes only `/tmp/caddy-action16ak-d.*` on every exit.
+
+Independent continuity contract:
+
+- Confirm root execution, Node A hostname, physical IPv4, and architecture.
+- Require the retained stage to be a non-symlink `root:root:0750` directory
+  with inode `1670964`, device `66306`, and parent `/var/tmp` mode `1777`.
+- Require the exact five-file set, zero symlinks, accepted hashes,
+  `root:root` child ownership, script mode `0750`, public-key mode `0640`, and
+  both accepted Node B fingerprints.
+- Require all eight live synchronization targets and `/usr/local/libexec` to
+  remain absent.
+- Require the accepted Caddy, lsyncd, rsync, and OpenSSH package versions;
+  locked `caddy-sync` identity; `.ssh` mode; exact package-inventory SHA-256
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`;
+  and a clean dpkg audit.
+- Require the exact node environment, Caddy bootstrap link, lighttpd live and
+  candidate tree hashes, Keepalived and sysctl hashes, and both non-local-bind
+  runtime values.
+- Require Caddy, Caddy API, lsyncd, uuidd service/socket states to remain
+  inactive and masked; lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL, and
+  Munin node to remain active; and zero Caddy or lsyncd processes.
+- Require the source and certificate stages, installed private-key equality,
+  and rollback baseline to remain valid.
+- Require the TCP 80/443 frontend to remain present and lighttpd-only and UDP
+  443 listener count to remain zero.
+
+Result contract:
+
+- The inspector evaluates every check without stopping, emits
+  `continuity_mismatch_count`, retains the first failing label, and never
+  emits protected file content.
+- Success requires mismatch count `0`, `first_failure=none`,
+  `action_16ak_d_continuity_valid=true`, `service_mutations=false`, the remote
+  completion marker, SSH status `0`, and workstation cleanup completion.
+- Any state mismatch exits `1` only when the output contract consistently
+  reports a positive mismatch count, a concrete first failure, and
+  `action_16ak_d_continuity_valid=false`.
+- Missing, malformed, contradictory, or secret-bearing output exits `97`.
+
+Expected effect and next boundary:
+
+- Node A remains unchanged.
+- A successful result independently accepts the post-Action 16ak-c state.
+- Action 16ak is not invoked by this gate and remains separately authorized
+  only after Action 16ak-d evidence is reviewed.
+
+Observed result:
+
+- Every retained-stage root, child file, hash, mode, ownership, fingerprint,
+  live-target, and `/usr/local/libexec` assertion passed.
+- Exact packages, package inventory
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`,
+  identity, environment/release, lighttpd, Keepalived, sysctl, non-local bind,
+  service, process, source/certificate stage, rollback baseline, dpkg audit,
+  and listener assertions passed.
+- `continuity_mismatch_count=0`, `first_failure=none`,
+  `service_mutations=false`, and
+  `action_16ak_d_continuity_valid=true`.
+- SSH status was `0`; remote inspection and workstation cleanup completed,
+  and no `/tmp/caddy-action16ak-d.*` path remained.
+- Action 16ak-d is accepted. No Node A state changed and Action 16ak was not
+  retried.
+
+### Defined corrected transactional Action 16ak retry
+
+The corrected Action 16ak retry is defined locally but has not been executed.
+If separately authorized, the exact command from
+`/home/aaron/code/homelab-server-configs` is:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-install-action16ak.sh
+runner_sha=286a3fe59118589972e4885a6c4390c0513c83851d2e5ca9a667e07ec2a8825e
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Accepted baseline and pre-write boundary:
+
+- Require the driver to be an `aaron:aaron` regular file, mode `0755`, with
+  SHA-256
+  `b46ff5cd437887b19fbec25025f03451bcbcf9b6a10bae1b8350dade40346292`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Revalidate the accepted Action 16ak-d hostname, address, architecture,
+  packages, locked `caddy-sync` identity, environment, Caddy release,
+  lighttpd, Keepalived, sysctl, non-local binding, package audit, services,
+  processes, and package-inventory SHA-256
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`.
+- Require the retained stage to remain `root:root:0750`, inode `1670964`,
+  device `66306`, with the exact accepted five-file set, hashes, modes, and
+  Node B host and synchronization fingerprints.
+- Require all eight live synchronization targets and `/usr/local/libexec` to
+  remain absent before the first write.
+- Capture the protected state in memory and emit
+  `action_16ak_preflight_complete=true`. A preflight failure occurs before the
+  rollback trap and changes nothing.
+
+Transactional change:
+
+- Arm the rollback trap, emit `action_16ak_mutation_started=true`, and create
+  `/usr/local/libexec` as `root:root:0755`.
+- Install only the accepted receiver, setup helper, and validator as
+  `root:root:0755`.
+- Install the accepted Node B host pin as `caddy-sync:caddy-sync:0600`.
+- Generate Node A's local Ed25519 synchronization key pair on Node A and
+  authorize exactly the accepted Node B public key with source restrictions
+  `10.1.0.54,fd36:5aa8:6971:1::54`, `restrict`, and the forced receiver.
+- Validate private/public key correspondence, exact modes, hashes, host pin,
+  forced authorization, and receiver `rrsync -wo -no-del` behavior.
+- Run the accepted validator without `--connect`, repeat setup, and require
+  byte-identical key, host-pin, and authorization hashes to prove idempotency.
+- Preserve the retained stage, leave `/etc/lsyncd/caddy.lua` absent, and
+  require protected-state equality. No service command or peer connection is
+  present.
+- Emit only Node A's public key and fingerprint; never emit private-key bytes
+  or a private-key hash.
+
+Bounded automatic rollback and runner evidence:
+
+- Any failure after mutation starts removes only the generated private/public
+  key, `known_hosts`, `authorized_keys`, and three installed helpers.
+- Remove `/usr/local/libexec` only if this action created it and it remains
+  empty.
+- Require all eight targets absent, the retained stage and accepted Node A
+  state valid, and the protected-state snapshot equal.
+- Successful rollback emits `action_16ak_rollback_complete=true` and preserves
+  the original nonzero status. Incomplete rollback emits
+  `action_16ak_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+- If SSH fails after `action_16ak_mutation_started=true`, the workstation
+  runner requires explicit `action_16ak_rollback_complete=true`; missing,
+  failed, or manual-intervention evidence exits `97`.
+- The runner checks for secret output before interpreting SSH status and
+  removes only `/tmp/caddy-action16ak.*` on every result.
+
+Expected successful evidence:
+
+- SSH and runner status `0`.
+- Preflight, mutation-start, helper, host-pin, identity/authorization,
+  initial-validation, repeat-validation, and transaction-completion markers.
+- One valid Node A public key and SHA-256 fingerprint, both accepted Node B
+  fingerprints, and exactly one restricted authorization.
+- `non_connecting_validation=true`, `idempotency_validation=true`,
+  `retained_stage_preserved=true`,
+  `lsyncd_configuration_installed=false`, and
+  `service_mutations=false`.
+- No rollback or manual-intervention marker and
+  `action_16ak_local_cleanup_complete=true`.
+
+Expected effect and next boundary:
+
+- Node A gains its local synchronization key pair, Node B host pin, one
+  restricted Node B receiver authorization, and three synchronization
+  helpers.
+- No lsyncd configuration is installed, no peer connection occurs, and no
+  service or listener changes.
+- Node A's public synchronization key and fingerprint become evidence for a
+  later separately authorized Node B authorization action.
+
+Observed result:
+
+- Every preflight and mutation phase completed. The helper, host pin,
+  identity/authorization, initial validation, repeat validation, and final
+  transaction markers passed.
+- Node A's public synchronization fingerprint is
+  `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`.
+- The observed public key is:
+
+  ```text
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG3MEgLhf8tsImyjkCZpQU4H7X8Xdac+iOUCxRTMM0tA caddy-ha-sync
+  ```
+
+- Exactly one restricted Node B authorization is installed. Both accepted
+  Node B fingerprints matched.
+- Non-connecting validation and repeat idempotency passed; the retained stage
+  remains preserved; lsyncd configuration remains absent; service mutations
+  are false.
+- SSH status was `0`; rollback was not invoked; no manual-intervention marker
+  appeared; workstation cleanup completed; and no
+  `/tmp/caddy-action16ak.*` path remained.
+- Two benign `Pseudo-terminal will not be allocated because stdin is not a
+  terminal.` warnings were emitted by nested non-interactive SSH command
+  construction. They did not alter the zero-status validation result.
+- The corrected Action 16ak retry is accepted. No Node B state changed and no
+  synchronization peer connection occurred.
+
+### Defined independent post-install acceptance Action 16ak-e
+
+Action 16ak-e is defined locally but has not been executed. If separately
+authorized, the exact command from
+`/home/aaron/code/homelab-server-configs` is:
+
+```bash
+runner=Caddy/scripts/run-node-a-sync-ssh-postinstall-action16ak-e.sh
+runner_sha=ea26d143f513ed65257157d66576377219a10d7c2fda1285986e494a46d98212
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only boundary:
+
+- Require the inspector to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `706ff3c6debbe6eda70e459625d72ab110d3240e7d371a0dbc61ce080ad2fc43`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Stream the inspector through `sudo -n /bin/bash -s --`; do not install or
+  retain it on Node A.
+- The inspector contains no write, file transfer, service mutation, installed
+  helper execution, or peer connection. Its only nested SSH command is
+  `ssh -G`, which expands client configuration without opening a connection.
+- The runner rejects private-key or certificate-secret output and removes only
+  `/tmp/caddy-action16ak-e.*` on every exit.
+
+Independent installed-state contract:
+
+- Confirm Node A identity, physical address, architecture, exact packages,
+  locked `caddy-sync` account, `.ssh` ownership/mode, and package inventory
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`.
+- Require the retained stage to remain `root:root:0750`, inode `1670964`,
+  device `66306`, with the exact accepted five-file set, hashes, modes, zero
+  symlinks, and accepted Node B fingerprints.
+- Require `/usr/local/libexec` to be a non-symlink `root:root:0755`
+  directory containing exactly the receiver, setup helper, and validator as
+  regular non-symlink files with their accepted hashes and modes.
+- Require the receiver's exact `rrsync -wo -no-del` contract.
+- Require the Node A private key to be a non-symlink regular file,
+  `caddy-sync:caddy-sync:0600`, without emitting its bytes or hash.
+- Independently derive the public key from the private key and require it to
+  equal the installed `caddy-sync:caddy-sync:0644` public key.
+- Require the exact observed public key and fingerprint
+  `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`.
+- Require `known_hosts` to be a regular non-symlink
+  `caddy-sync:caddy-sync:0600` one-line pin containing only Node B's accepted
+  host key for `pihole00.local.theama.co`.
+- Require `authorized_keys` to be a regular non-symlink
+  `caddy-sync:caddy-sync:0600` one-line file containing only Node B's accepted
+  public key with source restrictions
+  `10.1.0.54,fd36:5aa8:6971:1::54`, `restrict`, and the forced receiver.
+- Require `/etc/lsyncd/caddy.lua` to remain absent.
+- Independently validate strict SSH client construction with `ssh -G`; do not
+  invoke the installed validator or connect to Node B.
+- Require the accepted environment/release, lighttpd, Keepalived, sysctl,
+  non-local binding, service/process, source/certificate stage, rollback
+  baseline, dpkg audit, and listener state.
+
+Result contract:
+
+- Collect all mismatches without stopping and emit the first failing label.
+- Emit only Node A's accepted public key/fingerprint, the package-inventory
+  hash, Boolean state, and counters; never emit private-key bytes or a
+  private-key hash.
+- Success requires mismatch count `0`, `first_failure=none`,
+  `action_16ak_e_postinstall_valid=true`, `peer_connections=false`,
+  `installed_helper_execution=false`, `service_mutations=false`, SSH status
+  `0`, and both completion markers.
+- A consistent state mismatch exits `1`; missing, malformed, contradictory, or
+  private-material-bearing output exits `97`.
+
+Expected effect and next boundary:
+
+- Node A and Node B remain unchanged.
+- A successful result independently accepts Node A's synchronization identity
+  and restricted receiver-side SSH installation.
+- Node B authorization and the first A-to-B synchronization connection remain
+  separate later actions.
+
+Observed result:
+
+- Every retained-stage, key-pair, public-evidence, host-pin, authorization,
+  helper, receiver, package/inventory, identity, configuration/sysctl,
+  service/process, source/certificate stage, rollback baseline, dpkg audit,
+  and listener assertion passed.
+- The independently derived public key matched the installed public key and
+  the accepted fingerprint
+  `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`.
+- The exact one-line Node B host pin and one-line restricted authorization
+  matched; the receiver no-delete contract and exact three-helper set passed.
+- `acceptance_mismatch_count=0`, `first_failure=none`,
+  `peer_connections=false`, `installed_helper_execution=false`,
+  `service_mutations=false`, and
+  `action_16ak_e_postinstall_valid=true`.
+- SSH status was `0`; remote inspection and workstation cleanup completed,
+  and no `/tmp/caddy-action16ak-e.*` path remained.
+- Action 16ak-e is accepted. Neither node changed.
+
+### Defined read-only Node A systemd-unit preflight Action 16al
+
+Action 16al is defined locally but has not been executed. If separately
+authorized, the exact command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-preflight-action16al.sh
+runner_sha=059a76891b5ba37b68962c01deb4c0b178cdeca01783bbace089efa77f08a539
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only boundary:
+
+- Require the inspector to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `1ce571c8f6bcb6c063930754dcfcfb4f58a069d982a71fc78ce93d2b98b6b472`.
+- Connect only to `pi@10.1.0.53`, using batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking.
+- Stream the inspector through `sudo -n /bin/bash -s --`; do not install or
+  retain it on Node A.
+- The inspector contains no write, file transfer, daemon reload, enablement,
+  service mutation, installed-helper execution, or peer connection.
+- The runner rejects private-key or certificate-secret output and removes only
+  `/tmp/caddy-action16al.*` on every exit.
+
+Preflight contract:
+
+- Require the accepted Node A hostname, physical IPv4 address, architecture,
+  exact Caddy and lsyncd packages, package-inventory hash, and clean
+  `dpkg --audit`.
+- Require both intended drop-in directories, all 12 intended systemd targets,
+  and the four directly required systemd helper targets to remain absent.
+- Inspect the notification template through the concrete instance
+  `caddy-sync-failure@action16al-preflight.service`.
+- Require all ten custom probes to have `LoadState=not-found`,
+  `ActiveState=inactive`, and no `UnitFileState`.
+- Require Caddy, Caddy API, lsyncd, uuidd service, and uuidd socket to remain
+  inactive/masked. Handle absent `caddy-api.socket` explicitly through
+  `LoadState=not-found`, `ActiveState=inactive`, and empty `UnitFileState`
+  instead of assuming it is masked.
+- Require lighttpd, Keepalived, and SSH to remain active/enabled, and Unbound,
+  Pi-hole FTL, and Munin node to remain active.
+- Require zero Caddy and lsyncd processes and zero custom enablement links.
+- Require the accepted environment/release, service identities, retained
+  synchronization stage, Node A public synchronization fingerprint, exactly
+  one restricted authorization, exact existing three-helper set and hashes,
+  lighttpd trees, Keepalived configuration, non-local-binding sysctl file and
+  runtime values.
+- Require `/etc/lsyncd/caddy.lua` and
+  `/etc/keepalived/conf.d/caddy-ha.conf` to remain absent.
+- Capture the effective Caddy and lighttpd unit hashes and journald disk usage
+  as observed evidence. These values are not pinned before Node A observation.
+
+Result contract:
+
+- Collect all mismatches without stopping and emit the first failing label.
+- Success requires mismatch count `0`, `first_failure=none`,
+  `action_16al_preflight_valid=true`, `peer_connections=false`,
+  `installed_helper_execution=false`, `service_mutations=false`, SSH status
+  `0`, and both completion markers.
+- A consistent state mismatch exits `1`; missing, malformed, contradictory, or
+  private-material-bearing output exits `97`.
+
+Expected effect and next boundary:
+
+- Node A and Node B remain unchanged; rollback is not applicable.
+- A successful result accepts only the Node A systemd installation
+  prerequisites and records current effective-unit hashes and journal usage.
+- Systemd artifact staging, live installation, `daemon-reload`, enablement,
+  and service changes remain separate later actions.
+
+Observed result:
+
+- Runner, inspector, and SSH exited `0`; both completion markers passed and
+  workstation cleanup left no `/tmp/caddy-action16al.*` path.
+- Every assertion passed with `preflight_mismatch_count=0` and
+  `first_failure=none`.
+- Systemd is `252.39-1~deb12u2`; all 12 intended unit/drop-in targets and four
+  new helper targets remain absent.
+- All ten concrete custom probes are not found and inactive; optional
+  `caddy-api.socket` is not found and inactive with no unit-file state.
+- Caddy, Caddy API, lsyncd, uuidd service, and uuidd socket remain
+  inactive/masked. lighttpd, Keepalived, SSH, Unbound, Pi-hole FTL, and Munin
+  node retain their accepted states.
+- The accepted three existing synchronization helpers and Node A public
+  synchronization fingerprint remain exact. No lsyncd or Caddy Keepalived
+  configuration is installed.
+- Effective Caddy unit SHA-256 is
+  `3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`;
+  effective lighttpd unit SHA-256 is
+  `fdd4ccfc6ffcf219d2d51e721798ee7fee0393356198e294e03b6e69f3c8ec67`.
+- Archived and active journals use `3.4G`; retain this as a journald retention
+  review finding without changing retention automatically.
+- Peer connections, installed-helper execution, and service mutations were
+  false. Action 16al is accepted; neither node changed.
+
+### Attempted inactive Node A systemd artifact staging Action 16am
+
+Action 16am was executed once under explicit authorization. The exact command
+was:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-stage-action16am.sh
+runner_sha=dc458922aed13e273036549d409632176b54042aca1943497837770a28ff5977
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Source and transfer boundary:
+
+- Require the staging driver to be an `aaron:aaron` regular file, mode
+  `0755`, with SHA-256
+  `86452d84350ff12cb97216991de7c608656c996db53d1a7202b1752fe75a9bab`.
+- Require all 12 systemd artifacts as regular non-symlink mode-`0644` files
+  and all four helper scripts as regular non-symlink mode-`0755` files, with
+  every SHA-256 pinned in the runner.
+- The Caddy override is the accepted current artifact with
+  `TimeoutStopSec=30s`, SHA-256
+  `a292487f4cbde99abce048b97ec15dbae8ef511ec845dcf5740f343e143f39df`.
+  Node B's original Action 14b staged the superseded no-timeout override;
+  Node B later installed this corrected artifact during accepted Action 15.
+- Build one POSIX archive containing exactly the 16 relative paths, then
+  connect only to `pi@10.1.0.53` with the accepted strict SSH options.
+- Stream the archive to the in-memory driver through `sudo -n /bin/bash -c`;
+  do not install or retain the driver separately on Node A.
+- Reject any private-key or certificate-secret output. Remove only
+  `/tmp/caddy-action16am.*` from the workstation on every exit.
+
+Remote preflight and stage contract:
+
+- Revalidate the exact accepted Action 16al hostname, address, architecture,
+  package inventory, audit state, live-target absence, drop-in-directory
+  absence, protected and baseline units, zero Caddy/lsyncd processes,
+  environment/release, lighttpd, Keepalived, sysctl, effective-unit hashes,
+  deferred-target absence, retained synchronization stage, public
+  synchronization fingerprint, restricted authorization count, and exact
+  three existing synchronization helpers.
+- Require `/var/tmp/caddy-systemd-node-a-action16am` to be absent before the
+  first write and capture the protected service/listener/configuration state.
+- Create only that stage, enforce `root:root:0750` on the root and four
+  expected directories, `root:root:0644` on the 12 systemd artifacts, and
+  `root:root:0755` on the four scripts.
+- Require exactly 16 files, exactly four child directories, no symlinks, all
+  pinned per-file hashes, successful `bash -n` for each script, and aggregate
+  stage digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Revalidate the accepted live state and byte-for-byte protected snapshot
+  after staging.
+- Do not write `/etc/systemd/system` or `/usr/local/libexec`, run
+  `systemctl daemon-reload`, enable/start a unit, execute an installed helper,
+  contact Node B, or alter the retained synchronization stage.
+
+Bounded automatic cleanup:
+
+- A pre-write failure changes nothing.
+- Any failure after stage mutation begins removes only
+  `/var/tmp/caddy-systemd-node-a-action16am`.
+- Cleanup must prove the stage absent and the accepted Action 16al live and
+  protected state restored. Missing or failed rollback evidence exits `97`
+  with `manual_intervention_required=true`.
+- Success retains the protected stage for a separately authorized
+  installation action.
+
+Success contract:
+
+- Require SSH status `0`, every preflight, stage, hash, syntax, digest, and
+  protected-state marker, `first_failure=none`, the exact stage path,
+  ownership/mode, file count and digest, `stage_retained=true`,
+  `systemd_daemon_reload_performed=false`, `service_mutations=false`, and
+  `action_16am_systemd_stage_complete=true`.
+- Reject any failure, rollback, or manual-intervention marker on a nominal
+  success.
+
+Expected effect and next boundary:
+
+- Success adds only the inactive protected stage on Node A. Node B and all live
+  Node A systemd, helper, configuration, listener, and service state remain
+  unchanged.
+- Live systemd installation, `daemon-reload`, unit enablement, service
+  changes, lsyncd configuration, and synchronization remain separate later
+  actions.
+
+Observed execution result:
+
+- The remote transaction returned SSH status `0`, passed every defined
+  preflight, stage, hash, owner, mode, syntax, aggregate-digest, live-state,
+  and protected-state check, and emitted `first_failure=none`.
+- Node A reported the retained stage at
+  `/var/tmp/caddy-systemd-node-a-action16am` as `root:root:0750`, with exactly
+  16 files and aggregate digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Node A emitted `systemd_daemon_reload_performed=false`,
+  `service_mutations=false`, and
+  `action_16am_systemd_stage_complete=true`. No rollback marker was emitted.
+- The workstation runner then exited `97`. Its final negative expression
+  rejects any line ending in `=false`, so it incorrectly classified the two
+  required negative mutation markers as failure evidence.
+- Workstation bounded cleanup completed and an independent local search found
+  no `/tmp/caddy-action16am.*` path. No retry, remote cleanup, systemd
+  installation, or second SSH connection occurred.
+- Action 16am remains unaccepted until a separately authorized read-only
+  Action 16am-a independently verifies the retained stage and complete
+  protected state. The validator defect must be corrected before its runner is
+  reused.
+
+### Attempted independent read-only retained-stage Action 16am-a
+
+Action 16am-a was executed once under explicit authorization. The exact command
+was:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-stage-inspection-action16am-a.sh
+runner_sha=5b1dc7eb258e2bb1e9c908eecf2392145e818040f01b8b5f91c4acce2c6c5b91
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only boundary:
+
+- Require the inspector to be an `aaron:aaron` regular file, mode `0755`,
+  with SHA-256
+  `7b890a4279507e91a55477738fa4191ff0e5fe60166aed72f1f28767495f546d`.
+- Stream only that inspector to `pi@10.1.0.53` through strict host-verified
+  SSH and `sudo -n /bin/bash -s --`; create no remote inspection path.
+- Do not invoke, source, modify, or retry
+  `run-node-a-systemd-stage-action16am.sh`.
+- Do not write or remove the retained stage, transfer an installation payload,
+  install a target, run `systemctl daemon-reload`, alter a unit, execute an
+  installed helper, contact Node B, configure lsyncd, or change a service.
+- Suppress unexpected private material and remove only
+  `/tmp/caddy-action16am-a.*` from the workstation on every result.
+
+Inspection contract:
+
+- Collect every mismatch and retain the first failed label instead of stopping
+  silently.
+- Require the stage root at
+  `/var/tmp/caddy-systemd-node-a-action16am` to be `root:root:0750`.
+- Require exactly the 16 pinned files, four pinned child directories, no
+  symlinks, exact per-file hashes, `root:root` ownership, unit mode `0644`,
+  script mode `0755`, successful Bash syntax checks, and aggregate digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Independently re-check Action 16al's Node identity, packages and inventory,
+  dpkg audit, all 16 absent live installation targets, absent drop-in
+  directories, ten absent custom-unit probes, protected and baseline unit
+  states, zero Caddy/lsyncd processes, lighttpd-only TCP frontend listeners,
+  zero UDP 443 listeners, zero custom enablement links, environment and
+  bootstrap release, prerequisites, retained synchronization stage and public
+  fingerprint, restricted authorization count, exact three existing helpers,
+  absent lsyncd and Caddy Keepalived configuration, lighttpd and Keepalived
+  hashes, non-local-binding sysctls, effective Caddy/lighttpd unit hashes, and
+  journald queryability.
+
+Result and rollback semantics:
+
+- Zero mismatches require SSH `0`, `first_failure=none`, the exact stage
+  metadata/count/digest, the completion marker, and explicit
+  `peer_connections=false`, `installed_helper_execution=false`,
+  `systemd_daemon_reload_performed=false`, and `service_mutations=false`.
+- One or more fully reported state mismatches require SSH and runner exit `1`,
+  a non-`none` first failure, and a false aggregate validity marker.
+- Missing, duplicate, malformed, or inconsistent output exits `97`.
+- The runner reconciles every output line ending in `=false` with the reported
+  mismatch count while explicitly accounting for the four required negative
+  no-mutation markers and the aggregate validity marker.
+- There is no remote rollback because the action is read-only. It performs no
+  repair or cleanup on a mismatched retained stage.
+- The next action after successful independent evidence is to define a narrow
+  local correction and regression test for the Action 16am transcript
+  validator. Systemd installation remains a later, separately authorized
+  transaction.
+
+Observed execution result:
+
+- The remote inspector returned SSH `0`, zero mismatches,
+  `first_failure=none`, and its completion and aggregate-validity markers.
+- Every protected-state assertion passed. Caddy and lsyncd remained
+  inactive/masked with zero processes; lighttpd alone retained TCP 80/443;
+  UDP 443 had no listener; all 16 live installation targets remained absent.
+- The retained stage independently passed its exact file/directory sets,
+  ownership, modes, script syntax, per-file hashes, and aggregate digest. It
+  was reported as `/var/tmp/caddy-systemd-node-a-action16am`,
+  `root:root:0750`, 16 files, digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Peer connections, installed-helper execution, systemd daemon reload, and
+  service mutations were all explicitly false. Journald usage remained
+  `3.4G`.
+- The runner exited `97` after the successful inspection because its generic
+  exact-cardinality loop required one `stage_file_count=` and one
+  `stage_digest=` line. The inspector emits both Boolean assertions
+  (`stage_file_count=true`, `stage_digest=true`) and final observed values
+  under those same prefixes.
+- Workstation cleanup completed and no `/tmp/caddy-action16am-a.*` path
+  remained. No retry, correction, remote cleanup, or installation occurred.
+- Action 16am-a remains unaccepted. The next gate is definition of a corrected
+  read-only retry with disjoint assertion and observed-value labels and
+  synthetic transcript regression coverage.
+
+### Accepted corrected read-only Action 16am-a retry
+
+The corrected retry was executed once under explicit authorization. The exact
+command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-stage-inspection-action16am-a.sh
+runner_sha=b0b033cff505ecbc3809ff6d157aa1a565605e6a2a8c451925a33438c2fc1d50
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Correction and hash boundary:
+
+- Require the corrected inspector to be an `aaron:aaron` regular file, mode
+  `0755`, with SHA-256
+  `5ec3f551701185b26dccd3fac84e5e6e6ea599e9e809bcdc8a28855ab1b4fa1d`.
+- The only inspector behavior change is renaming Boolean
+  `stage_file_count` to `stage_file_count_valid` and Boolean `stage_digest` to
+  `stage_digest_valid`. Final observed values remain `stage_file_count` and
+  `stage_digest`.
+- The runner uses the same `evaluate_contract` function for synthetic
+  transcripts and a future live transcript. It requires exactly one line for
+  each assertion and each observed value.
+- The retained stage digest remains
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+
+Local transcript regression evidence:
+
+- A zero-mismatch transcript with four required negative no-mutation markers
+  returns `0`.
+- A complete one-mismatch transcript, including false aggregate validity and
+  SSH status `1`, returns `1`.
+- Duplicate observed cardinality, malformed observed file count, a missing
+  required no-mutation marker, mismatch-count inconsistency, and private
+  material each return `97`.
+- Self-test and contract-test modes create no SSH connection. Their temporary
+  `/tmp/caddy-action16am-a-contract.*` directories are removed.
+
+Read-only execution boundary:
+
+- Stream only the corrected inspector to `pi@10.1.0.53` through strict
+  host-verified SSH and `sudo -n /bin/bash -s --`; create no remote path.
+- Do not invoke or modify the failed Action 16am staging runner, alter or clean
+  the retained stage, install a target, run `systemctl daemon-reload`, execute
+  an installed helper, contact Node B, configure lsyncd, or change a service.
+- Success requires all previously defined Action 16am-a stage and protected
+  checks, zero mismatches, exact observed stage metadata/count/digest, SSH `0`,
+  exact transcript cardinality, and local temporary cleanup.
+- A complete state mismatch exits `1` without repair. Missing, malformed,
+  duplicate, secret-bearing, or internally inconsistent evidence exits `97`.
+- There is no remote rollback because the retry is read-only.
+
+Observed corrected-retry result:
+
+- Runner and SSH exited `0`; the remote and local completion markers were
+  present.
+- Every inspector assertion was true, mismatch count was `0`, and
+  `first_failure=none`.
+- The retained stage was independently reported as
+  `/var/tmp/caddy-systemd-node-a-action16am`, `root:root:0750`, with 16 files
+  and digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- All 16 live installation targets and both future drop-in directories
+  remained absent. Caddy and lsyncd remained inactive/masked with zero
+  processes; lighttpd alone retained TCP 80/443; UDP 443 remained unused.
+- Package inventory remained
+  `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`;
+  effective Caddy and lighttpd unit hashes remained
+  `3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`
+  and
+  `fdd4ccfc6ffcf219d2d51e721798ee7fee0393356198e294e03b6e69f3c8ec67`.
+- Peer connections, installed-helper execution, daemon reload, and service
+  mutations were false. Journald usage was `3.4G`.
+- Workstation runner and contract-test temporary paths were absent after
+  completion. No stage cleanup, installation, retry, or other remote action
+  occurred.
+- The corrected retry is accepted. Its independent evidence also accepts
+  inactive staging Action 16am. The next gate is definition of transactional
+  Node A systemd installation Action 16an.
+
+### Defined transactional Node A systemd installation Action 16an
+
+Action 16an is defined and locally validated but has not been executed. If
+separately authorized, the exact command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-install-action16an.sh
+runner_sha=b641000e28e681f92c329a64cc67a7d5cc0348c211c60f8d40d67bb5f504450f
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Source and authorization boundary:
+
+- Require
+  `Caddy/scripts/install-node-a-systemd-action16an.sh` to be an
+  `aaron:aaron` regular file, mode `0755`, with SHA-256
+  `192a682795655d363eab2e07f3af3932a08cc77d8ff4cf96b19ea6b2daafb9c2`.
+- Connect only to `pi@10.1.0.53` with batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking. Stream the installer through `sudo -n /bin/bash -s`; do not retain
+  the installer on Node A.
+- The authorized mutation is limited to 16 previously absent live targets,
+  creation of `/etc/systemd/system/caddy.service.d` and
+  `/etc/systemd/system/lighttpd.service.d`, and the required systemd manager
+  reload.
+- Do not remove either retained stage, enable, disable, mask, unmask, start,
+  stop, restart, or reload a service, execute an installed helper, contact
+  Node B, install lsyncd configuration, install a Caddy Keepalived fragment,
+  or change restricted SSH material.
+- Reject private-key or certificate-secret output. The workstation runner
+  removes only `/tmp/caddy-action16an.*` on every exit.
+
+Transactional preflight:
+
+- Revalidate Node A hostname, IPv4, architecture, exact Caddy and lsyncd
+  packages, package-inventory hash, empty `dpkg --audit`, and the complete
+  accepted Action 16am-a service, process, listener, configuration, sysctl,
+  synchronization, and deferred-target baseline.
+- Require the retained systemd stage at
+  `/var/tmp/caddy-systemd-node-a-action16am` to remain a non-symlink
+  `root:root:0750` directory with exactly four expected child directories,
+  16 regular files, no symlinks, exact per-file modes and hashes, valid Bash
+  syntax for all four scripts, and aggregate digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Require both destination drop-in directories and all 16 live targets to
+  remain absent. Require all ten custom unit probes to remain not found and
+  inactive with no unit-file state.
+- Capture a protected-state digest before arming the transaction. It includes
+  package inventory, service and listener state, Caddy environment and current
+  release, live and candidate lighttpd trees, Keepalived and sysctl files,
+  retained synchronization stage, Node A synchronization fingerprint, and
+  all three previously accepted synchronization-helper hashes.
+
+Installation and immediate validation:
+
+- Create only the two mode-`0755` root-owned drop-in directories.
+- Install the ten custom unit files and two service drop-ins as
+  `root:root:0644`; install the four directly required helpers as
+  `root:root:0755`. Require byte-for-byte equality with the accepted stage.
+- Run exactly one `systemctl daemon-reload` on the success path.
+- Run `systemd-analyze verify` against the ten custom unit artifacts.
+- Require all ten custom unit probes loaded but inactive. Require the five
+  installable timer, path, and service units disabled and the five helper
+  service/template units static.
+- Require Caddy and lighttpd to recognize only their respective new drop-ins;
+  require the Caddy override to contain `TimeoutStopSec=30s`.
+- Require zero custom enablement links, exact protected-state identity, exact
+  retained systemd-stage digest, and preservation of the synchronization
+  stage.
+- Success emits that the custom units are neither active nor enabled, no
+  helper was executed, no peer was contacted, no service was mutated, and no
+  lsyncd or Caddy Keepalived configuration was installed.
+
+Bounded automatic rollback:
+
+- A preflight failure occurs before the first write and changes nothing.
+- After mutation begins, any failure or interruption removes only the 16
+  previously absent live targets. It removes each of the two action-created
+  drop-in directories only if empty, then performs the required rollback
+  `systemctl daemon-reload`.
+- Rollback must prove all 16 targets absent, all ten custom probes again not
+  found and inactive with no unit-file state, exact protected-state identity,
+  and the exact retained systemd-stage digest.
+- A complete rollback emits `action_16an_rollback_complete=true` and returns
+  the original nonzero status. Incomplete rollback emits
+  `action_16an_rollback_complete=false`,
+  `manual_intervention_required=true`, and exits `97`.
+
+Runner acceptance contract:
+
+- Require SSH status `0` and exactly one occurrence of each remote-reached,
+  preflight, mutation, installation, daemon-reload, post-install,
+  protected-state, retained-stage, no-enable/no-activity, no-peer,
+  no-helper-execution, no-service-mutation, deferred-configuration, and final
+  completion marker.
+- Reject duplicate or missing required evidence, rollback or
+  manual-intervention evidence on success, nonzero SSH status, or secret
+  output.
+- Synthetic transcript tests prove rejection of duplicate evidence, missing
+  evidence, rollback-bearing success, and nonzero SSH status without making
+  an SSH connection.
+
+Expected effect and next boundary:
+
+- A successful Action 16an installs only the 16 accepted systemd/helper
+  artifacts and reloads the systemd manager. Both retained stages remain.
+- Every new custom unit remains inactive and either disabled or static. Caddy
+  and lsyncd remain inactive/masked; lighttpd, Keepalived, SSH, Unbound,
+  Pi-hole FTL, and Munin node retain their accepted states and listeners.
+- Action 16an does not enable boot persistence or perform the Node A listener
+  cutover. Independent post-install acceptance must be defined and separately
+  authorized before any activation action.
+
+Observed result:
+
+- The exact runner, SSH connection, and remote transaction exited `0`.
+- Preflight, installation of all 16 targets, the required daemon reload,
+  `systemd-analyze verify`, unit loading, disabled/static state, inactivity,
+  protected-state equality, and both retained-stage checks passed.
+- The remote transaction reported `custom_units_enabled=false`,
+  `custom_units_active=false`, `peer_connections=false`,
+  `installed_helper_execution=false`, `service_mutations=false`,
+  `lsyncd_configuration_installed=false`, and
+  `caddy_keepalived_fragment_installed=false`.
+- Neither rollback nor manual-intervention evidence appeared. Remote completion
+  and workstation cleanup passed, and no `/tmp/caddy-action16an.*` path
+  remained.
+- Action 16an is accepted. Independent read-only post-install acceptance
+  Action 16an-a must be defined and separately authorized before any
+  enablement, activation, stage cleanup, or later deployment action.
+
+### Attempted independent read-only Action 16an-a
+
+Action 16an-a was executed once under explicit authorization with this exact
+command:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-postinstall-action16an-a.sh
+runner_sha=6675cef62e6ea81066334226c98e505417489516a651dc5d35b8bdddbe357489
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Read-only and source boundary:
+
+- Require the standalone inspector to be an `aaron:aaron` regular file, mode
+  `0755`, with SHA-256
+  `9af0b994deb6d49bc8897c5e4633bc431d1c44a6c6e31daeab89d04aa2892606`.
+- Connect only to `pi@10.1.0.53` with batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking. Stream the inspector through `sudo -n /bin/bash -s --`; do not
+  retain it on Node A.
+- The inspector contains no write, transfer, daemon reload, enablement,
+  service mutation, installed-helper execution, or peer connection.
+- Reject private-key or certificate-secret output. Remove only
+  `/tmp/caddy-action16an-a.*` on the workstation at exit.
+
+Independent acceptance coverage:
+
+- Recompute Node identity, architecture, exact Caddy and lsyncd package state,
+  complete package-inventory hash, and empty `dpkg --audit`.
+- Require the retained Action 16am stage to remain a non-symlink
+  `root:root:0750` directory with its exact four-directory and 16-file set,
+  per-file regular/non-symlink status, ownership, mode, hash, script syntax,
+  and aggregate digest
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Independently require all 16 live targets to be regular non-symlink files
+  with their exact accepted hashes and `root:root` modes. Require both
+  drop-in directories as `root:root:0755`.
+- Run read-only `systemd-analyze verify` over all ten custom artifacts.
+  Require every custom probe loaded and inactive, the five installable units
+  disabled, and the five helper/template units static.
+- Require Caddy and lighttpd to recognize only their exact new drop-ins,
+  preserve `TimeoutStopSec=30s`, and have zero custom enablement links.
+- Recompute the complete protected service, process, listener, environment,
+  release, lighttpd, Keepalived, sysctl, and deferred-configuration baseline.
+  Caddy, lsyncd, and uuidd remain inactive/masked; lighttpd remains the only
+  TCP 80/443 owner and UDP 443 remains unused.
+- Require the retained synchronization stage to remain a non-symlink
+  `root:root:0750` directory with its exact five files, hashes, and protected
+  modes. Recompute the Node A key fingerprint, one restricted authorization,
+  and exact seven-file `/usr/local/libexec` set.
+- Capture effective Caddy and lighttpd unit hashes and journald disk usage as
+  non-secret observed evidence without pre-pinning those values.
+
+Fail-closed result contract:
+
+- Every independent assertion is emitted exactly once under a `check_*`
+  label. The runner requires the reported assertion count, mismatch count,
+  Boolean results, first failure, SSH status, and aggregate validity to be
+  internally consistent.
+- Zero mismatches require `first_failure=none`, aggregate validity `true`, and
+  SSH status `0`. A complete state mismatch requires aggregate validity
+  `false`, a named first failure, and SSH status `1`.
+- Duplicate, missing, malformed, inconsistent, secret-bearing, or
+  status-inconsistent evidence exits `97`.
+- Synthetic tests cover a valid result, a complete single mismatch, duplicate
+  evidence, malformed Boolean evidence, inconsistent counts, and secret
+  output without opening an SSH connection.
+
+Expected effect and next boundary:
+
+- Node A and Node B remain unchanged; remote rollback is not applicable.
+- A zero-mismatch result independently accepts Action 16an and records the
+  effective unit hashes and current journald usage.
+- Stage cleanup, unit enablement, boot persistence, listener cutover, lsyncd
+  configuration, synchronization, and later deployment actions remain
+  separate authorization gates.
+
+Observed attempt result:
+
+- SSH exited `0`; all 264 remote assertions were true; mismatch count was
+  zero; first failure was none; remote completion and workstation cleanup were
+  true; no peer connection, helper execution, daemon reload, or service
+  mutation occurred.
+- The stage digest was
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+  Effective Caddy and lighttpd unit hashes were
+  `3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`
+  and
+  `ad6c381129068d4a3e44d152272214f983bd3e5e6b5a3485d91a7a829b5375ca`.
+  Journald usage was `3.4G`.
+- The workstation runner exited `97` because the otherwise valid line
+  `check_baseline_unit_pihole_FTL_service_active=true` did not match its
+  lowercase-only label grammar. This is a local evidence-label defect, not a
+  Node A mismatch.
+- Action 16an-a remains unaccepted. No retry was attempted.
+
+### Executed corrected read-only Action 16an-a retry
+
+The corrected retry was explicitly authorized and executed once with this
+exact command:
+
+```bash
+runner=Caddy/scripts/run-node-a-systemd-postinstall-action16an-a.sh
+runner_sha=54f7d24999b2dc6f00a49735e71405db365642c10a798225911f91308abdc2fe
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Correction and unchanged boundary:
+
+- The inspector SHA-256 is
+  `68716f33d1dd1e027c6cecca91d2e1be2a23a7cbd3292919863cdc30a899cf9e`.
+- All dynamically derived unit labels are normalized to lowercase before
+  emission. The 264 read-only state assertions and their accepted values are
+  unchanged.
+- Transcript tests require the actual
+  `check_baseline_unit_pihole_ftl_service_active=true` shape and reject
+  uppercase evidence.
+- The retry passed with SSH/runner status `0`, all 264 assertions true, zero
+  mismatches, `first_failure=none`, and both remote and workstation completion
+  markers.
+- The retained stage and installed target counts were both 16. The stage
+  digest remained
+  `305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+- Effective Caddy and lighttpd unit SHA-256 values remained
+  `3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`
+  and
+  `ad6c381129068d4a3e44d152272214f983bd3e5e6b5a3485d91a7a829b5375ca`.
+  Journald usage remained `3.4G`.
+- Peer connections, installed-helper execution, daemon reload, and service
+  mutations were all false. Node A and Node B were unchanged.
+- The corrected retry and independent post-install acceptance are accepted.
+  All later deployment actions remain unauthorized.
+
+### Attempted read-only Node A cutover-preflight Action 16ao
+
+Action 16ao was explicitly authorized and executed once with this exact
+command:
+
+```bash
+runner=Caddy/scripts/run-node-a-cutover-preflight-action16ao.sh
+runner_sha=0183eca00ab1431f934744f926534022f1e2c965ead7445225be349e6676b43b
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact scope and expected effect:
+
+- Verify the inspector as an `aaron:aaron` regular file, mode `0755`, with
+  SHA-256
+  `32f7fb6e792dc8fe020cdbe943a373491f221843f69c0fd633e08719dfa5883a`.
+- Connect only to `pi@10.1.0.53` with batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking. Stream the inspector through `sudo -n /bin/bash -s --`; do not
+  retain it on Node A.
+- Create no remote path and perform no transfer, package action, installed
+  helper execution, daemon reload, enablement, service mutation, listener
+  cutover, peer connection, lsyncd configuration, or Keepalived change.
+- Remove only `/tmp/caddy-action16ao.*` on the workstation at exit.
+
+Read-only acceptance coverage:
+
+- Require Node A hostname, arm64 architecture, physical IPv4
+  `10.1.0.53/22`, and stable ULA `fd36:5aa8:6971:1::53/128`.
+- Verify the accepted rollback baseline and its configuration archive hash.
+- Recompute the live lighttpd tree hash and require the retained Action 16ab
+  candidate as `root:root:0750`, with exact main/tree hashes. Run native
+  `lighttpd -tt` parsing against the inactive candidate.
+- Require the bootstrap Caddy release/current link, node-local environment,
+  and all four non-secret configuration hashes. Validate current certificate
+  time validity, wildcard SAN, and private-key correspondence without
+  emitting certificate or key contents.
+- Require Caddy and Caddy API inactive/masked, lighttpd active/enabled,
+  Keepalived active, Caddy `Type=notify`, `TimeoutStopUSec=30s`, and the
+  accepted effective Caddy/lighttpd unit hashes.
+- Require exactly one TCP 80 and TCP 443 listener, both owned only by
+  lighttpd; require no TCP 8080/2019, no UDP 443, and no Caddy process.
+- Require successful or redirecting direct-management responses over current
+  HTTP and HTTPS for `pihole0.local.theama.co`.
+- Require the Caddy lsyncd configuration and Keepalived Caddy fragment to
+  remain absent.
+
+Validation and failure contract:
+
+- Emit every assertion exactly once under a lowercase `check_*` label and
+  report assertion count, mismatch count, first failure, aggregate validity,
+  SSH status, no-mutation markers, and both completion markers.
+- Zero mismatches require aggregate validity `true`, `first_failure=none`,
+  and SSH status `0`. A complete state mismatch returns `1`.
+- Duplicate, missing, malformed, inconsistent, secret-bearing, or
+  status-inconsistent evidence returns `97`.
+- Node A and Node B remain unchanged regardless of success or an ordinary
+  state mismatch; rollback is not applicable.
+
+Next boundary:
+
+- A successful Action 16ao permits definition of the transactional Node A
+  listener/service cutover. It does not authorize that cutover.
+- Any failed assertion stops progression for diagnosis. Stage cleanup,
+  listener/service cutover, enablement, activation, synchronization, and all
+  later actions remain separate authorization gates.
+
+Observed result:
+
+- SSH and runner status were `1`. The action emitted 66 assertions: 63 true
+  and three false, with `first_failure=node_ipv6_present`.
+- The exact failed labels were `node_ipv6_present`, `caddy_unit_type`, and
+  `tcp_80_count`. The inspector intentionally emitted no unvalidated actual
+  value for these Boolean-only comparisons.
+- The rollback baseline, live and candidate lighttpd trees, native candidate
+  parse, Caddy release and environment, certificate validity/SAN/key match,
+  service states, Caddy stop timeout, effective unit hashes, listener
+  ownership, direct HTTP/HTTPS management access, deferred lsyncd/VRRP state,
+  and all other assertions passed.
+- Peer connections, installed-helper execution, daemon reload, and service
+  mutations were false. Remote inspection and workstation cleanup completed.
+- Action 16ao is not accepted and was not retried. A narrow read-only
+  diagnostic must collect the actual IPv6 address/interface state, Caddy unit
+  type provenance, and complete TCP 80 listener set before any correction.
+
+### Executed read-only Action 16ao-a diagnostic
+
+Action 16ao-a was explicitly authorized and executed exactly once. The
+hash-pinned command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-cutover-diagnostic-action16ao-a.sh
+runner_sha=120a4479b2b81927715e644ed22a70f42286903dd683e9ab1d29d98e9977b1bc
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact scope:
+
+- Verify the diagnostic as an `aaron:aaron` regular file, mode `0755`, with
+  SHA-256
+  `6f75baf2f1b5826ce5ac9453b84914f5caff39d83b669e26c1ee97d84e59eb2e`.
+- Connect only to `pi@10.1.0.53` with batch mode, a five-second connection
+  timeout, `HostKeyAlias=pihole0.local.theama.co`, and strict host-key
+  checking. Stream the diagnostic through `sudo -n /bin/bash -s --`; do not
+  retain it on Node A.
+- Create no remote path and perform no transfer, package action, installed
+  helper execution, daemon reload, enablement, service mutation, listener
+  cutover, peer connection, lsyncd configuration, or Keepalived change.
+- Remove only `/tmp/caddy-action16ao-a.*` on the workstation at exit.
+
+Collected evidence:
+
+- Hostname and architecture plus command status.
+- Every record from `ip -o -6 address show`, normalized to one printable
+  `ipv6_record=` line, with an exact record count and command status.
+- Effective Caddy `Type`, load state, active state, unit-file state, fragment
+  path, and drop-in paths.
+- Every explicit `Type=` directive found in the effective fragment and
+  drop-ins, including source path and line number, with an exact record count
+  and collection status.
+- Every record from `ss -H -lntp 'sport = :80'`, normalized to one printable
+  `tcp80_listener=` line, with exact listener count and command status.
+
+Output and safety contract:
+
+- This diagnostic is non-enforcing: zero records or unexpected observed values
+  are emitted rather than treated as policy failures.
+- The runner requires every singleton field exactly once and reconciles every
+  repeated-record count. Duplicate, malformed, count-inconsistent,
+  secret-bearing, nonprintable, nonzero-SSH, or cleanup-invalid evidence exits
+  `97`.
+- Private-key and Doppler markers are prohibited. No certificate or private
+  key content is read or emitted.
+- Node A and Node B remain unchanged; rollback is not applicable.
+
+Next boundary:
+
+- The stable Node A ULA is present as
+  `fd36:5aa8:6971:1::53/64` on `eth0`, not the `/128` assumed by Action 16ao.
+- TCP 80 has two valid lighttpd listener records: `0.0.0.0:80` and `[::]:80`,
+  both owned by PID `916`, not the single record assumed by Action 16ao.
+- Caddy is masked and inactive. Its effective fragment is the mask at
+  `/etc/systemd/system/caddy.service`, so the effective `Type` is empty and the
+  diagnostic found no explicit `Type=` directive. The underlying vendor-unit
+  provenance remains unresolved.
+- SSH and runner status were `0`; six IPv6 records and two TCP 80 records were
+  count-reconciled. Peer connections, installed-helper execution, daemon
+  reload, and service mutations were false. Remote inspection and workstation
+  cleanup completed.
+- Action 16ao-a is accepted as diagnostic evidence. Action 16ao remains
+  unaccepted and was not corrected or retried.
+- Define and separately authorize a narrow read-only Action 16ao-b to inspect
+  the Caddy mask symlink target and underlying vendor-unit `Type=` provenance.
+  Any Action 16ao correction or retry, IPv6 change, listener/service cutover,
+  and all later deployment actions remain separate authorization gates.
+
+### Executed read-only Action 16ao-b diagnostic
+
+Action 16ao-b was explicitly authorized and executed exactly once. The
+hash-pinned command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-vendor-unit-diagnostic-action16ao-b.sh
+runner_sha=9b0935134c7f134d063af7446eee033158a71f328fc0160622582eafb8580d17
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact change and effect:
+
+- No Node A file, package, unit, mask, service, listener, or configuration is
+  changed. The runner opens one strict host-verified SSH connection to
+  `pi@10.1.0.53` and streams a read-only inspector through
+  `sudo -n /bin/bash -s --`.
+- The inspector is not retained on Node A. The only local path created is a
+  mode-`0700` temporary directory matching `/tmp/caddy-action16ao-b.*`; the
+  runner removes that exact path at exit.
+
+Collected evidence:
+
+- Hostname and architecture with command statuses.
+- `/etc/systemd/system/caddy.service` lstat metadata, direct link text,
+  canonical target, and canonical-target metadata, each with an independent
+  status.
+- Installed Caddy package status, binary package name, version, architecture,
+  and `dpkg-query -L` status.
+- Every package-listed path ending in `/caddy.service`, deduplicated without
+  assuming `/lib` or `/usr/lib`, including lstat metadata, canonical path,
+  SHA-256, `dpkg-query -S` ownership, and per-operation statuses.
+- Every explicit `Type=` directive in those package-listed vendor units,
+  including source path and line number, with exact record counts.
+
+Validation:
+
+- The diagnostic is intentionally non-enforcing: missing paths, unexpected
+  link targets, nonzero observation statuses, zero vendor units, or zero
+  `Type=` records are emitted as evidence rather than converted into policy
+  conclusions.
+- The runner verifies the inspector as an `aaron:aaron` regular non-symlink
+  file, mode `0755`, with SHA-256
+  `6a67da4d77c680e29b98ea13ddbd1b9ab4e9194c17115af4785ca268902c5911`.
+- It requires every singleton and completion marker exactly once, reconciles
+  vendor-unit and `Type=` record counts, requires printable secret-free
+  evidence and SSH status `0`, and exits `97` for a malformed, duplicate,
+  count-inconsistent, secret-bearing, nonzero-SSH, or cleanup-invalid
+  transcript.
+
+Rollback:
+
+- No remote rollback applies because the diagnostic performs no mutation and
+  creates no remote path.
+- The runner removes only its workstation temporary directory and verifies its
+  absence before reporting
+  `action_16ao_b_local_cleanup_complete=true`.
+
+Expected result and next boundary:
+
+- The active mask is a `root:root` mode-`0777` symbolic link from
+  `/etc/systemd/system/caddy.service` to `/dev/null`. Its canonical target is
+  the `root:root` mode-`0666` character device `/dev/null`.
+- Installed package `caddy` is version `2.11.4` for `arm64`. Its sole
+  package-listed vendor unit is `/lib/systemd/system/caddy.service`,
+  canonically `/usr/lib/systemd/system/caddy.service`, a `root:root`
+  mode-`0644` regular file of 1,029 bytes with SHA-256
+  `6c271e030644bd36a0c8956885934f16c928f88202bc126f12cde519ef9693ff`.
+- `dpkg-query -S` attributes that vendor path to `caddy`; line 23 contains the
+  sole explicit directive `Type=notify`.
+- Every observation status was `0`; one vendor-unit and one `Type=` record were
+  count-reconciled. SSH and runner status were `0`. Peer connections,
+  installed-helper execution, daemon reload, and service mutations were false;
+  remote inspection and workstation cleanup completed.
+- Action 16ao-b is accepted as diagnostic evidence. Action 16ao remains
+  unaccepted and was not corrected or retried.
+- Define and separately authorize a corrected read-only Action 16ao validator
+  using the three observed values. Any SSH retry, IPv6 change,
+  listener/service cutover, enablement, activation, service mutation, or later
+  action remains a separate authorization gate.
+
+### Executed corrected read-only Action 16ao retry
+
+The corrected Action 16ao validator was explicitly authorized and executed
+exactly once. The hash-pinned command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-cutover-preflight-action16ao.sh
+runner_sha=1a9a2e77169ce17a6f9c524c9029971fa33df26090fcf15246c9188a7a8a5f93
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact corrections:
+
+- Require stable Node A ULA `fd36:5aa8:6971:1::53/64` on `eth0`, replacing
+  the disproven `/128` assertion.
+- Require exactly two TCP 80 listeners and independently require exactly one
+  `0.0.0.0:80` and one `[::]:80` record, each owned by lighttpd.
+- Replace the masked effective-unit `Type` assertion with fail-closed
+  provenance checks for:
+
+  - `/etc/systemd/system/caddy.service` as a `root:root` mode-`0777`,
+    nine-byte symlink to `/dev/null`.
+  - Installed `caddy` package `2.11.4` for `arm64`.
+  - Package-owned `/lib/systemd/system/caddy.service`, canonically
+    `/usr/lib/systemd/system/caddy.service`, as a `root:root` mode-`0644`,
+    1,029-byte regular file.
+  - Vendor-unit SHA-256
+    `6c271e030644bd36a0c8956885934f16c928f88202bc126f12cde519ef9693ff`.
+  - Exactly one explicit service-type directive, exactly `Type=notify`.
+
+Preserved scope:
+
+- All previously passing rollback-baseline, live and candidate lighttpd,
+  native parse, Caddy release/environment/configuration, certificate,
+  service-state, stop-timeout, effective-unit, remaining listener,
+  direct-management HTTP/HTTPS, process, and deferred lsyncd/VRRP assertions
+  remain.
+- A matching run emits 75 true assertions, zero mismatches,
+  `first_failure=none`, and
+  `action_16ao_cutover_preflight_valid=true`.
+- A complete state mismatch returns `1`. Malformed, duplicate, inconsistent,
+  secret-bearing, or SSH-status-inconsistent evidence returns `97`.
+
+Effect, validation, and rollback:
+
+- The runner opens one strict host-verified SSH connection to
+  `pi@10.1.0.53` and streams the inspector through
+  `sudo -n /bin/bash -s --`. The inspector is not retained on Node A.
+- It performs no file, package, systemd, service, listener, helper, peer,
+  lsyncd, or Keepalived mutation.
+- No remote rollback applies. The runner removes only its mode-`0700`
+  workstation temporary directory matching `/tmp/caddy-action16ao.*` and
+  verifies its absence.
+- Inspector SHA-256 is
+  `370e40f3ce2293aaf354080f346c847b4134f37d92d83d6d7b61803a99eb1eb0`.
+  Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, synthetic
+  contract tests, exact-address regression tests, static no-write/no-service/
+  no-peer checks, complete host suite, and full Debian 12 Podman integration
+  passed.
+
+Next boundary:
+
+- All 75 assertions were true, mismatch count was `0`, and
+  `first_failure=none`. The preflight-valid, remote-completion, and workstation
+  cleanup markers passed with SSH/runner status `0`.
+- The accepted baseline includes the exact `/64` ULA, dual-stack lighttpd TCP
+  80 listeners, Caddy mask and vendor-unit provenance, rollback backup, live
+  and candidate lighttpd trees, native candidate parse, Caddy configuration
+  and certificate, unit hashes and timeout, existing service states, direct
+  HTTP/HTTPS management access, remaining listeners, and deferred lsyncd/VRRP
+  state.
+- Peer connections, installed-helper execution, daemon reload, and service
+  mutations were false. Node A remained unchanged.
+- Corrected Action 16ao is accepted. The original failed Action 16ao remains
+  historical evidence and is superseded by this accepted retry.
+- Define the transactional Node A listener/service cutover with bounded
+  readiness polling and automatic rollback as a separate gate. No cutover,
+  enablement, activation, service mutation, synchronization, VRRP, or later
+  action is currently authorized.
+
+### Executed transactional Node A cutover Action 16ap
+
+Action 16ap was explicitly authorized and executed once at
+`2026-07-29T05:06:27Z`. The exact authorized command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-lighttpd-caddy-cutover-action16ap.sh
+runner_sha=a2dbfa9e686cfd375548bfa6c2fa5233d173654b036a787c9ff4259b8775c7f0
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact preconditions:
+
+- Revalidate Node A identity, exact live lighttpd tree, retained Action 16ab
+  candidate tree and native parse, Caddy release/environment/package/vendor
+  unit/override, node-local environment values, current service states,
+  listener ownership, absence of TCP 8080/TCP 2019/UDP 443, and absence of the
+  Caddy Keepalived fragment.
+- Require the action-owned paths
+  `/etc/.lighttpd-caddy-action16ap`,
+  `/etc/.lighttpd-pre-action16ap`, and
+  `/etc/.lighttpd-caddy-action16ap.failed` to be absent.
+- Validate Caddy as the `caddy` account before the first write.
+- Snapshot the exact Caddy and Keepalived trees plus service and listener
+  baselines before mutation.
+
+Exact changes:
+
+1. Copy the accepted `/var/tmp/caddy-ha-lighttpd-node-a-action16ab` candidate
+   into the action-owned same-filesystem cutover candidate and validate it.
+2. Rewrite only its include root for the inactive location and parse it.
+3. Move `/etc/lighttpd` to `/etc/.lighttpd-pre-action16ap`, promote the
+   cutover candidate to `/etc/lighttpd`, rewrite only the include root to the
+   live path, and parse it.
+4. Restart lighttpd and require stable loopback-only
+   `127.0.0.1:8080` backend health for three seconds within a 20-second bound.
+5. Unmask Caddy, reload systemd, require `Type=notify` and
+   `TimeoutStopUSec=30s`, reset any failed state, and start Caddy.
+6. Require stable Caddy readiness for three seconds within a 35-second bound:
+   Caddy owns TCP 80/443 and UDP 443, its admin listener is only
+   `127.0.0.1:2019`, lighttpd owns no frontend listener,
+   `https://localhost` passes, and
+   `pihole0.local.theama.co` returns success or redirect through both
+   `10.1.0.53` and `fd36:5aa8:6971:1::53`.
+7. Revalidate Caddy, services, listeners, preserved Caddy/Keepalived trees,
+   retained source candidate, original lighttpd tree, and deferred lsyncd/VRRP
+   state.
+
+Expected successful state:
+
+- Lighttpd remains active and enabled but listens only on
+  `127.0.0.1:8080`.
+- Caddy is active but remains disabled, owning TCP 80/443, UDP 443, and only
+  loopback TCP 2019 for administration.
+- The original lighttpd tree is retained at
+  `/etc/.lighttpd-pre-action16ap`; the accepted Action 16ab source candidate
+  remains byte-identical under `/var/tmp`.
+- Caddy API and lsyncd remain inactive/masked; `caddy-lsyncd` remains
+  inactive/disabled; Keepalived remains active/enabled and unchanged; no Caddy
+  VRRP fragment is created.
+- The host must not be rebooted until Caddy boot persistence is separately
+  enabled and validated.
+
+Automatic rollback:
+
+- The rollback is armed before the first copy and before Caddy unmasking.
+- On failure, stop and remask Caddy, reload systemd, reset its failed state,
+  stop lighttpd if promotion occurred, restore the original lighttpd tree,
+  restart it, and require stable original frontend readiness within 20
+  seconds.
+- Remove only the action-created cutover and failed-copy paths. Preserve and
+  revalidate the Action 16ab source candidate.
+- Require the exact original lighttpd tree, semantic frontend listener state,
+  service baseline, Caddy and Keepalived trees, absent Caddy VRRP fragment, and
+  absence of all action-owned `/etc` paths.
+- Complete rollback emits `action_16ap_rollback_complete=true` and returns a
+  nonzero action result. Incomplete rollback emits
+  `action_16ap_rollback_incomplete=true`,
+  `manual_intervention_required=true`, and causes the runner to exit `97`.
+
+Validation and boundaries:
+
+- Driver SHA-256:
+  `de3bea3d3478959ec16c34af4460d804063f3ebf81a7c69b51214867a117159a`.
+- The runner validates success, pre-write failure, complete rollback,
+  incomplete rollback, duplicate evidence, and secret-output rejection. It
+  removes only `/tmp/caddy-action16ap.*` on the workstation.
+- Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests,
+  synthetic transcript tests, bounded readiness and rollback static checks,
+  complete host suite, and full Debian 12 Podman integration passed.
+- No node was contacted during definition. Execution, post-cutover acceptance,
+  boot enablement, synchronization, VRRP, and all later actions require
+  separate authorization.
+
+Execution did not reach acceptance. Remote preflight passed, mutation began,
+and the loopback lighttpd backend became ready. Caddy configuration validation
+passed, but the Caddy activation sequence failed after unmasking. The
+transaction attempted rollback and recreated the Caddy mask, but could not
+prove complete semantic restoration. It emitted:
+
+```text
+action_16ap_failure_status=1
+action_16ap_rollback_incomplete=true
+manual_intervention_required=true
+ssh_exit_status=125
+action_16ap_local_cleanup_complete=true
+```
+
+The workstation runner exited `97`. Therefore Action 16ap is not accepted and
+the plan makes no claim about Node A's current service, listener, lighttpd-tree,
+mask, or action-owned-path state. A separately authorized, fail-closed,
+read-only recovery-state diagnostic is required before any retry, repair,
+cleanup, post-cutover acceptance, or later deployment action.
+
+### Executed read-only recovery diagnostic Action 16ap-a
+
+Action 16ap-a was explicitly authorized and executed once at
+`2026-07-29T05:16:32Z`. Its state observations were deliberately
+non-enforcing: unexpected recovery state was reported rather than hidden
+behind a failed assertion. Its transcript contract remained fail-closed. The
+exact authorized command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-recovery-diagnostic-action16ap-a.sh
+runner_sha=c7c002af58eb5c33369dbc43fbd9676469bdfe2da06978128699cf42a6abc06d
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact read-only collection:
+
+- Node identity, architecture, and systemd version.
+- Load, active, sub, unit-file, result, main-exit, fragment, and drop-in
+  properties for lighttpd, Caddy, Caddy API, lsyncd, Caddy lsyncd, and
+  Keepalived.
+- Type, ownership, mode, size, device, inode, link target, canonical target,
+  and content/tree digest for:
+  `/etc/lighttpd`,
+  `/etc/.lighttpd-pre-action16ap`,
+  `/etc/.lighttpd-caddy-action16ap`,
+  `/etc/.lighttpd-caddy-action16ap.failed`,
+  the retained Action 16ab candidate,
+  Caddy's current link, mask, vendor unit and override, and the Caddy
+  Keepalived fragment.
+- Native parse status and include-line provenance for every possible live,
+  retained, staged, or failed lighttpd tree.
+- Secret-free Caddy validation status plus Caddy and Keepalived tree hashes.
+- All TCP and UDP listeners on ports 80, 443, 8080, and 2019, and matching
+  lighttpd, Caddy, lsyncd, and Keepalived processes.
+- Bounded three-second health results for the loopback lighttpd backend,
+  loopback HTTP frontend, localhost HTTPS, and node-management HTTPS over the
+  physical IPv4 and stable ULA.
+- At most 25 recent Caddy/lighttpd journal records for failure context.
+
+Expected effect:
+
+- The inspector is streamed directly to `sudo -n /bin/bash -s --` on Node A
+  over strict host-key-verified SSH.
+- It creates no remote file, changes no service or unit state, performs no
+  daemon reload, executes no installed synchronization helper, and makes no
+  peer connection.
+- It reports the observed recovery state without accepting that state as
+  healthy, restored, or suitable for retry.
+- The workstation runner creates only a mode-`0700` directory under
+  `/tmp/caddy-action16ap-a.*`, then removes it before returning.
+
+Validation:
+
+- Inspector SHA-256:
+  `d4402abfab7a19f8b8ec3eec83b55f71db0981a6cc6ad5db41aa656e46121a77`.
+- Runner SHA-256:
+  `c7c002af58eb5c33369dbc43fbd9676469bdfe2da06978128699cf42a6abc06d`.
+- The runner requires exact singleton markers, all six unit records, all ten
+  path records, all five lighttpd-tree records, reconciled include/listener/
+  process/journal counts, exactly five named health results, SSH status zero,
+  secret-free printable output, and complete workstation cleanup.
+- Malformed, duplicate, count-inconsistent, secret-bearing, incomplete, or
+  nonzero-SSH evidence returns `97` and is not accepted.
+- Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner
+  self-tests, synthetic success/duplicate/count-inconsistent/secret/
+  nonzero-SSH transcript tests, static no-write/no-service/no-peer scans, the
+  complete host suite, and full Debian 12 Podman integration passed.
+
+Rollback:
+
+- No remote rollback applies because the action is read-only and creates no
+  remote path.
+- If SSH or transcript validation fails, the runner removes only its local
+  `/tmp/caddy-action16ap-a.*` directory and reports failure.
+- No retry, repair, cleanup, service mutation, post-cutover acceptance, or
+  later action is authorized by defining or executing this diagnostic.
+
+Observed result:
+
+- The runner and SSH both exited `0`; every record count reconciled, both
+  completion markers passed, and workstation-local cleanup completed.
+- Lighttpd is loaded, active/running, and enabled. Caddy is
+  masked/inactive/dead with result `success`; Caddy API and lsyncd remain
+  masked/inactive, Caddy lsyncd remains disabled/inactive, and Keepalived
+  remains enabled/active.
+- `/etc/lighttpd` is restored with the exact accepted pre-cutover tree SHA-256
+  `b15ff54d2e91bbecd1d21b762818599d732f01b66ee5d1ef7c24147c72e2cb92`,
+  parses successfully, and includes its live `conf-enabled` path.
+- All three Action 16ap working/retained-failure paths under `/etc` are absent.
+  The Action 16ab source candidate remains `root:root:0750`, parses
+  successfully, and retains exact tree SHA-256
+  `6e178911d34a783e16fca001f7c91dc29098598043bd4c4c4c19af59e81a6c13`.
+- The Caddy mask is restored as
+  `/etc/systemd/system/caddy.service -> /dev/null`. The vendor unit and
+  override retain their accepted hashes. The Caddy Keepalived fragment remains
+  absent.
+- Three frontend listener records match the accepted original lighttpd shape:
+  dual-stack TCP 80 and IPv4 TCP 443. TCP 8080, TCP 2019, UDP 443, and a Caddy
+  process are absent.
+- Loopback HTTP and physical-IPv4 management HTTPS returned `302`. The
+  loopback backend returned curl status `7`, localhost HTTPS returned `35`,
+  and stable-ULA management HTTPS returned `7`, consistent with the observed
+  original lighttpd listener shape rather than a Caddy cutover.
+- Caddy tree SHA-256 is
+  `6ae99faf2cb216466879f15139cdd6614234cf46d796f535387d51ecc9602161`;
+  Keepalived tree SHA-256 is
+  `dad64e4ac7fdbaab2db3454ccf79158b6f41e4973086f9937a7c6b737f0a2f66`.
+- The unresolved result is `caddy_validate_status=1`. Action 16ap-a
+  intentionally suppressed validator detail, so no cause is inferred.
+- Peer connections, installed-helper execution, daemon reload, service
+  mutation, and filesystem mutation were all explicitly false.
+
+Action 16ap-a is accepted as complete read-only diagnostic evidence, but
+recovery is not accepted because Caddy no longer passes the same validation
+that passed before Action 16ap. A narrow, separately authorized read-only
+Caddy validation/provenance diagnostic is required before any repair, cleanup,
+retry, or later action. This was the decision at the Action 16ap-a gate and is
+superseded by accepted Action 16ap-b evidence below.
+
+### Executed dual-node Caddy validation diagnostic Action 16ap-b
+
+Action 16ap-b was explicitly authorized and executed once at
+`2026-07-29T05:27:44Z`. It compared Node A with the accepted working Node B
+without asserting that their release revisions or node-local environment
+values must be identical. The exact authorized command was:
+
+```bash
+runner=Caddy/scripts/run-caddy-validation-provenance-action16ap-b.sh
+runner_sha=325dce1f2aaac8cc82e23b075554cabcc32121e4a5df0af044ed3639cb3e6daf
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Exact read-only collection on each node:
+
+- Fail-closed node-role and hostname binding before evidence collection:
+  `node-a` must be `j1-svpihole0`, and `node-b` must be
+  `j1-svpihole00`.
+- Caddy binary path, binary hash, version command status/output, and installed
+  package status/version/architecture.
+- `/etc/default/caddy-ha` metadata and SHA-256, plus only the non-secret
+  `NODE_ROLE`, `NODE_FQDN`, `NODE_IPV4`, `NODE_IPV6`, and
+  `CADDY_CONFIG_ROOT` values.
+- Current-link target, canonical release path, release-manifest revision,
+  Caddyfile SHA-256, and a configuration-only aggregate hash covering
+  `Caddyfile` and `conf.d`; TLS private-key bytes and private-key hashes are
+  excluded.
+- Caddy systemd load, active, sub, unit-file, user, group, environment-file,
+  start-command, fragment, and drop-in provenance.
+- A bounded, sanitized Caddy validation with the five node/configuration
+  variables explicitly absent.
+- A second bounded, sanitized validation after exporting
+  `/etc/default/caddy-ha`, matching the accepted validator invocation pattern.
+- At most 40 output records per validation mode, with no PEM or private-key
+  material accepted by the runner.
+
+Expected effect:
+
+- The workstation runner streams the same inspector first to Node A at
+  `10.1.0.53`, then to Node B at `10.1.0.54`, using their separate locked
+  host-key aliases.
+- Each inspector runs as root only to read protected configuration metadata
+  and invokes validation as the `caddy` account.
+- No remote file is created. No service command, daemon reload, installed
+  helper, node-to-node peer connection, or filesystem mutation is performed.
+- The runner creates only a mode-`0700` local directory under
+  `/tmp/caddy-action16ap-b.*`, then removes it before returning.
+- The action does not require bare validation to fail or environment-backed
+  validation to pass; it reports both exact statuses and sanitized messages on
+  both nodes before any conclusion is accepted.
+
+Validation:
+
+- Inspector SHA-256:
+  `43fb0866dd95347ff720e8fdccb567b4cb9cb7b332ac87a79ff993b4e45c13d8`.
+- Runner SHA-256:
+  `325dce1f2aaac8cc82e23b075554cabcc32121e4a5df0af044ed3639cb3e6daf`.
+- The runner validates each node independently, requiring exact singleton
+  cardinality, all ten unit properties, all five environment values,
+  reconciled bounded validation records for both modes, expected host
+  identity, SSH status zero, printable secret-free evidence, explicit
+  no-mutation markers, and complete local cleanup.
+- Malformed, duplicate, count-inconsistent, secret-bearing, wrong-host, or
+  nonzero-SSH evidence returns `97` and is not accepted.
+- Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner
+  self-tests, synthetic success/duplicate/count-inconsistent/secret/
+  nonzero-SSH transcript tests, two-host/host-key static checks, no-write/
+  no-service/no-peer scans, the complete host suite, and full Debian 12 Podman
+  integration passed.
+
+Rollback:
+
+- No remote rollback applies because the action is read-only and creates no
+  remote path.
+- On either SSH or transcript failure, the runner removes only its local
+  `/tmp/caddy-action16ap-b.*` directory and returns `97`.
+- Definition or execution does not authorize repair, remote cleanup, cutover
+  retry, service mutation, post-cutover acceptance, synchronization, VRRP, or
+  any later deployment action.
+
+Observed comparison:
+
+- Both nodes use Caddy `v2.11.4` from installed arm64 package `2.11.4` and
+  identical `/usr/bin/caddy` SHA-256
+  `e1f904038fc11ca897ac5a12fdacfb2a7add02a8720c426d562a37f6fdad2afe`.
+- Both nodes use identical Caddyfile SHA-256
+  `a41c7816e927c16278fab018675a3f2db5b2aae89dd5b181f1ecb06ec9beb86e`
+  and identical configuration-only tree SHA-256
+  `763f6a6644a60fc962badcf80bcff53c2ea463e08964674895f5ffa1aeed2fa2`.
+- Node A selects `/etc/caddy/releases/bootstrap`; its release manifest has an
+  empty revision. Node B selects the accepted
+  `/etc/caddy/releases/action15-health-follow-redirects` revision.
+- Node A's environment SHA-256 is
+  `2e439dd4c868736fd7a9dceff7ba3627a1d9fe8780ba7dcef2ce5d0e5e62a2b8`;
+  Node B's is
+  `f692d5b7e0a7e0f0ab142e36face6a8cc8c6680a44a2bcaf6a992247ec4c8113`.
+  Both files source successfully and contain the correct role-specific FQDN,
+  physical IPv4, and stable ULA. `CADDY_CONFIG_ROOT` is intentionally empty,
+  so the Caddyfile default selects `/etc/caddy/current`.
+- Both bare validations return status `1` with the identical error:
+  `server block without any key is global configuration, and if used, it must
+  be first`.
+- Both validations return status `0` and `Valid configuration` after
+  `/etc/default/caddy-ha` is exported. Node A's validation observes its
+  unavailable loopback backend because lighttpd is on the restored frontend;
+  this does not invalidate the configuration.
+- Both systemd definitions reference `/etc/default/caddy-ha`. Node A's active
+  mask hides vendor-unit `User` and `Group` values, while Node B's loaded unit
+  reports `caddy:caddy`; their accepted start command and override path match.
+- Both SSH statuses and the runner status were `0`; every transcript count,
+  secret check, node identity, comparison marker, explicit no-mutation marker,
+  and workstation cleanup marker passed.
+
+Conclusion:
+
+- Action 16ap-a invoked Caddy without the required node environment. Its
+  `caddy_validate_status=1` was a diagnostic-context false negative, not
+  configuration damage.
+- Action 16ap-a already proved Node A's exact original lighttpd tree,
+  listeners, Caddy mask, absent Action 16ap paths, retained source candidate,
+  and deferred services. Action 16ap-b now proves the Caddy configuration is
+  valid under the same environment-backed invocation used by the accepted
+  deployment checks.
+- Node A's pre-cutover operational baseline is independently accepted as
+  recovered without repair. Transactional Action 16ap remains a failed
+  cutover and must not be retried unchanged.
+
+### Defined corrected transactional Action 16ap retry
+
+The corrected retry was defined locally, then separately authorized and
+executed as recorded below. It preserves the original Action 16ap artifacts
+unchanged and adds:
+
+- `scripts/cutover-node-a-lighttpd-caddy-action16ap-retry.sh`
+- `scripts/run-node-a-lighttpd-caddy-cutover-action16ap-retry.sh`
+
+The corrected transaction retains every accepted prerequisite, hash, path,
+service, listener, readiness, stability, health, and rollback assertion from
+Action 16ap. Its only behavioral correction is Caddy failed-state handling:
+
+1. Query `ActiveState` immediately before Caddy start and, if rollback is
+   armed, immediately before rollback stops and remasks Caddy.
+2. Accept only the explicit systemd states `active`, `activating`,
+   `deactivating`, `failed`, `inactive`, or `reloading`. Empty, masked, or
+   unknown values fail closed.
+3. Invoke `systemctl reset-failed caddy.service` only when the observed value
+   is exactly `failed`.
+4. After a reset, prove that `ActiveState` is no longer `failed`.
+5. Emit `caddy_reset_before_start=true|false` as required success evidence.
+   Rollback emits its equivalent reset evidence on stderr.
+
+The bounded rollback remains unchanged except for using the guarded reset
+helper before its existing stop, mask, and daemon-reload sequence. It still
+restores the original lighttpd frontend, removes only action-owned transient
+paths, and proves the complete pre-cutover service, listener, configuration,
+and tree state. An unsupported state, failed reset, incomplete restoration, or
+invalid transcript remains fail-closed and requires manual intervention.
+
+The exact authorized command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-lighttpd-caddy-cutover-action16ap-retry.sh
+runner_sha=a8cceb3a43f984060afa62ad2cacf001235c5b5f6f96e728dc84f87125d82573
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+The expected and observed effect was: Node A lighttpd moved to loopback-only
+TCP 8080, Caddy started on TCP 80/443 and UDP 443 for the physical Node A
+addresses, Caddy remained disabled, and all synchronization and Keepalived
+Caddy-VRRP services remained inactive and unchanged.
+
+Immediate validation is embedded in the runner: exact local driver provenance,
+remote preflight, bounded lighttpd and Caddy readiness, dual-stack management
+HTTPS, localhost health, listener ownership, service states, unchanged Caddy
+and Keepalived trees, retained source candidate, transcript cardinality, and
+secret-output exclusion. The runner returns `0` only after the complete
+success contract. A complete automatic rollback returns the triggering
+nonzero status; an incomplete rollback is normalized to `97` locally with
+manual-intervention evidence.
+
+### Executed corrected transactional Action 16ap retry
+
+The corrected Action 16ap retry was explicitly authorized and executed once
+at `2026-07-29T05:40:19Z`. Local ownership, mode, and SHA-256 validation pinned
+the runner to
+`a8cceb3a43f984060afa62ad2cacf001235c5b5f6f96e728dc84f87125d82573`;
+the runner pinned the driver to
+`ff413bb040f4a6d318d27f87bb9cef198cd2ba7b8f653d3f1a9834b689838b9e`.
+
+Observed evidence:
+
+- Strict host-verified SSH, the remote transaction, and the workstation runner
+  all returned `0`.
+- Preflight and mutation markers passed.
+- Environment-backed Caddy configuration validation returned
+  `Valid configuration` before and after activation.
+- `lighttpd_backend_ready=true` proved active loopback-only backend service on
+  TCP 8080.
+- Caddy's pre-start `ActiveState` was `inactive`, not `failed`, so the
+  corrected guard emitted `caddy_reset_before_start=false` and did not invoke
+  `systemctl reset-failed`.
+- `caddy_ready=true` proved Caddy service activity, TCP 80/443 and UDP 443
+  ownership, loopback administration, localhost HTTPS health, and direct
+  IPv4/IPv6 management HTTPS.
+- Caddy remained disabled after activation. Keepalived remained active/enabled;
+  the Caddy VRRP fragment remained absent. lsyncd remained inactive/masked and
+  `caddy-lsyncd` remained inactive/disabled.
+- Source candidate tree SHA-256 remained
+  `6e178911d34a783e16fca001f7c91dc29098598043bd4c4c4c19af59e81a6c13`.
+  The promoted lighttpd tree is
+  `95a8752f86f1f475d7b8fd12090379c4ae46b9f4140212c7405586c222383372`;
+  retained original lighttpd is
+  `b15ff54d2e91bbecd1d21b762818599d732f01b66ee5d1ef7c24147c72e2cb92`.
+- Caddy tree SHA-256 remained
+  `6ae99faf2cb216466879f15139cdd6614234cf46d796f535387d51ecc9602161`;
+  Keepalived tree SHA-256 remained
+  `dad64e4ac7fdbaab2db3454ccf79158b6f41e4973086f9937a7c6b737f0a2f66`.
+- `peer_connections=false`, `lsyncd_configuration_changes=false`, and
+  `keepalived_configuration_changes=false` passed.
+- `action_16ap_retry_cutover_complete=true`,
+  `action_16ap_retry_local_cleanup_complete=true`, and SSH status `0` passed.
+
+The rollback was armed but not invoked because all readiness and acceptance
+checks passed. The corrected Action 16ap retry and Node A cutover are accepted.
+No independent post-cutover inspection, synchronization, Caddy persistence,
+VRRP, or later action was authorized or performed.
+
+### Defined independent read-only Action 16aq
+
+Action 16aq is a separately defined, fail-closed, independent post-cutover
+acceptance check for Node A. It does not reuse the transaction process or
+retain anything remotely. It was subsequently authorized and executed as
+recorded below.
+
+The inspector verifies:
+
+- Root execution, exact Node A hostname, architecture, physical IPv4, stable
+  ULA, and all required read-only commands.
+- The exact promoted, retained-original, and retained-candidate lighttpd
+  trees; native parsing; loopback binding; TCP 8080; disabled lighttpd TLS;
+  and absence of incomplete or failed Action 16ap paths.
+- The exact bootstrap release, current symlink, environment, Caddyfile,
+  routes, override, vendor unit, package, Caddy tree, and Keepalived tree.
+- Environment-backed Caddy validation; certificate validity for at least
+  30 days; wildcard SAN; private-key correspondence without outputting key
+  material; and byte-equivalent served and installed leaf certificates.
+- Caddy active/running with `Result=success`, disabled boot state,
+  `Type=notify`, exit status zero, and 30-second stop timeout.
+- lighttpd and Keepalived active/enabled; `caddy-api` inactive/masked; lsyncd
+  inactive/masked; `caddy-lsyncd` inactive/disabled; and absent lsyncd and
+  Caddy-VRRP configuration.
+- Exclusive Caddy ownership of TCP 80/443 and UDP 443; loopback-only lighttpd
+  TCP 8080; loopback-only Caddy TCP 2019; and exact Caddy, lighttpd, and
+  lsyncd process counts.
+- Backend HTTP, localhost HTTPS `204`, dual-stack management HTTP/1.1 and
+  HTTP/2, unknown-host `421` rejection, and bounded Caddy journal exclusion of
+  upstream health-tolerance failures and local-root trust-install attempts.
+
+Every assertion is labeled. A state mismatch produces a complete transcript,
+`action_16aq_post_cutover_valid=false`, and semantic status `1`. The
+workstation runner rejects missing, duplicate, malformed, inconsistent,
+non-printable, secret-bearing, hash-invalid, or SSH-status-inconsistent
+evidence with status `97`. It removes only its protected
+`/tmp/caddy-action16aq.*` workspace.
+
+Expected effect: no remote state change. Successful execution returns `0` only
+after every assertion, evidence value, completion marker, and local cleanup
+check passes. No rollback is applicable because the remote inspector is
+read-only and creates no remote path.
+
+The exact authorized command was:
+
+```bash
+runner=Caddy/scripts/run-node-a-post-cutover-acceptance-action16aq.sh
+runner_sha=b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+### Executed independent read-only Action 16aq
+
+Action 16aq was explicitly authorized and executed once at
+`2026-07-29T05:52:24Z`. The exact inspector and runner hashes were
+`67c6c1eca8d3af1820607e3c0a9d548c439d1bdce97a68676ca793d24492d90f`
+and
+`b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348`.
+
+The inspector completed all 104 labeled assertions. One hundred passed:
+
+- Node identity, physical IPv4, stable ULA, architecture, and all command
+  prerequisites.
+- Exact promoted, retained-original, and retained-candidate lighttpd tree
+  hashes; live native parsing; action-path cleanup; and exclusive loopback
+  lighttpd TCP 8080 listener ownership.
+- Exact Caddy and Keepalived trees, bootstrap release, environment, routes,
+  override, vendor unit, package, and environment-backed validation.
+- Certificate validity, wildcard SAN, private-key correspondence, and served
+  leaf identity. Served leaf DER SHA-256 was
+  `9480cfd689e5804a103ca192849e3ef5810b4e1c37918fbcc2815e864da5580c`;
+  expiry remained `Jan 19 23:59:59 2027 GMT`.
+- Caddy active/running, `Result=success`, disabled, `Type=notify`, main status
+  zero, and 30-second stop timeout.
+- lighttpd and Keepalived active/enabled; deferred Caddy API, lsyncd,
+  `caddy-lsyncd`, and Caddy-VRRP state unchanged.
+- Exclusive Caddy ownership of TCP 80/443 and UDP 443; loopback-only Caddy
+  administration; exact process counts.
+- Backend `302`, localhost HTTPS `204`, and IPv4/IPv6 HTTP/1.1 and HTTP/2
+  management responses of `302`.
+- Seventy-two bounded Caddy journal records with no upstream health-tolerance
+  failure or trust-install attempt.
+
+Four assertions failed:
+
+1. `live_lighttpd_loopback_binding`
+2. `live_lighttpd_port`
+3. `live_lighttpd_ssl_disabled`
+4. `unknown_host_rejected`
+
+The first three checks assumed those directives would exist in
+`/etc/lighttpd/conf-enabled/99-caddy-ha.conf`. The exact promoted tree,
+native parser, exclusive `127.0.0.1:8080` listener, process, and backend checks
+all passed, so these are location/representation assumptions in the inspector,
+not evidence of a failed lighttpd cutover. Their actual directive provenance
+was not collected and is not inferred.
+
+The unknown-host probe returned `200`, not the required `421`. The cause is
+not inferred. A narrow diagnostic must distinguish Caddy routing behavior,
+request authority/SNI handling, and client behavior before the policy or
+validator is changed.
+
+SSH returned the expected semantic mismatch status `1`, but the workstation
+runner returned `97`. Its contract incorrectly hard-required
+`unknown_host_code=421` before evaluating the labeled mismatch result, so it
+reclassified a complete, internally consistent mismatch transcript as a
+contract failure. This is a runner defect and must be corrected only after the
+actual routing behavior is diagnosed.
+
+No remote path was created and no service, filesystem, daemon-reload, helper,
+peer, synchronization, or VRRP mutation occurred. Workstation cleanup passed.
+Action 16aq is not accepted. No correction, retry, or later action is
+authorized.
+
+### Defined narrow read-only Action 16aq-a
+
+Action 16aq-a was defined and fully validated in the local repository at
+`2026-07-29T06:01:18Z`. It has not been authorized or executed.
+
+The non-enforcing remote diagnostic records:
+
+- Node identity and the status of all 15 required commands.
+- Every recursively discovered `server.bind`, `server.port`, and `ssl.engine`
+  directive with its source file and line number.
+- lighttpd include records, every direct `conf-enabled` entry and symlink
+  target, the filtered effective `lighttpd -p` output, and the actual TCP 8080
+  listener.
+- Environment-backed Caddy adaptation and the live loopback-admin route tree,
+  each reduced to secret-safe JSON route records.
+- Five direct `curl --noproxy '*'` HTTPS probes that independently vary TLS
+  SNI and HTTP `Host`: unknown default, known default, known SNI with unknown
+  host, unknown SNI with known host, and IP SNI with unknown host.
+- Allowlisted response headers, probe status, remote address, HTTP version,
+  and TLS verification result for each probe.
+- Explicit no-filesystem-mutation, no-service-mutation, no-daemon-reload,
+  no-helper, no-peer-connection, and no-VRRP-mutation markers.
+
+The workstation runner pins the remote diagnostic hash, connects only to
+`pi@10.1.0.53` with strict host-key alias
+`pihole0.local.theama.co`, and fail-closes on missing, duplicate, malformed,
+count-inconsistent, secret-bearing, or nonzero-SSH evidence. Diagnostic values
+are observations, not acceptance assertions: the diagnostic exits `0` after
+complete collection even when the observed routing behavior differs from
+policy.
+
+Expected effect: no Node A state change. The only local state is a protected
+temporary transcript directory removed by the runner before it exits. No
+rollback is applicable because the remote diagnostic is read-only and creates
+no path.
+
+The exact separately authorizable command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a.sh
+runner_sha=e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Immediate validation requires runner exit `0`, exact singleton and repeated
+record cardinality, reconciled counts, exactly five uniquely named probes,
+valid route JSON, both completion markers, every explicit no-mutation marker,
+no secret-bearing output, and complete local cleanup. Any failure stops
+progression. Correcting configuration or Action 16aq requires a later,
+separately defined and authorized action based on the observed evidence.
+
+Action 16aq-a was explicitly authorized and executed once at
+`2026-07-29T06:07:59Z`.
+
+The remote collector completed with SSH status `0` and emitted its completion
+marker. Every command prerequisite returned `0`. All explicit peer, helper,
+daemon-reload, service, filesystem, and VRRP mutation markers were false.
+Workstation cleanup completed.
+
+Observed lighttpd provenance:
+
+- `/etc/lighttpd/lighttpd.conf` line 14 sets `server.port = 8080`.
+- `/etc/lighttpd/lighttpd.conf` line 15 sets
+  `server.bind = "127.0.0.1"`.
+- The only discovered `ssl.engine = "enable"` directives are in
+  `conf-disabled-by-caddy-ha/external.conf` and
+  `conf-available/10-ssl.conf`; neither path is enabled.
+- The effective native print contains only the loopback bind and TCP 8080
+  port. Native parsing returned `0`.
+- Exactly one TCP 8080 listener exists at `127.0.0.1:8080`, owned by
+  lighttpd.
+
+This evidence resolves the three Action 16aq fragment-location assumptions:
+the required effective lighttpd state is present, but its bind and port
+directives are in the main configuration rather than
+`conf-enabled/99-caddy-ha.conf`.
+
+Adapted and runtime Caddy route summaries matched with six records each:
+node management, the two shared VIP hosts, localhost health, HTTPS catch-all,
+and HTTP catch-all. Both adaptation and runtime collection returned `0`.
+
+The five direct no-proxy probes observed:
+
+| Probe | curl | HTTP | Server/result |
+| --- | ---: | ---: | --- |
+| Unknown SNI and matching unknown Host | `0` | `200` | Caddy, empty response |
+| Known SNI and matching management Host | `0` | `200` | lighttpd, HTML response |
+| Known SNI and unknown Host | `0` | `421` | Caddy, empty response |
+| Unknown SNI and known Host | `0` | `421` | Caddy, empty response |
+| IP SNI and unknown Host | `35` | `000` | TLS negotiation failed; no HTTP headers |
+
+The observations prove that strict SNI/Host mismatch handling returns `421`,
+while a matching unknown SNI and Host reaches the HTTPS catch-all and returns
+`200`. The reason that catch-all emits `200` is not inferred because the route
+summary intentionally omitted static-response handler fields.
+
+The runner returned `97`, so Action 16aq-a is not accepted as a validated
+runner transaction. Local inspection proved the failure is a transcript
+contract defect: the collector's `sanitize_line` self-test intentionally
+converts embedded `|` delimiters to `%7C`, while the runner's probe regex
+requires literal embedded delimiters. The complete evidence used the intended
+encoding and was rejected. No retry, runner correction, expanded collector,
+configuration correction, or later action is authorized.
 
 ## Deviation Log
 
 | Date | Phase | Planned behavior | Actual change | Rationale | Impact | Approval | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-29 | Staged gitleaks validation | Reject secret-bearing staged content while permitting public configuration-integrity hashes | The default `generic-api-key` rule classified 11 occurrences of three public SHA-256 pins as secrets because their variable names contained `key`, `keyring`, or `api`; `.gitleaks.toml` now allows only the three exact detector matches and exact hash values | Preserve deployed artifact hashes and the living journal while avoiding a broad path, rule, entropy, or hexadecimal allowlist | Gitleaks still scans every staged file and rejects any different value or unrelated secret; the exact staged tree reports no leaks | Minor mechanical validation correction after the commit hook failed; no live deployment scope changed | Retain the exact-value allowlist with the corresponding public artifacts and rerun the complete staged pre-commit suite |
+| 2026-07-29 | Action 16aq-a probe transcript contract | Validate five safe probe records after the collector percent-encodes embedded field delimiters | Collector correctly emitted `%7C` according to its self-test, but runner regex required literal embedded pipe delimiters and returned `97` after SSH `0` and complete cleanup | The synthetic runner contract generated literal delimiters and did not exercise the collector's encoded production format | Complete read-only observations were collected and no state changed, but the runner transaction is unaccepted and cannot be retried unchanged | User authorized exact read-only Action 16aq-a only | Separately define a corrected encoded-field validator and extend route evidence enough to explain the HTTPS catch-all `200` before any retry |
+| 2026-07-29 | Action 16aq lighttpd directive provenance | Verify loopback bind, TCP 8080, and disabled TLS through `/etc/lighttpd/conf-enabled/99-caddy-ha.conf` | All three file-specific checks failed, while the exact promoted tree, native parse, exclusive loopback listener, process, and backend checks passed | The inspector assumed a fragment location that the accepted preparation process did not guarantee | Three false mismatches prevent Action 16aq acceptance but do not invalidate the independently observed lighttpd runtime state | User authorized exact read-only Action 16aq only | Define a narrow read-only diagnostic to locate the effective directives before correcting the inspector |
+| 2026-07-29 | Action 16aq unknown-host and mismatch contract | Require unknown HTTPS host rejection status `421` and preserve any valid state mismatch as semantic status `1` | Node A returned `200`; the inspector correctly marked a mismatch and SSH returned `1`, but the runner hard-required `421` before mismatch evaluation and returned `97` | Actual routing behavior requires diagnosis; mismatch transcripts must permit safe observed values while retaining the labeled policy failure | Unknown-host policy remains unresolved and the runner obscured the otherwise complete semantic mismatch | User authorized exact read-only Action 16aq only | Define a narrow read-only routing/provenance diagnostic, then correct both policy validation and mismatch transcript handling under separate authorization |
+| 2026-07-29 | Action 16ap Caddy reset semantics | Unconditionally run `systemctl reset-failed caddy.service` before start and during rollback | Node A systemd returned `Unit caddy.service not loaded` for the inactive non-failed unit; the transaction treated that nonzero result as fatal, and rollback treated the same result as incomplete | `reset-failed` is unnecessary unless the unit is actually failed and is not idempotent for this observed masked/unmasked lifecycle | Caddy start was never attempted; lighttpd was restored, but Action 16ap emitted manual-intervention status until independent diagnostics proved recovery | User authorized the original transaction, read-only recovery/provenance diagnostics, and the exact corrected retry separately | Resolved: the accepted retry queried `ActiveState`, skipped reset for observed `inactive`, preserved all other transaction controls, and completed successfully |
+| 2026-07-29 | Action 16ap-a Caddy validation context | Revalidate the installed Caddy configuration during read-only recovery inspection | The inspector invoked Caddy without exporting `/etc/default/caddy-ha`, unlike every accepted deployment validator | The Caddyfile requires node-local `NODE_FQDN`, `NODE_IPV4`, and `NODE_IPV6`; absent values produce an empty server key before semantic validation | Action 16ap-a reported status `1` even though the configuration was intact, delaying recovery acceptance without changing either node | User authorized exact dual-node read-only Action 16ap-b | Resolved: both nodes fail identically without the environment and pass with it; future validators must source the environment before Caddy validation |
 | 2026-07-27 | Planning | File logs covered by logrotate | Journald-only logging | Journald has native retention and rotation; duplicate file logs add operational state | No Caddy-specific logrotate rule | User approved | Validate journald retention during deployment |
+| 2026-07-28 | Deployment sequence | Run a fresh Node B continuity check before the Node A action 16a refresh | The user directly authorized action 16a first, so only the Node A read-only collector ran at that gate; the Node B continuity inspector ran afterward under separate authorization | Honor each exact authorization boundary without expanding it to another host | No live state changed; the checks ran in reversed order, and the later continuity result restored the prerequisite before any Node A mutation | User explicitly authorized each read-only action separately | Resolved at `2026-07-28T18:37:58Z`; proceed only through the next separately authorized Node A gate |
+| 2026-07-28 | Node A rollback preparation | Reuse the validated rollback-backup interface for either node | The deployed repository script accepted only `node-b` | The Node B action 5 implementation predated the Node A repeat and encoded Node B identity directly | Script now accepts only `node-a` or `node-b` and maps each role to its locked hostname and IPv4 address before any write | User authorized definition of the next single Node A action | Pin the corrected hash and require separate authorization before streaming it to Node A |
+| 2026-07-28 | Living-plan observation placement | Record the Node A rollback baseline and prerequisite state in the Node A table | Both rows initially landed in the Node B table because the patch matched their shared `Existing target files` row | The two observation tables use an identical mechanical anchor | Documentation only; no live state or recorded value changed | Minor mechanical correction during action 16d definition | Rows moved to the correct Node A table and Markdown validation required |
+| 2026-07-28 | Action 16d service impact | Install two data-only prerequisite packages without changing unrelated services | Needrestart restarted `webmin.service` during the package transaction | The host's Needrestart policy selected Webmin; the package transaction itself remained exactly bounded | Independent Webmin application restarted; no Caddy, Pi-hole, Unbound, Keepalived, listener, or configuration impact was reported | User confirmed the restart and explicitly directed acceptance | Diagnostic action 16d-a canceled; retain the restart as accepted deployment evidence |
+| 2026-07-28 | Action 16n inhibition validation | Require the Node B-era message `policy-rc.d denied execution of start` | Node A emitted `/usr/sbin/policy-rc.d returned 101, not running 'start caddy.service'` | Both messages prove the same exit-101 inhibition; exact human-readable output varies by the invoked helper path | Successful installation was rejected after safe inhibition; the included rollback purged Caddy and reported complete | User authorized the transaction and bounded rollback; no retry authorized | Independently verify rollback, then replace the brittle message assertion with semantic exit-101 plus inactive/masked/process/listener checks before presenting a retry |
+| 2026-07-28 | Action 16n-b manual-package validation | Stream `apt-mark showmanual` directly into quiet exact-match `grep` under `pipefail` | Capture the complete read-only output before exact-match validation | Quiet `grep` exited after finding Caddy and closed the long producer pipe, so `apt-mark` received SIGPIPE and SSH returned `141` | No Node A mutation; the zero-change APT simulation passed, but independent acceptance remained incomplete | Minor mechanical correction after the authorized read-only attempt | Corrected inspector is locally validated; retry requires separate authorization |
+| 2026-07-28 | Action 16p lsyncd lifecycle validation | Match literal `invoke-rc.d lsyncd start` | Pin the package `postinst` hash and validate `_dh_action=start` plus `invoke-rc.d lsyncd $_dh_action` | Debian helper-generated code selects `start` indirectly on first install and `restart` when a prior-version argument exists | No package installation or service command ran; transient cleanup requires independent confirmation | Minor mechanical correction after authorized transient attempt | Run read-only cleanup gate 16p-a before separately authorizing the corrected audit retry |
+| 2026-07-28 | Action 16q absent lsyncd enablement | Require literal `not-found` from guarded `systemctl is-enabled` | Accept empty or `not-found` only after `LoadState=not-found` and `ActiveState=inactive` are proven | Node A systemd emits no stdout for this absent unit while returning nonzero | No mutation; initial preinstallation validation stopped before simulation | Minor mechanical correction based on authorized diagnostic | Separately authorize corrected action 16q retry |
+| 2026-07-28 | Action 16t pre-simulation pipelines | Stream `ip` and `apt-cache policy` directly into early-exiting consumers under `pipefail` | Capture each complete producer output in shell memory before matching or extraction | Diagnostic 16t-a proved every expected value; either early consumer can close its producer and surface exit `141` despite a valid match | No Node A mutation; initial simulation did not run | Minor mechanical correction based on authorized diagnostic | Separately authorize corrected action 16t retry |
+| 2026-07-28 | Action 16x-a labeled package diagnostic | Collect all 12 package checks without stopping at a mismatch | The diagnostic identified the Bash conffile integrity mismatch, then failed on the first hyphenated package because repository-profile `shfmt` had converted unquoted associative-array keys into arithmetic expressions | The Bash parser accepts both forms and static validation did not exercise the live associative-array lookup | Exact action 16x failure is known, but the diagnostic did not produce a 12-package completion marker; Node A remained unchanged | User authorized only the exact read-only diagnostic; no correction or retry is authorized | Quote hyphenated associative-array keys, add a regression test, and report conffile changes separately from package-payload changes before any separately authorized retry |
+| 2026-07-28 | Corrected action 16x retry package-verification policy | Permit only the previously observed Bash conffile record and reject every other difference | Procps also reports a modified conffile record for `/etc/sysctl.conf`; the validator stopped before the final three packages | Fail closed on an unobserved difference instead of assuming all package conffile state from the initial partial diagnostic | Node A remained unchanged; action 16x is unaccepted and remaining package verification state is unknown | User authorized only the exact read-only retry; no expanded allow-list or further retry is authorized | Define a non-enforcing diagnostic that safely collects all 12 package results before deciding whether and how to revise validation policy |
+| 2026-07-28 | Revised action 16x retry2 post-package evidence | Expect the retained command/version and later convergence checks to pass after package-policy correction | The validator stopped silently immediately after all 12 package checks passed | Command substitutions and version assertions are evaluated before the first version label, so the transcript cannot identify the exact failing command or assertion | Node A remained unchanged; two-conffile policy is validated, but overall convergence remains unaccepted | User authorized only the exact read-only retry2; no diagnostic, correction, or retry is yet authorized | Define a labeled read-only diagnostic for every command capture and version match before modifying the validator |
+| 2026-07-28 | Action 16x command-path policy | Require every command path, including `/usr/sbin/ip`, to be a regular non-symlink executable | `/usr/sbin/ip` is an executable root-owned mode-`0777` symbolic link of length 7; all ten version probes and the other 12 path probes matched | The retry2 validator encoded a path-shape assumption that does not match Node A's installed iproute2 layout | Retry2's immediate stop is localized, but the link target and package ownership remain unverified; Node A was unchanged and action 16x remains unaccepted | User authorized only exact non-enforcing read-only diagnostic action 16x-c; no correction or retry is authorized | Define and separately authorize a read-only action 16x-d to capture link text, canonical target, target metadata, package ownership, and unchanged inventory/audit before revising policy |
+| 2026-07-29 | Node A systemd staging source | Repeat Node B Action 14b's 16 artifact bytes | Use the same artifact set but stage the later accepted Caddy override containing `TimeoutStopSec=30s`; aggregate digest is therefore `305120fd...6e15` rather than Node B Action 14b's historical `01417956...4e6` | Node B's timeout investigation proved the package five-second stop timeout was insufficient; the corrected override was approved, locally validated, and installed on Node B during accepted Action 15 | Node A will converge directly on Node B's current accepted timeout behavior and avoids staging a known-superseded artifact; no live state changed during definition | User previously approved the Action 15 design correction and authorized Action 16am definition | Pin the corrected override and new aggregate digest; require separate authorization before staging |
+| 2026-07-29 | Action 16am workstation success validation | Reject failure, rollback, or manual-intervention evidence after a successful remote stage transaction | The final negative scan used broad pattern `=false$`, which also matched the required success evidence `systemd_daemon_reload_performed=false` and `service_mutations=false`; the runner exited `97` after remote completion | Negative Boolean values are valid success evidence for explicitly prohibited mutations and must be distinguished from assertion failures | Remote evidence reports the exact retained inactive stage and unchanged protected state, but Action 16am remains unaccepted until independent read-only verification; no retry or cleanup was attempted | User authorized only exact Action 16am and its bounded cleanup; no diagnostic, correction, retry, installation, or removal is authorized | Define and separately authorize fail-closed read-only Action 16am-a, then correct and regression-test the local validator before reuse |
+| 2026-07-29 | Action 16am-a transcript label cardinality | Emit Boolean assertions and final observed stage values for auditability, then require one occurrence of each final value prefix | Boolean assertions and observed values used the same `stage_file_count` and `stage_digest` prefixes, so the runner's exact-one generic loop rejected a complete zero-mismatch transcript | Assertion labels and observed-value labels must be disjoint before exact cardinality can distinguish duplicate evidence from intentionally different evidence | Node A remained unchanged and the initial inspector independently reported the intended retained stage and protected baseline; the initial Action 16am-a attempt remained unaccepted | User authorized only exact read-only Action 16am-a at the failing gate | Resolved at `2026-07-29T03:47:00Z`: corrected disjoint labels and synthetic transcript tests passed, and the separately authorized corrected retry was accepted |
+| 2026-07-29 | Host-suite legacy static guards | Count Action 16ak-c's two bounded `chmod` calls and distinguish inspection of the Action 16ak-e receiver file from helper execution | Broaden the `chmod` expression to recognize both a line-leading command and `if ! chmod`; require exactly one Action 16ak-e helper-path reference plus its named receiver-contract inspection | The earlier expressions missed the valid `if ! chmod` call and treated `"$receiver"` passed to `grep` as execution; neither underlying deployment script changed | Local test logic only; no deployment artifact, live host, repair behavior, or authorization boundary changed | Minor mechanical corrections during the authorized Action 16am-a definition after the host suite exposed both stale assertions | ShellCheck, shfmt, the complete host suite, pre-commit, Markdown lint, and diff checks must all pass before presenting Action 16am-a |
+| 2026-07-28 | Action 16x-d ownership query coverage | Query link, literal-target, and canonical-target ownership before revising the validator | The collector retained literal link text `/bin/ip` but normalized it to `/usr/bin/ip` before ownership and package-file-list checks, so `/bin/ip` was never queried | On a merged-/usr system, canonicalization can change a dpkg-registered package path; ownership queries must preserve both raw and canonical aliases | Link chain and target integrity are established, but package ownership remains unverified; Node A was unchanged and action 16x remains unaccepted | User authorized only exact read-only action 16x-d; no correction or retry is authorized | Define and separately authorize read-only action 16x-e to query `/bin/ip`, capture the complete iproute2 file list entries for `ip`, and reconcile raw and canonical paths |
+| 2026-07-28 | Action 16x-e dpkg control-file lookup | Pass dotted installed filename `.list` to `dpkg-query --control-path` | Node A rejected the argument with `control file contains .`; the command requires logical name `list` | `dpkg-query` adds the filename punctuation when resolving a named control file | No accepted ownership evidence and no completion marker; Node A remained unchanged and action 16x remains unaccepted | User authorized only exact read-only action 16x-e; no correction or retry is authorized | Define a corrected retry using `dpkg-query --control-path iproute2 list`, add a grammar regression check, and separately authorize execution |
+| 2026-07-28 | Corrected action 16x-e list-file provenance | Use logical control-file name `list` after `.list` was rejected | Definition-time live local grammar validation returned an empty path with exit `0`; the corrected retry instead anchors on existing `md5sums` and derives the architecture-qualified `.list` path from `${binary:Package}` | `list` is not exposed as a named control file by the validated dpkg implementation even though the internal package-info list file exists | Prevents a second silent empty-path failure; no live node or validator change | Minor mechanical safety correction during the user-authorized definition; no retry execution authorized | Execute only the pinned corrected retry after separate authorization and verify its package-control provenance on Node A |
+| 2026-07-28 | Corrected action 16x-e ownership reconciliation | Expect dpkg ownership on raw `/bin/ip` and treat canonical/frontend aliases separately | Node A confirmed iproute2 owns `/bin/ip`; `/usr/bin/ip` and `/usr/sbin/ip` are unregistered merged-/usr aliases, while package file entries are `/bin/ip` and `/sbin/ip` | dpkg records package paths before merged-/usr canonicalization; inode and SHA-256 equality prove raw and canonical target identity | The exact link chain and owning package are now established without relaxing other executable-path checks; Node A remained unchanged | User authorized only the corrected read-only diagnostic retry; no validator correction or execution is authorized | Define a revised fail-closed action 16x retry3 pinned to the exact link text, package ownership/list entry, target metadata/hash, and raw/canonical identity |
+| 2026-07-28 | Node A action 16y rollback boundary | Node B action 9 retained created identities and required separate removal authorization after a failure; its canonical installer used `useradd --create-home` | Define bounded automatic semantic rollback on Node A using fresh absence checks, per-object creation flags, `--no-create-home`, explicit protected-directory creation, nonrecursive user deletion, and empty-directory removal | Avoids untracked `/etc/skel` content and lets rollback remove only known empty directories without recursive deletion; runtime identity properties remain aligned with Node B | Failure cleanup is narrower and immediate, but account-database backup files are not represented as byte-identical rollback | Definition only; execution and included rollback require explicit authorization together | If authorized, accept only complete success or `service_identity_rollback_complete=true`; exit `97` or manual-intervention marker stops progression |
+| 2026-07-28 | Node A action 16aa target creation | Node B action 10 second retry used an overwrite-capable install after checking target absence | Use a randomized same-directory stage and exclusive hard-link target creation, with inode-aware rollback for the flag-assignment boundary | Eliminates the precheck-to-copy overwrite race and keeps byte-exact same-filesystem installation without broad cleanup | Intended target bytes, ownership, mode, and runtime behavior remain identical; only collision behavior is stricter | Definition only; execution and included rollback require explicit authorization together | If authorized, require exclusive creation, zero staging, exact hash, and the expected conditional write markers |
+| 2026-07-28 | Node A action 16ab staging transaction | Node B action 11 streamed the renderer and then ran a separate strict validation; its first accepted preparation retained a mode-`0755` stage that required a later correction | Use one hash-pinned archive stream and transaction, the corrected renderer that reasserts mode `0750`, same-session strict validation, and automatic source/candidate cleanup on failure | Avoids the split-command evidence gap and prevents retaining a known-invalid partial candidate while preserving the same inactive transformation | No live lighttpd or service behavior changes; collision and failure handling are stricter, and the successful candidate remains under `/var/tmp` | Definition only; execution and included cleanup require explicit authorization together | If authorized, require both completion markers, zero source-stage residue, candidate mode `0750`, native parsing, and unchanged live/protected state |
+| 2026-07-29 | Action 16ak preflight observability | Emit one preflight-complete marker after aggregate fail-closed validation | The exact action exited `1` with empty remote output before that marker | Aggregate validation uses silent assertions, so an early mismatch cannot identify the failed invariant or prove remote-driver reachability | No action acceptance or rollback claim is possible; Node A synchronization state must be independently inspected before retry or cleanup | User authorized only exact Action 16ak and its rollback; no diagnostic or correction is authorized | Define a labeled, read-only Action 16ak-a that collects all preflight and live-target results before revising the transaction |
+| 2026-07-29 | Action 16ak-a retained-stage metadata evidence | Inspect retained-stage continuity and locate the exact preflight failure | The diagnostic identified `retained_stage_meta` as the sole mismatch but emitted only a Boolean, not the observed root tuple | The collector intentionally minimized output to safe Booleans and target metadata, but the retained public-stage root metadata is non-secret and required to design a precise correction | Action 16ak is proven pre-write and no cleanup is needed, but the metadata correction cannot be defined without another read-only observation | Action 16ak-a execution only was authorized; no follow-up inspection or correction is authorized | Define a narrow read-only Action 16ak-b that captures exact root and parent metadata plus available ACL state |
+| 2026-07-29 | Action 16aj-e retained-stage root mode | Retain the public stage as observed `root:root:0750` after archive extraction | Action 16ak-b observed correct `root:root` ownership but mode `0700`; a disposable local reproduction showed that the archived root `.` entry reset a pre-created `0750` destination to its payload-root mode `0700` | The driver validated the destination before extraction, did not reassert or revalidate its mode afterward, and emitted a hard-coded final `0750` marker instead of an observed value | Stage contents, protected state, and live-target absence remain valid; the more restrictive mode caused Action 16ak to stop before writes and does not satisfy the intended group-access contract | Only read-only Action 16ak-b was authorized; no metadata repair or transaction retry is authorized | Define a regression-tested post-extraction mode assertion and separately authorize bounded metadata-only repair Action 16ak-c before retrying Action 16ak |
+| 2026-07-29 | Action 16ak-c metadata rollback semantics | Restore the pre-action security-relevant directory metadata if post-repair validation fails | Rollback can restore mode `0700`, ownership, inode/device identity, and child state, but cannot restore the directory ctime changed by chmod | Linux ctime is kernel-maintained and cannot be set back through a safe metadata-only transaction | A failed repair with successful rollback remains visibly auditable through ctime while restoring access controls and all validated content/identity state; no service or file-content effect | Definition only was authorized; no live chmod or rollback is authorized | Record pre/post timestamps if Action 16ak-c is authorized and treat mode/content/identity validation, not ctime equality, as rollback acceptance |
+| 2026-07-29 | Corrected Action 16ak retry evidence | Reuse the original transaction after repairing its only observed preflight mismatch | Pin the independently accepted stage inode/device and package inventory, emit a mutation-start marker, and require explicit successful rollback evidence after any post-mutation SSH failure | The initial runner exited directly on nonzero SSH and could not distinguish a safe pre-write stop from an unproven post-write interruption | Transaction behavior is unchanged on success; failure handling and drift rejection are stricter, and missing rollback evidence now exits `97` | Definition only was authorized; no key, helper, authorization, peer, or service change is authorized | Execute only the new pinned runner after separate authorization and stop on any nonzero or rollback marker |
+| 2026-07-28 | Workstation action 16ac failure localization | Fail closed on any certificate-stage continuity difference while emitting only safe final evidence | The validator exited silently at the first failing assertion, so the safe transcript cannot identify the failed boundary | Secret suppression was correct, but unlabeled assertions made the failed read-only gate non-diagnostic | No secret exposure or explicit write; certificate-stage continuity remains unresolved and Node A transfer is blocked | User authorized only exact action 16ac; no diagnostic or retry authorized | Define a separate labeled diagnostic that reports only Boolean/status/metadata categories and accepted public hashes, never PEM, private-key bytes, or private-key hash |
+| 2026-07-28 | Action 16n rollback artifact scope | Require zero Caddy references even in inactive account backup files | Four standard backup files retain historical Caddy records after `userdel`; one verified package remains in APT archive cache | Account-management backup files preserve prior states and APT cache is non-runtime package data; neither creates an active identity, package, unit, process, listener, or policy | Operational rollback is clean; byte-level restoration excludes the accepted non-runtime artifacts | User explicitly accepted the four backup references and verified cache object without cleanup | Preserve them as audit evidence; corrected retry must not treat them as active-state failure or mutate them |
 | 2026-07-27 | Planning | TCP 443 only in the original flow list | HTTP/3 and UDP 443 included | HTTP/3 was explicitly selected | UniFi and host firewall intent must include UDP 443 | User approved | Validate QUIC during deployment |
 | 2026-07-27 | Repository validation | Use Debian 12 validation packages | Use Debian 12 plus the official Caddy stable repository in the container | Debian 12's Caddy 2.6.2 does not support the locked `persist_config` global option; production already requires the official Caddy repository | Validation uses Caddy 2.11.4 while the remaining packages come from Debian 12 | Mechanical, within the locked dependency design | Capture the installed Caddy version independently on each node |
 | 2026-07-27 | Repository implementation | Render a presumed Ethernet interface and hostnames | Leave interface and hostnames as `pending_node_preflight`; reject live rendering until resolved | The supplied facts do not establish current kernel interface names or hostnames | Prevents an unverified network identity from being installed | Safety correction; no live behavior changed | Completed after actions 1 and 2 confirmed `eth0`, `j1-svpihole0`, and `j1-svpihole00` |
@@ -182,6 +9032,10 @@
 | 2026-07-28 | Deployment action 11 preparation | Preserve staging-root mode `0750` after copying the live lighttpd tree | Reassert `chmod 0750 "$output_dir"` immediately after `cp -a` and test the resulting root mode | GNU `cp -a source/. destination/` applies the source directory's `0755` metadata to the pre-created destination root | No service or active configuration impact; existing Node B stage requires one separately authorized mode correction | Minor mechanical security correction based on action 11a evidence | Local host and full Podman suites pass; correct only the isolated Node B stage and repeat strict validation |
 | 2026-07-28 | Workstation certificate preparation retry | Evaluate chained jq boolean conditions followed by `.subject_alt_names \| contains(...)` without grouping | Parenthesize `(.subject_alt_names \| contains(...))` | jq pipe precedence caused the preceding boolean result to become the input to `contains()` | Certificate cryptographic validation passed, but the wrapper deliberately cleaned all staged artifacts because final validation failed | Minor mechanical correction; no retry yet authorized | Corrected expression passed against synthetic non-secret JSON; request separate authorization to repeat certificate preparation |
 | 2026-07-28 | Corrected workstation certificate preparation | Use an EXIT trap function that calls `exit` after a Doppler-launched child process | Do not use that wrapper pattern for subsequent certificate-stage reads or transfers | Bash reported an internal `pop_var_context` error only after all checks and the success marker; the Doppler child and certificate artifacts had already completed successfully | No certificate-validation failure or secret exposure; parent exit status is nonzero and staging retention must be confirmed | Diagnostic conclusion only; no further action authorized | Run a plain read-only verifier without Doppler or shell functions, then accept or clean the staging directory based on evidence |
+| 2026-07-28 | Action 16ad workstation stage naming | Create a new Node A-named workstation certificate stage | Reuse absent `/tmp/caddy-cert-node-b-action12` under a new action-specific runner and completion marker | The protected files are node-neutral and the accepted fail-closed validator is hash-pinned to this path; renaming would require duplicating or changing that validator before preparation | No live-node effect; the path remains historical in name only, while Action 16ad evidence and later transfer authorization remain distinct | Minor compatibility choice made during the user-authorized definition; no Doppler access or stage creation occurred | Require exact stage absence before creation and identify any later Node A transfer by its own separately authorized action |
+| 2026-07-29 | Action 16af source-bundle parity | Reuse the exact Node B Action 12b source bytes and hashes | Preserve its required 12-file structure but pin the current repository bytes | Caddy global/host configuration, installer behavior, and lsyncd template were corrected during validated Node B deployment work; transferring historical bytes would regress those fixes | Node A receives the current validated source contract; no live change occurred during definition | Mechanical evidence-based update within the user-authorized definition | Require all 12 current hashes before transfer and again on Node A |
+| 2026-07-29 | Action 16ag log-validation variable scope | Reuse global capture-file names as function-local parameter names | Rename function parameters and pass the input log explicitly; add a synthetic functional self-test | Bash readonly variables cannot be redeclared as local variables; the original constant-count self-test did not execute the affected function path | Initial authorized dry-run stopped safely after installer execution; transient cleanup and complete protected-state equality passed; corrected retry has a new pinned hash | Minor mechanical correction under living-plan governance; no live retry authorized | Require separate authorization for the corrected Action 16ag retry and accept only its exact JSON, 14-line plan, cleanup, equality, and completion markers |
+| 2026-07-29 | Node A Action 16ah Caddy validation state | Follow Node B Action 12’s unprivileged Caddy adaptation/validation directly | Preserve the same validation but isolate Caddy `HOME` and XDG paths inside the action-owned temporary tree; snapshot Node A Caddy data/log directories and backup inventory | Caddy provisioning may consult or initialize runtime storage even during validation; isolating it makes the transaction’s only persistent targets explicit and testable | Stronger no-side-effect evidence without changing Caddy configuration or runtime behavior | Minor reliability hardening during user-authorized definition; no live execution authorized | Require temporary-tree removal, Caddy runtime-directory equality, exact target hashes, and zero-change repeat dry-run before acceptance |
 | 2026-07-28 | Deployment action 13 design | Keep `caddy-sync` on `/usr/sbin/nologin`, use absolute remote paths beneath the `rrsync` root, and rely on a wrapper substring check for deletion | Use a locked `/bin/sh` account, peer-address-bound forced-command keys, relative `/node-a/` and `/node-b/` destinations, and `rrsync -wo -no-del` | OpenSSH executes forced commands through the account's configured login shell; `nologin` prevents the receiver from running. `rrsync` roots paths beneath its configured directory, and `-no-del` blocks both delete and remove options. | Enables the intended forced-command transport while preserving password lock, key restrictions, path confinement, and explicit remote deletion prohibition | User explicitly approved all action 13 design corrections | Collect and pin actual host keys before generating node-local synchronization keys; authorize each peer public key only after its owning node creates it |
 | 2026-07-28 | Deployment action 13 attempt | Install synchronization helper scripts into the standard `/usr/local/libexec` location | Explicitly create `/usr/local/libexec` as `root:root` mode `0755` when absent, track whether this action created it, and remove it on rollback only if empty | Node B does not currently have the standard parent directory; direct `install` cannot create a missing parent | No action 13 state persisted because the failure occurred on the first write and rollback completed | Minor mechanical correction; no retry performed | Present the corrected exact retry for separate authorization |
 | 2026-07-28 | Corrected deployment action 13 retry | Compare raw `ssh-keygen -y` output directly with the first two fields of the generated `.pub` file | Normalize both sides to the Ed25519 key type and base64 payload before comparison | Debian/OpenSSH includes the private key's `caddy-ha-sync` comment in `ssh-keygen -y` output | Cryptographic key matching remains strict while ignoring non-key comment text | Minor mechanical validation correction after complete rollback; no further retry performed | Regression assertion added; host and full Podman suites passed; request separate authorization for the second retry |
@@ -190,6 +9044,10 @@
 | 2026-07-28 | Second corrected inactive action 15 retry stage | Require exactly one converted access-log syslog assignment | Preserve every valid source scope, require one or more syslog assignments, and reject any remaining `accesslog.filename` assignment | Node B has two valid assignments: a global access log and a Pi-hole-admin-scoped access log; native parsing accepted both converted scopes | No active configuration impact; the candidate parsed successfully and was then removed by bounded rollback when the overly strict assertion failed | Minor evidence-driven assertion correction after complete rollback | Two-scope regression, native parsing, isolated process/listener test, host suite, and full Podman integration pass; require fresh authorization before a third retry |
 | 2026-07-28 | Action 15 retry2 failure correction | Require active-health status `200`, allow Caddy's local CA trust-install attempt, inherit the vendor five-second stop timeout, and leave a stopped timed-out unit in failed state during rollback | Follow the observed Pi-hole health redirect, skip local trust-store installation, set `TimeoutStopSec=30s`, and reset the failed unit after it is stopped and masked during rollback | The journal showed a valid `302` made the only upstream unhealthy, the localhost certificate triggered an unnecessary trust attempt, and systemd's vendor five-second timeout expired exactly when Caddy completed its configured five-second shutdown delay, before allowing the ten-second grace window. The 90-second value seen later belonged to the masked-unit fallback. | Restores health semantics, removes a misleading trust-install failure, permits the complete bounded shutdown window, and makes rollback's inactive/masked postcondition exact | Evidence-driven local correction; no live deployment yet | Stage and validate the three corrected artifacts, then construct an immutable completed release under separate authorization |
 | 2026-07-28 | Inactive action 15i wrapper | Execute the staged repository script directly from a tar-extracted payload | Invoke the unchanged script explicitly through `/bin/bash` | Repository file mode was non-executable and tar preserved it, causing exit `126` before the script ran | No configuration or service impact; action 15i-a confirmed complete wrapper cleanup and unchanged active state | Minor mechanical correction; retry not yet authorized | Repeat the identical pinned payload with only the invocation mechanism corrected |
+| 2026-07-29 | Independent read-only Action 16an-a attempt | Emit every assertion under the documented lowercase-only `check_*` grammar | One label derived from `pihole-FTL.service` retained uppercase characters; the remote inspection passed but the workstation runner rejected the transcript | Normalize all derived labels at their source instead of weakening the fail-closed grammar | No node change; all 264 remote checks passed, but Action 16an-a remains unaccepted until a corrected read-only retry succeeds | Minor workstation-only correction after the authorized action stopped; no retry performed | Require separate authorization for runner SHA-256 `54f7d24999b2dc6f00a49735e71405db365642c10a798225911f91308abdc2fe` |
+| 2026-07-29 | Action 16ao-b static test literals | Use single-quoted fixed strings containing literal shell variable syntax | Use double-quoted fixed strings with escaped dollar signs | ShellCheck correctly classified the single-quoted test-only patterns as likely unintended non-expansion even though literal matching was intended | Test assertion syntax only; diagnostic and runner behavior, hashes, scope, and authorization boundary did not change | Minor mechanical correction during the authorized local definition; no node was contacted | Full host and Podman suites, pre-commit, Markdown, gitleaks, and diff checks passed after correction |
+| 2026-07-29 | Corrected Action 16ao retry policy | Require `::53/128`, one TCP 80 socket, and effective masked-unit `Type=notify` | Require observed `::53/64`, exactly one IPv4 plus one IPv6 lighttpd TCP 80 socket, and exact `/dev/null` mask plus package-owned vendor-unit `Type=notify` provenance | Authorized diagnostics 16ao-a and 16ao-b proved the original three assumptions false and captured the exact replacement values | Read-only validation policy changes from 66 to 75 assertions; no configuration or runtime behavior changes | User explicitly authorized definition of the corrected read-only validator | Require a separately authorized exact retry; do not proceed to cutover unless every assertion passes |
+| 2026-07-29 | Node A cutover staging topology | Repeat Node B retry3's already-staged `/etc` candidate and retain failed attempts as evidence | Preserve the accepted Node A Action 16ab source candidate under `/var/tmp`, create an action-owned same-filesystem `/etc` copy inside the transaction, and remove failed action-created copies after successful rollback | Node A already has a validated retained candidate in a different path and has no Node B historical failed-candidate trees; copying before the swap avoids a cross-filesystem promotion while preserving the accepted source evidence | Success retains the source candidate and original live tree; rollback restores the exact pre-action topology instead of creating historical failure artifacts | User explicitly authorized definition of the Node A transaction | Require exact source/tree hashes, action-owned path absence, semantic rollback proof, and separate live execution authorization |
 
 ## Validation Evidence
 
@@ -217,6 +9075,63 @@ No result in this section is considered live-deployment evidence.
 | 2026-07-27 | UniFi switch ACL state | Authorized GET-only ACL collector | Passed with zero rules and complete pagination; no controller mutation |
 | 2026-07-28 | UniFi WAN exposure UI inspection | Authorized manual inspection | Passed: zero port-forward rules; `ISP` uses `WAN1`; UPnP disabled |
 | 2026-07-28 | Action 5 backup-script correction | `shfmt -d -i 4 -ci`, ShellCheck, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed after restricting file hashing to paths already confirmed present; corrected script SHA-256 `95d743a88661e3ad00ec25de64fad7a51284f66abbe20a9e0bb1167b961fb099` |
+| 2026-07-28 | Action 16b Node A rollback definition | Bash syntax, ShellCheck, repository-profile shfmt, unknown-role rejection, `git diff --check -- Caddy`, and `./Caddy/tests/run.sh --skip-container` | Passed; the backup script now maps both locked node roles explicitly and retains fail-closed hostname/address checks; script SHA-256 `83790ff984563fac8471eb4492cd1b893112c4c46ea4d1fb3398f6f0188eaddb` |
+| 2026-07-28 | Node A predeployment rollback baseline | Authorized action 16b with internal pre/post atomic-rename verification | Passed: SSH exit `0`, archive checksum and readability checks passed, completion manifest was verified, and `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z` was returned with `backup_complete=true` |
+| 2026-07-28 | Node A Caddy repository prerequisite simulation | Authorized read-only action 16c using the six-package intended-state group | Passed: exactly two additions (`apt-transport-https`, `debian-keyring`), zero upgrades, zero removals, and zero not-upgraded packages; unrelated autoremove candidates remained untouched |
+| 2026-07-28 | Node A Caddy repository prerequisite installation | Authorized exact action 16d install and immediate package validation plus user-confirmed Webmin impact | Passed and accepted: package scope matched exactly, all six prerequisites returned `ii`, paths resolved, and the user confirmed and accepted the independent `webmin.service` restart |
+| 2026-07-28 | Node A Caddy repository prerequisite convergence | Authorized exact read-only action 16e | Passed: all six packages were already current, APT reported zero additions/upgrades/removals/not-upgraded packages, no transaction lines appeared, and `curl`/`gpg` resolved |
+| 2026-07-28 | Node A Caddy APT repository-state inspection | Authorized exact read-only action 16f | Passed: official keyring and source-list paths are absent; Caddy is not installed; only Debian bookworm offers `2.6.2-5` at priority `500`; no state changed |
+| 2026-07-28 | Node A official Caddy repository-asset audit | Authorized exact transient action 16g | Passed: TLS-restricted downloads, raw hashes, pinned primary fingerprint, exact source lines, isolated GnuPG state, absent canonical targets, explicit cleanup, and completion marker all validated |
+| 2026-07-28 | Node A official Caddy repository-file installation | Authorized exact persistent action 16h with automatic failure cleanup | Passed transactionally: exactly two root-owned mode `0644` files installed, pinned installed hashes/fingerprint/source lines validated, staging removed, and no APT refresh or service action occurred |
+| 2026-07-28 | Node A Caddy repository-file post-validation | Authorized exact independent read-only action 16i | Passed: exact type/owner/mode/size/hashes/source content, zero staging matches, unchanged Debian-only cached policy, and completion marker validated without GnuPG state |
+| 2026-07-28 | Node A source-isolated Caddy metadata refresh | Authorized exact action 16j with non-Cloudsmith before/after hash comparison | Passed: only the official Caddy source was fetched; every non-Cloudsmith list file remained byte-identical; candidate `2.11.4` arm64 and official origin validated; Caddy remained uninstalled |
+| 2026-07-28 | Node A version-pinned Caddy installation simulation | Authorized exact read-only action 16k with package, unit, repository, and cache pre/post comparisons | Passed: exactly one new `caddy` `2.11.4` arm64 package, zero upgrades/removals/not-upgraded packages, unchanged state, and completion marker validated |
+| 2026-07-28 | Node A Caddy package lifecycle and service-artifact audit | Authorized exact transient action 16l using the Node B action 8i package hash | Passed: package and all inspected artifacts matched; policy absent; package/unit/listener state unchanged; protected staging removed; first-install automatic enable/start behavior reconfirmed |
+| 2026-07-28 | Node A immediate Caddy preinstallation state | Authorized exact read-only action 16m based on corrected Node B action 8j retry | Passed: candidate and repository valid; Caddy entirely absent; protected services active; lighttpd exclusively owns TCP 80/443; UDP 443 and all staging absent |
+| 2026-07-28 | Node A inhibited Caddy installation attempt and automatic rollback | Authorized exact action 16n command block `78cda338...bc25c` and included rollback | Installation was correctly inhibited but rejected on a log-text mismatch; automatic purge and internal restoration checks passed with `caddy_install_rollback_complete=true`; independent rollback inspection remains required |
+| 2026-07-28 | Node A independent action 16n rollback inspection | Authorized exact read-only action 16n-a command block `ba7bbe5e...956f5` plus explicit artifact acceptance | Active rollback state passed every check; user accepted four inactive account-backup references and one verified APT cache package without cleanup; operational rollback accepted |
+| 2026-07-28 | Corrected Node A inhibited-install retry definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; semantic policy probe and event validation replace fragile APT message matching; script SHA-256 `d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae`; no live state changed |
+| 2026-07-28 | Corrected Node A inhibited Caddy installation | Authorized exact action 16n retry with semantic exit-101 evidence and included rollback | Passed: SSH exit `0`, direct policy probe exit `101`, one actual inhibited Caddy start event, Caddy `v2.11.4`, unchanged protected state, and `caddy_inhibited_install_retry_complete=true`; rollback was not invoked |
+| 2026-07-28 | Node A post-install acceptance definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; proposed action 16n-b is read-only and pinned to inspector SHA-256 `4316d13dce76b0b817ee32f231c7c166654226641f7826eb0b7043480eb5adba` |
+| 2026-07-28 | Node A post-install acceptance attempt | Authorized exact read-only action 16n-b | Incomplete: zero-change Caddy `2.11.4` APT simulation passed, then the inspector exited `141` from an internal `apt-mark`/quiet-`grep` SIGPIPE; no mutation occurred |
+| 2026-07-28 | Corrected Node A post-install acceptance inspector | Bash syntax, ShellCheck, repository-profile shfmt, and `./Caddy/tests/run.sh --skip-container` | Passed; full-output capture removes the SIGPIPE condition without changing read-only scope; corrected SHA-256 `032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3` |
+| 2026-07-28 | Corrected Node A post-install acceptance retry | Authorized corrected exact read-only action 16n-b | Passed: SSH exit `0`, zero-change APT convergence, clean dpkg integrity/audit, Caddy `v2.11.4`, UID/GID `995/992`, both units inactive/masked, protected services active, lighttpd PID `916` retaining TCP 80/443, accepted cache valid, and completion marker present |
+| 2026-07-28 | Node A HA/synchronization dependency simulation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; proposed action 16o is read-only and pinned to simulator SHA-256 `fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f` |
+| 2026-07-28 | Node A HA/synchronization dependency simulation | Authorized exact read-only action 16o | Passed: SSH exit `0`; proposed only lsyncd `2.2.3-1`, lua5.3 `5.3.6-2`, and liblua5.3-0 `5.3.6-2`; zero upgrades/removals; package inventory, protected services, listeners, and inactive/masked Caddy state unchanged |
+| 2026-07-28 | Node A lsyncd lifecycle inspection definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; transient action 16p is pinned to inspector SHA-256 `8e39f3a422b6819616413977dd31d732fbca2be0459335c63802cac0d8464764` and package SHA-256 `25fc747c79502cab339be19e1ffe10155cf098b2621dd3f28fd47c19ffdfe45a` |
+| 2026-07-28 | Node A lsyncd lifecycle inspection attempt | Authorized exact transient action 16p | Incomplete: exact package download/hash, metadata, extraction, and content listing passed; lifecycle assertion mismatched dynamic helper semantics; SSH exit `1`; no package installation or service command |
+| 2026-07-28 | Corrected lsyncd inspector and cleanup-gate definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; corrected audit SHA-256 `61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d`; cleanup inspector SHA-256 `ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93` |
+| 2026-07-28 | Node A lsyncd failed-audit cleanup acceptance | Authorized exact read-only action 16p-a | Passed: SSH exit `0`; audit staging absent; lsyncd/Lua packages and lsyncd paths/unit/policy absent; Caddy inactive/masked; protected services and listener ownership accepted; completion marker present |
+| 2026-07-28 | Corrected Node A lsyncd lifecycle inspection retry | Authorized corrected exact transient action 16p | Passed: SSH exit `0`; exact package and postinst hashes, dynamic first-install start semantics, SysV artifact, native-systemd-unit absence, staging cleanup, and unchanged package/service/listener state validated; completion marker present |
+| 2026-07-28 | Node A lsyncd immediate-preinstallation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; exact read-only action 16q inspector SHA-256 `5a7189b6e81f028be32d2f63c9b8f48d7aeb078b6221fb7de1cf45f989f4c31b` |
+| 2026-07-28 | Node A lsyncd immediate-preinstallation attempt | Authorized exact read-only action 16q | Incomplete: SSH exit `1` before APT simulation with no output; no mutation; exact pre-simulation assertion requires diagnostic evidence |
+| 2026-07-28 | Node A lsyncd preinstallation diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; exact diagnostic action 16q-a SHA-256 `0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba` |
+| 2026-07-28 | Node A lsyncd preinstallation diagnostic | Authorized exact read-only action 16q-a | Passed: SSH exit `0`; sole mismatch was empty absent-unit enabled output; all package/candidate/path/unit/SysV/staging/Caddy/service/dpkg facts otherwise matched |
+| 2026-07-28 | Corrected Node A lsyncd preinstallation inspector | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; corrected action 16q SHA-256 `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73` |
+| 2026-07-28 | Corrected Node A lsyncd immediate-preinstallation retry | Authorized corrected read-only action 16q | Incomplete: SSH exit `1` after printing the expected three-package simulation; no completion marker and no mutation; failure is bounded to a post-output assertion |
+| 2026-07-28 | Node A lsyncd post-simulation diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; diagnostic action 16q-b SHA-256 `65fd94316aa2f1837ea7bdcc9530dec659fd50d9997333fa2a7e71a7ce0c386e` |
+| 2026-07-28 | Node A lsyncd post-simulation diagnostic | Authorized exact read-only action 16q-b | Passed: SSH exit `0`; all simulation counts, output matches, state comparisons, dpkg audit, and completion marker passed; no mutation; prior transient failure was not reproduced |
+| 2026-07-28 | Corrected Node A lsyncd immediate-preinstallation second retry | Authorized unchanged corrected read-only action 16q | Passed: SSH exit `0`; exact three-package simulation, all absence/safety and unchanged-state assertions, and completion marker passed; no mutation |
+| 2026-07-28 | Node A inhibited lsyncd installation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; deployment action 16r installer SHA-256 `db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b` |
+| 2026-07-28 | Node A inhibited lsyncd installation | Authorized exact deployment action 16r and included rollback | Passed: SSH exit `0`; exactly three packages installed, exit-101 probe and one inhibited package start observed, lsyncd inactive/masked, protected state unchanged, completion marker present; rollback did not run |
+| 2026-07-28 | Node A HA/synchronization convergence definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; read-only action 16s validator SHA-256 `fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda` |
+| 2026-07-28 | Node A HA/synchronization convergence | Authorized exact read-only action 16s | Passed: SSH exit `0`; zero-change simulation, seven package integrity/version/architecture checks, runtime versions, Lua alternatives, lsyncd/Caddy masks, SysV/transient cleanup, protected state, and completion marker passed |
+| 2026-07-28 | Node A validation/scripting dependency simulation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; read-only action 16t simulator SHA-256 `4c093b94720d594863b9d37c39c4485db1c268098f61e04d0ff6e111c193697d` |
+| 2026-07-28 | Node A validation/scripting dependency simulation attempt | Authorized exact read-only action 16t | Incomplete: SSH exit `141` before labeled output or simulation; no mutation; exact early `pipefail` source requires diagnostic evidence |
+| 2026-07-28 | Node A validation/scripting pre-simulation diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; diagnostic action 16t-a SHA-256 `49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39` |
+| 2026-07-28 | Node A validation/scripting pre-simulation diagnostic | Authorized exact read-only action 16t-a | Passed: SSH exit `0`; all identity, IPv4, package, unit/process, uuid-runtime candidate, policy, protected-service, dpkg-audit, and completion checks matched; no operational drift or mutation |
+| 2026-07-28 | Corrected Node A validation/scripting simulator | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; corrected action 16t SHA-256 `d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9` |
+| 2026-07-28 | Corrected Node A validation/scripting simulation retry | Authorized corrected read-only action 16t | Passed: SSH exit `0`; exact one-package uuid-runtime transaction, zero upgrades/removals/not-upgraded packages, unchanged package/service/listener state, and completion marker passed |
+| 2026-07-28 | Node A uuid-runtime lifecycle inspection definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; transient action 16u inspector SHA-256 `ddcb3c742549a41475d4a8fbbf5d7d4d9c453d8aa90b105288bd6f71004f18af`; exact package, postinst, service, and socket hashes pinned |
+| 2026-07-28 | Node A uuid-runtime lifecycle inspection | Authorized exact transient action 16u | Passed: SSH exit `0`; exact package/control/service/socket hashes and first-install semantics matched; staging cleanup and unchanged package, protected-service, listener, and dpkg-audit state passed; completion marker present |
+| 2026-07-28 | Node A uuid-runtime immediate-preinstallation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; exact read-only action 16v validator SHA-256 `cdb24eb1a4e5e22961b421bfe899045fe295e203d6184904ff85903f1c125f75` |
+| 2026-07-28 | Node A uuid-runtime immediate-preinstallation state | Authorized exact read-only action 16v | Passed: SSH exit `0`; uuid-runtime status `un`, exact candidate and sole-package simulation, complete uuidd absence, protected-state equality, zero upgrades/removals/held-back packages, and completion marker passed; no mutation |
+| 2026-07-28 | Node A inhibited uuid-runtime installation definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; transactional action 16w installer SHA-256 `9878613134e5af56a94e30bddb89f66cf8a2337e75001a66a48dfe3f486bdf09`; no live execution |
+| 2026-07-28 | Node A inhibited uuid-runtime installation | Authorized exact transactional action 16w and included rollback | Passed: SSH exit `0`; exact sole-package transaction, semantic exit-101 probe, two inhibited uuidd start events, package/artifact/identity/state integrity, persistent inactive masks, protected-state equality, and completion marker passed; rollback was not invoked |
+| 2026-07-28 | Node A validation/scripting dependency convergence definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; independent read-only action 16x validator SHA-256 `40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537` |
+| 2026-07-28 | Node A validation/scripting dependency convergence authorized attempt | Exact read-only action 16x submitted through the approved execution boundary | Not executed: platform quota rejection occurred before process creation or SSH; no Node A evidence or mutation; action 16x remains pending |
+| 2026-07-28 | Node A validation/scripting dependency convergence retry | Explicitly reauthorized exact read-only action 16x | Incomplete: all 12 packages reported current and APT returned zero changes, then output stopped in the silent package assertion block before integrity/version output or completion marker; no mutation; diagnostic evidence required |
+| 2026-07-28 | Node A validation/scripting convergence stop diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, `git diff --check`, Markdown lint, and `./Caddy/tests/run.sh --skip-container` | Passed; exact read-only diagnostic action 16x-a SHA-256 `9523fb7a6bdf48895ff67624330cfa46f4b86d66d49d533b053f863d2e461f0c` |
 | 2026-07-28 | Workstation-only Doppler scope | Strict YAML, ShellCheck, shfmt, `git diff --check -- Caddy`, and `./Caddy/tests/run.sh --skip-container` | Passed; Doppler is asserted as operator-workstation-only and absent from node-required commands |
 | 2026-07-28 | Caddy-sync home permission correction | ShellCheck, shfmt, `git diff --check -- Caddy`, and `./Caddy/tests/run.sh --skip-container` | Passed; both node dry-runs now explicitly ensure `/var/lib/caddy-sync` as `caddy-sync:caddy-sync` mode `0750` |
 | 2026-07-28 | Lighttpd staging-root permission correction | ShellCheck, repository-profile shfmt, `git diff --check -- Caddy`, host tests, focused Debian 12 Podman validation, and full `./Caddy/tests/run.sh` | Passed; transformer reasserts mode `0750` after `cp -a`, integration asserts it, and the unresolved-manifest test now generates an explicit incomplete fixture |
@@ -247,6 +9162,113 @@ No result in this section is considered live-deployment evidence.
 | 2026-07-28 | Node B helper-install precondition failure | Authorized transaction plus immediate read-only target, backup, parent, service, and listener inspection | Transaction stopped before any write because both targets were absent; inspection passed with backup absent, accepted inactive paths intact, live services/listeners unchanged, existing `/usr/local/libexec`, and absent `/usr/local/share/caddy-ha` |
 | 2026-07-28 | Absent-target helper-install correction | ShellCheck, repository-profile shfmt, Bash syntax, `git diff --check`, and host validation | Passed: corrected transaction records absent/pre-existing state independently, backs up only existing targets, tracks the missing desired-state parent, and restores or removes exact paths according to observed pre-state |
 | 2026-07-28 | Corrected Node B helper-artifact installation | Authorized transaction plus immediate read-only acceptance | Passed with both completion markers: absent pre-state recorded, protected rollback record retained, exact hashes/modes/ownership installed, live and candidate parsing passed, inactive artifacts unchanged, host listeners unchanged, and all protected service states unchanged |
+| 2026-07-28 | Corrected action 16x retry definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded package-verification self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: all three hyphenated package names remain intact after formatting; the exact Bash conffile record is accepted; unexpected conffile and package-payload records are rejected; no live node was contacted |
+| 2026-07-28 | Corrected action 16x focused pre-commit | `pre-commit run --files` for the corrected validator, test runner, and living plan | Passed ShellCheck, shfmt, markdownlint, and gitleaks; non-applicable hooks skipped |
+| 2026-07-28 | Corrected action 16x full Podman validation attempts | `./Caddy/tests/run.sh`, then the same command with a temporary mode-0700 `XDG_RUNTIME_DIR` | Host stages and the new self-test passed both times; Podman stopped before build/container execution because configured rootless RunRoot `/run/user/1000` is read-only; no current container result is claimed |
+| 2026-07-28 | Corrected Node A action 16x retry | Authorized pinned read-only validator over SSH | Stopped fail-closed with SSH exit `1`: zero-change APT and eight package checks passed; procps reported modified conffile `/etc/sysctl.conf`; final three packages and the completion marker were not reached; Node A was unchanged |
+| 2026-07-28 | Action 16x-b definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded classification/alignment self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: 12 aligned package/version entries, all hyphenated names, mixed conffile/payload classification, empty-output handling, and complete host suite; no live node was contacted |
+| 2026-07-28 | Action 16x-b focused pre-commit | `pre-commit run --files` for the diagnostic, test runner, and living plan | Passed ShellCheck, shfmt, markdownlint, and gitleaks; non-applicable hooks skipped |
+| 2026-07-28 | Node A action 16x-b complete package diagnostic | Authorized pinned non-enforcing read-only collector over SSH | Passed with SSH exit `0` and completion marker: all 12 metadata checks matched, query failures `0`, exactly two conffile records with metadata/hashes, payload records `0`, and unchanged package inventory/audit; Node A was unchanged |
+| 2026-07-28 | Revised action 16x retry2 definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded verification-policy self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: exact Bash and procps records accepted; additional, unexpected, and payload records rejected; all hyphenated package names exercised; full host suite passed; no live node was contacted |
+| 2026-07-28 | Revised action 16x retry2 focused pre-commit | `pre-commit run --files` for the validator, test runner, and living plan | Passed ShellCheck, shfmt, markdownlint, and gitleaks; non-applicable hooks skipped |
+| 2026-07-28 | Revised Node A action 16x retry2 | Authorized pinned fail-closed read-only validator over SSH | Incomplete with SSH exit `1`: both conffile pins, zero-change APT, and all 12 package checks passed; output stopped before command-version evidence and the completion marker; Node A was unchanged |
+| 2026-07-28 | Action 16x-c definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded exact/prefix/contains matcher self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: ten version probes and 13 path probes defined; positive and negative matcher cases pass; full host suite passed; no live node was contacted |
+| 2026-07-28 | Action 16x-c focused pre-commit | `pre-commit run --files` for the diagnostic, test runner, and living plan | Passed ShellCheck, shfmt, markdownlint, and gitleaks; non-applicable hooks skipped |
+| 2026-07-28 | Node A action 16x-c command/version diagnostic | Authorized pinned non-enforcing read-only collector over SSH | Passed with SSH exit `0` and completion marker: all ten version probes matched with zero query failures; 12 of 13 paths matched; `/usr/sbin/ip` alone failed because it is a symlink; package inventory and empty dpkg audit were unchanged; Node A was unchanged |
+| 2026-07-28 | Action 16x-d definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded literal-target resolution self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: read-only link-chain, metadata, SHA-256, ownership, package-file-list, integrity, inventory, and audit evidence is defined; no live node was contacted |
+| 2026-07-28 | Node A action 16x-d symlink diagnostic | Authorized pinned read-only collector over SSH | Completed with SSH exit `0` and marker: `/usr/sbin/ip` links to `/bin/ip` and canonicalizes to clean `/usr/bin/ip`; target metadata and SHA-256 were captured; iproute2 is clean; raw `/bin/ip` ownership was not queried, so ownership remains unresolved; Node A was unchanged |
+| 2026-07-28 | Action 16x-e definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded raw-owner and file-list-filter self-test, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: exact raw `/bin/ip` ownership, iproute2 list-file provenance, relevant entries, and raw/canonical inode/hash reconciliation are defined; no live node was contacted |
+| 2026-07-28 | Node A action 16x-e attempt | Authorized pinned read-only collector over SSH | Incomplete with SSH exit `2`: `dpkg-query --control-path iproute2 .list` rejected the dotted control-file name before labeled output; completion marker absent; no evidence accepted and Node A was unchanged |
+| 2026-07-28 | Corrected action 16x-e retry definition | Bash syntax, ShellCheck, repository-profile shfmt, live local `md5sums` control-path grammar self-test, failed-artifact hash check, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: architecture-qualified list-file derivation and all original ownership/reconciliation checks are retained; no live node was contacted |
+| 2026-07-28 | Node A corrected action 16x-e retry | Authorized pinned read-only collector over SSH | Passed with SSH exit `0` and completion marker: iproute2 owns registered `/bin/ip`; its package list and integrity are clean; raw `/bin/ip` and canonical `/usr/bin/ip` have identical device/inode and SHA-256; inventory and audit unchanged; Node A unchanged |
+| 2026-07-28 | Fail-closed action 16x retry3 definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded exact-chain positive and altered-link/owner/list negative self-tests, retry2 delta review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: only `/usr/sbin/ip` receives the exact pinned merged-/usr chain policy; all retry2 convergence gates remain; no live node was contacted |
+| 2026-07-28 | Node A fail-closed action 16x retry3 | Authorized pinned read-only validator over SSH | Passed with SSH exit `0` and both completion markers: 12 packages, two pinned conffile differences, zero unexpected conffile/payload differences, ten versions, exact iproute2 chain, uuidd masks/inactivity, protected state, package integrity, inventory, and audit all matched; Node A unchanged |
+| 2026-07-28 | Transactional Node A action 16y definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded sorted-group policy self-test, exact command-path correction, race-safe per-object rollback review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: Node A-specific identity pins, dynamic system-ID policy, exact memberships/directories, protected-state invariants, and bounded semantic rollback are defined; no live node was contacted |
+| 2026-07-28 | Node A transactional action 16y | Authorized pinned installer with bounded automatic semantic rollback | Passed with SSH exit `0` and completion marker: three groups, two locked users, exact TLS memberships, six protected directories, dynamically allocated IDs, and all protected-state invariants passed; rollback was not invoked |
+| 2026-07-28 | Read-only Node A action 16z definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded binary-value self-test, exact procps conffile-verification pin, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: absolute sysctl path, target/staging absence, accepted `1/0` runtime state, Action 16y state, and protected before/after invariants are defined; no live node was contacted |
+| 2026-07-28 | Node A read-only action 16z | Authorized pinned sysctl preflight over SSH | Passed with SSH exit `0` and completion marker: `/usr/sbin/sysctl`, procps-ng `4.0.2`, stable runtime `1/0`, absent target, zero staging, Action 16y state, and all protected before/after invariants passed; Node A unchanged |
+| 2026-07-28 | Transactional Node A action 16aa definition | Bash syntax, ShellCheck, repository-profile shfmt, embedded 136-byte artifact/hash self-test, exclusive-target and rollback-boundary review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: byte-exact persistent artifact, conditional `1/0` to `1/1` runtime transition, Action 16y snapshot, protected invariants, and bounded rollback are defined; no live node was contacted |
+| 2026-07-28 | Node A transactional action 16aa | Authorized pinned installer with bounded automatic semantic rollback | Passed with SSH exit `0` and completion marker: exact 136-byte persistent artifact installed; IPv4 remained `1` without a write; IPv6 changed from `0` to `1`; all protected-state invariants passed; rollback was not invoked |
+| 2026-07-28 | Inactive Node A action 16ab definition | Bash and embedded remote-wrapper syntax, ShellCheck, repository-profile shfmt, source/hash and driver self-tests, focused and full pre-commit, `git diff --check`, and the complete host suite | Passed: exact three-file transport, root-only source stage, corrected mode-`0750` renderer, strict native and semantic validation, live/protected-state invariants, and bounded cleanup are defined; full test execution stopped only when Podman could not set the sticky bit on read-only `/run/user/1000/libpod`; no live node was contacted |
+| 2026-07-28 | Node A inactive action 16ab | Authorized pinned workstation runner and bounded remote/local cleanup | Passed with runner/SSH exit `0` and both completion markers: candidate is `root:root` mode `0750`, staged main/tree and unchanged live-tree hashes were captured, native parsing and all semantic/protected-state checks passed, source and local archive cleanup completed, and no rollback was invoked |
+| 2026-07-28 | Read-only workstation action 16ac definition | Bash syntax, ShellCheck, repository-profile shfmt, pinned-constant and secret-output review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: exact stage/file/metadata/public-hash policy, certificate and private-key parsing, silent key integrity/match, validity/SAN, ordered root-excluded served chain, workstation trust, exact full-chain composition, exact manifest schema/content, and unchanged-state checks are defined; no certificate stage, Doppler, or live node was accessed |
+| 2026-07-28 | Workstation read-only action 16ac | Authorized pinned secret-safe validator | Stopped with exit `1` and no output: local mode/hash and self-test passed, but no stage, certificate, chain, key, manifest, unchanged-state, or completion evidence was emitted; no secret output or explicit write occurred; action is not accepted |
+| 2026-07-28 | Read-only workstation diagnostic action 16ac-a definition | Bash syntax, ShellCheck, repository-profile shfmt, pinned-constant self-test, output-contract and secret-output review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: non-enforcing labeled stage/environment, metadata, public-hash, certificate, key-match, chain, trust, manifest, and unchanged-state collection is defined; unknown hashes and all secret/private-key-derived values are suppressed; no certificate stage, Doppler, or live node was accessed |
+| 2026-07-28 | Workstation read-only diagnostic action 16ac-a | Authorized pinned diagnostic, immediate mode/hash/self-test checks, labeled output-contract review, and completion/count consistency | Diagnostic completed with exit `0`: workstation identity and command environment passed; stage presence failed; 36 dependent checks were skipped; no secret or unknown hash was emitted; `/tmp/caddy-cert-node-b-action12` is absent and certificate-stage continuity remains unaccepted |
+| 2026-07-28 | Protected workstation certificate-preparation action 16ad definition | Bash syntax, ShellCheck, repository-profile shfmt, pinned-constant self-test, exact Doppler scope/version and dependency-hash review, secret-output and bounded-cleanup review | Passed locally: the runner accepts no runtime arguments, removes inherited certificate variables, calls only the exact Doppler scope and hash-pinned preparer/validator, owns only an initially absent stage, avoids the prior recursive EXIT-handler pattern, and exposes no secret; Doppler was not invoked |
+| 2026-07-28 | Workstation certificate-preparation action 16ad | Authorized hash-pinned runner, Doppler preparation, and embedded fail-closed validation | Passed with exit `0` and both completion markers: exact public hashes, expiry, wildcard SAN, private-key match, two-intermediate chain, trust, manifest, ownership/modes, and unchanged stage were accepted; cleanup was disarmed and the protected stage retained; no secret output or Node A access occurred |
+| 2026-07-29 | Protected Node A certificate-transfer action 16ae definition | Bash syntax, ShellCheck, repository-profile shfmt, driver and runner self-tests, driver-hash linkage, exact direct-entry and secret-output review, bounded rollback review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: exact five-file direct SSH stream, strict Node A identity/post-16ab invariants, protected certificate metadata and cryptographic validation, no local archive, single remote target, and semantic rollback are defined; workstation stage remained present; no SSH connection or certificate read occurred |
+| 2026-07-29 | Node A protected certificate-transfer action 16ae | Authorized hash-pinned runner and bounded remote rollback | Passed with runner/SSH exit `0`: workstation continuity and remote completion markers, exact public hashes, expiry, SAN, key match, chain, trust, manifest, protected metadata, and complete Node A state equality passed; rollback was not invoked and no secret was emitted |
+| 2026-07-29 | Minimal non-secret Node A Caddy source-transfer action 16af definition | Bash syntax, ShellCheck, repository-profile shfmt, driver and runner self-tests, exact 12-file/hash alignment, driver-hash linkage, non-secret payload and bounded rollback review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed: direct SSH stream, current source hashes, exact remote stage/modes, accepted certificate-state preservation, complete post-16ae Node A invariants, and semantic rollback are defined; no SSH connection or certificate read occurred |
+| 2026-07-29 | Node A minimal non-secret Caddy source-transfer action 16af | Authorized hash-pinned runner, exact direct SSH stream, remote file-set/hash checks, certificate-stage continuity, and complete protected-state equality | Passed with runner/SSH exit `0`: stage `root:root:750`, 12 files, all source hashes valid, certificate stage unchanged, protected state unchanged, and completion marker true; rollback was not invoked and no secret was transferred or emitted |
+| 2026-07-29 | Read-only Node A Caddy installer dry-run action 16ag definition | Bash syntax, ShellCheck, repository-profile shfmt, validator and runner self-tests, exact staged inputs and 14-change contract review, mutation-token review, bounded transient cleanup review, and `./Caddy/tests/run.sh --skip-container` | Passed locally: exact live-root dry-run, six-field JSON, normalized 14-line plan, isolated capture/render tree, secret suppression, and complete before/after state equality are defined; no SSH connection or Node A action occurred |
+| 2026-07-29 | Initial read-only Node A Caddy installer dry-run action 16ag | Authorized exact runner and embedded remote pre/post validation | Stopped with exit `1` on a readonly/local variable collision in log validation; transient cleanup completed and complete protected-state equality passed; no completion marker, persistent target, service mutation, secret output, or manual-intervention marker occurred; action is not accepted |
+| 2026-07-29 | Corrected read-only Node A Caddy installer dry-run Action 16ag retry definition | Bash syntax, ShellCheck, repository-profile shfmt, corrected validator and runner self-tests, exact driver-hash linkage, and synthetic execution of the previously missed 14-line log-normalization path | Passed locally: the collision is removed and the exact log-validation function path now runs in self-test; no SSH retry or Node A change occurred |
+| 2026-07-29 | Corrected read-only Node A Caddy installer dry-run Action 16ag retry | Authorized corrected hash-pinned runner, exact six-field JSON and normalized 14-line plan validation, bounded transient cleanup, and complete before/after equality | Passed with runner/SSH exit `0`: node `node-a`, component `caddy`, root `/`, dry-run true, 14 changes, no service mutations, both stages unchanged, protected state unchanged, and completion marker true; no persistent target or transient file remained |
+| 2026-07-29 | Transactional Node A Caddy configuration-installation Action 16ah definition | Bash syntax, ShellCheck, repository-profile shfmt, driver and runner self-tests, exact install/idempotency JSON contracts, current source/rendered-environment hashes, Node B Action 12 parity review, mutation-token and bounded rollback review, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed locally: exact three-target transaction, 14-change installation, protected file topology and certificate equality, isolated unprivileged Caddy format/adapt/validate, zero-change repeat dry-run, service/listener non-mutation, protected-state equality, and semantic rollback are defined; no SSH connection occurred |
+| 2026-07-29 | Transactional Node A Caddy configuration-installation Action 16ah | Authorized exact hash-pinned runner and included bounded automatic rollback | Passed with runner/SSH exit `0`: initial changes `14`, idempotent changes `0`, both installer contracts reported no service mutations, Caddy format/adapt/unprivileged validation passed, installed certificate matched the accepted stage, source/certificate/protected state remained unchanged, and the completion marker was emitted; rollback was not invoked |
+| 2026-07-29 | Read-only synchronization/SSH preflight Action 16ai definition | Bash syntax, ShellCheck, repository-profile shfmt, three artifact self-tests, exact public-output contract and private-marker rejection review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed locally: accepted post-16ah Node A state and synchronization-target absence, accepted Node B Action 13 key/script state, strict host-verified collection of only public key material, bounded workstation cleanup, and zero remote mutation are defined; no SSH connection occurred |
+| 2026-07-29 | Read-only synchronization/SSH preflight Action 16ai | Authorized exact hash-pinned runner and two strict host-verified remote inspectors | Passed with runner and SSH exit `0`: Node A post-16ah state and synchronization-target absence passed; Node B key derivation, script hashes, known-host pin, and service state passed; all public fingerprints and keys were captured; the completion marker was emitted and no private-key marker or live mutation occurred |
+| 2026-07-29 | Protected Node A public synchronization-artifact staging Action 16aj definition | Bash syntax, ShellCheck, repository-profile shfmt, driver and runner self-tests, exact five-file/hash/fingerprint contract, mutation-token and bounded rollback review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed locally: direct public-only SSH stream, initially absent root-only stage, exact protected modes, complete post-16ah/live synchronization absence checks, protected-state equality, exact remote output, local cleanup, and stage-only semantic rollback are defined; no SSH connection occurred |
+| 2026-07-29 | Protected Node A public synchronization-artifact staging Action 16aj attempt | Authorized exact hash-pinned runner and bounded automatic rollback | Failed closed with runner/SSH exit `1` and no normal stage output; remote rollback emitted `action_16aj_stage_rollback_complete=true` with no manual-intervention marker; exact failure assertion is unlabeled, the action is not accepted, and independent rollback verification is required |
+| 2026-07-29 | Read-only Action 16aj-a rollback and failure-boundary diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, executed local payload/archive/extraction contract, complete non-enforcing label review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed locally: exact public payload and archive behavior are independently reproducible; read-only Node A stage/live-target, package, identity, Caddy, service, listener, baseline, command-support, and in-memory key checks are defined with complete mismatch collection and bounded local cleanup; no SSH connection occurred |
+| 2026-07-29 | Read-only Action 16aj-a rollback and failure-boundary diagnostic | Authorized exact hash-pinned runner, local payload test, and read-only Node A inspector | Passed with runner/SSH exit `0`: payload hashes/archive/extraction valid; stage and all eight live targets absent; every labeled Node A check matched; mismatch count zero, rollback valid true, both completion markers present, and workstation cleanup complete |
+| 2026-07-29 | Bounded transient labeled staging diagnostic Action 16aj-b definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, exact per-step result and first-failure contract, mutation-token and secret-output review, cleanup-boundary review, focused pre-commit hooks, `git diff --check`, and `./Caddy/tests/run.sh --skip-container` | Passed locally: exact public tar replay into a distinct diagnostic stage, complete creation/extraction/file/hash/metadata/fingerprint/live/protected-state labels, boolean-only sensitive comparisons, normal and EXIT cleanup, and zero retained/live synchronization mutation are defined; no SSH connection occurred |
+| 2026-07-29 | Bounded transient labeled staging diagnostic Action 16aj-b execution | Exact runner/driver metadata and hashes, runner self-test, authorized execution exit/output, generated public-key payload hashes, and workstation temporary-directory absence | Failed and unaccepted: runner exit `1` with no remote output or cleanup evidence; local payload hashes and workstation cleanup passed, but Node A continuity and exact failure boundary remain unconfirmed |
+| 2026-07-29 | Fail-closed read-only Node A continuity Action 16aj-c definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, locally exercised first-failure contract, safe-output/read-only command scan, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: both exact stage paths, wildcard-equivalent stage count, all eight live targets, and the accepted post-16ah invariants are fail-closed and safely labeled; no SSH connection occurred |
+| 2026-07-29 | Fail-closed read-only Node A continuity Action 16aj-c execution | Exact runner/inspector metadata and hashes, self-test, strict host-verified SSH output, all fail-closed labels, completion contract, SSH status, and workstation temporary-directory absence | Passed: both stage paths and all matching siblings absent; all eight live synchronization targets absent; every accepted post-16ah invariant true; first failure none; SSH `0`; remote and local completion markers present; no remote change |
+| 2026-07-29 | Corrected bounded transient staging diagnostic Action 16aj-d definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, local archive/extraction test, locally exercised pre-write failure labels, explicit assertion accumulator, pipeline-component status capture, cleanup-boundary and secret-output review, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: safe labels precede every possible remote write, the exact public payload uses a distinct stage, all staged checks are collected, mandatory normal/EXIT stage-only cleanup is enforced, and runner output cannot be suppressed by a failed tar/SSH pipeline; no SSH connection occurred |
+| 2026-07-29 | Corrected bounded transient staging diagnostic Action 16aj-d execution | Exact runner/driver metadata and hashes, self/local payload tests, strict host-verified SSH, all preflight/staged/cleanup labels, diagnostic summary, tar/SSH/pipeline statuses, protected-state equality, and workstation temporary-directory absence | Passed: every check true; failure count zero; first failure none; stage removed; live/protected state restored; all component statuses zero; both completion markers present; no retained or live synchronization artifact |
+| 2026-07-29 | Corrected transactional retained public-artifact staging Action 16aj-e definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, local payload/archive/extraction test, locally exercised pre-write failure labels, explicit assertion accumulator, pipeline-component status capture, mutation-target, rollback-boundary, and secret-output review, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: the distinct public-only stage is retained only on complete validation; all post-write failures remove only that stage and require protected-state restoration; no SSH connection occurred |
+| 2026-07-29 | Corrected transactional retained public-artifact staging Action 16aj-e execution | Exact runner/driver metadata and hashes, self/local payload tests, strict host-verified SSH, every preflight/staged label, retained-stage contract, protected-state equality, tar/SSH/pipeline statuses, completion markers, and workstation temporary-directory absence | Passed: every check true; first failure none; exact five-file public stage retained as `root:root:0750`; live targets absent; protected state unchanged; all component statuses zero; rollback not invoked |
+| 2026-07-29 | Transactional Node A synchronization identity and restricted-SSH installation Action 16ak definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, accepted stage/hash/fingerprint review, peer-address/forced-command/no-delete regression checks, explicit no-connect and no-service-mutation review, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: exact Node A preflight, three-helper installation, Node B host pin, node-local key generation, single restricted Node B authorization, normalized key matching, non-connecting validation, idempotency, retained-stage preservation, protected-state equality, bounded semantic rollback, and secret-safe output are defined; no SSH connection occurred |
+| 2026-07-29 | Transactional Node A synchronization identity and restricted-SSH installation Action 16ak attempt | Exact runner path, metadata and hash; strict host-verified SSH execution; captured stdout/stderr; SSH status; completion/rollback markers; independent workstation temporary-path search | Failed and unaccepted: runner/SSH exit `1`; only `ssh_exit_status=1` appeared; remote streams were empty; no phase, completion, rollback, or manual-intervention marker appeared; workstation temporary path was absent; current Node A state remains unverified |
+| 2026-07-29 | Fail-closed read-only Node A synchronization diagnostic Action 16ak-a definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, original-order preflight coverage, exact stage/target/protected-state checks, installed-shape and secret-output review, read-only/no-connect/service-mutation scans, output-contract review, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: every silent Action 16ak preflight assertion and all eight live targets are independently observable; all mismatches are collected with the first boundary retained; complete installed shape can be recognized without emitting key material; state mismatch exits fail closed; no SSH connection occurred |
+| 2026-07-29 | Fail-closed read-only Node A synchronization diagnostic Action 16ak-a execution | Exact runner/inspector metadata and hashes, strict host-verified SSH, every preflight/stage/target/protected-state label, fail-closed status consistency, completion markers, and workstation temporary-path absence | Accepted read-only evidence: exactly one mismatch at `retained_stage_meta`; all stage contents and every other protected assertion passed; all eight live targets and libexec are absent; installed shape false; Action 16ak stopped pre-write; intentional SSH/runner exit `1`, complete diagnostic output, and local cleanup passed |
+| 2026-07-29 | Narrow read-only retained-stage metadata Action 16ak-b definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, stage-content and target-absence continuity, ownership/mode/timestamp/filesystem output review, optional ACL and fallback contracts, read-only/no-connect/service-mutation scans, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: exact retained-stage and parent metadata, filesystem context, and all available ACL evidence are captured without secrets; optional `getfacl` is handled explicitly; no SSH connection occurred |
+| 2026-07-29 | Narrow read-only retained-stage metadata Action 16ak-b execution | Exact runner/inspector metadata and hashes, strict host-verified SSH, complete continuity and metadata output contract, parent and filesystem context, ACL fallback, completion markers, workstation temporary-path absence, and disposable local tar reproduction | Passed: runner, SSH, and inspector exited `0`; stage is `root:root:0700`, parent is `root:root:1777`, filesystem is ext4 with `rw,noatime`, `getfacl` is unavailable and no ACL marker exists; all five stage files remain exact, all eight live targets and libexec remain absent, and local reproduction proved archive-root extraction changed a pre-created `0750` directory to `0700` |
+| 2026-07-29 | Corrected post-extraction enforcement and bounded metadata-only repair Action 16ak-c definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, extraction-mode reproduction, post-extraction enforcement ordering and observed-marker checks, file-descriptor-bound repair and rollback local test, exact mutation-token and service/peer exclusion scans, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: future staging reasserts and observes `root:root:0750` after extraction; Action 16ak-c permits only `chmod 0750` and failure-only `chmod 0700` against the validated open directory descriptor, with exact content/identity/live-state validation and no SSH execution during definition |
+| 2026-07-29 | Bounded metadata-only retained-stage repair Action 16ak-c execution | Exact runner metadata/hash, strict host-verified SSH, all preflight and mutation markers, post-repair content/identity/live-state validation, rollback-marker exclusion, SSH status, completion markers, and workstation temporary-path absence | Passed: mode changed only from `0700` to `0750`; owner `root:root`, inode `1670964`, device `66306`, and complete staged-file state remained unchanged; all live targets and libexec remained absent; Caddy and lsyncd remained inactive/masked; no rollback or service mutation occurred |
+| 2026-07-29 | Independent read-only post-repair continuity Action 16ak-d definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, repaired-stage content/identity checks, accepted package/inventory/identity/configuration/service/process/listener coverage, read-only/no-connect/service-mutation scans, exact success/mismatch/output-contract tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: a separate inspector collects all mismatches and fails closed unless exact post-16ak-c and protected Node A continuity is independently observed; no SSH connection occurred |
+| 2026-07-29 | Independent read-only post-repair continuity Action 16ak-d execution | Exact runner/inspector metadata and hashes, strict host-verified SSH, complete repaired-stage and protected-state label set, zero-mismatch result consistency, completion markers, SSH status, and workstation temporary-path absence | Passed: every check true; package inventory matched `6377ab14...da5c`; mismatch count zero; first failure none; continuity valid; SSH `0`; service mutations false; remote and local completion markers present; no Node A change |
+| 2026-07-29 | Corrected transactional Action 16ak retry definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, accepted stage inode/device and package-inventory pin checks, restricted authorization, no-connect and no-service-mutation scans, mutation-start and rollback-evidence handling, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: the exact 16ak-d baseline is pinned; success behavior remains bounded to Node A identity, host pin, authorization, and three helpers; every post-mutation nonzero result requires proven rollback; no SSH connection occurred |
+| 2026-07-29 | Corrected transactional Action 16ak retry execution | Exact runner/driver metadata and hashes, strict host-verified SSH, all preflight/mutation/installation/validation markers, public-key syntax and fingerprint, Node B fingerprints, restricted authorization count, no-connect/idempotency/stage-preservation/no-lsyncd/no-service markers, rollback-marker exclusion, SSH status, and workstation temporary-path absence | Passed: SSH `0`; Node A fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`; exactly one restricted authorization; initial and repeat validation passed; no rollback, peer connection, lsyncd configuration, or service mutation; local cleanup complete |
+| 2026-07-29 | Independent read-only post-install acceptance Action 16ak-e definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, exact key-pair/public evidence/host-pin/authorization/helper/stage checks, accepted protected-state coverage, private-material suppression, read-only/no-transfer/no-service/no-helper-execution scans, direct `ssh -G` restriction, exact success/mismatch/output-contract tests, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: a separate inspector independently validates the installed Node A synchronization identity and receiver-side SSH state without invoking installed helpers or contacting Node B; no SSH connection occurred during definition |
+| 2026-07-29 | Independent read-only post-install acceptance Action 16ak-e execution | Exact runner/inspector metadata and hashes, strict host-verified SSH, complete key/host-pin/authorization/helper/stage/protected-state labels, public evidence, zero-mismatch consistency, peer/helper/service exclusion markers, completion markers, SSH status, and workstation temporary-path absence | Passed: every check true; Node A fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`; mismatch count zero; first failure none; peer connections, installed-helper execution, and service mutations false; SSH `0`; remote and local completion markers present; no state change |
+| 2026-07-29 | Read-only Node A systemd-unit preflight Action 16al definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, exact target/helper/custom-unit coverage, template-instance and optional-unit handling, accepted post-16ak-e state checks, private-material suppression, read-only/no-transfer/no-service/no-helper-execution scans, output-contract checks, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: the fail-closed inspector adapts accepted Node B Action 14a behavior to Node A's exact three-helper post-16ak-e state, captures rather than assumes Node A effective-unit hashes and journal usage, and opens no SSH connection during definition |
+| 2026-07-29 | Read-only Node A systemd-unit preflight Action 16al execution | Exact runner/inspector metadata and hashes, strict host-verified SSH, all intended target and unit-property results, prerequisites, accepted helper/configuration/package state, effective-unit hashes, journal usage, zero-mismatch consistency, exclusion and completion markers, SSH status, and workstation temporary-path absence | Passed: every assertion true; mismatch count zero; first failure none; systemd `252.39-1~deb12u2`; all 16 intended targets absent; effective Caddy and lighttpd hashes captured; journals use `3.4G`; SSH `0`; peer connections, helper execution, and service mutations false; no state change |
+| 2026-07-29 | Inactive Node A systemd artifact staging Action 16am definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, exact 16-source metadata and hash pins, archive file-set/hash/digest local test, accepted Action 16al pre/post-state coverage, bounded stage-only cleanup and rollback-evidence handling, no-systemd/service/peer mutation checks, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: exact corrected 12-unit/four-helper payload and aggregate digest validated; transaction can create or remove only the intended inactive stage, preserves the accepted existing three-helper and protected state, and opened no SSH connection during definition |
+| 2026-07-29 | Inactive Node A systemd artifact staging Action 16am attempt | Exact runner metadata/hash; strict host-verified SSH; all remote preflight, stage, file, syntax, digest, live-state and protected-state labels; SSH status; completion/rollback evidence; workstation cleanup; local runner validation | Remote transaction evidence passed completely: SSH `0`, first failure none, exact `root:root:0750` 16-file stage and digest reported retained, protected state unchanged, no daemon reload or service mutation, remote completion true, no rollback marker; workstation cleanup passed. Overall action remains unaccepted because the runner exited `97` after its broad negative scan falsely matched the two required `=false` no-mutation markers |
+| 2026-07-29 | Independent read-only retained-stage Action 16am-a definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, exact 16-file/four-directory/hash/owner/mode/syntax/digest pins, complete accepted Action 16al protected-state coverage, listener checks, private-material suppression, read-only/no-transfer/no-service/no-helper-execution scans, explicit no-mutation marker handling, broad false-marker regression guard, host suite, full pre-commit suite including gitleaks, and `git diff --check` | Passed locally: standalone inspector and hash-pinned runner define a zero-mismatch success contract and complete mismatch contract without invoking or correcting Action 16am, creating a remote path, contacting Node B, or opening an SSH connection during definition |
+| 2026-07-29 | Independent read-only retained-stage Action 16am-a attempt | Exact runner/inspector metadata and hashes, strict host-verified SSH, every protected-state and retained-stage label, mismatch consistency, completion markers, SSH status, no-mutation evidence, and workstation temporary-path absence | Remote inspection passed completely with SSH `0`, zero mismatches, first failure none, exact retained stage and protected baseline, and no mutations; local cleanup passed. Overall action remains unaccepted because the workstation contract exited `97` after counting both Boolean and observed-value lines under `stage_file_count=` and `stage_digest=` |
+| 2026-07-29 | Corrected read-only Action 16am-a retry definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, disjoint assertion/value labels, shared contract evaluator, synthetic success/mismatch/duplicate/malformed/missing-marker/inconsistent/secret cases, exact hashes and stage pins, read-only/no-transfer/no-service/no-helper-execution scans, host suite, full pre-commit suite including gitleaks, Markdown lint, and `git diff --check` | Passed locally: the prior successful live transcript shape is accepted with disjoint labels; complete mismatches remain distinguishable from contract failures; malformed or inconsistent evidence fails closed; no SSH connection occurred |
+| 2026-07-29 | Corrected read-only Action 16am-a retry execution | Exact runner/inspector metadata and hashes, self-test, synthetic contract test, strict host-verified SSH, every protected-state and retained-stage assertion/value, mismatch and false-line consistency, SSH status, completion/no-mutation markers, and workstation temporary-path absence | Passed: SSH/runner `0`; every assertion true; zero mismatches; exact 16-file retained stage and protected baseline; no peer, helper, daemon-reload, or service mutation; remote and local completion markers present; Action 16am-a retry and inactive staging Action 16am accepted |
+| 2026-07-29 | Transactional Node A systemd installation Action 16an definition | Bash syntax, ShellCheck, repository-profile shfmt, installer/runner self-tests, exact stage/hash/target/unit-state pins, strict transcript cardinality with duplicate/missing/rollback/nonzero cases, rollback-boundary and no-enable/no-service/no-peer scans, host suite, pre-commit including gitleaks, Markdown lint, `git diff --check`, and full Debian 12 Podman integration | Passed locally: exactly 16 absent targets, two drop-in directories, one success-path daemon reload, disabled/static and inactive custom units, complete protected-state identity, retained-stage preservation, and bounded semantic rollback are defined; the sandboxed Podman attempt stopped at read-only rootless runtime state and the unchanged host-permitted rerun passed; no node was contacted |
+| 2026-07-29 | Transactional Node A systemd installation Action 16an execution | Exact runner/installer metadata and hashes, self-test, synthetic transcript regression, strict host-verified SSH, all remote preflight/mutation/install/daemon-reload/systemd/protected/stage/exclusion/completion markers, rollback-marker exclusion, SSH status, and workstation temporary-path absence | Passed: runner/SSH `0`; exactly 16 targets installed; custom units loaded, inactive, and disabled/static; both retained stages and protected state unchanged; no enablement, peer, helper, service, lsyncd-configuration, or Keepalived-fragment action; rollback not invoked; remote and local completion passed |
+| 2026-07-29 | Independent read-only Node A post-install Action 16an-a definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, exact live/staged/synchronization artifact pins, systemd state and protected-baseline coverage, assertion/mismatch cardinality contract, synthetic success/mismatch/duplicate/malformed/inconsistent/secret cases, read-only/no-service/no-peer scans, focused diff checks, complete host suite, pre-commit including gitleaks, Markdown lint, and full Debian 12 Podman integration | Passed locally: independent recomputation of Action 16an state is defined with fail-closed evidence consistency and safe observed unit/journal values; no SSH connection occurred |
+| 2026-07-29 | Independent read-only Node A post-install Action 16an-a attempt | Exact hash-pinned runner, strict host-verified SSH, all remote assertions, mismatch consistency, no-mutation markers, completion markers, SSH status, and local cleanup | Remote evidence passed with 264 true assertions, zero mismatches, SSH `0`, and no mutation; runner exited `97` only because one uppercase-derived Pi-hole FTL label violated the lowercase evidence grammar, so Action 16an-a was not accepted |
+| 2026-07-29 | Corrected read-only Action 16an-a retry definition | Lowercase normalization for every derived unit label; inspector/runner self-tests; real Pi-hole FTL success transcript; uppercase transcript rejection; unchanged assertion and safety boundaries; complete host suite; pre-commit including Markdown and gitleaks; `git diff --check`; full Debian 12 Podman integration | Passed locally: corrected inspector `68716f33...cf9e` and runner `54f7d249...c2fe`; all repository validation passed; no SSH retry or node change occurred |
+| 2026-07-29 | Corrected read-only Action 16an-a retry execution | Exact runner/inspector metadata and hashes, fail-fast local preflight, strict host-verified SSH, all 264 assertions, mismatch and status consistency, no-mutation markers, completion markers, and workstation cleanup | Passed: SSH/runner `0`; 264 true assertions; zero mismatches; exact stage and 16 installed targets; effective unit hashes recorded; no peer, helper, daemon-reload, service, or node mutation; corrected retry accepted |
+| 2026-07-29 | Read-only Node A cutover-preflight Action 16ao definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, success/mismatch/duplicate/malformed/secret contract cases, exact dual-stack/candidate/configuration/certificate/unit/listener/health/rollback checks, static read-only/no-service/no-peer scans, complete host suite, pre-commit including gitleaks and Markdown, `git diff --check`, and full Debian 12 Podman integration | Passed locally: exact fail-closed pre-cutover inspection is defined; no SSH connection or node change occurred |
+| 2026-07-29 | Read-only Node A cutover-preflight Action 16ao execution | Exact artifact hashes and self-tests, strict host-verified SSH, all 66 assertions, result cardinality, mismatch and status consistency, no-mutation markers, completion markers, and workstation cleanup | Stopped correctly with SSH/runner `1`: 63 checks passed; exact ULA presence, Caddy unit type, and TCP 80 count failed; no mutation occurred; Action 16ao remains unaccepted |
+| 2026-07-29 | Narrow read-only Action 16ao-a diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, diagnostic/runner self-tests, synthetic success/duplicate/count-inconsistent/secret cases, IPv6/Caddy-type-provenance/TCP-80 coverage, static read-only/no-service/no-peer scans, complete host suite, pre-commit including gitleaks and Markdown, `git diff --check`, and full Debian 12 Podman integration | Passed locally: non-enforcing count-reconciled diagnostic is defined; no SSH connection or node change occurred |
+| 2026-07-29 | Narrow read-only Action 16ao-a diagnostic execution | Exact hash-pinned runner and diagnostic metadata, Bash syntax, self-tests, synthetic contract tests, strict host-verified SSH, singleton and repeated-record cardinality, count reconciliation, secret-output exclusion, no-mutation markers, completion markers, and workstation cleanup | Passed: SSH/runner `0`; six IPv6 records exposed stable ULA `fd36:5aa8:6971:1::53/64`; two dual-stack lighttpd TCP 80 sockets exposed the valid listener set; Caddy was masked and inactive with an empty effective type through the mask fragment, leaving underlying vendor-unit type provenance unresolved; no peer, helper, daemon-reload, or service mutation occurred |
+| 2026-07-29 | Narrow read-only Action 16ao-b diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH cases, exact mask/package/vendor-unit/type-provenance coverage, static read-only/no-service/no-peer scans, complete host suite, full Debian 12 Podman integration, pre-commit including gitleaks and Markdown, and `git diff --check` | Passed locally: non-enforcing count-reconciled mask and vendor-unit diagnostic is defined; the first sandboxed Podman attempt could not access rootless runtime state and the unchanged host-permitted run passed completely; no SSH connection or node change occurred |
+| 2026-07-29 | Narrow read-only Action 16ao-b diagnostic execution | Exact hash-pinned runner and diagnostic metadata, Bash syntax, self-tests, synthetic contract tests, strict host-verified SSH, singleton and repeated-record cardinality, count reconciliation, secret-output exclusion, no-mutation markers, completion markers, and workstation cleanup | Passed: SSH/runner `0`; exact `/dev/null` mask, installed Caddy `2.11.4` arm64 package, one package-owned vendor unit and canonical path, exact unit hash/metadata, and sole line-23 `Type=notify` directive were collected with every status zero; no peer, helper, daemon-reload, service, or node mutation occurred |
+| 2026-07-29 | Corrected read-only Action 16ao retry definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, synthetic success/mismatch/duplicate/malformed/secret contract cases, exact `/64` ULA and dual-stack listener positive/negative tests, exact mask/package/vendor-unit/hash/ownership/type pins, unchanged prior assertions, static read-only/no-service/no-peer scans, complete host suite, and full Debian 12 Podman integration | Passed locally: corrected 75-assertion fail-closed preflight is defined; no SSH connection or node change occurred |
+| 2026-07-29 | Corrected read-only Action 16ao retry execution | Exact hash-pinned runner and inspector metadata, Bash syntax, self-tests, synthetic contract tests, strict host-verified SSH, all assertion/result cardinality, mismatch/status consistency, secret-output exclusion, no-mutation markers, completion markers, and workstation cleanup | Passed: SSH/runner `0`; all 75 assertions true; zero mismatches; exact corrected values and every retained prerequisite passed; no peer, helper, daemon-reload, service, listener, configuration, or node mutation occurred |
+| 2026-07-29 | Transactional Node A listener/service cutover Action 16ap definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, synthetic success/pre-write-failure/complete-rollback/incomplete-rollback/duplicate/secret contract cases, exact prerequisite and path/hash pins, 20-second lighttpd and 35-second Caddy bounds with three-second stability, IPv4/IPv6 management checks, rollback arming and restoration checks, complete host suite, full Debian 12 Podman integration, pre-commit including Markdown and gitleaks, and `git diff --check` | Passed locally: exact transactional cutover and automatic semantic rollback are defined; no SSH connection or node change occurred |
+| 2026-07-29 | Transactional Node A listener/service cutover Action 16ap execution | Exact runner/driver metadata and hashes, Bash syntax, self-tests, contract test, strict host-verified SSH, remote transaction evidence, semantic result handling, and workstation cleanup | Stopped safely but incompletely: preflight and mutation markers passed, lighttpd backend became ready, Caddy activation failed, rollback could not prove restoration, remote semantic status was `125`, runner exited `97`, manual intervention is required, and no later action was performed |
+| 2026-07-29 | Read-only Node A recovery diagnostic Action 16ap-a definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH contract cases, complete unit/path/lighttpd/listener/process/health/journal coverage, static no-write/no-service/no-peer checks, complete host suite, and full Debian 12 Podman integration | Passed locally: exact non-enforcing state collection and fail-closed transcript validation are defined; no SSH connection or node change occurred |
+| 2026-07-29 | Read-only Node A recovery diagnostic Action 16ap-a execution | Exact hash-pinned runner/inspector metadata, Bash syntax, self-tests, transcript contract, strict host-verified SSH, all singleton and repeated-record cardinality, count reconciliation, secret-output exclusion, explicit no-mutation markers, completion markers, and workstation cleanup | Passed as diagnostic evidence with SSH/runner `0`: the original lighttpd frontend, Caddy mask, absent Action 16ap paths, retained source candidate, and deferred service state were observed; `caddy_validate_status=1` prevents recovery acceptance and requires a separate narrow diagnostic |
+| 2026-07-29 | Dual-node Caddy validation/provenance diagnostic Action 16ap-b definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH contract cases, exact Node A/Node B identity and host-key pins, bare/environment-backed validator separation, configuration-only hashing, static no-write/no-service/no-peer checks, complete host suite, and full Debian 12 Podman integration | Passed locally: exact two-node comparison and fail-closed transcript validation are defined; neither node was contacted or changed |
+| 2026-07-29 | Dual-node Caddy validation/provenance diagnostic Action 16ap-b execution | Exact hash-pinned runner/inspector metadata, Bash syntax, self-tests, two-node transcript contract, separate strict host-verified SSH, all singleton/repeated cardinality and count checks, role/hostname binding, secret-output exclusion, explicit no-mutation/completion markers, and workstation cleanup | Passed with both SSH statuses and runner `0`: Nodes A and B have identical binary/package/Caddyfile/configuration-tree provenance; both fail bare validation identically and pass environment-backed validation, proving Action 16ap-a was a context false negative and completing independent recovery acceptance |
+| 2026-07-29 | Corrected transactional Node A listener/service cutover Action 16ap retry definition | Bash syntax, ShellCheck, repository-profile shfmt, driver/runner self-tests, synthetic transcript contract, exact preservation of Action 16ap bounds, one guarded `reset-failed` invocation, explicit supported-state handling, pre-start and rollback helper use, success reset evidence, no-peer assertion, complete host suite, and full Debian 12 Podman integration | Passed locally: the retry resets only exact `ActiveState=failed`, rejects unsupported states, and otherwise preserves the accepted transaction and rollback contract; neither live node was contacted or changed |
+| 2026-07-29 | Corrected transactional Node A listener/service cutover Action 16ap retry execution | Exact runner/driver ownership, modes, hashes, Bash syntax, self-tests, transcript contract, strict host-verified SSH, remote preflight, guarded reset evidence, bounded readiness, environment-backed validation, listener/service/configuration/tree assertions, no-peer/deferred-state markers, semantic success, and workstation cleanup | Passed with SSH/runner `0`: inactive Caddy correctly skipped reset, lighttpd backend and Caddy became ready, all embedded acceptance checks passed, rollback was not invoked, and corrected Action 16ap retry is accepted |
+| 2026-07-29 | Independent read-only Node A post-cutover acceptance Action 16aq definition | Bash syntax, ShellCheck, repository-profile shfmt, inspector/runner self-tests, synthetic success/mismatch/duplicate/malformed/secret/nonzero-SSH transcript cases, exact post-cutover hash and state pins, certificate and protocol checks, bounded journal policy, static no-write/no-service/no-peer scans, complete host suite, full Debian 12 Podman integration, focused pre-commit including Markdown and gitleaks, and `git diff --check` | Passed locally: exact independent fail-closed Node A acceptance inspection is defined; neither live node was contacted or changed |
+| 2026-07-29 | Independent read-only Node A post-cutover acceptance Action 16aq execution | Exact runner/inspector hashes, strict host-verified SSH, 104 labeled assertions, evidence cardinality, service/listener/configuration/tree/certificate/protocol/journal checks, no-mutation markers, semantic status, and workstation cleanup | Stopped without mutation: 100 checks passed; three lighttpd fragment-location assumptions and unknown-host `421` policy failed; SSH returned semantic status `1`; a runner-contract defect returned `97`; Action 16aq remains unaccepted |
+| 2026-07-29 | Narrow read-only Action 16aq-a diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, diagnostic/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH transcript cases, recursive lighttpd directive and include provenance, effective parser/listener state, environment-backed adapted and live Caddy route records, five direct no-proxy SNI/Host probes, static no-write/no-service/no-peer scans, complete host suite, focused pre-commit, `git diff --check`, and full Debian 12 Podman integration | Passed locally: exact non-enforcing remote collection and fail-closed workstation transcript validation are defined; neither live node was contacted or changed |
+| 2026-07-29 | Narrow read-only Action 16aq-a diagnostic execution | Exact runner hash, strict host-verified SSH, command and repeated-record counts, lighttpd provenance/effective/listener evidence, adapted/runtime route counts, five probes, completion and no-mutation markers, SSH status, and workstation cleanup | Remote collection completed with SSH `0` and no mutation; runner returned `97` because intentional `%7C` probe encoding failed its literal-delimiter regex; main lighttpd config owns loopback/8080, mismatched SNI/Host returns `421`, matching unknown SNI/Host returns Caddy `200`, and IP-SNI failed TLS with curl `35`; Action 16aq-a remains unaccepted |
 
 Validated container versions: Caddy `2.11.4`, Keepalived `2.2.7`, lsyncd
 `2.2.3`, lighttpd `1.4.69`, and systemd `252`.
@@ -277,13 +9299,516 @@ Selected repository hashes at validation:
 | `scripts/select-node-b-action15-remediation-release.sh` | `daa8d1b0f479526ece3fa0f4b42f207e31c1bbb2cf11dd04078b371347258404` |
 | `scripts/stage-node-b-lighttpd-action15-retry3.sh` | `7dc648a7fe4163d95a3ba763d6c10ce855ba91eb60aa46ff9dfbb3bad09b5d65` |
 | `scripts/validate-node-b-action15-cutover.sh` | `22c04d80ffb7f8c6ba34b6e78894664e432f1160dd22668b48663d702876f336` |
+| `scripts/create-node-rollback-backup.sh` | `83790ff984563fac8471eb4492cd1b893112c4c46ea4d1fb3398f6f0188eaddb` |
+| `scripts/install-node-a-caddy-action16n-retry.sh` | `d12770165df606b3c00b8ae54f8e570dad3815b1259aebded1bbb0981b2b45ae` |
+| `scripts/validate-node-a-caddy-action16n-install.sh` | `032b34bfc6e6d3c166d1f5c168986876b42ee20ca840a956dbb7dbe8a25d3ea3` |
+| `scripts/simulate-node-a-ha-sync-dependencies.sh` | `fd1d15634260b5ee05749eaea760726513fdc5aab51fa7243fd9c9a4764e913f` |
+| `scripts/inspect-node-a-lsyncd-package.sh` | `61bd89b8c6cb72776ccc59f929dfba0cb21e77fd2f4f0d00369114e29265ee9d` |
+| `scripts/validate-node-a-lsyncd-audit-cleanup.sh` | `ad5e879e72819f6a173de1192e4eab8853408b8fcfa9b288f22273b01286fe93` |
+| `scripts/validate-node-a-lsyncd-preinstall-state.sh` | `2a662901eebdacfdd277203636e4009dabd006be88d42a62b4728cdf8bf19d73` |
+| `scripts/diagnose-node-a-lsyncd-preinstall-stop.sh` | `0b3a04efe89856630e72961cf584a9fdce625411f9a8550d4c51f3110e9086ba` |
+| `scripts/install-node-a-lsyncd-action16r.sh` | `db41caafa302705d0447cd12ec5b5f740047531d3e9dded391eaea672e9d065b` |
+| `scripts/validate-node-a-ha-sync-convergence-action16s.sh` | `fdfcec1979b076e57106d9b1eb09e836d9442c6df213da051318e31f92714eda` |
+| `scripts/simulate-node-a-validation-dependencies-action16t.sh` | `d40f342216641bdc9205dc9f1161abe491c185f66fa79b347fa5bf17621323d9` |
+| `scripts/diagnose-node-a-validation-simulation-stop-action16t-a.sh` | `49f4a90f3138b45a0507a8be51b6161113efcdd7a04baede78eabb56303c2a39` |
+| `scripts/inspect-node-a-uuid-runtime-package-action16u.sh` | `ddcb3c742549a41475d4a8fbbf5d7d4d9c453d8aa90b105288bd6f71004f18af` |
+| `scripts/validate-node-a-uuid-runtime-preinstall-state-action16v.sh` | `cdb24eb1a4e5e22961b421bfe899045fe295e203d6184904ff85903f1c125f75` |
+| `scripts/install-node-a-uuid-runtime-action16w.sh` | `9878613134e5af56a94e30bddb89f66cf8a2337e75001a66a48dfe3f486bdf09` |
+| `scripts/validate-node-a-validation-dependency-convergence-action16x.sh` | `40f54596089138b88543de85ed531f854fe70ba77e0dcf6719e8641dd3ace537` |
+| `scripts/diagnose-node-a-validation-dependency-stop-action16x-a.sh` | `9523fb7a6bdf48895ff67624330cfa46f4b86d66d49d533b053f863d2e461f0c` |
+| `scripts/validate-node-a-validation-dependency-convergence-action16x-retry.sh` | `8cd4d7aac4fd25dd34bf79e75f1558abb4dfe7f4a9e8e1afbd05edb8fc0ca2f1` |
+| `scripts/diagnose-node-a-validation-dependencies-action16x-b.sh` | `28beab618f313c10040006729f1c3ec39b7b88f1aa2aff640e0555defd7ee393` |
+| `scripts/validate-node-a-validation-dependency-convergence-action16x-retry2.sh` | `99c267308c859579565332c037dbe8b9d873e923183d3541ef8e99d20f4b4a3b` |
+| `scripts/diagnose-node-a-command-versions-action16x-c.sh` | `fad25b75949b3dc0de9d224e0232cae299277fa020a31505173b34e211f01859` |
+| `scripts/diagnose-node-a-ip-symlink-action16x-d.sh` | `cc1fccbd861201ba2844c40144995f009861d893e0bae93a0615ac17261c629b` |
+| `scripts/diagnose-node-a-iproute2-ownership-action16x-e.sh` | `91571f9f05416252b8a72fb576348b33c5d24d3306a43d66993c9f551e156d2d` |
+| `scripts/diagnose-node-a-iproute2-ownership-action16x-e-retry.sh` | `ab348a90a31d8cb2d53415b3456c8fc2b2bcb147c5b3ec5b722c21b7b03b6d45` |
+| `scripts/validate-node-a-validation-dependency-convergence-action16x-retry3.sh` | `acced80dbdcc2eeae2e7783681c887165f82f03f7c117e4d3f036896472da13f` |
+| `scripts/install-node-a-service-identities-action16y.sh` | `e992fa3d85debfbbc1275e925e7e159fddd4b1a306d54a80ca32b8ced960bdcf` |
+| `scripts/inspect-node-a-sysctl-preflight-action16z.sh` | `904992007e0bffa5028a2a3857ffee20be1c2fc4a4a838b24863c99e6b7e123d` |
+| `scripts/install-node-a-sysctl-action16aa.sh` | `a7a0766c2777a4c7fcdc8f19f4af8e7ba40480313b60b03ea5520d50a3c7adb2` |
+| `scripts/run-node-a-lighttpd-action16ab.sh` | `6b07016f2cd7381ff46dbb857652f8cbd6d587fb9bbaa497eaccd6fbf8df0e21` |
+| `scripts/stage-node-a-lighttpd-action16ab.sh` | `064fae668c82624729b410490b3a5dd18fd2da0d9bde60e20488b3817729c1a5` |
+| `scripts/validate-workstation-certificate-stage-action16ac.sh` | `fbca4722dc3da0f28ab44bea9fb8b846cac9bb25439658ad3d3b33815250aacb` |
+| `scripts/diagnose-workstation-certificate-stage-action16ac-a.sh` | `0034156f61c56981ce0ab132d6762a2a9493ae24bf9f99030bca986c6d72c692` |
+| `scripts/prepare-workstation-certificate-stage-action16ad.sh` | `d7506f72d4042caf45a1387ef6244b9d9b0e762972925358ef39e78818c95174` |
+| `scripts/stage-node-a-certificate-action16ae.sh` | `4151960cbd6f955ee6d17353c491e890467ee535e6b467109b33d74b5d316378` |
+| `scripts/run-node-a-certificate-transfer-action16ae.sh` | `afb5e5ddc73d61a29f196f2a2e20745e43a48c1b077536627090788d1f2c6ba0` |
+| `scripts/stage-node-a-caddy-source-action16af.sh` | `632de019c924fe504c74d1d55d795422145686c4486260b6729e550a9d3a383b` |
+| `scripts/run-node-a-caddy-source-transfer-action16af.sh` | `5a1d81c7aef708be0ae823c56f071aa415e02d27b0edcfe8276e6dcf2e43b0c2` |
+| `scripts/validate-node-a-caddy-installer-dry-run-action16ag.sh` | `b2fb485175cdc2e33d63d49383be16baf6b4521dee03d4710e7dc860fb4fc8b8` |
+| `scripts/run-node-a-caddy-installer-dry-run-action16ag.sh` | `d133d0bdce6148180bccf59b4e5905cb7ba19640af60ab7892da30ec116c6dbc` |
+| `scripts/install-node-a-caddy-configuration-action16ah.sh` | `7324f3ded9d0d7ea550e072e14da46350d8abf35cc32b60926c811af2c10669e` |
+| `scripts/run-node-a-caddy-configuration-install-action16ah.sh` | `1a75741626355c5bf3d61b65f33bdf64af8d41ee4ff200b98caf02f0aea27c25` |
+| `scripts/inspect-node-a-sync-ssh-prestate-action16ai.sh` | `7228e30eae408c88b30ed0ff5679f34bd8eaaddf891c1d7fbea16d3ff15554a4` |
+| `scripts/inspect-node-b-sync-peer-material-action16ai.sh` | `4721428e0ff94b1b4b9be456e954ef09891705b8828b3dbb39d506bffc09bf11` |
+| `scripts/run-node-a-sync-ssh-preflight-action16ai.sh` | `af3fe540758d142636ae4e1881c5523dc68ea36e3f6e9133c71349b9374fa8f2` |
+| `scripts/stage-node-a-sync-ssh-artifacts-action16aj.sh` | `62d10ca5210d5ea367100997ad0f970c278e4f3fa77ff3293e78a0849720af15` |
+| `scripts/run-node-a-sync-ssh-stage-action16aj.sh` | `f3e4332d8b52a91ca687cea8310966ceebc96eac9997e59d3032008ef2543262` |
+| `scripts/diagnose-node-a-sync-stage-rollback-action16aj-a.sh` | `a6c2220ca1ee9a332c4bed3c2419283b087f400c12e9dd3bfef184543b78f6f1` |
+| `scripts/run-node-a-sync-stage-rollback-diagnostic-action16aj-a.sh` | `9e47850956a88f046a1e88b29f89fdcb31346bc36a74b417009dbd7fe2e6d3e4` |
+| `scripts/diagnose-node-a-sync-stage-transient-action16aj-b.sh` | `e614883201526b82f7e5fe02b818210033d23ad3b3668dbe8a31fb6187c01897` |
+| `scripts/run-node-a-sync-stage-transient-diagnostic-action16aj-b.sh` | `6e87585181518c3d45fd29eb9ac3f02366f4656fa0dd40845a4ad05a209907db` |
+| `scripts/inspect-node-a-sync-continuity-action16aj-c.sh` | `b347376da9c8975ff3ccdba0d87b7f56d77ad77ce11392ccab3222a90eb365a6` |
+| `scripts/run-node-a-sync-continuity-action16aj-c.sh` | `69e9160cd389d8db0a9abd5f5b29ae0eab332d0196c3075e1d3143689bb55f87` |
+| `scripts/diagnose-node-a-sync-stage-transient-action16aj-d.sh` | `fbe55c4be2bd0880371df05b0b509eee8aa0300cc2005ab3dca631e24c1abbce` |
+| `scripts/run-node-a-sync-stage-transient-diagnostic-action16aj-d.sh` | `2daadf510cd7f6ea6a2219c5dcca763b81274337f62dba5eea146360f64258ba` |
+| `scripts/stage-node-a-sync-ssh-artifacts-action16aj-e.sh` | `a41f092405166a50807c66e1bcea71c81c48944cc15e634aa39f50b71b5b6d2a` |
+| `scripts/run-node-a-sync-ssh-stage-action16aj-e.sh` | `8656cae4b2211ffc9bcc38bed55eed2662eaff3879e537d86b19289b7ead410c` |
+| `scripts/install-node-a-systemd-action16an.sh` | `192a682795655d363eab2e07f3af3932a08cc77d8ff4cf96b19ea6b2daafb9c2` |
+| `scripts/run-node-a-systemd-install-action16an.sh` | `b641000e28e681f92c329a64cc67a7d5cc0348c211c60f8d40d67bb5f504450f` |
+| `scripts/inspect-node-a-systemd-postinstall-action16an-a.sh` | `68716f33d1dd1e027c6cecca91d2e1be2a23a7cbd3292919863cdc30a899cf9e` |
+| `scripts/run-node-a-systemd-postinstall-action16an-a.sh` | `54f7d24999b2dc6f00a49735e71405db365642c10a798225911f91308abdc2fe` |
+| `scripts/inspect-node-a-cutover-preflight-action16ao.sh` | `370e40f3ce2293aaf354080f346c847b4134f37d92d83d6d7b61803a99eb1eb0` |
+| `scripts/run-node-a-cutover-preflight-action16ao.sh` | `1a9a2e77169ce17a6f9c524c9029971fa33df26090fcf15246c9188a7a8a5f93` |
+| `scripts/diagnose-node-a-cutover-preflight-action16ao-a.sh` | `6f75baf2f1b5826ce5ac9453b84914f5caff39d83b669e26c1ee97d84e59eb2e` |
+| `scripts/run-node-a-cutover-diagnostic-action16ao-a.sh` | `120a4479b2b81927715e644ed22a70f42286903dd683e9ab1d29d98e9977b1bc` |
+| `scripts/diagnose-node-a-caddy-vendor-unit-action16ao-b.sh` | `6a67da4d77c680e29b98ea13ddbd1b9ab4e9194c17115af4785ca268902c5911` |
+| `scripts/run-node-a-caddy-vendor-unit-diagnostic-action16ao-b.sh` | `9b0935134c7f134d063af7446eee033158a71f328fc0160622582eafb8580d17` |
+| `scripts/cutover-node-a-lighttpd-caddy-action16ap.sh` | `de3bea3d3478959ec16c34af4460d804063f3ebf81a7c69b51214867a117159a` |
+| `scripts/run-node-a-lighttpd-caddy-cutover-action16ap.sh` | `a2dbfa9e686cfd375548bfa6c2fa5233d173654b036a787c9ff4259b8775c7f0` |
+| `scripts/cutover-node-a-lighttpd-caddy-action16ap-retry.sh` | `ff413bb040f4a6d318d27f87bb9cef198cd2ba7b8f653d3f1a9834b689838b9e` |
+| `scripts/run-node-a-lighttpd-caddy-cutover-action16ap-retry.sh` | `a8cceb3a43f984060afa62ad2cacf001235c5b5f6f96e728dc84f87125d82573` |
+| `scripts/inspect-node-a-post-cutover-action16aq.sh` | `67c6c1eca8d3af1820607e3c0a9d548c439d1bdce97a68676ca793d24492d90f` |
+| `scripts/run-node-a-post-cutover-acceptance-action16aq.sh` | `b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348` |
+| `scripts/diagnose-node-a-lighttpd-routing-action16aq-a.sh` | `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111` |
+| `scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a.sh` | `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc` |
+| `scripts/diagnose-node-a-recovery-state-action16ap-a.sh` | `d4402abfab7a19f8b8ec3eec83b55f71db0981a6cc6ad5db41aa656e46121a77` |
+| `scripts/run-node-a-recovery-diagnostic-action16ap-a.sh` | `c7c002af58eb5c33369dbc43fbd9676469bdfe2da06978128699cf42a6abc06d` |
+| `scripts/diagnose-caddy-validation-provenance-action16ap-b.sh` | `43fb0866dd95347ff720e8fdccb567b4cb9cb7b332ac87a79ff993b4e45c13d8` |
+| `scripts/run-caddy-validation-provenance-action16ap-b.sh` | `325dce1f2aaac8cc82e23b075554cabcc32121e4a5df0af044ed3639cb3e6daf` |
 | `systemd/caddy.service.d/override.conf` | `a292487f4cbde99abce048b97ec15dbae8ef511ec845dcf5740f343e143f39df` |
 | `tests/integration.sh` | `e5f3a2b65105766cc6ce6deafe496a1664ee030bda80ba26909aecea8de941d6` |
-| `tests/run.sh` | `91b3d70c1464632851fda977d6fa9b00adba99381ff900a9e241124158d0d87b` |
+| `tests/run.sh` | `7e6c9a7ba5e72da84b8c8f5dbf62e285e2ebd30479f4bc42ef4a52bd80a939f8` |
 
 ## Observed System State
 
 The Unbound repository was confirmed clean before implementation.
+
+At `2026-07-29T04:14:59Z`, corrected independent read-only Action 16an-a
+accepted Node A's post-install systemd state. All 264 assertions were true,
+with zero mismatches, `first_failure=none`, and SSH/runner status `0`. The
+retained stage and installed target counts were both 16, with stage digest
+`305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+Effective Caddy and lighttpd unit SHA-256 values were
+`3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`
+and
+`ad6c381129068d4a3e44d152272214f983bd3e5e6b5a3485d91a7a829b5375ca`.
+Journald usage was `3.4G`. Peer connections, installed-helper execution,
+daemon reload, and service mutations were false; both completion markers
+passed and Node A remained unchanged.
+
+At `2026-07-29T04:23:41Z`, read-only cutover-preflight Action 16ao completed
+with 63 of 66 assertions true and SSH/runner status `1`. Exact ULA presence,
+Caddy unit type, and TCP 80 socket count were the three mismatches; their
+actual values were not emitted and are not inferred. The exact lighttpd
+candidate and native parse, Caddy configuration and certificate, rollback
+baseline, current service health, listener ownership, direct HTTP/HTTPS
+management access, Caddy stop timeout, and deferred lsyncd/VRRP state passed.
+No peer, helper, daemon-reload, service, or listener mutation occurred, and
+both completion and cleanup markers passed. Action 16ao is unaccepted pending
+a separately defined and authorized narrow read-only diagnostic.
+
+At `2026-07-29T04:38:02Z`, non-enforcing read-only diagnostic Action 16ao-a
+completed with SSH/runner status `0`. Six IPv6 records showed the stable Node A
+ULA as `fd36:5aa8:6971:1::53/64` on `eth0`. TCP 80 had two lighttpd listener
+records, `0.0.0.0:80` and `[::]:80`, both owned by PID `916`. Caddy was masked
+and inactive; the effective fragment was `/etc/systemd/system/caddy.service`,
+the effective `Type` was empty, and no explicit `Type=` directive was visible
+through the mask, so the underlying vendor-unit type provenance remains
+unresolved. No peer connection, installed-helper execution, daemon reload, or
+service mutation occurred; remote completion and workstation cleanup passed.
+Action 16ao-a is accepted as diagnostic evidence, while Action 16ao remains
+unaccepted and unmodified.
+
+At `2026-07-29T04:46:56Z`, non-enforcing read-only diagnostic Action 16ao-b
+completed with SSH/runner status `0`. The active
+`/etc/systemd/system/caddy.service` mask is a `root:root` mode-`0777` symlink
+to `/dev/null`. Installed `caddy` `2.11.4` arm64 owns one package-listed vendor
+unit at `/lib/systemd/system/caddy.service`, canonically
+`/usr/lib/systemd/system/caddy.service`; it is a `root:root` mode-`0644`
+regular file of 1,029 bytes with SHA-256
+`6c271e030644bd36a0c8956885934f16c928f88202bc126f12cde519ef9693ff`.
+Its sole explicit service-type directive is `Type=notify` at line 23. Every
+observation status was zero. No peer connection, installed-helper execution,
+daemon reload, or service mutation occurred; remote completion and workstation
+cleanup passed. Action 16ao-b is accepted as diagnostic evidence, while Action
+16ao remains unaccepted and unmodified.
+
+At `2026-07-29T04:54:04Z`, the corrected fail-closed read-only Action 16ao
+retry completed with all 75 assertions true, zero mismatches,
+`first_failure=none`, and SSH/runner status `0`. The exact `/64` ULA,
+dual-stack lighttpd TCP 80 listeners, `/dev/null` Caddy mask, Caddy package and
+vendor-unit provenance, rollback baseline, candidate and live lighttpd state,
+Caddy configuration and certificate, service state, listener state, direct
+management access, and deferred lsyncd/VRRP state all passed. Peer connections,
+installed-helper execution, daemon reload, and service mutations were false;
+remote completion and workstation cleanup passed. Corrected Action 16ao is
+accepted and supersedes the original failed preflight. Node A remained
+unchanged.
+
+At `2026-07-29T05:06:27Z`, transactional Action 16ap passed its local
+hash/syntax/self-test/contract gate and remote preflight, then began mutation.
+The loopback lighttpd backend became ready and Caddy configuration validation
+passed, but Caddy activation failed after the service was unmasked. Automatic
+rollback recreated the Caddy mask but could not prove complete semantic
+restoration. The remote semantic status was `125`; the workstation runner
+exited `97` after confirming local cleanup and emitted
+`action_16ap_rollback_incomplete=true` plus
+`manual_intervention_required=true`. Action 16ap is not accepted. Node A's
+exact current service, listener, lighttpd-tree, mask, and action-owned-path
+state remains unknown; no retry, repair, cleanup, or later deployment action
+is authorized.
+
+At `2026-07-29T05:16:32Z`, exact read-only recovery diagnostic Action 16ap-a
+completed with SSH/runner status `0`, complete count reconciliation, explicit
+no-mutation evidence, and workstation cleanup. Lighttpd is active/enabled on
+the accepted original tree hash `b15ff54d...cb92`; the three Action 16ap
+working/failure paths are absent; the exact retained source candidate remains
+`6e178911...c13`; Caddy is inactive/masked through the `/dev/null` symlink;
+and Keepalived remains active/enabled without a Caddy VRRP fragment. The three
+listeners are the accepted original lighttpd set: dual-stack TCP 80 and IPv4
+TCP 443, with no TCP 8080, TCP 2019, or UDP 443. Loopback HTTP and
+physical-IPv4 management HTTPS returned `302`; the backend, localhost HTTPS,
+and stable-ULA HTTPS probes did not connect successfully under that original
+listener state. Caddy tree SHA-256 is `6ae99faf...2161` and Keepalived tree
+SHA-256 is `dad64e4a...2f66`. However, `caddy_validate_status=1`, while the same
+validation passed before Action 16ap. Action 16ap-a is accepted as diagnostic
+evidence, but recovery is not accepted and the validator failure cause is not
+inferred.
+
+At `2026-07-29T05:27:44Z`, exact dual-node read-only Action 16ap-b completed
+with both SSH statuses and runner status `0`. Nodes A and B use identical
+Caddy `2.11.4` arm64 packages, binary hash `e1f90403...2afe`, Caddyfile hash
+`a41c7816...86e`, and configuration-only tree hash `763f6a66...2fa2`. Both
+bare validations returned `1` with the same empty-server-key adaptation error.
+After their role-specific `/etc/default/caddy-ha` files were exported, both
+returned `0` and `Valid configuration`. Their environment files source
+successfully and systemd references the same environment path. All
+cardinality, identity, secret, comparison, no-mutation, completion, and local
+cleanup evidence passed. Therefore Action 16ap-a's validator result was caused
+by its missing environment context, not configuration damage. Together,
+Actions 16ap-a and 16ap-b independently accept Node A's restored pre-cutover
+operational baseline without repair. Action 16ap remains a failed cutover and
+must not be retried unchanged.
+
+At `2026-07-29T05:35:44Z`, the corrected Action 16ap retry was defined and
+fully validated in the local repository. The original failed transaction and
+its hashes remain unchanged for auditability. The retry contains exactly one
+`systemctl reset-failed caddy.service` invocation inside a helper that first
+requires exact `ActiveState=failed`; inactive and active states skip the reset,
+and unsupported or empty states fail closed. The driver and runner hashes are
+`ff413bb0...b9e` and `a8cceb3a...573`. No SSH connection was made and neither
+live node changed during definition. Execution was separately authorized and
+is recorded immediately below.
+
+At `2026-07-29T05:40:19Z`, the exact corrected Action 16ap retry completed
+with SSH/runner status `0`. Caddy was inactive rather than failed, so
+`caddy_reset_before_start=false` proved the corrected transaction skipped
+`reset-failed`. Lighttpd became ready on loopback TCP 8080 and Caddy became
+ready on TCP 80/443 and UDP 443 with localhost and direct dual-stack
+management HTTPS passing. Caddy remained disabled; Keepalived stayed
+active/enabled without a Caddy VRRP fragment; lsyncd remained inactive/masked.
+The Caddy and Keepalived tree hashes remained unchanged, all no-peer and
+deferred-state markers passed, the success marker and workstation cleanup
+passed, and rollback was not invoked. The corrected retry and Node A cutover
+are accepted. An independent post-cutover inspection remains the next
+separately defined and authorized gate.
+
+At `2026-07-29T05:48:56Z`, independent read-only Action 16aq was defined and
+fully validated locally. Inspector SHA-256 is `67c6c1ec...d90f`; runner
+SHA-256 is `b312257a...e348`. The action pins the accepted post-cutover trees
+and service boundaries and adds independent protocol, unknown-host,
+served-certificate, process, and bounded-journal evidence. No SSH connection
+was made and neither node changed during definition. Execution was separately
+authorized and is recorded below.
+
+At `2026-07-29T05:52:24Z`, Action 16aq completed all 104 read-only assertions:
+100 passed and four failed. The exact trees, runtime services, listeners,
+processes, configuration, package/unit state, certificate identity/expiry,
+backend, localhost, dual-stack HTTP/1.1 and HTTP/2, and bounded journal policy
+passed. Three inspector checks incorrectly assumed a
+`99-caddy-ha.conf` fragment location. The unknown-host probe returned `200`
+instead of `421`. SSH returned semantic mismatch status `1`; the runner
+returned `97` because it hard-required `421` before accepting mismatch
+evidence. All explicit no-mutation and local-cleanup evidence passed. Action
+16aq is unaccepted; a narrow read-only provenance/routing diagnostic is the
+next separately defined and authorized gate.
+
+At `2026-07-29T06:01:18Z`, narrow read-only Action 16aq-a was defined and
+fully validated locally. It records recursive and effective lighttpd directive
+provenance, the actual TCP 8080 listener, adapted and live Caddy routes, and
+five direct no-proxy probes that separate TLS SNI from HTTP authority. The
+diagnostic and runner hashes are `4a0b4371...a111` and
+`e7069b89...09fc`. No SSH connection was made and neither node changed.
+Execution requires separate authorization.
+
+At `2026-07-29T06:07:59Z`, authorized Action 16aq-a completed its remote
+read-only collection with SSH `0`. Node A's effective lighttpd bind and port
+come from main `lighttpd.conf` lines 15 and 14; TLS-enabling directives exist
+only outside `conf-enabled`; native parsing passed; and the sole TCP 8080
+listener is lighttpd on `127.0.0.1`. Adapted and runtime Caddy route summaries
+matched at six records. Known management routing returned lighttpd `200`;
+either SNI/Host mismatch returned Caddy `421`; matching unknown SNI and Host
+returned an empty Caddy `200`; and IP-SNI failed before HTTP with curl `35`.
+Every no-mutation and cleanup marker passed. The runner returned `97` because
+its regex rejected the collector's intentional `%7C` encoding, so Action
+16aq-a is unaccepted and must not be retried unchanged.
+
+### Workstation certificate-stage observations
+
+At `2026-07-28T23:48:19Z`, diagnostic action 16ac-a proved that
+`/tmp/caddy-cert-node-b-action12` is absent. Workstation identity and command
+environment checks passed, stage presence failed, and all 36 stage-dependent
+checks were skipped. The diagnostic completed without secret output or any
+write. The earlier certificate-stage acceptance is historical only and cannot
+support a Node A transfer; a fresh protected stage must be prepared and
+validated first.
+
+At `2026-07-28T23:55:56Z`, Action 16ad freshly recreated and validated the
+protected stage at `/tmp/caddy-cert-node-b-action12` from Doppler
+`homelab-dev/prd_caddy`. All accepted public hashes, ownership/modes, expiry,
+wildcard SAN, private-key match, two-intermediate served chain, workstation
+trust, exact manifest, and unchanged-stage checks passed. The stage is retained
+and accepted as the source for a separately defined and authorized Node A
+transfer. No secret material was emitted.
+
+At `2026-07-29T00:07:21Z`, Action 16ae revalidated that workstation stage and
+streamed exactly its five artifacts directly over SSH to
+`/var/tmp/caddy-cert-node-a-action16ae`. Node A accepted the stage as
+`root:caddy-tls` mode `0750`; public hashes, protected file modes, expiry,
+wildcard SAN, private-key match, chain, trust, and manifest passed. The
+complete accepted post-16ab Node A state remained unchanged, rollback was not
+invoked, and no secret material was emitted.
+
+### Node A deployment observations
+
+At `2026-07-29T03:59:55Z`, transactional Action 16an installed the exact 16
+accepted systemd and helper targets and performed the required systemd manager
+reload. All custom units loaded successfully while remaining inactive and
+disabled or static. Both retained stages and the complete protected state were
+unchanged; no unit was enabled or activated, no installed helper ran, no peer
+connection occurred, and neither lsyncd nor Caddy Keepalived configuration was
+installed. Runner and SSH exited `0`, rollback was not invoked, and
+workstation cleanup completed. This transaction is accepted pending a
+separately defined and authorized independent read-only post-install check.
+
+At `2026-07-29T03:47:00Z`, the corrected read-only Action 16am-a retry
+completed with runner and SSH exit `0`. Every retained-stage and protected
+baseline assertion was true, mismatch count was zero, and first failure was
+none. The inactive stage remained `root:root:0750` with exactly 16 files and
+digest
+`305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+All live targets remained absent, services/listeners retained the accepted
+pre-install state, and no peer, helper, daemon-reload, or service mutation
+occurred. Local cleanup completed. The corrected retry and, through its
+independent evidence, inactive staging Action 16am are accepted.
+
+At `2026-07-29T03:40:24Z`, exact read-only Action 16am-a independently
+reported zero mismatches across the complete retained systemd stage and
+accepted protected Node A baseline. The stage remained
+`/var/tmp/caddy-systemd-node-a-action16am`, `root:root:0750`, with exactly 16
+files and aggregate digest
+`305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+All live installation targets remained absent, Caddy and lsyncd remained
+inactive/masked, lighttpd retained the frontend listeners, and no peer,
+helper, daemon-reload, or service mutation occurred. SSH returned `0`, but the
+workstation runner exited `97` because two Boolean assertion labels reused
+the prefixes of their final observed values. Action 16am-a remains unaccepted;
+no correction, retry, cleanup, or installation followed.
+
+At `2026-07-29T03:26:14Z`, exact Action 16am reached Node A and its remote
+transaction reported complete validation of the intended inactive systemd
+stage. The stage is reported at
+`/var/tmp/caddy-systemd-node-a-action16am`, owned `root:root` with mode
+`0750`, containing exactly 16 files with aggregate digest
+`305120fdb6b9c970a2aab12aa21ed88c06c3f77b9f63654cd0487fc2656e6e15`.
+Every remote check passed, protected state was unchanged, SSH returned `0`,
+and no daemon reload, service mutation, or rollback occurred. The workstation
+runner then exited `97` because its final broad `=false$` scan incorrectly
+matched the required no-mutation markers. Action 16am is therefore not yet
+accepted; no retry, stage cleanup, or installation followed.
+
+At `2026-07-29T00:21:24Z`, Action 16af streamed exactly 12 pinned non-secret
+Caddy source files directly over SSH to
+`/var/tmp/caddy-source-node-a-action16af`. Node A accepted the stage as
+`root:root` mode `0750`; the exact file set, individual hashes, and required
+file modes passed. The Action 16ae certificate stage and complete protected
+Node A state remained unchanged. Rollback was not invoked, and no Caddy
+dry-run, configuration installation, listener change, or service mutation
+occurred.
+
+At `2026-07-29T00:37:30Z`, the corrected Action 16ag retry ran the accepted
+staged Caddy-component installer against the live root in dry-run mode. Its
+exact JSON contract and normalized 14-line plan passed with
+`service_mutations=false`. The source and certificate stages, absent live
+Caddy targets, packages, identities, services, listeners, sysctls, lighttpd
+trees, Keepalived configuration, rollback baseline, and dpkg audit remained
+unchanged. The isolated capture/render tree was removed and no persistent
+change remained.
+
+At `2026-07-29T00:52:07Z`, Action 16ah installed and validated the Node A
+Caddy bootstrap release, `/etc/caddy/current` symlink, and node-local
+`/etc/default/caddy-ha` environment file. The initial installer reported
+exactly 14 changes and the repeat dry-run reported zero changes; both reported
+`service_mutations=false`. Caddy format, adaptation, and validation as user
+`caddy` passed, the installed certificate matched the accepted protected
+stage, and the source, certificate, and complete protected state remained
+unchanged. The bounded rollback was not invoked. No listener or service state
+was changed.
+
+At `2026-07-29T01:01:24Z`, read-only Action 16ai confirmed that Node A retains
+the accepted post-16ah state and has no synchronization private key,
+`authorized_keys`, or live synchronization scripts. Node A's SSH host
+fingerprint remains
+`SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI`. Node B's observed SSH
+host fingerprint is
+`SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo`, and its existing
+synchronization-key fingerprint remains
+`SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g`. Node B's key-pair
+derivation, restricted script hashes, Node A known-host pin, and service state
+passed. Only public key material was emitted, the workstation capture was
+removed, and neither node changed.
+
+At `2026-07-29T01:11:33Z`, protected staging Action 16aj exited `1` without
+normal stage output or a completion marker. Its bounded remote rollback emitted
+`action_16aj_stage_rollback_complete=true` and no manual-intervention marker,
+reporting removal of `/var/tmp/caddy-sync-ssh-node-a-action16aj`, successful
+live-state validation, and complete protected-state restoration. The exact
+failing assertion was not labeled, so Action 16aj is unaccepted and no retry is
+authorized. A separately defined and authorized read-only action must
+independently confirm rollback state and diagnose the failure boundary.
+
+At `2026-07-29T01:21:48Z`, read-only Action 16aj-a independently accepted the
+rollback with `diagnostic_mismatch_count=0` and
+`rollback_state_valid=true`. The failed stage and all eight live
+synchronization targets are absent; every accepted Node A package, identity,
+Caddy, source/certificate stage, service, listener, sysctl, lighttpd,
+Keepalived, baseline, command-support, public-key, and dpkg-audit check
+matched. The workstation also reproduced the exact public payload, archive
+listing, extraction options, modes, hashes, and fingerprints, then removed its
+temporary directory. This proves rollback integrity and narrows the original
+failure to an unlabeled post-write remote stage validation or protected-state
+comparison; no retry is authorized.
+
+At `2026-07-29T01:31:29Z`, bounded transient Action 16aj-b exited `1` without
+stdout or stderr. Its pinned local artifacts and self-test passed before
+execution; its generated public-key payload hashes matched afterward, and its
+workstation temporary directory was absent. No remote label, completion,
+cleanup, or manual-intervention marker was received, so Node A continuity
+after this attempt is unconfirmed. Action 16aj-b is not accepted and must not
+be retried before a separately authorized read-only continuity diagnostic.
+
+At `2026-07-29T01:42:09Z`, fail-closed read-only Action 16aj-c independently
+accepted Node A continuity. Both `/var/tmp/caddy-sync-ssh-node-a-action16aj`
+and `/var/tmp/caddy-sync-ssh-node-a-action16aj-b` are absent, the broader
+matching-stage count is zero, and all eight live synchronization targets are
+absent. Every accepted post-16ah invariant passed with `first_failure=none`,
+SSH status `0`, and both remote and workstation completion markers. No remote
+change occurred.
+
+At `2026-07-29T01:53:34Z`, corrected bounded transient Action 16aj-d passed
+with every preflight, stage, public payload, fingerprint, live-state,
+protected-state, and cleanup label true. Diagnostic failure count was zero,
+the first failure was none, and tar, SSH, and pipeline statuses were all zero.
+The distinct Action 16aj-d stage was removed, both earlier stage paths
+remained absent, all eight live synchronization targets remained absent, and
+the accepted post-16ah state was unchanged.
+
+At `2026-07-29T02:01:19Z`, corrected transactional Action 16aj-e passed every
+preflight, stage, public payload, fingerprint, live-state, and protected-state
+assertion. The exact five-file public stage is intentionally retained at
+`/var/tmp/caddy-sync-ssh-node-a-action16aj-e` as `root:root` mode `0750`;
+all earlier stage paths and all eight live synchronization targets remain
+absent. Tar, SSH, and pipeline statuses were zero, failure-only rollback was
+not invoked, and the accepted post-16ah state is otherwise unchanged.
+
+At `2026-07-29T02:23:13Z`, fail-closed read-only Action 16ak-a localized
+Action 16ak's silent stop to the retained stage root metadata assertion. The
+stage remains a non-symlink directory with the exact accepted five files,
+file metadata, hashes, fingerprints, and key syntax, but its directory
+ownership/mode tuple no longer equals `root:root:0750`; the actual tuple was
+not emitted and is not inferred. Every other preflight and protected-state
+check passed. All eight live synchronization targets and
+`/usr/local/libexec` are absent, proving Action 16ak stopped before writes and
+requires no rollback or cleanup. Diagnostic mismatch count was one, first
+failure was `retained_stage_meta`, the intentional fail-closed SSH/runner exit
+was `1`, and both remote inspection and workstation cleanup completed.
+
+At `2026-07-29T02:32:15Z`, narrow read-only Action 16ak-b observed the
+retained stage as `root:root` (`0:0`) mode `0700` (`drwx------`), not the
+previously reported `0750`. Its inode is `1670964`, device `66306`, link count
+`2`, size `4096`, and birth/status-change timestamp is
+`2026-07-28 21:01:10.668781403 -0500`. Parent `/var/tmp` is
+`root:root:1777`; the backing filesystem is ext4 mounted at `/` with
+`rw,noatime`. `getfacl` is unavailable and the mode has no extended-ACL
+marker. All five staged files and hashes passed, all eight live synchronization
+targets and `/usr/local/libexec` remain absent, and every completion and
+read-only marker passed. A disposable workstation reproduction proved that
+the archive's mode-`0700` root `.` entry reset the pre-created mode-`0750`
+destination during extraction. The Action 16aj-e driver checked the directory
+before extraction, did not reassert or observe its mode afterward, and emitted
+a hard-coded `0750` final marker. Action 16ak-b is accepted; no Node A
+correction, cleanup, retry, or service change occurred.
+
+At `2026-07-29T02:43:43Z`, bounded metadata-only Action 16ak-c passed every
+preflight, bound the validated retained-stage inode through an open directory
+descriptor, and changed only its mode from `0700` to `0750`. Owner
+`root:root`, inode `1670964`, device `66306`, all five child files, metadata,
+and hashes remained exact. All eight live synchronization targets and
+`/usr/local/libexec` remain absent; Caddy and lsyncd remain inactive and
+masked. SSH exited `0`, first failure was none, service mutations were false,
+rollback was not invoked, and both remote completion and workstation cleanup
+passed. Action 16ak-c is accepted; Action 16ak was not retried.
+
+At `2026-07-29T02:50:09Z`, independent read-only Action 16ak-d passed every
+repaired-stage, package, inventory, identity, configuration, sysctl, service,
+process, source/certificate stage, rollback baseline, dpkg audit, listener,
+live-target, and `/usr/local/libexec` check. The protected package inventory
+remains `6377ab1492b2da992dce53199e359c5a2faf3563abd8bf766e6d6967fa07da5c`.
+Mismatch count was zero, first failure was none, continuity was valid, SSH
+exited `0`, service mutations were false, and both remote inspection and
+workstation cleanup completed. Action 16ak-d is accepted; Node A remained
+unchanged and Action 16ak was not retried.
+
+At `2026-07-29T02:56:47Z`, the corrected transactional Action 16ak retry
+passed every preflight, mutation, helper, host-pin, identity/authorization,
+initial-validation, repeat-validation, and completion assertion. Node A's
+public synchronization fingerprint is
+`SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`; exactly one restricted
+Node B authorization is installed, and both accepted Node B fingerprints
+matched. Non-connecting validation and repeat idempotency passed, the retained
+stage is preserved, lsyncd configuration remains absent, and service
+mutations are false. SSH exited `0`, rollback was not invoked, workstation
+cleanup completed, and no temporary path remained. The corrected retry is
+accepted; no Node B state changed and no peer connection occurred.
+
+At `2026-07-29T03:05:02Z`, independent read-only Action 16ak-e passed every
+key-pair, public-evidence, host-pin, restricted-authorization, helper,
+receiver, retained-stage, package/inventory, identity, configuration/sysctl,
+service/process, source/certificate stage, rollback baseline, dpkg audit, and
+listener check. Node A's independently derived public key and fingerprint
+`SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0` matched. Mismatch count
+was zero, first failure was none, SSH exited `0`, and peer connections,
+installed-helper execution, and service mutations were false. Both completion
+markers passed and no temporary path remained. Action 16ak-e is accepted;
+neither node changed.
+
+At `2026-07-29T03:14:36Z`, read-only systemd-unit preflight Action 16al
+passed with zero mismatches. All 12 intended unit/drop-in targets and four
+new helper targets remain absent; all ten concrete custom unit probes are not
+found and inactive. The accepted three existing synchronization helpers,
+protected/baseline services, prerequisites, package inventory, configuration
+hashes, and deferred-target absence all passed. Systemd is
+`252.39-1~deb12u2`; effective Caddy and lighttpd unit SHA-256 values are
+`3a5f3f84e08686a1cb6d247ee84698b896bf025203a2f74ab4cd578dee731a40`
+and
+`fdd4ccfc6ffcf219d2d51e721798ee7fee0393356198e294e03b6e69f3c8ec67`.
+Archived and active journals use `3.4G`, retained as a review finding without
+automatic change. SSH exited `0`; peer connections, installed-helper
+execution, and service mutations were false; both completion markers passed
+and no workstation temporary path remained. Action 16al is accepted; neither
+node changed.
 
 ### Node B deployment observations
 
@@ -692,6 +10217,42 @@ pre-correction bootstrap release and unit behavior.
 | Journald | Default effective configuration; archived and active journals use 3.4 GB |
 | Caddy identities | `caddy`, `caddy-sync`, `keepalived_script`, and `caddy-tls` do not yet exist |
 | Existing target files | `/etc/default/caddy-ha`, `/etc/sysctl.d/70-caddy-ha.conf`, and `/var/lib/caddy-sync` absent |
+| Rollback baseline | `/var/backups/caddy-ha/predeploy-node-a-20260728T184626Z`, complete and protected |
+| Caddy repository prerequisites | All six installed and converged; action 16d added `apt-transport-https` `2.6.1` and `debian-keyring` `2022.12.24`; action 16e returned a zero-change simulation |
+| Caddy APT repository | Official stable keyring and source list installed by action 16h and independently validated by action 16i; action 16j refreshed only official Caddy metadata and selected `2.11.4` arm64 at priority `500`; corrected action 16n installed that exact candidate |
+| Caddy package transaction | Corrected action 16n installed only `caddy` `2.11.4` arm64; semantic policy evidence proved exit `101` and one inhibited Caddy start request; immediate validation left both units inactive and masked with no Caddy process |
+| Caddy package lifecycle | Action 16l matched Node B action 8i package SHA-256; `policy-rc.d` absent; first install would create the Caddy identity/directories, enable and start `caddy.service`, and reload systemd, so inhibited installation remains mandatory |
+| Immediate Caddy preinstallation state | Action 16m accepted: Caddy package, binary, process, identities, paths, units, masks, start policy, and staging absent; lighttpd PID `916` owns all current TCP 80/443 listeners; UDP 443 unused |
+| Action 16n rollback status | Accepted as operationally complete: Caddy absent from active package/identity/path/systemd/process/policy/mask state and protected state unchanged; user accepted four historical inactive account-backup references and one verified APT archive-cache package without cleanup |
+| Corrected action 16n retry | Accepted: Caddy `v2.11.4` installed; direct policy probe returned `101`; one actual Caddy start request was inhibited; units remained inactive and masked; temporary policy/staging were removed; protected services, listeners, and hashes remained unchanged |
+| Action 16n-b acceptance | Independently accepted: zero package changes; clean Caddy package verification and dpkg audit; Caddy UID/GID `995/992` with `www-data`; both units inactive/masked; no Caddy process or temporary policy; all protected services active; lighttpd PID `916` alone retains TCP 80/443; UDP 443 and staging absent |
+| Action 16y service identities | Accepted: `caddy-tls` GID `991`; `caddy-sync` UID/GID `994/990`, locked with `/bin/sh`; `keepalived_script` UID/GID `993/989`, locked with `/usr/sbin/nologin`; Caddy retained `www-data`; all three intended users are the only `caddy-tls` members |
+| Action 16y protected directories | Accepted: `/etc/caddy/releases` is `root:caddy-tls` mode `0750`; `/var/lib/caddy-sync` plus outbound, incoming, and quarantine are `caddy-sync:caddy-sync` mode `0750`; `.ssh` is mode `0700`; protected packages, services, listeners, masks, processes, configuration hashes, and audit remained unchanged |
+| Action 16z sysctl preflight | Accepted: `/usr/sbin/sysctl`, procps-ng `4.0.2`; IPv4 non-local bind `1`, IPv6 `0`, identical before/after; `/etc/sysctl.d/70-caddy-ha.conf` absent; zero staging; all Action 16y and protected-state invariants passed; Node A unchanged |
+| Action 16aa sysctl installation | Accepted: `/etc/sysctl.d/70-caddy-ha.conf` is the exact 136-byte artifact with SHA-256 `d7036eaead2f5ef20afa8bdf20a7a353ee700532a095822320a1b9efad4846e8`; IPv4 remained `1` without a runtime write; IPv6 changed from `0` to `1`; all protected-state invariants passed; rollback was not invoked |
+| Action 16ab inactive lighttpd preparation | Accepted: `/var/tmp/caddy-ha-lighttpd-node-a-action16ab` is `root:root` mode `0750`; main SHA-256 `c48b3f0a8c256185233b302952f0b4ee138e745fb17ede92ae3f16d7fa4a6a99`; tree SHA-256 `6e178911d34a783e16fca001f7c91dc29098598043bd4c4c4c19af59e81a6c13`; live tree remained `b15ff54d2e91bbecd1d21b762818599d732f01b66ee5d1ef7c24147c72e2cb92`; native parsing and all protected-state checks passed; source stage and local archive absent; no live change or rollback |
+| Action 16o dependency simulation | Exact proposed additions are lsyncd `2.2.3-1`, lua5.3 `5.3.6-2`, and liblua5.3-0 `5.3.6-2`; Keepalived, rsync, and OpenSSH are current; zero upgrades/removals; protected state unchanged |
+| Action 16p-a cleanup acceptance | Failed action 16p staging absent; lsyncd and Lua dependencies remain uninstalled; lsyncd paths/unit/policy absent; Caddy inactive/masked; protected services active; lighttpd retains TCP 80/443; UDP 443 unused |
+| Corrected action 16p lifecycle audit | Accepted: lsyncd `2.2.3-1` package and `postinst` hashes pinned; first install enables SysV defaults and requests start through `_dh_action`; executable init artifact hash `27e0a67166e36a75f04c6b8548520a59d013442dcbc52542c30836c8e53a3611`; no native systemd unit; cleanup and protected state validated |
+| Action 16q immediate preinstallation validation | Accepted on the unchanged corrected second retry: exact lsyncd/Lua candidates and three-package simulation passed; all package/path/unit/SysV/policy/staging absence, Caddy masks, protected services, dpkg audit, inventory, and listener assertions passed; the two earlier failures remain recorded and no mutation occurred |
+| Action 16r inhibited lsyncd installation | Accepted: lsyncd `2.2.3-1`, lua5.3 `5.3.6-2`, and liblua5.3-0 `5.3.6-2` installed; one package-time start request rejected by exit-101 policy; distribution service inactive/masked with no process or SysV start link; temporary policy/staging absent; Caddy and protected state unchanged |
+| Action 16s HA/synchronization convergence | Independently accepted: zero pending package changes; seven exact package versions/architectures and integrity checks passed; Keepalived `2.2.7`, lsyncd `2.2.3`, rsync `3.2.7` protocol 32, OpenSSH `9.2p1`/OpenSSL `3.0.20`; lsyncd inactive/masked with seven kill links and no start link/process; protected state unchanged |
+| Action 16t validation/scripting simulation | Accepted on corrected retry: all 12 manifest packages evaluated; uuid-runtime `2.38.1-5+deb12u3` is the sole proposed addition with counts `1`/`1`/`0`; bash `5.2.15-2+b13`, coreutils `9.1-1`, findutils `4.9.0-4`, iproute2 `6.1.0-3`, iputils-arping `3:20221126-1+deb12u1`, jq `1.6-2.1+deb12u2`, ndisc6 `1.0.5-1+b2`, OpenSSL `3.0.20-1~deb12u2+rpt1`, procps `2:4.0.2-3`, tcpdump `4.99.3-1`, and util-linux `2.38.1-5+deb12u3` are current; protected state unchanged |
+| Action 16u uuid-runtime lifecycle audit | Accepted: exact uuid-runtime `2.38.1-5+deb12u3` package and pinned `postinst`, SysV init, service, and socket artifacts matched Node B evidence; first installation creates the uuidd identity, sets `/var/lib/libuuid` to `uuidd:uuidd` mode `2775`, enables both native units, and requests start through SysV compatibility and systemd helpers; protected staging was removed and Node A state remained unchanged |
+| Action 16v uuid-runtime immediate preinstall state | Accepted: uuid-runtime remains at dpkg status `un` with candidate `2.38.1-5+deb12u3`; uuidd identity, state directory, binaries, init/unit/link/process, policy, masks, and staging are absent; exact simulation proposes one install/configure and no upgrades/removals/held-back packages; protected state remained unchanged and unrelated autoremove candidates were not selected |
+| Action 16w inhibited uuid-runtime installation | Accepted: uuid-runtime `2.38.1-5+deb12u3` arm64 installed as the sole package; policy probe returned `101` and inhibited two actual uuidd starts; uuidd UID/GID `109/115`, locked identity and `/var/lib/libuuid` ownership/mode passed; service/socket and SysV startup remain disabled with persistent masks, no process; policy/staging absent; protected state unchanged; package preset helpers logged nonfatal errors because the intentional masks blocked presetting |
+| Action 16x convergence retry partial evidence | APT reported all 12 validation/scripting packages at the expected current versions and zero pending changes; the validator stopped before labeled command versions, package-integrity completion, uuidd/protected-state evidence, or its completion marker, so convergence is not accepted and Node A remains unchanged |
+| Action 16x-b complete package diagnostic | Accepted as diagnostic evidence only: all 12 package status/version/architecture checks matched with zero query failures; Bash `/etc/skel/.bashrc` and procps `/etc/sysctl.conf` are the only verification differences, both conffiles; all package payloads and the other ten packages are clean; inventory and empty dpkg audit remained unchanged; conffile contents were not semantically reviewed |
+| Action 16x retry2 partial convergence evidence | Both pinned conffile metadata/hashes, zero-change APT, and all 12 package metadata and verification policies passed; the validator then stopped before command-version and later state evidence, so action 16x remains unaccepted and the exact post-package failure is unknown |
+| Action 16x-c command/version diagnostic | Accepted as diagnostic evidence only: all ten command versions matched and all queries returned zero; `/usr/sbin/ip` alone failed the path policy because it is an executable root-owned mode-`0777` symbolic link of length 7; its target and ownership were not collected; action 16x remains unaccepted |
+| Action 16x-d symlink diagnostic | Accepted as bounded diagnostic evidence only: `/usr/sbin/ip` links to `/bin/ip` and canonicalizes to `/usr/bin/ip`; the root-owned mode-`0755` target is 746760 bytes with SHA-256 `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`; iproute2 `6.1.0-3` arm64 is clean, but raw `/bin/ip` ownership was not queried and remains unresolved |
+| Corrected action 16x-e ownership evidence | Accepted as diagnostic evidence: iproute2 owns registered `/bin/ip`; package entries are `/bin/ip` and `/sbin/ip`; package list SHA-256 is `72b1b6ce7f4f4ee3b27897116329ea119de664a71a2f642fd326e889cfac471b`; `/bin/ip` and `/usr/bin/ip` share device/inode `66306:1995` and SHA-256 `2c9d712b497ee2d6c436da1dd09fb88f3a7ff535bbece9bab0e9a03c5e6cb835`; Node A remained unchanged |
+| Action 16x retry3 validation/scripting convergence | Accepted: all 12 exact package policies, the two pinned conffile states, ten command versions, executable paths, exact `/usr/sbin/ip` → `/bin/ip` → `/usr/bin/ip` chain before and after, package integrity, uuidd masks/inactivity, protected services/listeners, unchanged inventory, and empty dpkg audit passed; both completion markers were present and Node A remained unchanged |
+| Official Caddy repository assets | Action 16g validated raw key `783dfee04b...578c00`, source `b27d8e3f...e199`, and fingerprint `65760C51EDEA2017CEA2CA15155B6D79CA56EA34`; no persistent files installed |
+
+The action 16a refresh at `2026-07-28T18:35:18Z` reconfirmed every row above.
+The pinned collector completed successfully, the three recorded active
+configuration hashes were unchanged, and no Caddy deployment target appeared.
 
 The Caddy VIPs and VRIDs were available within the tested A/B VLAN scope at
 `2026-07-27T23:27:34Z`. The capture observed only the existing Pi-hole VRIDs

@@ -2,5 +2,11 @@
 useDefault = true
 
 [allowlist]
-description = "Ignore generated vexp index metadata"
+description = "Ignore generated vexp metadata and exact public integrity pins"
 paths = ['''^\.vexp/''']
+regexTarget = "match"
+regexes = [
+  '''^key_sha=783dfee04b19e851a928cd87b34710213ebbe7628f98d9f34595ab83be578c00$''',
+  '''^keyring_sha=c17cd5298a0bab02fda439fff278d9a55df2120cf9dac790c6ce71930db90b37$''',
+  '''^api_service_sha=a794bbf7d890eb9e1231bbad251890f87870815a96e3820b28a71819ba9f9c14$''',
+]

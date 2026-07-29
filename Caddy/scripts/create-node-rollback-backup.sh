@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-    printf 'Usage: %s --node node-b\n' "${0##*/}" >&2
+    printf 'Usage: %s --node node-a|node-b\n' "${0##*/}" >&2
 }
 
 node_role=
@@ -20,33 +20,44 @@ while (($# > 0)); do
     esac
 done
 
-[[ "$node_role" == node-b ]] || {
-    usage
-    exit 2
-}
+case "$node_role" in
+    node-a)
+        expected_hostname=j1-svpihole0
+        expected_ipv4=10.1.0.53
+        ;;
+    node-b)
+        expected_hostname=j1-svpihole00
+        expected_ipv4=10.1.0.54
+        ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
 
 ((EUID == 0)) || {
     printf 'Root is required to create a complete rollback backup.\n' >&2
     exit 1
 }
 
-[[ "$(hostname)" == j1-svpihole00 ]] || {
+[[ "$(hostname)" == "$expected_hostname" ]] || {
     printf 'Refusing backup on unexpected hostname: %s\n' "$(hostname)" >&2
     exit 1
 }
 
 ip -o -4 address show dev eth0 |
-    grep -Fq '10.1.0.54/22' || {
-    printf 'Refusing backup: Node B address is not present on eth0.\n' >&2
+    grep -Fq "$expected_ipv4/22" || {
+    printf 'Refusing backup: %s address is not present on eth0.\n' \
+        "$node_role" >&2
     exit 1
 }
 
 umask 077
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 backup_parent=/var/backups/caddy-ha
-backup_root="$backup_parent/predeploy-node-b-$timestamp"
+backup_root="$backup_parent/predeploy-$node_role-$timestamp"
 install -d -o root -g root -m 0700 "$backup_parent"
-stage=$(mktemp -d "$backup_parent/.predeploy-node-b-$timestamp.XXXXXX")
+stage=$(mktemp -d "$backup_parent/.predeploy-$node_role-$timestamp.XXXXXX")
 cleanup_stage=true
 
 cleanup() {
