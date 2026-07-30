@@ -862,6 +862,619 @@ grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
 grep -Fq 'pi@10.1.0.53' "$node_a_lighttpd_routing_runner_16aq_a"
 grep -Fq 'action_16aq_a_contract_test_complete=true' \
     "$node_a_lighttpd_routing_runner_16aq_a"
+node_a_lighttpd_routing_extension_16aq_a_retry="$caddy_root/scripts/extend-node-a-lighttpd-routing-action16aq-a-retry.sh"
+node_a_lighttpd_routing_runner_16aq_a_retry="$caddy_root/scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a-retry.sh"
+"$node_a_lighttpd_routing_extension_16aq_a_retry" --extension-self-test
+"$node_a_lighttpd_routing_runner_16aq_a_retry" --self-test
+"$node_a_lighttpd_routing_runner_16aq_a_retry" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate)([[:space:]]|$)' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"; then
+    printf 'Action 16aq-a retry extension contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"; then
+    printf 'Action 16aq-a retry extension contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '^[[:space:]]*(ssh|rsync|scp|sftp)([[:space:]]|$)' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"; then
+    printf 'Action 16aq-a retry extension must not make a peer connection.\n' >&2
+    exit 1
+fi
+grep -Fq 'status_code_present:' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq 'effective_status_code:' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq 'body_length:' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq 'body_is_421:' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq 'action_16aq_a_retry_static_response_extension_complete=true' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq -- '--summarize-servers' \
+    "$node_a_lighttpd_routing_extension_16aq_a_retry"
+grep -Fq '421%%7C10.1.0.53%%7C2%%7C0%%7C0%%7Ctext/plain' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+grep -Fq 'Literal-delimiter retry evidence was accepted.' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+# shellcheck disable=SC2016
+grep -Fq 'cat "$diagnostic" "$extension" >"$remote_payload"' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+grep -Fq 'pi@10.1.0.53' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+grep -Fq 'action_16aq_a_retry_contract_test_complete=true' \
+    "$node_a_lighttpd_routing_runner_16aq_a_retry"
+node_a_server_selection_diagnostic_16aq_b="$caddy_root/scripts/diagnose-node-a-caddy-server-selection-action16aq-b.sh"
+node_a_server_selection_runner_16aq_b="$caddy_root/scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b.sh"
+"$node_a_server_selection_diagnostic_16aq_b" --self-test
+"$node_a_server_selection_runner_16aq_b" --self-test
+"$node_a_server_selection_runner_16aq_b" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate)([[:space:]]|$)' \
+    "$node_a_server_selection_diagnostic_16aq_b"; then
+    printf 'Action 16aq-b diagnostic contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_server_selection_diagnostic_16aq_b"; then
+    printf 'Action 16aq-b diagnostic contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '^[[:space:]]*(ssh|rsync|scp|sftp)([[:space:]]|$)' \
+    "$node_a_server_selection_diagnostic_16aq_b"; then
+    printf 'Action 16aq-b diagnostic must not make a peer connection.\n' >&2
+    exit 1
+fi
+grep -Fq 'caddy_http_request_duration_seconds_count' \
+    "$node_a_server_selection_diagnostic_16aq_b"
+grep -Fq 'exact_listener_control_plus_unhandled_200' \
+    "$node_a_server_selection_diagnostic_16aq_b"
+grep -Fq 'runtime_metrics_counter_effect=true' \
+    "$node_a_server_selection_diagnostic_16aq_b"
+if grep -Fq '10000' "$node_a_server_selection_diagnostic_16aq_b"; then
+    printf 'Action 16aq-b diagnostic must not access Webmin TCP 10000.\n' >&2
+    exit 1
+fi
+grep -Fq -- '--summarize-servers' \
+    "$node_a_server_selection_diagnostic_16aq_b"
+grep -Fq \
+    'readonly diagnostic_sha256=28ad0167c7e44242540cb5194fc308da8474f378dbc714a9f17931388e6321c3' \
+    "$node_a_server_selection_runner_16aq_b"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_server_selection_runner_16aq_b"
+grep -Fq 'pi@10.1.0.53' \
+    "$node_a_server_selection_runner_16aq_b"
+grep -Fq 'action_16aq_b_contract_test_complete=true' \
+    "$node_a_server_selection_runner_16aq_b"
+node_a_server_selection_correction_16aq_b_retry="$caddy_root/scripts/correct-node-a-caddy-server-selection-action16aq-b-retry.sh"
+node_a_server_selection_runner_16aq_b_retry="$caddy_root/scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b-retry.sh"
+"$node_a_server_selection_correction_16aq_b_retry" --extension-self-test
+[[ "$(
+    printf '%s' '200%7C10.1.0.53%7C2%7C0%7C0' |
+        "$node_a_server_selection_correction_16aq_b_retry" \
+            --decode-probe-code
+)" == 200 ]]
+"$node_a_server_selection_runner_16aq_b_retry" --self-test
+"$node_a_server_selection_runner_16aq_b_retry" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate)([[:space:]]|$)' \
+    "$node_a_server_selection_correction_16aq_b_retry"; then
+    printf 'Action 16aq-b retry correction contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_server_selection_correction_16aq_b_retry"; then
+    printf 'Action 16aq-b retry correction contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '^[[:space:]]*(ssh|rsync|scp|sftp)([[:space:]]|$)' \
+    "$node_a_server_selection_correction_16aq_b_retry"; then
+    printf 'Action 16aq-b retry correction must not make a peer connection.\n' \
+        >&2
+    exit 1
+fi
+grep -Fq '200%7C10.1.0.53%7C2%7C0%7C0' \
+    "$node_a_server_selection_correction_16aq_b_retry"
+grep -Fq 'corrected_unknown_http_code=' \
+    "$node_a_server_selection_correction_16aq_b_retry"
+grep -Fq 'corrected_server_selection_record=' \
+    "$node_a_server_selection_correction_16aq_b_retry"
+grep -Fq \
+    'readonly diagnostic_sha256=28ad0167c7e44242540cb5194fc308da8474f378dbc714a9f17931388e6321c3' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+grep -Fq \
+    'readonly correction_sha256=5abef1aa638f054379a36c26cb47454299952fea3d6bb043b92a2585148e7b63' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+# shellcheck disable=SC2016
+grep -Fq 'cat "$diagnostic" "$correction" >"$remote_payload"' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+grep -Fq 'pi@10.1.0.53' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+grep -Fq 'action_16aq_b_retry_contract_test_complete=true' \
+    "$node_a_server_selection_runner_16aq_b_retry"
+node_a_routing_correction_16ar="$caddy_root/scripts/apply-node-a-caddy-routing-correction-action16ar.sh"
+node_a_routing_correction_runner_16ar="$caddy_root/scripts/run-node-a-caddy-routing-correction-action16ar.sh"
+"$node_a_routing_correction_16ar" --self-test
+"$node_a_routing_correction_runner_16ar" --self-test
+"$node_a_routing_correction_runner_16ar" --contract-test
+grep -Fq \
+    'readonly correction_sha256=d3a31eabc6fd75784f5f3891d55dd80d3f024463d112d8dd68549c91bcde8ae7' \
+    "$node_a_routing_correction_16ar"
+grep -Fq \
+    'readonly driver_sha256=a361d0f4e37bd84a440de9115c0a3148cf9511f3e80736ae93795d812b09278a' \
+    "$node_a_routing_correction_runner_16ar"
+grep -Fq \
+    'readonly correction_sha256=d3a31eabc6fd75784f5f3891d55dd80d3f024463d112d8dd68549c91bcde8ae7' \
+    "$node_a_routing_correction_runner_16ar"
+grep -Fq 'systemctl reload caddy.service' \
+    "$node_a_routing_correction_16ar"
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_routing_correction_16ar"; then
+    printf 'Action 16ar may reload Caddy but contains another service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '10[.]1[.]0[.]54|pihole00[.]local[.]theama[.]co|10000' \
+    "$node_a_routing_correction_16ar"; then
+    printf 'Action 16ar must not contact Node B or Webmin.\n' >&2
+    exit 1
+fi
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_routing_correction_runner_16ar"
+grep -Fq 'pi@10.1.0.53' "$node_a_routing_correction_runner_16ar"
+grep -Fq 'action_16ar_routing_correction_contract_test_complete=true' \
+    "$node_a_routing_correction_runner_16ar"
+node_a_recovery_diagnostic_16ar_a="$caddy_root/scripts/diagnose-node-a-action16ar-recovery-action16ar-a.sh"
+node_a_recovery_runner_16ar_a="$caddy_root/scripts/run-node-a-action16ar-recovery-diagnostic-action16ar-a.sh"
+"$node_a_recovery_diagnostic_16ar_a" --self-test
+"$node_a_recovery_runner_16ar_a" --self-test
+"$node_a_recovery_runner_16ar_a" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate|ln)([[:space:]]|$)' \
+    "$node_a_recovery_diagnostic_16ar_a"; then
+    printf 'Action 16ar-a diagnostic contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_recovery_diagnostic_16ar_a"; then
+    printf 'Action 16ar-a diagnostic contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '^[[:space:]]*(ssh|rsync|scp|sftp)([[:space:]]|$)' \
+    "$node_a_recovery_diagnostic_16ar_a"; then
+    printf 'Action 16ar-a diagnostic must not make a peer connection.\n' >&2
+    exit 1
+fi
+if grep -Eq '10[.]1[.]0[.]54|pihole00[.]local[.]theama[.]co|10000' \
+    "$node_a_recovery_diagnostic_16ar_a"; then
+    printf 'Action 16ar-a must not inspect Node B or Webmin.\n' >&2
+    exit 1
+fi
+grep -Fq '/etc/caddy/releases/action16ar-node-a-default-deny' \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq '/etc/caddy/releases/.action16ar-node-a-default-deny.staging' \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq '/etc/caddy/current.action16ar-new' \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq 'readonly caddy_admin=http://127.0.0.1:2019' \
+    "$node_a_recovery_diagnostic_16ar_a"
+# shellcheck disable=SC2016
+grep -Fq '$caddy_admin/config/' \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq "journal_since='2026-07-29 16:20:00 UTC'" \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq 'filesystem_mutations=false' \
+    "$node_a_recovery_diagnostic_16ar_a"
+grep -Fq \
+    'readonly inspector_sha256=c63146c3c2d7e3201bb5a90d3456333a3ccdcb4bf6a287721607e8f046ff28cb' \
+    "$node_a_recovery_runner_16ar_a"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_recovery_runner_16ar_a"
+grep -Fq 'pi@10.1.0.53' "$node_a_recovery_runner_16ar_a"
+grep -Fq 'action_16ar_a_contract_test_complete=true' \
+    "$node_a_recovery_runner_16ar_a"
+node_a_routing_transformer_16ar_retry="$caddy_root/scripts/correct-node-a-caddy-routing-transaction-action16ar-retry.sh"
+node_a_routing_runner_16ar_retry="$caddy_root/scripts/run-node-a-caddy-routing-correction-action16ar-retry.sh"
+"$node_a_routing_transformer_16ar_retry" --self-test
+"$node_a_routing_runner_16ar_retry" --self-test
+"$node_a_routing_runner_16ar_retry" --contract-test
+grep -Fq \
+    'readonly historical_driver_sha256=a361d0f4e37bd84a440de9115c0a3148cf9511f3e80736ae93795d812b09278a' \
+    "$node_a_routing_transformer_16ar_retry"
+# shellcheck disable=SC2016
+grep -Fq 'print "            print $1 \"|\" $2 \"|\" $5 \"|\" process"' \
+    "$node_a_routing_transformer_16ar_retry"
+grep -Fq 'gsub(/action16ar/, "action16ar-retry")' \
+    "$node_a_routing_transformer_16ar_retry"
+grep -Fq \
+    'readonly transformer_sha256=d8c612cb6ea765d45ddb34878ab0dba31a30642d4c473340ce114f37264270e7' \
+    "$node_a_routing_runner_16ar_retry"
+grep -Fq \
+    'readonly rendered_driver_sha256=b62222cc0edd941e7ea4ade533f494fe289b9ac741eb254b0c0b61cde8284a2f' \
+    "$node_a_routing_runner_16ar_retry"
+grep -Fq \
+    'selected_release=/etc/caddy/releases/action16ar-retry-node-a-default-deny' \
+    "$node_a_routing_runner_16ar_retry"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_routing_runner_16ar_retry"
+grep -Fq 'pi@10.1.0.53' "$node_a_routing_runner_16ar_retry"
+grep -Fq 'action_16ar_retry_contract_test_complete=true' \
+    "$node_a_routing_runner_16ar_retry"
+grep -Fq 'raw_listener_candidate_equal=' \
+    "$caddy_root/tests/action16ar-reload-regression.sh"
+grep -Fq 'semantic_listener_candidate_equal=' \
+    "$caddy_root/tests/action16ar-reload-regression.sh"
+grep -Fq 'action_16ar_reload_regression_complete=true' \
+    "$caddy_root/tests/action16ar-reload-regression.sh"
+node_a_acceptance_deriver_16ar_b="$caddy_root/scripts/derive-node-a-post-correction-acceptance-action16ar-b.sh"
+node_a_acceptance_runner_16ar_b="$caddy_root/scripts/run-node-a-post-correction-acceptance-action16ar-b.sh"
+"$node_a_acceptance_deriver_16ar_b" --self-test
+"$node_a_acceptance_runner_16ar_b" --self-test
+"$node_a_acceptance_runner_16ar_b" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate|ln)([[:space:]]|$)' \
+    "$node_a_acceptance_deriver_16ar_b"; then
+    printf 'Action 16ar-b rendered remote diagnostic contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_a_acceptance_deriver_16ar_b"; then
+    printf 'Action 16ar-b rendered remote diagnostic contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq '10[.]1[.]0[.]54|pihole00[.]local[.]theama[.]co|10000' \
+    "$node_a_acceptance_deriver_16ar_b"; then
+    printf 'Action 16ar-b rendered remote diagnostic must not inspect Node B or Webmin.\n' >&2
+    exit 1
+fi
+grep -Fq \
+    'readonly rendered_inspector_sha256=71c31f7e04beed53edc58bda0ac72b5079c15231f29639548aab9971710aed0f' \
+    "$node_a_acceptance_runner_16ar_b"
+grep -Fq \
+    'readonly rendered_runner_sha256=8af27b5c54eda5a6a9f47692ea0072eda9312016e5a5545d3ac521d7d13fcf5d' \
+    "$node_a_acceptance_runner_16ar_b"
+grep -Fq \
+    'readonly release_manifest_sha256=3e25f80cba754f7cbadfa08420889004cffc7781664bb624896efe5c4f5131dd' \
+    "$node_a_acceptance_runner_16ar_b"
+grep -Fq \
+    'readonly content_manifest_sha256=272c1f17ad59d7050e61caa2da47fc8768d87777c0759cebdf513988ba837e70' \
+    "$node_a_acceptance_runner_16ar_b"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_acceptance_runner_16ar_b"
+grep -Fq 'pi@10.1.0.53' "$node_a_acceptance_runner_16ar_b"
+grep -Fq 'action_16ar_b_acceptance_contract_test_complete=true' \
+    "$node_a_acceptance_runner_16ar_b"
+node_a_acceptance_correction_16ar_b_retry="$caddy_root/scripts/correct-node-a-post-correction-acceptance-action16ar-b-retry.sh"
+node_a_acceptance_runner_16ar_b_retry="$caddy_root/scripts/run-node-a-post-correction-acceptance-action16ar-b-retry.sh"
+node_a_acceptance_regression_16ar_b="$caddy_root/tests/action16ar-b-production-transcript-regression.sh"
+"$node_a_acceptance_correction_16ar_b_retry" --self-test
+"$node_a_acceptance_regression_16ar_b" --self-test
+"$node_a_acceptance_runner_16ar_b_retry" --self-test
+"$node_a_acceptance_runner_16ar_b_retry" --contract-test
+grep -Fq \
+    'readonly historical_runner_sha256=fe4e09369ee6699bceeb14453546ca6f22523219c5391a383b815f59293635fe' \
+    "$node_a_acceptance_correction_16ar_b_retry"
+grep -Fq \
+    'readonly rendered_runner_sha256=00ab68767fef384ff0dca13c67d0c0970755d9e8c81861cc5d1c1f57fe49d25e' \
+    "$node_a_acceptance_runner_16ar_b_retry"
+grep -Fq 'HostKeyAlias=pihole0.local.theama.co' \
+    "$node_a_acceptance_runner_16ar_b_retry"
+grep -Fq 'pi@10.1.0.53' "$node_a_acceptance_runner_16ar_b_retry"
+grep -Fq 'action_16ar_b_production_transcript_regression_complete=true' \
+    "$node_a_acceptance_regression_16ar_b"
+sync_readiness_inspector_action17="$caddy_root/scripts/inspect-sync-readiness-before-action17.sh"
+sync_readiness_runner_action17="$caddy_root/scripts/run-sync-readiness-before-action17.sh"
+"$sync_readiness_inspector_action17" --self-test
+"$sync_readiness_runner_action17" --self-test
+"$sync_readiness_runner_action17" --contract-test
+if grep -Eq \
+    '^[[:space:]]*(rm|install|cp|mv|touch|chmod|chown|tee|truncate|ln|mkdir)([[:space:]]|$)' \
+    "$sync_readiness_inspector_action17"; then
+    printf 'Action 17 readiness inspector contains a write command.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$sync_readiness_inspector_action17"; then
+    printf 'Action 17 readiness inspector contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    '^[[:space:]]*(rsync|scp|sftp)([[:space:]]|$)|ssh[[:space:]]+-T' \
+    "$sync_readiness_inspector_action17"; then
+    printf 'Action 17 readiness inspector contains a peer command.\n' >&2
+    exit 1
+fi
+grep -Fq 'readonly node_a_host_alias=pihole0.local.theama.co' \
+    "$sync_readiness_runner_action17"
+grep -Fq 'readonly node_b_host_alias=pihole00.local.theama.co' \
+    "$sync_readiness_runner_action17"
+grep -Fq 'pi@10.1.0.53' "$sync_readiness_runner_action17"
+grep -Fq 'pi@10.1.0.54' "$sync_readiness_runner_action17"
+grep -Fq 'action_17_sync_readiness_accepted=true' \
+    "$sync_readiness_runner_action17"
+sync_readiness_correction_action17a_retry="$caddy_root/scripts/correct-sync-readiness-before-action17-retry.sh"
+sync_readiness_regression_action17a_retry="$caddy_root/tests/action17a-node-b-release-regression.sh"
+sync_readiness_runner_action17a_retry="$caddy_root/scripts/run-sync-readiness-before-action17-retry.sh"
+"$sync_readiness_correction_action17a_retry" --self-test
+"$sync_readiness_regression_action17a_retry" --self-test
+"$sync_readiness_runner_action17a_retry" --self-test
+"$sync_readiness_runner_action17a_retry" --contract-test
+grep -Fq \
+    'readonly historical_inspector_sha256=1193632a867b4a86fd28f4b932b809926498b0b6a2e4751e8ee1f69c5da05ae8' \
+    "$sync_readiness_correction_action17a_retry"
+grep -Fq \
+    'readonly rendered_inspector_sha256=87c910f1c7a5a01c21af8af0b840d339a793a91b9f430539760bfbe94a80b805' \
+    "$sync_readiness_runner_action17a_retry"
+grep -Fq \
+    '/etc/caddy/releases/action15-health-follow-redirects' \
+    "$sync_readiness_runner_action17a_retry"
+grep -Fq 'action_17a_node_b_release_regression_complete=true' \
+    "$sync_readiness_regression_action17a_retry"
+node_b_authorization_driver_action17b="$caddy_root/scripts/authorize-node-a-sync-key-on-node-b-action17b.sh"
+node_b_authorization_runner_action17b="$caddy_root/scripts/run-node-b-authorize-node-a-sync-key-action17b.sh"
+node_b_authorization_regression_action17b="$caddy_root/tests/action17b-node-b-authorization-regression.sh"
+"$node_b_authorization_driver_action17b" --self-test
+"$node_b_authorization_runner_action17b" --self-test
+"$node_b_authorization_runner_action17b" --contract-test
+"$node_b_authorization_regression_action17b" --self-test
+grep -Fq \
+    'readonly driver_sha256=ebd126884ec1985b4561d5ac7fc16b54f93fb29e7d5de9fddbe4788925c27efe' \
+    "$node_b_authorization_runner_action17b"
+grep -Fq \
+    'readonly expected_target=pi@10.1.0.54' \
+    "$node_b_authorization_runner_action17b"
+grep -Fq \
+    'readonly expected_host_alias=pihole00.local.theama.co' \
+    "$node_b_authorization_runner_action17b"
+grep -Fq \
+    'persistent_mutation_scope=authorized_keys_only' \
+    "$node_b_authorization_driver_action17b"
+grep -Fq \
+    'action_17b_rollback_complete=true' \
+    "$node_b_authorization_driver_action17b"
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_b_authorization_driver_action17b"; then
+    printf 'Action 17b driver contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Eq \
+    '(^|[[:space:]])(rsync|scp|sftp)([[:space:]]|$)|ssh[[:space:]]+-T' \
+    "$node_b_authorization_driver_action17b"; then
+    printf 'Action 17b driver contains a synchronization or peer command.\n' >&2
+    exit 1
+fi
+node_b_transport_inspector_action17c="$caddy_root/scripts/inspect-node-b-restricted-transport-state-action17c.sh"
+node_a_transport_driver_action17c="$caddy_root/scripts/validate-node-a-to-node-b-restricted-transport-action17c.sh"
+restricted_transport_runner_action17c="$caddy_root/scripts/run-node-a-to-node-b-restricted-transport-action17c.sh"
+restricted_transport_regression_action17c="$caddy_root/tests/action17c-restricted-transport-regression.sh"
+"$node_b_transport_inspector_action17c" --self-test
+"$node_a_transport_driver_action17c" --self-test
+"$restricted_transport_runner_action17c" --self-test
+"$restricted_transport_runner_action17c" --contract-test
+"$restricted_transport_regression_action17c" --self-test
+grep -Fq \
+    'readonly inspector_sha256=37e5390fb132c77002b468d9dfabfc579d5bb03f1da44f60802c448df3a35111' \
+    "$restricted_transport_runner_action17c"
+grep -Fq \
+    'readonly driver_sha256=f3e775716ec0d3506b67088286545fb5998e2c587b56f18e5f20b27c314a15c0' \
+    "$restricted_transport_runner_action17c"
+grep -Fq 'readonly node_a_target=pi@10.1.0.53' \
+    "$restricted_transport_runner_action17c"
+grep -Fq 'readonly node_b_target=pi@10.1.0.54' \
+    "$restricted_transport_runner_action17c"
+grep -Fq 'release_payload_transferred=false' \
+    "$node_a_transport_driver_action17c"
+grep -Fq -- '--dry-run' "$node_a_transport_driver_action17c"
+if grep -Eq \
+    'systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|daemon-reload|reset-failed)' \
+    "$node_b_transport_inspector_action17c" \
+    "$node_a_transport_driver_action17c"; then
+    printf 'Action 17c contains a service mutation.\n' >&2
+    exit 1
+fi
+if grep -Fq -- '--delete' "$node_a_transport_driver_action17c"; then
+    printf 'Action 17c driver contains a deletion request.\n' >&2
+    exit 1
+fi
+restricted_transport_correction_action17c_retry="$caddy_root/scripts/correct-restricted-transport-action17c-retry.sh"
+restricted_transport_stream_regression_action17c_retry="$caddy_root/tests/action17c-streamed-stdin-continuity-regression.sh"
+restricted_transport_runner_action17c_retry="$caddy_root/scripts/run-node-a-to-node-b-restricted-transport-action17c-retry.sh"
+"$restricted_transport_correction_action17c_retry" --self-test
+"$restricted_transport_stream_regression_action17c_retry" --self-test
+"$restricted_transport_runner_action17c_retry" --self-test
+"$restricted_transport_runner_action17c_retry" --contract-test
+grep -Fq \
+    'readonly historical_driver_sha256=f3e775716ec0d3506b67088286545fb5998e2c587b56f18e5f20b27c314a15c0' \
+    "$restricted_transport_correction_action17c_retry"
+grep -Fq \
+    'readonly historical_runner_sha256=d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b' \
+    "$restricted_transport_correction_action17c_retry"
+grep -Fq \
+    'readonly rendered_driver_sha256=3259b979e64ccee667e2a81ac9683c21d140331c0d1f44d6c6e41bf88a7b31dd' \
+    "$restricted_transport_correction_action17c_retry"
+grep -Fq \
+    'readonly rendered_runner_sha256=c88ab6f91f3adaeab6a7cd5ba7c2013d8d62bc7d393601a370c140f50e1eb795' \
+    "$restricted_transport_correction_action17c_retry"
+grep -Fq \
+    'action_17c_streamed_stdin_continuity_regression_complete=true' \
+    "$restricted_transport_stream_regression_action17c_retry"
+grep -Fq \
+    'readonly correction_sha256=693a75d7cfb1c308a1367111c5891e3eae3fac7dc1e4bfd8ea4a43604f2229b6' \
+    "$restricted_transport_runner_action17c_retry"
+grep -Fq \
+    'action_17c_retry_accepted=true' \
+    "$restricted_transport_runner_action17c_retry"
+ipv6_transport_node_b_inspector_action17c_a="$caddy_root/scripts/inspect-node-b-ipv6-restricted-transport-action17c-a.sh"
+ipv6_transport_node_a_diagnostic_action17c_a="$caddy_root/scripts/diagnose-node-a-to-node-b-ipv6-restricted-transport-action17c-a.sh"
+ipv6_transport_runner_action17c_a="$caddy_root/scripts/run-node-a-to-node-b-ipv6-restricted-transport-diagnostic-action17c-a.sh"
+ipv6_transport_regression_action17c_a="$caddy_root/tests/action17c-a-ipv6-diagnostic-regression.sh"
+"$ipv6_transport_node_b_inspector_action17c_a" --self-test
+"$ipv6_transport_node_a_diagnostic_action17c_a" --self-test
+"$ipv6_transport_runner_action17c_a" --self-test
+"$ipv6_transport_runner_action17c_a" --contract-test
+"$ipv6_transport_regression_action17c_a" --self-test
+grep -Fq 'ssh -6 -n -T -vv' \
+    "$ipv6_transport_node_a_diagnostic_action17c_a"
+grep -Fq 'rsync_invoked=false' \
+    "$ipv6_transport_node_a_diagnostic_action17c_a"
+grep -Fq 'action_17c_a_diagnostic_conclusion=' \
+    "$ipv6_transport_runner_action17c_a"
+ipv6_source_diagnostic_action17c_b="$caddy_root/scripts/diagnose-node-a-ipv6-source-selection-action17c-b.sh"
+ipv6_source_runner_action17c_b="$caddy_root/scripts/run-node-a-ipv6-source-selection-diagnostic-action17c-b.sh"
+ipv6_source_regression_action17c_b="$caddy_root/tests/action17c-b-ipv6-source-selection-regression.sh"
+"$ipv6_source_diagnostic_action17c_b" --self-test
+"$ipv6_source_runner_action17c_b" --self-test
+"$ipv6_source_runner_action17c_b" --contract-test
+"$ipv6_source_regression_action17c_b" --self-test
+grep -Fq 'node_a_ipv6_selected_source=' \
+    "$ipv6_source_diagnostic_action17c_b"
+grep -Fq 'stable_source_binding_restores_authorization' \
+    "$ipv6_source_runner_action17c_b"
+source_binding_runner_action17c_c="$caddy_root/scripts/run-node-a-source-bound-transport-action17c-c.sh"
+source_binding_regression_action17c_c="$caddy_root/tests/action17c-c-source-binding-regression.sh"
+"$source_binding_runner_action17c_c" --self-test
+"$source_binding_runner_action17c_c" --contract-test
+"$source_binding_regression_action17c_c" --self-test
+working_directory_regression_action17c_c="$caddy_root/tests/action17c-c-working-directory-regression.sh"
+"$working_directory_regression_action17c_c" --self-test
+source_bound_diagnostic_action17c_c_a="$caddy_root/scripts/diagnose-node-a-source-bound-transport-action17c-c-a.sh"
+source_bound_diagnostic_runner_action17c_c_a="$caddy_root/scripts/run-node-a-source-bound-transport-diagnostic-action17c-c-a.sh"
+source_bound_diagnostic_regression_action17c_c_a="$caddy_root/tests/action17c-c-a-source-bound-diagnostic-regression.sh"
+"$source_bound_diagnostic_action17c_c_a" --self-test
+"$source_bound_diagnostic_runner_action17c_c_a" --self-test
+"$source_bound_diagnostic_runner_action17c_c_a" --contract-test
+"$source_bound_diagnostic_regression_action17c_c_a" --self-test
+peer_resolution_diagnostic_action17c_c_b="$caddy_root/scripts/diagnose-node-a-peer-resolution-contexts-action17c-c-b.sh"
+peer_resolution_runner_action17c_c_b="$caddy_root/scripts/run-node-a-peer-resolution-context-diagnostic-action17c-c-b.sh"
+peer_resolution_regression_action17c_c_b="$caddy_root/tests/action17c-c-b-peer-resolution-context-regression.sh"
+"$peer_resolution_diagnostic_action17c_c_b" --self-test
+"$peer_resolution_runner_action17c_c_b" --self-test
+"$peer_resolution_runner_action17c_c_b" --contract-test
+"$peer_resolution_regression_action17c_c_b" --self-test
+peer_resolution_correction_action17c_c_b_retry="$caddy_root/scripts/correct-peer-resolution-readonly-shadow-action17c-c-b-retry.sh"
+peer_resolution_runner_action17c_c_b_retry="$caddy_root/scripts/run-node-a-peer-resolution-context-diagnostic-action17c-c-b-retry.sh"
+peer_resolution_regression_action17c_c_b_retry="$caddy_root/tests/action17c-c-b-second-resolver-snapshot-regression.sh"
+"$peer_resolution_correction_action17c_c_b_retry" --self-test
+"$peer_resolution_runner_action17c_c_b_retry" --self-test
+"$peer_resolution_runner_action17c_c_b_retry" --contract-test
+"$peer_resolution_regression_action17c_c_b_retry" --self-test
+dns_path_collector_action17c_c_c="$caddy_root/scripts/diagnose-dns-path-authority-action17c-c-c.sh"
+dns_path_runner_action17c_c_c="$caddy_root/scripts/run-dns-path-authority-diagnostic-action17c-c-c.sh"
+dns_path_regression_action17c_c_c="$caddy_root/tests/action17c-c-c-dns-path-authority-regression.sh"
+"$dns_path_collector_action17c_c_c" --self-test
+"$dns_path_runner_action17c_c_c" --self-test
+"$dns_path_runner_action17c_c_c" --source-test
+"$dns_path_runner_action17c_c_c" --contract-test
+"$dns_path_regression_action17c_c_c" --self-test
+dns_continuity_inspector_action17c_c_c_a="$caddy_root/scripts/inspect-dns-continuity-action17c-c-c-a.sh"
+dns_continuity_runner_action17c_c_c_a="$caddy_root/scripts/run-dns-continuity-action17c-c-c-a.sh"
+dns_continuity_regression_action17c_c_c_a="$caddy_root/tests/action17c-c-c-a-dns-continuity-regression.sh"
+"$dns_continuity_inspector_action17c_c_c_a" --self-test
+"$dns_continuity_runner_action17c_c_c_a" --self-test
+"$dns_continuity_runner_action17c_c_c_a" --contract-test
+"$dns_continuity_regression_action17c_c_c_a" --self-test
+dns_path_correction_action17c_c_c_retry="$caddy_root/scripts/correct-dns-path-work-dir-action17c-c-c-retry.sh"
+dns_path_runner_action17c_c_c_retry="$caddy_root/scripts/run-dns-path-authority-diagnostic-action17c-c-c-retry.sh"
+dns_path_regression_action17c_c_c_retry="$caddy_root/tests/action17c-c-c-first-query-production-regression.sh"
+"$dns_path_correction_action17c_c_c_retry" --self-test
+"$dns_path_regression_action17c_c_c_retry" --production-test
+"$dns_path_runner_action17c_c_c_retry" --self-test
+"$dns_path_runner_action17c_c_c_retry" --source-test
+"$dns_path_runner_action17c_c_c_retry" --contract-test
+node_b_unbound_inspector_action17d="$caddy_root/scripts/inspect-node-b-two-file-unbound-preflight-action17d.sh"
+node_b_unbound_regression_action17d="$caddy_root/tests/action17d-node-b-two-file-unbound-preflight-regression.sh"
+node_b_unbound_runner_action17d="$caddy_root/scripts/run-node-b-two-file-unbound-preflight-action17d.sh"
+"$node_b_unbound_inspector_action17d" --self-test
+"$node_b_unbound_regression_action17d" --self-test
+"$node_b_unbound_runner_action17d" --self-test
+"$node_b_unbound_runner_action17d" --source-test
+"$node_b_unbound_runner_action17d" --contract-test
+node_b_unbound_primary_driver_action17e="$caddy_root/scripts/stage-node-b-unbound-primary-action17e.sh"
+node_b_unbound_primary_regression_action17e="$caddy_root/tests/action17e-node-b-unbound-primary-stage-regression.sh"
+node_b_unbound_primary_runner_action17e="$caddy_root/scripts/run-node-b-unbound-primary-stage-action17e.sh"
+"$node_b_unbound_primary_driver_action17e" --self-test
+"$node_b_unbound_primary_regression_action17e" --self-test
+"$node_b_unbound_primary_runner_action17e" --self-test
+"$node_b_unbound_primary_runner_action17e" --source-test
+"$node_b_unbound_primary_runner_action17e" --contract-test
+node_b_unbound_prewrite_diagnostic_action17e_a="$caddy_root/scripts/diagnose-node-b-unbound-primary-prewrite-action17e-a.sh"
+node_b_unbound_prewrite_regression_action17e_a="$caddy_root/tests/action17e-a-node-b-unbound-prewrite-diagnostic-regression.sh"
+node_b_unbound_prewrite_runner_action17e_a="$caddy_root/scripts/run-node-b-unbound-primary-prewrite-diagnostic-action17e-a.sh"
+"$node_b_unbound_prewrite_diagnostic_action17e_a" --self-test
+"$node_b_unbound_prewrite_regression_action17e_a" --self-test
+"$node_b_unbound_prewrite_runner_action17e_a" --self-test
+"$node_b_unbound_prewrite_runner_action17e_a" --source-test
+"$node_b_unbound_prewrite_runner_action17e_a" --contract-test
+node_b_unbound_correction_action17e_retry="$caddy_root/scripts/correct-node-b-unbound-primary-working-directory-action17e-retry.sh"
+node_b_unbound_regression_action17e_retry="$caddy_root/tests/action17e-working-directory-production-regression.sh"
+node_b_unbound_runner_action17e_retry="$caddy_root/scripts/run-node-b-unbound-primary-stage-action17e-retry.sh"
+"$node_b_unbound_correction_action17e_retry" --self-test
+"$node_b_unbound_regression_action17e_retry" --production-test
+"$node_b_unbound_runner_action17e_retry" --self-test
+"$node_b_unbound_runner_action17e_retry" --source-test
+"$node_b_unbound_runner_action17e_retry" --contract-test
+node_b_unbound_local_zone_driver_action17f="$caddy_root/scripts/stage-node-b-unbound-local-zone-action17f.sh"
+node_b_unbound_local_zone_regression_action17f="$caddy_root/tests/action17f-node-b-unbound-local-zone-stage-regression.sh"
+node_b_unbound_local_zone_runner_action17f="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f.sh"
+"$node_b_unbound_local_zone_driver_action17f" --self-test
+"$node_b_unbound_local_zone_regression_action17f" --self-test
+"$node_b_unbound_local_zone_runner_action17f" --self-test
+"$node_b_unbound_local_zone_runner_action17f" --source-test
+"$node_b_unbound_local_zone_runner_action17f" --contract-test
+node_b_unbound_prewrite_inspector_action17f_a="$caddy_root/scripts/diagnose-node-b-unbound-local-zone-prewrite-action17f-a.sh"
+node_b_unbound_prewrite_regression_action17f_a="$caddy_root/tests/action17f-a-node-b-unbound-prewrite-diagnostic-regression.sh"
+node_b_unbound_prewrite_runner_action17f_a="$caddy_root/scripts/run-node-b-unbound-local-zone-prewrite-diagnostic-action17f-a.sh"
+"$node_b_unbound_prewrite_inspector_action17f_a" --self-test
+"$node_b_unbound_prewrite_regression_action17f_a" --production-test
+"$node_b_unbound_prewrite_runner_action17f_a" --self-test
+"$node_b_unbound_prewrite_runner_action17f_a" --source-test
+"$node_b_unbound_prewrite_runner_action17f_a" --contract-test
+node_b_unbound_instrumentation_action17f_retry="$caddy_root/scripts/instrument-node-b-unbound-local-zone-action17f-retry.sh"
+node_b_unbound_regression_action17f_retry="$caddy_root/tests/action17f-instrumented-retry-regression.sh"
+node_b_unbound_runner_action17f_retry="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh"
+"$node_b_unbound_instrumentation_action17f_retry" --self-test
+"$node_b_unbound_regression_action17f_retry" --production-test
+"$node_b_unbound_runner_action17f_retry" --self-test
+"$node_b_unbound_runner_action17f_retry" --source-test
+"$node_b_unbound_runner_action17f_retry" --contract-test
+node_b_unbound_transition_diagnostic_action17f_b="$caddy_root/scripts/diagnose-node-b-unbound-action17f-transition.sh"
+node_b_unbound_transition_regression_action17f_b="$caddy_root/tests/action17f-b-transition-diagnostic-regression.sh"
+node_b_unbound_transition_runner_action17f_b="$caddy_root/scripts/run-node-b-unbound-action17f-transition-diagnostic.sh"
+"$node_b_unbound_transition_diagnostic_action17f_b" --self-test
+"$node_b_unbound_transition_regression_action17f_b"
+"$node_b_unbound_transition_runner_action17f_b" --self-test
+"$node_b_unbound_transition_runner_action17f_b" --source-test
+"$node_b_unbound_transition_runner_action17f_b" --contract-test
+"$caddy_root/tests/check-shell-readonly-local-collisions.sh"
+node_b_unbound_labeled_trace_action17f_b_retry="$caddy_root/scripts/trace-node-b-unbound-action17f-baseline-retry.sh"
+node_b_unbound_labeled_regression_action17f_b_retry="$caddy_root/tests/action17f-b-labeled-baseline-retry-regression.sh"
+node_b_unbound_labeled_runner_action17f_b_retry="$caddy_root/scripts/run-node-b-unbound-action17f-labeled-baseline-retry.sh"
+"$node_b_unbound_labeled_trace_action17f_b_retry" --self-test
+"$node_b_unbound_labeled_regression_action17f_b_retry"
+"$node_b_unbound_labeled_runner_action17f_b_retry" --self-test
+"$node_b_unbound_labeled_runner_action17f_b_retry" --source-test
+"$node_b_unbound_labeled_runner_action17f_b_retry" --contract-test
+node_b_unbound_trace_action17f_b_second_retry="$caddy_root/scripts/trace-node-b-unbound-action17f-baseline-second-retry.sh"
+node_b_unbound_regression_action17f_b_second_retry="$caddy_root/tests/action17f-b-second-retry-production-failure-regression.sh"
+node_b_unbound_runner_action17f_b_second_retry="$caddy_root/scripts/run-node-b-unbound-action17f-baseline-second-retry.sh"
+"$node_b_unbound_trace_action17f_b_second_retry" --self-test
+"$node_b_unbound_regression_action17f_b_second_retry"
+"$node_b_unbound_runner_action17f_b_second_retry" --self-test
+"$node_b_unbound_runner_action17f_b_second_retry" --source-test
+"$node_b_unbound_runner_action17f_b_second_retry" --contract-test
 node_a_recovery_diagnostic_16ap_a="$caddy_root/scripts/diagnose-node-a-recovery-state-action16ap-a.sh"
 node_a_recovery_runner_16ap_a="$caddy_root/scripts/run-node-a-recovery-diagnostic-action16ap-a.sh"
 "$node_a_recovery_diagnostic_16ap_a" --self-test

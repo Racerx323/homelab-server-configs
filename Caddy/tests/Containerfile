@@ -34,6 +34,7 @@ RUN apt-get update \
         shellcheck \
         shfmt \
         systemd \
+        unbound \
         util-linux \
         uuid-runtime \
     && rm -rf /var/lib/apt/lists/*

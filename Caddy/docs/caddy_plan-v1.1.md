@@ -13,16 +13,73 @@
 | Corrected transactional Action 16ap retry | Executed and accepted with SSH/runner `0`; Caddy was inactive rather than failed, so the guarded reset correctly skipped `reset-failed`, and every embedded cutover and validation check passed |
 | Independent read-only post-cutover Action 16aq | Executed but unaccepted: 100 of 104 assertions passed, four mismatches were recorded, SSH returned `1`, and a runner-contract defect normalized valid mismatch evidence to `97`; no mutation occurred |
 | Narrow read-only Action 16aq-a | Executed once but not accepted: remote collector and SSH returned `0`, complete read-only evidence and cleanup markers were emitted, but the runner returned `97` because its probe regex rejected the collector's intentional `%7C` field encoding; no mutation occurred |
-| Live deployment | Node B actions 1–15 and Node A through the corrected Action 16ap retry are accepted; Caddy is active/healthy on TCP 80/443 and UDP 443 on both physical nodes, lighttpd is loopback-only on TCP 8080, and Caddy VRRP remains absent |
+| Corrected read-only Action 16aq-a retry | Executed and accepted as complete read-only diagnostic evidence with runner/SSH `0`, identical adapted/runtime catch-all handlers explicitly returning `421`, all no-mutation markers false, and complete local cleanup |
+| Narrow read-only Action 16aq-b | Executed once with runner/SSH `0`, complete no-mutation and cleanup evidence, and an explicit unresolved selection; the transaction is complete diagnostic collection but does not identify the accepting server because encoded probe metadata exposed a local derivation defect |
+| Corrected read-only Action 16aq-b retry | Executed and accepted with runner/SSH `0`; exact production decoding identified `srv0` as the selected internal server, all no-mutation and cleanup evidence passed, and the diagnostic establishes that the physical-address exact listener returns an unhandled empty `200` for the unknown host |
+| Transactional Node A routing correction Action 16ar | Executed but failed after preflight and mutation start; remote status was `125` and the runner returned `97`; accepted Action 16ar-a later proved operational bootstrap recovery and candidate cleanup, but unknown-host behavior remains `200`, so Action 16ar is unaccepted |
+| Fail-closed read-only recovery diagnostic Action 16ar-a | Executed and accepted with runner/SSH `0`; Node A is on the bootstrap release, all Action 16ar candidate/staging/temp paths are absent, Caddy and lighttpd are active and healthy, and protected deferred state remains intact |
+| Corrected transactional Action 16ar retry | Accepted through independent corrected Action 16ar-b retry evidence: its immutable release is selected and complete, Caddy is healthy at unchanged PID `1085652`, intended routing and unknown-host rejection are live, and no rollback ran |
+| Fail-closed read-only post-correction Action 16ar-b | Executed once but not accepted: complete read-only collection, SSH `0`, inner runner `0`, no-mutation evidence, and cleanup passed; the outer runner returned `97` because its strict validator assumed `LoadState=loaded` for masked units and contains additional mismatches against production-encoded evidence |
+| Corrected read-only Action 16ar-b retry | Executed and accepted with runner/SSH `0`; both nested and corrected acceptance markers passed, exact corrected release/routing/probes/listeners/services were verified, no mutation occurred, and all cleanup completed |
+| Read-only synchronization-readiness Action 17a | Executed with a valid semantic mismatch and is not accepted: Node A passed all 54 checks; Node B passed 51 of 52, with only `caddy_current_target` false because the inspector expected bootstrap instead of the accepted Action 15 remediation release; no mutation occurred |
+| Corrected read-only Action 17a retry | Executed and accepted with Node A 54/54 and Node B 52/52 checks, both SSH/validation statuses `0`, zero mismatches, exact asymmetric authorization and empty transfer state, no mutation, and complete cleanup |
+| Bounded transactional Action 17b | Executed and accepted with runner/SSH `0`; exactly one Node A source-restricted, forced-command authorization is installed on Node B, protected state is unchanged, and no peer connection, synchronization, lsyncd configuration, or service mutation occurred |
+| Bounded read-only Action 17c | Executed once but not accepted: all administrative SSH statuses were `0` and Node B's before/after digest was identical, but Node A output stopped after preflight because the first nested peer SSH inherited and consumed the streamed script's stdin; IPv6, rsync-dry-run, Node A post-state, and cleanup evidence are absent |
+| Corrected read-only Action 17c retry | Executed once but not accepted: streamed-script continuity and cleanup succeeded, IPv4 restricted authentication/forced-receiver rejection passed, but both IPv6 transport assertions failed semantically and the fail-closed driver skipped the rsync dry-run |
+| Narrow read-only IPv6 transport diagnostic Action 17c-a | Executed and accepted as complete diagnostic collection with conclusion `node_a_ipv6_route_mismatch`: both stable ULAs, Node B's IPv6 SSH listener/return route/source authorization, Node A's neighbor/ICMP/TCP/host-key/key-offer path, all no-mutation assertions, and cleanup passed; Node A's selected IPv6 route source did not match `…::53`, and Node B did not accept the offered key |
+| Narrow read-only IPv6 source comparison Action 17c-b | Executed and accepted with runner and both administrative SSH statuses `0`; Node A selected source `fd36:5aa8:6971:1::55`, the unbound probe reached Node B but was denied at public-key authorization, and the otherwise identical `fd36:5aa8:6971:1::53`-bound probe authenticated and reached the forced receiver; no rsync, transfer, service mutation, or persistent state change occurred |
+| Impact-complete source-binding correction Action 17c-c | Executed once but not accepted: both Node B administrative inspections returned `0`, but Node A stopped during pre-state collection because `caddy-sync` inherited inaccessible working directory `/home/pi` and `find` could not restore it; no direct synchronization SSH probe or rsync dry run occurred, and local cleanup passed |
+| Corrected read-only Action 17c-c retry | Executed once but not accepted: the inherited-working-directory failure was removed, both Node B administrative inspections returned `0`, and Node A validated the source-bound SSH configuration, but Node A then returned `1` before the direct-SSH success marker; nested and outer runners rejected incomplete evidence, and local cleanup passed |
+| Narrow read-only Action 17c-c-a diagnostic | Executed and accepted as complete diagnostic collection: all 19 Node A pre-state checks passed, the source-bound direct SSH probe returned `255` with `name_resolution_failed` before connection, Node A state and Node B's digest remained unchanged, all three administrative SSH statuses were `0`, and no rsync ran |
+| Narrow read-only Action 17c-c-b diagnostic | Executed once but not accepted: resolver provenance and all six context lookups completed, with IPv4 and IPv6 uniformly `not_found` for `pi`, root, and `caddy-sync`, but Node A exited `1` before post-state and cleanup evidence because a global readonly `resolv_target` collided with the second snapshot function's same-named local variable; the runner returned `97` |
+| Corrected read-only Action 17c-c-b retry | Executed and accepted with administrative SSH, inner runner, and outer runner statuses `0`; both resolver snapshots match, all cleanup and no-mutation contracts passed, and all six IPv4/IPv6 lookups remain uniformly `not_found` for `pi`, root, and `caddy-sync`, producing conclusion `all_contexts_match_non_success` |
+| Two-file Unbound prerequisite | Added by explicit user direction as a migration from the user-confirmed single-file Unbound configuration currently used by both nodes: before any Caddy DNS record deployment or synchronization retry, separately adopt and validate the primary resolver fragment sourced from `/home/aaron/code/homelab-dns/Unbound/configs/pihole0.conf` and the `local.theama.co` authority fragment sourced from `/home/aaron/code/homelab-dns/Unbound/configs/pihole0-local-zone.conf` on Node B and then Node A; this prerequisite is defined but no Unbound deployment or reload is authorized |
+| Narrow read-only DNS path/authority Action 17c-c-c | Executed once but not accepted: both nodes proved a regular primary file containing local-zone directives and an absent proposed local-zone fragment, but both collectors failed before the first DNS query because function-local `work_dir` collided with the global readonly variable; SSH statuses were `1`, the runner returned `97`, no DNS conclusion or remote cleanup marker was produced, and independent workstation cleanup passed |
+| Read-only DNS continuity Action 17c-c-c-a | Executed and accepted with both SSH statuses `0`, zero mismatches, zero failed-action remote stages, exact role-specific primary configuration hashes/metadata, separate local-zone absence, embedded local-zone/listener directives, active Unbound and Pi-hole FTL, exact pre-failure state digests, no DNS query or mutation, and complete workstation cleanup |
+| Corrected read-only Action 17c-c-c retry | Executed once and accepted: both administrative SSH statuses and the inner/outer runners returned `0`; both nodes completed all queries with unchanged pre/post state, no mutation, and complete cleanup; conclusions are legacy single-file configuration, legacy path, inconsistent peer-AAAA state, and inconsistent Caddy-record state |
+| Read-only Node B two-file Unbound preflight Action 17d | Executed once and accepted: Node B matched the pinned live baseline; its live single-file and candidate two-file configurations normalized to the same 128 directives with zero differences; the installed parser accepted both live and protected shadow configurations; services remained ready; pre/post state hashes matched; and all remote/workstation staging was removed |
+| Bounded Node B primary-fragment staging Action 17e | Executed once but not accepted: Node B returned SSH `1` before any preflight-complete or mutation-started marker; the driver reported rollback started and complete, thereby revalidating the exact baseline and stage absence, but the outer runner correctly returned fail-closed `97` because rollback evidence before a mutation marker violates its transcript contract |
+| Read-only Node B pre-write diagnostic Action 17e-a | Executed and accepted as read-only diagnostic evidence: exactly one of 23 assertions failed because the privileged streamed shell inherited a non-root working directory; the other 22 assertions passed, both accepted-state collectors were stable, Unbound and Pi-hole FTL were active, both staging paths and transaction directories were absent, and no DNS query or mutation occurred |
+| Corrected bounded Node B primary-fragment staging Action 17e retry | Executed and accepted: the protected primary candidate is retained at `/var/tmp/caddy-unbound-node-b-action17e-primary`; stage ownership/modes, isolated parser validation, and ownership boundary passed; the live-state hash remained `3a05c048...b824`; no local-zone file, live Unbound configuration, DNS query, or service state was changed |
+| Bounded Node B local-zone-fragment staging Action 17f | Executed once but not accepted: the driver stopped before mutation with a labeled pre-write failure; tar returned `0`, SSH/pipeline returned `1`, no transaction path was created, no rollback was needed, and workstation cleanup passed; the exact failed prerequisite remains unknown |
+| Read-only Node B pre-write diagnostic Action 17f-a | Executed and accepted: all 55 disjoint assertions passed, including `PWD == /`; the retained Action 17e primary stage, live parser/services, stage absence, and two accepted live-state snapshots all matched; no remote path, DNS query, configuration change, service mutation, or persistent mutation occurred |
+| Instrumented bounded Node B local-zone-fragment staging Action 17f retry | Executed once but not accepted: the enforced instrumented preflight passed all 55 assertions from `PWD=/`, then the immutable Action 17f driver again emitted its pre-write-before-mutation failure; tar returned `0`, SSH/pipeline returned `1`, both workstation cleanup layers passed, and no transaction path or persistent mutation began |
+| Narrow read-only Action 17f-b transition diagnostic | Executed once but not accepted: Node B completed the read-only collector and proved `validate_baseline` returns `1` while every later snapshot/readonly/hash operation returns `0` and the accepted state hash matches; the collector improperly retained `validate_baseline` as an aggregate unlabeled boundary, and the workstation validator then failed on a readonly `transcript` name collision |
+| Corrected read-only Action 17f-b retry | Executed once but not accepted: the 55-assertion inspector passed; the tracer emitted successful labels through `baseline_live_state_collection` and then returned exact-baseline status `1`, but its ERR trap was not inherited inside the function because the production subshell omitted `errtrace`, so no required unique failure label or observed state hash was emitted; both SSH sessions returned `0`, all no-mutation markers passed, and workstation cleanup completed |
+| Corrected read-only Action 17f-b second retry | Executed and accepted as complete read-only diagnostic evidence: the 55-assertion inspector passed with normalized hash `3a05c048...b824`; the exact driver-style tracer uniquely labeled `baseline_live_state_hash` false/status `1` and captured raw-pipeline hash `d6f8e13c...ffae`; both SSH sessions and the runner returned `0`, every no-mutation/cleanup marker passed, and local source comparison proved the deterministic trailing-newline hash-normalization mismatch |
+| Pi-hole web URL roles | Confirmed: `pihole-admin.local.theama.co` resolves to Caddy VRRP VIPs `10.1.0.56` and `fd36:5aa8:6971:1::56`; Caddy proxies to the active node's loopback Pi-hole web backend; `pihole0.local.theama.co` and `pihole00.local.theama.co` remain pinned to Nodes A and B; `.55/::55` remains the Pi-hole DNS VIP |
+| Live deployment | Node B actions 1–15, Node A through corrected Action 16ar, corrected dual-node synchronization-readiness Action 17a retry, transactional Action 17b, diagnostic Action 17c-c-a, corrected DNS path Action 17c-c-c retry, Node B Unbound preflight Action 17d, corrected primary-stage Action 17e retry, and read-only Action 17f-a are accepted; the last accepted persistent state remains the completed protected primary stage; the instrumented Action 17f retry proved every external prerequisite immediately before the immutable driver reproduced its internal pre-write failure, so local-zone staging remains unaccepted; lsyncd configurations remain absent, synchronization services remain inactive, and no synchronization has begun |
 | Temporary operational hold | Do not reboot either Caddy node before Caddy boot persistence is explicitly enabled and validated: Caddy is active but disabled on each node, while enabled lighttpd is configured only for loopback TCP 8080 |
-| Repository protection | The `Caddy/` tree is committed and synchronized at `07a67d9` on `main`/`origin/main` |
+| Repository protection | The previously accepted deployment tree is committed and synchronized at `e5bcc82` on `main`/`origin/main`; subsequent Action 16aq-a through Action 17c-c-a definitions and recorded deployment evidence are uncommitted local changes |
 | Current-state DNS, inventory, README, and LikeC4 updates | Deferred until validated deployment |
-| Next gate | Define a corrected read-only Action 16aq-a retry that validates the intentional `%7C` probe encoding and captures enough static-response handler detail to explain the unknown-default `200`; no correction definition, diagnostic retry, configuration change, Action 16aq retry, service mutation, Node B authorization change, lsyncd configuration, node-to-node peer connection, VRRP change, retained-stage change, or later action is currently authorized |
+| Next gate | Define—but do not execute—an append-only corrected bounded Action 17f retry that normalizes `live_state` through command substitution and `printf '%s'` before hashing, preserves the accepted `3a05c048...b824` state pin and all rollback/no-mutation contracts, and regression-tests the raw-pipeline versus normalized-hash boundary; no definition, execution, staging, live Unbound change, DNS query, service action, synchronization, VRRP, or later action is currently authorized |
 
 ## Locked Decisions
 
 - Deployment will proceed one authorized and validated action at a time.
+- Every fail-closed assertion in a live infrastructure transaction must emit a
+  unique, stable label and its observed status before exit. Aggregate or
+  unlabeled validation boundaries are prohibited. Repository regression tests
+  must reject new transactional drivers that cannot identify the exact failed
+  assertion without a follow-up live diagnostic.
+- Podman and repository validation wrappers that invoke Podman require the
+  rootless runtime below `/run/user` and must be launched with first-attempt
+  filesystem-sandbox escalation. Do not perform a known-to-fail sandbox probe
+  before the permitted invocation. Keep escalation scoped to the exact Podman
+  command or repository validation wrapper.
+- A function-local shell variable must never reuse a script-level readonly
+  variable name, regardless of declaration order. Host and Podman validation
+  must run the repository collision-policy test. Historical immutable
+  collisions may remain only in an exact path/name/SHA-256 allowlist; any
+  content change, new variable, or new file collision fails validation.
 - The living plan remains at `Caddy/docs/caddy_plan-v1.1.md`.
+- After local hash, source, and contract gates pass, an explicitly authorized
+  command whose defined purpose requires SSH or API access to the home-lab LAN
+  must be launched with network escalation on its first attempt. The escalation
+  grants only workstation network access; it does not broaden the authorized
+  command, target, privileges, mutation scope, or retry authority. If that
+  permission is unavailable, stop before execution rather than generating a
+  known sandbox-only transport failure.
 - Repository tooling is idempotent and supports dry-run, rollback, and uninstall.
 - TLS secrets are sourced from Doppler project `homelab-dev`, config `prd_caddy`.
 - Doppler is installed and used only on the Ubuntu operator workstation; neither
@@ -30,6 +87,26 @@
 - Caddy serves HTTP/1.1, HTTP/2, and HTTP/3; firewall intent includes UDP 443.
 - Runtime services and scripts log only through systemd-journald.
 - Node-specific Pi-hole names remain available in addition to the shared HA name.
+- Unbound configuration is a two-file prerequisite with explicit ownership:
+  `/etc/unbound/unbound.conf.d/pihole.conf`, sourced from workstation
+  `Unbound/configs/pihole0.conf`, owns resolver, listener, forwarding, cache,
+  hardening, and observability behavior; and
+  `/etc/unbound/unbound.conf.d/pihole0-local-zone.conf`, sourced from
+  workstation `Unbound/configs/pihole0-local-zone.conf`, owns
+  `local.theama.co` policy and A, AAAA, PTR, and SRV data. Each top-level
+  fragment retains its own `server:` clause.
+- Both live nodes currently use a single Unbound configuration file, as
+  confirmed by the user. The two workstation files describe the intended
+  split state and must not be represented as deployed until Node B and then
+  Node A are separately migrated and validated.
+- Adopt and validate the two-file Unbound prerequisite on Node B and then
+  Node A through separately authorized actions before any Caddy DNS record
+  deployment or synchronization retry. This plan entry does not authorize a
+  file installation, DNS record addition, Unbound validation/reload, Pi-hole
+  change, or service mutation.
+- `pihole-admin.local.theama.co` uses the Caddy VRRP VIPs `10.1.0.56` and
+  `fd36:5aa8:6971:1::56`; Caddy proxies to the active node's loopback Pi-hole
+  web backend. The existing `.55/::55` Pi-hole VIP remains the DNS VIP.
 - UniFi read-only collection uses local API key name `audit` with Doppler
   reference `homelab-dev/prd_unifi:AUDIT`; the key value is never recorded.
 - Caddy client access is limited to Default LAN VLAN 1; IoT VLAN 200 and Guest
@@ -343,6 +420,1601 @@
 | 2026-07-29T05:52:24Z | Node A (`j1-svpihole0`) and workstation | Execute exact independent read-only post-cutover Action 16aq | User explicitly authorized runner SHA-256 `b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348`; no correction, retry, diagnostic, service mutation, persistence change, synchronization, VRRP, or later action authorized | Local runner ownership/mode/hash, inspector hash, Bash syntax, self-tests, and transcript contract passed before SSH; corrected Action 16ap retry remained the accepted cutover baseline | Executed the exact runner once through strict host-verified SSH; streamed only the inspector and collected all 104 labeled assertions plus bounded evidence | No remote rollback applied because the inspector was read-only and created no remote path; workstation cleanup removed only `/tmp/caddy-action16aq.*` | SSH status `1`; 100 checks true and four false; exact trees, configuration, certificate, service states, listeners, processes, backend, localhost, dual-stack HTTP/1.1 and HTTP/2, served leaf, and journal policy passed; three assumed lighttpd-fragment checks failed and unknown-host returned `200`; no-mutation and cleanup markers passed; runner returned `97` because it incorrectly required `421` even for a valid mismatch transcript | Inspector `67c6c1ec...d90f`; runner `b312257a...e348`; live lighttpd `95a8752f...3372`; original `b15ff54d...cb92`; candidate `6e178911...6c13`; Caddy `6ae99faf...2161`; Keepalived `dad64e4a...2f66`; served leaf `9480cfd6...580c`; journal records `72` | Action 16aq is not accepted; operational cutover evidence remains strongly positive, but the three location assumptions, unknown-host behavior, and runner mismatch contract require resolution | Stop; define and separately authorize a narrow read-only Action 16aq-a diagnostic before any correction, retry, persistence, synchronization, VRRP, or later action |
 | 2026-07-29T06:01:18Z | Local workspace | Define narrow read-only Action 16aq-a for effective lighttpd directive provenance and unknown-host routing | User authorized definition only; no Node A diagnostic execution, correction, retry, or mutation authorized | Action 16aq was unaccepted after three fragment-location assumptions and an unexplained unknown-host `200`; accepted runtime evidence remained intact | Added a non-enforcing remote collector and fail-closed workstation runner for recursive lighttpd provenance, effective parser/listener state, adapted and live Caddy routes, and five distinct direct SNI/Host probes | Local Git working tree; remote rollback is inapplicable because the defined action is read-only and creates no remote path | Bash syntax, ShellCheck, shfmt, self-tests, synthetic transcript contract tests, complete host suite, full Debian 12 Podman integration, focused pre-commit, and `git diff --check` passed | Diagnostic `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`; runner `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc`; test runner `7e6c9a7ba5e72da84b8c8f5dbf62e285e2ebd30479f4bc42ef4a52bd80a939f8` | Exact read-only diagnostic is locally validated; neither node was contacted or changed | Stop and require separate authorization for the exact hash-pinned Action 16aq-a runner |
 | 2026-07-29T06:07:59Z | Node A (`j1-svpihole0`) and workstation | Execute exact narrow read-only Action 16aq-a | User explicitly authorized Action 16aq-a; no correction, retry, configuration, service, synchronization, VRRP, or later action authorized | Exact runner metadata and SHA-256 passed; Action 16aq remained unaccepted; corrected Action 16ap retry remained the accepted operational baseline | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the read-only collector and gathered lighttpd provenance, effective listeners, adapted/runtime Caddy routes, and five SNI/Host probes | No remote rollback applied because the collector created no path and performed no mutation; runner removed only its protected `/tmp/caddy-action16aq-a.*` workspace | Remote completion and every no-mutation marker passed; SSH `0`; runner `97`; local cleanup passed; the runner rejected percent-encoded probe metadata despite the collector's self-test explicitly requiring that encoding | Diagnostic `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`; runner `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc`; lighttpd `1.4.69`; route counts adapted/runtime `6/6` | Main lighttpd configuration owns loopback/8080; no enabled TLS directive was observed; known management routing works; mismatched SNI/Host returns `421`; matching unknown SNI/Host returns empty Caddy `200`; IP-SNI probe failed TLS with curl `35`; no state changed | Reject Action 16aq-a as a validated runner transaction but retain its complete read-only observations; stop before separately defining a corrected diagnostic retry |
+| 2026-07-29T15:10:30Z | Local workspace | Define corrected read-only Action 16aq-a retry | User authorized definition only; no SSH execution, diagnostic retry, configuration correction, service mutation, synchronization, VRRP, or later action authorized | Original collector and failed runner remain hash-pinned and unchanged; Action 16aq-a evidence established intentional `%7C` probe encoding and insufficient static-response detail | Added a retry-only read-only extension and runner; the runner concatenates the original collector and extension locally, validates encoded probe fields, and records safe adapted/runtime static-response status/body metadata | Local Git working tree; remote rollback is inapplicable because the defined payload is read-only and creates no remote path; runner cleans only `/tmp/caddy-action16aq-a-retry.*` | Extension/runner self-tests, production-format and negative transcript contracts, ShellCheck, shfmt, `git diff --check`, and complete host suite passed; full Podman and pre-commit evidence recorded below | Original collector `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`; extension `e4f42a453851025ffc0bd1cd6b0a6f249ca6eda41bf5cef7aca039673baa8bed`; runner `16f11a09e86b6c7e41057541ea488b5995c078aa71bd294f12f96b1cede18af0` | Corrected retry is defined without changing the two historical artifacts or contacting either node | Stop and require separate authorization for the exact corrected read-only runner |
+| 2026-07-29T15:23:39Z | Node A (`j1-svpihole0`) and workstation | Execute corrected read-only Action 16aq-a retry | User explicitly authorized the corrected retry; no configuration correction, Action 16aq retry, service mutation, synchronization, VRRP, or later action authorized | Exact runner ownership, mode, and SHA-256 passed; corrected Action 16ap remained the accepted operational baseline; original Action 16aq-a observations remained unchanged | Executed the exact runner once through strict host-verified SSH; streamed the original collector plus hash-pinned read-only extension; validated the production-encoded transcript and safe static-response summaries | No remote rollback applied because the payload created no path and performed no mutation; runner removed only `/tmp/caddy-action16aq-a-retry.*` | Runner/SSH `0`; both collectors completed; adapted/runtime statuses `0`, counts `2/2`, and equality true; all no-mutation and cleanup markers passed | Original collector `4a0b4371...a111`; extension `e4f42a45...8bed`; runner `16f11a09...8af0`; Caddy `2.11.4`; lighttpd `1.4.69` | HTTPS `srv3` and HTTP `srv4` catch-alls both explicitly use status `421`, empty bodies, and identical adapted/runtime state; matching unknown SNI/Host still returns empty Caddy `200`; exact accepting server was not observed | Accept the corrected retry as complete diagnostic evidence; stop before separately defining a narrow read-only server-selection diagnostic |
+| 2026-07-29T15:37:19Z | Local workspace | Define narrow read-only Action 16aq-b server-selection diagnostic | User authorized definition only; no SSH execution, configuration correction, service mutation, synchronization, VRRP, or later action authorized | Corrected Action 16aq-a retry proved the unknown request did not execute HTTPS catch-all `srv3`, but did not expose the accepting internal server | Added a streamed collector and hash-pinned runner that compare live exact/wildcard listener and handler summaries with server-labeled per-host request-metric deltas around one known-host HEAD control and one uncommon unknown-host TRACE request | Local Git working tree; remote rollback is inapplicable because the defined collector creates no path or persistent state; runner removes only `/tmp/caddy-action16aq-b.*` | Bash syntax, ShellCheck, shfmt, self-tests, conclusive/unresolved and negative transcript contracts, static no-write/no-service/no-peer checks, complete host suite, and Debian 12 Podman integration passed | Collector and runner hashes are recorded below; integration `ecf161bc...c6e9`; test runner hash is recorded below; Caddy validation image `2.11.4` | Exact diagnostic is defined and locally validated; neither node was contacted or changed; the future probes will increment only normal in-memory Caddy request counters | Stop and require separate authorization for the exact hash-pinned Action 16aq-b runner |
+| 2026-07-29T15:48:33Z | Node A (`j1-svpihole0`) and workstation | Execute exact narrow read-only Action 16aq-b server-selection diagnostic | User explicitly authorized runner SHA-256 `bacd05fdd156a4629317c2e629adc646ce43e1cbc101e171db8ce294c0105118`; no correction, retry, configuration, service, synchronization, VRRP, or later action authorized | Exact local runner provenance passed; corrected Action 16ap remained the accepted operational baseline; Webmin TCP 10000 remained outside scope | Executed the exact runner once through strict host-verified SSH; streamed only the read-only collector, read loopback Caddy runtime/metrics, sent the bounded known HEAD and unknown TRACE probes to Node A TCP 443, and validated the complete transcript | No remote rollback applied because no remote path or persistent state was created; runner removed only `/tmp/caddy-action16aq-b.*` | Runner/SSH `0`; runtime and all four metrics reads `0`; five server summaries, two probes, one known metric delta, zero unknown metric deltas, every no-mutation marker, and local cleanup passed; selection record was explicitly unresolved | Collector `28ad0167...21c3`; runner `bacd05fd...5118`; Node A arm64; runtime servers `srv0`–`srv4` | Known control mapped to exact-listener `srv0`; wildcard HTTPS `srv3` has the hostless `421`; unknown returned empty `200` with zero handler delta; collector passed encoded metadata to an undecoded code comparison and therefore emitted unresolved | Accept complete read-only collection but not server identification; stop before separately defining a corrected retry |
+| 2026-07-29T15:55:01Z | Local workspace | Define corrected read-only Action 16aq-b retry | User authorized definition but explicitly withheld execution; no SSH connection, configuration correction, service mutation, synchronization, VRRP, or later action authorized | Executed original collector and runner remain byte-identical; Action 16aq-b produced exact encoded metadata and a complete unresolved transcript | Added a read-only append-only correction and separate hash-pinned runner; correction decodes exactly five production `%7C` fields, reuses the original selection function, emits a separate corrected record, and retains the original unresolved record | Local Git working tree; remote rollback is inapplicable because the defined payload is read-only and creates no remote path; runner cleans only `/tmp/caddy-action16aq-b-retry.*` | Bash syntax, ShellCheck, shfmt, correction/runner self-tests, exact production fixture, literal-delimiter/wrong-code/duplicate/malformed/secret/nonzero-SSH negative contracts, complete host suite, and Debian 12 Podman integration passed | Original collector `28ad0167...21c3`; original runner `bacd05fd...5118`; correction `5abef1aa...7b63`; retry runner `c57aef50...5363`; integration `c126bfca...d8b5`; test runner `f4f8af57...d46b` | Corrected retry is defined and locally validated without changing either executed historical artifact or contacting either node | Stop and require separate authorization for the exact corrected read-only runner |
+| 2026-07-29T15:59:21Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected read-only Action 16aq-b retry | User explicitly authorized the previously defined runner SHA-256 `c57aef507f5f0044f4e22786e66310a9134ee7e6c1ee36cc2107042dc1f45363`; no configuration correction, service mutation, synchronization, VRRP, or later action authorized | Original Action 16aq-b evidence was complete but its selection was unresolved solely because production `%7C` metadata had not been decoded | Verified exact local runner type, owner, mode, and hash, then executed it once through strict host-verified SSH; the payload reran the bounded read-only collector and applied the append-only decoder to its live transcript | No remote rollback applies because no remote path or persistent state was created; runner removed only `/tmp/caddy-action16aq-b-retry.*` | Runner/SSH `0`; ten command checks, runtime/config reads, five server summaries, two probes, metric snapshots, both completion markers, every no-mutation marker, production decode, selection schema, secret exclusion, and local cleanup passed | Original collector `28ad0167...21c3`; correction `5abef1aa...7b63`; retry runner `c57aef50...5363`; Node A arm64; decoded unknown status `200` | Known control incremented `srv0`; unknown probe returned empty `200`; `srv3` did not increment; corrected record conclusively selected `srv0` with reason `exact_listener_control_plus_unhandled_200` | Accept Action 16aq-b retry as conclusive read-only evidence; stop before separately defining any routing correction |
+| 2026-07-29T16:19:28Z | Local workspace | Define transactional Node A routing correction Action 16ar | User authorized definition but explicitly withheld execution; no SSH connection, configuration change, Caddy reload, Node B change, synchronization, VRRP, or later action authorized | Accepted Action 16aq-b retry proved Node A exact-listener `srv0` returns unhandled empty `200` for an unknown host while wildcard rejection server `srv3` does not handle it; executed historical fragment `90-default-deny.caddy` is hash-pinned | Added append-only `91-exact-listener-default-deny.caddy`, a Node A immutable-release/reload transaction, a hash-pinned runner, adapted-route assertions, live Caddy `2.11.4` routing regressions, and fail-closed transcript contracts | Before selection, failure removes only the named staging/release paths; after selection, rollback atomically restores `/etc/caddy/current` to bootstrap, reloads the accepted configuration, validates baseline readiness and exact state, and removes the candidate; incomplete rollback returns `125` with manual-intervention evidence | Bash syntax, ShellCheck, shfmt, driver/runner self-tests, success/rollback/no-mutation/duplicate/wrong-code/restart/secret contracts, complete host suite, and Debian 12 Podman adaptation plus live IPv4/IPv6 physical, VIP, and loopback rejection tests passed | Historical fragment `9ce8430d...316b`; new fragment `d3a31eab...e8ae7`; driver `a361d0f4...9278a`; runner `cb5dcd9d...ba244`; integration `52a9594b...ac57`; host runner `6fe03d93...5d23` | Exact correction is defined without rewriting historical evidence or contacting either node; Caddy 2.11.4 merges the new hostless routes into the existing five servers and adds no listener | Stop and require separate authorization for the exact hash-pinned Action 16ar runner |
+| 2026-07-29T16:24:19Z | Node A (`j1-svpihole0`) and workstation | Execute exact transactional Action 16ar | User explicitly authorized runner SHA-256 `cb5dcd9d2e89d7fc58cc6af6347033dbf341b821c9383f2fc91d0bcd80bba244`; no repair, separate diagnostic, retry, Node B access, synchronization, VRRP, or later action authorized | Exact workstation provenance passed; accepted bootstrap was expected active; candidate and temporary paths were expected absent | Executed the exact runner once through strict host-verified SSH; remote transaction reached preflight, began mutation, built and validated the immutable staging configuration, then failed before emitting release-selection or readiness evidence and entered automatic rollback | Rollback emitted `action_16ar_rollback_incomplete=true` and `manual_intervention_required=true`; no further command was executed, so actual restoration, candidate cleanup, and operational state are unverified | `action_16ar_remote_reached=true`, preflight and mutation markers passed; three environment-backed Caddy validation/adaptation sequences were visible; remote failure status `1`; SSH `125`; runner `97`; protected workstation cleanup passed | Fragment `d3a31eab...e8ae7`; driver `a361d0f4...9278a`; runner `cb5dcd9d...ba244`; Caddy `2.11.4` was the pinned preflight version | Action 16ar is not accepted; no success markers, selected-release path, manifest hashes, PID continuity, unknown-host codes, or no-other-mutation markers were emitted; Node A current state is unknown | Stop immediately; define and separately authorize a read-only Action 16ar-a recovery diagnostic before any repair, cleanup, retry, or unrelated deployment action |
+| 2026-07-29T16:35:20Z | Local workspace | Define fail-closed read-only Node A recovery diagnostic Action 16ar-a | User authorized definition only; no SSH execution, repair, remote cleanup, retry, release selection/removal, Caddy reload/restart, Node B access, synchronization, VRRP, or later action authorized | Action 16ar ended after mutation start with incomplete rollback and no accepted final-state evidence | Added a streamed root collector and hash-pinned workstation runner that collect command availability, 16 exact paths, three release/manifest states, node environment, eight services, environment-backed adapted and live Caddy routes, three tree hashes, listeners, processes, eight bounded probes, and up to 80 Caddy journal records since the failed transaction | Read-only diagnostic; no remote rollback applies because it creates no remote path and performs no filesystem or service mutation; the runner removes only `/tmp/caddy-action16ar-a.*` locally; probes affect only in-memory Caddy request counters | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, complete/duplicate/count-inconsistent/missing-probe/secret/nonzero-SSH transcript contracts, static no-write/no-service/no-peer/Node-B/Webmin checks, complete host suite, and full Debian 12 Podman integration passed; the first sandboxed Podman attempt stopped at read-only rootless runtime state and the unchanged host-permitted rerun passed | Collector `c63146c3...28cb`; runner `52302f23...84d9`; test runner `be9935d1...1c4b`; integration `52a9594b...c57` | Exact Action 16ar-a is defined and locally validated; neither node was contacted or changed and Node A's recovery state remains unknown | Stop; require separate authorization for exact runner SHA-256 `52302f2394c51c20945947e0b454ab94023a158f8bed7bd39e88295aa9b484d9` |
+| 2026-07-29T16:39:04Z | Node A (`j1-svpihole0`) and workstation | Execute exact fail-closed read-only recovery diagnostic Action 16ar-a | User explicitly authorized Action 16ar-a; no repair, remote cleanup, retry, reload/restart, Node B access, synchronization, VRRP, or later action authorized | Exact runner provenance, Bash syntax, self-test, contract test, and collector hash passed before SSH; Node A state was unknown after Action 16ar's incomplete-rollback marker | Executed the exact hash-pinned runner once through strict host-verified SSH; streamed only the collector and gathered count-reconciled path, release, environment, service, configuration, tree, listener, process, probe, and bounded journal evidence | No remote rollback or cleanup applied because the collector created no path and performed no filesystem or service mutation; workstation cleanup removed only `/tmp/caddy-action16ar-a.*`; probes affected only in-memory request counters | Runner/SSH `0`; 22 commands, 16 paths, three releases, ten environment values, eight services, two five-server configuration summaries, three trees, 17 listeners, four processes, eight probes, and 67 journal records reconciled; all no-mutation/completion/cleanup markers passed | Collector `c63146c3...28cb`; runner `52302f23...84d9`; Caddy PID `1085652`; bootstrap tree `a2c5cd32...ff17`; Caddy tree `6ae99faf...2161`; Keepalived tree `dad64e4a...2f66`; lighttpd tree `95a8752f...3372` | Accept Action 16ar-a: `/etc/caddy/current` selects bootstrap; final/staging/temp Action 16ar paths are absent; Caddy and lighttpd are active; validation and health pass; unknown-host probes remain `200`; Action 16ar remains failed and unaccepted | Stop; analyze this evidence and separately define any correction or further diagnostic before another live command |
+| 2026-07-29T16:53:32Z | Local workspace | Analyze Action 16ar failure and define corrected transactional retry | User requested analysis and a separately defined bounded correction or diagnostic; no live execution authorized | Accepted Action 16ar-a proved operational bootstrap recovery; the historical driver and runner remained exact and unchanged | Added a container-only bootstrap→candidate→bootstrap reload regression, an append-only hash-pinned transformer that replaces only volatile raw listener snapshots with protocol/state/local-endpoint/process identity and gives retry paths/markers distinct names, and a new fail-closed runner that renders and pins the corrected remote driver | Local tests create only protected temporary paths and containers; no live rollback applies; a future authorized retry retains the original automatic bootstrap rollback, removes only its distinct candidate/staging/temp paths on failure, and reports complete/incomplete rollback semantically | Regression proved raw listener inequality and semantic equality across both reloads while codes changed `200→421→200` and PID remained stable; Bash syntax, ShellCheck, shfmt, transformer/runner self-tests, success/rollback/no-mutation/duplicate/wrong-code/restart/secret contracts, complete host suite, and full Debian 12 Podman integration passed | Historical driver `a361d0f4...9278a`; transformer `d8c612cb...70e7`; rendered driver `b62222cc...a2f`; runner `f5193f35...b9ca`; reload regression `82e34d3d...35cb8`; tests `c072c21b...49c4` and `49a1dbd2...50e` | Root cause confirmed as an invalid raw-listener equality policy that included volatile socket descriptors; corrected retry is defined and locally validated; neither live node was contacted or changed | Stop; confirm shared Pi-hole VIP terminology and require separate authorization for runner SHA-256 `f5193f35fd2fcf1988f1a6ab2a2f84489cf6d65f26ef36ba8f03380be386b9ca` |
+| 2026-07-29T16:59:45Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected transactional Action 16ar retry | User confirmed `.56/::56` as the shared Pi-hole web Caddy VIP and explicitly authorized runner SHA-256 `f5193f35fd2fcf1988f1a6ab2a2f84489cf6d65f26ef36ba8f03380be386b9ca`; no later action authorized | Exact runner provenance, Bash syntax, self-test, and contract test passed; accepted Action 16ar-a bootstrap baseline preceded the transaction | Executed the exact runner once through strict host-verified SSH; the remote transaction created and selected the immutable retry release, reloaded Caddy, completed bounded readiness, and emitted all success and no-other-mutation markers | Rollback was not invoked because the remote transaction completed successfully; protected workstation cleanup completed | Remote/SSH `0`; selected release `/etc/caddy/releases/action16ar-retry-node-a-default-deny`; Caddy PID remained `1085652`; IPv4, IPv6, and loopback unknown-host codes were `421`; reload true, restart false; runner returned `97` only because normal Caddy validation information made stderr nonempty | Fragment `d3a31eab...e8ae7`; release manifest `3e25f80c...1dd`; content manifest `272c1f17...e70`; rendered driver `b62222cc...a2f`; runner `f5193f35...b9ca` | Remote transaction reports success, but Action 16ar retry is not yet accepted because the workstation stderr contract produced a false failure; Node B and protected services were unchanged | Stop; do not rerun or repair; define and separately authorize an independent fail-closed read-only post-correction diagnostic |
+| 2026-07-29T17:17:01Z | Local workspace | Define fail-closed read-only Node A post-correction acceptance Action 16ar-b | User authorized definition only; no SSH execution, repair, cleanup, reload/restart, Node B access, synchronization, VRRP, or later action authorized | Corrected Action 16ar retry reported remote success and SSH `0`, but its workstation stderr policy returned `97`, leaving the reported live state unaccepted | Added a hash-pinned append-only deriver over the accepted Action 16ar-a collector/runner and an outer acceptance runner; the rendered collector gathers the retry release and manifests, node environment, eight service states, adapted/runtime topology, listeners/processes, eight probes, protected tree hashes, bounded journal evidence, Caddy version, and no-mutation markers | Read-only remote collector creates no remote path and performs no service or filesystem mutation; probes affect only in-memory request counters; nested and outer protected workstation temporary directories are removed | Bash syntax, ShellCheck, repository shfmt, deriver/collector/inner/outer self-tests, generic and strict transcript contracts, wrong-release/wrong-probe/missing-route/secret/nonzero-runner rejection, static no-write/no-service/no-peer/Node-B/Webmin checks, complete host suite, and Debian 12 Podman integration passed; the first sandboxed Podman attempt failed only on read-only rootless runtime state and the unchanged permitted rerun passed | Deriver `f3f07ddd...0a47`; rendered collector `71c31f7e...ed0f`; rendered inner runner `8af27b5c...cf5d`; outer runner `fe4e0936...35fe`; tests `0adc00ab...924` and `b4c466fd...6a97` | Exact Action 16ar-b is locally defined; neither live node was contacted or changed; Action 16ar retry remains unaccepted pending execution | Stop; require separate authorization for exact outer runner SHA-256 `fe4e09369ee6699bceeb14453546ca6f22523219c5391a383b815f59293635fe` |
+| 2026-07-29T17:19:30Z | Node A (`j1-svpihole0`) and workstation | Execute exact fail-closed read-only post-correction Action 16ar-b | User explicitly authorized Action 16ar-b; no correction, retry, repair, remote cleanup, reload/restart, Node B access, synchronization, VRRP, or later action authorized | Exact outer-runner provenance, syntax, self-test, and contract test passed before one strict host-verified SSH connection | Streamed the rendered collector through `sudo -n /bin/bash -s --`; collected count-reconciled paths, releases, environment, services, adapted/runtime routes, trees, listeners, processes, probes, and bounded journal evidence | No remote rollback applies; collector reported filesystem/service/systemd-manager/peer mutations false; nested and outer protected workstation cleanup completed | SSH `0`; inner runner `0`; all 22 command checks passed; complete marker and eight probes passed; outer runner returned `97` before acceptance because masked `lsyncd.service` reported `LoadState=masked`, while the strict validator required `loaded`; no acceptance marker emitted | Outer runner `fe4e0936...35fe`; release tree `86c4347b...a30c`; Caddy tree `b01cba78...7406`; Keepalived tree `dad64e4a...2f66`; lighttpd tree `95a8752f...3372`; Caddy PID `1085652` | Action 16ar-b is not accepted, but complete evidence reconfirms the corrected release, manifest integrity, five correct adapted/runtime servers, named health, four unknown-host `421` results, stable services/listeners, and no persistent mutation | Stop; do not rerun; analyze the outer-validator mismatches and separately define any correction or further diagnostic |
+| 2026-07-29T17:29:21Z | Local workspace | Define corrected production-transcript Action 16ar-b retry acceptance validator | User requested definition; no SSH execution, transaction retry, repair, cleanup, reload/restart, Node B access, synchronization, VRRP, or later action authorized | Failed Action 16ar-b artifact preserved at SHA-256 `fe4e0936...35fe`; its complete production transcript supplied exact masked-unit records, full protected-tree hashes, and encoded process record | Added an append-only hash-pinned correction, a separately hash-pinned retry runner, and a production-transcript regression that renders the historical validator without modifying it | No live rollback applies; all test files are local and protected temporary test directories are removed | Syntax, ShellCheck, shfmt, correction self-test, exactly eight rendered replacements, positive corrected transcript, rejection of all three historical assumptions, retry self-test/contract, complete host suite, and Debian 12 Podman integration passed; the first sandboxed Podman attempt failed only on read-only rootless runtime state and the unchanged permitted rerun passed | Correction `c2f0ffcf...4389`; rendered corrected validator `00ab6876...25e`; regression `6e66134e...215`; retry runner `bdd88699...7677` | Corrected Action 16ar-b retry is defined and locally validated; neither node was contacted or changed; historical Action 16ar-b and its evidence remain immutable | Stop; require separate authorization for exact retry runner SHA-256 `bdd88699b0753a937250ddb888ddfd80e2ed87a5de040f6f660ae680fa447677` |
+| 2026-07-29T17:39:31Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected read-only Action 16ar-b retry | User explicitly authorized runner SHA-256 `bdd88699...7677`; no repair, transaction retry, reload/restart, Node B access, peer authorization change, synchronization, VRRP, or later action authorized | Exact runner ownership/mode/hash, Bash syntax, self-test, and contract passed; historical failed runner remained immutable | Executed the exact retry runner once; it rendered the corrected validator and opened one strict host-verified read-only SSH connection to Node A | No rollback applies because the action is read-only; nested and retry protected workstation stages were removed | Runner and SSH `0`; 22 commands, 16 paths, three releases, ten environment values, eight services, five adapted and five runtime servers, three trees, 17 listeners, four processes, eight probes, and bounded journal evidence passed; nested and corrected acceptance and all cleanup markers true | Caddy/package `2.11.4`; PID `1085652`; release tree `86c4347b...d30c`; Caddy tree `b01cba78...7406`; Keepalived tree `dad64e4a...2f66`; lighttpd tree `95a8752f...3372`; runner `bdd88699...7677` | Corrected Action 16ar-b retry and the independently verified corrected Action 16ar retry are accepted; Caddy is active/running/disabled, lighttpd is active on loopback 8080, all four unknown-host probes are `421`, and no persistent mutation occurred | Continue only by separately defining the next read-only synchronization-readiness action before Action 17 |
+| 2026-07-29T17:53:17Z | Local workspace | Define read-only synchronization-readiness Action 17a before Node A-to-Node B synchronization | User authorized definition only; no SSH execution, peer connection, peer authorization change, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Corrected Action 16ar is accepted; Node A has reciprocal inbound authorization for Node B, while accepted Node B Action 13 intentionally has no inbound authorization for Node A; both lsyncd configurations remain absent and services inactive/masked | Added one dual-role remote inspector and one hash-pinned workstation runner; the inspector validates node identities/environment, exact key pairs and host pins, restricted receiver/no-delete contract, helpers/unit hashes, protected directories, asymmetric authorization state, empty incoming/outbound pre-state, Caddy/SSH state, and package versions | No live rollback applies because the action is read-only; the future runner removes only its protected `/tmp/caddy-action17-readiness.*` directory | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, success and semantic-mismatch contracts, malformed/duplicate/secret/nonzero-status rejection, static no-write/no-service/no-peer scans, complete host suite, focused pre-commit, and Debian 12 Podman integration passed | Inspector `1193632a...ae8`; runner `f19e5673...16e5`; host suite `b49189f4...7093`; integration `ad02b41c...c5af` | Exact read-only Action 17a is defined; neither node was contacted or changed; it deliberately performs no restricted peer SSH or rsync dry run because Node B authorization belongs to transactional Action 17 | Stop; require separate authorization for exact runner SHA-256 `f19e5673d3e86a95282041e9770c8c6d1093cbee9cd985e82957bd78773f16e5` |
+| 2026-07-29T17:57:02Z | Nodes A and B and workstation | Execute exact read-only synchronization-readiness Action 17a | User explicitly authorized runner SHA-256 `f19e5673...16e5`; no peer connection, authorization change, synchronization, lsyncd/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner ownership/mode/hash, Bash syntax, self-test, and contract passed | Executed the runner once through separate strict host-verified administrative SSH inspections of Nodes A and B; no node-to-node command ran | No rollback applies; the action was read-only and protected workstation cleanup completed | Node A SSH/validation `0`, 54/54 checks; Node B SSH/validation semantic `1`, 51/52 checks; only `caddy_current_target=false`; runner returned `1` with `action_17_sync_readiness_accepted=false`; all no-peer/no-sync/no-helper/no-service/no-filesystem-mutation markers passed | Inspector `1193632a...ae8`; runner `f19e5673...16e5`; lsyncd `2.2.3-1`; rsync `3.2.7-1+deb12u6`; OpenSSH `1:9.2p1-2+deb12u10` on both nodes | Action 17a is not accepted; every synchronization-specific prerequisite passed, but the local inspector incorrectly expected Node B bootstrap although accepted Action 15l selected `/etc/caddy/releases/action15-health-follow-redirects` | Stop; do not rerun unchanged; separately define a corrected read-only retry using accepted Node B Action 15 evidence |
+| 2026-07-29T18:11:00Z | Local workspace | Define corrected read-only Action 17a retry | User authorized definition only; no SSH execution, peer connection, authorization change, synchronization, lsyncd/service change, VRRP, repair, reload/restart, or later action authorized | Historical inspector `1193632a...ae8` and runner `f19e5673...16e5` preserved; complete Action 17a evidence and accepted Action 15l identify one stale Node B target | Added a hash-pinned append-only transformer, production-target regression, and retry wrapper; rendered inspector changes only the single Node B release target and rendered runner changes only the pinned inspector hash | No live rollback applies; all changes and protected temporary stages are workstation-only and automatically removed | Syntax, ShellCheck, shfmt, exact rendered hashes, independently generated expected inspector, stale-target rejection, inspector self-test, runner self-test/contract, complete host suite, focused pre-commit, and Debian 12 Podman integration passed; two intermediate container checks exposed and corrected container-only owner/zero-match test assumptions | Correction `37d2b822...d543`; rendered inspector `87c910f1...b805`; rendered runner `ffb025e6...b9ad`; regression `2ac139c2...febc`; retry runner `de5c2f05...3a56` | Corrected Action 17a retry is defined and locally validated; neither node was contacted or changed; historical Action 17a evidence remains immutable | Stop; require separate authorization for exact retry runner SHA-256 `de5c2f05a6db78d2e0b9847e6c7807aba4fd15a3db570d6215f2e6f848333a56` |
+| 2026-07-29T18:13:38Z | Nodes A and B and workstation | Execute exact corrected read-only Action 17a retry | User explicitly authorized runner SHA-256 `de5c2f05...3a56`; no peer connection, authorization change, synchronization, lsyncd/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner ownership/mode/hash, syntax, correction/regression, self-test, and contract passed; historical Action 17a artifacts remained immutable | Executed the corrected retry once through separate strict host-verified administrative SSH inspections of both nodes | No rollback applies; the action was read-only and nested/retry protected workstation cleanup completed | Node A SSH/validation `0`, 54/54 checks; Node B SSH/validation `0`, 52/52 checks; zero mismatches, both node readiness markers, nested readiness acceptance, and retry acceptance true | lsyncd `2.2.3-1`; rsync `3.2.7-1+deb12u6`; OpenSSH `1:9.2p1-2+deb12u10`; retry runner `de5c2f05...3a56`; accepted Node B release target `action15-health-follow-redirects` | Corrected Action 17a retry is accepted; exact identities, key pairs, host pins, asymmetric authorization, receiver/no-delete contract, helpers/unit, protected directories, empty transfer state, Caddy/SSH state, absent lsyncd configs, and inactive synchronization services passed without mutation | Continue only by separately defining the first bounded transactional Action 17 step |
+| 2026-07-29T18:24:25Z | Local workspace | Define first bounded transactional Action 17 step for Node A-to-Node B synchronization | User authorized definition only; no live execution, peer connection, synchronization command, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Accepted corrected Action 17a retry: Node B has no `authorized_keys`, both synchronization identities and host pins are exact, transfer state is empty, and synchronization services are inactive | Added a hash-pinned Node B transaction, workstation runner, and regression; the sole persistent mutation is one exact Node A source-restricted, forced-receiver authorization at `/var/lib/caddy-sync/.ssh/authorized_keys` | On any post-mutation failure, remove the protected temporary stage and only the newly created `authorized_keys`; then require authorization absence and byte/metadata/service equivalence for all protected pre-state, otherwise exit `125` and require manual intervention | Driver/runner syntax, ShellCheck, shfmt, self-tests, duplicate/malformed/secret/failure transcript contracts, exact-key/source/forced-command regression, static no-service/no-peer/no-sync checks, complete host suite, focused pre-commit, and Debian 12 Podman integration passed; the initial sandboxed Podman attempt failed only because `/run/user/1000/libpod` was read-only, and the permitted runtime retry passed | Driver `ebd12688...7efe`; runner `8b9fdd59...7698`; regression `b2a62812...3d71`; host suite `9fb4d80d...8525`; integration `eea19c21...2325` | Action 17b is defined but not executed; neither node was contacted or changed | Stop; require separate authorization for exact runner SHA-256 `8b9fdd593896a1f613275ca0ea8fe467c4f52f70610321968d563efaad3a7698` |
+| 2026-07-29T18:30:20Z | Node B (`j1-svpihole00`) and workstation | Execute exact bounded transactional Action 17b | User explicitly authorized exact runner SHA-256 `8b9fdd59...7698`; no peer connection, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Runner file/type/owner/mode/hash, Bash syntax, self-test, contract test, and complete accepted Action 17a Node B baseline passed; `authorized_keys` was absent | Executed the exact runner once; it opened one strict host-verified administrative SSH connection and installed one exact Node A source-restricted, forced-receiver authorization at `/var/lib/caddy-sync/.ssh/authorized_keys` | Bounded rollback was armed but did not run; any post-mutation failure would have removed the temporary stage and newly created authorization, then required complete protected-state equality | Runner and SSH `0`; preflight, mutation, installed authorization, exact count/fingerprint, persistent-scope, protected-state, remote completion, acceptance, and local cleanup markers passed; peer/synchronization/lsyncd/service mutation markers were false | Driver `ebd12688...7efe`; runner `8b9fdd59...7698`; Node A synchronization fingerprint `SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0` | Action 17b is accepted; Node B has exactly one restricted authorization for Node A, all other protected state is unchanged, and no data transfer began | Stop; separately define a bounded read-only restricted-transport validation before any synchronization transfer |
+| 2026-07-29T18:40:22Z | Local workspace | Define bounded read-only Node A-to-Node B restricted-transport Action 17c | User authorized definition only; no live peer connection, dry-run, release transfer, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17b: Node B has exactly one restricted authorization for Node A; both nodes retain empty transfer state, absent lsyncd configurations, and inactive synchronization services | Added a Node B state inspector, Node A transport driver, hash-pinned workstation runner, and regression; the future action performs IPv4/IPv6 deliberately rejected commands and one empty-source IPv4 rsync dry-run, with strict key pins, public-key-only authentication, forwarding disabled, and bounded timeouts | No live rollback applies because the action is read-only; protected `/run` and workstation `/tmp` stages are always removed, and any malformed, changed-state, or incomplete evidence returns `97` and stops deployment | Inspector/driver/runner syntax, ShellCheck, shfmt, self-tests, success/semantic-failure/duplicate/secret transcript contracts, forced-receiver negative regression, static no-service/no-delete checks, complete host suite, focused pre-commit, and Debian 12 Podman integration passed | Inspector `37e5390f...5111`; driver `f3e77571...15c0`; runner `d2b8672f...510b`; regression `2c4017a9...b3ce3`; host suite `1a196e62...d8d1`; integration `4197f408...6ec` | Action 17c is defined but not executed; neither node was contacted and no transport probe or dry-run occurred | Stop; require separate authorization for exact runner SHA-256 `d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b` |
+| 2026-07-29T18:49:39Z | Nodes A and B and workstation | Execute exact bounded read-only Action 17c | User explicitly authorized exact runner SHA-256 `d2b8672f...510b`; no release transfer, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, retry, diagnostic, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, self-test, and contract test passed; accepted Action 17b was the required live baseline | Executed the runner once; it completed Node B pre-inspection, streamed the probe driver to Node A, and completed Node B post-inspection | No configuration rollback applies because the action is read-only; the runner removed its workstation stage, but the Node A transcript lacks its explicit protected-stage cleanup marker and no cleanup inference is permitted | Node B before, Node A probe, and Node B after administrative SSH statuses were all `0`; Node B state digests were identical at `e2622a7a...29d2`; Node A emitted only `action_17c_node_a_preflight_complete=true`; runner rejected the incomplete success transcript as malformed | Inspector `37e5390f...5111`; driver `f3e77571...15c0`; runner `d2b8672f...510b`; exact Node B digest `e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2` | Action 17c is not accepted; unchanged Node B protected state is proven, but IPv6 rejection, rsync dry-run, Node A post-state, and Node A cleanup are unproven; no release transfer can be claimed | Stop; do not rerun unchanged; separately define a corrected retry that adds `ssh -n` to direct probes and a streamed-transcript continuity regression |
+| 2026-07-29T18:57:59Z | Local workspace | Define corrected read-only Action 17c retry | User authorized definition only; no live retry, peer connection, dry-run, release transfer, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Historical driver `f3e77571...15c0`, runner `d2b8672f...510b`, failed transcript, and unchanged Node B evidence preserved; source inspection identified one missing stdin-detachment option | Added a hash-pinned append-only transformer, streamed-stdin continuity regression, and retry wrapper; rendered driver adds only `-n` to the shared direct SSH call, and rendered runner changes only its driver hash/path | No live rollback applies because definition is workstation-only; all render, regression, contract, and future wrapper stages use protected temporary directories with cleanup traps | Exact historical and rendered hashes, one-line driver diff, two-line runner diff, historical truncation negative control, corrected continuity positive control, syntax, ShellCheck, shfmt, correction/regression/wrapper self-tests and contracts, complete host suite, focused pre-commit, and Debian 12 Podman integration passed; one intermediate container-only invocation incorrectly applied the workstation `aaron:aaron` ownership assertion and was removed while retaining portable correction, regression, and contract coverage | Correction `693a75d7...29b6`; rendered driver `3259b979...31dd`; rendered inner runner `c88ab6f9...b795`; continuity regression `4a54669e...1d62`; retry runner `a93a457a...d831`; host suite `5013bd56...acd3`; integration `65738f8d...b886` | Corrected Action 17c retry is defined but not executed; historical artifacts remain immutable and neither node was contacted | Stop; require separate authorization for exact retry runner SHA-256 `a93a457a181424f04ec4e1991ccff84f119985d69603830ea01a98ad96acd831` |
+| 2026-07-29T19:05:34Z | Nodes A and B and workstation | Execute exact corrected read-only Action 17c retry | User explicitly authorized exact runner SHA-256 `a93a457a...d831`; no release transfer, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, diagnostic, retry, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, self-test, contract test, correction, streamed-stdin regression, and rendered-artifact provenance passed | Executed the exact retry runner once; it completed Node B pre-inspection, streamed the corrected probe driver to Node A, performed the IPv4 and IPv6 direct probes in order, stopped before rsync after the IPv6 semantic failure, and completed Node B post-inspection | No configuration rollback applies because the action was read-only; Node A, nested runner, retry runner, and workstation protected-stage cleanup markers all completed | IPv4 restricted authentication and forced-receiver rejection true; IPv6 restricted authentication and forced-receiver rejection false; `first_failure=ipv6_forced_receiver_rejection`; rsync dry-run false/skipped; Node A probe and nested/retry status `1`; both Node B administrative SSH statuses `0`; before/after digest identical; all protected-state/no-transfer/no-service and cleanup markers passed | Retry runner `a93a457a...d831`; rendered driver `3259b979...31dd`; rendered inner runner `c88ab6f9...b795`; exact Node B digest `e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2` | Corrected Action 17c retry is not accepted; stdin continuity is resolved and complete cleanup/state evidence is now present, but the exact cause of the IPv6 probe failure is not established and no rsync dry-run occurred | Stop; do not rerun unchanged; separately define a narrow read-only IPv6 restricted-transport diagnostic |
+| 2026-07-29T19:15:50Z | Local workspace | Define narrow read-only IPv6 restricted-transport diagnostic Action 17c-a | User authorized definition only; no live diagnostic, retry, peer transfer, rsync dry-run, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17b authorization and complete corrected Action 17c retry evidence preserved; the failure boundary is the direct IPv6 restricted probe, while IPv4, protected state, no-transfer, and cleanup evidence passed | Added separate Node B and Node A collectors, a hash-pinned workstation runner, and regression; Node B reports its stable ULA, IPv6-only SSH listener, return route, exact Node A IPv6 source authorization, and SSH state; Node A reports its ULA, selected source/device, neighbor/ICMP observations, and one detached verbose IPv6 SSH probe reduced to bounded milestones, stderr hash, error class, and conclusion | No live rollback applies because definition is workstation-only and the future action is read-only; Node A `/run` and workstation `/tmp` stages have cleanup traps; network probes may update ephemeral neighbor/connection state and normal logs but cannot change persistent configuration | Syntax, ShellCheck, shfmt, artifact self-tests, duplicate/secret/conclusion contracts, exact hash pins, static no-rsync/no-service/no-network-mutation regression, complete host suite, focused pre-commit, and Debian 12 Podman integration passed; the initial sandboxed Podman attempt failed only because `/run/user/1000/libpod` was read-only, and the permitted runtime retry passed | Node B inspector `eb348a76...83d2`; Node A diagnostic `39be8c27...3d39`; runner `81b07190...a706`; regression `082006b1...a435`; host suite `6583e353...7108`; integration `037ce5fb...9fb1` | Action 17c-a is defined but not executed; neither node was contacted, no diagnostic traffic occurred, and the live IPv6 failure cause remains unresolved | Stop; require separate authorization for exact runner SHA-256 `81b07190e35961dd83d8c947e58e8cc41e592454c88e043b52692c69b3e3a706` |
+| 2026-07-29T19:21:21Z | Nodes A and B and workstation | Execute exact read-only IPv6 restricted-transport diagnostic Action 17c-a | User explicitly authorized exact runner SHA-256 `81b07190...a706`; no retry, peer transfer, rsync dry-run, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, self-test, contract test, and pinned collector provenance passed | Executed the runner once through strict host-verified administrative SSH to each node; Node A performed one detached IPv6 ICMP observation and one verbose restricted SSH probe to Node B; no raw debug transcript was emitted | No configuration rollback applies because the action was read-only; Node A relevant-state equivalence, Node B relevant-state equivalence, Node A `/run` cleanup, and workstation `/tmp` cleanup all passed; expected ephemeral neighbor/connection state and normal logs are outside persistent configuration | Both node ULAs present; Node B IPv6 listener, return route/source/device, source authorization, and SSH state true; Node A route/device, neighbor `REACHABLE`, ICMP status `0`, TCP connection, host-key verification, and public-key offer true; Node A route-source match false; server key acceptance/authentication/forced message false; SSH status `255`, error class `unclassified`; both admin SSH statuses `0`; conclusion `node_a_ipv6_route_mismatch`; no rsync, transfer, service mutation, or persistent-state change | Runner `81b07190...a706`; Node A SSH stderr SHA-256 `686a24966ad1d5bb473b3151816da0e112d9110d00a7c62b23150dc78a00f912` | Action 17c-a is accepted as complete diagnostic collection; it proves a Node A IPv6 source-selection mismatch and a rejected key offer, but it does not expose the actual selected source or prove that explicit binding to `…::53` resolves authorization | Stop; do not rerun unchanged; separately define a narrow read-only actual-source and source-bound control diagnostic |
+| 2026-07-29T19:27:27Z | Local workspace | Define narrow read-only IPv6 source-selection/control diagnostic Action 17c-b | User authorized definition only; no live diagnostic, retry, peer transfer, rsync dry-run, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17c-a evidence preserved: Node A route-source mismatch, successful path through public-key offer, server key rejection, and complete no-mutation/cleanup evidence | Added a new Node A collector, hash-pinned workstation runner, and regression while reusing the immutable Action 17c-a Node B inspector; the collector emits the sanitized actual route-selected source and runs two otherwise identical detached verbose IPv6 SSH probes, with only the second adding `-b fd36:5aa8:6971:1::53`; the runner compares bounded milestones/classes and derives a conclusion | No live rollback applies because definition is workstation-only and the future action is read-only; Node A `/run` and workstation `/tmp` stages have cleanup traps; probes may update ephemeral neighbor/connection state and normal logs but cannot change persistent configuration | Syntax, ShellCheck, shfmt, exact hashes, self-tests, duplicate/secret/source/comparison conclusion contracts, static single-probe-function/no-rsync/no-service/no-network-mutation regression, complete host suite, focused pre-commit, and Debian 12 Podman integration passed | Node A diagnostic `e3fe442b...5a82`; runner `14bf3d97...8e55`; regression `5e6debad...2604`; host suite `d9bbae25...06d8`; integration `cbb3e128...077b` | Action 17c-b is defined but not executed; neither node was contacted, no comparison probes occurred, and explicit stable-source behavior remains unobserved | Stop; require separate authorization for exact runner SHA-256 `14bf3d9735df906f65cbdd037392d57ef394b14bc8921548f11289ab71878e55` |
+| 2026-07-29T19:31:00Z | Nodes A and B and workstation | Execute exact read-only IPv6 source-selection/control diagnostic Action 17c-b | User explicitly authorized runner SHA-256 `14bf3d97...8e55`; no correction, retry, peer transfer, rsync dry-run, synchronization, lsyncd configuration/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, self-test, contract test, and accepted Action 17c-a baseline passed | Executed the exact runner once through strict host-verified administrative SSH; Node A collected its selected IPv6 route source and ran otherwise identical unbound and stable-ULA-bound restricted SSH probes to Node B | No configuration rollback applies because the action was read-only; Node A relevant-state equivalence, Node B relevant-state equivalence, Node A `/run` cleanup, and workstation `/tmp` cleanup passed; only normal ephemeral network state and logs could change | Node A selected `fd36:5aa8:6971:1::55`, not stable ULA `…::53`; unbound SSH reached Node B, verified the host key, and offered the public key but Node B rejected it, returning `255` with class `publickey_denied`; explicitly `…::53`-bound SSH completed public-key authentication and reached the forced receiver, returning expected status `126` with class `forced_receiver_rejection`; both administrative SSH statuses `0`; no rsync, transfer, service mutation, or persistent-state change | Runner `14bf3d97...8e55`; unbound stderr `686a2496...f912`; bound stderr `3adae188...5f65`; accepted conclusion `stable_source_binding_restores_authorization` | Action 17c-b is accepted as complete diagnostic evidence; it proves the selected source and that explicit stable-source binding restores the intended restricted transport, but it does not authorize a persistent source-binding implementation | Stop; separately define an impact-complete Node A outbound synchronization source-binding correction design before any mutation or transfer |
+| 2026-07-29T19:50:14Z | Local workspace | Define impact-complete Node A outbound synchronization source-binding correction Action 17c-c | User authorized definition only; no live validation, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17c-b proves unbound source `…::55` fails authorization and explicit stable source `…::53` reaches the forced receiver; executed templates, validator, renderer, installer, and Action 17 artifacts remain immutable | Added append-only source-bound validator, lsyncd template, renderer, read-only live-validation runner, and regression; direct SSH uses `-6 -b "$NODE_IPV6"`, rsync embeds the same binding in its remote shell, and lsyncd uses `AddressFamily=inet6`, `BindAddress=@NODE_IPV6@`, and `HostKeyAlias=@PEER_FQDN@`; Node B rendering reciprocally binds `…::54` | Definition is workstation-only; future exact runner is read-only, uses an empty source with rsync `--dry-run`, compares relevant Node A state and Node B before/after digests, transfers no payload, changes no service, and removes protected temporary paths | Bash syntax, ShellCheck, shfmt, artifact self-tests/contracts, historical-hash preservation, source-binding/static no-mutation regression, both node renderings, complete host suite, and Debian 12 Podman lsyncd parsing/integration passed; initial sandboxed Podman failed only on read-only runtime state, and two isolated parser-test iterations exposed then eliminated unintended test-network attempts before the final pass | Runner `b63cd6e4...7cf7`; validator `a7da9a91...27dc`; renderer `36c048b7...b5f3`; template `f7e1e481...be976`; regression `57dcc069...b6e`; host suite `6d2dc23a...915`; integration `8f87c338...7030` | Action 17c-c is defined but not executed; no node was contacted by the action, no persistent source-binding artifact was installed, and synchronization remains stopped | Stop; require separate authorization for exact read-only runner SHA-256 `b63cd6e48662ad2a7b1604817da21135e735be0c8319090919760398d98d7cf7` |
+| 2026-07-29T19:53:28Z | Nodes A and B and workstation | Execute exact read-only source-bound transport Action 17c-c | User explicitly authorized exact runner SHA-256 `b63cd6e4...7cf7`; no retry, correction, persistent installation, release transfer, synchronization, lsyncd service/configuration change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, self-test, contract test, and pinned source-bound artifacts passed immediately before execution | Executed the exact runner once; Node B pre-inspection completed, the source-bound validator was streamed to Node A under `caddy-sync`, and Node B post-inspection completed | No configuration rollback applies because the action was read-only; the runner's protected workstation stage was independently confirmed absent after exit; Node A stopped before its action work directory and before any transport probe | Node B before/after administrative SSH statuses `0`; Node A emitted only `source_bound_ssh_configuration_valid=true`, then `find: Failed to restore initial working directory: /home/pi: Permission denied`; Node A status `1`; runner returned `97` with incomplete-evidence rejection; no direct denied-command probe, rsync dry run, acceptance marker, or Node B digest comparison was emitted | Runner `b63cd6e4...7cf7`; Node A inherited working directory `/home/pi`; local cleanup independently true | Action 17c-c is not accepted; source-binding configuration generation passed, but live transport behavior remains unvalidated because pre-state collection failed before either network probe | Stop; do not rerun unchanged; separately define a corrected read-only retry that establishes an accessible working directory and adds production-boundary regression coverage |
+| 2026-07-29T20:00:14Z | Local workspace | Define corrected read-only source-bound transport Action 17c-c retry | User authorized definition only; no live retry, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Failed Action 17c-c runner `b63cd6e4...7cf7` and its transcript remain immutable; the exact failure boundary is the `caddy-sync` transition inheriting inaccessible `/home/pi` | Added an append-only one-line runner transformer, retry wrapper, and regression; the rendered inner runner replaces only the Node A remote command with a root shell that performs `cd /` before `exec runuser`, while preserving the source-bound validator, Node B inspector, rendered lsyncd design, transcript validation, state digests, empty-source rsync dry run, and cleanup | Definition is workstation-only; future retry is read-only and uses the same no-transfer/no-service/no-persistent-write bounds as Action 17c-c; protected local stages are removed automatically | Historical runner hash preservation, exact one-line diff, Bash syntax, ShellCheck, shfmt, correction/inner/outer self-tests and transcript contracts, duplicate-marker rejection, complete host suite, Debian 12 negative historical control, corrected production-boundary control, lsyncd parser, and integration passed | Correction `0201ae3e...07d9c`; rendered inner runner `1cef934a...b5f2`; retry runner `5ec46ca7...d6ab`; regression `288b7619...ca95`; host suite `672a9fde...6c87`; integration `dc757b77...6d99` | Corrected Action 17c-c retry is defined but not executed; neither node was contacted, no transport probe or rsync dry run occurred, and no live state changed | Stop; require separate authorization for exact retry runner SHA-256 `5ec46ca77782160164785eefb75289e9a02f6d3262577261ce7cdcc31abbd6ab` |
+| 2026-07-29T20:02:41Z | Nodes A and B and workstation | Execute exact corrected read-only source-bound transport Action 17c-c retry | User explicitly authorized exact retry runner SHA-256 `5ec46ca7...d6ab`; no diagnostic, further retry, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, Bash syntax, correction and production-boundary regression, rendered inner provenance, inner/outer self-tests, and transcript contracts passed | Executed the exact retry once; it rendered the one-line-corrected inner runner, completed Node B pre-inspection, streamed the validator to Node A through the corrected `/` working-directory boundary, and completed Node B post-inspection | No configuration rollback applies because the action was read-only; nested and outer protected workstation stages were independently confirmed absent after exit; no persistent file or service mutation was authorized | Node A emitted `source_bound_ssh_configuration_valid=true`, proving the prior working-directory failure was removed, then returned `1` before the direct-SSH success marker; both Node B administrative statuses `0`; inner status `97`; outer retry rejected incomplete evidence; Node A's captured stderr contained only the administrative SSH pseudo-terminal notice; no rsync-success, state-equivalence, digest-comparison, acceptance, or transfer marker was emitted | Retry runner `5ec46ca7...d6ab`; rendered inner `1cef934a...b5f2`; independent local cleanup true | Corrected Action 17c-c retry is not accepted; the failure boundary moved past working-directory and SSH-configuration validation but remains unlabeled before direct-SSH success, so transport and state equivalence remain unproven | Stop; do not rerun unchanged; separately define a narrow no-rsync diagnostic with labeled pre-state and direct-SSH evidence |
+| 2026-07-29T20:11:04Z | Local workspace | Define narrow read-only source-bound transport diagnostic Action 17c-c-a | User authorized definition only; no live diagnostic, retry, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Corrected Action 17c-c retry evidence remains immutable: the working-directory correction passed, but Node A returned `1` at an unlabeled boundary before direct-SSH success; Node B inspections and local cleanup passed | Added a Node A diagnostic, hash-pinned workstation runner, and regression; the diagnostic records 19 labeled pre-state checks, pre/post state statuses and hashes, then performs exactly one detached IPv6 SSH probe bound to `…::53`, reducing verbose output to bounded milestones, error class, and stdout/stderr hashes | Definition is workstation-only; future execution is read-only, compares Node B before/after digests, creates only protected temporary paths with cleanup traps, transfers no release, invokes no rsync, and mutates no service or persistent configuration | Bash syntax, ShellCheck, repository-standard shfmt, artifact self-tests, success/inconsistency/duplicate transcript contracts, exact hash pins, static no-rsync/no-write/no-service/no-network-mutation regression, complete host suite, Debian 12 Podman integration, focused pre-commit, full pre-commit, and diff checks passed; initial host formatting and container ownership-portability failures were corrected before final acceptance | Node A diagnostic `3011cd54...0609`; runner `f460262c...01d2`; regression `a28283c4...b73f`; reused Node B inspector `37e5390f...5111` | Action 17c-c-a is defined but not executed; neither node was contacted, no direct diagnostic probe occurred, and the live failure boundary remains unresolved | Stop; require separate authorization for exact read-only runner SHA-256 `f460262cded8b056818f27b0d82cd637627aa6440a67d6eb409325ac73c301d2` |
+| 2026-07-29T20:21:54Z | Nodes A and B and workstation | Execute exact narrow read-only source-bound transport diagnostic Action 17c-c-a | User explicitly authorized exact runner SHA-256 `f460262c...01d2`; no diagnostic follow-up, retry, resolver change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, pinned dependencies, Bash syntax, self-test, transcript contract, and no-rsync regression passed immediately before execution | Executed the exact runner once; Node B was inspected before and after, while Node A ran 19 labeled pre-state checks and one detached source-bound direct SSH probe as `caddy-sync` from `/` | No configuration rollback applies because the action was read-only; Node A relevant-state hashes and Node B protected-state digests were equal before/after, Node A and workstation cleanup markers passed, and the workstation action stage was independently absent | All 19 pre-state checks true; direct SSH status/class `255`/`name_resolution_failed`; no connection, host-key, key-offer, authentication, or forced-receiver milestone; stdout empty; direct stderr SHA-256 `cd8300e3...85d5`; Node A before/after state SHA-256 `bdd004ed...9fa9`; all three administrative SSH statuses `0`; no transfer, rsync, or service mutation | Runner `f460262c...01d2`; Node B before/after digest `e2622a7a...29d2`; Node A pre/post state stderr empty hash `e3b0c442...b855`; local stage absent after exit | Action 17c-c-a is accepted as complete diagnostic collection; it isolates failure before transport connection to peer-FQDN resolution under Node A's `caddy-sync` execution context and does not validate source-bound transport | Stop; do not rerun unchanged; separately define a narrow read-only name-resolution context diagnostic before proposing any correction |
+| 2026-07-29T20:32:26Z | Local workspace | Define narrow read-only peer-name resolution context diagnostic Action 17c-c-b | User authorized definition only; no live diagnostic, retry, resolver change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17c-c-a provides exact bounded failure evidence: all pre-state checks passed, but the `caddy-sync` direct SSH probe failed at peer-FQDN resolution before connection; resolver context/provenance remains unknown | Added a root-run Node A collector, hash-pinned workstation runner, and regression; the collector runs identical five-second `getent ahostsv4` and `ahostsv6` lookups for only the peer FQDN as `pi`, root, and `caddy-sync`, emitting identities, bounded classes, expected-address booleans, line counts/truncation, bounded address-set encodings, transcript hashes, resolver provenance, and pre/post state hashes | Definition is workstation-only; future execution uses one administrative SSH session to Node A, invokes no peer SSH or rsync, transfers no payload, mutates no service or persistent configuration, and removes protected temporary paths | Bash syntax, ShellCheck, repository-standard shfmt, collector/runner self-tests, context-difference/duplicate/inconsistency contracts, historical Action 17c-c-a hash preservation, static no-peer/no-rsync/no-write/no-service/no-network-mutation regression, complete host suite, Debian 12 Podman integration, focused pre-commit, full pre-commit, and diff checks passed | Collector `908eecb0...7a8d`; runner `d0fa596f...b4da`; regression `e14dd1ed...6a97`; historical Action 17c-c-a runner remains `f460262c...01d2` | Action 17c-c-b is defined but not executed; Node A was not contacted, no DNS query was issued by this action, and the context-specific resolution cause remains unobserved | Stop; require separate authorization for exact read-only runner SHA-256 `d0fa596f3912288b24645fa6fa9bbbfe15fa0fffd38d7d6308f11041a7bdb4da` |
+| 2026-07-29T20:36:49Z | Node A (`j1-svpihole0`) and workstation | Execute exact narrow read-only peer-name resolution context diagnostic Action 17c-c-b | User explicitly authorized exact runner SHA-256 `d0fa596f...b4da`; no retry, resolver change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner file/type/owner/mode/hash, collector provenance, Bash syntax, self-test, transcript contract, historical hash preservation, and no-peer/no-rsync regression passed immediately before execution | Executed the exact runner once; Node A collected resolver provenance and identical IPv4/IPv6 peer-FQDN lookups as `pi`, root, and `caddy-sync`, then stopped before its post-state snapshot | No persistent rollback applies because the action contains no persistent mutation; the workstation stage was independently absent, but Node A's remote cleanup and post-state equivalence are unproven because their markers were not reached | `/etc/resolv.conf` is a regular file using nameservers `10.1.0.1` and `fd36:5aa8:6971:1::55`; NSS `hosts:` uses `files mdns4_minimal [NOTFOUND=return] dns`; the peer is absent from `/etc/hosts`; all six lookups returned status/class `2`/`not_found` with empty stdout/stderr; Node A administrative SSH status `1`; runner `97`; no post-state, no-mutation, remote-cleanup, conclusion, or acceptance markers | Runner `d0fa596f...b4da`; resolver pre-state `cb54c0a0...7d9d`; resolver config `ac32437b...3306`; NSS config `48b3c7f7...098c`; hosts file `06a97a2f...535c`; local stage absent; static readonly-shadow reproduction status `1`, output hash `7b62f8e7...fb770` | Action 17c-c-b is not accepted; the collected lookup evidence shows the failure is not unique to `caddy-sync`, while post-state and cleanup remain unvalidated due a collector defect | Stop; do not rerun unchanged; separately define a one-variable corrected retry with a second-snapshot production-boundary regression |
+| 2026-07-29T20:50:21Z | Local workstation | Define one-variable corrected read-only Action 17c-c-b retry | User authorized definition only and explicitly prohibited execution; no node contact, retry, resolver change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Historical collector `908eecb0...7a8d` and runner `d0fa596f...b4da` remain byte-identical; the failed evidence and exact lookup/provenance scope are preserved | Added an append-only fail-closed transformer, second-snapshot regression, and outer hash-pinned runner; rendered collector renames only the main-body global provenance variable and rendered runner changes only its collector path/hash | Definition is workstation-only; no persistent rollback applies and no node was contacted; all protected local test stages were removed | Exact diff contains five removed and five added lines; the function-local `resolv_target` remains; historical reproduction exits `1` at the second snapshot with a readonly-variable error; corrected control completes both snapshots with status `0` and empty stderr; focused checks and the complete host plus Debian 12 Podman suite passed | Transformer `f9e998a5...55d8`; rendered collector `c99a7be1...4efd`; rendered inner runner `5bf1e9a9...8263`; regression `2a3c6546...0773`; outer runner `de212a42...eac8` | Corrected retry is defined but not executed; the root cause of the uniformly unresolved peer FQDN remains diagnostic evidence, not authorization for a resolver change | Stop; require separate authorization for exact read-only runner SHA-256 `de212a42507aa9d3a1afc0acc7650200b617f0fedd1b4d6c63e7e3a2c02ceac8` |
+| 2026-07-29T20:53:51Z | Node A (`j1-svpihole0`) and workstation | Execute exact corrected read-only Action 17c-c-b retry | User explicitly authorized exact outer runner SHA-256 `de212a42...eac8`; no resolver change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner hash/owner/mode, Bash syntax, ShellCheck, correction/runner self-tests, transcript contract, duplicate/secret rejection, and second-snapshot production regression passed before node contact | Executed the exact outer runner once; it rendered the corrected collector and inner runner, opened one strict administrative SSH session to Node A, completed both resolver snapshots and the original six bounded peer-FQDN lookups, and removed protected temporary stages | No persistent rollback applies because the action is read-only; Node A and workstation cleanup markers passed, the independently checked workstation stage patterns are absent, and resolver pre/post hashes are identical | Administrative SSH `0`; inner `0`; outer `0`; all six lookups status/class `2`/`not_found`; before/after state `cb54c0a0...7d9d`; resolver/NSS/hosts provenance unchanged; conclusion `all_contexts_match_non_success`; all no-peer/no-rsync/no-transfer/no-service/no-persistent-mutation and cleanup markers passed | Outer runner `de212a42...eac8`; `/etc/resolv.conf` `ac32437b...3306`; `/etc/nsswitch.conf` `48b3c7f7...098c`; `/etc/hosts` `06a97a2f...535c`; empty-output hash `e3b0c442...b855`; nameservers `10.1.0.1` and `fd36:5aa8:6971:1::55` | Corrected Action 17c-c-b retry is accepted as complete read-only diagnostic evidence; peer-name resolution failure is uniform across identities and is not a `caddy-sync`-specific context failure | Stop; separately define a narrow read-only DNS path/authority diagnostic before any resolver correction or synchronization retry |
+| 2026-07-29T21:10:37Z | Local workstation | Add two-file Unbound prerequisite and define narrow read-only DNS path/authority Action 17c-c-c | User explicitly requested the two-file prerequisite and diagnostic definition; no live diagnostic, Unbound deployment, resolver or record change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Accepted Action 17c-c-b retry proves uniform lookup non-success; the user confirms both live nodes currently use single-file Unbound configurations; operator primary and local-zone files exist with hashes `cef03495...d2e8` and `8a7d1c6d...56d1`; current local-zone source contains `pihole00` A/PTR but no peer AAAA or Caddy `.56/::56` records | Added a two-node read-only collector, hash-pinned workstation runner, static/contract regression, test-suite integration, and plan prerequisite; future execution fingerprints the live primary and proposed local-zone paths, recognizes the confirmed legacy single-file layout through content/path evidence, and runs bounded `dig` probes through local Unbound, local Pi-hole, DNS VIP, and Node A's configured IPv4 resolver | Definition is workstation-only; no live rollback applies and neither node was contacted; future action creates only protected `/run` and `/tmp` state removed by traps and performs DNS queries only | Bash syntax, ShellCheck, shfmt, source/hash assertions, legacy-single-file and desired-two-file fixtures, positive/expected-absence fixtures, path/synchronization/Caddy-state conclusion contracts, duplicate rejection, static no-transfer/no-DNS-or-service/no-network-mutation regression, complete host suite, Debian 12 Podman integration, full pre-commit, Markdown lint, and diff checks passed; the initial sandboxed Podman attempt failed only because its runtime directory was read-only, and the permitted identical retry passed | Collector `5ef814b8...c364`; regression `f5ef1077...d825`; runner `db6c2737...f1a6`; operator sources are ignored by `homelab-dns/.gitignore` policy rather than tracked | Action 17c-c-c and the two-file migration prerequisite are defined but not executed; exact live file content and DNS path/authority behavior remain unobserved | Stop; require separate authorization for exact read-only runner SHA-256 `db6c273734ed52b43268af6823feeec08ca1aa191d89b970d641fe53453bf1a6` |
+| 2026-07-29T21:30:14Z | Nodes A and B and workstation | Execute exact read-only DNS path/authority Action 17c-c-c | User explicitly authorized runner SHA-256 `db6c2737...f1a6`; no retry, correction, Unbound deployment, resolver/record/service change, synchronization, VRRP, or later action authorized | Exact runner provenance and local gates were accepted; both nodes were user-confirmed as single-file Unbound systems; no live DNS path evidence had yet been collected | Executed the exact runner once; each administrative SSH session completed source inspection, then stopped before its first `dig` when `run_query` attempted `local work_dir=$7` while global `work_dir` was readonly | No live configuration rollback applies because the action was read-only; the workstation `/tmp` stage is independently absent, but remote cleanup markers are missing and remote `/run` stage absence must not be inferred | Runner returned `97`; Node A and B SSH statuses `1`; both primary files are regular `root:root:0644`, contain the expected server/listener/port and local-zone directives, and have different live hashes; both proposed local-zone fragment paths are absent; both resolver-address presence checks are true; no query-completion, post-state, no-mutation, remote-cleanup, conclusion, or acceptance markers exist | Node A primary `dd5af7cc...d3ae`, pre-state `0c6c2c57...e102`; Node B primary `017aa255...fac7`, pre-state `af5b993a...5744`; runner `db6c2737...f1a6`; error on both nodes: `main: line 221: local: work_dir: readonly variable` | Action 17c-c-c is not accepted; the current single-file layout is evidenced, but no DNS response or final state equivalence is proven and unchanged retry is prohibited | Stop; first define and separately authorize a fail-closed read-only Action 17c-c-c-a continuity diagnostic for remote stage absence and relevant state integrity, then separately define any corrected retry |
+| 2026-07-29T21:37:32Z | Local workstation | Define fail-closed read-only DNS continuity Action 17c-c-c-a | User explicitly requested definition only; no diagnostic execution, retry, correction, Unbound deployment, resolver/record/service change, synchronization, VRRP, or later action authorized | Failed Action 17c-c-c preserved exact role-specific primary hashes and complete pre-state digests but emitted no remote cleanup or post-state markers; workstation stage absence was independently confirmed | Added a two-role no-write inspector, hash-pinned runner, semantic-mismatch/malformed-evidence contract, static regression, host/container test integration, exact command, validation, rollback boundary, and resume gate | Definition is workstation-only; no live rollback applies and neither node was contacted; future inspectors create no remote path, and the runner's protected workstation `/tmp` stage is trap-cleaned | Bash syntax, ShellCheck, shfmt, inspector/runner self-tests, success/mismatch/duplicate transcript contracts, historical-hash pins, static no-DNS-query/no-write/no-service/no-network-mutation regression, complete host suite, Debian 12 Podman integration, full pre-commit, Markdown lint, and diff checks passed; initial container validation exposed only a bind-mount ownership false negative, so portable content validation was separated from the unchanged live `aaron:aaron:0755` gate and the identical full suite then passed | Inspector `6a7e2582...3a81`; regression `31ead9ab...1daf`; runner `d5c57b48...437e`; failed runner `db6c2737...f1a6`; failed collector `5ef814b8...c364` | Action 17c-c-c-a is defined but not executed; remote stage absence and post-failure continuity remain unobserved | Stop; require separate authorization for exact read-only runner SHA-256 `d5c57b48bf801d36967d12a3c40a38d7c452040af3c62dc5466fdc30307d437e` |
+| 2026-07-29T21:47:33Z | Nodes A and B and workstation | Execute exact read-only DNS continuity Action 17c-c-c-a | User explicitly authorized runner SHA-256 `d5c57b48...437e`; no cleanup, correction, retry, Unbound deployment, resolver/record/service change, synchronization, VRRP, or later action authorized | Exact runner hash/ownership/mode, embedded historical pins, self-test, and transcript contract passed; failed Action 17c-c-c lacked remote cleanup and post-state evidence | Executed the exact runner once; it opened one strict host-verified administrative SSH session per node and streamed only the no-write inspector | No remote rollback applied because the inspector created no remote path; the runner removed its protected workstation `/tmp` stage, independently confirmed absent after exit | Runner and both SSH statuses `0`; each node reported zero failed stages, zero mismatches, exact primary hash/metadata, absent local-zone fragment, all embedded directives, active Unbound/Pi-hole FTL, exact pre-failure digest, no query, no DNS/service/persistent mutation, no remote write, complete inspection; conclusion `continuity_verified`, accepted true, local cleanup complete | Runner `d5c57b48...437e`; Node A primary `dd5af7cc...d3ae`, continuity `0c6c2c57...e102`; Node B primary `017aa255...fac7`, continuity `af5b993a...5744` | Action 17c-c-c-a is accepted; failed Action 17c-c-c left no remote stage and both nodes exactly match their captured pre-failure relevant state | Stop; define but do not execute an append-only corrected Action 17c-c-c retry with the executed artifacts preserved and production-main-path regression coverage |
+| 2026-07-29T21:56:24Z | Local workstation | Define append-only corrected read-only Action 17c-c-c retry | User explicitly authorized definition only; no retry execution, Unbound deployment, resolver/record/service change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Accepted continuity Action 17c-c-c-a proves zero residual remote stages and exact relevant pre-failure state; failed collector `5ef814b8...c364` and runner `db6c2737...f1a6` remain immutable | Added a hash-pinned transformer, deterministic first-query production-boundary regression, corrected outer runner, test-suite integration, exact execution command, validation contract, and rollback boundary; transformer renames only the colliding `run_query` parameter and its three path references; protected staging preserves the historical runner's repository-relative source paths | Definition is workstation-only; neither node was contacted and no DNS query was issued; future execution remains read-only with protected remote `/run` and local `/tmp` trap cleanup | Focused self/contract/source/production tests, Bash syntax, ShellCheck, shfmt, complete host suite, and Debian 12 Podman integration passed; the first sandboxed full-suite attempt reached the new tests successfully and then failed only on Podman's read-only runtime directory, while the permitted identical retry passed | Transformer `214efa54...e48`; regression `baa55af3...035`; rendered collector `1a96099b...624`; rendered inner runner `e1921118...1b3`; outer runner `14880392...4d6` | Corrected retry is defined and locally accepted only; historical artifacts are preserved and live DNS behavior remains unobserved beyond the failed action's source evidence | Stop; require separate authorization for exact read-only outer runner SHA-256 `148803926e39164b76f35e637fea200cb6c55a6f9acf18fe740f2d6871cb64d6` |
+| 2026-07-29T22:14:48Z | Nodes A and B and workstation | Execute exact corrected read-only DNS path/authority Action 17c-c-c retry | User explicitly authorized runner SHA-256 `14880392...4d6`; no Unbound deployment, resolver/record/service change, persistent correction, release transfer, synchronization, lsyncd installation/service change, VRRP, repair, reload/restart, or later action authorized | Exact runner hash/ownership/mode, immutable failed-artifact hashes, self-test, source test, and transcript contract passed; accepted continuity Action 17c-c-c-a proved no failed-action residue or relevant state drift | Executed the exact runner once; it rendered the four-line collector correction in protected workstation temporary state and opened one strict host-verified administrative SSH session to each node for the bounded source inspection and DNS query matrix | No configuration rollback applied because the action was read-only; both remote stages and the workstation stage reported cleanup, and an independent workstation search found no matching remaining stage | Both administrative SSH statuses and inner/outer runner statuses `0`; both query collections complete; both node pre/post state hashes equal; all no-mutation and cleanup markers true; local Unbound/Pi-hole and dual-stack DNS VIP positive/absence controls passed; configured resolver `10.1.0.1` returned `NXDOMAIN` for `pihole00` | Runner `14880392...4d6`; Node A primary `dd5af7cc...d3ae`, state `0c6c2c57...e102`; Node B primary `017aa255...fac7`, state `af5b993a...5744`; conclusions: legacy single-file prerequisite/path, peer AAAA inconsistent, Caddy records inconsistent | Action 17c-c-c retry is accepted diagnostic evidence; both nodes remain on their legacy single-file Unbound configurations, synchronization DNS readiness is not established, and no deployment state changed | Stop; analyze the accepted evidence and define—but do not execute—the first read-only Node B preflight for separately gated two-file Unbound adoption |
+| 2026-07-29T22:28:10Z | Local workstation | Define read-only Node B two-file Unbound preflight Action 17d | User explicitly requested definition only; no preflight execution, Unbound adoption, resolver/record/service change, persistent correction, synchronization, VRRP, or later action authorized | Accepted Action 17c-c-c retry proves Node B live primary `017aa255...fac7`, separate local-zone absence, unchanged state, working local records, and legacy single-file/inconsistent synchronization-DNS conclusions; both private candidate sources remain ignored/untracked at their accepted hashes | Added a Node B inspector, hash-pinned workstation runner, static/contract regression, host/container suite integration, exact command, six-outcome diagnostic contract, and plan gate; future execution streams only the two candidates plus inspector into protected `/run`, validates live and shadow configurations, compares normalized directive multisets without raw values, and removes staging | Definition is workstation-only; neither node was contacted; no DNS query or live write occurred; future rollback is trap cleanup of workstation `/tmp` and Node B `/run` only | Focused syntax, ShellCheck, shfmt, inspector normalization/conclusion self-test, source/hash/ignore-policy test, runner ready/drift/duplicate/secret contracts, static no-mutation regression, complete host suite, and Debian 12 Podman integration passed | Inspector `0a9be5bf...0d3f`; regression `7ad95727...287e`; runner `6e63289a...e59d`; candidates `cef03495...d2e8` and `8a7d1c6d...56d1` | Action 17d is defined but not executed; Node B include topology, package/parser provenance, normalized candidate equivalence, and shadow parser result remain unobserved | Stop; require separate authorization for exact read-only runner SHA-256 `6e63289a54018514930ae883bb741b6993a9148c77c027b7b16c75cb875ae59d` |
+| 2026-07-29T22:35:37Z | Node B and workstation | Execute exact read-only Node B two-file Unbound preflight Action 17d | User explicitly authorized runner SHA-256 `6e63289a...e59d`; no Unbound installation/adoption, resolver or record change, persistent correction, service mutation, synchronization, VRRP, retry, or later action authorized | Exact runner, inspector, regression, and both private candidate hashes matched; runner self/source/contract tests passed; accepted live baseline was primary `017aa255...fac7`, metadata `root:root:0644:34342`, and absent separate local-zone fragment | Executed the exact runner once; it streamed the protected inspector and candidates through one strict administrative SSH session, inspected live state, compared normalized directives, validated a protected shadow configuration with Node B's installed parser, rechecked state, and removed staging | No persistent rollback applied because the action was read-only; remote `/run` and workstation `/tmp` trap cleanup completed, and an independent workstation search found no matching stage | Runner and SSH status `0`; identity matched; live baseline matched; include topology supported; Unbound `1.17.1-2+deb12u4`, binary `1.17.1`; Unbound and Pi-hole FTL active; live and candidate parser statuses `0`; both normalized counts `128`, hashes equal, zero one-sided directives; before/after state `31862f7b...992c`; all no-query/no-mutation and cleanup markers true | Runner `6e63289a...e59d`; inspector `0a9be5bf...0d3f`; candidates `cef03495...d2e8` and `8a7d1c6d...56d1`; normalized `3a130bd4...6dd`; state `31862f7b...992c` | Conclusion `ready_for_staged_adoption_design`; Action 17d is accepted evidence and Node B remains unchanged on its legacy single-file configuration | Stop; require separate authorization to define—but not execute—the first bounded Node B staged-adoption action with independent per-file gates |
+| 2026-07-29T22:46:21Z | Local workstation | Define bounded Node B primary-fragment staging Action 17e | User explicitly requested definition of the first staged-adoption action; no execution, local-zone staging, composite validation, live Unbound installation, resolver/record/service change, synchronization, VRRP, or later action authorized | Accepted Action 17d proves the exact live root/primary baseline, separate local-zone absence, supported include topology, parser/service readiness, semantic equivalence of the complete pair, and unchanged state; private primary candidate remains ignored/untracked at `cef03495...d2e8` | Added a transactional Node B driver, hash-pinned workstation runner, regression coverage, test-suite integration, exact command, transcript contract, and rollback boundary; future execution transfers only `pihole.conf` and retains it at `/var/tmp/caddy-unbound-node-b-action17e-primary`, outside `/etc/unbound` and the active include topology; final fail-closed review added an exact Action 17d configuration-tree/service snapshot pin before writing | Definition is workstation-only; Node B was not contacted; future automatic rollback removes both the transaction path and retained primary stage, revalidates the accepted live baseline, and returns `125` with manual-intervention evidence if rollback cannot be proved | Bash syntax, ShellCheck, shfmt, driver self-test, runner self/source/contract tests, regression, source hash/ignore policy, secret-output rejection, duplicate-marker rejection, rollback evidence contract, static no-live-DNS/service mutation checks, complete host suite, and Debian 12 Podman integration passed; the first full-suite attempt reached all new tests and failed only on the sandbox's read-only Podman runtime directory, while the permitted identical retry passed | Driver `b67d9fe1...121b`; regression `95cb23d0...75cb`; runner `d38a9639...e5e5`; candidate `cef03495...d2e8`; accepted Action 17d runner `6e63289a...e59d`; accepted Action 17d state `31862f7b...992c` | Action 17e is defined but not executed; neither Unbound candidate is staged and Node B remains unchanged | Stop; require separate authorization for exact runner SHA-256 `d38a963934d3e063481e8f81a189fe432cd7002683ae6349d341cbde27c0e5e5` |
+| 2026-07-29T22:57:59Z | Node B and workstation | Execute exact bounded Node B primary-fragment staging Action 17e | User explicitly authorized runner SHA-256 `d38a9639...e5e5`; no local-zone staging, composite validation, live Unbound installation, DNS query/change, service action, retry, correction, cleanup, synchronization, VRRP, or later action authorized | Exact runner, driver, regression, accepted Action 17d runner, and private primary hashes matched; runner self/source/contract tests passed | Executed the exact runner once through one strict host-verified administrative SSH session; the remote driver exited before emitting preflight-complete or mutation-started evidence, emitted rollback-started and rollback-complete on stderr, and the outer runner rejected the incomplete semantic transcript | Remote `action_17e_rollback_complete=true` requires removal/absence of Action 17e transaction and retained stages, future Action 17f stage absence, accepted live-baseline validation, and no live-state difference when a before-state was available; workstation `/tmp` cleanup completed and an independent search found no matching local stage | Tar `0`; SSH and pipeline `1`; outer runner `97`; no preflight, before-state, mutation-started, retained-stage, parser, live-state, or acceptance markers; rollback started/complete true; local cleanup true | Runner `d38a9639...e5e5`; driver `b67d9fe1...121b`; regression `95cb23d0...75cb`; candidate `cef03495...d2e8`; accepted state pin `31862f7b...992c` | Action 17e is not accepted and no retained primary stage is accepted; rollback evidence indicates the exact baseline and stage absence were revalidated, but the unlabeled pre-write failure boundary is unknown | Stop; require separate authorization to define—but not execute—a fail-closed read-only Action 17e-a diagnostic; do not retry Action 17e |
+| 2026-07-29T23:05:11Z | Local workstation | Define fail-closed read-only Node B pre-write diagnostic Action 17e-a | User explicitly authorized definition only; no diagnostic execution, correction, cleanup, Action 17e retry, staging, local-zone action, live Unbound/service change, synchronization, VRRP, or later action authorized | Failed Action 17e emitted rollback-complete but no labeled preflight or mutation boundary; completed rollback indicates accepted baseline and stage absence, while the exact pre-write failure remains unknown | Added a no-write Node B inspector, hash-pinned workstation runner, regression coverage, test-suite integration, exact command, 23-assertion transcript contract, five bounded conclusions, and plan gate; the inspector repeats both Action 17d snapshot and Action 17e live-state collection and continues after semantic mismatches | Definition is workstation-only; Node B was not contacted; future execution streams the inspector directly through SSH, creates no remote path, and trap-cleans only its workstation `/tmp` transcript directory | Bash syntax, ShellCheck, shfmt, inspector self-test, runner self/source/contract tests, all-pass and mismatch fixtures, duplicate/private-output rejection, static no-filesystem/DNS/service mutation checks, focused regression, complete host suite, and Debian 12 Podman integration passed | Inspector `4d614183...dd29e`; regression `a18751cd...8aaf`; runner `96232547...4c98`; failed runner `d38a9639...e5e5`; failed driver `b67d9fe1...121b`; accepted state `31862f7b...992c` | Action 17e-a is defined but not executed; no new Node B state is observed and no deployment state changed | Stop; require separate authorization for exact read-only runner SHA-256 `962325472c6343db634e5f39eec27e16ec5121b29ba58237d60f1fa5a6564c98` |
+| 2026-07-29T23:13:32Z | Node B (`j1-svpihole00`) and workstation | Execute exact read-only Node B pre-write diagnostic Action 17e-a | User explicitly authorized runner SHA-256 `962325472c6343db634e5f39eec27e16ec5121b29ba58237d60f1fa5a6564c98`; no correction, retry, staging, local-zone action, live Unbound/service change, synchronization, VRRP, or later action authorized | Exact runner hash matched immediately before execution; failed Action 17e had rollback-complete evidence but no labeled pre-write failure | Executed the exact runner once through one strict host-verified administrative SSH session; the directly streamed inspector evaluated all 23 pre-write assertions without creating a remote path | No remote rollback applied because the action was read-only; remote-path-created, DNS-query, DNS-configuration-mutation, service-mutation, and persistent-mutation markers were all false; workstation cleanup completed | SSH and runner `0`; effective UID `0`; hostname matched; working-directory command succeeded but inherited directory was not `/`; exactly one of 23 assertions failed; live root/primary hashes and metadata matched; separate local-zone and both stages were absent; transaction count zero; Action 17d snapshots both `31862f7b...992c`; Action 17e live-state snapshots both `3a05c048...b824`; Unbound and Pi-hole FTL active; live parser `0`; conclusion `prewrite_assertion_mismatch`; diagnostic accepted | Runner `96232547...4c98`; inspector `4d614183...dd29e`; live root `8808b474...78f8`; live primary `017aa255...fac7`; parser-output `5b84feae...11f`; Action 17d state `31862f7b...992c`; Action 17e live state `3a05c048...b824` | Action 17e-a is accepted diagnostic evidence and proves the failed Action 17e boundary was solely its `PWD == /` assertion; Node B remains at the accepted baseline with no retained stage | Stop; require separate authorization to define—but not execute—a bounded Action 17e working-directory correction with production-path regression coverage |
+| 2026-07-29T23:20:19Z | Local workstation | Define corrected bounded Node B primary-fragment staging Action 17e retry | User explicitly authorized definition only; no Node B contact, retry execution, staging, local-zone action, live Unbound/service change, synchronization, VRRP, or later action authorized | Accepted Action 17e-a isolated the historical failure to `PWD != /`; all other 22 pre-write assertions passed and Node B remained at accepted state `31862f7b...992c` with no retained stage | Added an append-only hash-pinned correction renderer, production encoded-command/tar-continuity regression, outer protected-stage runner, test-suite integration, exact execution command, validation contract, and rollback boundary; the rendered inner runner changes exactly one source line and invokes the unchanged pinned driver after `cd /` | Definition is workstation-only and Node B was not contacted; local tests use trap-cleaned `/tmp`; future execution retains the historical driver's bounded rollback and removes the outer workstation stage while preserving the inner exit status | Correction self-test, exact one-line diff, historical non-root negative control, corrected `/` positive control, tar payload continuity, no-network marker, rendered inner self/contract checks, outer self/source/contract checks, complete host suite, and Debian 12 Podman integration passed | Correction `f0f1ff94...3e0d`; regression `ab458946...3c0`; rendered inner runner `918efb19...73e0`; exact outer runner `5354fcd0...be92`; historical runner `d38a9639...e5e5`; unchanged driver `b67d9fe1...121b` | Corrected Action 17e retry is defined but not executed; neither Unbound candidate is staged and no deployment state changed | Stop; require separate authorization for exact outer runner SHA-256 `5354fcd0fa5710ebef77f6751e4094903685d17056891760229c84b08868be92` |
+| 2026-07-29T23:26:14Z | Node B (`j1-svpihole00`) and workstation | Execute exact corrected bounded Node B primary-fragment staging Action 17e retry | User explicitly authorized outer runner SHA-256 `5354fcd0fa5710ebef77f6751e4094903685d17056891760229c84b08868be92`; no local-zone staging, composite installation, live Unbound change, DNS query, service action, synchronization, VRRP, or later action authorized | Exact outer runner hash matched immediately before execution; accepted Action 17e-a proved all pre-write state except inherited working directory; corrected local production regression and fail-closed contracts had passed | Executed the exact outer runner once; it rendered the one-line-corrected inner runner, completed local gates, streamed only `pihole.conf` through one strict host-verified administrative SSH session, and ran the unchanged transactional driver from `/` | On success, no remote rollback was required; the retained primary stage is the intended bounded persistent mutation; both inner and outer workstation stages reported cleanup complete; unchanged driver rollback remains available for any failed transaction | Outer, inner, pipeline, tar, and SSH statuses `0`; preflight complete; primary and local-zone stages previously absent; candidate hash matched; retained directory `root:root:0700`; file `root:root:0600`; isolated parser and ownership boundary valid; local-zone staged false; live configuration mutated false; DNS queries and service mutations false; before/after live state both `3a05c048...b824`; persistent scope `primary_stage_only`; inner acceptance and both cleanup markers true | Outer runner `5354fcd0...be92`; rendered inner `918efb19...73e0`; unchanged driver `b67d9fe1...121b`; candidate `cef03495...d2e8`; live state `3a05c048...b824`; retained stage `/var/tmp/caddy-unbound-node-b-action17e-primary` | Corrected Action 17e retry is accepted; Node B remains on its live legacy single-file configuration and now has exactly the completed protected primary candidate stage; no local-zone candidate is staged | Stop; require separate authorization to define—but not execute—independently gated Node B local-zone-fragment staging Action 17f |
+| 2026-07-29T23:43:27Z | Local workstation | Define bounded Node B local-zone-fragment staging Action 17f | User explicitly authorized definition only; no Node B contact, Action 17f execution, local-zone staging, composite installation, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Accepted Action 17e retry retained the exact protected primary candidate and proved live state `3a05c048...b824`; local-zone stage remained absent | Added an independent transactional driver, hash-pinned runner, static and Debian 12 combined-pair parser regression, test-suite integration, exact command, transcript contract, protected metadata/completion contract, and rollback boundary; future transfer contains only `pihole0-local-zone.conf` | Definition is workstation-only; Node B was not contacted; future rollback removes only Action 17f transaction/local-zone stages, preserves and revalidates the accepted Action 17e primary stage, and proves live state unchanged; incomplete rollback returns `125` with manual-intervention evidence | Driver/runner syntax, ShellCheck, shfmt, driver self-test, source and ignored/untracked-source validation, directive ownership/counts, no-live-path/no-query/no-service checks, success/duplicate/private/pre-write/rollback/incomplete-rollback transcript fixtures, complete host suite, exact combined-pair parser validation under Debian Unbound `1.17.1`, and full Podman integration passed | Driver `916f8b8a...e631`; regression `4849d405...ac60`; runner `700097f3...7c33`; primary `cef03495...d2e8`; local-zone `8a7d1c6d...56d1`; accepted live state `3a05c048...b824`; validation Containerfile `e51a550f...122a` | Action 17f is defined but not executed; Node B still has only the accepted primary stage and its local-zone candidate remains unstaged | Stop; require separate authorization for exact runner SHA-256 `700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33` |
+| 2026-07-29T23:48:43Z | Node B (`j1-svpihole00`) and workstation | Execute exact bounded Node B local-zone-fragment staging Action 17f | User explicitly authorized runner SHA-256 `700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33`; no retry, diagnostic, cleanup, composite installation, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact runner hash matched immediately before execution; local self/source/contract gates and Debian combined-pair parser validation had passed; accepted historical state included the Action 17e retained primary stage and live state `3a05c048...b824` | Executed the exact runner once through one strict host-verified administrative SSH session; the remote driver stopped inside aggregate pre-write validation before creating a transaction path or emitting preflight-complete | No rollback applied because no transaction path or mutation began; the distinct pre-write marker proves the driver exited before its first remote write; workstation `/tmp` cleanup completed | Tar `0`; SSH and pipeline `1`; runner semantic result `1`; `action_17f_prewrite_failure_before_mutation=true`; no preflight-complete, mutation-started, retained-stage, parser, live-state, or acceptance markers; `action_17f_node_b_unbound_local_zone_stage_accepted=false`; local cleanup true | Runner `700097f3...7c33`; driver `916f8b8a...e631`; regression `4849d405...ac60`; local-zone candidate `8a7d1c6d...56d1`; accepted primary candidate pin `cef03495...d2e8`; accepted live-state pin `3a05c048...b824` | Action 17f is not accepted; the action itself created no Node B path and made no mutation, but the aggregate pre-write failure does not identify whether a retained-stage, live-state, parser, service, identity, or stage-absence prerequisite mismatched | Stop; do not retry unchanged; require separate authorization to define—but not execute—a fail-closed read-only Action 17f-a diagnostic |
+| 2026-07-29T23:59:20Z | Local workstation | Define fail-closed read-only Node B pre-write diagnostic Action 17f-a | User explicitly authorized definition only and required verified `cd /` execution; no Node B contact, diagnostic execution, Action 17f retry, cleanup, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Failed Action 17f proved pre-write failure before mutation but did not label the mismatched prerequisite; its immutable runner already encoded `cd /` | Added a no-write inspector, hash-pinned runner, production-path regression, test-suite integration, exact command, 55-assertion transcript contract, repeated accepted-state collection, and plan gate; the diagnostic command explicitly runs `sudo ... 'cd / && exec /bin/bash -s --'` and asserts `PWD == /` | Definition is workstation-only; Node B was not contacted; no rollback applies; a future run creates no remote path and trap-cleans only its protected workstation transcript directory | Focused Bash syntax, ShellCheck, shfmt, inspector self-test, runner self/source/contract tests, all-pass/mismatch fixtures, duplicate/private-output rejection, exact Action 17f production-command regression, complete host suite, Debian 12 Podman integration, full pre-commit suite, and `git diff --check` passed; the regression began outside `/` and proved `observed_pwd=/`, tar-payload continuity, and no network contact | Inspector `f380b441...3081`; regression `0a327ca9...2f3a`; runner `4d995823...e2ee`; failed runner `700097f3...7c33`; failed driver `916f8b8a...e631`; accepted live state `3a05c048...b824` | Action 17f-a is defined but not executed; the prior failure is not attributed to the working directory because the exact Action 17f command's root-directory behavior is now reproduced and proven locally | Stop; require separate authorization for exact read-only runner SHA-256 `4d995823a4b988081bc4ce242e9699ad1e3f5564bafcfb5781e54f2b4d8fe2ee` |
+| 2026-07-30T00:10:37Z | Node B (`j1-svpihole00`) and workstation | Execute exact fail-closed read-only pre-write diagnostic Action 17f-a | User explicitly authorized runner SHA-256 `4d995823a4b988081bc4ce242e9699ad1e3f5564bafcfb5781e54f2b4d8fe2ee`; no Action 17f retry, cleanup, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact runner hash matched immediately before execution; local validation and `cd /` production regression had passed; failed Action 17f had created no transaction path or mutation | The first identical local invocation was blocked before Node B by the restricted sandbox's socket policy and cleaned up; the unchanged authorized runner was then executed once with permitted network access through one strict host-verified SSH session and streamed the inspector directly under `sudo ... 'cd / && exec /bin/bash -s --'` | No remote rollback applied because the action was read-only and created no remote path; workstation transcript cleanup completed after both the blocked local attempt and the one remote execution | SSH and runner `0`; all 55 assertions passed; required commands `23`, missing `0`; UID `0`, PWD `/`, hostname matched; live root/primary hashes and metadata matched; separate live local-zone and Action 17f stage absent; transaction count zero; retained Action 17e stage exact and complete; Unbound and Pi-hole FTL active; parser `0`; repeated live-state hashes both `3a05c048...b824`; conclusion `all_prewrite_prerequisites_pass`; all no-query/no-mutation markers true; diagnostic accepted and cleanup complete | Runner `4d995823...e2ee`; inspector `f380b441...3081`; live root `8808b474...78f8`; live primary `017aa255...fac7`; retained primary candidate `cef03495...d2e8`; live state `3a05c048...b824` | Action 17f-a is accepted read-only evidence; Node B remains unchanged with only the accepted Action 17e primary stage; all currently observed equivalents of Action 17f's pre-write prerequisites pass, so the earlier failure is not reproduced and no cause is inferred | Stop; require separate authorization to define—but not execute—an append-only instrumented Action 17f retry with labeled transactional preflight evidence |
+| 2026-07-30T00:31:00Z | Local workstation | Define append-only instrumented bounded Action 17f retry and first-attempt LAN execution rule | User explicitly requested definition and asked how to avoid known local-network sandbox failures; no retry execution, Node B contact, cleanup, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Accepted Action 17f-a passed all 55 equivalent prerequisites but did not reproduce the historical driver failure; immutable failed Action 17f artifacts and accepted Action 17f-a evidence were available | Added a hash-pinned instrumentation renderer, production regression, protected outer runner, host/container integration, exact command, and plan rule; the rendered composite driver executes the exact Action 17f-a inspector from `/`, requires its zero-failure transcript, then execs the immutable Action 17f driver with the original tar stdin; rendered historical runner changes only driver/regression hashes and retains its exact `cd /` remote command | Definition is workstation-only; Node B was not contacted; historical driver/runner/regression remain unchanged; future historical rollback is unchanged; the outer runner removes only its workstation render stage and preserves the inner semantic result | Focused syntax, ShellCheck, shfmt, renderer self-test, exact embedded-payload hashes, two-line runner and one-line regression diffs, root-PWD/tar-continuity production path, mismatch-before-driver rejection, host suite, and Debian 12 Podman integration passed; a first container run exposed only a duplicate workstation-ownership test inside the container, which was removed while retaining the separate outer source gate, and the complete rerun passed | Instrumentation `63358403...934c`; regression `202a3d54...d004`; outer runner `6dae2d4b...c83b`; rendered driver `8d51f4f3...3ea1`; rendered regression `40e0c294...49e3`; rendered runner `b01aae1e...0107`; historical driver/runner unchanged at `916f8b8a...e631` and `700097f3...7c33` | Instrumented Action 17f retry is defined but not executed; no deployment state changed; authorized future LAN execution must request network permission before the first SSH attempt after local gates pass | Stop; require separate authorization for exact outer runner SHA-256 `6dae2d4b5da2da62e92dc2e42400445905ba0f59692a6024748971472707c83b` |
+| 2026-07-30T00:36:08Z | Node B (`j1-svpihole00`) and workstation | Execute exact instrumented bounded Action 17f retry | User explicitly authorized outer runner SHA-256 `6dae2d4b5da2da62e92dc2e42400445905ba0f59692a6024748971472707c83b`; no separate diagnostic, cleanup, repair, retry, staging beyond the transaction, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact outer-runner hash matched immediately before execution; the first-attempt LAN rule was honored; the accepted persistent baseline was the completed Action 17e primary stage with no Action 17f stage | Executed the exact runner once with workstation LAN permission on its first SSH attempt; its composite driver ran the accepted inspector from `/`, accepted all labeled evidence, and then invoked the immutable historical driver with unchanged tar stdin | The immutable driver stopped before its first mutation, so no remote rollback was needed; its pre-write failure marker establishes that no transaction path began; inner and outer workstation cleanup markers were true | Instrumented diagnostic: 55 assertions, zero failures, conclusion `all_prewrite_prerequisites_pass`, UID `0`, `PWD=/`, live and retained-stage pins matched, services active, parser valid, repeated state `3a05c048...b824`; transaction: tar `0`, SSH/pipeline `1`, pre-write-before-mutation true, acceptance false; no DNS/query/service/persistent mutation markers from the inspector; both cleanup layers true | Outer runner `6dae2d4b...c83b`; instrumentation `63358403...934c`; regression `202a3d54...d004`; immutable driver `916f8b8a...e631`; live root `8808b474...78f8`; live primary `017aa255...fac7`; retained primary `cef03495...d2e8`; repeated live state `3a05c048...b824` | Retry not accepted; the instrumented evidence narrows the repeatable failure to the immutable driver's internal pre-write implementation after all equivalent external prerequisites pass; Node B remains at the accepted Action 17e persistent state and local-zone staging is unaccepted | Stop; require separate authorization to define—but not execute—a narrow read-only internal pre-write-boundary diagnostic; do not retry Action 17f |
+| 2026-07-30T00:49:11Z | Local workstation | Define narrow read-only Action 17f-b transition diagnostic and prohibit unlabeled fail-closed boundaries | User explicitly directed implementation of the proposed narrow diagnostic and separately required that multiple fail-closed checks never again share unlabeled boundaries; no Node B contact, diagnostic execution, correction, retry, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Instrumented retry proved 55 external prerequisites pass immediately before the immutable driver exits somewhere between `validate_baseline` and its preflight marker; the exact statement remained unknown | Added an exact-function transition diagnostic, hash-pinned runner, production-function parity regression, individual status labels, exact `set -e` replay with failure-step/status evidence, no-write contracts, host/container integration, and locked rules for unique assertion labels and first-attempt Podman escalation | Definition is workstation-only; Node B was not contacted; no remote rollback applies; a future run stops before `mktemp` and trap-cleans only its workstation transcript directory | Bash syntax, ShellCheck, exact function parity, static no-mutation checks, diagnostic and runner tests, complete host suite, pre-commit, and full Debian 12 Podman integration passed; the first full Podman invocation was blocked before container execution by sandboxed `/run/user/1000/libpod`, while the unchanged first permitted rerun passed | Diagnostic `94a0c6d8...e9b3`; regression `3d04aacb...8aff`; runner `9abfa890...8e5d`; immutable driver `916f8b8a...e631`; accepted state pin `3a05c048...b824` | Action 17f-b is defined but not executed; no deployment state changed; future Action 17f correction and later live transactions must expose every fail-closed assertion with a unique label; future Podman work starts outside the filesystem sandbox | Stop; require separate authorization for exact read-only runner SHA-256 `9abfa890b93b5bb3e8ac3f509cf27b9c391c137a56180202f99c8c90c3c88e5d` |
+| 2026-07-30T01:02:14Z | Node B (`j1-svpihole00`) and workstation | Execute exact read-only Action 17f-b transition diagnostic | User explicitly authorized runner SHA-256 `9abfa890b93b5bb3e8ac3f509cf27b9c391c137a56180202f99c8c90c3c88e5d`; no correction, retry, staging, remote cleanup, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact runner, diagnostic, and regression hashes and source modes passed immediately before execution; first-attempt LAN permission was used; accepted persistent state remained Action 17e primary stage only | Streamed the exact read-only diagnostic under root from `/`; it ran the non-enforcing transition and exact `set -e` replay, then the workstation runner attempted transcript validation | No remote rollback applied because the diagnostic created no path or mutation; workstation cleanup completed; no separate cleanup was needed | Remote SSH `0`; `validate_baseline` status `1`; exact failure step `validate_baseline`, status `1`; live-state assignment, snapshot readonly, hash, and hash-readonly statuses all `0`; snapshot bytes `984`; snapshot hash `3a05c048...b824`; all no-path/no-query/no-configuration/no-service/no-persistent-mutation markers true; collector complete; workstation runner exited `1` at line 96 because `local transcript=$1` collided with its global readonly `transcript` | Runner `9abfa890...8e5d`; diagnostic `94a0c6d8...e9b3`; regression `3d04aacb...8aff`; accepted snapshot `3a05c048...b824` | Remote evidence is complete and narrows the driver failure into `validate_baseline`, but Action 17f-b is not accepted because its aggregate label violates the locked assertion-label rule and its workstation validator did not complete; Node B remains unchanged | Stop; require separate authorization to define—but not execute—a corrected read-only Action 17f-b retry with every baseline assertion labeled and the runner name collision removed |
+| 2026-07-30T01:16:30Z | Local workstation | Define corrected read-only Action 17f-b retry and durable readonly/local collision prevention | User authorized definition only; no Node B contact, execution, Action 17f correction or retry, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Executed Action 17f-b retained `validate_baseline` as an aggregate failing boundary and its workstation validator reproduced a Bash dynamic-scope collision between global readonly and function-local `transcript` | Added an append-only exact labeled baseline tracer, protected hash-pinned runner, production-boundary regression, and repository-wide static collision-policy checker; updated host and Podman suites plus workspace/plan rules; preserved all executed artifacts byte-for-byte | Workstation-only definition; no live rollback applies and no node was contacted; all temporary regression fixtures were removed | The tracer exposes 25 literal labels plus three indexed assertion families and records every pass/failure status; the runner uses disjoint `evidence_path`, `remote_inspector_evidence`, `remote_trace_evidence`, `contract_dir`, and `runner_work_dir` names; collision checker reports zero unapproved collisions; focused tests and complete host/Podman validation passed | Tracer `1513aa2a...de10`; regression `99e5b2be...f6b`; collision policy `78b46fcd...5cd8`; runner `5e1ee076...a815` | Corrected Action 17f-b retry is defined but not executed; Node B remains at the accepted Action 17e state; the durable policy rejects any new function-local/script-readonly name overlap regardless of declaration order | Stop; require separate authorization for exact read-only runner SHA-256 `5e1ee076526b3d6bc7622dffe23aa4516d4e3f9e14fd55a88ba6a27d5882a815` and use first-attempt LAN permission |
+| 2026-07-30T01:30:42Z | Node B (`j1-svpihole00`) and workstation | Execute exact corrected read-only Action 17f-b retry | User explicitly authorized runner SHA-256 `5e1ee076526b3d6bc7622dffe23aa4516d4e3f9e14fd55a88ba6a27d5882a815`; no retry, correction, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact runner hash, zero-unapproved-collision policy, self/source/contract gates, and first-attempt LAN permission passed immediately before execution; accepted persistent state remained Action 17e primary stage only | Ran the exact runner once; it performed the accepted 55-assertion inspector and then the labeled exact-baseline tracer through separate strict host-verified SSH sessions from `/` | No remote rollback applies because both collectors are read-only and create no remote path; the workstation transcript directory was removed by its trap | Inspector SSH `0`, all 55 assertions true, zero failures, repeated live-state hashes `3a05c048...b824`; tracer SSH `0`, all emitted assertions through `baseline_live_state_collection` true/status `0`, exact-baseline status `1`, no exact-baseline completion marker, no `false` failure label, both no-path/no-query/no-configuration/no-service/no-persistent-mutation marker sets true, runner exit `1`, local cleanup true | Runner `5e1ee076...a815`; tracer `1513aa2a...de10`; inspector `f380b441...3081`; accepted live-state pin `3a05c048...b824` | Action 17f-b retry is not accepted; local source inspection proves the tracer's final remaining assertion is `baseline_live_state_hash`, but the action did not emit its observed hash or required failure label because its ERR trap was not inherited into `validate_baseline_labeled`; Node B remains unchanged | Stop; do not rerun unchanged; separately authorize definition—but not execution—of a corrected read-only second retry with `errtrace`, observed-hash evidence, and a production-function failure regression |
+| 2026-07-30T02:02:15Z | Local workstation | Define corrected read-only Action 17f-b second retry | User authorized definition only; no Node B contact, execution, Action 17f correction or retry, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | The first retry passed through live-state collection but its final failure lacked a label/hash because ERR was not inherited; its fabricated transcript regression did not exercise the production function boundary | Added append-only second-retry tracer, real function-internal failure regression, protected hash-pinned runner, host/Podman integration, safe observed/expected hash validation, and immutable first-retry pinning; production validation calls capture status only after an unconditional wrapper invocation | Workstation-only definition; no live rollback applies and no node was contacted; regression and suite temporary state was removed | The initial real regression exposed that calling the wrapper in an `||` list suppresses `errexit` within called functions; both production and regression call sites were corrected to plain calls before status capture; actual function failure then emitted one exact label/status and no false success; zero unapproved readonly/local collisions, focused gates, complete host validation, and Debian 12 Podman integration passed | Tracer `96437ea4...c3b`; regression `7c9bef92...26ad`; runner `5c33177b...5456`; collision policy `78b46fcd...5cd8`; host suite `4c360ae8...a75a`; integration `5581286a...d940` | Corrected second retry is defined but not executed; Node B remains at the accepted Action 17e state; all executed artifacts remain byte-identical | Stop; require separate authorization for exact read-only runner SHA-256 `5c33177beb6809e46d3781bd5c43e3f10ddac095a585b688682ba473baf95456` and use first-attempt LAN permission |
+| 2026-07-30T02:19:32Z | Node B (`j1-svpihole00`) and workstation | Execute exact corrected read-only Action 17f-b second retry | User explicitly authorized runner SHA-256 `5c33177beb6809e46d3781bd5c43e3f10ddac095a585b688682ba473baf95456`; no retry, correction, staging, live Unbound/service change, DNS query, synchronization, VRRP, or later action authorized | Exact runner hash, immutable dependencies, collision policy, real function-failure regression, self/source/contract gates, and first-attempt LAN permission passed immediately before execution | Ran the exact runner once; its first strict SSH session collected the accepted 55-assertion baseline and its second strict SSH session ran the exact driver-style labeled tracer from `/` | No remote rollback applies because both collectors are read-only and create no remote path; workstation transcript cleanup completed | Inspector SSH `0`, 55 assertions true, zero failures, two normalized state hashes `3a05c048...b824`; tracer SSH `0`, every assertion through collection true, observed raw-pipeline hash `d6f8e13c...ffae`, expected `3a05c048...b824`, exactly one failure `baseline_live_state_hash=false`/status `1`, exact status `1`, no completion marker, all no-mutation markers true; runner `0`, diagnostic accepted true, cleanup true | Runner `5c33177b...5456`; tracer `96437ea4...c3b`; inspector `f380b441...3081`; normalized hash `3a05c048...b824`; raw-pipeline hash `d6f8e13c...ffae` | Action 17f-b second retry is accepted as complete diagnostic evidence; local source comparison proves the immutable Action 17f driver hashes direct pipeline output including its trailing newline, while the accepted inspector hashes command-substitution output after Bash removes trailing newlines; Node B remains unchanged | Stop; do not rerun; separately authorize definition—but not execution—of an append-only corrected bounded Action 17f retry with normalized hashing and a production-boundary regression |
+
+### Executed gate: read-only Action 17c-c-a
+
+Exact command executed once after hash-specific authorization:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-a-source-bound-transport-diagnostic-action17c-c-a.sh
+```
+
+Expected effect: three strict host-verified administrative SSH sessions occur
+in order—Node B pre-inspection, Node A diagnostic, and Node B post-inspection.
+Node A performs exactly one direct IPv6 SSH probe as `caddy-sync`, bound to
+`fd36:5aa8:6971:1::53`. The action invokes no rsync and transfers no release.
+
+Validation: accept only a complete, secret-free transcript; all 19 pre-state
+labels; bounded direct-SSH status, error class, milestone booleans, and
+stdout/stderr hashes; unchanged Node A relevant state; equal Node B before and
+after digests; all no-transfer/no-rsync/no-service markers; and both cleanup
+markers. Diagnostic conclusions are evidence, not authorization to continue.
+
+Rollback: none applies because the action is read-only. Protected workstation
+temporary state is removed by a trap. A nonzero remote status, malformed or
+inconsistent transcript, changed Node B digest, secret-bearing output, or
+cleanup failure returns `97` and stops progression.
+
+### Executed gate: read-only Action 17c-c-b
+
+Exact command executed once after hash-specific authorization:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-a-peer-resolution-context-diagnostic-action17c-c-b.sh
+```
+
+Expected effect: one strict host-verified administrative SSH session streams
+the diagnostic to Node A and runs it as root from `/`. For each of `pi`, root,
+and `caddy-sync`, the collector performs the same five-second
+`getent ahostsv4` and `getent ahostsv6` lookup for only
+`pihole00.local.theama.co`. It performs no peer SSH, rsync, or payload transfer.
+
+Validation: accept only a complete, secret-free transcript with exact context
+identities; lookup status and bounded classification; expected-address
+presence; bounded line count and truncation marker; bounded address-set
+encoding; stdout/stderr hashes; relevant `/etc/resolv.conf`,
+`/etc/nsswitch.conf`, and `/etc/hosts` provenance; unchanged pre/post resolver
+state; all no-peer/no-rsync/no-transfer/no-service/no-persistent-mutation
+markers; administrative SSH status `0`; and both cleanup markers. The runner
+derives only one of four bounded conclusions:
+`all_contexts_resolve_expected_dual_stack`, `caddy_sync_context_differs`,
+`all_contexts_match_non_success`, or `resolution_contexts_differ`.
+
+Rollback: none applies because the action is read-only. Resolver lookups may
+create normal ephemeral DNS cache entries and logs but cannot alter persistent
+resolver configuration. Protected remote and workstation temporary paths are
+removed by traps. Nonzero SSH, incomplete or inconsistent evidence,
+secret-bearing output, changed resolver state, or cleanup failure returns `97`
+and stops progression.
+
+At `2026-07-29T20:36:49Z`, the exact runner was executed once and stopped
+fail-closed. Node A's resolver pre-state and provenance completed.
+`/etc/resolv.conf` was a regular file with nameservers `10.1.0.1` and
+`fd36:5aa8:6971:1::55`; the NSS `hosts:` policy was
+`files mdns4_minimal [NOTFOUND=return] dns`; and neither peer address was
+present in `/etc/hosts`. All six `getent` lookups—IPv4 and IPv6 under `pi`,
+root, and `caddy-sync`—returned status `2`, class `not_found`, empty output,
+and empty stderr. Node A then returned `1` before post-state and cleanup
+markers; the workstation runner returned `97`.
+
+Local inspection and a bounded Bash reproduction identified the collector
+defect: after the first snapshot, the main body creates global readonly
+`resolv_target`; the second `resolver_state` call declares a same-named local,
+which Bash rejects as a readonly-variable collision. The reproduction returned
+`1` with bounded output SHA-256
+`7b62f8e721c1ccdeb5d7deb2b8bfe46222d8ac302764f6640902f25ac59fb770`.
+The workstation stage is independently absent. The action contains no peer
+SSH, rsync, service mutation, or persistent-write command, but remote cleanup
+and state equivalence were not emitted and therefore are not accepted.
+Action 17c-c-b must not be rerun unchanged.
+
+### Executed gate: corrected read-only Action 17c-c-b retry
+
+Exact command executed once after hash-specific authorization:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-a-peer-resolution-context-diagnostic-action17c-c-b-retry.sh
+```
+
+Pinned outer runner SHA-256:
+`de212a42507aa9d3a1afc0acc7650200b617f0fedd1b4d6c63e7e3a2c02ceac8`.
+
+Expected effect: verify the immutable historical collector and runner, the
+append-only correction, and the second-snapshot regression; render both
+corrected artifacts into a protected workstation stage; then perform the same
+single strict host-verified administrative SSH session and bounded resolver
+context diagnostic previously authorized for Action 17c-c-b. The only
+collector behavior change is renaming the main-body global readonly
+`resolv_target` to `provenance_resolv_target`; the function-local
+`resolv_target`, both resolver snapshots, all six lookups, evidence fields, and
+fail-closed contracts remain unchanged. The action invokes no peer SSH or
+rsync, transfers no release, and makes no service or persistent configuration
+change.
+
+Validation: before node contact, require exact owner, mode, hashes, Bash
+syntax, correction self-test, historical artifact immutability, an exact
+five-line one-variable transformation, rendered hashes, and regression
+coverage that reproduces the historical second-snapshot exit and proves the
+corrected two-snapshot sequence. Accept live execution only with inner status
+`0`, empty inner stderr, complete secret-free original transcript validation,
+unchanged resolver state, all no-peer/no-rsync/no-transfer/no-service/
+no-persistent-mutation markers, administrative SSH `0`, one bounded
+conclusion, original acceptance and cleanup markers, corrected wrapper
+acceptance, and corrected local cleanup.
+
+Rollback: none applies because the retry is read-only. Resolver lookups may
+create normal ephemeral DNS cache entries and logs but cannot alter persistent
+resolver configuration. Both the historical inner runner and corrected outer
+runner remove their protected workstation stages by traps; the collector
+removes its remote temporary path by trap. Any provenance mismatch, nonzero
+status, stderr, duplicate/inconsistent/secret-bearing evidence, changed
+resolver state, or cleanup failure returns `97` and stops progression.
+
+At `2026-07-29T20:53:51Z`, the exact corrected runner completed successfully.
+Administrative SSH, the rendered inner runner, and the outer runner all
+returned `0`. Resolver pre/post state SHA-256 remained
+`cb54c0a09928f29a7bb0d5aff86573c40ee284818cf0187b157dfcc020bb7d9d`;
+all remote and workstation cleanup markers passed, and an independent local
+check found no remaining Action 17c-c-b retry stage.
+
+All six lookups returned status `2`, class `not_found`, empty stdout/stderr,
+and no expected peer address for `pi`, root, and `caddy-sync`. The accepted
+conclusion is `all_contexts_match_non_success`. This disproves an
+identity-specific `caddy-sync` resolver failure but does not identify why
+`pihole00.local.theama.co` is unavailable through the configured resolver
+path. No peer SSH, rsync, transfer, service mutation, or persistent mutation
+occurred.
+
+No resolver diagnostic or change, persistent correction, release transfer,
+synchronization, lsyncd installation/service change, VRRP, repair,
+reload/restart, or later action is authorized.
+
+### Executed gate: read-only DNS path/authority Action 17c-c-c
+
+Exact command authorized and executed once:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-dns-path-authority-diagnostic-action17c-c-c.sh
+```
+
+Pinned runner SHA-256:
+`db6c273734ed52b43268af6823feeec08ca1aa191d89b970d641fe53453bf1a6`.
+
+Current live model: the user confirms that both nodes currently use a
+single-file Unbound configuration. Exact live paths, content, and hashes
+remain unobserved in this definition.
+
+Prerequisite target model: migrate to two separately owned top-level
+fragments:
+
+1. Workstation source
+   `/home/aaron/code/homelab-dns/Unbound/configs/pihole0.conf`, SHA-256
+   `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`,
+   maps to `/etc/unbound/unbound.conf.d/pihole.conf` and owns resolver,
+   loopback `5335`, forwarding, cache, hardening, and observability behavior.
+2. Workstation source
+   `/home/aaron/code/homelab-dns/Unbound/configs/pihole0-local-zone.conf`,
+   SHA-256
+   `8a7d1c6d2235e6f37a98dfd3e10165b49968fcc5f3e898ce0b359f70bc0456d1`,
+   maps to
+   `/etc/unbound/unbound.conf.d/pihole0-local-zone.conf` and owns the static
+   `local.theama.co` policy and records.
+
+Both private operator sources are intentionally ignored by
+`homelab-dns/.gitignore` and are therefore hash-pinned inputs, not committed
+repository artifacts. This observed state must not be represented as tracked
+or committed. The separately controlled adoption of both files on Node B and
+then Node A is a prerequisite before Caddy DNS record deployment or another
+synchronization retry; it is not part of this read-only action.
+
+Expected effect: verify the exact collector, regression, two operator source
+files, and intended Caddy DNS manifest; open one strict host-verified
+administrative SSH session to each node; fingerprint both live Unbound
+fragments; and perform bounded one-second, one-try `dig` queries with a
+three-second total timeout. The query matrix separates:
+
+- Current layout: report `legacy_single_file_unbound_configuration` only when
+  the proposed live local-zone fragment is absent on both nodes and each
+  primary live file contains local-zone directives. Otherwise report exact
+  two-file convergence or unresolved drift from the evidence.
+
+- Existing positive controls: `pihole00.local.theama.co` A
+  `10.1.0.54` and `10.1.0.54` PTR
+  `pihole00.local.theama.co.`.
+- Expected current absence: `pihole00.local.theama.co` AAAA,
+  `pihole-admin.local.theama.co` A, and Caddy IPv4 PTR `.56`.
+- Authority and forwarding layers: local Unbound `127.0.0.1:5335` and
+  local Pi-hole `127.0.0.1:53` on both nodes.
+- Client path from Node A: configured IPv4 resolver `10.1.0.1` and the
+  IPv4/IPv6 Pi-hole DNS VIPs `10.1.0.55` and
+  `fd36:5aa8:6971:1::55`.
+
+The collector records bounded command status, DNS response code, encoded
+flags and answer set, expected-match boolean, classification, and transcript
+hashes. It does not emit packet captures, broad DNS data, caches, or logs.
+
+Validation: accept only exact workstation artifact provenance, complete
+secret-free node transcripts, both administrative SSH statuses `0`, valid
+source/file/query records, equal pre/post DNS state hashes, all no-DNS-change/
+no-service/no-persistent-mutation markers, and remote/local cleanup. Emit
+independent bounded conclusions for:
+
+- Two-file prerequisite convergence.
+- IPv4 authority/forwarding/client-path behavior.
+- Synchronization DNS readiness, including the absent peer AAAA.
+- Deferred Caddy DNS record state.
+
+Semantic DNS mismatches remain accepted diagnostic evidence when their
+records are complete; they do not authorize a repair.
+
+Rollback: none applies because the action is read-only. DNS queries may
+create ordinary ephemeral cache and log entries. Node `/run` and workstation
+`/tmp` paths are protected and removed by traps. Missing `dig`, source/hash
+drift, nonzero administrative SSH, malformed/duplicate/secret-bearing output,
+changed pre/post state, or cleanup failure returns `97` and stops progression.
+
+The run stopped fail-closed before its first DNS query. Both node collectors
+reported `main: line 221: local: work_dir: readonly variable` because
+`run_query` declared a local `work_dir` while the main collector scope had
+already marked `work_dir` readonly. Both administrative SSH statuses were
+`1`, and the outer runner returned `97`.
+
+The run is not accepted. It proves both live primary files are regular,
+contain local-zone directives, and have no separate live local-zone fragment,
+but it provides no query completion, post-state equivalence, no-mutation,
+remote cleanup, semantic conclusion, or acceptance markers. Independent
+workstation inspection found no matching temporary runner stage. Remote stage
+cleanup remains unproven and must be checked through a separately authorized
+read-only action before defining a corrected retry.
+
+No unchanged retry, diagnostic execution, Unbound two-file deployment,
+resolver or record change, persistent correction, release transfer,
+synchronization, lsyncd installation/service change, VRRP, repair,
+reload/restart, or later action is authorized.
+
+### Executed gate: read-only DNS continuity Action 17c-c-c-a
+
+Exact command authorized and executed once:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-dns-continuity-action17c-c-c-a.sh
+```
+
+Pinned runner SHA-256:
+`d5c57b48bf801d36967d12a3c40a38d7c452040af3c62dc5466fdc30307d437e`.
+
+Requested action: independently inspect both nodes after failed Action
+17c-c-c. This action does not correct or rerun the failed collector.
+
+Expected effect:
+
+- Verify the historical failed runner and collector remain byte-identical.
+- Open one strict host-verified administrative SSH session to each node.
+- Require zero `/run/caddy-action17c-c-c.*` paths on each node without
+  deleting anything.
+- Recheck each role's exact primary Unbound file hash and metadata, absence of
+  the proposed separate local-zone fragment, and the embedded primary
+  listener/local-zone directives observed by the failed action.
+- Require `unbound.service` and `pihole-FTL.service` active.
+- Reproduce the failed collector's exact state-snapshot algorithm and compare
+  the result with the role-specific digest captured before the failure:
+  Node A `0c6c2c57...e102`; Node B `af5b993a...5744`.
+- Perform no DNS query, service action, configuration change, remote
+  temporary-file creation, or persistent write.
+
+Validation: the inspectors collect every check before returning. The runner
+accepts only unique, schema-valid, secret-free transcripts with SSH status
+`0`, zero mismatches on both nodes, exact pre-failure state digests, zero
+failed-action stages, explicit no-query/no-mutation records, and complete
+local cleanup. A complete semantic mismatch returns `1` with conclusion
+`continuity_mismatch`; malformed, incomplete, contradictory, unexpected-SSH,
+or stderr-bearing evidence returns `97`. Only zero mismatches produce
+`continuity_verified` and `action_17c_c_c_a_continuity_accepted=true`.
+
+Rollback: none applies because the remote inspectors are read-only and create
+no remote paths. The runner creates one protected workstation `/tmp` directory
+and removes it with an EXIT trap. Failure or mismatch does not authorize
+cleanup, correction, retry, or another deployment action.
+
+The action passed and is accepted. Both administrative SSH statuses were `0`;
+each node reported zero failed-action stages and zero mismatches; every
+role-specific primary hash, metadata, embedded directive, local-zone absence,
+and service assertion passed; and both complete continuity digests exactly
+matched their pre-failure values. The runner emitted
+`continuity_verified`, acceptance true, and complete workstation cleanup.
+No DNS query, remote write, DNS/service/persistent mutation, or cleanup action
+occurred.
+
+No corrected runner, retry execution, Unbound migration, resolver or record
+change, synchronization, service mutation, VRRP, repair, reload/restart, or
+later action is authorized.
+
+### Executed gate: corrected read-only DNS path/authority Action 17c-c-c retry
+
+Exact command authorized and executed once:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-dns-path-authority-diagnostic-action17c-c-c-retry.sh
+```
+
+Pinned outer runner SHA-256:
+`148803926e39164b76f35e637fea200cb6c55a6f9acf18fe740f2d6871cb64d6`.
+
+Requested action: rerun the same bounded read-only DNS path/authority
+diagnostic after correcting only the proven Bash name collision. The executed
+historical collector and runner remain byte-identical at SHA-256
+`5ef814b847151550a6c1cfa935917cc13861152f50ece55bd49b9e8ea107c364`
+and
+`db6c273734ed52b43268af6823feeec08ca1aa191d89b970d641fe53453bf1a6`.
+
+The append-only transformer is SHA-256
+`214efa540b42de756fb467903af43a8d73161b5f3654987c4697057a0c6b4e48`.
+It changes exactly four source lines inside `run_query`:
+
+- `local work_dir=$7` becomes `local query_work_dir=$7`.
+- The `output`, `error`, and `answers` path expressions refer to
+  `query_work_dir`.
+
+It makes no other collector change. The rendered collector is pinned at
+SHA-256
+`1a96099b69a1f4a8672e09ec49158f779e612d08a46e8c9333c38aff9f7d6624`.
+The rendered inner runner changes only its collector path and collector hash
+and is pinned at SHA-256
+`e1921118134ff70f4ef1d93e0a8df9490fa5b14033f689d3b416c4ebc08071b3`.
+
+Expected effect: the workstation runner verifies all historical, correction,
+regression, operator-source, and manifest provenance; creates only a protected
+workstation temporary stage with repository-equivalent parent paths and
+read-only links to the validated operator sources and manifest; renders the
+corrected collector and inner runner; proves the staged inner runner's source
+contract; and then invokes the same two-node diagnostic contract used by the
+failed action. Each node performs the already-defined bounded DNS query matrix
+and must emit complete post-state, no-mutation, conclusion, and cleanup
+evidence.
+
+Validation: the regression at SHA-256
+`baa55af3e211bf44fdbed29b47cc80a47b7d837e04f6d83d4099392861f38035`
+requires exactly the four collector substitutions and exactly the two inner
+runner substitutions. Its production-boundary test extracts the exact
+historical and corrected `run_query` functions, places each beneath the global
+readonly `work_dir`, and drives the first query with a deterministic
+in-process `timeout`/DNS-response stub. It must reproduce the historical
+`work_dir: readonly variable` failure, then require the corrected first query
+to return `0`, classify the expected A answer, and emit
+`first_query_completed=true`; it performs no network or DNS operation.
+
+During the separately authorized live run, the outer runner accepted only inner
+status `0`, empty stderr, both administrative SSH statuses `0`, a complete
+secret-free inner transcript, valid bounded conclusion values, explicit
+diagnostic acceptance, and complete local cleanup. Semantic DNS results are
+diagnostic evidence only and authorize no repair or deployment.
+
+Rollback: none applies because the action is read-only. DNS queries can
+create ordinary ephemeral resolver cache and journal entries. Remote `/run`
+and workstation `/tmp` paths remain trap-cleaned. Any provenance drift,
+missing dependency, nonzero SSH or inner status, stderr, malformed or
+secret-bearing evidence, changed pre/post state, or cleanup failure stops
+fail-closed with no authority to retry or continue.
+
+The action passed and is accepted. Both administrative SSH statuses, the inner
+runner, and the outer runner were `0`; both nodes completed query collection;
+their pre/post state hashes matched; every no-configuration/no-service/
+no-persistent-mutation and remote/local cleanup marker passed; and independent
+workstation inspection found no remaining matching temporary stage.
+
+Node A retained state SHA-256 `0c6c2c57...e102` and primary configuration
+SHA-256 `dd5af7cc...d3ae`. Node B retained state SHA-256
+`af5b993a...5744` and primary configuration SHA-256
+`017aa255...fac7`. Both nodes have a regular single primary configuration
+containing local-zone directives and no separate live local-zone fragment.
+
+Local Unbound and local Pi-hole returned the expected `pihole00` A
+`10.1.0.54`; local Unbound returned the expected PTR and absent peer AAAA and
+Caddy records on both nodes. Node A's IPv4 and IPv6 Pi-hole DNS VIP probes
+returned the expected `pihole00` A, and its DNS VIP Caddy probe returned the
+expected current `NXDOMAIN`. Node A's configured resolver `10.1.0.1` returned
+`NXDOMAIN` for `pihole00`, classified `expected_answer_missing`.
+
+The accepted conclusions are:
+
+- `legacy_single_file_unbound_configuration` for the two-file prerequisite.
+- `legacy_single_file_unbound_configuration` for the path conclusion.
+- `peer_aaaa_state_inconsistent` for synchronization DNS readiness.
+- `caddy_record_state_inconsistent` for Caddy DNS readiness.
+
+No Unbound migration, resolver or record change, persistent correction,
+release transfer, synchronization, lsyncd installation/service change, VRRP,
+repair, reload/restart, or later action is authorized.
+
+### Executed gate: read-only Node B two-file Unbound preflight Action 17d
+
+Exact command, executed once:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-two-file-unbound-preflight-action17d.sh
+```
+
+Pinned runner SHA-256:
+`6e63289a54018514930ae883bb741b6993a9148c77c027b7b16c75cb875ae59d`.
+
+Requested action: collect the first Node B-only evidence required to design
+the separately gated two-file Unbound adoption. This action does not install,
+replace, rename, or remove any live configuration; invoke a DNS query; reload
+or restart a service; alter a resolver, record, listener, or firewall; or
+authorize an adoption action.
+
+Pinned inputs:
+
+- Remote inspector SHA-256
+  `0a9be5bf5f16879ea88092ca056ae52edcfb299b6ca3d274d1d14b29d2480d3f`.
+- Static/contract regression SHA-256
+  `7ad9572728d5beeaf38ffb88483b67f42c5a1cd0b1e3b84d2c9222eea05b287e`.
+- Accepted Action 17c-c-c retry runner SHA-256
+  `148803926e39164b76f35e637fea200cb6c55a6f9acf18fe740f2d6871cb64d6`.
+- Ignored workstation primary input
+  `/home/aaron/code/homelab-dns/Unbound/configs/pihole0.conf`, SHA-256
+  `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`.
+- Ignored workstation local-zone input
+  `/home/aaron/code/homelab-dns/Unbound/configs/pihole0-local-zone.conf`,
+  SHA-256
+  `8a7d1c6d2235e6f37a98dfd3e10165b49968fcc5f3e898ce0b359f70bc0456d1`.
+
+Expected effect:
+
+- Revalidate all artifact hashes, executable ownership/modes, both private
+  source hashes, and the requirement that the source files remain ignored and
+  untracked.
+- Create a protected workstation temporary payload containing only the
+  inspector and the two candidate files, archive it without logging file
+  content, and stream it through one strict host-verified administrative SSH
+  session to `pi@10.1.0.54`.
+- Create one root-owned mode `0700` `/run/caddy-action17d.*` directory, extract
+  exactly those three files without retaining workstation ownership or modes,
+  enforce mode `0700` on the inspector and `0600` on both candidate files, and
+  remove the directory before SSH completion.
+- Confirm Node B identity, the accepted live primary SHA-256
+  `017aa255...fac7` and `root:root:0644:34342` metadata, absence of the live
+  separate local-zone file, complete `/etc/unbound/unbound.conf.d` inventory,
+  root include topology, Unbound package/binary provenance, active Unbound and
+  Pi-hole FTL services, and current full-configuration parser result.
+- Verify the ownership boundary: each candidate has exactly one `server:`
+  clause, the primary candidate contains no local-zone policy/record
+  directives, and the local-zone candidate contains only
+  `private-domain`, `domain-insecure`, `local-zone`, `local-data`, and
+  `local-data-ptr`.
+- Normalize non-comment live and candidate directives, omit only the additional
+  split-file `server:` clause, sort the complete multisets, and report counts
+  and hashes plus live-only/candidate-only counts. Private directive values and
+  raw diffs are never emitted.
+- Only when Node B's root configuration is exactly the expected single
+  `include-toplevel` wildcard and all included `.conf` entries are regular,
+  copy the live `conf.d` tree into protected temporary state, replace only the
+  temporary primary, add only the temporary local-zone file, and validate the
+  complete shadow configuration with Node B's installed
+  `unbound-checkconf`.
+- Recompute the exact relevant node-state snapshot and require it to equal the
+  preflight snapshot.
+
+Validation: accept only one schema-complete, secret-free transcript with
+administrative SSH status `0`, unique fields, exact candidate hashes, unchanged
+pre/post state, all no-query/no-configuration/no-service/no-persistent-mutation
+markers, remote cleanup, and workstation cleanup. The runner independently
+derives one bounded conclusion:
+
+- `ready_for_staged_adoption_design`
+- `live_source_drift`
+- `service_or_live_parser_not_ready`
+- `unsupported_include_topology`
+- `candidate_semantic_drift`
+- `candidate_parser_rejected`
+
+A non-ready conclusion is accepted diagnostic evidence only. It does not
+authorize a correction or adoption. Malformed, duplicate, secret-bearing,
+stderr-bearing, nonzero-SSH, state-changing, or cleanup-incomplete evidence
+returns `97`.
+
+Rollback: no persistent rollback applies because the action is read-only.
+The only writes are protected workstation `/tmp` and Node B `/run` staging.
+Both are removed by traps. The shadow configuration is parser input only and
+is never placed below `/etc`. No DNS cache effect is expected because the
+action performs no DNS query.
+
+Definition validation covers Bash syntax, ShellCheck, shfmt, exact provenance,
+ignored/untracked source policy, normalized-directive fixtures, every bounded
+conclusion, ready/drift transcript contracts, duplicate and secret rejection,
+no persistent DNS/service/network mutation, protected payload construction,
+host integration, and Debian 12 Podman integration.
+
+Execution result: accepted. The runner and administrative SSH session returned
+`0`. Node B identity and the pinned live baseline matched. The root
+configuration contained the single supported `include-toplevel` wildcard and
+all three included `.conf` entries were regular. Installed Unbound package
+version `1.17.1-2+deb12u4` and binary version `1.17.1` were observed; Unbound
+and Pi-hole FTL were active.
+
+The live and candidate configurations each normalized to 128 directives with
+SHA-256 `3a130bd46f72a2ad48f8c5a3079552d107daa483c7523587711e8497211966dd`;
+both one-sided counts were zero. The live parser and protected shadow parser
+both returned `0`. The before and after state SHA-256 values were both
+`31862f7b0f86a6cddc9057501fffeff872bc3747a0144bb7d062fddcced9992c`.
+Every no-query/no-configuration/no-service/no-persistent-mutation marker
+passed, both cleanup markers passed, and an independent workstation search
+found no matching temporary stage. The accepted conclusion is
+`ready_for_staged_adoption_design`.
+
+No Unbound adoption, resolver or record change, persistent correction, release
+transfer, synchronization, lsyncd installation/service change, VRRP, repair,
+reload/restart, or later action is authorized. The next gate is separate
+authorization to define—but not execute—the first bounded Node B
+staged-adoption action while preserving independent gates for each file.
+
+### Executed gate: bounded Node B primary-fragment staging Action 17e
+
+Exact command, executed once:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-primary-stage-action17e.sh
+```
+
+Pinned runner SHA-256:
+`d38a963934d3e063481e8f81a189fe432cd7002683ae6349d341cbde27c0e5e5`.
+
+Requested action: install only the hash-pinned primary resolver candidate into
+protected, retained, non-included Node B staging. It does not stage the
+local-zone candidate, change any live file below `/etc/unbound`, issue a DNS
+query, reload or restart a service, or activate any candidate.
+
+Pinned inputs:
+
+- Transaction driver SHA-256
+  `b67d9fe11d535c1767a1a70c8fe334bf74e007ec2915dd19ca254e72bb99121b`.
+- Static/contract regression SHA-256
+  `95cb23d0622e29e5e639c3eb259980902911ab7bde41a79567011a59e43f75cb`.
+- Accepted Action 17d runner SHA-256
+  `6e63289a54018514930ae883bb741b6993a9148c77c027b7b16c75cb875ae59d`.
+- Ignored workstation primary input
+  `/home/aaron/code/homelab-dns/Unbound/configs/pihole0.conf`, SHA-256
+  `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`.
+
+Expected effect:
+
+- Revalidate every artifact hash and executable mode, the private source hash,
+  its ignored/untracked policy, and the accepted Action 17d provenance.
+- Create a protected workstation payload containing exactly `pihole.conf` and
+  stream it through one strict host-verified administrative SSH session to
+  `pi@10.1.0.54`.
+- Before writing, require Node B identity; exact live root and primary hashes;
+  `root:root:0644:34342` live-primary metadata; absent live separate local-zone
+  fragment; exact accepted Action 17d configuration-tree/service snapshot
+  SHA-256 `31862f7b...992c`; active Unbound and Pi-hole FTL; valid live
+  configuration; absent Action 17e and future Action 17f stages; and no
+  abandoned Action 17e transaction directory.
+- Capture the complete relevant live Unbound file, included-tree, and service
+  state before mutation.
+- Create a root-owned mode `0700` transaction directory below `/var/tmp`,
+  extract exactly one `pihole.conf`, and enforce `root:root:0600`.
+- Require candidate hash `cef03495...d2e8`, exactly one `server:` clause, and
+  zero `private-domain`, `domain-insecure`, `local-zone`, `local-data`, or
+  `local-data-ptr` directives.
+- Validate the primary fragment independently using a protected temporary root
+  configuration and Node B's installed `unbound-checkconf`.
+- Add a non-secret manifest, stage metadata, and completion marker; retain the
+  completed directory as
+  `/var/tmp/caddy-unbound-node-b-action17e-primary`.
+- Require the future local-zone stage to remain absent and the complete live
+  Unbound/service snapshot to remain byte-for-byte equivalent.
+
+The retained stage is deliberately outside `/etc/unbound` and does not match
+the active `include-toplevel` wildcard. This avoids both unsafe intermediate
+live states: replacing the legacy primary before the separate local-zone file
+exists, or adding the local-zone file while duplicate policy remains embedded
+in the legacy primary.
+
+Validation: accept only a secret-free, duplicate-free transcript with tar,
+SSH, and pipeline statuses `0`; matching before/after live-state hashes;
+verified stage path, ownership, modes, manifest, parser result, and ownership
+boundary; `local_zone_file_staged=false`; all no-live-change/no-query/no-service
+markers; exact persistent scope `primary_stage_only`; and workstation cleanup.
+
+Rollback: before transaction completion, any error removes the temporary
+transaction directory and the retained primary stage if created, revalidates
+the exact accepted live baseline, requires the original live-state snapshot,
+and emits explicit rollback evidence. Incomplete rollback returns `125` with
+`manual_intervention_required=true`; the outer runner treats incomplete
+rollback evidence as fail-closed status `97`. After successful completion, the
+retained stage is the intended and only persistent mutation. A later cleanup
+or replacement requires its own authorization.
+
+Independent subsequent gates:
+
+1. Execute and accept Action 17e, retaining only the primary fragment.
+2. Define, execute, and accept a separate Action 17f that stages only
+   `pihole0-local-zone.conf` without modifying the Action 17e stage.
+3. Separately validate the exact retained pair as a complete shadow
+   configuration and revalidate live continuity.
+4. Design and authorize live activation and reload only after those gates.
+
+Definition validation covers Bash syntax, ShellCheck, shfmt, exact provenance,
+private-source policy, ownership boundaries, parser and state contracts,
+duplicate and secret-output rejection, semantic rollback evidence, static
+exclusion of live DNS/service mutations, host integration, and Debian 12
+Podman integration.
+
+Execution result: not accepted. Tar returned `0`; the administrative SSH
+session and pipeline returned `1`; and the outer runner returned fail-closed
+status `97`. Node B emitted no preflight-complete, before-state,
+mutation-started, retained-stage, parser, post-state, or acceptance marker.
+The driver emitted only:
+
+```text
+action_17e_rollback_started=true
+action_17e_rollback_complete=true
+```
+
+The completed driver rollback requires the Action 17e transaction and retained
+stages to be absent, the future Action 17f stage to be absent, and the exact
+accepted live baseline to validate. The workstation cleanup marker passed and
+an independent search found no matching local temporary stage. However, the
+outer runner intentionally does not accept rollback markers before a
+mutation-started marker, so the unlabeled pre-write failure boundary remains
+unknown and no retained primary stage is accepted.
+
+No retry, correction, cleanup, diagnostic, local-zone staging, composite
+validation, live Unbound installation, resolver or record change, DNS query,
+service action, synchronization, VRRP, or later action is authorized. The next
+gate is separate authorization to define—but not execute—a fail-closed
+read-only Action 17e-a diagnostic that labels every pre-write assertion and
+independently confirms both staging paths and the accepted baseline.
+
+### Defined gate: read-only Node B pre-write diagnostic Action 17e-a
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-primary-prewrite-diagnostic-action17e-a.sh
+```
+
+Pinned runner SHA-256:
+`962325472c6343db634e5f39eec27e16ec5121b29ba58237d60f1fa5a6564c98`.
+
+Requested action: identify the exact Action 17e pre-write failure boundary and
+independently confirm rollback continuity without creating a remote path,
+transferring a candidate, invoking a DNS query, changing configuration, or
+mutating a service.
+
+Pinned inputs:
+
+- Read-only inspector SHA-256
+  `4d61418345542d51b72a7b9dfe48ce84cbca4c4c356db601a1baf6c9331dd29e`.
+- Static/contract regression SHA-256
+  `a18751cd0085412c7c025681e5088ba68deaa17fc2800d8225104c1b4efb8aaf`.
+- Failed Action 17e runner SHA-256
+  `d38a963934d3e063481e8f81a189fe432cd7002683ae6349d341cbde27c0e5e5`.
+- Failed Action 17e driver SHA-256
+  `b67d9fe11d535c1767a1a70c8fe334bf74e007ec2915dd19ca254e72bb99121b`.
+- Accepted Action 17d state SHA-256
+  `31862f7b0f86a6cddc9057501fffeff872bc3747a0144bb7d062fddcced9992c`.
+
+Expected effect:
+
+- Revalidate exact inspector/regression/failed-artifact hashes and executable
+  ownership/modes.
+- Stream the inspector directly through one strict host-verified
+  administrative SSH session to `pi@10.1.0.54`; do not create any remote
+  staging or transcript path.
+- Collect the effective UID, whether the inherited working directory is `/`,
+  and exact Node B hostname match.
+- Report state, hashes, and bounded metadata for the live root, primary, and
+  separate local-zone paths without emitting configuration contents.
+- Reproduce the exact Action 17d configuration-tree/service snapshot twice,
+  reporting each command status and hash, exact accepted-hash matches, and
+  stability.
+- Independently report active Unbound and Pi-hole FTL status and the installed
+  `unbound-checkconf` result with only a bounded output hash.
+- Report the exact state of retained Action 17e primary staging, future Action
+  17f local-zone staging, and the count of abandoned Action 17e transaction
+  directories.
+- Reproduce the exact Action 17e `live_state` collector twice, reporting each
+  status and hash plus stability.
+- Evaluate all 23 pre-write assertions independently. A failed assertion does
+  not stop collection or suppress later evidence.
+
+The diagnostic derives exactly one bounded conclusion:
+
+- `all_prewrite_assertions_pass_and_collectors_stable`
+- `prewrite_assertion_mismatch`
+- `action17d_snapshot_collection_unstable`
+- `live_state_collection_failed`
+- `live_state_collection_unstable`
+
+Validation: accept only one schema-complete, secret-free transcript with SSH
+status `0`, no stderr, unique fields, exactly 23 Boolean assertion results, a
+failed-assertion count matching those results, internally consistent snapshot
+hashes and conclusion, all no-write/no-query/no-configuration/no-service
+markers, diagnostic completion, and workstation cleanup. Semantic mismatches
+are accepted diagnostic evidence; malformed, duplicate, secret-bearing,
+stderr-bearing, nonzero-SSH, or cleanup-incomplete evidence returns `97`.
+
+Rollback: no remote rollback applies because the inspector performs no write
+and creates no remote path. The runner creates only a mode-protected
+workstation `/tmp` directory for stdout/stderr capture and removes it by trap.
+
+Definition validation covers Bash syntax, ShellCheck, shfmt, exact provenance,
+all-pass and semantic-mismatch transcripts, assertion-count reconciliation,
+conclusion derivation, duplicate/private-output rejection, static exclusion of
+filesystem/DNS/service mutations, host integration, and Debian 12 Podman
+integration.
+
+At definition time, execution required separate authorization for the exact
+runner hash above. That authorization and its resulting evidence are recorded
+below; no correction, cleanup, Action 17e retry, staging, local-zone action,
+live Unbound change, DNS query, service action, synchronization, VRRP, or later
+action is authorized.
+
+### Executed gate: read-only Node B pre-write diagnostic Action 17e-a
+
+The exact runner SHA-256
+`962325472c6343db634e5f39eec27e16ec5121b29ba58237d60f1fa5a6564c98`
+was authorized, reverified, and executed once.
+
+The runner and SSH session returned `0`. The transcript was schema-complete,
+secret-free, and accepted with conclusion `prewrite_assertion_mismatch`.
+Exactly one of 23 independent assertions failed:
+`prewrite_working_directory_is_root=false`. The privileged streamed shell ran
+as effective UID `0` on `j1-svpihole00`, but its inherited working directory
+was not `/`.
+
+All other 22 assertions passed. The live root and primary configuration
+matched their accepted hashes and metadata; the separate local-zone fragment,
+Action 17e primary stage, future Action 17f local-zone stage, and abandoned
+transaction directories were absent. Both Action 17d snapshots were stable at
+`31862f7b0f86a6cddc9057501fffeff872bc3747a0144bb7d062fddcced9992c`.
+Both Action 17e live-state snapshots were stable at
+`3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`.
+Unbound and Pi-hole FTL were active, and the live `unbound-checkconf` returned
+`0`.
+
+The diagnostic created no remote path, issued no DNS query, and performed no
+DNS-configuration, service, or persistent mutation. Workstation cleanup
+completed. This evidence isolates the failed Action 17e pre-write boundary to
+the driver's `PWD == /` assertion: its remote command invokes the privileged
+driver without first changing to `/`.
+
+No correction or retry is authorized. The next gate is separate authorization
+to define—but not execute—a bounded Action 17e working-directory correction
+that preserves the historical failed artifacts, changes only the remote
+working-directory boundary, and regression-tests the exact tar-to-SSH
+production path.
+
+### Defined gate: corrected bounded Node B Action 17e retry
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-primary-stage-action17e-retry.sh
+```
+
+Pinned outer runner SHA-256:
+`5354fcd0fa5710ebef77f6751e4094903685d17056891760229c84b08868be92`.
+
+Requested action: retry only the bounded Node B primary-fragment staging
+transaction after establishing `/` as the unchanged driver's working
+directory. It does not stage the local-zone fragment, install either fragment
+under `/etc/unbound`, issue a DNS query, or mutate a service.
+
+Pinned inputs:
+
+- Historical failed Action 17e runner SHA-256
+  `d38a963934d3e063481e8f81a189fe432cd7002683ae6349d341cbde27c0e5e5`.
+- Unchanged transactional driver SHA-256
+  `b67d9fe11d535c1767a1a70c8fe334bf74e007ec2915dd19ca254e72bb99121b`.
+- Correction renderer SHA-256
+  `f0f1ff9413b50cccb5160f80b52b015c2567fccc274e1d51304cf08fa89b3e0d`.
+- Production-path regression SHA-256
+  `ab458946a022635e7d7a8fb88dc30d1df269d436e00c40d8f391a87bfa9743c0`.
+- Rendered inner runner SHA-256
+  `918efb1938ca102dbfa228441e7358b329ce733560395e160de2d8d1909273e0`.
+- Private primary candidate SHA-256
+  `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`.
+- Accepted Action 17d state SHA-256
+  `31862f7b0f86a6cddc9057501fffeff872bc3747a0144bb7d062fddcced9992c`.
+
+The correction is append-only. It preserves the historical runner and driver
+byte-for-byte and renders a protected inner runner whose diff contains exactly
+one removed and one added source line. The new encoded privileged command
+performs `cd /` and then executes the unchanged decoded driver under
+`/bin/bash`; the existing tar stream remains the driver's standard input.
+
+Before any future Node B connection, the outer runner revalidates every pinned
+source, private-file ownership and ignore policy, the correction self-test,
+the production regression, and the rendered inner runner's self-test and
+contract test. The regression reconstructs the exact production
+remote-command encoding and tar-stdin boundary without SSH: the historical
+command reproduces the inherited non-root directory, the corrected command
+reports `/`, and both receive `pihole.conf` through tar. Static checks confirm
+that the surrounding tar and SSH path remains unchanged. No network contact
+occurs during regression.
+
+Expected live effect after separate execution authorization: one strict
+host-verified SSH session to `pi@10.1.0.54` will transfer only the protected
+primary candidate tar stream. The unchanged driver will validate the complete
+accepted baseline, stage only
+`/var/tmp/caddy-unbound-node-b-action17e-primary`, run its isolated parser and
+ownership checks, prove live state unchanged, and retain the completed stage.
+
+Rollback remains the unchanged historical Action 17e transaction: after any
+post-mutation failure, remove the transaction and retained primary stage,
+prove both Action 17e and future Action 17f stages absent, and revalidate the
+accepted live baseline. Incomplete rollback returns fail-closed evidence and
+requires manual intervention. The outer runner trap-removes only its protected
+workstation render stage and preserves the inner runner's exit status.
+
+At definition time, execution required separate authorization for the exact
+outer runner hash above. That authorization and its resulting evidence are
+recorded below; no local-zone action, composite installation, live Unbound
+change, DNS query, service action, synchronization, VRRP, or later action is
+currently authorized.
+
+### Executed gate: corrected bounded Node B Action 17e retry
+
+The exact outer runner SHA-256
+`5354fcd0fa5710ebef77f6751e4094903685d17056891760229c84b08868be92`
+was authorized, reverified, and executed once.
+
+The outer runner, rendered inner runner, tar producer, SSH session, and
+pipeline all returned `0`. The corrected privileged boundary established `/`
+before executing the unchanged transactional driver. Preflight completed
+against the accepted state, and the candidate hash matched
+`cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`.
+
+The completed primary stage is retained at
+`/var/tmp/caddy-unbound-node-b-action17e-primary`. Its directory is
+`root:root:0700`, and its candidate file is `root:root:0600`. Isolated parser
+validation and the primary ownership boundary passed.
+
+The live state was
+`3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`
+both before and after staging. No local-zone file was staged, no live Unbound
+configuration was changed, no DNS query was issued, and no service was
+mutated. Both the inner and outer workstation cleanup markers passed.
+
+Action 17e retry is accepted. At its completion, the next gate was separate
+authorization to define—but not execute—Action 17f against this accepted
+retained primary stage. That definition authorization and its resulting
+artifacts are recorded below; no Action 17f execution, composite installation,
+live Unbound change, DNS query, service action, synchronization, VRRP, or
+later action is authorized.
+
+### Defined gate: bounded Node B local-zone staging Action 17f
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-local-zone-stage-action17f.sh
+```
+
+Pinned runner SHA-256:
+`700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33`.
+
+Requested action: stage and validate only the private local-zone candidate
+without installing either candidate under `/etc/unbound`, issuing a DNS
+query, or mutating Unbound, Pi-hole FTL, or any other service.
+
+Pinned inputs:
+
+- Transactional driver SHA-256
+  `916f8b8a109494523906d189f8cabec834ccf40fd04a38cb5686f355f3aee631`.
+- Static/combined-parser regression SHA-256
+  `4849d4057405d996415c62e3f44998e145936697420327147cd269209d25ac60`.
+- Accepted Action 17e retry runner SHA-256
+  `5354fcd0fa5710ebef77f6751e4094903685d17056891760229c84b08868be92`.
+- Retained primary candidate SHA-256
+  `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`.
+- Local-zone candidate SHA-256
+  `8a7d1c6d2235e6f37a98dfd3e10165b49968fcc5f3e898ce0b359f70bc0456d1`.
+- Accepted live-state SHA-256
+  `3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`.
+
+Before creating a transaction path, the driver requires:
+
+- Effective UID `0`, working directory `/`, and hostname `j1-svpihole00`.
+- Exact live root and legacy-primary hashes, metadata, absent live local-zone
+  fragment, active Unbound and Pi-hole FTL, valid live parser result, and exact
+  accepted live-state hash.
+- An exact completed Action 17e primary stage at
+  `/var/tmp/caddy-unbound-node-b-action17e-primary`: regular
+  `root:root:0700` directory, exact four-file set, regular
+  `root:root:0600` files, empty completion marker, exact manifest and metadata,
+  valid manifest check, and exact primary candidate hash.
+- Absent final Action 17f stage and zero abandoned Action 17f transaction
+  directories.
+
+The future runner transfers only `pihole0-local-zone.conf` through one strict
+host-verified SSH session and starts the driver from `/`. The driver accepts
+exactly that one archive member, enforces `root:root:0600`, verifies the exact
+candidate hash, one `server:` clause, exactly 46 local-policy/record
+directives, and zero resolver/listener/forwarding directives.
+
+Before retention, the driver constructs a protected shadow configuration from
+the accepted staged primary plus the candidate local-zone fragment and
+requires Node B's installed `unbound-checkconf` to accept the complete pair.
+It then retains only
+`/var/tmp/caddy-unbound-node-b-action17f-local-zone` with
+`root:root:0700`, an exact manifest, provenance metadata, completion marker,
+and four-file set. It revalidates the primary stage and requires the live
+state to remain byte-for-byte equivalent.
+
+Rollback removes only the Action 17f transaction and final local-zone stage.
+It never removes or replaces the accepted Action 17e primary stage. Rollback
+must revalidate that primary stage, the live parser, active services, absent
+live local-zone fragment, absent Action 17f stage, and exact accepted live
+state. An unprovable rollback returns `125` and
+`manual_intervention_required=true`. A failure before any transaction path is
+created emits a distinct pre-write marker rather than misleading rollback
+evidence.
+
+Local validation includes exact ignored/untracked source provenance,
+directive-ownership boundaries, duplicate/private-output rejection,
+pre-write and post-mutation failure contracts, rollback completeness,
+ShellCheck, shfmt, the complete host suite, and a Debian 12 Podman parser test
+using Unbound `1.17.1`. The validation image now installs Debian's `unbound`
+package; its parser fixture creates `/var/log/unbound` only after confirming
+the disposable container boundary.
+
+At definition time, execution required separate authorization for the exact
+runner hash above. That authorization and its resulting evidence are recorded
+below; no retry, diagnostic, cleanup, composite installation, live Unbound
+change, DNS query, service action, synchronization, VRRP, or later action is
+authorized.
+
+### Executed gate: bounded Node B local-zone staging Action 17f
+
+The exact runner SHA-256
+`700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33`
+was authorized, reverified, and executed once.
+
+The local source and contract gates passed. Tar returned `0`; SSH and the
+pipeline returned `1`; the outer runner preserved semantic status `1` rather
+than converting the valid failure evidence to `97`. Node B emitted exactly
+`action_17f_prewrite_failure_before_mutation=true` before any
+preflight-complete or mutation-started marker.
+
+The driver emits that marker only while its transaction-stage variable is
+empty and its mutation flag is false. Therefore this action created no remote
+transaction path, retained no Action 17f stage, and required no rollback.
+Workstation cleanup completed. No candidate hash, combined-parser, post-state,
+or acceptance evidence was reached.
+
+Action 17f is not accepted. Its aggregate `validate_baseline` stopped on an
+unlabeled prerequisite, so this evidence does not identify whether the
+identity, live root/primary, accepted live-state, service/parser, retained
+Action 17e primary-stage, Action 17f stage-absence, or transaction-absence
+condition mismatched. No such cause is inferred.
+
+No unchanged retry is authorized. The next gate is separate authorization to
+define—but not execute—a fail-closed read-only Action 17f-a diagnostic that
+labels each pre-write prerequisite independently and inspects both retained
+stage paths without creating a remote path or mutating configuration or
+services.
+
+### Defined gate: read-only Node B pre-write diagnostic Action 17f-a
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-local-zone-prewrite-diagnostic-action17f-a.sh
+```
+
+Pinned runner SHA-256:
+`4d995823a4b988081bc4ce242e9699ad1e3f5564bafcfb5781e54f2b4d8fe2ee`.
+
+Pinned inputs:
+
+- Read-only inspector SHA-256
+  `f380b441aad02b981669d8b251bae67633c49d8769d2e424e20c52b6c8cd3081`.
+- Production-path regression SHA-256
+  `0a327ca94ecd4802bca8e5cc16f32404da1897f51e214d44a826593502032f3a`.
+- Immutable failed Action 17f runner SHA-256
+  `700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33`.
+- Immutable Action 17f driver SHA-256
+  `916f8b8a109494523906d189f8cabec834ccf40fd04a38cb5686f355f3aee631`.
+- Accepted live-state SHA-256
+  `3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`.
+
+The future runner streams the inspector directly over one strict,
+host-verified SSH session and invokes it with this exact privileged execution
+boundary:
+
+```text
+sudo -n /bin/bash -c 'cd / && exec /bin/bash -s --'
+```
+
+The inspector independently reports and reconciles 55 fail-closed assertions:
+23 required commands; root identity; `PWD == /`; expected hostname; exact live
+root and primary hashes and metadata; absent live local-zone fragment; the
+retained Action 17e stage's directory, four-file set, ownership, modes,
+completion marker, manifest, candidate, metadata, and hash; absent Action 17f
+final stage; zero abandoned transaction directories; active Unbound and
+Pi-hole FTL; valid live parser result; and two stable, accepted live-state
+snapshots. Semantic assertion mismatches remain diagnostic evidence, while a
+malformed, incomplete, duplicate, private, stderr-bearing, or transport-failed
+transcript is rejected with fail-closed status `97`.
+
+The inspector contains no filesystem write, DNS query, configuration change,
+or service mutation. It creates no remote path. The runner creates only a
+protected workstation `/tmp` transcript directory and removes it on every
+exit.
+
+The immutable Action 17f runner already contained `cd /`; this definition does
+not silently correct that command or infer that working directory caused the
+failure. Production regression reconstructs Action 17f's exact encoded
+privileged command, begins from a non-root inherited directory, and proves
+both `observed_pwd=/` and continuity of the streamed tar member. Action 17f-a
+also reports its actual working-directory status and the independent
+`prewrite_working_directory_is_root` assertion.
+
+Local validation passed without contacting Node B: Bash syntax, ShellCheck,
+shfmt, inspector self-test, production-command regression, runner
+self/source/contract tests, 55-assertion count and failed-count reconciliation,
+all-pass and mismatch fixtures, duplicate/private-output rejection, complete
+host suite, Debian 12 Podman integration, full pre-commit suite,
+`git diff --check`, and no-network proof.
+
+At definition time, execution required separate authorization for the exact
+runner hash above. That authorization and its resulting evidence are recorded
+below. No Action 17f retry, cleanup, staging, composite installation, live
+Unbound change, DNS query, service action, synchronization, VRRP, or later
+action is authorized.
+
+### Executed gate: read-only Node B pre-write diagnostic Action 17f-a
+
+Runner SHA-256
+`4d995823a4b988081bc4ce242e9699ad1e3f5564bafcfb5781e54f2b4d8fe2ee`
+was authorized and reverified immediately before execution.
+
+The first identical workstation invocation was denied before reaching Node B
+by the restricted sandbox's socket policy:
+
+```text
+socket: Operation not permitted
+ssh_exit_status=255
+action_17f_a_local_cleanup_complete=true
+```
+
+That attempt performed no remote action and cleaned its workstation transcript.
+The unchanged authorized runner was then executed once with permitted network
+access.
+
+The remote execution returned SSH and runner status `0`. All 55 assertions
+passed:
+
+- All 23 required commands were available.
+- Effective UID was `0`, the working directory was `/`, and hostname matched
+  `j1-svpihole00`.
+- Live root and primary files matched their accepted hashes and metadata; the
+  live local-zone fragment remained absent.
+- The retained Action 17e primary stage was `root:root:0700`, contained its
+  exact four regular `root:root:0600` files, and passed completion, manifest,
+  candidate-hash, and metadata checks.
+- The Action 17f final stage was absent and its abandoned transaction count
+  was zero.
+- Unbound and Pi-hole FTL were active and the live configuration passed
+  `unbound-checkconf`.
+- Both repeated live-state snapshots equaled
+  `3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`.
+
+The conclusion was `all_prewrite_prerequisites_pass`. The inspector reported
+no remote path, DNS query, DNS configuration mutation, service mutation, or
+persistent mutation. Diagnostic acceptance and workstation cleanup completed.
+
+Action 17f-a is accepted read-only evidence. It does not reproduce or explain
+Action 17f's earlier pre-write failure. No transient cause, working-directory
+cause, or safe unchanged retry is inferred. Node B remains unchanged with
+only the accepted Action 17e primary stage.
+
+The next gate requires separate authorization to define—but not execute—an
+append-only, instrumented Action 17f retry. That future definition must
+preserve the failed runner and driver, retain the proven `cd /` boundary, and
+emit labeled evidence for every transactional pre-write assertion. That
+definition and its local evidence are recorded below; execution remains
+unauthorized.
+
+### Defined gate: instrumented bounded Action 17f retry
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh
+```
+
+Pinned outer runner SHA-256:
+`6dae2d4b5da2da62e92dc2e42400445905ba0f59692a6024748971472707c83b`.
+
+Pinned append-only artifacts:
+
+- Instrumentation renderer SHA-256
+  `6335840327e600ee4c2ded4e6e5090ded0e2aafa2c2d25643c6efd063ad5934c`.
+- Instrumented production regression SHA-256
+  `202a3d54d66eb0bb3b09a04f1ef983ec6db0fa9647548922d0075e39fa5bd004`.
+- Rendered composite driver SHA-256
+  `8d51f4f3d070719069653b95a3f584a2bb370f4979779e4684e4bd0f5f8d3ea1`.
+- Rendered historical regression SHA-256
+  `40e0c294ef7b1205e7bb26c1d17f68e519fb7b6c596c208804746ca057db49e3`.
+- Rendered historical runner SHA-256
+  `b01aae1ebbee47cd4493e54b1a7f73813e831cb64c858716c5596503de6b0107`.
+
+Immutable inputs remain:
+
+- Failed Action 17f driver SHA-256
+  `916f8b8a109494523906d189f8cabec834ccf40fd04a38cb5686f355f3aee631`.
+- Failed Action 17f runner SHA-256
+  `700097f301c49bfef34b60dc6fdeb4e8c0b03282f2ccf7831fa306a930fe7c33`.
+- Historical Action 17f regression SHA-256
+  `4849d4057405d996415c62e3f44998e145936697420327147cd269209d25ac60`.
+- Accepted Action 17f-a inspector SHA-256
+  `f380b441aad02b981669d8b251bae67633c49d8769d2e424e20c52b6c8cd3081`.
+- Accepted Action 17f-a runner SHA-256
+  `4d995823a4b988081bc4ce242e9699ad1e3f5564bafcfb5781e54f2b4d8fe2ee`.
+- Primary and local-zone candidates
+  `cef0349528f87e97362c5917f1d0f77baca92eebf04790ed96997dfe3a0dd2e8`
+  and
+  `8a7d1c6d2235e6f37a98dfd3e10165b49968fcc5f3e898ce0b359f70bc0456d1`.
+
+The renderer preserves the historical files. It builds a temporary composite
+driver containing exact base64-encoded copies of the accepted Action 17f-a
+inspector and immutable Action 17f transactional driver. The composite:
+
+1. Runs the inspector without consuming the tar input.
+2. Emits its complete labeled transcript.
+3. Requires status `0`, `PWD=/`, exactly 55 assertions, zero failed
+   assertions, conclusion `all_prewrite_prerequisites_pass`, diagnostic
+   completion, and every no-write/no-query/no-service marker.
+4. Emits `action_17f_retry_instrumented_prewrite_accepted=true` only when the
+   complete evidence contract passes.
+5. Executes the immutable transactional driver with its original tar stdin.
+
+A failed or incomplete instrumented preflight emits
+`action_17f_retry_instrumented_prewrite_rejected=true`, exits before the
+transactional driver, and cannot create an Action 17f transaction path. If the
+instrumented preflight passes but the immutable driver fails, both the labeled
+preflight and historical rollback/pre-write evidence remain available to
+distinguish state drift from an internal driver boundary.
+
+The rendered historical runner differs only in its expected composite-driver
+and rendered-regression hashes. Its production remote command remains:
+
+```text
+sudo -n /bin/bash -c 'cd / && exec /bin/bash -c ...'
+```
+
+The immutable driver retains its original transaction, protected parser,
+stage-completion, live-state equivalence, and rollback behavior. On success,
+the only persistent mutation remains the protected Action 17f local-zone stage
+outside `/etc/unbound`; no live Unbound file, DNS query, or service state is
+changed.
+
+Local validation passed without contacting Node B: exact historical and
+embedded hashes; Bash syntax; ShellCheck; shfmt; renderer and rendered-driver
+self-tests; rendered runner self/source/contract tests; exact two-line runner
+and one-line regression diffs; passing/mismatching production fixtures;
+`PWD=/`; tar continuity; mismatch-before-driver rejection; complete host
+suite; and Debian 12 Podman integration. The first container integration found
+a duplicated workstation-ownership assertion inside the rendered runner's
+container self-test. The duplicate call was removed while the outer
+workstation `--source-test` remained mandatory; isolated and complete
+container reruns then passed.
+
+For the future execution, after the runner hash and local gates are reverified,
+Codex must request workstation LAN network permission before the first SSH
+attempt. It must not first execute this known-LAN command in the restricted
+sandbox. This execution-environment permission does not authorize a different
+command, node, mutation, retry, or later action.
+
+Execution requires separate authorization for the exact outer runner hash
+above. No Action 17f retry execution, cleanup, composite installation, live
+Unbound change, DNS query, service action, synchronization, VRRP, or later
+action is currently authorized.
+
+### Executed gate: instrumented bounded Action 17f retry
+
+At `2026-07-30T00:36:08Z`, the exact authorized outer runner SHA-256
+`6dae2d4b5da2da62e92dc2e42400445905ba0f59692a6024748971472707c83b`
+was reverified and executed once. LAN network permission was requested before
+the first SSH attempt, so no known sandbox-only connection failure preceded
+the production attempt.
+
+The composite instrumented preflight completed from `PWD=/` and accepted all
+55 assertions with zero failures. It reconfirmed UID `0`, hostname, command
+availability, exact live root and primary files, exact completed Action 17e
+primary stage, absent live and staged local-zone files, zero abandoned
+transactions, active Unbound and Pi-hole FTL, a valid live parser result, and
+two matching live-state snapshots at `3a05c048...b824`. Its conclusion was
+`all_prewrite_prerequisites_pass`, and all no-path/no-query/no-configuration-
+mutation/no-service-mutation/no-persistent-mutation markers were true.
+
+After that accepted evidence, the composite invoked the immutable Action 17f
+driver with the original tar stream. The driver again stopped before mutation
+and emitted `action_17f_prewrite_failure_before_mutation=true`. Tar returned
+`0`; SSH and pipeline returned `1`; action acceptance was false. No
+transaction path began and no remote rollback was required. The inner and
+outer workstation cleanup layers both completed.
+
+The retry is not accepted. This evidence rules out drift in the 55 externally
+observable prerequisites immediately before driver entry and narrows the
+repeatable fault to the immutable driver's internal pre-write implementation.
+It does not identify the exact internal command or assertion, so no cause is
+inferred. Node B remains at the accepted Action 17e persistent state; the
+Action 17f local-zone stage remains unaccepted.
+
+The next gate requires separate authorization to define—but not execute—a
+narrow, read-only diagnostic for the immutable driver's internal pre-write
+boundary. No diagnostic definition or execution, cleanup, retry, staging,
+live Unbound change, DNS query, service action, synchronization, VRRP, or
+later action is currently authorized.
+
+### Defined gate: narrow read-only Action 17f-b transition diagnostic
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-action17f-transition-diagnostic.sh
+```
+
+Pinned artifacts:
+
+- Diagnostic SHA-256
+  `94a0c6d8470fc0366e233ddeec6af9e7be3403b7950a70801825e8c3ff9de9b3`.
+- Regression SHA-256
+  `3d04aacbe1fe1e131b120aba1f28d898870014b69d62edc31d4698020cf08aff`.
+- Runner SHA-256
+  `9abfa890b93b5bb3e8ac3f509cf27b9c391c137a56180202f99c8c90c3c88e5d`.
+- Immutable failed driver SHA-256
+  `916f8b8a109494523906d189f8cabec834ccf40fd04a38cb5686f355f3aee631`.
+
+The diagnostic reproduces the immutable driver's exact `file_hash`,
+`live_state`, `validate_primary_stage`, and `validate_baseline` functions.
+Regression compares those function bodies directly. It then reports each
+operation between the baseline call and the preflight marker independently:
+
+1. `validate_baseline`.
+2. `before_state=$(live_state)`.
+3. `readonly before_state`.
+4. Snapshot SHA-256 pipeline and assignment.
+5. `readonly before_state_sha256`.
+
+It also replays the complete sequence in an isolated subshell with production
+`set -Eeuo pipefail` behavior. An ERR trap reports the exact step label and
+status. A successful replay reports every step status and a completion marker.
+Only statuses, byte counts, and SHA-256 values are emitted; configuration
+contents are never printed.
+
+The diagnostic contains no filesystem mutation, service mutation, DNS query,
+peer connection, or `mktemp`. Its remote execution ends before the historical
+driver's first transaction-directory creation. The protected workstation
+runner uses the established root-directory SSH command, validates a bounded
+secret-free transcript, accepts either a labeled exact failure or a complete
+zero-status replay, and removes only its local transcript directory.
+
+The locked deployment policy now prohibits multiple fail-closed assertions
+behind an aggregate or unlabeled boundary. The Action 17f correction and all
+later live transaction definitions must emit a unique stable label and
+observed status for every assertion, with regression coverage that rejects
+missing, duplicate, or ambiguous failure evidence.
+
+Local validation passed without contacting Node B: Bash syntax, ShellCheck,
+exact production-function parity, diagnostic self-test, runner
+self/source/contract tests, static no-write/no-service/no-peer checks, the
+complete host suite, pre-commit, and full Debian 12 Podman integration. The
+first full Podman invocation was blocked before container execution because
+the filesystem sandbox made `/run/user/1000/libpod` read-only. The unchanged
+permitted rerun passed. Workspace and plan rules now require first-attempt
+escalation for Podman and known Podman-invoking wrappers.
+
+Execution requires separate authorization for the exact runner hash above and
+must use first-attempt LAN permission. No diagnostic execution, correction,
+retry, staging, live Unbound change, DNS query, service action,
+synchronization, VRRP, or later action is currently authorized.
+
+### Executed gate: narrow read-only Action 17f-b transition diagnostic
+
+At `2026-07-30T01:02:14Z`, exact runner
+`9abfa890b93b5bb3e8ac3f509cf27b9c391c137a56180202f99c8c90c3c88e5d`
+was reverified and executed once with first-attempt LAN permission.
+
+The Node B collector completed with SSH status `0`. It reported:
+
+- `transition_validate_baseline_status=1`.
+- Exact production failure step `validate_baseline`, status `1`.
+- Live-state assignment, snapshot readonly, snapshot hashing, and hash-readonly
+  statuses all `0`.
+- Snapshot size `984` bytes and SHA-256 `3a05c048...b824`, matching the
+  accepted live state.
+- No remote path, DNS query, configuration mutation, service mutation, or
+  persistent mutation.
+
+This narrows the immutable driver failure to an assertion inside
+`validate_baseline`; it rules out the following snapshot/readonly/hash
+sequence. The diagnostic is not accepted because it retained the complete
+baseline function as one aggregate label, contrary to the newly locked rule.
+It therefore does not identify the exact internal assertion.
+
+After the complete remote transcript returned, the workstation validator
+failed at line 96. Its function declared `local transcript=$1` while the
+calling scope already had a global readonly variable named `transcript`.
+Bash's dynamic scoping rejected the local declaration with
+`readonly variable`. The cleanup trap completed.
+
+Node B remained unchanged at the accepted Action 17e persistent state. At that
+point, the next gate required separate authorization to define—but not
+execute—a corrected read-only Action 17f-b retry that uniquely labels every
+assertion inside `validate_baseline`, removes the workstation name collision,
+and regression-tests both failures. That definition was later authorized and
+is recorded in the following gate; execution remains unauthorized.
+
+### Defined gate: corrected read-only Action 17f-b retry
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-action17f-labeled-baseline-retry.sh
+```
+
+Pinned artifacts:
+
+- Exact labeled tracer SHA-256
+  `1513aa2a559259965a1c6730e79dc3bfb953f4f5aca17590f4d39d71cc73de10`.
+- Production regression SHA-256
+  `99e5b2bed4dc023157b3a0dcff0b2dd1fb665d09a8d88a8ff6a4daf424d0bf6b`.
+- Readonly/local collision-policy checker SHA-256
+  `78b46fcdc6c4ca6b4cfe0121c347e0e101c472d723a891aac2dea7f23f085cd8`.
+- Exact runner SHA-256
+  `5e1ee076526b3d6bc7622dffe23aa4516d4e3f9e14fd55a88ba6a27d5882a815`.
+
+The runner performs two read-only collections through separate, strict,
+host-verified SSH sessions. The first reruns the accepted 55-assertion
+Action 17f-a inspector to prove the complete external baseline. The second
+runs the corrected tracer from `/` and labels every assertion inside
+`validate_baseline`, including every assertion in its retained-primary-stage
+dependency. It emits one status for every passing assertion and exactly one
+stable assertion label and status if production `set -Eeuo pipefail` stops.
+
+The workstation validator no longer uses a function-local name that overlaps
+any script-level readonly name. Its transcript paths and working directories
+use disjoint names. The regression reproduces the historical collision,
+proves the corrected production path, verifies complete and unique assertion
+label coverage, and rejects missing, duplicate, secret-bearing, or
+mutation-bearing evidence.
+
+The durable repository policy is broader than this one repair.
+`tests/check-shell-readonly-local-collisions.sh` compares all function-local
+declarations with all script-level readonly declarations regardless of source
+order. Exact immutable historical path/name/hash exceptions are allowlisted;
+any new collision, renamed collision, extra exception, or change to an
+allowlisted artifact fails host and Podman validation. ShellCheck remains in
+the suite but is not relied upon to detect Bash dynamic-scope collisions.
+
+Local validation passed without contacting Node B: Bash syntax, ShellCheck,
+repository shfmt, tracer self-test, runner self/source/contract tests,
+production regression, positive and negative collision-policy fixtures,
+complete host validation, and full Debian 12 Podman integration.
+
+Execution requires separate authorization for the exact runner hash above and
+first-attempt LAN permission. No execution, Action 17f correction or retry,
+staging, live Unbound change, DNS query, service action, synchronization,
+VRRP, or later action is currently authorized.
+
+### Executed gate: corrected read-only Action 17f-b retry
+
+At `2026-07-30T01:30:42Z`, exact runner
+`5e1ee076526b3d6bc7622dffe23aa4516d4e3f9e14fd55a88ba6a27d5882a815`
+was reverified and executed once with first-attempt LAN permission.
+
+The first Node B collector returned SSH status `0`; all 55 external assertions
+passed, its two live-state snapshots matched
+`3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`,
+and its conclusion remained `all_prewrite_prerequisites_pass`.
+
+The second collector also returned SSH status `0`. Every emitted assertion
+through `baseline_live_state_collection` was true with status `0`. The exact
+baseline then returned status `1` without its completion marker, failure
+label, or observed state hash. All remote no-path, no-query, no-configuration,
+no-service, and no-persistent-mutation markers were true. Workstation cleanup
+completed, and the outer runner correctly returned `1`.
+
+Local source inspection after the run established that
+`baseline_live_state_hash` is the only assertion after the final emitted pass.
+The tracer installed an ERR trap in the subshell but used
+`set -euo pipefail`, not `set -Eeuo pipefail`; Bash therefore did not inherit
+the trap inside `validate_baseline_labeled`. The regression used a fabricated
+failure transcript and did not exercise a real failing assertion inside that
+production function boundary.
+
+Action 17f-b retry is not accepted and must not be rerun unchanged. Node B
+remains at the accepted Action 17e persistent state. The next gate requires
+separate authorization to define—but not execute—a corrected read-only second
+retry that enables ERR-trap inheritance, emits safe observed and expected
+live-state hashes at the final comparison, and regression-tests an actual
+production-function failure. No definition, execution, correction, retry,
+staging, live Unbound change, DNS query, service action, synchronization,
+VRRP, or later action is currently authorized.
+
+### Defined gate: corrected read-only Action 17f-b second retry
+
+Exact command, defined but not executed:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+./Caddy/scripts/run-node-b-unbound-action17f-baseline-second-retry.sh
+```
+
+Pinned artifacts:
+
+- Corrected tracer SHA-256
+  `96437ea43b069b840dcf2abde5c30905f976d07008bfef17d211e9902d698c3b`.
+- Production function-failure regression SHA-256
+  `7c9bef927c83757f73b42839540fe7acb113d2bc0c93e50b526ac9ea062126ad`.
+- Exact runner SHA-256
+  `5c33177beb6809e46d3781bd5c43e3f10ddac095a585b688682ba473baf95456`.
+- Immutable executed first-retry runner SHA-256
+  `5e1ee076526b3d6bc7622dffe23aa4516d4e3f9e14fd55a88ba6a27d5882a815`.
+
+The second-retry tracer uses a dedicated `run_labeled_validation` wrapper with
+`set -Eeuo pipefail` and a dedicated failure reporter. The production
+validation function is invoked as an unconditional command; its status is
+captured afterward. It is never invoked in an `if`, `while`, `until`, `&&`, or
+`||` command context, because those contexts suppress Bash `errexit` behavior
+within called functions.
+
+Immediately before the final live-state comparison, the tracer emits only two
+safe non-secret values:
+
+- `observed_live_state_sha256`.
+- `expected_live_state_sha256`.
+
+The runner requires both to be unique 64-character lowercase SHA-256 values
+and pins the expected value. A zero exact-baseline status requires equal
+hashes, a completion marker, and a successful final assertion. A nonzero
+status requires unequal hashes, exactly one
+`baseline_live_state_hash=false` record, one nonzero status record, and no
+completion marker.
+
+The regression invokes an actual function that fails internally through the
+same production wrapper. It requires inherited ERR handling, exactly one
+stable failure label/status, nonzero wrapper status, no completion marker, and
+no false success. During definition, this regression first exposed an
+additional Bash hazard: placing the wrapper call in an `||` list disabled
+`errexit` inside the called function. The production and regression call sites
+were corrected before the artifact hashes above were pinned.
+
+Local validation passed without contacting Node B: Bash syntax, ShellCheck,
+shfmt, the actual function-internal failure regression, runner
+self/source/contract tests, zero unapproved readonly/local collisions,
+complete host validation, and full Debian 12 Podman integration.
+
+Execution requires separate authorization for exact runner SHA-256
+`5c33177beb6809e46d3781bd5c43e3f10ddac095a585b688682ba473baf95456`
+and first-attempt LAN permission. No execution, Action 17f correction or
+retry, staging, live Unbound change, DNS query, service action,
+synchronization, VRRP, or later action is currently authorized.
+
+### Executed gate: corrected read-only Action 17f-b second retry
+
+At `2026-07-30T02:19:32Z`, exact runner
+`5c33177beb6809e46d3781bd5c43e3f10ddac095a585b688682ba473baf95456`
+was reverified and executed once with first-attempt LAN permission.
+
+The inspector returned SSH status `0`; all 55 assertions passed, both
+normalized live-state hashes were
+`3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`,
+and no mutation occurred.
+
+The exact driver-style tracer returned SSH status `0` and emitted successful
+labels through live-state collection. It then reported:
+
+- Observed raw-pipeline hash
+  `d6f8e13cd9afac0750ac39a7a9a79db50d13b8c58c6407313a50909d0930ffae`.
+- Expected normalized hash
+  `3a05c0487101f3b44f8e5ba41a4a74713d07cddc369542f04d4a8b1f417cb824`.
+- Exactly one failed assertion: `baseline_live_state_hash`.
+- Exact failure status `1`.
+- No exact-baseline completion marker.
+
+Every no-path, no-query, no-configuration, no-service, and
+no-persistent-mutation marker passed. The runner accepted the complete
+diagnostic and returned `0`; workstation cleanup completed.
+
+Local source comparison proved the root cause. The immutable Action 17f driver
+uses:
+
+```bash
+state_hash=$(live_state | sha256sum | awk '{ print $1 }')
+```
+
+That hashes the final newline emitted by `live_state`. The accepted inspector
+uses command substitution to capture `live_state`; Bash removes trailing
+newlines, and the inspector then hashes the normalized bytes with
+`printf '%s'`. The two hashes are therefore deterministically different even
+though the collected system state is identical.
+
+Action 17f-b second retry is accepted as complete diagnostic evidence. Node B
+remains at the accepted Action 17e persistent state. The next gate requires
+separate authorization to define—but not execute—an append-only corrected
+bounded Action 17f retry that uses the accepted normalized hashing semantics,
+preserves all existing rollback and mutation boundaries, and regression-tests
+both raw-pipeline and normalized hashes. No definition, execution, staging,
+live Unbound change, DNS query, service action, synchronization, VRRP, or
+later action is currently authorized.
 
 ### Defined next gate: deployment action 16b
 
@@ -8972,10 +10644,1551 @@ requires literal embedded delimiters. The complete evidence used the intended
 encoding and was rejected. No retry, runner correction, expanded collector,
 configuration correction, or later action is authorized.
 
+### Defined corrected read-only Action 16aq-a retry
+
+The corrected retry was defined locally at `2026-07-29T15:10:30Z`. It has not
+been authorized or executed.
+
+The two previously executed Action 16aq-a artifacts remain byte-identical.
+The retry adds:
+
+- `extend-node-a-lighttpd-routing-action16aq-a-retry.sh`, a read-only
+  extension appended to the original collector only in a protected local
+  temporary payload.
+- `run-node-a-lighttpd-routing-diagnostic-action16aq-a-retry.sh`, a separate
+  workstation runner that pins the original collector and extension hashes.
+
+The extension reuses the original collector's in-memory adapted and runtime
+Caddy JSON. For every direct `static_response` handler, it emits only:
+
+- Server, route index, handler index, listeners, and matched hosts.
+- Whether `status_code` is explicitly present.
+- The effective status code, treating an absent status as Caddy's default
+  `200`.
+- Body length.
+- Whether the body equals the literal string `421`.
+
+It never emits the response body or any certificate, key, environment value,
+header value outside the original allowlist, or other configuration content.
+Adapted and runtime records have independent statuses and counts plus an
+observational equality Boolean.
+
+The corrected runner:
+
+- Requires the exact original collector SHA-256
+  `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111`.
+- Requires extension SHA-256
+  `e4f42a453851025ffc0bd1cd6b0a6f249ca6eda41bf5cef7aca039673baa8bed`.
+- Validates the original singleton, repeated-record, command, route, probe,
+  header, secret-exclusion, and no-mutation contracts.
+- Splits only the two outer probe separators, requires the metadata payload to
+  contain no literal pipe, decodes `%7C` in memory, requires exactly six
+  fields, and validates status, address, protocol, redirect, and byte-count
+  types.
+- Requires at least one schema-valid hostless HTTPS static-response record
+  from both adapted and runtime data without assuming its observed status or
+  body Boolean.
+- Accepts either value of the adapted/runtime equality Boolean so a completed
+  non-enforcing diagnostic cannot hide a mismatch.
+- Rejects duplicate, literal-delimiter, count-inconsistent, malformed-JSON,
+  secret-bearing, and nonzero-SSH synthetic transcripts.
+- Creates only a protected local payload/output/error workspace and removes it
+  before returning. The streamed payload creates no Node A path.
+
+Expected effect: no Node A state change. Successful collection and transcript
+validation return `0`; malformed or incomplete evidence returns `97`. No
+remote rollback is applicable because the combined payload is read-only.
+
+The exact separately authorizable command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a-retry.sh
+runner_sha=16f11a09e86b6c7e41057541ea488b5995c078aa71bd294f12f96b1cede18af0
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Immediate validation requires runner and SSH status `0`, both original and
+extension completion markers, all singleton and repeated-record counts,
+exactly five production-encoded probes, schema-valid adapted and runtime
+static-response records including the hostless HTTPS catch-all, every
+no-mutation marker, secret-free output, and local cleanup. The result will
+explain the observed catch-all response but will not authorize a Caddy
+configuration correction or Action 16aq retry.
+
+The exact corrected retry was explicitly authorized and executed once at
+`2026-07-29T15:23:39Z`.
+
+Runner and SSH status were `0`. The original collector and retry extension
+both emitted their completion markers. All 15 command prerequisites returned
+`0`; all peer, helper, daemon-reload, service, filesystem, and VRRP mutation
+markers were false; and protected workstation cleanup completed.
+
+The original lighttpd and routing observations repeated unchanged. Adapted and
+runtime Caddy route summaries each contained the same six routes. Five direct
+probes again returned:
+
+- Matching unknown SNI and Host: empty Caddy `200`.
+- Matching Node A management SNI and Host: lighttpd `200`.
+- Known SNI with unknown Host: Caddy `421`.
+- Unknown SNI with known Host: Caddy `421`.
+- IP SNI with unknown Host: curl `35`, HTTP `000`.
+
+The added static-response evidence was identical in adapted and runtime state:
+
+| Server | Listener | Hosts | Explicit status | Effective status | Body length | Body equals `421` |
+| --- | --- | --- | --- | ---: | ---: | --- |
+| `srv3` | `:443` | None | Yes | `421` | `0` | No |
+| `srv4` | `:80` | None | Yes | `421` | `0` | No |
+
+Therefore the unknown-default `200` is not caused by a malformed
+`respond 421` directive, an implicit default status in the catch-all handler,
+or adapted/runtime drift. The evidence shows that the matching unknown
+SNI/Host request did not execute the observed `srv3` catch-all handler, but it
+does not directly identify which internal Caddy server accepted the
+connection. That server-selection boundary remains unresolved and is not
+inferred.
+
+The corrected Action 16aq-a retry is accepted as complete read-only diagnostic
+evidence. It does not accept Action 16aq or authorize a configuration change.
+Any server-selection diagnostic, configuration correction, or Action 16aq
+retry requires separate definition and authorization.
+
+### Defined narrow read-only Action 16aq-b
+
+Action 16aq-b was defined and fully validated in the local repository at
+`2026-07-29T15:37:19Z`. It has not been authorized or executed.
+
+The collector streams through standard input and creates no Node A path. It:
+
+- Fetches the live Caddy server configuration only from the loopback
+  administration endpoint and emits secret-safe server/listener/host/catch-all
+  summaries.
+- Takes loopback metrics snapshots immediately before and after one HEAD
+  request to the known Node A management host and one uncommon, safe `TRACE`
+  request to the matching unknown host, both forced directly to `10.1.0.53`.
+  The latter sends no credentials or body, discards the response, and neither
+  observed candidate unknown-host route reaches the Pi-hole backend.
+- Uses
+  `caddy_http_request_duration_seconds_count` labels to identify the internal
+  server for a handled request. The known management request is the positive
+  server-label control.
+- Reports a directly labeled internal server if the unknown request executes a
+  handler and produces one unambiguous server delta whose response code equals
+  the independently observed probe code.
+- If the unknown request is unhandled and therefore produces no handler
+  metric, reports the exact-listener server only when all evidence agrees:
+  there is one exact `10.1.0.53:443` server, the positive control maps to that
+  server, a wildcard `:443` server has the hostless `421` handler, the unknown
+  probe returns `200`, and no unknown handler delta exists.
+- Emits `unresolved|insufficient_or_concurrent_evidence|false` instead of
+  claiming a server when the live evidence is incomplete, ambiguous, or
+  affected by concurrent matching traffic.
+
+The workstation runner pins the collector hash, requires regular
+`aaron:aaron` mode-`0755` local provenance, uses strict host-key verification
+for `pi@10.1.0.53` with alias `pihole0.local.theama.co`, and fail-closes on
+missing, duplicate, malformed, count-inconsistent, secret-bearing, or
+nonzero-SSH evidence. Both conclusive and explicitly unresolved safe
+transcripts are valid diagnostic results; neither is an Action 16aq
+acceptance decision.
+
+Expected effect: no filesystem, configuration, service, systemd-manager,
+helper, peer, synchronization, Keepalived, or VRRP change. The safe HEAD
+control and no-credential/no-body unknown-host TRACE request increment Caddy's
+normal in-memory request metrics; this bounded runtime counter effect is
+explicitly recorded and is not persistent across a Caddy restart. The runner
+creates a protected workstation transcript directory and removes it before
+exit. No remote rollback applies because no remote path or persistent state is
+created.
+
+The exact separately authorizable command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b.sh
+runner_sha=bacd05fdd156a4629317c2e629adc646ce43e1cbc101e171db8ce294c0105118
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Immediate validation requires runner and SSH status `0`, exact completion and
+no-persistent-mutation markers, four successful loopback metrics reads, two
+schema-valid probe records, reconciled server-summary and metric-delta counts,
+a schema-valid conclusive or unresolved selection record, secret-free output,
+and complete workstation cleanup. Execution requires separate authorization.
+
+The exact Action 16aq-b runner was explicitly authorized and executed once at
+`2026-07-29T15:48:33Z`. Runner and SSH status were `0`. Node identity,
+architecture, all ten commands, runtime configuration, all four loopback
+metrics reads, record counts, completion markers, no-persistent-mutation
+markers, and protected workstation cleanup passed.
+
+The live Caddy server map contained:
+
+| Server | Listener role | Hosts | Hostless static `421` |
+| --- | --- | --- | --- |
+| `srv0` | Exact Node A IPv4 and ULA TCP 443 | `pihole0.local.theama.co` | No |
+| `srv1` | Caddy IPv4 and IPv6 VIP TCP 443 | `pihole-admin.local.theama.co`, `proxy.local.theama.co` | No |
+| `srv2` | IPv4 and IPv6 loopback TCP 443 | `localhost` | No |
+| `srv3` | Wildcard TCP 443 | None | Yes |
+| `srv4` | Wildcard TCP 80 | None | Yes |
+
+The known management HEAD request returned `200` and incremented
+`srv0|subroute|pihole0.local.theama.co|200` by one. The matching unknown TRACE
+request returned empty `200` and produced zero handler-metric deltas. The
+collector emitted
+`unresolved|insufficient_or_concurrent_evidence|false`.
+
+This unresolved result is caused by a local derivation defect, not by missing
+runtime evidence: `sanitize_line` encoded the probe metadata delimiters as
+`%7C`, but lines 368–370 of the collector attempted to split the encoded
+metadata on literal `|`. The derived `unknown_code` therefore contained the
+complete encoded metadata rather than `200`, preventing the otherwise
+eligible exact-listener evidence path. The runner correctly accepted
+`unresolved` as a safe diagnostic result, so its status `0` does not identify
+a server.
+
+Action 16aq-b is accepted as complete, secret-free, read-only collection with
+no persistent mutation. It does not identify the accepting server, accept
+Action 16aq, or authorize a configuration change. A corrected diagnostic
+retry must be separately defined, validated against the exact production
+`%7C` transcript, and authorized.
+
+### Defined corrected read-only Action 16aq-b retry
+
+The corrected retry was defined and fully validated locally at
+`2026-07-29T15:55:01Z`, then separately authorized and executed once at
+`2026-07-29T15:59:21Z`.
+
+Both executed historical artifacts remain byte-identical:
+
+- `diagnose-node-a-caddy-server-selection-action16aq-b.sh` remains
+  `28ad0167c7e44242540cb5194fc308da8474f378dbc714a9f17931388e6321c3`.
+- `run-node-a-caddy-server-selection-diagnostic-action16aq-b.sh` remains
+  `bacd05fdd156a4629317c2e629adc646ce43e1cbc101e171db8ce294c0105118`.
+
+The correction is a separate read-only file appended to the original
+collector in a protected workstation payload. It:
+
+- Rejects missing metadata, literal delimiters, an incorrect field count,
+  invalid HTTP status, empty address/version fields, and nonnumeric redirect
+  or body-size fields.
+- Converts the exact production value
+  `200%7C10.1.0.53%7C2%7C0%7C0` into five fields and extracts only `200`.
+- Passes the decoded status and all original runtime/metrics evidence to the
+  original `derive_selection` function.
+- Emits separate `corrected_*` records and a correction completion marker,
+  leaving the original unresolved record visible and unchanged.
+
+The separate runner validates all original Action 16aq-b evidence plus the
+correction schema, decode status, decoded-code equality with the production
+probe, corrected selection schema, both artifact hashes, secret exclusion,
+SSH status, and local cleanup. Its exact production-format success fixture
+requires:
+
+```text
+probe_record=unknown_default|0|200%7C10.1.0.53%7C2%7C0%7C0
+server_selection_record=unresolved|insufficient_or_concurrent_evidence|false
+corrected_probe_decode_status=0
+corrected_unknown_http_code=200
+corrected_server_selection_record=srv0|exact_listener_control_plus_unhandled_200|true
+```
+
+Negative contracts reject literal-delimiter input, decoded-code mismatch,
+duplicate evidence, malformed server summaries, secret-bearing output, and
+nonzero SSH. A schema-valid corrected unresolved result remains permissible
+when fresh live evidence is genuinely incomplete or ambiguous.
+
+Expected effect: the same bounded read-only Node A collection as Action
+16aq-b. The known HEAD and unknown TRACE requests increment only normal
+in-memory Caddy request counters. No filesystem, configuration, service,
+systemd-manager, Webmin TCP 10000, helper, peer, synchronization, Keepalived,
+or VRRP state changes. No remote rollback applies because no remote path or
+persistent state is created. The runner removes only its protected
+workstation temporary directory.
+
+The exact separately authorizable command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b-retry.sh
+runner_sha=c57aef507f5f0044f4e22786e66310a9134ee7e6c1ee36cc2107042dc1f45363
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Immediate validation requires runner and SSH status `0`, both original and
+correction completion markers, production-encoded probe validation, decoded
+status equality, schema-valid original and corrected selection records, all
+singleton/repeated-record counts, every no-persistent-mutation marker,
+secret-free output, and complete workstation cleanup.
+
+The authorized execution satisfied every immediate validation condition.
+Runner and SSH both returned `0`; the decoder recovered unknown status `200`;
+the known control incremented only exact-listener server `srv0`; wildcard
+HTTPS server `srv3` did not increment; and the corrected record was:
+
+```text
+corrected_server_selection_record=srv0|exact_listener_control_plus_unhandled_200|true
+```
+
+All remote no-mutation markers were false, both completion markers were
+present, and protected workstation cleanup completed. This accepts the retry
+as conclusive read-only evidence: the physical-address exact listener
+selected as `srv0` returns an unhandled empty `200` for the unknown host.
+Action 16aq remains unaccepted, and no configuration correction or service
+mutation is authorized.
+
+### Defined transactional Node A routing correction Action 16ar
+
+Action 16ar was defined and fully validated locally at
+`2026-07-29T16:19:28Z`. It was subsequently authorized and executed once at
+`2026-07-29T16:24:19Z`; that execution failed and is not accepted. Neither
+node was contacted while defining it.
+
+The correction follows directly from accepted Action 16aq-b retry evidence.
+The global `:443` rejection route is in internal server `srv3`, while traffic
+addressed to Node A's physical IP is accepted by exact-listener server `srv0`.
+An unmatched host in `srv0` reaches no handler and therefore receives Caddy's
+empty default `200`; it cannot fall through to a different internal server.
+
+The repository correction is the new append-only fragment
+`conf.d/91-exact-listener-default-deny.caddy`. It adds a terminal hostless
+`421` route to each exact-listener group:
+
+- Node-local physical IPv4 and stable ULA.
+- Shared Caddy VIP IPv4 and IPv6.
+- IPv4 and IPv6 loopback.
+
+The existing global HTTP and HTTPS rejection fragment
+`90-default-deny.caddy` remains byte-identical at
+`9ce8430d11882f4e2008ff27f4f4a2fcad568f81081629289f64ad2450316b27`.
+This preserves all executed source-transfer and installation evidence. Caddy
+`2.11.4` adaptation proves that the new fragment merges into the existing
+five internal servers: named routes remain first, every exact-listener server
+gains a terminal hostless `421`, and no listener or internal server is added.
+The shared fragment expresses eventual HA desired state, but Action 16ar is
+strictly pinned to Node A and contains no Node B connection or mutation.
+
+The transaction:
+
+1. Requires the accepted Node A bootstrap release, exact tree and file
+   hashes, active/disabled Caddy, accepted lighttpd and Keepalived states,
+   deferred lsyncd state, inactive reload path/service, absent Caddy VRRP,
+   unchanged listeners, stable Caddy PID, and the observed pre-correction
+   unknown-host `200`.
+2. Copies bootstrap into protected staging, adds only the new fragment,
+   creates a content manifest and completion marker, applies immutable
+   ownership/modes, adapts the exact route topology, and validates as user
+   `caddy`.
+3. Moves staging to immutable release
+   `/etc/caddy/releases/action16ar-node-a-default-deny`, atomically selects it
+   through `/etc/caddy/current`, and performs only
+   `systemctl reload caddy.service`.
+4. Polls for stable service state twice within 25 seconds and requires the
+   original Caddy PID and listener snapshot, localhost health `204`,
+   successful/redirecting management responses over physical IPv4 and IPv6,
+   and unknown-host `421` over physical IPv4, stable ULA, and loopback.
+5. Confirms lighttpd, Keepalived, lsyncd, Caddy reload-path/service, and
+   listener state are unchanged; no daemon reload, restart, peer connection,
+   VRRP, synchronization, or Webmin TCP 10000 access occurs.
+
+Before release selection, failure removes only the named staging and release
+paths. After selection, the bounded automatic rollback atomically restores
+the bootstrap symlink, reloads Caddy, requires the original PID, listeners,
+service states, localhost and management health, and the known baseline
+unknown-host `200`, removes the candidate, and verifies the exact original
+Caddy tree. A complete rollback returns the triggering nonzero status. An
+incomplete rollback returns `125` and emits
+`manual_intervention_required=true`.
+
+Local validation includes the exact Caddy `2.11.4` adapted route tree and a
+live runtime regression using ephemeral certificates. Unknown hosts returned
+`421` through physical IPv4, stable ULA, VIP IPv4, VIP IPv6, IPv4 loopback,
+and IPv6 loopback; the named VIP health route continued to return `204`.
+Runner contracts reject duplicate evidence, any non-`421` result, a changed
+Caddy PID, malformed hashes, secret-bearing output, inconsistent SSH status,
+and incomplete rollback evidence.
+
+The exact separately authorizable command is:
+
+```bash
+runner=Caddy/scripts/run-node-a-caddy-routing-correction-action16ar.sh
+runner_sha=cb5dcd9d2e89d7fc58cc6af6347033dbf341b821c9383f2fc91d0bcd80bba244
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == "$runner_sha" ]]
+"$runner"
+```
+
+Immediate acceptance requires runner and SSH status `0`, exact local driver
+and fragment provenance, all preflight/mutation/completion markers, immutable
+release and manifest hashes, unchanged positive Caddy PID, three unknown-host
+`421` records, explicit reload-only/no-other-mutation markers, secret-free
+output, and complete workstation cleanup. Execution requires separate
+authorization. Action 16aq remains unaccepted until an independent
+post-correction validation is separately defined, authorized, and executed.
+
+### Failed transactional Action 16ar execution
+
+The exact runner was authorized and executed once. Local file type,
+ownership, mode, and SHA-256 checks passed before SSH. The remote transcript
+proved:
+
+- The remote driver was reached.
+- All preflight assertions passed.
+- The transaction emitted its mutation-start marker.
+- Environment-backed Caddy processing reached the immutable staging
+  configuration.
+- The remote driver then failed with original status `1`.
+- Automatic rollback emitted
+  `action_16ar_rollback_incomplete=true` and
+  `manual_intervention_required=true`.
+- SSH returned `125`; the fail-closed runner returned `97`.
+- Protected workstation cleanup completed.
+
+No success marker, selected-release path, release/content manifest hash,
+Caddy PID before/after, unknown-host result, or explicit no-other-mutation
+record was emitted. The transcript does not establish the exact failing
+readiness assertion or which rollback assertions failed. Although the driver
+attempts bootstrap restoration and candidate removal, those operations cannot
+be represented as successful without independent evidence.
+
+Node A's current `/etc/caddy/current` target, bootstrap and candidate release
+paths, immutable manifest state, Caddy service state/PID/result, effective
+runtime configuration, listeners, management and localhost health,
+unknown-host behavior, and protected service state are therefore unknown.
+No repair, cleanup, retry, Caddy reload/restart, Node B access, synchronization,
+VRRP change, or later action is authorized.
+
+The next safe gate is the now-defined but unexecuted, fail-closed, read-only
+Action 16ar-a recovery diagnostic described below. It must be separately
+authorized before execution.
+
+### Defined fail-closed read-only Action 16ar-a recovery diagnostic
+
+Action 16ar-a consists of:
+
+- `scripts/diagnose-node-a-action16ar-recovery-action16ar-a.sh`, SHA-256
+  `c63146c3c2d7e3201bb5a90d3456333a3ccdcb4bf6a287721607e8f046ff28cb`.
+- `scripts/run-node-a-action16ar-recovery-diagnostic-action16ar-a.sh`,
+  SHA-256
+  `52302f2394c51c20945947e0b454ab94023a158f8bed7bd39e88295aa9b484d9`.
+
+The collector is streamed to Node A over strict host-verified SSH and is not
+installed there. It reports actual values without assuming rollback success:
+
+- Availability of all 22 commands used by the collector.
+- Type, metadata, link text, canonical target, and content/tree hash for 16
+  exact current, bootstrap, candidate, staging, temporary-link, environment,
+  Keepalived, Caddyfile, correction, completion, and manifest paths.
+- Metadata, tree hash, completion state, manifest verification status,
+  revision ancestry, source/action identity, file count, and correction hash
+  for the bootstrap, final candidate, and incomplete staging release roots.
+- The ten non-secret node-local Caddy environment values and environment-file
+  hash.
+- Load, active, sub, enablement, result, PID, exit, restart, fragment, and
+  drop-in state for Caddy, lighttpd, Keepalived, lsyncd, and four related
+  custom units.
+- Environment-backed validation of the currently selected Caddyfile, adapted
+  route summaries, live admin-API route summaries, and exact hashes for the
+  Caddy, Keepalived, and lighttpd trees.
+- Relevant listeners and Caddy, lighttpd, Keepalived, and lsyncd processes.
+- Bounded direct probes for the loopback backend, localhost health, physical
+  IPv4 and stable-ULA management endpoints, matching unknown-host requests on
+  both physical addresses, and matching unknown-host requests on both
+  loopbacks.
+- At most 80 Caddy journal records since
+  `2026-07-29 16:20:00 UTC`.
+
+The workstation runner rejects incomplete, duplicate, malformed,
+count-inconsistent, secret-bearing, stderr-bearing, or nonzero-SSH evidence
+with status `97`. It pins the collector hash, Node A host-key alias, SSH user,
+and address. It never contacts Node B or Webmin. The remote collector creates
+no path and performs no filesystem or service mutation; its HTTP requests can
+increment only in-memory Caddy request counters. The runner creates only a
+mode-`0700` workstation temporary directory and removes it on every accepted
+exit path.
+
+The exact command subsequently authorized and executed once was:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-action16ar-recovery-diagnostic-action16ar-a.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "52302f2394c51c20945947e0b454ab94023a158f8bed7bd39e88295aa9b484d9" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: collect and validate a complete read-only recovery-state
+transcript from Node A, then remove the workstation temporary directory.
+Validation: runner and SSH must both return `0`; every declared record count,
+schema, no-mutation marker, and completion marker must reconcile. Rollback:
+none applies remotely because the action creates no remote state; local
+temporary cleanup is mandatory and fail-closed. The accepted execution is
+recorded below; this command must not be rerun without fresh authorization.
+
+### Accepted Action 16ar-a recovery evidence
+
+At `2026-07-29T16:39:04Z`, the exact Action 16ar-a runner completed with SSH
+and runner status `0`. Every count, schema, no-mutation marker, completion
+marker, and workstation cleanup check reconciled. The read-only evidence
+establishes:
+
+- `/etc/caddy/current` is a symlink to
+  `/etc/caddy/releases/bootstrap`.
+- `/etc/caddy/releases/action16ar-node-a-default-deny`,
+  `/etc/caddy/releases/.action16ar-node-a-default-deny.staging`, and
+  `/etc/caddy/current.action16ar-new` are absent, including every inspected
+  completion and manifest child.
+- The bootstrap tree is `root:caddy-tls` mode `0750`, contains nine files,
+  and has tree SHA-256
+  `a2c5cd32f382b4118e1736f8c2590de1a6f879887a92e1a12d1768dd041cff17`.
+  Its accepted Caddyfile remains
+  `a41c7816e927c16278fab018675a3f2db5b2aae89dd5b181f1ecb06ec9beb86e`;
+  `90-default-deny.caddy` remains
+  `9ce8430d11882f4e2008ff27f4f4a2fcad568f81081629289f64ad2450316b27`;
+  and `91-exact-listener-default-deny.caddy` is absent.
+- `/etc/default/caddy-ha` remains `root:caddy-tls` mode `0640` with SHA-256
+  `2e439dd4c868736fd7a9dceff7ba3627a1d9fe8780ba7dcef2ce5d0e5e62a2b8`;
+  all ten expected non-secret Node A values were present.
+- Caddy is loaded, active/running, disabled, result `success`, PID `1085652`,
+  exit status `0`, and zero restarts. lighttpd is loaded, active/running,
+  enabled, and result `success`, PID `1085537`.
+- lsyncd and `caddy-api.service` remain masked and inactive;
+  `caddy-lsyncd.service` and the Caddy validation path/service remain
+  inactive. `/etc/keepalived/conf.d/caddy-ha.conf` remains absent.
+- Environment-backed Caddy validation returned `0`. Adapted and runtime
+  summaries each contained the expected five servers and listener/host sets.
+  Their current configuration digests were
+  `d406edc89f43a4f4a7bb28adc364ab9d3befec143d532e8b3834e8553ae8a574`
+  and
+  `fec7a0eb8bb8be9557be8869ea017a780817a826c236d77cd5894f30244bbb62`.
+- Caddy, Keepalived, and lighttpd tree hashes were
+  `6ae99faf2cb216466879f15139cdd6614234cf46d796f535387d51ecc9602161`,
+  `dad64e4ac7fdbaab2db3454ccf79158b6f41e4973086f9937a7c6b737f0a2f66`,
+  and
+  `95a8752f86f1f475d7b8fd12090379c4ae46b9f4140212c7405586c222383372`.
+- Seventeen relevant listeners were present: lighttpd alone on loopback TCP
+  8080; Caddy TCP 80, TCP/UDP 443 on wildcard, physical, VIP, and loopback
+  endpoints as configured; and the Caddy administration endpoint only on
+  loopback TCP 2019.
+- Backend, localhost health, and physical dual-stack management probes
+  succeeded with HTTP `302`, `204`, and `302`/`302`. All four matching
+  unknown-host probes still returned empty HTTP `200`, proving the intended
+  Action 16ar routing correction is not deployed.
+- The bounded journal shows a candidate-sized Caddy load followed later by a
+  bootstrap-sized load, both completing systemd reload, while the final Caddy
+  PID remained `1085652`. This is supporting chronology only; exact failure
+  and rollback assertion labels were not emitted by Action 16ar.
+
+This evidence supersedes the earlier unknown-state and manual-intervention
+hold: Node A has independently verified operational recovery without a repair.
+It does not accept Action 16ar or the unknown-host policy. No repair, remote
+cleanup, retry, reload/restart, Node B access, synchronization, VRRP change, or
+later action was performed or authorized.
+
+### Action 16ar root cause and defined corrected retry
+
+The accepted recovery evidence and a new Caddy `2.11.4` reload-lifecycle
+regression establish the Action 16ar failure mechanism:
+
+1. The journal proves the candidate configuration was accepted and loaded.
+2. The historical driver entered only its post-reload readiness gate after
+   that load.
+3. Its `listener_snapshot` compared complete `ss -H -lntup` lines, including
+   volatile PID/file-descriptor and queue details, byte-for-byte.
+4. The container regression performed the exact logical
+   bootstrap→candidate→bootstrap lifecycle. Unknown-host status changed
+   `200→421→200`, the Caddy PID remained stable, and the semantic listener
+   identity remained equal across both reloads. Both raw listener snapshots
+   were unequal.
+5. Therefore, healthy candidate and rollback reloads were misclassified as
+   failures by the raw listener equality policy. This explains both the
+   original readiness timeout and the false incomplete-rollback marker while
+   remaining consistent with every accepted Action 16ar-a observation.
+
+The corrected retry preserves all historical files byte-for-byte. It adds:
+
+- `scripts/correct-node-a-caddy-routing-transaction-action16ar-retry.sh`,
+  which verifies historical driver SHA-256
+  `a361d0f4e37bd84a440de9115c0a3148cf9511f3e80736ae93795d812b09278a`
+  before rendering a corrected driver.
+- A listener snapshot containing only protocol, state, local endpoint, and
+  owning process name. Volatile queue, PID, and file-descriptor fields are
+  excluded; endpoint or owner changes still fail closed.
+- Distinct retry release, staging, temporary-link, manifest-action, temporary
+  adaptation, and transcript names under `action16ar-retry`.
+- `scripts/run-node-a-caddy-routing-correction-action16ar-retry.sh`, which
+  pins the historical driver, transformer, rendered driver, and correction
+  fragment and preserves the success, rollback-complete,
+  rollback-not-required, rollback-incomplete, secret-exclusion, and protected
+  workstation-cleanup contracts.
+
+Selected hashes:
+
+| Corrected Action 16ar retry artifact | SHA-256 |
+| --- | --- |
+| Transformer | `d8c612cb6ea765d45ddb34878ab0dba31a30642d4c473340ce114f37264270e7` |
+| Rendered remote driver | `b62222cc0edd941e7ea4ade533f494fe289b9ac741eb254b0c0b61cde8284a2f` |
+| Workstation runner | `f5193f35fd2fcf1988f1a6ab2a2f84489cf6d65f26ef36ba8f03380be386b9ca` |
+| Reload regression | `82e34d3d01f4c495c2a150ea8c5c0a6e19c516903b89f9e6c063d18f82b35cb8` |
+
+As defined, the transaction is Node A-only. It creates
+`/etc/caddy/releases/action16ar-retry-node-a-default-deny`, selects it
+atomically, reloads rather than restarts Caddy, requires stable semantic
+listeners and unchanged PID, validates localhost and direct dual-stack
+management, requires unknown hosts to return `421`, and preserves all
+lighttpd, Keepalived, lsyncd, systemd-manager, peer, and deferred state.
+
+On any failure, the rendered driver reselects bootstrap, reloads it, requires
+baseline `200` unknown-host behavior and healthy named endpoints, removes only
+the retry-owned final/staging/temp paths, and validates the exact baseline
+tree and semantic service/listener state. Complete rollback returns semantic
+status `1`; incomplete rollback returns `125` remotely and `97` from the
+runner. No live execution occurred while defining or validating this retry.
+
+The exact command that was separately authorized and executed once was:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-caddy-routing-correction-action16ar-retry.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "f5193f35fd2fcf1988f1a6ab2a2f84489cf6d65f26ef36ba8f03380be386b9ca" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: create and select one immutable corrected Node A release and
+reload Caddy without changing its PID or semantic listeners. Validation:
+runner and SSH `0`, selected retry release, exact manifest hashes, three
+unknown-host `421` records, preserved PID, reload-only behavior, all
+no-other-mutation markers, secret-free output, and complete workstation
+cleanup.
+Rollback is included and bounded as described above. This command was executed
+exactly once and must not be rerun without a new definition and authorization.
+
+The three Pi-hole web roles are distinct. The recommended mapping remains
+`pihole-admin.local.theama.co` to the Caddy VRRP VIP `.56/::56`, with Caddy
+proxying to the active node's loopback Pi-hole backend. The existing Pi-hole
+VIP `.55/::55` remains the DNS-service VIP. A VIP cannot point to another VIP
+at the VRRP layer; configuring Caddy `.56/::56` to proxy to `.55/::55` would
+couple two independently failing VRRP groups and would not reach the current
+loopback-only lighttpd backend. The direct node names remain bound to physical
+Node A `.53/::53` and Node B `.54/::54`. This recommendation does not alter
+the locked address mapping: the user confirmed `.56/::56` for the shared
+Pi-hole web name before authorizing the corrected retry.
+
+At `2026-07-29T16:59:45Z`, the exact corrected runner passed its local
+provenance, syntax, self-test, and contract-test gates and was executed once.
+The remote transaction completed successfully with SSH status `0`. It
+reported:
+
+- selected release
+  `/etc/caddy/releases/action16ar-retry-node-a-default-deny`;
+- unchanged Caddy main PID `1085652`;
+- IPv4, IPv6, and loopback unknown-host status `421`;
+- Caddy reload performed and restart not performed;
+- no systemd manager reload and no lighttpd, Keepalived, lsyncd, or peer
+  mutation;
+- correction fragment SHA-256
+  `d3a31eabc6fd75784f5f3891d55dd80d3f024463d112d8dd68549c91bcde8ae7`;
+- release-manifest SHA-256
+  `3e25f80cba754f7cbadfa08420889004cffc7781664bb624896efe5c4f5131dd`;
+  and
+- content-manifest SHA-256
+  `272c1f17ad59d7050e61caa2da47fc8768d87777c0759cebdf513988ba837e70`.
+
+The workstation runner nevertheless returned `97`: its success evaluator
+required an empty stderr file, while each successful environment-backed Caddy
+validation emitted normal structured `info` records to stderr. The remote
+driver had already declared the transaction complete, so rollback did not
+run. This is a local transcript-validation false negative, not remote failure
+evidence. The corrected retry remains unaccepted until a separately
+authorized, fail-closed, read-only diagnostic independently verifies the
+reported live release, hashes, service/PID/listener state, named routes, and
+unknown-host behavior. The transaction must not be rerun as a substitute for
+that verification.
+
+### Defined fail-closed read-only Action 16ar-b acceptance diagnostic
+
+Action 16ar-b was defined locally at `2026-07-29T17:17:01Z`. It uses the
+accepted Action 16ar-a collector and runner as immutable, hash-pinned
+foundations rather than rewriting historical evidence:
+
+- `scripts/derive-node-a-post-correction-acceptance-action16ar-b.sh` renders
+  retry-owned path and marker names, changes the journal boundary to the
+  corrected transaction, and adds Caddy binary/package versions.
+- The rendered collector is streamed through `sudo -n /bin/bash -s --`; it is
+  never installed on Node A.
+- The rendered inner runner preserves complete cardinality, syntax,
+  secret-exclusion, nonzero-SSH, no-mutation, and protected-cleanup contracts.
+- `scripts/run-node-a-post-correction-acceptance-action16ar-b.sh` adds strict
+  post-correction acceptance over the structurally validated transcript.
+
+The strict layer requires:
+
+- Node A hostname `j1-svpihole0`, architecture `arm64`, Caddy `2.11.4`, and
+  exact node-local environment hash and values.
+- `/etc/caddy/current` selecting
+  `/etc/caddy/releases/action16ar-retry-node-a-default-deny`, with retry staging
+  and temporary-link paths absent.
+- Exact correction, Caddyfile, historical-deny, release-manifest, and
+  content-manifest hashes; a complete release; successful content-manifest
+  verification; and exact parent/source/action metadata.
+- Caddy active/running/disabled with the reported PID `1085652`; lighttpd and
+  Keepalived active; deferred synchronization/reload services inactive; and
+  the previously accepted Keepalived and lighttpd tree hashes unchanged.
+- Exactly five adapted and five runtime HTTP server summaries: physical
+  `.53/::53`, Caddy VIP `.56/::56`, loopback, wildcard HTTPS, and wildcard
+  HTTP. Every server must have a hostless `421` route, and the physical, VIP,
+  and loopback names must remain attached to their intended listeners.
+- Healthy backend, localhost, and dual-stack management probes; exact `421`
+  results for physical IPv4, physical IPv6, loopback IPv4, and loopback IPv6
+  unknown-host probes.
+- Expected Caddy and loopback-lighttpd listeners, no network-exposed TCP 8080,
+  a Caddy process matching PID `1085652`, no secret material, SSH `0`, and
+  explicit no-filesystem/no-service/no-peer/no-systemd-manager mutation
+  evidence.
+
+The diagnostic is non-enforcing on Node A. Failure to collect or match any
+required evidence returns `97` from the workstation and does not repair,
+clean up, reload, restart, or otherwise change remote state. HTTP probes affect
+only in-memory request counters. The runner deletes only its protected local
+temporary directories.
+
+Selected hashes:
+
+| Action 16ar-b artifact | SHA-256 |
+| --- | --- |
+| Deriver | `f3f07ddd688373eef38d56b6361ddd897e83d38f492120516797693afb4f0a47` |
+| Rendered collector | `71c31f7e04beed53edc58bda0ac72b5079c15231f29639548aab9971710aed0f` |
+| Rendered inner runner | `8af27b5c54eda5a6a9f47692ea0072eda9312016e5a5545d3ac521d7d13fcf5d` |
+| Outer acceptance runner | `fe4e09369ee6699bceeb14453546ca6f22523219c5391a383b815f59293635fe` |
+| Host test runner | `0adc00ab085241113a92961551d51aaa19fa0867072f35751c43e31df33dd924` |
+| Container integration | `b4c466fd3c2f54920a4d7d1778679f952032b9c03b5fb15d31ae6d47870b6a97` |
+
+Focused tests, the complete host suite, and Debian 12 Podman integration
+passed. The first sandboxed Podman attempt stopped because the rootless
+runtime directory was read-only; the unchanged permitted rerun passed.
+Neither node was contacted while defining or testing Action 16ar-b.
+
+The exact command requiring separate authorization is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-post-correction-acceptance-action16ar-b.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "fe4e09369ee6699bceeb14453546ca6f22523219c5391a383b815f59293635fe" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: one strict host-verified SSH connection to Node A that streams
+the read-only collector and changes no remote filesystem or service state.
+Validation: inner and outer runner status `0`, SSH `0`,
+`action_16ar_b_post_correction_accepted=true`, complete local cleanup, and
+every pinned acceptance condition above. No rollback applies because the
+action is read-only. This command was subsequently executed exactly once and
+must not be rerun unchanged.
+
+### Failed-closed Action 16ar-b execution evidence
+
+At `2026-07-29T17:19:30Z`, the exact Action 16ar-b outer runner passed local
+provenance, syntax, self-test, and contract-test gates and opened one strict
+host-verified SSH connection to Node A. Collection was complete and read-only:
+
+- SSH and the rendered inner structural runner returned `0`.
+- All 22 command checks passed; Node A reported Caddy binary/package
+  `2.11.4`.
+- `/etc/caddy/current` selects
+  `/etc/caddy/releases/action16ar-retry-node-a-default-deny`; its staging and
+  temporary-link paths are absent.
+- Content-manifest verification returned `0`. The correction,
+  release-manifest, and content-manifest hashes exactly match the corrected
+  transaction evidence.
+- Caddy remains active/running/disabled at PID `1085652`; lighttpd and
+  Keepalived remain active; lsyncd and `caddy-api.service` remain
+  masked/inactive.
+- Adapted and runtime configurations each contain the same intended five
+  listener groups. The physical `.53/::53`, Caddy VIP `.56/::56`, and
+  loopback names are correctly placed, and every group has a hostless `421`
+  route.
+- Backend and dual-stack management probes returned `302`; localhost health
+  returned `204`; all four physical/loopback unknown-host probes returned
+  `421`.
+- Caddy owns the expected TCP/UDP listeners, lighttpd owns only
+  `127.0.0.1:8080`, and the Caddy process record identifies PID `1085652`.
+- The collector explicitly reported no filesystem, service, systemd-manager,
+  installed-helper, peer, or persistent mutation. Nested and outer
+  workstation cleanup completed.
+
+The outer strict acceptance layer returned `97` and did not emit
+`action_16ar_b_post_correction_accepted=true`. Its first mismatch is the
+masked-unit assertion: production systemd correctly reports
+`LoadState=masked` for `lsyncd.service`, while the validator required
+`LoadState=loaded`. Evidence review also found two additional local-validator
+defects that would fail later:
+
+1. The runner filled previously abbreviated Keepalived and lighttpd tree
+   hashes with unobserved middle digits instead of retaining them as unknown
+   until this read-only collection supplied the complete hashes.
+2. Process records percent-encode their field separator as `%7C`, while the
+   outer validator expects a literal pipe.
+
+The full observed protected-tree hashes are now:
+
+- Caddy:
+  `b01cba78e02f382b5c983e6d05bc1bfa18d2a66cb89f209dab32bc9b81b87406`;
+- Keepalived:
+  `dad64e4ac7fdbaab2db3454ccf79158b6f41e4973086f9937a7c6b737f0a2f66`;
+  and
+- lighttpd:
+  `95a8752f86f1f475d7b8fd12090379c4ae46b9f4140212c7405586c222383372`.
+
+Action 16ar-b is not accepted because the authorized outer contract failed,
+even though its complete underlying evidence supports the reported corrected
+Node A state. No live mutation or subsequent remote command occurred. The
+next step is to analyze this evidence and separately define a corrected,
+production-encoded acceptance validator or a narrower diagnostic; Action
+16ar-b must not be rerun unchanged.
+
+### Defined corrected Action 16ar-b retry acceptance validator
+
+At `2026-07-29T17:29:21Z`, the corrected production-transcript validator was
+defined and fully validated on the workstation. It is append-only:
+
+- `scripts/correct-node-a-post-correction-acceptance-action16ar-b-retry.sh`
+  requires the exact failed Action 16ar-b runner hash and renders a corrected
+  copy without rewriting the historical artifact.
+- The rendered copy applies exactly eight replacements: two full protected-tree
+  hashes, two masked-unit strict assertions, the encoded process assertion,
+  and the corresponding three synthetic fixture records.
+- `tests/action16ar-b-production-transcript-regression.sh` pins the historical
+  runner, correction, and corrected-render hashes. It requires all eight
+  intended corrections, rejects every historical assumption, and executes the
+  corrected strict transcript contract.
+- `scripts/run-node-a-post-correction-acceptance-action16ar-b-retry.sh`
+  verifies all source hashes and modes, creates a protected workstation-only
+  stage, renders the corrected validator, runs its existing read-only
+  collector through one strict host-verified Node A connection, and removes
+  its stage.
+
+The corrected production values are:
+
+- `LoadState=masked` for masked `lsyncd.service` and `caddy-api.service`;
+- Keepalived tree SHA-256
+  `dad64e4ac7fdbaab2db3454ccf79158b6f41e4973086f9937a7c6b737f0a2f66`;
+- lighttpd tree SHA-256
+  `95a8752f86f1f475d7b8fd12090379c4ae46b9f4140212c7405586c222383372`;
+  and
+- `process_record=caddy%7C1085652 ...`, preserving the collector's encoded
+  field separator.
+
+The correction self-test, production regression, retry self-test and contract,
+complete host suite, and Debian 12 Podman integration passed. The first
+sandboxed Podman attempt stopped only because `/run/user/1000/libpod` was
+read-only; the unchanged host-permitted rerun passed. Neither node was
+contacted during definition or validation.
+
+Exact separately authorized execution command:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-post-correction-acceptance-action16ar-b-retry.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "bdd88699b0753a937250ddb888ddfd80e2ed87a5de040f6f660ae680fa447677" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: one read-only, strict host-key-pinned SSH connection to Node A
+and no remote filesystem or service mutation. Acceptance requires the nested
+collector and corrected outer validator to return `0`, SSH `0`,
+`action_16ar_b_post_correction_accepted=true`,
+`action_16ar_b_retry_post_correction_accepted=true`, and complete nested and
+retry cleanup. No rollback applies because the action is read-only. Execution
+is not yet authorized.
+
+### Accepted corrected Action 16ar-b retry execution
+
+At `2026-07-29T17:39:31Z`, the exact corrected retry runner SHA-256
+`bdd88699b0753a937250ddb888ddfd80e2ed87a5de040f6f660ae680fa447677`
+passed its ownership, mode, hash, syntax, self-test, and contract gates and was
+executed once. It opened one strict host-key-pinned read-only SSH connection
+to Node A.
+
+The complete collection and corrected acceptance passed:
+
+- SSH, the rendered inner runner, and the corrected outer runner returned `0`.
+- The selected release is
+  `/etc/caddy/releases/action16ar-retry-node-a-default-deny`; its manifest and
+  complete marker passed, and its staging and temporary-link paths are absent.
+- Caddy binary and package remain `2.11.4`; Caddy is active at unchanged PID
+  `1085652`.
+- Adapted and runtime configurations each contain the same intended five
+  servers, with the physical `.53/::53`, Caddy VIP `.56/::56`, loopback,
+  wildcard HTTPS, and wildcard HTTP listeners and hostless `421` handlers.
+- Backend and management probes returned `302`, localhost health returned
+  `204`, and all four physical and loopback unknown-host probes returned
+  `421`.
+- Caddy owns the expected TCP and UDP listeners, including HTTP/3 UDP 443;
+  lighttpd owns only `127.0.0.1:8080`.
+- The exact full Caddy, Keepalived, and lighttpd tree hashes matched the
+  accepted production transcript.
+- The collector reported no filesystem, service, systemd-manager,
+  installed-helper, peer, or persistent mutation.
+- `action_16ar_b_post_correction_accepted=true`,
+  `action_16ar_b_retry_post_correction_accepted=true`, and all nested and retry
+  cleanup markers were emitted.
+
+Corrected Action 16ar-b retry is accepted. Its independent evidence also
+accepts the reported live result of corrected transactional Action 16ar retry.
+Node B was not contacted. No repair, transaction retry, reload/restart,
+synchronization, peer authorization change, or VRRP action occurred.
+
+### Defined read-only synchronization-readiness Action 17a
+
+At `2026-07-29T17:53:17Z`, the pre-Action-17 readiness gate was defined and
+fully validated locally. It does not establish synchronization.
+
+`scripts/inspect-sync-readiness-before-action17.sh` is a single dual-role
+read-only inspector. On both nodes it verifies:
+
+- the node identity, architecture, `/etc/default/caddy-ha` role and peer
+  target;
+- the locked `caddy-sync` account, protected directory modes, matching
+  Ed25519 private/public key pair, and exact node-local fingerprint;
+- the single pinned peer host key and exact expected fingerprint;
+- the receiver, setup helper, validator, and `caddy-lsyncd.service` hashes and
+  modes;
+- the receiver's forced `rrsync -wo -no-del` contract;
+- absent `/etc/lsyncd/caddy.lua`, inactive/masked vendor lsyncd, and
+  inactive/disabled custom `caddy-lsyncd.service`;
+- active SSH and Caddy with both services' expected enabled states;
+- absent `incoming/node-a` and `incoming/node-b` paths and zero outbound
+  regular files; and
+- a clean `dpkg --audit` result and observed lsyncd, rsync, and OpenSSH
+  versions.
+
+The node-specific contract preserves the accepted asymmetric pre-state:
+
+- Node A must contain exactly one restricted inbound authorization for Node
+  B's key, limited to `.54/::54` and the forced receiver.
+- Node B must have no `authorized_keys` file for Node A. Adding that
+  authorization is a future transactional Action 17 mutation, not part of
+  this read-only gate.
+
+`scripts/run-sync-readiness-before-action17.sh` pins the inspector hash and
+uses separate strict host-key aliases for administrative inspection of Nodes A
+and B. It reconciles check counts, accepts either a complete zero-mismatch
+result or a structurally valid semantic mismatch, rejects malformed,
+duplicate, secret-bearing, or abnormal-status output, and removes its
+workstation-only protected stage.
+
+No peer SSH, rsync, installed helper, synchronization, filesystem mutation,
+service mutation, or systemd-manager mutation is performed. The inspector and
+runner syntax, ShellCheck, shfmt, self-tests, transcript contracts, static
+read-only scans, complete host suite, focused pre-commit, and Debian 12 Podman
+integration passed. Neither node was contacted.
+
+Exact separately authorized command:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-sync-readiness-before-action17.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "f19e5673d3e86a95282041e9770c8c6d1093cbee9cd985e82957bd78773f16e5" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: one strict host-verified administrative read-only inspection
+of each Caddy node, no node-to-node connection, and no live-state change.
+Acceptance requires both SSH and validation statuses `0`,
+`action_17_sync_readiness_accepted=true`, zero mismatches on both nodes, and
+complete local cleanup. A valid readiness mismatch returns semantic status
+`1`; malformed evidence returns `97`. No rollback applies because the action
+is read-only. This exact command was subsequently executed once and must not
+be rerun unchanged.
+
+### Unaccepted read-only synchronization-readiness Action 17a execution
+
+At `2026-07-29T17:57:02Z`, the exact Action 17a runner SHA-256
+`f19e5673d3e86a95282041e9770c8c6d1093cbee9cd985e82957bd78773f16e5`
+passed its ownership, mode, hash, syntax, self-test, and contract gates and was
+executed once.
+
+Node A returned SSH and validation status `0`. All 54 checks passed, including
+its accepted corrected Caddy release, node-local synchronization key, Node B
+host pin, exact restricted inbound authorization for Node B, protected
+directories, helper and unit hashes, absent lsyncd configuration, inactive
+synchronization services, empty transfer state, and active Caddy and SSH.
+
+Node B returned the designed semantic status `1`. It passed 51 of 52 checks.
+The only mismatch was:
+
+```text
+check_caddy_current_target=false
+readiness_first_failure=caddy_current_target
+```
+
+The inspector expected `/etc/caddy/releases/bootstrap`. Accepted Node B Action
+15l instead selected
+`/etc/caddy/releases/action15-health-follow-redirects`, and Action 15o and its
+later continuity check accepted that promoted release. This is a local
+readiness-inspector baseline defect, not observed Node B drift.
+
+Every synchronization-specific check passed on both nodes. In particular,
+Node B still has no inbound Node A authorization, both lsyncd configurations
+are absent, both vendor lsyncd services are inactive/masked, both custom
+services are inactive/disabled, both transfer states are empty, and all
+identity, host-pin, forced-receiver, no-delete, helper, directory, package,
+Caddy, and SSH checks passed.
+
+The runner emitted `action_17_sync_readiness_accepted=false` and returned
+semantic status `1`. It also emitted complete local cleanup. No peer
+connection, synchronization command, installed helper execution, service
+mutation, or filesystem mutation occurred. Action 17a is not accepted and
+must not be rerun unchanged.
+
+### Defined corrected read-only Action 17a retry
+
+At `2026-07-29T18:11:00Z`, an append-only corrected Action 17a retry was
+defined and fully validated locally.
+
+- `scripts/correct-sync-readiness-before-action17-retry.sh` requires the exact
+  executed inspector and runner hashes.
+- Its rendered inspector replaces only Node B's expected
+  `/etc/caddy/releases/bootstrap` target with the accepted
+  `/etc/caddy/releases/action15-health-follow-redirects` target.
+- Its rendered runner replaces only the historical inspector hash with the
+  rendered corrected-inspector hash.
+- `tests/action17a-node-b-release-regression.sh` independently generates the
+  expected corrected inspector, requires byte equality and exact rendered
+  hashes, rejects the stale target and historical inspector hash, and runs the
+  corrected inspector self-test and runner contract.
+- `scripts/run-sync-readiness-before-action17-retry.sh` verifies all source
+  ownership, modes, and hashes; creates a protected workstation-only stage;
+  renders the corrected inspector and runner under their historical names;
+  executes the rendered read-only runner only when invoked without a test
+  option; and removes its stage.
+
+The executed Action 17a inspector and runner remain byte-for-byte unchanged.
+The rendered hashes are:
+
+- corrected inspector:
+  `87c910f1c7a5a01c21af8af0b840d339a793a91b9f430539760bfbe94a80b805`;
+  and
+- corrected inner runner:
+  `ffb025e613466b73692002b093041f793bd9c08132842bc83d0944bd937fb9ad`.
+
+Syntax, ShellCheck, shfmt, correction/regression/retry self-tests, transcript
+contracts, complete host validation, focused pre-commit, and Debian 12 Podman
+integration passed. Two intermediate Podman checks identified container-only
+test assumptions: an expected zero-match `grep` status under `errexit` and
+temporary root ownership inside the container. The regression now uses an
+independently rendered expected file and byte comparison; workstation
+ownership enforcement remains in the host retry self-test. These mechanical
+test corrections do not alter live behavior. Neither node was contacted.
+
+Exact separately authorized command:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-sync-readiness-before-action17-retry.sh
+[[ -f "$runner" && ! -L "$runner" ]]
+[[ "$(stat -c '%U:%G:%a' "$runner")" == "aaron:aaron:755" ]]
+[[ "$(sha256sum "$runner" | awk '{ print $1 }')" == \
+  "de5c2f05a6db78d2e0b9847e6c7807aba4fd15a3db570d6215f2e6f848333a56" ]]
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Expected effect: one strict administrative read-only inspection of each Caddy
+node, no node-to-node connection, and no live-state change. Acceptance
+requires both inner SSH and validation statuses `0`,
+`action_17_sync_readiness_accepted=true`,
+`action_17a_retry_sync_readiness_accepted=true`, zero mismatches on both
+nodes, and complete nested and retry cleanup. A semantic readiness mismatch
+returns `1`; malformed evidence returns `97`. No rollback applies because the
+action is read-only. This exact command was subsequently executed once.
+
+### Accepted corrected read-only Action 17a retry execution
+
+At `2026-07-29T18:13:38Z`, the exact corrected retry runner SHA-256
+`de5c2f05a6db78d2e0b9847e6c7807aba4fd15a3db570d6215f2e6f848333a56`
+passed its ownership, mode, hash, syntax, correction/regression, self-test, and
+contract gates and was executed once.
+
+Both node inspections passed:
+
+- Node A returned SSH and validation status `0`, with all 54 checks true.
+- Node B returned SSH and validation status `0`, with all 52 checks true,
+  including the accepted
+  `/etc/caddy/releases/action15-health-follow-redirects` target.
+- Both nodes reported zero mismatches and `first_failure=none`.
+- The node readiness markers, nested
+  `action_17_sync_readiness_accepted=true`, and corrected
+  `action_17a_retry_sync_readiness_accepted=true` were emitted.
+- Nested and retry protected workstation cleanup completed.
+
+The accepted evidence confirms both node-local key pairs and peer host pins,
+Node A's exact restricted authorization for Node B, Node B's intentional
+absence of Node A authorization, the receiver/no-delete contract, helper and
+unit integrity, protected synchronization directories, empty incoming and
+outbound transfer state, absent lsyncd configurations, inactive synchronization
+services, active Caddy and SSH, and clean package audit state.
+
+No peer connection, synchronization command, installed helper execution,
+service mutation, or filesystem mutation occurred. Corrected Action 17a retry
+is accepted. Historical Action 17a remains preserved as valid failed evidence.
+
+### Defined bounded transactional Action 17b
+
+Action 17b is the first mutation required to establish Node A-to-Node B
+synchronization. It authorizes the already accepted Node A synchronization
+identity on Node B. It does not test the peer connection and does not transfer
+data.
+
+The transaction is Node B-only and has one persistent target:
+
+```text
+/var/lib/caddy-sync/.ssh/authorized_keys
+```
+
+The file must be absent at preflight. The transaction installs exactly one
+line, owned by `caddy-sync:caddy-sync` with mode `0600`:
+
+```text
+from="10.1.0.53,fd36:5aa8:6971:1::53",restrict,command="/usr/local/libexec/caddy-sync-rsync-receiver" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG3MEgLhf8tsImyjkCZpQU4H7X8Xdac+iOUCxRTMM0tA caddy-ha-sync
+```
+
+Before mutation, the driver fail-closes on the complete accepted Action 17a
+Node B baseline: node identity and address, `caddy-sync` account and locked
+password, local key pair and fingerprint, Node A host pin, receiver and helper
+hashes, receiver no-delete policy, environment role and peer values, accepted
+Caddy release, empty transfer state, absent lsyncd configuration, inactive
+synchronization services, service state, clean package audit, and absent
+`authorized_keys`.
+
+The public authorization is staged with mode `0600` under a unique `/run`
+path. The Node A public-key fingerprint is revalidated before an exact
+`install` creates `authorized_keys`. No private key is transferred or emitted.
+Success requires the exact line, count, owner, mode, public-key fingerprint,
+unchanged protected state, and the following negative evidence:
+
+- No peer connection.
+- No synchronization command.
+- No lsyncd configuration installation.
+- No service mutation.
+
+If any operation fails after mutation begins, the EXIT trap removes only the
+protected temporary stage and the newly created `authorized_keys`. Rollback
+then requires the original authorization absence and equality of all protected
+files, directories, hashes, Caddy release selection, service state, lsyncd
+absence, transfer state, and package audit. Incomplete rollback exits `125`,
+emits `manual_intervention_required=true`, and stops deployment.
+
+After separate authorization, the exact workstation command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-b-authorize-node-a-sync-key-action17b.sh
+test -f "$runner"
+test ! -L "$runner"
+test "$(stat -c '%U:%G:%a' "$runner")" = aaron:aaron:755
+test "$(sha256sum "$runner" | awk '{ print $1 }')" = \
+  8b9fdd593896a1f613275ca0ea8fe467c4f52f70610321968d563efaad3a7698
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+The runner makes one strict, host-key-verified administrative SSH connection
+to `pi@10.1.0.54` using
+`HostKeyAlias=pihole00.local.theama.co`. It streams the pinned transaction to
+`sudo -n /bin/bash -s --`, rejects secret-bearing or malformed output, and
+accepts success only with all required markers exactly once. If remote
+mutation began, any nonzero result is accepted as a safely failed transaction
+only when bounded rollback-started and rollback-complete markers are both
+present exactly once. The runner always removes its protected workstation
+stage.
+
+At `2026-07-29T18:30:20Z`, the exact runner SHA-256
+`8b9fdd593896a1f613275ca0ea8fe467c4f52f70610321968d563efaad3a7698`
+passed its provenance, syntax, self-test, and contract gates and was executed
+once. Remote preflight and mutation completed with SSH status `0`. Node B now
+has exactly one restricted authorization for Node A's accepted synchronization
+fingerprint
+`SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0`.
+
+The remote transaction reported its persistent scope as `authorized_keys`
+only, complete protected-state equality, no peer connection, no
+synchronization command, no lsyncd configuration, and no service mutation.
+Rollback did not run because all acceptance checks passed. The workstation
+stage was removed. Action 17b is accepted.
+
+The subsequent restricted peer-transport validation and first staged transfer
+remain separate future gates.
+
+### Defined bounded read-only Action 17c
+
+Action 17c validates Node A-to-Node B restricted transport without transferring
+a release or changing synchronization configuration.
+
+The workstation runner performs these bounded operations:
+
+1. Inspect Node B through strict administrative SSH and capture a digest of
+   synchronization identities, authorization, helpers, environment, Caddy
+   release selection, service state, and empty transfer directories.
+2. Stream the transport driver to Node A through strict administrative SSH.
+3. From Node A's locked `caddy-sync` identity, make an IPv4 connection with a
+   deliberately non-rsync command. Authentication must succeed through the
+   installed key, the forced receiver must reject the command, and SSH must
+   return exactly `126` with the receiver's exact rejection message.
+4. Repeat the rejection probe over the stable IPv6 ULA path.
+5. Run one IPv4 rsync operation from Node A's already empty
+   `/var/lib/caddy-sync/outbound/` directory to Node B's `/node-a/` receiver
+   path with `--dry-run`. Status must be `0`; no payload may be written.
+6. Revalidate Node A's protected state and empty incoming/outbound state.
+7. Inspect Node B again and require exact equality with its pre-probe state
+   digest, including absence of `incoming/node-a` and `incoming/node-b`.
+
+All peer SSH invocations use the accepted Node A private identity and exact
+Node B host pin, public-key-only authentication, strict host-key checking,
+`UpdateHostKeys=no`, an empty global-known-hosts source, forwarding disabled,
+no TTY, five-second connection timeouts, and bounded server-alive settings.
+The rsync command additionally uses a ten-second I/O timeout and contains no
+deletion option.
+
+The deliberately rejected commands prove that a successfully authenticated
+session cannot execute an arbitrary command. The empty-source dry-run proves
+that the permitted rsync protocol reaches the forced receiver. The Node B
+before/after digest proves the dry-run did not create a release, directory, or
+other protected state.
+
+This read-only action has no configuration rollback. Its only temporary paths
+are protected `/run/caddy-action17c-transport.*` storage on Node A and
+`/tmp/caddy-action17c.*` storage on the workstation; both are removed before
+acceptance. A transport mismatch returns semantic status `1` only after Node A
+protected-state and cleanup evidence and unchanged Node B before/after
+evidence pass. Malformed, secret-bearing, incomplete, or changed-state
+evidence returns `97` and stops deployment.
+
+After separate authorization, the exact workstation command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-to-node-b-restricted-transport-action17c.sh
+test -f "$runner"
+test ! -L "$runner"
+test "$(stat -c '%U:%G:%a' "$runner")" = aaron:aaron:755
+test "$(sha256sum "$runner" | awk '{ print $1 }')" = \
+  d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Action 17c is defined and locally validated only. No node was contacted.
+Execution requires separate authorization for runner SHA-256
+`d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b`.
+The first actual release transfer remains a separate future transactional
+gate.
+
+### Unaccepted bounded read-only Action 17c execution
+
+At `2026-07-29T18:49:39Z`, the exact runner SHA-256
+`d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b`
+passed its provenance, syntax, self-test, and contract gates and was executed
+once.
+
+The runner collected the following safe evidence:
+
+- Node B pre-inspection administrative SSH status `0`.
+- Node A probe administrative SSH status `0`.
+- Node B post-inspection administrative SSH status `0`.
+- Node B pre/post state digest
+  `e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2`.
+- Node A emitted `action_17c_node_a_preflight_complete=true`.
+- No protected workstation Action 17c stage remained after the runner exited.
+
+The Node A transcript then ended. It did not contain the IPv4 or IPv6
+forced-receiver results, rsync dry-run result, Node A post-state validation,
+release-transfer-negative evidence, Node A cleanup marker, or completion
+marker. The runner correctly rejected this incomplete success transcript as
+malformed.
+
+Local source inspection identifies the failure boundary: the first direct
+peer probe invokes `ssh` without `-n` while the Node A Bash program itself is
+being streamed over administrative SSH. The nested SSH process inherits
+standard input and can consume the remaining streamed program. This explains
+the clean outer status and transcript ending immediately after preflight.
+
+Action 17c is not accepted. The unchanged Node B digest is proven, but Node A
+post-state and protected-stage cleanup are not proven and must not be inferred.
+No release transfer is authorized. The unchanged runner must not be rerun.
+A corrected retry requires separate definition and authorization, must detach
+stdin for both direct rejection probes, and must add a regression that executes
+a streamed-script fixture and proves commands after the nested probe remain
+present and execute.
+
+### Defined corrected read-only Action 17c retry
+
+At `2026-07-29T18:57:59Z`, a corrected Action 17c retry was defined without
+rewriting the executed driver or runner.
+
+The append-only transformer requires exact historical hashes:
+
+- Driver:
+  `f3e775716ec0d3506b67088286545fb5998e2c587b56f18e5f20b27c314a15c0`
+- Runner:
+  `d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b`
+
+It renders a corrected driver with exactly one changed line:
+
+```diff
+-        ssh "$address_family" -T \
++        ssh "$address_family" -n -T \
+```
+
+Both IPv4 and IPv6 rejection probes use this shared function, so both detach
+stdin. The rsync dry-run is unchanged because rsync owns the remote shell's
+protocol streams and must not detach them.
+
+The rendered driver SHA-256 is
+`3259b979e64ccee667e2a81ac9683c21d140331c0d1f44d6c6e41bf88a7b31dd`.
+The rendered inner runner changes only its pinned driver hash and driver
+filename; its SHA-256 is
+`c88ab6f91f3adaeab6a7cd5ba7c2013d8d62bc7d393601a370c140f50e1eb795`.
+
+The streamed-stdin regression uses a bounded producer and fake SSH command to
+exercise the actual failure mode:
+
+- The historical direct-probe form inherits stdin, consumes the remaining
+  streamed program, and does not emit the post-probe marker.
+- The corrected `-n` form leaves the program stream for Bash and emits exactly
+  one post-probe marker.
+- Historical and rendered hashes and the exact one-line driver difference are
+  independently enforced.
+
+The retry wrapper renders both corrected artifacts into a protected
+workstation directory, installs the unchanged Node B inspector beside them,
+validates all hashes and syntax, runs the rendered runner's self-test and
+contract gates, and only then permits live execution. It accepts success only
+with the complete original dual-stack, dry-run, Node A/Node B state, no-transfer,
+and cleanup evidence. It adds nested-status, retry-acceptance, and retry-cleanup
+markers. Semantic transport mismatch remains status `1`; malformed or unsafe
+evidence remains `97`.
+
+After separate authorization, the exact workstation command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-to-node-b-restricted-transport-action17c-retry.sh
+test -f "$runner"
+test ! -L "$runner"
+test "$(stat -c '%U:%G:%a' "$runner")" = aaron:aaron:755
+test "$(sha256sum "$runner" | awk '{ print $1 }')" = \
+  a93a457a181424f04ec4e1991ccff84f119985d69603830ea01a98ad96acd831
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Corrected Action 17c retry is defined and locally validated only. Execution
+requires separate authorization for exact retry runner SHA-256
+`a93a457a181424f04ec4e1991ccff84f119985d69603830ea01a98ad96acd831`.
+No release transfer or later action is authorized.
+
+### Defined read-only IPv6 restricted-transport diagnostic Action 17c-a
+
+At `2026-07-29T19:15:50Z`, Action 17c-a was defined without changing or
+rerunning the failed Action 17c artifacts. It is diagnostic collection, not a
+transport acceptance retry.
+
+The Node B collector reports:
+
+- Presence of `fd36:5aa8:6971:1::54/64` on `eth0`.
+- An IPv6 TCP port 22 listener using an IPv6-only `ss` query.
+- Route status, selected source, and interface toward
+  `fd36:5aa8:6971:1::53`.
+- Presence of Node A's ULA in the exact source-restricted authorization.
+- SSH service state and relevant-state equivalence.
+
+The Node A collector reports:
+
+- Presence of `fd36:5aa8:6971:1::53/64` on `eth0`.
+- Route status, selected source, and interface toward
+  `fd36:5aa8:6971:1::54`.
+- Bounded IPv6 neighbor state and ICMP status.
+- One `ssh -6 -n -T -vv` probe using the accepted synchronization identity,
+  host alias, pinned known-host entry, public-key-only authentication,
+  forwarding prohibition, and bounded connection/liveness timeouts.
+- Connection, host-key, key-offer, key-acceptance, authentication, and forced
+  receiver-message booleans.
+- SSH status, a bounded error class, and SHA-256 of the unreported verbose
+  transcript.
+
+The workstation runner requires complete secret-free evidence from both
+collectors and derives one bounded conclusion. Diagnostic collection is
+accepted independently of whether IPv6 succeeds; malformed, duplicate, unsafe,
+or incomplete evidence returns `97`. The action contains no rsync invocation,
+does not transfer a release, and does not change network, service, SSH
+authorization, or configuration state. Temporary Node A `/run` and workstation
+`/tmp` paths are removed. The probe can update ephemeral neighbor/connection
+state and normal SSH logs.
+
+After separate authorization, the exact workstation command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-to-node-b-ipv6-restricted-transport-diagnostic-action17c-a.sh
+test -f "$runner"
+test ! -L "$runner"
+test "$(stat -c '%U:%G:%a' "$runner")" = aaron:aaron:755
+test "$(sha256sum "$runner" | awk '{ print $1 }')" = \
+  81b07190e35961dd83d8c947e58e8cc41e592454c88e043b52692c69b3e3a706
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Action 17c-a is defined and locally validated only. Execution requires separate
+authorization for exact runner SHA-256
+`81b07190e35961dd83d8c947e58e8cc41e592454c88e043b52692c69b3e3a706`.
+No retry, rsync dry-run, transfer, synchronization, or later action is
+authorized.
+
+### Defined read-only IPv6 source comparison Action 17c-b
+
+At `2026-07-29T19:27:27Z`, Action 17c-b was defined without changing or
+rerunning Action 17c-a. It reuses Action 17c-a's exact Node B inspector and adds
+a new Node A comparison collector.
+
+The Node A collector:
+
+- Runs `ip -6 route get fd36:5aa8:6971:1::54`.
+- Extracts and emits the actual `src` value only after restricting it to a
+  bounded IPv6-character field.
+- Runs one unbound and one explicitly bound restricted SSH probe through a
+  shared function.
+- Gives both probes identical IPv6, identity, host-key, public-key-only,
+  forwarding, timeout, target, and denied-command settings.
+- Adds only `-b fd36:5aa8:6971:1::53` to the bound probe.
+- Emits status, bounded error class, connection/authentication milestones, and
+  verbose-stderr SHA-256 separately for each probe.
+- Emits no raw verbose transcript and invokes no rsync command.
+
+The runner requires complete, secret-free Node B and Node A evidence and
+derives one of these bounded outcomes:
+
+- Both source modes reach the forced receiver.
+- Stable-source binding restores authorization.
+- The stable bind address is unavailable.
+- Stable-source binding remains key-denied.
+- A bounded bound-transport or host-key failure.
+- An unclassified stable-source result.
+
+Diagnostic collection is accepted independently of the comparison result.
+Malformed, duplicate, unsafe, or incomplete evidence returns `97`. Relevant
+persistent state must remain equivalent, release transfer and rsync markers
+must remain false, and Node A `/run` and workstation `/tmp` stages must be
+removed. The probes can update ephemeral neighbor/connection state and normal
+SSH logs.
+
+After separate authorization, the exact workstation command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+runner=Caddy/scripts/run-node-a-ipv6-source-selection-diagnostic-action17c-b.sh
+test -f "$runner"
+test ! -L "$runner"
+test "$(stat -c '%U:%G:%a' "$runner")" = aaron:aaron:755
+test "$(sha256sum "$runner" | awk '{ print $1 }')" = \
+  14bf3d9735df906f65cbdd037392d57ef394b14bc8921548f11289ab71878e55
+bash -n "$runner"
+"$runner" --self-test
+"$runner" --contract-test
+"$runner"
+```
+
+Action 17c-b is defined and locally validated only. Execution requires separate
+authorization for exact runner SHA-256
+`14bf3d9735df906f65cbdd037392d57ef394b14bc8921548f11289ab71878e55`.
+No retry, rsync dry-run, transfer, synchronization, or later action is
+authorized.
+
 ## Deviation Log
 
 | Date | Phase | Planned behavior | Actual change | Rationale | Impact | Approval | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-30 | Action 17f live-state hash normalization | Compare the transactional driver's direct-pipeline live-state hash with the accepted inspector hash | The direct pipeline preserves `live_state`'s final newline and produces `d6f8e13c...ffae`; command substitution removes trailing newlines before `printf '%s'` hashing and produces the accepted `3a05c048...b824` | The byte streams differ only by shell normalization semantics, so identical system state can never satisfy the driver's pinned comparison | The immutable driver always stops before mutation; Node B remains unchanged and local-zone staging remains unaccepted | User authorized only exact read-only diagnostic execution; no driver correction or retry is authorized | Define an append-only normalized-hash correction only after separate authorization and add a synthetic regression that proves both hashes and exact byte difference |
+| 2026-07-30 | Action 17f-b second-retry production wrapper | Capture a nonzero validation-function status through an OR-list assignment | Invoke the validation wrapper unconditionally under a non-errexit parent, then capture `$?` on the next statement | Bash disables `errexit` inside a function whose caller is tested by an OR-list; the newly required real function-internal failure regression caught the false success immediately | Local diagnostic definition only; no node was contacted and no executed artifact changed | Minor mechanical correction within the authorized definition after its mandatory regression failed | Keep real function-boundary regressions and prohibit conditional contexts around production fail-closed validation wrappers |
+| 2026-07-30 | Action 17f-b retry production failure attribution | Inherit the subshell ERR trap into every labeled validation function and prove it with a real function-internal failure | The tracer used `set -euo pipefail` without `-E`; when the final live-state hash comparison returned nonzero, the function exited but its ERR trap did not run; the regression validated only a fabricated failure transcript | Bash ERR traps are not inherited by functions unless errtrace is enabled; static label counting and transcript fixtures cannot prove production trap propagation | Read-only diagnostic acceptance only; Node B made no persistent change, but the exact observed hash was not captured and the action remains unaccepted | User authorized only exact runner execution; no correction or retry is authorized | Define a second append-only read-only retry only after separate authorization; require `set -E`, safe observed-hash evidence, and a regression that runs a real failing assertion inside the production function |
+| 2026-07-30 | Shell readonly/local name safety | Rely on review and general shell linting to avoid Bash dynamic-scope collisions | Add a repository-wide declaration-order-independent collision-policy test, enforce it in host and Podman suites, and permit immutable historical collisions only through exact path/name/SHA-256 entries | Repeated production-path failures prove that review, ShellCheck, and path-specific regressions do not reliably detect a function-local name colliding with a caller's script-level readonly variable | Local validation policy only; no live node impact; new collisions fail before an action can be presented for authorization | User explicitly required a durable fix after repeated collisions | Keep the checker mandatory, keep exception hashes exact, and remove an exception only when the historical artifact no longer needs to remain in the repository |
+| 2026-07-30 | Authorized home-lab LAN command execution | Run hash-pinned, explicitly authorized SSH/API actions once and record real target evidence | After local provenance gates pass, request workstation LAN network permission before the first attempt instead of first invoking a command in the known network-restricted sandbox | The restricted sandbox deterministically rejects local-LAN sockets and produces no target evidence; repeating the identical authorized command outside it adds noise without improving safety | Execution-environment permission only; exact command, target, privilege, mutation, rollback, retry, and authorization boundaries remain unchanged | User explicitly requested a durable correction after repeated sandbox-only failures | Retain this locked plan rule and include the first-attempt network-permission requirement in every future LAN action handoff |
+| 2026-07-30 | Instrumented Action 17f retry container validation | Reuse the outer host source gate and validate rendered runtime behavior portably in Debian 12 | Remove the duplicate rendered-runner `--source-test` call from the outer self/contract helper; retain the outer runner's independent workstation `--source-test` before any real execution | A container bind mount cannot prove workstation user ownership; the duplicate check failed only in the portable container after all functional regressions passed | No live impact and no reduction in workstation enforcement; host source/hash/ignore-policy validation remains mandatory, while container tests remain self-contained | Minor mechanical validation correction within the authorized definition; no Node B contact or retry execution authorized | Isolated rendered-runner container self-test and the complete host/Podman suite passed after the correction |
+| 2026-07-29 | Action 17f validation-container parser dependency | Validate the protected primary/local-zone pair with Debian 12 `unbound-checkconf` | Add Debian's `unbound` package to the Podman validation image; the parser regression creates `/var/log/unbound` only after proving `/run/.containerenv`, because inhibited package installation omits the runtime log directory | Static validation cannot prove that the complete staged pair is accepted by the target-family parser; the first container attempt correctly exposed the missing executable, and the second exposed only its ephemeral log-directory prerequisite | Local validation image only; no node, production package, repository secret, or deployment state changed | Minor mechanical validation dependency within the authorized Action 17f definition; no live execution authorized | Retain `unbound` in the Debian 12 validation image and require the combined-pair parser regression for Action 17f and later installation design |
+| 2026-07-29 | Two-file Unbound prerequisite | Both nodes currently use a user-confirmed single-file Unbound configuration | Add an explicit migration prerequisite mapping private operator `pihole0.conf` to live `pihole.conf` and private operator `pihole0-local-zone.conf` to the same-named live local-zone fragment; require Node B then Node A adoption/validation before Caddy DNS records or synchronization retry | Separating resolver behavior from authoritative local records improves ownership and drift/failure isolation; both proposed top-level fragments retain their own `server:` clause | No live impact from this plan change; future Unbound adoption becomes a separately authorized migration sequence and cannot be implied by the Caddy diagnostic | User explicitly confirmed both live configurations are single-file and requested this prerequisite; no Unbound file or service mutation authorized | Run the read-only diagnostic, then define separate standby-first migration actions only with explicit authorization |
+| 2026-07-29 | Action 17c-c-c DNS source provenance and deployment order | Caddy intended-state manifest marks node IPv6 records as preserved and defers Caddy DNS records until after Caddy VRRP validation | Current private local-zone source contains node IPv4 A/PTR records but no node AAAA, Caddy names, or `.56/::56` PTR records; both operator Unbound files are ignored rather than tracked; both live nodes are user-confirmed as single-file configurations | The accepted synchronization design uses IPv6 plus peer FQDN and therefore requires peer AAAA resolution, while current source truth does not provide it; exact live file content and path behavior are still unobserved | Synchronization remains blocked; the existing record-deployment order may require a separately approved adjustment, but this definition makes no ordering or DNS mutation | User stated Caddy A/AAAA/PTR records have not been added, confirmed both nodes use single-file Unbound configurations, and requested the two-file prerequisite plus diagnostic definition | Run only the separately authorized diagnostic first; then seek approval for any migration, deployment-order, or record-scope change |
+| 2026-07-29 | Action 17c-c-c collector runtime boundary | Complete source inspection and bounded DNS queries before emitting post-state and cleanup evidence | Both collectors completed source inspection but failed before the first `dig`: function-local `work_dir` attempted to shadow the global readonly `work_dir` and Bash rejected the declaration | Static, self, contract, host, and container tests did not execute the production main path through `run_query` after making the global name readonly | No DNS queries or persistent mutations occurred; post-state and remote cleanup were initially unproven, then accepted Action 17c-c-c-a established zero residual stages and exact pre-failure continuity on both nodes; the executed artifact remains immutable evidence | User authorized exact failed runner `db6c2737...f1a6` and later exact continuity runner `d5c57b48...437e`; no correction or retry authorized | Continuity is resolved; define but do not execute an append-only corrected retry with production-main-path regression coverage |
+| 2026-07-29 | Corrected Action 17c-c-c retry definition | Preserve failed artifacts and change only the proven `run_query` work-directory collision | An append-only transformer renames `run_query` parameter `work_dir` to `query_work_dir` and updates its three path references; the outer runner renders new hash-pinned artifacts without editing the executed files | The global readonly `work_dir` is intentional; a distinct function-local name removes the collision without changing query targets, limits, result classification, state checks, SSH, cleanup, or authority | No live impact until separately authorized; deterministic production-boundary regression reproduces the old failure and proves corrected completion through the first query without network access | User authorized definition only; no corrected retry execution authorized | Require separate authorization for exact outer runner `14880392...4d6`; accept future execution only with complete two-node, post-state, no-mutation, conclusion, and cleanup evidence |
+| 2026-07-29 | Corrected Action 17c-c-c retry source-validation boundary | Validate private ignored Unbound operator sources through the rendered runner while retaining portable Debian 12 tests | Keep rendered-runner self/contract tests self-contained; expose a separate outer `--source-test` that reconstructs repository-relative paths in protected temporary state and validates the actual workstation sources; invoke it from the host suite but not from the Caddy-only container mount | The operator files intentionally live outside the Caddy repository and are not available in the container bind mount; treating their absence as an artifact failure would conflate deployment-source validation with portable runtime validation | No live impact; the host still fails closed on source/hash/ignore-policy drift before any authorized execution, while the container validates every self-contained corrected artifact | Minor mechanical correction during local definition after the first topology-aware container run stopped at the expected missing external source boundary; no node was contacted | Final host source test and complete Debian 12 Podman integration passed; retain separate host and portable test responsibilities |
+| 2026-07-29 | Action 17c-b Node A IPv6 source selection | Node A-to-Node B synchronization traffic originates from Node A's stable ULA `fd36:5aa8:6971:1::53`, matching the restricted authorization | Without an explicit bind, the kernel selected `fd36:5aa8:6971:1::55`; Node B rejected the offered key, while an otherwise identical probe bound to `…::53` authenticated and reached the forced receiver | Multiple eligible local IPv6 addresses exist and the synchronization client path does not yet pin its source; the diagnostic does not infer why `…::55` is selected | IPv6 restricted transport fails unbound but is proven viable with stable-source binding; no production configuration or persistent state changed | User authorized exact read-only Action 17c-b execution and later authorized Action 17c-c definition only; no live correction is authorized | Action 17c-c now covers direct SSH, rsync remote shell, lsyncd, node-specific rendering, and historical-artifact preservation; require separate authorization for its exact read-only runner before any persistent installation |
+| 2026-07-29 | Action 17c-c streamed validator working directory | Run the source-bound validator as `caddy-sync` and collect pre/post state before accepting transport | `runuser` retained administrative SSH working directory `/home/pi`; `caddy-sync` cannot traverse it, so GNU `find` completed its scan but failed restoring the initial directory and the validator stopped before creating its action stage or probing transport | The local and container tests used accessible working directories and did not reproduce the production user-transition boundary | Historical Action 17c-c remains failed evidence; neither the source-bound direct probe nor rsync dry run occurred, no payload transferred, and local cleanup passed | User authorized only exact read-only Action 17c-c execution; no correction or retry is authorized | Define a corrected retry that explicitly changes to a known accessible directory before `runuser`/validator execution and regression-tests the inaccessible-parent case |
+| 2026-07-29 | Corrected Action 17c-c retry definition | Preserve the failed runner and correct only the inaccessible inherited working-directory boundary | Append-only transformer changes the single Node A remote command to execute `cd /` as root before switching to `caddy-sync`; the historical command is retained as a negative regression control | Entering `/` before the identity transition removes dependence on the administrative user's private home without changing SSH, rsync, lsyncd, source-binding, state, or cleanup behavior | No live impact until separately authorized; Debian 12 reproduces the old failure and accepts the corrected command with empty stdout/stderr | User authorized definition only; no live retry is authorized | Require separate authorization for exact retry runner `5ec46ca7...d6ab`; if executed, accept only complete transport, state-digest, no-transfer, and cleanup evidence |
+| 2026-07-29 | Corrected Action 17c-c retry execution | Complete the source-bound direct SSH and empty-source rsync dry run after correcting only the working-directory boundary | The `/home/pi` restore failure disappeared and SSH configuration validation passed, but Node A exited silently before emitting the direct-SSH success marker; the existing aggregate assertions do not identify whether pre-state completion, DNS/connectivity, forced-receiver status, or transcript matching failed | The validator uses unlabeled `set -e` assertions through this boundary, so a valid read-only mismatch yields no precise failing label | No payload transfer, persistent mutation, or accepted synchronization evidence; both Node B administrative inspections completed and local cleanup passed, but digest equality was not emitted | User authorized only exact corrected retry execution; no diagnostic or further retry is authorized | Define a narrow read-only no-rsync diagnostic that labels pre-state completion and each direct-SSH milestone/error class without exposing raw verbose output |
+| 2026-07-29 | Action 17c-c-a diagnostic definition | Diagnose the unlabeled pre-state/direct-SSH boundary without rerunning the broader source-bound transport validator | Replace aggregate fail-fast assertions with 19 labeled non-enforcing pre-state results and exactly one direct source-bound SSH probe; classify its bounded failure mode and expose only transcript hashes, not raw verbose output | Complete diagnostic evidence is more useful than another silent fail-fast result; excluding rsync isolates the unproven boundary and prevents even a dry-run transport from obscuring it | No live impact until separately authorized; future execution may create normal ephemeral SSH/network state and logs but cannot transfer a release or modify persistent configuration | User authorized definition only; no live diagnostic is authorized | Require exact runner authorization; use the resulting labels and error class to define any subsequent correction or retry |
+| 2026-07-29 | Action 17c-c-a peer-name resolution | Source-bound direct SSH resolves `pihole00.local.theama.co` and then validates transport/authentication | All pre-state checks passed, but the probe returned `255`/`name_resolution_failed` before connecting; no transport milestone occurred | The diagnostic intentionally reports bounded evidence only, so it proves the failing layer but does not yet establish resolver configuration, lookup path, or context-specific cause | Action 17c-c and its retry remain unaccepted; no rsync or payload transfer may proceed until peer-name resolution and source-bound transport are independently validated | User authorized only exact read-only Action 17c-c-a execution; no diagnostic follow-up or correction is authorized | Define a separate read-only context comparison for administrative, root, and `caddy-sync` name resolution before designing a correction |
+| 2026-07-29 | Action 17c-c-b diagnostic scope | Compare resolver behavior without repeating transport or exposing broad DNS state | Use identical bounded libc/NSS `getent` lookups for only the peer FQDN under `pi`, root, and `caddy-sync`; record only relevant resolver-file provenance, configured nameserver records, bounded peer-address sets, and transcript hashes | The Action 17c-c-a failure occurred before connection, so peer SSH or rsync would add no diagnostic value; context comparison isolates identity-sensitive resolution while avoiding unrelated zone or cache output | Future execution performs DNS queries and may create ephemeral cache/log entries, but makes no peer connection or persistent change | User authorized definition only; no live diagnostic is authorized | Require exact runner authorization; use observed context and provenance evidence before proposing any resolver or synchronization correction |
+| 2026-07-29 | Action 17c-c-b second resolver snapshot | Capture resolver state after all context lookups and prove it matches pre-state | The collector terminated after context collection because global readonly `resolv_target` collided with `resolver_state`'s same-named local variable on its second invocation | The first snapshot precedes the global declaration, so local tests and synthetic transcript contracts did not execute the production sequence that triggers Bash's readonly-shadow failure | Complete context lookup evidence exists, but post-state, remote cleanup, no-mutation, conclusion, and acceptance markers are absent; Action 17c-c-b is unaccepted | User authorized exact execution only; no retry or correction is authorized | Define a corrected retry that renames only the global provenance variable, preserves historical artifacts, and regression-tests two snapshot calls around the readonly declaration |
+| 2026-07-29 | Corrected Action 17c-c-b retry definition | Preserve the executed collector and runner byte-for-byte while correcting only the second-snapshot readonly collision | Add an append-only transformer that renames the main-body global to `provenance_resolv_target`; render a separately named collector and hash-adjusted inner runner; wrap them in a separately hash-pinned outer runner | Executed artifacts are evidence and must remain immutable; a rendered correction makes the exact five-line variable boundary auditable and prevents unrelated diagnostic drift | The separately authorized retry retained the original read-only scope and added only normal ephemeral DNS query/cache/log activity | User authorized definition only, then separately authorized exact outer runner `de212a42...eac8` | Resolved: the retry completed and accepted uniform non-success across all tested identities; require separate definition before any DNS path diagnostic |
+| 2026-07-29 | Action 17c-c-a offline provenance validation | Require exact workstation ownership and mode for live execution while validating content and behavior inside the Debian 12 container | Split artifact verification into portable content/hash/syntax validation for offline self-tests and an additional exact `aaron:aaron:755` assertion for the live runner path; host regression independently checks the exact ownership/mode | The read-only bind mount represents workstation files as `root:root` in the container, so applying the live owner assertion there creates a false negative without improving live safety | Container validation is portable; live execution still fails closed unless both streamed artifacts are exact regular files owned `aaron:aaron` with mode `0755` | Minor mechanical correction within the authorized definition; no live node contact or behavioral scope change | Resolved by passing focused tests, complete host validation, and Debian 12 Podman integration |
+| 2026-07-29 | Action 17c streamed nested SSH | Preserve the streamed Node A driver while direct restricted-authentication probes run | The first nested direct SSH inherited stdin and consumed the remainder of the streamed Bash program; Node A output stopped after preflight although outer SSH returned `0` | Direct SSH probes lacked `-n`; synthetic contracts validated output records but did not execute a streamed-script continuity fixture | Node B before/after state is proven identical, but IPv6, rsync dry-run, Node A post-state, and cleanup evidence are absent; Action 17c is unaccepted | User authorized the original execution and corrected retry definition separately | Corrected retry is defined and locally validated with detached stdin and historical-negative/corrected-positive stream regression; require separate execution authorization |
+| 2026-07-29 | Action 17a Node B Caddy baseline | Require the accepted Node B Caddy release while validating synchronization readiness | The inspector required bootstrap, but accepted Action 15l selected `/etc/caddy/releases/action15-health-follow-redirects`; Node B failed only this one assertion | The Action 17a definition carried forward the pre-cutover Action 13/14 bootstrap baseline instead of the accepted post-cutover Action 15 release | Historical Action 17a returned semantic `1`; the corrected retry passed all 106 checks and accepted readiness without mutation | User separately authorized definition and exact execution of the corrected retry | Resolved: preserved executed evidence, applied the append-only correction, and accepted the corrected retry with both SSH/validation statuses `0` |
+| 2026-07-29 | Action 16ar-b strict post-correction acceptance | Accept only exact masked/deferred service state, previously observed protected trees, production-encoded processes, corrected release integrity, routing, probes, listeners, and no-mutation evidence | Complete collection and the inner runner passed with SSH `0`, but the outer validator required `LoadState=loaded` for masked units, contained invented middle digits for two formerly abbreviated tree hashes, and expected a literal process delimiter instead of `%7C`; it returned `97` | Synthetic strict contracts reproduced assumed values rather than the exact production encodings and complete observations; abbreviated evidence must never be expanded by assumption | The historical Action 16ar-b remains failed evidence; its corrected retry now accepts the intended corrected live state and no persistent mutation | User separately authorized definition and then exact read-only execution of the corrected retry | Resolved: preserved the failed artifact, added regression fixtures for all three mismatches, and accepted the exact corrected retry with runner/SSH `0` |
+| 2026-07-29 | Corrected Action 16ar retry workstation stderr contract | Require remote success markers, SSH `0`, secret-free output, protected cleanup, and an empty stderr transcript | The remote transaction and SSH completed successfully, but normal structured Caddy validation information was written to stderr and the workstation runner returned `97` | Caddy's successful `validate`/adaptation path legitimately uses stderr for informational logging, so emptiness is not a valid success invariant | The selected corrected release is reported live and rollback did not run, but the action remains unaccepted until independently verified; the transaction must not be rerun | User authorized the exact corrected retry once; no diagnostic, repair, cleanup, or retry is authorized | Define and separately authorize a fail-closed read-only post-correction diagnostic; revise only future transcript validation under separate scope |
+| 2026-07-29 | Action 16ar readiness and rollback listener policy | Require the complete raw `ss -H -lntup` snapshot to remain byte-identical across Caddy reload | Preserve protocol, state, local endpoint, and owning process identity while excluding volatile queue, PID, and file-descriptor fields | The exact reload regression proved candidate rejection works and PID/semantic listeners remain stable, while raw snapshots change on both healthy candidate and bootstrap reloads | Removes the false readiness and incomplete-rollback failures without weakening endpoint or owner validation; historical artifacts remain unchanged | User requested analysis and a separately defined bounded correction; no live retry authorized | Require separate authorization for the exact corrected runner after confirming the shared Pi-hole VIP terminology |
+| 2026-07-29 | Corrected Action 16aq-b retry definition | Correct the production decode without rewriting executed evidence | Add a separately hash-pinned correction and runner that preserve the original unresolved record and emit a second corrected record | Historical artifacts are deployment evidence; an append-only correction keeps provenance auditable and makes the exact defect/fix boundary explicit | No live impact; retry behavior changes only after separate execution authorization | User authorized definition but not execution | Execute only the exact hash-pinned retry under separate authorization |
+| 2026-07-29 | Action 16ar default-deny source placement | Extend the existing default-deny policy to exact-listener internal servers | Preserve executed `90-default-deny.caddy` byte-for-byte and add `91-exact-listener-default-deny.caddy` | The first in-place candidate passed Caddy validation but invalidated already executed source-transfer hash contracts; append-only placement provides identical route behavior without rewriting historical evidence | Common desired state gains one non-secret fragment; defined live transaction remains Node A-only and unexecuted | User authorized definition but not execution; mechanical placement correction made during local validation | Require exact hash-pinned Action 16ar authorization before any live release or reload |
+| 2026-07-29 | Action 16ar live transaction and rollback | Select the validated immutable release, reload without PID/listener change, accept bounded routing checks, or restore the exact bootstrap baseline automatically | Preflight and staging validation passed, then the transaction failed with status `1`; rollback declared incomplete and required manual intervention; SSH returned `125` and runner returned `97` | The original transcript lacked labeled readiness and rollback values, so neither the failure cause nor final state could be inferred safely from aggregate markers | Action 16ar remains failed; accepted read-only Action 16ar-a later proved the bootstrap selection, candidate cleanup, active services, listeners, and health were restored without repair; Node B was outside scope and untouched | User authorized exact Action 16ar with rollback and later authorized exact read-only Action 16ar-a separately | Analyze the accepted evidence and separately define any correction or further diagnostic before retrying |
+| 2026-07-29 | Action 16aq-b production probe decoding | Decode the unknown probe's HTTP status and derive a conclusive server when all exact-listener evidence agrees | Probe metadata was safely encoded as `200%7C10.1.0.53%7C2%7C0%7C0`, but the collector split only on a literal pipe character, so it passed the full encoded value as the expected code and emitted unresolved | The self-test exercised derivation with a direct numeric `200` and did not regression-test the production-encoded probe-to-derivation path | Complete safe evidence was collected with runner/SSH `0`, no persistent mutation, and cleanup, but Action 16aq-b did not identify a server and Action 16aq remains unaccepted | User authorized only exact Action 16aq-b execution | Separately define a corrected retry that decodes `%7C` before extracting the status and tests the exact production record |
+| 2026-07-29 | Action 16aq-b server-selection evidence | Identify the selected internal Caddy server directly from a server-labeled request metric | Caddy emits handler metrics for handled requests, but an unmatched route returns empty `200` without a handler series; the diagnostic combines a server-labeled known-host control, the live exact/wildcard listener and handler map, the unknown response, and absence of an unknown handler delta | Ephemeral Caddy `2.11.4` validation reproduced the observed unhandled `200`, confirmed the metric boundary, and showed arbitrary extension methods normalize to shared label `OTHER`; the final probe uses separately labeled `TRACE` and requires metric/probe status agreement | A conclusive result is permitted only when independent evidence agrees; ambiguity or concurrent matching traffic is reported as unresolved, never guessed | User authorized definition only | Separately authorize exact Action 16aq-b execution before any configuration proposal |
+| 2026-07-29 | Corrected Action 16aq-a retry routing diagnosis | Distinguish catch-all handler status/body adaptation from the observed unknown-default `200` | Adapted and runtime HTTPS catch-alls are identical and explicitly return `421` with empty bodies, while the direct matching unknown SNI/Host request still returns empty Caddy `200` | The request did not execute the observed catch-all handler; the diagnostic did not directly expose internal server selection | Configuration syntax and runtime drift are ruled out, but unknown-host rejection remains unresolved and Action 16aq remains unaccepted | User authorized only the exact corrected read-only retry | Separately define a read-only server-selection diagnostic before proposing any configuration correction |
 | 2026-07-29 | Staged gitleaks validation | Reject secret-bearing staged content while permitting public configuration-integrity hashes | The default `generic-api-key` rule classified 11 occurrences of three public SHA-256 pins as secrets because their variable names contained `key`, `keyring`, or `api`; `.gitleaks.toml` now allows only the three exact detector matches and exact hash values | Preserve deployed artifact hashes and the living journal while avoiding a broad path, rule, entropy, or hexadecimal allowlist | Gitleaks still scans every staged file and rejects any different value or unrelated secret; the exact staged tree reports no leaks | Minor mechanical validation correction after the commit hook failed; no live deployment scope changed | Retain the exact-value allowlist with the corresponding public artifacts and rerun the complete staged pre-commit suite |
 | 2026-07-29 | Action 16aq-a probe transcript contract | Validate five safe probe records after the collector percent-encodes embedded field delimiters | Collector correctly emitted `%7C` according to its self-test, but runner regex required literal embedded pipe delimiters and returned `97` after SSH `0` and complete cleanup | The synthetic runner contract generated literal delimiters and did not exercise the collector's encoded production format | Complete read-only observations were collected and no state changed, but the runner transaction is unaccepted and cannot be retried unchanged | User authorized exact read-only Action 16aq-a only | Separately define a corrected encoded-field validator and extend route evidence enough to explain the HTTPS catch-all `200` before any retry |
 | 2026-07-29 | Action 16aq lighttpd directive provenance | Verify loopback bind, TCP 8080, and disabled TLS through `/etc/lighttpd/conf-enabled/99-caddy-ha.conf` | All three file-specific checks failed, while the exact promoted tree, native parse, exclusive loopback listener, process, and backend checks passed | The inspector assumed a fragment location that the accepted preparation process did not guarantee | Three false mismatches prevent Action 16aq acceptance but do not invalidate the independently observed lighttpd runtime state | User authorized exact read-only Action 16aq only | Define a narrow read-only diagnostic to locate the effective directives before correcting the inspector |
@@ -9055,6 +12268,8 @@ No result in this section is considered live-deployment evidence.
 
 | Date | Scope | Command | Result |
 | --- | --- | --- | --- |
+| 2026-07-30 | Corrected read-only Action 17f-b second-retry definition | Focused production-function failure checks and `./Caddy/tests/run.sh` | Passed inherited ERR-label/status evidence, `errexit` conditional-context protection, safe hash-output contracts, historical-artifact pins, zero unapproved readonly/local collisions, complete host validation, and full Debian 12 Podman integration; Node B was not contacted |
+| 2026-07-30 | Corrected read-only Action 17f-b retry definition | Focused self/source/contract/regression checks and `./Caddy/tests/run.sh` | Passed unique assertion-label coverage, production `set -e` failure attribution, historical-collision reproduction, corrected workstation validation, zero unapproved readonly/local collisions, complete host validation, and full Debian 12 Podman integration; Node B was not contacted |
 | 2026-07-27 | Caddy host validation | `./Caddy/tests/run.sh --skip-container` | Passed ShellCheck, shfmt, YAML, JSON, renderer, unresolved-manifest rejection, dry-run JSON, locked-value, and Munin plugin-mode checks |
 | 2026-07-27 | Debian 12 integration | `./Caddy/tests/run.sh` | Passed Caddy format/adapt/validate for both nodes, Keepalived parsing for both nodes, staged lighttpd tree transformation and native parsing, lsyncd loading, systemd unit verification, ephemeral certificate preparation, secret-output checks, installer idempotency, backup/rollback simulation, uninstall simulation, release ancestry, incomplete-release rejection, and conflict quarantine |
 | 2026-07-27 | Server repository | `pre-commit run --all-files` | Passed ShellCheck, shfmt, markdownlint, yamllint, GitHub validators, and gitleaks |
@@ -9269,6 +12484,69 @@ No result in this section is considered live-deployment evidence.
 | 2026-07-29 | Independent read-only Node A post-cutover acceptance Action 16aq execution | Exact runner/inspector hashes, strict host-verified SSH, 104 labeled assertions, evidence cardinality, service/listener/configuration/tree/certificate/protocol/journal checks, no-mutation markers, semantic status, and workstation cleanup | Stopped without mutation: 100 checks passed; three lighttpd fragment-location assumptions and unknown-host `421` policy failed; SSH returned semantic status `1`; a runner-contract defect returned `97`; Action 16aq remains unaccepted |
 | 2026-07-29 | Narrow read-only Action 16aq-a diagnostic definition | Bash syntax, ShellCheck, repository-profile shfmt, diagnostic/runner self-tests, synthetic success/duplicate/count-inconsistent/secret/nonzero-SSH transcript cases, recursive lighttpd directive and include provenance, effective parser/listener state, environment-backed adapted and live Caddy route records, five direct no-proxy SNI/Host probes, static no-write/no-service/no-peer scans, complete host suite, focused pre-commit, `git diff --check`, and full Debian 12 Podman integration | Passed locally: exact non-enforcing remote collection and fail-closed workstation transcript validation are defined; neither live node was contacted or changed |
 | 2026-07-29 | Narrow read-only Action 16aq-a diagnostic execution | Exact runner hash, strict host-verified SSH, command and repeated-record counts, lighttpd provenance/effective/listener evidence, adapted/runtime route counts, five probes, completion and no-mutation markers, SSH status, and workstation cleanup | Remote collection completed with SSH `0` and no mutation; runner returned `97` because intentional `%7C` probe encoding failed its literal-delimiter regex; main lighttpd config owns loopback/8080, mismatched SNI/Host returns `421`, matching unknown SNI/Host returns Caddy `200`, and IP-SNI failed TLS with curl `35`; Action 16aq-a remains unaccepted |
+| 2026-07-29 | Corrected read-only Action 16aq-a retry definition | Original-artifact hash preservation, extension/runner Bash syntax, ShellCheck, shfmt, self-tests, production `%7C` success fixture, literal-delimiter, duplicate, count-inconsistent, malformed-static-response, secret-bearing, and nonzero-SSH negative contracts, safe adapted/runtime handler schema, static no-write/no-service/no-peer scans, complete host suite, focused pre-commit, `git diff --check`, and full Debian 12 Podman integration against actual Caddy `2.11.4` adapted output | Passed locally: separate retry artifacts preserve both historical files, validate the exact production encoding, collect only safe static-response status/body metadata, require hostless HTTPS catch-all evidence, and create no remote path; neither live node was contacted or changed |
+| 2026-07-29 | Corrected read-only Action 16aq-a retry execution | Exact runner/extension/original hashes, strict host-verified SSH, all original and extended singleton/repeated-record contracts, production probe decoding, safe handler schemas, adapted/runtime comparison, completion and no-mutation markers, SSH status, and workstation cleanup | Passed with runner/SSH `0`: two adapted and two runtime static handlers matched exactly; HTTPS `srv3` and HTTP `srv4` explicitly return `421` with empty bodies; matching unknown SNI/Host still returns empty Caddy `200`; all no-mutation and cleanup evidence passed; exact accepting server remains unobserved |
+| 2026-07-29 | Narrow read-only Action 16aq-b definition | Bash syntax, ShellCheck, shfmt, collector/runner self-tests, conclusive and unresolved success fixtures, duplicate/count-inconsistent/malformed/inconsistent/secret/nonzero-SSH negative contracts, live-server summary schema, per-host metric parser and delta tests, exact-listener and direct-metric selection paths, static no-write/no-service/no-peer scans, complete host suite, and Debian 12 Podman integration against actual Caddy `2.11.4` adaptation | Passed locally: exact hash-pinned server-selection collection and fail-closed transcript validation are defined; neither node was contacted or changed |
+| 2026-07-29 | Narrow read-only Action 16aq-b execution | Exact runner/collector hashes, strict host-verified SSH, Node A identity, command/runtime/metrics/probe and repeated-record contracts, selection schema, completion/no-persistent-mutation markers, SSH status, and workstation cleanup | Runner/SSH `0` and all collection controls passed; known control mapped to `srv0`, unknown returned empty `200` with no handler delta, but encoded probe-code extraction caused an explicit unresolved result; no persistent state changed |
+| 2026-07-29 | Corrected read-only Action 16aq-b retry definition | Historical-artifact hash preservation, correction/runner Bash syntax, ShellCheck, shfmt, exact five-field decoder self-test, full production correction-path self-test, conclusive/unresolved success fixtures, literal-delimiter/wrong-code/duplicate/malformed/secret/nonzero-SSH negative contracts, static no-write/no-service/no-peer scans, complete host suite, and Debian 12 Podman integration | Passed locally: append-only production decoding and fail-closed retry transcript validation are defined; neither node was contacted or changed |
+| 2026-07-29 | Corrected read-only Action 16aq-b retry execution | Exact runner provenance, strict host-verified SSH, ten remote command checks, runtime/config and five-server summaries, known/unknown probes, four metrics reads, original and corrected selection schemas, exact production decode, no-mutation markers, secret exclusion, SSH status, and protected workstation cleanup | Passed: runner/SSH `0`; decoded unknown status `200`; known control selected `srv0`; wildcard `srv3` had no unknown-request delta; corrected record conclusively selected `srv0`; no persistent state changed |
+| 2026-07-29 | Transactional Node A routing correction Action 16ar definition | Historical fragment preservation; new fragment hash; driver/runner Bash syntax, ShellCheck, shfmt and self-tests; success, complete rollback, no-mutation, duplicate, wrong-code, PID-change, incomplete-rollback and secret contracts; exact five-server adapted topology; complete host suite; Debian 12 Podman Caddy `2.11.4` validation and live physical/VIP/loopback dual-stack runtime probes | Passed locally: all six exact-listener unknown-host probes returned `421`, named VIP health remained `204`, the new fragment merged into existing servers without adding listeners, historical hashes remained intact, and neither node was contacted or changed |
+| 2026-07-29 | Transactional Node A routing correction Action 16ar execution | Exact runner provenance, strict host-verified SSH, remote reach/preflight/mutation markers, Caddy processing boundary, success-or-rollback contract, SSH status, secret exclusion, and protected workstation cleanup | Failed closed: remote status `1`; rollback incomplete/manual-intervention markers present; SSH `125`; runner `97`; local cleanup passed; no acceptance evidence exists and Node A final state remains unverified |
+| 2026-07-29 | Fail-closed read-only Node A recovery diagnostic Action 16ar-a definition | Bash syntax, ShellCheck, shfmt, collector/runner self-tests, complete/duplicate/count-inconsistent/missing-probe/secret/nonzero-SSH transcript contracts, exact path/release/environment/service/configuration/tree/listener/process/probe/journal coverage, static no-write/no-service/no-peer/Node-B/Webmin checks, complete host suite, and full Debian 12 Podman integration | Passed locally: exact non-enforcing remote collection and fail-closed workstation validation are defined; the initial sandboxed Podman attempt failed only because rootless runtime state was read-only and the unchanged host-permitted rerun passed; neither live node was contacted or changed |
+| 2026-07-29 | Fail-closed read-only Node A recovery diagnostic Action 16ar-a execution | Exact runner and collector provenance, strict host-verified SSH, all singleton/repeated record cardinality and count checks, environment-backed adapted/live configuration evidence, secret exclusion, no-mutation/completion markers, SSH status, and protected workstation cleanup | Passed with runner/SSH `0`: bootstrap is selected; all Action 16ar candidate/staging/temp paths are absent; Caddy/lighttpd are active and healthy; deferred state is intact; all matching unknown-host probes remain `200`; no remote state changed |
+| 2026-07-29 | Action 16ar reload-lifecycle root-cause regression | Debian 12 Caddy `2.11.4` bootstrap→candidate→bootstrap reload, direct unknown-host and localhost probes, PID continuity, raw listener equality, and semantic listener equality | Passed and confirmed root cause: codes changed `200→421→200`; Caddy PID and semantic listener identity were preserved; raw listener snapshots differed after both healthy reloads |
+| 2026-07-29 | Corrected transactional Action 16ar retry definition | Historical-artifact hashes, transformer and rendered-driver hashes, distinct retry paths/markers, normalized listener identity, driver/runner syntax and self-tests, success/complete-rollback/no-mutation/duplicate/wrong-code/restart/incomplete-rollback/secret contracts, complete host suite, and full Debian 12 Podman integration | Passed locally: the exact bounded retry is defined without modifying historical evidence or contacting either node; live execution remains unauthorized |
+| 2026-07-29 | Corrected transactional Action 16ar retry execution | Exact runner provenance, self-tests, strict host-verified SSH, remote success markers, selected release and manifests, PID and listener continuity, three unknown-host probes, no-other-mutation assertions, SSH status, stderr policy, secret exclusion, and workstation cleanup | Mixed result: the remote transaction completed and SSH returned `0`; the corrected release was selected, PID remained `1085652`, all unknown-host probes returned `421`, and rollback was not invoked; the runner returned `97` solely because successful Caddy validation emitted structured information to stderr, so independent read-only acceptance is required |
+| 2026-07-29 | Fail-closed read-only post-correction Action 16ar-b definition | Historical collector/runner and deriver provenance; rendered hashes; Bash syntax; ShellCheck; shfmt; nested and outer self-tests; structural and strict transcript contracts; exact release, manifest, environment, service/PID, adapted/runtime `.56/::56` topology, probe, listener, protected-tree, no-mutation, secret-exclusion, SSH, and cleanup assertions; wrong-release/wrong-probe/missing-route/secret/nonzero-runner rejection; complete host suite; Debian 12 Podman integration | Passed locally: the exact read-only acceptance diagnostic is defined and hash-pinned; the initial sandboxed Podman attempt failed only on read-only rootless runtime state and the unchanged permitted rerun passed; neither live node was contacted or changed |
+| 2026-07-29 | Fail-closed read-only post-correction Action 16ar-b execution | Exact outer-runner provenance, nested self-tests/contracts, strict host-verified SSH, complete structural transcript validation, corrected release/manifests, node environment, service/PID, adapted/runtime `.56/::56` topology, eight probes, trees, listeners/processes, no-mutation markers, secret exclusion, SSH status, and nested/outer cleanup | Failed closed only in the outer acceptance layer: SSH and inner runner `0`; complete corrected-state and no-mutation evidence collected; outer runner `97` because masked units use `LoadState=masked`, two pinned tree hashes were improperly derived from abbreviations, and process delimiters are `%7C`; no acceptance marker and no remote mutation |
+| 2026-07-29 | Corrected production-transcript Action 16ar-b retry definition | Immutable historical-runner hash; exactly eight rendered replacements; exact full Keepalived/lighttpd tree hashes; masked-unit and `%7C` process fixtures; rejection of all three historical assumptions; correction/regression/retry syntax, ShellCheck, shfmt, self-tests and contracts; host suite; Debian 12 Podman integration | Passed locally: corrected rendered validator SHA-256 `00ab6876...25e`, retry runner `bdd88699...7677`; first sandboxed Podman attempt failed only on read-only rootless runtime state and the unchanged permitted rerun passed; neither node was contacted |
+| 2026-07-29 | Corrected read-only Action 16ar-b retry execution | Exact runner ownership/mode/hash and local contracts; strict host-verified SSH; corrected immutable release and manifests; node environment; eight services; five adapted/runtime servers; exact trees; TCP/UDP listeners and process encoding; eight probes; no-mutation, acceptance, SSH, and cleanup markers | Passed: runner/SSH `0`, both nested and corrected acceptance markers true, all four unknown-host probes `421`, Caddy PID `1085652`, no persistent mutation, and complete cleanup; corrected Action 16ar retry is independently accepted |
+| 2026-07-29 | Read-only synchronization-readiness Action 17a definition | Dual-role inspector and runner syntax, ShellCheck, shfmt, self-tests, success/mismatch transcript contracts, count reconciliation, malformed/duplicate/secret/status rejection, exact asymmetric authorization contract, helper/unit hashes, static no-write/no-service/no-peer scans, host suite, focused pre-commit, and Debian 12 Podman integration | Passed locally: inspector `1193632a...ae8`, runner `f19e5673...16e5`; the gate is defined without contacting either node or performing peer SSH, rsync, synchronization, or mutation |
+| 2026-07-29 | Read-only synchronization-readiness Action 17a execution | Exact runner provenance and contracts; strict administrative SSH to both nodes; check-count reconciliation; identities, keys, host pins, authorization, helpers, unit, directories, transfer state, services, packages, Caddy targets, no-peer/no-sync/no-mutation markers, and cleanup | Valid semantic mismatch: Node A 54/54 with SSH/validation `0`; Node B 51/52 with SSH/validation `1`; only the stale bootstrap target assertion failed, while accepted Action 15 evidence requires `action15-health-follow-redirects`; runner `1`, readiness false, cleanup complete |
+| 2026-07-29 | Corrected read-only Action 17a retry definition | Historical artifact hashes; exact accepted Node B Action 15 target; independently generated expected inspector and byte equality; corrected inspector/runner hashes; stale-target and historical-hash rejection; correction/regression/retry syntax, ShellCheck, shfmt, self-tests/contracts; host suite; focused pre-commit; Debian 12 Podman integration | Passed locally after correcting two container-only regression assumptions; retry runner `de5c2f05...3a56`; neither node was contacted or changed |
+| 2026-07-29 | Corrected read-only Action 17a retry execution | Exact runner provenance and local contracts; separate strict administrative SSH inspections; count reconciliation; all identities, keys, host pins, authorization, helper/unit, directory, transfer, package, Caddy/SSH, lsyncd and no-mutation checks; nested/retry acceptance and cleanup | Passed: Node A 54/54 and Node B 52/52; both SSH/validation statuses `0`; zero mismatches; nested and retry acceptance true; no peer connection, synchronization, service/filesystem mutation, or residue |
+| 2026-07-29 | Bounded transactional Action 17b definition | Exact Node A public key and fingerprint, Node B identity and accepted baseline, source restrictions, forced receiver, sole persistent target, temporary-stage cleanup, protected-state equivalence, bounded rollback, success/failure/duplicate/secret transcript contracts, static no-service/no-peer/no-sync checks, host suite, focused pre-commit, and Debian 12 Podman integration | Passed: driver `ebd12688...7efe`, runner `8b9fdd59...7698`, regression `b2a62812...3d71`; no node was contacted or changed |
+| 2026-07-29 | Bounded transactional Action 17b execution | Exact runner provenance, syntax, self-test and transcript contract; accepted Node B preflight; exact authorization count, fingerprint, owner/mode and persistent scope; protected-state equivalence; negative peer/synchronization/lsyncd/service markers; SSH status and workstation cleanup | Passed: runner/SSH `0`, one restricted Node A authorization installed, protected state unchanged, rollback not invoked, and no transfer or service mutation |
+| 2026-07-29 | Bounded read-only Action 17c definition | Accepted identities, host pins, authorization and releases; Node B before/after digest contract; dual-stack forced-command rejection; empty-source rsync dry-run; strict SSH options; no-delete/no-service/static checks; protected-state and empty-transfer invariants; success/semantic-failure/duplicate/secret transcript contracts; host suite, focused pre-commit, and Debian 12 Podman integration | Passed: inspector `37e5390f...5111`, driver `f3e77571...15c0`, runner `d2b8672f...510b`, regression `2c4017a9...b3ce3`; no node was contacted |
+| 2026-07-29 | Bounded read-only Action 17c execution | Exact runner provenance and local contracts; three administrative SSH statuses; Node B before/after state digest; Node A required transcript; malformed-success rejection; workstation-stage cleanup | Valid incomplete evidence: all administrative SSH statuses `0`, Node B digest identical at `e2622a7a...29d2`, Node A emitted only preflight, and the runner rejected missing probe/post-state/cleanup evidence; Action 17c is not accepted |
+| 2026-07-29 | Corrected read-only Action 17c retry definition | Historical immutability and hashes; exact one-line driver and two-line runner transformations; rendered hashes; historical stream-truncation negative control; corrected post-probe continuity positive control; correction/regression/wrapper syntax, ShellCheck, shfmt, self-tests and contracts; host suite, focused pre-commit, and Debian 12 Podman integration | Passed locally: correction `693a75d7...29b6`, rendered driver `3259b979...31dd`, rendered runner `c88ab6f9...b795`, regression `4a54669e...1d62`, retry runner `a93a457a...d831`; one intermediate container-only workstation-owner assertion was removed while portable coverage remained; neither node was contacted |
+| 2026-07-29 | Corrected read-only Action 17c retry execution | Exact runner provenance and local gates; complete streamed Node A transcript; dual-stack restricted-authentication results; fail-closed rsync gating; Node A and Node B protected-state/no-transfer invariants; nested/retry status and all cleanup markers | Valid semantic failure: IPv4 assertions true, IPv6 assertions false, `first_failure=ipv6_forced_receiver_rejection`, rsync skipped, nested/retry status `1`, exact Node B digest unchanged at `e2622a7a...29d2`, no mutation or transfer, and all cleanup complete; retry is not accepted |
+| 2026-07-29 | Narrow read-only IPv6 diagnostic Action 17c-a definition | Exact ULA/interface/identity/host pins; Node B IPv6-only SSH listener, return route, source authorization and state evidence; Node A source route, neighbor, ICMP and detached verbose SSH milestones; bounded error classes/conclusions; transcript hash without raw debug output; no-rsync/no-service/no-network-mutation checks; cleanup, duplicate, secret, host, pre-commit and Podman gates | Passed locally: Node B inspector `eb348a76...83d2`, Node A diagnostic `39be8c27...3d39`, runner `81b07190...a706`, regression `082006b1...a435`; the initial sandboxed Podman runtime attempt was blocked by read-only runtime state and the permitted identical retry passed; neither node was contacted |
+| 2026-07-29 | Narrow read-only IPv6 diagnostic Action 17c-a execution | Exact runner provenance and contracts; both administrative SSH statuses; Node B ULA/listener/route/authorization/SSH evidence; Node A ULA/route/neighbor/ICMP and bounded SSH milestones; diagnostic conclusion; no-rsync/no-transfer/no-service/state-equivalence and cleanup markers | Passed as complete collection: conclusion `node_a_ipv6_route_mismatch`; Node A route source mismatch and server key rejection observed after successful ICMP, connection, host-key verification and key offer; both administrative SSH statuses `0`, relevant state unchanged, no rsync/transfer/mutation, and all cleanup complete |
+| 2026-07-29 | Narrow read-only IPv6 source comparison Action 17c-b definition | Exact Action 17c-a baseline and Node B inspector; sanitized actual route-source extraction; shared SSH probe with only bound-address variance; separate unbound/bound milestones, error classes and transcript hashes; bounded conclusions; duplicate/secret/source validation; no-rsync/no-service/no-network-mutation and cleanup checks; complete host, pre-commit and Podman gates | Passed locally: Node A diagnostic `e3fe442b...5a82`, runner `14bf3d97...8e55`, regression `5e6debad...2604`; neither node was contacted |
+| 2026-07-29 | Narrow read-only IPv6 source comparison Action 17c-b execution | Exact runner provenance and local contracts; both administrative SSH statuses; actual selected route source; otherwise identical unbound/bound SSH milestones, error classes, transcript hashes and conclusion; relevant-state/no-transfer/no-rsync/no-service and cleanup markers | Passed: selected source `fd36:5aa8:6971:1::55`; unbound probe status/class `255`/`publickey_denied`; `fd36:5aa8:6971:1::53`-bound control status/class `126`/`forced_receiver_rejection`; conclusion `stable_source_binding_restores_authorization`; no persistent mutation and all cleanup complete |
+| 2026-07-29 | Impact-complete source-binding correction Action 17c-c definition | Historical template/validator/renderer hashes; direct SSH and rsync remote-shell `-6`/`-b` controls; lsyncd address-family, bind-address and host-key-alias options; reciprocal node rendering; fail-closed transcript/state contracts; empty-source dry run; static no-service/no-network/no-delete checks; complete host suite and isolated Debian 12 lsyncd parser/integration validation | Passed locally: runner `b63cd6e4...7cf7`, validator `a7da9a91...27dc`, renderer `36c048b7...b5f3`, template `f7e1e481...be976`, regression `57dcc069...b6e`; no node was contacted and no live artifact changed |
+| 2026-07-29 | Read-only source-bound transport Action 17c-c execution | Exact runner provenance and contracts; separate Node B before/after inspection statuses; Node A source-bound validator output/status; fail-closed evidence handling; independent local cleanup check | Valid incomplete evidence: both Node B administrative statuses `0`; Node A source-bound SSH configuration marker true, then pre-state `find` failed restoring inaccessible inherited `/home/pi`; Node A status `1`, runner `97`, no transport probe or rsync dry run, and local cleanup true |
+| 2026-07-29 | Corrected read-only Action 17c-c retry definition | Historical runner immutability; exact one-line remote-command transformation; rendered runner hash; static negative control; Debian 12 real `runuser` inaccessible-directory reproduction and corrected control; inner and outer contracts; duplicate rejection; complete host and container suites | Passed: historical runner `b63cd6e4...7cf7`, correction `0201ae3e...07d9c`, rendered runner `1cef934a...b5f2`, retry runner `5ec46ca7...d6ab`, regression `288b7619...ca95`; no node contacted |
+| 2026-07-29 | Corrected read-only Action 17c-c retry execution | Exact retry provenance and local contracts; corrected working-directory boundary; Node B before/after administrative statuses; bounded Node A transcript; nested/outer fail-closed handling; independent local cleanup | Valid incomplete evidence: working-directory failure absent and source-bound SSH configuration true; Node A status `1` before direct-SSH success, both Node B statuses `0`, inner and outer `97`, no rsync/state/digest/acceptance evidence, and local cleanup true |
+| 2026-07-29 | Narrow read-only Action 17c-c-a diagnostic definition | Exact diagnostic/runner/Node B inspector provenance; 19 labeled pre-state checks; single `-6 -n -T -vv -b …::53` probe; bounded milestones, status, error class and transcript hashes; forced-receiver consistency; before/after digest and no-transfer/no-rsync/no-service contracts; duplicate/inconsistency rejection; static no-write/no-network-mutation regression; complete host and Debian 12 container suites; focused and full pre-commit; diff check | Passed locally: Node A diagnostic `3011cd54...0609`, runner `f460262c...01d2`, regression `a28283c4...b73f`, Node B inspector `37e5390f...5111`; no node contacted |
+| 2026-07-29 | Narrow read-only Action 17c-c-a diagnostic execution | Exact runner provenance and local contracts; all Node A pre-state labels; bounded direct-SSH status/class/milestones and transcript hashes; Node A state equivalence; Node B before/after digest; no-transfer/no-rsync/no-service and cleanup markers; independent workstation-stage absence | Passed as complete diagnostic collection: runner and all three administrative SSH statuses `0`; 19/19 pre-state checks; direct status/class `255`/`name_resolution_failed`; Node A state and Node B digest unchanged; no connection milestone, rsync, transfer, service mutation, or persistent change; cleanup passed |
+| 2026-07-29 | Narrow read-only Action 17c-c-b diagnostic definition | Exact collector/runner provenance; single identity record for each of `pi`/root/`caddy-sync`; paired bounded IPv4/IPv6 `getent` lookups; status/class/address/count/truncation/transcript contracts; resolver symlink/canonical target, NSS hosts line, nameserver, hosts-file and pre/post state provenance; bounded conclusions; duplicate/inconsistency/secret rejection; historical Action 17c-c-a hash; no-peer/no-rsync/no-write/no-service/no-network-mutation regression; complete host and Debian 12 container suites; focused and full pre-commit; diff check | Passed locally: collector `908eecb0...7a8d`, runner `d0fa596f...b4da`, regression `e14dd1ed...6a97`; no node contacted and no DNS query issued by the action |
+| 2026-07-29 | Narrow read-only Action 17c-c-b diagnostic execution | Exact runner provenance and local contracts; Node A pre-state/provenance; six bounded context lookups; SSH/runner status; missing-marker rejection; independent workstation cleanup; local readonly-shadow reproduction | Valid incomplete evidence: all contexts returned IPv4/IPv6 status/class `2`/`not_found`; Node A exited `1` after context collection, runner returned `97`, and no post-state/remote-cleanup/acceptance evidence exists; local reproduction confirmed the readonly/local collision with status `1`; no peer SSH or rsync occurred |
+| 2026-07-29 | Corrected read-only Action 17c-c-b retry definition | Historical hash immutability; exact one-variable five-line collector transformation; rendered collector/runner hashes; unchanged function-local name and original scope; historical second-snapshot negative control; corrected two-snapshot positive control; duplicate/secret rejection; Bash syntax, ShellCheck, shfmt, correction/runner/regression self-tests and contracts; complete host and Debian 12 Podman suites | Passed locally: historical collector `908eecb0...7a8d`, historical runner `d0fa596f...b4da`, correction `f9e998a5...55d8`, rendered collector `c99a7be1...4efd`, rendered inner runner `5bf1e9a9...8263`, regression `2a3c6546...0773`, outer runner `de212a42...eac8`; the first sandboxed Podman attempt was blocked by read-only runtime state and the permitted identical retry passed; neither node was contacted |
+| 2026-07-29 | Corrected read-only Action 17c-c-b retry execution | Exact outer runner provenance and pre-execution gates; both resolver snapshots; all six identity/database lookups; original and corrected transcript contracts; state equivalence; SSH/inner/outer status; no-mutation and cleanup evidence | Passed: SSH/inner/outer `0`; before/after state `cb54c0a0...7d9d`; all lookups `2`/`not_found` with empty output; conclusion `all_contexts_match_non_success`; no peer SSH, rsync, transfer, service mutation, or persistent mutation; remote and workstation cleanup complete |
+| 2026-07-29 | Read-only DNS path/authority Action 17c-c-c definition and two-file migration prerequisite | Exact collector/runner/regression provenance; user-confirmed current single-file state; primary/local-zone target-source hashes and ownership; legacy-single-file and desired-two-file classification; existing A/PTR positive controls; expected peer-AAAA/Caddy-record absences; local Unbound/local Pi-hole/DNS VIP/configured-resolver query matrix; bounded response records; path/synchronization/Caddy conclusions; semantic mismatch fixtures; duplicate rejection; static no-transfer/no-DNS-or-service/no-network-mutation checks | Passed locally: collector `5ef814b8...c364`, regression `f5ef1077...d825`, runner `db6c2737...f1a6`; primary source `cef03495...d2e8`, local-zone source `8a7d1c6d...56d1`, intended manifest `809c3734...bf22`; focused tests, complete host suite, Debian 12 Podman integration, full pre-commit, Markdown lint, and diff checks passed; neither node was contacted and no DNS query was issued by this action definition |
+| 2026-07-29 | Read-only DNS path/authority Action 17c-c-c execution | Exact authorized runner provenance; both node pre-state/source records; administrative SSH statuses; query, post-state, no-mutation, conclusion, acceptance, and cleanup evidence; independent workstation-stage check | Valid incomplete evidence: runner `db6c2737...f1a6` returned `97`; both SSH statuses were `1`; Node A primary `dd5af7cc...d3ae`, Node B primary `017aa255...fac7`; each primary is regular `root:root:0644`, contains local-zone directives, and has no separate local-zone fragment; both collectors failed at `run_query` line 221 on the readonly `work_dir` collision before any DNS query; workstation temporary stage is absent; query/post-state/no-mutation/conclusion/acceptance and remote-cleanup markers are absent, so the action is not accepted |
+| 2026-07-29 | Read-only DNS continuity Action 17c-c-c-a definition | Exact failed-artifact and role-specific evidence pins; zero remote-stage contract; complete failed-prestate digest comparison; Unbound/Pi-hole service checks; no-query/no-write/no-service/no-network-mutation constraints; complete semantic-mismatch versus malformed-evidence handling; local cleanup; test-suite integration | Passed locally: inspector `6a7e2582...3a81`, regression `31ead9ab...1daf`, runner `d5c57b48...437e`; historical runner `db6c2737...f1a6` and collector `5ef814b8...c364` remain pinned; focused tests, complete host suite, Debian 12 Podman integration, full pre-commit, Markdown lint, and diff checks passed; neither node was contacted and no DNS query or live mutation occurred |
+| 2026-07-29 | Read-only DNS continuity Action 17c-c-c-a execution | Exact runner provenance and local contracts; both administrative SSH statuses; complete role-specific transcripts; stage count; mismatch reconciliation; primary hashes/metadata; local-zone state; embedded directives; service activity; exact continuity digest; no-query/no-write/no-mutation and cleanup markers | Passed: runner and both SSH statuses `0`; both stage and mismatch counts zero; Node A primary `dd5af7cc...d3ae` and continuity `0c6c2c57...e102`; Node B primary `017aa255...fac7` and continuity `af5b993a...5744`; all assertions true; conclusion `continuity_verified`; acceptance and workstation cleanup true; no DNS query or live mutation occurred |
+| 2026-07-29 | Corrected read-only DNS path/authority Action 17c-c-c retry definition | Historical collector/runner immutability; exact four-line collector and two-line inner-runner transformations; rendered hashes; historical readonly-collision negative control; corrected exact-function first-query positive control; no-network deterministic response; repository-relative source-path contract; outer transcript/secret/duplicate/cleanup contract; host/container integration | Passed locally: transformer `214efa54...e48`, regression `baa55af3...035`, rendered collector `1a96099b...624`, rendered inner runner `e1921118...1b3`, outer runner `14880392...4d6`; focused tests, Bash syntax, ShellCheck, shfmt, complete host suite, and Debian 12 Podman integration passed; the initial sandboxed suite failed only at Podman's read-only runtime directory and the permitted identical run passed; neither node was contacted and no DNS query or live mutation occurred |
+| 2026-07-29 | Corrected read-only DNS path/authority Action 17c-c-c retry execution | Exact authorized runner and historical-artifact provenance; local self/source/contract gates; both SSH and nested runner statuses; complete source/query/post-state/no-mutation/conclusion/cleanup transcripts; independent workstation-stage absence | Passed: runner `14880392...4d6`; both administrative SSH and inner/outer statuses `0`; Node A primary/state `dd5af7cc...d3ae`/`0c6c2c57...e102`; Node B primary/state `017aa255...fac7`/`af5b993a...5744`; both pre/post states equal; all bounded query, no-mutation, acceptance, and cleanup markers passed; conclusions were legacy single-file prerequisite/path, peer AAAA inconsistent, and Caddy records inconsistent; no live state changed |
+| 2026-07-29 | Read-only Node B two-file Unbound preflight Action 17d definition | Exact accepted DNS/candidate/inspector/regression provenance; ignored/untracked private-source policy; normalized live-versus-candidate directive multiset; ownership-boundary checks; live and shadow parser outcomes; six bounded conclusions; complete transcript relationships; unchanged state; remote/local cleanup; no-query/no-mutation constraints | Passed locally: inspector `0a9be5bf...0d3f`, regression `7ad95727...287e`, runner `6e63289a...e59d`; syntax, ShellCheck, shfmt, normalization/conclusion fixtures, source test, ready/drift/duplicate/secret contracts, static mutation exclusions, protected payload construction, complete host suite, and Debian 12 Podman integration passed; neither node was contacted and no DNS query or live mutation occurred |
+| 2026-07-29 | Read-only Node B two-file Unbound preflight Action 17d execution | Exact authorized runner and input provenance; identity/live-baseline/include/service/package/parser evidence; normalized directive equality; protected shadow parser result; before/after state; no-query/no-mutation and cleanup contracts; independent workstation-stage absence | Passed: runner and SSH `0`; live baseline `017aa255...fac7` and metadata matched; separate local-zone absent; supported include topology; Unbound `1.17.1-2+deb12u4`/`1.17.1` and both services ready; live and shadow parsers `0`; normalized counts `128`/`128`, identical hash `3a130bd4...6dd`, zero differences; state unchanged at `31862f7b...992c`; conclusion `ready_for_staged_adoption_design`; no DNS query or live mutation occurred and all staging was removed |
+| 2026-07-29 | Bounded Node B primary-fragment staging Action 17e definition | Exact Action 17d/driver/regression/candidate provenance; ignored/untracked source policy; single-file payload; exact accepted Action 17d tree/service snapshot and stage-absence preflight; primary ownership boundary; isolated parser check; retained-stage manifest/mode/completion contract; exact live-state equivalence; semantic rollback and incomplete-rollback rejection; duplicate/private-output rejection; independent local-zone gate; static no-live-DNS/query/service mutation checks | Passed locally: driver `b67d9fe1...121b`, regression `95cb23d0...75cb`, runner `d38a9639...e5e5`, candidate `cef03495...d2e8`, accepted state `31862f7b...992c`; Bash syntax, ShellCheck, shfmt, driver self-test, runner self/source/contract tests, regression, complete host suite, and Debian 12 Podman integration passed; the initial full-suite attempt was blocked only by the sandbox's read-only Podman runtime directory and the permitted identical retry passed; Node B was not contacted and neither candidate was staged |
+| 2026-07-29 | Bounded Node B primary-fragment staging Action 17e execution | Exact authorized provenance and local contracts; tar/SSH/pipeline statuses; remote preflight/mutation/rollback/stage/parser/state/acceptance markers; workstation cleanup and independent local-stage absence | Not accepted: tar `0`, SSH/pipeline `1`, outer runner `97`; Node B emitted rollback started/complete but no preflight-complete or mutation-started marker, so the outer semantic contract rejected the evidence; completed rollback revalidated the accepted baseline and both stage absences, local cleanup passed, and no retained primary stage is accepted; no retry occurred |
+| 2026-07-29 | Read-only Node B pre-write diagnostic Action 17e-a definition | Exact inspector/regression/failed-runner/failed-driver/accepted-state provenance; 23 disjoint pre-write assertions; repeated Action 17d and Action 17e collector status/hash/stability; stage absence; parser/service state; five bounded conclusions; failed-count reconciliation; semantic-mismatch acceptance; duplicate/private-output rejection; no-remote-path/no-write/no-query/no-service contract | Passed locally: inspector `4d614183...dd29e`, regression `a18751cd...8aaf`, runner `96232547...4c98`; Bash syntax, ShellCheck, shfmt, inspector self-test, runner self/source/contract tests, all-pass/mismatch fixtures, focused regression, complete host suite, and Debian 12 Podman integration passed; Node B was not contacted |
+| 2026-07-29 | Read-only Node B pre-write diagnostic Action 17e-a execution | Exact authorized runner provenance; all 23 labeled pre-write assertions; stable repeated Action 17d and Action 17e state collectors; stage absence; parser/service continuity; no-query/no-write/no-service markers; diagnostic acceptance and cleanup | Accepted: runner and SSH `0`; exactly one failed assertion, `prewrite_working_directory_is_root=false`; the other 22 passed; accepted root/primary hashes and metadata matched; local-zone and both future stages absent; transaction count zero; stable Action 17d state `31862f7b...992c`; stable Action 17e live state `3a05c048...b824`; Unbound and Pi-hole FTL active; parser `0`; conclusion `prewrite_assertion_mismatch`; no remote path, DNS query, configuration/service/persistent mutation, or cleanup residue |
+| 2026-07-29 | Corrected bounded Node B primary-fragment staging Action 17e retry definition | Historical runner/driver immutability; exact one-line rendered diff; encoded privileged-command quoting; inherited-directory negative control; root-directory positive control; tar payload continuity; no-network regression; private candidate provenance; rendered inner and outer runner contracts; bounded rollback and local cleanup | Passed locally: correction `f0f1ff94...3e0d`, regression `ab458946...3c0`, rendered inner `918efb19...73e0`, outer runner `5354fcd0...be92`; focused syntax, ShellCheck, shfmt, correction/regression production tests, rendered inner self/contract tests, outer self/source/contract tests, complete host suite, and Debian 12 Podman integration passed; Node B was not contacted and neither candidate was staged |
+| 2026-07-29 | Corrected bounded Node B primary-fragment staging Action 17e retry execution | Exact authorized outer/rendered-inner/unchanged-driver/candidate provenance; preflight; stage prior absence; protected stage ownership and mode; isolated parser; ownership boundary; before/after live state; no-local-zone/no-query/no-live-change/no-service markers; inner and outer cleanup | Passed: outer, inner, tar, SSH, and pipeline `0`; retained stage `/var/tmp/caddy-unbound-node-b-action17e-primary`; directory `root:root:0700`; file `root:root:0600`; candidate `cef03495...d2e8`; parser and ownership boundary valid; live state unchanged at `3a05c048...b824`; local-zone staged false; live Unbound mutation false; DNS query and service mutation false; inner acceptance and both cleanup markers true |
+| 2026-07-29 | Bounded Node B local-zone-fragment staging Action 17f definition | Exact accepted primary-stage and live-state prerequisites; local-zone source provenance; one-member transfer; directive ownership/counts; protected combined-pair parser; stage metadata/modes/completion; primary preservation; pre-write distinction; bounded rollback; no-live-path/no-query/no-service contract | Passed locally: driver `916f8b8a...e631`, regression `4849d405...ac60`, runner `700097f3...7c33`; focused syntax, ShellCheck, shfmt, self/source/contract tests, directive and mutation regressions, complete host suite, Debian Unbound `1.17.1` combined-pair parser, and full Podman integration passed; Node B was not contacted and the local-zone candidate remains unstaged |
+| 2026-07-29 | Bounded Node B local-zone-fragment staging Action 17f execution | Exact authorized runner provenance; local source/contract gates; tar/SSH/pipeline statuses; pre-write/mutation/rollback/stage/parser/state/acceptance markers; semantic-failure classification; workstation cleanup | Valid pre-write failure evidence: tar `0`; SSH/pipeline/runner `1`; distinct pre-write-before-mutation marker true; no preflight, mutation, rollback, stage, parser, state, or acceptance markers; accepted false; local cleanup true; the action created no remote transaction path and made no mutation, while the exact failed aggregate prerequisite remains unknown |
+| 2026-07-29 | Read-only Node B pre-write diagnostic Action 17f-a definition | Exact inspector/regression/failed-runner/failed-driver/accepted-state provenance; 55 disjoint assertions; root-directory command and assertion; retained-stage details; Action 17f stage and transaction absence; parser/service continuity; repeated accepted-state snapshots; semantic mismatch acceptance; malformed/duplicate/private transcript rejection; no-write/no-query/no-service/no-network contract | Passed locally: inspector `f380b441...3081`, regression `0a327ca9...2f3a`, runner `4d995823...e2ee`; focused checks, complete host suite, Debian 12 Podman integration, full pre-commit suite, and `git diff --check` passed; inherited-directory production test proved `observed_pwd=/` and tar payload continuity; Node B was not contacted |
+| 2026-07-30 | Read-only Node B pre-write diagnostic Action 17f-a execution | Exact authorized provenance; all 55 labeled assertions; `cd /` execution and PWD evidence; retained primary-stage completeness; Action 17f path absence; parser/service continuity; repeated accepted-state snapshots; no-query/no-write/no-service markers; diagnostic acceptance and cleanup | Accepted: one sandbox-blocked local attempt never reached Node B and cleaned up; unchanged permitted execution returned SSH/runner `0`; 55 of 55 assertions passed; live and retained-stage pins matched; both services active; parser `0`; repeated live state `3a05c048...b824`; conclusion all prerequisites pass; no remote path, query, configuration/service/persistent mutation, or cleanup residue |
+| 2026-07-30 | Instrumented bounded Action 17f retry definition | Immutable historical and accepted-diagnostic provenance; exact embedded inspector/driver hashes; enforced zero-failure 55-assertion transcript before driver execution; historical `cd /`, tar stdin, transaction, rollback, and semantic contracts; mismatch-before-driver rejection; protected outer rendering/cleanup; host-source and portable-container boundaries | Passed locally: instrumentation `63358403...934c`, regression `202a3d54...d004`, outer runner `6dae2d4b...c83b`, rendered driver/regression/runner `8d51f4f3...3ea1`/`40e0c294...49e3`/`b01aae1e...0107`; focused tests, complete host suite, isolated container correction check, and full Debian 12 Podman integration passed; Node B was not contacted |
+| 2026-07-30 | Instrumented bounded Action 17f retry execution | Exact authorized outer provenance; first-attempt LAN permission; complete 55-assertion instrumented transcript; immutable-driver entry and pre-write classification; tar/SSH/pipeline status; mutation, rollback, acceptance, and cleanup boundaries | Not accepted: the instrumented preflight passed 55 of 55 assertions from `/` with exact state pins, active services, valid parser, and stable state; the immutable driver then reproduced its pre-write-before-mutation failure; tar `0`, SSH/pipeline `1`, accepted false, no transaction path or rollback required, and both workstation cleanup layers passed |
+| 2026-07-30 | Narrow read-only Action 17f-b transition diagnostic definition | Exact immutable-function parity; individually labeled baseline, live-state assignment, readonly, hash, and hash-readonly statuses; production `set -e` replay; exact failure-step/status contract; no-write/no-query/no-service/no-peer boundary; malformed/duplicate/private transcript rejection | Passed locally: diagnostic `94a0c6d8...e9b3`, regression `3d04aacb...8aff`, runner `9abfa890...8e5d`; focused checks, complete host suite, pre-commit, and full Debian 12 Podman integration passed on the unchanged permitted rerun; initial sandboxed Podman startup was blocked before container execution by read-only rootless runtime state; Node B was not contacted |
+| 2026-07-30 | Narrow read-only Action 17f-b transition diagnostic execution | Exact authorized provenance; first-attempt LAN permission; individually reported transition statuses; exact production failure label; accepted-state hash; no-mutation markers; SSH, transcript validation, and cleanup | Remote evidence complete but action not accepted: SSH `0`; `validate_baseline` and exact block status `1`; every later operation `0`; snapshot `984` bytes and accepted hash `3a05c048...b824`; no mutation markers true; workstation validation failed on a readonly `transcript` name collision and cleanup completed; aggregate baseline label remains noncompliant |
 
 Validated container versions: Caddy `2.11.4`, Keepalived `2.2.7`, lsyncd
 `2.2.3`, lighttpd `1.4.69`, and systemd `252`.
@@ -9373,17 +12651,96 @@ Selected repository hashes at validation:
 | `scripts/run-node-a-post-cutover-acceptance-action16aq.sh` | `b312257a1e30b80389720696a57ff5626d659c811ff698b79c05d961b29ae348` |
 | `scripts/diagnose-node-a-lighttpd-routing-action16aq-a.sh` | `4a0b4371bbf8778cb98f217c0cd102b2f85b70aa16068c16899eb7575e5fa111` |
 | `scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a.sh` | `e7069b89a9cdf35d5d66d001a2a1d52dd36e58e5bdfd85aa5e6cd4f3a52309fc` |
+| `scripts/extend-node-a-lighttpd-routing-action16aq-a-retry.sh` | `e4f42a453851025ffc0bd1cd6b0a6f249ca6eda41bf5cef7aca039673baa8bed` |
+| `scripts/run-node-a-lighttpd-routing-diagnostic-action16aq-a-retry.sh` | `16f11a09e86b6c7e41057541ea488b5995c078aa71bd294f12f96b1cede18af0` |
+| `scripts/diagnose-node-a-caddy-server-selection-action16aq-b.sh` | `28ad0167c7e44242540cb5194fc308da8474f378dbc714a9f17931388e6321c3` |
+| `scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b.sh` | `bacd05fdd156a4629317c2e629adc646ce43e1cbc101e171db8ce294c0105118` |
+| `scripts/correct-node-a-caddy-server-selection-action16aq-b-retry.sh` | `5abef1aa638f054379a36c26cb47454299952fea3d6bb043b92a2585148e7b63` |
+| `scripts/run-node-a-caddy-server-selection-diagnostic-action16aq-b-retry.sh` | `c57aef507f5f0044f4e22786e66310a9134ee7e6c1ee36cc2107042dc1f45363` |
+| `configs/caddy/conf.d/91-exact-listener-default-deny.caddy` | `d3a31eabc6fd75784f5f3891d55dd80d3f024463d112d8dd68549c91bcde8ae7` |
+| `scripts/apply-node-a-caddy-routing-correction-action16ar.sh` | `a361d0f4e37bd84a440de9115c0a3148cf9511f3e80736ae93795d812b09278a` |
+| `scripts/run-node-a-caddy-routing-correction-action16ar.sh` | `cb5dcd9d2e89d7fc58cc6af6347033dbf341b821c9383f2fc91d0bcd80bba244` |
+| `scripts/diagnose-node-a-action16ar-recovery-action16ar-a.sh` | `c63146c3c2d7e3201bb5a90d3456333a3ccdcb4bf6a287721607e8f046ff28cb` |
+| `scripts/run-node-a-action16ar-recovery-diagnostic-action16ar-a.sh` | `52302f2394c51c20945947e0b454ab94023a158f8bed7bd39e88295aa9b484d9` |
+| `scripts/correct-node-a-caddy-routing-transaction-action16ar-retry.sh` | `d8c612cb6ea765d45ddb34878ab0dba31a30642d4c473340ce114f37264270e7` |
+| Rendered corrected Action 16ar retry driver | `b62222cc0edd941e7ea4ade533f494fe289b9ac741eb254b0c0b61cde8284a2f` |
+| `scripts/run-node-a-caddy-routing-correction-action16ar-retry.sh` | `f5193f35fd2fcf1988f1a6ab2a2f84489cf6d65f26ef36ba8f03380be386b9ca` |
+| `tests/action16ar-reload-regression.sh` | `82e34d3d01f4c495c2a150ea8c5c0a6e19c516903b89f9e6c063d18f82b35cb8` |
+| `scripts/derive-node-a-post-correction-acceptance-action16ar-b.sh` | `f3f07ddd688373eef38d56b6361ddd897e83d38f492120516797693afb4f0a47` |
+| Rendered Action 16ar-b collector | `71c31f7e04beed53edc58bda0ac72b5079c15231f29639548aab9971710aed0f` |
+| Rendered Action 16ar-b inner runner | `8af27b5c54eda5a6a9f47692ea0072eda9312016e5a5545d3ac521d7d13fcf5d` |
+| `scripts/run-node-a-post-correction-acceptance-action16ar-b.sh` | `fe4e09369ee6699bceeb14453546ca6f22523219c5391a383b815f59293635fe` |
+| `scripts/correct-node-a-post-correction-acceptance-action16ar-b-retry.sh` | `c2f0ffcf76ea54cb101af03c3223640fc12ff7102aacfc251d793a9dbb304389` |
+| Rendered corrected Action 16ar-b retry validator | `00ab68767fef384ff0dca13c67d0c0970755d9e8c81861cc5d1c1f57fe49d25e` |
+| `tests/action16ar-b-production-transcript-regression.sh` | `6e66134ec1a0ef1d6d27a18e423a4d9629bac85401747ec2b3dccd0483dcb215` |
+| `scripts/run-node-a-post-correction-acceptance-action16ar-b-retry.sh` | `bdd88699b0753a937250ddb888ddfd80e2ed87a5de040f6f660ae680fa447677` |
+| `scripts/inspect-sync-readiness-before-action17.sh` | `1193632a867b4a86fd28f4b932b809926498b0b6a2e4751e8ee1f69c5da05ae8` |
+| `scripts/run-sync-readiness-before-action17.sh` | `f19e5673d3e86a95282041e9770c8c6d1093cbee9cd985e82957bd78773f16e5` |
+| `scripts/correct-sync-readiness-before-action17-retry.sh` | `37d2b822bac699e5feaba9317719931d5264e2ae3281187ee3a0f16b07bfd543` |
+| Rendered corrected Action 17a inspector | `87c910f1c7a5a01c21af8af0b840d339a793a91b9f430539760bfbe94a80b805` |
+| Rendered corrected Action 17a inner runner | `ffb025e613466b73692002b093041f793bd9c08132842bc83d0944bd937fb9ad` |
+| `tests/action17a-node-b-release-regression.sh` | `2ac139c2a35f7d25c21218da4bdfb98bbcf1b8a9d9716e8d59baf08451f2febc` |
+| `scripts/run-sync-readiness-before-action17-retry.sh` | `de5c2f05a6db78d2e0b9847e6c7807aba4fd15a3db570d6215f2e6f848333a56` |
+| `scripts/authorize-node-a-sync-key-on-node-b-action17b.sh` | `ebd126884ec1985b4561d5ac7fc16b54f93fb29e7d5de9fddbe4788925c27efe` |
+| `scripts/run-node-b-authorize-node-a-sync-key-action17b.sh` | `8b9fdd593896a1f613275ca0ea8fe467c4f52f70610321968d563efaad3a7698` |
+| `tests/action17b-node-b-authorization-regression.sh` | `b2a6281266ab2dac7d93d983a031293d5646369bf83dc4e4f13f65ab3f413d71` |
+| `scripts/inspect-node-b-restricted-transport-state-action17c.sh` | `37e5390fb132c77002b468d9dfabfc579d5bb03f1da44f60802c448df3a35111` |
+| `scripts/validate-node-a-to-node-b-restricted-transport-action17c.sh` | `f3e775716ec0d3506b67088286545fb5998e2c587b56f18e5f20b27c314a15c0` |
+| `scripts/run-node-a-to-node-b-restricted-transport-action17c.sh` | `d2b8672f7b3c336e4dfe9e1bf7f12b61290e8a993a8c92eef252b3a5b03f510b` |
+| `tests/action17c-restricted-transport-regression.sh` | `2c4017a945ade7acb7a1d95328e929b84edccfb0b5048eb23552425a425b3ce3` |
+| `scripts/correct-restricted-transport-action17c-retry.sh` | `693a75d7cfb1c308a1367111c5891e3eae3fac7dc1e4bfd8ea4a43604f2229b6` |
+| Rendered corrected Action 17c retry driver | `3259b979e64ccee667e2a81ac9683c21d140331c0d1f44d6c6e41bf88a7b31dd` |
+| Rendered corrected Action 17c retry inner runner | `c88ab6f91f3adaeab6a7cd5ba7c2013d8d62bc7d393601a370c140f50e1eb795` |
+| `tests/action17c-streamed-stdin-continuity-regression.sh` | `4a54669e56e3386dd9a3335ec1ffe51aee4485111460ce6be01219b967ac1d62` |
+| `scripts/run-node-a-to-node-b-restricted-transport-action17c-retry.sh` | `a93a457a181424f04ec4e1991ccff84f119985d69603830ea01a98ad96acd831` |
+| `scripts/inspect-node-b-ipv6-restricted-transport-action17c-a.sh` | `eb348a76e2ebfe64060e9976ffdbbb772c6a4fc1cf61e092288ce36bd6ec83d2` |
+| `scripts/diagnose-node-a-to-node-b-ipv6-restricted-transport-action17c-a.sh` | `39be8c27c5bb35c1aac9d73ad6c34c4f12e0c486b06cf9ebbc5a7240b5573d39` |
+| `scripts/run-node-a-to-node-b-ipv6-restricted-transport-diagnostic-action17c-a.sh` | `81b07190e35961dd83d8c947e58e8cc41e592454c88e043b52692c69b3e3a706` |
+| `tests/action17c-a-ipv6-diagnostic-regression.sh` | `082006b142906a9788a0713a7cdbe14e44ef83cadf0fff2aad4a64c33c8fa435` |
+| `scripts/diagnose-node-a-ipv6-source-selection-action17c-b.sh` | `e3fe442b4fcb0a275fb29e5c1e9b4171b3588a27fa51a077cb18cf464c385a82` |
+| `scripts/run-node-a-ipv6-source-selection-diagnostic-action17c-b.sh` | `14bf3d9735df906f65cbdd037392d57ef394b14bc8921548f11289ab71878e55` |
+| `tests/action17c-b-ipv6-source-selection-regression.sh` | `5e6debadafdaba2c8137b62ba973885acd24974d73efa5c90fc03b61bb222604` |
 | `scripts/diagnose-node-a-recovery-state-action16ap-a.sh` | `d4402abfab7a19f8b8ec3eec83b55f71db0981a6cc6ad5db41aa656e46121a77` |
 | `scripts/run-node-a-recovery-diagnostic-action16ap-a.sh` | `c7c002af58eb5c33369dbc43fbd9676469bdfe2da06978128699cf42a6abc06d` |
 | `scripts/diagnose-caddy-validation-provenance-action16ap-b.sh` | `43fb0866dd95347ff720e8fdccb567b4cb9cb7b332ac87a79ff993b4e45c13d8` |
 | `scripts/run-caddy-validation-provenance-action16ap-b.sh` | `325dce1f2aaac8cc82e23b075554cabcc32121e4a5df0af044ed3639cb3e6daf` |
 | `systemd/caddy.service.d/override.conf` | `a292487f4cbde99abce048b97ec15dbae8ef511ec845dcf5740f343e143f39df` |
-| `tests/integration.sh` | `e5f3a2b65105766cc6ce6deafe496a1664ee030bda80ba26909aecea8de941d6` |
-| `tests/run.sh` | `7e6c9a7ba5e72da84b8c8f5dbf62e285e2ebd30479f4bc42ef4a52bd80a939f8` |
+| `tests/integration.sh` | `cbb3e128d6410b27ac7ac3d6484ccab2a5c93dbfb392bf79d8c562650181077b` |
+| `tests/run.sh` | `d9bbae25b40cf449104862554f73dc32a964ac61cf7adc0443da744bb2bd06d8` |
 
 ## Observed System State
 
 The Unbound repository was confirmed clean before implementation.
+
+At `2026-07-30T01:16:30Z`, the corrected read-only Action 17f-b retry was
+defined and fully validated on the workstation without contacting Node B.
+The live accepted state therefore remains the completed protected Action 17e
+primary stage with no accepted local-zone stage. The exact future runner is
+`5e1ee076...a815`; its execution is not authorized.
+
+At `2026-07-30T01:30:42Z`, that exact read-only runner was executed once.
+Both SSH collectors returned `0`; the first again proved all 55 pre-write
+assertions and both accepted live-state hashes. The tracer passed every
+emitted assertion through live-state collection, then returned status `1`
+without the required final failure label because ERR-trap inheritance was
+missing. Every no-mutation marker and workstation cleanup passed. Node B
+therefore remains unchanged at the accepted Action 17e persistent state, and
+Action 17f-b retry is not accepted.
+
+At `2026-07-30T02:02:15Z`, corrected read-only Action 17f-b second-retry
+artifacts were defined and fully validated locally. No node was contacted.
+The exact future runner is `5c33177b...5456`; its execution is not authorized.
+Node B remains unchanged at the accepted Action 17e persistent state.
+
+At `2026-07-30T02:19:32Z`, that exact read-only runner was executed and
+accepted as complete diagnostic evidence. Both SSH sessions and the runner
+returned `0`; all no-mutation and cleanup evidence passed. The inspector's
+normalized hash remained `3a05c048...b824`, while the exact driver's
+raw-pipeline hash was `d6f8e13c...ffae`. Local source comparison proves the
+difference is the direct pipeline's preserved final newline versus
+command-substitution normalization. Node B remains unchanged at the accepted
+Action 17e persistent state, and Action 17f local-zone staging remains
+unaccepted.
 
 At `2026-07-29T04:14:59Z`, corrected independent read-only Action 16an-a
 accepted Node A's post-install systemd state. All 264 assertions were true,
@@ -9554,6 +12911,711 @@ returned an empty Caddy `200`; and IP-SNI failed before HTTP with curl `35`.
 Every no-mutation and cleanup marker passed. The runner returned `97` because
 its regex rejected the collector's intentional `%7C` encoding, so Action
 16aq-a is unaccepted and must not be retried unchanged.
+
+At `2026-07-29T15:10:30Z`, the corrected read-only Action 16aq-a retry was
+defined locally without changing either historical artifact. A read-only
+extension safely summarizes adapted and runtime static-response handler
+status presence, effective status, body length, and whether the body equals
+`421`. The separate runner validates production `%7C` probe encoding,
+schema-valid hostless HTTPS catch-all records, all original evidence and
+no-mutation controls, and protected local cleanup. Extension and runner hashes
+are `e4f42a45...8bed` and `16f11a09...8af0`. Complete host and Debian 12
+Podman validation passed, including the extension against actual Caddy
+`2.11.4` adapted output; neither node was contacted or changed. Execution
+requires separate authorization.
+
+At `2026-07-29T15:23:39Z`, the exact corrected Action 16aq-a retry completed
+with runner/SSH `0`. All no-mutation and cleanup evidence passed. Adapted and
+runtime static-response summaries were equal: HTTPS `srv3` on `:443` and HTTP
+`srv4` on `:80` both have an explicit effective `421`, empty body, and no host
+matcher. The matching unknown SNI/Host probe nevertheless returned an empty
+Caddy `200`; mismatch probes returned `421`. This rules out malformed
+catch-all adaptation and runtime drift but does not identify the accepting
+internal Caddy server. The retry is accepted as diagnostic evidence; Action
+16aq remains unaccepted pending a separately defined server-selection
+diagnostic.
+
+At `2026-07-29T15:37:19Z`, narrow read-only Action 16aq-b was defined locally.
+An ephemeral Caddy `2.11.4` container confirmed that handled requests
+expose the internal `srvN` label through per-host duration counters, while an
+unmatched host-specific route reproduces the empty `200` without a handler
+metric. The collector therefore uses a known-host positive control, the live
+exact/wildcard server map, and the unknown-host outcome; ambiguous or
+concurrent evidence yields `unresolved` rather than an inferred server.
+Collector and runner hashes are `28ad0167...21c3` and
+`bacd05fd...5118`. Complete host and Debian 12 Podman validation passed.
+Neither node was contacted or changed. Execution requires separate
+authorization.
+
+Nodes A and B also run Webmin directly on TCP 10000 as an independent
+application. Action 16aq-b does not connect to, route to, inspect, or mutate
+that listener. Its only remote application probe target is Node A TCP 443;
+the loopback reads are Caddy's administration endpoint on TCP 2019.
+
+At `2026-07-29T15:48:33Z`, exact Action 16aq-b completed with runner/SSH `0`.
+All runtime, metrics, probe, count, no-persistent-mutation, completion, and
+workstation cleanup contracts passed. The exact Node A server `srv0` handled
+the known management control; `srv3` remained the wildcard HTTPS `421`
+server; and the matching unknown request returned empty `200` without a
+handler metric. The action's selection remained explicitly unresolved because
+the collector compared the full `%7C`-encoded metadata string to numeric
+status `200`. No Webmin request, service/configuration change, remote path, or
+persistent state change occurred. A corrected retry is not yet defined or
+authorized.
+
+At `2026-07-29T15:55:01Z`, the corrected read-only Action 16aq-b retry was
+defined locally without changing either executed historical artifact. The
+append-only correction decodes the exact production
+`200%7C10.1.0.53%7C2%7C0%7C0` value to HTTP status `200`, reuses the original
+selection function, and emits a separate corrected record while preserving
+the original unresolved record. Correction and runner hashes are
+`5abef1aa...7b63` and `c57aef50...5363`. Complete host and Debian 12 Podman
+validation passed, including positive production-path and negative
+literal-delimiter/code-mismatch regressions. Neither node was contacted or
+changed during definition. Execution was subsequently authorized and is
+recorded below.
+
+At `2026-07-29T15:59:21Z`, the exact corrected Action 16aq-b retry completed
+with runner/SSH `0`. The live production probe decoded
+`200%7C10.1.0.53%7C2%7C0%7C0` to HTTP status `200`. The known management
+control incremented only `srv0`; the unknown probe returned an empty `200`;
+and wildcard rejection server `srv3` had no unknown-request metric delta.
+The corrected result conclusively selected `srv0` with reason
+`exact_listener_control_plus_unhandled_200`. Both completion markers, every
+no-persistent-mutation marker, secret exclusion, and protected workstation
+cleanup passed. No Webmin request, remote path, configuration, service,
+systemd-manager, synchronization, Keepalived, or VRRP state changed. This
+accepts the diagnostic result but does not accept Action 16aq or authorize a
+routing correction.
+
+At `2026-07-29T16:19:28Z`, transactional Node A routing correction Action
+16ar was defined locally without contacting either node. Caddy `2.11.4`
+adaptation and live container execution proved the append-only exact-listener
+fragment merges a terminal hostless `421` into the existing physical, VIP,
+and loopback internal servers without adding a server or listener. Live
+unknown-host probes returned `421` over physical IPv4, stable ULA, VIP IPv4,
+VIP IPv6, IPv4 loopback, and IPv6 loopback; named VIP health remained `204`.
+The historical `90-default-deny.caddy` remains byte-identical. The defined
+Node A-only transaction creates an immutable child release, atomically selects
+it, reloads Caddy without changing its PID, validates twice within a bounded
+window, and restores the accepted bootstrap release automatically on failure.
+Driver and runner hashes are `a361d0f4...9278a` and
+`cb5dcd9d...ba244`. Execution requires separate authorization.
+
+At `2026-07-29T16:24:19Z`, exact transactional Action 16ar reached Node A,
+passed preflight, emitted its mutation-start marker, and processed the
+immutable staging configuration through environment-backed Caddy validation.
+It then failed with original status `1`. The automatic rollback emitted
+`action_16ar_rollback_incomplete=true` and
+`manual_intervention_required=true`; SSH returned `125`, the runner returned
+`97`, and protected workstation cleanup passed. No success marker,
+selected-release path, manifest hashes, PID continuity, unknown-host results,
+or no-other-mutation records were emitted. No subsequent remote command was
+run. Node A's current release, symlink, Caddy service, listener, health, and
+routing state are unknown pending a separately authorized read-only Action
+16ar-a recovery diagnostic. Node B was not contacted.
+
+At `2026-07-29T16:35:20Z`, fail-closed read-only Action 16ar-a was defined and
+fully validated locally. Its hash-pinned collector and runner can report the
+actual post-failure release, symlink, manifest, service, configuration,
+listener, process, health, unknown-host, and bounded journal state without
+creating a remote path or mutating a service. The complete host and Debian 12
+Podman suites passed.
+
+At `2026-07-29T16:39:04Z`, exact Action 16ar-a completed with runner/SSH `0`.
+It proved `/etc/caddy/current` selects the bootstrap release; all inspected
+Action 16ar final, staging, temporary-link, completion, and manifest paths are
+absent; environment-backed Caddy validation returns `0`; Caddy and lighttpd
+are active/running with PIDs `1085652` and `1085537`; localhost health is
+`204`; and physical dual-stack management returns `302`. lsyncd and
+`caddy-api.service` remain masked/inactive, the custom synchronization and
+reload units remain inactive, and the Caddy Keepalived fragment remains
+absent. All four matching unknown-host probes return empty HTTP `200`, so the
+routing correction is not deployed and Action 16ar remains unaccepted. No
+remote path, service, systemd-manager, Node B, synchronization, or VRRP state
+changed. The previous unknown-state/manual-intervention hold is resolved
+without a repair.
+
+At `2026-07-29T16:53:32Z`, local-only reload regression isolated the Action
+16ar failure to raw listener snapshot equality. Caddy `2.11.4` correctly
+served unknown-host codes `200`, `421`, and `200` across
+bootstrap→candidate→bootstrap; localhost health passed throughout; the Caddy
+PID and semantic protocol/state/local-endpoint/process listener set remained
+unchanged. Raw `ss` lines changed after both reloads because they include
+volatile socket details. The corrected retry now validates semantic listener
+identity and uses distinct retry-owned paths and markers while preserving the
+historical driver, correction fragment, bootstrap rollback, and all other
+acceptance controls. Complete host and Debian 12 Podman suites passed. Neither
+live node was contacted or changed during definition.
+
+At `2026-07-29T16:59:45Z`, the corrected Action 16ar retry remote driver
+reported complete success and SSH returned `0`. It reported
+`/etc/caddy/releases/action16ar-retry-node-a-default-deny` selected, Caddy PID
+`1085652` preserved, IPv4/IPv6/loopback unknown-host codes `421`, reload true,
+restart false, and no lighttpd, Keepalived, lsyncd, systemd-manager, or peer
+mutation. Rollback did not run. The workstation runner returned `97` because
+its success contract rejected normal structured Caddy validation information
+on stderr. These are reported but not independently accepted live values.
+Node A must receive a separately authorized, fail-closed, read-only
+post-correction diagnostic before Action 16ar retry is accepted or any later
+deployment action proceeds. No transaction rerun, repair, cleanup, or further
+remote command followed.
+
+At `2026-07-29T17:17:01Z`, fail-closed read-only Action 16ar-b was defined and
+fully validated locally. It renders a retry-specific collector and inner
+runner from the accepted, hash-pinned Action 16ar-a artifacts, then applies a
+separate strict acceptance layer to the reported Action 16ar retry release,
+manifests, Caddy PID, listener and service state, adapted/runtime routing,
+`.56/::56` name placement, unknown-host `421` behavior, node environment,
+protected trees, and no-mutation evidence. Focused contracts, the complete
+host suite, and Debian 12 Podman integration passed. Neither node was
+contacted or changed. The reported Action 16ar retry state remains unaccepted
+until the exact Action 16ar-b runner is separately authorized and executed.
+
+At `2026-07-29T17:19:30Z`, exact read-only Action 16ar-b completed its remote
+collection with SSH and inner-runner status `0`, then failed closed in the
+outer validator with status `97`. Node A reported the corrected retry release
+selected and internally complete; exact correction and manifest hashes; Caddy
+`2.11.4` active at unchanged PID `1085652`; five correct adapted and runtime
+listener groups including `.56/::56`; backend/management `302`, localhost
+health `204`, and four unknown-host `421` results; expected TCP/UDP listeners;
+and no filesystem, service, systemd-manager, helper, peer, or persistent
+mutation. The full Caddy, Keepalived, and lighttpd tree hashes are recorded in
+the Action 16ar-b execution section. The outer validator first rejected
+systemd's correct `LoadState=masked` encoding and also contains incorrect
+assumed tree hashes and literal-versus-encoded process delimiter handling.
+Action 16ar-b and the corrected Action 16ar retry remain formally unaccepted.
+No further remote command followed.
+
+At `2026-07-29T17:29:21Z`, an append-only corrected Action 16ar-b retry
+validator was defined and fully validated locally. It preserves the failed
+runner, pins the exact production-observed masked-unit records, full
+Keepalived and lighttpd tree hashes, and `%7C` process encoding, and adds a
+regression that rejects each former assumption. The host suite and Debian 12
+Podman integration passed. This definition did not contact either node or
+change the observed live state.
+
+At `2026-07-29T17:39:31Z`, the exact corrected retry was executed once and
+accepted with runner/SSH `0`, both nested and corrected acceptance markers,
+and complete cleanup. Node A reports the corrected immutable release selected,
+Caddy `2.11.4` active at unchanged PID `1085652`, exact adapted/runtime
+routing, expected TCP/UDP listeners, localhost health `204`, and all four
+unknown-host probes `421`. It also reported no filesystem, service,
+systemd-manager, helper, peer, or persistent mutation. This independent
+evidence accepts corrected transactional Action 16ar retry. Node B was not
+contacted.
+
+At `2026-07-29T17:53:17Z`, read-only synchronization-readiness Action 17a was
+defined and validated locally. It is based on the accepted asymmetric
+pre-Action-17 state: Node A has Node B's restricted inbound authorization,
+while Node B has no inbound authorization for Node A; neither node has an
+lsyncd configuration or active synchronization service. The future action
+will inspect, but not alter, these conditions and will not make a peer
+connection. No observed live state changed during definition.
+
+At `2026-07-29T17:57:02Z`, exact Action 17a inspected both nodes. Node A passed
+54 of 54 checks. Node B passed 51 of 52; only the locally expected Caddy
+target was wrong because the inspector used bootstrap instead of the accepted
+Action 15 remediation release. All synchronization identities, host pins,
+restricted authorization pre-state, receiver/no-delete policy, helpers,
+directories, empty transfer state, packages, services, and no-mutation
+controls passed. The action returned semantic status `1`, is not accepted,
+and made no live-state change.
+
+At `2026-07-29T18:11:00Z`, an append-only corrected Action 17a retry was
+defined and validated locally. It changes only the stale Node B expected
+Caddy target to the accepted Action 15 remediation release and updates the
+rendered runner's inspector hash. Historical Action 17a artifacts remain
+unchanged. Host and Debian 12 Podman validation passed; neither node was
+contacted and observed live state did not change.
+
+At `2026-07-29T18:13:38Z`, the exact corrected Action 17a retry inspected both
+nodes and was accepted. Node A passed 54 of 54 checks and Node B passed 52 of
+52; both SSH and validation statuses were `0`, and both mismatch counts were
+zero. The accepted asymmetric authorization and empty transfer pre-state
+remain intact. No peer connection, synchronization, service mutation, or
+filesystem mutation occurred.
+
+At `2026-07-29T18:24:25Z`, bounded transactional Action 17b was defined
+locally. It will add only Node A's accepted source-restricted, forced-command
+public-key authorization on Node B. Its preflight preserves the accepted
+Action 17a baseline, and its rollback restores the currently observed absence
+of Node B `authorized_keys`. Definition and local validation did not contact
+or change either node; the observed asymmetric authorization and empty
+transfer state therefore remain current.
+
+At `2026-07-29T18:30:20Z`, exact transactional Action 17b completed and was
+accepted with runner and SSH status `0`. Node B now has exactly one
+source-restricted authorization for Node A's accepted Ed25519 synchronization
+identity, forced through `/usr/local/libexec/caddy-sync-rsync-receiver`.
+Protected state remained unchanged, and no peer connection, synchronization
+command, lsyncd configuration, or service mutation occurred. Incoming and
+outbound transfer state therefore remains empty.
+
+At `2026-07-29T18:40:22Z`, bounded read-only Action 17c was defined locally.
+It will validate IPv4 and IPv6 restricted authentication and forced-receiver
+rejection, followed by one empty-source IPv4 rsync dry-run. Independent Node B
+before/after state digests and Node A pre/post validation must prove no release
+or directory was written and no protected state changed. Definition and local
+host validation did not contact either node, so the accepted Action 17b state
+and empty transfer state remain current.
+
+At `2026-07-29T18:49:39Z`, exact Action 17c ran once and was not accepted.
+All three administrative SSH statuses were `0`, and Node B's before/after
+protected-state digest was identically
+`e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2`.
+Node A emitted only its preflight marker because the first nested direct SSH
+probe inherited the streamed program's stdin. IPv6, rsync dry-run, Node A
+post-state, Node A cleanup, and completion evidence are absent. No protected
+workstation Action 17c stage remains. Node B is proven unchanged, but no
+unchanged Node A state or completed transport validation is claimed.
+
+At `2026-07-29T18:57:59Z`, a corrected Action 17c retry was defined locally.
+Historical executed artifacts remain byte-identical. The rendered driver adds
+only `-n` to the shared direct-probe SSH call, and the rendered runner changes
+only its driver hash and path. A streamed fixture reproduces historical
+truncation and proves corrected post-probe continuity. No node was contacted,
+so observed live state remains unchanged from the failed Action 17c evidence.
+
+At `2026-07-29T19:05:34Z`, the exact corrected Action 17c retry executed once.
+The complete Node A transcript and cleanup markers prove that detached stdin
+resolved the historical truncation. IPv4 restricted authentication and
+forced-receiver rejection passed. Both IPv6 assertions failed, producing
+`first_failure=ipv6_forced_receiver_rejection`; the fail-closed driver therefore
+did not attempt the IPv4 rsync dry-run. Node A and Node B protected-state,
+empty-transfer, absent-lsyncd-configuration, and no-service-mutation assertions
+passed. Node B's before/after digest remained
+`e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2`.
+Node A, nested-runner, retry-runner, and workstation cleanup completed. The
+retry is not accepted, its IPv6 failure cause is not inferred, and no unchanged
+rerun, diagnostic, transfer, synchronization, or later action is authorized.
+
+At `2026-07-29T19:15:50Z`, narrow read-only IPv6 diagnostic Action 17c-a was
+defined and locally validated. It will collect both sides of the failed path:
+Node B's stable ULA, IPv6 SSH listener, return route, Node A source
+authorization, and SSH state; and Node A's stable ULA, selected route/source,
+neighbor/ICMP observations, and bounded verbose-SSH milestones/error class.
+Only the verbose transcript's SHA-256 is exposed. It contains no rsync
+invocation and proves relevant persistent state and temporary-path cleanup.
+The complete host and Debian 12 Podman suites passed. Neither node was
+contacted, so the live IPv6 failure cause remains unresolved and Action 17c-a
+execution requires separate authorization.
+
+At `2026-07-29T19:21:21Z`, exact Action 17c-a executed and was accepted as
+complete diagnostic collection. Both stable ULAs were present. Node B had an
+IPv6 SSH listener, the expected return route/source/interface, the exact Node A
+IPv6 source authorization, and an active SSH service. Node A selected `eth0`,
+reached Node B with neighbor state `REACHABLE` and ICMP status `0`, established
+TCP, verified the host key, and offered its public key. Node A's route-selected
+source did not match `fd36:5aa8:6971:1::53`; Node B did not accept the offered
+key, authentication did not complete, SSH returned `255`, and the bounded error
+class remained `unclassified`. The accepted conclusion was
+`node_a_ipv6_route_mismatch`. The raw verbose transcript was not exposed; its
+SHA-256 was
+`686a24966ad1d5bb473b3151816da0e112d9110d00a7c62b23150dc78a00f912`.
+Both collectors and administrative SSH calls completed, relevant persistent
+state remained unchanged, no rsync or transfer occurred, and all temporary
+paths were removed. The actual selected source and behavior with explicit
+binding to `…::53` remain unobserved.
+
+At `2026-07-29T19:27:27Z`, narrow read-only IPv6 source comparison Action 17c-b
+was defined and locally validated. It will emit Node A's bounded actual
+route-selected source and compare two restricted SSH probes implemented by one
+shared function. The second probe differs only by explicitly binding
+`fd36:5aa8:6971:1::53`. Both probe transcripts remain unreported except for
+their hashes, and the runner derives a bounded comparison conclusion. It
+contains no rsync invocation and requires relevant-state equivalence,
+no-transfer/no-service markers, and cleanup. Complete host and Debian 12 Podman
+validation passed. Neither node was contacted, so the actual selected source
+and source-bound control result remain unobserved pending separate execution
+authorization.
+
+At `2026-07-29T19:31:00Z`, exact read-only Action 17c-b was executed and
+accepted. Node A's route selected `fd36:5aa8:6971:1::55`, not its stable ULA
+`fd36:5aa8:6971:1::53`. The unbound probe reached Node B, verified its host key,
+and offered the expected public key, but Node B denied that key for the selected
+source; SSH returned `255` with class `publickey_denied`. The otherwise
+identical control probe explicitly bound to `…::53`, authenticated, and reached
+the restricted forced receiver; its expected rejection returned `126` with
+class `forced_receiver_rejection`. The accepted conclusion is
+`stable_source_binding_restores_authorization`. Raw verbose transcripts were
+not exposed; their SHA-256 values are
+`686a24966ad1d5bb473b3151816da0e112d9110d00a7c62b23150dc78a00f912`
+and `3adae188205e51658f322ee1cb44f26fe9e40462325c1cc138cc2f44f25c5f65`.
+Both administrative SSH calls returned `0`; relevant state remained unchanged,
+no rsync, transfer, or service mutation occurred, and all temporary paths were
+removed. No persistent source-binding correction is authorized.
+
+At `2026-07-29T19:50:14Z`, impact-complete source-binding correction Action
+17c-c was defined and locally validated without contacting either node. The
+append-only validator binds direct SSH and rsync's remote shell to the
+node-local stable ULA and forces IPv6. The append-only lsyncd template uses
+`AddressFamily=inet6`, `BindAddress=@NODE_IPV6@`, and the peer management FQDN
+as `HostKeyAlias`; rendering resolves these to `…::53`/Node B for Node A and
+`…::54`/Node A for Node B. A separate renderer produces only the two future
+installation payloads, `caddy.lua` and `validate-sync-ssh.sh`. Previously
+executed templates, validators, renderers, installers, and Action 17 artifacts
+remain byte-identical. The exact future read-only runner is SHA-256
+`b63cd6e48662ad2a7b1604817da21135e735be0c8319090919760398d98d7cf7`;
+it is defined but not executed. No persistent source-binding file, lsyncd
+configuration, service change, synchronization, or payload transfer is
+authorized.
+
+At `2026-07-29T19:53:28Z`, exact read-only Action 17c-c was executed once and
+stopped fail-closed. Both Node B administrative inspections returned `0`. Node
+A first proved that its source-bound SSH configuration was valid, then its
+pre-state collector reported
+`find: Failed to restore initial working directory: /home/pi: Permission
+denied`. The streamed validator ran as `caddy-sync` but inherited `/home/pi`
+from the administrative session; that account cannot traverse the directory.
+Node A returned `1`, and the outer runner returned `97` because the evidence
+was incomplete. The failure occurred before the Node A action directory,
+direct denied-command SSH probe, or rsync dry run. No payload transfer,
+persistent installation, service mutation, or synchronization is claimed.
+The workstation action directory was independently confirmed absent. Action
+17c-c is not accepted and must not be rerun unchanged.
+
+At `2026-07-29T20:00:14Z`, the corrected read-only Action 17c-c retry was
+defined and locally validated without contacting either node. The failed
+runner remains byte-identical at SHA-256
+`b63cd6e48662ad2a7b1604817da21135e735be0c8319090919760398d98d7cf7`.
+An append-only transformer changes exactly its Node A remote command: a root
+shell enters `/` before executing `runuser` and the streamed validator as
+`caddy-sync`. Debian 12 regression testing reproduced the historical
+inaccessible-working-directory failure, then proved that the corrected
+boundary completes with empty stdout and stderr. All SSH, rsync, lsyncd,
+source-binding, protected-state, no-transfer, and cleanup contracts remain
+unchanged. The exact retry runner is SHA-256
+`5ec46ca77782160164785eefb75289e9a02f6d3262577261ce7cdcc31abbd6ab`.
+It is not executed, and no live retry or persistent change is authorized.
+
+At `2026-07-29T20:02:41Z`, the exact corrected Action 17c-c retry was executed
+once and stopped fail-closed. The prior `/home/pi` working-directory error did
+not recur, and Node A emitted
+`source_bound_ssh_configuration_valid=true`. Node A then returned `1` before
+emitting the source-bound direct-SSH success marker. Both Node B administrative
+inspections returned `0`; the rendered inner runner returned `97`, and the
+outer retry also rejected the incomplete evidence. No rsync-success,
+protected-state-equivalence, Node B digest-comparison, acceptance, or payload
+transfer marker was emitted. Node A's captured stderr contained only the
+administrative SSH pseudo-terminal notice. Nested and outer workstation stages were
+independently confirmed absent. The corrected retry is not accepted and must
+not be rerun unchanged; the precise post-configuration failure requires a
+separately authorized, labeled, no-rsync diagnostic.
+
+At `2026-07-29T20:11:04Z`, narrow read-only diagnostic Action 17c-c-a was
+defined and locally validated without contacting either node. Its Node A
+collector enters `/` as `caddy-sync`, emits 19 separately labeled pre-state
+assertions, hashes pre/post relevant-state transcripts, and performs exactly
+one detached direct SSH probe to Node B over IPv6 with source
+`fd36:5aa8:6971:1::53`. Raw verbose SSH output is retained only in a protected
+temporary directory and represented externally by bounded milestones, a
+bounded error class, and stdout/stderr SHA-256 values. The workstation runner
+retains Node B before/after inspection and digest equality, rejects malformed,
+duplicate, secret-bearing, or internally inconsistent evidence, and performs
+no rsync. The exact runner is SHA-256
+`f460262cded8b056818f27b0d82cd637627aa6440a67d6eb409325ac73c301d2`.
+At `2026-07-29T20:21:54Z`, the exact runner was executed once. All 19 Node A
+pre-state checks passed. The one source-bound direct SSH probe returned status
+`255` with bounded class `name_resolution_failed` before any connection,
+host-key, key-offer, authentication, or forced-receiver milestone. Its stdout
+was empty; stderr SHA-256 was
+`cd8300e30d1fbf18b99935d2e97bf95d84d2689df5e4768b62a71dfe45685d5a`.
+Node A before/after relevant-state SHA-256 remained
+`bdd004ed074404732d1215b7bfbda72ee9d33eac1a90250004912fee937e9fa9`.
+Node B before/after protected-state digest remained
+`e2622a7af7e9ce6951e7178bd3e9b43fc992400adfc99a137c09fc52309629d2`.
+All three administrative SSH statuses and the runner returned `0`; no rsync,
+transfer, service mutation, or persistent change occurred, and cleanup passed.
+Action 17c-c-a is accepted as complete diagnostic collection but does not
+validate source-bound transport. No follow-up diagnostic or correction is
+authorized.
+
+At `2026-07-29T20:32:26Z`, narrow read-only diagnostic Action 17c-c-b was
+defined and locally validated without contacting Node A. Its collector runs as
+root from `/` and applies the same five-second libc/NSS `getent ahostsv4` and
+`getent ahostsv6` query for only `pihole00.local.theama.co` under `pi`, root,
+and `caddy-sync`. For each result it emits the bounded status, classification,
+expected-address presence, output count/truncation, peer-address-set encoding,
+and stdout/stderr hashes. It also records only relevant resolver provenance:
+the `/etc/resolv.conf` link and canonical target, configuration hashes,
+the NSS `hosts:` line, configured nameserver records, peer-specific
+`/etc/hosts` presence, and pre/post resolver-state hashes. The future action
+uses one administrative SSH session to Node A and invokes no peer SSH or
+rsync. The exact runner is SHA-256
+`d0fa596f3912288b24645fa6fa9bbbfe15fa0fffd38d7d6308f11041a7bdb4da`.
+At `2026-07-29T20:36:49Z`, it was executed once. Resolver provenance and all
+six context lookups completed; IPv4 and IPv6 returned `not_found` uniformly
+for `pi`, root, and `caddy-sync`. Node A then exited `1` before post-state and
+remote-cleanup markers, and the runner rejected the incomplete evidence with
+`97`. A bounded local reproduction proved the collector's global readonly
+`resolv_target` collides with the second snapshot's same-named local variable.
+Action 17c-c-b is not accepted and must not be rerun unchanged. No corrected
+retry execution or resolver change is authorized.
+
+At `2026-07-29T20:50:21Z`, the corrected retry was defined and locally
+validated without contacting either node. The executed collector and runner
+remain byte-identical. An append-only transformer changes only five
+main-body lines by renaming global readonly `resolv_target` and its three
+provenance references to `provenance_resolv_target`; the function-local
+`resolv_target` and diagnostic scope remain unchanged. A production-boundary
+regression reproduces the historical first-snapshot success followed by
+second-snapshot status `1` and a readonly-variable error, while the corrected
+control completes both snapshots with status `0` and empty stderr. The
+complete host and Debian 12 Podman suites passed. The exact corrected outer
+runner is SHA-256
+`de212a42507aa9d3a1afc0acc7650200b617f0fedd1b4d6c63e7e3a2c02ceac8`.
+At `2026-07-29T20:53:51Z`, it was executed once and accepted. Administrative
+SSH and both nested runner layers returned `0`; the resolver state remained
+`cb54c0a0...7d9d`; all cleanup and no-mutation markers passed; and all six
+lookups remained uniformly `not_found`, producing
+`all_contexts_match_non_success`. This is complete evidence that the failure
+is shared across the tested identities, not evidence authorizing or selecting
+a resolver correction.
+
+At `2026-07-29T21:10:37Z`, two-file Unbound adoption was added as an explicit
+prerequisite and narrow read-only DNS path/authority Action 17c-c-c was
+defined without contacting either node. The user confirms that both live
+nodes currently use single-file Unbound configurations; exact live paths,
+content, and hashes remain unobserved. The operator primary target source is
+SHA-256 `cef03495...d2e8`; the operator local-zone source is
+`8a7d1c6d...56d1`. Both are intentionally ignored by
+`homelab-dns/.gitignore`, so the clean repository does not mean these private
+files are tracked. The local-zone source contains the existing
+`pihole00.local.theama.co` A record and `10.1.0.54` PTR but no peer AAAA,
+`proxy`/`pihole-admin` records, or `.56/::56` PTR records. The intended Caddy
+DNS manifest remains deferred until after Caddy VRRP activation and
+validation.
+
+The diagnostic was executed once. It fingerprints the live primary and
+proposed local-zone
+paths on both nodes. It explicitly reports the confirmed legacy layout only
+when each primary contains local-zone directives and both proposed local-zone
+fragments are absent. It separates positive controls from expected absence
+through local Unbound, local Pi-hole, the dual-stack Pi-hole DNS VIP, and Node
+A's configured IPv4 resolver. It emits separate conclusions for layout
+convergence, IPv4 path, synchronization DNS readiness, and Caddy record state.
+The executed runner is SHA-256
+`db6c273734ed52b43268af6823feeec08ca1aa191d89b970d641fe53453bf1a6`.
+Both nodes reached source inspection, proving a regular primary file with
+local-zone directives and an absent proposed local-zone fragment. Node A's
+primary hash is `dd5af7cc...d3ae`; Node B's is `017aa255...fac7`. Both then
+failed before their first DNS query on the readonly `work_dir` collision.
+The runner returned `97`; no DNS conclusion or remote cleanup evidence is
+accepted. No unchanged retry, Unbound adoption, record change, DNS reload,
+synchronization retry, or service mutation is authorized.
+
+At `2026-07-29T21:37:32Z`, fail-closed read-only continuity Action
+17c-c-c-a was defined without contacting either node. It checks zero failed
+remote stages, the exact role-specific primary hashes and metadata, separate
+local-zone absence, embedded primary directives, both relevant active
+services, and an exact reproduction of each pre-failure state digest. It
+performs no DNS query and creates no remote path. The exact runner is SHA-256
+`d5c57b48bf801d36967d12a3c40a38d7c452040af3c62dc5466fdc30307d437e`.
+At `2026-07-29T21:47:33Z`, it was executed once and accepted. Both SSH
+statuses were `0`; both stage counts and mismatch counts were zero; Node A
+matched primary `dd5af7cc...d3ae` and continuity `0c6c2c57...e102`; Node B
+matched primary `017aa255...fac7` and continuity `af5b993a...5744`; both
+services were active; and all no-query/no-write/no-mutation and local-cleanup
+markers passed. Failed Action 17c-c-c left no remote stage or relevant state
+drift. At that point, no correction or retry was authorized.
+
+At `2026-07-29T21:56:24Z`, the append-only corrected Action 17c-c-c retry was
+defined and locally validated without contacting either node or issuing a DNS
+query. The executed collector `5ef814b8...c364` and runner
+`db6c2737...f1a6` remain byte-identical. The transformer changes only the
+colliding `run_query` work-directory parameter and its three path references.
+The deterministic production-boundary regression reproduced the historical
+readonly failure and proved the corrected exact query function completed its
+first query with expected classification and no network operation. The exact
+outer runner is `14880392...4d6`. At that point, no live retry or later action
+was authorized.
+
+At `2026-07-29T22:14:48Z`, the exact corrected Action 17c-c-c retry was
+executed once and accepted. Both administrative SSH sessions and both runner
+layers returned `0`; both nodes completed source inspection and query
+collection; Node A retained state `0c6c2c57...e102` and Node B retained state
+`af5b993a...5744`; all no-mutation and cleanup markers passed. Both remain on
+legacy single-file Unbound configurations. Local Unbound/Pi-hole and both DNS
+VIP address families returned the expected existing `pihole00` A/PTR and
+expected current peer-AAAA/Caddy-record absences. Node A's configured resolver
+`10.1.0.1` instead returned `NXDOMAIN` for `pihole00`. The accepted conclusions
+are legacy single-file prerequisite/path, inconsistent peer-AAAA state, and
+inconsistent Caddy-record state. No deployment state changed, synchronization
+DNS readiness is not established, and no migration or later action is
+authorized.
+
+At `2026-07-29T22:28:10Z`, read-only Node B two-file Unbound preflight Action
+17d was defined without contacting either node. It will transiently stream the
+two ignored, hash-pinned workstation sources to protected Node B `/run` state;
+verify the accepted live primary and include/service/parser provenance;
+compare live and candidate normalized directive multisets without emitting
+private values; validate a complete shadow configuration with Node B's
+installed parser; prove unchanged node state; and remove all staging. The exact
+runner is `6e63289a...e59d`. No preflight execution, Unbound adoption, DNS
+change, service action, or later action is authorized.
+
+At `2026-07-29T22:35:37Z`, the exact Action 17d runner was executed once and
+accepted. Node B matched the pinned live primary, absent separate local-zone
+fragment, supported root include topology, active Unbound and Pi-hole FTL
+services, and valid live parser state. The live single-file and candidate
+two-file configurations both normalized to 128 directives with identical hash
+`3a130bd4...6dd` and no one-sided directives. Node B's installed parser
+accepted the protected shadow two-file configuration. Its before/after state
+remained `31862f7b...992c`; no DNS query or live mutation occurred; and remote
+and workstation staging was removed. The accepted conclusion is
+`ready_for_staged_adoption_design`. No adoption action or service change is
+authorized.
+
+At `2026-07-29T22:46:21Z`, bounded Node B primary-fragment staging Action 17e
+was defined and locally validated without contacting Node B. It will retain
+only `pihole.conf` at
+`/var/tmp/caddy-unbound-node-b-action17e-primary`, outside Unbound's active
+include topology, after independently validating its hash, ownership boundary,
+and parser result. The exact runner is `d38a9639...e5e5`; it also requires the
+complete accepted Action 17d tree/service snapshot `31862f7b...992c` before
+writing. Its transaction removes all Action 17e staging on failure and proves
+the accepted live state unchanged. The local-zone fragment remains a separate
+future Action 17f gate; composite shadow validation and live activation remain
+later independent gates. No staging execution or live change is authorized.
+
+At `2026-07-29T22:57:59Z`, the exact Action 17e runner was executed once but
+was not accepted. Tar returned `0`, while SSH and the pipeline returned `1`;
+the outer runner returned fail-closed `97`. Node B emitted rollback-started
+and rollback-complete but no preflight-complete or mutation-started marker.
+Completed driver rollback revalidated the accepted live baseline and required
+both Action 17e and future Action 17f stages to be absent. Workstation cleanup
+also passed. Because the driver did not label the failing pre-write assertion,
+the runner correctly rejected the transcript and no primary stage is accepted.
+No retry or correction is authorized; the next gate is definition only of a
+read-only Action 17e-a diagnostic.
+
+At `2026-07-29T23:05:11Z`, read-only Action 17e-a was defined and locally
+validated without contacting Node B. It evaluates all 23 Action 17e pre-write
+assertions independently, including inherited working directory, both staging
+paths, two exact Action 17d snapshot collections, and two Action 17e
+`live_state` collections. It creates no remote path and performs no DNS query,
+configuration write, or service action. The exact runner is
+`96232547...4c98`. Diagnostic execution and any Action 17e correction or retry
+remain unauthorized.
+
+At `2026-07-29T23:13:32Z`, exact read-only Action 17e-a was executed and
+accepted. It found exactly one failed assertion:
+`prewrite_working_directory_is_root=false`. Effective UID and hostname,
+accepted live hashes and metadata, both repeated state collectors, stage
+absence, service activity, and live parser validity all passed. The result
+isolates failed Action 17e to the driver requiring `PWD == /` while the remote
+command did not establish `/` before invocation. No remote path was created,
+no DNS query was issued, no configuration or service state changed, and
+workstation cleanup completed. Correction definition and Action 17e retry
+remain unauthorized.
+
+At `2026-07-29T23:20:19Z`, the corrected bounded Action 17e retry was defined
+and locally validated without contacting Node B. Historical runner and driver
+artifacts remain byte-identical. The rendered inner runner changes exactly the
+privileged remote-command line so it establishes `/` before executing the
+unchanged decoded driver, while preserving the tar payload on standard input.
+The production-boundary regression reproduced the historical inherited
+directory, proved the corrected driver sees `/`, and verified tar payload
+continuity without network contact. The exact outer runner is
+`5354fcd0...be92`; execution and all later actions remain unauthorized.
+
+At `2026-07-29T23:26:14Z`, the exact corrected bounded Action 17e retry was
+executed and accepted. Node B retained the completed primary candidate at
+`/var/tmp/caddy-unbound-node-b-action17e-primary`, with directory
+`root:root:0700` and file `root:root:0600`. The isolated parser and ownership
+boundary passed. Live state remained `3a05c048...b824`; no local-zone file was
+staged, no live Unbound configuration or service changed, no DNS query was
+issued, and both workstation cleanup layers completed. Action 17f definition,
+execution, and all later actions remain unauthorized.
+
+At `2026-07-29T23:43:27Z`, bounded local-zone staging Action 17f was defined
+and locally validated without contacting Node B. It requires the exact
+accepted Action 17e primary stage and live-state hash, transfers only
+`pihole0-local-zone.conf`, validates the protected two-file pair with Debian
+Unbound `1.17.1`, and can retain only the Action 17f local-zone stage. Its
+rollback preserves and revalidates the primary stage and removes only Action
+17f state. The validation image added the `unbound` package so the combined
+pair is parser-tested rather than only statically inspected. The exact runner
+is `700097f3...7c33`; execution and all later actions remain unauthorized.
+
+At `2026-07-29T23:48:43Z`, exact bounded Action 17f was executed once but was
+not accepted. Tar returned `0`; SSH, pipeline, and runner returned semantic
+`1`; Node B emitted the distinct pre-write-before-mutation marker before any
+transaction path or mutation began. No rollback was required and workstation
+cleanup completed. The aggregate preflight did not label its failed
+prerequisite, so no retained-stage, live-state, parser, service, identity, or
+stage-absence cause is inferred. No unchanged retry is authorized; Action
+17f-a diagnostic definition and all later actions remain unauthorized.
+
+At `2026-07-29T23:59:20Z`, fail-closed read-only Action 17f-a was defined and
+locally validated without contacting Node B. Its 55 labeled assertions cover
+every Action 17f pre-write prerequisite and repeat the accepted live-state
+collector. The immutable Action 17f runner was confirmed to invoke its driver
+through `cd /`; a production-encoded regression starting from another
+directory proved `observed_pwd=/` and uninterrupted tar input. The Action
+17f-a runner independently uses `cd /` and reports its actual PWD assertion.
+Therefore the prior Action 17f failure is not attributed to working directory;
+at definition time, its exact mismatched prerequisite remained unknown pending
+separately authorized execution of runner `4d995823...e2ee`.
+
+At `2026-07-30T00:10:37Z`, exact read-only Action 17f-a was accepted. Its
+first identical workstation invocation was blocked by the restricted
+sandbox's socket policy before reaching Node B and cleaned up. The unchanged
+permitted invocation returned SSH and runner status `0`; all 55 assertions
+passed, including UID `0`, `PWD=/`, exact live and retained-stage pins, absent
+Action 17f paths, active Unbound and Pi-hole FTL, valid live parser, and two
+accepted live-state hashes at `3a05c048...b824`. No remote path, DNS query,
+configuration change, service mutation, or persistent mutation occurred, and
+workstation cleanup completed. Node B remains unchanged with only the
+accepted Action 17e primary stage. The earlier Action 17f failure was not
+reproduced, so no cause or unchanged retry is inferred; the next gate is
+definition only of an append-only instrumented Action 17f retry.
+
+At `2026-07-30T00:31:00Z`, the instrumented bounded Action 17f retry was
+defined and locally validated without contacting Node B. Its protected
+composite driver enforces the exact accepted 55-assertion inspector transcript
+from `/` before executing the immutable Action 17f transaction with unchanged
+tar stdin. A mismatching transcript was proven to stop before the driver;
+passing production fixtures proved `PWD=/` and payload continuity. Historical
+driver, runner, regression, transaction, and rollback behavior remain
+unchanged. The exact outer runner is `6dae2d4b...c83b`. The host and complete
+Debian 12 Podman suites passed after removing only a duplicate container-side
+workstation-ownership check; the independent outer workstation source gate
+remains mandatory. No stage or deployment state changed.
+
+The execution workflow now requires first-attempt network permission for an
+authorized command whose defined purpose reaches the home-lab LAN. This avoids
+known sandbox-only socket failures after local gates pass without broadening
+the command, target, privilege, mutation, rollback, or retry authorization.
+
+At `2026-07-30T00:36:08Z`, that workflow was used for the exact instrumented
+Action 17f retry. All 55 external pre-write assertions passed immediately
+before the immutable driver ran, but the driver reproduced
+`action_17f_prewrite_failure_before_mutation=true`. Tar returned `0`; SSH and
+pipeline returned `1`; both workstation cleanup layers completed. No
+transaction path began, no remote rollback was needed, and no live
+configuration, DNS query, service state, or persistent deployment state
+changed. The accepted Action 17e primary stage remains the last accepted
+persistent state, and the Action 17f local-zone stage remains unaccepted.
+
+At `2026-07-30T00:49:11Z`, narrow read-only Action 17f-b was defined and
+locally validated without contacting Node B. It reproduces the immutable
+driver's four read-only pre-write functions exactly, labels every operation
+from baseline validation through snapshot hash immutability, and replays the
+sequence under production `set -e` semantics. It stops before `mktemp` and
+emits no configuration contents. The new locked policy prohibits aggregate or
+unlabeled fail-closed assertion boundaries in corrected Action 17f or later
+live transactions.
+
+At `2026-07-30T01:02:14Z`, Action 17f-b reached Node B read-only and completed
+its collector with SSH status `0`. `validate_baseline` returned `1`; every
+following snapshot, readonly, and hash operation returned `0`; and the
+snapshot matched accepted state `3a05c048...b824`. All no-mutation markers
+were true. The workstation runner then failed on a Bash readonly-variable
+name collision during transcript validation and cleaned up. The diagnostic
+also retained an aggregate baseline label contrary to the locked policy, so
+the exact baseline assertion remains unknown and Action 17f-b is not accepted.
 
 ### Workstation certificate-stage observations
 
@@ -10308,6 +14370,10 @@ prerequisites passed without any controller change.
 
 ## Deferred Until Deployment
 
+- Node B-first and then Node A migration from the current single-file Unbound
+  layout to the two-file prerequisite; each file installation, configuration
+  validation, reload, and acceptance remains an independent authorization
+  gate.
 - Authoritative Unbound records.
 - Production inventory and repository README updates.
 - Canonical LikeC4 model and generated views.
@@ -10586,17 +14652,25 @@ Validate with `likec4 validate --json --no-layout`, repeating `--file` for every
 3. Validate Bash, systemd units, lsyncd Lua, Keepalived, Caddy, certificates, YAML, and Munin plugins.
 4. Install Node B first with Caddy VRRP inhibited; move lighttpd to port 8080 and validate the local proxy.
 5. Install Node A and validate its local proxy.
-6. Activate the synchronized Caddy VRRP pair.
-7. Add Unbound records and verify A, AAAA, PTR, and SRV answers through both DNS nodes.
-8. Test HTTP redirects, TLS 1.2/1.3, certificate chain, SANs, HTTP/2, Pi-hole login/UI behavior, and the localhost health request.
-9. Test A→B synchronization.
-10. Confirm normal publishing from B is rejected.
-11. Fail Caddy on A, verify both VIPs move to B, and test guarded B→A emergency publishing.
-12. Test invalid-release quarantine, interrupted rsync recovery, revision conflicts, and peer reconnection.
-13. Confirm Apprise receives notifications through `/notify/apprise`.
-14. Test IPv4-only, IPv6-only, iOS Safari, and Android Chrome clients.
-15. Perform failback, rolling-upgrade, and rollback drills.
-16. Record actual versions, paths, checksums, failover timing, and deviations for documentation.
+6. Through separate Node B-first and then Node A actions, adopt and validate
+   the primary `pihole.conf` and `pihole0-local-zone.conf` Unbound fragments;
+   do not combine their installation, validation, or reload gates.
+7. Activate the synchronized Caddy VRRP pair.
+8. Add Unbound records and verify A, AAAA, PTR, and SRV answers through both
+   DNS nodes.
+9. Test HTTP redirects, TLS 1.2/1.3, certificate chain, SANs, HTTP/2, Pi-hole
+   login/UI behavior, and the localhost health request.
+10. Test A→B synchronization.
+11. Confirm normal publishing from B is rejected.
+12. Fail Caddy on A, verify both VIPs move to B, and test guarded B→A
+    emergency publishing.
+13. Test invalid-release quarantine, interrupted rsync recovery, revision
+    conflicts, and peer reconnection.
+14. Confirm Apprise receives notifications through `/notify/apprise`.
+15. Test IPv4-only, IPv6-only, iOS Safari, and Android Chrome clients.
+16. Perform failback, rolling-upgrade, and rollback drills.
+17. Record actual versions, paths, checksums, failover timing, and deviations
+    for documentation.
 
 Acceptance requires:
 
