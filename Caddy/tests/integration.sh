@@ -436,6 +436,17 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     >/dev/null
 "$caddy_root/tests/action17o-c-source-bound-transport-acceptance-regression.sh" \
     --production-test >/dev/null
+"$caddy_root/scripts/inspect-release-transfer-failure-action17p-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-release-transfer-failure-diagnostic-action17p-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-release-transfer-failure-diagnostic-action17p-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-release-transfer-failure-diagnostic-action17p-a.sh" \
+    >/dev/null
+"$caddy_root/tests/action17p-a-release-transfer-failure-regression.sh" \
+    --production-test >/dev/null
 "$caddy_root/tests/labeled-dns-readiness-policy-regression.sh" \
     --production-test >/dev/null
 [[ "$(stat -c '%U:%G:%a' /var/log/unbound)" == unbound:unbound:750 ]]
@@ -891,6 +902,30 @@ if grep -Eqi 'error|unknown|invalid|syntax' \
     exit 1
 fi
 
+sed \
+    -e 's/@NODE_ROLE@/node-a/g' \
+    -e 's/@NODE_IPV6@/fd36:5aa8:6971:1::53/g' \
+    -e 's/@PEER_FQDN@/pihole00.local.theama.co/g' \
+    -e "s|/var/lib/caddy-sync/outbound/|$source_bound_test_source/|" \
+    "$caddy_root/templates/lsyncd-caddy-receiver-finalized-v2.lua.in" \
+    >"$work_dir/receiver-finalized-v2.lua"
+sed -i \
+    -e '/^    rsync = {$/a\        binary = "/bin/true",' \
+    -e '/^    ssh = {$/a\        binary = "/bin/true",' \
+    "$work_dir/receiver-finalized-v2.lua"
+receiver_finalized_lsyncd_status=0
+timeout 3s lsyncd -nodaemon -log scarce \
+    "$work_dir/receiver-finalized-v2.lua" \
+    >"$work_dir/receiver-finalized-lsyncd.log" 2>&1 ||
+    receiver_finalized_lsyncd_status=$?
+[[ "$receiver_finalized_lsyncd_status" -eq 0 ||
+    "$receiver_finalized_lsyncd_status" -eq 124 ]]
+if grep -Eqi 'error|unknown|invalid|syntax' \
+    "$work_dir/receiver-finalized-lsyncd.log"; then
+    cat "$work_dir/receiver-finalized-lsyncd.log" >&2
+    exit 1
+fi
+
 systemd-analyze verify \
     "$caddy_root"/systemd/*.service \
     "$caddy_root"/systemd/*.path \
@@ -918,6 +953,105 @@ install -d /var/lib/caddy-sync/incoming/node-a/zz-incomplete
 "$caddy_root/scripts/reconcile-release.sh"
 [[ "$(readlink /etc/caddy/current)" == "$active_before" ]]
 rm -rf /var/lib/caddy-sync/incoming/node-a/zz-incomplete
+
+install -m 0755 \
+    "$caddy_root/scripts/finalize-incoming-release-v2.sh" \
+    /usr/local/libexec/finalize-incoming-release-v2.sh
+
+publisher_output=$(
+    "$caddy_root/scripts/publish-release-v2.sh" \
+        --source /etc/caddy/releases/bootstrap \
+        --node-role node-a
+)
+published_revision=${publisher_output#Published protocol-v2 release }
+published_revision=${published_revision% for receiver validation.}
+[[ "$published_revision" =~ ^[0-9]{8}T[0-9]{6}Z-[0-9a-f-]{36}$ ]]
+published_path="/var/lib/caddy-sync/outbound/$published_revision"
+[[ -d "$published_path" && ! -L "$published_path" ]]
+[[ -f "$published_path/.finalize-request" ]]
+[[ ! -s "$published_path/.finalize-request" ]]
+[[ ! -e "$published_path/.complete" ]]
+[[ ! -e "$published_path/.complete.pending" ]]
+[[ -z "$(find "$published_path" -type d ! -perm 0550 -print -quit)" ]]
+[[ -z "$(find "$published_path" -type f ! -perm 0440 -print -quit)" ]]
+(
+    cd "$published_path"
+    sha256sum --strict --check manifest.sha256 >/dev/null
+)
+rm -rf -- "$published_path"
+
+create_v2_receiver_fixture() {
+    local fixture_revision=$1
+    local fixture_path="/var/lib/caddy-sync/incoming/node-a/$fixture_revision"
+
+    install -d -o caddy-sync -g caddy-sync -m 0750 "$fixture_path"
+    cp -a /etc/caddy/current/. "$fixture_path/"
+    rm -f -- \
+        "$fixture_path/.complete" \
+        "$fixture_path/.complete.pending" \
+        "$fixture_path/.finalize-request" \
+        "$fixture_path/manifest.sha256"
+    jq -n \
+        --arg revision "$fixture_revision" \
+        --arg parent_revision bootstrap \
+        --arg source_node node-a \
+        --arg created_at 2026-07-30T00:00:00Z \
+        '{
+            revision: $revision,
+            parent_revision: $parent_revision,
+            source_node: $source_node,
+            created_at: $created_at
+        }' >"$fixture_path/release-manifest.json"
+    (
+        cd "$fixture_path"
+        find . -type f \
+            ! -path ./manifest.sha256 \
+            ! -path ./.finalize-request \
+            ! -path ./.complete \
+            ! -path ./.complete.pending \
+            -print0 |
+            LC_ALL=C sort -z |
+            xargs -0 sha256sum
+    ) >"$fixture_path/manifest.sha256"
+    : >"$fixture_path/.finalize-request"
+    chown -R caddy-sync:caddy-sync "$fixture_path"
+    find "$fixture_path" -type d -exec chmod 0700 {} +
+    find "$fixture_path" -type f -exec chmod 0600 {} +
+}
+
+create_v2_receiver_fixture aa-v2-valid
+runuser -u caddy-sync -- \
+    /usr/local/libexec/finalize-incoming-release-v2.sh \
+    --source-role node-a
+[[ -f /var/lib/caddy-sync/incoming/node-a/aa-v2-valid/.complete ]]
+[[ ! -s /var/lib/caddy-sync/incoming/node-a/aa-v2-valid/.complete ]]
+[[ ! -e /var/lib/caddy-sync/incoming/node-a/aa-v2-valid/.complete.pending ]]
+[[ -z "$(find /var/lib/caddy-sync/incoming/node-a/aa-v2-valid \
+    -type d ! -perm 0550 -print -quit)" ]]
+[[ -z "$(find /var/lib/caddy-sync/incoming/node-a/aa-v2-valid \
+    -type f ! -perm 0440 -print -quit)" ]]
+runuser -u caddy-sync -- \
+    /usr/local/libexec/finalize-incoming-release-v2.sh \
+    --source-role node-a
+
+create_v2_receiver_fixture ab-v2-extra
+printf 'unmanifested\n' \
+    >/var/lib/caddy-sync/incoming/node-a/ab-v2-extra/unmanifested.txt
+chown caddy-sync:caddy-sync \
+    /var/lib/caddy-sync/incoming/node-a/ab-v2-extra/unmanifested.txt
+chmod 0600 \
+    /var/lib/caddy-sync/incoming/node-a/ab-v2-extra/unmanifested.txt
+if runuser -u caddy-sync -- \
+    /usr/local/libexec/finalize-incoming-release-v2.sh \
+    --source-role node-a >/dev/null 2>&1; then
+    printf 'Receiver finalizer accepted unmanifested payload.\n' >&2
+    exit 1
+fi
+[[ ! -e /var/lib/caddy-sync/incoming/node-a/ab-v2-extra/.complete ]]
+
+rm -rf -- \
+    /var/lib/caddy-sync/incoming/node-a/aa-v2-valid \
+    /var/lib/caddy-sync/incoming/node-a/ab-v2-extra
 
 jq -n \
     --arg revision active-test \
@@ -996,5 +1130,69 @@ if "$caddy_root/scripts/validate-caddy-ha.sh" \
     printf 'Validation unexpectedly passed after uninstall simulation.\n' >&2
     exit 1
 fi
+
+active_v2_parent=$(
+    jq -r '.revision // empty' /etc/caddy/current/release-manifest.json
+)
+create_v2_receiver_fixture zz-v2-reconcile
+jq --arg parent_revision "$active_v2_parent" \
+    '.parent_revision = $parent_revision' \
+    /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile/release-manifest.json \
+    >"$work_dir/v2-reconcile-manifest.json"
+mv -- "$work_dir/v2-reconcile-manifest.json" \
+    /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile/release-manifest.json
+(
+    cd /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile
+    find . -type f \
+        ! -path ./manifest.sha256 \
+        ! -path ./.finalize-request \
+        ! -path ./.complete \
+        ! -path ./.complete.pending \
+        -print0 |
+        LC_ALL=C sort -z |
+        xargs -0 sha256sum
+) >/var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile/manifest.sha256
+chown -R caddy-sync:caddy-sync \
+    /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile
+find /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile \
+    -type d -exec chmod 0700 {} +
+find /var/lib/caddy-sync/incoming/node-a/zz-v2-reconcile \
+    -type f -exec chmod 0600 {} +
+runuser -u caddy-sync -- \
+    /usr/local/libexec/finalize-incoming-release-v2.sh \
+    --source-role node-a
+mv -- /usr/bin/systemctl "$work_dir/systemctl.real"
+printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'printf "%s\n" "$*" >>/tmp/caddy-v2-systemctl.log' \
+    'exit 0' \
+    >/usr/bin/systemctl
+chmod 0755 /usr/bin/systemctl
+"$caddy_root/scripts/reconcile-release-v2.sh"
+grep -Fxq 'reload caddy.service' /tmp/caddy-v2-systemctl.log
+rm -f -- /usr/bin/systemctl /tmp/caddy-v2-systemctl.log
+mv -- "$work_dir/systemctl.real" /usr/bin/systemctl
+[[ "$(readlink /etc/caddy/current)" == /etc/caddy/releases/zz-v2-reconcile ]]
+
+"$caddy_root/tests/action17q-node-b-protocol-v2-install-regression.sh" \
+    --self-test
+"$caddy_root/tests/action17q-retry-node-b-protocol-v2-install-regression.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --contract-test
+"$caddy_root/tests/action17q-b-node-b-postinstall-regression.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --contract-test
+"$caddy_root/tests/action17q-a-node-b-postfailure-regression.sh" \
+    --self-test
 
 printf 'Container integration validation passed.\n'

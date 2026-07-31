@@ -1,0 +1,60 @@
+---
+protocol: caddy-ha-release-v2
+status: defined_not_deployed
+transport:
+  account: caddy-sync
+  forced_command: /usr/local/libexec/caddy-sync-release-receiver-v2
+  forced_command_source_role: peer-role
+  remote_delete: false
+  transmitted_completion_marker: false
+  excluded_paths:
+    - .complete
+  receiver_scope: peer-source-role
+publication:
+  atomic_outbound_visibility: true
+  request_marker: .finalize-request
+  request_marker_constraints:
+    type: regular
+    size_bytes: 0
+  manifest_excludes:
+    - manifest.sha256
+    - .finalize-request
+    - .complete
+    - .complete.pending
+receiver_finalization:
+  identity: caddy-sync
+  validation_precedes_marker: true
+  validates:
+    - source-role
+    - revision
+    - parent-revision-shape
+    - regular-files-only
+    - no-symbolic-links
+    - no-extra-payload
+    - manifest-path-safety
+    - manifest-hashes
+    - certificate-parsing
+    - private-key-parsing
+    - certificate-private-key-match
+    - caddy-configuration
+  locally_created_marker: .complete
+  pending_marker: .complete.pending
+  final_directory_mode: "0550"
+  final_file_mode: "0440"
+  idempotent: true
+reconciliation:
+  requires:
+    - .finalize-request
+    - .complete
+  rejects:
+    - .complete.pending
+    - hidden-release-directories
+    - unsafe-manifest-paths
+    - extra-payload
+    - divergent-parent
+  conflict_action: quarantine
+  service_reload_only_after_validation: true
+deployment:
+  live_state_changed: false
+  authorization_template: templates/authorized-key-receiver-finalized-v2.in
+  next_gate: separately_authorized_transactional_installation

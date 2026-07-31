@@ -1,0 +1,1 @@
+from="@PEER_IPV4@,@PEER_IPV6@",restrict,command="/usr/local/libexec/caddy-sync-release-receiver-v2 --source-role @PEER_ROLE@"

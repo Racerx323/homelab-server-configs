@@ -189,6 +189,28 @@ for node_role in node-a node-b; do
         "$work_dir/dry-run-$node_role.json" >/dev/null
 done
 
+"$caddy_root/tests/receiver-finalization-protocol-v2-regression.sh"
+"$caddy_root/tests/action17q-node-b-protocol-v2-install-regression.sh" \
+    --self-test
+"$caddy_root/tests/action17q-retry-node-b-protocol-v2-install-regression.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
+    --contract-test
+"$caddy_root/tests/action17q-b-node-b-postinstall-regression.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \
+    --contract-test
+"$caddy_root/tests/action17q-a-node-b-postfailure-regression.sh" \
+    --self-test
+
 grep -R -Fq 'protocols h1 h2 h3' "$caddy_root/configs/caddy"
 grep -Fq 'skip_install_trust' "$caddy_root/configs/caddy/Caddyfile"
 grep -Fq 'health_follow_redirects' \
@@ -1592,6 +1614,13 @@ node_a_rsync_refinement_runner_action17o_b="$caddy_root/scripts/run-node-a-rsync
 node_a_rsync_refinement_regression_action17o_b="$caddy_root/tests/action17o-b-classification-refinement-regression.sh"
 transport_acceptance_runner_action17o_c="$caddy_root/scripts/run-node-a-to-node-b-source-bound-transport-acceptance-action17o-c.sh"
 transport_acceptance_regression_action17o_c="$caddy_root/tests/action17o-c-source-bound-transport-acceptance-regression.sh"
+release_transfer_node_a_action17p="$caddy_root/scripts/transfer-node-a-release-to-node-b-action17p.sh"
+release_transfer_node_b_action17p="$caddy_root/scripts/inspect-node-b-incoming-release-action17p.sh"
+release_transfer_runner_action17p="$caddy_root/scripts/run-node-a-to-node-b-release-transfer-action17p.sh"
+release_transfer_regression_action17p="$caddy_root/tests/action17p-release-transfer-regression.sh"
+release_failure_inspector_action17p_a="$caddy_root/scripts/inspect-release-transfer-failure-action17p-a.sh"
+release_failure_runner_action17p_a="$caddy_root/scripts/run-release-transfer-failure-diagnostic-action17p-a.sh"
+release_failure_regression_action17p_a="$caddy_root/tests/action17p-a-release-transfer-failure-regression.sh"
 labeled_dns_readiness_policy="$caddy_root/tests/labeled-dns-readiness-policy-regression.sh"
 "$dual_node_dns_sync_readiness_inspector_action17l" --self-test
 "$dual_node_dns_sync_readiness_regression_action17l" --production-test
@@ -1662,6 +1691,17 @@ labeled_dns_readiness_policy="$caddy_root/tests/labeled-dns-readiness-policy-reg
 "$caddy_root/tests/run-source-test-in-context.sh" \
     --runner "$transport_acceptance_runner_action17o_c"
 "$transport_acceptance_regression_action17o_c" --production-test
+"$release_transfer_node_a_action17p" --self-test
+"$release_transfer_node_b_action17p" --self-test
+"$release_transfer_runner_action17p" --self-test
+"$release_transfer_runner_action17p" --contract-test
+"$release_transfer_regression_action17p"
+"$release_failure_inspector_action17p_a" --self-test
+"$release_failure_runner_action17p_a" --self-test
+"$release_failure_runner_action17p_a" --contract-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$release_failure_runner_action17p_a"
+"$release_failure_regression_action17p_a" --production-test
 "$labeled_dns_readiness_policy" --production-test
 dns_vip_response_inspector_action17m_b="$caddy_root/scripts/inspect-dns-vip-response-path-action17m-b.sh"
 dns_vip_response_runner_action17m_b="$caddy_root/scripts/run-dns-vip-response-path-diagnostic-action17m-b.sh"

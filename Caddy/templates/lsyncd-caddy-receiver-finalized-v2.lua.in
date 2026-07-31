@@ -1,0 +1,54 @@
+settings {
+    logfile = "/dev/stdout",
+    statusFile = "/run/caddy-lsyncd/status",
+    statusInterval = 10,
+    insist = true,
+    maxProcesses = 1
+}
+
+sync {
+    default.rsyncssh,
+    source = "/var/lib/caddy-sync/outbound/",
+    host = "@PEER_FQDN@",
+    targetdir = "/",
+    delay = 5,
+    delete = false,
+    rsync = {
+        archive = true,
+        compress = true,
+        _extra = {
+            "--delay-updates",
+            "--exclude=.complete",
+            "--exclude=.complete.pending",
+            "--exclude=*.tmp",
+            "--exclude=*.swp",
+            "--exclude=.git/",
+            "--exclude=state/",
+            "--exclude=quarantine/",
+            "--no-group",
+            "--no-owner",
+            "--no-perms",
+            "--partial"
+        }
+    },
+    ssh = {
+        port = 22,
+        identityFile = "/var/lib/caddy-sync/.ssh/id_ed25519",
+        options = {
+            AddressFamily = "inet6",
+            BatchMode = "yes",
+            BindAddress = "@NODE_IPV6@",
+            ClearAllForwardings = "yes",
+            ConnectTimeout = "5",
+            GlobalKnownHostsFile = "/dev/null",
+            HostKeyAlias = "@PEER_FQDN@",
+            IdentitiesOnly = "yes",
+            KbdInteractiveAuthentication = "no",
+            PasswordAuthentication = "no",
+            PreferredAuthentications = "publickey",
+            StrictHostKeyChecking = "yes",
+            UpdateHostKeys = "no",
+            UserKnownHostsFile = "/var/lib/caddy-sync/.ssh/known_hosts"
+        }
+    }
+}

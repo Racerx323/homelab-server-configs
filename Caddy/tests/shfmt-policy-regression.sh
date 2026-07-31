@@ -9,6 +9,8 @@ wrapper="$script_dir/shfmt-canonical.sh"
 precommit_config="$repo_root/.pre-commit-config.yaml"
 test_runner="$script_dir/run.sh"
 
+[[ "$(git -C "$repo_root" ls-files -s -- \
+    Caddy/tests/shfmt-canonical.sh | awk '{ print $1 }')" == 100755 ]]
 grep -Fq 'entry: Caddy/tests/shfmt-canonical.sh --check' "$precommit_config"
 grep -Fq '"$script_dir/shfmt-canonical.sh" --check "${shell_files[@]}"' \
     "$test_runner"
