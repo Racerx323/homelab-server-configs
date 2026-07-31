@@ -57,6 +57,15 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
 ## Testing instructions
 
 - Fix any test or type errors until the whole suite is green.
+- `Caddy/tests/run.sh` is a Podman wrapper, not a host-only test command. Run it
+  outside the filesystem sandbox on its first attempt with the narrowest
+  applicable scoped escalation because its final integration phase requires
+  the rootless runtime under `/run/user`.
+- The repository `.vscode` directory contains shared configuration and must
+  remain trackable. Preserve the root-anchored `!/.vscode/` and
+  `!/.vscode/**` rules in `.gitignore`, and run
+  `Caddy/tests/vscode-tracking-policy-regression.sh` after ignore-policy
+  changes.
 - After moving files or changing imports, check that all files or imports adhere to the project's coding standards.
 - Add or update tests for the code you change, even if nobody asked.
 - Run linters and formatters to ensure code quality. For shell files, never run

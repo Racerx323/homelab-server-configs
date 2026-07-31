@@ -25,6 +25,7 @@ shellcheck "${shell_files[@]}"
 "$script_dir/shfmt-policy-regression.sh"
 "$script_dir/unbound-validation-runtime-regression.sh" --production-test
 "$script_dir/source-test-context-policy-regression.sh" --production-test
+"$script_dir/vscode-tracking-policy-regression.sh"
 "$caddy_root/scripts/validate-node-a-validation-dependency-convergence-action16x-retry.sh" \
     --self-test
 "$caddy_root/scripts/diagnose-node-a-validation-dependencies-action16x-b.sh" \
@@ -1589,6 +1590,8 @@ node_a_rsync_output_regression_action17o_a="$caddy_root/tests/action17o-a-rsync-
 node_a_rsync_refinement_action17o_b="$caddy_root/scripts/refine-node-a-rsync-output-classification-action17o-b.sh"
 node_a_rsync_refinement_runner_action17o_b="$caddy_root/scripts/run-node-a-rsync-classification-refinement-action17o-b.sh"
 node_a_rsync_refinement_regression_action17o_b="$caddy_root/tests/action17o-b-classification-refinement-regression.sh"
+transport_acceptance_runner_action17o_c="$caddy_root/scripts/run-node-a-to-node-b-source-bound-transport-acceptance-action17o-c.sh"
+transport_acceptance_regression_action17o_c="$caddy_root/tests/action17o-c-source-bound-transport-acceptance-regression.sh"
 labeled_dns_readiness_policy="$caddy_root/tests/labeled-dns-readiness-policy-regression.sh"
 "$dual_node_dns_sync_readiness_inspector_action17l" --self-test
 "$dual_node_dns_sync_readiness_regression_action17l" --production-test
@@ -1654,6 +1657,11 @@ labeled_dns_readiness_policy="$caddy_root/tests/labeled-dns-readiness-policy-reg
 "$caddy_root/tests/run-source-test-in-context.sh" \
     --runner "$node_a_rsync_refinement_runner_action17o_b"
 "$node_a_rsync_refinement_regression_action17o_b" --production-test
+"$transport_acceptance_runner_action17o_c" --self-test
+"$transport_acceptance_runner_action17o_c" --contract-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$transport_acceptance_runner_action17o_c"
+"$transport_acceptance_regression_action17o_c" --production-test
 "$labeled_dns_readiness_policy" --production-test
 dns_vip_response_inspector_action17m_b="$caddy_root/scripts/inspect-dns-vip-response-path-action17m-b.sh"
 dns_vip_response_runner_action17m_b="$caddy_root/scripts/run-dns-vip-response-path-diagnostic-action17m-b.sh"

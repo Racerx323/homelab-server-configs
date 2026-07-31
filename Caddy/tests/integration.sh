@@ -427,6 +427,15 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     >/dev/null
 "$caddy_root/tests/action17o-b-classification-refinement-regression.sh" \
     --production-test >/dev/null
+"$caddy_root/scripts/run-node-a-to-node-b-source-bound-transport-acceptance-action17o-c.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-to-node-b-source-bound-transport-acceptance-action17o-c.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-to-node-b-source-bound-transport-acceptance-action17o-c.sh" \
+    >/dev/null
+"$caddy_root/tests/action17o-c-source-bound-transport-acceptance-regression.sh" \
+    --production-test >/dev/null
 "$caddy_root/tests/labeled-dns-readiness-policy-regression.sh" \
     --production-test >/dev/null
 [[ "$(stat -c '%U:%G:%a' /var/log/unbound)" == unbound:unbound:750 ]]
