@@ -5,7 +5,6 @@
 *.out
 *.err
 *.pid
-.vscode/
 
 # General ignores
 .DS_Store

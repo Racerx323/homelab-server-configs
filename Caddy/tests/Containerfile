@@ -10,6 +10,7 @@ RUN apt-get update \
         debian-archive-keyring \
         debian-keyring \
         findutils \
+        git \
         gnupg \
     && curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
         | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
@@ -37,6 +38,7 @@ RUN apt-get update \
         unbound \
         util-linux \
         uuid-runtime \
+    && install -d -o unbound -g unbound -m 0750 /var/log/unbound \
     && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/bin/bash"]

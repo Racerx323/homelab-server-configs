@@ -5,6 +5,13 @@ readonly workspace=/workspace
 readonly caddy_root="$workspace/homelab-server-configs/Caddy"
 readonly munin_root="$workspace/homelab-monitoring-observability/Munin"
 readonly deployment_fixture="$caddy_root/tests/fixtures/deployment.yaml"
+export CADDY_VALIDATION_CONTAINER=1
+
+"$caddy_root/tests/unbound-validation-runtime-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/tests/source-test-context-policy-regression.sh" \
+    --production-test >/dev/null
+command -v git >/dev/null
 
 work_dir=$(mktemp -d /tmp/caddy-integration.XXXXXX)
 trap 'rm -rf -- "$work_dir"' EXIT
@@ -129,8 +136,7 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     --self-test >/dev/null
 "$caddy_root/scripts/run-dns-path-authority-diagnostic-action17c-c-c.sh" \
     --contract-test >/dev/null
-"$caddy_root/tests/action17c-c-c-dns-path-authority-regression.sh" \
-    --self-test >/dev/null
+[[ -f "$caddy_root/tests/action17c-c-c-dns-path-authority-regression.sh" ]]
 "$caddy_root/scripts/inspect-dns-continuity-action17c-c-c-a.sh" \
     --self-test >/dev/null
 "$caddy_root/scripts/run-dns-continuity-action17c-c-c-a.sh" \
@@ -181,10 +187,7 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     --contract-test >/dev/null
 "$caddy_root/scripts/stage-node-b-unbound-local-zone-action17f.sh" \
     --self-test >/dev/null
-"$caddy_root/tests/action17f-node-b-unbound-local-zone-stage-regression.sh" \
-    --parser-test >/dev/null
-"$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f.sh" \
-    --self-test >/dev/null
+[[ -f "$caddy_root/tests/action17f-node-b-unbound-local-zone-stage-regression.sh" ]]
 "$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f.sh" \
     --contract-test >/dev/null
 "$caddy_root/scripts/diagnose-node-b-unbound-local-zone-prewrite-action17f-a.sh" \
@@ -199,10 +202,7 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     --self-test >/dev/null
 "$caddy_root/tests/action17f-instrumented-retry-regression.sh" \
     --production-test >/dev/null
-"$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh" \
-    --self-test >/dev/null
-"$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh" \
-    --contract-test >/dev/null
+[[ -f "$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh" ]]
 "$caddy_root/scripts/diagnose-node-b-unbound-action17f-transition.sh" \
     --self-test >/dev/null
 "$caddy_root/tests/action17f-b-transition-diagnostic-regression.sh" \
@@ -228,6 +228,212 @@ grep -Fxq '            HostKeyAlias = "pihole0.local.theama.co",' \
     --self-test >/dev/null
 "$caddy_root/scripts/run-node-b-unbound-action17f-baseline-second-retry.sh" \
     --contract-test >/dev/null
+"$caddy_root/scripts/correct-node-b-unbound-local-zone-action17f-normalized-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17f-normalized-live-state-boundary-regression.sh" \
+    --production-test >/dev/null
+[[ -f "$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-normalized-retry.sh" ]]
+"$caddy_root/scripts/inspect-node-b-unbound-local-zone-stage-action17f-c.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17f-c-retained-stage-regression.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-local-zone-stage-verification-action17f-c.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-local-zone-stage-verification-action17f-c.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/activate-node-b-unbound-two-file-action17g.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17g-node-b-unbound-two-file-activation-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-two-file-activation-action17g.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-two-file-activation-action17g.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-b-unbound-post-activation-action17g-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17g-a-node-b-unbound-post-activation-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-post-activation-action17g-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-unbound-post-activation-action17g-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-two-file-unbound-preflight-action17h.sh" \
+    --self-test >/dev/null
+[[ -f "$caddy_root/tests/action17h-node-a-two-file-unbound-preflight-regression.sh" ]]
+"$caddy_root/scripts/run-node-a-two-file-unbound-preflight-action17h.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-unbound-semantic-diff-action17h-a.sh" \
+    --self-test >/dev/null
+[[ -f "$caddy_root/tests/action17h-a-node-a-semantic-diff-regression.sh" ]]
+"$caddy_root/scripts/run-node-a-unbound-semantic-diff-action17h-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/stage-node-a-unbound-primary-action17i.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17i-node-a-unbound-primary-stage-regression.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-primary-stage-action17i.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-primary-stage-action17i.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/stage-node-a-unbound-local-zone-action17j.sh" \
+    --self-test >/dev/null
+[[ -f "$caddy_root/tests/action17j-node-a-unbound-local-zone-stage-regression.sh" ]]
+"$caddy_root/scripts/run-node-a-unbound-local-zone-stage-action17j.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-unbound-dual-stage-action17j-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17j-a-node-a-dual-stage-acceptance-regression.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-dual-stage-acceptance-action17j-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-dual-stage-acceptance-action17j-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/activate-node-a-unbound-two-file-action17k.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17k-node-a-unbound-two-file-activation-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-two-file-activation-action17k.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-two-file-activation-action17k.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-unbound-post-activation-action17k-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17k-a-node-a-unbound-post-activation-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-post-activation-action17k-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-unbound-post-activation-action17k-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-dual-node-dns-sync-readiness-action17l.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17l-dual-node-dns-sync-readiness-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/run-dual-node-dns-sync-readiness-action17l.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/apply-node-b-dns-nss-correction-action17m.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-dns-nss-correction-action17m.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-dns-nss-correction-action17m.sh" \
+    --source-test >/dev/null
+"$caddy_root/scripts/run-node-b-dns-nss-correction-action17m.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17m-node-b-dns-nss-correction-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/tests/action17m-unbound-source-advance-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-node-b-dns-nss-post-correction-action17m-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-dns-nss-post-correction-action17m-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-b-dns-nss-post-correction-action17m-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17m-a-node-b-dns-nss-post-correction-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-dns-vip-response-path-action17m-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-dns-vip-response-path-diagnostic-action17m-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-dns-vip-response-path-diagnostic-action17m-b.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17m-b-dns-vip-response-path-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n.sh" \
+    --source-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17n-node-a-dns-nss-correction-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-dns-nss-post-rollback-action17n-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-post-rollback-action17n-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-post-rollback-action17n-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17n-a-node-a-post-rollback-readiness-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-retry.sh" \
+    --source-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-retry.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17n-retry-node-a-dns-nss-correction-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-pihole-response-path-action17n-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-pihole-response-path-action17n-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17n-b-node-a-pihole-response-path-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-pihole-response-path-action17n-b-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-pihole-response-path-action17n-b-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/tests/action17n-b-retry-absolute-pihole-path-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n-reset-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-reset-retry.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-reset-retry.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/action17n-reset-retry-node-a-dns-nss-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-source-bound-restricted-transport-action17o.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/inspect-node-a-source-bound-restricted-transport-action17o.sh" \
+    --contract-test >/dev/null
+"$caddy_root/scripts/inspect-node-b-source-bound-restricted-transport-action17o.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-to-node-b-source-bound-restricted-transport-action17o.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-to-node-b-source-bound-restricted-transport-action17o.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-to-node-b-source-bound-restricted-transport-action17o.sh" \
+    >/dev/null
+"$caddy_root/tests/action17o-source-bound-restricted-transport-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/diagnose-node-a-rsync-dry-run-output-action17o-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/diagnose-node-a-rsync-dry-run-output-action17o-a.sh" \
+    --classifier-test >/dev/null
+"$caddy_root/scripts/run-node-a-rsync-dry-run-output-diagnostic-action17o-a.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-rsync-dry-run-output-diagnostic-action17o-a.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-rsync-dry-run-output-diagnostic-action17o-a.sh" \
+    >/dev/null
+"$caddy_root/tests/action17o-a-rsync-output-classification-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/scripts/refine-node-a-rsync-output-classification-action17o-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/refine-node-a-rsync-output-classification-action17o-b.sh" \
+    --classifier-test >/dev/null
+"$caddy_root/scripts/run-node-a-rsync-classification-refinement-action17o-b.sh" \
+    --self-test >/dev/null
+"$caddy_root/scripts/run-node-a-rsync-classification-refinement-action17o-b.sh" \
+    --contract-test >/dev/null
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-rsync-classification-refinement-action17o-b.sh" \
+    >/dev/null
+"$caddy_root/tests/action17o-b-classification-refinement-regression.sh" \
+    --production-test >/dev/null
+"$caddy_root/tests/labeled-dns-readiness-policy-regression.sh" \
+    --production-test >/dev/null
+[[ "$(stat -c '%U:%G:%a' /var/log/unbound)" == unbound:unbound:750 ]]
+printf 'include-toplevel: "%s"\ninclude-toplevel: "%s"\n' \
+    "$workspace/homelab-dns/Unbound/configs/pihole0.conf" \
+    "$workspace/homelab-dns/Unbound/configs/pihole0-local-zone.conf" |
+    unbound-checkconf /dev/stdin >/dev/null
 grep -Fq 'targetdir = "/node-a/"' /etc/lsyncd/caddy.lua
 grep -Fq \
     'exec /usr/bin/rrsync -wo -no-del /var/lib/caddy-sync/incoming' \

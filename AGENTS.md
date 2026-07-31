@@ -59,7 +59,25 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
 - Fix any test or type errors until the whole suite is green.
 - After moving files or changing imports, check that all files or imports adhere to the project's coding standards.
 - Add or update tests for the code you change, even if nobody asked.
-- Run linters and formatters to ensure code quality.
+- Run linters and formatters to ensure code quality. For shell files, never run
+  bare `shfmt -w`; use
+  `Caddy/tests/shfmt-canonical.sh --write FILE [FILE ...]`. Use `--check` for
+  validation. The wrapper pins the repository's `-i 4 -ci` policy and rejects
+  empty, broad, symbolic-link, and unapproved-repository targets.
+- Keep workstation source ownership checks out of container integration
+  commands. Regressions that need a runner's `--source-test` must invoke
+  `Caddy/tests/run-source-test-in-context.sh --runner RUNNER`. The policy
+  executes the source test only with `aaron:aaron:755` ownership on the
+  workstation. In the validation container it accepts only the explicit
+  `CADDY_VALIDATION_CONTAINER=1`, `/workspace/...`, `root:root:755`
+  read-only bind-mount projection. Do not add ad hoc ownership exceptions.
+- Every fail-closed infrastructure validator must emit one uniquely labeled
+  assertion per observable condition. Never combine multiple commands,
+  queries, comparisons, or mutation results under one assertion label.
+  DNS readiness blocks must record each server, port, name, type, command
+  status, and safe observed answer independently before deriving an overall
+  decision. Enforce marked DNS readiness blocks with
+  `Caddy/tests/labeled-dns-readiness-policy-regression.sh`.
 - Make sure to test edge cases and error handling.
 - Document any new features or changes to existing functionality.
 - Ensure all changes are backward compatible.

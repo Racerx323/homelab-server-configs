@@ -14,7 +14,7 @@ repos:
 
       - id: shfmt
         name: shfmt
-        entry: shfmt -d -i 4 -ci
+        entry: Caddy/tests/shfmt-canonical.sh --check
         language: system
         types: [shell]
 

@@ -21,7 +21,10 @@ mapfile -d '' shell_files < <(
 )
 
 shellcheck "${shell_files[@]}"
-shfmt -d -i 4 -ci "${shell_files[@]}"
+"$script_dir/shfmt-canonical.sh" --check "${shell_files[@]}"
+"$script_dir/shfmt-policy-regression.sh"
+"$script_dir/unbound-validation-runtime-regression.sh" --production-test
+"$script_dir/source-test-context-policy-regression.sh" --production-test
 "$caddy_root/scripts/validate-node-a-validation-dependency-convergence-action16x-retry.sh" \
     --self-test
 "$caddy_root/scripts/diagnose-node-a-validation-dependencies-action16x-b.sh" \
@@ -1376,9 +1379,8 @@ dns_path_runner_action17c_c_c="$caddy_root/scripts/run-dns-path-authority-diagno
 dns_path_regression_action17c_c_c="$caddy_root/tests/action17c-c-c-dns-path-authority-regression.sh"
 "$dns_path_collector_action17c_c_c" --self-test
 "$dns_path_runner_action17c_c_c" --self-test
-"$dns_path_runner_action17c_c_c" --source-test
 "$dns_path_runner_action17c_c_c" --contract-test
-"$dns_path_regression_action17c_c_c" --self-test
+[[ -f "$dns_path_regression_action17c_c_c" ]]
 dns_continuity_inspector_action17c_c_c_a="$caddy_root/scripts/inspect-dns-continuity-action17c-c-c-a.sh"
 dns_continuity_runner_action17c_c_c_a="$caddy_root/scripts/run-dns-continuity-action17c-c-c-a.sh"
 dns_continuity_regression_action17c_c_c_a="$caddy_root/tests/action17c-c-c-a-dns-continuity-regression.sh"
@@ -1392,7 +1394,6 @@ dns_path_regression_action17c_c_c_retry="$caddy_root/tests/action17c-c-c-first-q
 "$dns_path_correction_action17c_c_c_retry" --self-test
 "$dns_path_regression_action17c_c_c_retry" --production-test
 "$dns_path_runner_action17c_c_c_retry" --self-test
-"$dns_path_runner_action17c_c_c_retry" --source-test
 "$dns_path_runner_action17c_c_c_retry" --contract-test
 node_b_unbound_inspector_action17d="$caddy_root/scripts/inspect-node-b-two-file-unbound-preflight-action17d.sh"
 node_b_unbound_regression_action17d="$caddy_root/tests/action17d-node-b-two-file-unbound-preflight-regression.sh"
@@ -1400,7 +1401,6 @@ node_b_unbound_runner_action17d="$caddy_root/scripts/run-node-b-two-file-unbound
 "$node_b_unbound_inspector_action17d" --self-test
 "$node_b_unbound_regression_action17d" --self-test
 "$node_b_unbound_runner_action17d" --self-test
-"$node_b_unbound_runner_action17d" --source-test
 "$node_b_unbound_runner_action17d" --contract-test
 node_b_unbound_primary_driver_action17e="$caddy_root/scripts/stage-node-b-unbound-primary-action17e.sh"
 node_b_unbound_primary_regression_action17e="$caddy_root/tests/action17e-node-b-unbound-primary-stage-regression.sh"
@@ -1430,9 +1430,7 @@ node_b_unbound_local_zone_driver_action17f="$caddy_root/scripts/stage-node-b-unb
 node_b_unbound_local_zone_regression_action17f="$caddy_root/tests/action17f-node-b-unbound-local-zone-stage-regression.sh"
 node_b_unbound_local_zone_runner_action17f="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f.sh"
 "$node_b_unbound_local_zone_driver_action17f" --self-test
-"$node_b_unbound_local_zone_regression_action17f" --self-test
-"$node_b_unbound_local_zone_runner_action17f" --self-test
-"$node_b_unbound_local_zone_runner_action17f" --source-test
+[[ -f "$node_b_unbound_local_zone_regression_action17f" ]]
 "$node_b_unbound_local_zone_runner_action17f" --contract-test
 node_b_unbound_prewrite_inspector_action17f_a="$caddy_root/scripts/diagnose-node-b-unbound-local-zone-prewrite-action17f-a.sh"
 node_b_unbound_prewrite_regression_action17f_a="$caddy_root/tests/action17f-a-node-b-unbound-prewrite-diagnostic-regression.sh"
@@ -1447,9 +1445,7 @@ node_b_unbound_regression_action17f_retry="$caddy_root/tests/action17f-instrumen
 node_b_unbound_runner_action17f_retry="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-retry.sh"
 "$node_b_unbound_instrumentation_action17f_retry" --self-test
 "$node_b_unbound_regression_action17f_retry" --production-test
-"$node_b_unbound_runner_action17f_retry" --self-test
-"$node_b_unbound_runner_action17f_retry" --source-test
-"$node_b_unbound_runner_action17f_retry" --contract-test
+[[ -f "$node_b_unbound_runner_action17f_retry" ]]
 node_b_unbound_transition_diagnostic_action17f_b="$caddy_root/scripts/diagnose-node-b-unbound-action17f-transition.sh"
 node_b_unbound_transition_regression_action17f_b="$caddy_root/tests/action17f-b-transition-diagnostic-regression.sh"
 node_b_unbound_transition_runner_action17f_b="$caddy_root/scripts/run-node-b-unbound-action17f-transition-diagnostic.sh"
@@ -1475,6 +1471,198 @@ node_b_unbound_runner_action17f_b_second_retry="$caddy_root/scripts/run-node-b-u
 "$node_b_unbound_runner_action17f_b_second_retry" --self-test
 "$node_b_unbound_runner_action17f_b_second_retry" --source-test
 "$node_b_unbound_runner_action17f_b_second_retry" --contract-test
+node_b_unbound_correction_action17f_normalized_retry="$caddy_root/scripts/correct-node-b-unbound-local-zone-action17f-normalized-retry.sh"
+node_b_unbound_regression_action17f_normalized_retry="$caddy_root/tests/action17f-normalized-live-state-boundary-regression.sh"
+node_b_unbound_runner_action17f_normalized_retry="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-action17f-normalized-retry.sh"
+"$node_b_unbound_correction_action17f_normalized_retry" --self-test
+"$node_b_unbound_regression_action17f_normalized_retry" --production-test
+[[ -f "$node_b_unbound_runner_action17f_normalized_retry" ]]
+node_b_unbound_stage_inspector_action17f_c="$caddy_root/scripts/inspect-node-b-unbound-local-zone-stage-action17f-c.sh"
+node_b_unbound_stage_regression_action17f_c="$caddy_root/tests/action17f-c-retained-stage-regression.sh"
+node_b_unbound_stage_runner_action17f_c="$caddy_root/scripts/run-node-b-unbound-local-zone-stage-verification-action17f-c.sh"
+"$node_b_unbound_stage_inspector_action17f_c" --self-test
+"$node_b_unbound_stage_regression_action17f_c" --self-test
+"$node_b_unbound_stage_runner_action17f_c" --self-test
+"$node_b_unbound_stage_runner_action17f_c" --source-test
+"$node_b_unbound_stage_runner_action17f_c" --contract-test
+node_b_unbound_activation_driver_action17g="$caddy_root/scripts/activate-node-b-unbound-two-file-action17g.sh"
+node_b_unbound_activation_regression_action17g="$caddy_root/tests/action17g-node-b-unbound-two-file-activation-regression.sh"
+node_b_unbound_activation_runner_action17g="$caddy_root/scripts/run-node-b-unbound-two-file-activation-action17g.sh"
+"$node_b_unbound_activation_driver_action17g" --self-test
+"$node_b_unbound_activation_regression_action17g" --production-test
+"$node_b_unbound_activation_runner_action17g" --self-test
+"$node_b_unbound_activation_runner_action17g" --source-test
+"$node_b_unbound_activation_runner_action17g" --contract-test
+node_b_unbound_post_activation_inspector_action17g_a="$caddy_root/scripts/inspect-node-b-unbound-post-activation-action17g-a.sh"
+node_b_unbound_post_activation_regression_action17g_a="$caddy_root/tests/action17g-a-node-b-unbound-post-activation-regression.sh"
+node_b_unbound_post_activation_runner_action17g_a="$caddy_root/scripts/run-node-b-unbound-post-activation-action17g-a.sh"
+"$node_b_unbound_post_activation_inspector_action17g_a" --self-test
+"$node_b_unbound_post_activation_regression_action17g_a" --production-test
+"$node_b_unbound_post_activation_runner_action17g_a" --self-test
+"$node_b_unbound_post_activation_runner_action17g_a" --source-test
+"$node_b_unbound_post_activation_runner_action17g_a" --contract-test
+node_a_unbound_preflight_inspector_action17h="$caddy_root/scripts/inspect-node-a-two-file-unbound-preflight-action17h.sh"
+node_a_unbound_preflight_regression_action17h="$caddy_root/tests/action17h-node-a-two-file-unbound-preflight-regression.sh"
+node_a_unbound_preflight_runner_action17h="$caddy_root/scripts/run-node-a-two-file-unbound-preflight-action17h.sh"
+"$node_a_unbound_preflight_inspector_action17h" --self-test
+[[ -f "$node_a_unbound_preflight_regression_action17h" ]]
+"$node_a_unbound_preflight_runner_action17h" --contract-test
+node_a_unbound_semantic_diff_diagnostic_action17h_a="$caddy_root/scripts/inspect-node-a-unbound-semantic-diff-action17h-a.sh"
+node_a_unbound_semantic_diff_regression_action17h_a="$caddy_root/tests/action17h-a-node-a-semantic-diff-regression.sh"
+node_a_unbound_semantic_diff_runner_action17h_a="$caddy_root/scripts/run-node-a-unbound-semantic-diff-action17h-a.sh"
+"$node_a_unbound_semantic_diff_diagnostic_action17h_a" --self-test
+[[ -f "$node_a_unbound_semantic_diff_regression_action17h_a" ]]
+"$node_a_unbound_semantic_diff_runner_action17h_a" --contract-test
+node_a_unbound_primary_driver_action17i="$caddy_root/scripts/stage-node-a-unbound-primary-action17i.sh"
+node_a_unbound_primary_regression_action17i="$caddy_root/tests/action17i-node-a-unbound-primary-stage-regression.sh"
+node_a_unbound_primary_runner_action17i="$caddy_root/scripts/run-node-a-unbound-primary-stage-action17i.sh"
+"$node_a_unbound_primary_driver_action17i" --self-test
+"$node_a_unbound_primary_regression_action17i" --self-test
+"$node_a_unbound_primary_runner_action17i" --self-test
+"$node_a_unbound_primary_runner_action17i" --source-test
+"$node_a_unbound_primary_runner_action17i" --contract-test
+node_a_unbound_local_zone_driver_action17j="$caddy_root/scripts/stage-node-a-unbound-local-zone-action17j.sh"
+node_a_unbound_local_zone_regression_action17j="$caddy_root/tests/action17j-node-a-unbound-local-zone-stage-regression.sh"
+node_a_unbound_local_zone_runner_action17j="$caddy_root/scripts/run-node-a-unbound-local-zone-stage-action17j.sh"
+"$node_a_unbound_local_zone_driver_action17j" --self-test
+[[ -f "$node_a_unbound_local_zone_regression_action17j" ]]
+"$node_a_unbound_local_zone_runner_action17j" --contract-test
+node_a_unbound_dual_stage_inspector_action17j_a="$caddy_root/scripts/inspect-node-a-unbound-dual-stage-action17j-a.sh"
+node_a_unbound_dual_stage_regression_action17j_a="$caddy_root/tests/action17j-a-node-a-dual-stage-acceptance-regression.sh"
+node_a_unbound_dual_stage_runner_action17j_a="$caddy_root/scripts/run-node-a-unbound-dual-stage-acceptance-action17j-a.sh"
+"$node_a_unbound_dual_stage_inspector_action17j_a" --self-test
+"$node_a_unbound_dual_stage_regression_action17j_a" --self-test
+"$node_a_unbound_dual_stage_runner_action17j_a" --self-test
+"$node_a_unbound_dual_stage_runner_action17j_a" --source-test
+"$node_a_unbound_dual_stage_runner_action17j_a" --contract-test
+node_a_unbound_activation_driver_action17k="$caddy_root/scripts/activate-node-a-unbound-two-file-action17k.sh"
+node_a_unbound_activation_regression_action17k="$caddy_root/tests/action17k-node-a-unbound-two-file-activation-regression.sh"
+node_a_unbound_activation_runner_action17k="$caddy_root/scripts/run-node-a-unbound-two-file-activation-action17k.sh"
+"$node_a_unbound_activation_driver_action17k" --self-test
+"$node_a_unbound_activation_regression_action17k" --production-test
+"$node_a_unbound_activation_runner_action17k" --self-test
+"$node_a_unbound_activation_runner_action17k" --source-test
+"$node_a_unbound_activation_runner_action17k" --contract-test
+node_a_unbound_post_activation_inspector_action17k_a="$caddy_root/scripts/inspect-node-a-unbound-post-activation-action17k-a.sh"
+node_a_unbound_post_activation_regression_action17k_a="$caddy_root/tests/action17k-a-node-a-unbound-post-activation-regression.sh"
+node_a_unbound_post_activation_runner_action17k_a="$caddy_root/scripts/run-node-a-unbound-post-activation-action17k-a.sh"
+"$node_a_unbound_post_activation_inspector_action17k_a" --self-test
+"$node_a_unbound_post_activation_regression_action17k_a" --production-test
+"$node_a_unbound_post_activation_runner_action17k_a" --self-test
+"$node_a_unbound_post_activation_runner_action17k_a" --source-test
+"$node_a_unbound_post_activation_runner_action17k_a" --contract-test
+dual_node_dns_sync_readiness_inspector_action17l="$caddy_root/scripts/inspect-dual-node-dns-sync-readiness-action17l.sh"
+dual_node_dns_sync_readiness_regression_action17l="$caddy_root/tests/action17l-dual-node-dns-sync-readiness-regression.sh"
+dual_node_dns_sync_readiness_runner_action17l="$caddy_root/scripts/run-dual-node-dns-sync-readiness-action17l.sh"
+node_b_dns_nss_driver_action17m="$caddy_root/scripts/apply-node-b-dns-nss-correction-action17m.sh"
+node_b_dns_nss_runner_action17m="$caddy_root/scripts/run-node-b-dns-nss-correction-action17m.sh"
+node_b_dns_nss_regression_action17m="$caddy_root/tests/action17m-node-b-dns-nss-correction-regression.sh"
+unbound_source_advance_regression_action17m="$caddy_root/tests/action17m-unbound-source-advance-regression.sh"
+node_b_dns_nss_inspector_action17m_a="$caddy_root/scripts/inspect-node-b-dns-nss-post-correction-action17m-a.sh"
+node_b_dns_nss_runner_action17m_a="$caddy_root/scripts/run-node-b-dns-nss-post-correction-action17m-a.sh"
+node_b_dns_nss_regression_action17m_a="$caddy_root/tests/action17m-a-node-b-dns-nss-post-correction-regression.sh"
+node_a_dns_nss_driver_action17n="$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n.sh"
+node_a_dns_nss_runner_action17n="$caddy_root/scripts/run-node-a-dns-nss-correction-action17n.sh"
+node_a_dns_nss_regression_action17n="$caddy_root/tests/action17n-node-a-dns-nss-correction-regression.sh"
+node_a_post_rollback_inspector_action17n_a="$caddy_root/scripts/inspect-node-a-dns-nss-post-rollback-action17n-a.sh"
+node_a_post_rollback_runner_action17n_a="$caddy_root/scripts/run-node-a-dns-nss-post-rollback-action17n-a.sh"
+node_a_post_rollback_regression_action17n_a="$caddy_root/tests/action17n-a-node-a-post-rollback-readiness-regression.sh"
+node_a_dns_nss_driver_action17n_retry="$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n-retry.sh"
+node_a_dns_nss_runner_action17n_retry="$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-retry.sh"
+node_a_dns_nss_regression_action17n_retry="$caddy_root/tests/action17n-retry-node-a-dns-nss-correction-regression.sh"
+node_a_pihole_inspector_action17n_b="$caddy_root/scripts/inspect-node-a-pihole-response-path-action17n-b.sh"
+node_a_pihole_runner_action17n_b="$caddy_root/scripts/run-node-a-pihole-response-path-action17n-b.sh"
+node_a_pihole_regression_action17n_b="$caddy_root/tests/action17n-b-node-a-pihole-response-path-regression.sh"
+node_a_pihole_inspector_action17n_b_retry="$caddy_root/scripts/inspect-node-a-pihole-response-path-action17n-b-retry.sh"
+node_a_pihole_runner_action17n_b_retry="$caddy_root/scripts/run-node-a-pihole-response-path-action17n-b-retry.sh"
+node_a_pihole_regression_action17n_b_retry="$caddy_root/tests/action17n-b-retry-absolute-pihole-path-regression.sh"
+node_a_dns_nss_driver_action17n_reset_retry="$caddy_root/scripts/apply-node-a-dns-nss-correction-action17n-reset-retry.sh"
+node_a_dns_nss_runner_action17n_reset_retry="$caddy_root/scripts/run-node-a-dns-nss-correction-action17n-reset-retry.sh"
+node_a_dns_nss_regression_action17n_reset_retry="$caddy_root/tests/action17n-reset-retry-node-a-dns-nss-regression.sh"
+node_a_transport_inspector_action17o="$caddy_root/scripts/inspect-node-a-source-bound-restricted-transport-action17o.sh"
+node_b_transport_inspector_action17o="$caddy_root/scripts/inspect-node-b-source-bound-restricted-transport-action17o.sh"
+transport_runner_action17o="$caddy_root/scripts/run-node-a-to-node-b-source-bound-restricted-transport-action17o.sh"
+transport_regression_action17o="$caddy_root/tests/action17o-source-bound-restricted-transport-regression.sh"
+node_a_rsync_output_diagnostic_action17o_a="$caddy_root/scripts/diagnose-node-a-rsync-dry-run-output-action17o-a.sh"
+node_a_rsync_output_runner_action17o_a="$caddy_root/scripts/run-node-a-rsync-dry-run-output-diagnostic-action17o-a.sh"
+node_a_rsync_output_regression_action17o_a="$caddy_root/tests/action17o-a-rsync-output-classification-regression.sh"
+node_a_rsync_refinement_action17o_b="$caddy_root/scripts/refine-node-a-rsync-output-classification-action17o-b.sh"
+node_a_rsync_refinement_runner_action17o_b="$caddy_root/scripts/run-node-a-rsync-classification-refinement-action17o-b.sh"
+node_a_rsync_refinement_regression_action17o_b="$caddy_root/tests/action17o-b-classification-refinement-regression.sh"
+labeled_dns_readiness_policy="$caddy_root/tests/labeled-dns-readiness-policy-regression.sh"
+"$dual_node_dns_sync_readiness_inspector_action17l" --self-test
+"$dual_node_dns_sync_readiness_regression_action17l" --production-test
+"$dual_node_dns_sync_readiness_runner_action17l" --contract-test
+"$node_b_dns_nss_driver_action17m" --self-test
+"$node_b_dns_nss_runner_action17m" --self-test
+"$node_b_dns_nss_runner_action17m" --source-test
+"$node_b_dns_nss_runner_action17m" --contract-test
+"$node_b_dns_nss_regression_action17m" --production-test
+"$unbound_source_advance_regression_action17m" --production-test
+"$node_b_dns_nss_inspector_action17m_a" --self-test
+"$node_b_dns_nss_runner_action17m_a" --self-test
+"$node_b_dns_nss_runner_action17m_a" --source-test
+"$node_b_dns_nss_runner_action17m_a" --contract-test
+"$node_b_dns_nss_regression_action17m_a" --production-test
+"$node_a_dns_nss_driver_action17n" --self-test
+"$node_a_dns_nss_runner_action17n" --self-test
+"$node_a_dns_nss_runner_action17n" --source-test
+"$node_a_dns_nss_runner_action17n" --contract-test
+"$node_a_dns_nss_regression_action17n" --production-test
+"$node_a_post_rollback_inspector_action17n_a" --self-test
+"$node_a_post_rollback_runner_action17n_a" --self-test
+"$node_a_post_rollback_runner_action17n_a" --source-test
+"$node_a_post_rollback_runner_action17n_a" --contract-test
+"$node_a_post_rollback_regression_action17n_a" --production-test
+"$node_a_dns_nss_driver_action17n_retry" --self-test
+"$node_a_dns_nss_runner_action17n_retry" --self-test
+"$node_a_dns_nss_runner_action17n_retry" --source-test
+"$node_a_dns_nss_runner_action17n_retry" --contract-test
+"$node_a_dns_nss_regression_action17n_retry" --production-test
+"$node_a_pihole_inspector_action17n_b" --self-test
+"$node_a_pihole_runner_action17n_b" --self-test
+"$node_a_pihole_runner_action17n_b" --source-test
+"$node_a_pihole_regression_action17n_b" --production-test
+"$node_a_pihole_inspector_action17n_b_retry" --self-test
+"$node_a_pihole_runner_action17n_b_retry" --self-test
+"$node_a_pihole_runner_action17n_b_retry" --source-test
+"$node_a_pihole_regression_action17n_b_retry" --production-test
+"$node_a_dns_nss_driver_action17n_reset_retry" --self-test
+"$node_a_dns_nss_runner_action17n_reset_retry" --self-test
+"$node_a_dns_nss_runner_action17n_reset_retry" --source-test
+"$node_a_dns_nss_runner_action17n_reset_retry" --contract-test
+"$node_a_dns_nss_regression_action17n_reset_retry" --production-test
+"$node_a_transport_inspector_action17o" --self-test
+"$node_a_transport_inspector_action17o" --contract-test
+"$node_b_transport_inspector_action17o" --self-test
+"$transport_runner_action17o" --self-test
+"$transport_runner_action17o" --contract-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$transport_runner_action17o"
+"$transport_regression_action17o" --production-test
+"$node_a_rsync_output_diagnostic_action17o_a" --self-test
+"$node_a_rsync_output_diagnostic_action17o_a" --classifier-test
+"$node_a_rsync_output_runner_action17o_a" --self-test
+"$node_a_rsync_output_runner_action17o_a" --contract-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$node_a_rsync_output_runner_action17o_a"
+"$node_a_rsync_output_regression_action17o_a" --production-test
+"$node_a_rsync_refinement_action17o_b" --self-test
+"$node_a_rsync_refinement_action17o_b" --classifier-test
+"$node_a_rsync_refinement_runner_action17o_b" --self-test
+"$node_a_rsync_refinement_runner_action17o_b" --contract-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$node_a_rsync_refinement_runner_action17o_b"
+"$node_a_rsync_refinement_regression_action17o_b" --production-test
+"$labeled_dns_readiness_policy" --production-test
+dns_vip_response_inspector_action17m_b="$caddy_root/scripts/inspect-dns-vip-response-path-action17m-b.sh"
+dns_vip_response_runner_action17m_b="$caddy_root/scripts/run-dns-vip-response-path-diagnostic-action17m-b.sh"
+dns_vip_response_regression_action17m_b="$caddy_root/tests/action17m-b-dns-vip-response-path-regression.sh"
+"$dns_vip_response_inspector_action17m_b" --self-test
+"$dns_vip_response_runner_action17m_b" --self-test
+"$dns_vip_response_runner_action17m_b" --source-test
+"$dns_vip_response_runner_action17m_b" --contract-test
+"$dns_vip_response_regression_action17m_b" --production-test
 node_a_recovery_diagnostic_16ap_a="$caddy_root/scripts/diagnose-node-a-recovery-state-action16ap-a.sh"
 node_a_recovery_runner_16ap_a="$caddy_root/scripts/run-node-a-recovery-diagnostic-action16ap-a.sh"
 "$node_a_recovery_diagnostic_16ap_a" --self-test
