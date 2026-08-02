@@ -81,14 +81,33 @@
 | Read-only Node B protocol-v2 post-failure Action 17q-a | Executed once and accepted with SSH/runner `0`: all 61 assertions passed; the inactive `caddy-sync-reconcile.path` exposed 105 property names but neither service-only `MainPID` nor `NRestarts`; before/after state hashes matched; Action 17q left no v2 helper, authorization change, backup, stage, retained-release or marker mutation, lsyncd/reconciliation activation, selection change, service mutation, or persistent mutation |
 | Corrected transactional Node B protocol-v2 installation Action 17q retry | Executed once and accepted with SSH/runner `0`: both v2 helpers and exactly one Node A forced-command authorization were installed and validated; protected rollback backup `/var/backups/caddy-ha/action17q-retry-node-b-protocol-v2.TEhT7k` was retained; common properties remained exact for all units and service-only properties remained exact for `.service` units; neither helper ran; the retained release/markers, lsyncd/reconciliation, Caddy selection, and all service states remained unchanged |
 | Independent read-only Node B protocol-v2 post-install Action 17q-b | Executed once and accepted with SSH/runner `0`: all 81 assertions passed; both installed v2 helpers, exact authorization and Node A fingerprint, exact protected rollback backup and prior authorization, retained-release/marker continuity, inactive synchronization/reconciliation, Caddy selection, and unit-type-aware service/path continuity matched; before/after hashes were identical and every no-mutation marker passed |
-| Podman-wrapper execution policy | Durable workspace and repository guidance now explicitly classify `Caddy/tests/run.sh` as a Podman wrapper that must run outside the filesystem sandbox on its first attempt, even when described as a host suite |
+| Dual-node read-only protocol-v2 readiness Action 17r | Executed once but not accepted: all three administrative SSH attempts returned `255` with nonempty stderr before either node produced an inspector transcript; the runner stopped fail-closed with 81 runner assertions, 62 failures, first failure `node_b_before_stderr_empty`, and exit `97`; no peer restricted command, rsync, helper, marker write, service mutation, transfer, synchronization, or persistent mutation occurred; local source comparison found that Action 17r uniquely added `IdentitiesOnly=yes` without an `IdentityFile`, unlike previously accepted administrative runners, but the exact live SSH failure remains unclassified because stderr was not emitted |
+| Corrected Action 17r retry | Executed once with a contract-valid semantic mismatch and is not readiness-accepted: Node B before/after SSH and assertions passed; Node A SSH returned semantic status `1`, with its complete transcript grammar, labels, counts, status, stable state, and no-mutation contract accepted but `node_a_remote_assertions_passed=false`; cross-node payload/manifest identity, Node A source-state classification, Node B receiver/release classifications, and B–A–B state continuity all passed; runner exit was `1`, not malformed `97`; the exact failed Node A assertion was not emitted before trap cleanup |
+| Read-only Node A semantic diagnostic Action 17r-a | Executed once and accepted as a diagnostic with runner `0`: the pinned B–A–B baseline preserved exact Node B and cross-node continuity, and the added Node A inspection emitted all 52 independently labeled assertions; exactly `ipv4_ssh_g_stderr_empty` and `ipv6_ssh_g_stderr_empty` were false while both `ssh -G` statuses and every parsed address-family, bind-address, hostname, and host-key-alias value were exact; Node A state was unchanged and every no-connection/no-transfer/no-mutation marker passed |
+| Read-only Node A `ssh -G` stderr diagnostic Action 17r-b | Executed once and accepted with SSH/runner `0`: all 39 remote and 58 runner assertions passed; both IPv4 and IPv6 configuration dumps returned `0`, produced the same bounded 72-byte/one-line pseudo-terminal notice, and retained exact address-family, source-bind, hostname, and host-key-alias values; state was unchanged and every no-connection/no-transfer/no-mutation marker passed |
+| Corrected dual-node protocol-v2 readiness Action 17r-c | Executed once and accepted with all three administrative SSH statuses `0`, all 81 runner assertions true, zero failed assertions, and first failure `none`; Node A source, Node B receiver/release, cross-node payload/manifest hashes, and B–A–B continuity passed; readiness classified `legacy_release_requires_transactional_marker_migration`; every peer-connection, restricted-command, transfer, marker, helper, service, and persistent-mutation marker remained false; workstation cleanup completed |
+| Transactional receiver-side marker migration Action 17s | Executed once but not accepted: the transaction passed preflight, created the request and receiver marker, then failed the independently labeled `finalizer_stdout_empty` gate because the installed finalizer emitted unexpected stdout; bounded rollback completed with all 46 rollback assertions true, removed the request, pending marker, completed marker, backup, and work directory, restored locked modes, preserved payload/manifest hashes, Caddy selection, lsyncd absence, reconciliation inactivity, and every captured service property; remote SSH status was `0`, the runner rejected the success transcript with status `97`, and no retry occurred |
+| Read-only rollback/output diagnostic Action 17s-a | Executed once and accepted with SSH/runner `0`: all 53 independently labeled Node B assertions passed; the complete Action 17s rollback baseline, locked retained release, exact payload/manifest, absent markers/backup/work residue, active Caddy/lighttpd, and inactive synchronization/reconciliation were confirmed; the exact installed finalizer source classified `unsuppressed_caddy_validate_success_path` without invocation; bounded same-run SSH stream evidence and workstation cleanup passed; no mutation occurred |
+| Transactional Node B stdout-safe finalizer correction Action 17t | Executed once and accepted with SSH/runner `0`: all 82 independently labeled assertions passed; the installed finalizer changed from `a49dadca...30c` to the exact stdout-safe candidate `e5ec5aab...97e4`; both inner install streams were empty, outer stdout was bounded and secret-free, stderr was empty, protected rollback backup `/var/backups/caddy-ha/action17t-node-b-stdout-safe-finalizer.Z6U7Yc` was retained, and release, markers, Caddy selection, services, lsyncd, and reconciliation remained unchanged without invoking the finalizer |
+| Independent read-only Node B post-install Action 17t-a | Executed once and accepted with SSH/runner `0`: all 62 independently labeled assertions passed; exact finalizer, protected Action 17t backup/manifest, locked Action 17p payload/manifest, absent request/pending/complete markers, Caddy/lighttpd and selection continuity, inactive synchronization/reconciliation, and absent residual stages matched; stdout was bounded and secret-safe, stderr was empty, before/after state hashes were identical, and no mutation occurred |
+| Corrected transactional receiver-side marker migration Action 17s retry | Executed once but not accepted: preflight passed, the finalizer returned `0` with empty stdout and created the receiver marker, but its bounded 724-byte/six-line stderr caused independently labeled `finalizer_stderr_empty=false`; all 46 rollback assertions passed and removed request/pending/complete markers, retry backup, and work state while preserving payload, manifest, selection, services, lsyncd, and reconciliation state; runner status was malformed-evidence `97` and no retry occurred |
+| Read-only post-rollback and corrected-finalizer stderr-source Action 17s-b | Executed once and accepted with SSH/runner `0`: all 53 independently labeled assertions passed; exact corrected-finalizer and validation-block hashes, stdout-suppressed/stderr-unsuppressed source classification, complete rollback continuity, unchanged state, framed safe stdout evidence, empty stderr, no finalizer invocation, and no mutation were confirmed |
+| Transactional Node B stderr-safe finalizer correction Action 17u | Executed once and accepted with SSH/runner `0`: all 101 independently labeled assertions passed; finalizer changed from `e5ec5aab...97e4` to stderr-safe `15d85877...902d`; both inner install streams were empty, outer stdout was bounded and safely emitted, stderr was empty, protected rollback backup `/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC` was retained, and release, markers, selection, services, lsyncd, and reconciliation remained unchanged without invoking the finalizer |
+| Independent read-only Node B post-install Action 17u-a | Executed once and accepted as complete semantic-mismatch evidence: SSH/runner status `1`; exactly `backup_manifest_hash_exact` and `backup_manifest_action_exact` were false because observed manifest `8b7ee379...fbf` contains `action=17t` instead of expected manifest `a992c2ff...70b` with `action=17u`; the other 69 assertions passed, before/after state hashes were identical, safe stdout was emitted, stderr was empty, the finalizer was not invoked, and no filesystem, release, marker, service, lsyncd, reconciliation, or persistent mutation occurred |
+| Bounded metadata-only protected-manifest repair Action 17u-b | Defined and validated on the workstation only; the pinned transaction changes exactly `/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC/manifest` from `action=17t`/`8b7ee379...fbf` to `action=17u`/`a992c2ff...70b`, preserves both finalizer hashes and root ownership/mode, captures both install streams during the same run, compares an exact continuity snapshot that excludes only the intended manifest content, and automatically restores the exact old manifest on any post-mutation failure; no HA node was contacted and the action has not been executed |
+| Exact Action 17u-b execution attempt | Executed once but stopped on the workstation before SSH: exact authorized runner SHA-256 `27d89ba0...784d` returned `1` because `remote.stdout` and `remote.stderr` were assigned but not created before `chmod 0600`; no Node B connection, preflight, repair, transaction, rollback, finalizer invocation, release/marker/service/synchronization mutation, or protected-state change occurred; the resulting exact empty directory `/tmp/caddy-action17u-b-runner.MmKTM8` was later removed under explicit authorization after revalidating `aaron:aaron:0700` and zero entries |
+| Corrected Action 17u-b retry | Defined, validated, and executed once; the failed runner and regression remain byte-identical; secure capture and SSH worked, but the immutable transaction stopped before staging or mutation at `hostname_node_b=false` because it expected `pihole00` instead of observed short hostname `j1-svpihole00` |
+| Exact corrected Action 17u-b retry attempt | Executed once with exact authorized runner SHA-256 `19df3282...78e5`; secure workstation capture and SSH succeeded, but the immutable remote transaction stopped at independently labeled preflight `hostname_node_b=false` because it requires short hostname `pihole00` while Node B's accepted observed short hostname is `j1-svpihole00`; effective UID and root working-directory assertions passed; architecture, protected manifest, stage, continuity, and every later assertion were not reached; no remote work directory, mutation, rollback, finalizer invocation, release/marker/service/synchronization change, or retained retry workstation directory occurred |
+| Append-only Action 17u-b second retry | Executed once and accepted: exact outer runner `7378eaf4...849a` returned `0`; SSH/inner runner `0`; 54/54 assertions true; protected backup manifest changed exactly from `8b7ee379...fbf` with `action=17t` to `a992c2ff...70b` with `action=17u`; both install streams and outer stderr empty; release, finalizer, service, marker, selection, and synchronization continuity unchanged; remote and workstation temporary state removed |
+| Podman and shell-entrypoint execution policy | Durable workspace and repository guidance classify `Caddy/tests/run.sh` as a Podman wrapper that must run outside the filesystem sandbox on its first attempt. Every tracked `Caddy/scripts/*.sh` and `Caddy/tests/*.sh` Bash entry point must be executable in both the working tree and Git index (`100755`); `executable-wrapper-policy-regression.sh` dynamically enumerates the full tracked set and rejects working-tree or index mode `0644` with positive and negative controls so local `core.fileMode=false` cannot hide CI failure |
 | Pi-hole web URL roles | Confirmed: `pihole-admin.local.theama.co` resolves to Caddy VRRP VIPs `10.1.0.56` and `fd36:5aa8:6971:1::56`; Caddy proxies to the active node's loopback Pi-hole web backend; `pihole0.local.theama.co` and `pihole00.local.theama.co` remain pinned to Nodes A and B; `.55/::55` remains the Pi-hole DNS VIP |
-| Live deployment | Node B actions 1–15, Node A through corrected Action 16ar, corrected dual-node synchronization-readiness Action 17a retry, transactional Action 17b, diagnostic Action 17c-c-a, corrected DNS path Action 17c-c-c retry, Node B Unbound preflight Action 17d, corrected primary-stage Action 17e retry, normalized local-zone staging Action 17f, independent read-only Action 17f-c, two-file activation Action 17g, Node A semantic diagnostic Action 17h-a, primary staging Action 17i, local-zone staging Action 17j, independent dual-stage acceptance Action 17j-a, two-file activation Action 17k, independent post-activation Action 17k-a, Node B DNS/NSS correction Action 17m, DNS-VIP response-path diagnostic Action 17m-b, transactional Node A DNS/NSS reset retry Action 17n-c, read-only rsync-output/continuity Action 17o-a, read-only classification refinement Action 17o-b, corrected source-bound restricted-transport acceptance Action 17o-c, receiver-neutral post-failure Action 17p-a, Node B protocol-v2 post-failure Action 17q-a, corrected protocol-v2 installation Action 17q retry, and independent post-install Action 17q-b are accepted; Action 17m-a and Action 17n-a are accepted as complete semantic-mismatch evidence; historical Action 17o and release-transfer Action 17p remain unaccepted; historical protocol-v2 installation Action 17q remains unaccepted after its pre-mutation property-model failure, while the corrected retry installed the v2 helpers and authorization without invoking them; lsyncd configurations remain absent and synchronization services remain inactive; one complete Action 17p payload remains retained on Node B without a marker; no finalization, reconciliation, Caddy selection, or service mutation was authorized |
+| Live deployment | Node B actions 1–15, Node A through corrected Action 16ar, corrected dual-node synchronization-readiness Action 17a retry, transactional Action 17b, diagnostic Action 17c-c-a, corrected DNS path Action 17c-c-c retry, Node B Unbound preflight Action 17d, corrected primary-stage Action 17e retry, normalized local-zone staging Action 17f, independent read-only Action 17f-c, two-file activation Action 17g, Node A semantic diagnostic Action 17h-a, primary staging Action 17i, local-zone staging Action 17j, independent dual-stage acceptance Action 17j-a, two-file activation Action 17k, independent post-activation Action 17k-a, Node B DNS/NSS correction Action 17m, DNS-VIP response-path diagnostic Action 17m-b, transactional Node A DNS/NSS reset retry Action 17n-c, read-only rsync-output/continuity Action 17o-a, read-only classification refinement Action 17o-b, corrected source-bound restricted-transport acceptance Action 17o-c, receiver-neutral post-failure Action 17p-a, Node B protocol-v2 post-failure Action 17q-a, corrected protocol-v2 installation Action 17q retry, independent post-install Action 17q-b, Node A semantic diagnostic Action 17r-a, Node A stderr diagnostic Action 17r-b, corrected dual-node readiness Action 17r-c, rollback/output diagnostic Action 17s-a, stdout-safe finalizer correction Action 17t, independent post-install Action 17t-a, stderr-safe finalizer correction Action 17u, and protected-manifest repair Action 17u-b second retry are accepted; Action 17m-a and Action 17n-a are accepted as complete semantic-mismatch evidence; historical Action 17o, release-transfer Action 17p, read-only readiness Action 17r, marker-migration Action 17s, and corrected Action 17s retry remain unaccepted; Node B retains accepted finalizer `15d85877...902d` and corrected Action 17u backup manifest `a992c2ff...70b`, while lsyncd configurations remain absent and synchronization services remain inactive; one complete Action 17p payload remains retained on Node B without request, pending, or receiver-generated completion markers after the retry's complete rollback; no service, selection, payload, or synchronization state changed |
 | Temporary operational hold | Do not reboot either Caddy node before Caddy boot persistence is explicitly enabled and validated: Caddy is active but disabled on each node, while enabled lighttpd is configured only for loopback TCP 8080 |
-| Repository protection | The previously accepted deployment tree is committed and synchronized at `e5bcc82` on `main`/`origin/main`; subsequent Action 16aq-a through Action 17c-c-a definitions and recorded deployment evidence are uncommitted local changes |
+| Repository protection | Canonical repository `/home/aaron/code/homelab-server-configs` is clean and synchronized on `main`/`origin/main` at commit `6b291f05a50855a42002495dc156f159295ec15e`; Action 17q-b artifacts and evidence are committed |
 | Current-state DNS, inventory, README, and LikeC4 updates | Deferred until validated deployment |
 | Munin monitoring | Live Munin plugin installation, configuration, master integration, and metric validation are deferred until after core Caddy deployment acceptance; repository-only lint and fixture checks do not constitute deployment |
-| Next gate | Define—but do not execute—a dual-node read-only protocol-v2 restricted-command and finalization-readiness Action 17r before any control-marker transfer or finalizer invocation; it must independently verify Node A source state, Node B accepted post-17q-b state, source-bound dual-stack SSH selection, the new forced-command rejection/acceptance boundaries without writing payload, and B-A-B continuity; no diagnostic execution, helper invocation, retained-release or marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action is currently authorized |
+| Workstation checkpoint 2026-08-02 | Accepted live state ends at Action 17q-b; no HA node was contacted while creating this checkpoint. Unexpected `/home/aaron/code/Caddy` is a non-repository 60 KiB three-file draft tree created during Action 17q retry work and predates the accepted unit-type correction; its three files differ from the committed canonical artifacts. It is not an installation source and remains untouched pending separately authorized cleanup |
+| Next gate | Obtain separate authorization to define—but not execute—an independent read-only Node B post-repair acceptance action that verifies manifest `a992c2ff...70b` with `action=17u`, exact finalizer/release/marker/service/synchronization continuity, zero Action 17u-b stage residue, and identical before/after state before any marker-migration retry; no diagnostic definition, Node B contact, finalizer invocation, marker migration, service mutation, synchronization, VRRP, or later action is currently authorized |
 
 ## Locked Decisions
 
@@ -98,6 +117,27 @@
   unlabeled validation boundaries are prohibited. Repository regression tests
   must reject new transactional drivers that cannot identify the exact failed
   assertion without a follow-up live diagnostic.
+- Every live command stream that affects transactional acceptance must be
+  captured and classified during that same run. Before any emptiness or content
+  gate, the transaction or runner must emit independently labeled bounded byte
+  count, line count, SHA-256, and safe classification records for stdout and
+  stderr. Metadata alone is not a secured evidence outcome. After
+  classification, bounded, printable, secret-free, path-safe content must be
+  emitted between explicit begin/end labels or retained at a reported
+  protected path with exact owner, mode, and hash. Unsafe content remains
+  suppressed and may be retained only for separately authorized protected
+  inspection. Empty streams are recorded explicitly. Rollback and cleanup must
+  not delete the only useful capture before one of these outcomes is secured.
+  The historical Action 17s deficiency is retained only behind exact
+  transaction SHA-256
+  `325a8fff552646073768a619f5ee793423494d7258c8503624f1b44be0a0e5d8`;
+  the metadata-only Action 17s retry is retained behind exact transaction
+  SHA-256
+  `269c48158969f3767b13ffa92aaef1559bcb0c25c64bb19fdb93e70f56713bd0`.
+  Changed or new transactions must pass the transaction-output evidence policy.
+  A corrected finalizer must keep its forced-command stdout silent by
+  suppressing successful `caddy validate` stdout, while its caller still
+  records both complete finalizer streams during the original transaction.
 - Synchronization transport bootstrap names must not depend solely on the DNS
   service they help maintain. Node B maps only Node A's physical IPv4 and
   stable ULA to `pihole0.local.theama.co` in a bounded managed `/etc/hosts`
@@ -271,6 +311,18 @@
 
 | Timestamp | Node | Action | Authorization | Pre-state | Command or file | Rollback | Exit and validation | Versions and hashes | Result | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-02T18:08:35-05:00 | Node B `j1-svpihole00` and workstation | Execute append-only Action 17u-b second retry | User authorized exact outer runner SHA-256 `7378eaf4...849a`; no later action authorized | Executed retry stopped before staging/mutation on one hostname mismatch; protected manifest remained `8b7ee379...fbf`/`action=17t`; accepted finalizer, release, markers, selection, services, and inactive synchronization state pinned | Verified exact outer runner hash/executable mode and invoked once from canonical repository with first-attempt LAN access; outer runner rendered exact corrected transaction/inner runner, passed local gates, streamed transaction through administrative SSH from `/`, classified both streams, and removed its private stage | Transaction retained exact old manifest copy before mutation and would restore it on failure; rollback not needed because all post-mutation assertions passed; remote and outer work directories removed | Outer/SSH/inner statuses `0`; 54/54 assertions true, zero failures, first failure `none`; stdout 3,949 bytes/72 lines/SHA-256 `64364a3c...de1d`, bounded safe and emitted; outer stderr empty; inner install stdout/stderr both empty; `continuity_unchanged=true`; `work_directory_removed=true`; outer cleanup true | Outer runner `7378eaf4...849a`; corrected transaction `f92ccbff...f0d3`; old manifest `8b7ee379...fbf`; new manifest `a992c2ff...70b`; target `pi@10.1.0.54`; revision `action17u-b-retry2` | Accepted: protected backup manifest now contains exact `action=17u` provenance; no finalizer, release, marker, selection, service, lsyncd, reconciliation, or other persistent state changed | Stop; require independently defined and authorized read-only post-repair acceptance before marker migration |
+| 2026-08-02T18:04:09-05:00 | Workstation only | Define append-only Action 17u-b second retry and remove obsolete historical empty directory | User authorized definition but not execution and authorized deletion of exact historical empty directory if no longer needed; no Node B contact, repair, or later action authorized | Executed retry `19df3282...78e5` stopped before mutation on hostname mismatch; `/tmp/caddy-action17u-b-runner.MmKTM8` remained `aaron:aaron:0700` and empty | Revalidated exact historical directory identity/mode/emptiness and removed it with `rmdir`; added correction renderer, strict outer runner, actual production-prefix regression, and host/container suite wiring; preserved all executed files byte-for-byte | Repository rollback removes only three append-only files and suite references; deleted directory contained zero entries and is not needed for rollback; no live rollback applies | Historical directory removal, focused syntax/ShellCheck/shfmt/collision/self/source/contract/positive-negative prefix checks, corrected hostname/following architecture, historical failure-before-architecture, complete host, Debian 12 Podman, full pre-commit, and diff checks passed | Correction `842a5a2a...16b7`; corrected transaction `f92ccbff...f0d3`; corrected inner runner `e3390939...ad0a`; outer runner `7378eaf4...849a`; regression `dad4079b...a752`; historical transaction/runner/regression remain `c47653c2...b0de`/`19df3282...78e5`/`a1f95ca1...378a` | Definition complete without LAN contact; exact one-line behavioral correction; all 388 tracked Bash entry points have Git mode `100755`; obsolete directory removed | Stop; require exact-hash authorization before second retry execution |
+| 2026-08-02T17:45:54-05:00 | Node B `j1-svpihole00` and workstation | Execute exact corrected Action 17u-b retry | User authorized exact runner SHA-256 `19df3282...78e5`; no correction, second retry, cleanup, or later action authorized | Action 17u-a accepted semantic mismatch; exact protected-manifest repair remained pending; historical empty workstation directory retained separately | Verified exact runner hash and executable mode, then invoked it once from the canonical repository with first-attempt LAN access; runner securely created and classified both capture streams and streamed exact transaction `c47653c2...b0de` through administrative SSH from `/` | No rollback was required because the transaction stopped before creating its remote work directory or setting `mutation_started=true`; retry's private workstation directory was removed by its EXIT trap | Runner/SSH status `1`; stdout 98 bytes/two lines/SHA-256 `544992f2...0e36`, safe and emitted; stderr 45 bytes/one line/SHA-256 `16a9187d...ba1e`, safe and emitted; `effective_uid_root=true`, `working_directory_root=true`, `hostname_node_b=false` | Runner `19df3282...78e5`; transaction `c47653c2...b0de`; target `pi@10.1.0.54`; runner revision `action17u-b-retry` | Failed safely at the third preflight assertion because source requires short hostname `pihole00`, conflicting with accepted Node B hostname `j1-svpihole00`; no architecture/protected-state/stage/mutation assertion was reached and no live state changed | Stop; preserve executed artifacts and separately define an append-only one-value hostname correction before any new authorization |
+| 2026-08-02 | Workstation only | Define corrected Action 17u-b retry and harden workstation-runner regression | User authorized definition but not execution; no retry, cleanup, Node B contact, repair, or later action authorized | Exact failed runner `27d89ba0...784d`; exact failed regression `5c42c857...927`; empty retained workstation directory; Node B untouched | Added append-only retry runner, intercepted production-path regression, immediate EXIT cleanup trap, secure `mktemp` capture files, capture metadata gate, append-only indentation-aware collision-policy v2, and a repository-wide tracked executable-mode invariant; preserved hash-pinned legacy checker and wired host/container suites | Retry removes its own private directory on every safe/empty result and on pre-/post-SSH failure; unsafe evidence remains protected; historical failed-run directory is deliberately untouched; executable remediation changes Git metadata only | Focused syntax, ShellCheck, canonical shfmt, source-context, contract, repository-wide v2 collision scan, intercepted success/failure/unsafe/historical paths, false-positive/false-negative checks, executable-mode positive/negative controls, complete host suite, Debian 12 Podman integration, full pre-commit, and diff checks passed | Collision policy v2 `ba1e769a...886f`; executable policy `4d6e48cb...ef5e`; retry runner `19df3282...78e5`; regression `a1f95ca1...378a`; transaction remains `c47653c2...b0de`; legacy policy restored `78b46fcd...5cd8` | Definition complete without LAN contact; capture files were proven present and `0600` at the intercepted SSH boundary; successful/failed cleanup, unsafe retention, and all 385 tracked-entrypoint mode checks passed | Stop; require a new exact-hash execution authorization |
+| 2026-08-02T17:07:53-05:00 | Workstation only; Node B not contacted | Execute exact bounded metadata-only repair Action 17u-b | User authorized exact runner SHA-256 `27d89ba0...784d`; no later action authorized | Accepted Action 17u-a semantic-mismatch evidence; runner source and exact hash verified immediately before execution | Invoked exact runner once from canonical repository; it created private directory `/tmp/caddy-action17u-b-runner.MmKTM8`, assigned two capture paths, then attempted to chmod the absent files | No live rollback applicable because SSH and the remote transaction never began; exact empty directory was later removed under explicit authorization after identity/mode/emptiness revalidation | Runner `1`; two bounded errors: `chmod: cannot access .../remote.stdout` and `.../remote.stderr`; read-only inspection confirmed directory `aaron:aaron:0700`, zero entries, and exact unchanged runner hash | Runner `27d89ba0...784d`; transaction not transmitted or invoked | Failed safely before network contact; Node B and all protected/runtime state remain untouched | Historical evidence retained in the plan and immutable artifacts; empty directory cleanup complete |
+| 2026-08-02 | Workstation only | Define bounded metadata-only Node B protected-manifest repair Action 17u-b | User authorized definition but not execution; no Node B contact, repair, finalizer invocation, marker mutation, service mutation, synchronization, cleanup, or later action authorized | Accepted Action 17u-a evidence: exact live finalizer and protected backup; only manifest action/hash provenance mismatched; all other 69 assertions and before/after continuity passed | Added pinned 54-assertion transaction, strict administrative runner, automatic rollback, same-run stdout/stderr evidence, success/failure transcript contracts, regression, and host/container suite wiring | On any post-mutation failure, restore exact old manifest SHA-256 `8b7ee379...fbf`, owner/mode `root:root:0600`, and exact continuity snapshot; incomplete rollback returns remote `125` and runner `97` | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision, transaction/runner self/source/contract, exact-label uniqueness, false-positive/false-negative, mutation-boundary, no-finalizer/no-service/no-sync regression, full host suite, and Debian 12 Podman integration passed | Transaction `c47653c2...b0de`; runner `27d89ba0...784d`; regression `5c42c857...927`; old manifest `8b7ee379...fbf`; new manifest `a992c2ff...70b` | Definition complete without LAN contact; only protected manifest content may change when separately authorized | Stop; require separate authorization before exact Action 17u-b runner |
+| 2026-08-02T16:00:33-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute independent read-only Node B post-install Action 17u-a | User authorized exact runner SHA-256 `facbaeda...8ea2`; no repair, finalizer invocation, marker mutation, service mutation, synchronization, cleanup, or later action authorized | Accepted Action 17u finalizer `15d85877...902d`; protected backup `action17u-node-b-stderr-safe-finalizer.N9uEhC`; source-predicted manifest action/provenance mismatch | Executed exact read-only runner once with first-attempt LAN access from `/`; captured and safely emitted the complete bounded transcript | None; action was read-only and workstation temporary state was cleaned | SSH/runner `1`; 71 assertions, two false, first failure `backup_manifest_hash_exact`; stdout 4846 bytes/89 lines/SHA-256 `a02cca2c...6781`, bounded safe and emitted; stderr empty; before/after state SHA-256 `5e770b76...a192` identical | Runner `facbaeda...8ea2`; finalizer `15d85877...902d`; expected manifest `a992c2ff...70b`; observed manifest `8b7ee379...fbf`; payload `3635265e...8f6e`; release manifest `f4dc87da...75c8` | Accepted as complete semantic-mismatch evidence: only backup manifest hash/action provenance failed; all other state and no-mutation assertions passed | Stop; separately authorize definition only of bounded metadata-only repair |
+| 2026-08-02 | Workstation only | Define independent read-only Node B post-install Action 17u-a and durable conditional-validator errexit policy | User authorized definition but not execution; no Node B contact, correction, finalizer invocation, marker mutation, service mutation, or later action authorized | Accepted Action 17u installed finalizer `15d85877...902d` and retained backup `action17u-node-b-stderr-safe-finalizer.N9uEhC`; source review found its immutable installer wrote backup manifest `action=17t`, while correct Action 17u provenance requires `action=17u` | Added 71-assertion inspector, strict administrative runner, intercepted regression, explicit expected/observed manifest hashes, same-run stream evidence, conditional-validator markers and repository-wide errexit policy/regression, plus host/container suite wiring | Repository-only definition; no live rollback applies; runner is read-only and retains malformed/unsafe evidence rather than deleting it | Focused syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, self/source/contract tests, valid/semantic/malformed intercepted paths, early-invalid/later-valid rejection, and conditional-errexit policy passed; no network contact | Inspector `38df35f8...4210`; runner `facbaeda...8ea2`; regression `eb75c337...c909`; policy `0d21d28f...6812`; correct manifest `a992c2ff...70b`; installer-defined manifest `8b7ee379...fbf` | Definition accepted locally; expected live outcome is semantic mismatch for independently labeled backup-manifest hash and action provenance while all state remains unchanged | Stop; require separate authorization before exact read-only Action 17u-a runner |
+| 2026-08-02T15:19:02-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute transactional Node B stderr-safe finalizer correction Action 17u | User explicitly authorized the exact Action 17u runner; exact SHA-256 `0653a6ca...9b23` was verified immediately before execution; no finalizer invocation, marker migration retry/mutation, synchronization, service mutation, cleanup, or later action authorized | Accepted Action 17s-b baseline; live finalizer `e5ec5aab...97e4`; exact Action 17t backup; locked Action 17p payload/manifest; absent request/pending/complete markers; active Caddy/lighttpd; inactive synchronization/reconciliation | Executed `Caddy/scripts/run-node-b-stderr-safe-finalizer-install-action17u.sh` once with first-attempt LAN access; installed only candidate `15d85877...902d` and retained protected backup `/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC` | Included rollback was not triggered; on failure it would restore exact prior finalizer and verify 22 independently labeled continuity conditions; incomplete rollback would exit `125` remotely and `97` at the runner | SSH/runner `0`; 101 assertions true, zero failures, first failure `none`; outer stdout 6407 bytes/127 lines/SHA-256 `27f9197e...fa47`, bounded safe and emitted; outer stderr and both inner install streams empty; cleanup complete | Runner `0653a6ca...9b23`; old finalizer `e5ec5aab...97e4`; installed finalizer `15d85877...902d`; backup `/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC`; stdout `27f9197e...fa47` | Action 17u accepted; finalizer was not invoked, release and markers were not mutated, selection and service states were unchanged, and persistent mutation scope is only the stderr-safe finalizer plus retained protected rollback backup | Stop; next define but do not execute independent read-only post-install Action 17u-a |
+| 2026-08-02 | Workstation only | Define transactional Node B stderr-safe finalizer correction Action 17u | User authorized definition but not execution; no Node B contact or live mutation authorized | Accepted Action 17s-b proved finalizer `e5ec5aab...97e4` suppresses Caddy validation stdout but leaves successful informational stderr unsuppressed; corrected Action 17s retry remains rolled back and unaccepted | Added stderr-safe candidate, 101-assertion transactional installer, strict runner, real/fake-Caddy and intercepted-runner regression coverage, output-evidence policy wiring, and host/Podman integration | Future transaction retains a root-only Action 17u backup and restores exact prior finalizer plus 22 independently labeled continuity assertions on any post-mutation failure; incomplete rollback exits `125` remotely and `97` at the runner | Focused syntax, ShellCheck, canonical shfmt, collision, self/source/contract, false-positive/false-negative, real-Caddy, host/Podman, and output-policy checks passed; no LAN contact | Candidate `15d85877...902d`; installer `b8dcdd8e...c46`; runner `0653a6ca...b23`; regression `b15791b6...5d89`; output policy `84873a1a...4441` | Definition accepted locally; exact live mutation scope is the finalizer plus protected rollback backup; finalizer invocation, release/marker mutation, service mutation, and synchronization activation are excluded | Stop; require separate authorization before exact Action 17u runner |
+| 2026-08-02 | Node B (`j1-svpihole00`) | Execute read-only post-rollback and corrected-finalizer stderr-source Action 17s-b | User authorized exact runner SHA-256 `eaba1823...a4f6`; no correction or later action authorized | Corrected Action 17s retry unaccepted; its rollback reported complete; finalizer stderr content unrecoverable but exact metadata retained | `Caddy/scripts/run-node-b-action17s-retry-stderr-action17s-b.sh` through strict host-verified administrative SSH and streamed root inspector from `/` | None; action was read-only and workstation temporary state was cleaned | SSH/runner `0`; 53/53 assertions true; zero failures; stdout 3700 bytes/70 lines/SHA-256 `346798e9...21b2`, bounded safe and emitted between frames; stderr empty; cleanup complete | Runner `eaba1823...a4f6`; installed finalizer `e5ec5aab...97e4`; validation block `be85e806...ccde`; failed-action stderr metadata 724 bytes/six lines/`dd0e9005...51c2` | Accepted rollback continuity and source classification; no finalizer, marker, filesystem, service, or persistent mutation | Stop; separately authorize definition only of an stderr-safe finalizer correction |
+| 2026-08-02 | Workstation only | Define read-only Action 17s-b and durable stream-evidence correction | User authorized definition but not execution; no Node B contact authorized | Corrected Action 17s retry unaccepted; rollback reported complete; its bounded safe six-line stderr content was deleted after metadata-only capture | Added Action 17s-b inspector, runner, regression, test-suite wiring, and same-run secured-content policy; updated governing plan and repository guidance | Git working tree only; no live rollback needed | Focused validation, complete host/Podman suite, pre-commit, and diff checks passed; no LAN contact | Inspector `2f2648a9...a992`; runner `eaba1823...a4f6`; regression `7713b6d1...1b2f`; policy `5fbc2fac...338d`; immutable deficient transaction `269c4815...bd0` | Defined 53 independent read-only assertions; source classification and rollback continuity are exact; safe content must now be emitted or protected before cleanup | Stop and obtain separate authorization for exact Action 17s-b runner |
 | 2026-07-27 | Local workspace | Repository implementation and validation | User requested implementation; no live deployment authorized | Unbound repository confirmed clean; Caddy directory did not exist | Local files under `Caddy/` and Munin artifacts only | Git working tree; no live rollback needed | Host, Podman, pre-commit, and diff checks passed | Validation versions and selected hashes recorded below | Repository phase complete; no node, DNS, UniFi, inventory, or LikeC4 mutations | Stop at live-deployment authorization gate |
 | 2026-07-27T23:08:29Z | Node B (`j1-svpihole00`) | Deployment action 1: collect read-only preflight facts | User authorized after confirming SSH user `pi`; no later action authorized | Caddy and lsyncd absent; lighttpd, Keepalived, Unbound, Munin, and SSH active; ports 80/443 owned by lighttpd | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole00.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.54 'sudo -n /bin/bash -s --' < Caddy/scripts/collect-node-preflight.sh` | None; the streamed collector made no Node B changes | SSH exit `0`; every critical read completed; output ended `node_preflight_complete=true`; lighttpd native config test passed | Collector SHA-256 `5d6e6e8e18228ca6be00518715caefcc4d6a0ba640bc669448058537a325f5d6`; observed versions and config hashes below | Action 1 accepted; hostname and lighttpd layout incorporated locally | Stop and request separate authorization for action 2 |
 | 2026-07-27T23:13:29Z | Node A (`j1-svpihole0`) | Deployment action 2: collect read-only preflight facts | User explicitly authorized action 2; no later action authorized | Caddy and lsyncd absent; lighttpd, Keepalived, Unbound, Munin, and SSH active; Node A owned the existing Pi-hole IPv4 and IPv6 VIPs | `ssh -T -o BatchMode=yes -o ConnectTimeout=5 -o HostKeyAlias=pihole0.local.theama.co -o StrictHostKeyChecking=yes pi@10.1.0.53 'sudo -n /bin/bash -s --' < Caddy/scripts/collect-node-preflight.sh` | None; the streamed collector made no Node A changes | SSH exit `0`; every critical read completed; output ended `node_preflight_complete=true`; lighttpd native config test passed | Collector SHA-256 `5d6e6e8e18228ca6be00518715caefcc4d6a0ba640bc669448058537a325f5d6`; rendered manifest SHA-256 `a765458b52f0efa619aa649a1ab6f8efe1daea34078d33c858ec24fa984a8f52`; observed versions and config hashes below | Action 2 accepted; hostname and the mutually confirmed `eth0` interface incorporated locally | Stop and request separate authorization for action 3 |
@@ -702,6 +754,28 @@
 | 2026-07-30T23:49:57-05:00 | Node B and workstation | Execute exact corrected transactional Node B protocol-v2 Action 17q retry | User explicitly authorized exact runner SHA-256 `1311e702...a4e7`; no finalization, helper invocation, retained-release or marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Exact runner/dependency hashes and metadata, Bash syntax, ShellCheck, canonical shfmt, collision policy, installer/runner self-tests, source-context test, contract test, unit-type production-function regression, and false-positive/false-negative cases passed immediately before execution | Executed the exact runner once with first-attempt LAN access; the root transaction installed both v2 helpers, atomically replaced exactly one Node A forced-command authorization, retained a protected authorization backup, and ran all internal post-install continuity gates | Automatic rollback was armed but did not run because every mutation and continuity gate passed; future rollback source is `/var/backups/caddy-ha/action17q-retry-node-b-protocol-v2.TEhT7k` | All emitted checks true; installer completion true; SSH `0`; runner acceptance true; workstation cleanup true; receiver/finalizer invoked false; release mutated false; lsyncd/reconciliation enabled false; service mutations false; path common properties and all service-only properties unchanged | Installer `211855a7...9cc9`; runner `1311e702...a4e7`; receiver `a94c7a45...9d9e`; finalizer `a49dadca...30c`; rendered authorization `54eeda8a...1bc1`; regression `02b349ab...c2ee` | Action 17q retry accepted; protocol-v2 helpers and authorization are installed on Node B, while the retained release, markers, Caddy selection, lsyncd/reconciliation, and services remain unchanged | Stop; separately define a fail-closed read-only Node B post-install acceptance Action 17q-b before any finalization, synchronization, or reconciliation action |
 | 2026-07-30T23:58:40-05:00 | Workstation repository only | Define and validate independent read-only Node B protocol-v2 post-install Action 17q-b | User explicitly authorized definition but not execution; no Node B contact, diagnostic execution, helper invocation, authorization/release/marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Accepted Action 17q retry installed exact helper/authorization hashes and retained exact backup path; its internal post-state and no-mutation gates all passed | Added append-only 81-assertion inspector, strict single-SSH runner, exact transcript contract, production assertion/fixture alignment gate, intercepted production-path regression, host/container integration, and plan evidence | Repository rollback is deletion of only the three Action 17q-b files and their suite/plan integration; future execution is read-only with trap-managed temporary paths, so no live rollback is designed | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector/runner self/source/contract tests, exact assertion-label alignment, static no-mutation policy, valid and helper-hash semantic-mismatch false-negative cases, contradictory/duplicate/state-drift false-positive cases, full host suite, Debian 12 Podman integration, pre-commit, and `git diff --check` passed | Inspector `ba1b49c0...f8b4`; runner `20822b4e...eede`; regression `0bb7e0a6...61a7` | Definition accepted locally; no deployed state changed and Action 17q-b remains unexecuted | Stop; require separate authorization for exact read-only runner SHA-256 `20822b4e02466727e57e6257aad03f13660cc9b1ec049146f482c42b6508eede` |
 | 2026-07-31T01:16:03-05:00 | Node B and workstation | Execute exact independent read-only Node B protocol-v2 post-install Action 17q-b | User explicitly authorized exact runner SHA-256 `20822b4e...eede`; no helper invocation, authorization/release/marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Exact inspector/runner/regression hashes and metadata, Bash syntax, ShellCheck, canonical shfmt, collision policy, inspector/runner self-tests, source-context test, contract test, exact 81-label alignment, and false-positive/false-negative production regression passed immediately before execution | Executed the exact runner once with first-attempt LAN access; one strict administrative SSH inspection entered `/`, verified every installed protocol-v2, rollback, retained-release, Caddy, and systemd boundary, and compared stable before/after snapshots | No live rollback applies because the action was read-only; Node B and workstation temporary diagnostic paths were trap-managed and workstation cleanup passed | All 81 assertions true; zero failures; first failure `none`; path property count `105`; property hash `88652858...ebcb`; path omits both service-only properties; one retry backup and zero historical backups/stages; before/after SHA-256 `e2352698...90d0`; SSH `0`; contract valid; runner acceptance true; every no-mutation marker false | Inspector `ba1b49c0...f8b4`; runner `20822b4e...eede`; regression `0bb7e0a6...61a7` | Action 17q-b accepted; protocol-v2 installed state and all continuity boundaries independently confirmed with no state change | Stop; separately define a dual-node read-only protocol-v2 restricted-command and finalization-readiness Action 17r before any transfer or finalization |
+| 2026-08-02T10:36:15-05:00 | Workstation repository only | Create a current installation-status checkpoint and investigate unexpected `/home/aaron/code/Caddy` | User explicitly requested a checkpoint and explanation; no cleanup, deployment action, HA-node contact, helper invocation, release or marker mutation, synchronization, service mutation, or later action authorized | Governing plan accepted Action 17q-b with 81/81 assertions; canonical repository was clean and synchronized on `main`/`origin/main` at `6b291f05a50855a42002495dc156f159295ec15e`; top-level draft directory contained three files dated 2026-07-30T23:25 local | Updated only this living plan after read-only Git, metadata, inventory, hash, and byte-difference inspection | Repository rollback is restoration of this plan change; no live rollback applies. The unexpected directory was not modified or removed | Canonical Git status clean before checkpoint; all three top-level files differ from their committed canonical counterparts and contain pre-correction Action 17q retry content; no parent repository owns the directory | Canonical accepted hashes remain installer `211855a7...9cc9`, runner `1311e702...a4e7`, regression `02b349ab...c2ee`; top-level draft hashes are installer `743ea4b9...9f80`, runner `11cbe31b...2ac7`, regression `4a9b8b3c...2e23` | Current accepted live boundary is Action 17q-b; top-level `Caddy` is not an installation source and is an older divergent workstation artifact, with exact creator not proven from filesystem evidence | Resume by defining, but not executing, Action 17r; separately authorize deletion if cleanup of `/home/aaron/code/Caddy` is desired |
+| 2026-08-02T10:55:48-05:00 | Workstation repository only | Define and validate dual-node read-only protocol-v2 restricted-command and finalization-readiness Action 17r; also make the repeatedly mis-invoked validation wrapper durably executable | User explicitly authorized Action 17r definition but not execution and requested a durable wrapper fix; no HA-node contact, diagnostic execution, peer restricted-command execution, helper invocation, release or marker mutation, transfer, synchronization, service mutation, VRRP, cleanup, or later action authorized | Accepted Action 17q-b exact state and Action 17p-a cross-node payload evidence; repository wrapper was tracked mode `100644`, causing direct execution to fail before tests | Added independent Node A and Node B inspectors, strict administrative B-A-B runner, exact transcript/status/cross-node continuity contract, intercepted production-path regression with valid, semantic-mismatch, and malformed-state cases, host/container suite integration, executable-wrapper policy regression, and tracked `run.sh` mode `100755` | Repository rollback removes the four Action 17r artifacts and their suite/plan integration, removes the executable policy regression, and restores the prior `run.sh` mode; no live rollback applies because neither node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector/runner self/source/contract tests, 52-label Node A and 60-label Node B alignment, no-mutation static policy, B-A-B streamed-script regression, semantic status `1`, malformed status `97`, complete host suite, direct executable Podman-backed Debian 12 suite, and `git diff --check` passed | Node A inspector `e181f2e3...31f1`; Node B inspector `f9abd995...cdaf`; runner `45737445...3b95`; regression `9f950287...4370`; wrapper policy `570cc437...e895` | Definition accepted locally; expected readiness classification is `legacy_release_requires_transactional_marker_migration`, because the legacy source carries `.complete` rather than `.finalize-request` and both retained trees are intentionally nonwritable; no live state changed | Stop; require separate authorization for exact read-only runner SHA-256 `4573744597366e2f1eed16ab4a4a29391283e68e7f67c91a028cdc1641573b95` |
+| 2026-08-02T11:01:20-05:00 | Nodes B, A, B and workstation | Execute exact dual-node read-only protocol-v2 readiness Action 17r | User explicitly authorized exact runner SHA-256 `4573744597366e2f1eed16ab4a4a29391283e68e7f67c91a028cdc1641573b95`; no retry, correction, peer restricted-command execution, helper invocation, release or marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Exact runner and dependency hashes, ownership/modes, syntax, collision policy, self/source/contract tests, production regression, full host/container suite, pre-commit, and diff checks had passed; Action 17q-b was the accepted live boundary | Executed the exact runner once with first-attempt LAN access; it attempted strict administrative SSH in B-A-B order, but no remote inspector produced output | No live rollback applies because no remote action began; workstation temporary paths were EXIT-trap managed but cleanup was not independently emitted or validated after the fail-closed exit | All three administrative SSH statuses `255`; each stderr file nonempty; each stdout empty; runner recorded 81 assertions, 62 failures, first failure `node_b_before_stderr_empty`, acceptance false, and exit `97`; no peer restricted command, rsync, helper, transfer, marker mutation, service mutation, or persistent mutation occurred | Runner `45737445...3b95`; Node A inspector `e181f2e3...31f1`; Node B inspector `f9abd995...cdaf`; local comparison found `IdentitiesOnly=yes` without `IdentityFile`, absent from accepted Action 17p-a and Action 17q-b runners | Action 17r is unaccepted; no dual-node readiness or continuity conclusion can be drawn; the likely identity-selection defect remains source-based because bounded SSH stderr was not emitted | Stop; define but do not execute narrow read-only Action 17r-a to classify administrative SSH identity selection and failure evidence before any correction or retry |
+| 2026-08-02T11:08:16-05:00 | Workstation repository only | Define and validate narrow Action 17r administrative-SSH correction | User explicitly requested removal of `IdentitiesOnly=yes` from Action 17r administrative SSH while retaining it only for synchronization connections paired with `-i`; no HA-node contact or retry execution authorized | Failed Action 17r evidence and local comparison with accepted administrative runners; Action 17r was the only repository use of `IdentitiesOnly=yes` without an explicit identity file | Removed one option line from `run_remote_inspection`; added a regression that rejects administrative `IdentitiesOnly=yes`; retained Node A synchronization-side `ssh -G -i "$private_key" -o IdentitiesOnly=yes` unchanged; updated hashes and living plan | Repository rollback restores the removed option and prior regression/hash references; no live rollback applies because no node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, runner self/source/contract tests, intercepted production-path regression, complete host suite, and full pre-commit suite passed | Corrected runner `ce8b1ba0...c71b`; corrected regression `fdd4d9c5...8ae9`; inspectors unchanged at `e181f2e3...31f1` and `f9abd995...cdaf` | Narrow correction accepted locally; administrative SSH again follows the previously accepted workstation SSH-agent/configuration model; synchronization identities remain explicit and deterministic | Stop; require separate authorization before executing corrected runner SHA-256 `ce8b1ba0641c2a03b9aa593c94ddecd1c27ff3ef73e094820d4bb0dc8b8ec71b` |
+| 2026-08-02T11:15:01-05:00 | Nodes B, A, B and workstation | Execute corrected dual-node read-only protocol-v2 readiness Action 17r | User explicitly authorized corrected runner SHA-256 `ce8b1ba0641c2a03b9aa593c94ddecd1c27ff3ef73e094820d4bb0dc8b8ec71b`; no diagnostic, further retry, peer restricted-command execution, helper invocation, release or marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Exact runner, inspector, and regression hashes, metadata, syntax, collision policy, runner self/source/contract tests, focused regression, complete host suite, full pre-commit suite, and diff checks passed | Executed the corrected runner once with first-attempt LAN access; administrative SSH inspected Node B, Node A, and Node B in order; no peer synchronization connection was attempted | No live rollback applies because the action was read-only; remote transcripts proved stable state and exact no-mutation markers; workstation temporary paths were EXIT-trap managed but cleanup was not independently emitted | Node B before/after SSH `0` and remote assertions passed; Node A SSH `1` with valid transcript/status/continuity contract but remote assertions not all passed; cross-node payload/manifest, source/receiver/release classifications, and B–A–B state passed; 81 runner assertions, one failure, first failure `node_a_remote_assertions_passed`; runner exit `1`, acceptance false; readiness `legacy_release_requires_transactional_marker_migration`; all mutation markers false | Runner `ce8b1ba0...c71b`; Node A inspector `e181f2e3...31f1`; Node B inspector `f9abd995...cdaf`; regression `fdd4d9c5...8ae9` | Corrected transport accepted; Action 17r is complete contract-valid semantic-mismatch evidence but not readiness acceptance because the exact failed Node A assertion was not emitted before cleanup | Stop; define but do not execute narrow read-only Action 17r-a that emits every safe Node A assertion and preserves independent Node B/cross-node continuity |
+| 2026-08-02T11:27:34-05:00 | Workstation repository only | Define and validate read-only Node A semantic-mismatch diagnostic Action 17r-a | User explicitly authorized definition but not execution and reiterated that every assertion must remain independently labeled; no HA-node contact, diagnostic execution, retry, peer restricted-command execution, helper invocation, release or marker mutation, lsyncd/reconciliation activation, service mutation, transfer, synchronization, VRRP, cleanup, or later action authorized | Corrected Action 17r produced one aggregate Node A semantic mismatch while its safe 52-label remote transcript was removed before being emitted; Node B and cross-node continuity passed | Added an append-only runner that pins and captures corrected Action 17r, then performs one additional administrative Node A inspection; validates exact source-derived 52-label identity, uniqueness, counts, first failure, semantic status, hashes, state, classifications, no-mutation records, baseline/detail status agreement, safe grammar, Node B B–A–B continuity, and cross-node evidence before emitting safe transcripts; added focused production-path regression and host/container integration | Repository rollback deletes the new runner/regression and removes their suite/plan integration; no live rollback applies because no node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, runner self/source/contract checks, and intercepted production-path regression passed; coherent mismatch and ready states accepted; inconsistent success, duplicate assertion, unsafe output, and Node B drift rejected | Runner `a8830d8f...f3e5`; regression `32c390d4...cf85`; pinned corrected Action 17r `ce8b1ba0...c71b`; Node A inspector `e181f2e3...31f1` | Definition accepted locally; all 52 Node A assertions are emitted with their original independent labels only after grammar and secret checks, while the pinned baseline preserves Node B and cross-node continuity; no live state changed | Stop; require separate authorization before executing exact runner SHA-256 `a8830d8ffb9f1ff9cf671ba7c2f942e5b5799531d503e44ef293f4df3baff3e5` |
+| 2026-08-02T11:36:12-05:00 | Workstation repository and validation policy only | Complete Action 17r-a validation and durably correct a pre-container direct-wrapper mode failure | Action 17r-a definition authorized; fixing validation failures is required by repository policy; no HA-node contact, diagnostic execution, deployment mutation, or later action authorized | Complete suite stopped before container execution because `run.sh` directly invoked `shfmt-policy-regression.sh`, while both working tree and Git index exposed mode `0644`/`100644`; existing executable policy listed only two wrappers and checked Git mode only for `run.sh`; repository has `core.fileMode=false` | Set `shfmt-policy-regression.sh` working-tree and Git modes to `0755`/`100755`; extended the existing executable policy to cover all three direct wrappers and validate both executable and tracked mode for each; reran the exact complete suite outside the sandbox | Repository rollback restores `shfmt-policy-regression.sh` mode `100644` and the prior two-wrapper/single-index-check policy; no live rollback applies | Direct wrapper regressions, complete host suite, rebuilt/cached Debian 12 Podman image, full container integration, final repository validation, and full pre-commit suite passed | Executable policy `0db1bb12...7cae`; canonical shfmt policy content unchanged `e5317986...a6618`; Action 17r-a runner/regression unchanged `a8830d8f...f3e5`/`32c390d4...cf85` | Action 17r-a definition is fully validated; durable wrapper policy now prevents the same tracked-mode failure for every direct wrapper; no HA node was contacted | Stop; require separate authorization before executing exact Action 17r-a runner SHA-256 `a8830d8ffb9f1ff9cf671ba7c2f942e5b5799531d503e44ef293f4df3baff3e5` |
+| 2026-08-02T11:42:33-05:00 | Nodes B, A, B, A and workstation | Execute exact read-only Node A semantic diagnostic Action 17r-a | User explicitly authorized exact runner SHA-256 `a8830d8ffb9f1ff9cf671ba7c2f942e5b5799531d503e44ef293f4df3baff3e5`; no correction, retry, transport probe, peer restricted command, helper invocation, release or marker mutation, transfer, synchronization, service mutation, VRRP, cleanup, or later action authorized | Exact runner, corrected Action 17r, Node A inspector, and regression hashes matched; metadata, Bash syntax, readonly/local collision policy, runner self/source/contract tests, inspector self-test, and focused production regression passed | Executed the exact runner once with first-attempt LAN access; it captured the corrected B–A–B baseline and one additional Node A administrative inspection, then emitted only grammar-validated, secret-safe evidence | No live rollback applies because the action was read-only; Node A and Node B stable-state evidence passed and workstation cleanup completed | Baseline Node B inspections and cross-node continuity passed; Node A emitted 52 unique assertions with exactly two false stderr-empty checks; both `ssh -G` statuses and all parsed IPv4/IPv6 binding options passed; Action 17r-a emitted 59/59 wrapper assertions, acceptance true, and exit `0` | Runner `a8830d8f...f3e5`; baseline `ce8b1ba0...c71b`; inspector `e181f2e3...31f1`; regression `32c390d4...cf85`; Node A state `afebf586...13a38` before and after | Action 17r-a accepted as exact semantic-mismatch evidence; stderr cause remains unclassified and is not inferred; no synchronization or mutation occurred | Stop; separately authorize definition—but not execution—of narrow read-only Action 17r-b to safely capture and classify each bounded `ssh -G` stderr stream |
+| 2026-08-02T11:54:58-05:00 | Workstation repository only | Define and validate narrow read-only Node A `ssh -G` stderr diagnostic Action 17r-b | User explicitly authorized definition but not execution; no HA-node contact, diagnostic execution, peer connection, restricted command, helper invocation, release or marker mutation, transfer, synchronization, service mutation, VRRP, cleanup, or later action authorized | Accepted Action 17r-a isolated nonempty stderr from both successful `ssh -G` probes while every parsed option and continuity assertion passed; OpenSSH documentation and local manual independently confirmed `-G` dumps evaluated configuration and exits without connecting | Added an append-only Node A inspector, strict administrative runner, production-path regression, host/container integration, safe bounded stderr encoding/decoding, and independent IPv4/IPv6 status, size, line, hash, classification, decoded-content, option, state, and no-mutation assertions | Repository rollback deletes the three Action 17r-b artifacts, removes their suite integration, and restores this plan; no live rollback applies because neither node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector self/contract tests, runner self/source/contract tests, approved source-context gate, production-path false-positive/false-negative regression, complete host and Debian 12 Podman integration, full pre-commit, and diff checks passed | Inspector `d892f6e0...bf96`; runner `42073901...cd83`; regression `061dc300...f4c2`; 39 independently labeled remote assertions | Definition accepted locally; `ssh -G` remains configuration introspection only, raw stderr is never emitted before decoded safety validation, unsafe evidence is withheld, and historical Action 17r/17r-a artifacts remain unchanged | Stop; require separate authorization before executing exact read-only runner SHA-256 `42073901bd8f4faf92f84c24c9e1e84d8ee26607aab7ef42eec0cf911f91cd83` |
+| 2026-08-02T12:02:47-05:00 | Node A and workstation | Execute exact read-only Node A `ssh -G` stderr diagnostic Action 17r-b | User explicitly authorized exact runner SHA-256 `42073901bd8f4faf92f84c24c9e1e84d8ee26607aab7ef42eec0cf911f91cd83`; no correction, retry, peer connection, restricted command, helper invocation, release or marker mutation, transfer, synchronization, service mutation, VRRP, cleanup, or later action authorized | Exact runner, inspector, and regression hashes matched; ownership/modes, Bash syntax, readonly/local collision policy, inspector self/contract tests, runner self/source/contract tests, source-context gate, production regression, and governing next gate passed | Executed the exact runner once with first-attempt LAN access; one administrative Node A session entered `/` and ran the bounded inspector; the inspector performed only local effective-configuration dumps and stable-state snapshots | No live rollback applies because the action was read-only; Node A before/after hashes matched and workstation cleanup completed | Remote SSH `0`; 39/39 remote assertions and 58/58 runner assertions passed; both stderr streams were 72 bytes, one line, SHA-256 `d0e14941...3d8a`, classification `pseudo_terminal_not_allocated`; diagnostic conclusion `pseudo_terminal_notice_confirmed_dual_stack`; runner acceptance true | Runner `42073901...cd83`; inspector `d892f6e0...bf96`; regression `061dc300...f4c2`; state `14738d36...aeed` before and after | Action 17r-b accepted; the exact benign OpenSSH notice, not a failed configuration dump or transport problem, caused both historical stderr-empty failures; no peer connection or mutation occurred | Stop; separately authorize definition—but not execution—of an append-only corrected readiness action that explicitly disables pseudo-terminal allocation while preserving all readiness gates |
+| 2026-08-02T12:08:42-05:00 | Workstation repository only | Define and validate append-only corrected dual-node protocol-v2 readiness Action 17r-c | User explicitly authorized definition but not execution; no HA-node contact, readiness execution, peer restricted command, helper invocation, release or marker mutation, transfer, synchronization, service mutation, VRRP, cleanup, or later action authorized | Accepted Action 17r-b proved both historical failures were the exact pseudo-terminal notice from successful configuration dumps; all original Node A/Node B and cross-node readiness evidence remained valid | Added a new Node A inspector with `-T` on exactly both `ssh -G` commands, a new strict B–A–B runner, production-path regression, historical-integrity gates, real OpenSSH dual-stack suppression regression, and host/container integration; reused the exact accepted Node B inspector | Repository rollback deletes the three Action 17r-c artifacts, removes their suite integration, and restores this plan; no live rollback applies because neither node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector/runner self/source/contract checks, real OpenSSH IPv4/IPv6 `-G -T` status/stderr/options checks, intercepted valid/semantic/drift cases, historical hash checks, complete host/Podman suite, full pre-commit suite, and diff gates passed | Node A inspector `ce7463c6...aa40`; runner `db59dcf4...2a5e`; regression `7e35b486...f41f`; accepted Node B inspector unchanged `f9abd995...cdaf` | Definition accepted locally; new Node A remote namespace has the same 52 independent labels, accepted Node B retains 60, and corrected runner retains the full 81-label B–A–B contract; all historical evidence artifacts remain byte-identical | Stop; require separate authorization before executing exact corrected read-only runner SHA-256 `db59dcf4b0a52034639305e46bd6dc62f18ea3f4621013cfa53e6b0919ad2a5e` |
+| 2026-08-02T12:17:50-05:00 | Nodes B, A, B and workstation | Execute corrected dual-node read-only protocol-v2 readiness Action 17r-c | User explicitly authorized exact runner SHA-256 `db59dcf4b0a52034639305e46bd6dc62f18ea3f4621013cfa53e6b0919ad2a5e`; no peer restricted command, helper invocation, retained-release or marker mutation, transfer, synchronization, lsyncd/reconciliation activation, service mutation, VRRP, cleanup, or later action authorized | Exact runner hash matched the defined artifact; the workstation definition had passed focused, host, Podman, pre-commit, historical-integrity, and diff gates | Executed the exact runner once with first-attempt LAN access; it performed administrative inspections in B–A–B order only | No live rollback applies because the action was read-only; workstation temporary paths were EXIT-trap managed and cleanup was reported complete | Node B before SSH `0`; Node A SSH `0`; Node B after SSH `0`; 81 assertions, zero failed, first failure `none`; payload/manifest hashes and all source/receiver/release/B–A–B classifications passed; every connection/command/transfer/marker/helper/service/persistent-mutation marker false | Runner `db59dcf4...2a5e`; readiness `legacy_release_requires_transactional_marker_migration`; acceptance and workstation cleanup true | Action 17r-c accepted; dual-node protocol-v2 prerequisites are coherent, while the retained legacy Action 17p release still requires a separately designed transactional receiver-side marker migration before reconciliation | Stop; define but do not execute the bounded transactional receiver-side marker-migration action |
+| 2026-08-02T12:37:28-05:00 | Workstation repository only | Define and validate bounded transactional receiver-side marker migration Action 17s | User explicitly authorized definition but not execution; no HA-node contact, finalizer invocation, marker or retained-release mutation, rollback backup creation, transfer, synchronization, service mutation, lsyncd/reconciliation activation, VRRP, cleanup, or later action authorized | Accepted Action 17r-c exact Node A/Node B payload, manifest, receiver/finalizer, service, and no-mutation baseline; retained Node B release has neither `.finalize-request` nor `.complete` and is locked `0550/0440` | Added a Node B transaction, strict administrative runner, exact success/rollback label contracts, protected metadata-only rollback design, production-path interception, historical-integrity pins, false-positive/false-negative regression, and host/container suite integration | Before mutation, create protected root-only snapshot metadata; on failure remove only `.finalize-request`, `.complete.pending`, and `.complete`, restore all retained-release directories/files to `0550/0440`, validate payload/manifest and all unit properties, remove backup and `/run` stage, and emit 46 independent rollback assertions; incomplete rollback is status `125` remotely and `97` at the runner boundary | Focused syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, transaction/runner self/source/contract checks, exact 143 success and 46 rollback label sets, intercepted success/rollback/malformed cases, historical Action 17r-c hashes, no-network regression, complete host/Podman suite, full pre-commit suite, and diff gates passed | Transaction `325a8fff...e5d8`; runner `006b0d34...3d20`; regression `eaf8d4f2...ba01`; payload `3635265e...8f6e`; manifest `f4dc87da...75c8` | Definition accepted locally; mutation scope is exactly `.finalize-request`, receiver-generated `.complete`, temporary mode elevation subsequently relocked, and protected rollback metadata; payload bytes, selection, services, lsyncd, and reconciliation are excluded | Stop; require separate authorization before exact transactional runner SHA-256 `006b0d34480fe9cf3e0bec50649c2d8d59bf050821c1df8219d2193c7d403d20` |
+| 2026-08-02T12:46:09-05:00 | Node B `pihole00.local.theama.co` | Execute transactional receiver-side marker migration Action 17s | User authorized exact runner SHA-256 `006b0d34480fe9cf3e0bec50649c2d8d59bf050821c1df8219d2193c7d403d20`; no repair, retry, synchronization activation, or later action authorized | Exact runner hash matched; accepted Action 17r-c baseline remained present; all independently labeled Action 17s preflight assertions passed; request, pending, and completion markers were absent; payload was locked; Caddy/lighttpd were active; lsyncd and reconciliation were inactive | Ran `Caddy/scripts/run-node-b-retained-release-marker-migration-action17s.sh` once outside the LAN-restricted sandbox; the transaction temporarily created `.finalize-request`, invoked the installed finalizer as `caddy-sync`, and observed a receiver-generated `.complete` | A protected metadata backup and `/run` stage were created during the transaction; after the `finalizer_stdout_empty` failure, bounded rollback removed `.finalize-request`, `.complete.pending`, `.complete`, the backup, and the work directory, restored `0550/0440`, and emitted all 46 rollback assertions as true | Remote SSH status `0`; runner status `97`; all preflight gates passed; request and completion marker creation gates passed; `action_17s_assertion_finalizer_stdout_empty=false`; `action_17s_rollback_complete=true`; every rollback assertion true; workstation cleanup true | Runner `006b0d34...3d20`; payload and manifest exactness passed before mutation and after rollback; no persistent backup remained | Not accepted: the installed finalizer emitted unexpected stdout, violating the success transcript contract; rollback restored the pre-Action 17s state with no retained marker or service-state mutation | Stop; no retry; next define an independent read-only Action 17s-a to verify rollback continuity and classify the unexpected finalizer stdout without invoking the finalizer |
+| 2026-08-02T13:04:55-05:00 | Workstation repository only | Define and validate independent read-only rollback/output Action 17s-a and a durable same-run stream-evidence policy | User explicitly authorized definition but not execution; no HA-node contact, diagnostic execution, finalizer invocation, repair, marker mutation, synchronization, service mutation, VRRP, cleanup, or later action authorized | Action 17s failed only `finalizer_stdout_empty`; all 46 rollback assertions passed, but its trap deleted the raw capture before the runner recorded bytes, lines, hash, or classification | Added a 53-assertion Node B inspector, strict runner, source-level finalizer classifier, false-positive/false-negative regression, transaction-output evidence policy, AGENTS guidance, and host/container integration; historical Action 17s remains byte-identical | Repository rollback deletes the four Action 17s-a/policy artifacts, removes suite and plan integration, and restores AGENTS guidance; no live rollback applies because no node was contacted | Focused Bash syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector/runner self/source/contract checks, exact label uniqueness, static no-finalizer/no-service/no-persistent-mutation gates, historical hash exception, same-run output-metadata ordering, false-positive/false-negative regression, complete host and Podman suite, and diff gates passed | Inspector `adae35e1...3da1`; runner `14c0c153...908b`; output policy `1e4c4990...af55`; regression `4e6c30cf...df0b`; installed finalizer `a49dadca...30c`; exact validate block `d198df38...aefb` | Definition accepted locally: source evidence proves the installed generic check passes child stdout and its sole seven-line `caddy validate` block has no stdout/stderr redirect; classification is `unsuppressed_caddy_validate_success_path`; exact prior stream bytes are unrecoverable and are not inferred | Stop; require separate authorization before exact read-only runner SHA-256 `14c0c153b0dc410fd0ecfe2b3d99885154931fae5edbc045a9bdd72851b1908b` |
+| 2026-08-02T13:08:18-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute independent read-only rollback/output Action 17s-a | User explicitly authorized exact runner SHA-256 `14c0c153b0dc410fd0ecfe2b3d99885154931fae5edbc045a9bdd72851b1908b`; no repair, finalizer correction or invocation, marker retry/mutation, synchronization, service mutation, cleanup, or later action authorized | Exact runner hash matched; definition, focused checks, complete host/Podman suite, pre-commit, Gitleaks, and diff gates had passed; Action 17s reported complete rollback but installed finalizer stdout source remained unconfirmed live | Executed the exact read-only runner once with first-attempt LAN access; one administrative SSH inspection entered `/`, verified rollback continuity, and inspected exact installed finalizer source without invoking it | No live rollback applies because the action was read-only; Node B and workstation temporary paths were trap-managed and workstation cleanup passed | SSH/runner `0`; 53 assertions, zero failures, first failure `none`; stdout 3641 bytes/69 lines/hash `1eb9cc10...212a`, classification `captured_within_bounds`; stderr empty/hash `e3b0c442...b855`; exact finalizer and validate-block hashes; all continuity and no-mutation gates passed | Runner `14c0c153...908b`; finalizer `a49dadca...30c`; validate block `d198df38...aefb`; payload `3635265e...8f6e`; manifest `f4dc87da...75c8` | Action 17s-a accepted; rollback is independently confirmed and the installed source defect is exactly `unsuppressed_caddy_validate_success_path`; prior Action 17s stream bytes remain unrecoverable; no finalizer invocation or mutation occurred | Stop; next define but do not execute a separate transactional Node B stdout-safe finalizer correction; do not combine it with marker migration retry |
+| 2026-08-02T13:24:56-05:00 | Workstation repository only | Define and validate transactional Node B stdout-safe finalizer correction Action 17t | User explicitly authorized definition but not execution; no HA-node contact, installation, finalizer invocation, marker migration retry/mutation, synchronization, service mutation, VRRP, cleanup, or later action authorized | Accepted Action 17s-a proved exact installed finalizer hash `a49dadca...30c`, complete Action 17s rollback, absent markers, retained locked release, active Caddy/lighttpd, and inactive synchronization/reconciliation; source classified `unsuppressed_caddy_validate_success_path` | Added an exact one-line renderer, 82-assertion transactional installer, strict administrative runner, 21-assertion bounded rollback contract, same-run inner and outer stream metadata, intercepted production-path regression, output-policy integration, and host/container suite integration | Before replacing the finalizer, retain a root-only backup below `/var/backups/caddy-ha`; on any post-mutation failure restore exact old hash/mode, prove release/marker/service continuity, remove backup and work stage, and emit all 21 rollback assertions; incomplete rollback exits `125` remotely and `97` at the runner boundary | Focused syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, renderer/installer/runner self/source/contract checks, exact one-line transform, exact success/rollback label sets, valid success and complete rollback acceptance, contradiction/missing-stream/incomplete-rollback rejection, intercepted no-network production path, complete host/Podman suite, full pre-commit suite, Gitleaks, Markdown, and diff gates passed | Renderer `df8635a3...ab54`; installer `75a11381...aa5`; candidate `e5ec5aab...97e4`; runner `0cb67a90...17e6`; regression `4864b995...7cc`; old finalizer `a49dadca...30c` | Definition accepted locally; persistent mutation scope is exactly the stdout-safe finalizer and protected rollback backup; the finalizer is not invoked, the retained Action 17p release and all markers remain untouched, and no service or synchronization state changes | Stop; require separate authorization before exact transactional runner SHA-256 `0cb67a909bf4e935d7f335b69b2fee557fc7c4965b8aea0563f6999c173917e6` |
+| 2026-08-02T13:30:21-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute transactional Node B stdout-safe finalizer correction Action 17t | User explicitly authorized exact runner SHA-256 `0cb67a909bf4e935d7f335b69b2fee557fc7c4965b8aea0563f6999c173917e6`; no finalizer invocation, marker migration retry/mutation, synchronization activation, service mutation, cleanup, or later action authorized | Exact authorized runner hash matched; accepted Action 17s-a baseline and all 45 pre-mutation assertions passed; live finalizer was exact old hash `a49dadca...30c`; Action 17p release was locked with exact payload/manifest and no request, pending, or completion marker | Executed the exact runner once with first-attempt LAN access; rendered candidate `e5ec5aab...97e4`, staged it privately, retained protected backup `/var/backups/caddy-ha/action17t-node-b-stdout-safe-finalizer.Z6U7Yc`, and replaced only `/usr/local/libexec/finalize-incoming-release-v2.sh` | Included rollback was not triggered; if required it would restore exact old finalizer and validate 21 independently labeled continuity conditions before deleting the backup and work stage; incomplete rollback would require manual intervention | SSH/runner `0`; 82 assertions, zero failures, first failure `none`; outer stdout 5314 bytes/108 lines/hash `fcdf35fd...0e66`, bounded and secret-free; outer stderr empty/hash `e3b0c442...b855`; both inner install streams empty; candidate hash, syntax, single redirect, and validation-block hash exact; release snapshot, payload, manifest, markers, selection, Caddy/lighttpd, lsyncd, reconciliation, backup, and workstation cleanup gates all passed | Runner `0cb67a90...17e6`; old finalizer `a49dadca...30c`; installed finalizer `e5ec5aab...97e4`; backup `/var/backups/caddy-ha/action17t-node-b-stdout-safe-finalizer.Z6U7Yc`; stdout `fcdf35fd...0e66` | Action 17t accepted; finalizer was not invoked, release and markers were not mutated, Caddy selection and all service states were unchanged, and persistent mutation scope is only the corrected finalizer plus retained protected rollback backup | Stop; next define but do not execute independent read-only post-install Action 17t-a before any finalizer invocation or marker migration retry |
+| 2026-08-02T13:38:11-05:00 | Workstation repository only | Define and validate independent read-only Node B post-install Action 17t-a | User explicitly authorized definition but not execution; no HA-node contact, diagnostic execution, finalizer invocation, marker mutation/retry, synchronization, service mutation, VRRP, cleanup, or later action authorized | Accepted Action 17t installed finalizer `e5ec5aab...97e4`, retained backup `action17t-node-b-stdout-safe-finalizer.Z6U7Yc`, and reported exact release/marker/service continuity; independent readback remained required | Added a 62-assertion Node B inspector, strict administrative runner, exact source/backup/release/service/state contracts, bounded same-run SSH stream evidence, intercepted production-path success and semantic-mismatch cases, missing/duplicate/unsafe evidence rejection, static no-finalizer/no-service/no-persistent-mutation gates, and host/container suite integration | Repository rollback deletes the three Action 17t-a artifacts and removes their suite and plan integration; no live rollback applies because no node was contacted | Focused syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, inspector/runner self/source/contract tests, exact 62-label uniqueness, valid success and valid semantic mismatch preservation, missing and duplicate assertion rejection, unsafe stderr suppression, intercepted no-network production path, source-context validation, explicit host/container ownership-boundary checks, complete host/Podman suite, full pre-commit suite, Gitleaks, Markdown, and diff gates passed | Inspector `50cef92b...919f`; runner `63125308...e944`; regression `53240968...5d07`; expected finalizer `e5ec5aab...97e4`; backup manifest `1c77b0bb...f15d` | Definition accepted locally; the action is strictly read-only apart from trap-managed temporary files, emits every assertion independently, and requires identical before/after state hashes | Stop; require separate authorization before exact read-only runner SHA-256 `63125308950da76de2ab80bff2121d4e424105f718f431076ad7de67b293e944` |
+| 2026-08-02T13:54:59-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute independent read-only Node B post-install Action 17t-a | User explicitly authorized exact runner SHA-256 `63125308950da76de2ab80bff2121d4e424105f718f431076ad7de67b293e944`; no finalizer invocation, marker migration retry/mutation, synchronization, service mutation, VRRP, cleanup, or later action authorized | Exact authorized runner hash matched; accepted Action 17t baseline expected finalizer `e5ec5aab...97e4`, protected backup `action17t-node-b-stdout-safe-finalizer.Z6U7Yc`, locked Action 17p release, absent markers, active Caddy/lighttpd, and inactive synchronization/reconciliation | Executed the exact read-only runner once with first-attempt LAN access from `/`; the inspector captured bounded evidence and performed no finalizer invocation or persistent change | No live rollback applies because the action was read-only; trap-managed workstation temporary files were removed | SSH/runner `0`; 62 assertions, zero failures, first failure `none`; stdout 4262 bytes/80 lines/SHA-256 `c066bb6a...308f`, bounded with raw output suppressed; stderr empty/SHA-256 `e3b0c442...b855`; exact finalizer/backup/payload/manifest hashes passed; before/after state SHA-256 both `32eec716...437b`; every no-mutation marker passed | Runner `63125308...e944`; finalizer `e5ec5aab...97e4`; backup manifest `1c77b0bb...f15d`; payload `3635265e...8f6e`; release manifest `f4dc87da...5c8` | Action 17t-a accepted; Node B post-install state is independently confirmed, the finalizer was not invoked, and no release, marker, service, filesystem, or persistent mutation occurred | Stop; require separate authorization to define—but not execute—the corrected transactional receiver-side marker migration retry |
+| 2026-08-02T14:06:06-05:00 | Workstation repository only | Define and validate corrected transactional receiver-side marker migration Action 17s retry | User explicitly authorized definition but not execution; no HA-node contact, finalizer invocation, marker mutation, transfer, synchronization, service mutation, lsyncd/reconciliation activation, VRRP, cleanup, or later action authorized | Accepted Action 17t-a independently confirmed corrected finalizer `e5ec5aab...97e4`, locked Action 17p payload/manifest, absent request/pending/complete markers, active Caddy/lighttpd, inactive synchronization/reconciliation, and exact no-mutation continuity | Added append-only transaction, strict administrative runner, production-path regression, host/container integration, and output-policy integration; retained historical Action 17s byte-for-byte; added independently labeled finalizer exit status and same-run inner/outer stream evidence before acceptance | Before mutation, create a root-only release snapshot; on any failure remove only request/pending/complete markers, restore all release modes to `0550/0440`, verify payload/manifest/selection/service continuity, remove retry backup and work stage, and emit all 46 rollback assertions; incomplete rollback exits `125` remotely and `97` at the runner boundary | Focused syntax, ShellCheck, canonical shfmt, zero readonly/local collisions, transaction/runner self/source/contract checks, exact 144 success and 46 rollback labels, same-run finalizer and SSH stream evidence, valid-success and complete-rollback preservation, duplicate/missing-stream/incomplete-rollback rejection, no-network production-path interception, output-policy checks, complete host/Podman suite, full pre-commit suite, Gitleaks, Markdown, and diff gates passed | Transaction `269c4815...bd0`; runner `f5319707...6700`; regression `fbd83338...2559`; finalizer `e5ec5aab...97e4`; payload `3635265e...8f6e`; manifest `f4dc87da...5c8` | Definition accepted locally; intended persistent mutation scope remains `.finalize-request`, receiver-generated `.complete`, and retained protected rollback metadata; payload bytes, Caddy selection, services, lsyncd, and reconciliation are excluded | Stop; require separate authorization before exact runner SHA-256 `f5319707d8943eb9f129da5c31b8724cf0ef608eee3847c10ac43e9122a96700` |
+| 2026-08-02T14:16:03-05:00 | Node B `pihole00.local.theama.co` and workstation | Execute corrected transactional receiver-side marker migration Action 17s retry | User explicitly authorized exact runner SHA-256 `f5319707d8943eb9f129da5c31b8724cf0ef608eee3847c10ac43e9122a96700`; no diagnostic, correction, second retry, synchronization activation, service mutation, cleanup, or later action authorized | Exact authorized runner hash matched; every preflight assertion passed; corrected finalizer hash, locked Action 17p payload/manifest, absent markers, active Caddy/lighttpd, and inactive lsyncd/reconciliation matched the accepted Action 17t-a baseline | Executed the exact runner once with first-attempt LAN access; the transaction created protected rollback metadata and `.finalize-request`, invoked the finalizer as `caddy-sync`, and observed a receiver-generated `.complete` before the stderr gate failed | Bounded automatic rollback ran and all 46 independently labeled assertions passed; it removed request/pending/complete markers, retry backup, and work state; restored `0550/0440`; and preserved exact payload/manifest, Caddy selection, all captured service properties, absent lsyncd configuration, and inactive reconciliation | SSH status `0`; runner status `97`; outer stdout 7157 bytes/118 lines/SHA-256 `75abcde7...5758`; outer stderr 3513 bytes/49 lines/SHA-256 `5c288157...b65d`; finalizer status `0`; finalizer stdout empty; finalizer stderr 724 bytes/six lines/SHA-256 `dd0e9005...51c2`, bounded safe and not emitted; `finalizer_stderr_empty=false`; rollback complete and workstation cleanup true | Runner `f5319707...6700`; transaction `269c4815...bd0`; finalizer stderr `dd0e9005...51c2`; payload `3635265e...8f6e`; manifest `f4dc87da...5c8` | Not accepted: finalizer stderr violated the success contract; captured bytes are unavailable after trap cleanup by design, so content is not inferred; source evidence shows the installed correction suppresses only `caddy validate` stdout, which is a candidate explanation requiring separate read-only confirmation | Stop; no retry; next define—but do not execute—a read-only post-rollback and finalizer-stderr source diagnostic |
 
 ### Executed gate: read-only Action 17c-c-a
 
@@ -14045,6 +14119,14 @@ authorized.
 
 | Date | Phase | Planned behavior | Actual change | Rationale | Impact | Approval | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-02 | Action 17u-b Node B identity assertion | Require Node B short hostname `pihole00` before reading protected state or mutating the manifest | Exact corrected retry observed `hostname_node_b=false`; the immutable transaction hard-codes `pihole00`, while the governing plan and prior accepted Node B evidence identify the host as `j1-svpihole00`; append-only retry2 renders only that transaction line with the accepted value | The transaction inherited the management DNS label rather than the operating-system short hostname; intercepted workstation regression fixtures reproduced the incorrect expected value instead of the accepted production identity | Execution stopped before architecture, protected-state, remote-stage, or mutation boundaries; retry2 preserved all executed artifacts, changed one transaction line, passed all 54 live assertions, and corrected only the protected manifest provenance | User authorized retry2 definition and later exact outer-runner execution | Accepted; preserve every artifact and independently verify corrected manifest and continuity before marker migration |
+| 2026-08-02 | Action 17u rollback-manifest provenance | Record `action=17u` in the protected Action 17u rollback manifest | The immutable executed installer wrote `action=17t`; correct expected manifest SHA-256 is `a992c2ff...70b`, while the source-defined observed manifest SHA-256 is `8b7ee379...fbf` | The transactional installer was mechanically derived from Action 17t and its manifest action field was not advanced; Action 17u acceptance checked only a self-captured manifest hash and therefore did not independently validate semantic provenance | Finalizer installation and rollback bytes remain valid, but backup provenance is mislabeled; Action 17u-a is defined to return a contract-valid semantic mismatch if live readback confirms only this defect, without changing the backup or any runtime state | User authorized independent read-only Action 17u-a definition only; no metadata correction is authorized | Execute Action 17u-a only under separate authorization, then define a bounded metadata-only repair if the expected mismatch is independently confirmed |
+| 2026-08-02 | Action 17u-b protected-manifest repair boundary | Rewrite or replace the full Action 17u backup directory | Repair only the three-line protected manifest, preserving both finalizer hashes, directory and file ownership/modes, backup finalizer bytes, and every runtime/release/service state | Action 17u-a proved the defect is one equal-length provenance value; broader backup replacement would add unnecessary ownership, timestamp, or rollback risk | One exact manifest content change only; the continuity snapshot intentionally excludes only the manifest content and includes its metadata plus all other protected/runtime state | User authorized definition but not execution | Require exact old hash before mutation, exact new hash afterward, same-run stream evidence, and automatic exact-manifest rollback before any separately authorized live execution |
+| 2026-08-02 | Action 17u-b runner capture-file initialization | Assign capture paths and immediately chmod them before creation | Securely create both capture files with mode `0600` before use and install cleanup handling before any fallible operation after the private directory is created | The exact authorized runner stopped before SSH because pathname assignment does not create files; self/contract/static tests did not exercise the real pre-SSH production sequence | No Node B impact; one empty `aaron:aaron:0700` workstation directory remains; regression coverage must intercept the production SSH boundary rather than validating only synthetic transcripts | Exact Action 17u-b execution was authorized, but correction, retry, and cleanup are not authorized | Separately define a corrected append-only retry, add false-positive and false-negative production-boundary tests, then obtain a new exact-hash execution authorization |
+| 2026-08-02 | Readonly/local collision-policy indentation | Recognize only unindented script-level `readonly` declarations | Add append-only policy v2 that recognizes optional leading whitespace so declarations inside top-level conditional blocks are compared against every function-local name regardless of declaration order; preserve the hash-pinned legacy checker | The retry regression initially reused `regression_root` locally while a later indented readonly declaration used the same name; Bash dynamic scope rejected it, while the checker missed the indented declaration; changing the legacy checker invalidated historical runner source pins | New work and repository suites use v2; historical runners retain exact legacy dependency `78b46fcd...5cd8`; exact legacy exceptions remain hash-pinned; retry names are disjoint | User explicitly required better workstation-runner error prevention while authorizing corrected retry definition | Retain executable invalid/control fixtures in host and container suites and never mutate a dependency pinned by executed historical runners |
+| 2026-08-02 | Repository shell-entrypoint executable modes | Maintain a small manually curated wrapper allowlist while other Bash entry points can remain Git mode `100644` even when the workstation reports them executable | Require every tracked `Caddy/scripts/*.sh` and `Caddy/tests/*.sh` entry point to be working-tree executable and Git index mode `100755`; dynamically enumerate the tracked set and exercise explicit valid, index-`0644`, and working-tree-`0644` controls | Repository-local `core.fileMode=false` repeatedly concealed index-mode defects until CI or a production-path wrapper attempted direct execution; extending a manual allowlist after each failure was not durable | One-time Git metadata normalization for the tracked Caddy shell set; no file content hash, HA node, service, network, or deployment state changes | User explicitly requested a durable fix after the issue recurred during Action 17u-b retry handoff | Keep the full-set policy in host and Podman suites; any new tracked Caddy Bash entry point must enter Git as `100755` before validation can pass |
+| 2026-08-02 | Durable conditional-validator failure propagation | Rely on `set -e` to stop validator functions at their first failed predicate | Require explicit failure propagation for every marked validator predicate and add static marked-region enforcement plus early-invalid/later-valid behavioral regression | Bash suppresses errexit semantics when a function is evaluated by conditional `if`, negation, logical AND, or logical OR contexts; a later success can overwrite an earlier failure and create a false positive | Repository validation policy and Action 17u-a runner only; no historical artifact or live state changed | User explicitly requested a durable fix after the repeated validator error | Keep marked validator regions, explicit failure returns or guarded `if` boundaries, and false-positive/false-negative regression in both host and Podman suites |
+| 2026-08-02 | Action 17u finalizer stream handling | Treat successful Caddy validation as silent after suppressing stdout only | Installed a replacement finalizer that captures stderr in a private temporary file, discards it only on status `0`, and replays it unchanged on failure; stdout remains suppressed in both cases | Action 17s-b proved that Caddy emits successful informational messages on stderr, so requiring empty finalizer stderr while leaving it unsuppressed makes a valid finalization fail; suppressing failure stderr would destroy actionable evidence | Node B finalizer changed from `e5ec5aab...97e4` to `15d85877...902d` and protected backup `action17u-node-b-stderr-safe-finalizer.N9uEhC` was retained; release, markers, selection, services, lsyncd, and reconciliation were unchanged and the finalizer was not invoked | User explicitly authorized definition and later authorized exact transactional Action 17u execution; 101/101 assertions passed | Separately define and authorize an independent read-only Action 17u-a before retrying marker migration |
 | 2026-07-30 | Action 17p completion-marker protocol | Transmit the sender-created `.complete` file as the final rsync phase and treat its arrival as receiver completeness | Action 17p-a confirmed that Node A has a valid empty sender marker while Node B has no marker; payload/manifest digests match, but both release directories are `caddy-sync:caddy-sync:0550` and effectively nonwritable by `caddy-sync`, so the separate marker transfer could not create the receiver file | A sender marker proves sender publication rather than receiver validation, and preserving immutable directory mode during the payload phase makes the later ordinary-file marker transfer impossible; receiver-side validation followed by local atomic finalization is the sound protocol | Action 17p remains unaccepted; Node B retains a complete identical but unmarked payload; reconciliation and lsyncd remain inactive; no cleanup, marker write, or retry occurred | User identified the protocol concern, authorized receiver-neutral Action 17p-a definition/execution, and later authorized repository-only protocol-v2 definition; live implementation remains unapproved | Preserve the observed release; require a separately defined and authorized transactional installation before any cleanup, marker write, retry, reconciliation, or synchronization |
 | 2026-07-30 | Action 17p-b receiver-side protocol definition | Transmit `.complete` after payload and rely on marker arrival as receiver completeness | Added append-only protocol-v2 publisher, peer-role-scoped forced receiver, unprivileged receiver finalizer, lsyncd template, reconciler, intended-state manifest, and regression coverage; sender `.finalize-request` is transported, while `.complete` is excluded and created atomically only after receiver validation | Action 17p-a proved that sender and receiver payloads match but that a sender marker is semantically insufficient and mechanically unwritable; the new control marker triggers validation without claiming completion, and the receiver marker now proves local validation | Repository-only definition; no live helper, key authorization, lsyncd configuration, systemd unit, payload, marker, selection, or service state changed; historical action artifacts are immutable | User explicitly authorized definition and validation only of the receiver-side correction | Separately define and authorize a Node B transactional installation that stages both helpers, updates exactly one forced-command authorization, validates without finalizing the retained release, and rolls back metadata/content on failure |
 | 2026-07-30 | Durable Podman-wrapper execution classification | Apply the general rule that wrappers invoking Podman run outside the filesystem sandbox on their first attempt | Explicitly classify `Caddy/tests/run.sh` by name as a Podman wrapper in both workspace and repository `AGENTS.md`, including when the requested stage is described as a host suite | The generic rule already existed but was misapplied because the wrapper was incorrectly classified as host-only; naming the exact wrapper removes that interpretation boundary | Guidance only; no HA-node, container-image, deployment, or service state changed | User explicitly requested the durable fix before authorizing Action 17o-c | Always request the narrowest scoped filesystem escalation before the first `Caddy/tests/run.sh` execution; do not probe it inside the sandbox |
@@ -15271,18 +15353,1147 @@ SHA-256 values were both `e2352698...90d0`; SSH status was `0`; the transcript
 contract and runner acceptance were true; and workstation cleanup passed.
 Every no-mutation marker was false as required.
 
-The next gate is definition—but not execution—of a dual-node read-only
-protocol-v2 restricted-command and finalization-readiness Action 17r. Helper
-invocation, release or marker mutation, lsyncd/reconciliation activation,
-service mutation, transfer, synchronization, VRRP action, cleanup, and later
-actions remain separately gated.
+The next gate was definition—but not execution—of a dual-node read-only
+protocol-v2 restricted-command and finalization-readiness Action 17r. That
+definition is now complete; execution remains separately gated.
+
+### Defined dual-node read-only protocol-v2 readiness Action 17r
+
+Action 17r was executed once after exact hash authorization but is not accepted.
+The executed command was:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-protocol-v2-readiness-action17r.sh
+```
+
+The runner uses three strict, host-verified administrative SSH inspections in
+the exact sequence Node B, Node A, Node B. Each streamed remote shell enters
+`/` before invoking the role-specific inspector with passwordless `sudo`.
+
+The Node A inspector records 52 independently labeled assertions. It verifies:
+
+- the retained Action 17p outbound release has the accepted revision, parent,
+  source role, payload hash, manifest hash, ownership, locked mode, and empty
+  legacy `.complete` marker;
+- `.finalize-request` and `.complete.pending` remain absent;
+- the synchronization key and known-host fingerprints remain exact;
+- both peer `/etc/hosts` mappings remain exact; and
+- `ssh -G` selects IPv4 source `10.1.0.53` with address family `inet` and IPv6
+  source `fd36:5aa8:6971:1::53` with address family `inet6`.
+
+`ssh -G` performs configuration expansion only. It makes no network
+connection, offers no key, and cannot invoke the forced receiver.
+
+The Node B inspector records 60 independently labeled assertions. It verifies:
+
+- the installed protocol-v2 receiver, finalizer, authorization, Node A key
+  fingerprint, ownership, modes, hashes, and Bash syntax remain exact;
+- the authorization permits only the accepted Node A IPv4/IPv6 sources and
+  forces receiver role `node-a`;
+- exact local boundary vectors accept an rsync server command while rejecting
+  an arbitrary command and a command containing `--delete`;
+- the installed receiver source enforces the same boundaries, uses write-only
+  no-delete `rrsync`, and invokes the finalizer only after rsync succeeds;
+- the finalizer requires `.finalize-request`, validates before completion, and
+  creates `.complete` locally;
+- the retained incoming payload and manifest remain exact, nonwritable, and
+  free of all three control markers; and
+- Caddy and lighttpd remain active while synchronization and reconciliation
+  remain inactive.
+
+Neither inspector executes rsync, the restricted SSH command, the receiver, or
+the finalizer. Both compare complete stable snapshots before and after.
+
+The runner requires exact source-derived assertion-label equality, unique
+records, exact cardinality, consistent status `0` or semantic-mismatch status
+`1`, secret-free grammar, matching per-node before/after hashes, matching
+cross-node payload and manifest hashes, and identical first/last Node B state.
+Malformed or contradictory evidence returns fail-closed status `97`.
+
+The expected readiness classification is
+`legacy_release_requires_transactional_marker_migration`. The legacy Node A
+release contains `.complete`, not the protocol-v2 `.finalize-request`, while
+both retained trees are intentionally mode `0550`. A later action must not try
+to copy a control marker directly into either locked tree. It must be designed
+as a separate transactional migration with rollback before any finalizer is
+invoked.
+
+Expected effect: three read-only administrative inspections plus trap-managed
+temporary files on the nodes and workstation. No peer synchronization SSH
+connection, restricted command, helper, transfer, marker write, reconciliation,
+service mutation, or persistent mutation occurs. No live rollback is required.
+
+Artifact SHA-256 values:
+
+- Node A inspector:
+  `e181f2e38f98f9df39bfb4992b4e4f91a786e738566c385becbe722709b931f1`.
+- Current executable-wrapper policy regression:
+  `0db1bb122cd4dce8b16f382625294892b5e5f1e23de4decaceb8a91526aa7cae`.
+- Node B inspector:
+  `f9abd9952612f7855821c0d09a1de01c64fa540c1782aa24512cd035e7a1cdaf`.
+- Historical executed runner:
+  `4573744597366e2f1eed16ab4a4a29391283e68e7f67c91a028cdc1641573b95`.
+- Corrected unexecuted runner:
+  `ce8b1ba0641c2a03b9aa593c94ddecd1c27ff3ef73e094820d4bb0dc8b8ec71b`.
+- Corrected production-path regression:
+  `fdd4d9c5ca8cefa39328475c5e165a24adc11cc45ad223a5e3fe517289c98ae9`.
+- Executable-wrapper policy regression:
+  `570cc437648212780547f9ea575beac1cc45b0060ce76a60efb789a3d126e895`.
+
+The runner exited `97` after all three administrative SSH attempts returned
+`255` with nonempty stderr and no remote inspector output. It recorded 81
+runner assertions, 62 failures, and first failure
+`node_b_before_stderr_empty`. No peer restricted command, rsync, helper,
+transfer, marker mutation, reconciliation, service mutation, or persistent
+mutation occurred. Because the runner retained SSH stderr only in its
+trap-cleaned temporary directory, the exact live failure class was not
+preserved in the transcript and neither node's continuity could be
+independently established by this attempt.
+
+Local source comparison found one material administrative-transport difference:
+the failed Action 17r runner added `IdentitiesOnly=yes` without specifying an
+`IdentityFile`, while the accepted Action 17p-a and Action 17q-b administrative
+runners omit that option. This can prevent SSH from using the Ubuntu
+workstation's agent-held keys.
+
+The corrected runner removes only that administrative option. It retains
+`BatchMode=yes`, disabled password and keyboard-interactive authentication,
+strict host-key checking, public-key preference, and cleared forwarding. Node
+A's synchronization-side configuration inspection remains explicitly paired
+as `-i "$private_key" -o IdentitiesOnly=yes`. The regression now fails if the
+administrative runner reintroduces `IdentitiesOnly=yes`.
+
+The corrected runner was executed once. Both Node B inspections returned SSH
+status `0` with all remote assertions passing. Node A returned the intended
+semantic status `1`; its transcript grammar, label set, counts, status,
+before/after state, and every no-mutation marker passed, while the aggregate
+`node_a_remote_assertions_passed` runner assertion was the sole failure.
+Cross-node payload and manifest hashes, Node A source-state classification,
+Node B receiver/release classifications, and B-A-B state continuity all
+matched. The runner emitted readiness classification
+`legacy_release_requires_transactional_marker_migration`, 81 assertions, one
+failure, acceptance false, and exit `1` rather than malformed status `97`.
+
+The runner did not emit the safe Node A assertion transcript before its
+trap-managed cleanup, so the exact failed Node A assertion cannot be recovered
+from this execution. No diagnostic execution, corrected retry, restricted
+command, transfer, helper, marker mutation, reconciliation, service mutation,
+or later action is authorized. The next gate is definition only of narrow
+read-only Action 17r-a, which must emit every independently labeled Node A
+assertion while separately preserving Node B and cross-node continuity.
+
+### Defined read-only Node A semantic diagnostic Action 17r-a
+
+Action 17r-a was executed once after exact hash authorization with this command:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-a-protocol-v2-semantic-diagnostic-action17r-a.sh
+```
+
+The action first invokes corrected Action 17r runner SHA-256
+`ce8b1ba0641c2a03b9aa593c94ddecd1c27ff3ef73e094820d4bb0dc8b8ec71b`
+as an immutable dependency. That baseline performs administrative Node B,
+Node A, and Node B inspections and preserves its complete safe runner
+transcript. Action 17r-a then performs one additional administrative Node A
+inspection using the accepted workstation SSH configuration and agent. It
+does not use `IdentitiesOnly=yes` on either administrative path.
+
+The Node A inspector is unchanged at SHA-256
+`e181f2e38f98f9df39bfb4992b4e4f91a786e738566c385becbe722709b931f1`.
+Its 52 assertions were already independently labeled. Action 17r-a does not
+replace or aggregate them. It derives the expected label set directly from the
+inspector, requires exactly one record for every label, validates the reported
+count, false count, first failure, exit-status semantics, stable before/after
+state, payload and manifest hashes, source-state classification, and every
+no-mutation record, then emits all 52 original assertion records plus the safe
+value and summary records before cleanup.
+
+The pinned baseline remains an independent gate for both Node B inspections,
+cross-node payload and manifest identity, Node A source state, Node B receiver
+and release states, B-A-B state continuity, readiness classification, and all
+no-mutation boundaries. The additional Node A status must match the baseline
+Node A status. A coherent mismatch and a coherent ready state both return
+diagnostic acceptance `true`; malformed, contradictory, duplicate, unsafe, or
+drifting evidence returns fail-closed status `97`. Unsafe transcripts are not
+emitted.
+
+Expected effect: four read-only administrative inspections in B-A-B-A order
+and trap-managed temporary files. No peer synchronization connection,
+restricted command, rsync, helper invocation, transfer, marker mutation,
+reconciliation, service mutation, or persistent mutation occurs. No live
+rollback is required.
+
+Artifact SHA-256 values:
+
+- Action 17r-a runner:
+  `a8830d8ffb9f1ff9cf671ba7c2f942e5b5799531d503e44ef293f4df3baff3e5`.
+- Production-path regression:
+  `32c390d484edf399c266a58fa1533d1e01f88a3b4593307c4a39c7d00388cf85`.
+- Corrected Action 17r dependency:
+  `ce8b1ba0641c2a03b9aa593c94ddecd1c27ff3ef73e094820d4bb0dc8b8ec71b`.
+- Node A inspector:
+  `e181f2e38f98f9df39bfb4992b4e4f91a786e738566c385becbe722709b931f1`.
+
+Focused regression accepts coherent semantic-mismatch and ready fixtures to
+prevent false negatives. It rejects baseline/detail inconsistency, duplicate
+Node A labels, unsafe transcript content, and Node B B-A-B drift to prevent
+false positives. It also proves unsafe fixture content does not reach standard
+output or standard error.
+
+The runner returned `0` and diagnostic acceptance `true`. The pinned Action 17r
+baseline again returned the coherent semantic status `1`: both Node B
+inspections passed, the cross-node hashes and classifications matched, B–A–B
+state was unchanged, and its only aggregate failure was
+`node_a_remote_assertions_passed`.
+
+The additional Node A inspection emitted exactly 52 unique assertions. Exactly
+two were false:
+
+- `ipv4_ssh_g_stderr_empty`.
+- `ipv6_ssh_g_stderr_empty`.
+
+Both `ssh -G` commands returned status `0`. Their independently parsed address
+families, source bind addresses, peer hostname, and host-key alias values were
+all exact. The runner did not emit the bounded stderr content, so its cause is
+not inferred. Node A's before/after state hashes were both
+`afebf586e3983a0d186a278d1e6b786ecf5387f2d22423007a993a8aaff13a38`;
+payload and manifest hashes remained exact; all connection, restricted-command,
+transfer, marker, helper, service, and persistent-mutation records were false.
+
+No correction, retry, transport probe, restricted command, transfer, helper,
+marker mutation, reconciliation, service mutation, or later action is
+authorized. The next gate is separate authorization to define—but not
+execute—a narrow read-only Action 17r-b that captures bounded, secret-safe
+stderr from each `ssh -G` probe, classifies each stream independently, and
+preserves the existing status, parsed-option, stable-state, and no-mutation
+assertions.
+
+### Defined read-only Node A `ssh -G` stderr diagnostic Action 17r-b
+
+Action 17r-b is defined but has not been executed. The future exact command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-a-ssh-g-stderr-diagnostic-action17r-b.sh
+```
+
+OpenSSH documents `ssh -G` as evaluating `Host` and `Match` configuration,
+printing the resulting effective client configuration, and exiting. The
+OpenSSH portable implementation exits through its configuration-dump path
+before connection or authentication. Action 17r-b therefore uses `ssh -G`
+only to inspect effective IPv4 and IPv6 address-family, source-bind, hostname,
+and host-key-alias values. It is not represented as a reachability or
+restricted-transport probe, and both remote and workstation contracts require
+`peer_connection_executed=false`.
+
+One administrative SSH session enters `/` on Node A and streams the new
+inspector through `sudo -n`. The administrative connection retains the
+accepted workstation SSH-agent/configuration model and does not specify
+`IdentitiesOnly=yes`. On Node A, the inspector runs the same non-connecting
+IPv4 and IPv6 `ssh -G` commands used by Action 17r. It independently records
+each command status and each parsed option.
+
+Each stderr stream has separate assertions for byte bound, line bound, NUL
+absence, printable content, secret-pattern exclusion, and supported
+classification. The maximum is 1,024 bytes and four lines per address family.
+Supported classifications are `empty`, `pseudo_terminal_not_allocated`,
+`safe_unclassified`, and `unsafe_withheld`. Safe streams are represented by
+byte count, line count, SHA-256, classification, and base64. Unsafe streams
+are never encoded or emitted and use the literal `withheld` marker.
+
+The workstation runner does not trust the remote safety decision. It decodes
+each safe value into a protected temporary file and independently verifies the
+byte count, line count, SHA-256, NUL absence, printable-content policy,
+secret-pattern exclusion, and classification. It emits the remote transcript
+only after both decoded streams and the transcript pass these gates. Every
+observable condition has its own stable assertion label.
+
+Before and after snapshots cover the retained release, synchronization key and
+known-host state, Caddy selection, and relevant service state. The hashes must
+match. The action cannot invoke a peer connection, restricted command, rsync,
+helper, transfer, finalizer, marker mutation, reconciliation, service mutation,
+or persistent mutation. Temporary paths are trap-managed; no live rollback is
+required.
+
+Artifact SHA-256 values:
+
+- Node A inspector:
+  `d892f6e06fee2edfbdcdc5a5d559bafb5234a675b0a2d42d8eb23fd77e85bf96`.
+- Workstation runner:
+  `42073901bd8f4faf92f84c24c9e1e84d8ee26607aab7ef42eec0cf911f91cd83`.
+- Production-path regression:
+  `061dc3007d298074679f948c74a9f46e1ac954bba1a1d44e6fb5bed34eb8f4c2`.
+
+Regression coverage accepts the exact pseudo-terminal notice, empty streams,
+and mixed safe classifications to prevent false negatives. It rejects a
+classification/content mismatch, duplicate value, decoded secret-bearing
+content, and administrative stderr to prevent false positives. It verifies
+unsafe decoded text does not reach standard output or standard error and that
+the production runner streams the exact inspector through the accepted
+administrative SSH boundary.
+
+Action 17r-b was executed once after exact hash authorization. The remote SSH
+status and runner status were `0`. All 39 remote assertions and all 58 runner
+assertions passed, with no failed assertion and runner acceptance `true`.
+
+Both `ssh -G` commands returned `0`. Each stderr stream was exactly 72 bytes
+and one line with SHA-256
+`d0e14941dee288cc8de19e48436cdf3c2e7939d4b98136c44d954b5f8be73d8a`.
+Both decoded independently as:
+
+```text
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+```
+
+Both classifications were `pseudo_terminal_not_allocated`; the diagnostic
+conclusion was `pseudo_terminal_notice_confirmed_dual_stack`. Every effective
+IPv4 and IPv6 address-family, source-bind, hostname, and host-key-alias
+assertion remained exact. Node A's before/after state hashes both equaled
+`14738d3619c537be029e272ae8c2ac3f344c076edf31cd819bbdec779c64aeed`.
+Every peer-connection, restricted-command, transfer, marker, helper, service,
+and persistent-mutation record was false, and workstation cleanup passed.
+
+No correction, retry, transport probe, restricted command, transfer,
+finalization, reconciliation, service mutation, or later action is authorized.
+The next gate is separate authorization to define—but not execute—an
+append-only corrected readiness action that explicitly disables
+pseudo-terminal allocation for both non-connecting `ssh -G` probes while
+preserving every independently labeled configuration, stable-state, and
+no-mutation gate. Historical Action 17r, 17r-a, and 17r-b artifacts remain
+immutable.
+
+### Defined corrected dual-node protocol-v2 readiness Action 17r-c
+
+Action 17r-c is defined but has not been executed. The future exact command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-protocol-v2-readiness-action17r-c.sh
+```
+
+The action is append-only. It does not modify or replace any Action 17r,
+17r-a, or 17r-b artifact. Its regression pins the SHA-256 of the historical
+Node A and Node B inspectors, corrected Action 17r runner/regression, Action
+17r-a runner/regression, and Action 17r-b inspector/runner/regression. Any
+historical byte change fails validation.
+
+The new Node A inspector retains the original 52 independently labeled
+identity, address, release, manifest, key, known-host, effective SSH option,
+stable-state, and no-mutation assertions. It uses a distinct
+`action_17r_c_node_a` namespace. Its only behavioral correction is explicit
+pseudo-terminal suppression on both configuration-only commands:
+
+```text
+ssh -G -T -F /dev/null -4 ...
+ssh -G -T -F /dev/null -6 ...
+```
+
+`-G` still dumps evaluated configuration without connecting. `-T` explicitly
+disables pseudo-terminal allocation, matching the noninteractive use case and
+preventing the exact notice confirmed by Action 17r-b. Address family, source
+bind, hostname, and host-key alias remain independently parsed and required.
+
+The corrected runner reuses the exact accepted Node B inspector SHA-256
+`f9abd9952612f7855821c0d09a1de01c64fa540c1782aa24512cd035e7a1cdaf`.
+It performs administrative inspections in B–A–B order and retains all 81
+runner assertions covering transcript grammar, exact source-derived label
+sets, uniqueness, counts, first-failure and status semantics, state continuity,
+cross-node payload and manifest hashes, Node A source classification, Node B
+receiver/release classifications, B–A–B continuity, and every no-mutation
+boundary.
+
+The regression executes the real installed OpenSSH client for both IPv4 and
+IPv6 loopback configuration dumps. It requires status `0`, empty stderr,
+correct address family and bind address, and `requesttty false`. The intercepted
+production path accepts a complete valid B–A–B transcript, preserves a coherent
+Node A semantic mismatch as status `1`, and rejects Node B state drift as
+malformed status `97`. Static policy requires exactly two corrected `ssh -G -T`
+commands and rejects either historical unsuppressed form.
+
+Artifact SHA-256 values:
+
+- Corrected Node A inspector:
+  `ce7463c63883fc5973226d94332522326e88cc942d1d28f9ac9644e30803aa40`.
+- Corrected B–A–B runner:
+  `db59dcf4b0a52034639305e46bd6dc62f18ea3f4621013cfa53e6b0919ad2a5e`.
+- Production-path regression:
+  `7e35b48673215e12cd6f4e3bbed713832cb6945ed02a828f9f98b18f8284f41f`.
+
+Expected effect: three read-only administrative inspections and local
+configuration dumps only. No peer synchronization connection, restricted
+command, rsync, helper invocation, transfer, marker mutation, finalization,
+reconciliation, service mutation, or persistent mutation occurs. Temporary
+paths are trap-managed, so no live rollback is required.
+
+Action 17r-c was subsequently executed once under exact hash authorization and
+accepted. All three administrative SSH statuses were `0`; all 81 assertions
+passed; the first failure was `none`; B–A–B continuity was preserved; every
+connection, command, transfer, marker, helper, service, and persistent-mutation
+marker was false; and workstation cleanup completed. Readiness is classified
+`legacy_release_requires_transactional_marker_migration`. The next gate is to
+define—but not execute—the bounded transactional receiver-side marker migration.
+
+### Defined transactional receiver-side marker migration Action 17s
+
+Action 17s was executed once using the exact authorized runner:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-b-retained-release-marker-migration-action17s.sh
+```
+
+The action targets only Node B's retained release:
+
+```text
+/var/lib/caddy-sync/incoming/node-a/action17p-node-a-to-node-b-bootstrap
+```
+
+The transaction first requires the exact accepted Action 17r-c baseline,
+including the retained payload and manifest hashes, installed finalizer hash,
+single expected incoming release, absent control markers, locked `0550/0440`
+modes, active Caddy/lighttpd, inactive synchronization/reconciliation, absent
+lsyncd configuration, unchanged Caddy selection, and exact service-unit
+properties. Every observable condition has its own label. The success path has
+143 exact, unique assertions.
+
+After preflight, the transaction creates a root-only rollback directory under
+`/var/backups/caddy-ha` containing only a secret-free retained-tree metadata and
+hash snapshot. It does not duplicate the TLS private key or payload. It then:
+
+1. Temporarily changes only the retained release directory from `0550` to
+   `0750`.
+2. Creates an empty, `caddy-sync:caddy-sync`, `0440` `.finalize-request`.
+3. Invokes the already installed and hash-pinned receiver finalizer as
+   `caddy-sync` for source role `node-a`.
+4. Requires the finalizer to validate the complete release before atomically
+   creating the receiver-owned `.complete` through `.complete.pending`.
+5. Requires `.complete.pending` to be absent, both retained control markers to
+   be regular empty `0440` files, every directory/file to be relocked
+   `0550/0440`, and all payload, manifest, selection, lsyncd, reconciliation,
+   and service-continuity gates to remain exact.
+
+No transfer, publisher action, peer restricted command, Caddy selection,
+reconciliation, lsyncd activation, service mutation, or VRRP action is in
+scope. Node A's legacy outbound `.complete` remains untouched; this action
+migrates only the already received Node B release into the protocol-v2
+receiver-finalized state.
+
+If any post-mutation condition fails, bounded automatic rollback removes only
+`.finalize-request`, `.complete.pending`, and `.complete`; restores all retained
+release directories/files to `0550/0440`; revalidates payload and manifest
+hashes, Caddy selection, lsyncd absence, and every captured systemd property;
+and removes both the rollback directory and `/run` work directory. Rollback has
+46 exact, unique, independently emitted assertions. Any false, missing,
+duplicate, or incomplete rollback record is classified as malformed; an
+incomplete remote rollback emits `manual_intervention_required=true` and exits
+`125`, while the workstation runner exits `97`.
+
+Artifact SHA-256 values:
+
+- Node B transaction:
+  `325a8fff552646073768a619f5ee793423494d7258c8503624f1b44be0a0e5d8`.
+- Workstation runner:
+  `006b0d34480fe9cf3e0bec50649c2d8d59bf050821c1df8219d2193c7d403d20`.
+- Production-path regression:
+  `eaf8d4f2a9d0f1830245cb6e0eb56c7d00caa44afb87fe4b8411a25f2bbba01d`.
+
+Historical Action 17r-c artifacts are hash-pinned and remain byte-identical.
+
+The transaction passed every preflight assertion and crossed its mutation
+boundary. It created the request marker, invoked the installed finalizer as
+`caddy-sync`, and observed a valid receiver-generated completion marker. The
+independently labeled `action_17s_assertion_finalizer_stdout_empty` condition
+was false because the finalizer emitted unexpected stdout. The fail-closed
+runner rejected the success transcript with status `97` even though remote SSH
+status was `0`.
+
+Bounded rollback then completed. Every one of the 46 rollback assertions was
+true: request, pending, and completion markers were absent; release directories
+and files were restored to `0550/0440`; payload and manifest exactness passed;
+Caddy selection, lsyncd absence, reconciliation inactivity, and every captured
+service property were unchanged; the rollback backup and work directory were
+absent; and `action_17s_rollback_complete=true`. Workstation cleanup also
+completed. Action 17s is not accepted and was not retried.
+
+No repair, retry, finalizer invocation, marker mutation, lsyncd/reconciliation
+activation, service mutation, transfer, synchronization, VRRP, cleanup, or
+later action is authorized. The next gate is to define—but not execute—an
+independent read-only Action 17s-a that verifies the restored baseline and
+safely classifies the installed finalizer's stdout behavior without invoking
+the finalizer.
+
+### Defined read-only rollback and output diagnostic Action 17s-a
+
+Action 17s-a was executed once using the exact authorized command:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-b-action17s-rollback-output-action17s-a.sh
+```
+
+The inspector has 53 exact, unique assertion labels. It independently verifies
+Node B identity; the locked retained release; absent request, pending, and
+completion markers; exact payload and manifest hashes; absence of Action 17s
+backup and `/run` residue; Caddy selection; active Caddy/lighttpd; inactive and
+masked synchronization; inactive reconciliation; and before/after read-only
+continuity. It performs no finalizer invocation, marker write, service mutation,
+peer connection, transfer, or persistent mutation.
+
+The finalizer classifier is source-based because Action 17s deleted its capture
+files during successful rollback. It requires the exact installed finalizer
+SHA-256 and exact seven-line validation-block SHA-256, then independently proves:
+
+- the generic `require_check` executes child commands without suppressing
+  stdout;
+- there is exactly one `caddy validate` invocation;
+- its exact validation block contains no stdout or stderr redirect; and
+- the source classification is
+  `unsuppressed_caddy_validate_success_path`.
+
+Action 17s-a explicitly records that the prior stream's byte count, line count,
+and SHA-256 are unrecoverable. It does not infer those deleted values and does
+not invoke the finalizer to recreate them.
+
+The runner applies a 1 MiB/4096-line capture ceiling to each SSH stream. During
+the same run, before any acceptance gate, it emits byte count, line count,
+SHA-256, and classification for stdout and stderr. Raw stderr is never emitted;
+the remote stdout transcript is emitted only after grammar, secret, label,
+count, status, and no-mutation validation. The historical Action 17s transaction
+remains immutable behind its exact hash exception. Repository policy now
+requires every corrected or new transactional command to record this bounded
+stream evidence during the original run before testing emptiness or content.
+A corrected finalizer must suppress successful `caddy validate` stdout to keep
+the forced-command channel silent, while its caller still captures and records
+both finalizer streams.
+
+Artifact SHA-256 values:
+
+- Node B inspector:
+  `adae35e14b9639c0cfb66ddac33e93e71489c4a06bdca3e10376248c54543da1`.
+- Workstation runner:
+  `14c0c153b0dc410fd0ecfe2b3d99885154931fae5edbc045a9bdd72851b1908b`.
+- Transaction-output evidence policy:
+  `1e4c4990e54e2435232d40ab5b12a09da73299272a6fced24574d03f2d7baf55`.
+- Production regression:
+  `4e6c30cf7597b89849b3c1e55fc7cade49e8f89770fc1213c6222595e1e5df0b`.
+
+The live read-only execution returned SSH and runner status `0`. All 53
+assertions were true, with zero failures and first failure `none`. The bounded
+SSH stdout was 3641 bytes and 69 lines with SHA-256
+`1eb9cc10aa42f6f845cd827fda2f70551b76359e71a061a504250e8d8414212a`,
+classified `captured_within_bounds`. Stderr was empty with SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+The finalizer and seven-line validation-block hashes matched; the source
+classification was `unsuppressed_caddy_validate_success_path`; the finalizer
+was not invoked; release state was unchanged; every mutation marker was false;
+runner acceptance and workstation cleanup were true.
+
+No repair, corrected-finalizer installation, Action 17s retry, finalizer
+invocation, marker mutation, lsyncd/reconciliation activation, service
+mutation, transfer, synchronization, VRRP, cleanup, or later action is
+authorized. Action 17t now defines that separate correction without execution.
+Its next gate is exact-runner authorization; it may replace only the installed
+finalizer and retain a protected rollback backup, and it must not invoke the
+finalizer or retry marker migration.
+
+### Defined transactional Node B stdout-safe finalizer correction Action 17t
+
+Action 17t was executed once on Node B using the exact authorized runner and
+was accepted. No subsequent live action has run.
+
+The renderer accepts only the exact historical finalizer SHA-256
+`a49dadcaa611e641a100e6a4f2b1836fcf9a790876f437ee02e37003d78ef30c`
+and derives candidate SHA-256
+`e5ec5aab0f57b9ea68c41f122de282c1d156a6747f9f74dd1f22200079c097e4`.
+The only source change is:
+
+```diff
+-        --adapter caddyfile
++        --adapter caddyfile >/dev/null
+```
+
+The transaction installs only
+`/usr/local/libexec/finalize-incoming-release-v2.sh` and retains one protected
+root-only rollback backup. It does not invoke the finalizer, create or remove
+any release marker, retry Action 17s, enable lsyncd or reconciliation, change
+the active Caddy release, mutate a service, or alter the retained Action 17p
+release. The preflight and post-install contract has 82 unique assertion
+labels. Rollback has 21 unique assertion labels and restores the exact old
+finalizer before removing its backup and work stage.
+
+Both the remote transaction and workstation runner capture stdout and stderr
+during the original run. They emit byte count, line count, SHA-256, and safe
+classification before testing emptiness or content. Success requires empty
+inner `install` streams, bounded secret-free outer SSH streams, exact transcript
+grammar, all assertions exactly once, and explicit no-invocation/no-mutation
+records. A missing stream hash, contradictory mutation record, duplicate or
+false assertion, unsafe/unbounded stream, or incomplete rollback fails closed.
+
+Artifact SHA-256 values:
+
+- Renderer: `df8635a391c3ac1a9bd73e1f3ab8936bc5f75124558212b55998f0b9ec14ab54`.
+- Transactional installer: `75a1138172eb2d348d2a4768d410bf4502935b8a0828574d6bb520773a636aa5`.
+- Workstation runner: `0cb67a909bf4e935d7f335b69b2fee557fc7c4965b8aea0563f6999c173917e6`.
+- Production regression: `4864b99517feaf3387501c1a1cbd26938b7d0b37e201ad706dc899173e9c17cc`.
+
+The live execution returned SSH and runner status `0`. All 82 assertions were
+true, with zero failures and first failure `none`. Outer stdout was 5314 bytes
+and 108 lines with SHA-256
+`fcdf35fd48f693509e8c44e037c0c0f776f921c6106bb5eeb5e0cab084490e66`,
+classified `bounded_safe_unemitted` before its validated transcript was shown.
+Outer stderr and both inner `install` streams were empty with SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+The installed finalizer is exact candidate `e5ec5aab...97e4`; protected backup
+`/var/backups/caddy-ha/action17t-node-b-stdout-safe-finalizer.Z6U7Yc` was
+retained. The finalizer was not invoked, the Action 17p release and markers did
+not change, Caddy/lighttpd remained active, lsyncd and reconciliation remained
+inactive, the active Caddy release remained exact, and workstation cleanup
+passed.
+
+Independent read-only Action 17t-a was required to verify the post-install
+state without trusting the transaction transcript alone. That prerequisite is
+now accepted; the corrected receiver-side marker migration retry remains a
+separate definition and execution gate.
+
+### Defined independent read-only Node B post-install Action 17t-a
+
+Action 17t-a was executed once on Node B using the exact authorized runner
+SHA-256 `63125308950da76de2ab80bff2121d4e424105f718f431076ad7de67b293e944`
+and accepted with SSH/runner status `0`. All 62 independently labeled
+assertions passed with zero failures and first failure `none`.
+
+The Node B inspector emits 62 unique assertion labels covering:
+
+- Exact installed finalizer hash `e5ec5aab...97e4`, root ownership, mode,
+  syntax, one stdout redirect, absence of the old unredirected line, and exact
+  corrected validation-block hash.
+- Exactly one Action 17t backup at
+  `/var/backups/caddy-ha/action17t-node-b-stdout-safe-finalizer.Z6U7Yc`, with
+  root-only directory/file metadata, exact old finalizer hash, and exact
+  three-line backup manifest hash `1c77b0bb...f15d` and contents.
+- Exact locked Action 17p release ownership/modes, payload and manifest hashes,
+  internal manifest verification, sole expected incoming revision, and absent
+  `.finalize-request`, `.complete.pending`, and `.complete` markers.
+- Exact active Caddy release, active Caddy/lighttpd, masked inactive lsyncd,
+  inactive caddy-lsyncd and reconciliation units, and absent lsyncd
+  configuration.
+- Absence of both Action 17t transaction and remote-bundle stages below
+  `/run`, plus identical comprehensive before/after state hashes.
+
+The workstation runner captures and classifies both SSH streams before any
+acceptance decision. It accepts either a complete zero-failure result or a
+contract-valid semantic status `1`, while status `97` is reserved for malformed,
+missing, duplicate, unsafe, unbounded, or internally contradictory evidence.
+Regression coverage intercepts the real production path without LAN contact,
+accepts valid success and valid semantic mismatch, rejects missing and
+duplicate assertions, and suppresses unsafe stderr. Fixtures cannot bypass the
+production runner.
+
+Artifact SHA-256 values:
+
+- Node B inspector: `50cef92bc6b55b90275a819ee92d511df12132f2ad417c12d359d46f0f56919f`.
+- Workstation runner: `63125308950da76de2ab80bff2121d4e424105f718f431076ad7de67b293e944`.
+- Production regression: `53240968ec85d8f61fcb68ae4ad86a7e67a3c176ac9cc5da29fefbac35b95d07`.
+
+The captured stdout was bounded at 4262 bytes and 80 lines with SHA-256
+`c066bb6af1b7212001f2a990ee761a4edb52767c344aa7b88d3b5b66033e308f`;
+raw stdout was not emitted. Stderr was empty. The before/after state SHA-256
+was identically `32eec7168e0629687a3c83972d5885c35fbe3fe1b14c815d3b40d8114c87437b`.
+The finalizer was not invoked, every mutation marker was false, and workstation
+cleanup completed.
+
+The next gate is separate authorization to define—but not execute—the
+corrected transactional receiver-side marker migration retry. Finalizer
+invocation and all marker, service, synchronization, and reconciliation
+mutations remain prohibited until that action is separately defined,
+validated, and authorized.
+
+### Defined corrected transactional receiver-side marker migration Action 17s retry
+
+The corrected Action 17s retry is defined and validated on the workstation
+only. It has not been executed and has not contacted either HA node.
+
+The append-only transaction retains the historical Action 17s mutation and
+rollback boundaries while pinning the accepted finalizer SHA-256
+`e5ec5aab0f57b9ea68c41f122de282c1d156a6747f9f74dd1f22200079c097e4`.
+Its success contract contains 144 unique assertions; its rollback contract
+contains the same 46 independently labeled continuity checks accepted during
+the historical rollback. It may temporarily make the retained release root
+writable, create `.finalize-request`, invoke the finalizer as `caddy-sync`, and
+accept only the receiver-generated `.complete` marker. It does not transfer
+payload, change Caddy selection, mutate payload bytes, start services, enable
+lsyncd, or activate reconciliation.
+
+Before testing finalizer status or stream emptiness, the transaction records
+bounded byte count, line count, SHA-256, safe classification, and
+`raw_emitted=false` independently for finalizer stdout and stderr from that
+same invocation. The runner records the equivalent evidence for both SSH
+streams before transcript acceptance. Successful finalization requires exit
+status zero and two empty inner streams. A safe nonempty or failed finalizer
+stream causes bounded rollback; unsafe, unbounded, missing, duplicate, or
+contradictory evidence is malformed and fails closed.
+
+On failure after mutation begins, rollback removes only `.finalize-request`,
+`.complete.pending`, and `.complete`; restores all retained-release directories
+and files to `0550/0440`; revalidates exact payload and manifest hashes, Caddy
+selection, absent lsyncd configuration, and common/service-only systemd
+properties; and removes the retry backup and `/run` work stage. A complete
+rollback preserves the remote nonzero status. Incomplete rollback requires
+manual intervention and is rejected as runner status `97`.
+
+Artifact SHA-256 values:
+
+- Transaction: `269c48158969f3767b13ffa92aaef1559bcb0c25c64bb19fdb93e70f56713bd0`.
+- Workstation runner: `f5319707d8943eb9f129da5c31b8724cf0ef608eee3847c10ac43e9122a96700`.
+- Production regression: `fbd83338656365058965a30ba974aad7df38c347845af183f0888a9b93572559`.
+
+The corrected Action 17s retry was executed once using the exact authorized
+runner. The finalizer returned zero, stdout was empty, and `.complete` was
+created, but finalizer stderr contained 724 bytes across six lines with
+SHA-256 `dd0e90054410c6fd8e6c9812dd9162eaead43bc3b2d9c67cbe4854b589d351c2`.
+It was bounded, printable, secret-safe, and deliberately not emitted. The
+independent `finalizer_stderr_empty` assertion failed.
+
+All 46 rollback assertions passed. Request, pending, and completion markers,
+the retry backup, and work state were removed; release modes, exact payload and
+manifest hashes, Caddy selection, all captured unit properties, absent lsyncd
+configuration, and inactive reconciliation were preserved. SSH returned `0`,
+but the runner correctly returned `97` because the success transcript was not
+acceptable. Workstation cleanup passed.
+
+The source-level Action 17t transform redirects only successful `caddy
+validate` stdout to `/dev/null`; it does not redirect stderr. That is a
+candidate explanation, not accepted classification of the deleted live
+capture. The next gate is separate authorization to define—but not execute—a
+read-only rollback-continuity and corrected-finalizer stderr source diagnostic.
+No retry, finalizer invocation, marker mutation, service mutation, or
+synchronization activation is authorized.
+
+### Defined read-only post-rollback stderr-source diagnostic Action 17s-b
+
+Action 17s-b is defined and validated on the workstation only. It has not been
+executed and has not contacted either HA node.
+
+The streamed Node B inspector contains 53 unique, independently labeled
+assertions. It requires root execution from `/`, exact Node B identity, the
+accepted corrected finalizer SHA-256
+`e5ec5aab0f57b9ea68c41f122de282c1d156a6747f9f74dd1f22200079c097e4`,
+and the exact seven-line Caddy validation block SHA-256
+`be85e806dfefe0781806e8f95f00c2e1e1d4ef9393aca24efa2a382bad99ccde`.
+Static source gates require exactly one stdout redirect to `/dev/null`, no old
+unredirected adapter line, and no stderr redirect. The resulting source
+classification is
+`stdout_suppressed_stderr_unsuppressed_caddy_validate_path`. The inspector does
+not invoke the finalizer or Caddy validation.
+
+Rollback continuity requires absent request, pending, and completion markers;
+locked `0550/0440` release metadata; exact payload and manifest hashes; no
+Action 17s retry backup or work residue; unchanged Caddy selection; active
+Caddy and lighttpd; absent lsyncd configuration; inactive/masked
+synchronization and inactive reconciliation; and identical before/after
+release, selection, and service state.
+
+The diagnostic preserves the failed transaction's known stderr identity as
+724 bytes, six lines, SHA-256
+`dd0e90054410c6fd8e6c9812dd9162eaead43bc3b2d9c67cbe4854b589d351c2`,
+classification `bounded_safe_unemitted`, and
+`content_recoverable=false`. It does not claim to recover or reproduce the
+deleted six lines.
+
+The durable stream-evidence rule now requires same-run metadata followed by a
+secured content outcome. Bounded safe content must be emitted between explicit
+begin/end labels or retained at a reported protected path with exact metadata;
+unsafe content remains suppressed; empty streams are explicit. The Action
+17s-b runner implements framed safe-content emission after classification and
+before cleanup. Regression policy pins the executed Action 17s retry as an
+immutable metadata-only exception and rejects loss of the new secured-content
+contract.
+
+Artifact SHA-256 values:
+
+- Inspector: `2f2648a9ac9eadf784b17eb3509375a1af7232717d19a9257b06a89f4bf3a992`.
+- Workstation runner: `eaba182394c78179f2001833fc14647eec91deae90e2b96896584b6f16f1a4f6`.
+- Production regression: `7713b6d10a4e1bdede5a7846698b2709cec342dedf4f43660493bbd404771b2f`.
+- Stream-evidence policy: `5fbc2fac038386958219ce72306e55f30d9ff7da34a21f31e2930f128d35338d`.
+
+Action 17s-b was executed once using the exact authorized runner SHA-256
+`eaba182394c78179f2001833fc14647eec91deae90e2b96896584b6f16f1a4f6`.
+SSH and runner status were `0`; all 53 assertions were true, failed count was
+zero, and first failure was `none`. Remote stdout was 3700 bytes across 70
+lines with SHA-256
+`346798e99768dc95c103f5c23413d54728441b206e25d1900ff738fba9a721b2`.
+It was classified bounded and safe, then emitted between explicit framing
+labels. Remote stderr was empty with SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+Workstation cleanup completed.
+
+The accepted live source classification is
+`stdout_suppressed_stderr_unsuppressed_caddy_validate_path`. Exact finalizer,
+validation-block, payload, manifest, selection, marker-absence, release-mode,
+and service-state assertions passed. Release and service state were unchanged.
+The finalizer was not invoked, and no marker, filesystem, service, or
+persistent mutation occurred.
+
+The next gate is separate authorization to define—but not execute—a
+transactional stderr-safe finalizer correction. It must capture Caddy
+validation stderr, suppress it only after successful validation, preserve it
+on failure, and neither invoke the finalizer nor alter the retained release
+during installation. No correction installation, marker migration retry,
+finalizer invocation, service mutation, synchronization activation, or later
+action is authorized.
+
+### Defined transactional Node B stderr-safe finalizer correction Action 17u
+
+Action 17u is defined and validated on the workstation only. It has not been
+executed and has not contacted either HA node.
+
+The candidate finalizer preserves the accepted Action 17t stdout behavior and
+adds a private temporary stderr capture around `caddy validate`. A successful
+validation deletes the empty-or-informational capture without emitting it. A
+failed validation replays the captured stderr unchanged, removes the capture,
+and returns the original nonzero status. Fake-Caddy regressions prove success
+suppression, exact failure replay, status preservation, and cleanup. The Debian
+12 validation container proves the same success/failure behavior with the real
+Caddy binary.
+
+The transaction contains 101 independently labeled success assertions and 22
+independently labeled rollback assertions. It requires the accepted live
+finalizer `e5ec5aab...97e4`, the exact protected Action 17t backup and manifest,
+the locked Action 17p payload and release manifest, absent request/pending/
+complete markers, active Caddy/lighttpd, absent lsyncd configuration, and
+inactive reconciliation. It installs only the stderr-safe finalizer and retains
+a new root-only rollback backup. It does not invoke the finalizer, touch the
+release or markers, alter Caddy selection, or mutate any service state.
+
+The runner captures both remote streams during the original transaction. It
+records byte count, line count, SHA-256, and safety classification; bounded safe
+content is emitted between explicit frames, unsafe or over-limit content is
+retained at a reported protected path, and empty streams are explicit. Complete
+rollback is accepted without masking the original failure; incomplete rollback
+is classified as malformed evidence.
+
+Validation contexts are intentionally separate: source ownership
+`aaron:aaron:0755` and intercepted production-runner behavior are authoritative
+on the workstation, while the read-only container bind projection is validated
+as `root:root:0755` and exercises real-Caddy behavior. Neither scope may stand in
+for the other. This prevents container ownership projection from producing a
+false failure without introducing a production fixture bypass.
+
+Artifact SHA-256 values:
+
+- Candidate finalizer: `15d858774a17369f31261f7f94bea72d575f269fdb3e8e991534f66dd4f4902d`.
+- Transactional installer: `b8dcdd8e77f1349a6e2cc9ba270a4582b318fb641077509b5664f70942258c46`.
+- Workstation runner: `0653a6ca458dbe4bb252886e8a408919cba64453c5ee569850d50ee794a99b23`.
+- Production/runtime regression: `b15791b68545b8b9bbb942a4ba66700aad35c6d776e8dbdb8d74b87e5da05d89`.
+- Transaction-output evidence policy: `84873a1ad3ee1745fe445f179f6a002c2ccee5b147b93cc3db0d6f17d54d4441`.
+
+The next gate is separate authorization before exact runner SHA-256
+`0653a6ca458dbe4bb252886e8a408919cba64453c5ee569850d50ee794a99b23`.
+No installation, finalizer invocation, marker mutation, marker-migration retry,
+service mutation, synchronization activation, cleanup, or later action is
+authorized.
+
+Action 17u was executed once using that exact authorized runner. SSH and runner
+status were `0`; all 101 assertions were true, failed count was zero, and first
+failure was `none`. Outer stdout was 6407 bytes across 127 lines with SHA-256
+`27f9197e57ec8eb220ca379b286a98c5ac21bc91bb008e2a1bde8f42d37bfa47`.
+It was bounded and safe, then emitted between explicit framing labels. Outer
+stderr and both inner installation streams were empty. Workstation cleanup
+completed.
+
+The installed finalizer changed from
+`e5ec5aab0f57b9ea68c41f122de282c1d156a6747f9f74dd1f22200079c097e4`
+to exact stderr-safe candidate
+`15d858774a17369f31261f7f94bea72d575f269fdb3e8e991534f66dd4f4902d`.
+Protected rollback backup
+`/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC` was
+retained. The finalizer was not invoked; release, payload, manifest, request,
+pending and completion markers, Caddy selection, services, lsyncd, and
+reconciliation state were unchanged.
+
+### Defined independent read-only Node B post-install Action 17u-a
+
+Action 17u-a is defined and validated on the workstation only. It has not been
+executed and has not contacted either HA node.
+
+The inspector emits 71 unique, independently labeled assertions. It validates
+the exact installed finalizer hash, syntax, stderr-capture function and
+validation-call block; the exact Action 17u backup path, ownership, modes,
+predecessor finalizer and manifest provenance; unchanged Action 17t backup;
+locked retained Action 17p payload and manifest; absent request, pending and
+completion markers; Caddy selection; Caddy/lighttpd continuity; absent or
+inactive synchronization/reconciliation; absent transaction stages; and
+identical before/after state hashes. It never invokes the finalizer.
+
+Definition review found a provenance defect in the immutable executed Action
+17u installer: it wrote `action=17t` into the Action 17u backup manifest.
+Correct provenance requires `action=17u`. With the same old/new finalizer
+hashes, the correct manifest SHA-256 is
+`a992c2ff9bdfde76770ddae910dedfc2a8bbdf6ad25de909ec5cbeacda31d70b`,
+while the installer-defined manifest SHA-256 is
+`8b7ee379963bec0932dece5b11dd602efba33fe5d76a6e281c4db0c93b60dfbf`.
+Action 17u-a does not normalize this defect: it will label the manifest hash
+and action checks independently and preserve status `1` as a valid semantic
+mismatch only when the complete transcript and all continuity/no-mutation
+evidence are valid.
+
+The runner captures, bounds, hashes, classifies and secures both SSH streams in
+the same run. Valid success and valid semantic mismatch are preserved;
+duplicate, missing, malformed, unsafe or contradictory evidence returns `97`
+and is retained rather than destroyed. Intercepted production regression proves
+the success, expected semantic mismatch, and malformed paths without network
+contact.
+
+The durable conditional-validator policy no longer relies on `set -e` inside
+functions evaluated by `if`, `!`, `&&`, or `||`. Every marked predicate uses an
+explicit `|| return` or guarded `if`. The policy regression reproduces Bash's
+historical early-failure/later-success false positive, proves the corrected
+behavior, statically checks marked validator regions, and requires the Action
+17u-a early-invalid transcript to return `97`.
+
+Artifact SHA-256 values:
+
+- Inspector: `38df35f89dc5732320e84ef9ec90ff8b0d5d1cee72d342b025c743c74a0d4210`.
+- Workstation runner: `facbaeda449522296cb90febf8fc0cbe4472129a35f960f9415e5aa5fb248ea2`.
+- Production regression: `eb75c337c66f8c0293e0acd65109a8466c5cbaf49388ace8cb915b5e5997c909`.
+- Conditional-validator policy: `0d21d28ffac412134a921c0965ea432dfb64dd03dadd1c8d823fc6d1c3f46812`.
+
+The next gate is separate authorization before exact read-only runner SHA-256
+`facbaeda449522296cb90febf8fc0cbe4472129a35f960f9415e5aa5fb248ea2`.
+No execution, provenance correction, finalizer invocation, marker mutation,
+marker-migration retry, service mutation, synchronization activation, cleanup,
+or later action is authorized.
+
+Action 17u-a was executed once using that exact authorized runner. SSH and
+runner status were `1`, which the runner accepted as a contract-valid semantic
+mismatch. The transcript contained exactly 71 unique assertions: only
+`backup_manifest_hash_exact` and `backup_manifest_action_exact` were false;
+failed count was two and first failure was `backup_manifest_hash_exact`.
+
+Observed backup manifest SHA-256 was
+`8b7ee379963bec0932dece5b11dd602efba33fe5d76a6e281c4db0c93b60dfbf`,
+matching the source-predicted `action=17t` manifest. Expected correct SHA-256
+remains
+`a992c2ff9bdfde76770ddae910dedfc2a8bbdf6ad25de909ec5cbeacda31d70b`
+for `action=17u`. Both old and new finalizer hash fields were exact.
+
+All other finalizer, prior-backup, retained-release, payload, manifest, marker,
+selection, service, synchronization, reconciliation, and stage assertions
+passed. Before and after state SHA-256 were both
+`5e770b76930e4ba5e8c3274c216f6520ad8cdde6ee4a104e7a970629174fa192`.
+Outer stdout was 4846 bytes across 89 lines with SHA-256
+`a02cca2c5a68b7d1b70736afe6271d76860946100afddbd0a5d6620fe1576781`,
+classified bounded and safe, and emitted between explicit frames. Stderr was
+empty. The finalizer was not invoked and every mutation marker was false.
+
+### Defined bounded metadata-only protected-manifest repair Action 17u-b
+
+Action 17u-b is defined and validated on the workstation only. No HA node was
+contacted and no protected metadata or live state changed. The transaction is
+pinned to the accepted Action 17u-a evidence and refuses any drift before
+mutation.
+
+The sole persistent success-path change is:
+
+```text
+/var/backups/caddy-ha/action17u-node-b-stderr-safe-finalizer.N9uEhC/manifest
+action=17t -> action=17u
+SHA-256 8b7ee379...fbf -> a992c2ff...70b
+```
+
+Both exact finalizer hash records remain unchanged. The backup directory stays
+`root:root:0700`; `finalizer.before` and the manifest stay
+`root:root:0600`. The transaction independently labels 54 preflight,
+candidate, mutation, and acceptance assertions. It validates the live and
+backup finalizer hashes, retained Action 17p payload and manifest, absent
+request/pending/completion markers, active Caddy/lighttpd, inactive
+synchronization/reconciliation, and exact Caddy selection.
+
+Before mutation, the transaction creates a private root-only rollback copy in
+`/run`. On any failure after mutation begins, it restores the exact old
+manifest, verifies its old hash, three-line contract, owner/mode, and complete
+continuity snapshot, removes the private work directory, and returns the
+original failure. An incomplete rollback returns `125` remotely and is rejected
+as `97` by the runner. The continuity snapshot excludes only the intentionally
+changed manifest content; it still covers manifest metadata, both finalizer
+files, release bytes, markers, Caddy selection, service states, lsyncd, and
+reconciliation.
+
+Both install streams and both outer SSH streams are captured, measured,
+hashed, classified, and either emitted when bounded and safe or retained with
+protected metadata. The finalizer is never invoked. No release, marker,
+service, lsyncd, reconciliation, transfer, or synchronization command is
+present in the mutation path.
+
+Artifact SHA-256 values:
+
+- Transaction: `c47653c285e7e3db98ed22b163c7f741d781f9d27f6c8feb1293bb70706eb0de`.
+- Workstation runner: `27d89ba02199b02924ee6c92067d77cb8ee1d818d7f3ea2e3bf05af2b373784d`.
+- Production regression: `5c42c857937986d4afb4eb776f5fc712a20ac72ac0ba14804a6beb01a0568927`.
+
+The next gate is separate authorization before exact Action 17u-b runner
+SHA-256
+`27d89ba02199b02924ee6c92067d77cb8ee1d818d7f3ea2e3bf05af2b373784d`.
+No repair, finalizer invocation, marker migration retry, service mutation,
+synchronization activation, cleanup, or later action is authorized.
+
+The exact runner was subsequently authorized, hash-verified, and invoked once.
+It returned status `1` on the workstation before reaching SSH. After creating
+`/tmp/caddy-action17u-b-runner.MmKTM8`, it assigned the `remote.stdout` and
+`remote.stderr` pathnames but did not create the files before applying
+`chmod 0600`. Both chmod operations therefore reported `No such file or
+directory`, and errexit stopped the runner.
+
+A read-only inspection confirmed that the retained workstation directory was
+`aaron:aaron:0700` and empty. The runner remained exact at authorized SHA-256
+`27d89ba02199b02924ee6c92067d77cb8ee1d818d7f3ea2e3bf05af2b373784d`.
+No SSH process was reached, the transaction was not transmitted or invoked,
+and Node B, its protected backup, releases, markers, finalizer, services,
+lsyncd, and reconciliation state were untouched. The exact empty directory was
+later revalidated and removed with `rmdir` under explicit authorization; its
+historical evidence remains in this plan and the immutable failed artifacts.
+
+This exposed a production-boundary regression gap: synthetic transcript tests
+validated downstream classification but did not execute the real runner path
+through capture-file initialization and an intercepted SSH call. A corrected
+retry must create the capture files securely before chmod, install cleanup
+handling immediately after `mktemp`, and test both successful and failing
+intercepted production paths. No correction, retry, or cleanup is currently
+authorized.
+
+### Defined corrected Action 17u-b retry
+
+The corrected retry is defined and focused-validation complete on the
+workstation only. It is append-only: the exact failed runner
+`27d89ba0...784d`, failed regression `5c42c857...927`, protected transaction
+`c47653c2...b0de`, and executed retry artifacts remain unchanged. The obsolete
+historical empty directory was separately removed after validation.
+
+The retry creates its private directory, immediately installs an EXIT cleanup
+trap, and then creates `remote.stdout.*` and `remote.stderr.*` with `mktemp`
+under `umask 077`. Before reaching SSH, it independently requires both files
+to be `aaron:aaron:0600`. Safe and empty evidence paths are removed by the trap
+on success or failure; unsafe or over-limit evidence remains in a protected
+`0700` directory with `0600` files and is reported rather than deleted.
+
+The production regression copies the exact retry and dependencies into an
+isolated tree, changes only its fixed PATH to select an intercepted SSH binary,
+and executes the real runner path. At the intercepted boundary it verifies the
+two open capture descriptors resolve to retry work-directory files with exact
+`aaron:aaron:0600` metadata and that stdin is the exact transaction source.
+It proves:
+
+- a valid transaction transcript is accepted and its work directory removed;
+- a failing SSH path is rejected and its work directory removed;
+- unsafe stderr is rejected but retained with protected metadata;
+- the immutable failed runner reproduces the missing-file error before the
+  intercepted SSH binary runs;
+- no real network connection occurs.
+
+During focused validation, this production regression also exposed a Bash
+dynamic-scope collision between a function-local `regression_root` and a later
+indented readonly declaration. The names are now disjoint. The repository
+append-only collision checker v2 recognizes readonly declarations with leading
+whitespace, and an executable invalid/control fixture covers this exact
+declaration-order and indentation boundary. The hash-pinned legacy checker is
+restored byte-for-byte for historical runner compatibility.
+
+Artifact SHA-256 values:
+
+- Protected transaction: `c47653c285e7e3db98ed22b163c7f741d781f9d27f6c8feb1293bb70706eb0de`.
+- Corrected retry runner: `19df3282a29ec49fa35f13afdf69a7a2231cac0b8e5e3ae9d5917c71e3a678e5`.
+- Retry regression: `a1f95ca15de2f94d00c2982172788d9930f5fa86c8e8032364390bce15b8378a`.
+- Collision policy v2: `ba1e769a3d00b5884421a8860f820e2dc8a3d8074837dab930630407f047886f`.
+- Legacy collision policy: `78b46fcdc6c4ca6b4cfe0121c347e0e101c472d723a891aac2dea7f23f085cd8`.
+
+The exact retry was later executed once and stopped before remote staging or
+mutation because the transaction expected short hostname `pihole00`, while
+Node B reports `j1-svpihole00`.
+
+### Defined append-only Action 17u-b second retry
+
+The second retry changes exactly one behavioral line in a rendered copy of the
+immutable transaction:
+
+```diff
+-require_check hostname_node_b test "$(hostname -s)" = pihole00
++require_check hostname_node_b test "$(hostname -s)" = j1-svpihole00
+```
+
+The renderer requires the exact executed transaction and runner hashes before
+producing output. It also mechanically advances only the inner runner revision,
+expected transaction hash, and private work-directory name. Exact unified-diff
+tests reject any additional transaction or runner difference.
+
+The outer runner creates a private stage and installs cleanup handling before
+fallible rendering. It validates the renderer and regression, renders the
+corrected transaction and inner runner, verifies their exact hashes, and runs
+the inner self/source/contract gates. Only a later no-argument invocation under
+separate exact-hash authorization can reach SSH.
+
+The intercepted production-prefix regression streams the corrected transaction
+through the actual inner runner and fake SSH boundary. It executes the first
+four exact production assertions in sequence. With observed hostname
+`j1-svpihole00`, effective UID, root working directory, hostname, and following
+`architecture_arm64` all pass. With historical value `pihole00`, the hostname
+assertion fails and architecture is not reached. The regression records that no
+network connection occurs and provides a separate container projection.
+
+Artifact SHA-256 values:
+
+- Correction renderer: `842a5a2ab1f54715a8f6f0e9c5b527ff3c6c080ed7094f2677cc604b67b616b7`.
+- Corrected rendered transaction: `f92ccbff329c2f6dff015bde47cc13fc3a146549faa69ca5a67619968d9df0d3`.
+- Corrected rendered inner runner: `e3390939cda6a4021701360ae6b43e4d9d77f146211d9cc8217cc0e9188aad0a`.
+- Outer runner: `7378eaf4c2ab35043fc1a6fb7bc8ac7b801ad920ace9267295c1f936f74e849a`.
+- Production regression: `dad4079b558c07d86e4eb59bf8726f37b3a85d68ed718a16e401c0749455a752`.
+
+Focused and complete host/Podman validation passed without contacting either HA
+node. The exact outer runner was later authorized and executed once. All 54
+transaction assertions passed, the protected manifest changed exactly to
+`a992c2ff...70b` with `action=17u`, and all other pinned state remained
+unchanged. A separately defined and authorized read-only post-repair acceptance
+action is required before marker migration.
 
 ## Validation Evidence
 
-No result in this section is considered live-deployment evidence.
+Repository-only definition results in this section are not live-deployment
+evidence. Rows explicitly labeled as executions record validated live evidence.
 
 | Date | Scope | Command | Result |
 | --- | --- | --- | --- |
+| 2026-08-02 | Append-only Action 17u-b second retry execution | Exact outer-runner hash/executable gate; local renderer/regression/self/source/contract gates; secure inner capture; complete 54-label transaction; inner/outer stream evidence; exact manifest transition; continuity and cleanup | Accepted: outer/SSH/inner statuses `0`; 54/54 assertions true; zero failures; stdout 3,949 bytes/72 lines/`64364a3c...de1d`, bounded safe and emitted; outer stderr and both install streams empty; manifest changed `8b7ee379...fbf`/`action=17t` to `a992c2ff...70b`/`action=17u`; `continuity_unchanged=true`; remote work directory and outer stage removed; no finalizer, release, marker, selection, service, or synchronization change |
+| 2026-08-02 | Append-only Action 17u-b second retry definition and historical empty-directory cleanup | Exact historical hash pins; one-line transaction diff and three-line mechanical runner diff; renderer/outer self/source/contract checks; independently classified production-prefix corrected/historical cases; next-assertion execution; cleanup traps; no-network assertion; executable-mode policy; complete host and Debian 12 Podman suites; full pre-commit and diff gates | Passed without LAN contact: corrected `j1-svpihole00` reaches and passes `architecture_arm64`; historical `pihole00` fails before architecture; corrected transaction `f92ccbff...f0d3`; outer runner `7378eaf4...849a`; regression `dad4079b...a752`; all 388 tracked Bash entry points are `100755`; exact empty `/tmp/caddy-action17u-b-runner.MmKTM8` was revalidated as `aaron:aaron:0700` with zero entries and removed under explicit authorization; all repository gates passed |
+| 2026-08-02 | Corrected Action 17u-b retry definition and workstation-runner hardening | Focused Bash syntax, ShellCheck, canonical shfmt, source-context, transaction/runner self and contract checks, repository-wide v2 collision scan, indented-later-readonly invalid/control fixtures, intercepted real-runner success/failure/unsafe paths, immutable failed-runner reproduction, capture-descriptor metadata, stdin hash, cleanup, retention, and no-network checks | Passed without LAN contact: capture files exist as `aaron:aaron:0600` before intercepted SSH; success and failure clean up; unsafe output is protected; historical failure is reproduced; retry `19df3282...78e5`; regression `a1f95ca1...378a`; collision policy v2 `ba1e769a...886f`; legacy policy `78b46fcd...5cd8` restored; full host/Podman/pre-commit validation is recorded after completion |
+| 2026-08-02 | Exact corrected Action 17u-b retry execution | Exact runner hash/executable gate; secure capture-file assertion; bounded stdout/stderr byte, line, hash, classification, and safe-content emission; remote transaction labels; retry-work-directory cleanup; immutable source mutation-boundary review | Exact hash passed; runner/SSH returned `1`; stdout 98 bytes/two lines/`544992f2...0e36`; stderr 45 bytes/one line/`16a9187d...ba1e`; first two assertions true and `hostname_node_b=false`; source hard-codes `pihole00` before all architecture/protected-state/stage checks and creates `/run/caddy-action17u-b.*` only after every preflight check, so no remote work directory, mutation, rollback, or live-state change occurred; retry workstation directory cleaned; historical empty directory later removed under separate authorization |
+| 2026-08-02 | Exact Action 17u-b execution attempt | Exact authorized runner SHA-256 `27d89ba0...784d`, verified immediately before one invocation | Stopped safely on the workstation with status `1`: capture paths were not created before chmod; SSH and remote transaction were never reached; no Node B or protected/runtime mutation occurred; read-only inspection found empty retained directory `/tmp/caddy-action17u-b-runner.MmKTM8` at `aaron:aaron:0700`; exact directory later revalidated and removed under explicit authorization |
+| 2026-08-02 | Bounded metadata-only protected-manifest repair Action 17u-b definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision checks, transaction/runner self/source/contract checks, exact 54-label uniqueness, old/new manifest fixture hashes, early-false/later-true and duplicate-evidence rejection, exact mutation/rollback source boundaries, no-finalizer/no-release/no-service/no-sync regression, full host suite, and Debian 12 Podman integration | Passed without LAN contact: exact one-field manifest repair; private automatic rollback; same-run inner and outer stream evidence; exact continuity snapshot excluding only intended manifest content; transaction `c47653c2...b0de`; runner `27d89ba0...784d`; regression `5c42c857...927`; complete Caddy validation passed |
+| 2026-08-02 | Independent read-only Node B post-install Action 17u-a execution | Exact authorized runner SHA-256 `facbaeda...8ea2`, verified immediately before one first-attempt-LAN execution | Accepted as complete semantic-mismatch evidence with SSH/runner `1`: 71 assertions, exactly two false (`backup_manifest_hash_exact`, `backup_manifest_action_exact`), observed manifest `8b7ee379...fbf` versus correct `a992c2ff...70b`, other 69 assertions true, identical before/after state `5e770b76...a192`, bounded safe stdout `a02cca2c...6781` emitted, empty stderr, no finalizer invocation or mutation, and complete cleanup |
+| 2026-08-02 | Independent read-only Node B post-install Action 17u-a definition and durable conditional-validator policy | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision checks, inspector/runner self/source/contract checks, exact 71-label uniqueness, valid/semantic/malformed intercepted production paths, early-invalid/later-valid behavioral rejection, marked-region static enforcement, host/container suite wiring, and diff gates | Defined without LAN contact: exact finalizer, backup, release, marker, selection, service, stage, and before/after state contracts; expected semantic mismatch preserves the Action 17u manifest provenance defect rather than accepting or correcting it; duplicate evidence returns `97`; inspector `38df35f8...4210`; runner `facbaeda...8ea2`; regression `eb75c337...c909`; policy `0d21d28f...6812` |
+| 2026-08-02 | Transactional Node B stderr-safe finalizer correction Action 17u execution | Exact authorized runner SHA-256 `0653a6ca...9b23`, verified immediately before one first-attempt-LAN execution | Accepted with SSH/runner `0`, 101/101 assertions true, zero failures, bounded outer stdout 6407 bytes/127 lines/SHA-256 `27f9197e...fa47` safely framed and emitted, empty outer stderr and inner install streams, installed finalizer `15d85877...902d`, retained protected backup `action17u-node-b-stderr-safe-finalizer.N9uEhC`, exact release/marker/selection/service continuity, no finalizer invocation, and complete cleanup |
+| 2026-08-02 | Transactional Node B stderr-safe finalizer correction Action 17u definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision checks, candidate/installer/runner self/source/contract checks, exact 101 success and 22 rollback labels, same-run stream policy, fake- and real-Caddy success/failure behavior, intercepted production success/rollback/malformed cases, complete host/Podman suite, and diff gates | Defined without LAN contact: successful Caddy validation stderr is suppressed only after status `0`; failed validation stderr and status are preserved; valid success and complete rollback accepted; contradiction, incomplete rollback, and unsafe-output loss rejected; finalizer not invoked and release/markers/services untouched; candidate `15d85877...902d`; installer `b8dcdd8e...c46`; runner `0653a6ca...b23`; regression `b15791b6...5d89` |
+| 2026-08-02 | Read-only Node B post-rollback and corrected-finalizer stderr-source Action 17s-b execution | Exact authorized runner SHA-256 `eaba1823...a4f6`, verified immediately before one first-attempt-LAN execution | Accepted with SSH/runner `0`, 53/53 assertions true, zero failures, stdout 3700 bytes/70 lines/SHA-256 `346798e9...21b2` safely framed and emitted, empty stderr, exact source classification `stdout_suppressed_stderr_unsuppressed_caddy_validate_path`, unchanged rollback baseline, no finalizer invocation or mutation, and complete cleanup |
+| 2026-08-02 | Read-only Node B post-rollback and corrected-finalizer stderr-source Action 17s-b definition plus durable stream-evidence correction | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision checks, inspector/runner self/source/contract tests, exact 53-label set, static no-finalizer/no-service/no-peer gates, corrected-finalizer rendering and source classification, framed safe-content ordering, protected unsafe-content retention, historical hash exceptions, false-positive/false-negative regression, complete host/Podman suite, and full pre-commit suite | Defined without LAN contact; exact rollback continuity and source-path classification are required without invoking the finalizer; failed stderr metadata is preserved as unrecoverable historical evidence; new actions must secure safe content before cleanup; inspector `2f2648a9...a992`, runner `eaba1823...a4f6`, regression `7713b6d1...1b2f`, policy `5fbc2fac...338d` |
+| 2026-08-02 | Corrected transactional receiver-side marker migration Action 17s retry execution | Exact authorized runner SHA-256 `f5319707...6700`, verified immediately before one first-attempt-LAN execution | Not accepted: finalizer status `0`, empty stdout, bounded 724-byte/six-line stderr SHA-256 `dd0e9005...51c2`, and receiver marker creation preceded `finalizer_stderr_empty=false`; SSH `0`, runner `97`; all 46 rollback assertions passed, all transient markers/backup/work state were removed, payload/manifest/selection/service continuity passed, and workstation cleanup completed |
+| 2026-08-02 | Corrected transactional receiver-side marker migration Action 17s retry definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision policy, transaction/runner self/source/contract checks, exact label cardinality, same-run finalizer/SSH stream policy, intercepted production success/rollback/malformed cases, false-positive/false-negative regression, complete host/Podman suite, and full pre-commit suite | Defined without LAN contact: 144 success and 46 rollback assertions; corrected finalizer pinned; valid success and complete rollback accepted; duplicate assertion, missing stream evidence, and incomplete rollback rejected; transaction `269c4815...bd0`; runner `f5319707...6700`; regression `fbd83338...2559`; all repository validation passed |
+| 2026-08-02 | Independent read-only Node B post-install Action 17t-a execution | Exact authorized runner SHA-256 `63125308...e944`, verified immediately before one first-attempt-LAN execution | Accepted with SSH/runner `0`, 62/62 assertions true, zero failures, bounded stdout 4262 bytes/80 lines/SHA-256 `c066bb6a...308f`, empty stderr, exact finalizer/backup/release hashes, identical before/after state SHA-256 `32eec716...437b`, no finalizer invocation, no mutation, and workstation cleanup complete |
+| 2026-08-02 | Independent read-only Node B post-install Action 17t-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision checks, inspector/runner self/source/contract tests, source-context validation, exact label uniqueness, static read-only/no-finalizer/no-service gates, intercepted production success/semantic/malformed cases, and false-positive/false-negative regression | Defined without LAN contact: 62 independent assertions; exact corrected finalizer and protected backup contracts; exact release, marker, service, selection, stage, and before/after state requirements; valid success and semantic mismatch preserved; missing/duplicate/unsafe evidence rejected; inspector `50cef92b...919f`; runner `63125308...e944`; regression `53240968...5d07` |
+| 2026-08-02 | Transactional Node B stdout-safe finalizer correction Action 17t execution | Exact authorized runner SHA-256 `0cb67a90...17e6`, verified immediately before one first-attempt-LAN execution | Accepted with SSH/runner `0`, 82/82 assertions true, zero failures, bounded outer stdout 5314 bytes/108 lines/SHA-256 `fcdf35fd...0e66`, empty outer stderr and inner install streams, installed finalizer `e5ec5aab...97e4`, retained backup `action17t-node-b-stdout-safe-finalizer.Z6U7Yc`, exact release/marker/service continuity, no finalizer invocation, runner acceptance, and workstation cleanup |
+| 2026-08-02 | Transactional Node B stdout-safe finalizer correction Action 17t definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision checks, renderer/installer/runner self/source/contract checks, exact-transform and historical-integrity gates, stream-evidence policy, intercepted production-path success/rollback/malformed cases, and false-positive/false-negative regression | Defined without LAN contact: exact one-line candidate; 82 success and 21 rollback assertions; same-run inner and outer stdout/stderr evidence; valid success and complete rollback accepted; contradiction, missing stream metadata, and incomplete rollback rejected; finalizer not invoked and release/markers/services untouched; runner `0cb67a90...17e6` |
+| 2026-08-02 | Read-only rollback/output Action 17s-a execution | Exact authorized runner SHA-256 `14c0c153...908b`, verified immediately before one first-attempt-LAN execution | Accepted with SSH/runner `0`, 53/53 assertions true, first failure `none`, stdout 3641 bytes/69 lines/SHA-256 `1eb9cc10...212a` within bounds, empty stderr SHA-256 `e3b0c442...b855`, exact finalizer and seven-line validation-block hashes, source classification `unsuppressed_caddy_validate_success_path`, unchanged release and service state, no finalizer invocation or mutation, runner acceptance, and workstation cleanup |
+| 2026-08-02 | Read-only rollback/output Action 17s-a definition and durable stream-evidence policy | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision policy, inspector/runner self/source/contract checks, exact label and source-classification gates, historical hash exception, metadata-before-acceptance ordering, false-positive/false-negative regression, complete host/Podman suite, and diff gates | Defined without LAN contact: 53 independent Node B assertions; exact source classification `unsuppressed_caddy_validate_success_path`; deleted prior bytes explicitly unrecoverable; future runner captures bounded stdout/stderr bytes, lines, hashes, and classifications during the same run; inspector `adae35e1...3da1`; runner `14c0c153...908b`; policy `1e4c4990...af55`; regression `4e6c30cf...df0b` |
+| 2026-08-02 | Transactional receiver-side marker migration Action 17s execution | Exact authorized runner SHA-256 `006b0d34...3d20`, verified immediately before one first-attempt-LAN execution | Not accepted: all preflight and marker-creation gates passed, but `finalizer_stdout_empty=false`; remote SSH returned `0`, the runner rejected the success transcript with `97`, all 46 rollback assertions were true, `rollback_complete=true`, payload/manifest and service continuity passed, all created markers/backup/work state were removed, and workstation cleanup completed |
+| 2026-08-02 | Transactional receiver-side marker migration Action 17s definition | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision policy, transaction/runner self/source/contract checks, exact success/rollback label contracts, historical-integrity pins, intercepted production-path success and rollback classifications, false-positive/false-negative regression, complete host/Podman suite, full pre-commit, and diff gates | Defined without LAN contact: 143 success and 46 rollback conditions are independently labeled; valid success and complete rollback are accepted; duplicate assertions and incomplete rollback are rejected; exact mutation scope is request/completion markers, temporary relocked mode elevation, and protected metadata-only rollback state; transaction `325a8fff...e5d8`; runner `006b0d34...3d20`; regression `eaf8d4f2...ba01` |
+| 2026-08-02 | Corrected dual-node protocol-v2 readiness Action 17r-c execution | Exact authorized runner SHA-256 `db59dcf4...2a5e`, after exact hash verification and completed definition gates | Accepted with Node B before/Node A/Node B after SSH statuses `0`, 81/81 assertions, first failure `none`, exact cross-node hashes and classifications, unchanged B–A–B state, all mutation markers false, readiness `legacy_release_requires_transactional_marker_migration`, and workstation cleanup true |
+| 2026-08-02 | Corrected dual-node protocol-v2 readiness Action 17r-c definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision policy, inspector/runner self/source/contract checks, real OpenSSH IPv4/IPv6 suppression checks, historical-integrity pins, intercepted production regression, host/container suites, full pre-commit, and diff gates | Defined without LAN contact: real `ssh -G -T` returned `0` with empty stderr and exact family/bind/`requesttty false` for both stacks; valid and semantic evidence preserved, drift rejected, 52 Node A/60 Node B/81 runner labels retained, and all historical Action 17r/17r-a/17r-b hashes unchanged; inspector `ce7463c6...aa40`; runner `db59dcf4...2a5e`; regression `7e35b486...f41f` |
+| 2026-08-02 | Read-only Node A `ssh -G` stderr diagnostic Action 17r-b execution | Exact authorized runner SHA-256 `42073901...cd83`, after exact hashes, metadata, syntax, collision, self/source/contract, source-context, production-regression, and governing-plan gates | Accepted with SSH/runner `0`, 39/39 remote and 58/58 runner assertions, identical 72-byte one-line stderr streams classified `pseudo_terminal_not_allocated`, exact IPv4/IPv6 effective bindings, unchanged state `14738d36...aeed`, all no-connection/no-transfer/no-mutation markers, and workstation cleanup |
+| 2026-08-02 | Read-only Node A `ssh -G` stderr diagnostic Action 17r-b definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision policy, inspector self/contract checks, runner self/source/contract checks, source-context policy, production-path regression, host/container suites, full pre-commit, and diff gates | Defined without LAN contact; exact/empty/mixed safe stderr accepted, contradictory/duplicate/secret/admin-stderr evidence rejected, decoded secret suppressed, all 39 remote conditions independently labeled, and historical Action 17r/17r-a artifacts unchanged; inspector `d892f6e0...bf96`; runner `42073901...cd83`; regression `061dc300...f4c2` |
+| 2026-08-02 | Read-only Node A semantic diagnostic Action 17r-a execution | Exact authorized runner SHA-256 `a8830d8f...f3e5`, after exact hash, metadata, syntax, collision, self/source/contract, inspector self-test, and focused production regression gates | Diagnostic accepted with runner `0`, 59/59 wrapper assertions, exact safe baseline, and all 52 Node A assertions emitted; exactly the IPv4 and IPv6 `ssh -G` stderr-empty assertions were false, although both statuses and all eight parsed source-binding options were exact; state `afebf586...13a38` unchanged and every no-connection/no-transfer/no-mutation marker passed |
+| 2026-08-02 | Read-only Node A semantic diagnostic Action 17r-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision policy, runner self/source/contract checks, intercepted production-path regression, complete host suite, Debian 12 Podman integration, and full pre-commit suite | Passed without LAN contact: exact 52-label emission, baseline/detail consistency, Node B and cross-node continuity, coherent mismatch and ready success cases, false-positive/false-negative rejection, unsafe-output suppression, no-mutation scope, and complete repository integration validated; runner `a8830d8f...f3e5`; regression `32c390d4...cf85`; Action 17r-a remains unexecuted |
+| 2026-08-02 | Corrected read-only Action 17r execution | Exact authorized runner SHA-256 `ce8b1ba0...c71b` after exact hashes, metadata, syntax, collision, self/source/contract, focused regression, complete host suite, full pre-commit, and diff gates | Complete contract-valid semantic mismatch: Node B SSH/assertions passed twice; Node A SSH/status contract returned `1`; cross-node hashes, all classifications, B-A-B continuity, transcript contracts, stable states, and no-mutation markers passed; runner 81 assertions with sole failure `node_a_remote_assertions_passed`, acceptance false, exit `1`; exact Node A failed assertion was not emitted before cleanup |
+| 2026-08-02 | Narrow Action 17r administrative-SSH correction | Removed only administrative `IdentitiesOnly=yes`; ran focused syntax, ShellCheck, canonical shfmt, collision policy, runner self/source/contract tests, intercepted production-path regression, complete host suite, and full pre-commit suite | Passed without LAN contact; corrected runner `ce8b1ba0...c71b`; regression `fdd4d9c5...8ae9`; administrative runner rejects `IdentitiesOnly=yes`, while synchronization-side explicit `-i` plus `IdentitiesOnly=yes` remains unchanged; corrected runner is unexecuted |
+| 2026-08-02 | Dual-node read-only protocol-v2 readiness Action 17r definition and durable wrapper correction | Focused syntax, ShellCheck, canonical shfmt, collision policy, 52/60 source-label alignment, inspector/runner self/source/contract tests, intercepted B-A-B production path, valid/semantic/malformed cases, direct executable host suite, Debian 12 Podman integration, executable working-tree/Git-mode policy, pre-commit, and `git diff --check` | Passed without LAN contact; the defined action performs no peer connection, restricted command, rsync, helper invocation, transfer, marker mutation, reconciliation, service mutation, or persistent mutation; `Caddy/tests/run.sh` is tracked executable as `100755` |
 | 2026-07-31 | Independent read-only Node B protocol-v2 post-install Action 17q-b execution | Exact authorized runner SHA-256 `20822b4e...eede`, after exact hashes, metadata, syntax, ShellCheck, canonical shfmt, collision, self/source/contract, exact 81-label alignment, and false-positive/false-negative gates | Accepted with 81/81 assertions, SSH `0`, contract valid, runner acceptance true, cleanup true, path property identity `88652858...ebcb`, matching state `e2352698...90d0`, exact helpers/authorization/backup/retained release, inactive synchronization/reconciliation, and every no-mutation marker |
 | 2026-07-30 | Independent read-only Node B protocol-v2 post-install Action 17q-b definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision policy, inspector/runner self/source/contract tests, exact 81-label production alignment, static no-mutation policy, valid and helper-hash semantic-mismatch false-negative cases, contradictory/duplicate/state-drift false-positive cases, complete host suite, Debian 12 Podman integration, pre-commit, and `git diff --check` | Passed without LAN contact: exact installed helper/authorization/backup and retained-release contracts, unit-type-aware path/service continuity, strict status `0`/`1`/`97` classification, no fixture bypass, and full repository integration; Action 17q-b remains unexecuted |
 | 2026-07-30 | Corrected transactional Node B protocol-v2 Action 17q retry execution | Exact authorized runner SHA-256 `1311e702...a4e7`, after exact hashes, metadata, syntax, ShellCheck, canonical shfmt, collision, self/source/contract, unit-type production-function, and false-positive/false-negative gates | Accepted with SSH `0`, runner acceptance true, cleanup true, all checks true, exact helper/authorization installation, protected backup `/var/backups/caddy-ha/action17q-retry-node-b-protocol-v2.TEhT7k`, unchanged retained release/markers and unit states, and explicit false helper invocation, release mutation, lsyncd/reconciliation activation, and service mutation |

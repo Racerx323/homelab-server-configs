@@ -7,10 +7,13 @@ readonly munin_root="$workspace/homelab-monitoring-observability/Munin"
 readonly deployment_fixture="$caddy_root/tests/fixtures/deployment.yaml"
 export CADDY_VALIDATION_CONTAINER=1
 
+"$caddy_root/tests/executable-wrapper-policy-regression.sh" >/dev/null
 "$caddy_root/tests/unbound-validation-runtime-regression.sh" \
     --production-test >/dev/null
 "$caddy_root/tests/source-test-context-policy-regression.sh" \
     --production-test >/dev/null
+"$caddy_root/tests/conditional-validator-errexit-policy-regression.sh"
+"$caddy_root/tests/check-shell-readonly-local-collisions-v2.sh" >/dev/null
 command -v git >/dev/null
 
 work_dir=$(mktemp -d /tmp/caddy-integration.XXXXXX)
@@ -1186,6 +1189,146 @@ mv -- "$work_dir/systemctl.real" /usr/bin/systemctl
     --contract-test
 "$caddy_root/tests/action17q-b-node-b-postinstall-regression.sh" \
     --self-test
+"$caddy_root/scripts/inspect-node-a-protocol-v2-readiness-action17r.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-b-protocol-v2-readiness-action17r.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r.sh" \
+    --source-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r.sh" \
+    --contract-test
+"$caddy_root/tests/action17r-dual-node-protocol-v2-readiness-regression.sh"
+"$caddy_root/scripts/run-node-a-protocol-v2-semantic-diagnostic-action17r-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-protocol-v2-semantic-diagnostic-action17r-a.sh" \
+    --source-test
+"$caddy_root/scripts/run-node-a-protocol-v2-semantic-diagnostic-action17r-a.sh" \
+    --contract-test
+"$caddy_root/tests/action17r-a-node-a-semantic-diagnostic-regression.sh"
+"$caddy_root/scripts/diagnose-node-a-ssh-g-stderr-action17r-b.sh" \
+    --self-test
+"$caddy_root/scripts/diagnose-node-a-ssh-g-stderr-action17r-b.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-a-ssh-g-stderr-diagnostic-action17r-b.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-ssh-g-stderr-diagnostic-action17r-b.sh"
+"$caddy_root/scripts/run-node-a-ssh-g-stderr-diagnostic-action17r-b.sh" \
+    --contract-test
+"$caddy_root/tests/action17r-b-node-a-ssh-g-stderr-regression.sh"
+"$caddy_root/scripts/inspect-node-a-protocol-v2-readiness-action17r-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r-c.sh" \
+    --source-test
+"$caddy_root/scripts/run-dual-node-protocol-v2-readiness-action17r-c.sh" \
+    --contract-test
+"$caddy_root/tests/action17r-c-dual-node-protocol-v2-readiness-regression.sh"
+"$caddy_root/scripts/migrate-node-b-retained-release-marker-action17s.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s.sh"
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s.sh" \
+    --contract-test
+"$caddy_root/tests/action17s-node-b-marker-migration-regression.sh"
+"$caddy_root/scripts/migrate-node-b-retained-release-marker-action17s-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry.sh"
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry.sh" \
+    --contract-test
+"$caddy_root/tests/action17s-retry-node-b-marker-migration-regression.sh"
+"$caddy_root/scripts/inspect-node-b-action17s-rollback-output-action17s-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17s-rollback-output-action17s-a.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17s-rollback-output-action17s-a.sh"
+"$caddy_root/scripts/run-node-b-action17s-rollback-output-action17s-a.sh" \
+    --contract-test
+"$caddy_root/tests/transaction-output-evidence-policy-regression.sh"
+"$caddy_root/tests/action17s-a-node-b-rollback-output-regression.sh"
+"$caddy_root/scripts/inspect-node-b-action17s-retry-stderr-action17s-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17s-retry-stderr-action17s-b.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17s-retry-stderr-action17s-b.sh"
+"$caddy_root/scripts/run-node-b-action17s-retry-stderr-action17s-b.sh" \
+    --contract-test
+"$caddy_root/tests/action17s-b-node-b-rollback-stderr-regression.sh"
+"$caddy_root/scripts/render-node-b-stdout-safe-finalizer-action17t.sh" \
+    --self-test
+"$caddy_root/scripts/install-node-b-stdout-safe-finalizer-action17t.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-stdout-safe-finalizer-install-action17t.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-stdout-safe-finalizer-install-action17t.sh"
+"$caddy_root/tests/action17t-node-b-stdout-safe-finalizer-regression.sh" \
+    --self-test
+printf 'action_17t_historical_container_projection_validated=true\n'
+"$caddy_root/scripts/inspect-node-b-stdout-safe-finalizer-postinstall-action17t-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-stdout-safe-finalizer-postinstall-action17t-a.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-stdout-safe-finalizer-postinstall-action17t-a.sh"
+"$caddy_root/scripts/run-node-b-stdout-safe-finalizer-postinstall-action17t-a.sh" \
+    --contract-test
+"$caddy_root/tests/action17t-a-node-b-postinstall-regression.sh"
+"$caddy_root/scripts/finalize-incoming-release-v2-stderr-safe-action17u.sh" \
+    --self-test
+"$caddy_root/scripts/install-node-b-stderr-safe-finalizer-action17u.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-stderr-safe-finalizer-install-action17u.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-stderr-safe-finalizer-install-action17u.sh"
+"$caddy_root/scripts/run-node-b-stderr-safe-finalizer-install-action17u.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-node-b-stderr-safe-finalizer-regression.sh"
+"$caddy_root/scripts/inspect-node-b-stderr-safe-finalizer-postinstall-action17u-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-stderr-safe-finalizer-postinstall-action17u-a.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-stderr-safe-finalizer-postinstall-action17u-a.sh"
+"$caddy_root/scripts/run-node-b-stderr-safe-finalizer-postinstall-action17u-a.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-a-node-b-postinstall-regression.sh"
+"$caddy_root/scripts/repair-node-b-action17u-backup-manifest-action17u-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b.sh"
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-b-node-b-backup-manifest-repair-regression.sh"
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry.sh"
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-b-retry-node-b-backup-manifest-repair-regression.sh"
+"$caddy_root/scripts/correct-node-b-action17u-backup-manifest-hostname-action17u-b-retry2.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry2.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry2.sh"
+"$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry2.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-b-retry2-node-b-backup-manifest-repair-regression.sh"
 "$caddy_root/scripts/inspect-node-b-protocol-v2-postfailure-action17q-a.sh" \
     --self-test
 "$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \

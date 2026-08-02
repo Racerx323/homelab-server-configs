@@ -73,6 +73,13 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/shfmt-canonical.sh --write FILE [FILE ...]`. Use `--check` for
   validation. The wrapper pins the repository's `-i 4 -ci` policy and rejects
   empty, broad, symbolic-link, and unapproved-repository targets.
+- Every tracked `Caddy/scripts/*.sh` and `Caddy/tests/*.sh` Bash entry point
+  must be executable in both the working tree and Git index (`100755`). Local
+  `core.fileMode=false` can conceal an index-mode defect, so never accept
+  `test -x` alone. Run
+  `Caddy/tests/executable-wrapper-policy-regression.sh`; it enumerates the
+  tracked set and rejects both working-tree and index mode `0644`, including
+  explicit negative controls.
 - Keep workstation source ownership checks out of container integration
   commands. Regressions that need a runner's `--source-test` must invoke
   `Caddy/tests/run-source-test-in-context.sh --runner RUNNER`. The policy
@@ -87,6 +94,30 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   status, and safe observed answer independently before deriving an overall
   decision. Enforce marked DNS readiness blocks with
   `Caddy/tests/labeled-dns-readiness-policy-regression.sh`.
+- Never rely on `set -e` or `set -E` to propagate a failure from a validator
+  function. Bash disables errexit semantics when a function is evaluated by
+  `if`, `!`, `&&`, or `||`, so a later successful command can overwrite an
+  earlier failure. Every predicate, comparison, parser, and nested validator in
+  a conditional validator must use an explicit `|| return`, a guarded `if`, or
+  an equivalent explicit status return. Mark straight-line validator regions
+  with `conditional-validator-explicit-failures-begin` and
+  `conditional-validator-explicit-failures-end`, and enforce them with
+  `Caddy/tests/conditional-validator-errexit-policy-regression.sh`. Every new
+  validator regression must include an early-invalid/later-valid transcript and
+  prove rejection, covering both false-positive and false-negative behavior.
+- A live transactional command whose stdout or stderr affects acceptance must
+  capture both streams during that same execution. Before testing emptiness or
+  content, emit independently labeled, bounded byte count, line count,
+  SHA-256, and safe classification records. Metadata alone is not sufficient:
+  after classification, emit bounded safe content between explicit begin/end
+  labels, or retain it at a reported protected path with exact ownership, mode,
+  and hash. Record empty streams explicitly. Suppress unsafe content and retain
+  it only in a protected evidence path for separately authorized inspection.
+  Never defer stream capture to a follow-on action, delete the only useful
+  capture before its evidence outcome is secured, or print unclassified raw
+  output. Preserve historical deficient actions only behind an exact immutable
+  hash exception, and require corrected or new actions to pass
+  `Caddy/tests/transaction-output-evidence-policy-regression.sh`.
 - Make sure to test edge cases and error handling.
 - Document any new features or changes to existing functionality.
 - Ensure all changes are backward compatible.
