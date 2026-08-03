@@ -345,6 +345,112 @@ done
 "$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry2.sh" \
     --contract-test
 "$caddy_root/tests/action17u-b-retry2-node-b-backup-manifest-repair-regression.sh"
+"$caddy_root/scripts/derive-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh"
+"$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-c-node-b-postrepair-acceptance-regression.sh"
+"$caddy_root/scripts/derive-node-b-retained-release-marker-migration-action17s-retry2.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry2-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry2-outer.sh"
+"$caddy_root/scripts/run-node-b-retained-release-marker-migration-action17s-retry2-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action17s-retry2-node-b-marker-migration-regression.sh"
+"$caddy_root/scripts/derive-node-b-postmigration-acceptance-action17v.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh"
+"$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action17v-node-b-postmigration-acceptance-regression.sh"
+"$caddy_root/scripts/inspect-reverse-sync-readiness-action18a.sh" --self-test
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a.sh"
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a.sh" \
+    --contract-test
+"$caddy_root/tests/action18a-dual-node-reverse-sync-readiness-regression.sh"
+"$caddy_root/scripts/derive-dual-node-reverse-sync-readiness-action18a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a-retry-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a-retry-outer.sh"
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18a-retry-dual-node-reverse-sync-readiness-regression.sh"
+"$caddy_root/scripts/derive-node-a-action18-prerequisite-action18b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-outer.sh"
+"$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-node-a-prerequisite-regression.sh"
+"$caddy_root/scripts/inspect-node-a-action18b-postfailure-action18b-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a.sh"
+"$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-a-node-a-postfailure-regression.sh"
+"$caddy_root/scripts/derive-node-a-action18b-postfailure-action18b-a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a-retry-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a-retry-outer.sh"
+"$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-a-retry-node-a-postfailure-regression.sh"
+"$caddy_root/scripts/derive-node-a-action18-prerequisite-action18b-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-retry-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-retry-outer.sh"
+"$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-retry-node-a-prerequisite-regression.sh"
+"$caddy_root/scripts/derive-node-a-action18b-postinstall-acceptance-action18b-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh"
+"$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-b-node-a-postinstall-acceptance-regression.sh"
+"$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c.sh"
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c-outer.sh"
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18c-node-b-to-node-a-release-transfer-regression.sh"
 "$caddy_root/scripts/inspect-node-b-protocol-v2-postfailure-action17q-a.sh" \
     --self-test
 "$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \

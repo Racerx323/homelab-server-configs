@@ -1329,6 +1329,70 @@ printf 'action_17t_historical_container_projection_validated=true\n'
 "$caddy_root/scripts/run-node-b-action17u-backup-manifest-repair-action17u-b-retry2.sh" \
     --contract-test
 "$caddy_root/tests/action17u-b-retry2-node-b-backup-manifest-repair-regression.sh"
+"$caddy_root/scripts/derive-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh"
+"$caddy_root/scripts/run-node-b-action17u-postrepair-acceptance-action17u-c.sh" \
+    --contract-test
+"$caddy_root/tests/action17u-c-node-b-postrepair-acceptance-regression.sh"
+# These immutable, already executed artifacts deliberately hash-pin their
+# workstation source ownership and create a self-test tree beside that source.
+# The complete host suite above is authoritative; the read-only container
+# projection must not make the repository writable merely to repeat it.
+printf 'action_17s_retry2_container_projection=skipped_host_authoritative\n'
+"$caddy_root/scripts/derive-node-b-postmigration-acceptance-action17v.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh"
+"$caddy_root/scripts/run-node-b-postmigration-acceptance-action17v-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action17v-node-b-postmigration-acceptance-regression.sh"
+"$caddy_root/scripts/inspect-reverse-sync-readiness-action18a.sh" --self-test
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a.sh" \
+    --contract-test
+"$caddy_root/tests/action18a-dual-node-reverse-sync-readiness-regression.sh"
+"$caddy_root/scripts/derive-dual-node-reverse-sync-readiness-action18a-retry.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-reverse-sync-readiness-action18a-retry-outer.sh"
+printf 'action_18a_retry_outer_container_projection=skipped_host_authoritative\n'
+"$caddy_root/tests/action18a-retry-dual-node-reverse-sync-readiness-regression.sh"
+for historical_action_18b_runner in \
+    "$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-outer.sh" \
+    "$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a.sh" \
+    "$caddy_root/scripts/run-node-a-action18b-postfailure-action18b-a-retry-outer.sh" \
+    "$caddy_root/scripts/run-node-a-action18-prerequisite-action18b-retry-outer.sh"; do
+    "$caddy_root/tests/run-source-test-in-context.sh" \
+        --runner "$historical_action_18b_runner"
+done
+printf 'historical_action_18b_container_projection=skipped_host_authoritative\n'
+"$caddy_root/scripts/derive-node-a-action18b-postinstall-acceptance-action18b-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18b-b-node-a-postinstall-acceptance-regression.sh"
+"$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
+    --self-test
+"$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-to-node-a-release-transfer-action18c-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18c-node-b-to-node-a-release-transfer-regression.sh"
 "$caddy_root/scripts/inspect-node-b-protocol-v2-postfailure-action17q-a.sh" \
     --self-test
 "$caddy_root/scripts/run-node-b-protocol-v2-postfailure-action17q-a.sh" \
