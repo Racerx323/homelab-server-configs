@@ -1380,6 +1380,175 @@ printf 'historical_action_18b_container_projection=skipped_host_authoritative\n'
 "$caddy_root/scripts/run-node-a-action18b-postinstall-acceptance-action18b-b-outer.sh" \
     --contract-test
 "$caddy_root/tests/action18b-b-node-a-postinstall-acceptance-regression.sh"
+"$caddy_root/scripts/install-node-b-protocol-v2-publisher-action18c-prerequisite.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-publisher-install-action18c-prerequisite.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-publisher-install-action18c-prerequisite.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-protocol-v2-publisher-install-action18c-prerequisite-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-protocol-v2-publisher-install-action18c-prerequisite-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18c-publisher-prerequisite-node-b-install-regression.sh"
+"$caddy_root/scripts/derive-node-b-publisher-postinstall-acceptance-action18c-publisher-a.sh" \
+    --self-test
+"$caddy_root/tests/action18c-publisher-a-node-b-postinstall-acceptance-regression.sh"
+"$caddy_root/scripts/run-node-b-publisher-postinstall-acceptance-action18c-publisher-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-publisher-postinstall-acceptance-action18c-publisher-a-outer.sh" \
+    --contract-test
+"$caddy_root/scripts/inspect-caddy-vrrp-emergency-master-eligibility-action18c-vrrp-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-emergency-master-eligibility-action18c-vrrp-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-emergency-master-eligibility-action18c-vrrp-a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-emergency-master-eligibility-action18c-vrrp-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-emergency-master-eligibility-action18c-vrrp-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action18c-vrrp-a-emergency-master-eligibility-regression.sh"
+"$caddy_root/scripts/install-node-b-keepalived-fragment-action19a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-install-action19a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-install-action19a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-install-action19a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-install-action19a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19a-node-b-keepalived-fragment-install-regression.sh"
+"$caddy_root/scripts/inspect-node-b-keepalived-helper-prerequisite-action19a-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-prerequisite-action19a-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-prerequisite-action19a-a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-prerequisite-action19a-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-prerequisite-action19a-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19a-a-node-b-keepalived-helper-prerequisite-regression.sh"
+"$caddy_root/scripts/install-node-b-keepalived-helpers-action19b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-node-b-keepalived-helper-install-regression.sh"
+"$caddy_root/scripts/inspect-node-b-action19b-postfailure-action19b-a.sh" \
+    --self-test \
+    "$caddy_root/scripts/inspect-node-b-keepalived-helper-prerequisite-action19a-a.sh"
+"$caddy_root/scripts/inspect-node-b-action19b-postfailure-action19b-a.sh" \
+    --contract-test \
+    "$caddy_root/scripts/inspect-node-b-keepalived-helper-prerequisite-action19a-a.sh"
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-a-node-b-postfailure-regression.sh"
+"$caddy_root/scripts/derive-node-b-action19b-postfailure-action19b-a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-retry-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-a-retry-node-b-postfailure-regression.sh"
+"$caddy_root/scripts/derive-node-b-action19b-postfailure-action19b-a-retry2.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-retry2-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-action19b-postfailure-action19b-a-retry2-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-a-retry2-node-b-postfailure-regression.sh"
+"$caddy_root/scripts/inspect-node-b-action19b-postfailure-action19b-a-retry2.sh" \
+    --self-test \
+    "$caddy_root/scripts/inspect-node-b-keepalived-helper-prerequisite-action19a-a.sh"
+"$caddy_root/scripts/inspect-node-b-action19b-postfailure-action19b-a-retry2.sh" \
+    --contract-test \
+    "$caddy_root/scripts/inspect-node-b-keepalived-helper-prerequisite-action19a-a.sh"
+"$caddy_root/scripts/install-node-b-keepalived-helpers-action19b-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-retry.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-retry-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-install-action19b-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-retry-node-b-keepalived-helper-install-regression.sh"
+"$caddy_root/scripts/derive-node-b-keepalived-helper-postinstall-action19b-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-postinstall-action19b-b-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-helper-postinstall-action19b-b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19b-b-node-b-keepalived-helper-postinstall-regression.sh"
+"$caddy_root/tests/transcript-contract-ratchet-policy-regression.sh"
+"$caddy_root/scripts/inspect-node-b-keepalived-fragment-postinstall-action19a-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-postinstall-action19a-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-postinstall-action19a-b.sh" \
+    --contract-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-postinstall-action19a-b-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-keepalived-fragment-postinstall-action19a-b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19a-b-node-b-keepalived-fragment-postinstall-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-prerequisite-action19c-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-prerequisite-action19c-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-prerequisite-action19c-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19c-a-node-a-keepalived-prerequisite-definition-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-helper-install-action19d.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-install-action19d-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-install-action19d-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19d-node-a-keepalived-helper-install-definition-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-helper-postinstall-action19d-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-postinstall-action19d-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-postinstall-action19d-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19d-a-node-a-keepalived-helper-postinstall-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-helper-postinstall-action19d-a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-postinstall-action19d-a-retry-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-helper-postinstall-action19d-a-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19d-a-retry-node-a-keepalived-helper-postinstall-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-fragment-action19e.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-fragment-install-action19e-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-fragment-install-action19e-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19e-node-a-keepalived-fragment-definition-regression.sh"
+"$caddy_root/scripts/derive-node-a-keepalived-fragment-postinstall-action19e-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-fragment-postinstall-action19e-a-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-keepalived-fragment-postinstall-action19e-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action19e-a-node-a-keepalived-fragment-postinstall-regression.sh"
 "$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
     --self-test
 "$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \

@@ -94,6 +94,28 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   status, and safe observed answer independently before deriving an overall
   decision. Enforce marked DNS readiness blocks with
   `Caddy/tests/labeled-dns-readiness-policy-regression.sh`.
+- Cross-script transcript consumers must validate the actual producer grammar
+  and label inventory, not a hand-authored approximation. A synthetic-only
+  success fixture is insufficient. The producer must expose its expected labels
+  or a canonical transcript fixture, and the consumer regression must accept
+  that exact contract while rejecting a wrong record prefix or kind, a missing
+  label, and a duplicate label. Never copy a producer record name into a
+  consumer without exercising the real producer contract in regression tests.
+  When a suite wires an entry point whose self-test or contract-test requires
+  arguments, its production regression must also verify the suite's exact
+  invocation signature in both `Caddy/tests/run.sh` and
+  `Caddy/tests/integration.sh`; a directly passing test is not sufficient.
+- Treat temporary deployment staging filesystems such as `/run` and `/tmp` as
+  potentially mounted `noexec`. Invoke every staged Bash artifact explicitly
+  with `/bin/bash`; never execute it directly by pathname. A regression for a
+  staged runner must exercise a non-executable-but-readable script fixture and
+  prove that the production path still reaches it through `/bin/bash`.
+- A generated validator is not accepted through syntax, static text, or a
+  synthetic transcript alone. Its regression must execute every newly inserted
+  production assertion from the rendered artifact, including both true and
+  false fixtures, and must consume the real upstream producer output. Never
+  fabricate producer summary markers in a fixture; derive or capture them from
+  the producer's canonical contract.
 - Never rely on `set -e` or `set -E` to propagate a failure from a validator
   function. Bash disables errexit semantics when a function is evaluated by
   `if`, `!`, `&&`, or `||`, so a later successful command can overwrite an

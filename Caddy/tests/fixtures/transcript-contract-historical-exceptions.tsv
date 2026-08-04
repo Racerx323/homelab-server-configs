@@ -1,0 +1,10 @@
+# kind	sha256	path
+arbitrary-minimum	f45bde838b783b1ef6ff99f276ac1dab3df28a2f96eeea5dac14817ec1d71518	Caddy/scripts/run-node-b-keepalived-fragment-install-action19a.sh
+arbitrary-minimum	ce889307caf1370145153a5eeee1ee2837f46784d61c518627e72f44596355ad	Caddy/scripts/run-node-b-keepalived-helper-install-action19b-retry.sh
+arbitrary-minimum	5e3d776766747aad602613c587a49f281f19ae87a7609eb25b904e9c30a0812b	Caddy/scripts/run-node-b-keepalived-helper-install-action19b.sh
+arbitrary-minimum	aafc230513d91a8ab337a2b50e447db067695992c32937ad36796b28c6c85ccc	Caddy/scripts/run-node-b-protocol-v2-publisher-install-action18c-prerequisite.sh
+arbitrary-minimum	d1ddc3a36ec25e5be0a7f0af84fb4d9a1d5f8bfd50d0754b5b558eda456f7518	Caddy/scripts/run-node-b-unbound-two-file-activation-action17g.sh
+synthetic-check-fixture	bc1b6381d0e44877c42b1590800d47962aaab75a647bf4bfe510cd25ac90d0b8	Caddy/tests/action18c-publisher-prerequisite-node-b-install-regression.sh
+synthetic-check-fixture	76b566d55f09f7598c79e6ecd38f5c0cfc639d79d4ae630121f7bc8cebb09ac7	Caddy/tests/action19a-node-b-keepalived-fragment-install-regression.sh
+synthetic-check-fixture	36521cd047dfdfedab47fb1a6faa819ea96a31e9435129fc2a1ce81c6c8e27f3	Caddy/tests/action19b-node-b-keepalived-helper-install-regression.sh
+synthetic-check-fixture	2955a950873e158cd6bf5a0cba21fbd755ceb24d58d443b597dd8ddbe4de434f	Caddy/tests/action19b-retry-node-b-keepalived-helper-install-regression.sh
