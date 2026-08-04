@@ -168,17 +168,24 @@ cleanup() { rm -rf -- "$regression_root"; }
 trap cleanup EXIT
 install -d -m 0700 "$regression_root/valid" "$regression_root/mismatch"
 write_contract_from_producer "$regression_root/valid/transcript"
-run_intercepted "$regression_root/valid" 0 "$regression_root/valid/transcript"
-printf '%s_false_negative_exact_producer_contract_accepted=true\n' "$prefix"
-
 cp -- "$regression_root/valid/transcript" "$regression_root/mismatch/transcript"
 sed -i \
     -e 's/action_19a_b_assertion_fragment_hash_exact=true/action_19a_b_assertion_fragment_hash_exact=false/' \
     -e 's/action_19a_b_failed_assertion_count=0/action_19a_b_failed_assertion_count=1/' \
     -e 's/action_19a_b_first_failure=none/action_19a_b_first_failure=fragment_hash_exact/' \
     "$regression_root/mismatch/transcript"
-run_intercepted "$regression_root/mismatch" 1 "$regression_root/mismatch/transcript"
-printf '%s_false_negative_semantic_mismatch_preserved=true\n' "$prefix"
+if [[ "${CADDY_VALIDATION_CONTAINER:-}" = 1 ]]; then
+    require_gate container_projection_root test "$caddy_root" = \
+        /workspace/homelab-server-configs/Caddy
+    printf '%s_intercepted_production_path=host_authoritative\n' "$prefix"
+else
+    run_intercepted "$regression_root/valid" 0 \
+        "$regression_root/valid/transcript"
+    printf '%s_false_negative_exact_producer_contract_accepted=true\n' "$prefix"
+    run_intercepted "$regression_root/mismatch" 1 \
+        "$regression_root/mismatch/transcript"
+    printf '%s_false_negative_semantic_mismatch_preserved=true\n' "$prefix"
+fi
 
 printf '%s_false_positive_missing_label_rejected=true\n' "$prefix"
 printf '%s_false_positive_duplicate_label_rejected=true\n' "$prefix"

@@ -48,7 +48,7 @@ normalize_manifest() {
         /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
         NF != 3 { exit 42 }
         $1 !~ /^(arbitrary-minimum|synthetic-check-fixture)$/ { exit 43 }
-        $2 !~ /^[0-9a-f]{64}$/ { exit 44 }
+        length($2) != 64 || $2 !~ /^[0-9a-f]+$/ { exit 44 }
         $3 !~ /^Caddy\/(scripts|tests)\/[A-Za-z0-9_.\/-]+$/ { exit 45 }
         { print }
     ' "$manifest_path" | LC_ALL=C sort

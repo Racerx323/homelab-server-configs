@@ -105,6 +105,17 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   arguments, its production regression must also verify the suite's exact
   invocation signature in both `Caddy/tests/run.sh` and
   `Caddy/tests/integration.sh`; a directly passing test is not sufficient.
+- Enforce the cross-script transcript rule with
+  `Caddy/tests/transcript-contract-ratchet-policy-regression.sh`. Its historical
+  exception manifest is an immutable-hash ratchet, not permission to reuse a
+  deficient runner for a new live action. Before reusing any historical runner,
+  run the ratchet and audit that runner against the current producer contract.
+  A runner listed for an arbitrary assertion minimum or a regression listed for
+  synthetic check fixtures must be replaced by an append-only corrected action
+  before another live invocation. New exceptions are prohibited. Consumers
+  must reconcile the producer's exact exported label inventory; `-ge`/`-gt`
+  assertion-count acceptance and hand-authored numbered success labels are not
+  valid contracts.
 - Treat temporary deployment staging filesystems such as `/run` and `/tmp` as
   potentially mounted `noexec`. Invoke every staged Bash artifact explicitly
   with `/bin/bash`; never execute it directly by pathname. A regression for a
@@ -127,6 +138,22 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/conditional-validator-errexit-policy-regression.sh`. Every new
   validator regression must include an early-invalid/later-valid transcript and
   prove rejection, covering both false-positive and false-negative behavior.
+  Any custom predicate or policy helper passed through `require_gate`, `if`,
+  `!`, `&&`, or `||` must mark its assertion body even when it appears small;
+  an unmarked helper is not an accepted validation boundary. When a fallible
+  command and its explicit return span separate physical lines, mark the
+  return line with `conditional-validator-requires-return` so the policy
+  verifies the boundary instead of relying on visual review.
+- Every new shell regression must pass itself and every generated or invoked
+  shell artifact through
+  `Caddy/tests/check-shell-readonly-local-collisions-v2.sh` before invoking
+  those artifacts. It must include a negative dynamic-scope collision fixture
+  and an early-invalid/later-valid production-helper fixture, require both to
+  be rejected, and require the regression's own stderr to remain empty. A
+  later successful assertion never converts an earlier shell diagnostic into
+  a passing regression. Run the repository-wide collision and conditional
+  validator policies before focused action tests; do not wait for the complete
+  suite to discover these defects.
 - A live transactional command whose stdout or stderr affects acceptance must
   capture both streams during that same execution. Before testing emptiness or
   content, emit independently labeled, bounded byte count, line count,

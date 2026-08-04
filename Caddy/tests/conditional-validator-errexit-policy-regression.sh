@@ -13,6 +13,7 @@ caddy_root=$(cd -- "$script_directory/.." && pwd)
 readonly caddy_root
 readonly repository_root="$caddy_root/.."
 readonly action_regression="$script_directory/action17u-a-node-b-postinstall-regression.sh"
+readonly action19c_definition_regression="$script_directory/action19c-a-node-a-keepalived-prerequisite-definition-regression.sh"
 
 report_error() {
     local error_line=$1
@@ -42,15 +43,20 @@ validate_marked_file() {
         /conditional-validator-explicit-failures-end/ { end++ }
         END { printf "%d:%d", begin, end }
     ' "$policy_file")
-    [[ "$marker_counts" != 0:0 ]]
-    [[ "${marker_counts%:*}" = "${marker_counts#*:}" ]]
+    [[ "$marker_counts" != 0:0 ]] || return 1
+    [[ "${marker_counts%:*}" = "${marker_counts#*:}" ]] || return 1
     awk '
         /conditional-validator-explicit-failures-begin/ { inside = 1; next }
         /conditional-validator-explicit-failures-end/ { inside = 0; next }
         !inside { next }
         /^[[:space:]]*($|#|for[[:space:]]|done$)/ { next }
-        /\[\[|cmp -s|is_[a-z_]+|transcript_grammar_valid|secret_free|validate_assertion_set|require_one|value_for/ {
-            if (index($0, "|| return") == 0) {
+        /^[[:space:]]*if[[:space:]]/ { next }
+        /^[[:space:]]*\047/ { next }
+        /\[\[|cmp -s|is_[a-z_]+|transcript_grammar_valid|secret_free|validate_assertion_set|require_one|value_for|conditional-validator-requires-return/ {
+            marked_return = index($0,
+                "conditional-validator-requires-return") != 0 &&
+                $0 ~ /return[[:space:]]+[0-9]+/
+            if (index($0, "|| return") == 0 && !marked_return) {
                 printf "conditional_validator_missing_explicit_return=%s:%d:%s\n", FILENAME, FNR, $0 > "/dev/stderr"
                 invalid++
             }
@@ -106,5 +112,27 @@ fi
 grep -Fxq action_17u_a_false_positive_duplicate_rejected=true <<<"$regression_output"
 grep -Fxq action_17u_a_false_negative_valid_success_accepted=true <<<"$regression_output"
 grep -Fxq action_17u_a_false_negative_semantic_mismatch_preserved=true <<<"$regression_output"
+
+action19c_output=$(mktemp /tmp/caddy-action19c-conditional.stdout.XXXXXX)
+readonly action19c_output
+action19c_error=$(mktemp /tmp/caddy-action19c-conditional.stderr.XXXXXX)
+readonly action19c_error
+# shellcheck disable=SC2317
+cleanup_action19c() { rm -f -- "$action19c_output" "$action19c_error"; }
+trap cleanup_action19c EXIT
+"$action19c_definition_regression" >"$action19c_output" \
+    2>"$action19c_error"
+[[ ! -s "$action19c_error" ]]
+grep -Fxq \
+    action_19c_a_definition_regression_dynamic_scope_collision_rejected=true \
+    "$action19c_output"
+grep -Fxq \
+    action_19c_a_definition_regression_early_invalid_later_valid_rejected=true \
+    "$action19c_output"
+grep -Fxq \
+    action_19c_a_definition_regression_valid_policy_fixture_accepted=true \
+    "$action19c_output"
+grep -Fxq action_19c_a_definition_regression_complete=true \
+    "$action19c_output"
 
 printf 'conditional_validator_errexit_policy_regression_complete=true\n'
