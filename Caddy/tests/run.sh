@@ -641,6 +641,197 @@ done
 "$caddy_root/scripts/run-node-a-keepalived-fragment-postinstall-action19e-a-outer.sh" \
     --contract-test
 "$caddy_root/tests/action19e-a-node-a-keepalived-fragment-postinstall-regression.sh"
+"$caddy_root/scripts/inspect-dual-node-caddy-vrrp-preactivation-action20a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-dual-node-caddy-vrrp-preactivation-regression.sh"
+"$caddy_root/scripts/inspect-dual-node-caddy-health-context-action20a-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-health-context-action20a-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-health-context-action20a-a.sh" \
+    --contract-test
+"$caddy_root/scripts/run-dual-node-caddy-health-context-action20a-a-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-health-context-action20a-a-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-health-context-action20a-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-a-dual-node-caddy-health-context-regression.sh"
+"$caddy_root/scripts/inspect-dual-node-caddy-postfailure-continuity-action20a-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b.sh" \
+    --contract-test
+"$caddy_root/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-b-dual-node-postfailure-continuity-regression.sh"
+"$caddy_root/scripts/install-node-b-caddy-health-context-action20b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" --self-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20b-node-b-caddy-health-context-correction-regression.sh"
+"$caddy_root/scripts/inspect-node-b-caddy-health-postinstall-action20b-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-health-postinstall-action20b-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20b-a-node-b-caddy-health-postinstall-regression.sh"
+"$caddy_root/scripts/install-node-a-caddy-health-context-action20c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-health-context-correction-action20c-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20c-node-a-caddy-health-context-correction-regression.sh"
+"$caddy_root/scripts/inspect-node-a-caddy-health-postinstall-action20c-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-health-postinstall-action20c-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20c-a-node-a-caddy-health-postinstall-regression.sh"
+"$caddy_root/scripts/inspect-dual-node-caddy-vrrp-preactivation-action20a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-retry-dual-node-caddy-vrrp-preactivation-regression.sh"
+"$caddy_root/scripts/inspect-node-b-caddy-state-difference-action20a-retry-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh"
+"$caddy_root/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-retry-a-node-b-state-difference-regression.sh"
+"$caddy_root/scripts/inspect-dual-node-caddy-vrrp-preactivation-action20a-retry2.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh" \
+    --self-test
+"$caddy_root/tests/run-source-test-in-context.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20a-retry2-dual-node-caddy-vrrp-preactivation-regression.sh"
+"$caddy_root/scripts/activate-caddy-vrrp-node-action20d.sh" --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh" \
+    --source-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh" \
+    --contract-test
+"$caddy_root/tests/action20d-dual-node-caddy-vrrp-activation-regression.sh"
+"$caddy_root/scripts/inspect-node-a-caddy-vrrp-postfailure-action20d-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-vrrp-postfailure-action20d-a.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-vrrp-postfailure-action20d-a.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-vrrp-postfailure-action20d-a-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-vrrp-postfailure-action20d-a-outer.sh" \
+    --source-test
+"$caddy_root/tests/action20d-a-node-a-caddy-vrrp-postfailure-regression.sh"
+"$caddy_root/scripts/diagnose-node-a-caddy-vrrp-candidate-action20d-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b.sh" \
+    --self-test
+"$caddy_root/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b-outer.sh"
+"$caddy_root/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b-outer.sh" \
+    --source-test
+"$caddy_root/tests/action20d-b-node-a-candidate-diagnostic-regression.sh"
+"$caddy_root/scripts/activate-caddy-vrrp-node-action20d-retry.sh" --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry-outer.sh" \
+    --source-test
+"$caddy_root/tests/action20d-retry-dual-node-caddy-vrrp-activation-regression.sh"
 "$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
     --self-test
 "$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \

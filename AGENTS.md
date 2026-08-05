@@ -90,6 +90,11 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
 - Every fail-closed infrastructure validator must emit one uniquely labeled
   assertion per observable condition. Never combine multiple commands,
   queries, comparisons, or mutation results under one assertion label.
+  Every new transactional outer wrapper must expose its canonical local-gate
+  inventory through `--expected-local-gates`; host and Podman suites must run
+  `Caddy/tests/outer-local-gate-label-policy-regression.sh --runner WRAPPER`.
+  The policy must reject missing, duplicate, false, and unexpected gate labels.
+  A silent aggregate `run_local_gates` boundary is prohibited.
   DNS readiness blocks must record each server, port, name, type, command
   status, and safe observed answer independently before deriving an overall
   decision. Enforce marked DNS readiness blocks with
@@ -167,6 +172,18 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   output. Preserve historical deficient actions only behind an exact immutable
   hash exception, and require corrected or new actions to pass
   `Caddy/tests/transaction-output-evidence-policy-regression.sh`.
+- During the active Caddy deployment, validate an ordinary action definition or
+  correction with its focused host tests, the equivalent focused Debian 12
+  Podman slice, and every policy that governs the changed boundary. Run the
+  complete preserved historical host/Podman suite only when an action changes
+  deployment category, immediately before Caddy VRRP activation, and at final
+  deployment acceptance. A focused slice must exercise the real production
+  functions and both false-positive and false-negative controls; it is not a
+  synthetic-fixture shortcut. A failure outside the focused action remains
+  recorded but does not invalidate a passing focused gate unless it exposes a
+  shared policy or dependency failure. Do not remove, consolidate, or rewrite
+  historical action tests during deployment. A manifest-driven focused runner
+  and historical-suite streamlining remain post-deployment work.
 - Make sure to test edge cases and error handling.
 - Document any new features or changes to existing functionality.
 - Ensure all changes are backward compatible.

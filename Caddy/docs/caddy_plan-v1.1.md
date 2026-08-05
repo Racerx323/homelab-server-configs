@@ -105,6 +105,12 @@
 | Podman and shell-entrypoint execution policy | Durable workspace and repository guidance classify `Caddy/tests/run.sh` as a Podman wrapper that must run outside the filesystem sandbox on its first attempt. Every tracked `Caddy/scripts/*.sh` and `Caddy/tests/*.sh` Bash entry point must be executable in both the working tree and Git index (`100755`); `executable-wrapper-policy-regression.sh` dynamically enumerates the full tracked set and rejects working-tree or index mode `0644` with positive and negative controls so local `core.fileMode=false` cannot hide CI failure |
 | Pi-hole web URL roles | Confirmed: `pihole-admin.local.theama.co` resolves to Caddy VRRP VIPs `10.1.0.56` and `fd36:5aa8:6971:1::56`; Caddy proxies to the active node's loopback Pi-hole web backend; `pihole0.local.theama.co` and `pihole00.local.theama.co` remain pinned to Nodes A and B; `.55/::55` remains the Pi-hole DNS VIP |
 | Live deployment | Node B actions 1–15, Node A through corrected Action 16ar, corrected dual-node synchronization-readiness Action 17a retry, transactional Action 17b, corrected source-bound restricted-transport acceptance Action 17o-c, corrected Node B protocol-v2 installation Action 17q retry, corrected dual-node readiness Action 17r-c, stderr-safe finalizer correction Action 17u, protected-manifest repair Action 17u-b second retry, independent post-repair Action 17u-c, receiver-side marker migration Action 17s retry2, independent post-migration Action 17v, corrected dual-node reverse-synchronization readiness Action 18a retry, corrected transactional Node A prerequisite Action 18b retry, independent Node A acceptance Action 18b-b, and independent Node B publisher acceptance Action 18c-publisher-a are accepted; Action 18c remains repository-defined only and unexecuted; the intervening DNS/Unbound actions and accepted diagnostics remain recorded below; historical release-transfer Action 17p, read-only readiness Action 17r, marker-migration Action 17s, corrected Action 17s retry, failed original Action 18b, and publisher prerequisite's duplicate-label workstation acceptance remain unaccepted |
+| Node B normalized component diagnostic Action 20a-retry-a | Executed and accepted with outer/runner/SSH/remote status `0`, 85/85 producer assertions and 9/9 consumer assertions true, and classification `legacy_address_lifetime_drift_only`. All normalized configuration, selection, address, and service components were unchanged; only legacy raw-address text and its hash changed as dynamic IPv6 lifetimes counted down by two seconds. Neither Caddy health helper, notification helper, nor `caddy validate` ran; every mutation marker was false and cleanup completed |
+| Append-only corrected Action 20a readiness retry2 | Executed and accepted with outer/inner status `0`, both accepted 138-label baselines, Node A and Node B 46/46 normalized probes, and all 19 cross-node readiness assertions true. Node A owns both DNS VIPs, Caddy VIPs are absent on both nodes, health helpers passed, normalized state was unchanged, notification helpers were not invoked, every mutation marker was false, and cleanup completed. Readiness is `ready_for_separately_authorized_action20_activation_design`; Caddy VRRP activation remains unauthorized |
+| Separately gated transactional Caddy VRRP activation Action 20d | Executed once and not accepted. The exact authorized outer `9d61121d...04c1` passed the corrected complete host/Podman milestone suite, then stopped on Node A before backup creation or mutation because the candidate `keepalived --dont-fork --config-test` process terminated with status `143`. The first 33 independently labeled Node A preflight/candidate assertions passed; `candidate_config_valid=false` was the first failure. Node B was not contacted. No main include, backup, reload, VRRP transition, Caddy VIP assignment, notification attempt, or persistent mutation was reached. Post-failure Node A continuity requires a separately authorized read-only diagnostic before any correction or retry |
+| Read-only Node A post-Action 20d failure diagnostic Action 20d-a | Executed once and accepted with exact outer `f3107b95...9e13`: outer/runner/SSH/remote/validation status `0`; 51/51 independently labeled assertions true; Keepalived 2.2.7 supports `--config-test` and `--dont-fork`; active PID `2285113`, zero restarts, default configuration path, and bounded coherent `keepalived.pid` state observed; exact inactive main/fragment state, zero Action 20d backup/residue, active Keepalived/Caddy/lighttpd, absent Caddy VIPs, Node A ownership of both DNS VIPs, accepted Action 19 sanitized-parser context, and identical before/after `4f180c12...80b7` passed. Candidate validation did not run, Node B was not contacted, every mutation marker was false, and cleanup completed |
+| Bounded full-candidate execution-behavior diagnostic Action 20d-b | Separately authorized captured rerun accepted with exact outer `58f68b57...a096`: outer/runner/SSH/remote/validation status `0`; 59/59 independently labeled assertions true; both exact and minimal config-test forms ended with status `143`, classification `terminated_sigterm`, and 511 ms duration; both had empty stdout/stderr/log and bounded process traces; before/after state `3517ee1a...1b11` was identical. Candidate validation ran, but the candidate was never installed; services, Keepalived, VRRP, VIPs, and persistent files were unchanged; Caddy VIPs remained absent, Node A retained both DNS VIPs, Node B was not contacted, and cleanup completed. This rules out redundant `--dont-fork` as the cause and reproduces the repository's known Keepalived 2.2.7 production notification/non-root-script config-test behavior. Protected workstation captures remain at `/tmp/caddy-action20d-b-rerun.Fp2f5h`. The corrected Action 20d retry is now repository-defined but unexecuted |
+| Corrected transactional Caddy VRRP activation Action 20d retry | Defined and validated on the workstation only; exact outer `085eff63...018d5` was not invoked without arguments. The 93-check node transaction builds two separate protected files: a production candidate containing only the exact original main bytes plus the unmodified production-fragment include, and a fully expanded, deterministic, sanitized validation-only candidate derived from the hash-pinned main and fragment. Node-specific production and sanitized-candidate hashes are pinned. The sanitized file removes both DNS/Caddy notification commands, replaces both DNS/Caddy script commands with `/bin/true`, and changes the Caddy health-script user to root; it can never be installed. The exact unmodified fragment and helper hashes/metadata/directives are independently rechecked. The health helper runs as `keepalived_script` before and after activation; the notification helper is not invoked during preflight, but its inherited `pi` execution identity, executability, and writable runtime directories are fail-closed gates. All historical 50 activation checks, 26 inspection checks, Node-A-first sequencing, Node-B-first rollback order, bounded readiness, backup, reload, dual-stack ownership, DNS-VIP continuity, and manual-intervention gates are preserved. No HA node was contacted and no live mutation or activation occurred |
 | Reverse-synchronization readiness | Action 18b-b confirms Node A has the exact protocol-v2 receiver, stderr-safe finalizer, reciprocal Node B authorization, and unchanged outbound sender release. Action 18c-publisher-a independently accepts Node B's exact publisher `e4a48f12...6669`, protected backup `...TtgS91`, receiver, finalizer, authorization, finalized Action 17p release, services, inactive synchronization state, and zero transaction residue. Caddy VRRP remains inactive, so Node B's emergency `MASTER` publishing gate is not satisfiable. lsyncd configuration remains absent and synchronization/reconciliation services remain inactive on both nodes |
 | Temporary operational hold | Do not reboot either Caddy node before Caddy boot persistence is explicitly enabled and validated: Caddy is active but disabled on each node, while enabled lighttpd is configured only for loopback TCP 8080 |
 | Repository protection | Canonical repository `/home/aaron/code/homelab-server-configs` is clean and synchronized on `main`/`origin/main` at commit `6b291f05a50855a42002495dc156f159295ec15e`; Action 17q-b artifacts and evidence are committed |
@@ -145,11 +151,32 @@
 | Append-only corrected read-only Action 19d-a retry | Executed once and accepted: exact outer runner `ba07b32a...ff8c`, administrative runner, and remote inspector returned `0`; all 86 independently labeled assertions passed; expected and observed Keepalived tree hashes both equal accepted `dad64e4a...2f66`; exact helpers, protected backup/manifest, zero residue, absent fragment, services, addresses, release selection and synchronization continuity passed; before/after state `78a1cdf5...4932` was identical; bounded safe stdout was emitted, both stderr streams were empty, cleanup completed, and every mutation marker was false |
 | Bounded inactive Node A Keepalived-fragment preparation Action 19e | Executed once and accepted: exact outer runner `3d1d09f0...6771`, administrative runner, and remote transaction returned `0`; all 154 exact producer assertions passed; fragment `3a6f4c03...4bc5` and protected absent-state backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS` were installed; the main configuration still excludes the fragment; Keepalived, Caddy, lighttpd, lsyncd and reconciliation properties were unchanged; both Caddy VIPs remained absent; no reload, restart, VRRP transition, VIP, IP, or service mutation occurred |
 | Independent fail-closed read-only Node A post-Action 19e acceptance Action 19e-a | Executed once and accepted: exact outer runner `6669641d...1f3d`, administrative runner, and remote inspector returned `0`; all 114 independently labeled assertions passed; the exact inactive fragment and protected backup were confirmed with zero Action 19e residue; before/after state `c0026dd6...84d7` was identical; bounded safe stdout was emitted, both stderr streams were empty, cleanup completed, and every mutation marker was false |
-| Next gate | Define—but do not execute—a dual-node fail-closed read-only Action 20 pre-activation readiness action. It must independently confirm both accepted inactive fragments and helpers, exact node roles/VRIDs/priorities/unicast peers, current single DNS-VIP ownership, absent Caddy VIPs, main-configuration inclusion prerequisites, service and release continuity, and zero activation or mutation. No Keepalived include/reload/restart, VRRP transition, VIP assignment, Action 18c-vrrp-a, Action 18c, or later action is authorized |
+| Dual-node fail-closed read-only Action 20 pre-activation readiness Action 20a | Executed once and not accepted. Both accepted 114-assertion baselines passed; 45/46 node-probe assertions passed on each node; 15/19 cross-node assertions passed. DNS VIPs are coherently owned by Node A, Caddy VIPs are absent, exact fragments/roles/VRIDs/priorities/peers/services/releases/sysctls passed, and state remained unchanged. The health helper failed on both nodes because unprivileged `caddy validate` attempted to create the local CA under absent, unwritable `/home/keepalived_script` |
+| Dual-node read-only Caddy health-helper execution-context diagnostic Action 20a-a | Executed once and not accepted. Both node probes reproduced failure without invoking the installed helper, but the diagnostic encoded four incorrect boundaries: it expected membership in `caddy` instead of the accepted `caddy-tls` group; checked nonexistent `/etc/caddy/tls` paths instead of the active release TLS paths; omitted `/etc/default/caddy-ha` from the baseline validation so configuration adaptation failed before the intended HOME condition; and placed helper-owned disposable directories beneath a root-only `0700` parent. Node A also produced unequal before/after snapshot hashes, but the action did not emit the snapshot components needed to classify the difference. Node B state was unchanged; all explicit service, VRRP, VIP, and persistent-mutation markers were false; cleanup completed |
+| Append-only post-failure continuity diagnostic Action 20a-b | Executed once and accepted. Node A and Node B each passed 79/79 independently labeled assertions; the dual-node consumer passed 10/10. Every one of the 19 normalized snapshot components matched before and after on each node. Node A state remained `317bce15...c68c`; Node B remained `9ec88a6c...839c`. Both stderr streams were empty, cleanup completed, and helper invocation, Caddy validation, service mutation, VRRP transition, VIP assignment, and persistent mutation were all false |
+| Transactional Node B Caddy health-helper execution-context correction Action 20b | Executed once and accepted. Exact outer runner `6808e173...b0a83` installed helper `9bf531ab...8bbab`, retained protected rollback backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`, and validated the helper successfully as `keepalived_script`. The Keepalived configuration tree, active release, Caddy/Keepalived/lighttpd PIDs, and absent Caddy VIPs remained unchanged; no fragment, service, Keepalived, VRRP, VIP, or Node A mutation occurred |
+| Independent read-only Node B post-Action 20b acceptance Action 20b-a | Executed once and accepted. Exact outer runner `6f017e78...487f` returned `0`; all 138 independently labeled assertions passed; helper `9bf531ab...8bbab` succeeded as `keepalived_script`; the protected Action 20b and Action 19a backups, inactive fragment, active release, services, synchronization state, and DNS/Caddy VIP state were exact. Before/after state was identical at `cc521b08...8365`; both stderr streams were empty and every mutation marker was false |
+| Bounded transactional Node A Caddy health-helper execution-context correction Action 20c | Defined and validated on the workstation only. The exact 77-label producer pins Node A's accepted Action 20a-b baseline, active release `/etc/caddy/releases/action16ar-retry-node-a-default-deny`, inactive fragment `3a6f4c03...4bc5`, and protected Action 19e backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS`. The future mutation installs only helper `9bf531ab...8bbab` plus a protected Action 20c rollback backup; fragment, Action 19e backup, Keepalived tree, services, VRRP, VIPs, active release, and Node B must remain unchanged. No HA node was contacted and no no-argument runner was invoked |
+| Bounded transactional Node A Caddy health-helper execution-context correction Action 20c execution | Executed once and accepted. Exact outer runner `e1b21e1a...0f43d` returned `0`; all 77 independently labeled assertions passed; helper `9bf531ab...8bbab` was installed and succeeded as `keepalived_script`; protected rollback backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI` was retained. The inactive fragment, Action 19e backup tree, Keepalived main/tree, active release, Caddy/Keepalived/lighttpd PIDs, and absent Caddy VIPs remained unchanged; no service, Keepalived, VRRP, VIP, fragment, or Node B mutation occurred |
+| Independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a | Defined and validated on the workstation only. Its exact 138-label producer independently pins the installed helper, protected Action 20c backup/manifest, accepted Action 19e fragment/backup, Node A role and peer direction, active release, services, synchronization state, DNS/Caddy VIP state, and complete before/after snapshot. The helper is invoked once in the real `keepalived_script` context; every filesystem, service, Keepalived, VRRP, VIP, and persistent mutation marker must remain false. No HA node was contacted and no no-argument runner was invoked |
+| Independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a execution | Executed once and accepted. Exact outer runner `42874857...29f3` returned `0`; all 138 independently labeled assertions passed; helper `9bf531ab...8bbab` succeeded as `keepalived_script`; the Action 20c and Action 19e backups, inactive fragment, active release, services, synchronization state, and DNS/Caddy VIP state were exact. Before/after state was identical at `fd58d881...414a`; both stderr streams were empty and every mutation marker was false |
+| Append-only corrected dual-node Action 20a pre-activation readiness retry | Defined and validated on the workstation only. It preserves the historical Action 20a artifacts, consumes exact accepted Action 20c-a and Action 20b-a outer gates, reconciles every one of each producer's 138 labels, pins corrected helper `9bf531ab...8bbab`, and retains the 46-label per-node plus 19-label cross-node readiness contract. Missing and duplicate baseline/probe inventories, zero DNS-VIP owners, semantic failures, unsafe streams, and unapproved working directories fail closed. No HA node was contacted and no no-argument runner was invoked |
+| Append-only corrected dual-node Action 20a pre-activation readiness retry execution | Executed once and not accepted. Both exact 138-label baselines passed; Node A passed 46/46 fresh probe assertions; Node B passed 45/46 because its aggregate state hash changed from `e1faa123...7d27` to `27b01305...5749`. All health, fragment, role, priority, VRID, peer, service, release, sysctl, DNS-VIP, absent-Caddy-VIP, and explicit no-mutation checks passed. The dual-node consumer passed 17/19, with only `node_b_probe_accepted` and `node_b_state_unchanged` false. Both stderr streams were empty and every mutation marker was false |
+| Next gate | Define—but do not execute—a narrow read-only Node B Action 20a retry state-difference diagnostic that emits every normalized before/after snapshot component independently and identifies the exact differing component. It must preserve accepted Node A and Node B baseline continuity, invoke no health or notification helper, and perform no service, Keepalived, VRRP, VIP, configuration, or persistent mutation. No diagnostic execution, readiness retry, or Caddy VRRP activation is currently authorized |
 
 ## Locked Decisions
 
 - Deployment will proceed one authorized and validated action at a time.
+- Routine deployment-action definitions and corrections use a focused host
+  slice, the equivalent focused Debian 12 Podman slice, and every repository
+  policy governing the changed boundary. The complete preserved historical
+  host/Podman suite is required only when an action changes deployment
+  category, immediately before Caddy VRRP activation, and at deployment
+  acceptance. Focused slices must exercise production functions plus explicit
+  false-positive and false-negative controls. An unrelated historical replay
+  failure is recorded but does not invalidate a passing focused action unless
+  it exposes a shared policy or dependency failure. Live authorization gates
+  are unchanged, and historical tests remain immutable during deployment.
 - Workstation source ownership and container bind-projection ownership must be
   classified only through `tests/run-source-test-in-context.sh`: workstation
   execution requires `aaron:aaron:0755`; a validation-container read-only bind
@@ -357,6 +384,35 @@
 
 | Timestamp | Node | Action | Authorization | Pre-state | Command or file | Rollback | Exit and validation | Versions and hashes | Result | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-05T00:04:19-05:00 | Workstation only; neither HA node contacted | Define corrected transactional Caddy VRRP activation Action 20d retry | User authorized definition but not execution; no Keepalived activation, candidate installation, service mutation, reload, VRRP transition, VIP assignment, notification invocation, or HA-node contact authorized | Accepted Action 20d-b proved both direct production config-test forms terminate with SIGTERM after 511 ms while all 59 continuity assertions pass; historical Action 20d remains unaccepted and immutable | Added append-only 93-check node transaction, dual-node runner, immutable outer, production regression, and focused suite wiring. Workstation inspection confirmed that both accepted Pi-hole main configurations contain their own health-script and notification commands. Keepalived documentation also confirms the unmodified Caddy `notify` line inherits `script_user pi`. The final transaction constructs and pins the exact production candidate first, fully expands the exact main and fragment into a separate sanitized candidate, neutralizes both DNS/Caddy script and notification paths, and passes only that transient file to config-test; only the unmodified production candidate is installable. It requires the notifier to be executable as `pi` and both notifier runtime directories to be writable by that user without invoking the helper. The no-argument outer was not invoked | Preserves historical protected backup, automatic local rollback, Node-B-first cross-node rollback, Caddy-VIP removal polling, and exit-125 manual-intervention behavior. Sanitized and production candidates are transaction-owned transient files removed on exit | Focused host canonical shfmt, syntax, ShellCheck, readonly/local collision, conditional-validator, output-evidence, 545-entry executable-index, exact producer/consumer, historical-gate-superset, full-source sanitizer isolation, production-only install, helper context, valid activation, partial Node B failure, rollback, false-positive, and false-negative controls passed. Network-disabled Debian 12 Podman checks passed. An initial composite container transcript stopped after the runner-contract label; the exact regression and outer-source boundaries were rerun independently and each returned `0` without code or policy relaxation | Transaction `4297a17a...81c8`; runner `acbfc9f0...6c82`; regression `5c45626f...2714`; exact outer `085eff63...018d5`; historical transaction `f20e90b0...7e79`, historical outer `9d61121d...04c1`, and diagnostic outer `58f68b57...a096` remain exact | Definition accepted locally. Production-candidate hashes are Node A `357eb09c...d8e2` and Node B `8b260315...bd3f`; sanitized-candidate hashes are Node A `ea8fc2aa...85b7` and Node B `91eb9f89...d431`; all historical 50 activation and 26 inspection labels are retained. Production health helper `9bf531ab...bbab`, notification helper `5862b494...21d8`, node fragment hashes, and both effective execution contexts remain pinned. No live action occurred | Stop. Before any activation authorization, define and authorize a read-only dual-node check of the inherited `pi` notifier context and `/run/caddy-ha*` writability. Only after that passes require separate exact authorization of outer SHA-256 `085eff6386210d36a97682b86c90670b4b42cc249132b4f57dcae0ca5b7018d5`. Immediately before execution, run the complete preserved historical host/Podman milestone suite. Execute the no-argument outer only with protected workstation stdout/stderr capture established before launch |
+| 2026-08-04T23:38:55-05:00 | Node A `j1-svpihole0` plus workstation; Node B not contacted | Rerun bounded full-candidate execution-behavior diagnostic Action 20d-b with protected workstation captures | User separately reauthorized exact outer SHA-256 `58f68b573c73eb7b2192cdcf4823a298f7bdac1e6611ab71d44c733f10eba096`; no correction, Action 20d retry, candidate installation, service mutation, Keepalived reload, VRRP transition, VIP assignment, or Node B contact authorized | Exact outer hash, `aaron:aaron:755`, Git index `100755`, zero unstaged outer drift, and governing-plan pin passed. Accepted Action 20d-a remained the continuity baseline; the first Action 20d-b attempt had no recoverable evidence | Created protected capture directory `/tmp/caddy-action20d-b-rerun.Fp2f5h`, then launched `/bin/bash Caddy/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b-outer.sh` once with stdout/stderr redirected before execution. Parsed only the retained workstation transcript afterward | None; action was read-only. Candidate and remote/workstation action transients were removed by the immutable runner; the protected outer invocation captures are intentionally retained | Outer/action status `0`; 59/59 assertions true; first failure `none`; exact status/classification/duration `143`/`terminated_sigterm`/511 ms; minimal status/classification/duration `143`/`terminated_sigterm`/511 ms; before/after `3517ee1a...1b11`; candidate `357eb09c...d8e2`; action stdout 12,259 bytes/216 lines/`65c58ea7...c562`; action stderr empty/`e3b0c442...b855`; runner cleanup and outer cleanup true | Exact outer `58f68b57...a096`; runner stdout `efd9b982...bd4f`; remote stdout `ccb4ff86...afc4`; exact trace `7308c731...328e`; minimal trace `18d4eedc...99e6`; candidate `357eb09c...d8e2`; installed Keepalived remains the accepted 2.2.7 baseline | Accepted as diagnostic evidence. Both command forms produced the same bounded SIGTERM outcome with empty stdout/stderr/log, so explicit `--dont-fork` is not causal. Main/fragment hashes, include absence, Keepalived PID/restart count, active Keepalived/Caddy/lighttpd, Caddy-VIP absence, and dual-stack DNS-VIP ownership were unchanged. No candidate install, persistent mutation, service/VRRP/VIP mutation, or Node B contact occurred | Stop. Define—but do not execute—a corrected Action 20d transaction that uses the repository's established sanitized-parser candidate solely for Keepalived 2.2.7 syntax validation while separately pinning and validating the unmodified production fragment and accepted helper execution contexts. Preserve the unmodified installed fragment and all activation/rollback gates; require separate authorization before execution |
+| 2026-08-04T23:33:50-05:00 | Node A plus workstation; Node B not in the action path | Attempt bounded full-candidate execution-behavior diagnostic Action 20d-b | User authorized exact outer SHA-256 `58f68b573c73eb7b2192cdcf4823a298f7bdac1e6611ab71d44c733f10eba096`; no correction, Action 20d retry, candidate installation, service mutation, Keepalived reload, VRRP transition, VIP assignment, or Node B contact authorized | Exact outer hash, `aaron:aaron:755`, Git index `100755`, zero unstaged outer drift, and exact governing-plan pin passed before launch; accepted Action 20d-a remained the live continuity baseline | Launched `/bin/bash Caddy/scripts/run-node-a-caddy-vrrp-candidate-diagnostic-action20d-b-outer.sh` once outside the network sandbox. The action contract targets Node A only and compares the exact and minimal bounded candidate-validation forms | None; the action is read-only by contract and installs no candidate. Its own transient cleanup contract remains unchanged, but completion evidence was not recoverable | The emitted output exceeded the orchestration context. The completed execution cell then expired before its exit status, 59-label transcript, probe classifications, state hashes, or cleanup result could be recovered. A workstation search found no retained Action 20d-b capture | Exact authorized outer `58f68b57...a096`; no live version, status, stream hash, probe classification, or continuity evidence is accepted from this attempt | Unaccepted due solely to loss of the original evidence channel. The attempt establishes no exact/minimal candidate-validation outcome and no independently verified live continuity result; it must not be used to design the correction | Stop. Require separate exact authorization to rerun the same immutable outer once with protected workstation stdout and stderr redirection established before launch. Preserve the captures, then classify and emit bounded relevant sections without replaying the node action |
+| 2026-08-04 | Workstation only; neither HA node contacted | Define bounded full-candidate validation execution-behavior diagnostic Action 20d-b | User authorized definition but not execution; no Node A or Node B contact, live candidate validation, candidate installation, correction, Action 20d retry, service mutation, Keepalived reload, VRRP transition, or VIP assignment authorized | Accepted Action 20d-a ruled out unsupported options, installed-version mismatch, service restart, Action 20d residue, and persistent state drift, but did not explain the earlier candidate status `143` | Added exact 59-label Node A diagnostic, administrative runner, immutable outer gate, production-label regression, and focused suite wiring. The no-argument outer was not invoked. The definition follows Keepalived's documented source behavior that `--config-test` itself sets no-fork/no-respawn/no-syslog before validating and exiting | None; definition is repository-only. A future authorized run writes only a protected transient candidate and evidence beneath `/run`, never installs it, bounds and reaps both diagnostic processes, emits bounded safe evidence, retains unsafe evidence, and removes only its own transient state | Focused host and network-disabled Debian 12 Podman syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, exact producer/consumer, outer-label, two-probe bound, no-persistent-mutation, no-Node-B, valid/timeout/config-error, missing/duplicate/unknown/state-drift controls passed | Inspector `c5461754...3f86`; runner `d6156c5d...362b`; regression `4b597edb...1ace`; exact outer `58f68b57...a096`; accepted Action 20d-a outer `f3107b95...9e13` | Definition complete without LAN contact. The future diagnostic compares exact `--dont-fork --config-test=LOG -f CANDIDATE` with minimal `--config-test=LOG -f CANDIDATE`, each under independent TERM/KILL bounds and same-run evidence capture. Observed nonzero or timeout results remain valid diagnostic outcomes only when all continuity and evidence gates pass | Stop; require separate exact authorization of outer SHA-256 `58f68b573c73eb7b2192cdcf4823a298f7bdac1e6611ab71d44c733f10eba096` before one bounded Node A diagnostic execution |
+| 2026-08-04T23:11:01-05:00 | Node A `j1-svpihole0` plus workstation; Node B not contacted | Execute fail-closed read-only Node A post-failure continuity and Keepalived candidate-validation execution-context diagnostic Action 20d-a | User authorized exact outer SHA-256 `f3107b95332bd5bc2f2e6fc72f79234ffda5c24ff59355b738032179f76f9e13`; no candidate validation, correction, Action 20d retry, Node B contact, service/configuration mutation, Keepalived reload, VRRP transition, or VIP assignment authorized | Exact outer hash, `aaron:aaron:755`, Git index `100755`, zero unstaged outer drift, and exact governing-plan authorization pin passed before LAN contact. Action 20d remained unaccepted after candidate status `143`; independent Node A continuity was pending | Executed `Caddy/scripts/run-node-a-caddy-vrrp-postfailure-action20d-a-outer.sh` once outside the network sandbox. It streamed the exact inspector to Node A from `/`; it ran version/help and bounded journal queries but no config test. Node B was absent from the production path | None; action was read-only. Remote and workstation protected transient captures were removed after safe bounded emission; unsafe evidence would have been retained | Outer, runner, SSH, remote inspector, and transcript validation returned `0`; 51/51 assertions true; first failure `none`; runner stdout 11,776 bytes/154 lines/`1d4ff134...1f9f`; remote stdout 11,160 bytes/141 lines/`39e9190d...cd06`; both stderr streams empty/`e3b0c442...b855`; before/after state `4f180c12...80b7`; cleanup complete | Exact outer `f3107b95...9e13`; inspector `9e9f1284...4a5b`; runner `b50db75f...119a`; Keepalived 2.2.7; live main PID `2285113`; `NRestarts=0`; version capture `21f6b6b2...2442`; help capture `fd686996...91a0`; journal capture `19c4e28b...0b2e` with `-- No entries --` | Accepted. Exact main hash/include absence, fragment, zero Action 20d backup/run/tmp residue, active Keepalived/Caddy/lighttpd, executable/process arguments, bounded coherent `keepalived.pid`, both supported options, Action 19 sanitized-parser context, absent Caddy VIPs, Node A dual-stack DNS-VIP ownership, and stable state passed. Candidate validation and all mutation markers were false; Node B was not contacted | Stop. The earlier status `143` is not explained by option absence, installed-version mismatch, service restart, residual transaction state, or persistent drift. Define a separately gated correction/diagnostic for the full-candidate validation execution behavior before any Action 20d retry |
+| 2026-08-04 | Workstation only; neither HA node contacted | Define fail-closed read-only Node A post-failure continuity and Keepalived candidate-validation execution-context diagnostic Action 20d-a | User authorized definition but not execution; no Node A contact, Node B contact, candidate validation, correction, retry, service/configuration mutation, Keepalived reload, VRRP transition, or VIP assignment authorized | Action 20d remains unaccepted after status `143` at candidate validation before backup or mutation; source evidence says Node B was not contacted and transient state was removed, but independent live continuity has not yet been collected | Added exact Node A inspector, administrative runner, immutable outer gate, production-label regression, and focused suite wiring. The no-argument outer was not invoked | None; definition is repository-only. A future authorized run creates protected transient captures only, emits bounded safe stdout/stderr during the original action, retains unsafe evidence, and removes only its own transient state | Focused host and network-disabled Debian 12 Podman syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, exact 51-label producer/consumer, outer-label, valid/semantic-failure/missing/duplicate/state-drift, static no-config-test, no-mutation, and no-Node-B controls passed | Inspector `9e9f1284...4a5b`; runner `b50db75f...119a`; regression `ec6c59c8...dc63`; exact outer `f3107b95...9e13`; failed Action 20d outer `9d61121d...04c1` remains immutable | Definition complete without LAN contact. The future diagnostic observes version/help, process/executable/arguments, bounded PID files, bounded historical journal window, accepted Action 19 parser context, exact inactive fragment/main state, services, VIP ownership, and state continuity without running candidate validation | Stop; require separate exact authorization of outer SHA-256 `f3107b95332bd5bc2f2e6fc72f79234ffda5c24ff59355b738032179f76f9e13` before one read-only Node A execution |
+| 2026-08-04T22:06:32-05:00 | Node A `j1-svpihole0` plus workstation; Node B not contacted | Execute separately gated transactional Caddy VRRP activation Action 20d | User authorized exact outer SHA-256 `9d61121d352665651a5b1ec40e92abc6cdcbbbb2e07fb62cbfd67fb9057604c1` | Exact outer hash matched. The first complete milestone suite exposed a container working-directory defect before live execution; `integration.sh` was corrected to enter `/workspace/homelab-server-configs`, after which the complete preserved host and Debian 12/Podman suite passed. Accepted Action 20a retry2 readiness remained the live prerequisite | Executed `Caddy/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh` once. It contacted Node A first and ran the exact role-aware transaction from `/`; Node B was not contacted | The failure occurred before `backup_directory` creation and before `mutation_started=true`, so rollback was neither required nor invoked. The remote EXIT trap removed `/run/caddy-action20d-node.*`; the outer removed its local captures after emitting bounded-safe evidence | Outer and inner status `1`; Node A activation status `1`. The first 33 preflight/candidate checks passed. Candidate stdout was empty; candidate stderr was `Terminated`; candidate status `143`; `candidate_config_valid=false` was the first failure. Node A transaction stdout was 2,843 bytes/55 lines/`bb4c1343...a231`; stderr was 62 bytes/2 lines/`0baf2146...e5a8`; outer inner stdout was 3,606 bytes/70 lines/`85d0cc65...4f24`; inner stderr was empty | Exact outer `9d61121d...04c1`; transaction `f20e90b0...7e79`; candidate command used the installed Node A Keepalived binary with `--dont-fork --config-test=/run/caddy-action20d-node.*/keepalived.log -f /run/caddy-action20d-node.*/keepalived.conf.candidate`. No package or service version was emitted before the failure | Not accepted. The immutable preflight confirmed exact main configuration, inactive fragment, both helpers, active Keepalived/Caddy/lighttpd, successful Caddy health, absent Caddy VIPs, and Node A ownership of both DNS VIPs before candidate validation. No backup, main-file install, reload, readiness poll, VIP transition, or notification stage was reached | Stop. Define, then separately authorize, a fail-closed read-only Node A post-failure continuity and Keepalived candidate-validation execution-context diagnostic. It must independently confirm include/VIP/service/residue continuity and collect version, process, PID-file, help/option, journal, and prior successful Action 19 parser context without running another config test, correction, retry, or Node B action |
+| 2026-08-04T19:26:28-05:00 | Workstation only; neither HA node contacted | Define separately gated transactional Caddy VRRP activation Action 20d | User authorized definition but not execution; no Keepalived activation, VRRP transition, Caddy VIP assignment, HA-node contact, service/configuration mutation, or live notification authorized | Accepted Action 20a retry2 reported both exact 138-label baselines, both 46-label normalized probes, all 19 cross-node readiness gates, Node A ownership of both DNS VIPs, absent Caddy VIPs, and readiness `ready_for_separately_authorized_action20_activation_design` | Added one role-aware node transaction, a dual-node Node-A-first orchestrator, immutable outer gate, intercepted production-path regression, and focused host/container suite wiring. The no-argument action was not invoked | Future failure handling restores Node B first when needed, then Node A, reloads Keepalived after each exact main-configuration restoration, requires local Caddy VIP absence, preserves protected backups, and exits `125` with `manual_intervention_required=true` if rollback is incomplete | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, explicit conditional-return, transcript-ratchet, output-evidence, executable-index, outer-label, exact 50/26-label inventories, valid Node-A-first activation, partial Node B failure, Node A rollback, stream, and cleanup controls passed on the host and in network-disabled Debian 12 Podman. The complete historical suite is reserved for the immediately pre-execution gate | Transaction `f20e90b0...7e79`; orchestrator `f9df0216...43d8`; regression `f2566670...da00`; exact outer `9d61121d...04c1`; accepted readiness outer `30f93916...91a2` | Definition accepted locally. The future mutation scope is exactly one main-configuration include and one protected backup on each node plus the intended two Keepalived reloads and Caddy VRRP/VIP transition. The accepted fragment will invoke the asynchronous Apprise notifier on state changes; delivery is observable but non-gating, and no attempt occurred during definition | Stop; require separate exact authorization of outer SHA-256 `9d61121d352665651a5b1ec40e92abc6cdcbbbb2e07fb62cbfd67fb9057604c1`. Immediately before any no-argument execution, rerun the complete preserved historical host/Podman suite; do not execute Action 20d unless that milestone gate passes |
+| 2026-08-04T19:03:11-05:00 | Nodes A and B plus workstation | Execute append-only corrected dual-node Action 20a readiness retry2 using normalized address state | User authorized exact outer SHA-256 `30f93916d00b46d168bacb10fcd8ad4c6869deeb9be0c974e14c175e0aac91a2`; no Keepalived activation, VRRP transition, VIP assignment, service/configuration mutation, or later action authorized | Exact outer hash, `aaron:aaron:755`, Git mode `100755`, and zero unstaged outer drift passed; accepted Action 20c-a/20b-a baselines and Action 20a-retry-a lifetime-drift classification were pinned; Caddy VIPs had to remain absent | Executed `Caddy/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh` once with first-attempt LAN access. It ran both accepted baselines, streamed the exact normalized probe once to each node from `/`, and captured, classified, hashed, and emitted bounded safe stdout and stderr during the original action | None; action was read-only. All remote, inner-runner, baseline, probe, and outer transient captures were removed; unsafe evidence would have been retained | Outer/inner status `0`; both baselines status `0`; Node A and Node B probes 46/46; cross-node 19/19; first failure `none`; normalized Node A state `6a5866ac...0551` unchanged; normalized Node B state `ac639669...79d3` unchanged; inner stdout 37,374 bytes/631 lines/`e0242423...6be5`; inner stderr empty/`e3b0c442...b855`; cleanup complete | Exact outer `30f93916...91a2`; probe `d8a55729...7b47`; health helper `9bf531ab...8bbab`; Node A fragment `3a6f4c03...4bc5`; Node B fragment `294d5ba4...dc4d`; Node A probe stdout `f56a506e...dc84`; Node B probe stdout `f45a98e9...90ce` | Accepted. Node A owns both DNS VIPs; Caddy VIPs are absent on both nodes; priorities `140/100`, VRIDs `110/111`, reciprocal peers, main-inclusion prerequisites, services, releases, sysctls, health, exact normalization contract, and state continuity passed. Notification helpers were not invoked and every filesystem, service, Keepalived, VRRP, VIP, and persistent-mutation marker was false | Stop; readiness is `ready_for_separately_authorized_action20_activation_design`. Define the separately gated Caddy VRRP activation action before any activation or VIP assignment |
+| 2026-08-04T18:58:01-05:00 | Workstation only; neither HA node contacted | Define append-only corrected dual-node Action 20a readiness retry2 using normalized address state | User authorized definition but not execution; no HA-node contact, helper execution against live state, service/configuration mutation, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Accepted Action 20a-retry-a classified the failed retry's Node B aggregate mismatch as legacy address-lifetime-only drift; accepted Node A Action 20c-a and Node B Action 20b-a health baselines and all other readiness gates remain the governing prerequisites | Added append-only normalized probe, dual-node administrative runner, immutable outer gate, production regression, and focused suite wiring. Historical retry and diagnostic artifacts remain byte-identical and pinned | None; definition is repository-only. Future execution uses protected transient captures, emits bounded safe stdout and stderr during the original action, retains unsafe evidence, and removes only transient state | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, outer-label, exact 46-node/19-cross-node contracts, normalized-address, lifetime-only false-negative, real-address-change false-positive, valid readiness, zero-DNS-owner, missing/duplicate baseline, and missing/duplicate probe controls passed on the host and in network-disabled Debian 12 Podman. No no-argument runner ran | Probe `d8a55729...7b47`; runner `04d79efa...dbad`; regression `58a02d73...57af`; exact outer `30f93916...91a2`; historical retry outer `ea0817dc...3845`; accepted diagnostic outer `86e520f4...ba00` | Definition complete without LAN contact. The only behavioral correction is normalized address state in before/after continuity; priorities, VRIDs, peers, DNS/Caddy VIP ownership, health checks, baseline reconciliation, main-inclusion prerequisites, notification non-invocation, and zero-mutation gates are preserved | Stop; require separate exact authorization of outer SHA-256 `30f93916d00b46d168bacb10fcd8ad4c6869deeb9be0c974e14c175e0aac91a2` before one read-only dual-node execution |
+| 2026-08-04T18:43:36-05:00 | Node B `j1-svpihole00` and workstation | Execute narrow read-only Node B normalized before/after component diagnostic Action 20a-retry-a | User authorized exact outer SHA-256 `86e520f467ae2a59a050c1bc870fd4816691f5dd3ee4b397494a44a57961ba00`; no helper invocation, Caddy validation, service/configuration mutation, Keepalived activation, VRRP transition, VIP assignment, Action 20a retry, or later action authorized | Exact outer hash, `aaron:aaron:755`, Git mode `100755`, and zero unstaged outer drift passed; failed Action 20a retry aggregate Node B state mismatch remained unclassified while all other readiness and no-mutation evidence had passed | Executed `Caddy/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh` once with first-attempt LAN access. It streamed the exact read-only inspector from `/`, captured 21 components twice across a two-second interval, and captured, classified, hashed, and emitted bounded safe stdout and stderr during the original action | None; action was read-only. Remote, runner, and outer transient captures were removed; unsafe evidence would have been retained | Outer/runner/SSH/remote status `0`; producer 85/85, consumer 9/9; first failures `none`; classification `legacy_address_lifetime_drift_only`; changed components exactly `legacy_addresses_sha256,legacy_addresses_raw`; remote stdout 14,667 bytes/170 lines/`97241054...0840`; runner stdout 16,533 bytes/204 lines/`51a26e7e...d412`; both stderr streams empty/`e3b0c442...b855`; cleanup complete | Exact outer `86e520f4...ba00`; health helper `9bf531ab...8bbab`; fragment `294d5ba4...dc4d`; Caddyfile `a41c7816...b86e`; selected release `/etc/caddy/releases/action15-health-follow-redirects`; before legacy address hash `362dc64e...d251`; after `8d7d4527...2f54` | Accepted. All normalized components were unchanged, including normalized address inventory and all Caddy/Keepalived/lighttpd PIDs, states, and restart counters. Only dynamic IPv6 lifetime text changed: `1852→1850` and `86140→86138` seconds. Helpers and Caddy validation were not invoked; every service, Keepalived, VRRP, VIP, and persistent-mutation marker was false | Stop; define a separately gated corrected Action 20a readiness retry whose state-continuity boundary uses normalized address evidence before any Caddy VRRP activation |
+| 2026-08-04T18:36:47-05:00 | Workstation only; neither HA node contacted | Define narrow read-only Node B normalized before/after component diagnostic Action 20a-retry-a | User authorized definition but not execution; no Node B contact, helper invocation, Caddy validation, service/configuration mutation, Keepalived activation, VRRP transition, VIP assignment, Action 20a retry, or later action authorized | The exact Action 20a retry outer `ea0817dc...3845` was not accepted because only Node B aggregate `state_unchanged` failed; accepted Node B and Node A post-helper baselines remained exact, all health/readiness gates otherwise passed, all mutation markers were false, and the component difference was unknown | Added append-only Node B inspector, administrative runner, immutable outer gate, production-path regression, and focused suite wiring. The inspector captures 21 independently named components twice, including normalized addresses without lifetimes plus the failed retry's legacy raw-address hash and bounded raw lines | None; definition is repository-only. Future execution creates only protected transient captures, emits bounded safe stdout and stderr during the original action, retains unsafe evidence, and removes only its transient state | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, outer-label, exact 85-producer/9-consumer assertion, 21-component, static read-only, helper-non-invocation, normalized-address, and legacy-boundary checks passed on the host and in network-disabled Debian 12 Podman. No no-argument runner ran | Inspector `09b5d6fd...a764`; runner `bbbc69d9...be56`; regression `ec7413b9...bce9`; exact outer `86e520f4...ba00`; failed retry outer `ea0817dc...3845`; accepted normalizer `bc1f5fc7...c1ceb` | Definition complete without LAN contact. Valid no-difference, legacy address-lifetime-only drift, and persistent component-difference evidence are accepted; missing, duplicate, and inconsistent evidence fail closed; every comparison and classification is independently labeled | Stop; require separate exact authorization of outer SHA-256 `86e520f467ae2a59a050c1bc870fd4816691f5dd3ee4b397494a44a57961ba00` before one read-only Node B diagnostic execution |
+| 2026-08-04T18:11:16-05:00 | Nodes A and B plus workstation | Execute append-only corrected dual-node Action 20a pre-activation readiness retry | User authorized exact outer SHA-256 `ea0817dccfee0cabf096a53d2d2077035f3cec8a78baded465519df854583845`; no service/configuration mutation, Keepalived activation, VRRP transition, VIP assignment, correction, retry, or later action authorized | Exact outer hash, `aaron:aaron:755`, Git mode `100755`, and zero unstaged outer drift passed; exact accepted Action 20c-a and 20b-a baselines, corrected helper, coherent DNS VIP ownership, and absent Caddy VIPs were required | Executed `Caddy/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh` once with first-attempt LAN access. It ran the two accepted baselines and streamed the exact read-only probe once to each node from `/`; all streams were captured, bounded, hashed, classified, and emitted during the original action | None; action was read-only. Workstation and remote transient captures were removed; unsafe evidence would have been retained | Outer/inner status `1`; both 138-label baselines status `0`; Node A fresh probe 46/46 and state `829a1f9f...51b0` unchanged; Node B fresh probe 45/46 with only `state_unchanged=false`, before `e1faa123...7d27`, after `27b01305...5749`; dual-node 17/19; inner stdout 36,987 bytes/629 lines/`b0bda8cb...f9bc`; stderr empty/`e3b0c442...b855`; cleanup complete | Outer `ea0817dc...3845`; helper `9bf531ab...8bbab`; Node A fragment `3a6f4c03...4bc5`; Node B fragment `294d5ba4...dc4d`; Node A baseline stdout `c028f476...3717`; Node B baseline stdout `1c9a0f10...7ad8`; Node A probe stdout `9692cda0...f3c2`; Node B probe stdout `f927d581...5004` | Not accepted. Health checks succeeded; DNS VIPs are coherently owned by Node A; Caddy VIPs are absent; priorities, VRIDs, peers, main-inclusion prerequisites, and notification non-invocation passed; all filesystem, service, Keepalived, VRRP, VIP, and persistent-mutation markers were false. The aggregate Node B snapshot difference is not yet component-classified | Stop; define a separately gated read-only Node B normalized component diagnostic before any readiness retry or Caddy VRRP activation |
+| 2026-08-04T18:06:51-05:00 | Workstation only; neither HA node contacted | Define append-only corrected dual-node Action 20a pre-activation readiness retry | User authorized definition but not execution; no node contact, health-probe execution, service or configuration mutation, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Accepted Node A Action 20c-a outer `42874857...29f3`, Node B Action 20b-a outer `6f017e78...487f`, exact 138-label producers, corrected helper `9bf531ab...8bbab`, coherent DNS VIP ownership, and absent Caddy VIPs | Added append-only retry inspector, administrative runner, immutable outer gate, production regression, focused suite wiring, and exact baseline-producer reconciliation while preserving every historical Action 20a artifact | None; definition is repository-only. Future read-only execution uses protected transient captures, emits bounded safe stdout and stderr during the original action, retains unsafe evidence, and removes only its transient state | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, and outer-label policies passed; valid state, zero DNS owner, missing/duplicate 138-label baseline inventories, and missing/duplicate 46-label probe inventories passed on the host and in Debian 12 Podman with networking disabled | Probe `19d3fffb...1076`; runner `cfac0ff9...e536`; regression `10bc4c15...8b28`; exact outer `ea0817dc...3845`; accepted producer inspectors `50b5c636...eb66` and `dc0a52d8...6744` | Definition complete without LAN contact. Exact accepted baselines and fresh probes remain read-only; 19 cross-node gates preserve single dual-stack DNS-VIP ownership, absent Caddy VIPs, reciprocal peers, exact priorities/VRIDs, main-inclusion prerequisites, and zero mutation | Stop; require separate exact authorization of outer SHA-256 `ea0817dccfee0cabf096a53d2d2077035f3cec8a78baded465519df854583845` before one read-only dual-node retry execution |
+| 2026-08-04T17:46:15-05:00 | Node A `j1-svpihole0` and workstation | Execute independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a | User authorized exact outer SHA-256 `42874857457884bf143fe4d5faa8492cd2b409994182243bf9734bafb98c29f3`; no filesystem/service/Keepalived/VRRP/VIP/configuration mutation, Action 20a retry, or later action authorized | Exact local outer hash and Git mode `100755` matched; accepted Action 20c helper and protected backup plus the Action 19e fragment/backup, active release, services, synchronization state, and absent Caddy VIPs were required | Executed `Caddy/scripts/run-node-a-caddy-health-postinstall-action20c-a-outer.sh` once with first-attempt LAN access. It streamed the exact read-only inspector from `/`, invoked the installed helper once as `keepalived_script`, and captured, classified, hashed, and emitted both streams during the original action | None; action was read-only. Remote helper-owned disposable state and both workstation/remote capture layers were removed; bounded unsafe evidence would have been retained | Outer, administrative runner, SSH, remote inspector, and transcript validation returned `0`; 138/138 assertions true; remote stdout 9,498 bytes/158 lines/`271f7dee...06c6`; runner stdout 10,113 bytes/171 lines/`c17fc150...cd42`; both stderr streams empty/`e3b0c442...b855`; cleanup completed | Exact outer `42874857...29f3`; helper `9bf531ab...8bbab`; fragment `3a6f4c03...4bc5`; main configuration `cf485888...c1e2`; Action 19e backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS`; Action 20c backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI`; before/after `fd58d881...414a` | Accepted. Exact helper/backup manifests, fragment, release, service and synchronization properties, DNS VIP coherence, absent Caddy VIPs, and transient cleanup passed; filesystem, service, VRRP, VIP, and persistent mutation markers were false | Stop; define a separately gated append-only corrected dual-node Action 20a pre-activation readiness retry before any Caddy VRRP activation |
+| 2026-08-04T17:43:34-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a | User authorized definition but not execution; no Node A contact, helper invocation, filesystem/service/Keepalived/VRRP/VIP mutation, Action 20a retry, or later action authorized | Accepted Action 20c installed helper `9bf531ab...8bbab`, retained backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI`, and preserved the accepted Action 19e fragment/backup, active release, services, synchronization state, and absent Caddy VIPs | Added append-only Node A inspector, administrative runner, immutable outer gate, exact-label regression, and focused host/Podman suite wiring. The producer exports 138 unique assertions and pins the accepted Action 20a-b continuity inspector plus the exact Action 20c transaction outer runner | None; definition is repository-only. Future execution creates and removes only protected transient capture state and helper-owned disposable `/tmp/caddy-health.*` state; bounded unsafe evidence is retained rather than deleted | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 138-label reconciliation; static read-only enforcement; Node A release/fragment/priority/source/peer/backup pins; valid and semantic-failure paths; actual missing/duplicate rejection; focused workstation and network-disabled Debian 12 Podman slices passed | Inspector `50b5c636...eb66`; runner `c477f26c...a8d0`; regression `059a2a35...842f`; exact outer gate `42874857...29f3`; accepted continuity inspector `bc1f5fc7...c1ceb`; Action 20c outer `e1b21e1a...0f43d` | Definition complete without LAN contact. A valid exact producer transcript is accepted, semantic failure is preserved, and incomplete or duplicate assertion inventories fail closed; the no-argument execution path remains separately gated | Stop; require separate exact authorization of outer SHA-256 `42874857457884bf143fe4d5faa8492cd2b409994182243bf9734bafb98c29f3` before one read-only Node A execution |
+| 2026-08-04T17:32:59-05:00 | Node A `j1-svpihole0` and workstation | Execute bounded transactional Node A Caddy health-helper execution-context correction Action 20c | User authorized exact outer SHA-256 `e1b21e1aac1a3b66d6f1d16866ae4fd5b13f3ab87bc2322a50c8c885a8a0f43d`; no service mutation, Keepalived activation, VRRP transition, VIP assignment, fragment change, Node B change, Action 20a retry, or later action authorized | Exact local outer hash and Git mode `100755` matched; accepted Action 20a-b/19e-a baseline required old helper `c3bc1c08...1414`, active release `/etc/caddy/releases/action16ar-retry-node-a-default-deny`, fragment `3a6f4c03...4bc5`, protected Action 19e backup, unchanged services, and absent Caddy VIPs | Executed `Caddy/scripts/run-node-a-caddy-health-context-correction-action20c-outer.sh` once with first-attempt LAN access. It staged and validated candidate `9bf531ab...8bbab`, atomically replaced only `/usr/local/libexec/check-caddy.sh`, then validated the installed helper in the real unprivileged execution context | Protected backup retained at `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI`; rollback was armed after the mutation boundary but was not invoked because every post-install gate passed | Outer, runner, SSH, remote transaction, accepted baseline, candidate execution, installed-helper execution, and all 77 producer assertions returned `0`/true. Remote stdout was 4,207 bytes/89 lines/`145a3430...9803`; runner stdout was 4,757 bytes/101 lines/`d610f215...ffb6`; both stderr streams were empty/`e3b0c442...b855`; both cleanup layers completed | Outer `e1b21e1a...0f43d`; installed helper `9bf531ab...8bbab`; old helper backup `c3bc1c08...1414`; fragment `3a6f4c03...4bc5`; protected backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI` | Accepted. Persistent mutation scope was exactly `health_helper,rollback_backup`; Keepalived main/tree, Action 19e backup tree, current release, service PIDs, and absent Caddy VIPs were unchanged. Fragment, Keepalived, service, VRRP, VIP, and Node B mutation markers were false | Stop; define a separately gated independent read-only Node A post-Action 20c acceptance action before any Action 20a retry or Caddy VRRP activation |
+| 2026-08-04T17:30:11-05:00 | Workstation only; neither HA node contacted | Define bounded transactional Node A Caddy health-helper execution-context correction Action 20c | User authorized definition but not execution; no Node A contact, helper replacement, service mutation, Keepalived activation, VRRP transition, VIP assignment, Action 20a retry, or later action authorized | Accepted Action 20a-b pins Node A continuity and old helper `c3bc1c08...1414`; Action 19e-a pins fragment `3a6f4c03...4bc5`, protected backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS`, active release `/etc/caddy/releases/action16ar-retry-node-a-default-deny`, services, and absent Caddy VIPs | Added append-only Node A transactional installer, strict administrative runner, immutable outer gate, intercepted production regression, and focused host/Podman suite wiring. The producer exposes 77 unique independently labeled assertions and reuses the exact accepted helper candidate and Action 20a-b inspector | Future execution first retains the exact old helper and manifest under protected `/var/backups/caddy-ha/action20c-node-a-health-context.*`; after the mutation boundary, any failure restores the old helper and verifies exact Keepalived main/tree and Action 19e backup-tree continuity. Incomplete rollback exits `125` and requires manual intervention | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 77-label inventory; Node A identity/release/fragment/backup pins; helper pre/post execution; valid, missing, duplicate, and false-assertion intercepted paths; focused workstation and network-disabled Debian 12 Podman slices passed. The first container invocation supplied `/bin/bash` despite the image's Bash entrypoint and was rejected before any test; the corrected invocation and all authoritative focused gates passed | Candidate `9bf531ab...8bbab`; baseline `bc1f5fc7...c1ceb`; installer `de17f050...e56a1`; runner `328ea6ac...95e82`; regression `b5b18b91...198f1`; exact outer gate `e1b21e1a...0f43d` | Definition complete without LAN contact. Future persistent mutation scope is exactly `health_helper,rollback_backup`; Node A's inactive fragment and accepted Action 19e backup are independently pinned before and after; Node B is outside scope | Stop; require separate exact authorization of outer SHA-256 `e1b21e1aac1a3b66d6f1d16866ae4fd5b13f3ab87bc2322a50c8c885a8a0f43d` before one Node A transaction |
+| 2026-08-04T13:58:04-05:00 | Workstation only; neither HA node contacted | Define transactional Node B Caddy health-helper execution-context correction Action 20b | User authorized definition but not execution; no correction, Action 20a retry, Keepalived activation, VRRP transition, VIP assignment, Node A change, or later action authorized | Accepted Action 20a-b proved Node A and Node B continuity and exact old helper `c3bc1c08...1414`; Action 20a established that the old helper fails because unprivileged Caddy validation lacks a writable HOME/XDG context | Added append-only candidate helper, Node B transactional installer, strict remote runner, immutable outer gate, intercepted production regression, and host/Podman suite integration. The action validates the exact 65-label producer contract and uses only the accepted Action 20a-b Node B baseline | Future action backs up the exact old helper and manifest under protected `/var/backups/caddy-ha/action20b-node-b-health-context.*`; after the mutation boundary, any failure atomically restores the old helper and verifies Keepalived configuration-tree continuity. Manual intervention is surfaced fail-closed if rollback is incomplete | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet, output-evidence and outer-local-gate policies; exact producer-label inventory; historical baseline immutability; candidate context; `caddy-tls` and active-release TLS access; transient-stage cleanup; success, missing-label, duplicate-label and false-assertion intercepted paths; runner and outer self/source/contract tests passed without LAN contact | Candidate `9bf531ab...8bbab`; installer `b3942a98...6b3a4a`; runner `bed2a3de...2ef40`; regression `5667c2a8...a5b2d`; outer-label policy `5c1bdd72...0ebe4`; exact outer gate `6808e173...b0a83` | Definition complete without LAN contact. The future mutation scope is exactly the Node B helper and protected rollback backup; the candidate is validated before and after replacement; fragments, services, Keepalived, VRRP, VIPs, and Node A remain untouched | Stop; require separate exact authorization of outer SHA-256 `6808e173c52618a4747a0205e233e5b892dc24e22ec581b54cd7d3e4b64b0a83` before one Node B transaction |
+| 2026-08-04T16:54:13-05:00 | Workstation only; neither HA node contacted | Adopt tiered deployment validation cadence after the in-progress complete suite | User approved the proposed cadence after the current run; live action boundaries and exact authorization requirements remain unchanged | The complete preserved host/Podman suite took about 2.5 hours and replayed hundreds of immutable historical actions for one bounded Action 20b definition | Added the cadence to repository guidance and Locked Decisions: routine definitions use focused host plus focused Debian 12 production slices and applicable policies; complete history runs only at category changes, immediately before Caddy VRRP activation, and deployment acceptance | None | The already-running complete suite exited `1` after the Debian 12 Action 20b policy self-test without an independently labeled failing command. The exact Action 20b host chain and corrected Debian 12 slice, using `CADDY_VALIDATION_CONTAINER=1`, both subsequently passed all installer, runner, outer-label, self/source/contract, production-function, false-positive, and false-negative gates. The first ad hoc container invocation omitted that required context variable and is rejected as invalid harness evidence | Focused Debian 12 exit `0`; no LAN contact; exact outer gate remains `6808e173...b0a83` | Action 20b is accepted under the approved focused cadence. The complete-suite failure is preserved as an observability defect in the historical replay boundary and does not establish an Action 20b or shared-policy failure | Stop; require separate exact authorization of Action 20b before any Node B mutation |
+| 2026-08-04T16:57:48-05:00 | Node B and workstation | Execute transactional Node B Caddy health-helper execution-context correction Action 20b | User authorized exact outer SHA-256 `6808e173c52618a4747a0205e233e5b892dc24e22ec581b54cd7d3e4b64b0a83`; no Node A correction, Action 20a retry, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Accepted Action 20a-b Node B baseline; old helper `c3bc1c080cd148efc0a64440a2a411ec115d0ca83f8e6a66220d7bd201971414`; Caddy VIPs absent; active release `/etc/caddy/releases/action15-health-follow-redirects` | Verified the outer hash and executed `Caddy/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh` once outside the network sandbox. It staged and validated the candidate, atomically installed only `/usr/local/libexec/check-caddy.sh`, then validated the installed helper in the real unprivileged context | Protected backup retained at `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`; automatic rollback was armed after the mutation boundary but was not invoked | Outer, runner, SSH, remote transaction, baseline, candidate execution, installed-helper execution, and every post-install continuity gate returned `0`/true. Remote stdout was 3,589 bytes/77 lines/`7adc754f...bb70`; runner stdout was 4,139 bytes/89 lines/`95e4d0c5...36f8`; both stderr streams were empty with SHA-256 `e3b0c442...b855`; both cleanup layers completed | Outer `6808e173...b0a83`; old helper `c3bc1c08...1414`; installed helper `9bf531ab...8bbab`; protected backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3` | Accepted. Persistent mutation scope was exactly `health_helper,rollback_backup`; Keepalived main/tree hashes, current release, service PIDs, and absent Caddy VIPs were unchanged. Fragment, Keepalived, service, VRRP, and VIP mutation markers were false | Stop; define a separately gated independent read-only Node B post-install acceptance action before any Node A correction or Action 20a retry |
+| 2026-08-04T17:13:01-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed read-only Node B post-Action 20b acceptance Action 20b-a | User authorized definition but not execution; no node contact, installed-helper invocation, service mutation, Keepalived activation, VRRP transition, VIP assignment, Node A change, Action 20a retry, or later action authorized | Accepted Action 20b installed helper `9bf531ab...8bbab`, retained backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`, and left the accepted inactive fragment/service/release/VIP baseline unchanged | Added append-only inspector, administrative runner, immutable outer gate, production-label regression, and focused host/Podman suite wiring. The inspector exports 138 unique labels and snapshots the exact Action 19a plus Action 20b backup trees before and after one real-context helper execution | None; definition is repository-only. Future execution creates only protected transient capture state and helper-owned disposable `/tmp/caddy-health.*` state that must be removed by the helper | Focused host and Debian 12 slices passed inspector/runner self-tests, exact contract reconciliation, source/collision/conditional/transcript/output policies, immutable Action 19a-b baselines, read-only static policy, exact suite wiring, real valid and semantic-mismatch paths, and actual missing/duplicate transcript rejection. No production network contact occurred | Inspector `dc0a52d8...6744`; runner `7088d136...d2dc`; regression `3872e819...5df6`; outer `6f017e78...487f` | Definition accepted without LAN contact. Helper execution is explicitly read-only operational validation; filesystem/service/VRRP/VIP/persistent mutation markers must remain false and the complete before/after snapshot must match | Stop; require separate exact authorization of outer SHA-256 `6f017e78870c6433c2b9f7180003fe6ab81f2a0f1e44fc63dbaf5ee6ea67487f` before one read-only Node B execution |
+| 2026-08-04T17:16:41-05:00 | Node B and workstation | Execute independent fail-closed read-only Node B post-Action 20b acceptance Action 20b-a | User authorized exact outer SHA-256 `6f017e78870c6433c2b9f7180003fe6ab81f2a0f1e44fc63dbaf5ee6ea67487f`; no filesystem, service, Keepalived, VRRP, VIP, fragment, Node A, Action 20a retry, or later mutation authorized | Accepted Action 20b helper `9bf531ab...8bbab`, protected backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`, inactive fragment, active release, services, synchronization state, and absent Caddy VIPs | Verified the exact outer hash and executed the no-argument runner once outside the network sandbox. It streamed the inspector from `/` through `/bin/bash`, executed the installed helper once as `keepalived_script`, and captured/classified/emitted both command streams during the original action | None; action was read-only. Remote, runner, and outer temporary capture state cleaned up, and helper-owned transient residue was absent | Outer, runner, SSH, remote, and validation status `0`; 138/138 assertions true; first failure `none`; before/after `cc521b08...8365`; remote stdout 9,498 bytes/158 lines/`1a78be6b...78a2`; runner stdout 10,113 bytes/171 lines/`172a76aa...2de6`; both stderr streams empty; cleanup complete | Exact outer `6f017e78...487f`; helper `9bf531ab...8bbab`; fragment `294d5ba4...dc4d`; main configuration `e8473427...22b6`; Action 20b backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3` | Accepted. Helper execution true; filesystem, service, VRRP, VIP, and persistent mutation markers false; state unchanged | Stop; define the separately gated Node A health-helper correction before any Action 20a retry or Caddy VRRP activation |
+| 2026-08-04T13:39:22-05:00 | Nodes A and B plus workstation | Execute append-only read-only post-failure continuity diagnostic Action 20a-b | User authorized exact outer SHA-256 `98898911daab791ecbd02a3d9d4d751ee6d70514ff11a823587a14c3e2f34dc8`; no retry, correction, Caddy validation, helper invocation, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Action 20a-a left Node A's earlier state-hash inequality unclassified while Node B was unchanged; Action 20a-b had passed complete workstation and Debian 12 Podman validation without node contact | Executed the exact no-argument outer runner once with first-attempt LAN access. It streamed the exact role-specific 79-label inspector to each node from `/` through `/bin/bash`, emitted all 19 normalized before/after components, independently validated Node B, and captured, classified, hashed, and emitted bounded safe streams | None; action was read-only. Node A, Node B, inner-runner, and outer cleanup completed; no persistent write or mutation ran | Outer/inner `0`; both remote and contract statuses `0`; Node A 79/79, Node B 79/79, dual-node 10/10; all 19 components matched on each node; Node A state `317bce15...c68c` before/after; Node B `9ec88a6c...839c` before/after; both node stderr and inner stderr empty; Caddy VIPs absent; DNS VIP coherently owned by Node A | Exact outer `98898911...4dc8`; inner stdout 21,227 bytes/315 lines/`d58e120d...446d`; Node A stdout 9,558 bytes/134 lines/`5fff891b...3fe3`; Node B stdout 9,422 bytes/134 lines/`a3bbf90e...e691`; health helper `c3bc1c08...1414`; Node A fragment `3a6f4c03...4bc5`; Node B fragment `294d5ba4...dc4d`; active Caddyfile `a41c7816...b86e` on both nodes | Accepted. The earlier Node A inequality was not persistent: every normalized component is now stable and the complete state hash is unchanged. Node B continuity independently passed. Installed helper invocation, Caddy validation, service/VRRP/VIP/persistent mutation were false | Continue only to a separately authorized definition-only bounded health-helper execution-context correction; do not retry Action 20a or activate Caddy VRRP |
+| 2026-08-04T12:47:18-05:00 | Workstation only; neither HA node contacted | Define append-only post-failure continuity diagnostic Action 20a-b | User authorized definition but not execution; no HA-node contact, installed-helper invocation, Caddy validation, Action 20a-a retry/correction, Action 20a retry/correction, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Action 20a-a was not accepted: four diagnostic boundaries were incorrect, Node B state matched, and Node A before/after hashes differed without emitted component evidence | Added a role-specific 79-label inspector, 10-label dual-node runner, intercepted production regression, immutable outer gate, and host/Podman suite integration. Each node emits 19 normalized before/after components; Node A differences are component-classified and Node B continuity is independently pinned | None; definition is repository-only. Future execution creates and removes only protected `/tmp` capture state; it invokes neither the installed helper nor Caddy validation and performs no persistent write | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet and output-evidence policies; exact component/assertion inventories; historical Action 20a-a immutability; role-specific fragments/releases; normalized-address contract; intercepted valid path; Node A component-drift, Node B semantic-failure, missing-label, and duplicate-label rejection; outer self/source/contract tests; complete host suite; and complete Debian 12 Podman integration passed without LAN contact | Inspector `bc1f5fc7...c1ceb`; runner `624f9b73...6be1b`; regression `0d99ca41...6c5f8`; exact outer gate `98898911...4dc8` | Definition complete without LAN contact. Every normalized state component is emitted and compared independently during the original action; Node B does not inherit Node A's acceptance result; every mutation marker is false; complete repository validation exited `0` with `All Caddy HA repository validation passed` | Stop; require separate authorization of exact outer SHA-256 `98898911daab791ecbd02a3d9d4d751ee6d70514ff11a823587a14c3e2f34dc8` before one read-only execution |
+| 2026-08-04T12:26:42-05:00 | Nodes A and B plus workstation | Execute dual-node read-only Caddy health-helper execution-context diagnostic Action 20a-a | User authorized exact outer SHA-256 `45d7d18ed79ad09277a6962efc9e7bc7a87ff28bc6687de4dd7c93ad32e0b2b6`; no Action 20a-a retry/correction, Action 20a retry/correction, Keepalived activation, VRRP transition, VIP assignment, or later action authorized | Action 20a had passed all non-health prerequisites, failed both health helpers under the execution identity, preserved both node states, and left Caddy VIPs absent | Executed the exact no-argument outer runner once with first-attempt LAN access. It streamed the exact read-only 62-label inspector to each node from `/` with `/bin/bash`, captured/classified/emitted all bounded stdout/stderr, did not invoke the installed helper, and removed transient storage | None; action was read-only. Both remote cleanups and outer cleanup completed; no service, VRRP, or VIP mutation ran | Outer/inner `1`; Node A and Node B remote and contract status `1`; Node A passed 54/62 and Node B 55/62; cross-node result 5/12. Both nodes showed `keepalived_script caddy-tls`, unreadable inspector targets `/etc/caddy/tls/fullchain.pem` and `privkey.pem`, baseline Caddyfile adaptation failure before HOME evaluation, and transient validation blocked by the root-only parent. Node B before/after `18ade2da...a650` matched; Node A `dc79ed03...1d9ab` versus `143a4438...88d8` did not. All streams were bounded safe; node stderr and inner stderr were empty | Outer `45d7d18e...b2b6`; inner stdout 23,008 bytes/316 lines/`b210d6ca...3531`; Node A stdout 10,321 bytes/134 lines/`057df8a8...dc36`; Node B stdout 10,312 bytes/134 lines/`55ad13a7...3ba0`; baseline stderr Node A `9a9d0352...7fb6`, Node B `fbb06c94...86ca`; transient stderr Node A `53c1c3a4...4999`, Node B `8d2dfdc7...e9c0` | Not accepted. The action exposed four diagnostic-contract defects rather than validating the intended helper context. Node A snapshot inequality is unclassified because component evidence was not emitted; Node B continuity passed. Installed helper invocation and every explicit service/VRRP/VIP/persistent-mutation marker were false | Stop. Require a separately authorized definition-only, append-only post-failure continuity diagnostic with normalized component emission before any correction or retry |
+| 2026-08-04T11:38:59-05:00 | Workstation only; neither HA node contacted | Define dual-node read-only Caddy health-helper execution-context diagnostic Action 20a-a | User authorized definition but not execution; no HA-node contact, installed-helper execution, Action 20a retry/correction, Keepalived include/reload/restart, VRRP transition, VIP assignment, or later action authorized | Action 20a passed every non-health prerequisite but both unprivileged health probes failed while provisioning local PKI under absent, unwritable `/home/keepalived_script`; both node states remained unchanged | Added a 62-label per-node execution-context inspector, 12-label dual-node runner, intercepted producer-contract regression, immutable outer gate, and host/Podman suite integration. Future execution reproduces the failure only after proving the home cannot be created, then validates with disposable HOME/XDG paths and removes them before state comparison | None; definition is repository-only. Future execution creates only protected transient evidence and HOME/XDG directories beneath `/tmp`, removes them before the post-state snapshot, and retains bounded unsafe evidence rather than deleting it | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision and conditional-validator policies, exact producer-derived transcript acceptance, missing/duplicate/semantic-failure rejection, baseline/transient context source checks, static no-persistent-mutation enforcement, exact SSH working-directory/host-key command contract, outer self-test, complete host suite, and complete Debian 12 Podman integration passed without LAN contact | Inspector `68d78127...aac2`; runner `9f78d047...a185`; regression `5a472919...7a6f`; exact outer gate `45d7d18e...b2b6` | Definition complete without LAN contact. The installed helper cannot run; the future read-only diagnostic captures account/unit/storage context and both validation behaviors while requiring unchanged persistent state and zero service/VRRP/VIP mutation | Stop; require separate authorization of exact outer SHA-256 `45d7d18ed79ad09277a6962efc9e7bc7a87ff28bc6687de4dd7c93ad32e0b2b6` before one read-only execution |
+| 2026-08-04T11:17:29-05:00 | Nodes A and B plus workstation | Execute dual-node fail-closed read-only Action 20 pre-activation readiness Action 20a | User authorized exact outer SHA-256 `6eb37fe524754a92e8b9abc1074821de1ac9d08932767a5654dec7d04224f82f`; no correction, Keepalived include/reload/restart, VRRP transition, VIP assignment, service mutation, Action 18c-vrrp-a, Action 18c, or later action authorized | Exact local hash/type/mode gate matched; accepted Node A Action 19e-a and Node B Action 19a-b baselines were required; Caddy VIPs were required absent | Invoked the exact no-argument outer runner once with first-attempt LAN access. It reran both accepted read-only baselines, then streamed one read-only 46-label probe to each node from `/` using `/bin/bash`; all streams were captured, classified, hashed, and emitted during the original action | None; action was read-only. Both node snapshots were unchanged, all transient state was removed, and outer cleanup completed | Outer/inner status `1`; both 114-assertion baselines status `0`; each node probe passed 45/46; cross-node result 15/19 with first failure `node_a_probe_accepted`; Node A health stderr 510 bytes/4 lines/`ff55d1eb...6f653`; Node B health stderr 470 bytes/4 lines/`036b457f...e60c`; inner stdout 32,283 bytes/573 lines/`c1303a65...bd53`; inner stderr empty | Outer `6eb37fe5...f82f`; Node A state `1668031d...c9b5`; Node B state `a72b54b5...a940`; Node A owns both DNS VIPs; both Caddy VIPs absent; exact node fragments `3a6f4c03...4bc5` and `294d5ba4...dc4d` | Not accepted: all non-health prerequisites passed, but both health helpers returned `1`; `caddy validate` attempted local-CA creation at `/home/keepalived_script` and failed permission denied. Every mutation marker is false and notification helpers did not run | Stop. Define a separate read-only dual-node execution-context diagnostic before choosing a correction; do not retry Action 20a or activate Caddy VRRP |
+| 2026-08-04T09:52:47-05:00 | Workstation only; neither HA node contacted | Define dual-node fail-closed read-only Action 20 pre-activation readiness Action 20a | User authorized definition but not execution; no HA-node contact, Keepalived include/reload/restart, VRRP transition, VIP assignment, service mutation, Action 18c-vrrp-a, Action 18c, or later action authorized | Accepted Node A Action 19e-a and Node B Action 19a-b each established an exact inactive fragment/helper/backup/service/release baseline with absent Caddy VIPs; current cross-node DNS-VIP ownership remains live state requiring fresh observation | Added a 46-label node inspector, 19-label dual-node administrative runner, intercepted positive/negative production regression, immutable outer execution gate, and host/Podman suite integration | None; definition is repository-only. Future execution creates and removes only protected transient inspection state; bounded unsafe evidence is retained instead of deleted | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision policy, exact source hashes, inspector/runner/outer self/source/contract checks, valid host/container intercepted dual-node state, arbitrary-directory and zero-DNS-owner rejection, duplicate/missing-label rejection, and no-network enforcement passed; complete suites recorded in Validation Evidence | Inspector `9b051e4c...3f4d`; administrative runner `7adcf153...c29c`; regression `8bb05e80...590b`; exact outer gate `6eb37fe5...f82f` | Definition complete without LAN contact. Future execution reruns both accepted 114-assertion baselines, then obtains two exact 46-assertion node snapshots and evaluates all 19 cross-node gates; health helpers run read-only, notification helpers do not run, and every activation/mutation marker must remain false | Stop; require separate authorization of exact outer SHA-256 `6eb37fe524754a92e8b9abc1074821de1ac9d08932767a5654dec7d04224f82f` before one read-only execution |
 | 2026-08-04T01:02:12-05:00 | Node A `j1-svpihole0` and workstation | Execute independent fail-closed read-only Node A post-Action 19e acceptance Action 19e-a | User authorized exact outer-runner SHA-256 `6669641d327ef31bebaf9ed0794c254760d7befafe9e0b4b92f14b2bad841f3d`; no helper invocation, file mutation, Keepalived activation/include/reload/restart, service/VRRP/VIP/IP mutation, Action 18c-vrrp-a, Action 18c, or later action authorized | Exact local runner hash/type/mode gate matched; accepted Action 19e fragment, protected backup, zero residue, main-configuration exclusion, accepted services/release, and absent Caddy VIPs were required | Invoked the exact no-argument outer runner once with first-attempt LAN access; it streamed only the fail-closed read-only inspector through strict host-verified SSH from `/` using `/bin/bash` and captured, classified, hashed, and emitted bounded safe streams during the original action | None; action was read-only. Remote and workstation transient inspection state was removed; both cleanup markers are true | Outer, administrative, and remote status `0`; 114/114 assertions true; remote stdout 7,714 bytes/131 lines/`17d921f0...a5e5`; administrative stdout 8,329 bytes/144 lines/`4a743f99...05b4`; both stderr streams empty/`e3b0c442...b855`; both streams bounded safe and emitted | Exact outer `6669641d...1f3d`; fragment `3a6f4c03...4bc5`; main configuration `cf485888...c1e2`; backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS`; before/after state `c0026dd6...84d7` | Accepted: exact inactive fragment, helpers, protected backup/manifest, zero Action 19e residue, main-configuration exclusion, service properties, active release, DNS VIP coherence, and absent Caddy VIPs passed; helper execution and every filesystem/service/VRRP/VIP/persistent mutation marker are false | Stop; separately define—but do not execute—a dual-node fail-closed read-only Action 20 pre-activation readiness action before any Keepalived include/reload/restart or Caddy VRRP activation |
 | 2026-08-04T00:28:44-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed read-only Node A post-Action 19e acceptance Action 19e-a | User authorized definition but not execution; no Node A inspection, helper invocation, file mutation, Keepalived activation/include/reload/restart, service/VRRP/VIP/IP mutation, Action 18c-vrrp-a, Action 18c, or later action authorized | Accepted Action 19e installed exact inactive fragment `3a6f4c03...4bc5` and protected backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS` while preserving main-configuration exclusion, service state, and absent Caddy VIPs | Added deterministic Node A derivation from the accepted Action 19a-b producer, exact 114-label inspector/runner contract, intercepted production regression, immutable outer gate, and host/Podman suite integration | None; definition is repository-only. Future execution creates and removes only protected transient inspection state and retains bounded unsafe evidence instead of deleting it | Focused syntax, ShellCheck, canonical shfmt, collision/conditional/transcript/output policies, derivation/inspector/runner/outer self/source/contract checks, exact producer-label reconciliation, read-only static policy, role/value pins, intercepted success and semantic-failure paths, missing/duplicate negative controls, full pre-commit suite, complete host suite, and complete Debian 12 Podman integration passed | Derivation `cd8d2b89...22de`; generated inspector `20639a8f...04a1`; generated runner `ca0d1535...ebd2`; regression `637c09c6...a9e3`; exact outer gate `6669641d...1f3d` | Definition complete without LAN contact. The exact fragment/backup/manifest, zero Action 19e residue, main configuration, active release, unit properties, DNS/Caddy VIP state, same-run bounded stream evidence, and zero mutation markers are fail-closed | Stop; require separate authorization of exact outer SHA-256 `6669641d327ef31bebaf9ed0794c254760d7befafe9e0b4b92f14b2bad841f3d` before one read-only execution |
 | 2026-08-04T00:04:56-05:00 | Node A `j1-svpihole0` and workstation | Execute bounded inactive Node A Keepalived-fragment preparation Action 19e | User authorized exact outer runner SHA-256 `3d1d09f0861b45a3ed89743cc983d3180b65ae6ca936b3a6022b0644df256771`; no Keepalived include/reload/restart, service/VRRP/VIP/IP mutation, Action 18c-vrrp-a, Action 18c, or later action authorized | Exact local hash, regular-file type, non-symlink state, `aaron:aaron:0755` metadata, and Git mode `100755` matched; accepted Action 19d-a retry baseline required exact helpers, absent fragment, main configuration exclusion, accepted tree `dad64e4a...2f66`, absent Caddy VIPs, and unchanged services | Invoked the exact no-argument outer runner once with first-attempt LAN access. It installed `/etc/keepalived/conf.d/caddy-ha.conf` and protected backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS` only | Rollback was armed before mutation but not invoked because all checks passed. The retained protected backup manifest records the prior fragment as absent; transient remote and workstation stages were removed | Outer, administrative, and remote status `0`; all 154 exact producer assertions true; remote stdout 9,089 bytes/166 lines/`74f98184...1faf`; administrative stdout 10,648 bytes/199 lines/`f3401c93...9b30`; both stderr streams empty/`e3b0c442...b855`; both stdout streams bounded safe and emitted; both cleanup markers true | Exact outer `3d1d09f0...6771`; fragment `3a6f4c03...4bc5`; accepted pre-tree `dad64e4a...2f66`; backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS` | Accepted: exact inactive fragment and protected backup installed; main configuration hash/exclusion, service properties, and absent Caddy VIPs remained unchanged; reload/restart, VRRP transition, VIP, IP, and service mutation markers false | Stop; separately define—but do not execute—independent read-only Node A post-Action 19e acceptance before any activation or later action |
@@ -14224,6 +14280,10 @@ authorized.
 
 | Date | Phase | Planned behavior | Actual change | Rationale | Impact | Approval | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-05 | Corrected Action 20d candidate validation | Directly config-test the exact full production main plus unmodified fragment before installing the include | Construct and hash-pin the exact production candidate, then syntax-test only a deterministic, fully expanded, transaction-owned sanitized candidate derived from the exact main and fragment. Remove both DNS/Caddy notification directives, replace both script commands with `/bin/true`, and change only the Caddy health-script user to root. Install only the unmodified production candidate while independently validating production fragment/helper hashes, directives, identity, and both effective execution contexts | Accepted Action 20d-b proved both exact and minimal direct production config-test forms terminate by SIGTERM after 511 ms with empty output and unchanged state. Workstation inspection confirmed that each accepted Pi-hole main contains a health-script and notification path, so sanitizing only the Caddy fragment would leave live execution hooks in the parser candidate. Keepalived documentation confirms that the unmodified notifier inherits `script_user pi`; its `/run` write paths therefore need a separate live read-only gate. Removing `--dont-fork` is ineffective; treating status `143` as valid would discard syntax validation | Validation-only transient bytes differ from production. Installed fragment bytes and intended main include are unchanged. The corrected transaction adds full-source sanitizer, exact production-candidate hash, isolation, health and notification execution-context gates while preserving all historical activation, inspection, backup, sequencing, readiness, rollback, and manual-intervention gates. Definition contacted no node and made no live change | User explicitly authorized definition but not execution of this corrected transaction | Before activation authorization, require a separate read-only dual-node notifier-context and runtime-directory readiness action. After acceptance, require exact outer SHA-256 `085eff6386210d36a97682b86c90670b4b42cc249132b4f57dcae0ca5b7018d5`, complete immediately pre-execution historical host/Podman suite, and protected workstation stream capture before no-argument execution |
+| 2026-08-04 | Complete-suite container working directory before Action 20d | Run the complete preserved host and Debian 12/Podman milestone suite successfully before an authorized VRRP activation | The first suite run reached the container Action 20b outer-policy check from `/` and exited `1` without a failed label. The identical outer self-test passed from `/workspace/homelab-server-configs`. `integration.sh` now explicitly enters that repository before its first test; the complete suite then passed, including the former boundary and Action 20d simulation | Action runners intentionally allow the container repository path and several production regressions enforce it. Depending on the runtime's implicit `/` working directory made the complete suite context-dependent and contradicted the established source-test contract | Repository validation entrypoint only. The Action 20d transaction, orchestrator, regression, exact authorized outer hash, live mutation scope, and node state were unchanged | Mechanical validation correction within the authorized immediate pre-execution milestone; no node was contacted until the corrected complete suite passed | Retain the explicit integration working directory and add this boundary to the deferred post-deployment historical-suite streamlining review |
+| 2026-08-04 | Action 20d activation sequencing and notification effect | Activate the prepared dual-stack Caddy VRRP group under one separate authorization while deferring independent notification acceptance to Action 29 | Defined a Node-A-first then Node-B transaction with reverse-order rollback. The already accepted fragment's sync-group `notify` directive means activation will invoke the installed asynchronous Apprise helper during state transitions; the action discloses that expected attempt without making delivery an activation gate | Node A must become the stable preferred owner before Node B joins, avoiding transient Node B ownership. Silently suppressing the accepted notifier would require an unapproved fragment/helper behavior change, while requiring delivery would couple proxy availability to the notification service contrary to the helper's fail-open design | Future execution changes exactly two main configuration files, retains two protected backups, performs two Keepalived reloads, assigns the Caddy VIPs to Node A, and may emit bounded external Apprise requests. Definition and validation made no live request or node change | User authorized definition only; no activation or notification attempt authorized | Require exact outer hash authorization and the complete immediately pre-execution host/Podman suite. Action 29 still independently validates delivery, duplicate suppression, and monitoring behavior |
+| 2026-08-04 | Action 20b definition validation observability | Run every workstation and container definition gate with an independently labeled result and preserve the failing command's bounded streams | The first complete suite stopped at the Action 20b outer local-gate boundary after the installer and runner contracts passed. The second complete suite identified `regression_production_path=false`, while the isolated regression and outer gate each passed 12/12 in the same image. The regression deleted its captured valid-runner streams on that unexpected failure | A context-dependent failure must be attributable from the original run. Silent aggregate boundaries and deletion of the only command streams violate the locked independent-label and transaction-evidence rules | Repository-only outer wrapper and regression changed; candidate, installer, runner, mutation scope, rollback behavior, and live state are unchanged. The regression now records status and classifies/emits bounded safe stdout/stderr or retains unsafe evidence. A shared policy reconciles each new outer wrapper's canonical gate inventory and rejects missing, duplicate, false, or unexpected labels. The new outer SHA-256 is `6808e173...b0a83`; neither node was contacted | Minor observability correction within the authorized definition-only scope; no live action authorized | Require every new transactional outer wrapper to expose `--expected-local-gates`, run the shared policy in host and Podman focused slices, require original-run stream evidence for unexpected failures, and apply the locked tiered cadence for complete historical-suite execution |
 | 2026-08-03 | Node A Action 19e transcript validation | Reuse the accepted Node B Action 19a fragment transaction for Node A | Derived the Node A transaction from Action 19a while replacing its historical lowercase-only/minimum-count validator with the exact 154-label producer contract established by Action 19a-b | The original validator rejected 66 valid mixed-case systemd-property labels after a successful Node B transaction. Repeating it on Node A would recreate a known false-negative boundary | Repository-only definition; live mutation scope is unchanged. Node A execution will reconcile exact labels and preserve the inactive fragment-only boundary | User authorized definition and explicitly required incorporation of Action 19a/19a-b corrections | Require exact Action 19e outer-hash authorization; after execution, define independent read-only post-install acceptance before any activation |
 | 2026-08-03 | Action 19d-a Keepalived-tree acceptance | Independently confirm the accepted Node A Keepalived tree and emit sufficient same-run evidence for any mismatch | The derivation pinned `dad64e4a...2f66` with middle bytes `2dbdc4` instead of the accepted value with `2db3454`; the inspector emitted only the false assertion and omitted the observed tree hash | A transcribed integrity value is never an acceptable substitute for the exact accepted source value, and a failed hash assertion must include its bounded observed value to avoid a diagnostic for the diagnostic | The read-only action stopped coherently with 85/86 assertions true, identical before/after state, empty stderr, and every mutation marker false. The live state remains unaccepted only at this hash boundary | User authorized only exact read-only Action 19d-a execution | Preserve executed artifacts; define an append-only retry changing only the hash pin, emit expected and observed tree hashes during the original run, and add regression coverage before requesting retry execution |
 | 2026-08-03 | Action 19d local immutable-gate verification | Run the outer runner's declared `--self-test`, `--source-test`, and `--contract-test` options before the authorized transaction | The first workstation-only verification used the obsolete spelling `--source-context-test` after the self-test. The runner printed usage and returned before the source and contract gates; the declared `--source-test` and `--contract-test` options were then run successfully before any LAN contact | The action summary used a generic source-context description, while the immutable runner's usage contract exposes `--source-test`. Correcting the caller to the immutable artifact's declared interface preserved the exact authorized runner | No node contact, persistent change, or execution-gate weakening occurred. The exact no-argument runner was invoked only after all three declared local gates passed | Minor mechanical correction within the exact authorized action boundary | Preserve the immutable runner and record its declared options in future handoffs; no retry or new action artifact was required |
@@ -18683,6 +18743,742 @@ The before/after state hash was `c0026dd6...84d7`, cleanup completed, and every
 helper, filesystem, service, VRRP, VIP, and persistent-mutation marker was
 false. Action 19e-a is accepted.
 
+### Defined dual-node read-only Action 20 pre-activation readiness Action 20a
+
+Action 20a is a fail-closed, read-only gate immediately before any Caddy VRRP
+activation work. Its administrative runner first reruns the exact accepted
+Node A Action 19e-a and Node B Action 19a-b outer gates. It then opens one
+additional strict host-verified read-only SSH session to each node and executes
+the same role-parameterized inspector from `/` through `/bin/bash`.
+
+Each node probe emits exactly 46 unique, independently labeled assertions and
+the administrative runner emits exactly 19 unique cross-node assertions. The
+combined contract requires:
+
+- Exact accepted inactive Caddy Keepalived fragments, helper hashes, protected
+  backups, main configurations, services, active Caddy releases, and sysctl
+  non-local-binding values on both nodes.
+- Node A priority `140`, physical sources `.53` and `::53`, and unicast peers
+  `.54` and `::54`; Node B priority `100` with the reciprocal values.
+- IPv4 VRID `110` and IPv6 VRID `111` on both nodes.
+- Exactly one owner of the existing IPv4 DNS VIP `.55` and exactly one owner
+  of the existing IPv6 DNS VIP `::55`, with both VIPs on the same node.
+- Zero owners of the inactive Caddy IPv4 VIP `.56` and IPv6 VIP `::56`.
+- The main Keepalived configurations still exclude the Caddy fragments and
+  contain none of the Caddy instance names or VRIDs, making later inclusion an
+  explicit separately authorized change.
+- `systemctl is-active caddy`, `caddy validate`, and
+  `curl -k -I https://localhost` through the installed unprivileged Caddy
+  health helper on each node. The notification helper is validated by hash but
+  is not invoked.
+- Identical per-node before/after state hashes and explicit false markers for
+  filesystem, service, Keepalived activation, VRRP, VIP, peer-transport, and
+  persistent mutations.
+
+The four read-only SSH sessions are deliberate: two preserve the independently
+accepted full-node baselines and two collect fresh, role-identical snapshots
+for cross-node ownership checks. Every stdout and stderr stream is captured
+during the original action, bounded, hashed, classified, and emitted when safe
+before cleanup. Unsafe output is retained in a protected evidence directory.
+The runner rejects missing, duplicate, contradictory, failed, or unexpected
+labels and does not infer readiness from an assertion count.
+
+Definition artifacts and SHA-256 values are:
+
+- Node inspector:
+  `9b051e4c8b7c21e8f75bd9da71a7e04bc7d6582fd4eaa6a044f9ac2a4083f4d7`.
+- Dual-node administrative runner:
+  `7adcf15345fd4dfe95af237dc181bea8e98b199296d8e5faa660045dbfb0c29c`.
+- Production-path regression:
+  `8bb05e8068f9c38a2b57f3b480ef9b2755ceb0e80824241b9860ed676ad0590b`.
+- Exact outer execution gate:
+  `6eb37fe524754a92e8b9abc1074821de1ac9d08932767a5654dec7d04224f82f`.
+
+The exact future execution command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-outer.sh
+```
+
+Definition and validation did not contact either HA node and did not invoke
+the no-argument outer runner. One read-only execution requires separate exact
+SHA-256 authorization. No Caddy VRRP activation is authorized.
+
+The authorized read-only execution returned outer and inner status `1` and is
+not accepted. Both accepted 114-assertion baselines returned `0`. Each fresh
+node probe passed 45 of 46 assertions; 15 of 19 cross-node assertions passed.
+Node A owns both DNS VIPs, neither node owns a Caddy VIP, all exact
+fragment/role/VRID/priority/peer/service/release/sysctl and state-continuity
+checks passed, and every mutation marker is false.
+
+The single failed per-node assertion was `health_probe_status_zero`. On both
+nodes, `caddy validate` provisioned the local PKI while running as
+`keepalived_script` and attempted to create its root under the account's
+absent, unwritable `/home/keepalived_script`. Node A returned four safe stderr
+lines with SHA-256 `ff55d1eb...6f653`; Node B returned four safe stderr lines
+with SHA-256 `036b457f...e60c`. No notification helper ran. A separate
+read-only execution-context diagnostic is required before choosing a
+correction or retrying Action 20a.
+
+### Append-only corrected Action 20a pre-activation readiness retry
+
+The corrected retry preserves all historical Action 20a files and replaces
+only the superseded readiness boundary. It first runs exact accepted Node A
+Action 20c-a outer `42874857...29f3` and Node B Action 20b-a outer
+`6f017e78...487f`. For each result, it derives the complete expected inventory
+from the corresponding immutable 138-label producer and requires exact label,
+truth-value, count, status, stream, cleanup, state-continuity, and zero-mutation
+evidence. Handwritten summary counters cannot substitute for producer labels.
+
+Two fresh role-specific probes then enforce the original 46-label node and
+19-label cross-node contract with corrected helper `9bf531ab...8bbab`. The
+retry requires one coherent dual-stack DNS-VIP owner, no Caddy VIP owner,
+reciprocal unicast peers, priorities `140` and `100`, VRIDs `110` and `111`,
+inactive main-configuration inclusion, successful read-only health helpers,
+and unchanged before/after state. It captures, bounds, hashes, classifies, and
+emits safe stdout and stderr during the original action. Unsafe evidence is
+retained; notification helpers are not invoked.
+
+Definition artifacts are:
+
+- Probe: `19d3fffb5519d143c4e7c27c384ba9d30020ffc0174fb320be5088ca90c51076`.
+- Administrative runner:
+  `cfac0ff96026ec1586ad3265e44d5962310cc9bfb18b0bdfcf883fb38ef0e536`.
+- Production regression:
+  `10bc4c15be20d846a73b869fdc5675b9b78f8db6750ed2210bab9cbba31a8b28`.
+- Exact outer execution gate:
+  `ea0817dccfee0cabf096a53d2d2077035f3cec8a78baded465519df854583845`.
+
+The separately gated future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry-outer.sh
+```
+
+Definition and focused host plus network-disabled Debian 12 validation did not
+contact either HA node. No no-argument runner was invoked. Execution and Caddy
+VRRP activation remain separately unauthorized.
+
+The authorized execution of exact outer `ea0817dc...3845` returned status `1`
+and is not accepted. Both exact 138-label baselines passed. Node A's fresh
+probe passed 46/46 with state `829a1f9f...51b0` unchanged. Node B passed 45/46;
+only `state_unchanged` failed, changing from `e1faa123...7d27` to
+`27b01305...5749`. The dual-node consumer therefore passed 17/19, with
+`node_b_probe_accepted` and `node_b_state_unchanged` false. Health helpers,
+DNS-VIP coherence on Node A, absent Caddy VIPs, roles, priorities, VRIDs,
+peers, services, releases, sysctls, main-inclusion prerequisites, and
+notification non-invocation all passed. Every mutation marker was false,
+stderr was empty, and cleanup completed. The retry emitted only aggregate
+snapshot hashes, so the exact changing Node B component remains unclassified.
+A separately defined normalized component diagnostic is required before any
+retry or Caddy VRRP activation.
+
+### Node B normalized component diagnostic Action 20a-retry-a
+
+Action 20a-retry-a is defined and validated on the workstation only. It is a
+narrow read-only diagnostic for the aggregate Node B state mismatch emitted by
+the failed Action 20a retry. It does not rerun either accepted 138-label health
+baseline, invoke `/usr/local/libexec/check-caddy.sh`, invoke a notification
+helper, run `caddy validate`, contact Node A, or authorize an Action 20a retry
+or Caddy VRRP activation.
+
+The Node B inspector records 21 independently named components before and
+after a bounded two-second interval. It covers exact helper, fragment, active
+Caddyfile, selected release, Keepalived/Caddy home state, Caddy, Keepalived,
+and lighttpd service state, and address state. Address evidence has three
+separate boundaries:
+
+- `addresses_normalized` contains only interface, CIDR, and scope; volatile
+  preferred and valid lifetimes are excluded.
+- `legacy_addresses_sha256` reproduces the failed Action 20a retry's raw
+  `ip -o address show dev eth0` hash boundary.
+- `legacy_addresses_raw` emits the bounded, sorted raw address lines so a
+  lifetime-only change is visible during the original diagnostic.
+
+Each component emits an exact before value, after value, and independently
+labeled `unchanged` or `changed` classification. The runner independently
+recomputes the complete component inventory, changed count/list, aggregate
+state-hash relationship, and one of these outcomes:
+
+- `no_difference_observed`;
+- `legacy_address_lifetime_drift_only`; or
+- `persistent_component_difference_observed`.
+
+A component difference is diagnostic evidence rather than a malformed
+transcript. Missing, duplicate, inconsistent, unsafe, or incomplete evidence
+fails closed. The future action captures, bounds, hashes, classifies, and emits
+safe stdout and stderr during the original run; unsafe evidence is retained.
+All 85 producer assertions and nine consumer assertions are independently
+labeled, and every mutation/helper marker must remain false.
+
+Definition artifacts are:
+
+- Inspector:
+  `09b5d6fd7d86fe3bd79e84850a88210a4fed55c2ae1f80946f9e96a7da6ba764`.
+- Administrative runner:
+  `bbbc69d964d63c33ae413dc65f2687c914c2b2b0b4019aa9b89201d0f9f7be56`.
+- Production regression:
+  `ec7413b9945f07ca84b17d216d122240c4c61671ac069e5ffb32a477bb3cbce9`.
+- Exact outer execution gate:
+  `86e520f467ae2a59a050c1bc870fd4816691f5dd3ee4b397494a44a57961ba00`.
+
+The separately gated future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-b-caddy-state-difference-action20a-retry-a-outer.sh
+```
+
+Focused host and network-disabled Debian 12 Podman validation passed without
+LAN contact. No no-argument runner was invoked. Execution, Action 20a retry,
+and Caddy VRRP activation remain unauthorized.
+
+The separately authorized execution of exact outer
+`86e520f467ae2a59a050c1bc870fd4816691f5dd3ee4b397494a44a57961ba00`
+subsequently passed. The producer passed 85/85 assertions and the consumer
+passed 9/9. All normalized components were unchanged. The only changed
+components were `legacy_addresses_sha256` and `legacy_addresses_raw`, with
+the dynamic global IPv6 lifetimes decreasing from `1852` to `1850` seconds
+and from `86140` to `86138` seconds over the bounded interval. The outcome was
+therefore `legacy_address_lifetime_drift_only`, not persistent state drift.
+Outer, runner, SSH, and remote statuses were `0`; both stderr streams were
+empty; all cleanup completed; helpers and Caddy validation were not invoked;
+and every mutation marker was false. A corrected Action 20a readiness retry
+must use normalized address evidence before any Caddy VRRP activation.
+
+### Append-only corrected Action 20a readiness retry2
+
+Action 20a retry2 preserves every historical Action 20a and Action 20a-retry-a
+artifact. It retains the accepted Node A Action 20c-a and Node B Action 20b-a
+138-label baseline reconciliation, 46 independently labeled assertions per
+fresh node probe, and 19 independently labeled cross-node readiness gates.
+
+The only live-readiness behavior change is the address member of each node's
+before/after state snapshot. The failed retry hashed raw
+`ip -o address show dev eth0` output, which contains volatile preferred and
+valid lifetimes. Retry2 instead normalizes each address to
+`interface|CIDR|scope`, sorts and deduplicates the set, and hashes that stable
+representation. The probe emits
+`state_address_normalization=interface_cidr_scope` and the runner requires it
+exactly for both nodes.
+
+Self-test and production regression controls independently prove:
+
+- otherwise identical addresses with different lifetimes normalize equally;
+- a changed IPv6 address normalizes differently;
+- exact accepted readiness evidence remains accepted;
+- zero DNS-VIP ownership, missing or duplicate baseline labels, and missing or
+  duplicate probe labels remain rejected;
+- both health-helper streams remain captured, classified, hashed, and emitted
+  during the original action; and
+- notification helpers and every filesystem, service, VRRP, VIP, and
+  persistent-mutation path remain absent.
+
+Definition artifacts are:
+
+- Probe:
+  `d8a55729ca33ebc30b8110dbe3e9cb9b31fbeaef27ecb24cb5e955f572137b47`.
+- Administrative runner:
+  `04d79efa70a2ad390d4a8025822f077cf8a3189b6866b0476da19bba4bbddbad`.
+- Production regression:
+  `58a02d73216a847b344281f1a87a57cd373a5613c26ba59eebf4838acdcd57af`.
+- Exact outer execution gate:
+  `30f93916d00b46d168bacb10fcd8ad4c6869deeb9be0c974e14c175e0aac91a2`.
+
+The separately gated future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-vrrp-preactivation-action20a-retry2-outer.sh
+```
+
+Focused host and network-disabled Debian 12 Podman validation passed without
+LAN contact. No no-argument runner was invoked. Execution and Caddy VRRP
+activation remain separately unauthorized.
+
+The separately authorized execution of exact outer
+`30f93916d00b46d168bacb10fcd8ad4c6869deeb9be0c974e14c175e0aac91a2`
+subsequently passed. Both exact 138-label health baselines returned `0`, both
+fresh normalized node probes passed 46/46, and the dual-node consumer passed
+19/19. Node A's normalized state remained `6a5866ac...0551`; Node B's remained
+`ac639669...79d3`. Node A owns both DNS VIPs, neither node owns a Caddy VIP,
+both health helpers returned `0` with empty output, priorities, VRIDs, peers,
+main-inclusion prerequisites, services, releases, sysctls, and normalization
+contracts were exact, and notification helpers did not run. Outer and inner
+statuses were `0`; inner stdout was 37,374 bytes/631 lines with SHA-256
+`e0242423...6be5`; inner stderr was empty; all cleanup completed; and every
+filesystem, service, Keepalived, VRRP, VIP, and persistent-mutation marker was
+false. Readiness is `ready_for_separately_authorized_action20_activation_design`.
+Caddy VRRP activation and VIP assignment remain unauthorized.
+
+### Defined separately gated Caddy VRRP activation Action 20d
+
+Action 20d is defined and validated on the workstation only. It is a
+dual-node transaction with an explicit Node A-first activation order:
+
+1. Node A must match its accepted main configuration, inactive fragment,
+   helpers, services, DNS-VIP ownership, and absent Caddy-VIP baseline.
+2. A protected copy of Node A's exact main configuration is retained, the
+   single exact include
+   `include /etc/keepalived/conf.d/caddy-ha.conf` is added atomically, and
+   Keepalived is reloaded rather than restarted.
+3. Bounded readiness requires Node A to report `CADDY_DUALSTACK=MASTER`, own
+   exactly `10.1.0.56/22` and `fd36:5aa8:6971:1::56/128`, retain both DNS
+   VIPs, pass the Caddy health helper, and preserve the Keepalived PID and
+   restart count.
+4. The same protected include/reload transaction runs on Node B, which must
+   report `CADDY_DUALSTACK=BACKUP`, own neither Caddy VIP nor DNS VIP, pass
+   health, and preserve its Keepalived PID and restart count.
+5. Fresh read-only 20-assertion inspections on both nodes reconfirm a single
+   dual-stack Caddy owner on Node A, Node B in `BACKUP`, unchanged DNS-VIP
+   ownership, active services, exact fragments/helpers, and no post-check
+   mutation.
+
+Each node activation exports exactly 50 unique assertion labels. Each final
+inspection exports exactly 26 unique assertion labels. The runner consumes
+the producer inventories directly and rejects missing, duplicate, false,
+contradictory, or unexpected evidence. It captures, hashes, classifies, and
+emits bounded safe stdout and stderr during the original command. Unsafe
+evidence is retained at a protected path rather than printed or deleted.
+
+If Node A's remote transaction fails after its write, its local exit handler
+restores the exact backup and reloads Keepalived. If Node B activation or any
+final cross-node gate fails after Node A was accepted, the orchestrator rolls
+back Node B first when necessary and Node A second. Each rollback restores
+the exact pre-activation main configuration and requires the local Caddy VIPs
+to be absent. An incomplete rollback exits `125` and emits
+`manual_intervention_required=true`.
+
+The installed and accepted fragment contains the Keepalived sync-group
+`notify` directive. Therefore a future activation will invoke
+`/usr/local/libexec/lsyncd-ha-failover-notify.sh` for the state transitions,
+and that helper will make bounded asynchronous attempts to the locked Apprise
+endpoint. This effect is included explicitly in the future activation
+authorization boundary. Notification delivery is not an activation-success
+gate because the helper is asynchronous and fail-open by design. Action 29
+still owns independent notification delivery and monitoring acceptance.
+
+Definition artifacts are:
+
+- Role-aware node transaction:
+  `f20e90b0991bdb3aa5b1552496e25a2bfdb3e28a2746ce67eacec6fe603a7e79`.
+- Dual-node administrative orchestrator:
+  `f9df02166d9c92add920c188d2fddb68ab8bb803a9a77c185090adcb2e6f43d8`.
+- Intercepted production-path regression:
+  `f2566670baf26ac2e2e813346b15167f75c16abe524bab382045f158bd53da00`.
+- Exact outer execution gate:
+  `9d61121d352665651a5b1ec40e92abc6cdcbbbb2e07fb62cbfd67fb9057604c1`.
+
+The separately gated future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-vrrp-activation-action20d-outer.sh
+```
+
+Focused host and network-disabled Debian 12 Podman validation passed without
+LAN contact. The no-argument outer runner was not invoked. Because this action
+changes deployment category and would activate Caddy VRRP, the complete
+preserved historical host/Podman suite is an immediate pre-execution gate and
+must pass after exact authorization but before the no-argument runner is
+invoked. Definition does not authorize that suite's live action, either node,
+Keepalived reload, VRRP transition, VIP assignment, or notification attempt.
+
+### Action 20d execution attempt
+
+The user authorized exact outer SHA-256
+`9d61121d352665651a5b1ec40e92abc6cdcbbbb2e07fb62cbfd67fb9057604c1`.
+The corrected complete host and Debian 12/Podman milestone suite passed before
+the no-argument runner was invoked once.
+
+Node A passed the exact main, inactive fragment, helper, service, health,
+absent-Caddy-VIP, DNS-VIP-owner, and candidate-construction preflight. The
+candidate Keepalived process then emitted `Terminated` and returned `143`, so
+`candidate_config_valid=false` was the first failed assertion. The action
+stopped before creating a protected backup, setting `mutation_started=true`,
+installing the main include, reloading Keepalived, polling VRRP, assigning a
+Caddy VIP, or invoking the notification helper. Node B was not contacted.
+
+The attempt is not accepted. The next gate is definition only of a fail-closed
+read-only Node A post-failure continuity and Keepalived candidate-validation
+execution-context diagnostic. It must not rerun candidate validation. It must
+independently label the exact main include count, Caddy/DNS VIP ownership,
+service state and PID/restart continuity, Action 20d backup and transaction
+residue, installed Keepalived version, active process arguments and PID-file
+state, supported option/help output, relevant bounded journal evidence, and
+the accepted Action 19 parser-validation context. No correction, Action 20d
+retry, Node B contact, Keepalived reload, VRRP transition, VIP assignment, or
+notification attempt is authorized.
+
+### Action 20d-a post-failure execution-context diagnostic
+
+Action 20d-a is defined and validated on the workstation only. Its future
+read-only execution is restricted to Node A and records 51 independently
+labeled assertions. It verifies the exact inactive main configuration and
+fragment, absence of an Action 20d backup and transaction residue, active
+Keepalived/Caddy/lighttpd state, Keepalived PID and restart observations,
+resolved executable and active process arguments, a bounded coherent PID-file
+inventory, installed version, and supported `--config-test`/`--dont-fork`
+help text. It also captures the bounded Keepalived journal window surrounding
+the failed attempt and records the accepted Action 19 sanitized-parser context.
+
+The diagnostic does not execute `keepalived --config-test`, invoke a Caddy or
+notification helper, contact Node B, alter the main include, reload a service,
+transition VRRP, or assign a VIP. Its before/after snapshot covers the exact
+main and fragment hashes, include count, service PID/restart state, Caddy and
+DNS VIP counts, and Action 20d residue. Safe bounded output is emitted during
+the original action; unsafe evidence is retained. Missing, duplicate,
+semantically failed, and state-drift evidence fails closed. The exact outer is
+`f3107b95332bd5bc2f2e6fc72f79234ffda5c24ff59355b738032179f76f9e13`.
+No no-argument runner was invoked and no HA node was contacted during
+definition.
+
+The exact outer was subsequently authorized and executed once. All 51 Node A
+assertions passed, with outer, runner, SSH, remote, and validation status `0`.
+Keepalived reports version 2.2.7 and documents both `--config-test[=LOG_FILE]`
+and `--dont-fork`. The active process is `/usr/sbin/keepalived --dont-fork`,
+uses the default main configuration path, has PID `2285113`, `NRestarts=0`,
+and a bounded coherent `keepalived.pid` inventory. The bounded historical
+journal query returned `-- No entries --`.
+
+The exact main hash and absent include, fragment hash, zero Action 20d backup
+and transaction residue, active Keepalived/Caddy/lighttpd services, absent
+Caddy VIPs, Node A ownership of both DNS VIPs, and the Action 19 sanitized
+parser transformation all passed. Before and after state SHA-256 remained
+`4f180c12c31eab32e2cf6e913b8c829b52a00d9f4e4756208d8a2f6c9af080b7`.
+Candidate validation was not invoked, Node B was not contacted, all mutation
+markers were false, both stderr streams were empty, and cleanup completed.
+
+This accepted evidence rules out unsupported Keepalived options, an installed
+version mismatch, a service restart, Action 20d residue, and persistent state
+drift as explanations for the earlier status `143`. It does not yet establish
+why the full candidate validation was externally terminated. A separately
+defined and authorized correction or diagnostic is required before Action 20d
+can be retried.
+
+### Action 20d-b bounded full-candidate execution diagnostic
+
+Action 20d-b is defined and validated on the workstation only. The Keepalived
+source documents that `--config-test` sets its config-test, no-respawn,
+no-fork, and no-syslog flags before parsing, validating, and exiting. The
+extra `--dont-fork` in Action 20d should therefore be redundant, but Action
+20d-a did not establish whether that invocation boundary contributed to the
+observed status `143`.
+
+The future Action 20d-b execution constructs the full candidate from the exact
+inactive main configuration plus the accepted Caddy fragment without
+installing it. It then runs two independently bounded probes:
+
+1. Exact prior form: `--dont-fork --config-test=LOG -f CANDIDATE`.
+2. Documented minimal form: `--config-test=LOG -f CANDIDATE`.
+
+Each probe has a 15-second TERM bound and two-second KILL-after bound. The
+diagnostic captures and safely emits the exit status, classification, elapsed
+milliseconds, bounded process/PID/PPID/state/wchan/argument snapshots, stdout,
+stderr, and config-test log during the original action. It proves each wrapper
+process is reaped. Config-valid, bounded timeout, signal termination, and
+configuration/command-error results are accepted as observations, not as
+deployment success. Unknown classification, missing or duplicate labels,
+unbounded duration, residual process state, or persistent-state drift fails
+closed.
+
+The before/after contract retains the exact main/fragment hashes, absent main
+include, active Keepalived/Caddy/lighttpd services, stable Keepalived PID and
+restart count, absent Caddy VIPs, Node A ownership of both DNS VIPs, and zero
+Action 20d backup/residue. Candidate installation, Keepalived service mutation,
+VRRP/VIP mutation, and Node B contact are prohibited. Exact outer SHA-256 is
+`58f68b573c73eb7b2192cdcf4823a298f7bdac1e6611ab71d44c733f10eba096`.
+No no-argument runner was invoked and no HA node was contacted during
+definition.
+
+The exact authorized outer was subsequently launched once against Node A.
+Its complete emitted transcript exceeded the orchestration context, and the
+completed execution cell expired before its exit status or diagnostic evidence
+could be recovered. No retained workstation capture was found. This attempt is
+not accepted and establishes neither an exact/minimal probe outcome nor a live
+continuity result. Node B was not part of the action path.
+
+The next gate is a separately authorized rerun of the same immutable outer with
+protected workstation stdout and stderr captures created before launch. The
+captures must survive the remote action and be classified locally before
+bounded relevant evidence is emitted. Losing the presentation channel must not
+delete the only copy of an otherwise safe diagnostic transcript.
+
+The separately authorized captured rerun completed with outer, runner, SSH,
+remote, and validation status `0`. All 59 assertions passed. The exact form and
+the minimal form each returned status `143`, classification
+`terminated_sigterm`, and duration 511 ms. Both stdout, stderr, and config-test
+logs were empty; each process trace was bounded and each process was reaped.
+Removing explicit `--dont-fork` therefore does not change the behavior and is
+not a sufficient correction.
+
+Before and after state SHA-256 was
+`3517ee1ab22677f6986e786c3a0ff10e38a51590957020447212123c319d1b11`.
+The candidate SHA-256 was
+`357eb09c628fa3b78efcaacf53278ab09a6574b991820632ee3ec2614265d8e2`.
+The candidate was never installed. Main and fragment hashes, include absence,
+Keepalived PID and restart count, active services, absent Caddy VIPs, and Node A
+ownership of both DNS VIPs were unchanged. No service, Keepalived, VRRP, VIP,
+or persistent-filesystem mutation occurred; Node B was not contacted; remote,
+runner, and outer cleanup completed.
+
+The protected invocation evidence remains at
+`/tmp/caddy-action20d-b-rerun.Fp2f5h`: stdout is 12,259 bytes, 216 lines, and
+SHA-256 `65c58ea7597b3ce618a69bf3c7316d13a87888dcf40b696792b0c2ea0171c562`;
+stderr is empty with SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+The directory is `aaron:aaron:0700` and both captures are mode `0600`.
+
+This live result reproduces the repository's earlier Keepalived 2.2.7 finding:
+full production notification and non-root `vrrp_script` setup cannot be treated
+as a successful direct config-test boundary. The next separately defined
+correction should use the established sanitized-parser transformation only for
+syntax validation, while independently requiring the exact unmodified
+production fragment and the accepted helper provenance and execution-context
+evidence. That corrected transaction is now defined below but remains
+unexecuted and unauthorized for live use.
+
+### Corrected transactional Caddy VRRP activation Action 20d retry
+
+The Action 20d retry is append-only. Historical Action 20d, Action 20d-a, and
+Action 20d-b artifacts remain byte-identical and continue to provide the
+failure, continuity, and execution-behavior evidence.
+
+Each node transaction exports 93 uniquely labeled activation checks and 35
+inspection checks. These are a strict superset of historical Action 20d. Its validation boundary
+creates two separate protected files beneath its action-owned `/run` directory:
+
+1. A production candidate containing the exact current main configuration plus
+   only `include /etc/keepalived/conf.d/caddy-ha.conf`.
+2. A sanitized validation-only candidate that fully expands the exact current
+   main and exact Caddy fragment. Its deterministic transformation removes the
+   two DNS/Caddy `notify` directives, replaces the two DNS/Caddy script commands
+   with `/bin/true`, and replaces the single `user keepalived_script` directive
+   with `user root`. It contains no include directive or production helper path.
+
+The production-candidate hashes are pinned independently:
+
+- Node A: `357eb09c628fa3b78efcaacf53278ab09a6574b991820632ee3ec2614265d8e2`.
+- Node B: `8b260315628888c937c6f7eaf21f63e73eb52cfd9cd6e9c0d9d90fa9cf9fbd3f`.
+
+The sanitized-candidate hashes are pinned independently:
+
+- Node A: `ea8fc2aaba014fa65296e7a6e15ae1fcb9a108d2487b3f5166a36dd3f30785b7`.
+- Node B: `91eb9f89437c76ae6964cb1ca14278369c4d90c510e2cbfd05562fafbe97d431`.
+
+Only the sanitized candidate is passed to `keepalived --config-test`; it is
+never installable. Only the separately constructed production candidate can be
+installed as the main configuration. The transaction requires the installed
+main bytes to equal that production candidate and rechecks the unmodified
+production fragment hash both before installation and after reload.
+
+Production behavior remains independently gated. The transaction pins both
+helper files, metadata, and hashes; requires the exact production health,
+`keepalived_script`, and notification directives; confirms the locked
+`keepalived_script` identity and its `caddy-tls` membership; runs the health
+helper under `keepalived_script` before and after activation; and proves its
+temporary files are absent. The exact main `script_user pi` binding is also
+required. Without invoking the notification helper, the transaction proves it
+is executable by `pi` and requires `/run/caddy-ha` and
+`/run/caddy-ha-notify` to be real directories writable by that effective user.
+The notification helper is not invoked during preflight because doing so would
+change VRRP state and send an Apprise request. Its normal transition invocation
+remains observable but non-gating after reload.
+
+All historical activation and rollback behavior is preserved: Node A activates
+first, Node B second; readiness remains bounded; each node retains its protected
+pre-change backup; Node B rolls back before Node A after a partial activation;
+local rollback reloads Keepalived and waits for both Caddy VIPs to disappear;
+and incomplete rollback exits `125` with manual intervention required. The
+regression machine-verifies that all historical 50 activation and 26 inspection
+labels remain present and that a Node B activation failure rolls back Node A.
+
+Definition hashes are:
+
+- Node transaction: `4297a17a328653a6daa03eaee011bd1dc47bd541c6c889221ba39ce8d50081c8`.
+- Dual-node runner: `acbfc9f02f1e70d1987afee7c6e8e7c4e9c2a533860af0cf6268293c2ef76c82`.
+- Production regression: `5c45626f2441252ab33863738902614bda3f3317db627a9a3124d9efbef32714`.
+- Exact outer execution gate:
+  `085eff6386210d36a97682b86c90670b4b42cc249132b4f57dcae0ca5b7018d5`.
+
+The outer was validated only with argument-bearing self/source/contract modes.
+Its no-argument path was not invoked, and neither HA node was contacted.
+Immediately before any separately authorized execution, the complete preserved
+historical host and Podman milestone suite must pass. The no-argument outer must
+be launched with protected workstation stdout and stderr captures established
+before execution so evidence survives any presentation-channel loss.
+
+### Action 20a-a health-helper execution-context diagnostic
+
+Action 20a-a is defined and validated on the workstation only. It does not
+rerun Action 20a, invoke the installed health helper, or authorize a
+correction. Each node probe records 62 independently labeled assertions for:
+
+- `keepalived_script` and `caddy` passwd, home, shell, primary-group, and
+  supplementary-group context.
+- Exact health-helper provenance and the Keepalived script-user declaration.
+- Caddy and Keepalived unit user, group, environment, environment-file,
+  working-directory, state-directory, and home-protection observations.
+- Read access to the active Caddyfile, full chain, and private key, plus
+  write-access boundaries for `/home` and `/var/lib/caddy`.
+- The expected failing validation with HOME/XDG unset, including bounded safe
+  stdout/stderr, the permission-denied classification, and proof that
+  `/home/keepalived_script` remains absent.
+- A second validation using protected disposable HOME, XDG configuration, and
+  XDG data directories beneath `/tmp`; creation of transient local-PKI data;
+  cleanup before the post-state snapshot; and equality of the persistent
+  before/after state.
+
+The dual-node consumer requires the exact 62-label producer contract from
+each node and evaluates 12 independently labeled cross-node results. Its
+regression accepts the producer-derived valid contract and rejects a semantic
+failure, missing label, and duplicate label. All SSH calls retain strict host
+key checking, enter `/` before privilege change, invoke the streamed artifact
+with `/bin/bash`, and remove regression-only environment controls before the
+remote shell starts.
+
+Definition hashes are:
+
+- Inspector: `68d7812760c0c663b74c4bb54ed71ec79f9ae9d102dc40511e222b6aca01aac2`.
+- Dual-node runner: `9f78d047044cb40895f45afbf48426a2c1e25024ac7711c38b15797d8196a185`.
+- Production regression: `5a472919220e3c90688bdbc43701b170f9c0426f68dea4b53395a556b20b7a6f`.
+- Exact outer execution gate:
+  `45d7d18ed79ad09277a6962efc9e7bc7a87ff28bc6687de4dd7c93ad32e0b2b6`.
+
+The exact future execution command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-health-context-action20a-a-outer.sh
+```
+
+Definition and validation did not contact either HA node and did not invoke
+the no-argument outer runner. One read-only execution requires separate exact
+SHA-256 authorization. No Action 20a retry, correction, Keepalived activation,
+VRRP transition, or VIP assignment is authorized.
+
+The authorized Action 20a-a execution returned `1` and was not accepted. It
+proved that the definition encoded four incorrect boundaries: the accepted
+supplementary group is `caddy-tls`, the active certificate paths are beneath
+`/etc/caddy/current/tls`, the baseline validation must source
+`/etc/default/caddy-ha` before selectively unsetting HOME/XDG, and disposable
+helper-owned directories cannot be placed beneath the root-only `0700`
+capture directory. Node B's before/after snapshot was identical. Node A's
+snapshot hashes differed, but the exact component difference was not emitted;
+therefore no persistent-state conclusion is accepted for Node A. All explicit
+service, VRRP, VIP, and persistent-mutation markers were false, the installed
+helper was not invoked, and cleanup completed.
+
+### Action 20a-b append-only post-failure continuity diagnostic
+
+Action 20a-b is definition-only and preserves every historical Action 20a-a
+artifact under an exact SHA-256 immutability gate. It does not retry either
+Action 20a-a or Action 20a, invoke the installed health helper, invoke Caddy
+validation, or authorize a correction or activation.
+
+Each role-specific node probe evaluates 79 independently labeled assertions.
+It emits these 19 normalized components before and after under distinct value
+labels, then compares each component under its own assertion:
+
+- Health-helper, Keepalived fragment, and active Caddyfile SHA-256 values.
+- Active-release target and normalized `keepalived_script` and Caddy home-state
+  metadata.
+- The normalized `eth0` address set without volatile lifetime fields.
+- `ActiveState`, `SubState`, `MainPID`, and `NRestarts` for Caddy, Keepalived,
+  and lighttpd.
+
+Role-specific gates independently pin the expected hostname, physical IPv4
+and ULA, Keepalived fragment, active release, absent Caddy VIPs, supported DNS
+VIP ownership, active services, and absent `keepalived_script` home. Node B's
+result is validated independently and cannot be inferred from Node A's result.
+The dual-node consumer accepts exactly 10 producer-derived assertions.
+
+Definition hashes are:
+
+- Inspector: `bc1f5fc7dc9de385ba00e8f9868df6857306cc4268de6a899a73ccc7098c1ceb`.
+- Dual-node runner: `624f9b7351eb24a7e624914c4a511faa1e905ac099ea21e42917a240e7d6be1b`.
+- Production regression: `0d99ca41afe7e388fe7c623e9c55b1d932221c19af1ec108b31f54746216c5f8`.
+- Exact outer execution gate:
+  `98898911daab791ecbd02a3d9d4d751ee6d70514ff11a823587a14c3e2f34dc8`.
+
+The exact future execution command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-dual-node-caddy-postfailure-continuity-action20a-b-outer.sh
+```
+
+Definition, the complete host suite, and Debian 12 Podman integration did not
+contact either HA node or invoke the no-argument outer runner. Complete
+repository validation exited `0` with `All Caddy HA repository validation
+passed`. One read-only execution requires separate exact SHA-256 authorization.
+No retry, correction, Keepalived activation, VRRP transition, or VIP assignment
+is authorized.
+
+The separately authorized execution of exact outer SHA-256
+`98898911daab791ecbd02a3d9d4d751ee6d70514ff11a823587a14c3e2f34dc8`
+subsequently passed. Node A and Node B each passed 79/79 assertions, and the
+dual-node consumer passed 10/10. All 19 normalized components matched before
+and after on both nodes. Node A's complete state hash remained
+`317bce152f1119e2a6e70aac65e4f85a389cf9073dd3695ca0866002d73ac68c`;
+Node B remained
+`9ec88a6caa5cac14df58bcf442a4ef49931c2ec997c0516f7eca0c0602db839c`.
+Both node stderr streams and inner stderr were empty. All cleanup completed,
+and every helper-invocation, Caddy-validation, service, VRRP, VIP, and
+persistent-mutation marker was false.
+
+### Action 20b Node B health-helper execution-context correction
+
+Action 20b was defined and executed standby-first. It preserves every Action
+20a, 20a-a, and 20a-b artifact. The installed helper:
+
+- Creates a private disposable directory through `mktemp` beneath `/tmp`.
+- Arms cleanup before fallible validation operations.
+- Provides private `HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` directories.
+- Sources `/etc/default/caddy-ha` before Caddy validation.
+- Requires active Caddy service, successful Caddy validation, and successful
+  `curl --insecure --head https://localhost`.
+- Suppresses successful Caddy validation streams and emits validation stderr
+  only when validation fails.
+
+The Node B transaction required the accepted Action 20a-b
+79-assertion Node B baseline. It independently checks the actual `caddy-tls`
+membership, active release
+`/etc/caddy/releases/action15-health-follow-redirects`, readable active-release
+`tls/fullchain.pem` and `tls/privkey.pem`, and a writable `/tmp` parent. Because
+the protected remote bundle is root-only, the transaction creates a distinct
+transient candidate at mode `root:caddy-tls:0750`, validates it as
+`keepalived_script`, and removes it before the mutation boundary.
+
+The mutation atomically replaced only `/usr/local/libexec/check-caddy.sh` and
+retained the exact old helper plus a manifest in protected rollback directory
+`/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`. It validated
+the installed helper again as `keepalived_script` and confirmed the
+Keepalived configuration tree, active release, service PIDs, and absent Caddy
+VIPs are unchanged. It does not reload or restart any service or change a
+fragment, address, VRRP state, or Node A. The exact definition hashes are:
+
+- Candidate: `9bf531ab7cbb047f8f09ce5956b597d5c8b6ede397c166f0b040e2e92fe8bbab`.
+- Installer: `b3942a984e14dd37d2e31b1764102eacdbd33e321439fcd30c26ae011e6b3a4a`.
+- Runner: `bed2a3de28de867afdc9c2ee32212a85111209e0b4f5acbe23c25d4fb702ef40`.
+- Regression: `5667c2a895d5958b3c0d8ec7c4a92a666a74fd42e4f67bac35b79e2c092a5b2d`.
+- Exact outer execution gate:
+  `6808e173c52618a4747a0205e233e5b892dc24e22ec581b54cd7d3e4b64b0a83`.
+
+The exact executed command was:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+Caddy/scripts/run-node-b-caddy-health-context-correction-action20b-outer.sh
+```
+
+The no-argument outer runner completed once with status `0`. Node A correction,
+Action 20a retry, Keepalived activation, VRRP transition, and VIP assignment
+remain independently gated. An independent read-only Node B post-install
+acceptance action must be defined and separately authorized next.
+
 ## Validation Evidence
 
 Repository-only definition results in this section are not live-deployment
@@ -18690,6 +19486,34 @@ evidence. Rows explicitly labeled as executions record validated live evidence.
 
 | Date | Scope | Command | Result |
 | --- | --- | --- | --- |
+| 2026-08-05 | Corrected transactional Caddy VRRP activation Action 20d retry definition | Focused host and network-disabled Debian 12 Podman canonical shfmt, syntax, ShellCheck, readonly/local collision, conditional-validator, output-evidence, 545-entry executable-index, exact 93-activation/35-inspection producer contracts, historical-gate superset, deterministic full-source sanitizer hashes and rules, sanitized/production isolation, production-only installation, production helper/directive/context gates, valid activation, partial Node B failure, reverse rollback, false-positive, and false-negative controls | Passed without LAN contact or no-argument execution. All historical 50 activation and 26 inspection gates remain present. Exact production candidates are Node A `357eb09c...d8e2` and Node B `8b260315...bd3f`; fully expanded sanitized candidates are Node A `ea8fc2aa...85b7` and Node B `91eb9f89...d431`. The sanitized candidate neutralizes both accepted DNS and Caddy execution paths, is validation-only, and cannot be installed; the production candidate contains the exact unmodified include. Health execution is checked as `keepalived_script` pre/post. Notification preflight is prohibited, while inherited user `pi`, executable access, and both writable runtime directories are independently gated. Transaction `4297a17a...81c8`; runner `acbfc9f0...6c82`; regression `5c45626f...2714`; exact outer `085eff63...018d5`. An initial composite container transcript stopped after the runner-contract label; isolated exact regression and outer-source reruns each returned `0` without code or policy relaxation. The complete historical suite remains the immediate pre-execution milestone |
+| 2026-08-04 | Bounded full-candidate validation execution-behavior diagnostic Action 20d-b definition | Focused host and network-disabled Debian 12 Podman Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, exact 59-label producer/consumer, outer-local-gate, exact/minimal TERM/KILL bounds, no-persistent-mutation/no-Node-B, valid, timeout, config-error, missing, duplicate, unknown-classification, and state-drift controls | Passed without LAN contact or no-argument execution. Inspector `c5461754...3f86`; runner `d6156c5d...362b`; regression `4b597edb...1ace`; exact outer `58f68b57...a096`. The future action constructs but never installs the full candidate and compares exact prior versus documented minimal config-test forms under independently captured status/duration/process/stdout/stderr/log evidence. Legitimate diagnostic outcomes remain observable while malformed or drifting evidence fails closed |
+| 2026-08-04T23:38:55-05:00 | Captured Action 20d-b Node A execution | Exact authorized outer, 59-label remote transcript, exact/minimal bounded process traces, before/after continuity, prohibited-mutation markers, stream classification/hashes, and cleanup | Accepted: outer/runner/SSH/remote/validation status `0`; 59/59 assertions true; exact and minimal forms both status `143`, `terminated_sigterm`, 511 ms, and empty stdout/stderr/log; state `3517ee1a...1b11` unchanged; candidate `357eb09c...d8e2` not installed; no service/VRRP/VIP/persistent mutation or Node B contact. Protected workstation stdout `65c58ea7...c562`; stderr empty `e3b0c442...b855`; capture `/tmp/caddy-action20d-b-rerun.Fp2f5h` retained |
+| 2026-08-04 | Read-only Node A post-Action 20d failure diagnostic Action 20d-a execution | Exact authorized outer `f3107b95332bd5bc2f2e6fc72f79234ffda5c24ff59355b738032179f76f9e13`; exact 51-label Node A producer/consumer; same-run bounded stream capture; no candidate validation or Node B path | Accepted: outer/runner/SSH/remote/validation status `0`; 51/51 assertions true; Keepalived 2.2.7, documented `--config-test`/`--dont-fork`, active PID `2285113`, zero restarts, default configuration path, bounded coherent `keepalived.pid`, exact inactive main/fragment state, zero Action 20d backup/residue, active services, absent Caddy VIPs, Node A dual-stack DNS-VIP ownership, Action 19 sanitized-parser context, and identical before/after `4f180c12...80b7` passed. Runner stdout `1d4ff134...1f9f`; remote stdout `39e9190d...cd06`; stderr empty; candidate validation and every mutation marker false; Node B not contacted; cleanup complete |
+| 2026-08-04 | Read-only Node A post-Action 20d failure diagnostic Action 20d-a definition | Focused host and network-disabled Debian 12 Podman Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, exact 51-label producer/consumer, outer-local-gate, static no-candidate-validation/no-mutation/no-Node-B, valid transcript, semantic-failure, missing, duplicate, and state-drift controls | Passed without LAN contact or no-argument execution. Inspector `9e9f1284...4a5b`; runner `b50db75f...119a`; regression `ec6c59c8...dc63`; exact outer `f3107b95...9e13`. The future action observes exact inactive main/fragment state, Action 20d residue, services/PID/restarts, installed version, executable/process arguments, bounded PID-file inventory, supported options, bounded journal evidence, Action 19 parser context, and DNS/Caddy VIP continuity without running candidate validation or contacting Node B |
+| 2026-08-04 | Transactional dual-node Caddy VRRP activation Action 20d execution attempt | Exact authorized outer `9d61121d352665651a5b1ec40e92abc6cdcbbbb2e07fb62cbfd67fb9057604c1`; corrected complete host/Podman milestone suite; Node-A-first bounded transaction with same-run stream evidence | Not accepted: the corrected full suite passed, but live outer/inner/Node A status was `1`. The first 33 Node A preflight/candidate assertions passed; candidate stdout was empty, candidate stderr was `Terminated`, status was `143`, and `candidate_config_valid=false` was first failure. The transaction stopped before backup creation or mutation; no include, reload, VRRP/VIP transition, notification attempt, or Node B contact occurred. Node A transaction stdout `bb4c1343...a231`, stderr `0baf2146...e5a8`; outer inner stdout `85d0cc65...4f24`, stderr empty |
+| 2026-08-04 | Complete pre-Action 20d milestone validation and container working-directory correction | First complete suite attempt; isolated network-disabled Action 20b boundary; explicit `cd /workspace/homelab-server-configs` in `integration.sh`; complete suite rerun | First suite exited `1` at the container Action 20b outer-policy runner because the implicit working directory was `/`. Action 20d was not invoked. The exact outer hash remained unchanged. After the explicit integration working directory was added, ShellCheck and canonical shfmt passed and the full preserved host plus Debian 12/Podman suite returned `0`, including Action 20b and Action 20d valid/rollback simulations |
+| 2026-08-04 | Append-only corrected dual-node Action 20a readiness retry2 execution | Exact authorized outer `30f93916d00b46d168bacb10fcd8ad4c6869deeb9be0c974e14c175e0aac91a2`; two exact 138-label accepted baselines; two fresh normalized 46-label probes; 19 cross-node gates; same-run bounded stream capture | Accepted: outer/inner status `0`; both baselines passed; Node A and Node B 46/46; cross-node 19/19; normalized states `6a5866ac...0551` and `ac639669...79d3` unchanged; Node A owns both DNS VIPs; Caddy VIPs absent; health, priorities, VRIDs, reciprocal peers, main-inclusion prerequisites, services, releases, sysctls, and normalization exact; inner stdout `e0242423...6be5`; stderr empty; notification helpers not invoked, cleanup complete, every mutation marker false; readiness `ready_for_separately_authorized_action20_activation_design` |
+| 2026-08-04 | Append-only corrected dual-node Action 20a readiness retry2 definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, output-evidence, and outer-local-gate policies; exact accepted Action 20c-a/20b-a baseline pins; historical retry and accepted normalized-diagnostic pins; exact 46-node/19-cross-node contracts; normalized lifetime-only and real-address-change controls; valid readiness, zero-DNS-owner, missing/duplicate baseline, and missing/duplicate probe controls; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact: the state snapshot now hashes sorted unique interface, CIDR, and scope tuples and emits the normalization contract; lifetime-only drift is ignored while a changed address is detected; all priorities, VRIDs, peers, VIP ownership, health, main-inclusion, stream-evidence, notification non-invocation, and zero-mutation gates are preserved. Probe `d8a55729...7b47`; runner `04d79efa...dbad`; regression `58a02d73...57af`; exact outer `30f93916...91a2`; no no-argument runner invoked |
+| 2026-08-04 | Separately gated transactional Caddy VRRP activation Action 20d definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, explicit conditional-return, transcript-ratchet, output-evidence, executable-index, and outer-local-gate policies; exact 50-label node activation and 26-label final inspection inventories; Node-A-first/Node-B-second intercepted production path; partial Node B activation failure; reverse rollback; safe/unsafe stream contracts; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact or no-argument execution. Valid fixtures establish Node A as sole dual-stack `MASTER` and Node B as `BACKUP`; the failure fixture rejects partial acceptance and rolls Node A back. Transaction `f20e90b0...7e79`; orchestrator `f9df0216...43d8`; regression `f2566670...da00`; exact outer `9d61121d...04c1`. The complete preserved historical host/Podman suite remains the immediate pre-execution milestone gate |
+| 2026-08-04 | Narrow read-only Node B normalized component diagnostic Action 20a-retry-a execution | Exact authorized outer `86e520f467ae2a59a050c1bc870fd4816691f5dd3ee4b397494a44a57961ba00`; one 85-label Node B producer; one nine-label consumer; 21 independently compared components; same-run bounded stream capture | Accepted: outer/runner/SSH/remote status `0`; 85/85 producer and 9/9 consumer assertions true; classification `legacy_address_lifetime_drift_only`; only `legacy_addresses_sha256` and `legacy_addresses_raw` changed as dynamic IPv6 lifetimes counted down by two seconds; normalized address inventory, helpers, fragments, release, home state, and all service properties were unchanged; remote stdout `97241054...0840`, runner stdout `51a26e7e...d412`, both stderr streams empty, cleanup complete, no helper/Caddy-validation invocation, and every mutation marker false |
+| 2026-08-04 | Narrow read-only Node B normalized component diagnostic Action 20a-retry-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 21-component, 85-producer-label, and nine-consumer-label inventories; static read-only and helper-non-invocation checks; normalized-address and failed-retry legacy-address boundaries; valid no-difference, lifetime-drift-only, and persistent-difference cases; missing, duplicate, and inconsistent controls; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact: every component is emitted before and after and classified independently; normalized addresses exclude lifetimes while legacy raw-address evidence remains visible; all three legitimate diagnostic outcomes are accepted and malformed evidence fails closed. Inspector `09b5d6fd...a764`; runner `bbbc69d9...be56`; regression `ec7413b9...bce9`; exact outer `86e520f4...ba00`; neither helper nor `caddy validate` can run; no no-argument runner invoked |
+| 2026-08-04 | Append-only corrected dual-node Action 20a pre-activation readiness retry execution | Exact authorized outer `ea0817dccfee0cabf096a53d2d2077035f3cec8a78baded465519df854583845`; exact accepted 138-label baselines; two fresh 46-label probes; 19 cross-node gates; same-run bounded stream capture | Not accepted: outer/inner status `1`; both baselines passed; Node A 46/46 and state `829a1f9f...51b0` unchanged; Node B 45/46 with only `state_unchanged=false`, before `e1faa123...7d27`, after `27b01305...5749`; dual-node 17/19; inner stdout 36,987 bytes/629 lines/`b0bda8cb...f9bc`; stderr empty; DNS VIPs coherently on Node A, Caddy VIPs absent, health checks successful, and every mutation marker false. Exact Node B component difference requires a separately gated diagnostic |
+| 2026-08-04 | Append-only corrected dual-node Action 20a pre-activation readiness retry definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact Action 20c-a/20b-a outer hashes and 138-label producer inventories; 46-label node and 19-label cross-node contracts; valid, zero-DNS-owner, missing/duplicate baseline, and missing/duplicate probe controls; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact: exact valid producer evidence is accepted; incomplete, duplicate, semantically false, or ownerless evidence fails closed; helper `9bf531ab...8bbab`, peers, priorities, VRIDs, main-inclusion prerequisites, coherent DNS VIP ownership, absent Caddy VIPs, read-only health execution, same-run bounded stream evidence, and zero mutation are enforced. Probe `19d3fffb...1076`; runner `cfac0ff9...e536`; regression `10bc4c15...8b28`; exact outer `ea0817dc...3845`; no no-argument runner invoked |
+| 2026-08-04 | Independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a execution | Exact authorized outer runner `42874857457884bf143fe4d5faa8492cd2b409994182243bf9734bafb98c29f3`; exact 138-label producer; real `keepalived_script` helper execution; same-run bounded stream capture; before/after state and zero-mutation gates | Accepted: outer/runner/SSH/remote/validation status `0`; 138/138 true; state `fd58d881...414a` unchanged; helper `9bf531ab...8bbab` succeeded; remote stdout 9,498 bytes/158 lines/`271f7dee...06c6`; runner stdout 10,113 bytes/171 lines/`c17fc150...cd42`; both stderr streams empty; Action 19e/20c backups, fragment, release, services, synchronization, DNS/Caddy VIPs, and residue exact; every mutation marker false |
+| 2026-08-04 | Independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 138-label producer reconciliation; immutable Action 20a-b continuity inspector and Action 20c outer; static read-only policy; exact Node A release, fragment, priority, source/peer, Action 19e and Action 20c backup contracts; valid, semantic-mismatch, missing-label, and duplicate-label controls; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact: the exact helper and rollback manifest, accepted fragment/backup, service and synchronization properties, DNS/Caddy VIP state, real-context helper execution, transient cleanup, and complete before/after state are independently labeled; exact valid evidence is accepted, semantic failure preserved, and missing/duplicate inventories rejected. Inspector `50b5c636...eb66`; runner `c477f26c...a8d0`; regression `059a2a35...842f`; exact outer gate `42874857...29f3`; no no-argument runner invoked |
+| 2026-08-04 | Bounded transactional Node A Caddy health-helper execution-context correction Action 20c execution | Exact authorized outer runner `e1b21e1aac1a3b66d6f1d16866ae4fd5b13f3ab87bc2322a50c8c885a8a0f43d`; exact 77-label producer; real `keepalived_script` candidate and installed-helper execution; protected rollback; same-run bounded stream capture; fragment, Action 19e backup-tree, Keepalived, release, service-PID, and VIP continuity gates | Accepted: outer/runner/SSH/remote status `0`; 77/77 true; installed helper `9bf531ab...8bbab`; protected backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI`; remote stdout 4,207 bytes/89 lines/`145a3430...9803`; runner stdout 4,757 bytes/101 lines/`d610f215...ffb6`; both stderr streams empty; fragment, Action 19e backup tree, Keepalived main/tree, active release, service PIDs, and absent Caddy VIPs unchanged; all prohibited mutation markers false |
+| 2026-08-04 | Bounded transactional Node A Caddy health-helper execution-context correction Action 20c definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 77-label producer inventory; immutable Action 20a-b baseline; Node A active-release, inactive-fragment, Action 19e backup, candidate execution, rollback and continuity gates; intercepted valid, missing-label, duplicate-label, and false-assertion paths; focused host and network-disabled Debian 12 Podman slices | Passed without LAN contact: exact Node A identity, release, fragment, protected backup/manifest, old helper and candidate are pinned; candidate and installed helper must succeed as `keepalived_script`; rollback restores the old helper and verifies the Keepalived and Action 19e backup trees; all service/VRRP/VIP/fragment/Node B mutations are prohibited. Candidate `9bf531ab...8bbab`; installer `de17f050...e56a1`; runner `328ea6ac...95e82`; regression `b5b18b91...198f1`; exact outer gate `e1b21e1a...0f43d`; no no-argument runner invoked |
+| 2026-08-04 | Independent fail-closed read-only Node B post-Action 20b acceptance Action 20b-a execution | Exact authorized outer runner `6f017e78870c6433c2b9f7180003fe6ab81f2a0f1e44fc63dbaf5ee6ea67487f`; exact 138-label producer; real `keepalived_script` helper execution; same-run bounded stream capture; before/after state and no-mutation gates | Accepted: outer/runner/SSH/remote/validation status `0`; 138/138 true; state `cc521b08...8365` unchanged; helper `9bf531ab...8bbab` succeeded; remote stdout 9,498 bytes/158 lines/`1a78be6b...78a2`; runner stdout 10,113 bytes/171 lines/`172a76aa...2de6`; both stderr streams empty; Action 19a/20b backups, fragment, release, services, synchronization, DNS/Caddy VIPs, and residue exact; all mutation markers false |
+| 2026-08-04 | Independent fail-closed read-only Node B post-Action 20b acceptance Action 20b-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-contract, transaction-output, and outer-local-gate policies; exact 138-label producer; immutable Action 19a-b inspector/runner; exact Action 20b helper/backup/manifest contract; real helper execution; before/after state; host and Debian 12 slices; valid, semantic-mismatch, missing-label, and duplicate-label controls | Passed without LAN contact: exact installed helper and protected backup, inactive fragment, services, release, synchronization, DNS/Caddy VIP, residue, and state-continuity contracts are independently labeled; valid production evidence is accepted, semantic failure is preserved, and missing/duplicate transcripts are actually rejected; inspector `dc0a52d8...6744`, runner `7088d136...d2dc`, regression `3872e819...5df6`, exact outer gate `6f017e78...487f`; no no-argument runner invoked |
+| 2026-08-04 | Transactional Node B Caddy health-helper execution-context correction Action 20b execution | Exact authorized outer runner `6808e173c52618a4747a0205e233e5b892dc24e22ec581b54cd7d3e4b64b0a83`; bounded same-run stream capture; exact baseline, installation, helper-execution, rollback-backup, service, release, Keepalived-tree, and VIP gates | Accepted: outer/runner/SSH/remote status `0`; installed helper `9bf531ab...8bbab`; protected backup `/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`; helper validated successfully as `keepalived_script`; remote stdout 3,589 bytes/77 lines/`7adc754f...bb70`; runner stdout 4,139 bytes/89 lines/`95e4d0c5...36f8`; both stderr streams empty; Keepalived tree, active release, service PIDs, and absent Caddy VIPs unchanged; no fragment, service, Keepalived, VRRP, VIP, or Node A mutation |
+| 2026-08-04 | Transactional Node B Caddy health-helper execution-context correction Action 20b definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet, output-evidence and outer-local-gate policies; exact 65-label producer inventory; Action 20a-b baseline immutability; candidate context and cleanup contract; `caddy-tls`, active-release TLS, rollback and continuity gates; intercepted valid, missing-label, duplicate-label and false-assertion paths; independently labeled outer gates; unexpected valid-runner status and same-run stream evidence; runner and outer self/source/contract tests | Passed the exact focused host and Debian 12 Podman slices without LAN contact: standby-first single-helper mutation, pre/post candidate execution as `keepalived_script`, root-only bundle boundary, transient `root:caddy-tls:0750` validation copy, protected rollback, exact successful-stream suppression, failure-stream visibility, unchanged Keepalived tree/releases/PIDs/VIPs, and zero service/VRRP/IP mutation are enforced; false-positive missing/duplicate/false labels and false-negative valid production evidence passed; candidate `9bf531ab...8bbab`, installer `b3942a98...6b3a4a`, runner `bed2a3de...2ef40`, regression `5667c2a8...a5b2d`, outer-label policy `5c1bdd72...0ebe4`, exact outer gate `6808e173...b0a83`; no no-argument runner invoked |
+| 2026-08-04 | Append-only post-failure continuity diagnostic Action 20a-b execution | Exact authorized outer runner `98898911daab791ecbd02a3d9d4d751ee6d70514ff11a823587a14c3e2f34dc8`; two streamed 79-label role-specific inspections; one 10-label dual-node consumer; 19 normalized before/after components per node; same-run bounded stream capture | Accepted: outer/inner, remote, and contract statuses `0`; Node A 79/79, Node B 79/79, dual-node 10/10; all normalized components stable; Node A state `317bce15...c68c`, Node B `9ec88a6c...839c`; node and inner stderr empty; inner stdout `d58e120d...446d`, Node A stdout `5fff891b...3fe3`, Node B stdout `a3bbf90e...e691`; cleanup complete; installed-helper invocation, Caddy validation, service/VRRP/VIP/persistent mutation all false |
+| 2026-08-04 | Append-only post-failure continuity diagnostic Action 20a-b definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet and output-evidence policies; exact 19-component, 79-label node and 10-label dual-node inventories; historical Action 20a-a immutability; role-specific continuity pins; intercepted valid contract; Node A component-drift, Node B semantic-failure, missing-label, and duplicate-label controls; outer self/source/contract checks; complete host suite; complete Debian 12 Podman integration | Passed without LAN contact: every normalized component is emitted before and after and compared independently; address lifetimes are excluded; Node B continuity is independent; helper invocation, Caddy validation, service/VRRP/VIP mutation, and persistent writes are absent; complete repository validation exited `0` with `All Caddy HA repository validation passed`; inspector `bc1f5fc7...c1ceb`, runner `624f9b73...6be1b`, regression `0d99ca41...6c5f8`, exact outer gate `98898911...4dc8`; no no-argument runner invoked |
+| 2026-08-04 | Dual-node read-only Caddy health-helper execution-context diagnostic Action 20a-a execution | Exact authorized outer runner `45d7d18ed79ad09277a6962efc9e7bc7a87ff28bc6687de4dd7c93ad32e0b2b6`; two streamed 62-label node inspections; one 12-label dual-node consumer; same-run bounded stream capture | Not accepted: outer/inner `1`; Node A passed 54/62, Node B 55/62, and the dual-node consumer 5/12. Actual group `caddy-tls`, wrong inspector TLS paths, missing baseline environment-file load, and an inaccessible disposable-directory parent invalidated the intended checks. Node B state hash remained `18ade2da...a650`; Node A changed from `dc79ed03...1d9ab` to `143a4438...88d8`, but component evidence was not emitted, so the difference remains unclassified. Installed-helper invocation and every explicit service/VRRP/VIP/persistent-mutation marker were false; cleanup completed |
+| 2026-08-04 | Dual-node read-only Caddy health-helper execution-context diagnostic Action 20a-a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet and transaction-output policies; exact 62-label node and 12-label dual-node inventories; producer-derived valid transcript; semantic-failure, missing-label and duplicate-label controls; baseline/transient-context source checks; strict SSH command and arbitrary-environment suppression; static persistent-mutation and installed-helper non-invocation checks; outer self-test; complete host suite; complete Debian 12 Podman integration | Passed without LAN contact: account, group, home, unit, environment, storage/configuration/TLS access, failing baseline validation, disposable HOME/XDG validation, bounded same-run stream evidence, transient cleanup, persistent state equality, and zero service/VRRP/VIP mutation are enforced; inspector `68d78127...aac2`, runner `9f78d047...a185`, regression `5a472919...7a6f`, exact outer gate `45d7d18e...b2b6`; no no-argument runner invoked |
+| 2026-08-04 | Dual-node fail-closed read-only Action 20 pre-activation readiness Action 20a execution | Exact authorized outer runner `6eb37fe524754a92e8b9abc1074821de1ac9d08932767a5654dec7d04224f82f`; two accepted full-baseline executions; two fresh node probes; same-run bounded stream capture | Not accepted: outer/inner `1`; both 114-assertion baselines passed; each node probe passed 45/46 and cross-node result was 15/19. DNS VIP ownership is coherently on Node A; Caddy VIPs are absent; exact fragments/roles/VRIDs/priorities/peers/services/releases/sysctls and unchanged state passed. Both health helpers failed because `caddy validate` attempted local-CA creation under unwritable `/home/keepalived_script`; Node A stderr `ff55d1eb...6f653`, Node B stderr `036b457f...e60c`; all mutation markers false and cleanup complete |
+| 2026-08-04 | Dual-node fail-closed read-only Action 20 pre-activation readiness Action 20a definition | Focused Bash syntax, ShellCheck, canonical shfmt, readonly/local collision and output-evidence policies; exact accepted Action 19e-a/19a-b source pins; inspector/runner/outer self/source/contract checks; exact 46-label per-node and 19-label cross-node inventories; intercepted valid production path in both approved checkout projections; arbitrary-directory, zero-owner, missing-label and duplicate-label negative controls; host and Debian 12 Podman suites | Passed without LAN contact: exact inactive fragments/helpers/backups, node roles/VRIDs/priorities/unicast peers, services/releases, DNS-VIP single-owner coherence, absent Caddy VIPs, main-configuration inclusion prerequisites, read-only Caddy health checks, same-run bounded stream handling, exact live-versus-intercepted working-directory boundaries, and zero activation/mutation are enforced; inspector `9b051e4c...3f4d`, runner `7adcf153...c29c`, regression `8bb05e80...590b`, exact outer gate `6eb37fe5...f82f`; no no-argument runner invoked |
 | 2026-08-04 | Independent fail-closed read-only Node A post-Action 19e acceptance Action 19e-a execution | Exact authorized outer runner `6669641d327ef31bebaf9ed0794c254760d7befafe9e0b4b92f14b2bad841f3d`; immutable local hash/type/mode gate; one strict host-verified Node A read-only inspection; same-run bounded stream capture | Accepted: outer/administrative/remote status `0`; 114/114 assertions true; fragment `3a6f4c03...4bc5`, backup/manifest, zero residue, main-configuration exclusion, helpers, unit properties, active release, DNS VIP coherence, and absent Caddy VIPs passed; before/after state `c0026dd6...84d7` identical; remote stdout 7,714 bytes/131 lines/`17d921f0...a5e5`, administrative stdout 8,329 bytes/144 lines/`4a743f99...05b4`, both stderr empty; every mutation marker false and cleanup complete |
 | 2026-08-04 | Independent fail-closed read-only Node A post-Action 19e acceptance Action 19e-a definition | Focused syntax, ShellCheck, canonical shfmt, readonly/local collision, conditional-validator, transcript-ratchet and transaction-output policies; derivation/inspector/runner/outer self/source/contract checks; exact 114-label producer reconciliation; static read-only enforcement; Node A role/value pins; intercepted valid and semantic-failure production paths; missing/duplicate controls; full pre-commit suite; complete host suite and Debian 12 Podman integration | Passed without LAN contact: exact fragment, backup/manifest, Action 19e residue, main configuration, active release, unit properties, Caddy/DNS VIP state, identical before/after state, same-run bounded stream handling, and all zero-mutation markers are enforced; full repository validation exited `0` with `All Caddy HA repository validation passed`; derivation `cd8d2b89...22de`, inspector `20639a8f...04a1`, runner `ca0d1535...ebd2`, regression `637c09c6...a9e3`, exact outer gate `6669641d...1f3d`; no no-argument runner invoked |
 | 2026-08-04 | Bounded inactive Node A Keepalived-fragment preparation Action 19e execution | Exact authorized outer runner `3d1d09f0861b45a3ed89743cc983d3180b65ae6ca936b3a6022b0644df256771`; immutable local hash/type/mode gate; one bounded Node A transaction; same-run bounded stream capture | Accepted: outer/administrative/remote status `0`; 154/154 exact assertions true; exact fragment `3a6f4c03...4bc5` and protected backup `/var/backups/caddy-ha/action19e-node-a-keepalived-fragment.JgYBbS` installed; remote stdout 9,089 bytes/166 lines/`74f98184...1faf`, administrative stdout 10,648 bytes/199 lines/`f3401c93...9b30`, both stderr empty; main configuration exclusion, service properties, and absent Caddy VIPs unchanged; no reload/restart, VRRP transition, VIP, IP, or service mutation; cleanup complete |
@@ -19286,6 +20110,63 @@ Selected repository hashes at validation:
 | `tests/run.sh` | `a2d0d462ee251e8c03b2258ce83dba2c449a727fe0f02d2d51523ed84beb5ee0` |
 
 ## Observed System State
+
+At `2026-08-04T17:46:15-05:00`, exact read-only Action 20c-a outer runner
+`42874857...29f3` completed against Node A with outer, runner, SSH, remote, and
+validation status `0`. All 138 assertions passed. Helper `9bf531ab...8bbab`
+succeeded as `keepalived_script`; the protected Action 19e and Action 20c
+backups, inactive fragment, active release, services, synchronization state,
+and DNS/Caddy VIP state were exact.
+
+Before/after state SHA-256 values were both `fd58d881...414a`. Remote stdout
+was 9,498 bytes/158 lines/SHA-256 `271f7dee...06c6`; runner stdout was 10,113
+bytes/171 lines/SHA-256 `c17fc150...cd42`; both stderr streams were empty.
+Filesystem, service, VRRP, VIP, and persistent mutation markers were false,
+and all temporary state was removed.
+
+At `2026-08-04T17:32:59-05:00`, exact transactional Action 20c outer runner
+`e1b21e1a...0f43d` completed against Node A with outer, runner, SSH, remote,
+baseline, candidate-execution, and installed-helper status `0`. All 77
+assertions passed. The health helper changed from `c3bc1c08...1414` to
+`9bf531ab...8bbab` and succeeded as `keepalived_script`. Protected rollback
+backup `/var/backups/caddy-ha/action20c-node-a-health-context.DzQFvI` was
+retained.
+
+The inactive fragment `3a6f4c03...4bc5`, protected Action 19e backup tree,
+Keepalived main/tree, active release, Caddy/Keepalived/lighttpd PIDs, and
+absent Caddy IPv4/IPv6 VIPs remained unchanged. No service, Keepalived, VRRP,
+VIP, fragment, or Node B mutation occurred. Remote stdout was 4,207 bytes/89
+lines/SHA-256 `145a3430...9803`; runner stdout was 4,757 bytes/101
+lines/SHA-256 `d610f215...ffb6`; both stderr streams were empty, and both
+cleanup layers completed.
+
+At `2026-08-04T17:16:41-05:00`, exact read-only Action 20b-a outer runner
+`6f017e78...487f` completed against Node B with outer, runner, SSH, remote, and
+validation status `0`. All 138 assertions passed. Helper `9bf531ab...8bbab`
+succeeded as `keepalived_script`; the Action 20b backup at
+`/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3`, Action 19a
+backup, inactive fragment, active release, services, synchronization state,
+and DNS/Caddy VIP state were exact.
+
+Before/after state SHA-256 values were both `cc521b08...8365`. Remote stdout
+was 9,498 bytes/158 lines/SHA-256 `1a78be6b...78a2`; runner stdout was 10,113
+bytes/171 lines/SHA-256 `172a76aa...2de6`; both stderr streams were empty.
+Filesystem, service, VRRP, VIP, and persistent mutation markers were false,
+and all temporary state was removed.
+
+At `2026-08-04T16:57:48-05:00`, exact transactional Action 20b outer runner
+`6808e173...b0a83` completed against Node B with outer, runner, SSH, remote,
+baseline, candidate-execution, and installed-helper status `0`. The health
+helper changed from `c3bc1c08...1414` to `9bf531ab...8bbab` and succeeded in
+the real `keepalived_script` context. Protected rollback backup
+`/var/backups/caddy-ha/action20b-node-b-health-context.orvXY3` was retained.
+
+The Keepalived main/tree hashes, active release, Caddy/Keepalived/lighttpd
+PIDs, and absent Caddy IPv4/IPv6 VIPs remained unchanged. No fragment,
+Keepalived, service, VRRP, VIP, or Node A mutation occurred. Remote stdout was
+3,589 bytes/77 lines/SHA-256 `7adc754f...bb70`; runner stdout was 4,139
+bytes/89 lines/SHA-256 `95e4d0c5...36f8`; both stderr streams were empty, and
+both cleanup layers completed.
 
 At `2026-08-03T17:22:12-05:00`, exact corrected transactional Action 19b retry
 outer runner `e6ee1c88...e2bb` completed against Node B with outer,
@@ -21214,6 +22095,10 @@ prerequisites passed without any controller change.
   authorization-hash provenance, false-positive and false-negative controls,
   security boundaries, and evidence needed to reconstruct accepted actions.
   Do not remove or consolidate historical tests during the active deployment.
+- Build a manifest-driven focused validation runner after deployment
+  acceptance. It must map each action to its exact host tests, Debian 12
+  production slice, and shared policies so routine validation is reproducible
+  without replaying unrelated immutable history.
 - Node B-first and then Node A migration from the current single-file Unbound
   layout to the two-file prerequisite; each file installation, configuration
   validation, reload, and acceptance remains an independent authorization
