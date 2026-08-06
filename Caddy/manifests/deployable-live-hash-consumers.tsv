@@ -1,0 +1,7 @@
+# key<TAB>consumer-path<TAB>readonly-variable
+node_a_health_helper	Caddy/scripts/build-action20g-retry-baseline.sh	node_a_health_sha256
+node_a_health_helper	Caddy/scripts/install-node-a-caddy-health-helper-action20h.sh	expected_old_health_sha256
+node_a_health_helper	Caddy/scripts/install-node-a-caddy-health-helper-action20h-retry.sh	expected_old_health_sha256
+node_b_health_helper	Caddy/scripts/build-action20g-retry-baseline.sh	node_b_health_sha256
+node_b_health_helper	Caddy/scripts/build-node-b-caddy-health-helper-action20i.sh	old_health_sha256
+node_b_health_helper	Caddy/scripts/inspect-node-b-caddy-health-group-postinstall-action20g-a.sh	expected_health_sha256

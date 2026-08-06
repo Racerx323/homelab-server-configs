@@ -18,6 +18,26 @@ repos:
         language: system
         types: [shell]
 
+      - id: multifile-grep-count-policy
+        name: Reject multi-file grep scalar counts
+        entry: Caddy/tests/multifile-grep-count-precommit.sh
+        language: system
+        types: [shell]
+
+      - id: accepted-live-hash-policy
+        name: Reject stale accepted-live hash consumers
+        entry: Caddy/tests/accepted-live-hash-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: portable-awk-policy
+        name: Reject non-portable awk interval expressions
+        entry: Caddy/tests/portable-awk-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: markdownlint-cli2
         name: markdownlint-cli2
         entry: markdownlint-cli2

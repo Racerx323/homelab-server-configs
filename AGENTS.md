@@ -81,6 +81,39 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/shfmt-canonical.sh --write FILE [FILE ...]`. Use `--check` for
   validation. The wrapper pins the repository's `-i 4 -ci` policy and rejects
   empty, broad, symbolic-link, and unapproved-repository targets.
+- Never consume `grep -c`, `grep --count`, or a combined count option such as
+  `grep -Ec` as one scalar when the command has multiple file operands. GNU
+  grep emits one filename-prefixed count per file, so numeric evaluation is
+  invalid and can hide independently failing assertions. Use one grep command
+  per file with a distinct assertion label and an explicit failure return.
+  Complex count invocations with five or more command arguments are also
+  prohibited in scalar validators; simplify them to the canonical
+  `grep COUNT_OPTION PATTERN FILE` shape. Enforce this repository-wide for
+  every changed shell file with
+  `Caddy/tests/multifile-grep-count-policy.sh --check FILE [FILE ...]`; the
+  pre-commit hook runs the same policy automatically.
+- Current accepted live-artifact hashes have one canonical source:
+  `Caddy/manifests/accepted-live-artifacts.tsv`. Every still-deployable action
+  that consumes one of those hashes must be registered in
+  `Caddy/manifests/deployable-live-hash-consumers.tsv` by key, consumer path,
+  and readonly variable. Never copy a current live hash into a deployable
+  consumer without registering it. The always-run pre-commit hook
+  `Caddy/tests/accepted-live-hash-policy.sh --check` rejects missing,
+  duplicate, malformed, or stale consumers. When accepted live state changes,
+  update the canonical manifest in the same change; the policy must invalidate
+  every registered stale consumer before any SSH or live action. Executed
+  historical artifacts remain immutable and are removed from the deployable
+  registry only when an append-only successor becomes the current gate.
+- Shell tooling must target Debian's default POSIX `awk`, not GNU `awk`.
+  Interval quantifiers such as `{64}` and `{3,4}` are prohibited inside awk
+  regular expressions because support varies across default awk
+  implementations. Use an explicit `length()` comparison plus a portable
+  character-class expression, or expand the expression without intervals.
+  The always-run repository policy
+  `Caddy/tests/portable-awk-policy.sh --check` scans every tracked Caddy shell
+  entry point and rejects interval quantifiers in inline and multiline awk
+  programs. Its regression must accept equivalent Bash regex intervals while
+  rejecting both awk forms.
 - Every tracked `Caddy/scripts/*.sh` and `Caddy/tests/*.sh` Bash entry point
   must be executable in both the working tree and Git index (`100755`). Local
   `core.fileMode=false` can conceal an index-mode defect, so never accept
@@ -134,6 +167,21 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   with `/bin/bash`; never execute it directly by pathname. A regression for a
   staged runner must exercise a non-executable-but-readable script fixture and
   prove that the production path still reaches it through `/bin/bash`.
+- Any staged artifact consumed by an unprivileged identity must be placed in a
+  dedicated staging directory that is a direct child of an explicitly
+  validated searchable runtime parent such as `/run`. Keep protected payloads,
+  installers, archives, and secrets in a separate `root:root:0700` staging
+  tree; never nest the unprivileged consumer's stage beneath that tree. If a
+  direct-child layout is impossible, fail closed unless every ancestor is
+  independently labeled and proven searchable under the exact runtime UID,
+  primary GID, and cleared supplementary groups. Install only the intended
+  consumer artifact into the searchable stage, require exact owner/group/mode,
+  reject extra files and symlinks, and install cleanup handling before the
+  first fallible operation after creating any stage. Production-path
+  regression must construct the complete ancestor chain, execute readability
+  and the real artifact entry point under the exact cleared-group identity,
+  reject a root-only ancestor, and prove the protected payload remains
+  unreadable. Static immediate-directory metadata is never sufficient.
 - A generated validator is not accepted through syntax, static text, or a
   synthetic transcript alone. Its regression must execute every newly inserted
   production assertion from the rendered artifact, including both true and
