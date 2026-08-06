@@ -1179,10 +1179,7 @@ rm -f -- /usr/bin/systemctl /tmp/caddy-v2-systemctl.log
 mv -- "$work_dir/systemctl.real" /usr/bin/systemctl
 [[ "$(readlink /etc/caddy/current)" == /etc/caddy/releases/zz-v2-reconcile ]]
 
-"$caddy_root/tests/action17q-node-b-protocol-v2-install-regression.sh" \
-    --self-test
-"$caddy_root/tests/action17q-retry-node-b-protocol-v2-install-regression.sh" \
-    --self-test
+"$caddy_root/tests/action17q-umask-stable-boundary.sh"
 "$caddy_root/scripts/inspect-node-b-protocol-v2-postinstall-action17q-b.sh" \
     --self-test
 "$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
@@ -1742,6 +1739,23 @@ printf 'historical_action_18b_container_projection=skipped_host_authoritative\n'
 "$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry-outer.sh" \
     --source-test
 "$caddy_root/tests/action20d-retry-dual-node-caddy-vrrp-activation-regression.sh"
+"$caddy_root/scripts/inspect-caddy-notifier-context-action20d-c.sh" --self-test
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c-outer.sh" \
+    --source-test
+"$caddy_root/tests/action20d-c-dual-node-notifier-context-regression.sh"
+"$caddy_root/tests/action20d-c-retry-focused-validation.sh"
+"$caddy_root/tests/action20d-retry3-a-retry-stale-suite-hash-boundary.sh"
+"$caddy_root/tests/action20d-retry2-a-focused-validation.sh"
+"$caddy_root/tests/action20d-retry2-b-focused-validation.sh"
+"$caddy_root/tests/action20d-retry3-a-retry-focused-validation.sh"
+"$caddy_root/tests/action20d-retry4-focused-validation.sh"
+"$caddy_root/tests/run-focused-container.sh" --self-test
 "$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
     --self-test
 "$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \
@@ -1763,5 +1777,10 @@ printf 'historical_action_18b_container_projection=skipped_host_authoritative\n'
     --contract-test
 "$caddy_root/tests/action17q-a-node-b-postfailure-regression.sh" \
     --self-test
+"$caddy_root/tests/action20e-focused-validation.sh"
+"$caddy_root/tests/action20e-retry-focused-validation.sh"
+"$caddy_root/tests/action20e-b-focused-validation.sh"
+"$caddy_root/tests/action20e-retry2-focused-validation.sh"
+"$caddy_root/tests/action20e-retry2-a-focused-validation.sh"
 
 printf 'Container integration validation passed.\n'

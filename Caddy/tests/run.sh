@@ -193,10 +193,7 @@ for node_role in node-a node-b; do
 done
 
 "$caddy_root/tests/receiver-finalization-protocol-v2-regression.sh"
-"$caddy_root/tests/action17q-node-b-protocol-v2-install-regression.sh" \
-    --self-test
-"$caddy_root/tests/action17q-retry-node-b-protocol-v2-install-regression.sh" \
-    --self-test
+"$caddy_root/tests/action17q-umask-stable-boundary.sh"
 "$caddy_root/scripts/inspect-node-b-protocol-v2-postinstall-action17q-b.sh" \
     --self-test
 "$caddy_root/scripts/run-node-b-protocol-v2-postinstall-action17q-b.sh" \
@@ -832,6 +829,23 @@ done
 "$caddy_root/scripts/run-dual-node-caddy-vrrp-activation-action20d-retry-outer.sh" \
     --source-test
 "$caddy_root/tests/action20d-retry-dual-node-caddy-vrrp-activation-regression.sh"
+"$caddy_root/scripts/inspect-caddy-notifier-context-action20d-c.sh" --self-test
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c.sh" \
+    --self-test
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c.sh" \
+    --contract-test
+"$caddy_root/tests/outer-local-gate-label-policy-regression.sh" \
+    --runner "$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c-outer.sh"
+"$caddy_root/scripts/run-dual-node-caddy-notifier-context-action20d-c-outer.sh" \
+    --source-test
+"$caddy_root/tests/action20d-c-dual-node-notifier-context-regression.sh"
+"$caddy_root/tests/action20d-c-retry-focused-validation.sh"
+"$caddy_root/tests/action20d-retry3-a-retry-stale-suite-hash-boundary.sh"
+"$caddy_root/tests/action20d-retry2-a-focused-validation.sh"
+"$caddy_root/tests/action20d-retry2-b-focused-validation.sh"
+"$caddy_root/tests/action20d-retry3-a-retry-focused-validation.sh"
+"$caddy_root/tests/action20d-retry4-focused-validation.sh"
+"$caddy_root/tests/run-focused-container.sh" --self-test
 "$caddy_root/scripts/transfer-node-b-release-to-node-a-action18c.sh" \
     --self-test
 "$caddy_root/scripts/inspect-node-a-incoming-release-action18c.sh" \
@@ -2469,6 +2483,12 @@ if "$caddy_root/scripts/create-node-rollback-backup.sh" \
     printf 'Rollback backup accepted an unknown node role.\n' >&2
     exit 1
 fi
+
+"$caddy_root/tests/action20e-focused-validation.sh"
+"$caddy_root/tests/action20e-retry-focused-validation.sh"
+"$caddy_root/tests/action20e-b-focused-validation.sh"
+"$caddy_root/tests/action20e-retry2-focused-validation.sh"
+"$caddy_root/tests/action20e-retry2-a-focused-validation.sh"
 
 for plugin in caddy_health caddy_requests caddy_tls lsyncd_caddy; do
     "$monitoring_root/scripts/$plugin" config >/dev/null
