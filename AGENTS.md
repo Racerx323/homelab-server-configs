@@ -61,6 +61,14 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   outside the filesystem sandbox on its first attempt with the narrowest
   applicable scoped escalation because its final integration phase requires
   the rootless runtime under `/run/user`.
+- Run focused Debian validation only through
+  `Caddy/tests/run-focused-container.sh Caddy/tests/TEST_SCRIPT`. The wrapper
+  owns the validation image's existing Bash entrypoint, passes `-lc` directly
+  instead of supplying a second `/bin/bash`, exports the required
+  `CADDY_VALIDATION_CONTAINER=1` marker, disables networking, and mounts the
+  workspace read-only. Treat this wrapper as a Podman command and run it
+  outside the filesystem sandbox on its first attempt. Do not construct ad hoc
+  focused `podman run` invocations.
 - The repository `.vscode` directory contains shared configuration and must
   remain trackable. Preserve the root-anchored `!/.vscode/` and
   `!/.vscode/**` rules in `.gitignore`, and run
