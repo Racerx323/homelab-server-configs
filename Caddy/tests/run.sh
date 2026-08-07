@@ -24,6 +24,7 @@ shellcheck "${shell_files[@]}"
 "$script_dir/shfmt-canonical.sh" --check "${shell_files[@]}"
 "$script_dir/shfmt-policy-regression.sh"
 "$script_dir/executable-wrapper-policy-regression.sh"
+"$script_dir/remote-streamed-bash-cwd-policy.sh" --self-test
 "$script_dir/unbound-validation-runtime-regression.sh" --production-test
 "$script_dir/source-test-context-policy-regression.sh" --production-test
 "$script_dir/vscode-tracking-policy-regression.sh"

@@ -167,6 +167,15 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   with `/bin/bash`; never execute it directly by pathname. A regression for a
   staged runner must exercise a non-executable-but-readable script fixture and
   prove that the production path still reaches it through `/bin/bash`.
+- Every SSH transport that streams a Bash artifact on standard input must set
+  the remote working directory explicitly before privilege escalation. Use the
+  exact remote-command boundary `cd / && sudo -n /bin/bash -s --` unless the
+  action has a separately documented and validated working-directory contract.
+  The inspector's own `PWD` assertion is additional evidence, not a substitute
+  for transport enforcement. Run
+  `Caddy/tests/remote-streamed-bash-cwd-policy.sh --check FILE [FILE ...]` for
+  every changed runner; pre-commit enforces the same rule and permits historical
+  defects only through an exact immutable path-and-hash exception.
 - Any staged artifact consumed by an unprivileged identity must be placed in a
   dedicated staging directory that is a direct child of an explicitly
   validated searchable runtime parent such as `/run`. Keep protected payloads,

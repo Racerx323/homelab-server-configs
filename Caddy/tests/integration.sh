@@ -10,6 +10,7 @@ export CADDY_VALIDATION_CONTAINER=1
 cd "$workspace/homelab-server-configs"
 
 "$caddy_root/tests/executable-wrapper-policy-regression.sh" >/dev/null
+"$caddy_root/tests/remote-streamed-bash-cwd-policy.sh" --self-test
 "$caddy_root/tests/unbound-validation-runtime-regression.sh" \
     --production-test >/dev/null
 "$caddy_root/tests/source-test-context-policy-regression.sh" \
@@ -47,10 +48,10 @@ if grep -Fq -- '-----BEGIN' <<<"$prepare_output"; then
     printf 'Certificate preparation leaked PEM material to standard output.\n' >&2
     exit 1
 fi
-[[ "$(grep -c -- '-----BEGIN CERTIFICATE-----' \
-    "$work_dir/prepared/intermediates.pem")" -eq 1 ]]
-[[ "$(grep -c -- '-----BEGIN CERTIFICATE-----' \
-    "$work_dir/prepared/fullchain.pem")" -eq 2 ]]
+[[ "$(awk '$0 == "-----BEGIN CERTIFICATE-----" { count++ }
+    END { print count + 0 }' "$work_dir/prepared/intermediates.pem")" -eq 1 ]]
+[[ "$(awk '$0 == "-----BEGIN CERTIFICATE-----" { count++ }
+    END { print count + 0 }' "$work_dir/prepared/fullchain.pem")" -eq 2 ]]
 
 incomplete_manifest="$work_dir/deployment-incomplete.yaml"
 sed 's/^interface: eth0$/interface: pending_node_preflight/' \

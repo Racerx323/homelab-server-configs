@@ -28,6 +28,7 @@ vrrp_instance CADDY_IPV4 {
     version 3
 
     unicast_src_ip @NODE_IPV4@
+    unicast_ttl 255
     track_src_ip
     check_unicast_src
     unicast_peer {
@@ -49,6 +50,7 @@ vrrp_instance CADDY_IPV6 {
     version 3
 
     unicast_src_ip @NODE_IPV6@
+    unicast_ttl 255
     track_src_ip
     check_unicast_src
     unicast_peer {

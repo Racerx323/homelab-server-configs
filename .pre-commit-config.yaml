@@ -38,6 +38,12 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: remote-streamed-bash-cwd-policy
+        name: Require root cwd for streamed remote Bash
+        entry: Caddy/tests/remote-streamed-bash-cwd-precommit.sh
+        language: system
+        types: [shell]
+
       - id: markdownlint-cli2
         name: markdownlint-cli2
         entry: markdownlint-cli2
