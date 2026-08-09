@@ -1,0 +1,36 @@
+---
+action: 24-retry
+status: defined
+mode: read-only
+successor_of: 24
+immutable_predecessor_must_not_run: true
+
+accepted_state:
+  node_a_action: 23m
+  node_b_action: 23l
+  local_zone_sha256: fa9f4850386ab1328f323c7c88bd9fa9ad0d5a84994b3066b6874deb5beb569c
+
+correction:
+  scope: ptr-query-command-only
+  previous_invalid_form: dig ADDRESS PTR
+  required_form: dig -x ADDRESS
+  preserve_server_and_port: true
+  observed_answer_emission:
+    safe_and_bounded_only: true
+    emitted_during_original_run: true
+    expected_total: 16
+  rendered_from_immutable_action24: true
+
+validation:
+  - Production PTR command uses exactly one reverse-query flag.
+  - Production PTR command contains the queried address and no literal PTR type argument.
+  - Every IPv4 and IPv6 PTR answer is emitted with node and DNS-path labels.
+  - Historical 118-check-per-node ordered acceptance remains exact.
+  - Missing or additional observed PTR evidence is rejected.
+  - Both nodes retain identical before and after semantic state.
+  - No DNS, file, service, VRRP, or VIP mutation occurs.
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false

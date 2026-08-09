@@ -1,0 +1,46 @@
+---
+action: 26c
+status: defined
+scope: workstation_wsl_inactive_transaction
+execution_authorized: false
+accepted_predecessor:
+  action: 26b
+  outer_sha256: a97e43703862f75132b7272d43db137b6e1b65daf92505835d97d2e7deb5b6b4
+observed_baseline:
+  classification: wsl_nat_no_ula_route
+  wsl_version: 2.9.4.0
+  windows_build: 26300.9032
+  windows_wslconfig: absent
+candidate:
+  path: Caddy/configs/wsl/.wslconfig
+  sha256: 6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7
+  settings:
+    networkingMode: mirrored
+transaction:
+  target: /mnt/c/Users/aaron/.wslconfig
+  backup: /home/aaron/.local/state/caddy-ha/action26c-wsl-mirrored
+  baseline: absent
+  atomic_same_directory_install: true
+  automatic_rollback_to_absent: true
+  fail_closed_on_concurrent_target_change: true
+architecture:
+  rationale: mirrored mode supplies IPv6 support that default WSL NAT lacks
+  dns_tunneling_change: false
+  resolver_change: false
+  windows_firewall_change: false
+  node_dns_change: false
+activation:
+  included: false
+  required_later: wsl_shutdown_and_restart
+  reason: an in-WSL transaction cannot terminate its own VM and then validate or roll back
+constraints:
+  node_contact: false
+  live_network_probe: false
+  wsl_shutdown: false
+  preserve_actions_26_26a_26b: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence
+rollback: remove_only_exact_candidate_and_reconfirm_absence
+separate_unverified_issue:
+  report: Node A and Node B IPv4 resolvers changed from 10.1.0.55 to 10.1.0.1
+  included_in_action26c: false
+  next_required_evidence: dual_node_read_only_resolver_provenance

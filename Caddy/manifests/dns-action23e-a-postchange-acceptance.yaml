@@ -1,0 +1,57 @@
+---
+action: 23e-a
+status: defined
+mode: read-only
+scope: node-a-pihole-ptr-postchange-acceptance
+
+target:
+  node: node-a
+  hostname: j1-svpihole0
+  address: 10.1.0.53
+  required_vrrp_state: MASTER
+
+observed_candidate:
+  ftl_file: /etc/pihole/pihole-FTL.conf
+  ftl_hash_policy: valid-and-stable
+  ftl_owner: pihole
+  ftl_group: root
+  ftl_mode: "0664"
+  ptr_policy: PIHOLE_PTR=HOSTNAMEFQDN
+  rejected_ptr_policy: PIHOLE_PTR=NONE
+  domain_file: /etc/dnsmasq.d/local.theama.co.conf
+  domain_sha256: a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96
+  domain_line: domain=local.theama.co
+  obsolete_extensionless_file: /etc/dnsmasq.d/local.theama.co
+  obsolete_extensionless_state: absent
+  custom_cname_file: /etc/dnsmasq.d/05-pihole-custom-cname.conf
+  custom_cname_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+failed_action_continuity:
+  action23e_backup: /var/backups/caddy-ha/action23e-node-a-pihole-ptr-policy
+  action23e_backup_state: absent
+  action23e_transaction: /etc/pihole/.pihole-FTL.conf.action23e.new
+  action23e_transaction_state: absent
+  action23e_stage_residue_state: absent
+
+continuity:
+  - Pi-hole FTL parser accepts the current configuration.
+  - Unbound, Pi-hole FTL, Caddy, lighttpd, and Keepalived remain active.
+  - Node A remains MASTER and retains Caddy and DNS VIP ownership.
+  - Node A retains both physical addresses.
+  - Direct Unbound returns exact A, AAAA, IPv4 PTR, and IPv6 PTR answers.
+  - Local Pi-hole returns the same exact authoritative answers.
+  - Node A, Node B, and Caddy VIP HTTPS endpoints remain reachable.
+  - Before and after semantic snapshots are identical.
+
+prohibited:
+  - Action 23b rerun
+  - Action 23e rerun
+  - Pi-hole restart
+  - filesystem mutation
+  - service mutation
+  - Node B SSH
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false

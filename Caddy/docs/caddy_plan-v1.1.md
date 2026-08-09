@@ -5,13 +5,87 @@
 | Field | Value |
 | --- | --- |
 | Phase | Controlled deployment |
-| Current next single gate | Define—but do not execute—an append-only corrected read-only Action 20o-a retry that normalizes only the transient `busctl` client row out of the aggregate before/after snapshot while preserving the independently accepted runtime-DBus service-absence checks, all valid address-query gates, and all 63 assertion boundaries. No node contact, correction execution, reload, restart, DBus runtime activation, filesystem/service mutation, VRRP transition, VIP mutation, cleanup, repair, or later action is authorized |
+| DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
+| Current next single gate | Separate exact authorization to execute append-only corrected read-only HTTP/3 Action 26-h3 retry outer `289fd577f78aea2015b162f534b3a6819ba92965a67c579a3b6f6e32bf4d60b2` once. Executed Action 26-h3 and all earlier Action 26 variants are immutable and must not be rerun. No corrected probe execution, WSL change, HA-node administrative contact, or later action is currently authorized |
+| Append-only corrected read-only HTTP/3 Action 26-h3 retry | Defined and focused-validated at `2026-08-09T03:43:56-05:00`; not executed. It adds a distinct pinned `http3-probe-v2` while preserving every executed predecessor. The probe opens a family-specific ephemeral UDP socket, assigns it to `quic.Transport.Conn`, and closes the HTTP/3 transport, QUIC transport, and application-owned UDP socket in order. It retains immutable Action 26-h3's exact dual-stack HTTP/3 core and transcript validator. Host-authoritative Go regression reproduces the historical zero-value transport panic in a subprocess, proves the corrected transport has a usable `LocalAddr`, and proves the packet connection is closed. The shell production regression uses a fake client to verify the exact IPv4/IPv6 direct-address/SNI arguments without LAN traffic. Focused workstation and canonical network-disabled Debian 12 validations returned `0`; no live protocol probe, node contact, or persistent mutation occurred |
+| Append-only read-only HTTP/3 successor Action 26-h3 execution | Executed once at `2026-08-09T03:26:01-05:00` and stopped fail-closed at its IPv4 probe; not accepted as HTTP/3 validation. All 21 outer gates and the offline HTTP/3 build passed. The IPv4 client returned status `2`, empty stdout, and bounded-safe stderr of 2,517 bytes/33 lines/SHA-256 `48579bf738129ab470682fdf8b344102a0720c4fbeb33cb72fd7f12d6c06a3c6`, which was emitted in full during the original action. It showed a local `quic-go` panic: the zero-value `quic.Transport` had no packet connection, so `basicConn.LocalAddr` and `ReadPacket` dereferenced nil during `DialEarly`. No valid HTTP/3 request result was produced and IPv6 was not reached. Core stdout was 4,367 bytes/65 lines/SHA-256 `4dbedd630f295f6b8eeb560be136096f8de40aaa60f4c6fa49d9be3706f45223`; core stderr was 48 bytes/one line/SHA-256 `c097654c4841ddd79fc4a9bbcb393de5cd74e6956ebad13a4c6a3f4f1272b349`. No node administration or persistent mutation occurred. Action 26-h3 is immutable and must not be rerun |
+| Append-only read-only HTTP/3 successor Action 26-h3 | Defined and focused-validated at `2026-08-09T03:23:55-05:00`; not executed. It pins immutable partial predecessor Action 26 retry outer `8458f79c...0a15`, preserves its accepted HTTP/1.1 and HTTP/2 evidence, and probes only HTTP/3 over exact IPv4/IPv6 Caddy VIP addresses. Per-stream bounds are raised narrowly from 2,048 to 8,192 bytes and 128 lines. Each stream's byte count, line count, hash, safety classification, and bounded-safe content are emitted during the original action before status evaluation. Exact acceptance remains HTTP/3.0, status `204`, selected VIP, zero body bytes, zero redirects, and empty stderr. Regression proves a safe stream larger than the observed 2,533-byte failure is emitted and verifies both exact probe invocations. Focused host and canonical network-disabled Debian 12 validations returned `0`; no live protocol probe, node contact, or mutation occurred |
+| Append-only read-only HTTP protocol-validation Action 26 retry execution | Executed once at `2026-08-09T03:10:22-05:00` and stopped fail-closed at HTTP/3 IPv4; not accepted as complete protocol validation. All local gates passed. HTTP/3 client build returned `0` with empty output. HTTP/1.1 and HTTP/2 passed over IPv4 and IPv6 with exact protocols, `204`, exact Caddy VIP, zero body bytes/redirects, and empty stderr. HTTP/3 IPv4 returned status `2`, empty stdout, and 2,533 bytes/33 lines of stderr/SHA-256 `c83ff9fd620020cb0eb857ef816e563910c7b3bc4e7218ef8dc51ee076cc98e1`. The immutable 2,048-byte per-probe limit classified the stream `unsafe_retained`; only that classification was emitted, and cleanup removed the capture. HTTP/3 IPv6 was not reached. Adapter stdout was 8,028 bytes/158 lines/SHA-256 `5fdf641dcdf4ffeb409c698a6d0af197de8afc3f60c606129aad97dae63e695b`; adapter stderr was 71 bytes/one line/SHA-256 `431bd774814774f0b479b98f70c138cbdbab17019feb8e68c4a5e10e0565e95b`. No mutation or node administration occurred. Action 26 retry is immutable and must not be rerun |
+| Append-only read-only HTTP protocol-validation Action 26 retry | Defined and focused-validated at `2026-08-09T03:06:40-05:00`; not executed. It pins accepted Action 26e retry outer `b2f313b4...0270`, immutable failed Action 26 core `f72ceb37...c046`, immutable transcript validator `58edc2c1...943fc`, and all pinned HTTP/3 Go artifacts through the immutable self-test. A protected transient adapter replaces only the action prefix and source-directory assignment, producing pinned core `683da97c...6091`; it does not execute historical Action 26. The new production path retains all 59 core assertions and adds seven independently labeled adapter assertions. It makes exactly six direct-address probes: HTTP/1.1, HTTP/2, and HTTP/3 over IPv4 and IPv6, each requiring status `204`, exact negotiated protocol/address, zero body bytes, zero redirects, empty stderr, and bounded safe same-run output. Regression covers the complete six-probe path, exact prefix isolation, missing adapter evidence, false core evidence, and historical-prefix rejection. Focused host and canonical network-disabled Debian 12 validations returned `0`; no live protocol probe ran |
+| Append-only corrected read-only post-restart acceptance Action 26e retry execution | Executed once and accepted at `2026-08-09T02:46:22-05:00`. Exact authorized outer `b2f313b4713c9af2c668d21130642838522d6e921fb959387d93ab50191f0270` returned `0`. All 19 local gates, six adapter assertions, 39 inherited core assertions, and 14 immutable transcript validations passed. Exact confirmed `.wslconfig` hash, backup manifest, mirrored mode, preferred ULA, and ULA routes to Node A, Node B, and Caddy VIP passed with source `fd36:5aa8:6971:1:3856:ef8b:d838:254c`. DNS returned exactly `fd36:5aa8:6971:1::56`; direct IPv6 HTTPS returned HTTP/1.1 `204`, exact remote VIP, zero body bytes, and zero redirects. Adapter stdout was 10,672 bytes/176 lines/SHA-256 `7b381ce7986d0aa56fd9f70fa4524970328f8d6130cc8d232bbcc49d2cf0c3f0`; stderr was empty. No restart, firewall change, resolver mutation, HA-node administrative contact, rollback, or persistent mutation occurred |
+| Append-only corrected read-only post-restart acceptance Action 26e retry | Defined and focused-validated at `2026-08-09T02:43:46-05:00`; not executed. A hash-pinned adapter reads immutable Action 26d inspector `c28daa30...a1d`, requires exactly one occurrence of obsolete target hash `6dffdf2b...b8a7`, requires the confirmed hash to be absent, replaces only that hash in a protected transient inspector, and pins generated SHA-256 `a8684d98...6b30`. The resulting inspector runs the unchanged 39-check mirrored-routing, DNS, and IPv6 HTTPS production path against exact confirmed `.wslconfig` `04d05067...0435`. Six adapter assertions and the inherited 39 assertions are independently labeled. The immutable failed Action 26e transcript validator remains pinned and enforces exact order/count/status/marker evidence. Regression accepts the exact 118-byte CRLF boundary and rejects the former two-line candidate and an altered setting. Focused host and canonical network-disabled Debian 12 validations returned `0`; no live probe or mutation ran |
+| Confirmed mirrored-networking `.wslconfig` architecture baseline | User confirmed at `2026-08-09` that `dnsProxy=false`, `hostAddressLoopback=true`, and `bestEffortDnsParsing=true` are intentional and were required for mirrored mode to work in this environment. The exact accepted candidate for the next read-only acceptance definition is the observed 118-byte CRLF file SHA-256 `04d050670b39c4febb632de69e144a7c3f979c168fe8f326832b1af932300435`; it supersedes the two-line Action 26c byte pin for post-restart acceptance only. This confirmation does not authorize rewriting `.wslconfig`, restarting WSL, or executing the successor |
+| Independent read-only workstation post-restart acceptance Action 26e execution | Exact authorized outer `d5ecf40a30450962ef7ce79f4cce02331f53a4c924650518208808adf86b8133` was executed once at `2026-08-09T02:27:56-05:00` and stopped fail-closed before any DNS or HTTPS probe. All 16 outer gates passed. The inspector emitted `target_regular=true` and `target_not_symlink=true`, then failed `target_hash`: expected immutable Action 26c candidate `6dffdf2b...b8a7`, observed `/mnt/c/Users/aaron/.wslconfig` `04d05067...0435`, regular file, mode `0777`, owner `1000:1000`, size 118. Its safe content is `[wsl2]`, `networkingMode=Mirrored`, `dnsProxy=false`, `[experimental]`, `hostAddressLoopback=true`, and `bestEffortDnsParsing=true`, encoded with CRLF except the final line. Core stdout was 92 bytes/two lines/SHA-256 `d580227690026c76bc34c830a21ded9d4919017bd5c6836921de11fb60b3262d`; core stderr was 42 bytes/one line/SHA-256 `7bbdea9d825a42dba29f8583a82551255c1e058e13dca5e35ea80078ee641e36`. No DNS query, HTTPS request, node contact, restart, or persistent mutation occurred. Action 26e is failed and immutable and must not be rerun |
+| Independent read-only workstation post-restart acceptance Action 26e | Defined and focused-validated at `2026-08-09T02:24:28-05:00`; not executed. It reuses the immutable read-only Linux inspector from Action 26d and requires the exact Action 26c target and protected backup, mirrored networking, a preferred LAN ULA, successful routes to Nodes A/B and the Caddy VIP through one interface and source, exact Pi-hole AAAA responses, and direct IPv6 Caddy HTTP/1.1 health. All 39 producer assertions are independently labeled, exact ordered, and unique. Bounded safe stdout and stderr are captured, classified, emitted, and evaluated during the original action. It cannot run PowerShell, `wsl.exe`, shutdown WSL, change firewall/resolver/node state, or contact either node administratively. Production regression exercises the actual inspector and rejects missing, false, duplicate, reordered, extra, altered-mode, nonzero-status, and stderr evidence. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| Failed Windows-host Action 26d execution boundary | Exact authorized outer `6ac36b4ed4b2dad3df6a740dba632acc00c35c9636aa2f7254cb64cbb0362247` was launched once from Windows and failed before transaction start. The first `wsl.exe --list --quiet` preflight returned status `127`; bounded-safe stderr was 45 bytes/two lines/SHA-256 `90319324e40d12b27e30a489c191cdaf407b7cc6c085f1520b500177b2923e62` and contained `/bin/bash: line 1: --list: command not found`. `TransactionStarted` remained false, so no WSL shutdown/restart, rollback, candidate mutation, firewall change, resolver mutation, or HA-node contact occurred. The failure is a PowerShell native-process argument-adapter defect. Action 26d is failed and immutable and must not be rerun |
+| Windows-host WSL mirrored-mode activation and post-restart acceptance Action 26d | Defined and focused-validated at `2026-08-08T23:49:23-05:00`; not executed. The PowerShell transaction rejects WSL-launched sessions, verifies the exact Action 26c candidate and Linux inspector, changes to a Windows temporary directory, shuts down WSL once, polls for a fully stopped VM, then relaunches exact distro `Ubuntu` as `aaron` from Windows. The Linux inspector requires mirrored mode, a LAN ULA, working ULA routes to Nodes A/B and the Caddy VIP, exact Pi-hole AAAA, and direct IPv6 Caddy HTTP/1.1 health. Every process stream is bounded, classified, and emitted during the action. After any post-shutdown failure, rollback removes only the exact candidate, performs a second Windows-owned shutdown/relaunch, and requires the accepted NAT/no-ULA-route baseline; unproven recovery returns `125`. Windows firewall, resolver files, and HA-node administrative state are not changed. Production regression covers successful activation, automatic rollback, changed-target preflight rejection, exact Linux success, extra-DNS rejection, and NAT rollback. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| Independent read-only workstation post-Action 26c acceptance Action 26c-a execution | Executed once and accepted at `2026-08-08T23:33:36-05:00`. Exact authorized outer `f2a8b14d08b6783b170192fd9a3da3484f7046d5868d464d62b7ccfb5bbbcb90` returned `0`; all 17 local gates, 43 inspector assertions, and 12 outer validations passed. Exact installed candidate, protected absent-state manifest content and `0700`/`0600` metadata, and transaction-residue absence passed. WSL kernel and `/etc/wsl.conf` remained exact. `/etc/resolv.conf` remained the expected symlink to `/mnt/wsl/resolv.conf`, with exact accepted bytes, nameserver `10.255.255.254`, and search domain `local.theama.co`. `wslinfo` remained `nat`; Caddy ULA route returned status `2` and exact network-unreachable stderr. Core stdout was 3,538 bytes/75 lines/SHA-256 `05babc3e084ffbd32c264ec887757bba2eee9a45b57550400f95c83e728cb248`; stderr was empty. No shutdown, node contact, LAN packet, or persistent mutation occurred |
+| Independent read-only workstation post-Action 26c acceptance Action 26c-a | Defined and focused-validated at `2026-08-08T23:31:32-05:00`; not executed. It independently pins the exact installed `.wslconfig`, protected absent-state manifest content and `0700`/`0600` metadata, and absence of `.wslconfig.action26c.*` residue. It verifies the WSL kernel, unchanged `/etc/wsl.conf`, the real `/etc/resolv.conf` symlink to `/mnt/wsl/resolv.conf`, exact accepted resolver bytes and Pi-hole search domain, current mode still `nat`, and exact Caddy ULA route status `2` with network-unreachable stderr. Every safe command stream is emitted before evaluation. It has no shutdown, node transport, LAN probe, or mutation path. Regression accepts the complete production contract and rejects altered target, manifest, resolver, premature mirrored activation, route appearance, and transaction residue. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| Inactive transactional WSL mirrored-networking installation Action 26c execution | Executed once and accepted as an inactive installation at `2026-08-08T23:23:20-05:00`. Exact authorized outer `2c02b10f4d8ef5dcee3a9d240d10aed33c1451a9bdd92b5677cc69cfdc685e99` returned `0`; all 17 local gates, 28 transaction checks, and 13 outer validations passed. Preinstall mode was exactly `nat`; the absent target and backup baselines passed. Exact two-line candidate SHA-256 `6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7` was installed at `/mnt/c/Users/aaron/.wslconfig`, and protected absent-state manifest was retained at `/home/aaron/.local/state/caddy-ha/action26c-wsl-mirrored/manifest` with directory/file modes `0700`/`0600`. Core stdout was 1,489 bytes/36 lines/SHA-256 `afdfae4cac8c7b5b0f78409ee1bee0a3d23f9f1188476ff020a598fae0ebf928`; stderr was empty. No rollback ran. WSL shutdown, Windows firewall mutation, DNS mutation, node contact, and activation were all false; activation remains pending |
+| Inactive transactional WSL mirrored-networking installation Action 26c | Defined and focused-validated at `2026-08-08T23:20:47-05:00`; not executed. Microsoft documents that mirrored networking adds IPv6 support unavailable in default NAT mode and that `.wslconfig` changes require a complete WSL stop/restart. Local read-only preflight found WSL 2.9.4.0, Windows build 26300.9032, and absent `/mnt/c/Users/aaron/.wslconfig`. The transaction requires that exact absent baseline and accepted Action 26b, creates protected absent-state rollback evidence, and atomically installs only exact two-line candidate `[wsl2]` plus `networkingMode=mirrored`. It does not set `dnsTunneling`, alter resolver files, change Windows firewall policy, contact either node, probe the LAN, or invoke `wsl --shutdown`. Automatic rollback removes only the exact candidate and fails closed on concurrent target changes. Activation/restart and post-restart acceptance remain separate authorization boundaries. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| Unverified dual-node IPv4 resolver drift report | Recorded at `2026-08-08T23:20:47-05:00` from the user; no Codex node contact. The user reports that both Node A and Node B changed from IPv4 resolver `10.1.0.55` to router `10.1.0.1` for an unknown reason. Earlier accepted evidence independently observed Node A using `10.1.0.1`, but current Node B state, configuration ownership, change source, and timing are unverified. This is outside Action 26c. The governing resolver architecture still requires node-local Pi-hole as primary and the physical peer as fallback, not public/router resolution for private names. A later separately authorized dual-node read-only resolver-provenance action must inspect current values and their manager before any correction |
+| Read-only workstation/WSL IPv6 network-provenance Action 26b execution | Executed once and accepted at `2026-08-08T23:09:16-05:00`. Exact authorized outer `a97e43703862f75132b7272d43db137b6e1b65daf92505835d97d2e7deb5b6b4` returned `0`; all 17 local gates, 40 core assertions, and 15 transcript validations passed. WSL2 kernel `6.18.35.2`, `wslinfo` mode `nat`, and interface `eth0` were observed. `eth0` has only link-local IPv6 `fe80::215:5dff:fe41:80b/64`; the IPv6 route table contains only link-local, local, and multicast routes, with no default or LAN ULA route. `ip -6 route get fd36:5aa8:6971:1::56` returned status `2` and `RTNETLINK answers: Network is unreachable`. IPv6 is enabled globally and on `eth0`; `accept_ra=1`, forwarding `0`. WSL-generated `/etc/resolv.conf` uses `10.255.255.254` and search domain `local.theama.co`. Exact classification was `wsl_nat_no_ula_route`. Core stdout was 14,684 bytes/259 lines/SHA-256 `88484c1d4b948a340e8e47d119f0e61648a64bce20fc5e3856ba28fd7d651efc`; stderr was empty. No DNS query, LAN probe, SSH, or persistent mutation occurred |
+| Read-only workstation/WSL IPv6 network-provenance Action 26b | Defined and focused-validated at `2026-08-08T23:04:26-05:00`; not executed. It locally captures kernel/WSL identity, `/etc/wsl.conf`, `/etc/resolv.conf`, the IPv4-selected interface, all IPv6 addresses/routes/rules, the exact route result for Caddy ULA VIP `fd36:5aa8:6971:1::56`, four IPv6 sysctls, and `wslinfo --networking-mode` when available. It classifies only `ipv6_disabled`, `ula_route_present`, WSL NAT/mirrored/unknown mode without a ULA route, native Linux without a ULA route, or indeterminate provenance. It performs no DNS query, LAN probe, SSH, or persistent mutation; all command status and bounded safe output is emitted before evaluation. Production regression covers all determinate WSL branches, exact command counts and arguments, and missing/false/duplicate/bad-classification/stderr/nonzero rejection. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| User-supplied workstation DNS-path evidence | Recorded at `2026-08-08T23:04:26-05:00`; no Codex DNS query or live change. Windows used Pi-hole VIP `10.1.0.55` and returned correct dual-stack Pi-hole and Caddy VIP records. WSL explicitly queried `10.1.0.55` over IPv4 and successfully received external AAAA records. A malformed `dig fd36:...::56` treated the literal as a name and timed out through WSL DNS proxy `10.255.255.254`; corrected `dig -x fd36:...::56` then returned authoritative PTR `proxy.local.theama.co.` through the same proxy in 12 ms. Therefore WSL DNS and authoritative PTR data are healthy at this boundary and are separate from the missing WSL ULA transport route proved by Action 26a |
+| Narrow read-only workstation IPv6 Caddy-VIP response-path Action 26a execution | Executed once and accepted as a diagnostic at `2026-08-08T22:51:33-05:00`. Exact authorized outer `5d7f2c485c8862e188708ce52eba6ac3fd31522fa9e782bc859022fb7f552f15` returned success after every local and transcript gate passed. All three `ip -6 route get` calls for Node A `::53`, Node B `::54`, and Caddy VIP `::56` returned status `2` with identical bounded-safe `RTNETLINK answers: Network is unreachable` stderr. Every before/after neighbor query succeeded with an empty table. All three HTTP/1.1 probes returned curl status `7`, protocol `0`, HTTP `000`, empty remote IP, zero body bytes, and zero redirects. Classification was exactly `vip_route_missing`. Core stdout was 13,118 bytes/223 lines/SHA-256 `988e5f96e986f85b33c243847e87b1237ce94bf975a3a6f00a916321cdeb3943`; core stderr was empty. This proves a workstation/WSL IPv6 network-path blocker affecting all LAN ULA controls, not a Caddy-VIP-specific fault. No SSH or persistent mutation occurred |
+| Narrow read-only workstation IPv6 Caddy-VIP response-path Action 26a | Defined and focused-validated at `2026-08-08T22:47:53-05:00`; not executed. It bypasses DNS and collects all evidence even when an endpoint fails: exact workstation IPv6 route and selected source for Node A `::53`, Node B `::54`, and Caddy VIP `::56`; neighbor state before and after; and bounded HTTP/1.1 health probes to all three exact addresses. It classifies only `vip_route_missing`, `vip_https_healthy`, `vip_specific_https_failure`, `workstation_ipv6_https_path_failure`, or `indeterminate_ipv6_response_path`. Every command status and bounded safe stdout/stderr stream is emitted during the original run. It uses no SSH and makes no persistent change. Production regression covered all determinate classifications, exact three route/six neighbor/three curl invocations, collect-after-failure behavior, transcript controls, and false-positive/false-negative cases. Focused host and canonical network-disabled Debian 12 validations returned `0` |
+| User-supplied Node A resolver and DNS-health evidence | Recorded at `2026-08-08T22:47:53-05:00`; no Codex node query or mutation. A Node A `dig pihole-admin.local.theama.co AAAA` used default resolver `10.1.0.1`, returned public-zone NXDOMAIN, and therefore proves the host resolver is not following the governing local-Pi-hole/physical-peer architecture. Separate Node A Keepalived logs show isolated `check-dns` return `1` followed one second later by `0`, plus one `already running` event. Repository configuration runs `check-dns` every one second with timeout three seconds, while the helper performs two sequential one-second `dig` calls; overlap is structurally possible. `fall 3` means the supplied isolated failures alone do not prove a DNS VRRP transition. Resolver correction and DNS-helper timing analysis remain separate future gates |
+| Read-only workstation HTTP protocol validation Action 26 execution | Executed once and stopped fail-closed at `2026-08-08T22:31:17-05:00`; not accepted. Exact authorized outer `58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc` passed every workstation gate. The HTTP/3 client built successfully with empty stdout/stderr. HTTP/1.1 over IPv4 passed exactly with HTTP `204`, protocol `1.1`, remote `10.1.0.56`, zero body bytes, zero redirects, and empty stderr. The next probe, HTTP/1.1 over IPv6 `fd36:5aa8:6971:1::56`, failed connection establishment with curl status `7`, protocol `0`, status `000`, empty remote IP, and bounded-safe stderr `Couldn't connect to server`. HTTP/2 and HTTP/3 probes were not reached and are unproven. Core stdout was 3,298 bytes/71 lines/SHA-256 `df10ca5c0395ee40aa7a34f939d18a0d68ce0d0f20018023e2b52616496ea835`; core stderr was 45 bytes/one line/SHA-256 `6434200caf1d345c56e48019f2ad97d8ffd1393cb22877736b513c130549a834`. No SSH or persistent mutation occurred and temporary artifacts were removed |
+| Read-only workstation HTTP protocol validation Action 26 | Defined and focused-validated at `2026-08-08T22:26:50-05:00`; not executed. It directly probes `https://proxy.local.theama.co/` at Caddy VIPs `10.1.0.56` and `fd36:5aa8:6971:1::56` using forced HTTP/1.1 and HTTP/2 curl requests plus a pinned `quic-go` v0.61.0 HTTP/3 client over QUIC/UDP. Each of six probes requires command success, empty stderr, exact protocol, HTTP `204`, exact remote address, zero response bytes, and zero redirects. The action uses `--insecure` only to isolate protocol negotiation; certificate trust remains Action 27. It captures, classifies, and emits bounded safe stdout and stderr before evaluation and cleanup. Mitmproxy is deferred to optional diagnosis because adding a proxy/MITM hop would not directly prove Caddy's negotiated client protocol. Focused host and canonical network-disabled Debian 12 validations returned `0`; neither node nor VIP was contacted and no live state changed |
+| Append-only bounded-redirect read-only Action 25 retry2 execution | Executed once and accepted at `2026-08-08T21:52:26-05:00`. Exact authorized outer `e9eb4e88f02939778e42f7da3fc10135bdc3023e1cef675d875f59a1c27dd2af` returned `0`. Both nodes passed 101/101 independently labeled checks and all six endpoint probes per node. Every shared, Node A-specific, and Node B-specific IPv4/IPv6 route followed exactly one same-origin redirect from `/admin/` to `/admin/login.php`, returned final HTTP `200` from the exact intended address, and contained bounded Pi-hole v5 login content. Node A remained MASTER with the four Caddy/DNS VIPs; Node B remained BACKUP with zero VIPs. Caddy, lighttpd, Keepalived, accepted hashes, physical addresses, roles, and before/after state remained exact. Both stderr streams were empty; all mutation flags were false. No password, auth hash, or API query was used |
+| Append-only bounded-redirect read-only Action 25 retry2 | Defined and focused-validated at `2026-08-08T21:46:16-05:00`; not executed. It preserves both executed Action 25 generations byte-identically and retains all six shared/node-specific IPv4/IPv6 HTTPS routes, exact `--resolve` addresses, accepted hashes, active-service state, physical addresses, MASTER/BACKUP and VIP-count expectations, and before/after continuity gates. Each request starts at `/admin/`, uses HTTP/1.1, follows at most three HTTPS-only redirects, and requires exactly one redirect, final HTTP `200`, exact same-origin `/admin/login.php`, exact final remote IP, bounded nonempty Pi-hole content, and no password, auth hash, or API query. Command status, bounded-safe output, final status/URL/IP, redirect count, body size/hash/classification, and marker are emitted before evaluation. Production regression rejects non-200, two redirects, wrong final URL, missing/false/duplicate/reordered/extra evidence, stderr, and nonzero status. Focused host and canonical network-disabled Debian 12 validations returned `0`. Neither node was contacted and no live HTTP request or mutation occurred |
+| User-supplied Node A shared-IPv4 redirect evidence | Recorded at `2026-08-08T21:35:06-05:00` from a manually executed bounded curl command on Node A. With exact `--resolve pihole-admin.local.theama.co:443:10.1.0.56`, HTTPS-only redirects, and maximum three redirects, `/admin/` followed exactly one redirect and returned final HTTP `200` at `https://pihole-admin.local.theama.co/admin/login.php` from remote IP `10.1.0.56`. The bounded body is the Pi-hole v5 login page and includes title `Pi-hole - j1-svpihole0`, login form, password input, and Pi-hole branding. Transcript: 7,688 bytes/145 lines/SHA-256 `d7be512ca8fa8aea75328dca386c03f6ee7733f813b5b14679b49da0ea0fd1a3`. This establishes the redirect contract without credentials; it does not validate IPv6, node-specific endpoints, or Node B |
+| Append-only corrected read-only Action 25 retry execution | Executed once and stopped fail-closed at `2026-08-08T21:27:20-05:00`; not accepted. Exact authorized outer `6b2897fbddcfa1212a1ca296c328095a3b10f76027513cd8ce75aaebe7e48fb2` returned `1`. All workstation gates and the production-response regression passed. Node A passed all 26 accepted pre-state checks and the first shared-IPv4 command, output-safety, and metadata checks. The corrected evidence path then emitted HTTP `302`, effective URL `https://pihole-admin.local.theama.co/admin/`, remote IP `10.1.0.56`, empty body/zero bytes, empty-content SHA-256 `e3b0c442...b855`, bounded-safe classification, and Pi-hole marker `false` before `shared_ipv4_http_200=false`. Node A stdout was 2,490 bytes/42 lines/SHA-256 `7a0c80fe...ddd2`; stderr was 56 bytes/1 line/SHA-256 `4cce5b09...375a`. Node B was not contacted. No DNS, file, service, VRRP, VIP, or other live mutation occurred. Repository inspection confirms the Caddy upstream health check intentionally follows redirects, but the live redirect target was not captured and is not inferred |
+| Append-only corrected read-only dual-node Pi-hole web-access Action 25 retry | Defined and focused-validated at `2026-08-08T21:19:00-05:00`; not executed. It preserves the executed Action 25 artifacts unchanged and retains the same six HTTPS `/admin/` endpoints, exact `--resolve` routes, HTTP/1.1, accepted configuration hashes, service/VRRP/VIP pre-state, and before/after continuity contract. For every probe it now emits command status, output classification, bounded safe response content, HTTP status, effective URL, remote IP, body byte count, body SHA-256, body classification, and Pi-hole marker before evaluating the corresponding exact assertion. Unsafe output is suppressed and causes fail-closed rejection. The production-function regression proves a safe HTTP 403 response and all associated observations are emitted before `shared_ipv4_http_200=false`; complete success transcripts and missing/false/duplicate/reordered/extra/stderr/nonzero cases are independently checked. Focused host and canonical network-disabled Debian 12 validations returned `0`. Neither node was contacted, no live HTTP request ran, and no state changed |
+| Read-only dual-node shared and node-specific Pi-hole web-access Action 25 execution | Executed once and stopped fail-closed at `2026-08-08T20:58:59-05:00`; not accepted. Exact authorized outer `cbb583bbb80b73825a3c97c8468a7d34c20f7eac31eb6f2229c4895950a77b24` returned `1`. All workstation gates and regressions passed. Node A passed accepted hashes, active services, MASTER/four-VIP pre-state, and the first shared-IPv4 curl command, output-safety, and metadata-presence checks, then failed `shared_ipv4_http_200`. Node A stdout was 1,439 bytes/29 lines/SHA-256 `e16441bf...8906`; stderr was 50 bytes/1 line/SHA-256 `f17d2e1f...6b87`, containing only the independently labeled false assertion. The inspector failed to emit the observed HTTP metadata before its exact status assertion, so the actual safe status, URL, remote IP, and body metadata were deleted with the transient capture and cannot be inferred. Node B was not contacted. The action is read-only and performed no DNS, file, service, VRRP, or VIP mutation. Preserve the executed outer unchanged and do not infer the response status |
+| Read-only dual-node shared and node-specific Pi-hole web-access Action 25 | Defined and focused-validated at `2026-08-08T20:55:15-05:00`; not executed. From each node it probes six exact HTTPS `/admin/` paths: shared `pihole-admin.local.theama.co` on Caddy VIP IPv4/IPv6, Node A `pihole0.local.theama.co` on physical IPv4/IPv6, and Node B `pihole00.local.theama.co` on physical IPv4/IPv6. Every probe uses an exact `--resolve` target, HTTP/1.1, bounded timeouts, and `--insecure` solely to isolate route/UI availability before Actions 26/27. It independently requires command success, bounded printable output, exact metadata, HTTP 200, exact effective URL and remote IP, a bounded nonempty body containing `Pi-hole`, and emits only body size/hash rather than page content. Each node has 95 independently labeled assertions and retains accepted local-zone/FTL/domain hashes, active Caddy/lighttpd/Keepalived, physical addresses, MASTER/BACKUP role, exact VIP counts, and identical before/after state. Focused host and canonical network-disabled Debian 12 validations returned `0`; production curl argv and complete dual-node transcripts passed, and missing/false/duplicate/reordered/extra/stderr/nonzero evidence was rejected. Neither node was contacted and no live state changed |
+| Corrected read-only dual-node authoritative record-family validation Action 24 retry execution | Executed once and accepted at `2026-08-08T20:32:24-05:00`. Exact authorized outer `daaa1904cab02dbf9a83aa6f8d4479582d6d571bc3fd008f4cd1393878fdc6f6` returned `0`. Both nodes passed all 118 independently labeled checks; sixteen bounded safe PTR answers were emitted during the original run and matched exactly. Caddy and Pi-hole A, AAAA, IPv4/IPv6 PTR, HTTPS SRV, and retained SMTP SRV answers passed through direct Unbound and local Pi-hole on both nodes. Node A remained MASTER with four Caddy/DNS VIPs; Node B remained BACKUP with zero VIPs. Both nodes retained local-zone `fa9f4850...569c`, active services, physical addresses, and identical before/after state. Core stdout was 23,083 bytes/406 lines/SHA-256 `08ff47fa...fb05`; all stderr streams were empty. The action was read-only and performed no DNS, file, service, VRRP, or VIP mutation |
+| Corrected read-only dual-node authoritative record-family validation Action 24 retry | Defined and focused-validated at `2026-08-08T20:23:39-05:00`; not executed. It preserves the original Action 24 inspector and outer unchanged, renders an append-only corrected inspector/core, and translates only PTR production calls from `dig ADDRESS PTR` to `dig -x ADDRESS`. It retains all 118 independently labeled checks per node and adds same-run bounded safe emission of sixteen observed PTR answers: Caddy and Pi-hole IPv4/IPv6 PTR values through direct Unbound and local Pi-hole on both nodes. Its independent production-command regression requires exactly one `-x`, the intended address, and no literal `PTR` argument; it also rejects missing, extra, reordered, altered, or false evidence and predecessor execution. Focused host and canonical network-disabled Debian 12 validations returned `0`; neither node was contacted and no live state changed |
+| Read-only dual-node authoritative record-family validation Action 24 execution | Executed once and stopped fail-closed at `2026-08-08T19:50:50-05:00`; not accepted. Exact authorized outer `318336f553cfd298da45200c51666dc082af4b3ddb7af9364dc798113590e8e2` returned `1`. All workstation gates and regressions passed. Node A passed its accepted hashes, services, MASTER/four-VIP pre-state, A and AAAA queries through direct Unbound and local Pi-hole, then failed `direct_caddy_ptr4_answer_exact`. The inspector incorrectly used `dig ADDRESS PTR` instead of reverse-query mode `dig -x ADDRESS`; command status and bounded-safe output classification passed, but no exact PTR answer could match. Node A stdout was 3,361 bytes/63 lines/SHA-256 `03348d1b...c3228`; stderr was 60 bytes/1 line/SHA-256 `511137e1...6a39` containing only the independently labeled false assertion. Node B was not contacted. The read-only contract contains no mutation operation, and no DNS, file, service, VRRP, or VIP mutation occurred. Preserve the executed outer unchanged and do not infer a DNS failure from this invalid query form |
+| Read-only dual-node authoritative record-family validation Action 24 | Defined and focused-validated at `2026-08-08T19:45:01-05:00`; not executed. It pins both nodes to accepted local-zone `fa9f4850...569c`, FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact node identities, Node A MASTER/four-VIP ownership, and Node B BACKUP/zero-VIP state. Each node has 118 independently labeled checks: 72 query assertions covering twelve exact A/AAAA/PTR/SRV controls through direct Unbound `127.0.0.1:5335` and local Pi-hole `127.0.0.1:53`, plus configuration, service, VRRP, physical-address, VIP, and before/after continuity checks. Controls include Caddy admin/proxy A/AAAA, canonical Caddy IPv4/IPv6 PTR, HTTPS SRV, retained SMTP SRV, and Pi-hole DNS-VIP A/AAAA/PTR. The outer contacts Node A then Node B through strict host-key-pinned SSH, captures/classifies/emits bounded stdout and stderr separately for each node, and requires each complete ordered assertion inventory exactly once. Regression rejects missing, false, extra, reordered, or altered evidence and predecessor execution. Focused host and canonical network-disabled Debian 12 validations returned `0`; neither node was contacted and no live state changed |
+| Transactional Node A authoritative SRV-record-family successor Action 23m execution | Executed once and accepted at `2026-08-08T19:25:48-05:00`. Exact authorized outer `de36b74860647d130338a3475b3d163215293e2396604095ca725949fecd11b7` returned `0`. All local gates and regressions passed; the remote producer completed 173/173 independently labeled assertions and emitted acceptance true. Node A local-zone advanced from `adee452b...ddb9` to `fa9f4850...569c`, adding exactly `_https._tcp.proxy.local.theama.co. 180 IN SRV 0 0 443 proxy.local.theama.co.` while retaining SMTP SRV and all A/AAAA/PTR records. Direct Unbound SRV answered on iteration 1 and local Pi-hole on iteration 2; all retained Caddy and Pi-hole controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node A remained MASTER with exactly one local owner for each Caddy/DNS VIP; Node B management and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 12,740 bytes/259 lines/SHA-256 `62459cbc...2015`; stderr was empty. Rollback was not invoked. Accepted-live Node A local-zone now records `fa9f4850...569c` at Action 23m, matching Node B |
+| Node A authoritative SRV-record-family successor Action 23m | Defined and focused-validated at `2026-08-08T19:22:26-05:00`; not executed. It advances Node A only from accepted A/AAAA/PTR local-zone `adee452b...ddb9` to independently accepted Node B Action 23l SRV candidate `fa9f4850...569c`, adding exactly `_https._tcp.proxy.local.theama.co. 180 IN SRV 0 0 443 proxy.local.theama.co.` while preserving the existing SMTP SRV and all A/AAAA/PTR records. It pins FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact metadata, Node A MASTER role, and exactly one local owner for each Caddy/DNS VIP. Its deterministic renderer consumes private source `bcb145b3...5aad`, removes deferred Home Assistant records, normalizes the accepted Caddy forward-record ordering, and reconstructs accepted parent `adee452b...ddb9` by removing only the HTTPS SRV line. It parses before mutation, retains protected rollback backup `/var/backups/caddy-ha/action23m-node-a-unbound-srv-records`, reloads Unbound once, resets Pi-hole v5 DNS once, checks the new SRV plus retained SMTP SRV/A/AAAA/PTR/Pi-hole controls through direct Unbound and local Pi-hole, preserves Node B/Caddy-VIP HTTPS continuity, and restores the accepted baseline plus MASTER/four-VIP state on failure. Focused host and canonical network-disabled Debian 12 validations returned `0`; neither node was contacted and no live state changed |
+| Transactional standby-first Node B authoritative SRV-record-family Action 23l execution | Executed once and accepted at `2026-08-08T19:15:02-05:00`. Exact authorized outer `b9280076ea27947c4b7fa8f4164439bac504c5a34fafe87256d4dc3e3dd02e60` returned `0`. All local gates and regressions passed; the remote producer completed 173/173 independently labeled assertions and emitted acceptance true. Node B local-zone advanced from `adee452b...ddb9` to `fa9f4850...569c`, adding exactly `_https._tcp.proxy.local.theama.co. 180 IN SRV 0 0 443 proxy.local.theama.co.` while retaining SMTP SRV and all A/AAAA/PTR records. Direct Unbound SRV answered on iteration 1 and local Pi-hole on iteration 2; all retained Caddy and Pi-hole controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node B remained BACKUP with zero Caddy/DNS VIPs; Node A management and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 12,748 bytes/259 lines/SHA-256 `623b122e...e20f`; stderr was empty. Rollback was not invoked. Accepted-live Node B local-zone now records `fa9f4850...569c` at Action 23l |
+| Standby-first Node B authoritative SRV-record-family Action 23l | Defined and focused-validated at `2026-08-08T19:12:10-05:00`; not executed. It advances Node B only from the accepted dual-node A/AAAA/PTR local-zone `adee452b...ddb9` to candidate `fa9f4850...569c`, adding exactly `_https._tcp.proxy.local.theama.co. 180 IN SRV 0 0 443 proxy.local.theama.co.`. It preserves all Caddy A/AAAA/PTR records, the existing SMTP SRV, every unrelated record, accepted FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact metadata, BACKUP role, and zero local Caddy/DNS VIPs. Its deterministic renderer consumes private source `bcb145b3...5aad`, removes deferred Home Assistant records, normalizes the already accepted Caddy forward-record ordering, and reconstructs accepted parent `adee452b...ddb9` by removing only the HTTPS SRV line. It parses before mutation, retains protected rollback backup `/var/backups/caddy-ha/action23l-node-b-unbound-srv-records`, reloads Unbound once, resets Pi-hole v5 DNS once, checks the new SRV plus retained A/AAAA/PTR/Pi-hole controls through direct Unbound and local Pi-hole, preserves Node A/Caddy-VIP HTTPS continuity, and restores the accepted baseline on failure. Focused host and canonical network-disabled Debian 12 validations returned `0`; neither node was contacted and no live state changed |
+| Transactional Node A authoritative PTR-record-family successor Action 23k execution | Executed once and accepted at `2026-08-08T19:00:23-05:00`. Exact authorized outer `9215ba13879ab38b78b3331ff3bbabbea83b08e2606e72846c9f517f77570a58` returned `0`. All local gates and regressions passed; the remote producer completed 164/164 independently labeled assertions and emitted acceptance true. Node A local-zone advanced from `7d018a7f...8c39` to `adee452b...ddb9`, adding exactly the IPv4 and IPv6 Caddy VIP PTR records to `proxy.local.theama.co.`; the future HTTPS SRV record remained absent. Direct answers passed on iteration 1 and local Pi-hole answers by iteration 2; retained Caddy A/AAAA and Pi-hole A/AAAA/PTR controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node A remained MASTER with exactly one local owner for each Caddy/DNS VIP; Node B and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 11,940 bytes/246 lines/SHA-256 `04d14c0c...57ae`; stderr was empty. Rollback was not invoked. Accepted-live Node A local-zone now records `adee452b...ddb9` at Action 23k, matching Node B |
+| Node A authoritative PTR-record-family successor Action 23k | Defined and focused-validated at `2026-08-08T18:57:03-05:00`; not executed. It advances Node A only from accepted A/AAAA local-zone `7d018a7f...8c39` to independently accepted Node B Action 23j PTR candidate `adee452b...ddb9`, adding exactly the IPv4 and IPv6 Caddy VIP PTR records to canonical `proxy.local.theama.co.`. It pins FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact metadata, Node A MASTER role, and exactly one local owner for each Caddy/DNS VIP. The renderer consumes reconciled private source `bcb145b3...5aad`, deterministically reproduces the accepted candidate byte-for-byte, and explicitly strips the future HTTPS SRV record so PTR and SRV remain separate deployment families. It parses before mutation, retains a protected rollback backup, reloads Unbound once, resets Pi-hole v5 DNS once, checks PTR/A/AAAA and existing Pi-hole controls through both local DNS paths, retains Node B/Caddy-VIP HTTPS continuity, and automatically restores the accepted baseline plus MASTER/four-VIP state on failure. Focused host checks and canonical network-disabled Debian 12 validation returned `0`; neither node was contacted and no live state changed |
+| Transactional standby-first Node B authoritative PTR-record-family Action 23j execution | Executed once and accepted at `2026-08-08T18:44:52-05:00`. Exact authorized outer `842b21ee8f0543f096f4306226ef01bab91ae3bc7ea1b2c2ce1ae8dec8936787` returned `0`. All local gates and regressions passed; the remote producer completed 164/164 independently labeled assertions and emitted acceptance true. Node B local-zone advanced from `7d018a7f...8c39` to `adee452b...ddb9`, adding exactly the IPv4 and IPv6 Caddy VIP PTR records to `proxy.local.theama.co.`. Direct answers passed on iteration 1 and local Pi-hole answers by iteration 2; retained Caddy A/AAAA and Pi-hole A/AAAA/PTR controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node B remained BACKUP with zero Caddy/DNS VIPs; Node A and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 11,948 bytes/246 lines/SHA-256 `b27f5e4f...9ffe`; stderr was empty. Rollback was not invoked. Accepted-live Node B local-zone now records `adee452b...ddb9` at Action 23j |
+| Standby-first Node B authoritative PTR-record-family Action 23j | Defined and focused-validated at `2026-08-08T18:38:56-05:00`; not executed. It advances Node B only from accepted dual-node A/AAAA local-zone `7d018a7f...8c39` to candidate `adee452b...ddb9`, adding exactly IPv4 and IPv6 Caddy VIP PTR records to canonical `proxy.local.theama.co.`. It preserves both Caddy A and both Caddy AAAA records, every unrelated record, accepted FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact metadata, BACKUP role, and zero local Caddy/DNS VIPs. It parses before mutation, retains a protected rollback backup, reloads Unbound once, resets Pi-hole v5 DNS once, independently checks both new PTRs plus retained A/AAAA/Pi-hole controls through direct Unbound and local Pi-hole, preserves Node A/Caddy-VIP HTTPS continuity, and restores the exact accepted baseline on failure. Focused host components and the canonical network-disabled Debian 12 validation passed; neither node was contacted and no live state changed |
+| Transactional Node A authoritative AAAA-record-family successor Action 23i execution | Executed once and accepted at `2026-08-08T18:25:05-05:00`. Exact authorized outer `5363bc8b593d1e00c7175d2ddb2bcf1c7582b845c7e3b8f44150cf1b69d38355` returned `0`. All local gates and regressions passed; the remote producer completed 161/161 independently labeled assertions and emitted acceptance true. Node A local-zone advanced from `b0c6549c...6160` to `7d018a7f...8c39`, adding exactly the two Caddy IPv6 AAAA records. Direct answers passed on iteration 1 and local Pi-hole answers by iteration 2; retained Caddy A and Pi-hole A/AAAA/PTR controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node A remained MASTER with exactly one local owner for each Caddy/DNS VIP; Node B and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 11,793 bytes/243 lines/SHA-256 `9e1a9f39...6777`; stderr was empty. Rollback was not invoked. Accepted-live Node A local-zone now records `7d018a7f...8c39` at Action 23i, matching Node B |
+| Transactional Node A authoritative AAAA-record-family successor Action 23i | Defined and focused-validated at `2026-08-08T18:22:46-05:00`; not executed. It advances Node A only from accepted local-zone `b0c6549c...6160` to independently accepted Node B Action 23h candidate `7d018a7f...8c39`, adding exactly the two Caddy IPv6 AAAA records while preserving the accepted Caddy A records and all unrelated records. It pins FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, exact metadata, Node A MASTER role, and exactly one local owner for each Caddy/DNS VIP. It parses before mutation, retains a protected rollback backup, reloads Unbound once, resets Pi-hole v5 DNS once, checks AAAA/A and existing Pi-hole controls through both local DNS paths, retains Node B/Caddy-VIP HTTPS continuity, and automatically restores the accepted baseline plus MASTER/four-VIP state on failure. Both focused host and canonical network-disabled Debian 12 validations returned `0`; neither node was contacted and no live state changed |
+| Transactional Node B authoritative AAAA-record-family Action 23h execution | Executed once and accepted at `2026-08-08T18:14:47-05:00`. Exact authorized outer `d50bcd22f6caf0688dde246a6c828a1d1055c10724098c7c87b8f6f9e30a77c5` returned `0`. All local gates and production regressions passed; the remote producer completed 161/161 independently labeled assertions and emitted acceptance true. Node B local-zone advanced from `b0c6549c...6160` to `7d018a7f...8c39`, adding exactly the two Caddy IPv6 AAAA records. Direct Unbound answers passed on iteration 1 and local Pi-hole answers by iteration 2; retained Caddy A and Pi-hole A/AAAA/PTR controls passed. Unbound reload and Pi-hole v5 reset succeeded. Node B remained BACKUP with zero Caddy/DNS VIPs; Node A and Caddy-VIP HTTPS, service/PID/restart continuity, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, final metadata, protected backup, and residue absence passed. Stdout was 11,785 bytes/243 lines/SHA-256 `49cafbbb...bfe8`; stderr was empty. Rollback was not invoked. Accepted-live Node B local-zone now records `7d018a7f...8c39` at Action 23h |
+| Standby-first Node B authoritative AAAA-record-family Action 23h | Defined and focused-validated at `2026-08-08T18:03:23-05:00`; not executed. It pins accepted Node B local-zone `b0c6549c...6160`, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, `PIHOLE_PTR=NONE`, exact metadata, BACKUP role, and zero local Caddy/DNS VIPs. Candidate `7d018a7f...8c39` adds exactly the two Caddy IPv6 VIP AAAA records while preserving both accepted IPv4 A records and every unrelated record. It validates the combined Unbound configuration before mutation, creates a protected absent-state backup, atomically switches the local-zone, reloads Unbound once, resets Pi-hole v5 DNS once, checks new AAAA and retained A answers through direct Unbound and local Pi-hole, retains existing Pi-hole controls and Node A/Caddy-VIP HTTPS continuity, and automatically restores the accepted baseline on failure. Both focused host and canonical network-disabled Debian 12 validations returned `0`; no node was contacted and no live state changed |
+| Transactional Node A authoritative A-record-family successor Action 23g | Executed once and accepted at `2026-08-08T17:52:40-05:00`. Exact authorized outer `99e5ab1774bc6f2c4422b0ebc995d9cdda4a31bc3f242c9a3e2a0ca454064323` returned `0`. All local gates and production regression checks passed; the remote transaction passed all 131 independently labeled assertions, emitted acceptance true, and produced bounded-safe stdout of 9,513 bytes/204 lines/SHA-256 `69512b8dcab9e03baa17e74c014b95711a6453a7f67ae5afca3f54e60acd88d7`; stderr was empty. Node A local-zone advanced from `c70f7097...dbb4` to `b0c6549c...6160`, adding exactly the two Caddy IPv4 A records. Unbound reload succeeded; Pi-hole v5 reset succeeded; direct answers passed on iteration 1 and local Pi-hole answers on iteration 2. FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, existing A/AAAA/PTR controls, Unbound PID/restarts, post-reset FTL PID/restarts, Node B management HTTPS, Caddy-VIP HTTPS, final metadata, protected backup, and residue absence passed. Rollback was not invoked. Accepted-live Node A local-zone now records `b0c6549c...6160` at Action 23g, matching Node B |
+| Independent read-only Node A post-Action 23f acceptance Action 23f-a | Executed once and accepted at `2026-08-08T17:38:46-05:00`. Exact authorized outer `b04f7b4a063ffd6ea2116128955aefc088bb9c2c3e0add055256f11bda900f46` returned `0`. All 177 independently labeled checks passed with zero failures and first failure `none`. Installed FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, `pihole:root:0664`, domain `a8305acb...10f96`, protected backup `c96c3591...e1d7b`, and exact Action 23f manifest `c068bce0...4897` passed. Pi-hole core `v5.18.3`, FTL `v5.25.2`, FTL parser, zero residue, active services, Node A MASTER, exact Caddy/DNS VIP and physical-address ownership, all direct-Unbound/local-Pi-hole A/AAAA/PTR answers, all HTTPS paths, stable backups, and identical state `b929ad44...d55b` passed. Remote stdout was 11,553 bytes/234 lines/SHA-256 `2a8aafa802eaae7db0db30d06e79af60d1a14eef9d6d29f76991f3ce90e37f77`; stderr was empty. No mutation, Pi-hole restart, Action 23e/23f rerun, or Node B contact occurred. Accepted-live Node A FTL/domain records now cite Action 23f-a |
+| Transactional Node A Pi-hole PTR-policy successor Action 23f execution | Executed once at `2026-08-08T17:24:30-05:00`; remote transaction succeeded but workstation acceptance returned `97`. Exact authorized outer `0ce6a2248abfa985fa5c70c6f8c7011e9bf24d5ec42133e7ccbb956541f59fb0` passed every local gate and contacted only Node A. The producer passed 131/131 independently labeled assertions with zero failures, changed FTL from `c96c3591...e1d7b` to `c77de665...a7aa`, preserved `pihole:root:0664` and domain `a8305acb...10f96`, validated FTL, reset Pi-hole v5 DNS, reached PTR readiness on attempt 2, passed all direct-Unbound and local-Pi-hole A/AAAA/PTR paths, retained MASTER and all Caddy/DNS VIPs, preserved service PIDs/restarts, passed all HTTPS paths, left no transaction residue, and did not roll back. Protected backup is `/var/backups/caddy-ha/action23f-node-a-pihole-ptr-policy`. Remote stdout was 7,157 bytes/173 lines/SHA-256 `c1792b9540381a9f436038757d8a174bc4539b0a91657ba55b7232d547433e50`; stderr was empty. The outer failed only because its workstation expected-label inventory placed `pihole_version_capture` after `transaction_absent`, while the producer emitted it after `ftl_binary_executable`; counts and uniqueness were exact. Preserve the executed outer unchanged and require independent read-only acceptance before updating the accepted-live Node A FTL hash or defining the later A-record successor |
+| Transactional Node A Pi-hole PTR-policy successor Action 23f | Defined and focused-validated at `2026-08-08T17:19:25-05:00`; not executed. It pins accepted Action 23e-a retry2 FTL hash `c96c3591...e1d7b`, domain hash `a8305acb...10f96`, `pihole:root:0664`, exact `HOSTNAMEFQDN` preimage, Node A MASTER ownership of both Caddy and DNS VIP families, Pi-hole v5, DNS and HTTPS continuity, and zero Action 23f residue. It changes only `PIHOLE_PTR=HOSTNAMEFQDN` to `PIHOLE_PTR=NONE`, retains a protected byte-exact rollback backup, restarts Pi-hole DNS once, requires canonical direct-Unbound and local-Pi-hole PTR answers, and automatically restores the accepted preimage and restarts Pi-hole on failure. Driver `8bf33ff6...f96c`; regression `47f6c526...402a`; focused validator `ad670313...1689`; manifest `e24f67ea...d70`; exact future outer `0ce6a224...9fb0`. Both focused host and network-disabled Debian 12 validations returned `0`; the complete historical suite was bypassed under the accepted cadence. Neither node was contacted and no live state changed |
+| Read-only Node A post-rollback/PTR response diagnostic Action 23b-a execution | Executed once and accepted at `2026-08-08T13:53:12-05:00`. Exact authorized outer `5789142b1f6ce0a5edf9dbe987a3d98eaaaba1f58e3fa3281974d7760fb60d88` returned `0`. All 223 independently labeled checks passed, stderr was empty, and before/after state was identical at `e7124d62...bcd04`. Direct Unbound returned the intended DNS VIP PTRs to `pihole.local.theama.co.` and Node A physical PTRs to `pihole0.local.theama.co.` for both IPv4 and IPv6. Every Pi-hole listener consistently returned `j1-svpihole0.local.theama.co.` for all four PTR queries. Relevant `/etc/hosts` contained only `127.0.1.1 j1-svpihole0` and no `.55/::55/.53/::53` mappings; Pi-hole FTL exposed `PIHOLE_PTR=HOSTNAMEFQDN`. Restored hash, backup/manifest, zero residue, services, Node A MASTER, both Caddy VIPs, both DNS VIPs, physical addresses, forward DNS, and HTTPS continuity passed. Remote stdout 17,686 bytes/328 lines/`e0c31524...dcb6`; stderr empty. No configuration, cache, service, filesystem, VRRP, or VIP mutation occurred; Node B was not contacted |
+| Read-only Node A post-rollback/PTR response diagnostic Action 23b-a | Defined and focused-validated at `2026-08-08T13:46:25-05:00`; not executed. It pins the restored local-zone `c70f7097...dbb4`, protected failed-Action-23b backup/manifest, zero residue, active services, stable before/after state, Node A MASTER, both Caddy VIPs, both DNS VIPs, and Node A's physical IPv4/IPv6 addresses. It queries A, AAAA, IPv4 PTR, and IPv6 PTR for DNS VIP `pihole.local.theama.co` at `.55/::55` and Node A `pihole0.local.theama.co` at `.53/::53` through direct Unbound, local Pi-hole, both DNS VIP listeners, and both physical listeners. Direct Unbound must match all eight authoritative records; every forward Pi-hole answer must match; Pi-hole PTR paths must agree and are classified from bounded safe `/etc/hosts`, hostname, Pi-hole v5, and dnsmasq provenance. Inspector `00e949bd...f166`; regression `786e15a4...529b`; focused `68b95f88...e871`; manifest `8b61268b...2a76`; exact future outer `5789142b...0d88`. Neither node was contacted and no action ran |
+| Node A authoritative A-record-family update Action 23b execution | Executed once at `2026-08-08T13:23:49-05:00`; not accepted. Exact outer `4a4340908592044c01928ca0ede85a352ac58df90f31b9e7071e8d4e99729674` returned `1`. Candidate installation, Unbound reload, Pi-hole v5 reset, both new A records through direct Unbound and local Pi-hole, and all direct control records passed. Local Pi-hole PTR for `10.1.0.55` returned safe answer `j1-svpihole0.local.theama.co.` instead of expected `pihole.local.theama.co.`; direct Unbound returned the expected value. The transaction stopped before endpoint/final acceptance and rolled back successfully: restored hash, Unbound reload, Pi-hole reset, active services, preserved Unbound PID/restarts, and transaction cleanup all passed. Stdout 7,180 bytes/156 lines/`35aeeb29...6941`; stderr 965 bytes/19 lines/`2c175dca...2ed8`. Action 23b must not be rerun unchanged |
+| Node A authoritative A-record-family update Action 23b | Defined and focused-validated at `2026-08-08T13:19:45-05:00`; not executed. It advances only Node A's accepted local-zone `c70f7097...dbb4` to the same independently accepted Node B candidate `b0c6549c...6160`, adds exactly the two Caddy IPv4 A records, preserves AAAA/PTR/SRV/Home Assistant deferral, uses protected backup and automatic rollback, reloads Unbound once, performs the required Pi-hole v5 DNS reset, and verifies ten direct/local DNS paths plus Node B/Caddy-VIP HTTPS continuity. Expected failed readiness retries run in an ERR-trap-neutral subshell with explicit status capture; a production-function self-test proves status `9` is observed without a false transaction error and a later success remains accepted. Parser output is suppressed inside the parser helper so its successful assertion label remains visible. Driver `23bc6578...101d`; regression `0ac76474...4526`; focused `5edc9010...408d`; manifest `ffe9287c...0055`; exact future outer `4a434090...9674`. Neither node was contacted and no action ran |
+| Workstation-only Action 23a-a transcript-consumer correction execution | Executed once and accepted at `2026-08-08T13:10:22-05:00`. Exact runner `d7ca02d4475c5d28524242d029d0ced32036b134b887fc7efafab927360edadc` returned `0`. All nine correction gates and all 22 unchanged transcript-validator assertions passed. It reproduced exact captured stdout `98c0d305...3021`, proved the sole missing parser label, inserted only that label, retained state `20805a7c...d85a`, installed hash `b0c6549c...6160`, backup and all no-mutation markers, and emitted bounded-safe validator stdout 1,176 bytes/22 lines/`f1454cf0...9530`; stderr was empty. Neither node was contacted. Node B Action 23a/23a-a is accepted, and accepted-live manifest now records `b0c6549c...6160` at Action 23a-a |
+| Workstation-only append-only Action 23a-a transcript-consumer correction | Defined and focused-validated at `2026-08-08T13:08:30-05:00`; not executed. It deterministically reproduces the exact captured Node B stdout at 5,790 bytes, 114 lines, SHA-256 `98c0d305...3021`; pins immutable inspector `f348010d...399b` and outer `25c4f430...a50e`; proves the sole 93-versus-92 difference is `unbound_configuration_valid`; proves the successful label was suppressed between the preceding Home Assistant and following backup fail-closed checks; inserts only that label; and passes the unchanged transcript validator with the observed state/hash/backup and all no-mutation markers. Regression accepts the exact capture and rejects altered, missing, duplicate, false, and wrong-missing captures. Runner `d7ca02d4...edadc`; regression `b5dfa8bb...6f15`; focused `186d489d...ba59`. Neither node was contacted and no action was executed |
+| Independent read-only Node B post-Action 23a acceptance Action 23a-a execution | Executed once at `2026-08-08T13:00:48-05:00`; remote inspector returned `0`, reported internal check count `93`, zero failures, first failure `none`, exact installed `b0c6549c...6160`, identical state `20805a7c...d85a`, all DNS/HTTPS/service/backup/HA checks, and every mutation marker false. Remote stderr was empty. Outer returned `97` because the inspector invocation `record_check unbound_configuration_valid unbound-checkconf "$live_root" >/dev/null` redirected the successful label along with parser output. The transcript therefore contained 92 visible ordered labels while the inspector's own set contained 93. Execution continuing beyond that fail-closed check proves parser status `0`; no live reinspection is needed. Preserve the executed artifacts and use the emitted stdout in a workstation-only append-only consumer correction |
+| Independent read-only Node B post-Action 23a acceptance Action 23a-a | Defined and focused-validated at `2026-08-08T12:57:56-05:00`; not executed. Its 93 independently labeled assertions pin installed local-zone `b0c6549c...6160`, exact two-A-record scope, combined live Unbound parse, protected prior-file backup `c70f7097...dbb4`, exact five-line backup manifest, zero transaction/stage residue, active Unbound/Pi-hole/Caddy/lighttpd/Keepalived, stable deterministic before/after state, Node B BACKUP with zero Caddy/DNS VIPs, ten direct-Unbound/Pi-hole DNS controls, and Node A/Caddy-VIP HTTPS continuity. The inspector contains no reload, reset, service, DNS, or filesystem mutation. One full intercepted production-path pass and fast negative transcript cases reject missing, duplicate, false, reordered, changed-state, changed-hash, stderr, and nonzero-status evidence. Inspector `f348010d...399b`; regression `8b0b40d9...f60b`; focused `7ecd9b19...8bd9`; exact future outer `25c4f430...a50e`. Neither node was contacted |
+| First authoritative Unbound A-record-family update Action 23a execution | Executed once at `2026-08-08T12:37:29-05:00`; live producer completed 116/116 checks and emitted `action_23a_acceptance=true`, but the outer returned `1` and remains unaccepted. Node B atomically installed local-zone hash `b0c6549c...6160`, reloaded Unbound, reset Pi-hole v5 DNS, returned both new A records through direct Unbound and local Pi-hole paths, preserved control records and service/HTTPS continuity, and retained protected backup `/var/backups/caddy-ha/action23a-node-b-unbound-a-records`. Expected unsuccessful early `dig` retries returned status `9`; inherited ERR traps emitted six bounded-safe diagnostic groups even though the readiness loop subsequently succeeded. SSH returned `0`, stdout recorded the complete acceptance, and no rollback ran. The accepted-live manifest remains at the prior independently accepted baseline until separate read-only confirmation |
+| First authoritative Unbound A-record-family update Action 23a definition | Defined and focused-validated at `2026-08-08T12:34:44-05:00`. It advances only Node B's accepted `pihole-local-zone.conf` baseline `c70f7097...dbb4` to candidate `b0c6549c...6160` by adding exactly `pihole-admin.local.theama.co. IN A 10.1.0.56` and `proxy.local.theama.co. IN A 10.1.0.56`. AAAA, PTR, SRV, Node A, and deferred Home Assistant records remain outside this action. The transaction performs combined native Unbound validation before mutation, protected backup, atomic replacement, one Unbound reload, required Pi-hole v5 DNS reset, independently labeled direct-Unbound and Pi-hole-path queries, service/PID and HTTPS continuity checks, and automatic known-good rollback. Outer `1ef7e9c0...8389` |
+| Action 22 UniFi firewall disposition | Defined and satisfied as no-change-required at `2026-08-08T12:11:31-05:00`; no controller or node contact occurred. All required IPv4 endpoints are inside `10.1.0.0/22` on Default LAN VLAN 1 and the required IPv6 endpoints are on the same VLAN, so these flows do not traverse the gateway zone firewall. Accepted Actions 4c/4d/4e established compatible inter-zone policy, zero switch ACLs, zero WAN port forwards, and disabled UPnP; accepted Action 20p-a retry proved current dual-stack endpoint continuity. No UniFi rule group or execution runner is required. Append-only disposition: `Caddy/manifests/unifi-firewall-disposition-action22.yaml`. The older intended-state deployment manifest remains immutable for historical hash consumers; this disposition supersedes only its deferred `unifi_firewall` status |
+| Action 21 single IPv4 and IPv6 Caddy VIP ownership verification | Satisfied by incorporation at `2026-08-08T12:08:43-05:00`; no redundant runner or node contact was performed. Accepted Action 20p-a retry already proved exactly one IPv4 Caddy VIP owner and exactly one IPv6 Caddy VIP owner, with Node A MASTER and owning both VIPs, Node B BACKUP and owning neither, stable deterministic before/after snapshots, working endpoints, and no mutation. Its exact outer was `cd97f5e1...f16d`, with 96/96 independently labeled assertions passing on each node |
+| Corrected independent dual-node read-only post-Action 20p acceptance Action 20p-a retry | Executed once and accepted at `2026-08-08T12:05:48-05:00`. Exact authorized outer `cd97f5e1ffc197598a2c95cec53ead857e624f806cdd5a165862f5826578f16d` returned `0`. Both nodes passed 96/96 independently labeled assertions with stable deterministic semantic snapshots. Node A is MASTER and owns exactly one IPv4 and one IPv6 Caddy VIP; Node B is BACKUP and owns neither Caddy VIP. Both eight-second TTL/HL windows were quiet, all services and endpoints remained healthy, and no reload, restart, filesystem/service/DBus/VRRP/VIP mutation occurred |
+| Independent dual-node read-only post-Action 20p acceptance Action 20p-a | Executed once at `2026-08-08T11:39:23-05:00`; not accepted. Exact outer `e2450fc5d10115d7576d8ad39535688e5abf29c43f028b8b27de03e4d30730e3` returned `1` without mutation. On both nodes, 93 of 96 independently labeled checks passed. All service, PID/restart, artifact hash, VRRP role, VIP ownership, DBus role, endpoint, and fresh TTL/HL quiet-window checks passed. The validator incorrectly expected wildcard include `conf.d/*.conf` instead of the accepted exact terminal `conf.d/caddy-ha.conf`; its aggregate snapshot also included volatile observation detail even though every required semantic before/after assertion was stable. Both stderr streams were empty. No reload, restart, or mutation occurred |
+| Node-A-only Keepalived DBus runtime-activation Action 20p | Executed once and accepted at `2026-08-08T11:21:28-05:00`. Exact outer `8480382a4b2810d578a6936c2eb0f124f1c7b3ac3b1b608189f19273d5397b4b` returned `0`. Node A reloaded Keepalived once, retained its PID and restart count, acquired `org.keepalived.Vrrp1`, reported VRIDs 110 and 111 as `Master`, remained Caddy/DNS MASTER with all four VIPs, and retained Caddy/lighttpd/HTTPS continuity. The reload activated the exact two `unicast_ttl 255` directives. Node B remained BACKUP with both DBus states `Backup`, zero Caddy/DNS VIPs, and a fresh eight-second journal window containing no TTL/HL rejection entries. Rollback was not invoked |
+| Independent fail-closed read-only Node B post-Action 20o retry2 acceptance Action 20o-b execution | Executed once and accepted at `2026-08-08T10:33:55-05:00`. Exact authorized outer `5ad88ca05ab3450914d444ae27a83cbb891e5aadbadaa24939f1e2947c97a1ff` returned `0`. All 14 independently labeled local gates, 85/85 ordered Node B assertions, exact transcript, and no-mutation controls passed. Installed main `5480e699...1393`, exact fragment/helper, active services, stable Keepalived PID/restarts, BACKUP state, successful address queries, zero Caddy/DNS VIPs, runtime `org.keepalived.Vrrp1`, exact flat objects for VRIDs 110/111, both `Backup` properties, Node A physical HTTPS, Caddy-VIP HTTPS, and zero Action 20o retry2 residue passed. Normalized before/after state was identical at `889d5382...b6f5`. Remote stdout was 19,749 bytes/294 lines/`92078fd5...b268`; stderr was empty. Neither health helper ran, Node A was not contacted by SSH, and no reload, restart, DBus/filesystem/service mutation, VRRP transition, or VIP mutation occurred. Node B Keepalived DBus runtime activation is independently accepted |
+| Independent fail-closed read-only Node B post-Action 20o retry2 acceptance Action 20o-b | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. Its 85 unique ordered assertions pin installed main `5480e699...1393`, exactly one `enable_dbus`, exact fragment `0dd8ec0a...b518`, helper `5cb42ba0...7fb3`, runtime bus name `org.keepalived.Vrrp1`, exact flat Caddy object paths for VRIDs 110/111, exact `Backup` state for both objects, active Keepalived/Caddy/lighttpd, stable Keepalived PID/restarts, BACKUP state, successful `ip -o -4/-6`, zero Caddy/DNS VIPs, Node A physical and Caddy-VIP HTTPS continuity, exact Action 20o retry2 residue absence, and identical normalized before/after state. Every bounded IPv4, IPv6, DBus-list, flat-tree, and state-property stream is captured, classified, and emitted during the future original action. Only transient DBus-list rows whose process column is exactly `busctl` are excluded from aggregate comparison; all semantic DBus checks remain fail-closed. Regression intercepts the exact `cd / && sudo -n /bin/bash -s --` transport and rejects false, missing, duplicate, reordered, query-failure, altered-object, changed-state, stderr, nonzero-status, and dynamic-scope-collision cases. Inspector `9e99fda1...7a11`; regression `b88a264c...efe4`; focused validator `c7e8cc2c...e9a8`; exact future outer `5ad88ca05ab3450914d444ae27a83cbb891e5aadbadaa24939f1e2947c97a1ff`. Neither node was contacted and no live action or mutation occurred; the complete historical suite remained bypassed under the accepted cadence |
+| Corrected transactional Node B Keepalived DBus activation Action 20o retry2 execution | Executed once and accepted at `2026-08-08T10:09:47-05:00`. Exact authorized outer `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b` returned `0`. All 23 local gates, 99 independently labeled Node B checks, and every ordered outer transcript assertion passed. Candidate `5480e699...1393` was atomically installed from exact source `9aa36b63...f148`; Keepalived reload returned `0` without restart; PID remained `1826778` and restarts unchanged. Journal showed reload complete and acquisition of `org.keepalived.Vrrp1` without fatal errors. Flat DBus tree contained exact Caddy paths `/org/keepalived/Vrrp1/Instance/eth0/110/IPv4` and `/org/keepalived/Vrrp1/Instance/eth0/111/IPv6`; both `State` properties returned `Backup`. Node B remained BACKUP with zero Caddy/DNS IPv4/IPv6 VIPs; services, helper contexts, Node A HTTPS, and Caddy-VIP HTTPS passed. Remote stdout was 20,706 bytes/268 lines/`5b11381f...172e`; stderr empty. No rollback, restart, Node A SSH contact, VRRP transition, or VIP mutation occurred. Runtime Keepalived DBus activation and the intended main replacement are accepted pending independent read-only confirmation |
+| Corrected transactional Node B Keepalived DBus activation Action 20o retry2 | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. Accepted-live Node B main now records restored non-DBus baseline `8b260315...9fbd3f` from Action 20o-a retry, and obsolete historical deployable consumers were removed without editing historical scripts. The 99-label transaction validates exact source `9aa36b63...f148`, derives candidate `5480e699...1393`, atomically installs that candidate, performs one bounded Keepalived reload, uses fail-closed `ip -o -4/-6`, and captures flat object paths through `busctl --system --no-pager --list tree org.keepalived.Vrrp1`. Exact-line object validation rejects Unicode-prefixed tree output. Any post-mutation failure restores protected main `8b260315...9fbd3f`, reloads it with restart only as fallback, and requires BACKUP, absent DBus, zero Caddy/DNS VIPs, and Node A/Caddy-VIP HTTPS continuity or returns `125`. Transaction `3cd50707...342b`; regression `2af3eb9f...128b8`; focused validator `75652040...9453`; future outer `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`. Neither node was contacted; all live-action and mutation markers remained false |
+| Append-only corrected read-only Action 20o-a retry execution | Executed once and accepted at `2026-08-08T09:36:24-05:00`. Exact authorized outer `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc` returned `0`. All local gates, all 63 independently labeled Node B assertions, exact ordered transcript, and no-mutation assertions passed. Restored main `8b260315...9fbd3f`, absent `enable_dbus`, absent runtime `org.keepalived.Vrrp1`, active Keepalived/Caddy/lighttpd, stable Keepalived PID/restarts, BACKUP state, successful `ip -o -4/-6`, zero Caddy/DNS VIPs before and after, Node A and Caddy-VIP HTTPS continuity, exact fragment/helper hashes, and zero Action 20o residue passed. Raw DBus observations differed only in transient `busctl` rows; normalized before/after state matched exactly at `e29c243e...053e`. Remote stdout 14,139 bytes/188 lines/`bb6ae4f0...86a6`; stderr empty. Node A was not contacted by SSH and no reload, restart, Keepalived DBus activation, or persistent mutation occurred. Node B rollback continuity is accepted |
+| Append-only corrected read-only Action 20o-a retry | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. The executed inspector and outer remain immutable at `637cdb57...ba80` and `602bd70e...24b20`. The retry adds only three marked normalization blocks and changes the aggregate DBus hash call from raw `text_hash` to `normalized_dbus_hash`; removing the marked blocks and reversing that one call reproduces the historical inspector byte-for-byte. The normalizer excludes only rows whose process column `$3` is exactly `busctl`. Raw DBus list output remains independently captured, classified, and emitted; query status and `org.keepalived.Vrrp1` absence remain fail-closed. Self-tests prove two changing transient `busctl` rows normalize identically while the Keepalived bus-name row and `/org/keepalived/Vrrp1/Instance/eth0/110/IPv4` object path from the Keepalived DBus hierarchy are preserved. All 63 labels, valid `ip -o -4/-6`, zero-VIP, service, BACKUP, HTTPS, residue, stable-runtime, and no-mutation gates are unchanged. Inspector `e67a5d64...8265`; regression `aff62b05...17af`; focused validator `f4ee133a...a3d1`; exact future outer `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc`. Neither node was contacted and no live mutation occurred |
 | Read-only Node B post-rollback continuity Action 20o-a execution | Executed once at `2026-08-06T23:41:10-05:00`; not accepted only because the aggregate snapshot included the transient client created by each `busctl list` query. Exact authorized outer `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20` returned remote/outer status `1`. All required continuity assertions passed: restored main `8b260315...9fbd3f`, absent `enable_dbus`, runtime `org.keepalived.Vrrp1` absence, active services, stable Keepalived PID/restarts, BACKUP state, successful `ip -o -4/-6`, zero Caddy/DNS VIPs before and after, Node A and Caddy-VIP HTTPS continuity, unchanged artifact hashes, and zero Action 20o residue. Only `state_snapshot_unchanged=false` failed because before/after DBus-list output contained different ephemeral `busctl` unique names/PIDs (`:1.4375802`/PID `1229570` then `:1.4375803`/PID `1229708`), changing DBus and aggregate hashes while every semantic DBus assertion remained true. Remote stdout 14,086 bytes/187 lines/`865a3b9d...ef68`; stderr empty; before state `1bf2d214...dd7f`; after state `d6d5a6a0...47fa`. All mutation markers were false |
 | Read-only Node B post-rollback continuity Action 20o-a | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container. Its 63 independently labeled assertions require restored main `8b260315...9fbd3f`, absent `enable_dbus`, exact Caddy fragment/helper, active Keepalived/Caddy/lighttpd, BACKUP state, runtime `org.keepalived.Vrrp1` absence, valid and successful `ip -o -4` and `ip -o -6` address queries, zero Caddy/DNS VIPs before and after, Node A physical and Caddy-VIP HTTPS continuity, zero Action 20o runtime/install residue, stable PID/restarts/hashes, and identical before/after state. Address absence explicitly fails when its underlying query fails. Each bounded safe IPv4, IPv6, and DBus-list stream is classified and emitted during the original action. Regression intercepts the exact root-cwd Node B SSH path and rejects query failure and reordered production labels. Inspector `637cdb57...ba80`; regression `4a33ffd8...8d05`; focused validator `820b3108...1e98`; executed outer `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20`. Executed artifacts are immutable and must not be edited or rerun |
 | Append-only corrected Action 20o retry execution | Executed once at `2026-08-06T23:00:23-05:00` and not accepted. Exact authorized outer `799442774f62d00b29290aa6b6a7b7a1e6d6e54df7a705fa552dc3c8cde81836` returned remote/outer status `1`. All 19 local gates and the first 51 remote checks through `dbus_list_status` passed. Keepalived reload returned `0`; journal recorded reload complete and acquisition of `org.keepalived.Vrrp1`; DBus list contained the exact service. `dbus_tree` returned status `0` with 699-byte/14-line output SHA-256 `6b96ebb8...7be4`, but its Unicode tree glyphs failed the ASCII-only safety classifier, causing `dbus_tree_status=false` and rollback. Rollback reload returned `0` and `rollback_complete=true`. The transcript simultaneously exposed repeated `ip: Object "4"/"6" is unknown`: `address_count` incorrectly invoked `ip -o "4"/"6"` instead of `ip -o -4/-6`, so preflight and rollback VIP-absence assertions can return false-positive zero counts and do not constitute acceptance evidence. Aggregate rollback still proves the protected prior-main restoration, active service, BACKUP state, DBus absence, and endpoint continuity gates passed, but VIP absence requires independent verification. Remote stdout was 11,693 bytes/140 lines/SHA-256 `192b6ef3...eec1`; bounded-safe stderr was 554 bytes/14 lines/SHA-256 `3aedd469...a13`. The executed retry artifacts are immutable and must not be rerun or edited |
 | Append-only corrected Action 20o retry | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. The corrected transaction is an exact one-token derivative of immutable executed transaction `a445f327...226f`: stale protected-manifest source prerequisite `9aa36b63bd42...f148` is replaced by immutable Action 20m value `9aa36b630f30...f148`, with no other byte difference. The outer streams only corrected transaction `8c23b508...9058`; production regression pins the historical transaction, proves the one-token derivation, requires the stale value exactly once only in the historical source, requires the corrected value exactly once only in the retry, intercepts exact Node B SSH command and corrected payload hash, and retains all success, false, missing, duplicate, reordered, changed-hash, missing-capture, rollback, stderr, and nonzero-status controls. Retry transaction `8c23b508...9058`; regression `a1b56fc6...0282`; focused validator `922d0085...df8c`; exact future outer `799442774f62d00b29290aa6b6a7b7a1e6d6e54df7a705fa552dc3c8cde81836`. Neither node was contacted and no reload, restart, DBus activation, service, VRRP, VIP, or persistent live mutation occurred |
 | Transactional Node B Keepalived reload and DBus runtime-activation Action 20o execution | Executed once at `2026-08-06T22:47:36-05:00` and stopped fail-closed before reload. Exact authorized outer `ee93a46fb34773db6b12c7a2ce5fe5e94ded980deb7e64ffeffdaa834ca5fcb5` returned remote/outer status `1`. All 18 local gates passed. The remote transaction passed its first 30 independently labeled assertions through `rollback_manifest_node`; the sole emitted failure was `rollback_manifest_source=false`. Local immutable-source comparison proves Action 20o pinned stale source hash `9aa36b63bd42...f148`, whereas the immutable Action 20m installer, accepted post-install inspector, and retained manifest contract use `9aa36b630f30...f148`. Remote stdout was 1,345 bytes/31 lines/SHA-256 `24e8078c...9c1a`; bounded-safe stderr was 48 bytes/one line/SHA-256 `139b3d75...0eec` and was emitted during the original action. Execution never reached service-state queries, journal cursor capture, `mutation_started=true`, reload, rollback, DBus activation, VRRP transition, or VIP mutation. The executed transaction and outer are immutable and must not be rerun or edited |
-| Transactional Node B Keepalived reload and DBus runtime-activation Action 20o | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. It pins accepted Node B main `5480e699...1393`, fragment `0dd8ec0a...b518`, helper `5cb42ba0...7fb3`, and protected Action 20m rollback main `8b260315...9fbd3f` at `/var/backups/caddy-ha/action20m-node-b-dbus-main.wHwzci`. The Node-B-only transaction validates all protected backup/manifest and BACKUP/zero-VIP prerequisites, proves the default `org.keepalived.Vrrp1` name is absent before reload, verifies Node A physical and Caddy VIP HTTPS continuity, captures a journal cursor, and performs exactly one `systemctl reload keepalived.service`. Acceptance requires 77 independently labeled checks, stable Keepalived PID/restarts, BACKUP/zero-VIP state, unchanged main/fragment/helper, healthy Caddy in root and `keepalived_script` contexts, bounded journal without fatal/DBus errors, exact DBus name, exact Caddy objects `/org/keepalived/Vrrp1/Instance/eth0/110/IPv4` and `/org/keepalived/Vrrp1/Instance/eth0/111/IPv6`, and `Backup` from both `State` properties. Any post-reload failure restores the protected pre-DBus main and reloads it, using restart only as rollback fallback; rollback must prove DBus absent, BACKUP/zero-VIP state, and Node A/VIP reachability or return `125`. Every stdout/stderr stream is captured, classified, and safely emitted during the original action. Transaction `a445f327...226f`; regression `83a5170f...df0`; focused validator `4e8eb759...9e07`; exact future outer `ee93a46fb34773db6b12c7a2ce5fe5e94ded980deb7e64ffeffdaa834ca5fcb5`. Neither node was contacted and no live mutation occurred |
+| Transactional Node B Keepalived reload and DBus runtime-activation Action 20o | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. It pins accepted Node B main `5480e699...1393`, fragment `0dd8ec0a...b518`, helper `5cb42ba0...7fb3`, and protected Action 20m rollback main `8b260315...9fbd3f` at `/var/backups/caddy-ha/action20m-node-b-dbus-main.wHwzci`. The Node-B-only transaction validates all protected backup/manifest and BACKUP/zero-VIP prerequisites, proves the default `org.keepalived.Vrrp1` name is absent before reload, verifies Node A physical and Caddy VIP HTTPS continuity, captures a journal cursor, and performs exactly one `systemctl reload keepalived.service`. Acceptance requires 77 independently labeled checks, stable Keepalived PID/restarts, BACKUP/zero-VIP state, unchanged main/fragment/helper, healthy Caddy in root and `keepalived_script` contexts, bounded journal without fatal/DBus errors, exact Keepalived DBus name, exact Keepalived DBus objects for the Caddy VRRP instances `/org/keepalived/Vrrp1/Instance/eth0/110/IPv4` and `/org/keepalived/Vrrp1/Instance/eth0/111/IPv6`, and `Backup` from both `State` properties. Any post-reload failure restores the protected pre-DBus main and reloads it, using restart only as rollback fallback; rollback must prove DBus absent, BACKUP/zero-VIP state, and Node A/VIP reachability or return `125`. Every stdout/stderr stream is captured, classified, and safely emitted during the original action. Transaction `a445f327...226f`; regression `83a5170f...df0`; focused validator `4e8eb759...9e07`; exact future outer `ee93a46fb34773db6b12c7a2ce5fe5e94ded980deb7e64ffeffdaa834ca5fcb5`. Neither node was contacted and no live mutation occurred |
 | Append-only corrected read-only Node A post-Action 20n acceptance Action 20n-a retry execution | Executed once and accepted at `2026-08-06T22:17:40-05:00`. Exact authorized outer `207ea0493501b7378ce7bc2f71551c94110d026269bafe82b49f27affb6f14ba` returned `0`. All 19 local gates, 68 independently labeled Node A assertions, and every ordered transcript-validation assertion passed. Correct backup `/var/backups/caddy-ha/action20n-node-a-dbus-main.s8Qkep`, installed main `8fc9dcf8...e47c`, prior main `357eb09c...d8e2`, DBus/include structure, fragment/helper, zero residue, active services, stable Keepalived PID/restarts, MASTER state, and all four Caddy/DNS VIPs passed. Before/after state was identical at `af5620d3...7c83`. Remote stdout was 4,081 bytes/84 lines/`fee14a62...f1f0`; stderr was empty. Every mutation marker was false and Node B was not contacted. Node A Action 20n is independently accepted; running Keepalived remains unreloaded |
 | Append-only corrected read-only Node A post-Action 20n acceptance Action 20n-a retry | Defined and focused-validated on the workstation and in the canonical network-disabled Debian 12 container; not executed. Historical executed Action 20n-a artifacts remain byte-for-byte unchanged. The corrected inspector's only semantic delta is the stale backup suffix `wHwzci` to the observed Node A suffix `s8Qkep`. Production-path regression pins the historical inspector, proves an exact one-line source delta, requires the corrected suffix exactly once, rejects the stale suffix, intercepts exact `cd / && sudo -n /bin/bash -s --`, accepts the complete ordered production transcript, and retains all false, missing, duplicate, reordered, changed-state, stderr, and nonzero-status controls. Inspector `efb6c7cc...ca59`; regression `a5aefe7b...6b73`; focused validator `d2afa94e...ce8d`; exact future outer `207ea0493501b7378ce7bc2f71551c94110d026269bafe82b49f27affb6f14ba`. Neither node was contacted and no action or mutation occurred |
 | Independent read-only Node A post-Action 20n acceptance Action 20n-a execution | Executed once at `2026-08-06T22:01:41-05:00` and not accepted. Exact authorized outer `523d42964e744d0ee90d2891ffec9868b9140ca413ef1888ab30775dfc60eee4` returned remote/outer status `1`. The inspector passed 54/68 checks; all installed-main/DBus/include, fragment/helper, residue, services, stable PID/restarts, MASTER/four-VIP, final-hash, and identical before/after state checks passed. Fourteen backup-specific checks failed because the inspector alone retained Node B suffix `wHwzci`, while the outer/regression and actual retained Node A backup use `s8Qkep`. First failure was `backup_directory_present`. Before/after state was identical at `6b88abf8...872b`. Remote stdout was 4,116 bytes/84 lines/`e0e33dbf...2046`; bounded-safe stderr was 541 bytes/6 lines/`c9a4613a...bde1` and was emitted in the original action. No helper execution, Node B contact, filesystem/service/VRRP/VIP mutation, reload, restart, or DBus activation occurred. The executed outer and inspector are immutable and must not be rerun or edited |
@@ -272,7 +346,7 @@
 | Independent fail-closed read-only Node A post-Action 20c acceptance Action 20c-a execution | Executed once and accepted. Exact outer runner `42874857...29f3` returned `0`; all 138 independently labeled assertions passed; helper `9bf531ab...8bbab` succeeded as `keepalived_script`; the Action 20c and Action 19e backups, inactive fragment, active release, services, synchronization state, and DNS/Caddy VIP state were exact. Before/after state was identical at `fd58d881...414a`; both stderr streams were empty and every mutation marker was false |
 | Append-only corrected dual-node Action 20a pre-activation readiness retry | Defined and validated on the workstation only. It preserves the historical Action 20a artifacts, consumes exact accepted Action 20c-a and Action 20b-a outer gates, reconciles every one of each producer's 138 labels, pins corrected helper `9bf531ab...8bbab`, and retains the 46-label per-node plus 19-label cross-node readiness contract. Missing and duplicate baseline/probe inventories, zero DNS-VIP owners, semantic failures, unsafe streams, and unapproved working directories fail closed. No HA node was contacted and no no-argument runner was invoked |
 | Append-only corrected dual-node Action 20a pre-activation readiness retry execution | Executed once and not accepted. Both exact 138-label baselines passed; Node A passed 46/46 fresh probe assertions; Node B passed 45/46 because its aggregate state hash changed from `e1faa123...7d27` to `27b01305...5749`. All health, fragment, role, priority, VRID, peer, service, release, sysctl, DNS-VIP, absent-Caddy-VIP, and explicit no-mutation checks passed. The dual-node consumer passed 17/19, with only `node_b_probe_accepted` and `node_b_state_unchanged` false. Both stderr streams were empty and every mutation marker was false |
-| Next gate | Do not rerun Action 20g retry3 or Action 20g-a, and do not activate Node B. Operator-supplied Node A journals prove the interval health helper can be terminated during `caddy validate` at approximately four seconds and repeatedly toggle `1`/`0`, creating a flapping risk. Define—but do not execute—a bounded transactional Node A health-helper correction that retains only `systemctl is-active caddy` and bounded localhost HTTPS for VRRP, moves full `caddy validate` enforcement to configuration installation/reload, preserves instrumentation and automatic rollback, and proves stable MASTER/VIP continuity over a bounded observation window. Node B must receive and independently accept the equivalent helper before its activation transaction is defined |
+| Next gate | Action 23e-a retry2 is independently accepted read-only Node A evidence: all 160 ordered assertions passed, exact PTR behavior for all three identities and both address families was confirmed, all three HTTPS paths passed, and before/after state was identical. Actions 23e, 23e-a, and 23e-a retry remain immutable failed evidence; Action 23e-a retry2 is immutable accepted evidence and none may be rerun. The next gate is definition—but not execution—of a new transactional Node A Pi-hole PTR-policy successor based on accepted Node A Action 23e-a retry2 and accepted Node B Actions 23d/23d-a. It must preserve `pihole:root:0664`, use accepted live FTL SHA-256 `c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`, retain the exact domain/custom-CNAME state, reset Pi-hole v5 only after candidate parser acceptance and installation, and include bounded automatic rollback. The failed Action 23e and all read-only predecessors must not be rerun. The later Node A A-record successor remains undefined and unauthorized |
 
 ## Locked Decisions
 
@@ -1293,6 +1367,74 @@ accepted and must not be rerun unchanged.
 
 | Timestamp | Node | Action | Authorization | Pre-state | Command or file | Rollback | Exit and validation | Versions and hashes | Result | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-09T03:10:22-05:00 | Workstation/WSL to Caddy IPv4/IPv6 VIPs; no HA-node administrative contact | Execute exact append-only read-only HTTP protocol-validation Action 26 retry once | User authorized exact outer `8458f79c24c56f70ab39cd6ad80d99519821227adca272da5f1a618a8a1b0a15`; no rerun, mutation, or later action authorized | Accepted Action 26e retry; Action 26 retry definition passed focused validation | Verified exact outer and executed `/bin/bash Caddy/scripts/run-workstation-caddy-protocols-action26-retry-outer.sh` once outside the network-restricted sandbox | None; action was read-only and removed protected transient generated core, binary, caches, and captures | Local gates and HTTP/3 build passed. HTTP/1.1/HTTP/2 IPv4/IPv6 all passed. HTTP/3 IPv4 status `2`, stdout empty, stderr 2,533 bytes/33 lines/`c83ff9fd...98e1`; stream exceeded 2,048-byte safety cap and content was suppressed. HTTP/3 IPv6 not reached | Outer `8458f79c...0a15`; adapter stdout 8,028 bytes/158 lines/`5fdf641d...695b`; adapter stderr 71 bytes/one line/`431bd774...e95b`; H1/H2 stderr empty | Partially accepted evidence only: H1/H2 dual-stack healthy; H3 unproven. The original action discarded the exact classified H3 cause after cleanup | Preserve Action 26 retry unchanged. Next gate is definition only of an append-only H3 successor with a bounded capacity above the observed stream and same-run safe content emission; do not create a separate live diagnostic |
+| 2026-08-09T03:06:40-05:00 | Workstation repository only; no live protocol probe or HA-node contact | Define and focused-validate append-only read-only HTTP protocol-validation Action 26 retry | User authorized definition only; no live HTTP request, execution, mutation, or later action authorized | Accepted Action 26e retry proves WSL mirrored ULA routing, exact Caddy AAAA, and IPv6 HTTP/1.1; immutable Action 26 stopped before HTTP/2/HTTP/3 | Added generated-core adapter, immutable-validator outer, exact six-probe regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-caddy-protocols-action26-retry-outer.sh` | None; future action is read-only and removes only protected transient generated core, binary, caches, and captures | Focused host and canonical network-disabled Debian 12 validations returned `0`. Host Go format/tests, immutable local gates, 59 core checks, seven adapter checks, six exact fixture probes, transcript negatives, shell policies, and executable index modes passed | Adapter `f167e5a8...cd51`; generated core `683da97c...6091`; outer `8458f79c...0a15`; regression `2ae39bea...cd4d`; focused `ed2ffd3c...39b1`; manifest `e081d422...ec4c` | Definition accepted. Failed Action 26 and accepted Action 26e retry remain unchanged; no live network request or persistent mutation occurred | Stop. Require separate exact authorization of outer `8458f79c...0a15` once |
+| 2026-08-09T02:46:22-05:00 | Workstation/WSL plus Pi-hole DNS and Caddy IPv6 VIP; no HA-node administrative contact | Execute exact append-only corrected read-only post-restart acceptance Action 26e retry once | User authorized exact outer `b2f313b4713c9af2c668d21130642838522d6e921fb959387d93ab50191f0270`; no rerun, mutation, or later action authorized | Confirmed expanded `.wslconfig` `04d05067...0435`; definition passed focused host and Debian validation; WSL locally observed mirrored with ULA routes | Verified exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-retry-outer.sh` once outside the network-restricted sandbox | None; action was read-only and removed protected transient generated inspector and captures | Outer returned `0`; 19 local gates, six adapter assertions, 39 core assertions, and 14 transcript validations passed. All command stderr was empty; exact DNS and IPv6 HTTPS results passed | Outer `b2f313b4...0270`; adapter stdout 10,672 bytes/176 lines/`7b381ce7...c3f0`; stderr empty/`e3b0c442...b855`; route source `fd36:5aa8:6971:1:3856:ef8b:d838:254c`; HTTPS stdout `37550821...dfec` | Accepted. Mirrored WSL has working LAN ULA routing, authoritative Caddy AAAA, and direct Caddy IPv6 HTTP/1.1 health. No persistent mutation occurred | Preserve Action 26e retry unchanged. Next gate is definition only of an append-only HTTP protocol-validation successor to complete HTTP/1.1, HTTP/2, and HTTP/3 evidence |
+| 2026-08-09T02:43:46-05:00 | Workstation repository only; no live DNS/HTTPS probe, Windows process, or HA-node contact | Define and focused-validate append-only corrected read-only post-restart acceptance Action 26e retry | User authorized definition only based on confirmed exact expanded `.wslconfig`; no execution, restart, mutation, or later action authorized | Failed immutable Action 26e stopped on stale two-line target hash; user confirmed observed expanded file `04d05067...0435` is intentional and required | Added hash-transform adapter, immutable-validator outer, exact-byte production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-retry-outer.sh` | None; future action is read-only and removes only protected transient generated inspector and captures | Focused host and canonical network-disabled Debian 12 validations returned `0`. Six exact adapter checks, inherited 39-check producer contract, transcript order/count/status, exact CRLF fixture, old-candidate rejection, altered-setting rejection, shell policies, and executable index modes passed | Adapter `e495dc33...663e`; generated inspector `a8684d98...6b30`; outer `b2f313b4...0270`; regression `6de59bd6...a554`; focused `3d43648f...b45a`; manifest `373b825a...662b` | Definition accepted locally. Historical Actions 26d/26e are unchanged; no live probe, WSL restart, node contact, or persistent mutation occurred | Stop. Require separate exact authorization of outer `b2f313b4...0270` once |
+| 2026-08-09T02:30:52-05:00 | Governing plan only; no workstation probe, Windows process, or HA-node contact | Record user confirmation of the expanded mirrored-networking `.wslconfig` baseline | User confirmed all three additional settings are intentional and required for mirrored mode in this environment; no execution or configuration mutation requested | Failed Action 26e observed the exact expanded file but intentionally did not assume its provenance or intent | Recorded exact SHA-256 `04d05067...0435`, CRLF/118-byte encoding, and the three settings as the post-restart acceptance baseline | None; documentation-only update | Markdown validation passed; no live action ran | Confirmed baseline `04d05067...0435`; historical Action 26c candidate `6dffdf2b...b8a7` remains immutable | The observed file is intentional architecture state, not unexplained drift. This confirmation supersedes only the post-restart byte expectation | Next gate is definition—but not execution—of an append-only corrected read-only acceptance successor. Failed Action 26e must not be rerun |
+| 2026-08-09T02:27:56-05:00 | Workstation/WSL local filesystem only; no HA-node administrative contact or endpoint probe | Execute exact independent read-only post-restart acceptance Action 26e once | User authorized exact outer `d5ecf40a30450962ef7ce79f4cce02331f53a4c924650518208808adf86b8133`; no rerun, correction, restart, mutation, or later action authorized | Definition-only Action 26e passed focused validation; prior local routing check observed mirrored mode and ULA routes, but the exact installed `.wslconfig` had not been re-pinned | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-outer.sh` once outside the network-restricted sandbox | None; action was read-only and removed only protected transient captures | Outer status `1`; all 16 local gates passed. Core stopped at its third assertion: target regular and not symlink passed, target hash failed. No DNS/HTTPS stage was reached | Outer `d5ecf40a...8133`; expected target `6dffdf2b...b8a7`; observed target `04d05067...0435`, 118 bytes, mode `0777`, owner `1000:1000`; core stdout 92 bytes/two lines/`d5802276...262d`; core stderr 42 bytes/one line/`7bbdea9d...1e36` | Not accepted. The exact observed Windows configuration contains three additional settings and CRLF byte normalization relative to the Action 26c candidate. No live network request, node contact, restart, or persistent mutation occurred | Preserve Action 26e unchanged and do not rerun it. Confirm whether the observed configuration is intended before defining an append-only corrected acceptance successor |
+| 2026-08-09T02:24:28-05:00 | Workstation repository only; no WSL shutdown, Windows process launch, HA-node administrative contact, or live endpoint probe | Record failed Action 26d boundary and define/focused-validate independent read-only post-restart acceptance Action 26e | User requested a new read-only post-restart acceptance action. No Action 26e execution, restart, firewall/resolver mutation, node administration, or later action authorized | Authorized Action 26d failed on its first distribution-list preflight with status `127` before transaction start. A subsequent read-only local check observed mirrored mode, interface `eth1`, preferred source `fd36:5aa8:6971:1:3856:ef8b:d838:254c`, and successful route selection to Nodes A/B and Caddy VIP; resolver remains `/mnt/wsl/resolv.conf`, SHA-256 `9e0e2f98...4bd5`, nameserver `10.255.255.254`, search `local.theama.co` | Added Action 26e outer, production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-outer.sh` | None; future Action 26e is read-only and removes only protected transient captures. Failed Action 26d did not enter its rollback boundary because `TransactionStarted=false` | Focused host and canonical network-disabled Debian 12 validations returned `0`. Actual-inspector production transcript, exact 39-label inventory, ordering/uniqueness, safe-output, failure, policy, and executable-index controls passed | Outer `d5ecf40a...8133`; inspector `c28daa30...a1d`; regression `658ff062...c0c`; focused `9e6d4ea6...9244`; manifest `8cc03bce...a73`; failed Action 26d stderr `90319324...3e62` | Action 26e is definition-only. No live DNS/HTTPS request, node administration, persistent mutation, WSL restart, or Windows process ran while defining or validating it | Stop. Require separate exact authorization of outer `d5ecf40a...8133` once. Preserve failed Action 26d and all historical artifacts unchanged |
+| 2026-08-08T23:49:23-05:00 | Workstation repository only; no WSL shutdown, Windows activation, HA-node administrative contact, or live mutation | Define and focused-validate Windows-host WSL mirrored-mode activation and post-restart acceptance Action 26d | User authorized definition only. No Action 26d execution, WSL shutdown/restart, Windows firewall change, resolver-file change, node inspection/correction, or later action authorized | Accepted Action 26c-a proves exact inactive candidate, protected absent-state rollback evidence, running NAT mode, accepted resolver state, and Caddy ULA route unavailable before activation | Added Windows PowerShell outer, Linux post-restart/rollback inspector, production-path regression, focused validator, manifest, and plan handoff. Future command must run in Windows PowerShell: `pwsh.exe -NoProfile -File "\\wsl.localhost\Ubuntu\home\aaron\code\homelab-server-configs\Caddy\scripts\Invoke-WorkstationWslMirroredActivationAction26d.ps1"` | On any failure after first shutdown, remove only hash-matching Action 26c candidate, shut WSL down again from Windows, relaunch exact Ubuntu, and require NAT mode plus Caddy ULA route status `2`; return `125` when recovery cannot be proven | Focused host and canonical network-disabled Debian 12 validations returned `0`. Success, rollback, changed-candidate preflight, exact mirrored Linux path, extra AAAA rejection, NAT restoration, PowerShell parsing, Bash policies, and executable index contracts passed | PowerShell outer `6ac36b4e...2247`; Linux inspector `c28daa30...a1d`; regression `6ca95759...df98`; focused `ecac3780...8208`; manifest `0f958287...e4a7f`; candidate `6dffdf2b...b8a7` | Definition accepted locally. No `wsl.exe`, shutdown, restart, node administration, Windows firewall mutation, resolver mutation, or live network probe occurred | Stop. Require separate exact authorization of Windows-host outer `6ac36b4e...2247` once; do not invoke it from WSL |
+| 2026-08-08T23:33:36-05:00 | Workstation/WSL only; neither HA node nor live LAN endpoint contacted | Execute exact independent read-only post-Action 26c acceptance Action 26c-a once | User authorized exact outer `f2a8b14d08b6783b170192fd9a3da3484f7046d5868d464d62b7ccfb5bbbcb90`; no rerun, shutdown/restart, firewall change, resolver action, route activation, or later action authorized | Accepted inactive Action 26c candidate and protected absent-state manifest; WSL expected to remain NAT before activation | Verified exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postinstall-action26-c-a-outer.sh` once outside the sandbox | None; action was read-only and removed protected temporary captures | Outer returned `0`; 17 local gates, 43 inspector assertions, and 12 validations passed. Exact target, backup, WSL config, resolver symlink/content, residue absence, NAT mode, and route-unreachable state passed; all mutation markers were false | Outer `f2a8b14d...cb90`; core stdout 3,538 bytes/75 lines/`05babc3e084ffbd32c264ec887757bba2eee9a45b57550400f95c83e728cb248`; core stderr empty/`e3b0c442...b855`; route stderr `0b7043f4...0fcc` | Accepted. The inactive mirrored configuration and rollback evidence are independently proven; running WSL remains NAT and unchanged | Stop. Preserve Action 26c-a unchanged. Define a Windows-host activation handoff and post-restart acceptance sequence; do not activate from within WSL |
+| 2026-08-08T23:31:32-05:00 | Workstation repository only; neither WSL activation nor HA-node/LAN contact | Define and focused-validate independent read-only post-Action 26c acceptance Action 26c-a | User authorized definition only; no execution, WSL shutdown/restart, Windows firewall change, resolver action, route activation, mutation, or later action authorized | Accepted inactive Action 26c installed exact candidate and retained absent-state manifest; running WSL remains NAT | Added independent inspector, bounded outer, production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-postinstall-action26-c-a-outer.sh` | None; future action is read-only and removes only protected transient captures | Focused host and canonical network-disabled Debian 12 validations returned `0`. Exact target/backup/resolver/kernel/mode/route/residue contracts and altered-target/manifest/resolver, premature-activation, route-present, and residue negative cases passed | Inspector `43411248...a76e`; outer `f2a8b14d...cb90`; regression `de81141e...374c`; focused `b14e2f5f...dbb9`; manifest `46d92d2a...fd80` | Definition accepted locally. No `.wslconfig`, WSL, Windows, DNS, node, route, or network state changed | Stop. Require separate exact authorization of outer `f2a8b14d...cb90` once before defining activation |
+| 2026-08-08T23:23:20-05:00 | Workstation/WSL and Windows user `.wslconfig`; neither HA node nor LAN endpoint contacted | Execute exact inactive transactional WSL mirrored-networking installation Action 26c once | User authorized exact outer `2c02b10f4d8ef5dcee3a9d240d10aed33c1451a9bdd92b5677cc69cfdc685e99`; no rerun, WSL shutdown/restart, Windows firewall change, node resolver action, route activation, or later action authorized | Accepted Action 26b `wsl_nat_no_ula_route`; `.wslconfig` and protected backup path absent; preinstall networking mode `nat`; definition passed focused validation | Verified exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-action26-c-outer.sh` once outside the sandbox | Protected absent-state manifest retained; built-in rollback would remove only the exact candidate and reconfirm absence, but did not run because all acceptance gates passed | Outer returned `0`; 17 local gates, 28 transaction checks, and 13 validations passed. Exact target and manifest hashes/content/shape/modes passed; shutdown, firewall/DNS mutation, node contact, and activation were false | Outer `2c02b10f...5e99`; candidate `6dffdf2b...b8a7`; core stdout 1,489 bytes/36 lines/`afdfae4cac8c7b5b0f78409ee1bee0a3d23f9f1188476ff020a598fae0ebf928`; core stderr empty/`e3b0c442...b855` | Accepted as inactive installation. `.wslconfig` now requests mirrored mode, but running WSL remains NAT until a separately authorized shutdown/restart. No node or network state changed | Stop. Preserve Action 26c unchanged. Define an independent read-only post-install acceptance action before any activation |
+| 2026-08-08T23:20:47-05:00 | Workstation repository and read-only local Windows/WSL metadata; neither HA node nor LAN endpoint contacted | Define and focused-validate inactive transactional WSL mirrored-networking installation Action 26c | User authorized definition only; no execution, Windows/WSL mutation, shutdown, restart, firewall change, node resolver inspection/correction, LAN probe, or later action authorized | Accepted Action 26b classification `wsl_nat_no_ula_route`; local `.wslconfig` absent; WSL 2.9.4.0 and Windows build 26300.9032; user separately reported unexplained resolver drift on both nodes | Added exact two-line `.wslconfig`, inactive installer, bounded outer, production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-wsl-mirrored-action26-c-outer.sh` | Protected absent-state manifest at `/home/aaron/.local/state/caddy-ha/action26c-wsl-mirrored`; on failure remove only the exact candidate, reconfirm target absence, retain evidence, and return `125` if concurrent state prevents proof | Focused host and canonical network-disabled Debian 12 validations returned `0`. Regression proved exact install, protected metadata, forced post-install rollback, backup retention, non-NAT rejection, pre-existing target preservation, and absence of shutdown, DNS edits, node transport, and live execution | Candidate `6dffdf2b...b8a7`; core `04968f54...03f9`; outer `2c02b10f...5e99`; regression `785550cf...d382`; focused `4cac9b38...351e`; manifest `bcb08a89...9f3f` | Definition accepted locally. No `.wslconfig` was created, no WSL restart occurred, no node was contacted, and no DNS/network state changed | Stop. Require separate exact authorization of outer `2c02b10f...5e99` once. Activation remains a later independent gate; resolver drift remains separately unverified |
+| 2026-08-08T23:09:16-05:00 | Workstation/WSL only; neither HA node nor live LAN endpoint contacted | Execute exact read-only workstation/WSL IPv6 network-provenance Action 26b once | User authorized exact outer `a97e43703862f75132b7272d43db137b6e1b65daf92505835d97d2e7deb5b6b4`; no rerun, route correction, WSL restart, Windows change, DNS-health action, mutation, or later action authorized | Accepted Action 26a proved all tested LAN ULA routes unavailable; Action 26b definition passed focused host and network-disabled Debian validation | Verified the outer hash and executed `/bin/bash Caddy/scripts/run-workstation-wsl-ipv6-provenance-action26-b-outer.sh` once against the real WSL context | None; action was read-only. Protected captures were emitted and removed automatically | Outer returned `0`; 17 local gates, 40 core assertions, and 15 validations passed. WSL mode was NAT; `eth0` had only link-local IPv6; route table lacked default and ULA routes; VIP route returned status `2`/network unreachable; IPv6 remained enabled; resolver provenance remained WSL-generated `10.255.255.254` | Outer `a97e4370...b6b4`; core stdout 14,684 bytes/259 lines/`88484c1d4b948a340e8e47d119f0e61648a64bce20fc5e3856ba28fd7d651efc`; core stderr empty/`e3b0c442...b855`; VIP route stderr `0b7043f4...0fcc`; WSL kernel `6.18.35.2` | Accepted. Exact classification `wsl_nat_no_ula_route`; DNS resolution and authoritative records are not the blocker. No live network packet or persistent change occurred | Stop. Preserve Action 26b unchanged. Next gate is definition only of a bounded WSL IPv6 network-integration correction; no correction is authorized |
+| 2026-08-08T23:04:26-05:00 | Workstation repository only; neither HA node nor live LAN endpoint contacted | Define and focused-validate read-only workstation/WSL IPv6 network-provenance Action 26b | User authorized definition only; no execution, DNS query, LAN probe, SSH, route correction, DNS-health action, mutation, or later action authorized | Accepted Action 26a proves route status `2` and network-unreachable for Node A, Node B, and Caddy LAN ULAs; user-supplied DNS evidence separately proves Windows and WSL DNS resolution | Added local provenance core, bounded evidence outer, production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-wsl-ipv6-provenance-action26-b-outer.sh` | None; future action is read-only and removes its protected temporary captures on exit | Focused host and canonical network-disabled Debian 12 validations returned `0`. Regression covered NAT, mirrored, unknown WSL mode, disabled IPv6, present ULA route, exact five `ip` and four `sysctl` invocations, read-only resolver capture, and negative transcript cases | Core `dc60ed1f...1440`; outer `a97e4370...b6b4`; regression `a3474dc0...b015`; focused `5d2428a6...d05`; manifest `2e8a7850...1262` | Definition accepted locally. No DNS query, live route lookup, LAN contact, node contact, or persistent state change occurred | Stop. Require separate exact authorization of outer `a97e4370...b6b4` once before designing any route correction |
+| 2026-08-08T22:51:33-05:00 | Workstation and three direct IPv6 destinations; neither HA node contacted by SSH | Execute exact read-only IPv6 Caddy-VIP response-path Action 26a once | User authorized exact outer `5d7f2c485c8862e188708ce52eba6ac3fd31522fa9e782bc859022fb7f552f15`; no rerun, correction, DNS-health action, mutation, or later action authorized | Immutable Action 26 proved IPv4 HTTP/1.1 and failed IPv6 connection establishment; Action 26a definition passed focused validation | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-caddy-ipv6-response-path-action26-a-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only. Protected temporary captures were emitted and removed automatically | Outer completed successfully. Route queries to `::53`, `::54`, and `::56` each returned status `2` and identical network-unreachable stderr. All six neighbor snapshots were empty. All three bounded HTTP/1.1 probes ran and returned curl `7`, protocol `0`, HTTP `000`, empty remote IP, zero body/redirects. Classification was `vip_route_missing`; all 40 checks and 18 outer validations passed; all stderr outside captured command evidence was empty | Outer `5d7f2c48...2f15`; core stdout 13,118 bytes/223 lines/`988e5f96e986f85b33c243847e87b1237ce94bf975a3a6f00a916321cdeb3943`; core stderr empty/`e3b0c442...b855`; route stderr 42 bytes/one line/`0b7043f4...0fcc`; each failed curl stdout `7a0845af...5c50`; each curl stderr `53cccc97...cb8` | Accepted as diagnostic evidence. The failure is workstation-wide for LAN ULA routing and is not specific to Caddy VIP ownership or service response. No persistent state changed | Stop. Preserve Actions 26 and 26a unchanged. Next gate is definition only of a read-only workstation/WSL IPv6 network-provenance diagnostic before any correction |
+| 2026-08-08T22:47:53-05:00 | Workstation only; neither HA node nor live IPv6 endpoint contacted | Define and focused-validate narrow read-only IPv6 Caddy-VIP response-path Action 26a | User authorized definition only; no execution, live response-path probe, SSH, correction, mutation, or later action authorized | Failed immutable Action 26 proved HTTP/1.1 IPv4 and failed IPv6 connection establishment before HTTP negotiation | Added direct-IP diagnostic core, bounded evidence outer, multi-class production regression, focused validator, and manifest. Future command: `/bin/bash Caddy/scripts/run-workstation-caddy-ipv6-response-path-action26-a-outer.sh` | None; future action is read-only. It uses only protected transient workstation captures and removes them on exit | Focused host and canonical network-disabled Debian 12 validations returned `0`. Regression executed fake production paths for healthy VIP, missing route, VIP-specific failure, and workstation-wide failure; verified three route, six before/after neighbor, and three HTTP/1.1 invocations; and rejected missing, false, duplicate, unknown-classification, stderr, and nonzero-status evidence | Core `bda01e203271d61c491877e209ac8d842a513e7bd9ebca42adc6a6008b355c74`; outer `5d7f2c485c8862e188708ce52eba6ac3fd31522fa9e782bc859022fb7f552f15`; regression `b105f853473fe1f7c907262ccc993e09b364fa5c1390be305f2699a0a352ffdf`; focused `970024161134dd82a3c1fa1a9b3d418d51fca9aa60d228fa7eb323c1fb54b994`; manifest `d90911b369b7ee2e106b745c2733720a61cfedacca43795e8f68d767423ffa42` | Definition accepted locally. No node, DNS, route, neighbor, HTTP, service, VRRP, VIP, or persistent state changed. Complete historical suite bypassed under accepted cadence | Stop. Require separate exact authorization of outer `5d7f2c48...2f15` once. Preserve Action 26 unchanged |
+| 2026-08-08T22:47:53-05:00 | User-supplied Node A evidence; workstation performed repository-only inspection | Record Node A resolver drift and independent DNS-health overlap evidence | User supplied exact `dig` output and Keepalived journal lines; no live Codex node query, correction, reload, or mutation authorized | Accepted DNS record families and HA state; governing resolver architecture requires local Pi-hole primary and physical peer secondary | Read supplied evidence; inspected repository `keepalived-pihole0.conf` and `dns-check.sh` only | None; evidence review is read-only | Node A default DNS query used `10.1.0.1` and returned public NXDOMAIN. Journal shows several isolated `check-dns` `1 → 0` recoveries and one overlap. Repository interval is one second, timeout three seconds, rise/fall three; helper performs two sequential `dig +time=1 +tries=1` calls | Supplied DNS server `10.1.0.1`; query status NXDOMAIN; repository sources `/home/aaron/code/homelab-dns/Keepalived/configs/keepalived-pihole0.conf` and `/home/aaron/code/homelab-dns/Keepalived/scripts/dns-check.sh` | Resolver drift is confirmed. Check overlap is structurally explained, but supplied isolated failures do not prove VRRP demotion or an outage. Neither issue caused Action 26 because it used direct `--resolve` | Keep both issues separate from Action 26a. Require later independently authorized resolver-state inspection and DNS-health timing diagnostic before any correction |
+| 2026-08-08T22:31:17-05:00 | Workstation and Caddy VIPs only; neither HA node contacted by SSH | Execute exact read-only HTTP protocol Action 26 once | User authorized exact outer `58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc`; no rerun, diagnostic, correction, mutation, Action 27, or later action authorized | Accepted Action 25 retry2 live baseline and focused-validated Action 26 definition | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-workstation-caddy-protocols-action26-outer.sh` once outside the LAN-restricted sandbox | None; action is read-only. Protected temporary captures and the locally built HTTP/3 probe were removed automatically | All workstation gates passed and HTTP/3 client build status was `0` with empty output. HTTP/1.1 IPv4 passed exact protocol/status/IP/body/redirect/stderr gates. HTTP/1.1 IPv6 command status was `7`; output reported protocol `0`, status `000`, empty remote IP, zero body/redirects; curl emitted one bounded-safe connection-failure line. The independently labeled command-status gate failed. Later HTTP/2 and HTTP/3 probes did not run | Outer `58edc2c1...943fc`; core stdout 3,298 bytes/71 lines/`df10ca5c0395ee40aa7a34f939d18a0d68ce0d0f20018023e2b52616496ea835`; core stderr 45 bytes/one line/`6434200caf1d345c56e48019f2ad97d8ffd1393cb22877736b513c130549a834`; IPv4 stdout `164b279f...b6f0`; IPv6 stdout `7a0845af...5c50`; IPv6 stderr 101 bytes/one line/`53cccc97...cb8` | Not accepted. IPv4 HTTP/1.1 is proven; IPv6 TCP/443 reachability from the workstation failed at connection establishment. HTTP/2 and HTTP/3 remain unproven. No persistent state changed | Stop. Preserve executed outer unchanged and do not rerun it. Next gate is definition only of a narrow read-only IPv6 Caddy-VIP response-path diagnostic |
+| 2026-08-08T22:26:50-05:00 | Workstation only; neither HA node nor Caddy VIP contacted | Define and focused-validate read-only HTTP protocol Action 26 | User authorized definition only; no execution, live protocol probe, node contact, mutation, Action 27, or later action authorized | Accepted Action 25 retry2 baseline; shared endpoint resolves to the Caddy IPv4/IPv6 VIPs; Caddy advertises HTTP/1.1, HTTP/2, and HTTP/3 by design | Added direct six-probe core, bounded evidence outer, exact production regression, focused validator, protocol manifest, and pinned Go HTTP/3 client. Future command: `/bin/bash Caddy/scripts/run-workstation-caddy-protocols-action26-outer.sh` | None; future action is read-only. It creates protected workstation captures and a transient locally built client, emits bounded-safe stdout/stderr during the original run, and removes them on exit | Focused host and canonical network-disabled Debian 12 validations returned `0`. Exact curl HTTP/1.1/HTTP/2 arguments, direct IPv4/IPv6 routing, fixed-host HTTP/3 QUIC arguments, six successful fake production probes, observed-before-evaluation ordering, independently labeled check inventory, transcript acceptance, and negative missing/false/duplicate/reordered/extra/altered/stderr/status cases passed | Core `f72ceb374f4a8c07f820dc720266458af6f2ae70b4287f84e778f8387b08c046`; outer `58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc`; regression `a358580a9ee04cd16be48eb20388a66ececfd33080360d4dfddf1bf4d85005d5`; focused `9ea1ac682ad2887fd9143e1c61e5e81f77fbd82a46521efd127a344fb1a683db`; manifest `6cd7716fe87d8276d79a81054bb58e1d5053bce0860a5102580fb19db7704672`; `quic-go` v0.61.0 | Definition accepted locally. No live request, SSH, DNS, file, service, VRRP, VIP, or other state change occurred. The complete historical suite was bypassed under the accepted focused-validation cadence | Stop. Require separate exact authorization of outer `58edc2c1...943fc` once. Mitmproxy remains optional diagnostic tooling, not the Action 26 acceptance client |
+| 2026-08-08T21:52:26-05:00 | Node A, Node B, and workstation | Execute exact append-only bounded-redirect read-only Action 25 retry2 once | User authorized exact outer `e9eb4e88f02939778e42f7da3fc10135bdc3023e1cef675d875f59a1c27dd2af`; no mutation, rerun, Action 26, or later action authorized | Accepted Action 24 DNS/HA baseline; local-zone `fa9f4850...569c`; Node A MASTER/four VIPs; Node B BACKUP/zero VIPs; all retry2 local gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-retry2-outer.sh` once outside the LAN-restricted sandbox | None; action is read-only. Protected captures were classified and emitted before cleanup; all mutation indicators were required false | Outer returned `0`. Both nodes passed 101/101 checks and six endpoint probes each. All twelve requests returned final HTTP `200`, exact `/admin/login.php`, exact intended IPv4/IPv6 address, exactly one redirect, bounded Pi-hole content, and empty stderr. Both nodes retained exact before/after state | Outer `e9eb4e88...dd2af`; Node A stdout 58,134 bytes/1,030 lines/`b5637483ff08a8b05665797042b3b536ed902bac787b46f098a72a376a1790a1`; Node B before/after state `ddec48926c75494898e54a3a223495845a750118faef4786b45660cafa0d3d71`; accepted local-zone `fa9f4850...569c`; Node A Pi-hole body `5812f057...d0cd`; Node B Pi-hole body `cfd85ce1...8a82`; both stderr streams empty/`e3b0c442...b855` | Accepted. Shared and direct Pi-hole v5 management access is validated over IPv4 and IPv6 from both HA nodes without credentials or mutation | Stop. Preserve all Action 25 generations unchanged. Next gate is definition only of read-only Action 26 for HTTP/1.1, HTTP/2, and HTTP/3; no action is currently authorized |
+| 2026-08-08T21:46:16-05:00 | Workstation only; neither HA node contacted | Define and focused-validate append-only bounded-redirect read-only Action 25 retry2 | User authorized definition only and explicitly rejected a separate redirect diagnostic and password hash; no execution, SSH, live HTTP probe, mutation, or later action authorized | Accepted Action 24 DNS/HA baseline; Node A manual shared-IPv4 evidence established one redirect to `/admin/login.php`; both executed Action 25 runners immutable | Added retry2 inspector, bounded dual-node outer, exact redirect production regression, focused validator, manifest, and current accepted-live hash consumers. Future command: `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-retry2-outer.sh` | None; future action is read-only. It creates only protected workstation captures, emits bounded-safe evidence, and removes captures on exit | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Exact `--location --max-redirs 3 --proto-redir '=https'`, initial `/admin/`, final `/admin/login.php`, one redirect, final `200`, exact IPv4/IPv6 destination, Pi-hole marker, observed-before-evaluation ordering, credential absence, continuity, and negative cases passed | Inspector `440363dd64be6eca737129ee6f708a6a25f17b3d1fdab1be10a35edc7ace7d0c`; outer `e9eb4e88f02939778e42f7da3fc10135bdc3023e1cef675d875f59a1c27dd2af`; regression `2d680e3ce9b12ce816bdb16a60d08bc07d07d3b58eb88353910399e00434de4f`; focused `ee6133115fdb20d281bba5377d8ab7dae88b98a53f22a8d888e3e62ffa61343a`; manifest `5c788f27b205f0730504c4084ffcbf87a31234dc4e3fff6291064408c70d63d7` | Definition accepted locally. No node, network, HTTP, DNS, file, service, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `e9eb4e88...dd2af` once |
+| 2026-08-08T21:35:06-05:00 | User-executed on Node A; workstation recorded supplied evidence; Node B not contacted by Codex | Record manually observed shared-IPv4 Pi-hole redirect behavior | User supplied the complete output of their own read-only curl invocation and requested it be read and acted upon; no Codex node action or mutation authorized | Post-Action 25 retry boundary; Node A shared IPv4 Caddy VIP known to return initial HTTP `302` | User command used `--location --max-redirs 3 --proto-redir '=https'`, exact `--resolve` to `10.1.0.56`, and emitted final status, URL, IP, and redirect count | None; user command was read-only | Final HTTP `200`; URL `https://pihole-admin.local.theama.co/admin/login.php`; remote IP `10.1.0.56`; redirects `1`; body is the Node A Pi-hole v5 login page | Supplied transcript 7,688 bytes/145 lines/SHA-256 `d7be512ca8fa8aea75328dca386c03f6ee7733f813b5b14679b49da0ea0fd1a3` | Accepted as supplemental Node A shared-IPv4 redirect-contract evidence only. It proves no credential or API query is required for UI reachability validation | Replace the proposed redirect diagnostic with definition only of a bounded redirect-following Action 25 retry; IPv6, node-specific paths, Node B, and before/after continuity remain future gated validation |
+| 2026-08-08T21:27:20-05:00 | Node A and workstation; Node B not contacted | Execute exact append-only corrected read-only Action 25 retry once | User authorized exact outer `6b2897fbddcfa1212a1ca296c328095a3b10f76027513cd8ce75aaebe7e48fb2`; no mutation, rerun, correction, or later action authorized | Accepted Action 24 DNS/HA baseline; local-zone `fa9f4850...569c`; Node A expected MASTER/four VIPs; Node B expected BACKUP/zero VIPs; all local gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-retry-outer.sh` once outside the LAN-restricted sandbox. Node A inspector ran read-only and stopped before Node B transport | None; action is read-only and has no remote mutation or rollback path. All bounded-safe probe values were emitted during the original action before capture cleanup | Outer returned `1`. Node A passed 26 pre-state assertions plus first shared-IPv4 command status, output safety, and metadata presence. Observed HTTP `302`; effective URL `https://pihole-admin.local.theama.co/admin/`; remote IP `10.1.0.56`; body bytes `0`; body SHA-256 `e3b0c442...b855`; bounded-safe; Pi-hole marker false. Exact HTTP-200 assertion then failed. Node B was not contacted | Outer `6b2897fb...8fb2`; Node A stdout 2,490 bytes/42 lines/`7a0c80feea3eacc136a502ff0056f02ed78b294dd6840511ccddd9fb5f9fddd2`; stderr 56 bytes/1 line/`4cce5b09fce9b2e5c4e64fd9c4d4132ce8f8450a72898761965203ab8409375a`; empty-body SHA-256 `e3b0c442...b855` | Not accepted. The prior evidence-ordering defect is corrected; the exact live result is a redirect, not an unidentified response. No redirect target was captured, so web-access acceptance remains unproven | Stop. Do not rerun either Action 25 outer. Define only a Node-A/shared-IPv4 read-only redirect-target diagnostic with no redirect following |
+| 2026-08-08T21:19:00-05:00 | Workstation only; neither HA node contacted | Define and focused-validate append-only corrected read-only Action 25 retry | User authorized definition only; no execution, SSH, live HTTP probe, retry, mutation, or later action authorized | Executed Action 25 is immutable and not accepted; accepted Action 24 DNS/HA baseline remains local-zone `fa9f4850...569c`, Node A MASTER/four VIPs, and Node B BACKUP/zero VIPs | Added retry inspector, bounded dual-node evidence outer, production-response regression, focused validator, intended-state manifest, and current accepted-live hash consumers. Future command: `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-retry-outer.sh` | None; future action is read-only. Protected workstation captures are classified and emitted before cleanup; each probe emits every bounded-safe response value before evaluation | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. The exact production curl path passed for HTTP 200 and deliberately failed closed for HTTP 403 only after emitting command status, safe output, status, URL, remote IP, body bytes/hash/classification, and marker. Complete ordered dual-node transcripts and all negative evidence cases passed | Inspector `bd28ca220ad7d64893ca85707c9f5ae57fbeb145db2bc5f63a43df489214d8a3`; outer `6b2897fbddcfa1212a1ca296c328095a3b10f76027513cd8ce75aaebe7e48fb2`; regression `9db0470dfab852a005d77d5a61c3a9933b855acceee2ff125cb3d76f3edb25a4`; focused `751226bd6fa0a723c937ca48e45fed912d14d5e94a1caab3a334cdf04238feba`; manifest `42467c143908c157a4e647945de37bc801aa4971439a47dc715f0b67c4a3a31f` | Definition accepted locally. No node, network, HTTP, DNS, file, service, VRRP, or VIP state changed. The original executed Action 25 remains unchanged | Stop. Require separate exact authorization of outer `6b2897fb...8fb2` once |
+| 2026-08-08T20:58:59-05:00 | Node A and workstation; Node B not contacted | Execute exact read-only shared and node-specific Pi-hole web-access Action 25 once | User authorized exact outer `cbb583bbb80b73825a3c97c8468a7d34c20f7eac31eb6f2229c4895950a77b24`; no mutation, rerun, correction, or later action authorized | Accepted Action 24 DNS/HA baseline; local-zone `fa9f4850...569c`; Node A expected MASTER/four VIPs; Node B expected BACKUP/zero VIPs; all local gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-outer.sh` once outside the LAN-restricted sandbox. Node A inspector ran read-only and stopped before Node B transport | None; action is read-only and has no remote mutation or rollback path. Protected workstation captures were classified and emitted before cleanup, but probe metadata internal to the inspector was not emitted before failure | Outer returned `1`. Node A passed 26 pre-state assertions plus first shared-IPv4 command status, output safety, and metadata presence. Exact HTTP-200 assertion failed. The actual parsed response metadata was not emitted before the assertion, so it is unavailable. Node B was not contacted | Outer `cbb583bb...7b24`; Node A stdout 1,439 bytes/29 lines/`e16441bf4e23f3107ce7d11e14fa391f9b814e48f05794d570f6ceeb8ba58906`; stderr 50 bytes/1 line/`f17d2e1f674a8b240226b0b0744e86da137e1a831cb084312bdc677172da6b87` | Not accepted. This is exact evidence of a non-200 first response plus an inspector evidence-ordering defect; it does not identify the actual status or prove a routing failure. No live state changed | Stop. Do not rerun Action 25. Define only an append-only corrected retry that emits every safe observed response value before assertions and regression-tests the actual failure path |
+| 2026-08-08T20:55:15-05:00 | Workstation only; neither HA node contacted | Define and focused-validate read-only dual-node shared and node-specific Pi-hole web-access Action 25 | User authorized definition only; no execution, SSH, live HTTP probe, mutation, Action 24 rerun, or later action authorized | Accepted Action 24 retry validated dual-node A/AAAA/PTR/SRV and unchanged HA state; local-zone `fa9f4850...569c`; Node A MASTER/four VIPs; Node B BACKUP/zero VIPs | Added Action 25 inspector, bounded dual-node SSH/evidence outer, exact production-curl regression, focused validator, intended-state manifest, and current accepted-live hash consumers. Future command: `/bin/bash Caddy/scripts/run-dual-node-pihole-web-access-action25-outer.sh` | None; future action is read-only and creates no remote file. The workstation outer creates only protected captures, emits bounded safe stdout/stderr during the original run, and removes them on exit | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Six endpoints from each node, 95 exact checks per node, exact `--resolve`/HTTP/1.1/`/admin/` production argv, complete ordered transcript, bounded evidence, state continuity, repository policies, and executable modes passed. Missing, false, duplicate, reordered, extra, stderr, and nonzero-status evidence was rejected | Inspector `7b9e1f6425ad4ed9975f66e6e0bbc85b8c79d32b9a9d0aa96c7d7b151beeaf68`; outer `cbb583bbb80b73825a3c97c8468a7d34c20f7eac31eb6f2229c4895950a77b24`; regression `43723f281fb91e3103ecce3cc44e6e002a7efbf3c2578ccc8732fe03e31df874`; focused `7e8f6b4311c5834eaab8023122953fbef1a9dc1993ce36bde420dfd549449816`; manifest `590bb1facdac0d9d309d68028503442a8a4bb839a56299c671f0dc8652267b87` | Definition accepted locally. No node, network, HTTP, DNS, service, filesystem, VRRP, or VIP state changed. Action 24 accepted-live consumers were retired in favor of Action 25 | Stop. Require separate exact authorization of outer `cbb583bb...7b24` once; no action is currently authorized |
+| 2026-08-08T20:32:24-05:00 | Node A, Node B, and workstation | Execute exact append-only corrected read-only Action 24 retry once | User authorized exact outer `daaa1904cab02dbf9a83aa6f8d4479582d6d571bc3fd008f4cd1393878fdc6f6`; no mutation, rerun, Action 25, or later action authorized | Both nodes accepted local-zone `fa9f4850...569c`; Node A expected MASTER/four VIPs; Node B expected BACKUP/zero VIPs; corrected production PTR-command regression and all local gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-dual-node-dns-record-families-action24-retry-outer.sh` once outside the LAN-restricted sandbox. The runner contacted Node A then Node B read-only and used `dig -x` for all IPv4/IPv6 PTR queries | None; action is read-only and has no remote mutation or rollback path. Protected workstation captures were classified and emitted before cleanup | Outer returned `0`. Both nodes passed 118/118 checks with zero false assertions and empty stderr. All A/AAAA/PTR/SRV answers passed through direct Unbound and local Pi-hole. Sixteen observed PTR values were emitted. Node A before/after `17858fca...8e61`; Node B before/after `1951ab23...13f9`; role, VIP, physical-address, service, and accepted-hash continuity passed | Outer `daaa1904...6f6`; core stdout 23,083 bytes/406 lines/`08ff47fa0f1ce27553d407c2486dd6042a2ebf1c49d1da1b055d2fb65621fb05`; core stderr empty/`e3b0c442...b855`; Node A stdout 9,111 bytes/160 lines/`63ffd0dd...cc22`; Node B stdout 9,111 bytes/160 lines/`cddb5d11...3a08`; local-zone `fa9f4850...569c` | Accepted. Dual-node authoritative A/AAAA/PTR/SRV responses and unchanged HA continuity are independently validated. No live state changed | Stop. Preserve both Action 24 outers unchanged. Define only read-only Action 25 shared and node-specific Pi-hole web-access validation; no action is currently authorized |
+| 2026-08-08T20:23:39-05:00 | Workstation only; neither HA node contacted | Define and focused-validate append-only corrected read-only Action 24 retry | User authorized definition only; no execution, SSH, live DNS query, mutation, original Action 24 rerun, or later action authorized | Original Action 24 is immutable after its invalid `dig ADDRESS PTR` query stopped on Node A; both nodes retain accepted local-zone `fa9f4850...569c`; Node A expected MASTER/four VIPs; Node B expected BACKUP/zero VIPs | Added retry outer, production `dig -x` regression, focused validator, and retry manifest. Future command: `/bin/bash Caddy/scripts/run-dual-node-dns-record-families-action24-retry-outer.sh` | None; the future action is read-only. It creates only protected workstation captures, emits bounded safe stdout/stderr and observed PTR values during the original run, and removes safe transient captures | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. The actual production PTR command boundary requires exactly one `-x`, the queried IPv4/IPv6 address, and no literal `PTR` argument. The complete 118-check-per-node contract, sixteen observed-value labels, transport interception, ordering, negative cases, policies, and executable modes passed | Retry outer `daaa1904cab02dbf9a83aa6f8d4479582d6d571bc3fd008f4cd1393878fdc6f6`; regression `c0b6732426a8fdefd3ca2381133a036e7297c9004e6d07430846c8b3683d13b6`; focused `c987062d2ebefe1835906103660855962aed8a2ad1722ed2b6bce729d2ab586c`; manifest `aa8cb3759337fe8e6d8586b867d7f8066cff4d2d74dd068edac08963ae3329fa`; rendered inspector `f9ce3801...62b2`; rendered core `7ee1b698...84b6` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of retry outer `daaa1904...6f6` once. Do not rerun original Action 24 |
+| 2026-08-08T19:50:50-05:00 | Node A and workstation; Node B not contacted | Execute exact read-only dual-node authoritative record-family validation Action 24 once | User authorized exact outer `318336f553cfd298da45200c51666dc082af4b3ddb7af9364dc798113590e8e2`; no mutation, rerun, correction, or later action authorized | Both nodes accepted local-zone `fa9f4850...569c`; Node A expected MASTER/four VIPs; Node B expected BACKUP/zero VIPs; all local outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-dual-node-dns-record-families-action24-outer.sh` once outside the LAN-restricted sandbox. Node A inspector ran read-only and stopped before Node B transport | None; action is read-only and has no remote mutation or rollback path. Protected workstation captures were classified and emitted before cleanup | Outer returned `1`. Node A passed configuration, policy, service, MASTER/four-VIP pre-state, and all A/AAAA queries. Direct Caddy IPv4 PTR command and safety assertions passed; exact answer failed because the inspector used invalid reverse-query form `dig 10.1.0.56 PTR` rather than `dig -x 10.1.0.56`. Node B was not contacted | Outer `318336f5...e8e2`; Node A stdout 3,361 bytes/63 lines/`03348d1b01943af5d5dcbc94dc21322a97b76e0c02a62a1a1936ff919d0c3228`; stderr 60 bytes/1 line/`511137e19748d38cc7679e3ee39ea7240dfde92855049bb76f071f45f67f6a39` | Not accepted. This is an inspector PTR-command defect, not authoritative DNS failure evidence. No live state changed | Stop. Do not rerun Action 24. Define only an append-only corrected retry with `dig -x`, observed-answer emission before exact checks, and production PTR-command regression coverage |
+| 2026-08-08T19:45:01-05:00 | Workstation only; neither HA node contacted | Define and focused-validate read-only dual-node authoritative record-family validation Action 24 | User authorized definition only; no execution, SSH, live DNS query, mutation, reload/reset, prior-action rerun, or later action authorized | Both nodes accepted complete A/AAAA/PTR/SRV local-zone `fa9f4850...569c`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; Node A expected MASTER with all four Caddy/DNS VIPs; Node B expected BACKUP with zero VIPs | Added Action 24 dual-role inspector, bounded dual-node SSH/evidence outer, production-path regression, focused validator, intended-state manifest, and current accepted-live prerequisite consumers. Future command: `/bin/bash Caddy/scripts/run-dual-node-dns-record-families-action24-outer.sh` | None; future action is read-only. It creates only protected workstation capture files and removes them after bounded safe evidence is emitted. Remote inspectors create no file and perform no cleanup or mutation | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Both 118-check node inventories, 72 query assertions per node, exact record answers, state and role expectations, transport targets, bounded streams, strict ordering, policies, executable modes, and missing/false/extra/reordered/altered transcript rejection passed | Inspector `58fe5c7b...14a5`; outer `318336f553cfd298da45200c51666dc082af4b3ddb7af9364dc798113590e8e2`; regression `b6173b26...8d0c`; focused `461ae33c...c5e7`; manifest `54b3aaa7...c9f`; accepted local-zone `fa9f4850...569c` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `318336f5...e8e2` once; no action is currently authorized |
+| 2026-08-08T19:25:48-05:00 | Node A and workstation; Node B contacted only through HTTPS continuity probes | Execute exact transactional Node A authoritative SRV-record-family successor Action 23m once | User authorized exact outer `de36b74860647d130338a3475b3d163215293e2396604095ca725949fecd11b7`; no rerun, synchronization, Action 24, or later action authorized | Accepted Node A local-zone `adee452b...ddb9`; independently accepted Node B SRV candidate `fa9f4850...569c`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; MASTER with all four Caddy/DNS VIPs; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-a-unbound-srv-records-action23m-outer.sh` once outside the LAN-restricted sandbox. Node A installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23m-node-a-unbound-srv-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 173/173 remote checks passed. The HTTPS SRV answered directly on iteration 1 and locally on iteration 2. Retained SMTP SRV, Caddy A/AAAA/PTR, and Pi-hole controls, parser, services, PID/restarts, MASTER/four-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. Stderr was empty | Outer `de36b748...11b7`; remote stdout 12,740 bytes/259 lines/`62459cbc5aa7fd50e16d747ba5493f46a168b3cc1018ef48aae9359774782015`; stderr empty/`e3b0c442...b855`; installed `fa9f4850...569c`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Both nodes now have the complete authoritative A/AAAA/PTR/SRV baseline. Accepted-live Node A local-zone advanced to Action 23m; completed Action 23m consumers retired | Stop. Action 23m is immutable and must not be rerun. Define only read-only dual-node Action 24 record-family validation; no node action is currently authorized |
+| 2026-08-08T19:22:26-05:00 | Workstation only; neither HA node contacted | Define and focused-validate Node A authoritative SRV-record-family successor Action 23m | User authorized definition only; no execution, SSH, DNS mutation, Unbound reload, Pi-hole reset, Action 23l rerun, synchronization, or later action authorized | Node A accepted local-zone `adee452b...ddb9`; Node B independently accepted SRV candidate `fa9f4850...569c` at Action 23l; Node A accepted FTL/domain baseline from Action 23f-a; Node A expected MASTER with all four Caddy/DNS VIPs; private source `bcb145b3...5aad` contains complete intended Caddy A/AAAA/PTR/SRV data | Added Action 23m transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and current accepted-live prerequisite consumers. Candidate `fa9f4850...569c` adds exactly the HTTPS SRV record; its reconstructed parent is exact accepted `adee452b...ddb9`. Future command: `/bin/bash Caddy/scripts/run-node-a-unbound-srv-records-action23m-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23m-node-a-unbound-srv-records`; any post-write failure restores exact `adee452b...ddb9`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service plus MASTER/four-VIP continuity or exits `125` | Focused workstation source, native parser, self-test, regression, transcript, hash, gate, rollback/output, DNS-label, and executable-mode checks returned `0`; canonical network-disabled Debian 12 focused validation returned `0`. Exact source/candidate/parent hashes, one-SRV-only delta, retained SMTP SRV/A/AAAA/PTR controls, direct/local SRV readiness, intercepted Node A transport, and negative transcript cases passed | Driver `b7ca5f32...ea42`; outer `de36b74860647d130338a3475b3d163215293e2396604095ca725949fecd11b7`; regression `f3a06ec9...da9a`; focused `8fb26693...6642`; manifest `e9b257ac...c055`; candidate `fa9f4850...569c`; accepted parent `adee452b...ddb9`; private source `bcb145b3...5aad` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `de36b748...11b7` once; no action is currently authorized |
+| 2026-08-08T19:15:02-05:00 | Node B and workstation; Node A contacted only through HTTPS continuity probes | Execute exact transactional standby-first authoritative SRV-record-family Action 23l once | User authorized exact outer `b9280076ea27947c4b7fa8f4164439bac504c5a34fafe87256d4dc3e3dd02e60`; no rerun, Node A SRV mutation, synchronization, or later action authorized | Accepted Node B local-zone `adee452b...ddb9`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; BACKUP; zero local Caddy/DNS VIPs; candidate `fa9f4850...569c`; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-b-unbound-srv-records-action23l-outer.sh` once outside the LAN-restricted sandbox. Node B installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23l-node-b-unbound-srv-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 173/173 remote checks passed. The new HTTPS SRV answered directly on iteration 1 and locally on iteration 2. Retained SMTP SRV, Caddy A/AAAA/PTR, and Pi-hole controls, parser, services, PID/restarts, BACKUP/zero-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. Stderr was empty | Outer `b9280076...2e60`; remote stdout 12,748 bytes/259 lines/`623b122ed1ffb57270fca18c5ab9113de00118c9ec86bff5ce4f107c0d5ee20f`; stderr empty/`e3b0c442...b855`; installed `fa9f4850...569c`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Node B authoritative SRV record family is deployed. Accepted-live Node B local-zone advanced to Action 23l; completed Action 23l consumers retired | Stop. Action 23l is immutable and must not be rerun. Define only the Node A authoritative SRV successor; no node action is currently authorized |
+| 2026-08-08T19:12:10-05:00 | Workstation only; neither HA node contacted | Define and focused-validate standby-first Node B authoritative SRV-record-family Action 23l | User authorized definition only; no execution, SSH, DNS mutation, Unbound reload, Pi-hole reset, prior-action rerun, Node A SRV successor, or later action authorized | Both nodes independently accepted A/AAAA/PTR local-zone `adee452b...ddb9`; Node B accepted FTL `c77de665...a7aa`, domain `a8305acb...10f96`, BACKUP role, and zero local Caddy/DNS VIPs; private source `bcb145b3...5aad` contains complete intended Caddy A/AAAA/PTR/SRV data | Added Action 23l transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and current accepted-live prerequisite consumers. Candidate `fa9f4850...569c` adds exactly the HTTPS SRV record; its reconstructed parent is exact accepted `adee452b...ddb9`. Future command: `/bin/bash Caddy/scripts/run-node-b-unbound-srv-records-action23l-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23l-node-b-unbound-srv-records`; any post-write failure restores exact `adee452b...ddb9`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service plus BACKUP/zero-VIP continuity or exits `125` | Focused workstation source, native parser, self-test, regression, transcript, hash, gate, rollback/output, DNS-label, and executable-mode checks returned `0`; canonical network-disabled Debian 12 focused validation returned `0`. Exact source/candidate/parent hashes, one-SRV-only delta, retained SMTP SRV/A/AAAA/PTR controls, direct/local SRV readiness, intercepted Node B transport, and negative transcript cases passed | Driver `3e272747...6ce`; outer `b9280076ea27947c4b7fa8f4164439bac504c5a34fafe87256d4dc3e3dd02e60`; regression `49c3cd5c...285d`; focused `f71997ec...ad9`; manifest `0e147cb0...22a`; candidate `fa9f4850...569c`; accepted parent `adee452b...ddb9`; private source `bcb145b3...5aad` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `b9280076...2e60` once; no action is currently authorized |
+| 2026-08-08T19:00:23-05:00 | Node A and workstation; Node B contacted only through HTTPS continuity probes | Execute exact transactional Node A authoritative PTR-record-family successor Action 23k once | User authorized exact outer `9215ba13879ab38b78b3331ff3bbabbea83b08e2606e72846c9f517f77570a58`; no rerun, SRV deployment, synchronization, or later action authorized | Accepted Node A local-zone `7d018a7f...8c39`; independently accepted Node B PTR candidate `adee452b...ddb9`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; MASTER with all four Caddy/DNS VIPs; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-a-unbound-ptr-records-action23k-outer.sh` once outside the LAN-restricted sandbox. Node A installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23k-node-a-unbound-ptr-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 164/164 remote checks passed. Both new PTR records answered directly on iteration 1 and locally by iteration 2. Retained A/AAAA and Pi-hole controls, parser, services, PID/restarts, MASTER/four-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. The HTTPS SRV record remained absent. Stderr was empty | Outer `9215ba13...0a58`; remote stdout 11,940 bytes/246 lines/`04d14c0cd622aba63b9f83b8c760f8b0ce0b6358316e56c75bb6230c21fe57ae`; stderr empty/`e3b0c442...b855`; installed `adee452b...ddb9`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Both nodes now have the accepted A/AAAA/PTR authoritative baseline. Accepted-live Node A local-zone advanced to Action 23k; completed Action 23k consumers retired | Stop. Action 23k is immutable and must not be rerun. Define only the standby-first Node B SRV-record-family update; no node action is currently authorized |
+| 2026-08-08T18:57:03-05:00 | Workstation only; neither HA node contacted | Define and focused-validate Node A authoritative PTR-record-family successor Action 23k | User authorized definition only; no execution, SSH, DNS mutation, Unbound reload, Pi-hole reset, prior-action rerun, SRV deployment, or later action authorized | Node A accepted local-zone `7d018a7f...8c39`; Node B independently accepted PTR candidate `adee452b...ddb9` at Action 23j; Node A accepted FTL/domain baseline from Action 23f-a; Node A expected MASTER with all four Caddy/DNS VIPs; private source `bcb145b3...5aad` includes the future HTTPS SRV record | Added Action 23k transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and three current accepted-live prerequisite consumers. The renderer strips Home Assistant deferred records and the future HTTPS SRV record, normalizes Caddy forward-record ordering, and reproduces exact candidate `adee452b...ddb9`. Future command: `/bin/bash Caddy/scripts/run-node-a-unbound-ptr-records-action23k-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23k-node-a-unbound-ptr-records`; any post-write failure restores exact `7d018a7f...8c39`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service plus MASTER/four-VIP continuity or exits `125` | Focused workstation source, parser, self-test, regression, transcript, hash, and gate-policy checks returned `0`; canonical network-disabled Debian 12 focused validation returned `0`. Exact source/candidate/parent hashes, two-PTR-only delta, explicit SRV exclusion, retained A/AAAA controls, direct/local PTR readiness, Pi-hole prerequisite policy, intercepted Node A transport, bounded evidence, rollback contract, negative transcript cases, repository policies, and executable modes passed | Driver `4ded5bd2...640e`; outer `9215ba13879ab38b78b3331ff3bbabbea83b08e2606e72846c9f517f77570a58`; regression `38aa5c10...3080`; focused `ec8a4106...a900`; manifest `31662065...e80ec`; candidate `adee452b...ddb9`; accepted parent `7d018a7f...8c39`; private source `bcb145b3...5aad` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `9215ba13...0a58` once; no action is currently authorized |
+| 2026-08-08T18:44:52-05:00 | Workstation only; neither HA node contacted | Reconcile private Unbound local-zone source with complete intended Caddy A/AAAA/PTR/SRV records | User explicitly requested that `/home/aaron/code/homelab-dns/Unbound/configs/pihole0-local-zone.conf` contain all local-zone A, AAAA, PTR, and SRV records. This workstation source update does not authorize SRV deployment | Private source `e3518865...d74f` contained the two Caddy A records but omitted Caddy AAAA, PTR, and HTTPS SRV records; deployed Node B had just accepted A/AAAA/PTR while Node A retained A/AAAA | Added both Caddy AAAA records, canonical IPv4/IPv6 PTRs to `proxy.local.theama.co.`, and `_https._tcp.proxy.local.theama.co.` SRV priority 0/weight 0/port 443/target proxy. Preserved all existing A, AAAA, PTR, and SMTP SRV records and canonical shared-address PTR policy | Workstation-only source change; Git provides recovery if tracked later, while this private ignored source remains explicitly governed. No live node rollback applies | Exact duplicate-record scan returned zero duplicates. Network-disabled, read-only Debian 12 `unbound-checkconf` returned `0`: no errors. No node or service was contacted | Previous source `e3518865...d74f`; reconciled source `bcb145b39d8eadc187d9a2cb546d486c439602c05b0a77f2b7bcc82f4b0f5aad` | Intended source now contains complete Caddy A/AAAA/PTR/SRV data. SRV remains undeployed until its separately gated record-family action | Continue only with definition of the Node A PTR successor. Its renderer must derive the PTR-only candidate from this source without prematurely deploying SRV |
+| 2026-08-08T18:44:52-05:00 | Node B and workstation; Node A contacted only through HTTPS continuity probes | Execute exact transactional standby-first authoritative PTR-record-family Action 23j once | User authorized exact outer `842b21ee8f0543f096f4306226ef01bab91ae3bc7ea1b2c2ce1ae8dec8936787`; no rerun, Node A PTR mutation, SRV deployment, synchronization, or later action authorized | Accepted Node B local-zone `7d018a7f...8c39`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; BACKUP; zero local Caddy/DNS VIPs; candidate `adee452b...ddb9`; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-b-unbound-ptr-records-action23j-outer.sh` once outside the LAN-restricted sandbox. Node B installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23j-node-b-unbound-ptr-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 164/164 remote checks passed. Both new PTR records answered directly on iteration 1 and locally by iteration 2. Retained A/AAAA and Pi-hole controls, parser, services, PID/restarts, BACKUP/zero-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. Stderr was empty | Outer `842b21ee...6787`; remote stdout 11,948 bytes/246 lines/`b27f5e4fcfdc70df3d8473325f7a81fd1b5a7c0d0400d2df07770d55ecf59ffe`; stderr empty/`e3b0c442...b855`; installed `adee452b...ddb9`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Node B authoritative PTR record family is deployed. Accepted-live Node B local-zone advanced to Action 23j; completed Action 23j consumers retired | Stop. Action 23j is immutable and must not be rerun. Define only the Node A authoritative PTR successor; no node action is currently authorized |
+| 2026-08-08T18:38:56-05:00 | Workstation only; neither HA node contacted | Define and focused-validate standby-first Node B authoritative PTR-record-family Action 23j | User authorized definition only; no execution, SSH, DNS mutation, Unbound reload, Pi-hole reset, prior-action rerun, Node A PTR update, SRV update, or later action authorized | Both nodes independently accepted local-zone `7d018a7f...8c39` containing both Caddy A and both Caddy AAAA records. Node B accepted prerequisite remains FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, BACKUP, and zero local Caddy/DNS VIPs | Added Action 23j transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and three current accepted-live prerequisite consumers. Future command: `/bin/bash Caddy/scripts/run-node-b-unbound-ptr-records-action23j-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23j-node-b-unbound-ptr-records`; any post-write failure restores exact `7d018a7f...8c39`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service plus BACKUP/zero-VIP continuity or exits `125` | Focused host source, parser, self-test, regression, transcript, hash, and gate-policy checks returned `0`; canonical network-disabled Debian 12 focused validation returned `0`. Exact source/candidate/parent hashes, two-PTR-only delta, retained A/AAAA controls, direct/local PTR readiness, Pi-hole prerequisite policy, intercepted Node B transport, bounded evidence, rollback contract, negative transcript cases, repository policies, and executable modes passed | Driver `8d479060...e7ea`; outer `842b21ee8f0543f096f4306226ef01bab91ae3bc7ea1b2c2ce1ae8dec8936787`; regression `778db82d...5694`; focused `cffb3f5f...4001`; manifest `af70a7bc...f9f`; candidate `adee452b...ddb9`; accepted parent `7d018a7f...8c39`; private source `e3518865...d74f` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `842b21ee...6787` once; no action is currently authorized |
+| 2026-08-08T18:25:05-05:00 | Node A and workstation; Node B contacted only through HTTPS continuity probes | Execute exact transactional Node A authoritative AAAA-record-family successor Action 23i once | User authorized exact outer `5363bc8b593d1e00c7175d2ddb2bcf1c7582b845c7e3b8f44150cf1b69d38355`; no rerun, PTR/SRV update, synchronization, or later action authorized | Accepted Node A local-zone `b0c6549c...6160`; independently accepted Node B candidate `7d018a7f...8c39`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; MASTER with all four Caddy/DNS VIPs; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-a-unbound-aaaa-records-action23i-outer.sh` once outside the LAN-restricted sandbox. Node A installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23i-node-a-unbound-aaaa-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 161/161 remote checks passed. Both new AAAA records answered directly on iteration 1 and locally by iteration 2. Retained A and Pi-hole controls, parser, services, PID/restarts, MASTER/four-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. Stderr was empty | Outer `5363bc8b...38355`; remote stdout 11,793 bytes/243 lines/`9e1a9f39019f3d6b3a1860b09b267cd119ebb188b0cb6bf0b868bb2470356777`; stderr empty/`e3b0c442...b855`; installed `7d018a7f...8c39`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Both nodes now have the accepted A/AAAA authoritative baseline. Accepted-live Node A local-zone advanced to Action 23i; completed Action 23i consumers retired | Stop. Action 23i is immutable and must not be rerun. Define only the standby-first Node B PTR-record-family update; no node action is currently authorized |
+| 2026-08-08T18:22:46-05:00 | Workstation only; neither HA node contacted | Define and focused-validate Node A authoritative AAAA-record-family successor Action 23i | User authorized definition only; no execution, SSH, DNS mutation, reload/reset, prior-action rerun, PTR/SRV update, or later action authorized | Node A accepted local-zone `b0c6549c...6160`; Node B independently accepted candidate `7d018a7f...8c39` at Action 23h; Node A accepted FTL/domain baseline from Action 23f-a; Node A expected MASTER with all four Caddy/DNS VIPs | Added Action 23i transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and three current accepted-live prerequisite consumers. Future command: `/bin/bash Caddy/scripts/run-node-a-unbound-aaaa-records-action23i-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23i-node-a-unbound-aaaa-records`; any post-write failure restores exact `b0c6549c...6160`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service plus MASTER/four-VIP continuity or exits `125` | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact source/candidate/parent hashes, native parser, two-AAAA-only delta, retained A controls, Pi-hole prerequisite policy, MASTER/four-VIP gates, intercepted Node A transport, ordered transcript, bounded evidence, rollback contract, predecessor non-invocation, negative transcript cases, repository policies, and executable modes passed | Driver `93c3f56f...ad82`; outer `5363bc8b593d1e00c7175d2ddb2bcf1c7582b845c7e3b8f44150cf1b69d38355`; regression `7fc2ca30...ed81`; focused `25253e11...f557`; manifest `626b8afe...e472`; candidate `7d018a7f...8c39`; accepted parent `b0c6549c...6160` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `5363bc8b...38355` once; no action is currently authorized |
+| 2026-08-08T18:14:47-05:00 | Node B and workstation; Node A contacted only through HTTPS continuity probes | Execute exact standby-first transactional authoritative AAAA-record-family Action 23h once | User authorized exact outer `d50bcd22f6caf0688dde246a6c828a1d1055c10724098c7c87b8f6f9e30a77c5`; no rerun, Node A DNS mutation, PTR/SRV update, synchronization, or later action authorized | Accepted Node B local-zone `b0c6549c...6160`; FTL `c77de665...a7aa`; domain `a8305acb...10f96`; BACKUP; zero local Caddy/DNS VIPs; candidate `7d018a7f...8c39`; all outer gates passed | Verified the exact outer hash and executed `/bin/bash Caddy/scripts/run-node-b-unbound-aaaa-records-action23h-outer.sh` once outside the LAN-restricted sandbox. Node B installed the candidate atomically, reloaded Unbound once, reset Pi-hole v5 DNS once, and ran independently labeled DNS/HA acceptance | Protected backup retained at `/var/backups/caddy-ha/action23h-node-b-unbound-aaaa-records`. Rollback was armed but did not run because all acceptance assertions passed | Outer returned `0`; 161/161 remote checks passed. Both new AAAA records answered directly on iteration 1 and locally by iteration 2. Retained A and Pi-hole control answers, parser, services, PID/restarts, BACKUP/zero-VIP state, HTTPS, metadata, final hashes, backup stability, and residue absence passed. Stderr was empty | Outer `d50bcd22...a77c5`; remote stdout 11,785 bytes/243 lines/`49cafbbb85b47e51c5babd4efe1d4abc5714b877fddb39a4691ee51d6000bfe8`; stderr empty/`e3b0c442...b855`; installed `7d018a7f...8c39`; FTL `c77de665...a7aa`; domain `a8305acb...10f96` | Accepted. Node B authoritative AAAA record family is deployed and independently validated by the transaction. Accepted-live Node B local-zone advanced to Action 23h; completed Action 23h consumers retired | Stop. Action 23h is immutable and must not be rerun. Define only the Node A authoritative AAAA successor; no node action is currently authorized |
+| 2026-08-08T18:03:23-05:00 | Workstation only; neither HA node contacted | Define and focused-validate standby-first Node B authoritative AAAA-record-family Action 23h | User authorized definition only; no execution, SSH, DNS mutation, Unbound reload, Pi-hole reset, prior-action rerun, Node A update, PTR/SRV update, or later action authorized | Both nodes independently accepted local-zone `b0c6549c...6160` with the two Caddy A records. Node B accepted Pi-hole prerequisite is FTL `c77de665...a7aa`, `PIHOLE_PTR=NONE`, domain `a8305acb...10f96`, BACKUP, and zero local Caddy/DNS VIPs. Accepted-live bookkeeping for Node B FTL/domain still cited the older 23c-a hashes despite accepted Action 23d-a evidence | Added Action 23h transaction, outer evidence wrapper, production-path regression, focused validator, intended-state manifest, and three accepted-live prerequisite consumers. Reconciled only Node B FTL/domain accepted-live bookkeeping to the already accepted Action 23d-a evidence. Future command: `/bin/bash Caddy/scripts/run-node-b-unbound-aaaa-records-action23h-outer.sh` | Future transaction retains protected `/var/backups/caddy-ha/action23h-node-b-unbound-aaaa-records`; any post-write failure restores exact `b0c6549c...6160`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored FTL/domain/service and Node B BACKUP/zero-VIP continuity or exits `125` | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact source/candidate/parent hashes, native parser, two-AAAA-only delta, retained A controls, Pi-hole prerequisite policy, Node B BACKUP/zero-VIP gates, intercepted Node B transport, ordered transcript, bounded stream evidence, rollback contract, false/missing/duplicate/wrong-hash/stderr/nonzero cases, repository policies, and executable modes passed | Driver `4cd1b10d...f179`; outer `d50bcd22f6caf0688dde246a6c828a1d1055c10724098c7c87b8f6f9e30a77c5`; regression `91dd75a8...853c`; manifest `8675cb33...34b6`; candidate `7d018a7f...8c39`; accepted parent `b0c6549c...6160`; private source `e3518865...d74f` | Definition accepted locally. No node, network, DNS, cache, service, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `d50bcd22...a77c5` once; no action is currently authorized |
+| 2026-08-08T13:53:12-05:00 | Node A and workstation; Node B was not contacted | Execute exact read-only post-rollback continuity and Pi-hole PTR response-path Action 23b-a once | User authorized exact outer `5789142b1f6ce0a5edf9dbe987a3d98eaaaba1f58e3fa3281974d7760fb60d88`; no Action 23b rerun, DNS/cache/service/filesystem mutation, Node B contact, later family, or later action authorized | Action 23b rollback baseline `c70f7097...dbb4`; protected backup/manifest retained; prior evidence showed direct Unbound/Pi-hole PTR disagreement for `10.1.0.55` | Verified the outer hash locally, then executed `/bin/bash Caddy/scripts/run-node-a-unbound-postrollback-ptr-action23b-a-outer.sh` once outside the LAN-restricted sandbox. It used one strict root-cwd SSH stream to Node A and performed read-only file, service, address, HTTPS, and DNS queries | None; action was read-only. Protected workstation captures were removed only after bounded-safe classification and emission | Outer returned `0`; 223/223 unique ordered assertions passed; zero failures; first failure `none`; remote stderr empty; state `e7124d62...bcd04` before and after. Direct Unbound returned exact A/AAAA/PTR records for `.55/::55` and `.53/::53`; all Pi-hole forward answers were exact; all five Pi-hole listener paths returned the same hostname PTR override for all four reverse queries | Outer `5789142b...0d88`; remote stdout 17,686 bytes/328 lines/`e0c31524a51ab99becd72d7d67ec95f2119edae9337418699c755ce46aa6dcb6`; remote stderr empty/`e3b0c442...b855`; restored local-zone `c70f7097...dbb4`; state `e7124d62...bcd04`; FTL evidence `PIHOLE_PTR=HOSTNAMEFQDN` | Accepted read-only evidence. The authoritative Unbound data is correct; the Pi-hole v5 local PTR policy overrides all locally owned IP reverse answers. No drift or continuity failure was found | Stop. Define only a separate bounded Pi-hole v5 PTR policy correction prerequisite with standby-first sequencing and independent rollback; no live correction or Action 23b retry is authorized |
+| 2026-08-08T13:46:25-05:00 | Workstation only; neither HA node contacted | Define and focused-validate independent fail-closed read-only Node A post-rollback continuity and Pi-hole PTR response-path Action 23b-a | User authorized definition only and required explicit coverage of the DNS VIP and its records plus Node A physical addresses and their records; no execution, SSH, record change, reload/reset, Action 23b rerun, Node B contact, or later action authorized | Action 23b rollback reported restored local-zone `c70f7097...dbb4`, active services, preserved Unbound PID/restarts, zero transaction residue, direct Unbound PTR `pihole.local.theama.co.`, and local Pi-hole PTR `j1-svpihole0.local.theama.co.` for `10.1.0.55` | Added a 223-assertion Node A inspector, bounded evidence outer, production-path regression, focused validator, read-only diagnostic manifest, current accepted-live hash registrations, and governing-plan boundary. Future command: `/bin/bash Caddy/scripts/run-node-a-unbound-postrollback-ptr-action23b-a-outer.sh` | None; future action is strictly read-only. Workstation captures are removed only after bounded safe classification and emission; unsafe captures remain protected | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact restored/backup/residue/service/VRRP/VIP/physical-address contracts, all 48 DNS queries across six response paths, safe provenance bounds, PTR classifications, deterministic state, intercepted root-cwd SSH boundary, exact ordered labels, false/missing/duplicate/reordered/changed-state/changed-hash/invalid-or-missing-classification/stderr/nonzero rejection, and repository policies passed | Inspector `00e949bd265d6f0e4040a24714707dc4ef85b267b1c89d43323ba0eb897af166`; outer `5789142b1f6ce0a5edf9dbe987a3d98eaaaba1f58e3fa3281974d7760fb60d88`; regression `786e15a482a7d66bde3776b7ac1aaf0f4dca538b457a52985a4c5caae390529b`; focused `68b95f886940d7dfca8376c40344d484de3495bf2ba486ddd37d6f39bc24e871`; manifest `8b61268be923215f77624448558e47335c335b5fa032764faf43016467062a76` | Definition accepted locally. No node, network, DNS, service, cache, filesystem, VRRP, or VIP state changed | Stop. Require separate exact authorization of outer `5789142b...0d88` once; no action is currently authorized |
+| 2026-08-08T13:23:49-05:00 | Node A and workstation; Node B was not contacted by SSH | Execute exact transactional Node A authoritative A-record update Action 23b once | User authorized exact outer `4a4340908592044c01928ca0ede85a352ac58df90f31b9e7071e8d4e99729674`, including bounded validation and automatic rollback; no rerun, correction, later family, or later action authorized | Accepted Node A local-zone `c70f7097...dbb4`; candidate `b0c6549c...6160`; exact local hash, source, parser, identity, service, stage, backup-absence, and transaction-absence gates passed | Verified the exact outer hash and executed it once outside the LAN-restricted sandbox. Node A installed the candidate atomically, ran one `unbound-control reload`, ran one bounded `/usr/local/bin/pihole restartdns`, and entered independently labeled DNS readiness | Automatic rollback ran after the local Pi-hole PTR mismatch. It restored `c70f7097...dbb4`, reloaded Unbound, reset Pi-hole, proved Unbound/Pi-hole active, preserved Unbound PID/restarts, removed the transaction file, and emitted `action_23b_rollback_complete=true` | Outer returned `1`. Direct/local new A records and all direct control queries passed. Direct Unbound PTR for `10.1.0.55` was `pihole.local.theama.co.`; local Pi-hole PTR was safe but mismatched at `j1-svpihole0.local.theama.co.`. No readiness ERR-trap false diagnostics occurred; the only unhandled error followed the final fail-closed readiness validator. Endpoint/final acceptance was not reached | Outer `4a434090...9674`; stdout 7,180 bytes/156 lines/`35aeeb29d5b2bb75f8ea82e07fecd915a8c7c5dc7027845f2ce4842b8c906941`; stderr 965 bytes/19 lines/`2c175dca33fbaefc65a80d07af7e6f7984e7c28b8eadbcf6a4f6d5d8b47b2ed8`; candidate `b0c6549c...6160`; restored `c70f7097...dbb4` | Not accepted. The action exposed a local Pi-hole PTR response-path difference and then restored the accepted Node A baseline. Action 23b is immutable execution evidence and must not be rerun unchanged | Stop. Define only an independent read-only post-rollback and PTR response-path diagnostic; no node contact is currently authorized |
+| 2026-08-08T13:19:45-05:00 | Workstation only; neither HA node contacted | Define and focused-validate Node A authoritative A-record-family update Action 23b | User authorized definition only and required the readiness-probe ERR-trap correction before any future DNS mutation; no execution, SSH, record installation, reload/reset, later family, or later action authorized | Node A accepted local-zone `c70f7097...dbb4` from Action 17n reset retry; Node B independently accepted candidate `b0c6549c...6160` at Action 23a-a; Action 23a exposed inherited ERR diagnostics during expected status-9 readiness retries | Added Action 23b manifest, Node A transaction, outer evidence wrapper, production-path regression, focused validator, accepted-live Node A baseline registration, and current hash consumers. Future command: `/bin/bash Caddy/scripts/run-node-a-unbound-a-records-action23b-outer.sh` | Future transaction retains `/var/backups/caddy-ha/action23b-node-a-unbound-a-records`; any post-write failure restores exact `c70f7097...dbb4`, reloads Unbound, resets Pi-hole v5 DNS, and proves restored service/hash continuity or exits `125` | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact candidate delta, parser, protected staging, rollback sequencing, intercepted Node A transport, ordered transcript, bounded stdout/stderr, status-9/no-ERR and later-success production-function probe tests, parser-label visibility, false-positive/false-negative cases, repository policies, and no-node/no-mutation controls passed | Driver `23bc6578...101d`; outer `4a4340908592044c01928ca0ede85a352ac58df90f31b9e7071e8d4e99729674`; regression `0ac76474...4526`; focused `5edc9010...408d`; manifest `ffe9287c...0055`; candidate `b0c6549c...6160` | Definition accepted locally. No node was contacted, no remote stage was created, and no DNS/service/live state changed | Stop. Require separate exact authorization of outer `4a434090...9674` once; no action is currently authorized |
+| 2026-08-08T13:10:22-05:00 | Workstation only; neither HA node contacted | Execute append-only Action 23a-a transcript-consumer correction once and reconcile accepted-live state | User authorized exact runner `d7ca02d4475c5d28524242d029d0ced32036b134b887fc7efafab927360edadc`; no node contact, prior-action rerun, live mutation, later family, or later action authorized | Complete Action 23a-a stdout `98c0d305...3021` proved all live checks but omitted one successful parser label due to historical command-level redirection; correction was focused-validated and contained no node transport | Ran the exact workstation-only correction once; after acceptance, advanced only `node_b_unbound_local_zone` in accepted-live manifest to `b0c6549c...6160`/`23a-a` and removed the two completed Action 23a deployable-consumer registrations | None; action used protected temporary workstation captures only and reported all node-contact and mutation markers false | Runner returned `0`. Nine correction gates and 22 transcript-validator assertions passed; captured status/hash, empty stderr, exact sole missing label, one-label correction, ordered 93-label contract, zero failures, state/hash/backup values, and all no-mutation markers passed. Accepted-live policy passed after reconciliation | Runner `d7ca02d4...edadc`; captured `98c0d305...3021`; validator stdout 1,176 bytes/22 lines/`f1454cf0605afc33e4b1f4cd81081172d17a84e425d6aa7caf01b36e6cec9530`; validator stderr empty/`e3b0c442...b855`; state `20805a7c...d85a`; installed `b0c6549c...6160` | Accepted. Node B authoritative A-record update and independent acceptance are complete. Historical Action 23a/23a-a artifacts remain unchanged; only accepted-live bookkeeping advanced | Stop. Define only Node A Action 23b with the ERR-trap readiness correction incorporated before mutation; no node action is authorized |
+| 2026-08-08T13:08:30-05:00 | Workstation only; neither HA node contacted | Define append-only Action 23a-a transcript-consumer correction from captured stdout `98c0d305...3021` | User authorized definition only; no execution, node contact, Action 23a/23a-a rerun, inspector repair, record/reload/reset change, later family, or later action authorized | Executed Action 23a-a inspector returned `0`, reported 93 internal checks and zero failures, but emitted 92 visible labels because successful parser label output was redirected to `/dev/null`; complete 5,790-byte stdout was already emitted | Added workstation-only correction runner, exact-capture and negative regression, focused validator, and governing boundary. Future command: `/bin/bash Caddy/scripts/run-action23a-a-transcript-consumer-correction.sh` | None; future action uses a protected temporary workstation directory and removes it only after bounded safe stdout/stderr classification. It has no node transport or live mutation path | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact 5,790-byte/114-line/`98c0d305...3021` reproduction, sole missing-label classification, immutable source hashes, fail-closed source order, one-label correction, unchanged-validator acceptance, and altered/missing/duplicate/false/wrong-missing rejection passed. Complete historical suite bypassed | Runner `d7ca02d4475c5d28524242d029d0ced32036b134b887fc7efafab927360edadc`; regression `b5dfa8bb92cc8c1c776ab35648de3b17babf86282ee6c42e12c7797d8af36f15`; focused `186d489dc057373e21070efaede8e0d285c342372f829a3d81a325ecc231ba59`; captured stdout `98c0d305...3021` | Definition accepted locally. Historical inspector/outer and live evidence remain unchanged. The future action corrects only transcript consumption and cannot contact a node or alter live state | Stop. Require separate exact authorization of runner `d7ca02d4...edadc` once; no action is currently authorized |
+| 2026-08-08T13:00:48-05:00 | Node B and workstation; Node A reached only through the read-only HTTPS continuity probe, not SSH | Execute independent fail-closed read-only post-Action 23a acceptance Action 23a-a once | User authorized exact outer `25c4f430edd1bb0fee0ff636e14a6844dd2fe80a12f57643a0d1bd368f34a50e`; no rerun, mutation, correction, later family, or later action authorized | Producer-observed Node B local-zone `b0c6549c...6160` pending independent acceptance; protected backup retained; Action 23a outer had failed only on expected readiness ERR diagnostics | Ran the exact outer once outside the LAN-restricted sandbox. The inspector performed only read-only file, parser, service, HA/VIP, DNS, endpoint, residue, and deterministic-state checks | None; action was read-only and reported all filesystem/service/DNS mutation markers false | Remote inspector status `0`; internal check count `93`, failed count `0`, first failure `none`; exact installed file, two A records, all absence constraints, parser continuation, backup/manifest, residue, services, BACKUP/zero VIP state, ten DNS controls, endpoints, and unchanged state passed. Remote stderr was empty. Outer returned `97` solely because only 92 labels were visible | Outer `25c4f430...a50e`; stdout 5,790 bytes/114 lines/`98c0d305f35b0b6d8bb849cd40abcce416ecdc159be0a4059e33cc6561ff3021`; stderr empty/`e3b0c442...b855`; snapshot before/after `20805a7caa251b6263112a245e1e6b5acb67a3a94a0156ba96574cbd511fd85a`; installed `b0c6549c...6160` | The successful `unbound_configuration_valid=true` label was suppressed by the command-level `>/dev/null` at inspector line 250. Because `record_check` is fail-closed and execution continued, `unbound-checkconf` returned `0`. This is a workstation transcript-consumer/producer-label defect; live evidence is otherwise complete | Stop. Do not rerun or query the node. Define only an append-only workstation transcript-consumer correction from stdout `98c0d305...3021`; preserve executed artifacts unchanged |
+| 2026-08-08T12:57:56-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed read-only Node B post-Action 23a acceptance Action 23a-a | User authorized definition only and explicitly prohibited rerunning Action 23a; no SSH, read-only execution, reload/reset, record/service/filesystem mutation, Node A change, later family, or later action authorized | Action 23a producer returned `0`, passed 116/116 checks, and reported installed `b0c6549c...6160`, but outer remained unaccepted because expected readiness retries emitted inherited ERR diagnostics | Added inspector, outer evidence wrapper, production-path regression, focused validator, and governing boundary. Future command: `/bin/bash Caddy/scripts/run-node-b-unbound-a-records-post-action23a-a-outer.sh` | None; future action is strictly read-only. Bounded workstation captures are removed only after safe classification/emission; unsafe captures remain protected | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Ninety-three unique labels, exact ordered transcript, complete intercepted SSH boundary, read-only source contract, deterministic state, positive fixture, and missing/duplicate/false/reordered/changed-state/changed-hash/stderr/nonzero negative cases passed. Complete historical suite bypassed | Inspector `f348010dc1de51317cf49047ef52cfc2122a5f3c0624ea848c2be22e6cf4399b`; outer `25c4f430edd1bb0fee0ff636e14a6844dd2fe80a12f57643a0d1bd368f34a50e`; regression `8b0b40d9a9e4c6094a990b5dcbdeca0bd4299a3850ae6f0e4b0f58622219f60b`; focused `7ecd9b1922ab15ac518edd2f17634e3a74e753fa369dad7750024f7271e48bd9` | Definition accepted locally. It independently checks the installed file, protected backup/manifest, parser, services, HA state, DNS paths, endpoints, residue absence, and unchanged before/after state without invoking Action 23a or any mutation | Stop. Require separate exact authorization of outer `25c4f430...a50e` once; no action is currently authorized |
+| 2026-08-08T12:37:29-05:00 | Node B and workstation; Node A reached only through the producer's HTTPS continuity probe, not SSH | Execute transactional authoritative A-record update Action 23a once | User authorized exact outer SHA-256 `1ef7e9c09b957218f4e2324dab846eba8d88ba02bcd1744d680d534c7a038389`; no retry, correction, additional node inspection, Node A change, later family, or later action authorized | Accepted Node B local-zone baseline `c70f7097...dbb4`; candidate `b0c6549c...6160`; Unbound and Pi-hole FTL active; exact primary, candidate, metadata, identity, residue-absence, and parser gates passed | Hash-pinned outer ran once outside the LAN-restricted sandbox; Node B installed the exact candidate, ran one `unbound-control reload`, then one bounded `/usr/local/bin/pihole restartdns` | Protected backup retained at `/var/backups/caddy-ha/action23a-node-b-unbound-a-records`. Automatic rollback did not run because the producer reached acceptance; rollback remains defined for future transactions | Remote SSH status `0`; producer passed 116/116 independently labeled checks and emitted `action_23a_acceptance=true`. Both new records resolved as `10.1.0.56` through direct Unbound and Pi-hole; existing A/AAAA/PTR controls, services, PID/restarts, final file, backup, Node A management HTTPS, and Caddy VIP HTTPS passed. Outer returned `1` because stderr was nonempty | Outer `1ef7e9c0...8389`; stdout 8,620 bytes/187 lines/`fd9a2688...e570`; stderr 1,554 bytes/30 lines/`6ca73851...1f1f`; installed `b0c6549c...6160`; two failing-probe command hashes `92bc7ef5...47e8` and `84a35cb0...5a36`, each emitted three times with status `9` | Live producer succeeded, but outer acceptance is false. The six bounded-safe stderr groups came from inherited ERR traps on expected early failed `dig` attempts; later readiness iterations passed. No evidence indicates a live rollback or service failure | Stop. Do not rerun. Preserve artifacts and emitted streams. Define only an independent fail-closed read-only Node B acceptance action; separately correct the reusable probe/ERR observability contract before future DNS-family transactions |
+| 2026-08-08T12:34:44-05:00 | Workstation only; neither HA node contacted | Define first authoritative Unbound A-record-family update Action 23a | User authorized definition only; no execution, SSH, record installation, Unbound reload, Pi-hole reset, Node A change, later record family, or later action authorized | Accepted Node B two-file Unbound baseline: primary `cef03495...d2e8`, local zone `c70f7097...dbb4`; Action 20p-a retry proves Node A MASTER and Node B BACKUP; intended Caddy IPv4 records remained deferred | Added Action 23a manifest, Node B transactional driver, outer evidence wrapper, production-path regression, focused validator, and accepted-live hash registrations. Locally advanced ignored private source with the two A records; future command is `/bin/bash Caddy/scripts/run-node-b-unbound-a-records-action23a-outer.sh` | Future transaction retains a protected original local-zone backup; any post-write failure atomically restores it, reloads Unbound, resets Pi-hole v5 DNS, and proves restored hash/service continuity, otherwise exits `125` | Focused workstation and canonical network-disabled Debian 12 validation returned `0`. Exact candidate delta, native combined parser path, transaction/rollback sequencing, independently labeled DNS queries, intercepted SSH boundary, exact transcript contract, false-positive/false-negative cases, policy checks, executable modes, and no-node/no-mutation controls passed. Complete historical suite bypassed under accepted cadence | Driver `6b12a7fa...3505`; outer `1ef7e9c09b957218f4e2324dab846eba8d88ba02bcd1744d680d534c7a038389`; regression `4ad80f9f...28c8`; focused validator `164d05bb...885`; manifest `85c1d741...bd86`; candidate `b0c6549c...6160`; private source `e3518865...d74f` | Definition accepted locally. Exact live candidate adds only the two `.56` A records on Node B. No node was contacted and no live state changed | Stop. Require separate exact authorization of outer `1ef7e9c0...8389` once; no action is currently authorized |
+| 2026-08-08T12:11:31-05:00 | Workstation only; neither HA node nor UniFi controller contacted | Define Action 22 UniFi firewall disposition and determine whether a rule group is required | User authorized definition only; no controller/node contact, firewall mutation, reload/restart, DBus/VRRP/VIP change, record change, or later action authorized | Accepted Actions 4c/4d/4e: Default-LAN-only scope, compatible inter-zone policy, zero switch ACLs, zero WAN port forwards, UPnP disabled. Accepted Action 20p-a retry: dual-stack Caddy endpoints and HA ownership healthy without firewall changes | Added append-only `Caddy/manifests/unifi-firewall-disposition-action22.yaml` and updated the governing boundary; no execution runner or controller payload was created | None; workstation-only intended-state definition | YAML syntax/schema lint and exact disposition checks passed. Required IPv4 endpoints are in `10.1.0.0/22`; required IPv6 endpoints share Default LAN VLAN 1; documented flows therefore remain on-link and outside the gateway zone-firewall path | Disposition SHA-256 `0c701d1ba088d7a8e9227e7f0e44b4dd6ef908df40dea73701ea3d5d580290f7`; reused accepted Actions 4c/4d/4e and 20p-a retry evidence | No UniFi firewall rule group or live Action 22 execution is required. Existing IoT/Guest/external isolation must remain; reevaluation triggers are explicit. The immutable historical deployment manifest is not rewritten | Action 22 satisfied as a no-change disposition. Stop before defining Action 23; no DNS or node action is authorized |
+| 2026-08-08T12:08:43-05:00 | Workstation only; neither HA node nor UniFi controller contacted | Reconcile deployment Action 21 with accepted Action 20p-a retry evidence | User authorized definition only and questioned whether Action 21 had already been performed; no node/controller contact, observation window, mutation, or later action authorized | Accepted Action 20p-a retry already proved the complete Action 21 ownership contract: one IPv4 Caddy VIP owner, one IPv6 Caddy VIP owner, Node A MASTER/owner, Node B BACKUP/non-owner, stable before/after state, and healthy endpoints | Updated the governing status boundary; no new runner was created and no command was executed against infrastructure | None; documentation-only evidence incorporation | Exact Action 20p-a retry outer `cd97f5e1...f16d` returned `0`; both nodes passed 96/96 checks and the dual-node owner assertions were true | Reused accepted evidence: Node A snapshot `c4879751...0e83`; Node B snapshot `e96334cf...037f`; Node A/Node B stderr empty | Action 21 satisfied by incorporation. A duplicate live verification would add no distinct evidence and would violate the one-step workflow's overhead-reduction objective | Stop. Define only Action 22 firewall disposition from accepted scope and evidence; no controller or node contact is authorized |
+| 2026-08-08T12:05:48-05:00 | Nodes A and B plus workstation | Execute append-only corrected independent dual-node read-only Action 20p-a retry once | User authorized exact outer SHA-256 `cd97f5e1ffc197598a2c95cec53ead857e624f806cdd5a165862f5826578f16d`; no reload/restart, filesystem/service/DBus mutation, VRRP/VIP transition, retry, or later action authorized | Accepted Action 20p: Node A MASTER with runtime DBus and all four Caddy/DNS VIPs; Node B BACKUP with runtime DBus and zero VIPs. Previous Action 20p-a failed only on incorrect wildcard-include expectations and a volatile aggregate snapshot | Hash-verified and executed `/bin/bash Caddy/scripts/run-dual-node-keepalived-post-action20p-a-retry-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only and all protected workstation captures were removed only after bounded safe stdout/stderr classification and emission | Outer returned `0`; regression passed before transport. Node A and Node B each passed 96/96 independently labeled checks. Both remote statuses were `0`; both stderr streams were empty. Services, stable Keepalived PID/restarts, exact files and accepted include, VRRP/DBus roles, single dual-stack Caddy VIP ownership, DNS VIP ownership, endpoints, deterministic snapshots, residue absence, and fresh TTL/HL quiet windows passed | Outer `cd97f5e1...f16d`; core stdout 15,858 bytes/284 lines/`32f5bb03...0961`; Node A stdout 6,927 bytes/124 lines/`66cd96c4...89e4`; Node B stdout 6,927 bytes/124 lines/`60847c99...40c7`; all stderr empty; both quiet windows 16 bytes/one line/`66150e64...bf9a`; Node A snapshot stable at `c4879751...0e83`; Node B snapshot stable at `e96334cf...037f` | Accepted. Node A is MASTER and owns exactly one IPv4 and one IPv6 Caddy VIP; Node B is BACKUP with zero Caddy VIPs. No live state changed | Stop. Preserve executed artifacts. Define only the separate read-only Action 21 single-IPv4/single-IPv6 Caddy VIP ownership verification; no node contact or later action is authorized |
+| 2026-08-08T12:02:29-05:00 | Workstation only; neither HA node contacted | Finalize Action 20p-a retry local-gate classification and repin the definition | Continuation of the authorized definition only. No SSH, observation window, retry execution, reload/restart, DBus mutation, VRRP transition, VIP mutation, or later action authorized | Preliminary definition artifacts were locally valid, but the outer local-gate policy correctly distinguished the production regression phase from the nonrecursive self-test and transport-test gate inventory | Kept the actual-action regression mandatory before transport while classifying it as a separate phase marker; repinned the append-only outer and focused validator. Future command remains `/bin/bash Caddy/scripts/run-dual-node-keepalived-post-action20p-a-retry-outer.sh` | None; definition-only workstation correction | Focused workstation and canonical network-disabled Debian 12 validations returned `0` using the final hashes. The outer local-gate policy passed; self-test and transport-test explicitly report the intentionally skipped recursive regression, while actual execution runs it before transport. Complete historical suite bypassed | Preliminary outer `c7313f51...cff22` is superseded by final outer `cd97f5e1ffc197598a2c95cec53ead857e624f806cdd5a165862f5826578f16d`; preliminary focused validator `f6fddbe1...2fd4` is superseded by final `edb142b0db2724afdc59ba2b963a43ba5823cf770a7d9247e00c0e2ad55d92df`; rendered inspector `a72b9ae9...8663`, rendered core `bd1e83db...efb7`, and regression `63b5de59...e1fc` are unchanged | Final definition accepted locally. Historical executed artifacts and the preliminary definition journal entry remain preserved; this row is the authoritative hash supersession | Stop. Require separate exact authorization of final outer `cd97f5e1...f16d`. No action is currently authorized |
+| 2026-08-08T11:56:20-05:00 | Workstation only; neither HA node contacted | Define append-only corrected independent dual-node read-only Action 20p-a retry | User authorized definition only. No SSH, observation window, reload/restart, DBus mutation, VRRP transition, VIP mutation, retry execution, or later action authorized | Executed Action 20p-a outer `e2450fc5...730e3` returned `1` without mutation because both nodes' accepted exact terminal include differed from the validator's wildcard expectation and the raw aggregate snapshot included volatile observation detail; 93/96 semantic assertions passed on each node | Added an append-only runtime derivation outer, exact derivation and intercepted-production regression, focused validator, and governing-plan boundary. Future command: `/bin/bash Caddy/scripts/run-dual-node-keepalived-post-action20p-a-retry-outer.sh` | None; future action is read-only. Protected workstation captures are removed only after bounded safe stdout/stderr classification and emission | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Immutable-source, exact rendered-hash, syntax, ShellCheck, collision, conditional-return, output-evidence, scalar-grep, portable-awk, root-cwd, exact include, wildcard absence, semantic snapshot, accepted fixture, rejected missing-include/changed-snapshot, intercepted two-node transport, executable index-mode, and no-node/no-mutation controls passed. Complete historical suite bypassed | Source inspector `55bf9878...e2f8`; source outer `e2450fc5...730e3`; rendered inspector `a72b9ae988513de85bc0dc15bcdb777482e2d769e4458a6046fd4da90c678663`; rendered core `bd1e83db6c7682385a5497df9a9aa20813016cb63a5fc86a400e103b6e00efb7`; regression `63b5de59aee07c623064a20653643de2c92f1698852c8adbcc696c87f90de1fc`; focused `f6fddbe11609d1c681625d82b0b6f5b13ff7083c07bd168a4403aacef0c82fd4`; outer `c7313f51c137508b0f094e27f1ad9fe4425a4b14030dea9c5e1efe460d2cff22` | Definition accepted locally. Historical Action 20p-a artifacts remain unchanged. Only the two failed include expectations and snapshot semantics are corrected; all original 96 independently labeled per-node checks and transcript gates remain | Stop. Require separate exact authorization of outer `c7313f51...cff22`. No action is currently authorized |
+| 2026-08-08T11:39:23-05:00 | Nodes A and B plus workstation | Execute independent fail-closed dual-node read-only post-Action 20p acceptance Action 20p-a once | User authorized exact outer SHA-256 `e2450fc5d10115d7576d8ad39535688e5abf29c43f028b8b27de03e4d30730e3`; no reload/restart, filesystem/service/DBus mutation, VRRP/VIP transition, retry, or later action authorized | Accepted Action 20p: Node A MASTER with runtime DBus and all four Caddy/DNS VIPs; Node B BACKUP with runtime DBus and zero VIPs; exact accepted-live artifacts and quiet TTL/HL stream | Hash-verified and executed `/bin/bash Caddy/scripts/run-dual-node-keepalived-post-action20p-a-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only and all protected workstation captures were removed only after bounded safe stdout/stderr were classified and emitted | Outer returned `1`. Both remote statuses were `1`; both stderr streams were empty. On each node, 93/96 checks passed. Exact service, process, artifact, VRRP, VIP, DBus, endpoint, quiet-window, address-query, and no-mutation assertions passed. Failed on both: `main_include_once`, `main_include_terminal`, and `state_snapshot_unchanged` | Outer `e2450fc5...730e3`; Node A stdout 6,943 bytes/124 lines/`84da161a...539f`; Node B stdout 6,943 bytes/124 lines/`8ed969c6...79d7`; all stderr empty; both quiet windows 16 bytes/one line/`66150e64...bf9a`, containing only `-- No entries --`; Node A snapshot `4604b95d...3f16` to `3dca5033...e8da`; Node B snapshot `f3d2eb70...dee9` to `743aeb9b...b3fd` | Not accepted. The include expectations used wildcard `conf.d/*.conf`, but both accepted hash-pinned mains use exact terminal `conf.d/caddy-ha.conf`. The aggregate snapshot included volatile observation detail despite all required semantic components passing independently. No live state changed | Stop. Preserve executed artifacts. Define only an append-only corrected read-only retry using the accepted include contract and deterministic semantic snapshot; no node contact or retry is authorized |
+| 2026-08-08T11:33:52-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed dual-node read-only post-Action 20p acceptance Action 20p-a | User authorized definition only. No SSH, observation window, reload/restart, DBus mutation, VRRP transition, VIP mutation, or later action authorized | Accepted Action 20p: Node A main `8fc9dcf8...e47c`, fragment `81175105...30be`, helper `5cb42ba0...7fb3`, runtime DBus `Master`, all four Caddy/DNS VIPs; Node B main `5480e699...1393`, fragment `0dd8ec0a...b518`, helper `5cb42ba0...7fb3`, runtime DBus `Backup`, zero VIPs; Node B TTL/HL quiet | Added immutable dual-role inspector, dual-node outer, production-path and false-positive/false-negative regression, focused validator, and governing-plan boundary. Future command: `/bin/bash Caddy/scripts/run-dual-node-keepalived-post-action20p-a-outer.sh` | None; future action is read-only. Protected workstation captures are removed only after bounded safe stdout/stderr are classified and emitted | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Syntax, ShellCheck, canonical formatting, collision, explicit conditional returns, output evidence, scalar grep, portable awk, root-cwd, executable index modes, exact ordered transcripts, intercepted dual-node transport, nonzero/stderr, missing/false/duplicate/reordered assertion, altered-state, changed-snapshot, and no-mutation controls passed. Complete historical suite bypassed | Inspector `55bf9878744e75ff7f79cb93d565cd4c5bb3e500bc2a575c04333e94456ee2f8`; outer `e2450fc5d10115d7576d8ad39535688e5abf29c43f028b8b27de03e4d30730e3`; regression `366c58d5a39120a0b08b364aed40b766b22c0f370e73db5c0f4b5d06058bbf87`; focused `b7023e55efc7a79ac741798edac3d406b569343a3f346bff656356a835823cba` | Definition accepted locally. It requires independently labeled state, valid address queries, exactly one dual-stack owner, exact DBus roles, stable PID/restarts and hashes, endpoint continuity, unchanged snapshots, and fresh eight-second TTL/HL quiet windows on both nodes | Stop. Require separate exact authorization of outer `e2450fc5...730e3`. No action is currently authorized |
+| 2026-08-08T11:21:28-05:00 | Node A `10.1.0.53`, Node B `10.1.0.54`, and workstation | Execute Node-A-only Keepalived DBus runtime-activation Action 20p once, with read-only Node B pre/post evidence | User authorized exact outer SHA-256 `8480382a4b2810d578a6936c2eb0f124f1c7b3ac3b1b608189f19273d5397b4b`, including bounded rollback; no retry or later action authorized | Accepted Node A Action 20n-a: DBus-enabled main `8fc9dcf8...e47c`, fragment `81175105...30be`, helper `5cb42ba0...7fb3`, MASTER with all four Caddy/DNS VIPs, runtime DBus absent. Accepted Node B Actions 20o retry2/20o-b: main `5480e699...1393`, runtime DBus active, BACKUP, zero VIPs | Hash-verified and executed `/bin/bash Caddy/scripts/run-node-a-keepalived-dbus-action20p-outer.sh` once outside the LAN-restricted sandbox | Rollback was armed to restore protected Action 20n prior main `357eb09c...d8e2`, reload or restart only as fallback, prove Node A MASTER/four-VIP/endpoints/DBus-absence, and return `125` if recovery could not be proven. It was not invoked | Outer returned `0`. Node B pre-checks passed; Node A reload returned `0`; bounded reload journal contained no fatal or TTL rejection entries; runtime DBus service and exact VRID 110/111 objects passed; both Node A states were `Master`; services, stable PID/restarts, four VIPs, hashes, helper contexts, and HTTPS passed. Node B post-checks passed with both states `Backup`, zero VIPs, and zero IPv4/IPv6 TTL/HL rejections in a fresh eight-second window | Outer `8480382a...97b4b`; transaction `b97d1896...ceec`; observer `386032ec...fc60`; Node A stdout 16,384 bytes/224 lines/`15085503...a067`; Node B pre stdout 1,992 bytes/41 lines/`b5e8241d...fc7f`; Node B post stdout 2,723 bytes/54 lines/`939e3027...bd45`; all stderr streams empty; reload journal 1,096 bytes/10 lines/`fd85266b...356d`; quiet window 16 bytes/one line/`66150e64...bf9a` containing only `-- No entries --` | Accepted. Node A Keepalived DBus is active; Node A remains MASTER; Node B remains BACKUP; the two-instance `unicast_ttl 255` correction is active and the observed Node B TTL/HL rejection stream is quiet | Stop. Preserve executed artifacts. Define only an independent fail-closed dual-node read-only post-Action 20p acceptance action; no node contact or mutation is authorized |
+| 2026-08-08T11:11:24-05:00 | Workstation only; neither HA node contacted | Define Node-A-only Keepalived DBus runtime-activation Action 20p, with read-only Node B pre/post evidence | User authorized definition only. No SSH, reload, runtime DBus activation, VRRP/VIP change, or rollback execution authorized | Accepted Node A Action 20n-a: DBus-enabled main `8fc9dcf8...e47c`, fragment `81175105...30be`, helper `5cb42ba0...7fb3`, MASTER, all four Caddy/DNS VIPs, runtime DBus absent. Accepted Node B Actions 20o retry2/20o-b: main `5480e699...1393`, runtime DBus active, BACKUP, zero VIPs | Added Node A transaction, Node B peer observer, dual-node outer, production regression, focused validator, and accepted-live manifest reconciliation. Future command: `/bin/bash Caddy/scripts/run-node-a-keepalived-dbus-action20p-outer.sh` | Any Node A failure after reload restores protected Action 20n prior main `357eb09c...d8e2`, reloads or restarts only as fallback, and proves MASTER/four-VIP/endpoints/DBus-absence. A failed post-reload Node B quiet-window gate invokes the same rollback-only boundary; inability to prove rollback returns `125` | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Separate collision, conditional-return, output-evidence, scalar-grep, portable-awk, outer-label, accepted-live-hash, root-cwd, syntax, ShellCheck, canonical-format, executable/index-mode, positive intercepted transport, negative transcript, and rollback-contract checks passed. Complete historical suite bypassed | Transaction `b97d189689e6c6c9f043731c4ae824650c6000b5f609ecb75b7b943cb03bceec`; observer `386032ec1d8f8545e1222acdd81f667a05bd2908a8acc7778f4e5008aa57fc60`; outer `8480382a4b2810d578a6936c2eb0f124f1c7b3ac3b1b608189f19273d5397b4b`; regression `fc8304aa5988e233c9b9bc1b10cc128b6cab2cd33731270840652b3606c0585d`; focused `6e6e4a46b7f7b191f7282fd09c90738143e57328b08d080d63e2c0f313132c91` | Definition accepted locally. The Node A reload will activate the already installed two-instance `unicast_ttl 255` fragment and the post phase requires a fresh eight-second Node B journal window with zero IPv4 and zero IPv6 TTL/HL rejections | Stop. Require separate exact authorization of outer `8480382a...97b4b` before one dual-node transaction. No action is currently authorized |
+| 2026-08-08T10:33:55-05:00 | Node B `10.1.0.54` and workstation; Node A not contacted by SSH | Execute independent fail-closed read-only Node B post-Action 20o retry2 acceptance Action 20o-b once | User authorized exact outer SHA-256 `5ad88ca05ab3450914d444ae27a83cbb891e5aadbadaa24939f1e2947c97a1ff`; no helper invocation, reload/restart, mutation, Node A SSH contact, or later action authorized | Accepted Action 20o retry2 runtime: main `5480e699...1393`, Keepalived DBus active, Node B BACKUP with zero Caddy/DNS VIPs, exact fragment/helper, and endpoint continuity | Hash-verified and executed `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postactivation-action20o-b-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only. Protected workstation captures were removed only after bounded safe stdout/stderr were classified and emitted | Outer returned `0`. All 14 local gates and 85/85 ordered Node B checks passed. Runtime bus, exact flat Caddy objects, both `Backup` states, main/fragment/helper, services, stable PID/restarts, BACKUP, valid address queries, zero VIPs, HTTPS continuity, zero residue, and identical normalized snapshots passed | Outer `5ad88ca0...a1ff`; inspector `9e99fda1...7a11`; stdout 19,749 bytes/294 lines/`92078fd5fb8b8ccfcc82cb6150daff65a299028d72f8005fccf020188fe4b268`; stderr empty; before/after state `889d5382d638b22937f011d89e2af36f0627b68384c7faa82390cfc2de41b6f5`; flat tree `aa4c8a71...a5f9`; both property outputs `d9e93368...41f7` | Accepted. Node B Keepalived DBus runtime is independently confirmed in BACKUP with zero Caddy/DNS VIPs | Stop. Preserve executed artifacts. Define only the Node-A-only Keepalived DBus runtime-activation transaction; do not contact a node or reload Keepalived |
+| 2026-08-08T10:30:38-05:00 | Workstation only; neither HA node contacted | Define independent fail-closed read-only Node B post-Action 20o retry2 acceptance Action 20o-b | User authorized definition only; execution, node contact, helper invocation, reload/restart, mutation, VRRP transition, VIP change, and later actions remain unauthorized | Accepted Action 20o retry2 evidence pins installed main `5480e699...1393`, runtime Keepalived DBus, both exact Caddy object paths in `Backup`, active services, stable process state, zero Node B VIPs, artifact hashes, and endpoint continuity | Added append-only inspector, streamed outer, production-path/negative regression, and focused validator. Future command is `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postactivation-action20o-b-outer.sh` | None; future action is read-only and creates no node-side file. Workstation capture files are protected and removed only after bounded safe stdout/stderr are classified and emitted | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. All 85 unique ordered assertions, exact hashes/objects/states, valid fail-closed address queries, normalized before/after contract, exact root-cwd SSH boundary, executable index modes, and false/missing/duplicate/reordered/query/status/stderr/collision negative controls passed | Inspector `9e99fda15f3d730916dca95ef91b96864233c22fde9b8dfa7312b1ce220f7a11`; outer `5ad88ca05ab3450914d444ae27a83cbb891e5aadbadaa24939f1e2947c97a1ff`; regression `b88a264ca3643f075991d4ecf030e399354992aee934398a05ab4eb4bd46efe4`; focused validator `c7e8cc2cf191313b41cd21d2b20cbd5f929050b118e8b5f69f94171dd3e1e9a8` | Definition accepted locally. Neither node was contacted and no live action or mutation occurred; complete historical suite remained bypassed under accepted cadence | Stop. Require separate exact authorization of outer `5ad88ca0...a1ff` before one read-only Node B acceptance run |
+| 2026-08-08T10:09:47-05:00 | Node B `10.1.0.54` and workstation; Node A not contacted by SSH | Execute corrected transactional Node B Keepalived DBus activation Action 20o retry2 once | User authorized exact outer SHA-256 `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`, including bounded rollback; no retry, Node A DBus reload, or later action authorized | Accepted Action 20o-a retry baseline: non-DBus main `8b260315...9fbd3f`, runtime DBus absent, active BACKUP, zero Caddy/DNS VIPs, exact fragment/helper, and endpoint continuity | Hash-verified and executed `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-action20o-retry2-outer.sh` once outside the LAN-restricted sandbox | Rollback was armed before main replacement and would restore protected `8b260315...9fbd3f`, reload or restart only as fallback, and prove DBus absence/BACKUP/zero VIPs/endpoints. It was not invoked because every post-mutation gate passed | Outer returned `0`. All 23 local gates, 99/99 Node B checks, exact ordered transcript, candidate installation, reload, journal, flat DBus objects, both `Backup` states, active services, stable PID/restarts, zero VIPs, hashes, helper contexts, and endpoints passed | Outer `a118feb9...82ef2b`; transaction `3cd50707...342b`; remote stdout 20,706 bytes/268 lines/`5b11381fe004d3f56da028776ebafdf9836a273cc9a6ccdd4b0261289901172e`; stderr empty; reload journal 1,106 bytes/10 lines/`456d7827...a153`; flat tree 479 bytes/15 lines/`1e2d8eb9...7dee` | Accepted. Node B main is DBus candidate `5480e699...1393`; runtime Keepalived DBus is active; Node B remains BACKUP with zero Caddy/DNS VIPs | Stop. Preserve executed artifacts. Define only an independent read-only Node B post-Action 20o retry2 acceptance action |
+| 2026-08-08T10:00:02-05:00 | Workstation only; neither HA node contacted | Define corrected transactional Node B Keepalived DBus activation Action 20o retry2 | User authorized definition only; execution, node contact, installation, reload/restart, runtime DBus activation, and all later actions remain unauthorized | Accepted Action 20o-a retry proves Node B is BACKUP with zero Caddy/DNS VIPs, restored non-DBus main `8b260315...9fbd3f`, runtime Keepalived DBus absent, exact fragment/helper, and endpoint continuity | Added append-only transaction, archive-streaming outer, production-path regression, focused validator, and accepted-live manifest/consumer reconciliation. Future command is `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-action20o-retry2-outer.sh` | On any failure after the mutation boundary, atomically restore protected Action 20m prior main `8b260315...9fbd3f`; reload it, using restart only as fallback; require active Keepalived, BACKUP, absent DBus, zero Caddy/DNS VIPs, and Node A/Caddy-VIP HTTPS continuity or return `125` | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. All 99 distinct producer labels, 23 outer gates, exact source/candidate derivation, valid fail-closed address queries, flat exact-line DBus object paths, bounded stream evidence, archive staging, positive intercepted transport, and false/missing/duplicate/reordered/status/stderr controls passed | Transaction `3cd507078e91156122f2d0212686c66a99ca213f15061c3050f6930aa558342b`; outer `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`; regression `2af3eb9ffc4b3055b157e49fcaf44dda54d7d872307db3ead0215ac636b128b8`; focused validator `756520400f9cc47451109ddf129b8c2a8806f399a42ff85c4e852743ef0b9453` | Definition accepted locally. No node contact or live mutation occurred; complete historical suite remained bypassed under accepted cadence | Stop. Require separate exact authorization of outer `a118feb9...82ef2b` before one Node-B-only transaction |
+| 2026-08-08T09:36:24-05:00 | Node B `10.1.0.54` and workstation; Node A not contacted by SSH | Execute append-only corrected read-only Action 20o-a retry once | User authorized exact outer SHA-256 `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc`; no reload, Keepalived DBus activation, mutation, repair, or later action authorized | Action 20o-a had independently proven every semantic continuity assertion but failed only raw DBus aggregate equality because each query created a transient `busctl` client row | Hash-verified and executed `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-retry-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only and every mutation marker remained false | Outer returned `0`; all local gates and 63/63 checks passed. Normalization excluded only process-column `busctl` rows. Raw evidence remained emitted; Keepalived bus-name absence, services, BACKUP, valid address queries, zero VIPs, HTTPS continuity, artifact hashes, and zero residue passed before/after | Outer `057ee3dd...95cc`; stdout 14,139 bytes/188 lines/`bb6ae4f0687f2749c9378a4a28f47794104e4e5911c7e41fb26bc491be3186a6`; stderr empty; before/after normalized state `e29c243ecc7d965f92cdaf46274cf336d345de95bdaa5a92335b6d1ffed7053e` | Accepted. Node B is confirmed on restored non-DBus main, active BACKUP, zero Caddy/DNS VIPs, and runtime Keepalived DBus absent | Stop. Preserve executed artifacts. Define only the corrected transactional activation from this accepted baseline; do not contact a node or reload Keepalived |
+| 2026-08-08T09:33:47-05:00 | Workstation only; neither HA node contacted | Define append-only corrected read-only Action 20o-a retry | User authorized definition only, explicitly excluded another diagnostic, and withheld execution or any live mutation | Executed Action 20o-a passed every semantic continuity assertion but failed aggregate equality solely because its two raw DBus lists included different transient `busctl` client rows | Added append-only retry inspector, exact streamed outer, historical-derivation and production-path regression, and focused validator. Future command is `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-retry-outer.sh` | None; future action is read-only and creates no node-side file | Focused workstation and canonical network-disabled Debian 12 validations returned `0`. Historical hashes, exact derivation, process-column-only normalization, preservation of Keepalived bus name/object path, 63 ordered labels, valid address queries, positive intercepted SSH path, query-failure rejection, reordered-label rejection, and no-mutation contract passed | Inspector `e67a5d645f3123ff2fad29ec435e9ec9b37a63af02984bfbf2b8fff534ea8265`; outer `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc`; regression `aff62b0518354d8584cf83bced08be898239c2bd17e9b8269af6b47169be17af`; focused validator `f4ee133aaa7a876f225659f189f7785f4d9935788e097b9cb0ec8f06f7d7a3d1` | Definition accepted locally; no node contact, retry execution, reload, DBus activation, or mutation occurred | Stop. Require separate exact authorization of outer `057ee3dd...95cc` |
 | 2026-08-06T23:41:10-05:00 | Node B `10.1.0.54` and workstation; Node A not contacted by SSH | Execute read-only Node B post-rollback continuity Action 20o-a once | User supplied exact outer SHA-256 `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20`; no correction, reload, mutation, retry, or later action authorized | Action 20o retry had reported rollback complete, but invalid historical address-query syntax left zero-VIP state unaccepted | Hash-verified and executed `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-outer.sh` once outside the LAN-restricted sandbox | None; action was read-only and every mutation marker remained false | 62/63 checks passed. All required restored-main, DBus-absence, service, BACKUP, successful address-query, zero-VIP, HTTPS, residue, stable-runtime, and unchanged-artifact assertions passed. Sole failure: `state_snapshot_unchanged=false` because each `busctl list` call included its own different ephemeral client unique name/PID | Outer `602bd70e...24b20`; stdout 14,086 bytes/187 lines/`865a3b9d4e5d56d9609d3e5a27eb4e3ba15558d4748109d56adec6817f17ef68`; stderr empty; before state `1bf2d21446d96d43e155b0267685f7610306228d506676d8c7b7063e28e6dd7f`; after state `d6d5a6a0e0d3e1477b12de23c19d5c01c683bd6515b60f41b2f1414e42dc47fa` | Required continuity is evidenced by independent checks, but the action remains formally unaccepted under its aggregate contract | Stop. Preserve executed artifacts. Define only an append-only retry that removes the querying `busctl` client row from aggregate comparison; no additional node diagnostic is indicated |
 | 2026-08-06T23:25:24-05:00 | Workstation only; neither HA node contacted | Define fail-closed read-only Node B post-rollback continuity Action 20o-a | User authorized definition only and explicitly withheld diagnostic execution, correction, reload, and later actions | Executed Action 20o retry reported bounded rollback complete, but invalid `ip -o "4"/"6"` syntax left zero-VIP state unaccepted | Added append-only inspector, exact streamed outer, production-label regression, and focused validator. Future command is `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-outer.sh` from the server repository root | None required: action is read-only and creates no node-side files | Focused workstation and canonical network-disabled Debian 12 validations returned `0`; exact valid address-query forms, query-status-aware absence logic, 63 unique labels, bounded stream evidence, root-cwd transport, positive intercepted production path, failed-query rejection, reordered-label rejection, and no-mutation contract passed | Inspector `637cdb573603044ab35a7bbc936dcda0ec2c16f41edb99d285f0094138bfba80`; outer `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20`; regression `4a33ffd8ebdcd97c10842e85937e5f46cefce40e1dbe0f3e70d22f8b20ba8d05`; focused validator `820b3108052a5488104365667d5b2d7a59f1d2ba8ab2c68e8a044c8ae2861e98` | Definition accepted locally; both focused environments reported no node contact, reload, or correction | Stop. Require separate exact authorization of outer `602bd70e...24b20`. Later Action 20o correction must use `busctl --list tree` for flat paths and must fail closed on any address-query error |
 | 2026-08-06T23:00:23-05:00 | Node B `10.1.0.54` and workstation; Node A not contacted by SSH | Execute append-only corrected transactional Action 20o retry once | User supplied the exact command for outer SHA-256 `799442774f62d00b29290aa6b6a7b7a1e6d6e54df7a705fa552dc3c8cde81836`. Authorization covered one Node-B-only transaction and its bounded rollback; no repair, cleanup, second retry, Node A reload, or later action | Last accepted boundary was Node B DBus-enabled on-disk main `5480e699...1393`, running Keepalived BACKUP with zero VIPs and DBus inactive; executed original Action 20o had stopped before mutation | Verified the exact outer hash, then executed `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-action20o-retry-outer.sh` once outside the LAN-restricted sandbox | After `dbus_tree_status=false`, EXIT rollback restored protected prior main `8b260315...9fbd3f` and reloaded it. Rollback reload returned `0`; aggregate rollback reported complete and required active Keepalived, BACKUP, DBus absence, and Node A/VIP endpoint continuity. Its VIP checks are not accepted because their `ip` family syntax was invalid | All 19 local gates passed. Remote checks 1–51 passed. Reload status `0`; bounded journal had 10 lines and recorded reload complete plus acquisition of `org.keepalived.Vrrp1`; DBus list status `0` and exact service present. `busctl tree` status was `0` but Unicode output was classified `unsafe_retained`, producing `dbus_tree_status=false`. Repeated `Object "4"/"6" is unknown` errors exposed invalid address queries in preflight, readiness, post-state, and rollback paths | Retry outer `79944277...81836`; transaction `8c23b508...9058`; remote stdout 11,693 bytes/140 lines/`192b6ef3bc8159522def38bf72a36676deb991dbe38c75910498e5145e4deec1`; remote stderr 554 bytes/14 lines/`3aedd469e83bd282d123cd57b9c0c1fcbbf38977c96f888351af719a64b19a13`; DBus tree 699 bytes/14 lines/`6b96ebb84519a465da2420c1803169d2901f8eae3befcb9449baed02b1e07be4` | Not accepted. DBus activation itself succeeded, but output classification caused rollback. Rollback reported complete, yet invalid `ip -o "4"/"6"` queries make the zero-VIP component unproven. The on-disk main is reported restored to prior hash and runtime DBus absent, pending independent read-only acceptance | Stop. Preserve executed retry artifacts unchanged. Define—but do not execute—a read-only post-rollback continuity action using valid, fail-closed `ip -o -4/-6`. No correction or activation retry may be defined until rollback state is independently accepted |
@@ -15301,6 +15443,8 @@ authorized.
 
 | Date | Phase | Planned behavior | Actual change | Rationale | Impact | Approval | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-08 | Action 23c Node B Pi-hole PTR policy | Require and install `/etc/pihole/pihole-FTL.conf` as `root:root:0644` | Preserve the accepted Pi-hole-managed `pihole:root:0664` metadata during Action 23d candidate installation and rollback; pin the accepted FTL and domain hashes before mutation; keep Action 23c failed immutable and prohibit rerun | Read-only Action 23c-a proved the original metadata assumption was wrong while service, DNS, VRRP, and filesystem continuity were healthy. Changing ownership or mode is unnecessary and could conflict with Pi-hole package expectations | Action 23d only. The intended PTR-policy content change is unchanged; the domain file stays read-only, Node A is untouched, and no node was contacted during definition | User explicitly requested a new transactional successor preserving `pihole:root:0664` and prohibited rerunning Action 23c | Require separate exact authorization of Action 23d outer, then independently accept Node B before defining any Node A successor |
+| 2026-08-08 | Action 23 DNS readiness observability | Use `set +e` around expected `dig` retries while the transaction-level inherited ERR trap remains installed | Execute each DNS command in an ERR-trap-neutral subshell and place its command substitution inside an explicit conditional that records status without relying on errexit. Keep the transaction ERR trap active for every surrounding operation. Suppress `unbound-checkconf` output inside its helper rather than at the labeled assertion call | Action 23a proved expected transient status `9` retries could emit false unhandled-error diagnostics even though readiness later succeeded. Action 23a-a proved command-level redirection can hide a successful labeled assertion. Both defects waste follow-up gates without indicating a DNS or parser failure | Applies to Action 23b and all future DNS mutations. It changes only error/evidence handling for expected retries and parser output; readiness answers, fail-closed final acceptance, rollback, and live DNS semantics remain unchanged | User required the readiness-probe ERR-trap correction before any future DNS mutation and prohibited diagnostic-for-diagnostic follow-ups | Preserve production-function regression coverage for a failed retry and later success, require empty false-error output, and keep parser label visibility in focused host/container validation |
 | 2026-08-06 | Repository-wide streamed remote-Bash working-directory enforcement | Rely on each remote inspector's root-working-directory assertion to expose a transport omission during live execution | Require every changed streamed remote-Bash runner to establish `/` at the SSH command boundary with exact `cd / && sudo -n /bin/bash -s --`; enforce it in pre-commit and host/container suites, retain positive/negative policy tests, and preserve executed Action 20m and Action 20m-a only through exact immutable path-and-hash exceptions | The same omission recurred despite action-specific `PWD` checks and earlier procedural guidance. Detecting it on the node wastes a separately authorized gate; transport structure must fail during repository validation before SSH. Action 20m entered `/` inside its streamed wrapper and succeeded but predates the stricter command-boundary contract | Repository validation and append-only Action 20m-a retry only. Historical executed artifacts remain immutable. No node, configuration, service, DBus, VRRP, or VIP state changed | User explicitly required a durable fix while authorizing definition only of Action 20m-a retry | Keep the pre-commit hook, suite self-test wiring, repository guidance, generated production-path interception, and exact historical exceptions. Any alternate remote cwd requires a separately documented and validated contract |
 | 2026-08-06 | Dual-stack unicast VRRP and Keepalived DBus intended state | Enforce received Caddy advertisement TTL/hop limit `255` through reciprocal peer `min_ttl`/`max_ttl` only; no DBus requirement | Explicitly set `unicast_ttl 255` in both Caddy IPv4 and IPv6 instances on both nodes. Add `enable_dbus` once to each authoritative main configuration, but keep DBus live installation outside the fragment action and require compiled-feature/system-bus preflight first | Node B proves Node A IPv6 adverts currently arrive with hop limit `64` and are rejected. Receiver-only enforcement is incomplete when either node can become sender. DBus is a global Keepalived process feature and cannot soundly be placed in the Caddy fragment | Action 20k changes only one node's fragment per authorization and deliberately does not reload, so runtime VRRP remains unchanged until a later gate. DBus changes repository intended state only; their main-config installation and runtime activation require separate rollback and reload gates | User explicitly approved symmetric `unicast_ttl 255` on both address-family instances and requested `enable_dbus` in `global_defs` | Execute Node A Action 20k and independent acceptance before Node B Action 20k. After both fragments are accepted, separately define the reload sequence. Before DBus installation, prove Keepalived DBus build support and system-bus readiness; never add a second `global_defs` |
 | 2026-08-06 | Repository-wide accepted-live hash freshness | Copy accepted live hashes into each action-specific prerequisite and rely on action regressions to detect drift | Establish `accepted-live-artifacts.tsv` as the canonical accepted-live hash source and `deployable-live-hash-consumers.tsv` as the registry of current consumers. An always-run pre-commit policy verifies unique well-formed keys and exact readonly consumer values; a manifest change invalidates every registered stale consumer before SSH. Executed historical artifacts remain immutable and leave the registry when superseded | Repeated actions reached live read-only baselines with stale integrity pins after a later accepted action changed node state. A current-state dependency must fail during repository validation rather than consume node time | Applies repo-wide to all still-deployable consumers of current live hashes. It does not rewrite historical evidence or relax exact hash checks | User explicitly required a durable repository-wide fix after Action 20g repeated the stale-hash failure class | Register every future current-state consumer, update the canonical manifest in the same accepted-state change, keep the policy always-run, and pin it into future immutable live-action outers |
@@ -20596,13 +20740,1599 @@ Action 20a retry, Keepalived activation, VRRP transition, and VIP assignment
 remain independently gated. An independent read-only Node B post-install
 acceptance action must be defined and separately authorized next.
 
+### Defined standby-first Pi-hole v5 PTR policy correction Action 23c
+
+At `2026-08-08T14:26:40-05:00`, Action 23c was defined but not executed. It
+corrects Node B first by replacing exactly one
+`PIHOLE_PTR=HOSTNAMEFQDN` line in `/etc/pihole/pihole-FTL.conf` with
+`PIHOLE_PTR=NONE`. This removes Pi-hole FTL's answering-host override so the
+existing authoritative Unbound PTR records remain the canonical reverse
+answers. The separately managed
+`/etc/dnsmasq.d/local.theama.co.conf` is a read-only prerequisite: it must
+contain exactly `domain=local.theama.co`, must not contain the rejected typo
+`domain=local.thema.co`, and must remain byte-for-byte unchanged. The
+`domain=` directive supplies the correct local domain but is not treated as a
+PTR-passthrough control.
+
+The transaction is standby-first and fail-closed. Before mutation it requires
+Node B hostname `j1-svpihole00`, Pi-hole core and FTL v5, active Unbound,
+Pi-hole FTL, Caddy, lighttpd, and Keepalived, Caddy state `BACKUP`, zero Caddy
+and DNS VIPs, both physical node addresses, exact direct-Unbound A/AAAA/PTR
+answers, and absent Action 23c backup and transaction residue. It creates a
+protected backup at
+`/var/backups/caddy-ha/action23c-node-b-pihole-ptr-policy`, validates the exact
+one-line candidate with `pihole-FTL --test`, atomically installs only the FTL
+file, and invokes exactly one bounded `/usr/local/bin/pihole restartdns`.
+
+Acceptance requires authoritative A, AAAA, IPv4 PTR, and IPv6 PTR answers
+through direct Unbound and local Pi-hole for the DNS VIP, Node A, and Node B;
+stable Unbound, Caddy, and Keepalived PIDs/restart counters; continued BACKUP
+and zero-VIP state on Node B; exact HTTPS continuity through both physical
+nodes and the Caddy VIP; the unchanged domain-file hash; and no Unbound,
+domain-file, Node A, or Action 23b mutation. Any post-mutation failure restores
+the exact protected FTL backup, restarts Pi-hole DNS once, verifies the
+restored hash and active FTL service, and returns `125` if rollback cannot be
+proven.
+
+Definition hashes are:
+
+- Driver: `94821c3000a6e13317fe7b0f6d7a2238cefb27c1ef93a23e822bf1f534fa85f3`.
+- Regression: `5d006bc96a284c9a33a6c9030456ebc6353b44a35da019f00e3924a4cc8e3c8e`.
+- Intended-state manifest:
+  `ae585baee56d6e3d6d7827afbdd5acd27b68a18d17589cd209744d75d746be27`.
+- Focused validator:
+  `b01eb36b5e0e559dce1ec2234e6a3b7fd3cc7f6b93e25a8cdda7e7bbecd86752`.
+- Exact outer execution gate:
+  `a993b08f230ec0ea8b88d5a88cac860e807d42cfea30284e2e52f36aeba93324`.
+
+The exact future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-node-b-pihole-ptr-policy-action23c-outer.sh
+```
+
+The next single gate is separate exact authorization to execute that outer
+once. Definition does not authorize Node B contact. Node A must remain
+untouched, and failed immutable Action 23b must not be rerun. After Action 23c
+is independently accepted, define the equivalent Node A correction under a
+new authorization boundary.
+
+#### Action 23c deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T14:26:40-05:00`, workstation only; future
+  target Node B.
+- Requested action: define, but do not execute, the standby-first Pi-hole v5
+  PTR policy correction.
+- Authorization received: definition and workstation validation only.
+- Pre-change state: unchanged accepted Action 23b-a evidence; no current-turn
+  node observation.
+- Exact files created: Action 23c driver, outer, regression, focused validator,
+  and intended-state manifest at the hashes above.
+- Backup or rollback location: planned protected Node B path
+  `/var/backups/caddy-ha/action23c-node-b-pihole-ptr-policy`; not created.
+- Exit status and validation: focused host and canonical network-disabled
+  Debian 12 validation each returned `0`.
+- Configuration hashes: recorded above; live hashes remain unobserved in this
+  definition-only action.
+- Observed result: neither HA node was contacted and no live state changed.
+- Decision: stop at the exact outer authorization gate.
+
+#### Action 23c execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T14:34:44-05:00`, Node B.
+- Requested action: execute exact outer SHA-256 `a993b08f...3324` once.
+- Authorization received: exact Action 23c execution authorization.
+- Pre-change state: assertions through `ftl_not_symlink` passed; exact FTL
+  metadata assertion failed before the remaining preflight completed.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-b-pihole-ptr-policy-action23c-outer.sh`.
+- Backup or rollback location: planned backup was not reached; rollback
+  reported complete before any mutation.
+- Exit status and validation: status `1`; `ftl_metadata=false`; bounded output
+  hashes `cc4197a6...41e` and `ab6b7370...e980`.
+- Package and service versions: not reached by the failed preflight.
+- Configuration hashes: no live configuration hash was emitted or accepted.
+- Observed result: no mutation, restart, Node A contact, or Action 23b rerun.
+- Decision: stop; define an independent read-only continuity and metadata
+  diagnostic before designing any correction.
+
+### Defined read-only Node B post-failure Action 23c-a
+
+At `2026-08-08T14:54:31-05:00`, Action 23c-a was defined but not executed. It
+is an independent, fail-closed, Node-B-only diagnostic for the immutable
+Action 23c pre-mutation failure. It does not source, transmit, or invoke the
+Action 23c driver or outer, and its read-only contract rejects Pi-hole
+restarts, service mutations, and filesystem mutations.
+
+The diagnostic emits exact `/etc/pihole/pihole-FTL.conf` ownership and mode
+evidence in the original run: owner and group names, numeric UID/GID, octal
+and symbolic modes, size, inode, device, mtime, and ctime. It captures a
+bounded ACL representation when `getfacl` is available and explicitly reports
+that tool as unavailable otherwise. It independently pins the current
+`PIHOLE_PTR=HOSTNAMEFQDN`/absent `PIHOLE_PTR=NONE` baseline, corrected
+`domain=local.theama.co`, absence of the misspelled domain, FTL and domain
+hashes, absent Action 23c backup/transaction/runtime residue, active services,
+Node B `BACKUP`/zero-VIP state, physical dual-stack ownership, authoritative
+direct-Unbound answers, classified local Pi-hole PTR answers, HTTPS
+continuity, and identical before/after semantic snapshots.
+
+Definition hashes are:
+
+- Inspector: `8060fe05a26ef41210930beb06dec083d89c1afe862556612cb75c0f3c78f64b`.
+- Outer: `58e1e58c7375aa179959907fc368542e52e8616a14fdce354382f0f659eb969d`.
+- Regression: `a32ce36a97451ed9bd7dab6b638af3450f5b3b2002bf408ab7c6d71e982a34cd`.
+- Focused validator:
+  `b962342b0c51ef9ea5ce695e3ae2bd36b93bdb15956378e5dd609d003c05dd43`.
+- Intended-state manifest:
+  `a1a37e16620cd8a7893b6ffd0a54fb3a2d5b2ee106a08bb2371b6d741e3492f9`.
+
+The exact future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-node-b-pihole-ptr-postfailure-action23c-a-outer.sh
+```
+
+The next single gate is separate exact authorization of outer SHA-256
+`58e1e58c7375aa179959907fc368542e52e8616a14fdce354382f0f659eb969d`.
+Action 23c must not be rerun, and no correction is authorized.
+
+#### Action 23c-a deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T14:54:31-05:00`, workstation only; future
+  read-only target Node B.
+- Requested action: define, but do not execute, the independent post-failure
+  continuity and exact metadata diagnostic.
+- Authorization received: definition and workstation validation only.
+- Pre-change state: immutable Action 23c failure and rollback transcript; no
+  new node observation.
+- Exact files: inspector, outer, regression, focused validator, and manifest
+  at the hashes above.
+- Backup or rollback location: none; this action has no mutation path.
+- Exit status and validation: focused host and canonical network-disabled
+  Debian 12 validation both returned `0`.
+- Observed result: neither node was contacted and Action 23c was not rerun.
+- Decision: stop at the exact read-only outer authorization gate.
+
+#### Action 23c-a execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T15:00:33-05:00`, Node B.
+- Requested action: execute exact read-only outer SHA-256 `58e1e58c...969d`
+  once.
+- Authorization received: exact Action 23c-a execution authorization.
+- Pre-change state: immutable Action 23c pre-mutation failure; current state
+  otherwise unobserved.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-b-pihole-ptr-postfailure-action23c-a-outer.sh`.
+- Backup or rollback location: none; the action was read-only.
+- Exit status and validation: status `0`; 100/100 ordered assertions passed,
+  zero failures, first failure `none`.
+- Configuration hashes: FTL `c96c3591...e1d7b`; domain
+  `a8305acb...10f96`; before/after state `c6357b5a...c26a`.
+- Observed result: FTL metadata is `pihole:root:0664`, UID `999`, GID `0`;
+  no ACL output was available because `getfacl` is absent. No residue,
+  restart, mutation, peer SSH, or Action 23c rerun occurred.
+- Decision: accept Action 23c-a. Do not rerun Action 23c. Define a new
+  transactional successor that preserves the observed Pi-hole-managed
+  metadata rather than attempting a metadata repair.
+
+### Defined metadata-preserving Node B Pi-hole PTR policy Action 23d
+
+At `2026-08-08T15:23:47-05:00`, Action 23d was defined and validated on the
+workstation only. It is a new transactional successor to failed immutable
+Action 23c; it does not source, invoke, modify, or rerun Action 23c. The
+successor retains the same standby-first PTR-policy scope but pins the accepted
+Action 23c-a live prerequisites before SSH can reach the mutation boundary:
+
+- `/etc/pihole/pihole-FTL.conf` SHA-256
+  `c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`
+  with exact metadata `pihole:root:0664`.
+- `/etc/dnsmasq.d/local.theama.co.conf` SHA-256
+  `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`
+  with exact metadata `root:root:0644`.
+
+The transaction changes exactly one `PIHOLE_PTR=HOSTNAMEFQDN` line to
+`PIHOLE_PTR=NONE`, validates the candidate with Pi-hole FTL, installs the
+candidate atomically as `pihole:root:0664`, and invokes one bounded
+`/usr/local/bin/pihole restartdns`. Its protected backup remains
+`root:root:0600`, while rollback restores the FTL content atomically with the
+accepted `pihole:root:0664` live metadata before restarting Pi-hole DNS. The
+domain file remains a byte-for-byte read-only prerequisite. Node A, Unbound
+configuration, the domain file, VRRP, and VIP ownership remain outside the
+mutation scope.
+
+The builder derives the successor deterministically from the immutable Action
+23c driver, outer, and regression only after pinning all three exact source
+hashes. Its isolated `--output-root` mode proves reproducibility without
+overwriting tracked artifacts. Action 23d also registers both accepted live
+hashes in the canonical accepted-live-artifact and consumer manifests.
+
+Definition hashes are:
+
+- Builder: `c7f12484c0b022583c4573728f60bea87e1fb94cc7679d569acf3fdc51adb644`.
+- Driver: `dd2f8ee4ebb3d4077622059cdb658c98353796c95b83e4df44e53701702cc0ef`.
+- Regression: `803a80c9476302c34d95e8c263016a172129cc5e7c89ca77783613ecf8c3049b`.
+- Focused validator:
+  `f88350fdd6e8051945887e906f002700dc7cfcb03067b48da43c78c4b37aaf4c`.
+- Intended-state manifest:
+  `063607fde0728eb82a1aeb1eac970ac1a43cd09ba0c002075a31980e47a9e18a`.
+- Exact outer execution gate:
+  `cb0f6c291e889eaa33c64c7af1bb56bab09fb35b4e80e442f18d3f01001e9488`.
+
+The exact future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-node-b-pihole-ptr-policy-action23d-outer.sh
+```
+
+This command has not been authorized or executed. The next single gate is
+separate exact authorization of the outer hash above for one Node-B-only
+transaction. Action 23c must not be rerun, and Node A contact remains
+unauthorized.
+
+#### Action 23d deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T15:23:47-05:00`, workstation only; future
+  target Node B.
+- Requested action: define, but do not execute, a new transactional successor
+  that changes the PTR policy while preserving `pihole:root:0664`.
+- Authorization received: definition and workstation validation only; no node
+  contact or live mutation.
+- Pre-change state: accepted read-only Action 23c-a baseline; FTL hash
+  `c96c3591...e1d7b`, domain hash `a8305acb...10f96`, exact FTL metadata
+  `pihole:root:0664`, current `HOSTNAMEFQDN` policy, no Action 23c residue.
+- Exact files: Action 23d builder, driver, outer, regression, focused
+  validator, and intended-state manifest at the hashes above; canonical
+  accepted-live hash manifests updated for the two consumed prerequisites.
+- Backup or rollback location: planned protected Node B path
+  `/var/backups/caddy-ha/action23d-node-b-pihole-ptr-policy`; not created.
+- Exit status and validation: focused host and canonical network-disabled
+  Debian 12 validation each returned `0`.
+- Observed result: deterministic generation, exact metadata preservation,
+  real producer/consumer transcript acceptance, false-positive and
+  false-negative rejection, syntax, ShellCheck, canonical formatting, YAML,
+  source context, executable index mode, accepted-live-hash, explicit failure,
+  bounded output, scalar grep, portable awk, and root-working-directory
+  policies passed. Neither node was contacted; no live action ran.
+- Decision: Action 23d is defined but not executed. Stop at the exact outer
+  authorization gate; preserve Action 23c unchanged and do not rerun it.
+
+#### Action 23d execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T15:30:21-05:00`, Node B.
+- Requested action: execute exact Action 23d outer SHA-256
+  `cb0f6c291e889eaa33c64c7af1bb56bab09fb35b4e80e442f18d3f01001e9488`
+  once.
+- Authorization received: exact one-time Node-B-only transaction and its
+  built-in automatic rollback; Node A remained outside scope.
+- Pre-change state: local outer hash matched authorization; all local gates
+  passed. Remote preflight pinned FTL `c96c3591...e1d7b` at
+  `pihole:root:0664`, domain `a8305acb...10f96` at `root:root:0644`, Node B
+  `BACKUP`, zero Caddy/DNS VIPs, active services, and authoritative DNS.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-b-pihole-ptr-policy-action23d-outer.sh`.
+- Backup or rollback location:
+  `/var/backups/caddy-ha/action23d-node-b-pihole-ptr-policy`; backup creation,
+  backup hash, and manifest assertions passed. Rollback was not invoked.
+- Exit status and validation: remote transaction status `0`; outer status
+  `97`. All 131 remote assertions were true with zero failed checks and first
+  failure `none`. The outer passed status, stderr, count, and uniqueness gates
+  and failed only `ordered_checks`.
+- Configuration hashes: FTL changed from `c96c3591...e1d7b` to
+  `c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`;
+  domain remained `a8305acb...10f96`.
+- Stream evidence: remote stdout was 6,976 bytes/168 lines/SHA-256
+  `6cd734678d7cbd15bf7b825b6cb301241447ff8ec0788eed9435a1e478273092`
+  and was bounded-safe and emitted. Remote stderr was empty, zero bytes/zero
+  lines/SHA-256 `e3b0c442...b855`.
+- Observed result: exact PTR policy, FTL metadata, candidate validation,
+  Pi-hole restart, readiness on attempt 2, direct-Unbound and Pi-hole A/AAAA/PTR
+  answers, services, stable PIDs/restart counters, Node B BACKUP/zero-VIP
+  state, physical addresses, three HTTPS paths, transaction cleanup, unchanged
+  domain hash, no rollback, no Node A SSH, and no Action 23c rerun all passed.
+- Deviation/failure boundary: `emit_expected_checks` places
+  `pihole_version_capture` after `transaction_absent`, while the production
+  driver emits it immediately after `ftl_binary_executable` and before
+  `pihole_core_v5`. This one-record ordering mismatch is a workstation
+  transcript-consumer defect; it does not negate the successful remote
+  transaction but prevents outer acceptance.
+- Decision: stop. Do not rerun Action 23c or Action 23d. Define a new
+  independent fail-closed read-only Node B post-Action 23d acceptance action
+  before accepting the live state or defining a Node A successor. Remove the
+  now-executed Action 23d driver from the deployable accepted-live-hash
+  consumer registry so repository policy cannot represent it as a current
+  execution gate.
+
+### Defined independent read-only Node B post-Action 23d acceptance Action 23d-a
+
+At `2026-08-08T15:44:04-05:00`, Action 23d-a was defined and validated on the
+workstation only. It is an independent fail-closed inspection of the observed
+post-Action 23d state; it does not source or invoke either Action 23c or Action
+23d and cannot restart Pi-hole or mutate files, services, VRRP, VIPs, or DNS.
+Every remote assertion is independently labeled. The inspector requires all
+167 expected labels exactly once, true, and in their production order, with
+zero failed checks and `first_failure=none`.
+
+The acceptance contract pins:
+
+- `/etc/pihole/pihole-FTL.conf` SHA-256
+  `c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`,
+  exact metadata `pihole:root:0664`, exactly one `PIHOLE_PTR=NONE`, and no
+  `PIHOLE_PTR=HOSTNAMEFQDN`.
+- `/etc/dnsmasq.d/local.theama.co.conf` SHA-256
+  `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`
+  with exact metadata `root:root:0644` and `domain=local.theama.co`.
+- Protected backup directory
+  `/var/backups/caddy-ha/action23d-node-b-pihole-ptr-policy`, original FTL
+  SHA-256
+  `c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`,
+  and exact manifest SHA-256
+  `6edf4f9445a0e6c7ab59b401cc0a3373630238a8e850f63aea9c6b832af8fd23`.
+- Active Unbound, Pi-hole FTL, Caddy, lighttpd, and Keepalived; Node B in
+  `BACKUP`; zero Caddy and DNS VIPs on Node B; both physical addresses; exact
+  direct-Unbound and local-Pi-hole A, AAAA, IPv4 PTR, and IPv6 PTR answers;
+  and Node A, Node B, and Caddy-VIP HTTPS continuity.
+- Absence of Action 23d transaction and temporary residue, stable protected
+  backup hashes, and identical before/after semantic state.
+
+Definition hashes are:
+
+- Inspector:
+  `704cfce7656c9da3736256221e9eb865b963b026b4044794e681b7cd61156a04`.
+- Regression:
+  `c2993cb58ea481fbf453a26dd4243c06a698546d2583dd8e9a8839492bec681e`.
+- Focused validator:
+  `35cab064e30f9e099c47dc3d5fb19091bc8805cb7f1afdceeddae3685e4291f5`.
+- Intended-state manifest:
+  `35b497daad740d163c4c0f11c13e5b03698b7b91e6acc1b3c738a011f04a3859`.
+- Exact outer execution gate:
+  `45e4b5c809eafa5f748de4acf8ee0bdc0eacadd1b9e731960290aeea5f60b374`.
+
+The exact future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-node-b-pihole-ptr-postinstall-action23d-a-outer.sh
+```
+
+This command has not been authorized or executed. The next single gate is
+separate exact authorization of the outer hash above for one read-only Node B
+inspection. Action 23c and Action 23d must not be rerun; Node A contact remains
+unauthorized.
+
+#### Action 23d-a deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T15:44:04-05:00`, workstation only; future
+  read-only target Node B.
+- Requested action: define, but do not execute, an independent fail-closed
+  read-only Node B post-Action 23d acceptance action.
+- Authorization received: definition and workstation validation only; no node
+  contact or live mutation.
+- Pre-change state: Action 23d remote status `0`, all 131 transaction checks
+  true, installed FTL `c77de665...a7aa` at `pihole:root:0664`, protected
+  original backup `c96c3591...e1d7b`, unchanged domain
+  `a8305acb...10f96`, and an outer-only ordering defect. This remains reported
+  evidence rather than independently accepted live state.
+- Exact files: inspector, outer, regression, focused validator, and
+  intended-state manifest at the hashes above.
+- Backup or rollback location: none; this action is read-only. The existing
+  Action 23d protected backup is inspected but never changed.
+- Exit status and validation: focused host and canonical network-disabled
+  Debian 12 validation each returned `0`.
+- Observed result: exact source hashes, syntax, ShellCheck, canonical format,
+  YAML, self-test, read-only contract, real intercepted production transport,
+  independently labeled producer order, false-positive and false-negative
+  rejection, collision, explicit-failure, output-evidence, scalar-grep,
+  portable-awk, root-working-directory, source-context, and executable-index
+  policies passed. Neither node was contacted; Action 23c and Action 23d were
+  not rerun; no live mutation occurred.
+- Decision: Action 23d-a is defined but not executed. Stop at the exact outer
+  authorization gate above.
+
+#### Action 23d-a execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T15:47:28-05:00`, Node B.
+- Requested action: execute exact independent read-only post-Action 23d
+  acceptance outer SHA-256
+  `45e4b5c809eafa5f748de4acf8ee0bdc0eacadd1b9e731960290aeea5f60b374`
+  once.
+- Authorization received: exact one-time read-only Node B inspection; Node A
+  contact and all mutation remained unauthorized.
+- Pre-change state: local outer hash matched authorization. All local syntax,
+  source, format, regression, policy, self-test, and read-only-contract gates
+  passed before SSH.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-b-pihole-ptr-postinstall-action23d-a-outer.sh`.
+- Backup or rollback location: none; the action was read-only. Existing
+  protected Action 23d backup
+  `/var/backups/caddy-ha/action23d-node-b-pihole-ptr-policy` was inspected but
+  not modified.
+- Exit status and validation: outer and remote status `0`; all 167 exact
+  ordered assertions passed, zero failed checks, first failure `none`, and all
+  transcript-consumer validation gates passed.
+- Configuration hashes: installed FTL
+  `c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`;
+  domain `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`;
+  protected original FTL backup
+  `c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`;
+  backup manifest
+  `6edf4f9445a0e6c7ab59b401cc0a3373630238a8e850f63aea9c6b832af8fd23`;
+  before and after semantic state
+  `c97ce428ab972289feedfb9d04193323441082c3bccb722a6c474b99925b54a4`.
+- Stream evidence: remote stdout was 10,600 bytes/214 lines/SHA-256
+  `17e91f2c1d547a200eb2ab3068ad3c8c1303b12d099b55ee1cb1599796add11a`,
+  classified bounded-safe, and emitted. Remote stderr was empty, zero
+  bytes/zero lines/SHA-256 `e3b0c442...b855`.
+- Observed result: exact `pihole:root:0664` metadata and
+  `PIHOLE_PTR=NONE`, unchanged domain, exact protected backup and manifest,
+  active Unbound/Pi-hole/Caddy/lighttpd/Keepalived, Node B `BACKUP`, zero Caddy
+  and DNS VIPs, physical IPv4/IPv6 ownership, exact direct-Unbound and local-
+  Pi-hole A/AAAA/PTR answers, and all three HTTPS paths passed. Transaction and
+  temporary residue were absent; backup hashes remained stable.
+- Mutation evidence: filesystem mutation, service mutation, Pi-hole restart,
+  Action 23c rerun, Action 23d rerun, peer SSH, and Node A contact were all
+  false.
+- Decision: accept Action 23d and its independent Action 23d-a evidence. Do
+  not rerun Actions 23b, 23c, 23d, or 23d-a. Next define, but do not execute,
+  the equivalent transactional Node A Pi-hole PTR-policy correction as a new
+  successor before defining a new Node A authoritative A-record update
+  successor.
+
+### Defined transactional Node A Pi-hole PTR-policy correction Action 23e
+
+At `2026-08-08T16:02:08-05:00`, Action 23e was defined and validated on the
+workstation only. It is the active-node counterpart to accepted Node B Action
+23d, but it is a new transaction and does not source or invoke failed Action
+23b or accepted Action 23d. The later Node A authoritative A-record update is
+outside this action and must be another new successor.
+
+Action 23b-a accepted the exact Node A PTR-policy semantics but did not emit a
+full FTL-file or domain-file hash. Action 23e therefore does not invent or
+borrow Node B hashes. Before mutation it fails closed unless the FTL file is a
+regular non-symlink at `pihole:root:0664`, contains exactly one
+`PIHOLE_PTR=HOSTNAMEFQDN`, and contains no `PIHOLE_PTR=NONE`. It separately
+requires a regular non-symlink domain file at `root:root:0644`, exactly one
+`domain=local.theama.co`, and no misspelled domain. It then records the full
+preimage and domain SHA-256 values, constructs exactly one line replacement,
+and reconstructs the original byte-for-byte from the candidate before any
+mutation.
+
+The transaction:
+
+- Requires Node A hostname `j1-svpihole0`, `MASTER` state, one physical IPv4
+  and IPv6 address, and exactly one Caddy and DNS VIP per address family.
+- Requires active Unbound, Pi-hole FTL, Caddy, lighttpd, and Keepalived plus
+  exact direct-Unbound A, AAAA, IPv4 PTR, and IPv6 PTR answers before mutation.
+- Creates protected backup
+  `/var/backups/caddy-ha/action23e-node-a-pihole-ptr-policy`, including the
+  exact full preimage and a seven-line manifest with observed preimage,
+  candidate, policy, node, and domain values.
+- Installs the exact candidate atomically as `pihole:root:0664`, validates it
+  with Pi-hole FTL, runs one bounded `/usr/local/bin/pihole restartdns`, and
+  waits for authoritative PTR passthrough.
+- Revalidates direct Unbound and local Pi-hole A/AAAA/PTR answers, active
+  services, stable Unbound/Caddy/Keepalived PIDs and restart counters, Node A
+  `MASTER` and VIP ownership, all three HTTPS paths, final hashes and policy,
+  unchanged domain bytes, and absent transaction residue.
+- Restores the exact protected preimage as `pihole:root:0664`, restarts Pi-hole
+  DNS, proves the restored hash and service state, removes Action-owned
+  transient paths, and exits `125` if automatic rollback cannot be proven.
+- Emits 129 independently labeled production assertions. It reports that Node
+  B was not contacted through SSH, Actions 23b and 23d were not rerun, and
+  neither Unbound nor the domain configuration was mutated.
+
+Definition hashes are:
+
+- Transaction driver:
+  `eac76f543d34dcbca908774c2586b2e8679fde5675c6f8773e45b389af3231d7`.
+- Production regression:
+  `cdd2c3f2d5c1c13f9feebd4b4235b51e67d56d3cc52c96503f9e6a2507201be5`.
+- Focused validator:
+  `8adcfc054530f2351bd44f7b310908556173eefe3df4eb37121ab37036d11e50`.
+- Intended-state manifest:
+  `42541e35aeccdee35e7d68e8dd8e49eaca798da6065e691c00623fbada9773a3`.
+- Exact outer execution gate:
+  `02504457fbba70b412a7af0ca9ac8f532f090873a66ddee10ee6e5578ca5379e`.
+
+The exact future command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-node-a-pihole-ptr-policy-action23e-outer.sh
+```
+
+This command has not been authorized or executed. The next single gate is
+separate exact authorization of the outer hash above for one transactional
+Node A execution and its included bounded automatic rollback. Node B SSH,
+Action 23b/23d reruns, and the later A-record successor remain unauthorized.
+
+#### Action 23e deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:02:08-05:00`, workstation only; future
+  transactional target Node A.
+- Requested action: define, but do not execute, the equivalent transactional
+  Node A Pi-hole PTR-policy correction as a new successor; do not rerun failed
+  Action 23b and keep its future A-record replacement separately gated.
+- Authorization received: definition and workstation validation only; no node
+  contact, restart, DNS mutation, service mutation, or live transaction.
+- Pre-change state: accepted Action 23b-a proves Node A currently exposes
+  `PIHOLE_PTR=HOSTNAMEFQDN`, returns hostname-overridden Pi-hole PTR answers,
+  is `MASTER`, owns both Caddy and DNS VIP families, and has healthy service,
+  DNS, and HTTPS continuity. It did not expose full FTL/domain hashes.
+- Exact files: Action 23e driver, outer, regression, focused validator, and
+  intended-state manifest at the hashes above.
+- Backup or rollback location: planned protected Node A path
+  `/var/backups/caddy-ha/action23e-node-a-pihole-ptr-policy`; not created.
+- Exit status and validation: focused host and canonical network-disabled
+  Debian 12 Podman validation each returned `0`.
+- Observed result: exact hashes, syntax, ShellCheck, canonical formatting,
+  YAML, driver self-test, exact producer transcript, intercepted Node A
+  transport, source context, secure metadata, dynamic preimage capture,
+  byte-reconstructable delta, rollback, missing/duplicate/false/reordered
+  evidence, stale policy, altered domain, stderr, nonzero status, collision,
+  explicit-failure, bounded-output, scalar-grep, portable-awk, root-working-
+  directory, accepted-live-hash, and executable-index policies passed. Neither
+  node was contacted; no live action ran; Actions 23b and 23d were not rerun.
+- Decision: Action 23e is defined but not executed. Stop at its exact outer
+  authorization gate. Do not define or execute the Node A A-record successor
+  until Action 23e has separate execution and independent read-only
+  acceptance.
+
+#### Action 23e execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:12:17-05:00`, Node A.
+- Requested action: execute exact transactional Node A Pi-hole PTR-policy
+  correction outer SHA-256
+  `02504457fbba70b412a7af0ca9ac8f532f090873a66ddee10ee6e5578ca5379e`
+  once with its included bounded automatic rollback.
+- Authorization received: exact one-time Node A transaction; Node B SSH,
+  Action 23b/23d reruns, and the later A-record successor remained
+  unauthorized.
+- Pre-change state: local outer hash matched authorization. Every local source,
+  syntax, format, policy, driver self-test, and production-regression gate
+  passed before SSH.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-policy-action23e-outer.sh`.
+- Backup or rollback location: planned
+  `/var/backups/caddy-ha/action23e-node-a-pihole-ptr-policy` was not created;
+  the failure occurred before the backup boundary. The rollback handler ran,
+  found no started mutation, removed only Action-owned transient names if
+  present, and reported complete.
+- Exit status and validation: remote and outer status `1`. Node A passed all
+  command, root-working-directory, hostname, FTL regular/non-symlink,
+  `pihole:root:0664`, exactly-one `HOSTNAMEFQDN`, and no-`NONE` assertions.
+  The next independently labeled assertion, `domain_regular`, was false.
+- Stream evidence: remote stdout was 1,509 bytes/48 lines/SHA-256
+  `7714d10008aee2819e8c36c72b902cec4bc8743c8b4eb54f0ebdd80c818425bf`,
+  classified bounded-safe, and emitted. Remote stderr was 144 bytes/four
+  lines/SHA-256
+  `5c9eb96a943ed8b87258da4c7d2370bb1867b7042eee1259162d141cc8547644`,
+  classified bounded-safe, and emitted; it contains only the false
+  `domain_regular` assertion, exact failed-check label, rollback start, and
+  rollback completion.
+- Observed result: `/etc/pihole/pihole-FTL.conf` satisfied the required secure
+  metadata and old/new PTR-policy semantics. The exact configured prerequisite
+  `/etc/dnsmasq.d/local.theama.co.conf` was not a regular file. No domain-file
+  provenance, alternative path, or content was collected by this transaction.
+- Mutation boundary: failure preceded before-hash capture, service snapshots,
+  staging, backup creation, candidate creation, `mutation_started=true`, FTL
+  installation, Pi-hole restart, DNS readiness, and acceptance. Node B was not
+  contacted through SSH and neither Action 23b nor Action 23d was invoked.
+- Decision: do not accept or rerun Action 23e. Preserve its outer and all
+  emitted evidence unchanged. Next define, but do not execute, an independent
+  fail-closed read-only Node A post-failure continuity and exact dnsmasq
+  domain-file provenance action before designing a successor transaction.
+
+### Defined read-only Node A post-change acceptance Action 23e-a
+
+At `2026-08-08T16:31:26-05:00`, Action 23e-a was defined and validated on the
+workstation without contacting either HA node. It is the independent
+post-change acceptance gate required after the failed immutable Action 23e and
+before any corrected transactional successor.
+
+The action has 160 unique, ordered, independently labeled remote assertions.
+It verifies all of the following without mutation:
+
+- `/etc/pihole/pihole-FTL.conf` remains a regular non-symlink owned
+  `pihole:root:0664`, has a valid stable SHA-256, contains exactly one
+  `PIHOLE_PTR=HOSTNAMEFQDN`, and contains no `PIHOLE_PTR=NONE`.
+- `/etc/dnsmasq.d/local.theama.co.conf` is `root:root:0644`, has exact
+  SHA-256
+  `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`,
+  and contains only `domain=local.theama.co` with its final newline.
+- The obsolete extensionless `/etc/dnsmasq.d/local.theama.co` is absent.
+- `/etc/dnsmasq.d/05-pihole-custom-cname.conf` is a regular non-symlink,
+  remains `root:root:0644`, and is exactly empty with SHA-256
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- The installed Pi-hole v5 FTL binary accepts the current configuration via a
+  bounded, read-only `/usr/bin/pihole-FTL --test`. Its status and safely
+  classified stdout/stderr-derived output are captured, hashed, and emitted
+  during the same inspection.
+- The uncreated Action 23e backup, transaction candidate, `/run` stage, and
+  version residue remain absent.
+- Unbound, Pi-hole FTL, Caddy, lighttpd, and Keepalived remain active before
+  and after inspection. Node A remains `MASTER` and owns exactly one instance
+  of both Caddy VIPs, both DNS VIPs, and both physical addresses.
+- Direct Unbound and local Pi-hole return exact A, AAAA, IPv4 PTR, and IPv6
+  PTR answers for the DNS VIP and both physical nodes. HTTPS remains healthy
+  through Node A, the Caddy VIP, and Node B.
+- Exact before/after semantic snapshots and the FTL, domain, and custom-CNAME
+  hashes remain unchanged. Filesystem mutation, service mutation, Pi-hole
+  restart, Action 23b rerun, Action 23e rerun, and peer SSH must all remain
+  false.
+
+The outer captures, bounds, classifies, hashes, and emits safe stdout and
+stderr during the original action. It uses the exact streamed execution
+boundary `cd / && sudo -n /bin/bash -s --`. Its negative regression rejects
+missing or altered metadata, false or duplicate checks, changed state, an
+invalid dynamic FTL hash, incorrect deterministic file hashes, either failed
+action rerun marker, nonzero producer status, and any producer stderr.
+
+#### Action 23e-a deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:31:26-05:00`, workstation only; neither
+  HA node contacted.
+- Requested action: define, but do not execute, a read-only post-change
+  acceptance action before creating a corrected transactional successor.
+- Authorization received: definition only. Node contact, filesystem/service
+  mutation, Pi-hole restart, Action 23b/23e rerun, and successor definition or
+  execution remain unauthorized.
+- Pre-change state: Action 23e is failed immutable before mutation. Later
+  operator evidence lists the canonical `.conf` file, no extensionless file,
+  and an empty custom-CNAME file with a changed timestamp; exact content,
+  parser acceptance, service/DNS continuity, and residue remain live facts for
+  this read-only gate to establish.
+- Exact future command: `cd /home/aaron/code/homelab-server-configs` then
+  `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-outer.sh`.
+- Backup or rollback location: none; the action is read-only and creates only
+  protected workstation captures removed after bounded evidence emission.
+- Exit status and validation: definition-only focused host and network-disabled
+  Debian 12 validations returned `0`; no live execution status exists.
+- Configuration hashes: inspector
+  `ac2855a9d9d77438720ef0f072e1adacf1feb4cb21c31fbb06116dc9c60659f4`;
+  regression
+  `023660761e137360e5b5bc47d1d3eef75be564f9366011892e0677d20d5dce10`;
+  manifest
+  `5aa2d2b1b203eaca051be49c62bb79a574b2e7aeba817cbdaede2c7a59abd3a7`;
+  focused validator
+  `f7fd756290137bfd7e98f3a03cdaa3545b02311d42194b78a8dc0113a42ee9db`;
+  exact outer
+  `b865eff6e816f403d8e6a41297bd733fa2e2fca8ba283f5b8b53269396259514`.
+- Observed result: definition accepted locally. Both focused environments
+  passed syntax, ShellCheck, canonical formatting, YAML, exact hash, read-only
+  contract, production transcript, false-positive/false-negative, collision,
+  explicit-return, output-evidence, scalar-grep, portable-awk, remote-cwd,
+  source-context, and executable-index checks. The complete historical suite
+  was intentionally bypassed under the accepted focused-validation cadence.
+- Decision: stop. Action 23e-a is defined but not executed. Require separate
+  exact authorization of its outer SHA-256 before one read-only Node A
+  inspection. Do not design a corrected PTR-policy successor until Action
+  23e-a is independently accepted.
+
+#### Action 23e-a execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:34:33-05:00`, Node A only; Node B was
+  not contacted through SSH.
+- Requested action: execute exact read-only Action 23e-a outer SHA-256
+  `b865eff6e816f403d8e6a41297bd733fa2e2fca8ba283f5b8b53269396259514`
+  once.
+- Authorization received: exact one-time read-only Node A inspection. No
+  filesystem/service mutation, Pi-hole restart, Action 23b/23e rerun, Node B
+  SSH, cleanup/repair, or successor transaction was authorized.
+- Pre-change state: the local outer hash matched authorization. All 19
+  workstation gates passed before SSH, including the full production
+  regression.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-outer.sh`.
+- Backup or rollback location: none; the action was read-only. Protected
+  workstation captures were emitted when bounded-safe and then removed.
+- Exit status and validation: remote and outer status `1`. Every assertion
+  through direct-Unbound A/AAAA/PTR checks, the local Pi-hole A/AAAA checks,
+  and `local_pihole_ptr4_status`/`local_pihole_ptr4_safe` passed. The first
+  false assertion was `local_pihole_ptr4_exact`.
+- Stream evidence: remote stdout was 7,332 bytes/152 lines/SHA-256
+  `c45ff3e4db11702e0471233ae20e1308f058a16387d6c0511876ac2e8197ee61`,
+  classified bounded-safe and emitted. Remote stderr was 99 bytes/two
+  lines/SHA-256
+  `bca6067490cb68aad9d26fa5c6a6edceaa567b682d4ca6ae91d3a2200b2134b4`,
+  classified bounded-safe and emitted; it contains only the false assertion
+  and exact failed-check label.
+- Observed values: the FTL file was `pihole:root:0664`, 186 bytes, with exactly
+  one `PIHOLE_PTR=HOSTNAMEFQDN` and no `PIHOLE_PTR=NONE`; its final SHA-256 was
+  not emitted because the read-only inspector stopped before its final summary.
+  The domain file passed exact metadata/content/hash checks. The obsolete
+  extensionless file was absent. The custom-CNAME file was exactly empty. The
+  Pi-hole v5 parser returned `dnsmasq: syntax check OK.` with output SHA-256
+  `a8c2903791dfc54375bce16d28613e6824af36e28a040c203fca2b8dfe8c356b`.
+  Action 23e backup, transaction, and stage residue were absent. All five
+  services were active; Node A was `MASTER` and owned both Caddy VIPs, both DNS
+  VIPs, and both physical addresses.
+- PTR response-path evidence: direct Unbound returned
+  `pihole.local.theama.co.` for IPv4 DNS VIP `10.1.0.55`. Local Pi-hole returned
+  `j1-svpihole0.local.theama.co.` for the same address. This is consistent with
+  the configured `PIHOLE_PTR=HOSTNAMEFQDN` answering-server policy and is a
+  validator expectation mismatch, not evidence of an invalid dnsmasq file.
+- Mutation boundary: the inspector contains no mutation operations and did not
+  restart Pi-hole or rerun Actions 23b/23e. It stopped before the remaining
+  local PTR checks, HTTPS checks, after-state checks, and final stable-hash
+  summary, so those later assertions are not accepted from this execution.
+- Decision: do not accept or rerun Action 23e-a. Preserve its outer and emitted
+  evidence unchanged. Define an append-only corrected read-only successor that
+  distinguishes the canonical direct-Unbound VIP PTR from the node-specific
+  Pi-hole `HOSTNAMEFQDN` PTR response before designing any transaction.
+
+### Defined corrected read-only Node A post-change Action 23e-a retry
+
+At `2026-08-08T16:42:56-05:00`, an append-only Action 23e-a retry was defined
+and validated on the workstation without contacting either HA node. Executed
+Action 23e-a and all of its evidence remain unchanged.
+
+The successor preserves the 160 unique, ordered, independently labeled remote
+assertions and changes only the DNS-VIP PTR response-path contract:
+
+- Direct Unbound IPv4 and IPv6 DNS-VIP PTR responses must both equal
+  `pihole.local.theama.co.`.
+- Node A local Pi-hole IPv4 and IPv6 DNS-VIP PTR responses must both equal
+  `j1-svpihole0.local.theama.co.` under `PIHOLE_PTR=HOSTNAMEFQDN`.
+- The production `ptr_expectation_matches` function rejects Node A's hostname
+  on the direct-Unbound path; rejects the canonical VIP name on the local
+  Pi-hole path; and rejects `j1-svpihole00.local.theama.co.` and `pi.hole.` on
+  both paths.
+- Regression coverage verifies that all four live query call sites—direct and
+  local, IPv4 and IPv6—invoke that exact production policy function.
+
+All prior read-only filesystem, Pi-hole parser, residue, service, MASTER/VIP,
+node-specific DNS, HTTPS, stable-hash, before/after-state, bounded-output, and
+no-mutation gates remain in force. The successor also emits an explicit
+`action_23e_a_rerun=false` marker and rejects a producer claiming otherwise.
+
+#### Action 23e-a retry deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:42:56-05:00`, workstation only; neither
+  HA node contacted.
+- Requested action: define, but do not execute, an append-only corrected
+  read-only successor with separate direct-Unbound and local-Pi-hole DNS-VIP
+  PTR expectations and negative coverage.
+- Authorization received: definition only. Node contact, Action 23e-a rerun,
+  filesystem/service mutation, Pi-hole restart, and successor transactions
+  remain unauthorized.
+- Pre-change state: Action 23e-a is failed immutable at
+  `local_pihole_ptr4_exact`; its bounded evidence proves direct Unbound returned
+  the canonical VIP name while local Pi-hole returned Node A's FQDN.
+- Exact future command: `cd /home/aaron/code/homelab-server-configs` then
+  `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-retry-outer.sh`.
+- Backup or rollback location: none; the action is read-only and creates only
+  protected workstation captures removed after bounded evidence emission.
+- Exit status and validation: focused host and network-disabled Debian 12
+  suites returned `0`; no live execution status exists.
+- Configuration hashes: inspector
+  `a4d0e3e060060c831898ccd6aac4ae01f22cb055700b0cac82057aa25d1a2e9a`;
+  regression
+  `fc9ffc9aac5c48a4f9b6191b03533b5012449a7bc3a6b5b05e3831d328f1b3b6`;
+  manifest
+  `6b32b9c09568973ce9e7014a7eefbc1169f0dac6638af6561132785b84f413ca`;
+  focused validator
+  `cd91349a0eb6e024a4be7200e77f448ec907e9aa6e058c90b76a19a87b777b04`;
+  exact outer
+  `fc677453ecfbafd4928e06ea0f682ede56ef103666540938dc7db79e56c5afad`.
+- Observed result: definition accepted locally. Positive production-policy
+  cases and all Node-B, generic, and cross-path negative cases passed. Syntax,
+  ShellCheck, canonical formatting, YAML, exact hashes, read-only contract,
+  full transcript regression, false-positive/false-negative, collision,
+  explicit-return, output-evidence, scalar-grep, portable-awk, remote-cwd,
+  source-context, and executable-index checks passed in both focused
+  environments. The complete historical suite was intentionally bypassed.
+- Decision: stop. Require separate exact authorization of the new outer before
+  one read-only Node A execution. Do not design either corrected transaction
+  until this read-only successor is independently accepted.
+
+#### Action 23e-a retry execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:45:24-05:00`, Node A only; Node B was
+  not contacted through SSH.
+- Requested action: execute exact corrected read-only Action 23e-a retry outer
+  SHA-256
+  `fc677453ecfbafd4928e06ea0f682ede56ef103666540938dc7db79e56c5afad`
+  once.
+- Authorization received: exact one-time read-only Node A inspection. No
+  filesystem/service mutation, Pi-hole restart, historical-action rerun, Node
+  B SSH, cleanup/repair, or transactional successor was authorized.
+- Pre-change state: all 19 workstation gates passed before SSH, including the
+  corrected production-policy regression and immutable source hashes.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-retry-outer.sh`.
+- Backup or rollback location: none; the action was read-only. Protected
+  workstation captures were bounded, classified, emitted, and removed.
+- Exit status and validation: remote and outer status `1`. Both direct-Unbound
+  DNS-VIP PTR checks and both corrected local-Pi-hole DNS-VIP PTR checks passed.
+  The first false assertion was `local_node_a_ptr4_exact`.
+- Stream evidence: remote stdout was 8,690 bytes/160 lines/SHA-256
+  `ea73e124ab599a6b700d264ae81067548e6949931482dd651bd911222d5a9331`,
+  classified bounded-safe and emitted. Remote stderr was 111 bytes/two
+  lines/SHA-256
+  `9e9e6bbec82dd9a5d5fad83752bbcaab04fe3ade37d5a4f2f0558edee50e8f3a`,
+  classified bounded-safe and emitted; it contains only the false assertion
+  and exact failed-check label.
+- Observed PTR values: direct Unbound returned `pihole.local.theama.co.` for
+  both DNS VIP families and `pihole0.local.theama.co.` for both physical Node A
+  families. Local Pi-hole returned `j1-svpihole0.local.theama.co.` for both DNS
+  VIP families and for physical Node A IPv4 `10.1.0.53`. This establishes that
+  Pi-hole v5 `PIHOLE_PTR=HOSTNAMEFQDN` overrides PTR presentation for every
+  address locally owned by the answering node, not only the DNS VIP.
+- Other observed continuity: the exact FTL metadata/policy, domain file,
+  obsolete-path absence, empty custom-CNAME file, Pi-hole parser, Action 23e
+  residue absence, five active services, Node A `MASTER` state, all VIP and
+  physical-address ownership, all direct-Unbound records, local A/AAAA records,
+  and local DNS-VIP PTR records passed before the failure.
+- Mutation boundary: the inspector contains no mutation operations and did not
+  restart Pi-hole or rerun any historical action. It stopped before local Node
+  A IPv6 PTR, Node B PTR, HTTPS, after-state, and final stable-hash assertions;
+  those later assertions remain unaccepted.
+- Decision: do not accept or rerun Action 23e-a retry. Preserve its outer and
+  evidence unchanged. Define append-only read-only Action 23e-a retry2 with a
+  unified Node-A-local-address `HOSTNAMEFQDN` policy and direct-Unbound
+  canonical-name policy before any transaction is designed.
+
+### Defined corrected read-only Node A post-change Action 23e-a retry2
+
+At `2026-08-08T16:56:25-05:00`, append-only Action 23e-a retry2 was defined
+and validated on the workstation without contacting either HA node. All
+executed predecessors and their evidence remain unchanged.
+
+The successor preserves the 160 unique, ordered remote assertions and defines
+three distinct PTR identities:
+
+- Host FQDN: `j1-svpihole0.local.theama.co.`.
+- Pi-hole management FQDN: `pihole0.local.theama.co.`.
+- DNS VIP FQDN: `pihole.local.theama.co.`.
+
+Direct Unbound must return the DNS VIP FQDN for both DNS VIP address families
+and the Pi-hole management FQDN for both physical Node A address families.
+Local Pi-hole must return the host FQDN for the DNS VIP and physical Node A,
+for both IPv4 and IPv6. Local Node B PTR queries retain their canonical
+`pihole00.local.theama.co.` expectations because those addresses are not owned
+by Node A.
+
+The production policy regression pins all eight affected query call sites. It
+accepts only the correct identity in each response path and rejects the DNS
+VIP, management, and host identities when crossed; both Node B management and
+host FQDNs; `pi.hole.`; and an unknown policy. The full remaining Node B PTR,
+HTTPS, after-state, and stable-hash gates remain present. Explicit markers
+prohibit rerunning Actions 23b, 23e, 23e-a, and 23e-a retry.
+
+#### Action 23e-a retry2 deployment-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:56:25-05:00`, workstation only; neither
+  HA node contacted.
+- Requested action: define, but do not execute, append-only Action 23e-a
+  retry2 with exact host, management, and DNS-VIP identities, complete
+  IPv4/IPv6 coverage, remaining continuity checks, and negative coverage.
+- Authorization received: definition only. Node contact, historical-action
+  rerun, filesystem/service mutation, Pi-hole restart, and transaction design
+  or execution remain unauthorized.
+- Pre-change state: Action 23e-a retry is failed immutable at
+  `local_node_a_ptr4_exact`, proving `HOSTNAMEFQDN` applies to every address
+  locally owned by Node A.
+- Exact future command: `cd /home/aaron/code/homelab-server-configs` then
+  `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-retry2-outer.sh`.
+- Backup or rollback location: none; the action is read-only and creates only
+  protected workstation captures removed after bounded evidence emission.
+- Exit status and validation: focused host and network-disabled Debian 12
+  suites returned `0`; no live execution status exists.
+- Configuration hashes: inspector
+  `af7d5bb3fc942eabe497a0a308a3b5a23c2c2e548e820fac3f09c8c11e3c3100`;
+  regression
+  `2d2e51030dcd012f96e51af47760c2eeb43dc9b3f89312406bc95ce2909d6b17`;
+  manifest
+  `f40e537aae382bb3187e04b6e03c146adb014f4e5add2abd8f6a34446e212663`;
+  focused validator
+  `84539282485375439bf7966355cf0969df2bad7ef03821665ec75ba0468bf2e1`;
+  exact outer
+  `96b4aa66df88f0344256bf51f7b3ec5b4f7404d0182fcdadd09129a04374c1f1`.
+- Observed result: definition accepted locally. All positive identities, all
+  eight production query call sites, all Node B/generic/cross-path negatives,
+  full transcript cases, source hashes, syntax, ShellCheck, canonical format,
+  YAML, read-only contract, collision, explicit-return, output-evidence,
+  scalar-grep, portable-awk, remote-cwd, source-context, and executable-index
+  checks passed in both focused environments. The complete historical suite
+  was intentionally bypassed.
+- Decision: stop. Require separate exact authorization of the retry2 outer
+  before one read-only Node A execution. No transaction may be designed until
+  this gate is independently accepted.
+
+#### Action 23e-a retry2 execution-journal checkpoint
+
+- Timestamp and node: `2026-08-08T16:58:59-05:00`, Node A only; Node B was
+  not contacted through SSH.
+- Requested action: execute exact read-only Action 23e-a retry2 outer SHA-256
+  `96b4aa66df88f0344256bf51f7b3ec5b4f7404d0182fcdadd09129a04374c1f1`
+  once.
+- Authorization received: exact one-time read-only Node A inspection. No
+  mutation, restart, historical-action rerun, Node B SSH, cleanup/repair, or
+  transaction was authorized.
+- Pre-change state: all 19 workstation gates passed before SSH, including the
+  three-identity production-policy regression and exact source hashes.
+- Exact command: `/bin/bash
+  Caddy/scripts/run-node-a-pihole-ptr-postchange-action23e-a-retry2-outer.sh`.
+- Backup or rollback location: none; the action was read-only. Protected
+  workstation captures were bounded, classified, emitted, and removed.
+- Exit status and validation: remote and outer status `0`. All 160 exact,
+  unique, ordered remote assertions passed; failed-check count was `0`; first
+  failure was `none`; every outer transcript assertion passed.
+- Stream evidence: remote stdout was 11,820 bytes/212 lines/SHA-256
+  `8b9f6e5c4d0731d10558a1dd7ade71fdb4ac8c1a4e274727578bed72614de285`,
+  classified bounded-safe and emitted. Remote stderr was empty, zero bytes and
+  zero lines, SHA-256
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- Accepted file values: FTL SHA-256
+  `c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`,
+  `pihole:root:0664`, exactly one `PIHOLE_PTR=HOSTNAMEFQDN`, no
+  `PIHOLE_PTR=NONE`; domain SHA-256
+  `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`;
+  empty custom-CNAME SHA-256
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`;
+  parser output `dnsmasq: syntax check OK.` and SHA-256
+  `a8c2903791dfc54375bce16d28613e6824af36e28a040c203fca2b8dfe8c356b`.
+- Accepted PTR behavior: direct Unbound returned
+  `pihole.local.theama.co.` for both DNS VIP families,
+  `pihole0.local.theama.co.` for both physical Node A families, and
+  `pihole00.local.theama.co.` for both physical Node B families. Local Pi-hole
+  returned `j1-svpihole0.local.theama.co.` for both DNS VIP and both physical
+  Node A families, and canonical `pihole00.local.theama.co.` for both Node B
+  families.
+- Accepted continuity: all five services were active before and after; Node A
+  remained `MASTER` and retained exactly one instance of both Caddy VIPs, both
+  DNS VIPs, and both physical addresses; Node A, Caddy VIP, and Node B HTTPS
+  probes passed; Action 23e backup, transaction, and stage residue were absent.
+  Before and after semantic state SHA-256 values were both
+  `de51e1cdd993428a303a716e5dbf6f1f41d0e05803d1efece4be91fba7eabb4a`.
+- Mutation boundary: filesystem mutation, service mutation, Pi-hole restart,
+  peer SSH, and every historical-action rerun marker were false.
+- Decision: accept Action 23e-a retry2 as the independent Node A baseline.
+  Preserve it as immutable and do not rerun it. The next gate is definition
+  only of a new transactional Node A PTR-policy successor; no transaction is
+  yet authorized.
+
 ## Validation Evidence
+
+At `2026-08-08T23:33:36-05:00`, exact authorized read-only Action 26c-a
+returned `0` and is accepted. All 17 local gates, 43 inspector assertions, and
+12 outer validations passed. Exact `.wslconfig`, protected absent-state
+manifest and metadata, transaction-residue absence, WSL configuration, and
+resolver symlink/content passed independently. WSL remained in NAT mode and
+the Caddy ULA route returned status `2` with exact network-unreachable stderr,
+confirming no premature activation. Core stdout was 3,538 bytes/75 lines/SHA-256
+`05babc3e084ffbd32c264ec887757bba2eee9a45b57550400f95c83e728cb248`;
+stderr was empty. No WSL shutdown, LAN packet, node contact, or mutation occurred.
+
+At `2026-08-08T23:31:32-05:00`, independent read-only Action 26c-a passed
+focused host and canonical network-disabled Debian 12 validation with status
+`0`. Its future inspector requires exact installed candidate and protected
+absent-state manifest content/metadata, no transaction residue, the accepted
+WSL kernel and `/etc/wsl.conf`, exact `/etc/resolv.conf` symlink and canonical
+resolver bytes, current mode `nat`, and Caddy ULA route status `2` with exact
+network-unreachable evidence. Regression rejected altered target, manifest,
+resolver, premature mirrored activation, route appearance, and residue. Exact
+future outer SHA-256 is
+`f2a8b14d08b6783b170192fd9a3da3484f7046d5868d464d62b7ccfb5bbbcb90`.
+No live acceptance, shutdown, node contact, LAN probe, or mutation occurred.
+
+At `2026-08-08T23:23:20-05:00`, exact authorized inactive Action 26c
+returned `0` and is accepted as an inactive installation. All 17 local gates,
+28 transaction checks, and 13 transcript validations passed. Preinstall mode
+was `nat`; both absent baselines were exact. The installed `.wslconfig` matched
+candidate SHA-256
+`6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7`,
+and the protected absent-state manifest passed exact action, baseline, hash,
+and `0700`/`0600` metadata gates. Core stdout was 1,489 bytes/36 lines/SHA-256
+`afdfae4cac8c7b5b0f78409ee1bee0a3d23f9f1188476ff020a598fae0ebf928`;
+stderr was empty. WSL shutdown, activation, firewall/DNS mutation, LAN probing,
+and node contact did not occur. Running WSL remains NAT until a later gate.
+
+At `2026-08-08T23:20:47-05:00`, inactive transactional Action 26c passed
+focused host and canonical network-disabled Debian 12 validation with status
+`0`. Current read-only metadata showed WSL 2.9.4.0, Windows build 26300.9032,
+and absent Windows user `.wslconfig`. The candidate contains only `[wsl2]`
+and `networkingMode=mirrored`, SHA-256
+`6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7`.
+Regression proved exact inactive install, protected absent-state evidence,
+forced-failure rollback, concurrent/pre-existing target preservation, and
+explicit absence of WSL shutdown, resolver changes, Windows firewall changes,
+node transport, and LAN probes. Exact future outer SHA-256 is
+`2c02b10f4d8ef5dcee3a9d240d10aed33c1451a9bdd92b5677cc69cfdc685e99`.
+No candidate was installed and no live state changed.
+
+The user's separate report that both nodes now use IPv4 resolver `10.1.0.1`
+instead of `10.1.0.55` remains unverified as a dual-node current-state fact.
+Earlier accepted evidence confirms Node A used the router, but does not identify
+the configuration manager or change source and does not establish current Node
+B state. Action 26c cannot inspect or change either node. Resolver provenance
+and correction remain a separate authorization sequence.
+
+At `2026-08-08T23:09:16-05:00`, exact authorized read-only Action 26b
+returned `0` and is accepted. WSL2 kernel `6.18.35.2` reported networking mode
+`nat`; `eth0` had only link-local address `fe80::215:5dff:fe41:80b/64`.
+The IPv6 route table contained link-local, local, and multicast entries but no
+default or `fd36:5aa8:6971:1::/64` route. The exact Caddy VIP route lookup
+returned status `2` and `RTNETLINK answers: Network is unreachable`. IPv6 was
+enabled globally and on `eth0`, with `accept_ra=1` and forwarding disabled.
+The exact classification was `wsl_nat_no_ula_route`. All 17 local gates, 40
+core assertions, and 15 outer validations passed. Core stdout was 14,684
+bytes/259 lines/SHA-256
+`88484c1d4b948a340e8e47d119f0e61648a64bce20fc5e3856ba28fd7d651efc`;
+stderr was empty. No DNS query, LAN probe, SSH, or persistent mutation occurred.
+
+At `2026-08-08T23:04:26-05:00`, definition-only Action 26b passed focused
+host and canonical network-disabled Debian 12 validation with status `0`.
+The future local-only diagnostic records WSL/kernel identity, resolver-file
+provenance without querying it, the IPv4-selected interface, IPv6 addresses,
+routes and rules, the exact Caddy ULA route result, relevant sysctls, and WSL
+networking mode. Production fixtures proved NAT, mirrored, unknown-mode,
+IPv6-disabled, and ULA-route-present classifications plus exact command
+boundaries and fail-closed transcript handling. Exact future outer SHA-256 is
+`a97e43703862f75132b7272d43db137b6e1b65daf92505835d97d2e7deb5b6b4`.
+No DNS query, network probe, SSH, or persistent mutation occurred.
+
+User-supplied workstation evidence independently confirms that Windows uses
+Pi-hole `10.1.0.55` and resolves the Pi-hole and Caddy VIP names to the correct
+IPv4 and IPv6 addresses. WSL can also query `10.1.0.55` over IPv4 and receive
+external AAAA answers. The corrected reverse command `dig -x
+fd36:5aa8:6971:1::56` returned authoritative PTR
+`proxy.local.theama.co.` through WSL DNS proxy `10.255.255.254` in 12 ms. The
+earlier literal-name form was not an IPv6 transport or reverse-DNS test. These
+facts separate healthy DNS resolution from Action 26a's missing LAN ULA route.
+
+At `2026-08-08T22:51:33-05:00`, exact authorized read-only Action 26a
+completed successfully and is accepted as diagnostic evidence. Workstation
+route queries for Node A `fd36:5aa8:6971:1::53`, Node B `::54`, and Caddy VIP
+`::56` each returned status `2` with `RTNETLINK answers: Network is
+unreachable`. Neighbor state was empty before and after all probes. All three
+HTTP/1.1 probes still ran and each returned curl status `7`, protocol `0`,
+HTTP `000`, empty remote IP, zero body bytes, and zero redirects. The exact
+classification was `vip_route_missing`. All 40 core checks and 18 outer
+validations passed. Core stdout was 13,118 bytes/223 lines/SHA-256
+`988e5f96e986f85b33c243847e87b1237ce94bf975a3a6f00a916321cdeb3943`;
+core stderr was empty. This is positive evidence of a workstation/WSL LAN-ULA
+network-path blocker and rules out a Caddy-VIP-specific failure at this
+boundary. No SSH or persistent mutation occurred.
+
+At `2026-08-08T22:47:53-05:00`, read-only workstation Action 26a passed
+focused host and canonical network-disabled Debian 12 validation with status
+`0`. Its future direct-IP diagnostic records routes and selected sources for
+Node A, Node B, and the Caddy IPv6 VIP; captures neighbor state before and
+after; and runs all three bounded HTTP/1.1 health probes even when one fails.
+Regression proved healthy-VIP, missing-route, VIP-specific-failure, and
+workstation-wide-failure classifications and exact invocation counts, and
+rejected incomplete, false, duplicate, unknown, stderr, and nonzero-status
+evidence. Exact future outer SHA-256 is
+`5d7f2c485c8862e188708ce52eba6ac3fd31522fa9e782bc859022fb7f552f15`.
+No live IPv6 endpoint or node was contacted and no state changed.
+
+Also at `2026-08-08T22:47:53-05:00`, user-supplied Node A evidence showed
+its default resolver is `10.1.0.1` and returned public-zone NXDOMAIN for the
+private Caddy name. This confirms resolver drift but is not an Action 26 cause
+because Action 26 bypassed DNS. Supplied Keepalived lines also show isolated
+`check-dns` failures that recover one second later and one overlapping run.
+The repository schedules the helper every one second, allows three seconds,
+and performs two sequential one-second DNS queries, so overlap is possible.
+With `fall 3`, these isolated lines alone do not prove a VRRP transition.
+
+At `2026-08-08T22:31:17-05:00`, exact authorized read-only Action 26
+stopped fail-closed during its second live probe and is not accepted. All
+workstation gates passed, and the pinned HTTP/3 client built with status `0`
+and empty stdout/stderr. HTTP/1.1 over IPv4 passed with protocol `1.1`, HTTP
+`204`, exact remote IP `10.1.0.56`, zero body bytes, zero redirects, and empty
+stderr. HTTP/1.1 over IPv6 failed before HTTP negotiation: curl returned `7`
+for `fd36:5aa8:6971:1::56`, reported protocol `0`, status `000`, and no remote
+IP, and emitted bounded-safe stderr stating that it could not connect to port
+443. HTTP/2 and HTTP/3 were not reached and remain unproven. Core stdout was
+3,298 bytes/71 lines/SHA-256
+`df10ca5c0395ee40aa7a34f939d18a0d68ce0d0f20018023e2b52616496ea835`;
+core stderr was 45 bytes/one line/SHA-256
+`6434200caf1d345c56e48019f2ad97d8ffd1393cb22877736b513c130549a834`.
+No SSH or persistent mutation occurred. Preserve the executed outer unchanged;
+the next gate is definition only of a narrow read-only IPv6 Caddy-VIP
+response-path diagnostic.
+
+At `2026-08-08T22:26:50-05:00`, read-only workstation Action 26 passed
+focused host and canonical network-disabled Debian 12 validation with status
+`0`. Its six exact future probes cover HTTP/1.1, HTTP/2, and HTTP/3 over
+both Caddy VIP address families. Curl is forced for HTTP/1.1 and HTTP/2; a
+pinned `quic-go` v0.61.0 client directly dials the selected VIP over QUIC/UDP
+while retaining `proxy.local.theama.co` as TLS SNI and HTTP authority. Every
+probe requires HTTP `204`, exact protocol and remote address, zero redirects,
+zero body bytes, successful command status, empty stderr, and bounded-safe
+evidence emitted before evaluation. Regression covered the exact production
+arguments and rejected missing, false, duplicate, reordered, extra, altered,
+stderr, and nonzero-status evidence. The exact future outer is
+`58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc`.
+Neither node nor VIP was contacted and no live state changed. Mitmproxy is
+reserved for an optional follow-up diagnostic because it would introduce an
+intermediary protocol and certificate boundary into the acceptance path.
+
+At `2026-08-08T21:52:26-05:00`, exact authorized append-only read-only
+Action 25 retry2 returned `0` and was accepted. Both nodes completed 101/101
+independently labeled checks and six endpoint probes. Across all twelve
+shared and node-specific IPv4/IPv6 requests, `/admin/` followed exactly one
+HTTPS same-origin redirect to `/admin/login.php`, returned final HTTP `200`
+from the exact intended address, and returned bounded Pi-hole v5 login
+content. Node A content was 7,120 bytes/SHA-256 `5812f057...d0cd`; Node B
+content was 7,117 bytes/SHA-256 `cfd85ce1...8a82`. Node A remained MASTER
+with four Caddy/DNS VIPs, Node B remained BACKUP with zero VIPs, accepted
+configuration and service checks passed, before/after state was unchanged,
+both stderr streams were empty, and every mutation indicator was false.
+
+At `2026-08-08T21:46:16-05:00`, append-only bounded-redirect read-only
+Action 25 retry2 passed focused host and canonical network-disabled Debian 12
+validation with status `0`. The production-function regression proved exact
+HTTP/1.1, HTTPS-only redirect, three-redirect ceiling, original `/admin/`
+path, one redirect, final `/admin/login.php`, final HTTP `200`, exact
+IPv4/IPv6 remote address, and bounded Pi-hole content. Every safe observation
+is emitted before evaluation. Non-200, two-redirect, wrong-final-URL,
+credential/API, transcript, stderr, and nonzero-status cases are rejected.
+Both executed predecessor generations remain byte-identical. Neither node was
+contacted and no live HTTP request or mutation occurred.
+
+At `2026-08-08T21:35:06-05:00`, user-supplied output from a manually
+executed Node A curl command established the shared-IPv4 redirect contract.
+The exact Caddy VIP route followed one HTTPS redirect from `/admin/` to
+`/admin/login.php`, returned final HTTP `200`, retained remote IP
+`10.1.0.56`, and returned the branded Node A Pi-hole v5 login page. The
+supplied transcript is 7,688 bytes/145 lines/SHA-256
+`d7be512c...d1a3`. This is supplemental evidence for one endpoint, not
+dual-stack or dual-node Action 25 acceptance.
+
+At `2026-08-08T21:27:20-05:00`, exact authorized append-only corrected
+read-only Action 25 retry returned `1` and was not accepted. All workstation
+gates passed. Node A passed its 26 accepted pre-state assertions and emitted
+the complete safe first-probe observation before evaluation: HTTP `302`,
+effective URL `https://pihole-admin.local.theama.co/admin/`, remote IP
+`10.1.0.56`, empty body, SHA-256 `e3b0c442...b855`, bounded-safe
+classification, and Pi-hole marker false. The independently labeled
+`shared_ipv4_http_200` assertion then failed. Node B was not contacted, and
+no live mutation occurred. The redirect target was not captured and is not
+inferred.
+
+At `2026-08-08T21:19:00-05:00`, the append-only corrected read-only Action
+25 retry passed focused host and canonical network-disabled Debian 12
+validation with status `0`. Its production-function regression exercised a
+successful response and a safe HTTP 403 response. For the rejected response,
+command status, bounded-safe output, HTTP status, effective URL, remote IP,
+body byte count and SHA-256, body classification, and Pi-hole marker were
+emitted before the independently labeled HTTP-200 assertion failed. Complete
+dual-node success transcripts and missing, false, duplicate, reordered, extra,
+stderr, and nonzero-status evidence were handled fail-closed. Neither node was
+contacted and no live HTTP request or mutation occurred.
+
+At `2026-08-08T20:58:59-05:00`, exact authorized read-only Action 25 returned
+`1` and was not accepted. Node A passed accepted hashes, active services,
+MASTER/four-VIP pre-state, and the first shared-IPv4 curl command, output
+safety, and metadata-presence checks before `shared_ipv4_http_200` failed.
+The inspector did not emit the parsed response metadata before that assertion,
+so the actual status and associated safe values are unavailable. Node B was
+not contacted. The read-only action performed no live mutation.
+
+At `2026-08-08T20:55:15-05:00`, definition-only read-only Action 25 passed
+focused host and canonical network-disabled Debian 12 validation with status
+`0`. Its production regression exercised exact curl arguments for HTTPS
+`/admin/`, HTTP/1.1, `--resolve`, IPv6, and bounded timeouts. Both 95-check
+node contracts, six endpoints per node, bounded evidence, unchanged-state
+requirements, and negative transcript cases passed. Neither node was contacted
+and no live HTTP probe or state change occurred.
+
+At `2026-08-08T20:32:24-05:00`, exact authorized read-only Action 24 retry
+returned `0` and was accepted. Both nodes passed all 118 checks, including
+every A, AAAA, PTR, and SRV response through direct Unbound and local Pi-hole.
+All sixteen observed PTR answers were emitted and exact. Node A remained
+MASTER with four Caddy/DNS VIPs; Node B remained BACKUP with zero VIPs. Both
+before/after hashes matched, all services remained active, and every stderr
+stream was empty. No live state changed.
+
+At `2026-08-08T20:23:39-05:00`, definition-only Action 24 retry passed focused
+host and canonical network-disabled Debian 12 validation with status `0`. The
+append-only retry preserves the executed original artifacts and corrects only
+the PTR command boundary to `dig -x ADDRESS`. Its production regression
+intercepts the actual command and requires one `-x`, the exact address, and no
+literal `PTR` argument. It retains all 118 checks per node and emits sixteen
+bounded safe observed PTR answers during the same run. Neither node was
+contacted and no live state changed.
+
+At `2026-08-08T19:50:50-05:00`, exact authorized read-only Action 24 returned
+`1` and was not accepted. Node A passed accepted hashes, service state,
+MASTER/four-VIP pre-state, and all A/AAAA checks before the inspector's first
+PTR exact-answer assertion failed. The implemented `dig ADDRESS PTR` form is
+not a valid reverse lookup; corrected execution must use `dig -x ADDRESS`.
+Node B was not contacted. The read-only inspector performed no mutation.
+
+At `2026-08-08T19:45:01-05:00`, definition-only Action 24 passed focused host
+and canonical network-disabled Debian 12 validation with status `0`. Both
+118-check node inventories and all 72 DNS query assertions per node were
+validated through intercepted production transport. Exact A/AAAA/PTR/SRV
+answers, accepted hashes, MASTER/BACKUP and VIP expectations, bounded evidence,
+before/after continuity, and repository policies passed. Missing, false, extra,
+reordered, and altered transcripts were rejected. Neither node was contacted
+and no live state changed.
+
+At `2026-08-08T19:25:48-05:00`, exact authorized Action 23m returned `0`.
+All workstation gates and all 173 independently labeled Node A assertions
+passed. Node A installed local-zone `fa9f4850...569c`; direct Unbound returned
+the HTTPS SRV record on iteration 1 and local Pi-hole on iteration 2. Retained
+SMTP SRV, A/AAAA/PTR, Pi-hole, HTTPS, service, PID/restart, MASTER/four-VIP,
+metadata, backup, and residue checks passed. Stderr was empty, rollback did not
+run, and Node B was contacted only through its HTTPS continuity endpoint.
+
+At `2026-08-08T19:22:26-05:00`, definition-only Action 23m passed focused
+host and canonical network-disabled Debian 12 validation with status `0`.
+Exact source, accepted-parent, candidate, action-file, transcript, rollback,
+DNS-label, executable-mode, and accepted-live consumer assertions passed. The
+production regression proved the Node A `.53`/`pihole0` transport, MASTER plus
+four-VIP contract, one-SRV-only delta, direct-Unbound and local-Pi-hole SRV
+readiness, retained SMTP SRV/A/AAAA/PTR controls, bounded stdout/stderr
+classification, and rejection of malformed evidence or predecessor execution.
+Neither node was contacted and no live state changed.
+
+At `2026-08-08T16:58:59-05:00`, exact authorized read-only Action 23e-a
+retry2 returned `0`. All 160 remote checks and every outer transcript gate
+passed. Exact FTL/domain/custom-CNAME hashes, Pi-hole parser acceptance, all
+direct and local A/AAAA/PTR answers, all three HTTPS paths, service and
+MASTER/VIP continuity, residue absence, and identical before/after state were
+accepted. Stderr was empty. No live state changed and Node B was not contacted
+through SSH.
+
+At `2026-08-08T16:56:25-05:00`, definition-only Action 23e-a retry2 passed
+focused host and network-disabled Debian 12 validation with status `0`. The
+three identity classes, eight IPv4/IPv6 production call sites, and all Node B,
+generic, and cross-path negative cases passed. Neither node was contacted and
+no live action ran. Exact future outer SHA-256 is
+`96b4aa66df88f0344256bf51f7b3ec5b4f7404d0182fcdadd09129a04374c1f1`.
+
+At `2026-08-08T16:45:24-05:00`, exact authorized read-only Action 23e-a retry
+returned `1` and is immutable. The corrected IPv4/IPv6 DNS-VIP response-path
+contract passed. Direct Unbound also returned canonical
+`pihole0.local.theama.co.` for Node A's physical addresses, but local Pi-hole
+returned `j1-svpihole0.local.theama.co.` for physical IPv4 `10.1.0.53`, causing
+the first failure at `local_node_a_ptr4_exact`. This is the same intended
+`PIHOLE_PTR=HOSTNAMEFQDN` behavior now proven across locally owned address
+classes. No mutation, restart, historical-action rerun, or Node B SSH occurred.
+
+At `2026-08-08T16:42:56-05:00`, definition-only Action 23e-a retry passed its
+focused host and network-disabled Debian 12 suites with status `0`. The exact
+production policy accepts canonical direct-Unbound and Node-A local-Pi-hole
+VIP PTR answers for both address families and rejects Node B, `pi.hole`, and
+cross-path substitutions. Neither node was contacted and no live action or
+mutation ran. Exact future outer SHA-256 is
+`fc677453ecfbafd4928e06ea0f682ede56ef103666540938dc7db79e56c5afad`.
+
+At `2026-08-08T16:34:33-05:00`, exact authorized read-only Action 23e-a
+returned `1` and is immutable. All workstation gates passed. Node A confirmed
+the exact domain file, absence of its obsolete predecessor, empty custom-CNAME
+file, successful Pi-hole v5 parser, absent Action 23e residue, active services,
+MASTER/VIP ownership, and exact direct-Unbound DNS answers. It then rejected
+the local Pi-hole IPv4 DNS-VIP PTR response because the validator expected the
+canonical Unbound name `pihole.local.theama.co.`, while Pi-hole's configured
+`PIHOLE_PTR=HOSTNAMEFQDN` policy returned the answering node
+`j1-svpihole0.local.theama.co.`. No mutation or restart occurred. Remaining
+post-failure assertions were not reached and are not accepted.
+
+At `2026-08-08T16:31:26-05:00`, definition-only Action 23e-a passed its
+focused host and network-disabled Debian 12 validation suites with status `0`.
+The 160-label contract and all negative transcript cases passed. Neither node
+was contacted, no Pi-hole parser was run on a live node, no file or service
+changed, and Actions 23b and 23e were not rerun. Exact future outer SHA-256 is
+`b865eff6e816f403d8e6a41297bd733fa2e2fca8ba283f5b8b53269396259514`.
+
+At `2026-08-08T16:18:20-05:00`, a second operator-supplied Node A
+`ls -lha /etc/dnsmasq.d` listing shows
+`/etc/dnsmasq.d/local.theama.co.conf` as `root:root:0644`, 23 bytes,
+timestamped `2026-08-04 13:53`, and no extensionless `local.theama.co`. This is
+a live pathname-state change after failed Action 23e and resolves the path
+spelling that caused `domain_regular=false`; it does not authorize rerunning
+the immutable action. The same listing shows `05-pihole-custom-cname.conf`
+still empty but timestamped `16:17`, whereas the prior listing showed `15:45`.
+No cause, content hash, effective dnsmasq load, service restart, DNS behavior,
+or transaction-residue conclusion is inferred from either timestamp.
+
+At `2026-08-08T16:17:01-05:00`, the operator supplied a direct Node A
+`ls -lha /etc/dnsmasq.d` listing. It contains
+`/etc/dnsmasq.d/local.theama.co` as `root:root:0644`, 23 bytes, timestamped
+`2026-08-04 13:53`, and contains no listed
+`/etc/dnsmasq.d/local.theama.co.conf`. This explains Action 23e's
+`domain_regular=false` without requiring another transaction attempt. A
+directory listing does not establish the file's exact bytes, SHA-256, parser
+inclusion, or effective dnsmasq/Pi-hole configuration; those remain the exact
+read-only provenance boundary for the next action.
+
+At `2026-08-08T16:12:17-05:00`, exact authorized Action 23e returned `1` and
+is not accepted. All workstation gates passed. The Node A producer passed the
+complete command, identity, working-directory, hostname, FTL file, secure
+metadata, and exact old/new PTR-policy preflight, then failed only
+`domain_regular`: `/etc/dnsmasq.d/local.theama.co.conf` was not a regular file.
+The failure occurred before hash capture, service snapshots, stage or backup
+creation, mutation, Pi-hole restart, and DNS readiness. The automatic rollback
+handler reported complete. Both bounded-safe streams were captured and emitted
+during the action. No alternative dnsmasq path or file content was inferred;
+read-only provenance and continuity evidence are required before defining a
+corrected transaction.
+
+At `2026-08-08T16:02:08-05:00`, Action 23e passed focused host and canonical
+network-disabled Debian 12 Podman validation with status `0` in both
+environments. The real producer contract exposes 129 unique ordered labels.
+The intercepted transport accepted its exact success transcript and rejected
+missing, duplicate, false, altered-domain, stale-policy, stderr, and nonzero
+evidence. Static and production-path checks prove the Node A target, root
+working directory, dynamic full-preimage/domain hash capture, exact reversible
+one-line delta, secure metadata, protected backup, automatic rollback, Node A
+MASTER/VIP requirements, and the absence of Action 23b/23d invocation. All
+applicable repository policies passed. The complete historical suite was
+bypassed under the accepted focused-validation cadence. Neither HA node was
+contacted and no live action ran.
+
+At `2026-08-08T15:47:28-05:00`, exact authorized read-only Action 23d-a
+returned `0` and is accepted. All 167 independently labeled assertions passed
+in exact order with zero failures and first failure `none`. The installed FTL,
+domain, original protected backup, and backup manifest matched their exact
+hashes; FTL metadata was `pihole:root:0664`; `PIHOLE_PTR=NONE` occurred exactly
+once and `HOSTNAMEFQDN` was absent. Node B remained `BACKUP` with zero Caddy
+and DNS VIPs, all required services were active, direct-Unbound and local-
+Pi-hole A/AAAA/PTR answers were exact, and Node A, Node B, and Caddy-VIP HTTPS
+paths passed. Before and after semantic state hashes were identical at
+`c97ce428...b54a`. Remote stdout was bounded-safe and emitted; remote stderr
+was empty. No filesystem or service mutation, Pi-hole restart, peer SSH, Node A
+contact, or Action 23c/23d rerun occurred.
+
+At `2026-08-08T15:44:04-05:00`, Action 23d-a passed focused host and canonical
+network-disabled Debian 12 Podman validation with status `0` in both
+environments. Its intercepted production regression accepted the exact
+167-label producer transcript and rejected missing metadata, altered metadata,
+false, missing, duplicate, and reordered checks, changed state, stale FTL
+hash, nonzero status, stderr, and any claim that Action 23c or Action 23d was
+rerun. All applicable repository policies passed. The complete historical
+suite was bypassed under the accepted focused-validation cadence. Neither HA
+node was contacted and no live action ran.
+
+At `2026-08-08T15:30:21-05:00`, authorized Action 23d completed the intended
+Node B mutation but its outer returned `97` due solely to an exact label-order
+consumer defect. The remote producer returned `0`, emitted all 131 expected
+labels exactly once and true, reported zero failed checks and first failure
+`none`, changed only the FTL policy to `PIHOLE_PTR=NONE`, preserved
+`pihole:root:0664`, retained its protected backup, restarted Pi-hole DNS,
+passed PTR readiness on attempt 2, and proved service, DNS, VRRP/VIP, HTTPS,
+domain-file, and cleanup continuity. The outer's diff shows one moved label:
+actual `pihole_version_capture` occurs before `pihole_core_v5`; its static
+expected inventory incorrectly places it after `transaction_absent`. No
+rollback, Node A SSH, Unbound/domain mutation, or Action 23c rerun occurred.
+Action 23d must not be rerun; independent read-only post-install acceptance is
+required next.
+
+At `2026-08-08T15:23:47-05:00`, Action 23d passed its focused host and
+canonical network-disabled Debian 12 Podman validation slices with status `0`
+in both environments. The deterministic builder reproduced the exact driver,
+regression, and outer hashes in an isolated temporary output root. The real
+transport fixture accepted the exact ordered producer transcript and rejected
+missing, duplicate, false, misspelled-domain, stale-PTR-policy, stderr, and
+nonzero-status evidence. All applicable repository policies passed, including
+the accepted-live hash registry for the exact Action 23c-a FTL and domain
+hashes. The complete historical suite was bypassed under the accepted focused
+validation cadence. Neither node was contacted, Action 23c was not rerun, and
+Action 23d was not executed.
+
+At `2026-08-08T15:00:33-05:00`, exact authorized read-only Action 23c-a
+returned `0` and is accepted. All 100 independently labeled assertions passed
+with zero failures and first failure `none`. Exact FTL metadata is owner
+`pihole`, group `root`, UID `999`, GID `0`, octal mode `0664`, and symbolic
+mode `-rw-rw-r--`; FTL SHA-256 is
+`c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`.
+`getfacl` is absent and was explicitly classified rather than inferred. The
+domain file hash is
+`a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`;
+it contains the corrected `domain=local.theama.co` and no misspelled domain.
+
+The current FTL policy remains exactly `PIHOLE_PTR=HOSTNAMEFQDN`, and
+`PIHOLE_PTR=NONE` remains absent. Direct Unbound returned exact authoritative
+A, AAAA, IPv4 PTR, and IPv6 PTR answers for the DNS VIP and Node B. Local
+Pi-hole returned `pihole.local.theama.co.` for the DNS VIP IPv4 PTR and
+`j1-svpihole00.local.theama.co.` for Node B's physical IPv4 PTR. All services,
+BACKUP state, zero Caddy/DNS VIP ownership, physical dual-stack ownership,
+three HTTPS paths, and Action 23c residue-absence assertions passed before and
+after. Semantic state remained exactly
+`c6357b5a77685022bb1de873552e81f8fb917cff8e812465a333628206abc26a`.
+Remote stdout was 6,310 bytes/130 lines/SHA-256
+`f186eb616aa9b66948c63acc09429c93748fb142be9d693e9dbddeb9c62ffeec`;
+stderr was empty. No filesystem or service mutation, Pi-hole restart, Node A
+contact, or Action 23c rerun occurred.
+
+At `2026-08-08T14:54:31-05:00`, Action 23c-a passed focused host and canonical
+network-disabled Debian 12 validation with status `0` in both environments.
+The regression accepted the exact ordered production transcript and rejected
+missing or malformed FTL metadata, false or duplicate assertions, changed
+state, any claim that Action 23c reran, stderr, and nonzero transport. Syntax,
+ShellCheck, canonical formatting, YAML, source context, executable index mode,
+root working-directory transport, readonly/local collision, explicit
+conditional failure, bounded output evidence, scalar grep, and portable awk
+policies passed. The complete historical suite was bypassed. No node was
+contacted and no live action ran.
+
+At `2026-08-08T14:34:44-05:00`, exact authorized Action 23c returned `1`
+and is not accepted. Every workstation gate passed. Node B passed the first
+25 independently labeled remote assertions through `ftl_not_symlink`, then
+failed only `ftl_metadata`; the transaction required
+`/etc/pihole/pihole-FTL.conf` metadata `root:root:0644`, while the actual value
+was not emitted by this immutable action. Mutation had not started. The
+bounded rollback path ran and reported complete; no candidate installation,
+Pi-hole restart, PTR-policy change, Unbound change, or Node A contact
+occurred. Remote stdout was 1,388 bytes/45 lines/SHA-256
+`cc4197a68ae6298777818bc9071bb62e35050791d1de2401024ff5605675241e`;
+remote stderr was 140 bytes/four lines/SHA-256
+`ab6b7370f3a8718e1608cc8a98072a026e26e56118f0b1742bac5c9802e8e980`.
+Both streams were bounded-safe and emitted during the original action. The
+executed outer and Action 23c artifacts are immutable and must not be rerun or
+modified. The next deployment gate is definition only of an independent,
+fail-closed, read-only Node B post-failure continuity and exact FTL metadata
+diagnostic.
+
+At `2026-08-08T14:26:40-05:00`, Action 23c passed the focused host and
+canonical network-disabled Debian 12 validation slices with status `0` in
+both environments. Syntax, ShellCheck, canonical formatting, YAML, executable
+index modes, source context, root working-directory transport, readonly/local
+collision, explicit conditional failures, output evidence, scalar grep, and
+portable awk policies passed. Production-path regression accepted the exact
+ordered successful transcript and rejected missing, duplicate, false,
+misspelled-domain, stale-PTR-policy, nonzero-status, and stderr evidence. The
+complete historical suite was bypassed under the accepted validation cadence.
+No node was contacted and no live action ran.
+
+At `2026-08-08T13:53:12-05:00`, exact authorized read-only Action 23b-a
+returned `0`. All 223 unique ordered assertions passed with zero failures,
+first failure `none`, and identical semantic state
+`e7124d62201a4b2f9e576e6e398c3d1651348c2a5f00805fc78fbc90f18bcd04`
+before and after. Direct Unbound returned exact A, AAAA, IPv4 PTR, and IPv6
+PTR values for DNS VIP identity `pihole.local.theama.co` at `.55/::55` and
+Node A identity `pihole0.local.theama.co` at `.53/::53`. All Pi-hole forward
+answers were exact. Every Pi-hole listener returned
+`j1-svpihole0.local.theama.co.` for all four reverse queries. Bounded safe
+provenance found no relevant address mapping in `/etc/hosts`, but found
+`PIHOLE_PTR=HOSTNAMEFQDN` in Pi-hole FTL configuration. Restored local-zone
+hash `c70f7097...dbb4`, protected backup/manifest, zero residue, services,
+MASTER state, Caddy/DNS VIPs, physical addresses, and HTTPS continuity all
+passed. Remote stdout was 17,686 bytes/328 lines/
+`e0c31524a51ab99becd72d7d67ec95f2119edae9337418699c755ce46aa6dcb6`;
+stderr was empty. The action changed no live state and did not contact Node B.
+
+At `2026-08-08T13:46:25-05:00`, Action 23b-a passed focused workstation
+and canonical network-disabled Debian 12 validation without contacting either
+HA node. Its 223 unique ordered assertions pin the restored Node A local-zone,
+failed-Action-23b backup and manifest, residue absence, services, VRRP/VIP and
+physical-address ownership, and identical before/after semantic state. The
+future read-only action queries the DNS VIP identity
+`pihole.local.theama.co` at `10.1.0.55` and
+`fd36:5aa8:6971:1::55`, plus Node A identity
+`pihole0.local.theama.co` at `10.1.0.53` and
+`fd36:5aa8:6971:1::53`. It checks A, AAAA, IPv4 PTR, and IPv6 PTR through
+direct Unbound, local Pi-hole, both DNS VIP listeners, and both physical
+listeners. Direct Unbound is authoritative and fail-closed for all eight
+records; Pi-hole forward records remain exact, while consistent Pi-hole PTR
+answers are safely classified against bounded local-host, Pi-hole v5, and
+dnsmasq provenance. Regression accepted the valid production transcript and
+rejected false, missing, duplicate, reordered, changed-state, changed-hash,
+invalid or missing PTR classification, stderr, and nonzero-status evidence.
+Exact future outer is
+`5789142b1f6ce0a5edf9dbe987a3d98eaaaba1f58e3fa3281974d7760fb60d88`.
+The complete historical suite remained bypassed under the accepted cadence.
+
+At `2026-08-08T13:23:49-05:00`, exact authorized Action 23b returned `1`
+after a fail-closed local Pi-hole PTR mismatch and completed automatic rollback.
+The exact candidate, parser, backup, atomic switch, Unbound reload, Pi-hole v5
+reset, both new A records, all direct-Unbound controls, and local Pi-hole A and
+AAAA controls passed. Direct Unbound returned `pihole.local.theama.co.` for
+`10.1.0.55`; local Pi-hole returned safe value
+`j1-svpihole0.local.theama.co.`. The corrected readiness probe emitted no false
+ERR diagnostics for expected retries. Rollback restored `c70f7097...dbb4`,
+reloaded Unbound, reset Pi-hole, preserved active services and Unbound
+PID/restarts, removed transaction residue, and completed successfully. Captured
+stdout was 7,180 bytes/156 lines/`35aeeb29...6941`; stderr was 965 bytes/19
+lines/`2c175dca...2ed8`. No rerun or corrective mutation is indicated before an
+independent read-only continuity and response-path diagnostic.
+
+At `2026-08-08T13:19:45-05:00`, Action 23b passed its focused workstation
+and canonical network-disabled Debian 12 validation. Both runs returned `0`
+and passed exact hashes, syntax, ShellCheck, canonical formatting, YAML,
+native combined Unbound parsing, exact source/candidate delta, intercepted
+Node A transport, ordered transcript, rollback contract, bounded stream,
+accepted-live hash, and repository policy gates. The production readiness
+function observed an expected status `9` without firing its inherited ERR trap,
+then accepted exact success `10.1.0.56`; no `set +/-e` toggle remains in the
+probe collector. Parser suppression remains internal to the parser helper, so
+the `candidate_parser` label is visible. Neither node was contacted, no DNS or
+service mutation occurred, and the complete historical suite remained bypassed
+under the accepted cadence. Exact future outer is
+`4a4340908592044c01928ca0ede85a352ac58df90f31b9e7071e8d4e99729674`.
+
+At `2026-08-08T13:10:22-05:00`, exact authorized workstation-only Action
+23a-a transcript-consumer correction returned `0`. All nine correction gates
+and 22 unchanged transcript-validator assertions passed. Exact captured stdout
+`98c0d305...3021`, empty captured stderr, the sole missing parser label,
+one-label insertion, ordered 93-label contract, zero failures, installed hash
+`b0c6549c...6160`, backup, unchanged state `20805a7c...d85a`, and all no-
+mutation markers passed. Validator stdout was bounded-safe at 1,176 bytes,
+22 lines, SHA-256 `f1454cf0...9530`; validator stderr was empty. Neither node
+was contacted. Accepted-live bookkeeping now records Node B local-zone
+`b0c6549c...6160` at Action 23a-a, and its policy passes.
+
+At `2026-08-08T13:08:30-05:00`, the workstation-only Action 23a-a
+transcript-consumer correction passed focused host and canonical network-
+disabled Debian 12 validation. It reproduced the captured stdout exactly at
+5,790 bytes, 114 lines, and SHA-256 `98c0d305...3021`; classified the sole
+missing expected label as `unbound_configuration_valid`; proved the immutable
+source's fail-closed redirection and ordering; inserted only that label; and
+passed the unchanged Action 23a-a transcript validator. Regression rejected
+altered, missing, duplicate, false, and wrong-missing captures. Neither node
+was contacted, neither prior action was rerun, no mutation occurred, and the
+complete historical suite remained bypassed.
+
+At `2026-08-08T13:00:48-05:00`, exact authorized read-only Action 23a-a
+inspector returned `0`, reported 93 internal checks, zero failures, and first
+failure `none`. Installed hash `b0c6549c...6160`, exact records and absence
+constraints, retained backup and manifest, zero residue, services, BACKUP and
+zero-VIP state, ten DNS paths, HTTPS endpoints, and identical state
+`20805a7c...d85a` passed. Remote stderr was empty. The outer returned `97`
+because command-level redirection suppressed the successful
+`unbound_configuration_valid=true` label, leaving 92 visible labels. Since
+`record_check` is fail-closed and later checks ran, the parser command returned
+`0`. The already-emitted stdout is sufficient for a workstation-only consumer
+correction; no node diagnostic or rerun is indicated.
+
+At `2026-08-08T12:57:56-05:00`, independent read-only Action 23a-a passed
+focused workstation and canonical network-disabled Debian 12 validation. Its
+93 unique ordered labels cover the installed file and exact record scope,
+native live parser, protected backup and manifest, residue absence, services,
+stable HA/VIP state, ten independently labeled DNS paths and controls, HTTPS
+continuity, and identical deterministic before/after state. The regression
+executes one complete intercepted SSH production path, then uses the same
+transcript consumer for fast negative cases. It rejects missing, duplicate,
+false, reordered, changed-state, changed-hash, stderr, and nonzero-status
+evidence. Neither node was contacted, Action 23a was not rerun, and no live
+mutation or complete historical suite occurred.
+
+At `2026-08-08T12:37:29-05:00`, exact authorized Action 23a outer
+`1ef7e9c09b957218f4e2324dab846eba8d88ba02bcd1744d680d534c7a038389`
+ran once. Its Node B producer returned `0`, passed all 116 independently
+labeled checks, and emitted `action_23a_acceptance=true`. The final local-zone
+hash was `b0c6549c...6160`; both new A records resolved through direct Unbound
+and local Pi-hole, and all record controls, services, PID/restart checks,
+backup checks, and HTTPS continuity checks passed. The outer nevertheless
+returned `1`: three expected unsuccessful readiness attempts for each of two
+Pi-hole-path queries returned status `9` and inherited ERR traps emitted six
+bounded-safe diagnostic groups to stderr before later attempts succeeded.
+This is an outer observability/acceptance defect, not evidence of a producer
+or DNS failure. Independent read-only acceptance is required before advancing
+the accepted-live manifest.
+
+At `2026-08-08T12:34:44-05:00`, Action 23a passed its focused workstation
+suite and the same focused slice in the canonical network-disabled Debian 12
+Podman environment. The checks covered the exact two-record candidate delta,
+combined Unbound parser contract, transactional and rollback sequencing,
+Pi-hole v5 cache reset ordering, all independently labeled query gates,
+intercepted production transport, bounded stdout/stderr evidence, transcript
+positive and negative cases, repository shell policies, and executable index
+modes. Both environments proved that neither HA node was contacted and no
+mutation occurred. The complete historical suite remained bypassed under the
+accepted validation cadence.
 
 Repository-only definition results in this section are not live-deployment
 evidence. Rows explicitly labeled as executions record validated live evidence.
 
 | Date | Scope | Command | Result |
 | --- | --- | --- | --- |
+| 2026-08-08T10:33:55-05:00 | Exact independent read-only Node B post-Action 20o retry2 acceptance Action 20o-b execution | Authorized `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postactivation-action20o-b-outer.sh`, exact SHA-256 `5ad88ca05ab3450914d444ae27a83cbb891e5aadbadaa24939f1e2947c97a1ff`; one read-only Node B execution | Returned `0`. All 14 local gates and 85/85 ordered remote assertions passed. Installed main `5480e699...1393`, exact fragment/helper, active services, stable PID/restarts, BACKUP, successful address queries, zero Caddy/DNS VIPs, runtime Keepalived DBus name, exact VRID 110/111 flat objects, both `Backup` properties, both HTTPS probes, zero retry2 residue, and normalized state equality `889d5382...b6f5` passed. Remote stdout `92078fd5...b268`; stderr empty. No helper invocation, Node A SSH contact, reload/restart, mutation, VRRP transition, or VIP change occurred |
+| 2026-08-08T10:09:47-05:00 | Exact corrected transactional Node B Keepalived DBus activation Action 20o retry2 execution | Authorized `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-action20o-retry2-outer.sh`, exact SHA-256 `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`; one Node-B-only transaction outside the LAN-restricted sandbox | Returned `0`. All local gates, 99/99 producer checks, exact transcript, candidate install, reload, journal, runtime bus name, flat Caddy DBus objects, both `Backup` states, services, stable PID/restarts, zero Caddy/DNS VIPs, hashes, helper contexts, and endpoint checks passed. Remote stdout `5b11381f...172e`; stderr empty. No rollback, restart, Node A SSH contact, VRRP transition, or VIP mutation occurred |
+| 2026-08-08T10:00:02-05:00 | Corrected transactional Node B Keepalived DBus activation Action 20o retry2 definition | `/bin/bash Caddy/tests/action20o-retry2-focused-validation.sh` on the workstation, then through `/bin/bash Caddy/tests/run-focused-container.sh Caddy/tests/action20o-retry2-focused-validation.sh` in the canonical network-disabled Debian 12 container; neither HA node contacted | Both returned `0`. Accepted-live manifest reconciliation, exact current-main/source/candidate/helper pins, 99 unique ordered checks, 23 unique local gates, valid fail-closed `ip -o -4/-6`, exact flat `busctl --list tree` paths, Unicode-tree rejection, bounded capture contracts, archive-staged production transport, rollback structure, and negative transcript controls passed. Exact future outer is `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`; all node-contact, execution, reload/restart, DBus, service/filesystem, VRRP, and VIP mutation markers were false |
+| 2026-08-08T09:36:24-05:00 | Exact append-only corrected read-only Action 20o-a retry execution | Authorized `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-retry-outer.sh`, exact SHA-256 `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc`; one read-only Node B execution | Returned `0`. All local gates, 63/63 remote assertions, exact transcript, restored-main/DBus-absence/services/BACKUP/address/zero-VIP/HTTPS/residue/hash checks, normalized state equality `e29c243e...053e`, and no-mutation assertions passed. Stdout `bb6ae4f0...86a6`; stderr empty. Node B rollback continuity is accepted |
+| 2026-08-08T09:33:47-05:00 | Append-only corrected read-only Action 20o-a retry definition | `/bin/bash Caddy/tests/action20o-a-retry-focused-validation.sh` on the workstation, then through `/bin/bash Caddy/tests/run-focused-container.sh Caddy/tests/action20o-a-retry-focused-validation.sh` in the canonical network-disabled Debian 12 container; neither HA node contacted | Both returned `0`. Immutable historical hashes, exact retry derivation, `$3 == busctl`-only exclusion, retained Keepalived bus name and object path, 63 ordered checks, raw evidence preservation, query-failure/reordering rejection, exact root-cwd intercepted transport, and all no-mutation markers passed. Exact future outer is `057ee3ddb5287d5f3b82b1671235d465815651053f95a6fb8fca7f19993395cc` |
 | 2026-08-06T23:41:10-05:00 | Exact read-only Node B post-rollback Action 20o-a execution | Authorized `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-postrollback-action20o-a-outer.sh`, exact SHA-256 `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20`; one read-only Node B execution | Returned `1` with 62/63 checks true. Restored main, runtime DBus absence, all services, BACKUP, valid IPv4/IPv6 queries, zero Caddy/DNS VIPs, both HTTPS continuity probes, zero residue, stable PID/restarts, and unchanged hashes passed. Only aggregate state equality failed because the two DBus list observations necessarily contained different transient `busctl` client identities. Stdout `865a3b9d...ef68`; stderr empty; every mutation marker false |
 | 2026-08-06T23:25:24-05:00 | Read-only Node B post-rollback Action 20o-a definition | `/bin/bash Caddy/tests/action20o-a-focused-validation.sh` on the workstation, then through `/bin/bash Caddy/tests/run-focused-container.sh Caddy/tests/action20o-a-focused-validation.sh` in the canonical network-disabled Debian 12 container; neither HA node contacted | Both returned `0`. Exact valid `ip -o -4/-6` forms, nonzero-query false-positive rejection, 63 unique ordered producer labels, bounded safe stream emission, exact root-cwd intercepted SSH path, restored-main/DBus/BACKUP/zero-VIP/HTTPS/residue contracts, reordered-label rejection, and no-mutation markers passed. Exact future outer is `602bd70eafa21240eb7000f1f41fbb3d5bc7bdee88f755da52ea8e93b9824b20` |
 | 2026-08-06T23:00:23-05:00 | Exact append-only corrected transactional Action 20o retry execution | Authorized `/bin/bash Caddy/scripts/run-node-b-keepalived-dbus-action20o-retry-outer.sh`, exact SHA-256 `799442774f62d00b29290aa6b6a7b7a1e6d6e54df7a705fa552dc3c8cde81836`; one Node-B-only execution outside the LAN-restricted sandbox | Returned `1` after reload and rollback. All 19 local and first 51 remote checks passed. Reload returned `0`; journal recorded DBus acquisition; DBus list contained `org.keepalived.Vrrp1`. `busctl tree` returned `0` but its 699-byte Unicode tree was rejected by the ASCII stream classifier. Rollback reload returned `0` and aggregate rollback reported complete. Repeated invalid `ip -o "4"/"6"` errors mean zero-VIP assertions are unproven. Remote stdout `192b6ef3...eec1`; stderr `3aedd469...a13`; define independent read-only rollback acceptance before correction |
@@ -21359,8 +23089,821 @@ Selected repository hashes at validation:
 | 2026-08-06T17:11:21-05:00 | Workstation-only append-only Action 20i-a retry transcript-consumer correction definition | Operator authorized definition only, changing only the stale self-test hash while retaining assertion, ordering, status, capture, and negative controls; workstation artifact construction followed by focused host and canonical network-disabled Debian 12 validation | Both focused validations returned `0`. Immutable executed retry outer `6d5d6164...ec10`, generated inspector `7497358b...9423`, consumer `d5b91e60...c961`, regression `8ecbbe8f...d799`, and all historical artifacts remain unchanged. Exact captured fixture is 7036 bytes/111 lines/SHA-256 `29bf6526...9186`. Append-only builder `d9eece3f...3c72` derives corrected consumer `120b185b...68b4` by replacing its sole stale `47a637e472df...8b76` token with independently recomputed `47a637e48be2...8b76`; reverse transformation reproduces the immutable source byte-for-byte. Corrected regression `c088790f...23a6` changes only its two corresponding hash tokens plus mechanical successor names and retains positive, false-positive, false-negative, assertion, status, capture, changed-state, stderr, and intercepted-production controls. The exact fixture hash is the ordering boundary and a reordered fixture is rejected. Focused validator is `e77d6574...68b7`; exact future workstation-only boundary is `7d48e4f7ab1b0de37d78ae36c8d8e4724643229cdefa209f1da12e5624cbd772`. Neither node was contacted, no SSH or live action ran, no complete historical suite ran, and no mutation occurred. Node B activation remains unauthorized. Next require separate exact authorization to execute this workstation-only boundary once |
 | 2026-08-06T17:14:47-05:00 | Exact workstation-only Action 20i-a retry transcript-consumer correction execution | Authorized `/bin/bash Caddy/scripts/run-action20i-a-retry-transcript-consumer-correction.sh`, SHA-256 `7d48e4f7ab1b0de37d78ae36c8d8e4724643229cdefa209f1da12e5624cbd772`; one workstation-only execution | Returned `0` and accepted. All independently labeled static, immutable-source, builder, generated-source, regression, exact-fixture, ordering, and transcript gates passed. Builder stdout was 1658 bytes/19 lines/SHA-256 `3ed62b8b...da41`; regression stdout was 2589 bytes/30 lines/SHA-256 `f97f633e...a4cf`; corrected transcript-consumer stdout was 62 bytes/one line/SHA-256 `807d11d0...ecc5`. Every stream was captured and classified during the action; all stdout was bounded-safe and all stderr was empty. Corrected consumer `120b185b...68b4` accepted exact producer fixture `29bf6526...9186` and status `0`; regression retained the assertion, status, capture, false-positive, false-negative, changed-state, stderr, and intercepted-production controls, while the exact fixture ordering gate rejected reordered evidence. Both node-contact markers, SSH invocation, live action, persistent mutation, and Node B activation were false. Action 20i and independent Action 20i-a are accepted. Node B activation remains unauthorized. Next require definition only of the transactional Node B Caddy VRRP activation action |
 | 2026-08-06 operator-supplied evidence | Node A interval health-helper termination and flapping classification | Read-only supplied journal excerpt; no command or node contact by Codex | The excerpt records repeated `Track script check_caddy is already running`, alternating return `1`/`0`, and instrumented `event=terminated ... stage=validation signal=TERM ... total_elapsed_ms=4000`, followed by Keepalived status `143` and recovery `0`. This conclusively correlates the intermittent failure with full Caddy validation exceeding the interval execution boundary. It supports the approved deployment deviation: VRRP checks service plus endpoint only, while full validation remains mandatory at configuration installation/reload. No live state was changed by reviewing this evidence |
+| 2026-08-08T17:19:25-05:00 | Transactional Node A Pi-hole PTR-policy successor Action 23f definition | Workstation-only definition based on accepted Action 23e-a retry2 and accepted Node B Actions 23d/23d-a; focused host and canonical network-disabled Debian 12 validation; no outer execution | Both focused validations returned `0`. Exact accepted preimage hashes are registered centrally and consumed by the driver. The transaction changes only the single PTR-policy line, preserves `pihole:root:0664`, keeps the exact domain file read-only, validates Pi-hole v5 and live configuration, performs one bounded `restartdns`, verifies direct-Unbound and Pi-hole DNS plus HA/HTTPS continuity, and uses a protected byte-exact backup with automatic restore/restart or manual-intervention status `125`. Regression accepts the exact producer contract and rejects missing, duplicate, false, altered-domain, stale-policy, stderr, and nonzero evidence. Driver `8bf33ff6...f96c`; outer `0ce6a224...9fb0`; regression `47f6c526...402a`; focused validator `ad670313...1689`; manifest `e24f67ea...d70`. Actions 23b, 23d, 23e, and all 23e-a variants remain immutable and non-runnable. Neither node was contacted, no Pi-hole reset occurred, and no live state changed |
+| 2026-08-08T17:24:30-05:00 | Exact transactional Node A Pi-hole PTR-policy successor Action 23f execution | Authorized `/bin/bash Caddy/scripts/run-node-a-pihole-ptr-policy-action23f-outer.sh`, SHA-256 `0ce6a2248abfa985fa5c70c6f8c7011e9bf24d5ec42133e7ccbb956541f59fb0`; one Node-A-only execution outside the LAN-restricted sandbox | Remote transaction passed 131/131 assertions and emitted acceptance true. FTL changed from `c96c3591...e1d7b` to `c77de665...a7aa` with `PIHOLE_PTR=NONE`, metadata remained `pihole:root:0664`, domain remained `a8305acb...10f96`, Pi-hole v5 reset and readiness succeeded, all DNS/HTTPS/service/MASTER/VIP/PID/residue checks passed, protected backup was retained, and rollback was false. Remote stdout was 7,157 bytes/173 lines/`c1792b95...3e50`; stderr was empty. Outer returned `97` only because its expected-label inventory ordered `pihole_version_capture` after `transaction_absent` while the producer emitted it earlier; exact counts and uniqueness passed. No Node B contact occurred. Do not rerun Action 23f. Define an independent read-only acceptance successor before updating accepted-live state or continuing to the Node A A-record transaction |
+| 2026-08-08T17:34:02-05:00 | Independent read-only Node A post-Action 23f acceptance Action 23f-a definition | Workstation-only definition based on the complete Action 23f producer evidence and accepted Node B Actions 23d/23d-a; focused host and canonical network-disabled Debian 12 validation; no outer execution | Both focused validations returned `0`. The inspector has independently labeled exact FTL/domain/backup/manifest, metadata, Pi-hole v5 version, FTL parser, residue, service, MASTER/VIP, physical-address, direct/local DNS, HTTPS, stable-backup, and before/after-state gates. It emits bounded safe query, version, parser, ACL, and state evidence; contains no restart or mutation path; contacts no peer; and declares Actions 23e/23f non-runnable. Regression accepts the exact production transcript and rejects missing/altered metadata, false/duplicate labels, changed state, wrong FTL hash, forbidden rerun markers, stderr, and nonzero status. Inspector `e9e4d64c...b9cd`; outer `b04f7b4a...0f46`; regression `cc272903...78a4`; focused validator `35d26c13...aacc`; manifest `4ad74d4b...e188`. Neither node was contacted and no live state changed. The next gate is separate exact authorization of the read-only outer |
+| 2026-08-08T17:38:46-05:00 | Independent read-only Node A post-Action 23f acceptance Action 23f-a execution | Authorized `/bin/bash Caddy/scripts/run-node-a-pihole-ptr-postinstall-action23f-a-outer.sh`, SHA-256 `b04f7b4a063ffd6ea2116128955aefc088bb9c2c3e0add055256f11bda900f46`; one Node-A-only execution outside the LAN-restricted sandbox | Outer returned `0`; all 177 unique ordered assertions passed, zero failed, first failure `none`, and stderr was empty. Exact FTL/domain/backup/manifest hashes and metadata, `PIHOLE_PTR=NONE`, Pi-hole v5 versions and parser, zero transaction/stage/version residue, active services, MASTER and all Caddy/DNS VIPs, physical addresses, all direct-Unbound/local-Pi-hole A/AAAA/PTR paths, three HTTPS paths, stable backups, and identical before/after state passed. Remote stdout was 11,553 bytes/234 lines/`2a8aafa8...7f77`; state was `b929ad44...d55b`. No filesystem/service mutation, Pi-hole restart, Action 23e/23f rerun, or Node B contact occurred. Accepted-live Node A FTL advanced to `c77de665...a7aa` and domain provenance advanced to Action 23f-a. Action 23f-a is accepted and immutable. The next gate is definition only of a new Node A authoritative A-record successor; failed Action 23b must not be rerun |
+| 2026-08-08T17:49:10-05:00 | Transactional Node A authoritative A-record-family successor Action 23g definition | Workstation-only append-only definition based on accepted Action 23f-a and the independently accepted Node B A-record candidate; focused host and canonical network-disabled Debian 12 validation; no outer execution | Both focused validations returned `0`. Added a distinct Action 23g driver, outer, production-path regression, focused validator, intended-state manifest, and three current accepted-live consumer registrations. It pins Node A local-zone `c70f7097...dbb4`, FTL `c77de665...a7aa`, domain `a8305acb...10f96`, `PIHOLE_PTR=NONE`, exact metadata, zero Action 23g residue, and candidate `b0c6549c...6160`. It adds only the two Caddy IPv4 A records, parses before mutation, creates a protected Action 23g backup, atomically replaces the local-zone, reloads Unbound once, resets Pi-hole v5 DNS once, validates all direct/local DNS and HTTPS paths, and automatically restores the exact baseline on failure. Regression rejects Action 23b invocation, missing/duplicate/false evidence, incorrect FTL/domain hashes, stderr, and nonzero status. Driver `a8c726ec...da2a`; outer `99e5ab17...4323`; regression `a42f0f50...67cd`; focused `d21c87bd...5a4d`; manifest `592d6886...aa67`. Neither node was contacted; no DNS, cache, service, filesystem, VRRP, or VIP state changed. The next gate is separate exact authorization of the Action 23g outer once |
+| 2026-08-08T17:52:40-05:00 | Transactional Node A authoritative A-record-family successor Action 23g execution | Authorized `/bin/bash Caddy/scripts/run-node-a-unbound-a-records-action23g-outer.sh`, SHA-256 `99e5ab1774bc6f2c4422b0ebc995d9cdda4a31bc3f242c9a3e2a0ca454064323`; one Node-A-only execution outside the LAN-restricted sandbox | Outer returned `0`. All local gates and regressions passed; remote producer completed 131/131 independently labeled checks with acceptance true. Installed local-zone `b0c6549c...6160`; FTL/domain hashes and `PIHOLE_PTR=NONE` remained exact; exact two new A records and all control DNS answers passed through direct Unbound and local Pi-hole; HTTPS and service/PID/restart continuity passed; transaction residue was absent; protected backup remained at `/var/backups/caddy-ha/action23g-node-a-unbound-a-records`; rollback did not run. Remote stdout was 9,513 bytes/204 lines/`69512b8d...88d7`; stderr was empty. Accepted-live Node A local-zone advanced to `b0c6549c...6160`/Action 23g, and Action 23g's three deployable prerequisite registrations were retired. Action 23g is accepted and immutable. The next gate is definition only of the standby-first Node B AAAA-record-family update |
+| 2026-08-09T03:23:55-05:00 | Append-only read-only HTTP/3 successor Action 26-h3 definition | Operator authorized definition only, requiring a larger bounded stderr capacity and same-run emission of safe classified content; workstation artifact construction followed by focused host and canonical network-disabled Debian 12 validation | Both focused validations returned `0`. Core `9ba83651...ab6a` pins immutable partial predecessor outer `8458f79c...0a15`, retains its accepted HTTP/1.1/HTTP/2 evidence without rerunning those probes, and defines exactly two HTTP/3 probes for `10.1.0.56` and `fd36:5aa8:6971:1::56`. Its per-stream limit is 8,192 bytes/128 lines; size, line count, hash, classification, and bounded-safe content are emitted before evaluation. Regression `0228bdb5...e7f` produces more than 2,533 bytes of safe stderr, proves it is emitted, and verifies exact dual-stack production arguments. Outer `94e4adc8...3c9a` pins the Go source/tests and has 21 independently labeled local gates; manifest `923dcadd...0f0b` records the definition-only boundary. No live HTTP probe, HA-node contact, complete historical suite, or mutation occurred. The next gate is separate exact authorization to execute the outer once |
+| 2026-08-09T03:26:01-05:00 | Exact append-only read-only HTTP/3 successor Action 26-h3 execution | Authorized `/bin/bash Caddy/scripts/run-workstation-caddy-http3-action26-h3-outer.sh`, SHA-256 `94e4adc81918fdef056e720d91df1b26bce57154bd65c15b09e7b16b6d553c9a`; one workstation execution outside the network-restricted sandbox | Outer returned `1` after all 21 local gates and the offline Go build passed. IPv4 probe returned status `2`; stdout was empty. Its 2,517-byte/33-line bounded-safe stderr/SHA-256 `48579bf7...a3c6` was emitted completely and showed two nil-pointer panics in `quic-go` while `DialEarly` used a zero-value `quic.Transport` without `Conn`: `basicConn.LocalAddr` and `basicConn.ReadPacket`. This is a local probe implementation defect, not Caddy HTTP/3 evidence. IPv6 was not reached. No node administration, service/filesystem change, or persistent mutation occurred. Action 26-h3 is immutable and must not be rerun. The next gate is definition only of a workstation probe correction that creates a real UDP packet connection, assigns it to `quic.Transport.Conn`, closes it safely, and regression-tests the production initialization path |
+| 2026-08-09T03:43:56-05:00 | Append-only corrected read-only HTTP/3 Action 26-h3 retry definition | Operator authorized definition only of a workstation probe correction with a real `quic.Transport.Conn`, safe closure, and regression coverage reproducing and rejecting the panic; focused workstation and canonical network-disabled Debian 12 validation followed | Both focused validations returned `0`. New probe source `3a31f26d...f9ec` uses family-specific ephemeral UDP, sets `Conn`, and closes HTTP/3, QUIC, and UDP resources in order. Host-authoritative test `faaf57f5...0f06` reproduces the predecessor's zero-value panic in an isolated subprocess and proves the corrected packet connection is usable and closed. Regression `24b2f0f1...23b0` runs that lifecycle test on the host and exercises the exact two-probe production argument path with a fake binary; Debian defers only the unavailable Go toolchain while retaining shell, artifact, transcript, and fake-production checks. Outer `289fd577...60b2` pins immutable Action 26-h3 core/validator and all corrected Go artifacts. Manifest `aca29780...d4b9` records the definition-only boundary. No live HTTP request, node contact, complete historical suite, or persistent mutation occurred. The next gate is separate exact authorization to execute the corrected outer once |
 
 ## Observed System State
+
+At `2026-08-09T03:43:56-05:00`, corrected Action 26-h3 retry exists only as a
+validated read-only definition. It initializes the pinned v0.61
+`quic.Transport` with an application-owned family-specific UDP socket and
+closes all three transport/socket layers. Host regression reproduces the old
+panic and accepts the corrected lifecycle; network-disabled Debian validation
+retains every non-Go boundary. The next gate is exact authorization of outer
+`289fd577...60b2` once. No live HTTP request, node contact, or mutation occurred.
+
+At `2026-08-09T03:26:01-05:00`, Action 26-h3 emitted the complete formerly
+hidden failure. The pinned local `quic-go` client initializes a zero-value
+`quic.Transport` without its required UDP packet connection; `DialEarly`
+therefore panics in `LocalAddr` and `ReadPacket` before yielding an HTTP/3
+result. IPv6 was not reached. This is not evidence that Caddy rejected HTTP/3.
+The action is immutable. The next gate is definition only of a corrected local
+probe using an initialized and safely closed packet connection; no rerun is
+authorized.
+
+At `2026-08-09T03:23:55-05:00`, Action 26-h3 exists only as a validated
+read-only definition. It preserves immutable Action 26 retry's accepted
+HTTP/1.1 and HTTP/2 evidence and will run only the two remaining HTTP/3 probes.
+The prior 2,533-byte stderr boundary is covered by an 8,192-byte/128-line
+bounded-safe evidence contract that emits classified content before evaluating
+the command status. The next gate is exact authorization of outer
+`94e4adc8...3c9a` once. No live request, node contact, or mutation occurred.
+
+At `2026-08-09T03:10:22-05:00`, immutable Action 26 retry proves HTTP/1.1 and
+HTTP/2 over both Caddy VIP address families. HTTP/3 IPv4 failed with status `2`
+before producing stdout; its 2,533-byte/33-line stderr exceeded the inherited
+2,048-byte evidence bound, was classified `unsafe_retained`, and was removed at
+cleanup without content emission. HTTP/3 IPv6 was not reached. No persistent
+mutation occurred. The next gate is definition only of an append-only HTTP/3
+successor that raises only the bounded safe evidence capacity, emits classified
+safe stderr during the original action, and retains exact dual-stack HTTP/3
+acceptance gates; no separate live diagnostic should be introduced.
+
+At `2026-08-09T03:06:40-05:00`, Action 26 retry exists only as a validated
+read-only definition. It pins accepted Action 26e retry and generates a new
+prefix-isolated protocol core from immutable Action 26 without rerunning the
+failed artifact. Its future six direct-address probes cover HTTP/1.1, HTTP/2,
+and HTTP/3 over both address families. The next gate is exact authorization of
+outer `8458f79c...0a15` once. No live HTTP request, HA-node administrative
+contact, or persistent mutation occurred during definition.
+
+At `2026-08-09T02:46:22-05:00`, Action 26e retry is accepted and immutable.
+WSL mirrored mode, the exact expanded Windows configuration, a preferred LAN
+ULA, route selection to Nodes A/B and Caddy VIP, exact Caddy AAAA response, and
+direct IPv6 HTTP/1.1 `204` all passed. Every captured stderr stream was empty;
+no restart, administrative node contact, or persistent mutation occurred. The
+next gate is definition only of an append-only HTTP protocol-validation
+successor to complete the HTTP/1.1, HTTP/2, and HTTP/3 evidence that immutable
+Action 26 could not finish while IPv6 routing was unavailable.
+
+At `2026-08-09T02:43:46-05:00`, Action 26e retry exists only as a validated
+read-only definition. It preserves the immutable failed inspectors and changes
+exactly one hash in a protected transient generated inspector, whose SHA-256 is
+also pinned. Regression proves the exact confirmed 118-byte CRLF target is
+accepted while the historical two-line target and an altered setting are
+rejected. The next gate is exact authorization of outer `b2f313b4...0270`
+once. No live DNS/HTTPS probe, WSL restart, Windows process, node contact, or
+persistent mutation occurred during definition.
+
+At `2026-08-09T02:27:56-05:00`, Action 26e stopped fail-closed before network
+probing because the live Windows `.wslconfig` no longer matches the exact
+two-line Action 26c candidate. The observed 118-byte CRLF file has SHA-256
+`04d05067...0435` and adds `dnsProxy=false`, `hostAddressLoopback=true`, and
+`bestEffortDnsParsing=true`. The user subsequently confirmed that all three
+settings are intentional and required for mirrored mode in this environment.
+Action 26e is failed and immutable; no DNS query, HTTPS request, restart, node
+contact, or persistent mutation occurred. The next gate is definition—but not
+execution—of an append-only corrected read-only successor using the confirmed
+expanded baseline.
+
+At `2026-08-09T02:24:28-05:00`, failed Action 26d is immutable. Its first
+`wsl.exe --list --quiet` preflight returned status `127` before transaction
+start because the PowerShell adapter lost the executable name and invoked
+`--list` through Bash. No shutdown, restart, rollback, or mutation occurred.
+Current read-only local evidence nevertheless shows WSL in mirrored mode with
+preferred ULA source `fd36:5aa8:6971:1:3856:ef8b:d838:254c` on `eth1` and
+successful route selection to Node A `::53`, Node B `::54`, and Caddy VIP
+`::56`. Resolver provenance remains `/mnt/wsl/resolv.conf`, nameserver
+`10.255.255.254`, and search domain `local.theama.co`. Action 26e is now a
+focused-validated, definition-only independent acceptance boundary. The next
+gate is exact authorization of outer `d5ecf40a...8133` once; it performs only
+read-only DNS and direct IPv6 HTTPS probes and does not restart WSL or contact
+either HA node administratively.
+
+At `2026-08-08T23:49:23-05:00`, Action 26d exists only as a validated
+Windows-host definition. It has not invoked `wsl.exe`; the running WSL VM
+remains at the accepted NAT boundary. The transaction must be launched from a
+Windows PowerShell session, moves to a Windows temporary directory before
+shutdown, retains ownership of capture and rollback across VM termination, and
+relaunches exact distro `Ubuntu` for acceptance. Its automatic rollback removes
+only the exact mirrored candidate and must independently prove the prior NAT
+and unreachable-Caddy-ULA state. The next gate is exact authorization of outer
+`6ac36b4e...2247` once. Dual-node resolver drift remains separate and
+unverified.
+
+At `2026-08-08T23:33:36-05:00`, inactive mirrored-mode configuration and its
+absent-state rollback evidence are independently accepted. The running WSL VM
+remains NAT, its resolver state remains exact, and the Caddy ULA route remains
+unavailable because activation has not occurred. The next gate is definition
+only of a Windows-host activation handoff plus post-restart acceptance; an
+in-WSL process must not terminate the VM responsible for its own rollback and
+evidence capture. Dual-node resolver inspection remains separate and unauthorized.
+
+At `2026-08-08T23:31:32-05:00`, Action 26c-a exists only as a validated
+read-only definition. The accepted inactive Action 26c state remains current;
+WSL has not been shut down or restarted and mirrored mode is not yet active.
+The next gate is exact authorization of Action 26c-a outer
+`f2a8b14d...cb90` once. Activation and dual-node resolver inspection remain
+separate and unauthorized.
+
+At `2026-08-08T23:23:20-05:00`, Windows user `.wslconfig` contains the exact
+accepted Action 26c mirrored-mode candidate, while the current WSL VM remains
+in NAT mode because no shutdown/restart occurred. Protected absent-state
+rollback evidence is retained. The next gate is definition only of an
+independent read-only post-install acceptance action; activation and resolver
+inspection remain unauthorized and separate.
+
+At `2026-08-08T23:20:47-05:00`, Action 26c exists only as a validated inactive
+transaction definition. Windows user `.wslconfig` remains absent and WSL
+remains in NAT mode. If separately authorized, Action 26c will install mirrored
+mode but will not activate it; activation requires a later WSL shutdown/restart
+and independent acceptance. The reported Node A/Node B resolver drift is
+separate and unverified for current Node B state. The next gate is exact
+authorization of inactive Action 26c outer `2c02b10f...5e99` once; no WSL
+activation or resolver action is authorized.
+
+At `2026-08-08T23:09:16-05:00`, accepted Action 26b confirms the workstation
+is WSL2 in NAT networking mode. IPv6 is enabled but WSL `eth0` has only a
+link-local address and no default or LAN ULA route, so the kernel rejects the
+Caddy ULA VIP before sending a packet. DNS is independently healthy through
+the WSL proxy and Pi-hole and is not the blocker. The next gate is definition
+only of a bounded workstation/WSL IPv6 network-integration correction; no
+Windows, WSL, route, DNS, or node mutation is authorized.
+
+At `2026-08-08T23:04:26-05:00`, Action 26b exists only as a
+focused-validated workstation definition. No live route, DNS, LAN, or node
+query was executed by Codex. User-supplied evidence now proves WSL's default
+DNS proxy and authoritative IPv6 PTR response work, while accepted Action 26a
+proves WSL cannot route to any tested LAN ULA. The remaining uncertainty is
+therefore the WSL/Windows IPv6 network integration and route provenance, not
+the authoritative Caddy record. The next gate is exact authorization of
+Action 26b outer `a97e4370...b6b4` once; no route correction is authorized.
+
+At `2026-08-08T22:51:33-05:00`, the workstation has no usable IPv6 route to
+any tested LAN ULA address in `fd36:5aa8:6971:1::/64`. Exact route queries for
+physical Nodes A and B and the Caddy VIP all return network unreachable;
+neighbor discovery never begins, and all three direct HTTP/1.1 connections
+fail before negotiation. Therefore, current workstation evidence cannot
+evaluate Caddy's IPv6 listener or VIP response and must not be interpreted as
+a Caddy or Keepalived failure. IPv4 HTTP/1.1 remains proven by Action 26;
+HTTP/2 and HTTP/3 remain unproven. The next gate is definition only of a
+read-only workstation/WSL IPv6 network-provenance diagnostic before any route
+or host-network correction. Node A resolver drift and DNS-health timing remain
+separate unresolved gates.
+
+At `2026-08-08T22:47:53-05:00`, Action 26a exists only as a focused-validated
+workstation definition. No live IPv6 route, neighbor, physical-node control,
+or Caddy-VIP probe has run. Its exact outer is
+`5d7f2c485c8862e188708ce52eba6ac3fd31522fa9e782bc859022fb7f552f15`.
+The latest Caddy protocol evidence remains Action 26: IPv4 HTTP/1.1 passed;
+IPv6 connection establishment failed; HTTP/2 and HTTP/3 remain unproven.
+Separately, user-supplied evidence confirms Node A currently queries through
+router `10.1.0.1` and shows intermittent, immediately recovering `check-dns`
+failures plus one overlapping run. Neither resolver state nor DNS-health
+timing has been independently inspected by Codex or corrected. The next gate
+is exact authorization of Action 26a only; DNS work remains separately gated.
+
+At `2026-08-08T22:31:17-05:00`, workstation-to-Caddy-VIP HTTP/1.1 over
+IPv4 is accepted for protocol negotiation and health response: HTTP `204`
+from `10.1.0.56`, zero body bytes, and zero redirects. The equivalent IPv6
+connection to `fd36:5aa8:6971:1::56` failed before HTTP negotiation with curl
+status `7`; this does not identify whether the fault lies in workstation IPv6
+routing, firewalling, VIP reachability, or the listener. HTTP/2 and HTTP/3
+were not attempted and must not be inferred. Action 26 is immutable and must
+not be rerun. The latest accepted HA/live-service baseline remains Action 25
+retry2. The next gate is definition only of a narrow read-only IPv6 response-
+path diagnostic; no diagnostic or correction is authorized.
+
+At `2026-08-08T22:26:50-05:00`, Action 26 exists only as a workstation
+definition. Its focused host and network-disabled Debian 12 validations
+passed, but no HTTP/1.1, HTTP/2, or HTTP/3 request has been made to either
+Caddy VIP. The accepted Action 25 retry2 DNS, web-access, and HA state remains
+the latest live evidence. The next gate is separate exact authorization to
+execute `/bin/bash Caddy/scripts/run-workstation-caddy-protocols-action26-outer.sh`
+once at SHA-256
+`58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc`.
+
+At `2026-08-08T21:52:26-05:00`, shared and node-specific Pi-hole v5 web
+access is accepted over both IPv4 and IPv6 from both HA nodes. The shared
+name terminates on the Caddy VIPs `10.1.0.56` and
+`fd36:5aa8:6971:1::56`; Node A direct management terminates on `.53` and
+`::53`; Node B direct management terminates on `.54` and `::54`. Every
+route reaches its same-origin `/admin/login.php` after one redirect and
+returns HTTP `200` with Pi-hole content. Node A remains MASTER with all four
+Caddy/DNS VIPs; Node B remains BACKUP with none. No state changed. The next
+gate is definition only of read-only Action 26 for HTTP/1.1, HTTP/2, and
+HTTP/3 validation.
+
+At `2026-08-08T21:46:16-05:00`, Action 25 retry2 exists only as a
+focused-validated workstation definition. Its exact outer SHA-256 is
+`e9eb4e88f02939778e42f7da3fc10135bdc3023e1cef675d875f59a1c27dd2af`.
+It has not contacted either node or made a live HTTP request. The accepted
+Action 24 DNS/HA state and supplemental Node A redirect evidence remain
+unchanged. The next gate is separate exact authorization to execute retry2
+once.
+
+At `2026-08-08T21:35:06-05:00`, user-supplied manual evidence shows the
+Node A shared IPv4 endpoint is operational through Caddy: one HTTPS redirect
+leads to `/admin/login.php`, final status is `200`, remote IP remains the
+Caddy VIP `10.1.0.56`, and the response is the Pi-hole v5 login page. No
+authentication hash is necessary for this availability check. This does not
+establish the other five endpoint/address combinations or Node B continuity.
+The next gate is definition only of a bounded redirect-following Action 25
+retry using this exact contract.
+
+At `2026-08-08T21:27:20-05:00`, Node A's exact shared IPv4 Caddy endpoint
+at `10.1.0.56` returned HTTP `302` for
+`https://pihole-admin.local.theama.co/admin/`. Transport succeeded and the
+effective URL and remote IP remained exact, but the non-followed response had
+an empty body and no Pi-hole marker. Node A's accepted configuration, active
+services, MASTER state, physical addresses, and four VIP pre-state checks
+passed. Node B was not contacted, and no state changed. Repository
+configuration shows Caddy's upstream health check uses
+`health_follow_redirects`; this does not establish the live redirect target.
+Both executed Action 25 outers are immutable. The next gate is definition only
+of a narrow no-follow redirect-target diagnostic.
+
+At `2026-08-08T21:19:00-05:00`, the corrected Action 25 retry exists only as
+a focused-validated workstation definition. Its exact outer SHA-256 is
+`6b2897fbddcfa1212a1ca296c328095a3b10f76027513cd8ce75aaebe7e48fb2`.
+It has not contacted either node or made a live HTTP request. Accepted Action
+24 DNS/HA state and the post-failure Action 25 boundary remain unchanged. The
+next gate is separate exact authorization to execute this retry once.
+
+At `2026-08-08T20:58:59-05:00`, Action 25 stopped on Node A's first
+shared-IPv4 probe because the response was not HTTP 200. The actual status was
+not emitted and is not inferred. Node A's accepted hashes, active services,
+MASTER/four-VIP pre-state, and successful bounded curl transport passed before
+the stop. Node B was not contacted. No DNS, file, service, VRRP, or VIP state
+changed. The executed outer is immutable; the next gate is definition only of
+an append-only evidence-complete retry.
+
+At `2026-08-08T20:55:15-05:00`, Action 25 exists only as a focused-validated
+workstation definition. Its outer SHA-256 is
+`cbb583bbb80b73825a3c97c8468a7d34c20f7eac31eb6f2229c4895950a77b24`.
+It has not contacted either node or made a live HTTP request. Accepted Action
+24 DNS and HA state remains unchanged. The next gate is separate exact
+authorization to execute Action 25 once.
+
+At `2026-08-08T20:32:24-05:00`, dual-node authoritative A/AAAA/PTR/SRV
+responses are accepted through both direct Unbound and local Pi-hole paths.
+Both nodes retain local-zone SHA-256 `fa9f4850...569c`. Node A remains MASTER
+with all four Caddy/DNS VIPs and state hash `17858fca...8e61`; Node B remains
+BACKUP with zero VIPs and state hash `1951ab23...13f9`. All relevant services
+remain active. Action 24 retry was read-only and changed no live state. The
+next gate is definition only of read-only Action 25 web-access validation.
+
+At `2026-08-08T20:23:39-05:00`, the corrected read-only Action 24 retry exists
+only as a focused-validated workstation definition. Its outer SHA-256 is
+`daaa1904cab02dbf9a83aa6f8d4479582d6d571bc3fd008f4cd1393878fdc6f6`.
+Neither node was contacted, and the accepted live DNS, service, VRRP, and VIP
+state is unchanged. The next gate is separate exact authorization to execute
+that retry outer once; the original Action 24 outer remains immutable.
+
+At `2026-08-08T19:50:50-05:00`, read-only Action 24 stopped on Node A because
+its PTR query implementation used the wrong `dig` form. The accepted dual-node
+local-zone remains `fa9f4850...569c`; the failure is not valid evidence of an
+authoritative PTR defect. Node A's accepted configuration, services,
+MASTER/four-VIP pre-state, and A/AAAA answers passed before the stop. Node B
+was not contacted, and no live state changed. The executed outer is immutable.
+
+At `2026-08-08T19:45:01-05:00`, Action 24 exists only as a workstation-
+validated read-only definition. It would independently query both accepted
+resolver nodes through direct Unbound and local Pi-hole, validate twelve
+authoritative A/AAAA/PTR/SRV controls per path, and prove unchanged
+configuration, service, VRRP, address, and VIP state. Neither node was
+contacted. The next gate is separate exact authorization of Action 24 outer
+`318336f5...e8e2` once.
+
+At `2026-08-08T19:25:48-05:00`, exact authorized Action 23m returned `0`
+and accepted Node A's authoritative SRV-record update. Both nodes now have
+accepted local-zone SHA-256 `fa9f4850...569c` containing the complete intended
+Caddy A, AAAA, IPv4/IPv6 PTR, and HTTPS SRV records while retaining the SMTP
+SRV and unrelated records. Node A remained MASTER with all four Caddy/DNS
+VIPs; Node B remains the accepted BACKUP. All DNS, HTTPS, service,
+PID/restart, FTL/domain, backup, and residue assertions passed; stderr was
+empty and rollback did not run. Action 23m is immutable. The next gate is
+definition only of read-only dual-node Action 24 record-family validation.
+
+At `2026-08-08T19:22:26-05:00`, Action 23m exists only as a workstation-
+validated definition. It would advance Node A from accepted A/AAAA/PTR
+local-zone `adee452b...ddb9` to the independently accepted Node B SRV state
+`fa9f4850...569c` by adding exactly the HTTPS SRV record for
+`proxy.local.theama.co.`. Node A remains uncontacted and unchanged by this
+definition. The next gate is separate exact authorization of Action 23m outer
+`de36b748...11b7` once.
+
+At `2026-08-08T19:15:02-05:00`, exact authorized Action 23l returned `0`
+and accepted Node B's authoritative SRV-record update. Node B local-zone is
+now `fa9f4850...569c`; `_https._tcp.proxy.local.theama.co.` returns priority
+0, weight 0, port 443, and target `proxy.local.theama.co.` directly and
+through Pi-hole. Node B remained BACKUP with zero Caddy/DNS VIPs. All retained
+SMTP SRV, A/AAAA/PTR, Pi-hole, HTTPS, service, PID/restart, FTL/domain, backup,
+and residue assertions passed; stderr was empty and rollback did not run.
+Action 23l is immutable. The next gate is definition only of the Node A
+authoritative SRV-record successor.
+
+At `2026-08-08T19:12:10-05:00`, Action 23l exists only as a workstation-
+validated definition. It would advance standby Node B from accepted dual-node
+A/AAAA/PTR local-zone `adee452b...ddb9` to `fa9f4850...569c` by adding exactly
+the HTTPS SRV record for `proxy.local.theama.co.`. Its deterministic renderer
+consumes private source `bcb145b3...5aad`, removes deferred Home Assistant
+records, normalizes accepted Caddy forward-record ordering, and reconstructs
+the accepted parent by removing only that SRV line. Focused host and canonical
+network-disabled Debian 12 validation passed. Neither node was contacted and no
+live state changed. The next gate is separate exact authorization of Action
+23l outer `b9280076...2e60` once.
+
+At `2026-08-08T19:00:23-05:00`, exact authorized Action 23k returned `0`
+and accepted Node A's authoritative PTR-record update. Both nodes now have
+accepted local-zone SHA-256 `adee452b...ddb9` with Caddy A, AAAA, IPv4 PTR,
+and IPv6 PTR records; the future HTTPS SRV record remains undeployed. Node A
+remained MASTER and retained all four Caddy/DNS VIPs. All DNS, HTTPS, service,
+PID/restart, FTL/domain, backup, and residue assertions passed; stderr was
+empty and rollback did not run. Action 23k is immutable. The next gate is
+definition only of the standby-first Node B SRV-record-family update.
+
+At `2026-08-08T18:57:03-05:00`, Action 23k exists only as a workstation-
+validated definition. It would advance Node A from accepted A/AAAA local-zone
+`7d018a7f...8c39` to the independently accepted Node B Action 23j candidate
+`adee452b...ddb9`. Its deterministic renderer consumes private source
+`bcb145b3...5aad` while excluding the future HTTPS SRV record, so only the
+PTR family would be deployed. Focused host and canonical network-disabled
+Debian 12 validation passed. Neither node was contacted and no live state
+changed. The next gate is separate exact authorization of Action 23k outer
+`9215ba13...0a58` once.
+
+At `2026-08-08T18:44:52-05:00`, exact authorized Action 23j returned `0`
+and accepted Node B's authoritative PTR-record update. Node B local-zone is
+now `adee452b...ddb9`; both Caddy VIP reverse queries return
+`proxy.local.theama.co.` directly and through Pi-hole. Node B remained
+BACKUP with zero Caddy/DNS VIPs. All DNS, HTTPS, service, PID/restart,
+FTL/domain, backup, and residue assertions passed; stderr was empty and
+rollback did not run. The private workstation local-zone source was then
+reconciled to `bcb145b3...5aad` with complete intended Caddy A/AAAA/PTR/SRV
+data and passed a network-disabled Debian 12 Unbound parser check. The SRV
+record is intended state only and remains undeployed. Action 23j is immutable.
+The next gate is definition only of the Node A PTR-record successor.
+
+At `2026-08-08T18:38:56-05:00`, Action 23j exists only as a workstation-
+validated definition. It would advance standby Node B from accepted dual-node
+A/AAAA local-zone `7d018a7f...8c39` to `adee452b...ddb9` by adding exactly
+the IPv4 and IPv6 Caddy VIP PTR records to `proxy.local.theama.co.`. Focused
+host components and canonical network-disabled Debian 12 validation passed.
+Neither node was contacted and no live state changed. The next gate is
+separate exact authorization of Action 23j outer `842b21ee...6787` once.
+
+At `2026-08-08T18:25:05-05:00`, exact authorized Action 23i returned `0` and
+accepted Node A's authoritative AAAA-record update. Both nodes now have
+accepted local-zone SHA-256
+`7d018a7f3d96961de78bb523176f30e5128d04d9810a3db534d73639e2958c39`
+with both Caddy A and both Caddy AAAA records. Node A remained MASTER and
+retained all four Caddy/DNS VIPs before and after. All DNS, HTTPS, service,
+PID/restart, FTL/domain, backup, and residue assertions passed; stderr was
+empty and rollback did not run. Action 23i is immutable. The next gate is
+definition only of the standby-first Node B PTR-record-family update.
+
+At `2026-08-08T18:22:46-05:00`, Action 23i exists only as a workstation-
+validated definition. It would advance Node A from accepted local-zone
+`b0c6549c...6160` to the independently accepted Node B Action 23h candidate
+`7d018a7f...8c39`. Both focused validation environments passed, neither node
+was contacted, and no live state changed. The next gate is separate exact
+authorization of Action 23i outer `5363bc8b...38355` once.
+
+At `2026-08-08T18:14:47-05:00`, exact authorized Action 23h returned `0` and
+accepted Node B's authoritative AAAA-record update. Node B local-zone is now
+SHA-256 `7d018a7f3d96961de78bb523176f30e5128d04d9810a3db534d73639e2958c39`
+with both Caddy IPv4 A records and both Caddy IPv6 AAAA records. Node B stayed
+BACKUP and owned zero Caddy/DNS VIPs before and after. All DNS, HTTPS, service,
+PID/restart, FTL/domain, backup, and residue assertions passed; stderr was
+empty and rollback did not run. Action 23h is immutable. The next gate is
+definition only of the Node A authoritative AAAA-record-family successor.
+
+At `2026-08-08T18:03:23-05:00`, Action 23h exists only as a workstation-
+validated definition. Candidate local-zone SHA-256
+`7d018a7f3d96961de78bb523176f30e5128d04d9810a3db534d73639e2958c39`
+adds only `pihole-admin.local.theama.co` and `proxy.local.theama.co` AAAA
+records for `fd36:5aa8:6971:1::56`; removing those two lines reconstructs the
+accepted dual-node parent `b0c6549c...6160` exactly. Node B has not been
+contacted and no live state changed. Accepted-live bookkeeping now reflects
+the already accepted Action 23d-a Node B FTL/domain evidence; this was a
+workstation-only reconciliation, not a new live observation. The next gate is
+separate exact authorization of Action 23h outer `d50bcd22...a77c5` once.
+
+At `2026-08-08T17:52:40-05:00`, exact authorized Action 23g returned `0` and
+accepted Node A's authoritative A-record update. Both nodes now have accepted
+local-zone SHA-256
+`b0c6549c1ac5825de7c50e60e5c825cddb51f5d75056f0fd37c196d670886160`
+with the two Caddy IPv4 A records. Node A retained FTL
+`c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`,
+`PIHOLE_PTR=NONE`, and domain
+`a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`.
+All direct/local DNS, service-continuity, and HTTPS checks passed; stderr was
+empty and rollback did not run. Action 23g is immutable. The next gate is
+definition only of the standby-first Node B AAAA-record-family update.
+
+At `2026-08-08T17:49:10-05:00`, Action 23g exists only as a focused-validated
+workstation definition. It has not contacted either node and has not changed
+DNS, Unbound, Pi-hole, service, filesystem, VRRP, or VIP state. The accepted
+live baseline remains Action 23f-a: Node A local-zone
+`c70f709789223f91835f0f21c397f577d1e2bb24005a5defbf46055fb411dbb4`,
+FTL `c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`,
+and domain `a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`.
+The next gate is separate exact authorization of Action 23g outer SHA-256
+`99e5ab1774bc6f2c4422b0ebc995d9cdda4a31bc3f242c9a3e2a0ca454064323`.
+Failed Action 23b and successful Actions 23f/23f-a remain immutable and must
+not be rerun.
+
+At `2026-08-08T17:38:46-05:00`, exact authorized read-only Action 23f-a
+returned `0` and independently accepted Node A's post-Action 23f state. All
+177 unique ordered assertions passed with zero failures. FTL is
+`c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`,
+the PTR policy is exactly `PIHOLE_PTR=NONE`, metadata is
+`pihole:root:0664`, and the domain file remains
+`a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`.
+Node A remained MASTER and owned both Caddy and DNS VIP families; all direct
+Unbound, local Pi-hole, and HTTPS paths passed. Before/after state was
+identical at `b929ad44150a7d57344609df58d82b1e3ca4cd33cc5814e3e76a0f745d03d55b`.
+No mutation, restart, prior-action rerun, or Node B contact occurred. The next
+gate is definition only of a new transactional Node A authoritative A-record
+successor; failed immutable Action 23b must not be rerun.
+
+At `2026-08-08T17:24:30-05:00`, Action 23f's remote transaction reports Node
+A FTL SHA-256
+`c77de6654c575e12fa1661f8ec901de67d9a623c3e9b965d4e32b550c132a7aa`
+with `PIHOLE_PTR=NONE` and `pihole:root:0664`; domain SHA-256 remains
+`a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`.
+All 131 producer assertions passed, including DNS, HTTPS, service, MASTER/VIP,
+restart, backup, and residue gates, and rollback was not invoked. This reported
+live state is not yet independently accepted because the outer returned `97`
+on a workstation-only expected-label ordering defect. Action 23f is immutable
+and must not be rerun. The next gate is definition only of an independent
+read-only Node A post-Action 23f acceptance action.
+
+At `2026-08-08T17:19:25-05:00`, Action 23f exists only as a definition and
+focused-validated future Node A transaction. It has not contacted either node,
+created a backup, changed `PIHOLE_PTR`, or restarted Pi-hole. Current live state
+remains the accepted Action 23e-a retry2 baseline: FTL
+`c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`,
+domain file
+`a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96`,
+and `PIHOLE_PTR=HOSTNAMEFQDN`. The next gate is separate exact authorization
+of Action 23f outer SHA-256
+`0ce6a2248abfa985fa5c70c6f8c7011e9bf24d5ec42133e7ccbb956541f59fb0`.
+The later Node A authoritative A-record successor remains undefined and
+unauthorized.
+
+At `2026-08-08T16:58:59-05:00`, Action 23e-a retry2 is accepted immutable
+read-only Node A evidence. Current FTL SHA-256 is
+`c96c3591fabd3cbae4c0b32c695e34a2923a5b52b38e935cda3f2bf24fce1d7b`
+with `PIHOLE_PTR=HOSTNAMEFQDN` and `pihole:root:0664`. The domain and empty
+custom-CNAME files, Pi-hole parser, all DNS response paths, services,
+MASTER/VIP state, and HTTPS paths are healthy, and before/after state was
+identical. The next gate is definition only of a new transactional Node A
+PTR-policy successor; no live transaction is authorized.
+
+At `2026-08-08T16:56:25-05:00`, Action 23e-a retry2 exists only as a
+workstation-defined and focused-validated read-only successor. It adds no new
+live-state evidence. The next gate is separate exact authorization of outer
+SHA-256
+`96b4aa66df88f0344256bf51f7b3ec5b4f7404d0182fcdadd09129a04374c1f1`;
+no transaction is authorized.
+
+At `2026-08-08T16:45:24-05:00`, Action 23e-a retry is failed immutable
+read-only evidence. It confirms Node A local Pi-hole presents
+`j1-svpihole0.local.theama.co.` for both DNS VIP families and physical Node A
+IPv4, while direct Unbound retains canonical `pihole.local.theama.co.` and
+`pihole0.local.theama.co.` PTR ownership. Local physical IPv6, Node B PTR,
+HTTPS, and after-state assertions were not reached. The next gate is definition
+only of append-only Action 23e-a retry2; no transaction is authorized.
+
+At `2026-08-08T16:42:56-05:00`, corrected read-only Action 23e-a retry exists
+only as a workstation-defined and focused-validated successor. It has not
+contacted Node A and does not add new live-state evidence. Actions 23e and
+23e-a remain immutable. The next gate is separate exact authorization of outer
+SHA-256
+`fc677453ecfbafd4928e06ea0f682ede56ef103666540938dc7db79e56c5afad`.
+
+At `2026-08-08T16:34:33-05:00`, Action 23e-a is failed immutable read-only
+evidence. The exact domain-file and parser prerequisites for a future
+transaction are healthy. Direct Unbound retains canonical PTR ownership for
+DNS VIP `10.1.0.55` as `pihole.local.theama.co.`, while local Pi-hole on Node A
+identifies the answering server as `j1-svpihole0.local.theama.co.` under
+`PIHOLE_PTR=HOSTNAMEFQDN`. The latter is the intended policy behavior described
+by the operator and invalidates Action 23e-a's shared expected-value model.
+Later local-PTR, HTTPS, and after-state assertions were not reached. The next
+gate is definition only of an append-only corrected read-only successor; no
+transaction is authorized.
+
+At `2026-08-08T16:31:26-05:00`, Action 23e-a exists only as a workstation-
+defined and focused-validated read-only acceptance gate. It has not contacted
+Node A and does not yet confirm the operator-observed `.conf` file's exact
+content, Pi-hole parser acceptance, current service/DNS/VIP continuity, or
+Action 23e residue. Its next boundary is separate exact authorization of outer
+SHA-256
+`b865eff6e816f403d8e6a41297bd733fa2e2fca8ba283f5b8b53269396259514`.
+
+At `2026-08-08T16:18:20-05:00`, operator-supplied Node A evidence now lists
+the domain-policy file at the path expected by Action 23e:
+`/etc/dnsmasq.d/local.theama.co.conf`, `root:root:0644`, 23 bytes. The former
+extensionless path is not listed. This supersedes only the earlier pathname
+observation; it does not independently accept exact content, SHA-256, parser
+inclusion, runtime service/DNS state, or post-failure residue. The changed
+timestamp on empty `05-pihole-custom-cname.conf` is recorded without a causal
+claim. Action 23e remains immutable and must not be rerun.
+
+At `2026-08-08T16:17:01-05:00`, operator-supplied Node A evidence identifies
+the actual candidate domain-policy file as `/etc/dnsmasq.d/local.theama.co`,
+not the `.conf` path required by failed Action 23e. Its listed metadata is
+`root:root:0644` and size is 23 bytes. Exact content, hash, parser inclusion,
+and current service/DNS continuity have not been independently captured. This
+evidence narrows the next read-only action but does not authorize renaming,
+copying, editing, restarting Pi-hole, or rerunning Action 23e.
+
+At `2026-08-08T16:12:17-05:00`, Action 23e is failed immutable pre-mutation
+evidence. Node A's FTL file passed regular-file, non-symlink,
+`pihole:root:0664`, exactly-one `PIHOLE_PTR=HOSTNAMEFQDN`, and no-`NONE`
+checks. The configured domain prerequisite path
+`/etc/dnsmasq.d/local.theama.co.conf` was not a regular file. Rollback reported
+complete and no backup, stage, candidate installation, Pi-hole restart, DNS
+mutation, or acceptance occurred. Current service, VRRP/VIP, DNS, HTTPS, and
+alternative-domain-file provenance were not reobserved after this early
+failure. Do not rerun Action 23e. The next gate is definition only of an
+independent read-only Node A post-failure continuity and exact dnsmasq domain-
+file provenance action.
+
+At `2026-08-08T16:02:08-05:00`, Action 23e exists only as a workstation-
+defined and focused-validated transaction. It has not contacted Node A or
+changed its Pi-hole PTR policy. The latest accepted Node A evidence remains
+Action 23b-a: `PIHOLE_PTR=HOSTNAMEFQDN`, hostname-overridden Pi-hole PTR
+answers, healthy services, `MASTER`, and ownership of both Caddy and DNS VIP
+families. The next gate is separate exact authorization of Action 23e outer
+SHA-256
+`02504457fbba70b412a7af0ca9ac8f532f090873a66ddee10ee6e5578ca5379e`.
+Actions 23b, 23c, 23d, and 23d-a must not be rerun; the future Node A A-record
+update must be a new separately defined successor.
+
+At `2026-08-08T15:47:28-05:00`, Node B's post-Action 23d state is independently
+accepted. Its FTL is `c77de665...a7aa` at `pihole:root:0664` with
+`PIHOLE_PTR=NONE`; the domain file remains `a8305acb...10f96`; the protected
+original backup and manifest are exact. Node B is healthy in `BACKUP`, owns no
+Caddy or DNS VIP, retains both physical addresses, and returns the exact
+authoritative A/AAAA/PTR answers through direct Unbound and local Pi-hole.
+Before/after state is identical at `c97ce428...b54a`. Actions 23b, 23c, 23d,
+and 23d-a must not be rerun. The next gate is definition only of an equivalent
+transactional Node A PTR-policy correction as a new successor; no Node A
+action is authorized.
+
+At `2026-08-08T15:44:04-05:00`, Action 23d-a exists only as a workstation-
+defined and focused-validated independent read-only acceptance action. It has
+not contacted Node B or independently accepted the reported post-Action 23d
+state. Action 23c and Action 23d remain immutable and must not be rerun. The
+next gate is separate exact authorization of Action 23d-a outer SHA-256
+`45e4b5c809eafa5f748de4acf8ee0bdc0eacadd1b9e731960290aeea5f60b374`;
+Node A remains unauthorized.
+
+At `2026-08-08T15:30:21-05:00`, Action 23d's remote transaction reported a
+successful Node B state: FTL hash `c77de665...a7aa`, FTL metadata
+`pihole:root:0664`, `PIHOLE_PTR=NONE`, unchanged domain hash
+`a8305acb...10f96`, active services, Node B `BACKUP`, zero Caddy/DNS VIPs,
+authoritative direct-Unbound and local-Pi-hole DNS answers, HTTPS continuity,
+no transaction residue, and no rollback. This state is not yet independently
+accepted because the outer returned `97` on a workstation-only expected-label
+ordering defect. Action 23c and Action 23d must not be rerun. The next gate is
+definition only of an independent fail-closed read-only Node B post-Action 23d
+acceptance action; Node A remains unauthorized.
+
+At `2026-08-08T15:00:33-05:00`, Node B post-failure continuity is accepted.
+The Action 23c failure was a validator metadata-assumption defect, not an
+observed Pi-hole or service failure: the live FTL file is Pi-hole-managed at
+`pihole:root:0664`, not `root:root:0644`. FTL and domain hashes are
+`c96c3591...e1d7b` and `a8305acb...10f96`; all services are active, Node B is
+BACKUP, it owns no Caddy or DNS VIP, it retains both physical addresses, and
+no Action 23c residue exists. Before/after state is identical at
+`c6357b5a...c26a`. Action 23c remains immutable and must not be rerun. Action
+23d is now the defined, validated successor that preserves
+`pihole:root:0664`; its separate exact execution authorization is the next
+gate, and no metadata repair is indicated or authorized.
+
+At `2026-08-08T14:54:31-05:00`, Action 23c-a exists only as a workstation-
+defined and focused-validated read-only action. It has not confirmed current
+Node B continuity or actual FTL metadata. Action 23c remains failed immutable
+execution evidence and must not be rerun. No metadata correction, Pi-hole
+restart, or other live mutation is authorized.
+
+At `2026-08-08T14:34:44-05:00`, Action 23c is failed immutable execution
+evidence. Its own transcript proves the failure preceded mutation and reports
+rollback complete, but current Node B continuity and the actual FTL owner,
+group, and mode remain unobserved after the failed action. Do not infer the
+metadata or rerun Action 23c. Node A and failed Action 23b remain untouched.
+The separately requested repository intended-state files now exist under
+`/home/aaron/code/homelab-dns/Pi-Hole/configs`: `pihole-FTL.conf` uses
+`PIHOLE_PTR=NONE`, and `local.theama.co.conf` uses the corrected
+`domain=local.theama.co`. These repository files do not represent deployed
+Node B state.
+
+At `2026-08-08T14:26:40-05:00`, Action 23c exists only as a workstation-
+defined and focused-validated Node B transaction. The current live state
+remains the accepted Action 23b-a evidence; this definition did not reobserve
+either node. Node B contact, Pi-hole restart, FTL-file replacement, protected
+backup creation, Node A correction, and Action 23b rerun remain unauthorized.
+The next gate is exact authorization of outer SHA-256
+`a993b08f230ec0ea8b88d5a88cac860e807d42cfea30284e2e52f36aeba93324`.
+
+At `2026-08-08T13:53:12-05:00`, Node A is independently accepted at the
+post-Action-23b rollback baseline. Its authoritative Unbound A/AAAA/PTR data
+is correct for both the shared DNS VIP and Node A physical addresses. Pi-hole
+v5 consistently overrides reverse answers for all locally owned addresses with
+the host FQDN because the observed local policy is
+`PIHOLE_PTR=HOSTNAMEFQDN`; no corresponding `.55/::55/.53/::53` `/etc/hosts`
+records exist. Node A remains Caddy/DNS MASTER and owns both IPv4/IPv6 Caddy
+VIPs, both IPv4/IPv6 DNS VIPs, and its physical dual-stack addresses. All
+services remain active, the failed Action 23b transaction left no residue, and
+the accepted local-zone remains `c70f7097...dbb4`. A separate Pi-hole PTR
+policy correction must be defined and approved before Action 23b can be
+redesigned or retried.
+
+At `2026-08-08T13:46:25-05:00`, Action 23b-a exists only as a
+focused-validated read-only definition. It has not confirmed or changed live
+state. The accepted Node A local-zone remains `c70f7097...dbb4` from prior
+rollback evidence. The next authorized observation, if separately approved,
+will distinguish the shared DNS VIP `.55/::55` record identity from Node A's
+physical `.53/::53` record identity across both direct Unbound and every local
+Pi-hole listener, without resetting caches or changing configuration or
+services.
+
+At `2026-08-08T13:23:49-05:00`, Action 23b is failed immutable execution
+evidence. Its own rollback reports Node A local-zone restored to accepted hash
+`c70f7097...dbb4`, active Unbound and Pi-hole FTL, preserved Unbound PID and
+restart count, and absent transaction residue. Node A did not retain the two
+Caddy A records. Direct Unbound and local Pi-hole disagree on the PTR answer
+for `10.1.0.55`; the source and precedence of the local Pi-hole answer remain
+unconfirmed pending a separately authorized read-only diagnostic. Node B's
+accepted local-zone remains `b0c6549c...6160` by prior evidence.
+
+At `2026-08-08T13:19:45-05:00`, Action 23b exists only as a workstation-
+defined and focused-validated Node A transaction. Node A's accepted local-zone
+remains `c70f7097...dbb4`; candidate `b0c6549c...6160` is not represented as
+deployed there. Node B remains independently accepted at `b0c6549c...6160`.
+Neither node was contacted during definition, and no DNS record, Unbound,
+Pi-hole, service, filesystem, VRRP, VIP, or live state changed.
+
+At `2026-08-08T13:10:22-05:00`, Node B authoritative A-record-family update
+Action 23a and independent acceptance Action 23a-a are accepted. The accepted-
+live Node B local-zone hash is
+`b0c6549c1ac5825de7c50e60e5c825cddb51f5d75056f0fd37c196d670886160`.
+The accepted evidence retains protected prior-file backup `c70f7097...dbb4`,
+correct direct-Unbound and Pi-hole answers, active services, BACKUP/zero-VIP
+state, healthy HTTPS continuity, zero residue, and unchanged state
+`20805a7c...d85a`. The correction contacted neither node and changed no live
+state. Node A has not received this A-record-family update.
+
+At `2026-08-08T13:08:30-05:00`, the append-only Action 23a-a transcript-
+consumer correction exists only as a focused-validated workstation action.
+It is pinned to exact captured stdout `98c0d305...3021` and immutable executed
+artifacts, and it has no node-transport or live-mutation path. Current live
+state remains the read-only evidence observed by Action 23a-a; formal
+acceptance awaits separate execution of correction runner
+`d7ca02d4475c5d28524242d029d0ced32036b134b887fc7efafab927360edadc`.
+
+At `2026-08-08T13:00:48-05:00`, read-only Action 23a-a independently
+observed Node B local-zone `b0c6549c...6160`, retained protected prior-file
+backup `c70f7097...dbb4`, active services, BACKUP state with zero Caddy/DNS
+VIPs, correct direct-Unbound and Pi-hole answers, healthy HTTPS continuity,
+zero transaction/stage residue, and identical deterministic state
+`20805a7c...d85a`. The inspector reported all mutation markers false and
+remote stderr was empty. Formal acceptance remains pending only because one
+successful parser label was redirected out of stdout; no current live fault or
+additional node query is indicated.
+
+At `2026-08-08T12:57:56-05:00`, Action 23a-a exists only as a workstation-
+defined, focused-validated read-only acceptance boundary. Its exact future
+outer is
+`25c4f430edd1bb0fee0ff636e14a6844dd2fe80a12f57643a0d1bd368f34a50e`.
+It expects the producer-observed installed local-zone hash `b0c6549c...6160`
+and retained backup path
+`/var/backups/caddy-ha/action23a-node-b-unbound-a-records`, but no current live
+claim is inferred from definition-time fixtures. Neither node was contacted,
+Action 23a was not rerun, and live state remains pending independent read-only
+acceptance.
+
+At `2026-08-08T12:37:29-05:00`, Action 23a's successful Node B producer
+reported the installed local-zone hash as
+`b0c6549c1ac5825de7c50e60e5c825cddb51f5d75056f0fd37c196d670886160`,
+with both approved A records resolving as `10.1.0.56` through direct Unbound
+and local Pi-hole. Unbound remained active with its PID and restart count
+preserved. Pi-hole FTL was intentionally reset once and was active and stable
+afterward. Node A management HTTPS and the Caddy VIP HTTPS endpoint passed.
+The protected prior-file backup remains at
+`/var/backups/caddy-ha/action23a-node-b-unbound-a-records`. The outer did not
+accept the action because expected early readiness failures polluted stderr;
+therefore this observed live state remains pending independent read-only
+acceptance and the accepted-live manifest has not advanced.
+
+At `2026-08-08T12:34:44-05:00`, first authoritative A-record-family update
+Action 23a exists only as a workstation-defined and focused-validated Node B
+transaction. The accepted live Node B local-zone hash remains
+`c70f709789223f91835f0f21c397f577d1e2bb24005a5defbf46055fb411dbb4`.
+The future candidate hash is
+`b0c6549c1ac5825de7c50e60e5c825cddb51f5d75056f0fd37c196d670886160`
+and differs only by the two approved `.56` A records for `pihole-admin` and
+`proxy`. AAAA, PTR, SRV, Node A, and deferred Home Assistant records are not
+part of this action. The ignored private source was advanced locally to
+`e3518865f5503e852f79b4e0a602b55526d7e4e35739d1395f5a4d3feb3bd74f`;
+it remains outside Git. Neither node was contacted and live DNS remains
+unchanged.
+
+At `2026-08-08T12:11:31-05:00`, Action 22 was defined and satisfied as a
+no-change UniFi firewall disposition. No controller or node was contacted.
+All required endpoints remain on Default LAN VLAN 1, with IPv4 inside
+`10.1.0.0/22`; their traffic is on-link and does not traverse the gateway
+zone firewall. Accepted evidence records compatible inter-zone isolation,
+zero switch ACLs, zero WAN port forwards, and disabled UPnP. No UniFi rule
+group or execution runner is required. Append-only disposition
+`Caddy/manifests/unifi-firewall-disposition-action22.yaml` records the
+evidence, prohibited exposure, and reevaluation triggers.
+
+At `2026-08-08T12:05:48-05:00`, exact authorized corrected read-only
+Action 20p-a retry outer
+`cd97f5e1ffc197598a2c95cec53ead857e624f806cdd5a165862f5826578f16d`
+returned `0` and is accepted. Node A and Node B each passed all 96
+independently labeled checks. Node A remained MASTER with exactly one IPv4
+and one IPv6 Caddy VIP; Node B remained BACKUP with zero Caddy VIPs. Both
+Keepalived DBus roles, DNS VIP state, services, endpoints, artifact hashes,
+stable PID/restart state, exact include contract, deterministic semantic
+snapshots, residue absence, and fresh TTL/HL quiet windows passed. All stderr
+streams were empty. No reload, restart, or persistent mutation occurred.
+
+At `2026-08-08T11:56:20-05:00`, corrected read-only Action 20p-a retry
+exists only as a focused-validated append-only definition. It preserves the
+executed source inspector `55bf9878...e2f8` and outer `e2450fc5...730e3`,
+then deterministically renders corrected inspector `a72b9ae9...8663` and core
+`bd1e83db...efb7` in a protected transient directory. The rendered inspector
+uses exact accepted terminal include `conf.d/caddy-ha.conf` and hashes only
+stable semantic state: pinned files, service PID/restarts, VIP counts, VRRP
+role, and exact Keepalived DBus service/object/property values. Raw address
+text and the aggregate system-bus client list are excluded. Exact future outer
+is `cd97f5e1ffc197598a2c95cec53ead857e624f806cdd5a165862f5826578f16d`.
+Neither node was contacted and no live action occurred.
+
+At `2026-08-08T11:39:23-05:00`, exact authorized independent dual-node
+read-only Action 20p-a outer
+`e2450fc5d10115d7576d8ad39535688e5abf29c43f028b8b27de03e4d30730e3`
+returned `1` and is not accepted. On each node, 93 of 96 independently
+labeled checks passed. Both nodes retained exact accepted artifacts, active
+services, stable Keepalived PID/restarts, correct MASTER/BACKUP and DBus roles,
+correct single-owner VIP state, management and VIP HTTPS continuity, and a
+fresh eight-second journal window with no IPv4 or IPv6 TTL/HL rejection. Both
+stderr streams were empty and no mutation occurred. The failed assertions are
+validator defects: the inspector expected wildcard include `conf.d/*.conf`
+instead of the accepted exact terminal `conf.d/caddy-ha.conf`, and its raw
+aggregate snapshot included volatile observation detail despite all required
+semantic components passing independently. The next gate is definition only
+of an append-only corrected read-only retry using the accepted include contract
+and a deterministic semantic snapshot.
+
+At `2026-08-08T11:21:28-05:00`, exact authorized Action 20p outer
+`8480382a4b2810d578a6936c2eb0f124f1c7b3ac3b1b608189f19273d5397b4b`
+returned `0` without rollback. Node A reloaded Keepalived once, retained its
+PID and restart count, acquired `org.keepalived.Vrrp1`, and reported Caddy
+VRIDs 110 and 111 as `Master`. It remained MASTER with all four Caddy/DNS
+VIPs and retained Caddy, lighttpd, physical-address HTTPS, and Caddy-VIP HTTPS
+continuity. The reload activated the fragment's exact two `unicast_ttl 255`
+directives. Node B remained BACKUP, reported both Caddy instances as `Backup`,
+owned zero Caddy/DNS VIPs, and produced no IPv4 or IPv6 TTL/HL rejection entry
+during a fresh eight-second journal window. The next gate is definition only
+of an independent fail-closed dual-node read-only post-Action 20p acceptance
+action.
+
+At `2026-08-08T10:09:47-05:00`, corrected transactional Action 20o
+retry2 returned `0` and is accepted. Node B now has DBus-enabled main
+`5480e699...1393`; running Keepalived acquired `org.keepalived.Vrrp1` after
+one successful reload, retained PID `1826778` without restart, exposes exact
+flat Caddy objects for VRIDs 110/111, and reports both states as `Backup`.
+Node B remains BACKUP with zero Caddy/DNS IPv4/IPv6 VIPs, while Node A and the
+Caddy VIP HTTPS endpoints remain reachable. No rollback, restart, Node A SSH
+contact, VRRP transition, or VIP mutation occurred. The next gate is definition
+only of an independent read-only Node B post-Action 20o retry2 acceptance
+action.
+
+At `2026-08-08T10:00:02-05:00`, corrected transactional Action 20o
+retry2 exists only as a focused-validated repository definition. The canonical
+accepted-live Node B main is restored non-DBus hash `8b260315...9fbd3f` from
+accepted Action 20o-a retry; executed historical consumers remain immutable and
+are no longer deployable current-state consumers. The successor carries exact
+source `9aa36b63...f148`, derives DBus candidate `5480e699...1393`, installs it
+inside the activation rollback boundary, uses fail-closed `ip -o -4/-6`, and
+validates exact flat Keepalived paths from `busctl --list tree`. Neither node
+was contacted and no live state changed. The next gate is separate exact
+authorization of outer `a118feb9b39a7ed3a5b1edb3a6c56bdd7cbba15bb096e58f40ba2639ca82ef2b`
+for one Node-B-only transaction.
 
 At `2026-08-06T23:00:23-05:00`, Action 20o retry successfully reloaded
 Node B and activated `org.keepalived.Vrrp1`, then failed because Unicode
@@ -24415,7 +26958,9 @@ prerequisites passed without any controller change.
 - Authoritative Unbound records.
 - Production inventory and repository README updates.
 - Canonical LikeC4 model and generated views.
-- UniFi firewall changes.
+- No UniFi firewall mutation is deferred: Action 22 concluded that no rule
+  group is required for Default-LAN-only on-link traffic. Reevaluate only on
+  a trigger recorded in the Action 22 disposition manifest.
 - Live package installation, service activation, failover, and rollback tests.
 - Desktop and mobile TLS validation.
 

@@ -1,0 +1,49 @@
+---
+action: 26_retry
+status: defined
+scope: workstation_read_only_http_protocol_validation
+execution_authorized: false
+accepted_prerequisite:
+  action: 26e_retry
+  outer_sha256: b2f313b4713c9af2c668d21130642838522d6e921fb959387d93ab50191f0270
+  accepted_ipv6_http11: true
+immutable_failed_predecessor: 26
+generated_core:
+  immutable_source_sha256: f72ceb374f4a8c07f820dc720266458af6f2ae70b4287f84e778f8387b08c046
+  transformations:
+    - exact_prefix_replacement
+    - exact_source_directory_injection
+  generated_sha256: 683da97c69ed92a31de0adc53c13ee300976b9258038ff3003155bee4c1b6091
+artifacts:
+  adapter_sha256: f167e5a8d735025e46a3f4cc213d62fc603358b004c13f9ecee364439f8fcd51
+  immutable_validator_sha256: 58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc
+  outer_sha256: 8458f79c24c56f70ab39cd6ad80d99519821227adca272da5f1a618a8a1b0a15
+  regression_sha256: 2ae39beaaa08a4c135d7f7eba025185cee0b94f79c787023a1c462b36f73cd4d
+endpoint:
+  fqdn: proxy.local.theama.co
+  ipv4: 10.1.0.56
+  ipv6: fd36:5aa8:6971:1::56
+  path: /
+  expected_status: 204
+protocols:
+  - HTTP/1.1
+  - HTTP/2
+  - HTTP/3
+contract:
+  address_families: 2
+  exact_probe_count: 6
+  inherited_core_assertions: 59
+  adapter_assertions: 7
+  immutable_transcript_validation: true
+  bounded_safe_streams_emitted_during_original_action: true
+  direct_address_pinning: true
+  redirects: 0
+  response_body_bytes: 0
+constraints:
+  node_ssh: false
+  persistent_mutation: false
+  filesystem_mutation: false
+  service_mutation: false
+  dns_mutation: false
+  preserve_historical_artifacts: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence

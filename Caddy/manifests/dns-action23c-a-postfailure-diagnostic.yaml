@@ -1,0 +1,47 @@
+---
+action: 23c-a
+status: defined
+mode: read-only
+scope: node-b-pihole-ptr-postfailure-continuity
+
+target:
+  node: node-b
+  hostname: j1-svpihole00
+  address: 10.1.0.54
+  required_vrrp_state: BACKUP
+
+inspect:
+  ftl_file: /etc/pihole/pihole-FTL.conf
+  domain_file: /etc/dnsmasq.d/local.theama.co.conf
+  expected_current_ptr_policy: PIHOLE_PTR=HOSTNAMEFQDN
+  expected_absent_ptr_policy: PIHOLE_PTR=NONE
+  expected_domain: domain=local.theama.co
+  rejected_domain: domain=local.thema.co
+  exact_metadata:
+    - owner and group names
+    - numeric UID and GID
+    - octal and symbolic mode
+    - size, inode, device, mtime, and ctime
+    - bounded ACL state when getfacl is available
+
+continuity:
+  - Action 23c backup, transaction file, and temporary stages remain absent.
+  - Unbound, Pi-hole FTL, Caddy, lighttpd, and Keepalived remain active.
+  - Node B remains BACKUP and owns no Caddy or DNS VIP.
+  - Node B retains both physical addresses.
+  - Direct Unbound retains authoritative A, AAAA, and PTR answers.
+  - Local Pi-hole PTR answers are captured and safely classified.
+  - Node A, Node B, and Caddy VIP HTTPS endpoints remain reachable.
+  - Before and after semantic snapshots are identical.
+
+prohibited:
+  - Action 23c rerun
+  - Pi-hole restart
+  - filesystem mutation
+  - service mutation
+  - Node A SSH
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false

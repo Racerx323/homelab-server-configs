@@ -1,0 +1,43 @@
+---
+action: 26_h3
+status: defined
+scope: workstation_read_only_http3_validation_successor
+execution_authorized: false
+accepted_partial_predecessor:
+  action: 26_retry
+  outer_sha256: 8458f79c24c56f70ab39cd6ad80d99519821227adca272da5f1a618a8a1b0a15
+  preserved_evidence:
+    - HTTP/1.1_IPv4
+    - HTTP/1.1_IPv6
+    - HTTP/2_IPv4
+    - HTTP/2_IPv6
+artifacts:
+  core_sha256: 9ba836518103e5142ee41eb12dc33bf9e20a7cfd07f580fe337a863b4192ab6a
+  outer_sha256: 94e4adc81918fdef056e720d91df1b26bce57154bd65c15b09e7b16b6d553c9a
+  regression_sha256: 0228bdb586bdd811fd32ffbba1bdff6bb014890df024d1b9f8c5cf9881cf5e7f
+endpoint:
+  fqdn: proxy.local.theama.co
+  ipv4: 10.1.0.56
+  ipv6: fd36:5aa8:6971:1::56
+  path: /
+  expected_status: 204
+protocol: HTTP/3
+contract:
+  exact_probe_count: 2
+  per_stream_maximum_bytes: 8192
+  per_stream_maximum_lines: 128
+  predecessor_observed_stderr_bytes: 2533
+  safe_stream_content_emitted_before_evaluation: true
+  exact_protocol: HTTP/3.0
+  direct_address_pinning: true
+  redirects: 0
+  response_body_bytes: 0
+constraints:
+  node_ssh: false
+  persistent_mutation: false
+  filesystem_mutation: false
+  service_mutation: false
+  dns_mutation: false
+  preserve_historical_artifacts: true
+  predecessor_rerun: false
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence

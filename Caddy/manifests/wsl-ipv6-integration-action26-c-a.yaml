@@ -1,0 +1,31 @@
+---
+action: 26c-a
+status: defined
+scope: workstation_wsl_read_only_postinstall
+execution_authorized: false
+accepted_predecessor:
+  action: 26c
+  outer_sha256: 2c02b10f4d8ef5dcee3a9d240d10aed33c1451a9bdd92b5677cc69cfdc685e99
+acceptance:
+  target: /mnt/c/Users/aaron/.wslconfig
+  target_sha256: 6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7
+  backup: /home/aaron/.local/state/caddy-ha/action26c-wsl-mirrored
+  backup_baseline: absent
+  expected_running_mode: nat
+  expected_caddy_ula_route_status: 2
+  expected_caddy_ula_route_error: network_unreachable
+continuity:
+  wsl_conf_sha256: 616b2737cc3d88d0075942849f438fb161e3bad7ccb9970580dd21434cbbda55
+  resolv_conf_symlink_target: /mnt/wsl/resolv.conf
+  resolv_conf_sha256: 9e0e2f98735e119102ea8b675021e263fa6a226c8dc6c09b127dfebf16ca4bd5
+  nameserver: 10.255.255.254
+  search_domain: local.theama.co
+constraints:
+  wsl_shutdown: false
+  activation: false
+  node_contact: false
+  live_network_probe: false
+  persistent_mutation: false
+  preserve_action26c: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence
+rollback: none_read_only

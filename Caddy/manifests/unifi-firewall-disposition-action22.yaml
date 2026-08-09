@@ -1,0 +1,68 @@
+---
+action: 22
+status: no_change_required
+scope: default_lan_vlan_1_only
+defined_at: "2026-08-08T12:11:31-05:00"
+
+decision:
+  controller_rule_groups_required: false
+  controller_mutation_authorized: false
+  execution_runner_required: false
+  rationale:
+    - All required endpoints are in 10.1.0.0/22 on Default LAN VLAN 1.
+    - Required IPv6 endpoints are on the same Default LAN VLAN 1 segment.
+    - Same-VLAN traffic does not traverse the gateway zone firewall.
+    - Existing policy rejects unrequested IoT-to-Default and Guest access.
+    - Existing External-to-Internal policy provides no user-defined ingress allow.
+    - No switch ACL rules, WAN port forwards, or UPnP exposure were observed.
+
+accepted_evidence:
+  - action: 4c
+    observation: >-
+      Default LAN, IoT, and Guest zone policy ordering was collected without
+      truncation; IoT-to-Default new traffic is rejected and no user-defined
+      External-to-Internal ingress allow was present.
+  - action: 4d
+    observation: Switch ACL count and totalCount were both zero.
+  - action: 4e
+    observation: >-
+      Operator inspection found zero port-forward rules, ISP on WAN1, and UPnP
+      disabled.
+  - action: 20p-a-retry
+    observation: >-
+      Dual-stack Caddy VIP ownership, node management endpoints, DBus roles,
+      and HTTPS continuity passed without a firewall change.
+
+flows_documented_not_rules_to_create:
+  - default_lan_clients_to_caddy_vips_tcp_80_443
+  - default_lan_clients_to_caddy_vips_udp_443
+  - default_lan_clients_to_node_management_tcp_80_443
+  - default_lan_clients_to_node_management_udp_443
+  - node_a_to_node_b_vrrp_protocol_112
+  - node_b_to_node_a_vrrp_protocol_112
+  - node_pair_restricted_ssh_tcp_22
+  - node_pair_to_apprise_tcp_8000
+  - munin_master_to_node_pair_tcp_4949
+
+must_remain_absent:
+  - external_zone_ingress_to_caddy
+  - wan_port_forward_to_caddy
+  - upnp_mapping_to_caddy
+  - iot_vlan_access_to_caddy
+  - guest_vlan_access_to_caddy
+  - network_access_to_lighttpd_tcp_8080
+
+reevaluate_before_change_if:
+  - Caddy client scope expands beyond Default LAN VLAN 1.
+  - Any required endpoint moves outside the Default LAN routed subnet.
+  - Switch ACLs, client isolation, or private-VLAN behavior is enabled.
+  - WAN port forwarding or UPnP is enabled.
+  - A host firewall is enabled on either Caddy node.
+  - The Default LAN IPv4 prefix or IPv6 on-link prefix changes.
+
+next_gate:
+  action: 23
+  authorization: definition_only
+  description: >-
+    Define the first authoritative Unbound record-family update without
+    installing records or reloading either resolver.

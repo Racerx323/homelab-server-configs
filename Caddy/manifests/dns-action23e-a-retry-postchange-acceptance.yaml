@@ -1,0 +1,67 @@
+---
+action: 23e-a-retry
+status: defined
+mode: read-only
+scope: node-a-pihole-ptr-postchange-acceptance-corrected
+
+supersedes:
+  action: 23e-a
+  disposition: failed-immutable-read-only-evidence
+  correction: distinguish direct-Unbound and local-Pi-hole DNS-VIP PTR policy
+
+target:
+  node: node-a
+  hostname: j1-svpihole0
+  address: 10.1.0.53
+  required_vrrp_state: MASTER
+
+ptr_policy:
+  direct_unbound_dns_vip_ipv4: pihole.local.theama.co.
+  direct_unbound_dns_vip_ipv6: pihole.local.theama.co.
+  local_pihole_dns_vip_ipv4: j1-svpihole0.local.theama.co.
+  local_pihole_dns_vip_ipv6: j1-svpihole0.local.theama.co.
+  rejected_local_node_b: j1-svpihole00.local.theama.co.
+  rejected_local_generic: pi.hole.
+  rejected_local_canonical_vip: pihole.local.theama.co.
+  rejected_direct_node_a: j1-svpihole0.local.theama.co.
+  rejected_direct_node_b: j1-svpihole00.local.theama.co.
+  rejected_direct_generic: pi.hole.
+
+filesystem_contract:
+  ftl_file: /etc/pihole/pihole-FTL.conf
+  ftl_hash_policy: valid-and-stable
+  ftl_owner: pihole
+  ftl_group: root
+  ftl_mode: "0664"
+  ptr_setting: PIHOLE_PTR=HOSTNAMEFQDN
+  domain_file: /etc/dnsmasq.d/local.theama.co.conf
+  domain_sha256: a8305acbc27a9133d6e68e8b1a0fe9a462a975919233d71866d54b2e98810f96
+  obsolete_extensionless_state: absent
+  custom_cname_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+failed_action_continuity:
+  action23e_backup_state: absent
+  action23e_transaction_state: absent
+  action23e_stage_residue_state: absent
+
+continuity:
+  - Pi-hole FTL parser accepts the current configuration.
+  - All five relevant services remain active.
+  - Node A remains MASTER and retains both Caddy and DNS VIP families.
+  - Direct Unbound and local Pi-hole A, AAAA, and node PTR answers remain exact.
+  - Node A, Node B, and Caddy VIP HTTPS endpoints remain reachable.
+  - Before and after semantic snapshots are identical.
+
+prohibited:
+  - Action 23b rerun
+  - Action 23e rerun
+  - Action 23e-a rerun
+  - Pi-hole restart
+  - filesystem mutation
+  - service mutation
+  - Node B SSH
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false

@@ -1,0 +1,74 @@
+---
+action: 26e
+status: defined
+scope: read_only_wsl_mirrored_postrestart_acceptance
+execution_authorized: false
+predecessor_evidence:
+  accepted_inactive_baseline: 26c-a
+  failed_activation_action: 26d
+  action26d_failure_boundary: preflight_distributions_before_transaction_start
+  action26d_shutdown_executed: false
+observed_definition_baseline:
+  networking_mode: mirrored
+  ula_route_interface: eth1
+  selected_ula_source: 'fd36:5aa8:6971:1:3856:ef8b:d838:254c'
+  route_status:
+    node_a: 0
+    node_b: 0
+    caddy_vip: 0
+  resolver_symlink: /mnt/wsl/resolv.conf
+  resolver_sha256: 9e0e2f98735e119102ea8b675021e263fa6a226c8dc6c09b127dfebf16ca4bd5
+  resolver_nameserver: 10.255.255.254
+  resolver_search: local.theama.co
+artifacts:
+  read_only_inspector:
+    path: Caddy/scripts/inspect-workstation-wsl-mirrored-postrestart-action26-d.sh
+    sha256: c28daa30a7b127d8d6b4ca9e669564350367695e8be4986112b4478d37d23a1d
+  outer:
+    path: Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-outer.sh
+    sha256: d5ecf40a30450962ef7ce79f4cce02331f53a4c924650518208808adf86b8133
+  production_regression:
+    path: Caddy/tests/action26-e-postrestart-regression.sh
+    sha256: 658ff062a8ae194b1b9988469a7333190cc21eee92e1807831632a9cd2392c0c
+acceptance:
+  networking_mode: mirrored
+  ula_prefix: 'fd36:5aa8:6971:1::/64'
+  route_targets:
+    node_a: 'fd36:5aa8:6971:1::53'
+    node_b: 'fd36:5aa8:6971:1::54'
+    caddy_vip: 'fd36:5aa8:6971:1::56'
+  route_status: 0
+  route_source_must_be_ula: true
+  dns:
+    name: proxy.local.theama.co
+    type: AAAA
+    exact_answer: 'fd36:5aa8:6971:1::56'
+    exact_answer_count: 1
+  https:
+    protocol: '1.1'
+    status: 204
+    remote_ip: 'fd36:5aa8:6971:1::56'
+    body_bytes: 0
+    redirects: 0
+evidence:
+  exact_ordered_assertion_inventory: true
+  capture_stdout_and_stderr_during_original_action: true
+  bounded_safe_content_emitted_before_cleanup: true
+  negative_transcript_coverage:
+    - missing
+    - false
+    - duplicate
+    - reordered
+    - wrong_mode
+    - nonzero_status
+    - nonempty_stderr
+constraints:
+  wsl_shutdown: false
+  windows_process_launch: false
+  windows_firewall_change: false
+  resolver_mutation: false
+  persistent_mutation: false
+  ha_node_administrative_contact: false
+  caddy_vip_https_probe: true
+  preserve_failed_action26d_artifacts: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence

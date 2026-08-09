@@ -1,0 +1,40 @@
+---
+action: 26a
+status: defined
+scope: workstation_read_only
+execution_authorized: false
+accepted_predecessor:
+  action: 26
+  outer_sha256: 58edc2c10115dcd2b74e9b1b65e4afda7eaab3d6801301a698991d65ced943fc
+purpose: classify the workstation IPv6 response path without rerunning Action 26
+targets:
+  hostname: proxy.local.theama.co
+  path: /
+  node_a_control: fd36:5aa8:6971:1::53
+  node_b_control: fd36:5aa8:6971:1::54
+  caddy_vip: fd36:5aa8:6971:1::56
+collection:
+  - IPv6 route and selected source for each address
+  - neighbor state before and after each probe
+  - bounded HTTP/1.1 health probe to each exact address
+  - command status, protocol, HTTP status, remote IP, body bytes, and redirects
+classifications:
+  - vip_route_missing
+  - vip_https_healthy
+  - vip_specific_https_failure
+  - workstation_ipv6_https_path_failure
+  - indeterminate_ipv6_response_path
+constraints:
+  dns_dependency: false
+  node_ssh: false
+  persistent_mutation: false
+  collect_all_probes_after_failure: true
+  emit_safe_evidence_before_evaluation: true
+  preserve_executed_action26: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence
+rollback: none_read_only
+separate_observed_issue:
+  node_a_default_resolver: 10.1.0.1
+  evidence: user_supplied_dig_nxdomain
+  included_in_action26a: false
+  rationale: Node A resolver provenance is separate from the workstation direct-IP path

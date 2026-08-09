@@ -1,0 +1,49 @@
+---
+action: 23c
+status: defined
+scope: pihole-v5-ptr-policy
+
+node_order:
+  current: node-b
+  next_after_acceptance: node-a
+
+node:
+  role: node-b
+  hostname: j1-svpihole00
+  address: 10.1.0.54
+  required_vrrp_state: BACKUP
+
+configuration:
+  mutable_file: /etc/pihole/pihole-FTL.conf
+  old_line: PIHOLE_PTR=HOSTNAMEFQDN
+  new_line: PIHOLE_PTR=NONE
+  read_only_file: /etc/dnsmasq.d/local.theama.co.conf
+  required_domain_line: domain=local.theama.co
+  rejected_domain_line: domain=local.thema.co
+
+transaction:
+  replace_exactly_one_line: true
+  validate_with_pihole_ftl: true
+  restart_pihole_v5_dns_once: true
+  command: /usr/local/bin/pihole restartdns
+  retain_protected_backup: true
+  automatic_rollback: true
+  rollback_restarts_pihole_v5_dns: true
+  unbound_configuration_mutation: false
+  domain_configuration_mutation: false
+
+acceptance:
+  - Node B remains BACKUP and owns no Caddy or DNS VIP.
+  - Direct Unbound retains exact A, AAAA, IPv4 PTR, and IPv6 PTR answers.
+  - Pi-hole returns the same authoritative Unbound PTR answers after restart.
+  - The DNS VIP PTR identifies pihole.local.theama.co.
+  - Physical node PTRs identify pihole0 and pihole00 respectively.
+  - The exact local.theama.co domain file remains byte-for-byte unchanged.
+  - Unbound, Caddy, lighttpd, and Keepalived remain active and stable.
+  - Node A, Node B, and Caddy VIP HTTPS endpoints remain reachable.
+  - Action 23b is not rerun.
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false

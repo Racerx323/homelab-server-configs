@@ -1,0 +1,66 @@
+---
+action: 26e_retry
+status: defined
+scope: read_only_wsl_mirrored_postrestart_acceptance
+execution_authorized: false
+immutable_predecessors:
+  - 26d
+  - 26e
+confirmed_target:
+  path: /mnt/c/Users/aaron/.wslconfig
+  sha256: 04d050670b39c4febb632de69e144a7c3f979c168fe8f326832b1af932300435
+  bytes: 118
+  encoding_boundary: crlf_except_final_line
+  intentional_settings:
+    networkingMode: Mirrored
+    dnsProxy: false
+    hostAddressLoopback: true
+    bestEffortDnsParsing: true
+generated_inspector:
+  immutable_source:
+    path: Caddy/scripts/inspect-workstation-wsl-mirrored-postrestart-action26-d.sh
+    sha256: c28daa30a7b127d8d6b4ca9e669564350367695e8be4986112b4478d37d23a1d
+  replaced_hash:
+    old: 6dffdf2bfc174eaca2a0bfcf8fe224929fd1006fbb48e3ccf34d642d234ab8a7
+    new: 04d050670b39c4febb632de69e144a7c3f979c168fe8f326832b1af932300435
+    exact_occurrences: 1
+  generated_sha256: a8684d98d63282540e003e344694f80f41230943136b5174d838e940f5c16b30
+artifacts:
+  adapter:
+    path: Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-retry.sh
+    sha256: e495dc337390b6861d5077d7b043a4887d6819e3f05106a576efb5180bb6663e
+  immutable_transcript_validator:
+    path: Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-outer.sh
+    sha256: d5ecf40a30450962ef7ce79f4cce02331f53a4c924650518208808adf86b8133
+  outer:
+    path: Caddy/scripts/run-workstation-wsl-mirrored-postrestart-action26-e-retry-outer.sh
+    sha256: b2f313b4713c9af2c668d21130642838522d6e921fb959387d93ab50191f0270
+  regression:
+    path: Caddy/tests/action26-e-retry-postrestart-regression.sh
+    sha256: 6de59bd6f99ddc8a828636ca69f462395e051130ab2fef37d1bb039c7b06a554
+acceptance:
+  inherited_core_assertions: 39
+  adapter_assertions: 6
+  networking_mode: mirrored
+  exact_dns_aaaa: 'fd36:5aa8:6971:1::56'
+  direct_ipv6_https:
+    protocol: '1.1'
+    status: 204
+    remote_ip: 'fd36:5aa8:6971:1::56'
+evidence:
+  original_action_stream_capture: true
+  bounded_safe_output_emitted: true
+  independently_labeled_assertions: true
+  regression_rejects:
+    - former_two_line_candidate
+    - altered_confirmed_setting
+constraints:
+  wsl_shutdown: false
+  windows_process_launch: false
+  windows_firewall_change: false
+  resolver_mutation: false
+  persistent_mutation: false
+  ha_node_administrative_contact: false
+  dns_and_https_probe_only_after_local_gates: true
+  preserve_historical_artifacts: true
+  complete_historical_suite: bypassed_under_accepted_focused_validation_cadence
