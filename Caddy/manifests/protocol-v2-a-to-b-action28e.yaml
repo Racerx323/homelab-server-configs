@@ -1,0 +1,97 @@
+---
+action: 28e
+status: defined_not_executed
+direction: node-a-to-node-b
+purpose: resolved-source-bounded-protocol-v2-synchronization-successor
+immutable_predecessor:
+  action: 28d
+  outer_sha256: 8c5c1482350c4fd2cd47608f9ea586a63c993d4ecc1bc8364626f5b5da800cae
+  status: failed_during_publisher-source-validation
+correction:
+  source_link: /etc/caddy/current
+  release_root: /etc/caddy/releases
+  publisher_source: canonical-non-symlink-release-target
+  direct_child_required: true
+  target_tree_sha256: b7f3dfba3b0dc2aa278f0d1e6dd02fc7d2be6ef0eb656f12f7bc7288df12ebd9
+  other_functional_changes: false
+source_contract:
+  release_root_directory: required
+  release_root_symlink: rejected
+  current_directory: required
+  current_symlink: required
+  resolution_status: required
+  resolved_path_absolute: required
+  resolved_path_direct_child: required
+  resolved_target_directory: required
+  resolved_target_symlink: rejected
+  source_target_identity: required
+  accepted_tree_hash: required
+accepted_baseline:
+  node_a: 28b-a
+  node_b: 28d-node-b-preflight
+  publisher_sha256: e4a48f12a7324a885684a57070269a2d074d056c65d9e767db901408e0e86669
+  retained_release: action17p-node-a-to-node-b-bootstrap
+  retained_release_tree_sha256: dc6f4359cd6f0f424f2db89b180d63d5478f0de36c344e406c707340b57ceb37
+ordered_phases:
+  - node-b-read-only-preflight
+  - node-a-read-only-preflight
+  - node-a-publication-and-source-bound-transfer
+  - node-b-read-only-completion-acceptance
+transport:
+  account: caddy-sync
+  source_bound_ipv6: true
+  dedicated_identity: true
+  strict_host_key_checking: true
+  remote_working_directory: /
+  transmitted_completion_marker: false
+  remote_delete: false
+receiver:
+  receiver_side_finalization: true
+  requires_finalize_request: true
+  requires_receiver_complete: true
+  rejects_pending_complete: true
+bounded_changes:
+  node_a: one-new-immutable-outbound-release
+  node_b: one-new-validated-and-finalized-incoming-release
+  selected_release_change: false
+  service_mutation: false
+  synchronization_activation: false
+inhibited:
+  - action-28-rerun
+  - action-28c-rerun
+  - action-28d-rerun
+  - emergency-publication
+  - lsyncd-enable
+  - reconciliation
+  - caddy-selection-change
+  - service-mutation
+  - remote-delete
+regression:
+  valid-production-symlink: accepted
+  direct-source-directory: rejected
+  dangling-source-target: rejected
+  outside-release-root: rejected
+  nested-release-target: rejected
+  symlink-release-root: rejected
+  altered-target-tree: rejected
+  complete-four-phase-transport: accepted
+  missing-or-altered-acceptance-evidence: rejected
+validation:
+  focused_host: required
+  focused_network_disabled_debian12: required
+  complete_historical_suite: bypassed_by_accepted_cadence
+artifacts:
+  builder_sha256: a72079d2511e0f21378571b36664c96e2627fc9e35ae869ab0780ab304b46aba
+  generated_driver_sha256: ce27b4b280e8f31ec240d53c930d4140ff3ad809f43313c7d8b8500d6cfc1405
+  generated_inspector_sha256: 56caf44ea261f997d177e9bc4cf340538e3a0de7d0fe39097a88d692d93b8e09
+  generated_runner_sha256: 1c89e740b361426f534e3ad6abf697c194b64ede40b2e4ec72f9711490d33702
+  regression_sha256: 4d725765b16c82c377880145d8e241f67b0060e3f5d026a1a7ab130f422c87a5
+  outer_sha256: d6b87c4991d89d67937c6024368dd745fa24160ebe42d79ce1cd55a4e15efb4f
+authorization:
+  definition_only: true
+  node_contact: false
+  publisher_invocation: false
+  transfer: false
+  finalizer_invocation: false
+  persistent_mutation: false
+  next_gate: exact-outer-runner-authorization

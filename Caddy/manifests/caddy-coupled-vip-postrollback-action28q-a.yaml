@@ -1,0 +1,107 @@
+---
+action: 28q-a
+status: defined_not_executed
+type: independent_fail_closed_dual_node_read_only_postrollback_convergence
+defined_at: "2026-08-10"
+
+accepted_baseline:
+  failed_transaction: 28q
+  node_a_rollback_status: 0
+  node_a_rollback_acceptance: true
+  node_a_keepalived_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_a_caddy_fragment_sha256: 8117510587c79fa597ebd5e48da6ab4be8d8dfef6740d57b9b327037b70830be
+  node_b_keepalived_main_sha256: 9aa36b630f304bab674e31af96d96a1dbafb330728b01e2d8216c8dbab2df148
+  node_b_caddy_fragment_sha256: 0dd8ec0a5410bcd3c41db0d3fed74cf8bd75978f09b01a797468dd6266b4b518
+
+expected_convergence:
+  node_a:
+    dns_role: master_by_exclusive_vip_ownership
+    dns_vips:
+      - 10.1.0.55/22
+      - fd36:5aa8:6971:1::55/128
+    caddy_vips: []
+    services:
+      - keepalived.service
+      - lighttpd.service
+      - caddy.service
+  node_b:
+    dns_role_ipv4: Backup
+    dns_role_ipv6: Backup
+    dns_vips: []
+    caddy_vips: []
+    services:
+      - keepalived.service
+      - lighttpd.service
+      - caddy.service
+
+retained_notifier_evidence:
+  node: node_b
+  journal_window:
+    since: "2026-08-10 13:53:30"
+    until: "2026-08-10 13:56:30"
+  required_sequence:
+    - "PIHOLE_DUALSTACK GROUP changed to MASTER"
+    - "MASTER Apprise notification delivered"
+    - "PIHOLE_DUALSTACK GROUP changed to BACKUP"
+    - "BACKUP Apprise notification failed with curl exit 28"
+  required_timeout: "Operation timed out after 5001 milliseconds with 0 bytes received"
+  interpretation: >-
+    Keepalived completed the MASTER-to-BACKUP transition. The missing Discord
+    message was an asynchronous Apprise delivery timeout, not a VRRP state
+    failure.
+
+scope:
+  node_contact_order:
+    - node_b_state
+    - node_b_notifier_evidence
+    - node_a_state
+  node_a_read_only: true
+  node_b_read_only: true
+  action_28q_rerun: prohibited
+  filesystem_mutation: prohibited
+  service_mutation: prohibited
+  keepalived_reload: prohibited
+  vrrp_transition: prohibited
+  vip_mutation: prohibited
+  execution_authorized: false
+
+evidence:
+  contract: ssh-local-evidence-contract-v1
+  persistent_workstation_root: /tmp/caddy-ssh-evidence/action28q-a
+  capture_mode: "0600"
+  every_assertion_independently_labeled: true
+  bounded_safe_stdout_stderr_emitted_during_original_action: true
+  status_captured_during_original_action: true
+  sole_capture_deleted_by_exit_trap: false
+
+regression:
+  actual_node_a_state_producer: true
+  actual_node_b_state_producer: true
+  actual_notifier_evidence_producer: true
+  exact_intercepted_three_ssh_path: true
+  missing_false_extra_state_labels_rejected: true
+  missing_duplicate_reordered_notifier_events_rejected: true
+  wrong_ipv4_or_ipv6_backup_state_rejected: true
+  action_28q_invocation_rejected: true
+  mutation_commands_rejected: true
+
+artifacts:
+  notifier_inspector:
+    path: Caddy/scripts/inspect-node-b-action28q-notifier-evidence.sh
+    sha256: 34a89df54cf44bb3a37203f21ee496f15390395b10b303a20cd70275d3b5f9e8
+  regression:
+    path: Caddy/tests/action28q-a-postrollback-convergence-regression.sh
+    sha256: 39c9c2162e3b82bf350bfaaafcbc673f7a3b252eb5896828b082d762dacf608a
+  outer:
+    path: Caddy/scripts/run-dual-node-coupled-vip-postrollback-action28q-a-outer.sh
+    sha256: 490ef116ed10d5082d0a741c1a0e7a8d27691e2549fa627f0172c0410cf90816
+
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+
+next_gate:
+  action: 28q-a
+  authorization: exact_outer_sha256_once
+  sha256: 490ef116ed10d5082d0a741c1a0e7a8d27691e2549fa627f0172c0410cf90816

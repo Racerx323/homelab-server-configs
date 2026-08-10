@@ -1,0 +1,81 @@
+---
+action: 28d
+status: defined_not_executed
+direction: node-a-to-node-b
+purpose: corrected-bounded-protocol-v2-synchronization-successor
+immutable_predecessor:
+  action: 28c
+  outer_sha256: a1447de2c7cfc22e7559dd2dfaea18907e152a9850853407ee4c35ac53644dfe
+  status: failed_before_remote-payload-execution
+correction:
+  scope: one-production-command-token
+  rejected: /bin/bash -s/
+  accepted: /bin/bash -s
+  other_functional_changes: false
+accepted_baseline:
+  action: 28b-a
+  outer_sha256: 8e4526e8ea4f9e83680ca8fb6ba04d7014fe944ff1ba9040865657a44f403252
+  publisher_sha256: e4a48f12a7324a885684a57070269a2d074d056c65d9e767db901408e0e86669
+  retained_release: action17p-node-a-to-node-b-bootstrap
+  retained_release_tree_sha256: dc6f4359cd6f0f424f2db89b180d63d5478f0de36c344e406c707340b57ceb37
+  synchronization_tree_sha256: a71b5dbe62d5529ef5346c46f19799f442536c362ec17a90aa52d874858f311c
+  current_release_tree_sha256: b7f3dfba3b0dc2aa278f0d1e6dd02fc7d2be6ef0eb656f12f7bc7288df12ebd9
+ordered_phases:
+  - node-b-read-only-preflight
+  - node-a-read-only-preflight
+  - node-a-publication-and-source-bound-transfer
+  - node-b-read-only-completion-acceptance
+transport:
+  account: caddy-sync
+  source_bound_ipv6: true
+  dedicated_identity: true
+  strict_host_key_checking: true
+  transmitted_completion_marker: false
+  remote_delete: false
+receiver:
+  receiver_side_finalization: true
+  requires_finalize_request: true
+  requires_receiver_complete: true
+  rejects_pending_complete: true
+bounded_changes:
+  node_a: one-new-immutable-outbound-release
+  node_b: one-new-validated-and-finalized-incoming-release
+  selected_release_change: false
+  service_mutation: false
+  synchronization_activation: false
+inhibited:
+  - action-28-rerun
+  - action-28c-rerun
+  - emergency-publication
+  - lsyncd-enable
+  - reconciliation
+  - caddy-selection-change
+  - service-mutation
+  - remote-delete
+evidence:
+  independently_labeled_assertions: true
+  same_run_bounded_safe_stdout_stderr: true
+  exact-production-ssh-command-regression: true
+  malformed-command-negative-regression: true
+  complete-four-phase-production-path-regression: true
+  predecessor-normalized-diff-regression: true
+  historical-artifacts-immutable: true
+validation:
+  focused_host: required
+  focused_network_disabled_debian12: required
+  complete_historical_suite: bypassed_by_accepted_cadence
+artifacts:
+  builder_sha256: 5f7cf9afe81b142ecab17f4fc07570f62cf63a535c710ecf59f443d819d92f4f
+  generated_driver_sha256: be998f395d430bfc537227cd5ebc45a7fe60b60a3b7653189e0ee839aeee6d58
+  generated_inspector_sha256: 4e4b88ab315a7ed74c6e78350745c33b788f761372a19b8f8ca5f9c5434b8482
+  generated_runner_sha256: df6847bac598b8cd8453809a1fdddf6e28cabcfe45352ed6ed03ffb45aa429cc
+  regression_sha256: 038f5a26ee825f2068c1aa2ede798211dc11b438fdff0a0e220d93b33b1a03a8
+  outer_sha256: 8c5c1482350c4fd2cd47608f9ea586a63c993d4ecc1bc8364626f5b5da800cae
+authorization:
+  definition_only: true
+  node_contact: false
+  publisher_invocation: false
+  transfer: false
+  finalizer_invocation: false
+  persistent_mutation: false
+  next_gate: exact-outer-runner-authorization

@@ -1,0 +1,59 @@
+---
+action: 28a-a
+status: defined
+scope: node-a-post-action28a-continuity-and-outbound-inventory
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false
+  cleanup_authorized: false
+  publisher_installation_authorized: false
+  action_28_rerun_permitted: false
+  action_28a_rerun_permitted: false
+target:
+  node: j1-svpihole0
+  administrative_address: 10.1.0.53
+  host_key_alias: pihole0.local.theama.co
+accepted_baseline:
+  action_28a_status: failed_preflight_before_mutation
+  first_failure: outbound_root_empty
+  publisher_state: absent
+  action_28a_backup_state: absent
+  caddy_vrrp_state: MASTER
+inspection:
+  outbound_root: /var/lib/caddy-sync/outbound
+  direct_child_inventory:
+    required: true
+    every_child_reported: true
+    exact_name_base64_encoded: true
+    file_or_tree_sha256_reported: true
+    metadata_reported: true
+    marker_states_reported: true
+    before_after_digest_required: true
+  continuity:
+    publisher_absence: true
+    action_28a_backup_absence: true
+    action_28a_stage_residue_absence: true
+    synchronization_tree: true
+    current_release: true
+    services: true
+    vrrp_state: true
+    caddy_vip_ownership: true
+    dns_vip_ownership: true
+    node_a_physical_addresses: true
+  prohibited:
+    publisher_invocation: true
+    release_mutation: true
+    service_mutation: true
+    filesystem_mutation: true
+    node_b_contact: true
+    residue_cleanup: true
+evidence:
+  every_assertion_independently_labeled: true
+  bounded_stdout_stderr_same_run: true
+  safe_content_emitted: true
+  unsafe_content_retained: true
+artifacts:
+  inspector_sha256: d49d1ee1c9eccaf28338b3265358bc50fb45481f977df1a350146e2ba0301c76
+  outer_sha256: 4c6d4b7824d91b7f19036de6e957cab8c033d50521900b012752fe35bb450877
+  regression_sha256: c5b23d66f0e6a06422f5ae1bbc60aad1649a9b689dac9092bf7e3bad0076756b

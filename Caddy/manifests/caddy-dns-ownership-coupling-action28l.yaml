@@ -1,0 +1,158 @@
+---
+action: 28l
+status: architecture_defined_not_executable
+type: one_way_caddy_to_dns_ownership_coupling
+defined_at: "2026-08-09"
+
+decision:
+  owner: PIHOLE_DUALSTACK
+  ipv4_instance: PIHOLE_IPV4
+  ipv6_instance: PIHOLE_IPV6
+  dns_ipv4_vip: 10.1.0.55
+  caddy_ipv4_vip: 10.1.0.56
+  dns_ipv6_vip: fd36:5aa8:6971:1::55
+  caddy_ipv6_vip: fd36:5aa8:6971:1::56
+  direction: caddy_follows_dns_only
+  caddy_health_may_move_dns: false
+  separate_caddy_vrrp_retained_live: false
+  backend_mtls_required: false
+  additional_backend_certificate_required: false
+
+runtime_contract:
+  shared_admin_fqdn: pihole-admin.local.theama.co
+  node_a_admin_fqdn: pihole0.local.theama.co
+  node_b_admin_fqdn: pihole00.local.theama.co
+  shared_admin_owner: current_dns_vip_owner
+  node_specific_admin_access: independent_physical_node_routes
+  caddy_service_active_on_both_nodes: true
+  local_pihole_upstream: 127.0.0.1:8080
+  accepted_tradeoff: >-
+    A Caddy failure on the DNS owner may make the shared administration name
+    unavailable, but it must not move DNS ownership. Node-specific administration
+    names remain available whenever their host, Caddy, and Pi-hole are healthy.
+
+source_definition:
+  node_a_keepalived: homelab-dns/Keepalived/configs/keepalived-pihole0.conf
+  node_b_keepalived: homelab-dns/Keepalived/configs/keepalived-pihole00.conf
+  ipv4_vips_in_dns_instance:
+    - 10.1.0.55/22 dev eth0
+    - 10.1.0.56/22 dev eth0
+  ipv6_vips_in_dns_instance:
+    - fd36:5aa8:6971:1::55/128 dev eth0 preferred_lft forever
+    - fd36:5aa8:6971:1::56/128 dev eth0 preferred_lft forever
+  prohibited_dns_dependencies:
+    - check_caddy
+    - caddy.service
+    - caddy_endpoint
+
+accepted_pre_transition_boundary:
+  node_a:
+    dns_role: MASTER
+    dns_vips_owned:
+      - 10.1.0.55
+      - fd36:5aa8:6971:1::55
+    caddy_role: retired
+    caddy_service: active
+    caddy_vips_owned: []
+  node_b:
+    dns_role: BACKUP
+    dns_vips_owned: []
+    caddy_role: retired
+    caddy_service: active
+    caddy_vips_owned: []
+
+deployment_progress:
+  phase_1_node_a_retirement_and_service_restoration: accepted_action_28m_b
+  phase_2_node_b_relinquish: accepted_action_28p_a
+  phase_3_node_a_coupled_acquisition: defined_not_executed_action_28q
+
+transition_order:
+  - phase: 0_read_only_baseline
+    mutation: false
+    requirements:
+      - Independently prove exact live main and fragment hashes on both nodes.
+      - Independently prove service, role, and all four VIP ownership results.
+      - Every address query must succeed before its result is counted.
+  - phase: 1_retire_node_a_caddy_vrrp_and_restore_service
+    node: node_a
+    mutation: separately_authorized_transaction
+    requirements:
+      - Remove only the separate Caddy fragment include from Node A's live main configuration.
+      - Reload Node A Keepalived once and prove DNS ownership unchanged and Caddy VIPs absent.
+      - Start only caddy.service on Node A.
+      - Validate its loopback and node-specific IPv4 and IPv6 administration paths.
+      - Confirm Node A still owns no Caddy VIP after the old Caddy VRRP definition is inactive.
+  - phase: 2_relinquish_node_b_caddy_vrrp
+    node: node_b
+    mutation: separately_authorized_transaction
+    requirements:
+      - Back up the exact main configuration and separate Caddy fragment.
+      - Remove only the separate Caddy fragment include from the live main configuration.
+      - Reload Keepalived once.
+      - Require Node B to relinquish both Caddy VIPs and retain DNS BACKUP with zero DNS VIPs.
+      - Require Caddy and the node-specific administration path to remain healthy.
+      - Permit only bounded shared-administration downtime during the ownership gap.
+  - phase: 3_acquire_coupled_vips_on_node_a
+    node: node_a
+    mutation: separately_authorized_transaction
+    requirements:
+      - Back up the exact main configuration and separate Caddy fragment.
+      - Atomically install the coupled DNS configuration and remove the separate Caddy include.
+      - Reload Keepalived once.
+      - Require Node A to own exactly all four DNS and Caddy VIPs.
+      - Require the shared administration response to identify Node A.
+  - phase: 4_install_coupled_standby_on_node_b
+    node: node_b
+    mutation: separately_authorized_transaction
+    requirements:
+      - Atomically install the equivalent coupled DNS configuration while Node B is BACKUP.
+      - Require Node B to own zero DNS and Caddy VIPs after its single reload.
+      - Require its node-specific administration path to remain healthy.
+  - phase: 5_independent_acceptance
+    mutation: false
+    requirements:
+      - Independently prove Node A owns all four VIPs and Node B owns none.
+      - Independently prove shared administration identifies Node A.
+      - Independently prove both node-specific administration paths.
+      - Defer failover and failback tests to separately authorized actions.
+
+rollback:
+  general:
+    - Never reload both nodes in one transaction or authorization.
+    - Retain protected exact-hash backups before each mutation.
+    - Capture, classify, and emit bounded safe stdout and stderr in the original action.
+    - Exit 125 when authoritative ownership or recovery cannot be proven.
+  phase_2_failure:
+    - Restore Node B's separate Caddy fragment and exact main configuration.
+    - Reload Node B once and prove it again owns both Caddy VIPs.
+    - Prove Node A continuously owns both DNS VIPs.
+  phase_3_failure:
+    - Restore Node A's exact previous main configuration and fragment state.
+    - Reload Node A once and prove it owns both DNS VIPs and neither Caddy VIP.
+    - Leave Node B unchanged at its accepted Action 28p-a boundary.
+    - Require separate exact authorization before restoring any historical Node B Caddy role.
+  phase_4_failure:
+    - Restore only Node B's exact prior configuration and reload Node B once.
+    - Do not disturb the independently accepted Node A ownership of all four VIPs.
+
+historical_artifacts:
+  action_28k_status: superseded_unexecuted_architecture
+  action_28k_preserved: true
+  incomplete_mtls_issuance_draft_preserved: false
+  separate_caddy_fragment_preserved_as_history: true
+
+authorization:
+  definition_only: true
+  node_contact: false
+  service_start: false
+  keepalived_reload: false
+  fragment_change: false
+  vip_transition: false
+  execution: false
+
+next_gate:
+  action: 28q
+  authorization: exact_outer_sha256_once
+  description: >-
+    Execute the Node-A-only coupled Caddy-to-DNS VIP acquisition transaction
+    once using its exact outer SHA-256. Node B remains read-only throughout.

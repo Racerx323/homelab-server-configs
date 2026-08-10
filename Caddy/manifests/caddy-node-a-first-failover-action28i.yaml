@@ -1,0 +1,56 @@
+action: 28i
+status: defined_not_executed
+type: bounded_transactional_node_a_first_caddy_failover
+accepted_baseline:
+  post_transfer_action: 28g-c
+  normal_node_b_publisher_rejection_action: 28h
+preconditions:
+  node_a:
+    caddy_service: active
+    caddy_vrrp_state: MASTER
+    caddy_vip_ownership: dual_stack
+    dns_vip_ownership: dual_stack
+  node_b:
+    caddy_service: active
+    caddy_vrrp_state: BACKUP
+    caddy_vip_ownership: none
+    dns_vip_ownership: none
+transaction:
+  mutation_node: node-a
+  mutation: stop_caddy_service
+  expected_node_a_state: FAULT
+  expected_node_b_state: MASTER
+  success_state_retained: true
+  automatic_rollback_on_failure: start_node_a_caddy_and_restore_master
+  rollback_failure_status: 125
+acceptance:
+  node_a_caddy_vips: none
+  node_b_caddy_vips: dual_stack
+  node_a_dns_vips: dual_stack
+  node_b_dns_vips: none
+  synchronization_services: inactive
+  node_b_https: healthy
+  every_assertion_independently_labeled: true
+  bounded_safe_streams_emitted_same_run: true
+prohibited:
+  - emergency_publication
+  - publication_creation
+  - release_transfer
+  - release_finalization
+  - synchronization_activation
+  - keepalived_reload
+  - fragment_or_main_configuration_mutation
+side_effects:
+  - node_a_caddy_service_stopped_on_success
+  - keepalived_and_apprise_state_notifications_expected
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  next_gate: exact_outer_sha256_authorization
+artifacts:
+  inspector_sha256: 44e52b61b09f1aa0e117c1da404e781de39111103d79573c6f2f3e6551952f5e
+  transaction_sha256: cc944575ddea0c67bf2d43af9dd11b3e3aa9ababdd37dba334ca2463ea6fce12
+  regression_sha256: ff16ba9853dfdba3b1d62200deb8ef235a7f00e537091c7223193c216f5d829f
+  focused_validator_sha256: b670a199ce3b19dcf4962cbd2fc0df847f4882c9287927976ab2a4abab318d5e
+  outer_sha256: 5608944a8d71e316bf06d2dfe5b2569ae4323adef0f161d7fd6686aee1d9e7a1

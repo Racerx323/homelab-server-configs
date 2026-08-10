@@ -1,0 +1,64 @@
+action: 28j
+status: defined_not_executed
+type: append_only_corrected_transactional_node_a_first_caddy_failover
+predecessor:
+  action: 28i
+  outer_sha256: 5608944a8d71e316bf06d2dfe5b2569ae4323adef0f161d7fd6686aee1d9e7a1
+  status: failed_before_mutation
+correction:
+  only_semantic_change: publisher_path
+  stale_path: /usr/local/sbin/caddy-publish-release
+  accepted_path: /usr/local/libexec/publish-release-v2.sh
+  node_a_contract: action_28b_and_action_28b_a
+  node_b_contract: action_18c_prerequisite_and_action_18c_publisher_a
+accepted_baseline:
+  post_transfer_action: 28g-c
+  normal_node_b_publisher_rejection_action: 28h
+preconditions:
+  node_a:
+    caddy_service: active
+    caddy_vrrp_state: MASTER
+    caddy_vip_ownership: dual_stack
+    dns_vip_ownership: dual_stack
+  node_b:
+    caddy_service: active
+    caddy_vrrp_state: BACKUP
+    caddy_vip_ownership: none
+    dns_vip_ownership: none
+transaction:
+  mutation_node: node-a
+  mutation: stop_caddy_service
+  expected_node_a_state: FAULT
+  expected_node_b_state: MASTER
+  success_state_retained: true
+  automatic_rollback_on_failure: start_node_a_caddy_and_restore_master
+  rollback_failure_status: 125
+acceptance:
+  node_a_caddy_vips: none
+  node_b_caddy_vips: dual_stack
+  node_a_dns_vips: dual_stack
+  node_b_dns_vips: none
+  synchronization_services: inactive
+  shared_vip_https: healthy
+  every_assertion_independently_labeled: true
+  bounded_safe_streams_emitted_same_run: true
+prohibited:
+  - emergency_publication
+  - publication_creation
+  - release_transfer
+  - release_finalization
+  - synchronization_activation
+  - keepalived_reload
+  - fragment_or_main_configuration_mutation
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  next_gate: exact_outer_sha256_authorization
+artifacts:
+  builder_sha256: 8865822533e6d7187b113a4b5a6f7c9a16d6d186ce510965643dec3451030576
+  inspector_sha256: 3f4e4ca1c55677f22e997d7cda3a105f2bbc662870885f3df1e343b5049de735
+  transaction_sha256: fd62e65aa587001e855efb691e2efdca69a833b90923edbb93de64f31ddc4aac
+  regression_sha256: ef76b21b0e81c64d2041544717e7b78a31fc3538e23d66f5d9d0ddc2379690ba
+  focused_validator_sha256: 1e982318151f2a3a1e8d274da3f1bbcbf07792c6c5d7b4f9fd414fe8b1d7ad7f
+  outer_sha256: e9fe1575701f32de6784709af3a702559dd8ada6186be33b4ed955bf813acfc1

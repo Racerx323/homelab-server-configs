@@ -1,0 +1,3 @@
+# revision	identity-kind	relative-path	sha256	accepted-action
+action17p-node-a-to-node-b-bootstrap	release_manifest	release-manifest.json	81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3	28e-c
+action17p-node-a-to-node-b-bootstrap	payload_manifest	manifest.sha256	f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8	28e-c

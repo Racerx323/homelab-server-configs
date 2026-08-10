@@ -1,0 +1,109 @@
+action: 28j-c
+status: defined_not_executed
+type: append_only_dual_node_read_only_post_failover_acceptance_with_exact_family_https_bindings
+predecessor:
+  action: 28j-b
+  outer_sha256: c28d4beea44eab0c175c7e75ad666f3e1fae09dabc40da2f2427a4eefb9a4b83
+  status: executed_failed_https_name_resolution
+node_a_expected:
+  caddy_service: inactive
+  caddy_vrrp_state: FAULT
+  caddy_ipv4_vip_count: 0
+  caddy_ipv6_vip_count: 0
+  dns_ipv4_vip_count: 1
+  dns_ipv6_vip_count: 1
+  health_helper_status: nonzero
+node_b_expected:
+  caddy_service: active
+  caddy_vrrp_state: MASTER
+  caddy_ipv4_vip_count: 1
+  caddy_ipv6_vip_count: 1
+  dns_ipv4_vip_count: 0
+  dns_ipv6_vip_count: 0
+  health_helper_status: zero
+shared_route_expected:
+  fqdn: pihole-admin.local.theama.co
+  a: 10.1.0.56
+  aaaa: fd36:5aa8:6971:1::56
+  cname: absent
+  final_url: https://pihole-admin.local.theama.co/admin/login.php
+  redirect_count: 1
+  http_status: 200
+  tls_validation: trusted
+  ipv4_curl_resolve: "pihole-admin.local.theama.co:443:10.1.0.56"
+  ipv6_curl_resolve: "pihole-admin.local.theama.co:443:[fd36:5aa8:6971:1::56]"
+  exact_family_required: true
+durable_workstation_evidence:
+  root: /var/tmp/caddy-action28j-c-evidence
+  root_mode: "0700"
+  run_directory_mode: "0700"
+  files:
+    - stdout
+    - stderr
+    - exit-status
+    - metadata
+  file_mode: "0600"
+  append_only_run_directory: true
+  status_recorded_before_transient_cleanup: true
+  stdout_metadata:
+    - bytes
+    - lines
+    - sha256
+    - classification
+  stderr_metadata:
+    - bytes
+    - lines
+    - sha256
+    - classification
+  bounded_safe_content_emitted_same_run: true
+  unsafe_content_retained_not_emitted: true
+residue_expected:
+  node_a_transaction_directories: 0
+  node_b_transaction_directories: 0
+  workstation_outer_directories: 0
+continuity:
+  accepted_publishers_exact: true
+  keepalived_active: true
+  lighttpd_active: true
+  lsyncd_inactive: true
+  reconciliation_inactive: true
+  shared_vip_https_healthy: true
+evidence:
+  every_assertion_independently_labeled: true
+  exact_producer_grammar: true
+  exact_ipv4_resolve_regression: true
+  exact_ipv6_resolve_regression: true
+  missing_resolve_rejected: true
+  wrong_family_rejected: true
+  wrong_address_rejected: true
+  malformed_ipv6_rejected: true
+  accepted_and_rejected_status_retention_regression: true
+  transient_cleanup_after_durable_retention_regression: true
+limitations:
+  backend_identity_validated: false
+  execution_eligible: false
+  reason: >-
+    The exact-family HTTPS probes validate the Caddy VIP transport but do not
+    prove that the served Pi-hole UI belongs to the current DNS VIP owner.
+prohibited:
+  - predecessor_rerun
+  - node_filesystem_mutation
+  - service_mutation
+  - vrrp_transition
+  - emergency_publication
+  - publication_creation
+  - transfer
+  - finalization
+  - repair
+  - synchronization_activation
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  next_gate: backend_architecture_decision_before_execution
+artifacts:
+  state_inspector_sha256: 3f4e4ca1c55677f22e997d7cda3a105f2bbc662870885f3df1e343b5049de735
+  route_inspector_sha256: df1f606c2ab3f92d62daf92cce7dc9575f813ce2ed5216d709435fef69a55075
+  residue_inspector_sha256: c7ea3f9bc127dc8636bd860aadcf80c15961e84d08910f874615073427a90c5b
+  regression_sha256: 75f512fa4d3eb430388d29103826642befae40df3410047c5fe1de608096da1b
+  outer_sha256: 42ff79c0cd335968ffcfcfe2e8a8af8f915aff8fb687beffb5ea8a09ae53f562

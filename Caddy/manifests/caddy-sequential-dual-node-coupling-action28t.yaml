@@ -1,0 +1,76 @@
+---
+action: 28t
+mode: bounded_transactional_sequential_dual_node
+status: definition_only
+execution_authorized: false
+consumes:
+  accepted_live_baseline: action_28r_a
+  failed_consumed_action: action_28s
+  retained_evidence: /tmp/caddy-ssh-evidence/action28s/run.z6ysgs
+objective:
+  node_b_first: true
+  node_a_immediate_successor: true
+  simultaneous_reload: false
+  final_state:
+    node_a_ipv4: Master
+    node_a_ipv6: Master
+    node_b_ipv4: Backup
+    node_b_ipv6: Backup
+    node_a_shared_vips:
+      - 10.1.0.55/22
+      - fd36:5aa8:6971:1::55/128
+      - 10.1.0.56/22
+      - fd36:5aa8:6971:1::56/128
+    node_b_shared_vips: []
+ttl_contract:
+  node_a:
+    unicast_ttl: 255
+    peer_min_ttl: 255
+    peer_max_ttl: 255
+  node_b:
+    unicast_ttl: 255
+    peer_min_ttl: 255
+    peer_max_ttl: 255
+  transition:
+    maximum_seconds: 45
+    permitted_node_b_message: >-
+      (PIHOLE_IPV6) TTL/HL 64 not in range 255 - 255
+    any_other_ttl_rejection: prohibited
+  stable_acceptance:
+    samples_per_node: 5
+    ttl_rejection: prohibited
+    address_count_mismatch: prohibited
+sources:
+  transaction:
+    path: Caddy/scripts/transact-dual-node-protocol-compatible-coupling-action28t.sh
+    sha256: 3489759fec7b38fe0e3ee31f19810085bf1f8fbe363826102b6daf1a25e873db
+  regression:
+    path: Caddy/tests/action28t-sequential-dual-node-coupling-regression.sh
+    sha256: 2701659b25d3bd2cf35bb01c54a7b97991b47dc51f02b4a8a46ded09be7ddc73
+  outer:
+    path: Caddy/scripts/run-dual-node-protocol-compatible-coupling-action28t-outer.sh
+  node_a_candidate:
+    path: ../homelab-dns/Keepalived/configs/keepalived-pihole0.conf
+    sha256: d8f96c4f018f90370aea38fc3ef932af649158f6edc99cc7e95dea1edff4908a
+  node_b_candidate:
+    path: ../homelab-dns/Keepalived/configs/keepalived-pihole00.conf
+    sha256: 034ee9c45acaca4e48e2faeda24cd371e945bdb52a117b5871403958ab36794c
+rollback:
+  order:
+    - node_a
+    - node_b
+  node_a_restored_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_b_restored_sha256: 9aa36b630f304bab674e31af96d96a1dbafb330728b01e2d8216c8dbab2df148
+  recovery_failure_status: 125
+evidence:
+  workstation_root: /tmp/caddy-ssh-evidence/action28t
+  stdout: bounded_classified_emitted
+  stderr: bounded_classified_emitted
+  exit_status: retained
+  unsafe_stream: retained_not_emitted
+prohibited:
+  - rerun_action_28s
+  - simultaneous_keepalived_reload
+  - accepting_transitional_state_as_final
+  - leaving_node_b_on_candidate_after_node_a_failure
+  - deleting_historical_action_artifacts

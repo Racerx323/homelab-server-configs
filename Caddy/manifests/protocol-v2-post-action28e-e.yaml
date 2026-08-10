@@ -1,0 +1,105 @@
+---
+action: 28e-e
+status: defined_not_executed
+type: independent_fail_closed_dual_node_read_only_acceptance
+predecessor:
+  action: 28e-b
+  outer_sha256: 2048857d11767f12cfaeee30a1f0f68d8cda6738b5a24d36f326bcca1d9823ce
+  execution: executed_once_not_accepted
+  first_failure: historical_release_manifest_identity_mispin
+  rerun: prohibited
+typed_identity_baseline:
+  action: 28e-d
+  runner_sha256: a600e6ca0b8b9536dae30cbf48b725eaac7582c3c5b8fb9326d90a81384a2726
+  execution: workstation_only_accepted
+  registry: Caddy/manifests/protocol-v2-historical-identities-action28e-d.tsv
+  registry_sha256: 9a3abce23f57bb17b4ff1415b28846c9792229f53d99a0b73a3a9a81033886f9
+  contract:
+    release_manifest:
+      relative_path: release-manifest.json
+      sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+    payload_manifest:
+      relative_path: manifest.sha256
+      sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+immutable_transaction_predecessor:
+  action: 28e
+  outer_sha256: d6b87c4991d89d67937c6024368dd745fa24160ebe42d79ce1cd55a4e15efb4f
+  execution: launched_once_indeterminate
+  rerun: prohibited
+inspection_order:
+  - node-b
+  - node-a
+accepted_pair:
+  node_a_state: sender_ready
+  node_b_state: receiver_finalized
+  candidate_count_per_node: 1
+  cross_node_exact_fields:
+    - revision
+    - parent_revision
+    - release_manifest_sha256
+    - payload_manifest_sha256
+nonaccepted_classifications:
+  - absent
+  - partial
+continuity:
+  historical_release: action17p-node-a-to-node-b-bootstrap
+  node_a_historical_tree_sha256: dc6f4359cd6f0f424f2db89b180d63d5478f0de36c344e406c707340b57ceb37
+  dual_node_historical_release_manifest_sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+  dual_node_historical_payload_manifest_sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+  node_a_current_tree_sha256: b7f3dfba3b0dc2aa278f0d1e6dd02fc7d2be6ef0eb656f12f7bc7288df12ebd9
+  selected_release_unchanged_during_inspection: required
+  serving_services_active: required
+  synchronization_services_inactive: required
+  node_a_vrrp: MASTER
+  node_b_vrrp: BACKUP
+  node_a_caddy_and_dns_vips: owned_once
+  node_b_caddy_and_dns_vips: absent
+candidate_validation:
+  direct_child_count_bounded: true
+  hidden_stage_residue_absent: true
+  safe_revision: true
+  release_manifest_schema: exact
+  source_node: node-a
+  payload_manifest_paths: safe
+  payload_file_set: exact
+  payload_hashes: valid
+  symlinks: rejected
+  special_files: rejected
+  hardlinks: rejected
+  directories_mode: '0550'
+  files_mode: '0440'
+  finalize_request: regular_empty
+  pending_marker: absent
+  node_a_complete_marker: absent
+  node_b_complete_marker: receiver_generated_regular_empty
+read_only_prohibitions:
+  - publisher-invocation
+  - receiver-invocation
+  - finalizer-invocation
+  - cleanup
+  - release-mutation
+  - service-mutation
+  - lsyncd-enable
+  - reconciliation
+  - remote-delete
+  - action-28e-rerun
+evidence:
+  typed_registry_exact_hash_and_contract: required
+  historical_release_and_payload_expected_and_observed_emitted_before_assertion: true
+  historical_release_payload_and_tree_mismatch_regression: required
+  swapped_missing_duplicate_altered_kind_path_and_action_registry_rows: rejected
+  every_assertion_independently_labeled: true
+  stdout_and_stderr_bounded_classified_emitted_same_run: true
+  before_after_snapshot: required
+  candidate_tree_hash_metadata_and_marker_states: emitted_and_validated
+  missing_false_duplicate_reordered_altered_stderr_and_mutation_evidence: rejected
+artifacts:
+  inspector_sha256: 96b159653883c5a67ae384b1129ce619f2e74f0b44c4846da1d44ae898cd96d9
+  regression_sha256: 100fce8cf9987895df8e1167c043489825cdce6d3c6e84ab57e9e0405b3cbd6c
+  outer_sha256: f7e397e28cae312c57ff0d30b782ea3e3ce927715cf04ad0a891b0073618cb6c
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  mutation: false
+  next_gate: exact_outer_authorization

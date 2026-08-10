@@ -1,0 +1,93 @@
+---
+action: 28s
+status: defined_not_executed
+type: bounded_transactional_standby_first_node_b_installation
+defined_at: "2026-08-10"
+
+accepted_baseline:
+  action: 28r-a
+  node_a_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_a_role:
+    ipv4: Master
+    ipv6: Master
+  node_a_owned_vips:
+    - 10.1.0.55/22
+    - fd36:5aa8:6971:1::55/128
+  node_b_main_sha256: 9aa36b630f304bab674e31af96d96a1dbafb330728b01e2d8216c8dbab2df148
+  node_b_fragment_sha256: 0dd8ec0a5410bcd3c41db0d3fed74cf8bd75978f09b01a797468dd6266b4b518
+  node_b_role:
+    ipv4: Backup
+    ipv6: Backup
+  node_b_owned_vips: []
+
+candidate:
+  source: homelab-dns/Keepalived/configs/keepalived-pihole00.conf
+  sha256: 034ee9c45acaca4e48e2faeda24cd371e945bdb52a117b5871403958ab36794c
+  advertised_ipv4_addresses: 1
+  advertised_ipv6_addresses: 1
+  excluded_caddy_ipv4: 10.1.0.56/22 dev eth0
+  excluded_caddy_ipv6: fd36:5aa8:6971:1::56/128 dev eth0 preferred_lft forever
+  outgoing_ttl_per_instance: 255
+  incoming_peer_ttl_range: 255-255
+  separate_caddy_fragment_activation: prohibited
+
+transaction:
+  node_mutated: node_b_only
+  node_a_contact: read_only_before_and_after
+  node_b_keepalived_reload_count: 1
+  node_a_keepalived_reload_count: 0
+  simultaneous_reload: prohibited
+  config_test: prohibited_by_accepted_deployment_deviation
+  protected_backup: /var/backups/caddy-ha/action28s-node-b-protocol-compatible-coupling
+  preflight:
+    - Reaccept the complete Node A Action 28m-b producer transcript.
+    - Reaccept the complete Node B Action 28p-a producer transcript.
+    - Require exact accepted main and inactive fragment hashes.
+    - Require Node B IPv4 and IPv6 Backup with zero shared VIPs.
+    - Require exact candidate advertisement, excluded-address, and TTL contracts.
+  mutation:
+    - Install only the exact Node B candidate atomically.
+    - Preserve the separate Caddy fragment byte-for-byte and inactive.
+    - Reload only Node B Keepalived once.
+  acceptance:
+    - Require bounded convergence and five stable Backup samples.
+    - Require zero DNS and Caddy VIPs on Node B.
+    - Require no unexpected-address-count or TTL/HL rejection after the journal cursor.
+    - Require active Keepalived, Caddy, and lighttpd plus both node-specific UI paths.
+    - Reaccept Node A after the Node B transaction.
+  rollback: >-
+    On any post-mutation failure, atomically restore the exact accepted Node B
+    main and reload only Node B. Require Backup in both families with zero
+    shared VIPs. A failed Node A postflight invokes the same protected rollback.
+    Return 125 whenever recovery cannot be proven.
+
+evidence:
+  contract: ssh-local-evidence-contract-v1
+  workstation_root: /tmp/caddy-ssh-evidence/action28s
+  capture_mode: "0600"
+  stdout_stderr_status_retained: true
+  bounded_safe_content_emitted_during_original_action: true
+  every_assertion_independently_labeled: true
+
+artifacts:
+  transaction:
+    path: Caddy/scripts/install-node-b-protocol-compatible-coupling-action28s.sh
+    sha256: 40649ef09d9b63be9094e29d132a14d55379e0c578e1a69eff18e0d8f4e80178
+  regression:
+    path: Caddy/tests/action28s-node-b-installation-regression.sh
+    sha256: 175b38d4e41cdd93143e4f3d44917ffc701488b90ff5fb0cb943ae95daee86a7
+  outer:
+    path: Caddy/scripts/run-node-b-protocol-compatible-coupling-action28s-outer.sh
+    sha256: c54d09b9f06908bc7c520db8c3d0cca57d36cfa5c8c07a8ca7b92d4a9ae60c2c
+
+authorization:
+  definition_only: true
+  node_contact: false
+  keepalived_reload: false
+  vip_transition: false
+  execution: false
+
+next_gate:
+  action: 28s
+  authorization: exact_outer_sha256_once
+  sha256: c54d09b9f06908bc7c520db8c3d0cca57d36cfa5c8c07a8ca7b92d4a9ae60c2c

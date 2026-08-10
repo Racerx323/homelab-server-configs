@@ -1,0 +1,83 @@
+---
+action: 28e-c
+status: defined_not_executed
+type: narrow_fail_closed_dual_node_read_only_manifest_comparison
+predecessor:
+  action: 28e-b
+  outer_sha256: 2048857d11767f12cfaeee30a1f0f68d8cda6738b5a24d36f326bcca1d9823ce
+  execution: executed_once_not_accepted
+  expected_manifest_sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+  observed_node_b_manifest_sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+  rerun: prohibited
+inspection_order:
+  - node-b
+  - node-a
+historical_release: action17p-node-a-to-node-b-bootstrap
+raw_byte_identity:
+  command: sha256sum -- FILE
+  input: exact_regular_file_bytes
+  command_substitution: prohibited
+  concatenation: prohibited
+  newline_injection: prohibited
+  normalization: prohibited
+  evidence:
+    - raw_sha256
+    - byte_count
+    - line_count
+    - final_byte_hex
+    - uid_gid_mode_size_mtime_inode_link_count
+canonical_semantic_identity:
+  serializer: jq -cS
+  hash_input: exact_compact_sorted_json_payload_excluding_serializer_final_lf
+  purpose: distinguish_serialization_only_from_semantic_drift
+  accepted_live_pin_replacement: prohibited
+semantic_fields:
+  - revision
+  - parent_revision
+  - source_node
+  - created_at
+surrounding_continuity:
+  payload_manifest_raw_sha256: compared
+  node_a_finalize_request: absent
+  node_b_finalize_request: regular_empty
+  completion_marker: regular_empty
+  pending_marker: absent
+  before_after_snapshot: exact
+classifications:
+  - exact_accepted
+  - shared_unaccepted_bytes
+  - serialization_only
+  - semantic_drift
+regression:
+  exact_direct_file_sha256: required
+  no_trailing_newline: covered
+  one_trailing_newline: covered
+  extra_blank_line: covered
+  semantic_change: covered
+  exact_remote_command: covered
+  predecessor_invocation: rejected
+evidence:
+  every_assertion_independently_labeled: true
+  stdout_and_stderr_bounded_classified_emitted_same_run: true
+  expected_and_observed_identities_emitted_before_classification: true
+read_only_prohibitions:
+  - cleanup
+  - repair
+  - accepted-live-hash-change
+  - publication
+  - transfer
+  - finalization
+  - release-selection
+  - service-mutation
+  - synchronization-activation
+  - predecessor-rerun
+artifacts:
+  inspector_sha256: b90ad77e54c653ee431aac1ea479ff00ffe51034f38b08fd12b00bcdeca878cd
+  regression_sha256: a06ced0189913888f1357811b4119ca3ed0c4f5f4ab57239c7eb02662d221af5
+  outer_sha256: edc88d827a9bdd60a62832d452ac5508c0a1ae2f35f14740bdd5c4bf7d5e8230
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  mutation: false
+  next_gate: exact_outer_authorization

@@ -12,6 +12,8 @@ readonly historical_action20m_path=Caddy/scripts/run-node-b-keepalived-dbus-main
 readonly historical_action20m_sha256=e5888f78ed8195e9a368df002c71a99a4f602de9de780c9dc7578b3803eaeeb2
 readonly historical_action20ma_path=Caddy/scripts/run-node-b-keepalived-dbus-main-postinstall-action20m-a-outer.sh
 readonly historical_action20ma_sha256=cc6d8179dbb85bb4411043854ad8dde17c6f212fbcc397eb9a748e56525d47fe
+readonly historical_action28_path=Caddy/scripts/run-node-a-to-node-b-release-transfer-action28.sh
+readonly historical_action28_sha256=0e0399f47f9941d30ee86ffbdf48e10692a4e84593adae53599d30b2db53d495
 
 script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly script_directory
@@ -30,6 +32,9 @@ is_historical_exception() {
             ;;
         "$historical_action20ma_path")
             [[ "$(file_hash "$cwd_precommit_source")" = "$historical_action20ma_sha256" ]]
+            ;;
+        "$historical_action28_path")
+            [[ "$(file_hash "$cwd_precommit_source")" = "$historical_action28_sha256" ]]
             ;;
         *) return 1 ;;
     esac

@@ -176,6 +176,18 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/remote-streamed-bash-cwd-policy.sh --check FILE [FILE ...]` for
   every changed runner; pre-commit enforces the same rule and permits historical
   defects only through an exact immutable path-and-hash exception.
+- Every SSH transport that streams a command or Bash artifact must preserve a
+  local workstation evidence copy under `/tmp` during the original execution.
+  Create a unique `0700` evidence directory, redirect stdout and stderr into
+  distinct `0600` files, record the exact SSH exit status, and classify and
+  emit bounded-safe content before evaluating acceptance. Retain the local
+  files and report their path at handoff; an EXIT trap must not delete the only
+  capture. A remote `/tmp` log created with `nohup` may supplement this contract
+  only for a separately authorized long-running command; it never replaces the
+  local capture and must not be introduced for synchronous transactional or
+  read-only actions. Mark governed runners with
+  `ssh-local-evidence-contract-v1` and enforce them with
+  `Caddy/tests/ssh-stream-local-evidence-policy.sh --check FILE [FILE ...]`.
 - Any staged artifact consumed by an unprivileged identity must be placed in a
   dedicated staging directory that is a direct child of an explicitly
   validated searchable runtime parent such as `/run`. Keep protected payloads,

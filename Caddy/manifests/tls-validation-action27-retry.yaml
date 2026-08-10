@@ -1,0 +1,33 @@
+---
+action: 27_retry
+status: defined
+execution_authorized: false
+scope: workstation_read_only
+immutable_failed_predecessor:
+  action: 27
+  outer_sha256: cf3ac9d1bc4c5b21e369d38ed273cbdcfc3c95a0c31e55a93c0b172b2f915cbf
+  failure: ipv4_tls12_verify_return_code_transcript_format
+correction:
+  boundary: openssl_s_client_success_verification_line
+  accepted_semantics: "Verify return code: 0 (ok)"
+  normalization: horizontal_and_display_whitespace_only
+  nonzero_verify_codes_rejected: true
+  immutable_core_modified: false
+preserved_contract:
+  trusted_system_ca_paths: true
+  insecure_flag_permitted: false
+  exact_leaf_and_chain_pins: true
+  exact_hostname_and_san_checks: true
+  tls_versions:
+    - TLSv1.2
+    - TLSv1.3
+  address_families:
+    - ipv4
+    - ipv6
+  raw_certificate_pem_emitted: false
+  bounded_safe_derived_evidence_emitted: true
+mutation:
+  ssh: false
+  node_administration: false
+  persistent_change: false
+next_gate: exact_outer_runner_authorization

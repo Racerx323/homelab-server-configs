@@ -1,0 +1,37 @@
+---
+action: 27_retry2
+status: defined
+execution_authorized: false
+scope: workstation_read_only
+accepted_identity_baseline:
+  action: 27_retry_a_retry
+  outer_sha256: 58a7aed3b6e290b31601b5ee0ecd9701090ce0efd5097441f34d5fe6af6fbc71
+  leaf_der_sha256: 9480cfd689e5804a103ca192849e3ef5810b4e1c37918fbcc2815e864da5580c
+correction:
+  rejected_identity: pem_serialization_sha256
+  accepted_identity: canonical_leaf_der_sha256
+  explicit_certificate_boundary_state: true
+  verification_line_normalization: exact_success_whitespace_only
+preserved_contract:
+  assertion_count: 61
+  trusted_system_ca_paths: true
+  insecure_flag_permitted: false
+  exact_chain_count: 3
+  exact_hostname_and_san_checks: true
+  tls_versions:
+    - TLSv1.2
+    - TLSv1.3
+  address_families:
+    - ipv4
+    - ipv6
+  trusted_curl_probes: 2
+  raw_certificate_pem_emitted: false
+regression:
+  production_inter_certificate_text: required
+  wrong_der_rejected: true
+  nonzero_verify_code_rejected: true
+mutation:
+  ssh: false
+  node_administration: false
+  persistent_change: false
+next_gate: exact_outer_runner_authorization

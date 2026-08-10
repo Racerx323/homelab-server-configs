@@ -1,0 +1,115 @@
+---
+action: 28q
+status: defined_not_executed
+type: bounded_transactional_node_a_coupled_caddy_to_dns_vip_acquisition
+defined_at: "2026-08-10"
+
+accepted_baseline:
+  node_a_acceptance_action: 28m-b
+  node_a_keepalived_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_a_caddy_fragment_sha256: 8117510587c79fa597ebd5e48da6ab4be8d8dfef6740d57b9b327037b70830be
+  node_a_dns_vips:
+    - 10.1.0.55/22
+    - fd36:5aa8:6971:1::55/128
+  node_a_caddy_vips: []
+  node_b_acceptance_action: 28p-a
+  node_b_keepalived_main_sha256: 9aa36b630f304bab674e31af96d96a1dbafb330728b01e2d8216c8dbab2df148
+  node_b_caddy_fragment_sha256: 0dd8ec0a5410bcd3c41db0d3fed74cf8bd75978f09b01a797468dd6266b4b518
+  node_b_dns_vips: []
+  node_b_caddy_vips: []
+
+scope:
+  node_mutated: node_a_only
+  node_b_contact: read_only_preflight_and_postflight
+  keepalived_reload_count: 1
+  caddy_service_change: prohibited
+  dns_vip_movement: prohibited
+  separate_caddy_fragment_change: prohibited
+  node_b_mutation: prohibited
+  execution_authorized: false
+
+candidate:
+  source: homelab-dns/Keepalived/configs/keepalived-pihole0.conf
+  source_sha256: 9e3dbf9760733f0ddb46ba51996cfdd9ad9af723d561ee2376de8c7c7d6ee3aa
+  derivation: >-
+    Insert exactly the IPv4 and IPv6 Caddy VIPs into Node A's accepted
+    PIHOLE_IPV4 and PIHOLE_IPV6 virtual_ipaddress blocks without activating
+    the retained separate Caddy fragment.
+  expected_sha256: 9e3dbf9760733f0ddb46ba51996cfdd9ad9af723d561ee2376de8c7c7d6ee3aa
+  expected_owned_vips:
+    - 10.1.0.55/22
+    - 10.1.0.56/22
+    - fd36:5aa8:6971:1::55/128
+    - fd36:5aa8:6971:1::56/128
+
+transaction:
+  protected_backup: /var/backups/caddy-ha/action28q-node-a-coupled-vip-acquisition
+  preflight:
+    - Reaccept the complete Node A Action 28m-b producer transcript.
+    - Reaccept the complete Node B Action 28p-a producer transcript.
+    - Require Node A to own both DNS VIPs and neither Caddy VIP.
+    - Require Node B to own none of the four shared VIPs.
+    - Require both Caddy services and node-specific administration paths.
+  mutation:
+    - Install only the exact coupled Node A main configuration.
+    - Preserve the inactive separate Caddy fragment byte-for-byte.
+    - Reload only Node A Keepalived once.
+    - Require Node A to own all four VIPs without creating Caddy DBus instances.
+    - Require the shared administration response to identify Node A.
+    - Reaccept Node B continuity after the Node A transaction.
+  rollback: >-
+    Restore only Node A's protected accepted main configuration, reload only
+    Node A, and prove Node A again owns only the DNS VIPs while Node B remains
+    untouched. Return 125 whenever recovery cannot be proven.
+
+deployment_deviation:
+  phase_3_rollback_is_node_a_only: true
+  rationale: >-
+    Action 28p-a already accepted Node B with the separate Caddy VRRP retired.
+    Reintroducing that historical Node B role inside a Node A transaction would
+    cross the requested node boundary and create a second mutation authority.
+  consequence: >-
+    A failed acquisition restores the accepted DNS-only Node A state and leaves
+    bounded shared-administration downtime in place. Any restoration of the
+    former Node B Caddy role requires a separate exact authorization.
+
+evidence:
+  contract: ssh-local-evidence-contract-v1
+  persistent_workstation_root: /tmp/caddy-ssh-evidence/action28q
+  capture_mode: "0600"
+  every_assertion_independently_labeled: true
+  bounded_safe_stdout_stderr_emitted_during_original_action: true
+  status_captured_during_original_action: true
+  sole_capture_deleted_by_exit_trap: false
+
+regression:
+  actual_node_a_baseline_producer: true
+  actual_node_b_baseline_producer: true
+  intercepted_node_a_transaction_producer: true
+  exact_candidate_byte_boundary: true
+  shared_admin_node_a_identity_required: true
+  node_b_mutation_rejected: true
+  missing_false_extra_reordered_labels_rejected: true
+
+artifacts:
+  transaction:
+    path: Caddy/scripts/acquire-node-a-coupled-vips-action28q.sh
+    sha256: dac891ac6e959d5e4f045628072cb38437e4c5698234890e71ae062e614d6363
+  regression:
+    path: Caddy/tests/action28q-node-a-coupled-vip-acquisition-regression.sh
+    sha256: 54db732c213ca5406d918ae3a60fea94bfa316f501332854236c24719ed2a41c
+  outer:
+    path: Caddy/scripts/run-node-a-coupled-vip-acquisition-action28q-outer.sh
+    sha256: 90e1d7000b0fc029f538030d3f65716a4e490872185af8790fe5fcacf14df608
+
+authorization:
+  definition_only: true
+  node_contact: false
+  keepalived_reload: false
+  vip_acquisition: false
+  execution: false
+
+next_gate:
+  action: 28q
+  authorization: exact_outer_sha256_once
+  sha256: 90e1d7000b0fc029f538030d3f65716a4e490872185af8790fe5fcacf14df608

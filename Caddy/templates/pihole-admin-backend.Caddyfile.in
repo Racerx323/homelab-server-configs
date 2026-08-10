@@ -1,0 +1,25 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+https://:{$PIHOLE_BACKEND_PORT:8443} {
+	bind 10.1.0.55 fd36:5aa8:6971:1::55
+
+	tls {$PIHOLE_BACKEND_SERVER_CERT_FILE} {$PIHOLE_BACKEND_SERVER_KEY_FILE} {
+		client_auth {
+			mode require_and_verify
+			trust_pool file {
+				pem_file {$PIHOLE_BACKEND_CLIENT_CA_FILE}
+			}
+		}
+	}
+
+	@pihole_admin path /admin /admin/*
+	handle @pihole_admin {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	respond 404
+}

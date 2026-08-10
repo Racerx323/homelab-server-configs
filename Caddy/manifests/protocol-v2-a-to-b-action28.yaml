@@ -1,0 +1,59 @@
+---
+action: 28
+status: defined_not_executed
+direction: node-a-to-node-b
+purpose: post-tls-protocol-v2-synchronization-acceptance
+source:
+  node: node-a
+  address: fd36:5aa8:6971:1::53
+  role: normal-master-publisher
+  release: /etc/caddy/current
+  required_vrrp_state: MASTER
+  publisher:
+    path: /usr/local/libexec/publish-release-v2.sh
+    sha256: e4a48f12a7324a885684a57070269a2d074d056c65d9e767db901408e0e86669
+destination:
+  node: node-b
+  address: fd36:5aa8:6971:1::54
+  incoming_root: /var/lib/caddy-sync/incoming/node-a
+  preserves_historical_release: action17p-node-a-to-node-b-bootstrap
+transport:
+  account: caddy-sync
+  source_bound_ipv6: true
+  dedicated_identity: true
+  strict_host_key_checking: true
+  transmitted_completion_marker: false
+  remote_delete: false
+receiver:
+  receiver_side_finalization: true
+  requires_finalize_request: true
+  requires_receiver_complete: true
+  rejects_pending_complete: true
+  final_directory_mode: "0550"
+  final_file_mode: "0440"
+inhibited:
+  - emergency-publication
+  - lsyncd-enable
+  - reconciliation
+  - caddy-selection-change
+  - service-mutation
+  - remote-delete
+evidence:
+  independently_labeled_assertions: true
+  same_run_bounded_safe_stdout_stderr: true
+  unsafe_streams_retained: true
+  historical_artifacts_immutable: true
+artifacts:
+  driver_sha256: 25d62e26123ff2fc468db5cba92aeb9cd54befe69c51f9c48ba3586407182234
+  inspector_sha256: 026766ca4085b5a696be3f0f14f9d74321f4d27b2aa33db1aced86689702f34a
+  runner_sha256: 0e0399f47f9941d30ee86ffbdf48e10692a4e84593adae53599d30b2db53d495
+  regression_sha256: 53318a12afd2d4695e523d59b8bbe1896668366a43112abca616996636b56945
+  outer_sha256: 1eb4691c631e58893fad47b04d01738a8ed545c3dc8453a3479196a7e0fd3b74
+authorization:
+  definition_only: true
+  node_contact: false
+  publisher_invocation: false
+  transfer: false
+  finalizer_invocation: false
+  persistent_mutation: false
+  next_gate: exact-outer-runner-authorization

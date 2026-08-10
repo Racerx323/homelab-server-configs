@@ -1,0 +1,93 @@
+action: 28j-b
+status: defined_not_executed
+type: independent_fail_closed_dual_node_read_only_post_failover_acceptance_with_durable_workstation_evidence
+predecessor:
+  action: 28j-a
+  outer_sha256: ec6dc3f86b3dd41f085e59c4df3fa2e3fc6afcbdf98cae19e69d021989fc37e2
+  status: executed_result_indeterminate
+node_a_expected:
+  caddy_service: inactive
+  caddy_vrrp_state: FAULT
+  caddy_ipv4_vip_count: 0
+  caddy_ipv6_vip_count: 0
+  dns_ipv4_vip_count: 1
+  dns_ipv6_vip_count: 1
+  health_helper_status: nonzero
+node_b_expected:
+  caddy_service: active
+  caddy_vrrp_state: MASTER
+  caddy_ipv4_vip_count: 1
+  caddy_ipv6_vip_count: 1
+  dns_ipv4_vip_count: 0
+  dns_ipv6_vip_count: 0
+  health_helper_status: zero
+shared_route_expected:
+  fqdn: pihole-admin.local.theama.co
+  a: 10.1.0.56
+  aaaa: fd36:5aa8:6971:1::56
+  cname: absent
+  final_url: https://pihole-admin.local.theama.co/admin/login.php
+  redirect_count: 1
+  http_status: 200
+  tls_validation: trusted
+durable_workstation_evidence:
+  root: /var/tmp/caddy-action28j-b-evidence
+  root_mode: "0700"
+  run_directory_mode: "0700"
+  files:
+    - stdout
+    - stderr
+    - exit-status
+    - metadata
+  file_mode: "0600"
+  append_only_run_directory: true
+  status_recorded_before_transient_cleanup: true
+  stdout_metadata:
+    - bytes
+    - lines
+    - sha256
+    - classification
+  stderr_metadata:
+    - bytes
+    - lines
+    - sha256
+    - classification
+  bounded_safe_content_emitted_same_run: true
+  unsafe_content_retained_not_emitted: true
+residue_expected:
+  node_a_transaction_directories: 0
+  node_b_transaction_directories: 0
+  workstation_outer_directories: 0
+continuity:
+  accepted_publishers_exact: true
+  keepalived_active: true
+  lighttpd_active: true
+  lsyncd_inactive: true
+  reconciliation_inactive: true
+  shared_vip_https_healthy: true
+evidence:
+  every_assertion_independently_labeled: true
+  exact_producer_grammar: true
+  accepted_and_rejected_status_retention_regression: true
+  transient_cleanup_after_durable_retention_regression: true
+prohibited:
+  - node_filesystem_mutation
+  - service_mutation
+  - vrrp_transition
+  - emergency_publication
+  - publication_creation
+  - transfer
+  - finalization
+  - repair
+  - synchronization_activation
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  next_gate: exact_outer_sha256_authorization
+artifacts:
+  state_inspector_sha256: 3f4e4ca1c55677f22e997d7cda3a105f2bbc662870885f3df1e343b5049de735
+  route_inspector_sha256: 33c1ba24aedc557d7c6e09bf9ecac2221b77b569759ebc60247ee7084f414068
+  residue_inspector_sha256: c7ea3f9bc127dc8636bd860aadcf80c15961e84d08910f874615073427a90c5b
+  regression_sha256: 561f6b3791ca9f10e4449fc262395a11c09a752f060cd61fd42403d903a70fe3
+  outer_sha256: c28d4beea44eab0c175c7e75ad666f3e1fae09dabc40da2f2427a4eefb9a4b83

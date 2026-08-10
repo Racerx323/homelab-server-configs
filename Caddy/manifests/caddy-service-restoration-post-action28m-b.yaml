@@ -1,0 +1,93 @@
+---
+action: 28m-b
+status: defined_not_executed
+type: independent_read_only_node_a_post_action_28m_acceptance
+defined_at: "2026-08-10"
+
+accepted_predecessor:
+  action: 28m
+  outer_sha256: bfef273fc93a85543965901b137952543bd804d92c697eec3b3d1a267617a357
+  execution_status: 0
+  assertion_count: 58
+  acceptance: true
+  rollback_invoked: false
+  node_b_contacted: false
+
+consumed_predecessor_acceptance:
+  action: 28m-a
+  outer_sha256: b980d3057683fa241c600fa585c9abd31a8c2a46c00bd829b22e9171ecac2af4
+  execution_status: 1
+  accepted: false
+  first_failure: main_hash_retired
+  rerun_permitted: false
+
+scope:
+  node: node_a
+  node_b_contact: prohibited
+  read_only: true
+  filesystem_mutation: prohibited
+  service_mutation: prohibited
+  keepalived_reload: prohibited
+  caddy_start: prohibited
+  vrrp_transition: prohibited
+
+expected_state:
+  retired_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  baseline_backup_sha256: 8fc9dcf8e079b7131f86a58038ae5543804a5158a02d53a4614452de212ce47c
+  retained_fragment_sha256: 8117510587c79fa597ebd5e48da6ab4be8d8dfef6740d57b9b327037b70830be
+  caddy_fragment_include_count: 0
+  protected_backup: /var/backups/caddy-ha/action28m-node-a-caddy-service-restoration
+  keepalived: active
+  lighttpd: active
+  caddy: active
+  node_a_dns_ipv4_count: 1
+  node_a_dns_ipv6_count: 1
+  node_a_caddy_ipv4_count: 0
+  node_a_caddy_ipv6_count: 0
+
+acceptance_contract:
+  every_assertion_independently_labeled: true
+  expected_and_observed_hashes_emitted_before_evaluation: true
+  address_query_statuses_emitted_before_evaluation: true
+  https_statuses_and_codes_emitted_before_evaluation: true
+  exact_ordered_producer_labels: true
+  missing_duplicate_extra_false_stderr_and_nonzero_rejected: true
+  actual_producer_path_regression: true
+  before_after_state_exact: true
+  predecessor_rerun_rejected: true
+
+local_ssh_evidence:
+  contract: ssh-local-evidence-contract-v1
+  production_root: /tmp/caddy-ssh-evidence/action28m-b
+  unique_run_directory_mode: "0700"
+  stdout_mode: "0600"
+  stderr_mode: "0600"
+  status_mode: "0600"
+  retained_after_action: true
+  bounded_safe_content_emitted: true
+  remote_nohup_log_required: false
+
+artifacts:
+  inspector:
+    path: Caddy/scripts/inspect-node-a-caddy-service-restoration-action28m-b.sh
+    sha256: 38bbc1b3fc4dc35bc3847fcbf3233d7e7822065f5c71bafb49ee999dab4c56d1
+  outer:
+    path: Caddy/scripts/run-node-a-caddy-service-restoration-post-action28m-b-outer.sh
+    sha256: 694f41444928a68cbbc2b04e82fd55b24c9fc60ca2976fd9e886f89953080090
+  regression:
+    path: Caddy/tests/action28m-b-node-a-postinstall-regression.sh
+    sha256: 259e3c1fd179412db7eb90453303d908d0b043e0392c4b450e6889d501f9f1bb
+  ssh_evidence_policy:
+    path: Caddy/tests/ssh-stream-local-evidence-policy.sh
+    sha256: ab2eabf1be9053459a0124a8ec5970aef6a9e828de7dca788ef8bba04fff87ff
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  execution_authorized: false
+  action_28m_rerun_permitted: false
+  action_28m_a_rerun_permitted: false
+
+next_gate:
+  authorization: exact_outer_sha256_once
+  outer_sha256: 694f41444928a68cbbc2b04e82fd55b24c9fc60ca2976fd9e886f89953080090

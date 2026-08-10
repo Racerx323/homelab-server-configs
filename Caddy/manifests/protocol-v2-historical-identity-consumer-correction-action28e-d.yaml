@@ -1,0 +1,57 @@
+---
+action: 28e-d
+status: defined_not_executed
+type: append_only_workstation_historical_identity_consumer_correction
+accepted_evidence:
+  action: 28e-c
+  outer_sha256: edc88d827a9bdd60a62832d452ac5508c0a1ae2f35f14740bdd5c4bf7d5e8230
+  execution: executed_once_diagnostic_complete
+  classification: shared_unaccepted_bytes
+  cross_node_byte_drift: false
+  cross_node_semantic_drift: false
+historical_revision: action17p-node-a-to-node-b-bootstrap
+typed_identities:
+  release_manifest:
+    relative_path: release-manifest.json
+    sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+    bytes: 186
+    lines: 6
+    final_byte_hex: 0a
+  payload_manifest:
+    relative_path: manifest.sha256
+    sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+    bytes: 1004
+    lines: 11
+    final_byte_hex: 0a
+correction_boundary:
+  historical_artifacts_modified: false
+  typed_registry_added: true
+  release_manifest_pin_changed_from_payload_hash: true
+  payload_manifest_pin_retained: true
+  future_context_free_hash_consumers: prohibited
+regression:
+  exact_mapping: accepted
+  swapped_hashes: rejected
+  duplicate_row: rejected
+  missing_row: rejected
+  stale_release_hash: rejected
+  extra_row: rejected
+  altered_path: rejected
+  altered_evidence: rejected
+  historical_action28e_b_unchanged: required
+evidence:
+  expected_and_observed_values_emitted_before_assertion: true
+  every_assertion_independently_labeled: true
+  node_contact: false
+  predecessor_rerun: false
+  live_mutation: false
+artifacts:
+  registry_sha256: 9a3abce23f57bb17b4ff1415b28846c9792229f53d99a0b73a3a9a81033886f9
+  runner_sha256: a600e6ca0b8b9536dae30cbf48b725eaac7582c3c5b8fb9326d90a81384a2726
+  regression_sha256: 01dafce8777b56278fec5ecb43a7ec14b0a395156891ecddde424854883b212a
+authorization:
+  definition_only: true
+  execution: false
+  node_contact: false
+  mutation: false
+  next_gate: exact_runner_authorization

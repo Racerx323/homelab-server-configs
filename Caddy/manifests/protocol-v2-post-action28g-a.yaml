@@ -1,0 +1,55 @@
+---
+action: 28g-a
+status: defined_not_executed
+type: independent_fail_closed_dual_node_read_only_acceptance_and_residue
+accepted_predecessor:
+  action: 28g
+  outer_sha256: ffc572b7c84d76288f293af814cfe917dc52128f878509ca160c5fd2d6bd2642
+  execution: executed_once_accepted
+  rerun: prohibited
+inspection_order:
+  - node-b-main
+  - node-b-residue
+  - node-a-main
+  - node-a-residue
+accepted_candidate:
+  revision: 20260809T193432Z-6a2fab64-69e6-4cfb-a026-0a38fcae5b63
+  parent_revision: action16ar-retry-node-a-default-deny
+  release_manifest_sha256: c72b5bc5a6586ac3be098c0c5ca2fc3dc01a09c2afe4dcf90ed4bdbda6d166de
+  payload_manifest_sha256: fdc6ed955f14226ac3e1777eca37507cc8ab6ca16add3135dece9d6964e27568
+  node_a_state: sender_ready
+  node_b_state: receiver_finalized
+acceptance:
+  exact_identity_on_both_nodes: required
+  node_a_sender_marker_state: required
+  node_b_receiver_marker_state: required
+  service_vrrp_vip_continuity: required
+  synchronization_services_inactive: required
+  release_root_entry_count_exact: 2
+  hidden_release_root_residue_absent: required
+  action28f_and_finalizer_tmp_residue_absent: required
+  before_after_snapshot_stable: required
+  every_assertion_independently_labeled: true
+  stdout_stderr_bounded_classified_emitted_same_run: true
+prohibitions:
+  - action-28g-rerun
+  - publisher
+  - receiver
+  - finalizer
+  - cleanup
+  - release-mutation
+  - service-mutation
+  - lsyncd-enable
+  - reconciliation
+  - remote-delete
+artifacts:
+  main_inspector_sha256: 96b159653883c5a67ae384b1129ce619f2e74f0b44c4846da1d44ae898cd96d9
+  residue_inspector_sha256: b4d5672ad87de72852683578df484991de02ce382242b2d7235b67c729fbdb26
+  regression_sha256: a99bc920ed0c66106bf5e3318fdc2a052998d04b68193aac54fd5e0bbbe503d9
+  outer_sha256: 3226d93ed2facf7a4fc9952818f636ac0a5d33270353f38c837cbdee81175d01
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  mutation: false
+  next_gate: exact_outer_authorization

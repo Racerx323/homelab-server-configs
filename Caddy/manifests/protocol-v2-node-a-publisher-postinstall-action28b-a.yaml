@@ -1,0 +1,60 @@
+---
+action: 28b-a
+status: defined
+scope: node-a-post-action28b-publisher-acceptance
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  live_mutation_authorized: false
+  cleanup_authorized: false
+  publisher_invocation_authorized: false
+  action_28_rerun_permitted: false
+  action_28b_rerun_permitted: false
+target:
+  node: j1-svpihole0
+  administrative_address: 10.1.0.53
+  host_key_alias: pihole0.local.theama.co
+accepted_baseline:
+  action_28b_status: accepted
+  publisher_path: /usr/local/libexec/publish-release-v2.sh
+  publisher_sha256: e4a48f12a7324a885684a57070269a2d074d056c65d9e767db901408e0e86669
+  publisher_metadata: root:root:0755
+  backup_path: /var/backups/caddy-ha/action28b-node-a-publisher
+  retained_outbound_name: action17p-node-a-to-node-b-bootstrap
+  retained_outbound_tree_sha256: dc6f4359cd6f0f424f2db89b180d63d5478f0de36c344e406c707340b57ceb37
+inspection:
+  publisher:
+    exact_hash_and_metadata: true
+    syntax_only: true
+    invocation_prohibited: true
+  action_28b_backup:
+    exact_manifest_and_metadata: true
+  outbound_root:
+    exact_metadata: 994:990:750:4096:1785461698
+    exact_child_count: 1
+    exact_child_inventory: true
+    marker_contract: absent_regular_empty_absent
+    before_after_digest_required: true
+  continuity:
+    synchronization_tree: true
+    current_release: true
+    services: true
+    vrrp_state: MASTER
+    caddy_vip_ownership: true
+    dns_vip_ownership: true
+    node_a_physical_addresses: true
+  prohibited:
+    release_mutation: true
+    service_mutation: true
+    filesystem_mutation: true
+    node_b_contact: true
+    residue_cleanup: true
+evidence:
+  every_assertion_independently_labeled: true
+  bounded_stdout_stderr_same_run: true
+  safe_content_emitted: true
+  unsafe_content_retained: true
+artifacts:
+  inspector_sha256: a2b09a7ce5d9ba0481efd5d0eedd3a137ed7f29e4c7b691a102667c8195c66f3
+  outer_sha256: 8e4526e8ea4f9e83680ca8fb6ba04d7014fe944ff1ba9040865657a44f403252
+  regression_sha256: 8910b145d6979845adca9c61436f7c6d8be976d4b4eba490e117271b7ec91189

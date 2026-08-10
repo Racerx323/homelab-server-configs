@@ -1,0 +1,112 @@
+---
+action: 28r
+status: defined_not_executed
+type: corrected_bounded_transactional_node_a_coupled_caddy_to_dns_vip_acquisition
+defined_at: "2026-08-10"
+
+accepted_baseline:
+  convergence_action: 28q-a
+  convergence_outer_sha256: 490ef116ed10d5082d0a741c1a0e7a8d27691e2549fa627f0172c0410cf90816
+  convergence_execution_status: accepted
+  node_a_state_assertions: 47
+  node_a_state_sha256: 74d23d641f3b401673a1aa184c977c67de8927917c0f1ba6a18a61ea6901b6ac
+  node_b_state_assertions: 69
+  node_b_state_sha256: 71ee8d6b6a479a0a84f72604e2d3f964e1c1bd674cfbdd747f52890c3742f6da
+  node_b_notifier_assertions: 21
+  node_a_keepalived_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_b_keepalived_main_sha256: 9aa36b630f304bab674e31af96d96a1dbafb330728b01e2d8216c8dbab2df148
+  action_28q_rerun: prohibited
+
+candidate:
+  expected_sha256: 9e3dbf9760733f0ddb46ba51996cfdd9ad9af723d561ee2376de8c7c7d6ee3aa
+  node_a_only: true
+  expected_vips:
+    - 10.1.0.55/22
+    - 10.1.0.56/22
+    - fd36:5aa8:6971:1::55/128
+    - fd36:5aa8:6971:1::56/128
+
+transition_contract:
+  observation_start_node: node_b
+  observation_start_before_node_a_reload: true
+  node_b_transient_master:
+    classification: observable_transition_not_immediate_failure
+    notification_delivery_is_acceptance_gate: false
+  convergence:
+    node_b_total_samples: 15
+    node_b_required_final_stable_samples: 5
+    node_b_required_ipv4_state: Backup
+    node_b_required_ipv6_state: Backup
+    node_b_required_shared_vips: 0
+    node_a_required_final_stable_samples: 5
+    node_a_required_shared_vips: 4
+    prolonged_or_incorrect_node_b_ownership_rejected: true
+    final_simultaneous_ownership_rejected: true
+  journal_evidence:
+    keepalived_after_cursor: true
+    notifier_after_cursor: true
+    bounded_safe_content_emitted: true
+    notifier_delivery_failure_nonblocking: true
+
+transaction:
+  protected_backup: /var/backups/caddy-ha/action28r-node-a-coupled-vip-acquisition
+  keepalived_reload_count: 1
+  node_mutated: node_a_only
+  node_b_mutation: prohibited
+  post_mutation_order:
+    - node_b_bounded_convergence
+    - node_b_complete_accepted_state
+    - node_a_stable_coupled_state
+  rollback: >-
+    Restore only Node A's protected accepted DNS-only main configuration,
+    reload only Node A, and independently reaccept Node B and Node A baseline
+    state. Return 125 if rollback or either baseline cannot be proven.
+
+evidence:
+  contract: ssh-local-evidence-contract-v1
+  persistent_workstation_root: /tmp/caddy-ssh-evidence/action28r
+  capture_mode: "0600"
+  stdout_stderr_status_retained: true
+  transition_timestamps_retained: true
+  keepalived_and_notifier_journal_retained: true
+  safe_bounded_content_emitted_before_acceptance: true
+
+regression:
+  actual_baseline_producers: true
+  actual_transaction_producer: true
+  actual_observation_start_producer: true
+  actual_convergence_producer: true
+  transient_master_then_backup_accepted: true
+  prolonged_master_rejected: true
+  missing_false_extra_reordered_output_rejected: true
+  action_28q_rerun_rejected: true
+  node_b_mutation_rejected: true
+
+artifacts:
+  transaction:
+    path: Caddy/scripts/acquire-node-a-coupled-vips-action28r.sh
+    sha256: 3ee0fffaee6b87f81ecb86d530d46b9b8df1b88ddee8827d13cfc5b8af702c7a
+  observation_start:
+    path: Caddy/scripts/capture-node-b-coupled-vip-observation-start-action28r.sh
+    sha256: e2ee99023e5050fd98cad86185dd29ff55fe37771906e33ffa06da5493fc3bd5
+  convergence_inspector:
+    path: Caddy/scripts/inspect-coupled-vip-convergence-action28r.sh
+    sha256: b310bca423a74d64706c3d23b99bba683bf8c60066d0cac5ccbfbe9b3839c113
+  regression:
+    path: Caddy/tests/action28r-node-a-coupled-vip-acquisition-regression.sh
+    sha256: caf0157369f44a431ee8b4464e28497ba4b3d7abca68dcda8f7405abf2384347
+  outer:
+    path: Caddy/scripts/run-node-a-coupled-vip-acquisition-action28r-outer.sh
+    sha256: 5f47a9cb7d66ab98422f7a8c9fe3ecca8c76d502ecb5d6c923d27495f09d4c02
+
+authorization:
+  definition_only: true
+  node_contact: false
+  keepalived_reload: false
+  vip_acquisition: false
+  execution: false
+
+next_gate:
+  action: 28r
+  authorization: exact_outer_sha256_once
+  sha256: 5f47a9cb7d66ab98422f7a8c9fe3ecca8c76d502ecb5d6c923d27495f09d4c02

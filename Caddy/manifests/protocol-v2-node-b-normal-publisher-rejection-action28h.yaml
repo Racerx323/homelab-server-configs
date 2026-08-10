@@ -1,0 +1,39 @@
+action: 28h
+status: defined_not_executed
+type: bounded_node_b_normal_publisher_rejection
+accepted_baseline:
+  action: 28g-c
+  outer_sha256: 24f7a4fc6e37a5c878fc6cc89f145a1ba3422e773ceabf780ef83f194a99ec8b
+  classification: receiver_finalized
+publisher_contract:
+  publisher_sha256: e4a48f12a7324a885684a57070269a2d074d056c65d9e767db901408e0e86669
+  node_role: node-b
+  emergency_flag: prohibited
+  expected_status: 1
+  expected_stderr: Node B publishing requires --emergency.
+  rejection_precedes:
+    - source-validation
+    - outbound-staging
+    - ssh
+    - rsync
+acceptance:
+  node_b_vrrp_state: BACKUP
+  caddy_vips_on_node_b: zero
+  outbound_tree_before_after_equal: required
+  services_before_after_equal: required
+  safe_bounded_streams_emitted_same_run: required
+  every_assertion_independently_labeled: required
+  node_a_contact: prohibited
+  publication: prohibited
+  transfer: prohibited
+  filesystem_mutation: prohibited
+  service_mutation: prohibited
+artifacts:
+  probe_sha256: d6c69b9b43d807986c647c6a449e3c431f76cfb1c4fddf976b24473161a2d300
+  regression_sha256: 55d64b819bd6893802436be1219ee15583ac24e3539585c8fb070c7a06597e5e
+  outer_sha256: f4d9c9ced5b48453de2a85d5c1e52d9c1ba5a903baca2e8eb0cf0a2eefb59a11
+authorization:
+  definition_only: true
+  node_contact: false
+  execution: false
+  next_gate: exact_outer_authorization

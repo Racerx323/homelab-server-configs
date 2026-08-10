@@ -1,0 +1,116 @@
+---
+action: 28o
+status: defined_not_executed
+type: bounded_transactional_node_b_caddy_service_restoration
+defined_at: "2026-08-10"
+
+scope:
+  architecture: action_28l_one_way_caddy_to_dns_ownership_coupling
+  phase: restore_node_b_caddy_before_relinquishing_separate_vrrp
+  reboot_boundary: both_nodes_rebooted_at_01_00_operator_reported
+  node_mutated: node_b_caddy_service_only
+  node_a_contact: read_only_preflight_and_postflight
+  keepalived_configuration_change: prohibited
+  keepalived_reload_or_restart: prohibited
+  direct_vip_mutation: prohibited
+  execution_authorized: false
+
+accepted_configuration:
+  node_a_acceptance_action: 28m-b
+  node_a_keepalived_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_b_keepalived_main_sha256: 5480e6994994b65b0a498f42cb7943b5de86958416732a44983e341a93db1393
+  node_b_caddy_fragment_sha256: 0dd8ec0a5410bcd3c41db0d3fed74cf8bd75978f09b01a797468dd6266b4b518
+
+preflight:
+  node_a:
+    - Reaccept all 47 ordered Action 28m-b assertions read-only.
+    - Require Node A to retain both DNS VIPs, zero Caddy VIPs, and service continuity.
+  node_b:
+    - Require the exact accepted Keepalived main and separate-Caddy fragment.
+    - Require active Keepalived and lighttpd without reload or restart.
+    - Require five independently labeled Caddy-inactive samples.
+    - Fail if either address query fails.
+    - Require zero DNS VIPs and zero Caddy VIPs before service start.
+    - Reject any Action 28o runtime residue.
+
+transaction:
+  ordered_mutations:
+    - Start only Node B caddy.service exactly once.
+    - Allow the unchanged separate Caddy VRRP instances to acquire both Caddy VIPs.
+  acceptance:
+    - Require Caddy active and both Caddy VIPs within 30 seconds.
+    - Require five independently labeled Caddy-active samples.
+    - Require active Keepalived and lighttpd.
+    - Require successful IPv4 and IPv6 address queries.
+    - Require zero Node B DNS VIPs and exactly both Node B Caddy VIPs.
+    - Require localhost health plus node-specific IPv4 and IPv6 administration paths.
+    - Capture bounded Caddy and Keepalived journals and reject fatal output.
+    - Re-pin the unchanged Keepalived main and fragment.
+    - Reaccept Node A Action 28m-b read-only after Node B success.
+  caddy_start_count: 1
+  keepalived_reload_count: 0
+
+rollback:
+  trigger: any_failed_assertion_after_caddy_start_attempt
+  action: stop_only_node_b_caddy_service
+  requirements:
+    - Require Caddy inactive and both Caddy VIPs absent within 30 seconds.
+    - Require active Keepalived and lighttpd.
+    - Require zero Node B DNS VIPs.
+    - Re-pin the unchanged Keepalived main and fragment.
+  node_a_postflight_failure: >-
+    Invoke the pinned transaction in explicit rollback mode through a separately
+    captured SSH phase and return 125 if recovery cannot be proven.
+  unproven_recovery_exit: 125
+
+evidence:
+  every_assertion_independently_labeled: true
+  persistent_workstation_root: /tmp/caddy-ssh-evidence/action28o
+  directory_mode: "0700"
+  capture_mode: "0600"
+  phases:
+    - node_a_preflight
+    - node_b_transaction
+    - node_a_postflight
+    - node_b_rollback_when_required
+  bounded_safe_content_emitted_during_original_action: true
+  sole_capture_deleted_by_exit_trap: false
+
+regression:
+  actual_streamed_producer_contract: true
+  exact_root_cwd_ssh_commands: true
+  missing_label_rejected: true
+  false_label_rejected: true
+  duplicate_label_rejected: true
+  extra_label_rejected: true
+  malformed_transport_rejected: true
+  keepalived_reload_absent: true
+  dynamic_scope_collision_rejected: true
+
+artifacts:
+  transaction:
+    path: Caddy/scripts/restore-node-b-caddy-service-action28o.sh
+    sha256: 8330588d34150d0ed4558ce2d8caf984e8bd73beb7065f760a25081619b42d19
+  node_a_inspector:
+    path: Caddy/scripts/inspect-node-a-caddy-service-restoration-action28m-b.sh
+    sha256: 38bbc1b3fc4dc35bc3847fcbf3233d7e7822065f5c71bafb49ee999dab4c56d1
+  outer:
+    path: Caddy/scripts/run-node-b-caddy-service-restoration-action28o-outer.sh
+    sha256: 39491118d59e9aad649d883b46638bcc793ec4205f09e13d3e2357f3d693be2f
+  regression:
+    path: Caddy/tests/action28o-node-b-caddy-service-restoration-regression.sh
+    sha256: fb0d26a860aa0ae185a4b9e1428197ef8108bb042fe886556b3b8a6d45545bb9
+
+authorization:
+  definition_only: true
+  node_contact: false
+  caddy_start: false
+  keepalived_change: false
+  vip_transition: false
+  execution: false
+
+next_gate:
+  action: 28o
+  authorization: exact_outer_sha256_once
+  sha256: 39491118d59e9aad649d883b46638bcc793ec4205f09e13d3e2357f3d693be2f
+  following_gate: independent_read_only_node_b_post_action_28o_acceptance

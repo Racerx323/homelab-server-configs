@@ -1,0 +1,95 @@
+---
+action: 28o-a
+status: defined_not_executed
+type: independent_fail_closed_dual_node_read_only_post_restoration_acceptance
+defined_at: "2026-08-10"
+
+accepted_boundary:
+  transaction: 28o
+  transaction_outer_sha256: 39491118d59e9aad649d883b46638bcc793ec4205f09e13d3e2357f3d693be2f
+  node_a_acceptance: 28m-b
+  node_a_keepalived_main_sha256: 6162cfb9d83f7e524db1df6a3b041ced90a7639fceaf28eacf713270c2a66a65
+  node_b_keepalived_main_sha256: 5480e6994994b65b0a498f42cb7943b5de86958416732a44983e341a93db1393
+  node_b_caddy_fragment_sha256: 0dd8ec0a5410bcd3c41db0d3fed74cf8bd75978f09b01a797468dd6266b4b518
+
+scope:
+  node_b_contact: read_only
+  node_a_contact: read_only
+  contact_order: node_b_then_node_a
+  mutation: prohibited
+  action_28o_rerun: prohibited
+  service_change: prohibited
+  keepalived_change: prohibited
+  vip_change: prohibited
+  publication_or_transfer: prohibited
+  execution_authorized: false
+
+node_b_acceptance:
+  - Pin exact accepted Keepalived main and Caddy fragment, metadata, and include placement.
+  - Reject any Action 28o runtime residue.
+  - Require active Keepalived and lighttpd.
+  - Require five independently labeled active Caddy samples before probes.
+  - Fail if either IPv4 or IPv6 address query fails.
+  - Require zero DNS VIPs and exactly both separate Caddy VIPs.
+  - Require localhost health 204 and node-specific IPv4 and IPv6 administration status 200.
+  - Repeat service and address assertions after probes.
+  - Re-pin both artifacts and require an identical deterministic before/after state hash.
+
+node_a_acceptance:
+  producer: accepted_action_28m_b_inspector
+  requirements:
+    - Reconcile the exact ordered 47-label production transcript.
+    - Retain both DNS VIPs and zero Caddy VIPs.
+    - Retain active Keepalived, lighttpd, and Caddy plus all HTTPS continuity checks.
+    - Require the deterministic before/after state hash to remain identical.
+
+evidence:
+  contract: ssh-local-evidence-contract-v1
+  persistent_workstation_root: /tmp/caddy-ssh-evidence/action28o-a
+  directory_mode: "0700"
+  capture_mode: "0600"
+  phases:
+    - node_b_read_only
+    - node_a_read_only
+  bounded_safe_content_emitted_during_original_action: true
+  stdout_stderr_and_status_retained: true
+  sole_capture_deleted_by_exit_trap: false
+
+regression:
+  real_node_b_producer: true
+  real_node_a_producer: true
+  exact_ssh_transport_paths: true
+  main_drift_rejected: true
+  caddy_inactive_rejected: true
+  dns_vip_on_node_b_rejected: true
+  failed_address_query_rejected: true
+  https_failure_rejected: true
+  transaction_residue_rejected: true
+  missing_label_rejected: true
+  false_label_rejected: true
+  extra_label_rejected: true
+  reordered_label_rejected: true
+
+artifacts:
+  node_b_inspector:
+    path: Caddy/scripts/inspect-node-b-caddy-service-restoration-action28o-a.sh
+    sha256: 4a513472c1771693d4e4992307afa20b2031c06c33d21d84011d3413bbc9edc9
+  node_a_inspector:
+    path: Caddy/scripts/inspect-node-a-caddy-service-restoration-action28m-b.sh
+    sha256: 38bbc1b3fc4dc35bc3847fcbf3233d7e7822065f5c71bafb49ee999dab4c56d1
+  regression:
+    path: Caddy/tests/action28o-a-dual-node-postinstall-regression.sh
+    sha256: bdb7b2f1a6e0de3b1360c139ff4f26ce81e1682b0c8c5df039ca270d54d05ca5
+  outer:
+    path: Caddy/scripts/run-dual-node-caddy-service-restoration-post-action28o-a-outer.sh
+    sha256: bfb59e63d704a27b1ef05f43d95ea11a85f906ae7f9ffc35f5e277b99f703571
+
+authorization:
+  definition_only: true
+  node_contact_authorized: false
+  execution_authorized: false
+
+next_gate:
+  action: 28o-a
+  authorization: exact_outer_sha256_once
+  sha256: bfb59e63d704a27b1ef05f43d95ea11a85f906ae7f9ffc35f5e277b99f703571
