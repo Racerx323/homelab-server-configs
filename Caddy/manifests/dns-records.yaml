@@ -1,6 +1,9 @@
 ---
-status: intended
-apply_only_after: caddy_vrrp_activation_and_validation
+status: deployed_accepted
+accepted_actions:
+  - 23m
+  - 24-retry
+  - 29k
 zone: local.theama.co
 
 records:

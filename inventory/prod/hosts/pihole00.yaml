@@ -1,8 +1,12 @@
 ---
-display_name: Backup DNS node
+display_name: Standby DNS and reverse-proxy node
 
 dns:
   ha_role: backup
+
+reverse_proxy:
+  ha_preference: standby
+  publication_role: emergency_only
 
 hardware:
   platform: raspberry_pi

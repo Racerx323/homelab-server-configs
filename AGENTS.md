@@ -96,7 +96,17 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   Preserve an executed runner and its evidence immutably, but correct reusable
   code, unexecuted definitions, tests, fixtures, and workstation consumers in
   place. Create a successor only when changing the behavior of an already
-  executed live artifact.
+  executed live artifact. The typed completeness boundary is
+  `Caddy/manifests/production-artifacts.tsv`: every accepted-live key must map
+  exactly once to its repository, source path, installed path, node, source
+  identity, deployed identity, accepting action, and current lifecycle. A
+  rendered artifact may have distinct source and deployed identities; never
+  substitute one for the other. Classify every file directly beneath
+  `Caddy/manifests/` in `Caddy/manifests/manifest-lifecycle.tsv`. Do not rewrite
+  an immutable action definition to update its historical embedded status;
+  record its current disposition in the lifecycle registry. The accepted-live
+  policy rejects missing inventory entries, source drift in this repository,
+  identity/action mismatches, and unclassified manifest files.
 - Shell tooling must target Debian's default POSIX `awk`, not GNU `awk`.
   Interval quantifiers such as `{64}` and `{3,4}` are prohibited inside awk
   regular expressions because support varies across default awk
@@ -261,11 +271,65 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   permissions, mount projection, or runtime semantics. Skip the container for
   documentation, journal, manifest-only metadata, accepted-hash registry, and
   workstation-only transcript-consumer changes.
+- Select routine Caddy validation through the versioned manifest
+  `Caddy/tests/focused-validation.yaml` and
+  `Caddy/tests/run-focused.sh`. Use `--profile NAME` for a current production
+  boundary, `--action ID` only for intentional historical reconstruction, or
+  `--changed --base REF` for fail-closed changed-path selection. Inspect the
+  deterministic plan with `--explain` when reviewing scope. The runner must
+  deduplicate tests and shared policies, retain its `0600` result summary
+  beneath a reported `0700` `/tmp` directory, and start at most one
+  network-disabled Debian container for a selected batch. The manifest may
+  contain only tracked test paths and named policy identifiers; never place
+  shell commands or copied SHA-256 identities in it. Enforce completeness,
+  path safety, lifecycle classification, and the immutable historical-wrapper
+  inventory with
+  `Caddy/tests/focused-validation-manifest-policy.sh --check`.
+- Treat `Caddy/tests/test-lifecycle.tsv` as the complete lifecycle registry for
+  every tracked entry beneath `Caddy/tests/`. Current profiles select only
+  neutral `production-current` regressions; action-named tests, `run.sh`, and
+  `integration.sh` remain `historical-preserved` opt-in reconstruction
+  artifacts. A neutral current regression may invoke an immutable accepted
+  producer regression while that reusable producer retains a historical name,
+  but current profiles must never select the action path directly. Enforce
+  inventory completeness and classification with the always-run
+  `Caddy/tests/test-lifecycle-policy.sh --check` hook.
+- Treat `Caddy/manifests/template-lifecycle.tsv` as the canonical lifecycle
+  registry for `Caddy/templates/`, with the human-readable disposition in
+  `Caddy/templates/README.md`. A retained template is not deployable unless its
+  registry entry is `production-current` and `deployable=yes`. Preserve
+  historical template paths and bytes for executed-action provenance, but
+  never consume historical, rejected, superseded, or deferred templates from
+  production inventory or installers. Keepalived configuration is owned only
+  by `homelab-dns/Keepalived/configs/`; the canonical lsyncd sources are the
+  node-specific files in `Caddy/configs/lsyncd/`. Historical renderer output
+  requires its explicit offline-reconstruction flag. Enforce this boundary
+  with the always-run `Caddy/tests/template-lifecycle-policy.sh --check` hook.
+- Treat `Caddy/templates/caddy-ha.env-v2.in` as the only production Caddy
+  environment template. Its contract is exactly `NODE_FQDN`, `NODE_IPV4`, and
+  `NODE_IPV6`, once each and in that order. Keep Keepalived ownership,
+  priority, peer transport, synchronization role, and interface data out of
+  `/etc/default/caddy-ha`; those values belong to their authoritative
+  Keepalived, lsyncd, publisher, or reconciliation sources. Preserve
+  `Caddy/templates/caddy-ha.env.in` only as historical provenance. Enforce the
+  production contract with the always-run
+  `Caddy/tests/caddy-environment-v2-policy.sh --check` hook.
+- Treat `Caddy/manifests/script-lifecycle.tsv` and
+  `Caddy/manifests/systemd-lifecycle.tsv` as the only reusable installer
+  allowlists for scripts and systemd files. Every file in those source trees
+  must have exactly one lifecycle entry. Only `production-current` entries
+  with `node-installable=yes` may be installed; never infer current status from
+  a generic filename or copy an entire source tree. Keep deferred Munin,
+  rejected backend units, workstation tools, historical actions, and
+  superseded implementations out of the default installer. Enforce this with
+  the always-run `Caddy/tests/deployment-lifecycle-policy.sh --check` hook.
 - Do not run the complete preserved historical host/Podman suite as a live
   deployment gate. Final acceptance uses the current production-path suite,
   applicable shared policies, and current live evidence. Preserve historical
   tests and evidence for the post-deployment streamlining review, but do not
-  let stale historical hashes block the current deployment.
+  let stale historical hashes block current work. `Caddy/tests/run.sh` and
+  `Caddy/tests/integration.sh` are explicit opt-in historical reconstruction
+  entrypoints and must not be called by a current-production profile.
 - Test edge cases and error handling in proportion to the changed risk.
 - Document any new features or changes to existing functionality.
 - Preserve backward compatibility only when it is an explicit requirement;

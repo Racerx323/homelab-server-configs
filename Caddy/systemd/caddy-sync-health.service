@@ -5,4 +5,9 @@ OnFailure=caddy-sync-failure@%n.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/libexec/validate-sync-health.sh
-
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+UMask=0077
+ReadOnlyPaths=/run/caddy-lsyncd

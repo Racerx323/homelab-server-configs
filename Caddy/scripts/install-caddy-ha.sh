@@ -14,8 +14,11 @@ Options:
   -h, --help             Show this help
 
 Components:
-  all, identities, directories, caddy, keepalived, lighttpd, lsyncd,
-  scripts, systemd, sysctl, munin
+  all, identities, directories, caddy, lighttpd, lsyncd, scripts, systemd,
+  sysctl, tmpfiles
+
+Keepalived is externally owned by homelab-dns/Keepalived/configs and cannot be
+installed by this script.
 EOF
 }
 
@@ -70,8 +73,18 @@ if [[ ! "$node_role" =~ ^node-[ab]$ || "$root_prefix" != /* ]]; then
 fi
 
 case "$component" in
-    all | identities | directories | caddy | keepalived | lighttpd | lsyncd | \
-        scripts | systemd | sysctl | munin) ;;
+    keepalived)
+        printf '%s\n' \
+            'Keepalived is externally owned by homelab-dns/Keepalived/configs; installation from Caddy is prohibited.' >&2
+        exit 2
+        ;;
+    munin)
+        printf '%s\n' \
+            'Munin integration is deferred and cannot be installed by this script.' >&2
+        exit 2
+        ;;
+    all | identities | directories | caddy | lighttpd | lsyncd | \
+        scripts | systemd | sysctl | tmpfiles) ;;
     *)
         printf 'Unknown component: %s\n' "$component" >&2
         exit 2
@@ -85,10 +98,19 @@ fi
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 caddy_root=$(cd -- "$script_dir/.." && pwd)
+case "$node_role" in
+    node-a) lsyncd_source=$caddy_root/configs/lsyncd/caddy-node-a.lua ;;
+    node-b) lsyncd_source=$caddy_root/configs/lsyncd/caddy-node-b.lua ;;
+esac
+readonly lsyncd_source
+readonly script_lifecycle=$caddy_root/manifests/script-lifecycle.tsv
+readonly systemd_lifecycle=$caddy_root/manifests/systemd-lifecycle.tsv
 manifest_file=${manifest_file:-"$caddy_root/manifests/deployment.yaml"}
 for required_manifest in \
     "$caddy_root/manifests/dependencies.yaml" \
     "$caddy_root/manifests/dns-records.yaml" \
+    "$script_lifecycle" \
+    "$systemd_lifecycle" \
     "$manifest_file"; do
     if [[ ! -s "$required_manifest" ]]; then
         printf 'Required manifest is missing or empty: %s\n' \
@@ -96,6 +118,44 @@ for required_manifest in \
         exit 1
     fi
 done
+
+validate_install_registry() {
+    local install_registry=$1
+    local install_source
+    local install_lifecycle
+    local install_deployable
+    local install_target
+    local install_mode
+    local install_authority
+
+    awk -F '\t' '
+        /^[[:space:]]*(#|$)/ { next }
+        NF != 6 { exit 1 }
+        $2 !~ /^(production-current|historical-action|historical-superseded|workstation-only|rejected|deferred)$/ { exit 1 }
+        $3 !~ /^(yes|no)$/ { exit 1 }
+        $3 == "yes" && ($2 != "production-current" || $4 !~ /^\// || $5 !~ /^0[0-7][0-7][0-7]$/) { exit 1 }
+        $3 == "no" && ($4 != "-" || $5 != "-") { exit 1 }
+        seen_source[$1]++ { exit 1 }
+        $3 == "yes" && seen_target[$4]++ { exit 1 }
+        END { if (length(seen_source) == 0) exit 1 }
+    ' "$install_registry" || return 1
+
+    while IFS=$'\t' read -r install_source install_lifecycle \
+        install_deployable install_target install_mode install_authority; do
+        [[ -n "$install_source" && "$install_source" != \#* ]] || continue
+        : "$install_authority"
+        [[ "$install_source" == Caddy/* && "$install_source" != *..* ]] || return 1
+        [[ -f "$caddy_root/${install_source#Caddy/}" &&
+            ! -L "$caddy_root/${install_source#Caddy/}" ]] || return 1
+        if [[ "$install_deployable" == yes ]]; then
+            [[ -x "$caddy_root/${install_source#Caddy/}" ||
+                "$install_mode" == 0644 ]] || return 1
+        fi
+    done <"$install_registry"
+}
+
+validate_install_registry "$script_lifecycle"
+validate_install_registry "$systemd_lifecycle"
 render_dir=$(mktemp -d "${TMPDIR:-/tmp}/caddy-render.XXXXXX")
 trap 'rm -rf -- "$render_dir"' EXIT
 "$script_dir/render-node-config.sh" \
@@ -200,6 +260,25 @@ install_tree() {
         relative=${source_file#"$source_dir/"}
         install_one "$source_file" "$destination_dir/$relative" "$mode"
     done < <(find "$source_dir" -type f -print0)
+}
+
+install_registered() {
+    local install_registry=$1
+    local install_source
+    local install_lifecycle
+    local install_deployable
+    local install_target
+    local install_mode
+    local install_authority
+
+    while IFS=$'\t' read -r install_source install_lifecycle \
+        install_deployable install_target install_mode install_authority; do
+        [[ -n "$install_source" && "$install_source" != \#* ]] || continue
+        : "$install_authority"
+        [[ "$install_lifecycle" == production-current && "$install_deployable" == yes ]] || continue
+        install_one "$caddy_root/${install_source#Caddy/}" \
+            "$(root_path "$install_target")" "$install_mode"
+    done <"$install_registry"
 }
 
 selected() {
@@ -307,11 +386,6 @@ if selected caddy; then
     fi
 fi
 
-if selected keepalived; then
-    install_one "$render_dir/keepalived-caddy-ha.conf" \
-        "$(root_path /etc/keepalived/conf.d/caddy-ha.conf)" 0644
-fi
-
 if selected lighttpd; then
     install_one \
         "$caddy_root/configs/lighttpd/desired-state.conf" \
@@ -320,31 +394,16 @@ if selected lighttpd; then
 fi
 
 if selected lsyncd; then
-    install_one "$render_dir/lsyncd-caddy.lua" \
+    install_one "$lsyncd_source" \
         "$(root_path /etc/lsyncd/caddy.lua)" 0644
 fi
 
 if selected scripts; then
-    for executable in \
-        caddy-sync-rsync-receiver \
-        check-caddy.sh \
-        check-certificate-expiry.sh \
-        lsyncd-ha-failover-notify.sh \
-        lsyncd-sync-failure-notify.sh \
-        prepare-lighttpd-config.sh \
-        publish-release.sh \
-        reconcile-release.sh \
-        setup-sync-ssh.sh \
-        validate-sync-ssh.sh \
-        validate-journald-retention.sh \
-        validate-sync-health.sh; do
-        install_one "$caddy_root/scripts/$executable" \
-            "$(root_path "/usr/local/libexec/$executable")" 0755
-    done
+    install_registered "$script_lifecycle"
 fi
 
 if selected systemd; then
-    install_tree "$caddy_root/systemd" "$(root_path /etc/systemd/system)" 0644
+    install_registered "$systemd_lifecycle"
 fi
 
 if selected sysctl; then
@@ -352,9 +411,9 @@ if selected sysctl; then
         "$(root_path /etc/sysctl.d/70-caddy-ha.conf)" 0644
 fi
 
-if selected munin; then
-    install_one "$caddy_root/configs/munin/caddy-ha" \
-        "$(root_path /etc/munin/plugin-conf.d/caddy-ha)" 0644
+if selected tmpfiles; then
+    install_one "$caddy_root/configs/tmpfiles.d/caddy-ha.conf" \
+        "$(root_path /etc/tmpfiles.d/caddy-ha.conf)" 0644
 fi
 
 jq -n \

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317 # Trap callbacks and self-exec drain paths are indirect.
 
 set -Eeuo pipefail
 set +x
@@ -10,12 +11,22 @@ readonly PATH
 readonly incoming_root=/var/lib/caddy-sync/incoming
 readonly releases_root=/etc/caddy/releases
 readonly quarantine_root=/var/lib/caddy-sync/quarantine
+script_path=$(readlink -f -- "${BASH_SOURCE[0]}")
+readonly script_path
 quarantine_replay_fixture_root=
+candidate_selection_fixture_root=
 
 cleanup_quarantine_replay_fixture() {
     if [[ -n "$quarantine_replay_fixture_root" &&
         -d "$quarantine_replay_fixture_root" ]]; then
         rm -rf -- "$quarantine_replay_fixture_root"
+    fi
+}
+
+cleanup_candidate_selection_fixture() {
+    if [[ -n "$candidate_selection_fixture_root" &&
+        -d "$candidate_selection_fixture_root" ]]; then
+        rm -rf -- "$candidate_selection_fixture_root"
     fi
 }
 
@@ -164,8 +175,147 @@ run_quarantine_replay_self_test() {
     printf 'caddy_sync_reconcile_v2_self_test_complete=true\n'
 }
 
+list_finalized_candidates() {
+    local selection_root=$1
+
+    find "$selection_root" \
+        -mindepth 2 \
+        -maxdepth 2 \
+        -type d \
+        ! -path '*/.*' \
+        -exec test -f '{}/.finalize-request' ';' \
+        -exec test -f '{}/.complete' ';' \
+        ! -exec test -e '{}/.complete.pending' ';' \
+        -print 2>/dev/null | LC_ALL=C sort
+}
+
+select_next_candidate() {
+    local selection_root=$1
+    local selection_active_revision=$2
+    local selection_candidate
+    local selection_parent
+    local selection_revision
+    local selection_source
+    local -a selection_all=()
+    local -a selection_children=()
+    local -a selection_replays=()
+
+    mapfile -t selection_all < <(list_finalized_candidates "$selection_root")
+    ((${#selection_all[@]} > 0)) || return 0
+
+    for selection_candidate in "${selection_all[@]}"; do
+        if [[ ! -f "$selection_candidate/release-manifest.json" ||
+            -L "$selection_candidate/release-manifest.json" ]]; then
+            printf 'Finalized candidate has no regular release manifest: %s\n' \
+                "$selection_candidate" >&2
+            return 1
+        fi
+        if ! selection_revision=$(jq -er '.revision | strings' \
+            "$selection_candidate/release-manifest.json") ||
+            ! selection_parent=$(jq -er '.parent_revision // "" | strings' \
+                "$selection_candidate/release-manifest.json") ||
+            ! selection_source=$(jq -er '.source_node | strings' \
+                "$selection_candidate/release-manifest.json"); then
+            printf 'Finalized candidate manifest is malformed: %s\n' \
+                "$selection_candidate" >&2
+            return 1
+        fi
+        if [[ ! "$selection_revision" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ||
+            ! "$selection_source" =~ ^node-[ab]$ ||
+            "$selection_candidate" != "$selection_root/$selection_source/$selection_revision" ]]; then
+            printf 'Finalized candidate identity is unsafe: %s\n' \
+                "$selection_candidate" >&2
+            return 1
+        fi
+        if [[ -n "$selection_active_revision" &&
+            "$selection_revision" == "$selection_active_revision" ]]; then
+            selection_replays+=("$selection_candidate")
+        elif [[ "$selection_parent" == "$selection_active_revision" ]]; then
+            selection_children+=("$selection_candidate")
+        fi
+    done
+
+    if ((${#selection_replays[@]} == 1)); then
+        printf '%s\n' "${selection_replays[0]}"
+        return 0
+    fi
+    if ((${#selection_replays[@]} > 1)); then
+        printf 'Multiple finalized candidates replay the active revision.\n' >&2
+        return 1
+    fi
+    if ((${#selection_children[@]} == 1)); then
+        printf '%s\n' "${selection_children[0]}"
+        return 0
+    fi
+    if ((${#selection_children[@]} > 1)); then
+        printf 'Multiple finalized candidates claim the active parent.\n' >&2
+        return 1
+    fi
+    if ((${#selection_all[@]} == 1)); then
+        printf '%s\n' "${selection_all[0]}"
+        return 0
+    fi
+    printf 'Finalized candidates have no unique safe reconciliation order.\n' >&2
+    return 1
+}
+
+run_candidate_selection_self_test() {
+    local selection_fixture_root
+    local selection_observed
+
+    candidate_selection_fixture_root=$(mktemp -d \
+        /tmp/caddy-reconcile-selection.XXXXXX)
+    selection_fixture_root=$candidate_selection_fixture_root/incoming
+    trap 'cleanup_candidate_selection_fixture; cleanup_quarantine_replay_fixture' \
+        EXIT INT TERM
+
+    make_selection_fixture() {
+        local fixture_node=$1
+        local fixture_revision=$2
+        local fixture_parent=$3
+        local fixture_path=$selection_fixture_root/$fixture_node/$fixture_revision
+
+        mkdir -p "$fixture_path"
+        printf '{"revision":"%s","parent_revision":"%s","source_node":"%s"}\n' \
+            "$fixture_revision" "$fixture_parent" "$fixture_node" \
+            >"$fixture_path/release-manifest.json"
+        : >"$fixture_path/.finalize-request"
+        : >"$fixture_path/.complete"
+    }
+
+    make_selection_fixture node-a active previous
+    make_selection_fixture node-a child active
+    selection_observed=$(select_next_candidate "$selection_fixture_root" active)
+    [[ "$selection_observed" == "$selection_fixture_root/node-a/active" ]]
+    rm -rf -- "$selection_fixture_root/node-a/active"
+    selection_observed=$(select_next_candidate "$selection_fixture_root" active)
+    [[ "$selection_observed" == "$selection_fixture_root/node-a/child" ]]
+    make_selection_fixture node-b competing active
+    if select_next_candidate "$selection_fixture_root" active \
+        >/dev/null 2>&1; then
+        return 1
+    fi
+    rm -rf -- "$selection_fixture_root/node-a/child" \
+        "$selection_fixture_root/node-b/competing"
+    make_selection_fixture node-b divergent unrelated
+    selection_observed=$(select_next_candidate "$selection_fixture_root" active)
+    [[ "$selection_observed" == "$selection_fixture_root/node-b/divergent" ]]
+    make_selection_fixture node-a malformed active
+    printf '{\n' >"$selection_fixture_root/node-a/malformed/release-manifest.json"
+    if select_next_candidate "$selection_fixture_root" active \
+        >/dev/null 2>&1; then
+        return 1
+    fi
+    printf 'caddy_sync_reconcile_v2_candidate_selection_self_test_complete=true\n'
+}
+
 if [[ "${1:-}" = --quarantine-replay-self-test ]]; then
     run_quarantine_replay_self_test
+    exit 0
+fi
+
+if [[ "${1:-}" = --candidate-selection-self-test ]]; then
+    run_candidate_selection_self_test
     exit 0
 fi
 
@@ -184,19 +334,29 @@ restore_previous_selection() {
     systemctl reload caddy.service
 }
 
-candidate=$(
-    find "$incoming_root" \
-        -mindepth 2 \
-        -maxdepth 2 \
-        -type d \
-        ! -path '*/.*' \
-        -exec test -f '{}/.finalize-request' ';' \
-        -exec test -f '{}/.complete' ';' \
-        ! -exec test -e '{}/.complete.pending' ';' \
-        -print 2>/dev/null |
-        LC_ALL=C sort |
-        tail -n 1
-)
+drain_next_candidate() {
+    if [[ -n "$(list_finalized_candidates "$incoming_root")" ]]; then
+        exec /bin/bash "$script_path"
+    fi
+    exit 0
+}
+
+consume_candidate_and_drain() {
+    local consumed_candidate=$1
+
+    rm -rf -- "$consumed_candidate"
+    drain_next_candidate
+}
+
+active_revision=
+if [[ -r /etc/caddy/current/release-manifest.json ]]; then
+    active_revision=$(
+        jq -r '.revision // ""' /etc/caddy/current/release-manifest.json
+    )
+fi
+readonly active_revision
+
+candidate=$(select_next_candidate "$incoming_root" "$active_revision")
 
 if [[ -z "$candidate" ]]; then
     exit 0
@@ -257,21 +417,13 @@ require_check caddy_configuration_valid \
     caddy validate --config "$candidate/Caddyfile" \
     --adapter caddyfile
 
-active_revision=
-if [[ -r /etc/caddy/current/release-manifest.json ]]; then
-    active_revision=$(
-        jq -r '.revision // ""' /etc/caddy/current/release-manifest.json
-    )
-fi
-readonly active_revision
-
 if [[ -n "$active_revision" && "$revision" = "$active_revision" ]]; then
     require_check active_destination_exact \
         test "$(readlink -f -- /etc/caddy/current)" = "$releases_root/$revision"
     require_check active_destination_payload_exact \
         release_payload_matches "$candidate" "$releases_root/$revision"
     printf 'Protocol-v2 release %s is already active.\n' "$revision"
-    exit 0
+    consume_candidate_and_drain "$candidate"
 fi
 
 if [[ -n "$active_revision" && "$parent_revision" != "$active_revision" ]]; then
@@ -280,11 +432,11 @@ if [[ -n "$active_revision" && "$parent_revision" != "$active_revision" ]]; then
     if [[ -e "$quarantine_path" || -L "$quarantine_path" ]]; then
         discard_exact_quarantine_replay "$candidate" "$quarantine_path" \
             "$revision"
-        exit 0
+        drain_next_candidate
     fi
     mv -- "$candidate" "$quarantine_path"
-    /usr/local/libexec/lsyncd-sync-failure-notify.sh \
-        "Quarantined divergent release $revision; expected parent $active_revision"
+    printf 'Quarantined divergent release %s; expected parent %s\n' \
+        "$revision" "$active_revision" >&2
     exit 1
 fi
 
@@ -343,3 +495,4 @@ if [[ "$reload_status" -ne 0 ]]; then
 fi
 trap - EXIT INT TERM
 printf 'Activated protocol-v2 release %s\n' "$revision"
+consume_candidate_and_drain "$candidate"

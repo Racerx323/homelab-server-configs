@@ -38,6 +38,41 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: focused-validation-manifest-policy
+        name: Validate focused Caddy test manifest
+        entry: Caddy/tests/focused-validation-manifest-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: test-lifecycle-policy
+        name: Validate Caddy test lifecycle inventory
+        entry: /bin/bash Caddy/tests/test-lifecycle-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: template-lifecycle-policy
+        name: Reject nonproduction Caddy template consumers
+        entry: /bin/bash Caddy/tests/template-lifecycle-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: deployment-lifecycle-policy
+        name: Reject nonproduction Caddy deployment inputs
+        entry: /bin/bash Caddy/tests/deployment-lifecycle-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: caddy-environment-v2-policy
+        name: Validate minimal Caddy node environment
+        entry: /bin/bash Caddy/tests/caddy-environment-v2-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: portable-awk-policy
         name: Reject non-portable awk interval expressions
         entry: Caddy/tests/portable-awk-policy.sh --check

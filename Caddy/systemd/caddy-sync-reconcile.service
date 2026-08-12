@@ -6,4 +6,9 @@ OnFailure=caddy-sync-failure@%n.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/libexec/reconcile-release.sh
-
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+UMask=0077
+ReadWritePaths=/etc/caddy /var/lib/caddy-sync

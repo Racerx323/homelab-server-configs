@@ -4,4 +4,9 @@ Description=Notify for failed Caddy synchronization unit %i
 [Service]
 Type=oneshot
 ExecStart=/usr/local/libexec/lsyncd-sync-failure-notify.sh "systemd unit failed: %i"
-
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+UMask=0077
+ReadWritePaths=/run/caddy-ha-notify

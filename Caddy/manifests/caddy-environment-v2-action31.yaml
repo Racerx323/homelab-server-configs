@@ -1,0 +1,67 @@
+---
+action: 31
+status: accepted_executed
+type: standby_first_dual_node_caddy_environment_v2_migration
+defined_at: "2026-08-11"
+
+source:
+  template: Caddy/templates/caddy-ha.env-v2.in
+  template_sha256: 4a3394225b27dde6e3ee079d2ce69ad2efb93190ba80bd8c63f80254c6084db3
+  node_a_sha256: 209e31e11a72660b7ebada372278c8482d9d1e65c6d83f6aa9510634d78f5ee3
+  node_b_sha256: 580d79608bb99567c1831d073785cdba9d9d02efeaa33717c8f8e0dca266b226
+  destination: /etc/default/caddy-ha
+  owner: root
+  group: caddy-tls
+  mode: "0640"
+
+removed_variables:
+  - NODE_ROLE
+  - PEER_ROLE
+  - PEER_IPV4
+  - PEER_IPV6
+  - CADDY_PRIORITY
+  - NETWORK_INTERFACE
+  - SYNC_TARGET
+
+transaction:
+  order:
+    - node-b
+    - node-a
+  reloads:
+    - caddy.service
+  prohibited_mutations:
+    - keepalived_reload
+    - lsyncd_restart
+    - reconciliation_restart
+    - release_publication
+    - vrrp_transition
+  rollback: reverse_order_restore_and_caddy_reload
+  manual_intervention_status: 125
+
+acceptance:
+  exact_three_variable_environment: true
+  caddy_configuration_validation: true
+  caddy_active: true
+  caddy_health_helper: true
+  lsyncd_active: true
+  reconciliation_path_active: true
+  coupled_vrrp_state_unchanged: true
+  exact_vip_ownership_unchanged: true
+  release_selection_unchanged: true
+  trusted_shared_https: true
+  trusted_node_specific_https: true
+  bounded_local_evidence: true
+
+authorization:
+  repository_definition: authorized
+  node_contact: true
+  execution: true
+  outer_sha256: 54889625a3ba0ef665e9a02a441f8464c9501e6e2dfd4c36492de2bdd8bcf624
+
+execution:
+  executed_at: "2026-08-11T21:10:43-05:00"
+  status: 0
+  evidence_directory: /tmp/caddy-ssh-evidence/action31/run.BMT4MA
+  elapsed_ms: 3865
+  recovery_invoked: false
+  manual_intervention_required: false

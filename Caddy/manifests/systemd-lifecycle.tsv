@@ -1,0 +1,12 @@
+# source-path	lifecycle	node-installable	installed-path	mode	authority
+Caddy/systemd/caddy-cert-expiry.service	production-current	yes	/etc/systemd/system/caddy-cert-expiry.service	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-cert-expiry.timer	production-current	yes	/etc/systemd/system/caddy-cert-expiry.timer	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-lsyncd.service	production-current	yes	/etc/systemd/system/caddy-lsyncd.service	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-pihole-backend.service	rejected	no	-	-	Caddy/manifests/pihole-admin-backend-action28k.yaml
+Caddy/systemd/caddy-sync-failure@.service	production-current	yes	/etc/systemd/system/caddy-sync-failure@.service	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-sync-health.service	production-current	yes	/etc/systemd/system/caddy-sync-health.service	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-sync-health.timer	production-current	yes	/etc/systemd/system/caddy-sync-health.timer	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-sync-reconcile.path	production-current	yes	/etc/systemd/system/caddy-sync-reconcile.path	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy-sync-reconcile.service	production-current	yes	/etc/systemd/system/caddy-sync-reconcile.service	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/caddy.service.d/override.conf	production-current	yes	/etc/systemd/system/caddy.service.d/override.conf	0644	Caddy/manifests/production-artifacts.tsv
+Caddy/systemd/lighttpd.service.d/caddy-ha.conf	production-current	yes	/etc/systemd/system/lighttpd.service.d/caddy-ha.conf	0644	Caddy/manifests/production-artifacts.tsv

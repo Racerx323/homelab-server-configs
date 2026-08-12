@@ -20,7 +20,8 @@ inventory/
     │   ├── all.yaml
     │   ├── dns.yaml
     │   ├── monitoring.yaml
-    │   └── notification.yaml
+    │   ├── notification.yaml
+    │   └── reverse_proxy.yaml
     ├── hosts/
     │   ├── monitoring.yaml
     │   ├── notification.yaml
@@ -42,11 +43,13 @@ The filename of a host-variable file must match its key in `hosts.yaml`.
 ## Functions and components
 
 Use `functions` to describe what a host or group does. Examples include `dns`,
-`monitoring`, and `notification`.
+`monitoring`, `notification`, and `reverse_proxy`. A host can belong to more
+than one functional group; the production Pi-hole pair provides both DNS and
+reverse-proxy functions.
 
 Use `components` to list concrete software or configuration bundles deployed
 to provide those functions. Examples include `keepalived`, `pihole`, `unbound`,
-and `mailrise`.
+`caddy`, `lsyncd`, and `mailrise`.
 
 ```yaml
 functions:

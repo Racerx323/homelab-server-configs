@@ -1,6 +1,6 @@
 ---
 protocol: caddy-ha-release-v2
-status: deployed_inactive_pending_architecture_corrected_go_live
+status: deployed_active_accepted
 transport:
   account: caddy-sync
   forced_command: /usr/local/libexec/caddy-sync-release-receiver-v2
@@ -15,6 +15,11 @@ transport:
   protect_args: false
 publication:
   atomic_outbound_visibility: true
+  normal_source_role: node-a
+  emergency_source_role: node-b
+  emergency_requires:
+    - PIHOLE_IPV4_MASTER
+    - PIHOLE_IPV6_MASTER
   request_marker: .finalize-request
   request_marker_constraints:
     type: regular
@@ -57,12 +62,27 @@ reconciliation:
     - extra-payload
     - divergent-parent
   conflict_action: quarantine
+  candidate_order:
+    - exact-active-replay
+    - exactly-one-child-of-active
+  candidate_ambiguity: fail-closed
+  accepted_candidate_disposition: remove-from-incoming
+  queue_processing: drain-to-empty
   service_reload_only_after_validation: true
   trigger_path: /var/lib/caddy-sync/incoming/.reconcile-trigger
   destination_visibility: staged_then_atomic
   existing_destination_requires_exact_payload: true
   reload_failure_restores_previous_selection: true
+failure_notification:
+  owner: systemd-on-failure
+  worker_behavior: emit-reason-and-fail
+  direct-worker-delivery: prohibited
 deployment:
-  live_state_changed: false
-  authorization_template: templates/authorized-key-receiver-finalized-v2.in
-  next_gate: separately_authorized_action28ab_execution_after_definition
+  live_state_changed: true
+  authorization_template:
+    repository: homelab-server-configs
+    path: Caddy/templates/authorized-key-receiver-finalized-v2.in
+  accepted_actions:
+    - 28ah
+    - 29k
+    - 30e

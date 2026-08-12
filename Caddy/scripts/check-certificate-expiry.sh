@@ -4,15 +4,13 @@ set -euo pipefail
 readonly certificate='/etc/caddy/current/tls/leaf.pem'
 
 if [[ ! -r "$certificate" ]]; then
-    /usr/local/libexec/lsyncd-sync-failure-notify.sh \
-        "Caddy certificate is unavailable: $certificate"
+    printf 'Caddy certificate is unavailable: %s\n' "$certificate" >&2
     exit 1
 fi
 
 for days in 7 14 30; do
     if ! openssl x509 -in "$certificate" -checkend "$((days * 86400))" -noout; then
-        /usr/local/libexec/lsyncd-sync-failure-notify.sh \
-            "Caddy certificate expires within $days days"
+        printf 'Caddy certificate expires within %s days\n' "$days" >&2
         exit 1
     fi
 done

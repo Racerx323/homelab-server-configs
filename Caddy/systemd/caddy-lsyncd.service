@@ -16,9 +16,20 @@ Restart=on-failure
 RestartSec=5s
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/var/lib/caddy-sync /run/caddy-lsyncd
+ProtectClock=true
+ProtectControlGroups=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+UMask=0077
+ReadOnlyPaths=/etc/lsyncd /var/lib/caddy-sync
+ReadWritePaths=/run/caddy-lsyncd
 
 [Install]
 WantedBy=multi-user.target

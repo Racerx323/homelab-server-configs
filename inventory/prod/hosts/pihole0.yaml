@@ -1,8 +1,12 @@
 ---
-display_name: Primary DNS node
+display_name: Preferred DNS and reverse-proxy node
 
 dns:
   ha_role: primary
+
+reverse_proxy:
+  ha_preference: preferred
+  publication_role: normal
 
 hardware:
   platform: raspberry_pi

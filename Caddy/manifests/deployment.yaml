@@ -1,7 +1,10 @@
 ---
 service: caddy-ha
 environment: production
-interface: eth0
+status: accepted_with_coupled_dns_ownership
+production_ownership_source:
+  repository: homelab-dns
+  path: Keepalived/configs
 
 virtual_endpoints:
   ipv4: 10.1.0.56/22
@@ -15,28 +18,20 @@ nodes:
     management_fqdn: pihole0.local.theama.co
     ipv4: 10.1.0.53
     ipv6: fd36:5aa8:6971:1::53
-    peer_ipv4: 10.1.0.54
-    peer_ipv6: fd36:5aa8:6971:1::54
-    priority: 140
-    peer_role: node-b
   node-b:
     hostname: j1-svpihole00
     management_fqdn: pihole00.local.theama.co
     ipv4: 10.1.0.54
     ipv6: fd36:5aa8:6971:1::54
-    peer_ipv4: 10.1.0.53
-    peer_ipv6: fd36:5aa8:6971:1::53
-    priority: 100
-    peer_role: node-a
 
-vrrp:
-  version: 3
-  ipv4_vrid: 110
-  ipv6_vrid: 111
-  advert_interval_seconds: 1
-  preempt_delay_seconds: 30
-  health_rise: 3
-  health_fall: 3
+production_ownership:
+  authority: PIHOLE_DUALSTACK
+  ipv4_instance: PIHOLE_IPV4
+  ipv4_vrid: 100
+  ipv6_instance: PIHOLE_IPV6
+  ipv6_vrid: 101
+  caddy_vips_follow_dns_ownership: true
+  caddy_health_is_dns_dependency: false
 
 ports:
   http_tcp: 80
@@ -105,8 +100,4 @@ firewall_intent:
     ports: [4949]
 
 deferred_current_state:
-  - authoritative_unbound_records
-  - production_inventory
-  - repository_readme
   - canonical_likec4
-  - unifi_firewall

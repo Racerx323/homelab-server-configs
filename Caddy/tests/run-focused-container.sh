@@ -17,6 +17,36 @@ readonly repository_root=${caddy_root%/Caddy}
 readonly workspace_root=${repository_root%/homelab-server-configs}
 readonly containerfile="$test_directory/Containerfile"
 
+if [[ -n "${CADDY_FOCUSED_HOST_EVIDENCE_DIR:-}" ]]; then
+    host_evidence_root=$CADDY_FOCUSED_HOST_EVIDENCE_DIR
+    case "$host_evidence_root" in
+        /tmp/caddy-focused-validation.*/debian-evidence) ;;
+        *)
+            printf '%s_invalid_evidence_path=true\n' "$prefix" >&2
+            exit 64
+            ;;
+    esac
+    [[ ! -L "$host_evidence_root" ]] || exit 64
+    install -d -m 0700 -- "$host_evidence_root"
+else
+    host_evidence_root=$(mktemp -d /tmp/caddy-focused-container-evidence.XXXXXX)
+    chmod 0700 "$host_evidence_root"
+fi
+readonly host_evidence_root
+
+run_container() {
+    local focused_container_status=0
+
+    podman run --rm --network none \
+        --env CADDY_VALIDATION_CONTAINER=1 \
+        --env CADDY_FOCUSED_EVIDENCE_ROOT=/evidence \
+        --volume "$workspace_root:/workspace:ro" \
+        --volume "$host_evidence_root:/evidence" \
+        "$@" || focused_container_status=$?
+    printf '%s_evidence_path=%s\n' "$prefix" "$host_evidence_root"
+    return "$focused_container_status"
+}
+
 record_gate() {
     local gate_label=$1
 
@@ -40,6 +70,8 @@ source_contract() {
     grep -Fq 'exec /bin/bash "$1"' "$0" || return 1
     # shellcheck disable=SC2016
     ! grep -Eq '"\$validation_image"[[:space:]]+/bin/bash' "$0" || return 1
+    grep -Fq -- '--network none' "$0" || return 1
+    grep -Fq -- '--phase container --container never' "$0" || return 1
 }
 
 case "${1:-}" in
@@ -54,14 +86,34 @@ case "${1:-}" in
         printf '%s_self_test_complete=true\n' "$prefix"
         exit 0
         ;;
+    --profiles)
+        [[ $# -eq 2 && "$2" =~ ^[a-z0-9-]+(,[a-z0-9-]+)*$ ]] || exit 64
+        # The child Bash expands its positional parameter.
+        # shellcheck disable=SC2016
+        run_container \
+            "$validation_image" -lc \
+            'cd /workspace/homelab-server-configs && exec /bin/bash Caddy/tests/run-focused.sh --profiles "$1" --phase container --container never' \
+            _ "$2"
+        exit $?
+        ;;
+    --action)
+        [[ $# -eq 2 && "$2" =~ ^action[0-9][a-z0-9-]*$ ]] || exit 64
+        # The child Bash expands its positional parameter.
+        # shellcheck disable=SC2016
+        run_container \
+            "$validation_image" -lc \
+            'cd /workspace/homelab-server-configs && exec /bin/bash Caddy/tests/run-focused.sh --action "$1" --phase container --container never' \
+            _ "$2"
+        exit $?
+        ;;
     "")
-        printf 'Usage: %s TEST_SCRIPT\n' "${0##*/}" >&2
+        printf 'Usage: %s TEST_SCRIPT | --profiles CSV | --action ID\n' "${0##*/}" >&2
         exit 64
         ;;
 esac
 
 [[ $# -eq 1 ]] || {
-    printf 'Usage: %s TEST_SCRIPT\n' "${0##*/}" >&2
+    printf 'Usage: %s TEST_SCRIPT | --profiles CSV | --action ID\n' "${0##*/}" >&2
     exit 64
 }
 requested_script=$1
@@ -84,9 +136,9 @@ relative_script=${resolved_script#"$repository_root"/}
 readonly relative_script
 readonly container_script=/workspace/homelab-server-configs/$relative_script
 
-exec podman run --rm --network none \
-    --env CADDY_VALIDATION_CONTAINER=1 \
-    --volume "$workspace_root:/workspace:ro" \
+# The child Bash expands its positional parameter.
+# shellcheck disable=SC2016
+run_container \
     "$validation_image" -lc \
     'cd /workspace/homelab-server-configs && exec /bin/bash "$1"' \
     _ "$container_script"

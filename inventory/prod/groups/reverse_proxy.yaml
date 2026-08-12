@@ -1,0 +1,21 @@
+---
+functions:
+  - reverse_proxy
+
+components:
+  - caddy
+  - keepalived
+  - lsyncd
+  - rsync
+
+reverse_proxy:
+  shared_endpoints:
+    - proxy.local.theama.co
+    - pihole-admin.local.theama.co
+  ownership_authority: PIHOLE_DUALSTACK
+  preferred_host: pihole0
+  normal_publisher: pihole0
+  emergency_publisher: pihole00
+  emergency_publication_requires:
+    - PIHOLE_IPV4_MASTER
+    - PIHOLE_IPV6_MASTER

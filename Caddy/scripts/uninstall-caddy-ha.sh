@@ -49,48 +49,59 @@ if [[ "$root_prefix" == / && "$dry_run" == false && "$EUID" -ne 0 ]]; then
     exit 1
 fi
 
+script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+caddy_root=$(cd -- "$script_directory/.." && pwd)
+readonly script_directory caddy_root
+
 root_path() {
+    local uninstall_path=$1
+
     if [[ "$root_prefix" == / ]]; then
-        printf '%s' "$1"
+        printf '%s' "$uninstall_path"
     else
-        printf '%s%s' "${root_prefix%/}" "$1"
+        printf '%s%s' "${root_prefix%/}" "$uninstall_path"
     fi
 }
 
 paths=(
     /etc/default/caddy-ha
-    /etc/keepalived/conf.d/caddy-ha.conf
     /usr/local/share/caddy-ha/lighttpd-desired-state.conf
     /etc/lsyncd/caddy.lua
     /etc/sysctl.d/70-caddy-ha.conf
-    /etc/munin/plugin-conf.d/caddy-ha
-    /etc/systemd/system/caddy.service.d/override.conf
-    /etc/systemd/system/lighttpd.service.d/caddy-ha.conf
-    /etc/systemd/system/caddy-lsyncd.service
-    /etc/systemd/system/caddy-sync-failure@.service
-    /etc/systemd/system/caddy-sync-reconcile.path
-    /etc/systemd/system/caddy-sync-reconcile.service
-    /etc/systemd/system/caddy-sync-health.service
-    /etc/systemd/system/caddy-sync-health.timer
-    /etc/systemd/system/caddy-cert-expiry.service
-    /etc/systemd/system/caddy-cert-expiry.timer
+    /etc/tmpfiles.d/caddy-ha.conf
 )
 
-for executable in \
-    caddy-sync-rsync-receiver \
-    check-caddy.sh \
-    check-certificate-expiry.sh \
-    lsyncd-ha-failover-notify.sh \
-    lsyncd-sync-failure-notify.sh \
-    prepare-lighttpd-config.sh \
-    publish-release.sh \
-    reconcile-release.sh \
-    setup-sync-ssh.sh \
-    validate-sync-ssh.sh \
-    validate-journald-retention.sh \
-    validate-sync-health.sh; do
-    paths+=("/usr/local/libexec/$executable")
-done
+append_registered_paths() {
+    local uninstall_registry=$1
+    local uninstall_source
+    local uninstall_lifecycle
+    local uninstall_deployable
+    local uninstall_target
+    local uninstall_mode
+    local uninstall_authority
+
+    while IFS=$'\t' read -r uninstall_source uninstall_lifecycle \
+        uninstall_deployable uninstall_target uninstall_mode \
+        uninstall_authority; do
+        [[ -n "$uninstall_source" && "$uninstall_source" != \#* ]] || continue
+        : "$uninstall_mode" "$uninstall_authority"
+        [[ "$uninstall_lifecycle" == production-current &&
+            "$uninstall_deployable" == yes ]] || continue
+        paths+=("$uninstall_target")
+    done <"$uninstall_registry"
+}
+
+append_registered_paths "$caddy_root/manifests/script-lifecycle.tsv"
+append_registered_paths "$caddy_root/manifests/systemd-lifecycle.tsv"
+
+# Remove known obsolete Caddy-owned remnants, but never externally owned
+# Keepalived state or deferred Munin configuration.
+paths+=(
+    /etc/systemd/system/caddy-pihole-backend.service
+    /usr/local/libexec/caddy-sync-rsync-receiver
+    /usr/local/libexec/lsyncd-ha-failover-notify.sh
+    /usr/local/libexec/publish-release.sh
+)
 
 if [[ "$preserve_releases" == false ]]; then
     paths+=(/etc/caddy/current /etc/caddy/releases/bootstrap)

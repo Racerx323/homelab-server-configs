@@ -1,3 +1,6 @@
+# Lifecycle: deferred post-deployment monitoring configuration.
+# This file is not part of accepted core production state.
+
 [caddy_health]
 user root
 
@@ -15,4 +18,3 @@ user root
 env.status_file /run/caddy-lsyncd/status
 env.incoming_root /var/lib/caddy-sync/incoming
 env.quarantine_root /var/lib/caddy-sync/quarantine
-

@@ -11,10 +11,6 @@ readonly status_file=/run/caddy-lsyncd/status
 readonly maximum_status_bytes=1048576
 readonly maximum_status_lines=8192
 
-notify_failure() {
-    /usr/local/libexec/lsyncd-sync-failure-notify.sh "$1"
-}
-
 status_snapshot_valid() {
     local sync_health_snapshot=$1
 
@@ -54,11 +50,12 @@ validate_service() {
 
 run_health_check() {
     if ! validate_service; then
-        notify_failure "$service is not active and stable"
+        printf '%s is not active and stable\n' "$service" >&2
         return 1
     fi
     if ! status_snapshot_valid "$status_file"; then
-        notify_failure "lsyncd status snapshot is missing, unsafe, or malformed: $status_file"
+        printf 'lsyncd status snapshot is missing, unsafe, or malformed: %s\n' \
+            "$status_file" >&2
         return 1
     fi
     printf 'caddy_sync_health_status_snapshot_valid=true\n'

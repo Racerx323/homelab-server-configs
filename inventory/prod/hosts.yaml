@@ -8,6 +8,11 @@ all:
         pihole00:
           management_fqdn: pihole00.local.theama.co
 
+    reverse_proxy:
+      hosts:
+        pihole0: {}
+        pihole00: {}
+
     monitoring:
       hosts:
         monitoring:
