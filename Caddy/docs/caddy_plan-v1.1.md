@@ -6,7 +6,8 @@
 | --- | --- |
 | Phase | Core deployment accepted; post-deployment work |
 | DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
-| Current next single gate | Action 32g is accepted, consumed, immutable, and prohibited from rerun. The repository accepted-live and typed production inventories now identify its exact ten artifacts on both nodes. The next activity is committing and synchronizing this checkpoint; any additional post-deployment work must be scoped separately from the completed runtime-lifecycle deployment |
+| Current next single gate | Action 32g is accepted, consumed, immutable, and prohibited from rerun. Repository checkpoint `d131b9d` is committed and synchronized to `origin/main`; the accepted-live and typed production inventories identify its exact ten artifacts on both nodes. The next activity is definition only of the bounded post-deployment reliability exercise sequence documented below. Live execution remains separately hash-authorized, and the completed runtime-lifecycle deployment must not be replayed |
+| Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; durable Apprise delivery and operator documentation remain required; reliability exercises precede documentation; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
 | Repository runtime-lifecycle correction | Implemented repository-only without contacting either HA node. Current reusable sources now deterministically drain safely ordered protocol-v2 candidates, remove accepted incoming state, reject competing children, and leave divergence quarantine fail closed. Worker scripts emit exact failure reasons while systemd `OnFailure` exclusively owns notification delivery. Managed lsyncd can read its configuration and synchronization roots but can write only `/run/caddy-lsyncd`; the Caddy environment file is mandatory; services have conservative filesystem/process hardening; and the monotonic health timer no longer carries calendar-only `Persistent=` semantics. The typed production inventory covers every installable script and systemd artifact for both nodes and deliberately retains separately typed current-source and last-accepted-deployed hashes. The repository bytes remain distinct from accepted live state. Failed Action 32 is consumed; Action 32a is the corrected separately scoped live installation boundary and still requires exact-hash authorization. Executed artifacts and prior authorization provenance remain unchanged |
 | Caddy runtime-lifecycle installation Action 32 | Definition-only; neither HA node was contacted. The action consumes accepted Actions 28ah, 29k, 30e, and 31 and installs exactly ten changed production artifacts: the certificate worker, protocol-v2 reconciler, synchronization-health worker, five affected synchronization/certificate systemd units, the health timer, and the mandatory Caddy environment drop-in. It creates a deterministic hash-validated payload, stages transport beneath `/tmp`, adopts validation into a protected direct child of `/run`, and records bounded stdout, stderr, statuses, journals, semantic inventory, and rollback evidence beneath node-local and workstation `/tmp`. Node B is fully accepted before Node A changes. Each node must match exact accepted-live hashes, coupled role/VIP ownership, active/enabled services, a safe role-specific outbound inventory, no finalized incoming candidate, and unchanged historical quarantine inventory. The transaction stops only managed lsyncd and reconciliation, installs atomically, reloads systemd, proves five-sample lsyncd stability, invokes certificate/health workers and a no-op reconciliation, rejects new post-cursor transport/quarantine failures, and requires release and VIP ownership unchanged. It never reloads Caddy or Keepalived and performs no publication. Protected backups roll back Node A then Node B; unproven recovery exits `125`. Current production-path host and network-disabled Debian validation passed; the historical suite was not run. Exact outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`. Live execution is not authorized until that exact hash is separately approved |
 | Caddy runtime-lifecycle installation Action 32 execution | Executed once under exact authorization with outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`; consumed and must not be rerun. All workstation gates and payload upload passed. Node B passed exact accepted-live artifact hashes, active/enabled services, BACKUP state, zero shared VIPs, current release `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`, empty outbound inventory, and the exact three-entry historical quarantine inventory. Its incoming inventory contained `.reconcile-trigger` and `node-a`; the deeper finalized-candidate guard then failed. This is the retained incoming work that the new candidate-draining reconciler is intended to consume, so requiring it absent before installing that reconciler was an avoidable definition defect. The action stopped before journal cursor, backup creation, service stop, file installation, systemd reload, worker invocation, timer restart, Caddy or Keepalived reload, or Node A contact. Recovery independently reconfirmed Node B continuity with empty stderr and emitted `recovery_proven=true`. Evidence `/tmp/caddy-ssh-evidence/action32/run.7VSbcR`; Node B apply stdout SHA-256 `0bebde754a318c960bca922b00706c3b64151b1323c60abb0ff37eaa4eb30038`, stderr SHA-256 `6e0b19d2293ac9914e362f60d0bbdf41493f2b7f55b2ff7557a85347ac069aa8`, rollback stdout SHA-256 `42a1b1f3949620d6f421b96de076342705b903d8f943b8a30861b4c116c7cc01`, and rollback stderr empty. No separate diagnostic is needed |
@@ -27528,19 +27529,15 @@ For action 4e, the user reported zero port-forwarding rules and identified
 block-all policy, zero switch ACLs, and Default LAN-only scope, the UniFi
 prerequisites passed without any controller change.
 
-## Deferred Until After Core Deployment
+## Post-Deployment Work Queue
 
-- Home Assistant Yellow permanent ULA allocation and HAOS configuration,
-  duplicate-address and reachability validation, reboot-persistence testing,
-  and its authoritative AAAA and IPv6 PTR records are deferred until after
-  core Caddy deployment acceptance. The current private operator source adds
-  only `homeassistant.local.theama.co` A `10.1.2.120` with the corresponding
-  canonical IPv4 PTR; neither record is deployed truth until a separately
-  authorized activation and validation action succeeds.
-- Live Munin monitoring installation, node/master configuration, and metric
-  validation are deferred until after core Caddy deployment acceptance.
-  Repository lint and fixture checks may run before deployment but do not
-  authorize or represent live Munin deployment.
+- Live Munin monitoring installation and metric validation are canceled and
+  are not required for Caddy acceptance or post-deployment completion. Retain
+  deferred repository artifacts only as classified provenance; do not install
+  them or create a replacement Caddy deployment action.
+- Home Assistant Yellow ULA and DNS work is canceled from this plan. It belongs
+  to a future authoritative DNS update action and is neither a Caddy dependency
+  nor a remaining Caddy post-deployment gate.
 - Historical deployment-test streamlining is complete. Every action-focused
   wrapper remains preserved and is mapped for explicit host and Debian replay,
   while current profiles select reusable producer regressions and execute each
@@ -27560,10 +27557,18 @@ prerequisites passed without any controller change.
   single curl attempt timed out after 5001 ms with exit 28, demonstrating the
   observability gap. Do not couple VRRP state transitions to notification
   delivery success.
-- Canonical LikeC4 model and generated views.
+- Operator documentation remains required: quick start, installation,
+  uninstallation, troubleshooting, and diagrams. It follows the reliability
+  exercise so confirmed behavior and any resulting corrections are captured
+  once rather than documented speculatively.
+- Canonical LikeC4 source and generated views are authorized only after the
+  operator-documentation set is accepted, so the model reflects the final
+  documented operating contract.
 - Invalid-release quarantine, interrupted-rsync recovery, revision-conflict,
-  peer-reconnection, and rolling-upgrade drills. These are post-deployment
-  reliability exercises, not core acceptance blockers.
+  peer-reconnection, and rolling-upgrade drills are the next post-deployment
+  action. They are not core acceptance blockers, but must complete before
+  operator documentation so proven recovery behavior and any corrections are
+  incorporated into the documentation.
 
 ## Completed Deployment Prerequisites
 
@@ -27607,8 +27612,11 @@ Deploy Caddy on Nodes A and B as an independent dual-stack HA service:
 - Use reciprocal lsyncd transport with Node A as the normal writer and guarded
   emergency publishing from Node B only with `--emergency` while Node B owns
   the coupled `PIHOLE_IPV4` and `PIHOLE_IPV6` MASTER state.
-- Place the implementation under `homelab-server-configs/Caddy`; update DNS, monitoring, inventory, and canonical LikeC4 repositories for their respective concerns.
-- Create operator documentation only after deployment and acceptance testing.
+- Place the implementation under `homelab-server-configs/Caddy`; update DNS
+  and inventory repositories for their respective concerns.
+- Create operator documentation after deployment acceptance and the bounded
+  reliability exercise. Update canonical LikeC4 sources and generated views
+  only after that documentation is accepted.
 
 ## Implementation Changes
 
@@ -27619,7 +27627,6 @@ Install or confirm on Nodes A and B:
 - Caddy: `caddy`, `debian-keyring`, `debian-archive-keyring`, `apt-transport-https`, `ca-certificates`, `curl`, `gnupg`.
 - HA and synchronization: `keepalived`, `lsyncd`, `rsync`, `openssh-client`, `openssh-server`.
 - Validation and scripting: `openssl`, `jq`, `uuid-runtime`, `coreutils`, `findutils`, `util-linux`, `procps`, `iproute2`, `bash`.
-- Monitoring: `munin-node`.
 - Existing Pi-hole UI dependencies: `lighttpd` and its PHP/FastCGI packages.
 
 Use the [official Caddy Debian package and systemd service](https://caddyserver.com/docs/install).
@@ -27650,7 +27657,6 @@ Permit through the internal firewall:
 - VRRP protocol 112 only between Nodes A and B.
 - Restricted synchronization SSH between Nodes A and B.
 - Nodes A/B to `10.1.3.83:8000`.
-- Munin master `10.1.3.83` to munin-node TCP 4949.
 - Required outbound update and certificate-status traffic.
 
 Create no external-zone ingress, public NAT, or WAN exposure.
@@ -27731,9 +27737,9 @@ caddy validate --config /etc/caddy/current/Caddyfile --adapter caddyfile
 curl -k -I --fail --silent --show-error --max-time 3 https://localhost
 ```
 
-The Caddy helper remains useful for monitoring and configuration acceptance,
-but it no longer controls a VRRP instance. lsyncd, Munin, Apprise, and Caddy
-failures raise alerts without moving DNS or Caddy VIP ownership.
+The Caddy helper remains useful for service health and configuration
+acceptance, but it no longer controls a VRRP instance. lsyncd, Apprise, and
+Caddy failures raise alerts without moving DNS or Caddy VIP ownership.
 
 ### Bidirectional lsyncd and atomic reloads
 
@@ -27778,18 +27784,13 @@ reload and restores the prior release on failure. The former independent
 `caddy-validate-reload.path` and `.service` are retired because a second
 path-triggered reload can race that transaction.
 
-## Monitoring, Notifications, DNS, and Architecture
+## Notifications, DNS, and Architecture
 
 ### Munin
 
-Create these plugins in `homelab-monitoring-observability/Munin`:
-
-- `caddy_health`: service status, health probe, VRRP state, VIP ownership.
-- `caddy_requests`: request, error, status-code, and latency metrics.
-- `caddy_tls`: certificate validity and remaining lifetime.
-- `lsyncd_caddy`: service status, peer reachability, last successful reconciliation, revision lag, queued releases, failures, and quarantined conflicts.
-
-Install configuration under `/etc/munin/plugin-conf.d/caddy-ha`, use unprivileged execution where possible, and validate with `munin-run`.
+Canceled by operator disposition. Munin deployment and metric validation are
+not required. Preserve classified deferred repository artifacts as provenance,
+but do not install them or create a replacement deployment action.
 
 ### Apprise notifications
 
@@ -27851,13 +27852,14 @@ Extend the canonical LikeC4 model with:
 - Dual-stack Caddy VIP.
 - External certificate artifact.
 - Pi-hole admin proxy relationship.
-- Munin monitoring and Apprise notification relationships.
+- Apprise notification relationships.
 - Named Caddy and lsyncd deployment instances on Nodes A and B.
 - Caddy VIP deployment node.
 - `reverse-proxy-ha` view.
 - `reverse-proxy-failover` dynamic sequence.
 
 Validate with `likec4 validate --json --no-layout`, repeating `--file` for every edited LikeC4 source.
+Perform this work only after the operator-documentation set is accepted.
 
 ## Test and Deployment Plan
 
@@ -27867,7 +27869,7 @@ TLS and HTTP protocol validation, normal A-to-B protocol-v2 transfer, rejection
 of ordinary Node B publishing, and coupled DNS/Caddy ownership. Do not replay
 those completed phases or insert a separate post-Action 28t acceptance action.
 
-The remaining core deployment has exactly two gates:
+The two final core-deployment gates are complete:
 
 1. **Integrated coupled failover/failback and synchronization go-live
    transaction.** Actions 28u through 28aa are consumed and must not be
@@ -27932,9 +27934,10 @@ The remaining core deployment has exactly two gates:
 
 The post-acceptance mobile sign-off is complete: Android Chrome was manually
 tested successfully, and the operator waived a separate iOS Safari test and
-accepted it as passed. Munin deployment, Home Assistant Yellow ULA work,
-documentation, and the deferred reliability exercises remain under their
-separate post-deployment scopes.
+accepted it as passed. Munin deployment is canceled. Home Assistant Yellow ULA
+and DNS work is removed from this plan and belongs to a future DNS update. The
+bounded reliability exercise is the next Caddy action, followed by durable
+notification delivery, operator documentation, and then canonical LikeC4.
 
 Acceptance requires:
 
@@ -27952,12 +27955,62 @@ Acceptance requires:
   requires reevaluation.
 - No regression to the existing DNS VIP cluster.
 
-Munin metrics are acceptance criteria for the separately authorized
-post-deployment monitoring phase, not for core Caddy deployment acceptance.
-
 ## Post-Deployment Documentation and Reliability
 
-After acceptance, create or complete:
+### Next action: bounded reliability exercise
+
+Define one sequential, fail-closed reliability action before operator
+documentation. Definition and workstation validation do not authorize node
+contact; later live execution requires one exact outer-runner SHA-256
+authorization. The action must consume the accepted Action 32g baseline without
+rerunning Action 32g and must:
+
+1. Reaccept current dual-node ownership, services, releases, synchronization,
+   empty finalized-candidate state, and transaction-residue absence in the
+   transaction itself.
+2. Exercise invalid-release handling with a transaction-owned synthetic
+   release, requiring rejection or quarantine without selection, Caddy reload,
+   or active-release change.
+3. Exercise interrupted transfer by withholding the completion marker,
+   requiring the partial candidate to remain unselectable, then resume the
+   bounded transfer and require exactly one valid reconciliation.
+4. Exercise a same-parent revision conflict, requiring deterministic quarantine
+   and no timestamp-based winner or active-release change.
+5. Exercise peer disconnect and reconnect with a bounded queued valid release,
+   requiring stable managed-lsyncd recovery, one reconciliation, and no
+   duplicate promotion.
+6. Rehearse the rolling operational sequence standby-first: Node B service
+   maintenance, controlled coupled failover, Node A service maintenance, and
+   preferred-node failback. Use the currently accepted installed binaries; an
+   actual package-version change requires its own pinned transaction.
+7. Restore and independently accept the Action 32g production baseline after
+   every scenario before entering the next one. Reject simultaneous ownership,
+   prolonged outage, unexpected publication, new quarantine outside the
+   scenario, restart-count drift, or release drift.
+8. Remove only transaction-owned synthetic artifacts, prove no outgoing,
+   incoming, trigger, backup, or staging residue, and retain bounded stdout,
+   stderr, statuses, journal cursors, transition timing, notification evidence,
+   and rollback evidence under `/tmp` on the nodes and workstation.
+9. Automatically recover the affected scenario in reverse order. Return a
+   distinct manual-intervention status when restoration cannot be proven.
+
+Use current production-path regressions and applicable shared policies only;
+do not run the complete historical host/Podman suite. The accepted production
+artifacts, ordinary Node B publication rejection, guarded `--emergency`
+boundary, coupled DNS/Caddy ownership, and non-blocking notifier rule remain
+unchanged.
+
+### Remaining ordered work
+
+1. Implement durable Apprise delivery with bounded retries or a persistent
+   systemd-backed queue while keeping notification success outside VRRP and
+   service-health decisions.
+2. Create and accept the operator documentation listed below, incorporating
+   the reliability exercise and durable-notification behavior.
+3. Update the canonical LikeC4 model and generated views from the accepted
+   operator documentation.
+
+Operator documentation must include:
 
 - `Caddy/docs/QUICK_START.md`
 - `Caddy/docs/INSTALLATION.md`
