@@ -1,0 +1,162 @@
+---
+schema: caddy.coupled-go-live.v8
+action: 28ab
+status: executed_failed_preflight_consumed
+type: integrated_transactional_failover_failback_and_synchronization_go_live
+baseline:
+  accepted_action: 28t
+  rerun: prohibited
+  separate_post_acceptance: prohibited
+  node_a_state: dual_family_master_all_four_shared_vips
+  node_b_state: dual_family_backup_zero_shared_vips
+consumed_failure:
+  action: 28aa
+  outer_sha256: a2bda33ccc5eff71e3490682fb9af467b58f700cc2271d29b426ffef4470793a
+  rerun: prohibited
+  automatic_recovery_proven: true
+  failure_boundary: node_b_install_failed_unit_reset
+  mutation_entrypoint_reached: false
+  node_b_lsyncd_state: failed
+  node_b_reconcile_service_state: absent_or_unloaded_nonfailed
+  post_recovery_state: accepted_action28t_ownership_preserved
+  correction_scope:
+    - consume_exact_action28z_evidence_and_recovery_baseline
+    - reset_only_units_observed_in_failed_state
+    - treat_absent_unloaded_nonfailed_units_as_clear
+    - replace_rsyncssh_with_rsync_over_forced_rsync_transport
+    - signal_receiver_finalization_with_exact_trigger_file
+    - stage_and_exactly_validate_release_before_atomic_promotion
+    - restore_prior_current_symlink_and_reload_on_new_reload_failure
+    - preserve_complete_action28aa_evidence_and_recovery
+logging:
+  mode: systemd_journal_native
+  lsyncd_invocation: foreground_nodaemon
+  explicit_logfile: absent
+  status_file: /run/caddy-lsyncd/status
+  journal_retention: systemd_journald_managed
+  logrotate_file: not_applicable
+historical_quarantine_baseline:
+  node: node-b
+  revision: action17p-node-a-to-node-b-bootstrap
+  incoming_path: /var/lib/caddy-sync/incoming/node-a/action17p-node-a-to-node-b-bootstrap
+  incoming_state: absent
+  quarantine_path: /var/lib/caddy-sync/quarantine/node-a-action17p-node-a-to-node-b-bootstrap
+  release_manifest_sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+  payload_manifest_sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+  source_node: node-a
+  receiver_completion_marker: regular_empty
+  finalizer_request_marker: regular_empty
+  pending_marker: absent
+  directories_mode: '0550'
+  files_mode: '0440'
+  symlinks_special_files_and_hardlinks: absent
+synchronization:
+  protocol: v2
+  normal_writer: node-a
+  node_b_publish:
+    ordinary: rejected
+    emergency_flag_required: true
+    eligibility: coupled_pihole_ipv4_and_ipv6_master_with_all_shared_vips
+  caddy_lsyncd_service: enabled_and_active_on_both_nodes
+  reconcile_path: enabled_and_active_on_both_nodes
+  reconcile_service: oneshot_and_not_failed
+  vrrp_health_dependency: false
+  remote_delete: false
+  rsync_protect_args: false
+  restricted_receiver_option_s: absent
+  lsyncd_mode: default_rsync
+  standalone_remote_ssh_operations: prohibited
+  post_start_transport_errors: prohibited
+  receiver_completion_marker: receiver_generated
+  reconciliation_trigger: /var/lib/caddy-sync/incoming/.reconcile-trigger
+  trigger_producer: receiver_finalizer_after_successful_finalization
+  trigger_consumer: exact_systemd_path_unit
+  promotion:
+    staging_parent: /etc/caddy/releases
+    destination_must_be_absent_or_exact: true
+    atomic_move: true
+    reload_failure_restores_prior_symlink_and_reloads_prior_config: true
+transaction_order:
+  - dual_node_preflight
+  - capture_and_reset_known_failed_synchronization_unit_state
+  - install_corrected_publisher_finalizer_reconciler_path_and_node_specific_lsyncd_config
+  - transactionally_promote_exact_validated_retained_release_on_both_nodes
+  - activate_and_validate_node_b_then_node_a_synchronization
+  - controlled_node_a_keepalived_relinquish
+  - stable_node_b_coupled_master_convergence
+  - reject_ordinary_node_b_publication
+  - guarded_node_b_emergency_publication_and_b_to_a_reconciliation
+  - restore_preferred_node_a_keepalived_ownership
+  - stable_node_a_master_node_b_backup_convergence
+  - normal_node_a_publication_and_a_to_b_reconciliation
+  - dual_node_journal_residue_and_release_acceptance
+  - commit_protected_rollback_backups
+availability:
+  failover:
+    node_b_owns_all_four_shared_vips: required
+    node_a_owns_zero_shared_vips: required
+    dns_continuity: required
+    trusted_https_continuity: required
+    shared_pihole_identifies_node_b: required
+  failback:
+    node_a_owns_all_four_shared_vips: required
+    node_b_owns_zero_shared_vips: required
+    dns_continuity: required
+    trusted_https_continuity: required
+    shared_pihole_identifies_node_a: required
+evidence:
+  workstation_root: /tmp/caddy-ssh-evidence/action28ab
+  node_root: /tmp/caddy-action28ab
+  stdout_stderr_statuses: bounded_classified_emitted_and_retained
+  transition_timing: retained
+  journals: retained
+  notifier_events: retained
+  notifier_delivery_failure: non_blocking
+  rollback: retained
+  lsyncd_startup:
+    journal_cursor: node_local_file_then_emitted
+    enable_stdout_stderr_status: node_local_files_then_emitted
+    five_sample_stability: node_local_file_then_emitted
+    systemd_properties: node_local_file_then_emitted
+    systemctl_status: node_local_file_then_emitted
+    post_cursor_journal: node_local_file_then_emitted
+    cleanup_before_readback: prohibited
+failure:
+  automatic_recovery: required
+  reverse_install_rollback: node_a_then_node_b
+  preferred_ownership_restoration: required
+  unproven_recovery_exit_status: 125
+  displaced_retained_destination: protected_until_commit
+  failed_unit_reset: only_exact_failed_units
+  absent_or_unloaded_nonfailed_unit: already_clear
+prohibitions:
+  - historical_action_18c_vrrp_a_execution
+  - historical_action_18c_execution
+  - caddy_health_triggered_dns_failover
+  - simultaneous_keepalived_transitions
+  - complete_historical_host_or_podman_suite
+artifacts:
+  consumed_action28aa_outer_sha256: a2bda33ccc5eff71e3490682fb9af467b58f700cc2271d29b426ffef4470793a
+  reconciler_sha256: 31d6a08dd4a65543003ef13d0d8a18c8aa3c025521c35bfdfb14c6b50a39be3d
+  finalizer_sha256: b457954f00d894d9858413c7b4092d093c6a2eee1baab05fd7c21da812190c97
+  reconcile_path_sha256: c8c11582580326300035c1b6e8dc97cb6b90052683b57836cc3afdcdd436f295
+  node_a_lsyncd_sha256: d09a5d74434ed5ec4c48f65f718907c583461f9124e6309b20417c7f748f2365
+  node_b_lsyncd_sha256: cae04b74475a567e75f4ec4e9e4db305990f45df2c0dede1439f3e945a22c136
+  transaction_sha256: 5a4eed9400a28aad026235f3f414b93e72ad9e854f4a4d42bb922d20889d1875
+  regression_sha256: d504d88d52b279b1fec557a52f9ef136f19084d58fc21861f513c194429f027e
+  lsyncd_command_regression_sha256: 07465a99cc24f1e94728ffe58b283186c412d65e578549f32c9deeef6d7e16d0
+  reconciliation_transaction_regression_sha256: 3ca059cc0f9bf155e4869b2439074ad22cf3f1c4288312c7ca85f536961bc119
+  focused_validation_sha256: e8f1062b3787d3872b95c5b0631c6eee42fdd1fe2be63000b02832890c15b8cc
+  outer_sha256: 375d7121ca87757b0fff40f381e4d06e2430c575f777cd58c870f9b6580b2a6a
+authorization:
+  definition_and_workstation_validation: authorized
+  node_contact: completed_node_b_preflight_only
+  live_execution:
+    outer_sha256: 375d7121ca87757b0fff40f381e4d06e2430c575f777cd58c870f9b6580b2a6a
+    result: failed_closed_before_mutation
+    failed_phase: node_b_preflight
+    expected_finalizer_baseline_sha256: a49dadcaa611e641a100e6a4f2b1836fcf9a790876f437ee02e37003d78ef30c
+    observed_finalizer_baseline_sha256: 15d858774a17369f31261f7f94bea72d575f269fdb3e8e991534f66dd4f4902d
+    recovery_not_required: true
+    recovery_proven: true
+    evidence: /tmp/caddy-ssh-evidence/action28ab/run.TgAXQl

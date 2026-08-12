@@ -1,0 +1,106 @@
+---
+schema: caddy-final-deployment-acceptance-action29k-v1
+action: 29k
+mode: definition-only
+read_only: true
+accepted_baseline:
+  action: 29b
+  outer_sha256: 82e99f276e204c485a40f1570c4c1ff490de4237815de33044b0f1d851c87758
+  evidence: /tmp/caddy-ssh-evidence/action29b/run.Dxf8AS
+  classification: exact Pi-hole v5 artifacts installed and independently accepted standby-first
+consumed_predecessors:
+  - action: 29
+    disposition: failed read-only acceptance; prohibited from rerun
+  - action: 29a
+    disposition: failed read-only acceptance; prohibited from rerun
+  - action: 29b
+    disposition: accepted transactional correction; prohibited from rerun
+  - action: 29c
+    disposition: failed read-only acceptance with opaque manifest predicate; prohibited from rerun
+  - action: 29d
+    disposition: stale manifest identity rejected after complete strict payload verification; prohibited from rerun
+  - action: 29e
+    disposition: Node A live producer accepted; workstation consumer rejected two stale service labels; prohibited from rerun
+  - action: 29f
+    disposition: both node producers accepted; historical DNS consumer rejected stale Pi-hole hashes; prohibited from rerun
+  - action: 29g
+    disposition: both node producers accepted; DNS wrapper rejected stale rendered-core identity before queries; prohibited from rerun
+  - action: 29h
+    disposition: both node producers accepted; historical separate-Caddy state-file equality rejected; prohibited from rerun
+  - action: 29i
+    disposition: both node producers accepted; stale rendered-core identity rejected before DNS queries; prohibited from rerun
+  - action: 29j
+    disposition: all node, DNS, TLS, and protocol producers accepted; stale protocol completion marker rejected by workstation consumer; prohibited from rerun
+retained_dual_node_acceptance:
+  evidence: /tmp/caddy-ssh-evidence/action29f/run.rkrM1A
+  node_a_status: 0
+  node_b_status: 0
+dns_consumer_correction:
+  component: Caddy/scripts/run-dual-node-dns-record-families-action24-retry5-outer.sh
+  pihole_ftl_sha256: a1dc88b1f696a6870e38025be113ff8664750fca6265c79a2aee12f80898cfa3
+  pihole_domain_sha256: 39fa219a7d1c81c7fb36d89bc17ba1caae26f3472eb861a750a8ba03ae55b026
+  regression: actual rendered DNS producer self-test passes; protocol producer prefix and completion emitter are pinned; stale protocol consumer marker is rejected
+  rendered_inspector_sha256: 7a5cd81e0b1aad8ed110ed6220319d47a3cce4ea4f7eea9b7bf5102723b6d018
+  rendered_core_sha256: 645e36c40dbdb47f1cdefbbcebc50eb948e26397c87ce5212fd616867d4b03c8
+  obsolete_state_file_equality: removed
+  retained_state_file_controls:
+    - regular file
+    - not a symlink
+    - included in before and after semantic snapshots
+  authoritative_ownership_controls:
+    - coupled DBus MASTER and BACKUP state
+    - exact DNS and Caddy IPv4 and IPv6 VIP counts
+current_manifest:
+  revision: 20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
+  source: node-a
+  manifest_sha256: 5c2fad1133a2fae7ec37253bf1ecadb5971c949a8dc197b4dc7083d20cca6494
+  evidence: /tmp/caddy-ssh-evidence/action29d/run.VLe5Ch
+  strict_check: 11 listed files OK, status 0, stderr empty
+pihole_v5_targets:
+  ftl:
+    repository_path: /home/aaron/code/homelab-dns/Pi-Hole/configs/pihole-FTL.conf
+    live_path: /etc/pihole/pihole-FTL.conf
+    sha256: a1dc88b1f696a6870e38025be113ff8664750fca6265c79a2aee12f80898cfa3
+    metadata: pihole:root:0664
+    directives:
+      - PRIVACYLEVEL=0
+      - RATE_LIMIT=1000/60
+      - RESOLVE_IPV6=YES
+      - PIHOLE_PTR=NONE
+  dnsmasq:
+    repository_path: /home/aaron/code/homelab-dns/Pi-Hole/configs/local.theama.co.conf
+    live_path: /etc/dnsmasq.d/local.theama.co.conf
+    sha256: 39fa219a7d1c81c7fb36d89bc17ba1caae26f3472eb861a750a8ba03ae55b026
+    metadata: root:root:0644
+    semantic_contract: exact local zone plus IPv4 and ULA reverse forwarding to Unbound on IPv4 and IPv6 loopback port 5335
+scope:
+  - stable dual-node coupled DNS and Caddy VIP ownership
+  - A, AAAA, PTR, and SRV answers through both resolvers
+  - trusted certificate identity, chain, hostname, SAN, and TLS versions
+  - HTTP/1.1, HTTP/2, and HTTP/3 over IPv4 and IPv6
+  - shared and node-specific Pi-hole interfaces
+  - exact Pi-hole v5 FTL and dnsmasq forwarding directives
+  - exact protected Action 29b backup manifests, prior hashes, and commit markers
+  - current release and bidirectional protocol-v2 state
+  - expected and observed payload-manifest identity before comparison
+  - manifest path safety, exact file set, and bounded strict per-file verification evidence
+  - active lsyncd and deterministic reconciliation
+  - exact hashes, metadata, service properties, versions, timing, and residue
+approved_deviations:
+  keepalived_config_test: config-test-free deployment accepted
+  notifier_delivery: individual delivery failure is non-blocking
+  mobile_clients: manual sign-off follows core acceptance
+validation:
+  focused_host: required
+  focused_debian_12: required
+  complete_historical_suite: prohibited
+authorization:
+  definition_requires_separate_authorization: false
+  execution_requires_exact_outer_sha256: true
+artifacts:
+  dns_probe_sha256: 02c2f539237725add537526dbe989e133e9edb2c8faaf8dddb7e2a752a3016e1
+  inspector_sha256: 302be50c7881b7a024eafbc53c4cb4a89c05bd214623194c6d7c49aff9b3c49a
+  regression_sha256: f9de1bbe91705e6238b7fc932276092ed6104a564db558927774c406c7ee2cba
+  focused_validation_sha256: e90d8e9df1d1c401bb0ac2fe84109e6553dd254089936e9ba28adf6e64a5b8e3
+  outer_sha256: 4b078e4ef02be514d587a63cdcc6e5a89bfd29e5e3772ba128308dad7e322460
+execution_status: not_executed

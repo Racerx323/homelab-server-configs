@@ -2,9 +2,8 @@
 Description=Watch for incoming Caddy HA releases
 
 [Path]
-PathChanged=/var/lib/caddy-sync/incoming
+PathChanged=/var/lib/caddy-sync/incoming/.reconcile-trigger
 Unit=caddy-sync-reconcile.service
 
 [Install]
 WantedBy=multi-user.target
-

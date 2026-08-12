@@ -11,6 +11,7 @@ Group=caddy-sync
 RuntimeDirectory=caddy-lsyncd
 RuntimeDirectoryMode=0750
 ExecStart=/usr/bin/lsyncd -nodaemon /etc/lsyncd/caddy.lua
+SuccessExitStatus=143
 Restart=on-failure
 RestartSec=5s
 NoNewPrivileges=true
@@ -21,4 +22,3 @@ ReadWritePaths=/var/lib/caddy-sync /run/caddy-lsyncd
 
 [Install]
 WantedBy=multi-user.target
-

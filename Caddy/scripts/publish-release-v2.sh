@@ -7,6 +7,13 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 readonly PATH
 
+readonly dns_ipv4_cidr=10.1.0.55/22
+readonly dns_ipv6_cidr=fd36:5aa8:6971:1::55/128
+readonly caddy_ipv4_cidr=10.1.0.56/22
+readonly caddy_ipv6_cidr=fd36:5aa8:6971:1::56/128
+readonly ipv4_object=/org/keepalived/Vrrp1/Instance/eth0/100/IPv4
+readonly ipv6_object=/org/keepalived/Vrrp1/Instance/eth0/101/IPv6
+
 usage() {
     printf 'Usage: %s --source DIRECTORY --node-role node-a|node-b [--emergency]\n' \
         "${0##*/}" >&2
@@ -21,6 +28,26 @@ require_check() {
     fi
     printf 'caddy_sync_publish_v2_check_%s=false\n' "$check_label" >&2
     return 1
+}
+
+address_count() {
+    local publish_family=$1
+    local publish_cidr=$2
+
+    ip -o "-$publish_family" address show dev eth0 |
+        awk -v expected="$publish_cidr" \
+            '$4 == expected { count++ } END { print count + 0 }'
+}
+
+coupled_master() {
+    [[ "$(timeout 3 busctl get-property org.keepalived.Vrrp1 \
+        "$ipv4_object" org.keepalived.Vrrp1.Instance State)" = '(us) 2 "Master"' ]] || return 1
+    [[ "$(timeout 3 busctl get-property org.keepalived.Vrrp1 \
+        "$ipv6_object" org.keepalived.Vrrp1.Instance State)" = '(us) 2 "Master"' ]] || return 1
+    [[ "$(address_count 4 "$dns_ipv4_cidr")" -eq 1 ]] || return 1
+    [[ "$(address_count 6 "$dns_ipv6_cidr")" -eq 1 ]] || return 1
+    [[ "$(address_count 4 "$caddy_ipv4_cidr")" -eq 1 ]] || return 1
+    [[ "$(address_count 6 "$caddy_ipv6_cidr")" -eq 1 ]]
 }
 
 source_dir=
@@ -70,9 +97,8 @@ if [[ "$node_role" == node-b ]]; then
         printf 'Node B publishing requires --emergency.\n' >&2
         exit 1
     fi
-    if [[ ! -r /run/caddy-ha/vrrp-state ]] ||
-        [[ "$(</run/caddy-ha/vrrp-state)" != MASTER ]]; then
-        printf 'Node B may publish only while CADDY_DUALSTACK is MASTER.\n' >&2
+    if ! coupled_master; then
+        printf 'Node B may publish only while coupled PIHOLE_IPV4 and PIHOLE_IPV6 are MASTER with all shared VIPs.\n' >&2
         exit 1
     fi
 fi
@@ -88,10 +114,12 @@ require_check source_symlinks_absent \
     test -z "$(find "$source_dir" -type l -print -quit)"
 require_check source_hardlinks_absent \
     test -z "$(find "$source_dir" -type f -links +1 -print -quit)"
-require_check source_control_files_absent \
-    test -z "$(find "$source_dir" \
-        \( -name .finalize-request -o -name .complete.pending \) \
-        -print -quit)"
+require_check source_nested_control_files_absent \
+    test -z "$(find "$source_dir" -mindepth 2 \
+        \( -name .finalize-request -o -name .complete \
+        -o -name .complete.pending \) -print -quit)"
+require_check source_pending_marker_absent \
+    test ! -e "$source_dir/.complete.pending"
 require_check source_caddy_configuration_valid \
     env CADDY_CONFIG_ROOT="$source_dir" \
     caddy validate --config "$source_dir/Caddyfile" \

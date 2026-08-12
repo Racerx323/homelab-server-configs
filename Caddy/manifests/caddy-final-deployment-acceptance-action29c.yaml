@@ -1,0 +1,57 @@
+---
+schema: caddy-final-deployment-acceptance-action29c-v1
+action: 29c
+mode: definition-only
+read_only: true
+accepted_baseline:
+  action: 29b
+  outer_sha256: 82e99f276e204c485a40f1570c4c1ff490de4237815de33044b0f1d851c87758
+  evidence: /tmp/caddy-ssh-evidence/action29b/run.Dxf8AS
+  classification: exact Pi-hole v5 artifacts installed and independently accepted standby-first
+consumed_predecessors:
+  - action: 29
+    disposition: failed read-only acceptance; prohibited from rerun
+  - action: 29a
+    disposition: failed read-only acceptance; prohibited from rerun
+  - action: 29b
+    disposition: accepted transactional correction; prohibited from rerun
+pihole_v5_targets:
+  ftl:
+    repository_path: /home/aaron/code/homelab-dns/Pi-Hole/configs/pihole-FTL.conf
+    live_path: /etc/pihole/pihole-FTL.conf
+    sha256: a1dc88b1f696a6870e38025be113ff8664750fca6265c79a2aee12f80898cfa3
+    metadata: pihole:root:0664
+    directives:
+      - PRIVACYLEVEL=0
+      - RATE_LIMIT=1000/60
+      - RESOLVE_IPV6=YES
+      - PIHOLE_PTR=NONE
+  dnsmasq:
+    repository_path: /home/aaron/code/homelab-dns/Pi-Hole/configs/local.theama.co.conf
+    live_path: /etc/dnsmasq.d/local.theama.co.conf
+    sha256: 39fa219a7d1c81c7fb36d89bc17ba1caae26f3472eb861a750a8ba03ae55b026
+    metadata: root:root:0644
+    semantic_contract: exact local zone plus IPv4 and ULA reverse forwarding to Unbound on IPv4 and IPv6 loopback port 5335
+scope:
+  - stable dual-node coupled DNS and Caddy VIP ownership
+  - A, AAAA, PTR, and SRV answers through both resolvers
+  - trusted certificate identity, chain, hostname, SAN, and TLS versions
+  - HTTP/1.1, HTTP/2, and HTTP/3 over IPv4 and IPv6
+  - shared and node-specific Pi-hole interfaces
+  - exact Pi-hole v5 FTL and dnsmasq forwarding directives
+  - exact protected Action 29b backup manifests, prior hashes, and commit markers
+  - current release and bidirectional protocol-v2 state
+  - active lsyncd and deterministic reconciliation
+  - exact hashes, metadata, service properties, versions, timing, and residue
+approved_deviations:
+  keepalived_config_test: config-test-free deployment accepted
+  notifier_delivery: individual delivery failure is non-blocking
+  mobile_clients: manual sign-off follows core acceptance
+validation:
+  focused_host: required
+  focused_debian_12: required
+  complete_historical_suite: prohibited
+authorization:
+  definition_requires_separate_authorization: false
+  execution_requires_exact_outer_sha256: true
+execution_status: not_executed

@@ -41,6 +41,12 @@ done
 
 "$receiver" --self-test >/dev/null
 "$finalizer" --self-test >/dev/null
+trigger_output=$("$finalizer" --reconciliation-trigger-self-test)
+for trigger_label in created reused symlink_rejected self_test_complete; do
+    grep -Fxq \
+        "caddy_sync_finalize_v2_reconciliation_trigger_${trigger_label}=true" \
+        <<<"$trigger_output"
+done
 "$collision_checker" \
     "$publisher" \
     "$receiver" \
@@ -55,7 +61,14 @@ grep -Fq 'forced_command_source_role: peer-role' "$manifest"
 grep -Fxq \
     'from="@PEER_IPV4@,@PEER_IPV6@",restrict,command="/usr/local/libexec/caddy-sync-release-receiver-v2 --source-role @PEER_ROLE@"' \
     "$authorization_template"
-grep -Fq 'targetdir = "/"' "$lsyncd_template"
+grep -Fq 'default.rsync,' "$lsyncd_template"
+grep -Fq 'target = "caddy-sync@@PEER_FQDN@:/"' "$lsyncd_template"
+grep -Fq 'protect_args = false' "$lsyncd_template"
+grep -Fq 'rsh = "/usr/bin/ssh -6 ' "$lsyncd_template"
+if grep -Fq 'default.rsyncssh,' "$lsyncd_template"; then
+    printf 'Protocol v2 uses standalone SSH filesystem operations.\n' >&2
+    exit 1
+fi
 grep -Fq '"--exclude=.complete"' "$lsyncd_template"
 grep -Fq '"--exclude=.complete.pending"' "$lsyncd_template"
 grep -Fq '"--no-perms"' "$lsyncd_template"
@@ -78,11 +91,23 @@ grep -Fq '"$release_path/$complete_name"' "$finalizer"
 grep -Fq 'manifest_paths_safe "$release_path/manifest.sha256"' "$finalizer"
 # shellcheck disable=SC2016
 grep -Fq 'manifest_file_set_matches "$release_path"' "$finalizer"
+# These are exact source literals, not expressions to expand.
+# shellcheck disable=SC2016
+grep -Fq 'touch -- "$finalizer_trigger_path"' "$finalizer"
+# shellcheck disable=SC2016
+grep -Fq 'signal_reconciliation "$reconcile_trigger" caddy-sync:caddy-sync:640' \
+    "$finalizer"
+grep -Fxq 'PathChanged=/var/lib/caddy-sync/incoming/.reconcile-trigger' \
+    "$caddy_root/systemd/caddy-sync-reconcile.path"
 grep -Fq '! -path '\''*/.*'\''' "$reconciler"
 # shellcheck disable=SC2016
 grep -Fq 'manifest_file_set_matches "$candidate"' "$reconciler"
 # shellcheck disable=SC2016
 grep -Fq 'mv -- "$candidate" "$quarantine_path"' "$reconciler"
+# shellcheck disable=SC2016
+grep -Fq 'release_payload_matches "$candidate" "$destination"' "$reconciler"
+# shellcheck disable=SC2016
+grep -Fq 'restore_previous_selection "$previous_destination"' "$reconciler"
 
 if grep -Eq \
     'rsync.*[.]complete|cp.*[.]complete|scp.*[.]complete' \

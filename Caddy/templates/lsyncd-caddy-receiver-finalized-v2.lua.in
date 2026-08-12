@@ -7,15 +7,16 @@ settings {
 }
 
 sync {
-    default.rsyncssh,
+    default.rsync,
     source = "/var/lib/caddy-sync/outbound/",
-    host = "@PEER_FQDN@",
-    targetdir = "/",
+    target = "caddy-sync@@PEER_FQDN@:/",
     delay = 5,
     delete = false,
     rsync = {
         archive = true,
         compress = true,
+        protect_args = false,
+        rsh = "/usr/bin/ssh -6 -p 22 -i /var/lib/caddy-sync/.ssh/id_ed25519 -o AddressFamily=inet6 -o BatchMode=yes -o BindAddress=@NODE_IPV6@ -o ClearAllForwardings=yes -o ConnectTimeout=5 -o GlobalKnownHostsFile=/dev/null -o HostKeyAlias=@PEER_FQDN@ -o IdentitiesOnly=yes -o KbdInteractiveAuthentication=no -o PasswordAuthentication=no -o PreferredAuthentications=publickey -o StrictHostKeyChecking=yes -o UpdateHostKeys=no -o UserKnownHostsFile=/var/lib/caddy-sync/.ssh/known_hosts",
         _extra = {
             "--delay-updates",
             "--exclude=.complete",
@@ -29,26 +30,6 @@ sync {
             "--no-owner",
             "--no-perms",
             "--partial"
-        }
-    },
-    ssh = {
-        port = 22,
-        identityFile = "/var/lib/caddy-sync/.ssh/id_ed25519",
-        options = {
-            AddressFamily = "inet6",
-            BatchMode = "yes",
-            BindAddress = "@NODE_IPV6@",
-            ClearAllForwardings = "yes",
-            ConnectTimeout = "5",
-            GlobalKnownHostsFile = "/dev/null",
-            HostKeyAlias = "@PEER_FQDN@",
-            IdentitiesOnly = "yes",
-            KbdInteractiveAuthentication = "no",
-            PasswordAuthentication = "no",
-            PreferredAuthentications = "publickey",
-            StrictHostKeyChecking = "yes",
-            UpdateHostKeys = "no",
-            UserKnownHostsFile = "/var/lib/caddy-sync/.ssh/known_hosts"
         }
     }
 }

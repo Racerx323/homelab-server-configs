@@ -1,41 +1,9 @@
-# Repository Agents
+# Repository Agent Rules
 
-This document outlines the various automated agents and services that have access to and interact with this repository. Understanding their roles is key to maintaining a secure and efficient workflow.
-
----
-
-## GitHub Actions
-
-- **Purpose**: Automates workflows such as testing, building, and deploying code based on triggers like pushes, pull requests, or scheduled events.
-- **Configuration**: Workflows are defined in YAML files located in the `.github/workflows` directory.
-- **Permissions**: Permissions are granted on a per-workflow basis and are scoped to be as restrictive as possible. See each workflow file for its specific permissions.
-
----
-
-## Dependabot
-
-- **Purpose**: Automatically keeps dependencies up-to-date by scanning for outdated packages and opening pull requests to update them. This helps to patch vulnerabilities and use the latest features.
-- **Configuration**: The configuration for Dependabot is located in the `.github/dependabot.yml` file.
-- **Scope**: Currently configured to monitor:
-  - GitHub Actions (`.github/workflows/*.yml`)
-
----
-
-## Code Style Linter
-
-- **Purpose**: To automatically check the codebase against a set of style rules to ensure consistency and readability. This repository adheres to the **Google Style Guides**.
-- **Configuration**: This is typically configured as a step within a GitHub Actions workflow (e.g., `.github/workflows/lint.yml`) that runs on pull requests or pushes. It can use tools like `Super-Linter`.
-- **Permissions**: Requires read-only permissions to check out and analyze the repository's code.
-
----
-
-## Codecov
-
-- **Purpose**: To upload code coverage reports to Codecov to track the percentage of the codebase that is tested.
-- **Configuration**: This is typically configured within a GitHub Actions workflow (e.g., in a file within `.github/workflows/`) to run after tests and upload the results.
-- **Permissions**: It generally requires permissions to read repository contents and, in some configurations, to post comments on pull requests with coverage information.
-
----
+This file contains repository-specific execution and validation rules. It does
+not describe services that are not configured in this repository. GitHub
+automation is authoritative only when represented by a tracked file under
+`.github/`.
 
 ## CodeRabbit reviews
 
@@ -45,18 +13,39 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
 
 ---
 
-## Security Considerations
+## Security considerations
 
 - **Least Privilege**: Each automated agent should operate with the minimum permissions necessary to perform its tasks. Review and adjust permissions regularly.
 - **Secrets Management**: Sensitive information such as API keys and tokens should be stored securely using GitHub Secrets and not hard-coded in workflows.
-- **Dependency Updates**: Regularly review and merge Dependabot pull requests to keep dependencies up-to-date and reduce the risk of vulnerabilities.
 - **Monitoring and Alerts**: Set up monitoring for automated workflows to detect and respond to any unusual activity or failures.
 
 ---
 
+## Deployment authorization cadence
+
+- Workstation-only definitions, edits, focused tests, formatters, linters, and
+  policy checks do not require a separate deployment authorization.
+- Embed read-only preflight, postcondition, convergence, and residue checks in
+  the live transaction that depends on them. Do not create a separate numbered
+  diagnostic or acceptance action when the original action retained enough
+  evidence to decide the result.
+- A follow-up diagnostic is justified only when retained evidence is genuinely
+  incomplete or ambiguous. State the missing evidence explicitly.
+- Require separate exact SHA-256 authorization for a live mutation, disruptive
+  failover, publication, transfer, service transition, or similarly material
+  node action. A read-only node query may use the scope already authorized for
+  its parent transaction; do not invent an extra gate solely because it uses
+  SSH.
+- Immutability applies to an exact executed/authorized runner and its retained
+  evidence. It does not freeze reusable libraries, unexecuted definitions,
+  tests, fixtures, or workstation-only consumers. Fix those directly and
+  preserve the executed artifact by path and hash when necessary.
+
 ## Testing instructions
 
-- Fix any test or type errors until the whole suite is green.
+- Require all in-scope current-production tests and governing policies to pass.
+  Record an unrelated historical failure, but do not block current work unless
+  it exposes a shared dependency or policy defect.
 - `Caddy/tests/run.sh` is a Podman wrapper, not a host-only test command. Run it
   outside the filesystem sandbox on its first attempt with the narrowest
   applicable scoped escalation because its final integration phase requires
@@ -75,7 +64,9 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/vscode-tracking-policy-regression.sh` after ignore-policy
   changes.
 - After moving files or changing imports, check that all files or imports adhere to the project's coding standards.
-- Add or update tests for the code you change, even if nobody asked.
+- Add or update tests when executable behavior or a safety boundary changes.
+  Documentation, journal, manifest-only metadata, and current-hash updates need
+  structural validation, not a new behavioral regression by default.
 - Run linters and formatters to ensure code quality. For shell files, never run
   bare `shfmt -w`; use
   `Caddy/tests/shfmt-canonical.sh --write FILE [FILE ...]`. Use `--check` for
@@ -101,9 +92,11 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `Caddy/tests/accepted-live-hash-policy.sh --check` rejects missing,
   duplicate, malformed, or stale consumers. When accepted live state changes,
   update the canonical manifest in the same change; the policy must invalidate
-  every registered stale consumer before any SSH or live action. Executed
-  historical artifacts remain immutable and are removed from the deployable
-  registry only when an append-only successor becomes the current gate.
+  every registered stale deployable consumer before any SSH or live action.
+  Preserve an executed runner and its evidence immutably, but correct reusable
+  code, unexecuted definitions, tests, fixtures, and workstation consumers in
+  place. Create a successor only when changing the behavior of an already
+  executed live artifact.
 - Shell tooling must target Debian's default POSIX `awk`, not GNU `awk`.
   Interval quantifiers such as `{64}` and `{3,4}` are prohibited inside awk
   regular expressions because support varies across default awk
@@ -128,40 +121,59 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   workstation. In the validation container it accepts only the explicit
   `CADDY_VALIDATION_CONTAINER=1`, `/workspace/...`, `root:root:755`
   read-only bind-mount projection. Do not add ad hoc ownership exceptions.
-- Every fail-closed infrastructure validator must emit one uniquely labeled
-  assertion per observable condition. Never combine multiple commands,
-  queries, comparisons, or mutation results under one assertion label.
-  Every new transactional outer wrapper must expose its canonical local-gate
-  inventory through `--expected-local-gates`; host and Podman suites must run
-  `Caddy/tests/outer-local-gate-label-policy-regression.sh --runner WRAPPER`.
-  The policy must reject missing, duplicate, false, and unexpected gate labels.
-  A silent aggregate `run_local_gates` boundary is prohibited.
-  DNS readiness blocks must record each server, port, name, type, command
-  status, and safe observed answer independently before deriving an overall
-  decision. Enforce marked DNS readiness blocks with
-  `Caddy/tests/labeled-dns-readiness-policy-regression.sh`.
-- Cross-script transcript consumers must validate the actual producer grammar
-  and label inventory, not a hand-authored approximation. A synthetic-only
-  success fixture is insufficient. The producer must expose its expected labels
-  or a canonical transcript fixture, and the consumer regression must accept
-  that exact contract while rejecting a wrong record prefix or kind, a missing
-  label, and a duplicate label. Never copy a producer record name into a
-  consumer without exercising the real producer contract in regression tests.
-  When a suite wires an entry point whose self-test or contract-test requires
-  arguments, its production regression must also verify the suite's exact
-  invocation signature in both `Caddy/tests/run.sh` and
-  `Caddy/tests/integration.sh`; a directly passing test is not sufficient.
-- Enforce the cross-script transcript rule with
-  `Caddy/tests/transcript-contract-ratchet-policy-regression.sh`. Its historical
-  exception manifest is an immutable-hash ratchet, not permission to reuse a
-  deficient runner for a new live action. Before reusing any historical runner,
-  run the ratchet and audit that runner against the current producer contract.
-  A runner listed for an arbitrary assertion minimum or a regression listed for
-  synthetic check fixtures must be replaced by an append-only corrected action
-  before another live invocation. New exceptions are prohibited. Consumers
-  must reconcile the producer's exact exported label inventory; `-ge`/`-gt`
-  assertion-count acceptance and hand-authored numbered success labels are not
-  valid contracts.
+- Give every decision gate a unique label. This includes mutation status,
+  command status, ownership, service/VIP state used for acceptance, rollback,
+  recovery, and the final decision. Ordinary observations may be grouped in a
+  structured evidence record and need not become individual Boolean assertions.
+  Never hide multiple fallible commands behind one success label.
+- Production service acceptance must validate boot persistence as well as
+  current activity. For Caddy HA, require `caddy.service`,
+  `caddy-lsyncd.service`, `caddy-sync-reconcile.path`,
+  `caddy-cert-expiry.timer`, and `caddy-sync-health.timer` to be enabled and
+  active; require `caddy-api.service` to be masked and inactive; and require
+  the distribution `lsyncd.service` to remain masked and inactive so that only
+  `caddy-lsyncd.service` can run the managed configuration. The standard
+  `emergency.service` and Caddy workers invoked by timers, paths, or
+  `OnFailure` must remain static and must never be enabled directly. The
+  managed lsyncd service is not healthy merely because systemd reports it
+  active: acceptance must prove a positive stable `MainPID`, unchanged
+  `NRestarts`, active/running state, successful unit result, a regular,
+  nonempty, parseable `/run/caddy-lsyncd/status` diagnostic snapshot, and no
+  new cursor-bounded transport or quarantine failure. Do not treat the status
+  file's age or periodic modification-time advancement as a liveness
+  heartbeat; live Action 30c disproved that contract while the managed process
+  remained stable. Before restarting a synchronization publisher,
+  inspect its current release and complete outbound candidates and require
+  every candidate to be admissible under the node's normal or guarded
+  emergency role. Never wake a stale or divergent outbound queue merely to
+  refresh health state; retain or quarantine it under an explicit transaction
+  boundary. Independently invoke and accept each timer's
+  static worker before accepting the timer. The
+  transactional reconciler exclusively owns validation, promotion, reload,
+  and rollback, so the obsolete
+  `caddy-validate-reload.path` and `.service` must remain absent. Enforce this
+  source contract with
+  `Caddy/tests/systemd-boot-persistence-policy.sh --check`.
+- DNS readiness must retain the server, port, name, type, command status, and
+  safe answer used by the decision. These may be one structured query record;
+  they do not require a separate Boolean label for every field.
+- Bound post-command journal evidence with a journal cursor captured before the
+  command and `journalctl --after-cursor` afterward. Do not construct a
+  `--since` timestamp and assume the target journalctl parser accepts that
+  representation. If a timestamp boundary is unavoidable, production-path
+  regression must exercise that exact representation against the target
+  Debian journalctl version before live use.
+- Define a versioned canonical transcript or structured schema at each
+  cross-script producer boundary and test the real producer there once.
+  Consumers validate the schema version, required records, uniqueness, order
+  where semantically meaningful, and status. Do not replay the full producer
+  from every consumer regression or duplicate its entire assertion inventory.
+  Synthetic fixtures may test consumer rejection after the canonical producer
+  contract itself has production-path coverage.
+- Keep `Caddy/tests/transcript-contract-ratchet-policy-regression.sh` for
+  historical visibility, but do not require an append-only deployment action
+  to correct an unexecuted or workstation-only consumer. Historical runner
+  exceptions remain immutable by exact path and hash.
 - Treat temporary deployment staging filesystems such as `/run` and `/tmp` as
   potentially mounted `noexec`. Invoke every staged Bash artifact explicitly
   with `/bin/bash`; never execute it directly by pathname. A regression for a
@@ -203,12 +215,11 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   and the real artifact entry point under the exact cleared-group identity,
   reject a root-only ancestor, and prove the protected payload remains
   unreadable. Static immediate-directory metadata is never sufficient.
-- A generated validator is not accepted through syntax, static text, or a
-  synthetic transcript alone. Its regression must execute every newly inserted
-  production assertion from the rendered artifact, including both true and
-  false fixtures, and must consume the real upstream producer output. Never
-  fabricate producer summary markers in a fixture; derive or capture them from
-  the producer's canonical contract.
+- A generated validator that controls a live mutation must execute its
+  safety-critical production decision path with both accepting and rejecting
+  coverage. It may consume a versioned canonical producer fixture after the
+  real producer contract has been tested centrally; it need not replay every
+  upstream observation or assertion.
 - Never rely on `set -e` or `set -E` to propagate a failure from a validator
   function. Bash disables errexit semantics when a function is evaluated by
   `if`, `!`, `&&`, or `||`, so a later successful command can overwrite an
@@ -226,16 +237,11 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   command and its explicit return span separate physical lines, mark the
   return line with `conditional-validator-requires-return` so the policy
   verifies the boundary instead of relying on visual review.
-- Every new shell regression must pass itself and every generated or invoked
-  shell artifact through
-  `Caddy/tests/check-shell-readonly-local-collisions-v2.sh` before invoking
-  those artifacts. It must include a negative dynamic-scope collision fixture
-  and an early-invalid/later-valid production-helper fixture, require both to
-  be rejected, and require the regression's own stderr to remain empty. A
-  later successful assertion never converts an earlier shell diagnostic into
-  a passing regression. Run the repository-wide collision and conditional
-  validator policies before focused action tests; do not wait for the complete
-  suite to discover these defects.
+- Run `Caddy/tests/check-shell-readonly-local-collisions-v2.sh` and the
+  conditional-validator policy for changed shell entry points. Their shared
+  repository regressions own the generic negative dynamic-scope and
+  early-invalid/later-valid fixtures; do not reproduce those fixtures inside
+  every action-specific regression.
 - A live transactional command whose stdout or stderr affects acceptance must
   capture both streams during that same execution. Before testing emptiness or
   content, emit independently labeled, bounded byte count, line count,
@@ -249,21 +255,22 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   output. Preserve historical deficient actions only behind an exact immutable
   hash exception, and require corrected or new actions to pass
   `Caddy/tests/transaction-output-evidence-policy-regression.sh`.
-- During the active Caddy deployment, validate an ordinary action definition or
-  correction with its focused host tests, the equivalent focused Debian 12
-  Podman slice, and every policy that governs the changed boundary. Run the
-  complete preserved historical host/Podman suite only when an action changes
-  deployment category, immediately before Caddy VRRP activation, and at final
-  deployment acceptance. A focused slice must exercise the real production
-  functions and both false-positive and false-negative controls; it is not a
-  synthetic-fixture shortcut. A failure outside the focused action remains
-  recorded but does not invalidate a passing focused gate unless it exposes a
-  shared policy or dependency failure. Do not remove, consolidate, or rewrite
-  historical action tests during deployment. A manifest-driven focused runner
-  and historical-suite streamlining remain post-deployment work.
-- Make sure to test edge cases and error handling.
+- Validate executable changes with the focused host tests and governing
+  policies for the changed boundary. Add the focused Debian 12 Podman slice
+  only when behavior depends on Debian packages, tools, system identities,
+  permissions, mount projection, or runtime semantics. Skip the container for
+  documentation, journal, manifest-only metadata, accepted-hash registry, and
+  workstation-only transcript-consumer changes.
+- Do not run the complete preserved historical host/Podman suite as a live
+  deployment gate. Final acceptance uses the current production-path suite,
+  applicable shared policies, and current live evidence. Preserve historical
+  tests and evidence for the post-deployment streamlining review, but do not
+  let stale historical hashes block the current deployment.
+- Test edge cases and error handling in proportion to the changed risk.
 - Document any new features or changes to existing functionality.
-- Ensure all changes are backward compatible.
+- Preserve backward compatibility only when it is an explicit requirement;
+  intentional migrations and replacements may deliberately break obsolete
+  internal contracts.
 - Update any relevant documentation or comments in the code.
 
 ---
@@ -277,33 +284,3 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   - [ ] Code is well-tested
   - [ ] Documentation has been updated
   - [ ] Changes have been reviewed by at least one other person
-
-
-## vexp <!-- vexp v2.1.7 -->
-
-**MANDATORY: use `run_pipeline` - do NOT grep or glob the codebase.**
-vexp returns pre-indexed, graph-ranked context in a single call.
-
-### Workflow
-1. `run_pipeline` with your task description - ALWAYS FIRST (replaces all other tools)
-2. Make targeted changes based on the context returned
-3. `run_pipeline` again only if you need more context
-
-### Available MCP tools
-- `run_pipeline` - **PRIMARY TOOL**. Runs capsule + impact + memory in 1 call.
-  Auto-detects intent. Includes file content. Example: `run_pipeline({ "task": "fix auth bug" })`
-- `get_skeleton` - compact file structure
-- `index_status` - indexing status
-- `expand_vexp_ref` - expand V-REF placeholders in v2 output
-
-### Agentic search
-- Do NOT use built-in file search, grep, or codebase indexing - always call `run_pipeline` first
-- If you spawn sub-agents or background tasks, pass them the context from `run_pipeline`
-  rather than letting them search the codebase independently
-
-### Smart Features
-Intent auto-detection, hybrid ranking, session memory, auto-expanding budget.
-
-### Multi-Repo
-`run_pipeline` auto-queries all indexed repos. Use `repos: ["alias"]` to scope. Run `index_status` to see aliases.
-<!-- /vexp -->

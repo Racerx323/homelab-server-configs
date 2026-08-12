@@ -11,6 +11,7 @@ readonly incoming_root=/var/lib/caddy-sync/incoming
 readonly request_name=.finalize-request
 readonly pending_name=.complete.pending
 readonly complete_name=.complete
+readonly reconcile_trigger="$incoming_root/.reconcile-trigger"
 
 usage() {
     printf 'Usage: %s --source-role node-a|node-b\n' "${0##*/}" >&2
@@ -29,6 +30,21 @@ require_check() {
     fi
     printf 'caddy_sync_finalize_v2_check_%s=false\n' "$check_label" >&2
     return 1
+}
+signal_reconciliation() {
+    local finalizer_trigger_path=$1
+    local finalizer_trigger_metadata=$2
+
+    if [[ -e "$finalizer_trigger_path" || -L "$finalizer_trigger_path" ]]; then
+        require_check reconcile_trigger_regular test -f "$finalizer_trigger_path" || return 1
+        require_check reconcile_trigger_not_symlink test ! -L "$finalizer_trigger_path" || return 1
+    else
+        install -m 0640 /dev/null "$finalizer_trigger_path" || return 1
+    fi
+    touch -- "$finalizer_trigger_path" || return 1
+    require_check reconcile_trigger_metadata test \
+        "$(stat -c '%U:%G:%a' "$finalizer_trigger_path")" = \
+        "$finalizer_trigger_metadata"
 }
 
 set_receiver_identity() {
@@ -252,6 +268,26 @@ if [[ "${1:-}" == --self-test && $# -eq 1 ]]; then
     printf 'caddy_sync_finalize_v2_self_test_complete=true\n'
     exit 0
 fi
+if [[ "${1:-}" == --reconciliation-trigger-self-test && $# -eq 1 ]]; then
+    trigger_fixture=$(mktemp -d /tmp/caddy-finalizer-trigger.XXXXXX)
+    readonly trigger_fixture
+    trap 'rm -rf -- "$trigger_fixture"' EXIT INT TERM
+    trigger_path=$trigger_fixture/.reconcile-trigger
+    expected_metadata="$(id -un):$(id -gn):640"
+    signal_reconciliation "$trigger_path" "$expected_metadata"
+    signal_reconciliation "$trigger_path" "$expected_metadata"
+    rm -f -- "$trigger_path"
+    ln -s /dev/null "$trigger_path"
+    if signal_reconciliation "$trigger_path" "$expected_metadata" \
+        >/dev/null 2>&1; then
+        exit 1
+    fi
+    printf 'caddy_sync_finalize_v2_reconciliation_trigger_created=true\n'
+    printf 'caddy_sync_finalize_v2_reconciliation_trigger_reused=true\n'
+    printf 'caddy_sync_finalize_v2_reconciliation_trigger_symlink_rejected=true\n'
+    printf 'caddy_sync_finalize_v2_reconciliation_trigger_self_test_complete=true\n'
+    exit 0
+fi
 
 if [[ $# -ne 2 || "$1" != --source-role ||
     ! "$2" =~ ^node-[ab]$ ]]; then
@@ -288,3 +324,7 @@ done < <(
 )
 
 log_event "receiver finalization scan completed for $source_role with $finalized_count release(s)"
+if ((finalized_count > 0)); then
+    signal_reconciliation "$reconcile_trigger" caddy-sync:caddy-sync:640
+    log_event "signaled reconciliation after finalizing $finalized_count release(s) from $source_role"
+fi

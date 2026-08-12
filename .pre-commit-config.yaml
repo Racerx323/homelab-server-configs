@@ -31,6 +31,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: systemd-boot-persistence-policy
+        name: Validate Caddy systemd boot persistence contract
+        entry: Caddy/tests/systemd-boot-persistence-policy.sh --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: portable-awk-policy
         name: Reject non-portable awk interval expressions
         entry: Caddy/tests/portable-awk-policy.sh --check

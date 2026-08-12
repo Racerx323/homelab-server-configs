@@ -70,8 +70,6 @@ paths=(
     /etc/systemd/system/caddy-sync-failure@.service
     /etc/systemd/system/caddy-sync-reconcile.path
     /etc/systemd/system/caddy-sync-reconcile.service
-    /etc/systemd/system/caddy-validate-reload.path
-    /etc/systemd/system/caddy-validate-reload.service
     /etc/systemd/system/caddy-sync-health.service
     /etc/systemd/system/caddy-sync-health.timer
     /etc/systemd/system/caddy-cert-expiry.service

@@ -1,6 +1,6 @@
 ---
 protocol: caddy-ha-release-v2
-status: defined_not_deployed
+status: deployed_inactive_pending_architecture_corrected_go_live
 transport:
   account: caddy-sync
   forced_command: /usr/local/libexec/caddy-sync-release-receiver-v2
@@ -10,6 +10,9 @@ transport:
   excluded_paths:
     - .complete
   receiver_scope: peer-source-role
+  lsyncd_mode: default.rsync
+  standalone_remote_ssh_operations: prohibited
+  protect_args: false
 publication:
   atomic_outbound_visibility: true
   request_marker: .finalize-request
@@ -42,6 +45,7 @@ receiver_finalization:
   final_directory_mode: "0550"
   final_file_mode: "0440"
   idempotent: true
+  reconciliation_signal: /var/lib/caddy-sync/incoming/.reconcile-trigger
 reconciliation:
   requires:
     - .finalize-request
@@ -54,7 +58,11 @@ reconciliation:
     - divergent-parent
   conflict_action: quarantine
   service_reload_only_after_validation: true
+  trigger_path: /var/lib/caddy-sync/incoming/.reconcile-trigger
+  destination_visibility: staged_then_atomic
+  existing_destination_requires_exact_payload: true
+  reload_failure_restores_previous_selection: true
 deployment:
   live_state_changed: false
   authorization_template: templates/authorized-key-receiver-finalized-v2.in
-  next_gate: separately_authorized_transactional_installation
+  next_gate: separately_authorized_action28ab_execution_after_definition
