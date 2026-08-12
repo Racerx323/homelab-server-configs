@@ -70,6 +70,9 @@ make_release base previous base /etc/caddy/releases/base
 ln -s /etc/caddy/releases/base /etc/caddy/current
 cp -a -- /etc/caddy/releases/base \
     /var/lib/caddy-sync/incoming/node-a/base
+make_release retained-old older retained-old /etc/caddy/releases/retained-old
+cp -a -- /etc/caddy/releases/retained-old \
+    /var/lib/caddy-sync/incoming/node-a/retained-old
 make_release child base child /var/lib/caddy-sync/incoming/node-a/child
 
 /bin/bash "$reconciler" >/tmp/reconcile-release-v2-drain.stdout \
@@ -82,6 +85,8 @@ make_release child base child /var/lib/caddy-sync/incoming/node-a/child
 grep -Fxq 'Protocol-v2 release base is already active.' \
     /tmp/reconcile-release-v2-drain.stdout
 grep -Fxq 'Activated protocol-v2 release child' \
+    /tmp/reconcile-release-v2-drain.stdout
+grep -Fxq 'Discarded exact replay of installed protocol-v2 release retained-old.' \
     /tmp/reconcile-release-v2-drain.stdout
 
 make_release child-a child first \
@@ -101,5 +106,6 @@ grep -Fxq 'Multiple finalized candidates claim the active parent.' \
 
 printf 'reconcile_release_v2_candidate_drain_replay_consumed=true\n'
 printf 'reconcile_release_v2_candidate_drain_child_activated=true\n'
+printf 'reconcile_release_v2_candidate_drain_installed_replay_consumed=true\n'
 printf 'reconcile_release_v2_candidate_drain_ambiguity_rejected=true\n'
 printf 'reconcile_release_v2_candidate_drain_regression_complete=true\n'

@@ -815,3 +815,17 @@ Caddy/scripts/validate-sync-ssh.sh	historical-superseded	no	-	-	Caddy/scripts/RE
 Caddy/scripts/validate-workstation-certificate-stage-action16ac.sh	workstation-only	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/apply-caddy-runtime-lifecycle-action32.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
 Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32a.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32a-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32b.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32b-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32c.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32c-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32d.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32d-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32e.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32e-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32f.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32f-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/apply-caddy-runtime-lifecycle-action32g.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32g-outer.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md

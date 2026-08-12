@@ -558,5 +558,12 @@ Caddy/tests/transaction-output-evidence-policy-regression.sh	production-current	
 Caddy/tests/transcript-contract-ratchet-policy-regression.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/trusted-tls-regression.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/action32-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32a-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32b-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32c-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32d-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32e-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32f-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
+Caddy/tests/action32g-caddy-runtime-lifecycle-regression.sh	historical-preserved	historical-opt-in	preserved-action-provenance
 Caddy/tests/unbound-validation-runtime-regression.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/vscode-tracking-policy-regression.sh	production-current	current-focused	current-test-or-policy

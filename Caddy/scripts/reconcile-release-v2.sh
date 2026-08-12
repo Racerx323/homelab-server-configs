@@ -140,6 +140,66 @@ discard_exact_quarantine_replay() {
         "$replay_revision"
 }
 
+discard_exact_installed_release_replay() {
+    local replay_candidate=$1
+    local replay_destination=$2
+    local replay_revision=$3
+
+    # conditional-validator-explicit-failures-begin
+    require_check installed_replay_destination_exact \
+        test "$replay_destination" = "$releases_root/$replay_revision" || return 1
+    require_check installed_replay_destination_regular \
+        test -d "$replay_destination" || return 1
+    require_check installed_replay_destination_not_symlink \
+        test ! -L "$replay_destination" || return 1
+    require_check installed_replay_destination_directories_locked \
+        test -z "$(find "$replay_destination" -type d ! -perm 0550 -print -quit)" || return 1
+    require_check installed_replay_destination_files_locked \
+        test -z "$(find "$replay_destination" -type f ! -perm 0440 -print -quit)" || return 1
+    require_check installed_replay_payload_exact \
+        release_payload_matches "$replay_candidate" "$replay_destination" || return 1
+    # conditional-validator-explicit-failures-end
+    rm -rf -- "$replay_candidate"
+    printf 'Discarded exact replay of installed protocol-v2 release %s.\n' \
+        "$replay_revision"
+}
+
+find_exact_installed_release_payload_match() {
+    local replay_candidate=$1
+    local replay_releases_root=${2:-$releases_root}
+    local replay_revision
+    local replay_destination
+
+    replay_revision=$(jq -er '.revision | strings' \
+        "$replay_candidate/release-manifest.json") || return 1
+    [[ "$replay_revision" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 1
+    replay_destination=$replay_releases_root/$replay_revision
+    [[ -d "$replay_destination" && ! -L "$replay_destination" ]] || return 1
+    release_payload_matches "$replay_candidate" "$replay_destination" \
+        >/dev/null 2>&1 || return 1
+    printf '%s\n' "$replay_destination"
+}
+
+find_unique_quarantine_payload_match() {
+    local replay_candidate=$1
+    local replay_quarantine_root=${2:-$quarantine_root}
+    local quarantine_candidate
+    local quarantine_match=
+    local quarantine_match_count=0
+
+    while IFS= read -r -d '' quarantine_candidate; do
+        [[ -d "$quarantine_candidate" && ! -L "$quarantine_candidate" ]] || continue
+        if release_payload_matches "$replay_candidate" "$quarantine_candidate" \
+            >/dev/null 2>&1; then
+            quarantine_match=$quarantine_candidate
+            quarantine_match_count=$((quarantine_match_count + 1))
+        fi
+    done < <(find "$replay_quarantine_root" -mindepth 1 -maxdepth 1 \
+        -type d -print0)
+    [[ "$quarantine_match_count" -eq 1 ]] || return 1
+    printf '%s\n' "$quarantine_match"
+}
+
 run_quarantine_replay_self_test() {
     local replay_fixture_candidate
     local replay_fixture_quarantine
@@ -147,7 +207,7 @@ run_quarantine_replay_self_test() {
     quarantine_replay_fixture_root=$(mktemp -d /tmp/caddy-reconcile-replay.XXXXXX)
     trap cleanup_quarantine_replay_fixture EXIT INT TERM
     replay_fixture_candidate=$quarantine_replay_fixture_root/incoming/node-a/fixture
-    replay_fixture_quarantine=$quarantine_replay_fixture_root/quarantine/node-a-fixture
+    replay_fixture_quarantine=$quarantine_replay_fixture_root/quarantine/historical-retained-name
     mkdir -p "$replay_fixture_quarantine"
     printf 'fixture\n' >"$replay_fixture_quarantine/Caddyfile"
     printf '{"revision":"fixture","source_node":"node-a"}\n' \
@@ -160,12 +220,19 @@ run_quarantine_replay_self_test() {
     : >"$replay_fixture_quarantine/.complete"
     mkdir -p "$(dirname -- "$replay_fixture_candidate")"
     cp -a -- "$replay_fixture_quarantine" "$replay_fixture_candidate"
+    [[ "$(find_unique_quarantine_payload_match "$replay_fixture_candidate" \
+        "$quarantine_replay_fixture_root/quarantine")" = "$replay_fixture_quarantine" ]]
     discard_exact_quarantine_replay "$replay_fixture_candidate" \
         "$replay_fixture_quarantine" fixture
     [[ ! -e "$replay_fixture_candidate" ]] || return 1
     printf 'caddy_sync_reconcile_v2_self_test_exact_replay_discarded=true\n'
     cp -a -- "$replay_fixture_quarantine" "$replay_fixture_candidate"
     printf 'drift\n' >>"$replay_fixture_candidate/Caddyfile"
+    if find_unique_quarantine_payload_match "$replay_fixture_candidate" \
+        "$quarantine_replay_fixture_root/quarantine" \
+        >/dev/null 2>&1; then
+        return 1
+    fi
     if discard_exact_quarantine_replay "$replay_fixture_candidate" \
         "$replay_fixture_quarantine" fixture >/dev/null 2>&1; then
         return 1
@@ -199,6 +266,7 @@ select_next_candidate() {
     local -a selection_all=()
     local -a selection_children=()
     local -a selection_replays=()
+    local selection_recognized_replay_count=0
 
     mapfile -t selection_all < <(list_finalized_candidates "$selection_root")
     ((${#selection_all[@]} > 0)) || return 0
@@ -250,6 +318,18 @@ select_next_candidate() {
     if ((${#selection_children[@]} > 1)); then
         printf 'Multiple finalized candidates claim the active parent.\n' >&2
         return 1
+    fi
+    if ((${#selection_all[@]} > 1)); then
+        for selection_candidate in "${selection_all[@]}"; do
+            if find_exact_installed_release_payload_match "$selection_candidate" \
+                "$releases_root" >/dev/null 2>&1; then
+                selection_recognized_replay_count=$((selection_recognized_replay_count + 1))
+            fi
+        done
+        if ((selection_recognized_replay_count == ${#selection_all[@]})); then
+            printf '%s\n' "${selection_all[0]}"
+            return 0
+        fi
     fi
     if ((${#selection_all[@]} == 1)); then
         printf '%s\n' "${selection_all[0]}"
@@ -356,7 +436,8 @@ if [[ -r /etc/caddy/current/release-manifest.json ]]; then
 fi
 readonly active_revision
 
-candidate=$(select_next_candidate "$incoming_root" "$active_revision")
+candidate=$(select_next_candidate "$incoming_root" "$active_revision" \
+    "$quarantine_root")
 
 if [[ -z "$candidate" ]]; then
     exit 0
@@ -426,22 +507,34 @@ if [[ -n "$active_revision" && "$revision" = "$active_revision" ]]; then
     consume_candidate_and_drain "$candidate"
 fi
 
+destination="$releases_root/$revision"
+readonly destination
+if [[ -e "$destination" || -L "$destination" ]]; then
+    if release_payload_matches "$candidate" "$destination" >/dev/null 2>&1; then
+        discard_exact_installed_release_replay "$candidate" "$destination" \
+            "$revision"
+        drain_next_candidate
+    fi
+fi
+
 if [[ -n "$active_revision" && "$parent_revision" != "$active_revision" ]]; then
-    quarantine_path="$quarantine_root/$source_node-$revision"
-    readonly quarantine_path
-    if [[ -e "$quarantine_path" || -L "$quarantine_path" ]]; then
+    if quarantine_path=$(find_unique_quarantine_payload_match "$candidate"); then
         discard_exact_quarantine_replay "$candidate" "$quarantine_path" \
             "$revision"
         drain_next_candidate
     fi
+    quarantine_path="$quarantine_root/$source_node-$revision"
+    readonly quarantine_path
+    require_check quarantine_destination_absent \
+        test ! -e "$quarantine_path" || return 1
+    require_check quarantine_destination_not_symlink \
+        test ! -L "$quarantine_path" || return 1
     mv -- "$candidate" "$quarantine_path"
     printf 'Quarantined divergent release %s; expected parent %s\n' \
         "$revision" "$active_revision" >&2
     exit 1
 fi
 
-destination="$releases_root/$revision"
-readonly destination
 destination_stage=
 cleanup_destination_stage() {
     if [[ -n "$destination_stage" && -d "$destination_stage" ]]; then

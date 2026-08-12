@@ -1,0 +1,78 @@
+---
+schema_version: 1
+action: 32f
+title: Current-production Caddy runtime-lifecycle installation
+status: definition-only
+consumes:
+  accepted_actions:
+    - 28ah
+    - 29k
+    - 30e
+    - 31
+  failed_actions:
+    - 32
+    - 32a
+    - 32b
+    - 32c
+    - 32d
+    - 32e
+scope:
+  order:
+    - node-b
+    - node-a
+  artifact_manifest: Caddy/manifests/caddy-runtime-lifecycle-action32f.tsv
+  artifact_count: 10
+  retained_candidate:
+    node_a: prohibited
+    node_b: bounded-state-derived-finalized-candidates
+    source_inventory:
+      name_allowlist: prohibited
+      non_finalized_directories: retained-untouched
+      freeze_before_classification: true
+    required_classes:
+      - exact-active-release-replay
+      - zero-or-more-exact-installed-release-replays
+    deterministic_disposition:
+      exact-active-release-replay: consume-without-reload
+      exact-installed-release-replay: discard-without-reload
+    historical_state:
+      quarantine: preserved-unchanged-not-an-acceptance-input
+      non_finalized_directories: preserved-unchanged-not-an-acceptance-input
+    prohibited_classes:
+      - deployable-child
+      - new-divergence
+      - noninstalled-finalized-candidate
+      - mismatched-installed-release-replay
+      - malformed-candidate
+    drain_owner: corrected-reconciler
+safety:
+  production_reloads:
+    caddy: prohibited
+    keepalived: prohibited
+  candidate_boundary:
+    inventory_snapshot_before_mutation: true
+    classification_after_synchronization_freeze: true
+    semantic_and_byte_identity_required: true
+    transaction_direct_deletion: prohibited
+    corrected_reconciler_installed_before_drain: true
+    bounded_drain_seconds: 30
+    exact_node_environment_loaded_for_caddy_validation: true
+    independently_labeled_candidate_assertions: true
+  synchronization_restart:
+    standby_first: true
+    stable_samples: 5
+    stable_sample_delay_seconds: 2
+  evidence:
+    node_root: /tmp/caddy-action32f
+    workstation_root: /tmp/caddy-ssh-evidence/action32f
+    capture_stdout_stderr_status_before_execution: true
+  rollback:
+    backup_root: /var/backups/caddy-ha
+    order:
+      - node-a
+      - node-b
+    exact-replay-consumption-is-not-restored: true
+    manual_intervention_exit_status: 125
+authorization:
+  live_execution_authorized: false
+  exact_outer_sha256: 1f6dae9b557f2fc78fea39839dba8927f7de890c69401d6c4a1a8be100687d6a
