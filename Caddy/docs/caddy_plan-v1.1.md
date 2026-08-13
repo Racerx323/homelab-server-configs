@@ -6,7 +6,7 @@
 | --- | --- |
 | Phase | Core deployment accepted; post-deployment work |
 | DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
-| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Actions 33 through 33o are consumed, immutable, and prohibited from rerun. Durable Apprise delivery Action 34 is now defined and workstation-validated without node contact. Its exact outer SHA-256 `6314f883a0f839ea3cb78dc5b3291fdbe86baf861b6f0d895dfa2fe19a6de39e` requires separate authorization before the standby-first live installation; notification delivery remains outside VRRP and service-health decisions |
+| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Actions 33 through 33o are consumed, immutable, and prohibited from rerun. Durable Apprise delivery Action 34 is now defined and workstation-validated without node contact. Its exact outer SHA-256 `de580de5a11233d7d7c6611eef40adc15ac4f2dd8128686de1389e9759c3f12a` requires separate authorization before the standby-first live installation; notification delivery remains outside VRRP and service-health decisions |
 | Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; durable Apprise delivery and operator documentation remain required; reliability exercises precede documentation; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
 | Repository runtime-lifecycle correction | Implemented repository-only without contacting either HA node. Current reusable sources now deterministically drain safely ordered protocol-v2 candidates, remove accepted incoming state, reject competing children, and leave divergence quarantine fail closed. Worker scripts emit exact failure reasons while systemd `OnFailure` exclusively owns notification delivery. Managed lsyncd can read its configuration and synchronization roots but can write only `/run/caddy-lsyncd`; the Caddy environment file is mandatory; services have conservative filesystem/process hardening; and the monotonic health timer no longer carries calendar-only `Persistent=` semantics. The typed production inventory covers every installable script and systemd artifact for both nodes and deliberately retains separately typed current-source and last-accepted-deployed hashes. The repository bytes remain distinct from accepted live state. Failed Action 32 is consumed; Action 32a is the corrected separately scoped live installation boundary and still requires exact-hash authorization. Executed artifacts and prior authorization provenance remain unchanged |
 | Caddy runtime-lifecycle installation Action 32 | Definition-only; neither HA node was contacted. The action consumes accepted Actions 28ah, 29k, 30e, and 31 and installs exactly ten changed production artifacts: the certificate worker, protocol-v2 reconciler, synchronization-health worker, five affected synchronization/certificate systemd units, the health timer, and the mandatory Caddy environment drop-in. It creates a deterministic hash-validated payload, stages transport beneath `/tmp`, adopts validation into a protected direct child of `/run`, and records bounded stdout, stderr, statuses, journals, semantic inventory, and rollback evidence beneath node-local and workstation `/tmp`. Node B is fully accepted before Node A changes. Each node must match exact accepted-live hashes, coupled role/VIP ownership, active/enabled services, a safe role-specific outbound inventory, no finalized incoming candidate, and unchanged historical quarantine inventory. The transaction stops only managed lsyncd and reconciliation, installs atomically, reloads systemd, proves five-sample lsyncd stability, invokes certificate/health workers and a no-op reconciliation, rejects new post-cursor transport/quarantine failures, and requires release and VIP ownership unchanged. It never reloads Caddy or Keepalived and performs no publication. Protected backups roll back Node A then Node B; unproven recovery exits `125`. Current production-path host and network-disabled Debian validation passed; the historical suite was not run. Exact outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`. Live execution is not authorized until that exact hash is separately approved |
@@ -28853,7 +28853,7 @@ retry/backoff, deduplication, reboot/crash recovery, concurrency locking,
 malformed and maximum-attempt dead-letter handling, restrictive modes,
 systemd hardening, producer transport isolation, the actual remote boundary,
 and retained workstation evidence. Focused host validation passed with
-evidence `/tmp/caddy-focused-validation.aNszzT`. The one required
+evidence `/tmp/caddy-focused-validation.DcYDYe`. The one required
 network-disabled Debian 12 batch passed with evidence
 `/tmp/caddy-focused-container-evidence.X2oh3B`. Applicable shared policies
 were run; the historical complete suite was not run.
@@ -28863,10 +28863,10 @@ Definition identities are transaction
 neutral regression
 `ae45269cf71776decbcaa120a88f8e2ce35f4db4cdc226bea5a764eed56be0e9`,
 and artifact manifest
-`34742fc158d2ff2d3f1e77a032cb928ffae8af5939114330f04e640aeb00caee`.
+`6eb8b42edf4120ad60befbdbddf54cf71435a0f8ba52840c8d748cac176ae621`.
 Live execution is not authorized. The exact outer-runner SHA-256 required for
 later authorization is
-`6314f883a0f839ea3cb78dc5b3291fdbe86baf861b6f0d895dfa2fe19a6de39e`.
+`de580de5a11233d7d7c6611eef40adc15ac4f2dd8128686de1389e9759c3f12a`.
 
 ### Remaining ordered work
 
