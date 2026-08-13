@@ -19,6 +19,63 @@
     "test-lifecycle"
   ],
   "profiles": {
+    "action33-reliability": {
+      "description": "Neutral production contracts supporting the completed dual-node protocol, outage, reboot, continuity, and recovery exercise.",
+      "path_patterns": [
+        "Caddy/docs/33-PLAN.md",
+        "Caddy/tests/caddy-ha-reliability-current-regression.sh",
+        "Caddy/scripts/publish-release-v2.sh",
+        "Caddy/scripts/reconcile-release-v2.sh",
+        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh",
+        "Caddy/configs/lsyncd/*.lua",
+        "Caddy/systemd/caddy-lsyncd.service",
+        "Caddy/systemd/caddy-sync-reconcile.*",
+        "Caddy/tests/dns-record-reverse-query-regression.sh",
+        "Caddy/tests/trusted-tls-regression.sh",
+        "Caddy/tests/pihole-web-redirect-regression.sh"
+      ],
+      "debian_path_patterns": [
+        "Caddy/tests/caddy-ha-reliability-current-regression.sh",
+        "Caddy/scripts/publish-release-v2.sh",
+        "Caddy/scripts/reconcile-release-v2.sh",
+        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh"
+      ],
+      "shell_files": [
+        "Caddy/tests/caddy-ha-reliability-current-regression.sh",
+        "Caddy/scripts/publish-release-v2.sh",
+        "Caddy/scripts/reconcile-release-v2.sh",
+        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh",
+        "Caddy/tests/receiver-finalization-protocol-v2-regression.sh",
+        "Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh",
+        "Caddy/tests/dns-record-reverse-query-regression.sh",
+        "Caddy/tests/trusted-tls-regression.sh",
+        "Caddy/tests/pihole-web-redirect-regression.sh"
+      ],
+      "host_tests": [
+        "Caddy/tests/caddy-ha-reliability-current-regression.sh",
+        "Caddy/tests/receiver-finalization-protocol-v2-regression.sh",
+        "Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh",
+        "Caddy/tests/dns-record-reverse-query-regression.sh",
+        "Caddy/tests/trusted-tls-regression.sh",
+        "Caddy/tests/pihole-web-redirect-regression.sh"
+      ],
+      "debian_tests": [
+        "Caddy/tests/caddy-ha-reliability-current-regression.sh",
+        "Caddy/tests/receiver-finalization-protocol-v2-regression.sh",
+        "Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh"
+      ],
+      "policies": [
+        "selected-shell",
+        "accepted-live-hashes",
+        "conditional-validator",
+        "executable-modes",
+        "remote-cwd",
+        "ssh-evidence",
+        "systemd-boot",
+        "deployment-lifecycle",
+        "test-lifecycle"
+      ]
+    },
     "current-synchronization": {
       "description": "Current protocol-v2 publishing, finalization, lsyncd transport, and transactional reconciliation.",
       "path_patterns": [

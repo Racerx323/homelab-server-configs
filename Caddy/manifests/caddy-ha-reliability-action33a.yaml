@@ -1,0 +1,74 @@
+---
+schema_version: 1
+action: 33a
+title: Role-classified Caddy HA reliability and outage exercise successor
+status: definition-only
+baseline:
+  accepted_action: 32g
+  failed_predecessor: 33
+  predecessor_rerun_prohibited: true
+  registry: Caddy/manifests/accepted-live-artifacts.tsv
+  preferred_owner: node-a
+  standby: node-b
+  restore_after_every_phase: true
+  outbound_role_policy:
+    node_a: exact-node-a-active-or-installed-release-replays
+    node_b: empty
+    mutation: prohibited
+    unsafe_drift: fail-closed
+evidence:
+  node_root: /tmp/caddy-action33a
+  workstation_root: /tmp/caddy-ssh-evidence/action33a
+  capture_before_command: true
+  journal_cursor_per_scenario: true
+  notifier_failure_blocking: false
+protocol_cases:
+  - invalid-a-to-b-payload-hash
+  - interrupted-a-to-b-finalize-request
+  - same-parent-conflict-retained
+emergency_baseline:
+  source: node-b
+  destination: node-a-online
+  ordinary_node_b_publication_rejected: true
+  requires_both_master_families_and_all_vips: true
+  normalize_with_node_a_child: true
+rolling_maintenance:
+  binaries: current-installed
+  order:
+    - node-b
+    - node-a
+  package_change: prohibited
+  node_a_ownership_relinquished_before_restart: true
+outage_scenarios:
+  - id: node-a-controlled
+    outage: keepalived-caddy-lsyncd-reconcile-health-timer-ssh
+    recovery_seconds: 45
+  - id: node-a-reboot
+    outage: automated-reboot
+    ssh_return_timeout_seconds: 300
+    keepalived_disabled_until_reconciled: true
+  - id: node-b-controlled
+    outage: keepalived-caddy-lsyncd-reconcile-health-timer-ssh
+    recovery_seconds: 45
+  - id: node-b-reboot
+    outage: automated-reboot
+    ssh_return_timeout_seconds: 300
+    keepalived_disabled_until_reconciled: true
+availability:
+  interval_seconds: 1
+  probes:
+    - dns
+    - trusted-https
+    - shared-pihole-ui
+recovery:
+  manual_intervention_exit_status: 125
+  reverse_order: true
+  exact_transaction_owned_cleanup: true
+  preserve_unrelated_incoming_outgoing_quarantine: true
+excluded:
+  - power-off-without-oob-controller
+  - package-or-binary-upgrade
+  - historical-complete-suite
+authorization:
+  live_execution_authorized: false
+  exact_outer_sha256: c5ec0bcbff3f985c78dea81afb212d24682b928bf70968f028d7d50b0ce9596a

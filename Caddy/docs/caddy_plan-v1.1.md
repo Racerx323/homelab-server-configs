@@ -6,7 +6,7 @@
 | --- | --- |
 | Phase | Core deployment accepted; post-deployment work |
 | DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
-| Current next single gate | Action 32g is accepted, consumed, immutable, and prohibited from rerun. Repository checkpoint `d131b9d` is committed and synchronized to `origin/main`; the accepted-live and typed production inventories identify its exact ten artifacts on both nodes. The next activity is definition only of the bounded post-deployment reliability exercise sequence documented below. Live execution remains separately hash-authorized, and the completed runtime-lifecycle deployment must not be replayed |
+| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Action 33o returned `0`, restored the exact Action 32g production baseline, completed the Node B controlled-outage and automated-reboot scenarios, removed its exact transaction residue, and closed [the Action 33 plan](33-PLAN.md). Actions 33 through 33o are consumed, immutable, and prohibited from rerun. The next post-deployment gate is repository definition of durable Apprise delivery with bounded retries or a persistent systemd-backed queue; notification delivery remains outside VRRP and service-health decisions |
 | Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; durable Apprise delivery and operator documentation remain required; reliability exercises precede documentation; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
 | Repository runtime-lifecycle correction | Implemented repository-only without contacting either HA node. Current reusable sources now deterministically drain safely ordered protocol-v2 candidates, remove accepted incoming state, reject competing children, and leave divergence quarantine fail closed. Worker scripts emit exact failure reasons while systemd `OnFailure` exclusively owns notification delivery. Managed lsyncd can read its configuration and synchronization roots but can write only `/run/caddy-lsyncd`; the Caddy environment file is mandatory; services have conservative filesystem/process hardening; and the monotonic health timer no longer carries calendar-only `Persistent=` semantics. The typed production inventory covers every installable script and systemd artifact for both nodes and deliberately retains separately typed current-source and last-accepted-deployed hashes. The repository bytes remain distinct from accepted live state. Failed Action 32 is consumed; Action 32a is the corrected separately scoped live installation boundary and still requires exact-hash authorization. Executed artifacts and prior authorization provenance remain unchanged |
 | Caddy runtime-lifecycle installation Action 32 | Definition-only; neither HA node was contacted. The action consumes accepted Actions 28ah, 29k, 30e, and 31 and installs exactly ten changed production artifacts: the certificate worker, protocol-v2 reconciler, synchronization-health worker, five affected synchronization/certificate systemd units, the health timer, and the mandatory Caddy environment drop-in. It creates a deterministic hash-validated payload, stages transport beneath `/tmp`, adopts validation into a protected direct child of `/run`, and records bounded stdout, stderr, statuses, journals, semantic inventory, and rollback evidence beneath node-local and workstation `/tmp`. Node B is fully accepted before Node A changes. Each node must match exact accepted-live hashes, coupled role/VIP ownership, active/enabled services, a safe role-specific outbound inventory, no finalized incoming candidate, and unchanged historical quarantine inventory. The transaction stops only managed lsyncd and reconciliation, installs atomically, reloads systemd, proves five-sample lsyncd stability, invokes certificate/health workers and a no-op reconciliation, rejects new post-cursor transport/quarantine failures, and requires release and VIP ownership unchanged. It never reloads Caddy or Keepalived and performs no publication. Protected backups roll back Node A then Node B; unproven recovery exits `125`. Current production-path host and network-disabled Debian validation passed; the historical suite was not run. Exact outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`. Live execution is not authorized until that exact hash is separately approved |
@@ -27936,8 +27936,9 @@ The post-acceptance mobile sign-off is complete: Android Chrome was manually
 tested successfully, and the operator waived a separate iOS Safari test and
 accepted it as passed. Munin deployment is canceled. Home Assistant Yellow ULA
 and DNS work is removed from this plan and belongs to a future DNS update. The
-bounded reliability exercise is the next Caddy action, followed by durable
-notification delivery, operator documentation, and then canonical LikeC4.
+bounded reliability exercise is complete through accepted Action 33o. Durable
+notification delivery is next, followed by operator documentation and then
+canonical LikeC4.
 
 Acceptance requires:
 
@@ -27957,48 +27958,805 @@ Acceptance requires:
 
 ## Post-Deployment Documentation and Reliability
 
-### Next action: bounded reliability exercise
+### Bounded reliability exercise — complete
 
-Define one sequential, fail-closed reliability action before operator
-documentation. Definition and workstation validation do not authorize node
-contact; later live execution requires one exact outer-runner SHA-256
-authorization. The action must consume the accepted Action 32g baseline without
-rerunning Action 32g and must:
+The authoritative scope and complete execution journal are in
+[33-PLAN.md](33-PLAN.md). The exercise used sequential, fail-closed actions for
+the protocol cases, online emergency B-to-A replication, four explicit
+controlled/reboot outage scenarios, current-binary rolling maintenance,
+per-scenario recovery, and final acceptance. Action 33o completed the last two
+Node B scenarios and restored the exact accepted Action 32g baseline. Actions
+33 through 33o are consumed and must not be rerun.
 
-1. Reaccept current dual-node ownership, services, releases, synchronization,
-   empty finalized-candidate state, and transaction-residue absence in the
-   transaction itself.
-2. Exercise invalid-release handling with a transaction-owned synthetic
-   release, requiring rejection or quarantine without selection, Caddy reload,
-   or active-release change.
-3. Exercise interrupted transfer by withholding the completion marker,
-   requiring the partial candidate to remain unselectable, then resume the
-   bounded transfer and require exactly one valid reconciliation.
-4. Exercise a same-parent revision conflict, requiring deterministic quarantine
-   and no timestamp-based winner or active-release change.
-5. Exercise peer disconnect and reconnect with a bounded queued valid release,
-   requiring stable managed-lsyncd recovery, one reconciliation, and no
-   duplicate promotion.
-6. Rehearse the rolling operational sequence standby-first: Node B service
-   maintenance, controlled coupled failover, Node A service maintenance, and
-   preferred-node failback. Use the currently accepted installed binaries; an
-   actual package-version change requires its own pinned transaction.
-7. Restore and independently accept the Action 32g production baseline after
-   every scenario before entering the next one. Reject simultaneous ownership,
-   prolonged outage, unexpected publication, new quarantine outside the
-   scenario, restart-count drift, or release drift.
-8. Remove only transaction-owned synthetic artifacts, prove no outgoing,
-   incoming, trigger, backup, or staging residue, and retain bounded stdout,
-   stderr, statuses, journal cursors, transition timing, notification evidence,
-   and rollback evidence under `/tmp` on the nodes and workstation.
-9. Automatically recover the affected scenario in reverse order. Return a
-   distinct manual-intervention status when restoration cannot be proven.
+Every command stream and status is retained below transaction-owned `/tmp`
+roots, each scenario takes its own journal cursor, availability is sampled once
+per second, unrelated incoming/outgoing/quarantine state is preserved, and
+status `125` identifies recovery that cannot be proven. Definition validation
+uses the current production-focused host profile and one network-disabled
+Debian 12 batch only; the historical complete suite remains excluded. The next
+gate is exact-hash authorization of the Action 33 outer runner recorded in the
+Action 33 definition journal entry. No HA node contact or live change occurred
+during definition.
 
-Use current production-path regressions and applicable shared policies only;
-do not run the complete historical host/Podman suite. The accepted production
-artifacts, ordinary Node B publication rejection, guarded `--emergency`
-boundary, coupled DNS/Caddy ownership, and non-blocking notifier rule remain
-unchanged.
+#### Action 33 definition journal
+
+Action 33 is defined but not executed. No HA node was contacted and no live
+state changed. The definition consumes accepted Action 32g through the
+accepted-live registry, preserves executed history, and implements the exact
+scope in [33-PLAN.md](33-PLAN.md). The transaction SHA-256 is
+`bb49100bea2f86700dd47f130ae02cbb2966eb08693b6d6da2bb089206890337`;
+the production regression SHA-256 is
+`4598ea4c1773904c9e7ec4f3e4df1045377e90877e943fa0769e280e67ad6c87`.
+The Action 33 focused host profile passed with evidence at
+`/tmp/caddy-focused-validation.cJxvJT`; its final network-disabled Debian 12
+batch passed with evidence at
+`/tmp/caddy-focused-container-evidence.V2LL5F`. The historical complete suite
+was not run. Live execution requires separate exact authorization of outer
+runner SHA-256
+`17ea6fb927fbff55edbf3060cd1260d6ceb2d83d296755a6b4b6f6205f505359`.
+
+#### Action 33 execution
+
+Action 33 was executed once under exact authorization of outer SHA-256
+`17ea6fb927fbff55edbf3060cd1260d6ceb2d83d296755a6b4b6f6205f505359`
+and is consumed and prohibited from rerun. Workstation policy, regression,
+manifest, and registry admission passed, and the accepted-live registry upload
+to both nodes returned `0`. The initial Node A baseline then returned `1` only
+at `outbound_empty=false`, after every pinned production artifact and current
+payload-manifest hash matched. No mutation entrypoint, protocol fixture,
+service transition, failover, outage, or reboot ran. The pre-mutation recovery
+path removed the Node B and Node A registry files with status `0`; their stderr
+streams were empty.
+
+Workstation evidence is
+`/tmp/caddy-ssh-evidence/action33/run.IOsRrB`. Node A baseline stdout was 11,772
+bytes/147 lines/SHA-256
+`a82a29413e1e1faac3737301bb7fa073188ff9c0e28d0a422609ef32aed81cb1`;
+stderr contained only the labeled failed assertion and has SHA-256
+`b863ff7095bebc3da308ce6ba911067de7fbdc1fcbbbf2723064a6fbf5dcdf35`.
+The failure is a known definition defect: [33-PLAN.md](33-PLAN.md) requires no
+*unsafe* outbound entry, whereas Action 33 incorrectly required the complete
+outbound root to be empty. The direct successor must consume the accepted
+Action 32g role-based semantic inventory and safe-disposition contract, retain
+all other Action 33 controls, and add production-path regression coverage for
+safe current state versus unsafe drift. No separate diagnostic is required.
+
+#### Action 33a definition journal
+
+Direct append-only Action 33a is defined but not executed. It consumes failed
+and recovered Action 33 without rerunning it and preserves every executed
+Action 33 artifact and its authorization provenance. The only live-contract
+change is the Node A baseline outbound assertion: Node A now admits only locked,
+manifest-valid `node-a` candidates whose path matches their revision and whose
+release and payload manifests exactly match the active or another installed
+immutable release. Node B must still have an empty outbound root. Hidden names,
+symlinks, special files, wrong source roles, malformed manifests, uninstalled
+revisions, and payload drift fail closed. Admission is read-only and does not
+drain, quarantine, rename, or otherwise mutate accepted outbound state.
+
+Production regression executes the classifier against an exact Node A active
+replay and an empty Node B tree, then rejects payload drift and a symlink. It
+also retains every original Action 33 transaction, outage, reboot, recovery,
+evidence, and negative-control contract. Focused host validation passed with
+evidence `/tmp/caddy-focused-validation.U4EiFw`; the one network-disabled
+Debian 12 batch passed with evidence
+`/tmp/caddy-focused-container-evidence.DT3Mc9`. The historical complete suite
+was not run, and no HA node was contacted. Transaction SHA-256 is
+`7963a8dc79b78151c2ed02b6d8d7676919afe87e500c431c12df5d43c919addd`;
+regression SHA-256 is
+`8453a76d3b85d9770491d8c9299ecea2f7a2485acbaa8fd94b582c4c1a877e1d`.
+Live execution requires separate exact authorization of outer SHA-256
+`c5ec0bcbff3f985c78dea81afb212d24682b928bf70968f028d7d50b0ce9596a`.
+
+#### Action 33a execution
+
+Action 33a was executed once under exact authorization of outer SHA-256
+`c5ec0bcbff3f985c78dea81afb212d24682b928bf70968f028d7d50b0ce9596a`
+and is consumed and prohibited from rerun. Workstation policy, regression,
+manifest, registry, and both role-based baseline gates passed. The invalid
+release was transported, rejected without completion or selection, removed,
+and followed by full dual-node baseline restoration. The interrupted-transfer
+phase then stopped fail closed before staging because the accepted Node A
+outbound tree already contained the active-release replay at the exact path the
+fixture required to be absent: `replay_outgoing_absent=false`.
+
+Recovery froze transport, removed only the interrupted-transfer paths, restored
+the original release selections and all managed services, and reconverged Node
+A MASTER/Node B BACKUP ownership. Node B final acceptance returned `0`, both
+nodes retained the original release and manifest identity, and both temporary
+accepted-live registries were removed with status `0`. Node A final acceptance
+returned `1` only because cleanup left its outbound inventory empty while the
+Action 33a classifier still required `node_a_outbound_present=true`; every
+preceding Node A artifact, service, timer, release, and journal capture passed.
+No same-parent conflict, emergency publication, outage, reboot, or rolling
+maintenance phase ran.
+
+Workstation evidence is
+`/tmp/caddy-ssh-evidence/action33a/run.is9no1`. The result is a known action
+contract defect, not an ambiguous live fault: an empty Node A outbound tree is
+safe, and the role policy must accept zero or more entries while validating
+every entry that exists. The direct successor must use the now-current empty
+outbound state, create the active-replay fixture only after proving its exact
+path absent, and preserve all other Action 33a protocol, outage, recovery,
+evidence, and final-acceptance controls. No separate diagnostic is required.
+
+#### Action 33b definition journal
+
+Direct append-only Action 33b is defined but not executed. It consumes Action
+33a without rerunning it and preserves all executed predecessor artifacts and
+authorization provenance. The successor removes the obsolete requirement that
+Node A's outbound inventory contain at least one replay. Current production is
+accepted with zero or more entries; every present entry must still pass the
+complete role, immutable installed-release, exact-manifest, ownership, mode,
+and path checks. Node B remains empty. No historical outbound fixture or past
+deployment inventory is consumed.
+
+The interrupted-transfer production path derives its replay only from the
+current active release and proves the exact destination absent before stopping
+managed lsyncd or writing anything. Production regression accepts an empty
+Node A tree and a safe current replay, rejects unsafe drift and symlinks, and
+proves an existing replay destination is rejected without changing its bytes.
+All remaining protocol, emergency replication, outage, reboot, rolling
+maintenance, availability, recovery, `/tmp` evidence, and status-125 controls
+are unchanged.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.OYHksN`; the network-disabled Debian 12 batch
+passed with evidence `/tmp/caddy-focused-container-evidence.s35Z0Y`. The
+historical complete suite was not run, and neither HA node was contacted.
+Transaction SHA-256 is
+`31df5b2a610f01ae3db4d8287b5ae59ce6d500622fb7e7a9ee3dbd61745eb7cc`;
+regression SHA-256 is
+`65a2a62b00b860a9c690e2c57457a325c31da9a834fcfa0a0d40f215e121f53b`.
+Live execution requires separate exact authorization of outer SHA-256
+`cc2b834dcaad9b2841ca76244e00d3c6372fa56a4a3af7dc34a0972f648d8964`.
+
+#### Action 33b execution
+
+Action 33b was executed once under exact authorization of outer SHA-256
+`cc2b834dcaad9b2841ca76244e00d3c6372fa56a4a3af7dc34a0972f648d8964`
+and is consumed and prohibited from rerun. Workstation policy, regression,
+manifest, registry, both role-based baseline gates, and the corrected
+current-production outbound contract passed. Node A safely had zero outbound
+entries, Node B remained empty, and no historical fixture or past deployment
+inventory was required.
+
+The invalid-release case used the real publisher, transport, receiver, and
+finalization boundaries. Node B received the deliberately invalid candidate,
+left it incomplete, did not create a destination release, and retained its
+original selection. Exact fixture cleanup and Node B final acceptance passed.
+No interrupted-transfer, same-parent-conflict, emergency-publication, outage,
+reboot, or rolling-maintenance phase ran.
+
+Node A final acceptance stopped only at
+`action_33b_remote_node_a_check_caddy_sync_health_service_nonfailed=false`.
+The scenario intentionally stopped and restarted `caddy-lsyncd.service` while
+`caddy-sync-health.timer` remained active. The retained journal proves lsyncd
+was stopped and subsequently entered startup, and the contemporaneous Apprise
+event reports `caddy-sync-health.service` failed while lsyncd was
+`activating`. This is a transaction orchestration defect: the periodic worker
+observed the expected scenario-owned transition, not a production transport
+failure.
+
+Recovery restored the original releases and preferred Node A ownership,
+accepted Node B completely, and removed both temporary accepted-live
+registries. The outer returned `1`, not manual-intervention status `125`.
+Workstation evidence is
+`/tmp/caddy-ssh-evidence/action33b/run.3jIKMJ`; the only nonzero retained
+status is `invalid-release-final-a.status=1`.
+
+The direct successor must suspend `caddy-sync-health.timer` before every
+intentional managed-lsyncd stop, retain its prior enabled/active state, restore
+lsyncd and prove stable PID/restart/snapshot state, reset only the
+scenario-owned failed worker, invoke and accept that worker independently,
+then restore and accept the timer before scenario and final acceptance. It
+must preserve Action 33b's current-production-only inventories, exact fixture
+paths, availability probes, recovery controls, and `/tmp` evidence. No
+separate diagnostic or predecessor rerun is required.
+
+#### Action 33c definition journal
+
+Direct append-only Action 33c is defined but not executed. It consumes Action
+33b without rerunning it and preserves every executed predecessor artifact and
+authorization boundary. The definition retains Action 33b's current-production
+outbound role classification, protocol-v2 cases, emergency-only Node B
+publication, four outage scenarios, rolling-maintenance order, availability
+probes, exact cleanup, recovery status `125`, and bounded node/workstation
+`/tmp` evidence.
+
+Before every intentional managed-lsyncd stop or restart, the remote transaction
+records the health timer state, requires it enabled, stops the timer, stops any
+in-flight health worker, and proves both inactive. After transport restoration,
+it requires five stable lsyncd PID/restart samples and successful unit state,
+resets the health worker only if failed, invokes and accepts the worker, then
+enables, starts, and accepts the timer. Controlled-recovery units deliberately
+leave the timer stopped for this acceptance boundary. Reboot cases disable the
+timer before reboot and restore it only after the returned lsyncd service is
+stable. The initial baseline runs the same guarded sequence to clear and accept
+the known Action 33b-owned Node A worker failure without a diagnostic.
+
+The production baseline cannot create outgoing, incoming, quarantine, or
+release entries merely to satisfy an assertion. Workstation fakes remain under
+workstation `/tmp` and are never uploaded. A live action-owned release is
+limited to explicit protocol/outage stimulus created by the real publisher and
+must be removed by its exact transaction path.
+
+The production-path regression executed the real health-guard functions with a
+stateful workstation-only systemd boundary and proved timer-stop precedes
+lsyncd-stop, lsyncd-start precedes worker reset/run, worker acceptance precedes
+timer restoration, and final timer state is active and enabled. It also rejects
+production baseline seeding. Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.FuqP1m`; the network-disabled Debian 12 batch
+passed with evidence `/tmp/caddy-focused-container-evidence.gHMExD`. The
+historical complete suite was not run, and neither HA node was contacted.
+Transaction SHA-256 is
+`ac9cced5afd78154a56d0f1880a7123b3497d0d8a74225045ffecf64238e2f5a`;
+regression SHA-256 is
+`011fa8679803455d7884ac739f315e5f1b1077376f8bcd279362c8c15b8588be`.
+Live execution requires separate exact authorization of outer SHA-256
+`7bc20a35c2aa1b514dec81a5e9ee91eb616be81f0c1d39aa0872cdff75b2a03e`.
+
+#### Action 33c execution
+
+Action 33c was executed once under exact authorization of outer SHA-256
+`7bc20a35c2aa1b514dec81a5e9ee91eb616be81f0c1d39aa0872cdff75b2a03e`,
+returned `1`, is consumed, and is prohibited from rerun. Workstation policy,
+production regression, manifest, registry, guarded dual-node health baseline,
+role-based outbound inventory, service, artifact, ownership, and availability
+gates passed. The guarded baseline repaired the Action 33b-owned Node A worker
+failure without seeding production state.
+
+The invalid-release phase used the real publisher to create one exact
+transaction-owned candidate. Node B's real finalizer rejected its intentionally
+incorrect manifest file set with
+`caddy_sync_finalize_v2_check_manifest_file_set_exact=false`; rsync returned
+`1`, and managed lsyncd correctly failed closed with service exit `255`. Action
+33c then stopped at
+`action_33c_remote_node_a_check_invalid_transport_lsyncd_pid_stable_2=false`.
+Requiring PID stability after deliberately provoking a receiver rejection was
+an action-contract defect. It is not an unexplained production failure and no
+additional diagnostic is needed. No interrupted-transfer, conflict, emergency,
+outage, reboot, or rolling-maintenance phase ran.
+
+The recovery path froze transport, removed only transaction-owned candidate
+and staging paths, restored managed lsyncd under the suspended health-timer
+boundary, ran and accepted the health worker, restored the timer, and proved
+the original release identities and manifests on both nodes. Node A returned
+to stable IPv4/IPv6 MASTER ownership; Node B returned to stable BACKUP with
+zero shared VIPs. Services, enabled states, masks, accepted artifact hashes,
+incoming/outgoing/quarantine inventories, and transaction-residue checks all
+passed. Both temporary accepted-live registries were removed. The outer
+returned `1`, not manual-intervention status `125`.
+
+Workstation evidence is
+`/tmp/caddy-ssh-evidence/action33c/run.Fgc690`. The only nonzero retained
+command status is `invalid-stage-a.status=1`; recovery and final-acceptance
+statuses are zero. The direct successor must expect the exact scenario-owned
+lsyncd failure after invalid receiver input, capture it, freeze transport,
+restore and stabilize lsyncd through the existing timer/worker guard, and only
+then evaluate the invalid-release postconditions and continue. It must retain
+the prohibition on baseline seeding and may create live transaction-owned
+release data only as an explicit real-protocol reliability stimulus with exact
+cleanup.
+
+#### Action 33d definition journal
+
+Direct append-only Action 33d is defined but not executed. It consumes failed
+and fully recovered Action 33c without rerunning it and preserves every
+executed predecessor runner, evidence path, and authorization boundary. All
+Action 33c current-production inventory, health-timer orchestration,
+protocol-v2, emergency-only Node B publication, outage, reboot, rolling
+maintenance, availability, exact cleanup, recovery status `125`, and bounded
+node/workstation `/tmp` evidence controls remain.
+
+The only live-contract correction is the invalid-release transport boundary.
+After the real publisher creates and deliberately invalidates the one exact
+transaction-owned candidate, Action 33d starts managed lsyncd while the health
+timer remains suspended. It waits at most 30 seconds for the precise
+scenario-owned failed state and independently requires `Result=exit-code`,
+`ExecMainStatus=255`, `MainPID=0`, and continued timer suspension. It no longer
+requires PID stability while the receiver is intentionally rejecting invalid
+input. The outer then verifies Node B retained the incomplete candidate with
+no destination or selection change and invokes the existing reverse-order
+freeze, exact cleanup, lsyncd stabilization, health-worker acceptance, timer
+restoration, and dual-node baseline acceptance before continuing.
+
+The production-path regression invokes the actual new invalid-transport
+function. It accepts the production-shaped successful service-start followed
+by asynchronous failed state and exit `255`, rejects a superficially similar
+`Result=success` state, and rejects reintroduction of Action 33c's
+`restore_and_accept_sync_health invalid_transport` PID-stability contract. It
+also retains the real publisher/finalizer/reconciler self-tests and all
+current-production non-seeding checks.
+
+The focused Action 33 host profile and its single network-disabled Debian 12
+batch passed. Evidence is retained at
+`/tmp/caddy-focused-validation.dfdSzc`, with Debian evidence beneath
+`/tmp/caddy-focused-validation.dfdSzc/debian-evidence`. The historical
+complete suite was not run, and neither HA node was contacted. Transaction
+SHA-256 is
+`6b74672a72cdc0e88a97578738b578640a7481f0dca7b157bac14a8e8a705009`;
+regression SHA-256 is
+`da5b8a5b2c75b899ecb957cb7586b97fab11267556fea24738d17fd09b7f024a`;
+manifest SHA-256 is
+`06f4f8f7d8083651ec730ad1c877c131d66b3d05315b4fc5a5e4494453a2df78`.
+Live execution requires separate exact authorization of outer SHA-256
+`38e0b64e91aace9ffba9900bc7bdd6bdb2e61d4cb0c9f6df63effea070e6ed1b`.
+
+#### Action 33d execution
+
+Action 33d was executed once under exact authorization of outer SHA-256
+`38e0b64e91aace9ffba9900bc7bdd6bdb2e61d4cb0c9f6df63effea070e6ed1b`,
+returned `1`, is consumed, and is prohibited from rerun. Workstation policy,
+production regression, manifest, registry, guarded dual-node health baseline,
+current-production role-based inventories, accepted artifact hashes, service,
+timer, ownership, release, and availability gates passed.
+
+The invalid-release phase used the real publisher and exact transaction-owned
+candidate. Node B's real finalizer repeatedly rejected the intentionally
+incorrect manifest file set with
+`caddy_sync_finalize_v2_check_manifest_file_set_exact=false`. Managed lsyncd
+did not remain in the Action 33d contract's expected failed systemd state for
+the 30-second observation window, so the transaction stopped only at
+`action_33d_remote_node_a_check_invalid_transport_lsyncd_failed=false`.
+The receiver rejection is the fail-closed production result; requiring a
+persistent failed unit state was an action-contract defect. No
+interrupted-transfer, conflict, emergency, outage, reboot, or rolling
+maintenance phase ran, and no separate diagnostic is needed.
+
+Recovery froze transport, removed only the transaction-owned candidate and
+staging paths, restored managed lsyncd through the suspended health-timer and
+worker guard, and restored the timer. Both final node inspections completed:
+the original release identities and manifests matched, Node A returned to
+stable IPv4/IPv6 MASTER ownership, Node B returned to stable BACKUP with zero
+shared VIPs, accepted artifact hashes and service states passed, incoming,
+outgoing, and quarantine inventories were restored, and Action 33d residue was
+absent. Both temporary accepted-live registries were removed. The outer
+returned `1`, not manual-intervention status `125`.
+
+Workstation evidence is
+`/tmp/caddy-ssh-evidence/action33d/run.ia6e0M`. The only nonzero retained
+command status is `invalid-stage-a.status=1`; all cleanup, restoration, final
+acceptance, and registry-removal statuses are zero. A direct successor must
+accept the first bounded real receiver-rejection evidence regardless of
+whether systemd exposes a transient failed state or lsyncd remains/re-enters
+active retry operation, freeze transport immediately, then use the existing
+exact cleanup and guarded restoration before continuing. It must retain the
+current-production-only and no-baseline-seeding rules.
+
+#### Action 33e definition journal
+
+Direct append-only Action 33e is defined but not executed. It consumes failed
+and fully recovered Action 33d without rerunning it and preserves every
+executed predecessor runner, retained evidence path, and authorization
+boundary. All current-production-only role-based inventory, no-baseline-seeding,
+health-timer orchestration, exact cleanup, rollback status `125`, protocol-v2,
+rolling-maintenance, online emergency B-to-A replication, controlled outage,
+reboot, availability, recovery, and final-acceptance controls remain.
+
+The invalid-release correction takes a fresh journal cursor immediately before
+starting managed lsyncd. It polls only the cursor-bounded
+`caddy-lsyncd.service` journal for
+`caddy_sync_finalize_v2_check_manifest_file_set_exact=false`, retains the
+bounded journal stdout, stderr, status, and elapsed time under node-local
+`/tmp`, and rejects query failure, timeout, generic errors, or missing exact
+evidence. On the first exact rejection it immediately stops managed lsyncd,
+proves transport inactive, and requires the health timer to remain enabled but
+suspended. It does not depend on a transient `failed` state, exit `255`, or
+zero PID. Node B must still prove the candidate incomplete, destination absent,
+and selection unchanged before exact cleanup and guarded restoration.
+
+The production-path regression exercises the actual new function with lsyncd
+remaining active until the exact rejection is emitted. It proves rejection
+observation precedes the transport stop, accepts the frozen inactive state,
+and rejects an otherwise healthy stream that never emits the exact rejection.
+The focused Action 33 host profile passed with evidence
+`/tmp/caddy-focused-validation.ebulk3`; the single network-disabled Debian 12
+batch passed with evidence
+`/tmp/caddy-focused-container-evidence.zzGSur`. The historical complete suite
+was not run, and neither HA node was contacted.
+
+Transaction SHA-256 is
+`de90c6520d59dea81074d2ec7532685b03663761c9bcabbbe78d9330c7bcf28e`;
+regression SHA-256 is
+`fcba48bef514da4b6f7a7a18bc17b70d152af5ca1ae27c5a0591dc8445bba4f0`;
+manifest SHA-256 is
+`dcb7f3095990a9c6b28f18a3b95158bba8a359601eccbfb399347dd855e0143a`.
+Live execution requires separate exact authorization of outer SHA-256
+`49a8871abd48910a328b3856a48d5089776c2276f6b708b5eeb43b569beb2dc5`.
+
+#### Action 33e execution
+
+Action 33e was executed once under exact authorization of outer SHA-256
+`49a8871abd48910a328b3856a48d5089776c2276f6b708b5eeb43b569beb2dc5`,
+returned `1`, is consumed, and is prohibited from rerun. Workstation policy,
+production regression, manifest and registry gates, guarded dual-node baseline,
+accepted artifact hashes, current-production role-based inventories, services,
+timers, ownership, releases, and availability passed.
+
+The invalid-release case observed the exact cursor-bounded real-finalizer
+rejection `caddy_sync_finalize_v2_check_manifest_file_set_exact=false`, froze
+transport immediately, proved the candidate incomplete and unselected, cleaned
+only transaction-owned paths, and restored managed lsyncd through the existing
+timer/worker guard. The interrupted-transfer case also completed its staging,
+finalization, reconciliation, cleanup, and baseline restoration. No historical
+fixture or production-state seeding was used.
+
+The same-parent-conflict case prepared both valid same-parent candidates and
+then stopped only at
+`action_33e_remote_node_a_check_transport_start_lsyncd_pid_stable_2=false`.
+Starting managed lsyncd returned `0`, active state and a positive PID passed,
+and the first PID and restart-count samples were stable. The second PID sample
+changed while the deliberate two-candidate transport was active. Requiring PID
+identity to remain unchanged across this intentional receiver-conflict stimulus
+was an action-contract defect; the command evidence is complete and no separate
+diagnostic is required. Emergency replication, rolling maintenance, controlled
+outage, and reboot phases did not run.
+
+Automatic recovery froze transport and removed only the exact Action 33e
+candidate and staging paths. Both final inspections returned `0`: the original
+Action 32g release identities and manifests matched, Node A converged to stable
+IPv4/IPv6 MASTER ownership with all shared VIPs, Node B converged to stable
+BACKUP with zero shared VIPs, services and timers were active and enabled,
+incoming, outgoing, and quarantine inventories were restored, and Action 33e
+residue was absent. Both temporary accepted-live registries were removed. The
+outer returned `1`, not manual-intervention status `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action33e/run.8ZbRK9`. The only nonzero retained command
+status is `conflict-transport-a.status=1`; same-parent cleanup, restoration,
+dual-node final acceptance, and registry-removal statuses are zero. A future
+direct successor, if requested, must consume this recovered baseline without
+rerunning Action 33e and must treat the real receiver conflict decision as the
+gate rather than imposing PID stability during deliberate conflict transport.
+
+#### Action 33f definition journal
+
+Direct append-only Action 33f is defined but not executed. It consumes failed
+and fully recovered Action 33e without rerunning it. The invalid-release and
+interrupted-transfer cases completed by Action 33e are explicitly excluded;
+Action 33f starts from a fresh exact Action 32g production baseline at the
+same-parent-conflict case. No historical fixture, inventory prerequisite, or
+production-state seeding is permitted.
+
+Action 33f stops Node B's reconciliation path, creates only the two exact
+transaction-owned same-parent candidates through the real protocol-v2
+publisher, and starts Node A transport while the synchronization-health timer
+remains enabled but suspended. The transport gate requires command success,
+active service state, and a positive PID, but deliberately does not require
+PID or restart-count stability while the receiver is processing the conflict.
+The real Node B reconciler must fail with the canonical ambiguity message.
+Before cleanup, the transaction independently requires both finalized
+candidates retained, the active release unchanged, neither destination release
+created, and no Caddy reload, PID change, or restart-count change. It then
+freezes Node A transport and repeats the retention, selection, and destination
+gates before exact cleanup and guarded lsyncd worker and timer restoration.
+
+After same-parent acceptance, Action 33f retains the current installed-binary
+standby-first rolling-maintenance rehearsal, online guarded emergency Node B to
+Node A replication, both controlled Caddy-HA plus SSH outages, both automated
+reboot scenarios, continuous one-second DNS, trusted HTTPS, and shared UI
+probes, exact transaction-owned cleanup, reverse recovery, and distinct
+unproven-recovery status `125`. Final acceptance restores the exact Action 32g
+releases, Node A stable dual-stack MASTER ownership with all four shared VIPs,
+Node B stable dual-stack BACKUP with zero shared VIPs, and healthy services,
+timers, synchronization, inventories, and residue state.
+
+The production-path regression executes the actual conflict transport and
+assertion functions. It accepts a changing lsyncd PID during deliberate
+transport, rejects reintroduced PID-stability output, accepts the canonical
+real-reconciler rejection with both candidates retained and no reload, and
+rejects destination release creation. The focused Action 33 host profile and
+its single network-disabled Debian 12 batch passed with evidence
+`/tmp/caddy-focused-validation.GIRMs8` and
+`/tmp/caddy-focused-validation.GIRMs8/debian-evidence`. The historical complete
+suite was not run, and neither HA node was contacted.
+
+Transaction SHA-256 is
+`2b061a29ab31cc6151f79238a8ccb24f16dae5f05f5a03d7bd574f0989259e8a`;
+regression SHA-256 is
+`3b3559f342e70542a6c7556da3dd3beed009968d91554d1c5426da313fce9e3b`.
+Manifest SHA-256 is
+`423d2c5cdb66f2f8dc0f8d2496a2391f284b7f9dec919c9a8b59cc25df53b894`.
+Live execution requires separate exact authorization of outer SHA-256
+`0018b35b6f05209d45dacb08e980ff501297699c18bec0c21462b2e11561081c`.
+
+#### Action 33f execution journal
+
+Action 33f was executed once under exact authorization of outer SHA-256
+`0018b35b6f05209d45dacb08e980ff501297699c18bec0c21462b2e11561081c`,
+returned `1`, is consumed, and is prohibited from rerun. Workstation policy,
+production regression, manifest and registry gates, and both guarded node
+baselines passed. The completed invalid-release and interrupted-transfer cases
+from Action 33e were not replayed.
+
+The same-parent-conflict phase stopped Node B reconciliation and created two
+transaction-owned candidates through the real Node A publisher. The corrected
+transport gate passed without requiring lsyncd PID stability. Node B then
+failed the first candidate finalization at
+`action_33f_remote_node_b_check_conflict_first_finalized=false`; the retained
+cursor-bounded journal repeatedly records the production finalizer's exact
+rejection `caddy_sync_finalize_v2_check_manifest_file_set_exact=false`.
+
+The cause is conclusive in the immutable Action 33f constructor. Its shell
+redirection created `manifest.sha256.new` before `find` enumerated candidate
+files. Because only `manifest.sha256` and protocol markers were excluded, the
+temporary file entered its own manifest and was then renamed. The receiver's
+current exact-file-set comparison correctly rejected that manifest. The real
+reconciler was therefore never invoked, and rolling maintenance, emergency
+replication, controlled outages, and reboot scenarios did not run. This is an
+Action 33f candidate-construction defect, not a production synchronization
+failure, and no separate diagnostic is needed.
+
+Built-in recovery froze transport, removed only Action 33f-owned paths,
+restored lsyncd and reconciliation through the existing timer/worker guard,
+and completed both final node inspections. The exact Action 32g releases and
+manifests were restored; Node A converged to stable IPv4/IPv6 MASTER ownership
+with all four shared VIPs; Node B converged to stable BACKUP with zero shared
+VIPs; services and timers were active and enabled; inventories were restored;
+and Action 33f residue was absent. Both temporary registries were removed.
+The outer returned `1`, not manual-intervention status `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action33f/run.wxZyjp`. The only nonzero retained
+command status is `conflict-accept-b.status=1`; same-parent cleanup,
+restoration, dual-node final acceptance, and registry-removal statuses are
+zero. A future direct successor, if requested, must use the real producer's
+manifest construction boundary, start at same-parent conflict, and preserve
+the remaining Action 33f exercise and recovery contract without rerunning any
+consumed predecessor.
+
+#### Action 33g definition journal
+
+Direct append-only Action 33g is defined but not executed. It consumes the
+fully recovered Action 33f baseline and starts at same-parent conflict. It does
+not replay the completed invalid-release or interrupted-transfer cases, seed
+production state, require historical fixtures, or contact either HA node
+during definition.
+
+The only live-behavior correction is candidate manifest construction. Action
+33g creates a transaction-owned sibling temporary file beneath the outbound
+root, outside the candidate being enumerated. The production file enumeration
+writes to that sibling, which is then atomically moved to the candidate's
+`manifest.sha256` path. Before transport can resume, independent gates require
+the sibling to be consumed, the receiver-equivalent file set to match exactly,
+and every checksum to validate. Exact cleanup covers an interrupted sibling
+because its name remains inside the Action 33g transaction namespace.
+
+The production-path regression invokes the actual manifest builder, accepts
+the receiver-equivalent exact file set and checksums, proves the sibling is
+absent afterward, and separately reproduces and rejects Action 33f's
+candidate-local `manifest.sha256.new` self-inclusion. The neutral current
+regression selects this contract without placing an action-named test directly
+in a current profile. All same-parent conflict, rolling maintenance, online
+guarded emergency replication, controlled outage, automated reboot,
+availability, recovery, and final Action 32g acceptance controls remain.
+
+Focused current-production host validation passed with evidence
+`/tmp/caddy-focused-validation.RBmorR`. One network-disabled Debian 12 batch
+passed with evidence `/tmp/caddy-focused-container-evidence.ednXNc`. The
+historical complete suite was not run.
+
+Transaction SHA-256 is
+`41c2a2142eaf6e2d26366890e0359e97658a00a8ebc994c3f8318af3afb87775`;
+regression SHA-256 is
+`bc0963fae07855bae620e7f25504f55ad7ca2623d690b4a883babbc1f58f27d9`;
+manifest SHA-256 is
+`4c184593af05bef5820d423465a17f9aba4f210e837f1d4681a251047a55b677`.
+Live execution requires separate exact authorization of outer SHA-256
+`fa750f9d7b430db9ea0bc13ab73370cb86b8b03ca3cd54b9212646bf2856642f`.
+
+#### Action 33g execution journal
+
+Action 33g was executed once under exact authorization of outer SHA-256
+`fa750f9d7b430db9ea0bc13ab73370cb86b8b03ca3cd54b9212646bf2856642f`.
+It is consumed, immutable, prohibited from rerun, and returned `1`, not manual
+intervention status `125`.
+
+The corrected manifest producer passed. The real same-parent-conflict path
+failed closed as designed: neither conflicting candidate was selected, the
+active release and manifest remained unchanged, both candidates remained
+retained until exact transaction-owned cleanup, and managed lsyncd,
+reconciliation, its health worker, and timer were restored and accepted. The
+rolling-maintenance rehearsal then completed on Node B and Node A with current
+installed binaries. The expected ownership sequence was Node A MASTER, Node B
+MASTER while Node A relinquished, then preferred-owner failback to Node A
+MASTER and Node B BACKUP. Exact release identity and manifest equality passed
+after both phases.
+
+The only failed decision was
+`rolling-maintenance_availability_no_failure=false`. The retained one-second
+probe stream contains one isolated `dig +time=1 +tries=1 @10.1.0.55` timeout
+during the deliberate Node A-to-Node B VRRP handoff. The preceding sample at
+`1786575427373856041` passed, the failed sample began at
+`1786575428456195162`, and the next sample at `1786575430480634425` passed.
+All other retained rolling-maintenance samples passed. This is sufficient
+evidence to identify an overly absolute transition-window assertion; no node
+diagnostic is needed. A direct successor must define a narrow bounded
+transition SLA and continue to reject any failure before the handoff window,
+after convergence, on consecutive samples beyond that allowance, or in any
+steady-state phase.
+
+Built-in recovery froze transaction transport, removed exact owned paths,
+restored both original releases and manifests, and independently accepted both
+nodes. Node A was stable IPv4/IPv6 MASTER with all four shared VIPs; Node B was
+stable BACKUP with zero shared VIPs. Caddy, managed lsyncd, Keepalived, SSH,
+reconciliation, and both timers were active and had the required enabled or
+static state. Managed-lsyncd PID/restart stability, accepted-live hashes,
+outgoing/incoming/quarantine inventories, absence of Action 33g residue, and
+registry removal all passed. Both final remote stderr streams were empty.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action33g/run.t9w5BK`; the availability record is
+`rolling-maintenance.availability`. Online emergency replication, controlled
+outages, and reboot scenarios did not run. The direct continuation must consume
+the completed conflict and rolling evidence rather than rerunning either phase,
+begin with online guarded B-to-A emergency replication, preserve all remaining
+recovery and final Action 32g acceptance controls, and use only current
+production state and real protocol paths.
+
+#### Action 33h definition journal
+
+Direct Action 33h is defined but not executed. Neither HA node was contacted
+and no live state changed. It consumes Action 33g's completed same-parent and
+rolling-maintenance phases without rerunning either and begins at the first
+unexecuted case: online guarded Node B-to-Node A emergency replication.
+
+The exact retained rolling availability stream is preserved at
+`Caddy/docs/evidence/action33g-rolling-maintenance.availability`, SHA-256
+`926e8f7b15132c0da503c3aca51ab77647afc08b712f0a5e2c9ff3df06f80912`.
+Before any SSH, Action 33h requires that exact identity and independently
+requires 51 samples, 50 passes, one failed sample at index 16, exact adjacent
+timestamps, and recovery between adjacent passing sample starts within four
+seconds.
+
+Every newly executed availability stream uses explicit transaction-emitted
+handoff begin/end timestamps. A handoff may last at most 15 seconds and contain
+at most one failed sample; any failed sample must be immediately bracketed by
+passing samples whose start timestamps are no more than four seconds apart.
+A failure outside a handoff, overlapping or malformed windows, multiple
+failures in one window, consecutive failures across windows, an edge failure,
+or an overlong handoff fails closed. Steady-state phases retain zero-failure
+acceptance because their handoff inventory is empty. Regression exercises the
+real consumer with accepting and rejecting paths; it does not create or seed
+any node fixture.
+
+All remaining online emergency replication, controlled Node A/Node B outage,
+automated reboot, health-timer/worker, SSH transition, queued-transfer,
+emergency-only publication, normal ancestry restoration, exact cleanup,
+status-125 recovery, and final Action 32g acceptance controls are retained.
+Focused current-production host validation passed with evidence
+`/tmp/caddy-focused-validation.dx5MtN`; the network-disabled Debian 12 batch
+passed with evidence `/tmp/caddy-focused-container-evidence.MJIKZn`. The
+historical complete suite was not run.
+
+Transaction SHA-256 is
+`4e95acfd4813ad16cd7841fa22fce0edda3f55541528bea4168144439a8cd0fa`;
+regression SHA-256 is
+`cb5ff3f0ee793151c6f6e5abccbda31f40486c4aa42426b6b6786f7a90f70250`;
+manifest SHA-256 is
+`cff52d14971b460f3700530fb3c1fb43ee3902bda1510b7f016774c752910ddf`.
+Live execution requires separate exact authorization of outer SHA-256
+`d8a0ac4e83ef969bfcfa51ef805f8ac60f093809f9de5158a012ee4dbb875aee`.
+
+#### Action 33h execution journal
+
+Action 33h was executed once under exact authorization of outer SHA-256
+`d8a0ac4e83ef969bfcfa51ef805f8ac60f093809f9de5158a012ee4dbb875aee`.
+It is consumed, immutable, and must not be rerun. Its workstation policies,
+regression, retained Action 33g evidence, dual-node exact Action 32g baseline,
+Node A MASTER/Node B BACKUP ownership, and seven-sample online availability
+stream all passed. The intentional Node A-to-Node B VRRP handoff converged:
+Node B became dual-stack MASTER with all four shared VIPs while Node A owned
+none, and every DNS, trusted HTTPS, and shared-interface sample remained
+available.
+
+The action then stopped before ordinary or emergency Node B publication. The
+immutable `--reject-normal` branch used one `install` command with
+`reject.stdout` and `reject.stderr` as separate operands. GNU `install` treated
+the final operand as a destination directory and returned `1` with
+`No such file or directory`. The real publisher was therefore not invoked,
+and online emergency replication plus every outage and reboot scenario remain
+unexecuted. This is a conclusive capture-construction defect; no node diagnostic
+is needed.
+
+Automatic recovery returned `0` on every cleanup, service-restoration, final
+acceptance, and registry-removal operation. It restored identical original
+release and manifest identities on both nodes, unchanged incoming, outgoing,
+and quarantine inventories, stable managed lsyncd, enabled health timers,
+Node A stable MASTER with all four VIPs, Node B stable BACKUP with zero VIPs,
+and no Action 33h residue. The outer returned `1`, not manual-intervention
+status `125`. Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action33h/run.haEemO`; the failed rejection stderr is
+`reject-b.stderr`, and the availability summary is
+`emergency-online.availability.summary`.
+
+#### Action 33i definition journal
+
+Direct Action 33i is definition-complete and unexecuted. Neither node was
+contacted while defining it. Action 33h remains immutable. Action 33i consumes
+Action 33h's recovered exact Action 32g baseline and does not replay the
+completed Action 33g conflict or rolling-maintenance phases. Because Action
+33h did not invoke either publication path, Action 33i correctly begins again
+with the still-unexecuted online emergency B-to-A publication case.
+
+The corrected real remote program creates `reject.stdout`, `reject.stderr`,
+and `reject.status` with three independent `install` invocations before the
+publisher runs. It records the publisher exit status, emits bounded and
+classified stdout and stderr, independently requires a nonzero status, and
+requires the exact guarded Node B rejection. Its production regression invokes
+the actual capture helper and rejects the historical multi-target form. All
+bounded-handoff, emergency-only, controlled-outage, reboot, health-timer,
+SSH-transition, queued-transfer, reconciliation, rollback, status-125, and
+final exact Action 32g controls remain unchanged.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.jaD9CO`; the complete focused profile and its
+single network-disabled Debian 12 batch passed with evidence
+`/tmp/caddy-focused-validation.aQidOZ` and
+`/tmp/caddy-focused-validation.aQidOZ/debian-evidence`. The historical suite
+was not run. Transaction SHA-256 is
+`edfcf0b3d5ff66cafa1cecb75680c208d99aec749d0fbcb9dc1fd2e149373f1f`;
+regression SHA-256 is
+`fd795531d8f160349af72b269120fda66cbf92b629e0c5235138630b4fa179ca`;
+manifest SHA-256 is
+`718ab199fdb360501baf225eeaf7f8e950b87ffc61d93649ee6451f58927f977`.
+Live execution requires separate exact authorization of outer SHA-256
+`3c0646870e82f02a620d87bbb88eb06ba3e88f2093972a951c91a64a22fd5b36`.
+
+### Action 33 terminal acceptance
+
+Action 33o was executed once under exact authorization of outer SHA-256
+`14b1f7d5b1488218fdb0117c992ed615ec64d08283423189ba32862aea22e064`,
+returned `0`, and closed the Action 33 reliability exercise. Its producer-exact
+preflight accepted and removed only the retained Action 33k revision families,
+restored the exact Action 32g release on both nodes, and proved convergence
+before running the remaining Node B cases. The controlled Node B outage passed
+50 of 50 availability samples. The automated Node B reboot changed its boot ID
+and passed 40 of 40 samples. Final steady-state acceptance passed another 5 of
+5 samples.
+
+Both nodes finished on exact Action 32g release
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04` with manifest SHA-256
+`beb54698e8722d6450f1125fd843808a376cf1be31dcbdef8fafe3cc5ba56109`.
+Node A is stable dual-stack MASTER with all four shared VIPs; Node B is stable
+dual-stack BACKUP with zero. Persistent services, reconciliation, managed
+lsyncd, and timers passed; all retained command statuses were zero; exact
+Action 33o residue and registries were absent. Evidence is retained at
+`/tmp/caddy-ssh-evidence/action33o/run.zydNJA`, aggregate SHA-256
+`e3a46a0d4f513e07bbf090a9fc934a2c07f92e0ff57ef5551f7f4c486174ba68`.
+The complete case-by-case closure is authoritative in
+[33-PLAN.md](33-PLAN.md). Actions 33 through 33o are consumed and must not be
+rerun.
+
+### Workstation checkpoint 2026-08-12 after Action 33o
+
+Core deployment and the bounded reliability exercise are accepted. Action 33o
+is the terminal Action 33 successor; it returned `0`, restored the exact Action
+32g baseline, and requires no diagnostic, continuation, or separate acceptance
+action. The immutable Action 33o outer-runner SHA-256 remains
+`14b1f7d5b1488218fdb0117c992ed615ec64d08283423189ba32862aea22e064`;
+its immutable definition-manifest SHA-256 remains
+`37749729d091c191f2589d60e24feb6a5743e476ede3994f777dc8bcd0dd28cc`.
+Current disposition is recorded as `accepted-executed-definition` in the
+manifest lifecycle rather than by rewriting that historical definition.
+
+The Action 33 artifact chain, execution journal, closure metadata, and focused
+profile changes are present in the workstation repository but are not yet
+committed. Before beginning the next activity, review the staged and unstaged
+scope intentionally, commit it, synchronize `main`, and confirm a clean or
+explicitly understood worktree. Preserve every executed action artifact and
+authorization hash unchanged.
+
+The next activity is repository-only review and definition of durable Apprise
+delivery. Start from the current synchronous Caddy notifier
+`Caddy/scripts/lsyncd-sync-failure-notify.sh`, its
+`caddy-sync-failure@.service` owner, and the asynchronous Keepalived notifier in
+`homelab-dns/Keepalived/scripts/keepalived-notify.sh`. Select one bounded,
+persistent, systemd-owned delivery contract that survives transient endpoint
+failure and reboot without blocking Keepalived, VRRP, Caddy, lsyncd,
+reconciliation, or their health decisions. No HA node contact or live change
+is authorized while reviewing and defining that work.
 
 ### Remaining ordered work
 
@@ -28032,3 +28790,182 @@ Reliability defaults:
   health out of its tracked dependencies so reverse-proxy problems cannot
   remove or move DNS service.
 - Treat automated DNS-challenge renewal as a future enhancement.
+
+#### Action 33i execution journal
+
+Action 33i was executed once under exact authorization of outer SHA-256
+`3c0646870e82f02a620d87bbb88eb06ba3e88f2093972a951c91a64a22fd5b36`.
+It is consumed, immutable, and must not be rerun. The online guarded B-to-A
+emergency-replication case completed: ordinary Node B publication was rejected,
+the guarded emergency release replicated to online Node A, normal Node A
+publication restored the ancestry direction, and the original releases were
+restored. All 41 one-second DNS, trusted-HTTPS, and shared-interface samples
+passed. Node B became dual-stack MASTER with all four shared VIPs and Node A
+owned none, followed by preferred failback to Node A MASTER with all four VIPs
+and Node B BACKUP with none.
+
+The outer returned `1`, not `125`, solely because the second deliberate VRRP
+handoff lasted approximately 22.45 seconds and exceeded the immutable
+15-second timing ceiling. There was no availability failure, incorrect or
+simultaneous stable ownership, publication failure, or recovery failure. Every
+remote command status was zero. Automatic recovery independently restored the
+exact Action 32g release and manifest identities, unchanged incoming, outgoing,
+and quarantine inventories, healthy services and timers, preferred ownership,
+and zero Action 33i residue. Evidence is retained at
+`/tmp/caddy-ssh-evidence/action33i/run.29lIJA`. The operator-supplied notifier
+sequence—Node B MASTER; Node A STOP and BACKUP; Node B BACKUP; Node A
+MASTER—matches the accepted handoff and failback. No outage or reboot scenario
+was entered.
+
+#### Outage-matrix reliability continuation Action 33j
+
+Action 33j is definition-complete and unexecuted. Neither node was contacted
+while defining it. It consumes Action 33i without replaying the completed
+invalid-release, interrupted-transfer, same-parent-conflict,
+rolling-maintenance, or online emergency-replication cases. Its first live case
+is the still-unexecuted controlled Node A Caddy-HA and SSH outage, followed by
+the Node A reboot, controlled Node B outage, and Node B reboot scenarios.
+
+The only timing correction raises the explicit deliberate-VRRP-handoff ceiling
+from 15 to 60 seconds. It still permits at most one isolated failed availability
+sample inside an explicit handoff, requires passing adjacent samples within
+four seconds, and rejects every steady-state, pre-window, post-window,
+consecutive, repeated, or unbounded failure. Current production state and real
+protocol paths are used; historical fixtures and production-state seeding are
+prohibited. All health-timer, worker, emergency-only, SSH down/up, boot-ID,
+queued-transfer, reconciliation, exact cleanup, reverse recovery, status-125,
+and final Action 32g acceptance controls remain.
+
+Focused host and single network-disabled Debian 12 validation passed with
+evidence `/tmp/caddy-focused-validation.01ONgu` and
+`/tmp/caddy-focused-validation.01ONgu/debian-evidence`; the historical suite
+was not run. Transaction SHA-256 is
+`85f4c6d7234be26a3d7dd818f2ff4fcd945e46937bae4f57624a7d0c15e9dfec`;
+regression SHA-256 is
+`f4bb93bacef923a9471d16c696d3138181fea298b2a393d0c3203abb4ac34803`;
+manifest SHA-256 is
+`df61b27f882538aa64797824715805c5b7f93f644cfc024ba82789db7a3b489d`.
+Live execution requires separate exact authorization of outer SHA-256
+`d3b8b5438849ebe2282beb3b83362a74b7e4cea9643780997625e07c1499e4af`.
+
+#### Action 33j execution journal
+
+Action 33j was executed once under exact authorization of outer SHA-256
+`d3b8b5438849ebe2282beb3b83362a74b7e4cea9643780997625e07c1499e4af`.
+It is consumed, immutable, and must not be rerun. The controlled Node A outage
+completed: Node A's Caddy-HA services and SSH became unavailable, Node B became
+stable dual-stack MASTER with all four shared VIPs, ordinary Node B publication
+was rejected, guarded emergency publication was queued while Node A was
+offline, Node A received and activated it after the pre-armed recovery, and a
+normal Node A child restored the publication direction. Both nodes then
+restored and independently accepted the exact Action 32g releases, manifests,
+inventories, services, timers, and preferred ownership with zero transaction
+residue.
+
+All 102 DNS, trusted-HTTPS, and shared-interface samples passed. The A-to-B and
+B-to-A handoffs lasted approximately 10.06 and 22.39 seconds, both within the
+60-second bound. Availability SHA-256 is
+`dc32166b46af128aa437abe98988a2b1c87c405ae26a57e2e1e239973dde5bc2`;
+handoff evidence SHA-256 is
+`fe1ec5ede893d3b2972338be3d84a6cdb6b4d7c7fb27047d99b7f26b46a61f0a`.
+The outer returned `1`, not `125`, only after successful scenario recovery:
+`stop_availability` killed the producer after it had written a final timestamp
+and DNS response but before it appended terminal state `ok`. Exact grammar
+correctly rejected that torn trailing record. Automatic recovery then repeated
+and passed full dual-node final acceptance and removed both registry copies.
+Evidence is retained at `/tmp/caddy-ssh-evidence/action33j/run.WmTuzO`. No
+reboot or Node B outage scenario began, and no node diagnostic is needed.
+
+#### Sample-finalization-safe reliability continuation Action 33k
+
+Action 33k is definition-complete and unexecuted. Neither node was contacted
+while defining it. It consumes the completed Action 33j controlled-outage case
+and begins at the first unexecuted Node A reboot, followed by the controlled
+Node B outage and Node B reboot. It does not replay any earlier Action 33 case.
+
+The availability producer now observes an exact per-scenario stop-request file,
+finishes the active bounded probe and terminal state, exits between samples,
+and is waited for before grammar evaluation. A twelve-second ceiling retains a
+fail-closed fallback without parsing partial output. The production-path
+self-test runs the actual start/stop functions, requires a complete two-field
+final summary record, preserves its `/tmp` evidence, and retains negative
+coverage rejecting torn, malformed, unbounded, repeated, or steady-state
+failures. All existing reboot, SSH transition, boot-ID, emergency-only,
+timer/worker, queued-transfer, reconciliation, exact cleanup, reverse recovery,
+status-125, and final Action 32g controls remain.
+
+Focused host and single network-disabled Debian 12 validation passed with
+evidence `/tmp/caddy-focused-validation.jvrui3` and
+`/tmp/caddy-focused-validation.jvrui3/debian-evidence`; the historical suite
+was not run. Transaction SHA-256 is
+`8c15438a4ea6179a13db669a635d9d0c400cd38355c45596660be2841f5cf4a5`;
+regression SHA-256 is
+`c93203c3ea5536486cf4b14e3fb7daa84a93883ce9f67fafd7d6b0dc0085d954`;
+manifest SHA-256 is
+`3c23edbcce9dc78e7b1f12ab8830a8de08130fe07dd9e848860f6184e80986a7`.
+Live execution requires separate exact authorization of outer SHA-256
+`da933f4a6896b6e57c9ab87fa47c413d30740e339d7bfee5ca2dc12cd4d39e20`.
+
+#### Action 33k execution and direct recovery continuation Action 33l
+
+Action 33k was executed once under exact authorization of outer SHA-256
+`da933f4a6896b6e57c9ab87fa47c413d30740e339d7bfee5ca2dc12cd4d39e20`.
+It is consumed, immutable, and must not be rerun. The Node A automated reboot
+completed, the physical SSH endpoint transitioned down and back up with a new
+boot ID, all 69 availability samples passed, and the deliberate failover and
+failback handoffs completed. Preferred ownership converged to Node A dual-stack
+MASTER with all four shared VIPs and Node B dual-stack BACKUP with none.
+
+The action returned manual-intervention status `125` after the reboot because
+its original Node A release and inventory baseline existed only beneath
+node-local `/tmp`, which was correctly cleared by reboot. Node A therefore
+retained normalized release
+`action33k-20260813T000701Z-2499021-node-a-reboot-normalized`, whose
+`release-manifest.json` SHA-256 is
+`bf711fa44181d89654ea08530d5fd44a9dade7dc1a4cd5ea42858b1309d8f807`.
+Node B retained exact Action 32g release
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`, whose manifest
+SHA-256 is
+`beb54698e8722d6450f1125fd843808a376cf1be31dcbdef8fafe3cc5ba56109`,
+quarantined the repeated normalized release, and left
+`caddy-sync-reconcile.service` failed. No Node B outage scenario began.
+Retained workstation evidence is
+`/tmp/caddy-ssh-evidence/action33k/run.z4QPhl`; its aggregate SHA-256 is
+`e28139f934ef59d2cd4b75aa90226dd9ab2852f10bb9966fe93c11647c02be3c`.
+
+Direct Action 33l is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It accepts only the exact state above: transport
+is frozen on Node B and then Node A, every matching Action 33k path is checked
+against an exact path set, revision, manifest identity, and valid manifest,
+Node A is atomically restored to exact Action 32g and Caddy reloaded, and only
+those validated Action 33k paths are removed. Node B's reconciliation worker is
+reset only if failed. Synchronization, health, Caddy, release, inventory, and
+dual-stack ownership convergence must pass before the continuation begins.
+
+Before any reboot, the exact release, manifest identity, outgoing, incoming,
+quarantine, and scenario journal-cursor state is archived beneath a direct
+searchable `/run` staging child, downloaded into the Action 33l workstation
+evidence directory, mode-locked to `0600`, and verified by SHA-256. The remote
+stage is removed immediately. After Node B returns, the accepted registry and
+both baseline and pre-reboot scenario bundles are reuploaded and hash-verified
+before post-boot cleanup or comparison. Node-local `/tmp` is never treated as
+reboot-persistent state.
+
+Action 33l runs only the still-unexecuted Node B controlled Caddy-HA/SSH outage
+and automated-reboot cases. It retains continuous DNS, trusted-HTTPS, and
+shared-interface sampling, current real protocol paths, timer/worker guards,
+queued A-to-B replication, SSH and boot-ID transitions, exact cleanup,
+reverse-order recovery, and final exact Action 32g acceptance. It creates no
+historical fixture and does not seed production state. Unproven recovery exits
+`125`. Focused validation and exact artifact identities are recorded in the
+Action 33l manifest. Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.H0L0oa`; the one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.N3WRKi`.
+Transaction SHA-256 is
+`26e0d45fe6dcb5d49c8d8859837050c43a025e1351eb324202f6cbc0d32f71dc`;
+regression SHA-256 is
+`937fcb4a65f01498e3aceb46663e45ec3cd841c9bc6ec6a96de7b87f20091d83`.
+Manifest SHA-256 is
+`ba44de490fb8f1fd743633d8aab28ddd9838c89142ec3ca7a33c901e4a3427a7`.
+Live execution requires separate authorization of exact outer SHA-256
+`aea3221bdf3850af14009051ef9b57401906f9f476d60bdf1136179637d9d62b`.
