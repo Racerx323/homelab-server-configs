@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the durable Caddy HA notification queue
+
+[Path]
+PathChanged=/var/lib/caddy-apprise-queue/pending
+Unit=caddy-apprise-worker.service
+
+[Install]
+WantedBy=multi-user.target

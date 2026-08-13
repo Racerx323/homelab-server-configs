@@ -107,6 +107,8 @@ require_row() {
 }
 
 require_row "$script_registry" $'Caddy/scripts/caddy-sync-release-receiver-v2\tproduction-current\tyes\t/usr/local/libexec/caddy-sync-release-receiver-v2\t0755\tCaddy/manifests/synchronization-protocol-v2.yaml'
+require_row "$script_registry" $'Caddy/scripts/caddy-apprise-delivery-worker.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-delivery-worker\t0755\tCaddy/manifests/durable-apprise-action34.tsv'
+require_row "$script_registry" $'Caddy/scripts/caddy-apprise-enqueue.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-enqueue\t0755\tCaddy/manifests/durable-apprise-action34.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-caddy-vrrp-action20h.sh\tproduction-current\tyes\t/usr/local/libexec/check-caddy.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-certificate-expiry.sh\tproduction-current\tyes\t/usr/local/libexec/check-certificate-expiry.sh\t0755\tCaddy/systemd/caddy-cert-expiry.service'
 require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
@@ -118,6 +120,8 @@ require_row "$script_registry" $'Caddy/scripts/validate-sync-health.sh\tproducti
 require_row "$systemd_registry" $'Caddy/systemd/caddy-pihole-backend.service\trejected\tno\t-\t-\tCaddy/manifests/pihole-admin-backend-action28k.yaml'
 
 readonly -a expected_installable_scripts=(
+    Caddy/scripts/caddy-apprise-delivery-worker.sh
+    Caddy/scripts/caddy-apprise-enqueue.sh
     Caddy/scripts/caddy-sync-release-receiver-v2
     Caddy/scripts/check-caddy-vrrp-action20h.sh
     Caddy/scripts/check-certificate-expiry.sh
@@ -135,6 +139,9 @@ diff -u \
     fail unexpected_installable_script
 
 readonly -a expected_installable_systemd=(
+    caddy-apprise-worker.path
+    caddy-apprise-worker.service
+    caddy-apprise-worker.timer
     caddy-cert-expiry.service
     caddy-cert-expiry.timer
     caddy-lsyncd.service
@@ -147,8 +154,12 @@ readonly -a expected_installable_systemd=(
     lighttpd.service.d/caddy-ha.conf
 )
 for lifecycle_systemd_relative in "${expected_installable_systemd[@]}"; do
+    lifecycle_systemd_authority=Caddy/manifests/production-artifacts.tsv
+    case "$lifecycle_systemd_relative" in
+        caddy-apprise-worker.*) lifecycle_systemd_authority=Caddy/manifests/durable-apprise-action34.tsv ;;
+    esac
     require_row "$systemd_registry" \
-        "Caddy/systemd/$lifecycle_systemd_relative"$'\tproduction-current\tyes\t'"/etc/systemd/system/$lifecycle_systemd_relative"$'\t0644\tCaddy/manifests/production-artifacts.tsv'
+        "Caddy/systemd/$lifecycle_systemd_relative"$'\tproduction-current\tyes\t'"/etc/systemd/system/$lifecycle_systemd_relative"$'\t0644\t'"$lifecycle_systemd_authority"
 done
 diff -u \
     <(printf 'Caddy/systemd/%s\n' "${expected_installable_systemd[@]}" | LC_ALL=C sort) \
@@ -184,6 +195,7 @@ done < <(awk -F '\t' '$2 == "homelab-server-configs" && $3 ~ /^Caddy\/scripts\//
 validate_node_inventory_pair() {
     local inventory_source=$1
     local inventory_target=$2
+    local inventory_authority=$3
 
     awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
         /^[[:space:]]*(#|$)/ { next }
@@ -196,7 +208,14 @@ validate_node_inventory_pair() {
             exit(bad || total != 2 || nodes["node-a"] != 1 ||
                 nodes["node-b"] != 1 ? 1 : 0)
         }
-    ' "$production_inventory"
+    ' "$production_inventory" && return 0
+
+    [[ "$inventory_authority" = Caddy/manifests/durable-apprise-action34.tsv ]] || return 1
+    awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
+        /^[[:space:]]*(#|$)/ { next }
+        $1 == source && $2 == target { found++ }
+        END { exit(found == 1 ? 0 : 1) }
+    ' "$repository_root/$inventory_authority"
 }
 
 while IFS=$'\t' read -r lifecycle_source lifecycle_state \
@@ -204,7 +223,8 @@ while IFS=$'\t' read -r lifecycle_source lifecycle_state \
     [[ -n "$lifecycle_source" && "$lifecycle_source" != \#* ]] || continue
     : "$lifecycle_state" "$lifecycle_mode" "$lifecycle_authority"
     [[ "$lifecycle_deployable" == yes ]] || continue
-    validate_node_inventory_pair "$lifecycle_source" "$lifecycle_target" ||
+    validate_node_inventory_pair "$lifecycle_source" "$lifecycle_target" \
+        "$lifecycle_authority" ||
         fail "node_inventory_${lifecycle_source##*/}"
 done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' \
     "$script_registry" "$systemd_registry")

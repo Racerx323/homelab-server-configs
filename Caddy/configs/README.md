@@ -30,7 +30,7 @@ Only `production-current` entries belong in a production-node payload.
 | `lsyncd/caddy-node-b.lua` | `production-current` | `/etc/lsyncd/caddy.lua` on Node B | Guarded emergency B-to-A transport |
 | `munin/caddy-ha` | `deferred` | Future `/etc/munin/plugin-conf.d/caddy-ha` | Monitoring deployment is a separate post-deployment scope |
 | `sysctl/70-caddy-ha.conf` | `production-current` | `/etc/sysctl.d/70-caddy-ha.conf` | Permits binding inactive floating addresses |
-| `tmpfiles.d/caddy-ha.conf` | `production-current` | `/etc/tmpfiles.d/caddy-ha.conf` | Recreates service-owned runtime directories |
+| `tmpfiles.d/caddy-ha.conf` | `production-current` | `/etc/tmpfiles.d/caddy-ha.conf` | Recreates synchronization runtime state and the durable Apprise queue hierarchy |
 | `wsl/.wslconfig` | `workstation` | Windows `%UserProfile%\.wslconfig` | Retained at this path for immutable Actions 26c-26e; never install on an HA node |
 
 ## External ownership

@@ -10,6 +10,10 @@ boot-persistent Caddy and synchronization services. The detailed evidence and
 authorization history remain in
 [`docs/caddy_plan-v1.1.md`](docs/caddy_plan-v1.1.md).
 
+Durable notification queue ownership, retry semantics, and operator commands
+are documented in
+[`docs/APPRISE_DELIVERY.md`](docs/APPRISE_DELIVERY.md).
+
 ## Production architecture
 
 Keepalived's `PIHOLE_DUALSTACK` synchronization group is the single ownership

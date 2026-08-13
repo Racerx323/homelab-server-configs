@@ -3,10 +3,12 @@ Description=Notify for failed Caddy synchronization unit %i
 
 [Service]
 Type=oneshot
+User=pi
+Group=pi
 ExecStart=/usr/local/libexec/lsyncd-sync-failure-notify.sh "systemd unit failed: %i"
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
 UMask=0077
-ReadWritePaths=/run/caddy-ha-notify
+ReadWritePaths=/var/lib/caddy-apprise-queue

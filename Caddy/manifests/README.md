@@ -43,6 +43,7 @@ source that has no single repository file.
 | Lifecycle | Meaning |
 | --- | --- |
 | `production-current` | Current production contract, inventory, or accepted identity |
+| `defined-unexecuted` | Definition validated on the workstation and awaiting exact live authorization |
 | `accepted-executed-definition` | Immutable action definition whose execution was accepted |
 | `failed-consumed` | Immutable executed action that failed closed and was consumed |
 | `superseded` | Unexecuted or older definition replaced by a successor or current contract |
@@ -56,6 +57,8 @@ accepted. `accepted-executed-definition` is reserved for an immutable action
 definition whose accepted execution remains a direct authority for a current
 production identity or terminal acceptance; older accepted evidence may be
 classified `superseded` once a successor owns that boundary.
+`defined-unexecuted` must become an executed disposition after its one live
+attempt; it never asserts that candidate bytes are already installed.
 
 ## Repository boundaries
 

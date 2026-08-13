@@ -6,7 +6,7 @@
 | --- | --- |
 | Phase | Core deployment accepted; post-deployment work |
 | DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
-| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Action 33o returned `0`, restored the exact Action 32g production baseline, completed the Node B controlled-outage and automated-reboot scenarios, removed its exact transaction residue, and closed [the Action 33 plan](33-PLAN.md). Actions 33 through 33o are consumed, immutable, and prohibited from rerun. The next post-deployment gate is repository definition of durable Apprise delivery with bounded retries or a persistent systemd-backed queue; notification delivery remains outside VRRP and service-health decisions |
+| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Actions 33 through 33o are consumed, immutable, and prohibited from rerun. Durable Apprise delivery Action 34 is now defined and workstation-validated without node contact. Its exact outer SHA-256 `6314f883a0f839ea3cb78dc5b3291fdbe86baf861b6f0d895dfa2fe19a6de39e` requires separate authorization before the standby-first live installation; notification delivery remains outside VRRP and service-health decisions |
 | Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; durable Apprise delivery and operator documentation remain required; reliability exercises precede documentation; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
 | Repository runtime-lifecycle correction | Implemented repository-only without contacting either HA node. Current reusable sources now deterministically drain safely ordered protocol-v2 candidates, remove accepted incoming state, reject competing children, and leave divergence quarantine fail closed. Worker scripts emit exact failure reasons while systemd `OnFailure` exclusively owns notification delivery. Managed lsyncd can read its configuration and synchronization roots but can write only `/run/caddy-lsyncd`; the Caddy environment file is mandatory; services have conservative filesystem/process hardening; and the monotonic health timer no longer carries calendar-only `Persistent=` semantics. The typed production inventory covers every installable script and systemd artifact for both nodes and deliberately retains separately typed current-source and last-accepted-deployed hashes. The repository bytes remain distinct from accepted live state. Failed Action 32 is consumed; Action 32a is the corrected separately scoped live installation boundary and still requires exact-hash authorization. Executed artifacts and prior authorization provenance remain unchanged |
 | Caddy runtime-lifecycle installation Action 32 | Definition-only; neither HA node was contacted. The action consumes accepted Actions 28ah, 29k, 30e, and 31 and installs exactly ten changed production artifacts: the certificate worker, protocol-v2 reconciler, synchronization-health worker, five affected synchronization/certificate systemd units, the health timer, and the mandatory Caddy environment drop-in. It creates a deterministic hash-validated payload, stages transport beneath `/tmp`, adopts validation into a protected direct child of `/run`, and records bounded stdout, stderr, statuses, journals, semantic inventory, and rollback evidence beneath node-local and workstation `/tmp`. Node B is fully accepted before Node A changes. Each node must match exact accepted-live hashes, coupled role/VIP ownership, active/enabled services, a safe role-specific outbound inventory, no finalized incoming candidate, and unchanged historical quarantine inventory. The transaction stops only managed lsyncd and reconciliation, installs atomically, reloads systemd, proves five-sample lsyncd stability, invokes certificate/health workers and a no-op reconciliation, rejects new post-cursor transport/quarantine failures, and requires release and VIP ownership unchanged. It never reloads Caddy or Keepalived and performs no publication. Protected backups roll back Node A then Node B; unproven recovery exits `125`. Current production-path host and network-disabled Debian validation passed; the historical suite was not run. Exact outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`. Live execution is not authorized until that exact hash is separately approved |
@@ -28742,11 +28742,12 @@ Current disposition is recorded as `accepted-executed-definition` in the
 manifest lifecycle rather than by rewriting that historical definition.
 
 The Action 33 artifact chain, execution journal, closure metadata, and focused
-profile changes are present in the workstation repository but are not yet
-committed. Before beginning the next activity, review the staged and unstaged
-scope intentionally, commit it, synchronize `main`, and confirm a clean or
-explicitly understood worktree. Preserve every executed action artifact and
-authorization hash unchanged.
+profile changes were intentionally committed and synchronized on `main` at
+`cdd1f248d721e99db4b5eab3235b0476cff54b3a`; `origin/main` resolved to the
+same commit when the next activity began. The corresponding `homelab-dns`
+repository was clean and synchronized at
+`349db30fda323b594d1053213fbd3b84d6b397da`. Every executed Action 33
+artifact and authorization hash remains unchanged.
 
 The next activity is repository-only review and definition of durable Apprise
 delivery. Start from the current synchronous Caddy notifier
@@ -28758,11 +28759,119 @@ failure and reboot without blocking Keepalived, VRRP, Caddy, lsyncd,
 reconciliation, or their health decisions. No HA node contact or live change
 is authorized while reviewing and defining that work.
 
+### Durable Apprise delivery Action 34 definition
+
+The workstation checkpoint was reverified before definition. The
+`homelab-server-configs` repository was clean at commit `cdd1f24` and its
+`main` exactly matched `origin/main`; `homelab-dns` was clean at commit
+`349db30` with the same synchronization relationship. Action 33 remains
+complete through terminal accepted Action 33o. No Action 33 artifact was
+rerun or modified, and neither HA node was contacted.
+
+The synchronous Caddy notifier and backgrounded Keepalived `curl` transport
+have been replaced in repository source by one Caddy-owned durable queue. Both
+producers now perform only bounded validation and atomic local enqueueing. The
+worker exclusively owns delivery to the DNS-independent IP endpoint
+`http://10.1.3.83:8000/notify/apprise`. Notification failure is not a VRRP,
+Caddy, lsyncd, reconciliation, or health input, and the existing ownership
+boundary remains: source workers report events through `OnFailure` or
+Keepalived `notify`; the queue owns transport and retry.
+
+Queue records use `caddy-apprise-queue/v1`, a stable SHA-256 event ID, bounded
+UTF-8 text without control characters or secret-like values, source, host,
+severity, UTC and epoch creation times, retry state, and an exact bounded
+Apprise payload. `pi:pi:0700` persistent directories beneath
+`/var/lib/caddy-apprise-queue` hold pending, inflight, delivered-receipt, and
+dead-letter state; `/run/caddy-apprise` holds only the worker lock and bounded
+response capture. Records are regular `0600` files. Symlinks, unsafe names,
+malformed JSON, schema drift, oversized records, and unsafe content fail
+closed.
+
+`caddy-apprise-worker.path` provides prompt activation and the persistent
+timer supplies reboot recovery and durable retry scheduling. A nonblocking
+exclusive lock makes simultaneous path/timer activation harmless. Eligible
+records are processed oldest first. Retry uses 15-second bounded exponential
+backoff, deterministic 0-10 second jitter, a one-hour maximum interval, and
+eight attempts before dead-letter disposition. Stable five-minute event
+buckets and durable delivery receipts suppress ordinary producer, activation,
+and reboot duplicates. Enqueue, attempt, retry, delivery, crash requeue, and
+dead-letter transitions go to journald without full response content or
+secrets.
+
+Crash behavior is explicit. Before-request interruption leaves the atomic
+pending record untouched. During-request interruption leaves an inflight
+record that the next exclusive worker requeues. A committed delivery receipt
+prevents a later request. If Apprise accepts a request and the node crashes
+before committing the receipt, the worker may retry once after reboot. The
+same event ID is sent as `Idempotency-Key`; exactly-once behavior at that
+distributed ambiguity boundary requires endpoint enforcement of the key, so
+the local contract is accurately classified as at-least-once.
+
+Repository ownership and deployment inputs were reconciled across repositories:
+
+- Caddy owns the enqueue helper, worker, path/timer/service, tmpfiles contract,
+  persistent-queue preservation policy, lifecycle entries, installation and
+  validation mappings, Action 34 transaction, and operator documentation.
+- `homelab-dns` owns `Keepalived/scripts/keepalived-notify.sh` and its runbook.
+  That producer references the installed Caddy enqueue boundary and contains
+  no Apprise endpoint or `curl` transport.
+- The generic uninstaller removes installed programs and units through the
+  lifecycle registries but intentionally does not delete the persistent queue.
+  Queue or dead-letter purge requires explicit destructive authorization.
+
+Action 34 is one standby-first transaction. It captures the Action 32g/33o
+service, VRRP, and exact four-VIP ownership baseline; requires queue absence at
+the first migration boundary; validates every source and baseline hash; and
+installs Node B completely before Node A. Each node creates the protected
+queue hierarchy, installs both bounded producers and the worker subsystem,
+enables the path and timer without enabling the static worker, and retains a
+journal cursor. With automatic activation temporarily stopped, the transaction
+requires the Caddy and Keepalived producers to create exactly two records
+without direct network transport. The real worker executable then processes a
+controlled failed attempt through its bounded retry path and a controlled
+success. A test-only exact record-name allowlist prevents an unrelated real
+notification from entering the mock-delivery path; any unrelated queue entry
+causes acceptance to fail and is preserved through rollback. Activation is
+then enabled and independently accepted. The
+transaction requires empty pending, inflight, and dead-letter state, exact
+permissions, cursor-bounded journald transitions, unchanged service health,
+and unchanged VRRP/VIP ownership. Node evidence remains under
+`/tmp/caddy-action34`; every SSH stdout, stderr, and status remains on the
+workstation under `/tmp/caddy-ssh-evidence/action34`.
+
+Failure rolls back Node A and then Node B. Baseline files and absent-state
+records are protected beneath `/var/backups/caddy-ha`; only the controlled
+Action 34 records and receipts may be removed. Existing queue contents would
+fail the initial migration precondition rather than be discarded. Recovery
+must restore exact prior files, service state, and ownership; unproven
+recovery returns `125`. No Keepalived reload, Caddy reload, VRRP transition,
+or synchronization restart belongs to this transaction.
+
+Neutral regression `Caddy/tests/durable-apprise-queue-regression.sh` covers
+schema and unsafe-input rejection, atomic enqueue, oldest-first order,
+retry/backoff, deduplication, reboot/crash recovery, concurrency locking,
+malformed and maximum-attempt dead-letter handling, restrictive modes,
+systemd hardening, producer transport isolation, the actual remote boundary,
+and retained workstation evidence. Focused host validation passed with
+evidence `/tmp/caddy-focused-validation.aNszzT`. The one required
+network-disabled Debian 12 batch passed with evidence
+`/tmp/caddy-focused-container-evidence.X2oh3B`. Applicable shared policies
+were run; the historical complete suite was not run.
+
+Definition identities are transaction
+`0ebc320a0dcff21764cb86b96a5a78062ea2d7f538bf4da2856724f8239ac5af`,
+neutral regression
+`ae45269cf71776decbcaa120a88f8e2ce35f4db4cdc226bea5a764eed56be0e9`,
+and artifact manifest
+`34742fc158d2ff2d3f1e77a032cb928ffae8af5939114330f04e640aeb00caee`.
+Live execution is not authorized. The exact outer-runner SHA-256 required for
+later authorization is
+`6314f883a0f839ea3cb78dc5b3291fdbe86baf861b6f0d895dfa2fe19a6de39e`.
+
 ### Remaining ordered work
 
-1. Implement durable Apprise delivery with bounded retries or a persistent
-   systemd-backed queue while keeping notification success outside VRRP and
-   service-health decisions.
+1. Execute and accept the defined standby-first durable Apprise Action 34
+   under separate exact SHA-256 authorization.
 2. Create and accept the operator documentation listed below, incorporating
    the reliability exercise and durable-notification behavior.
 3. Update the canonical LikeC4 model and generated views from the accepted

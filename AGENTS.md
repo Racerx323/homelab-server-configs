@@ -164,6 +164,14 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `caddy-validate-reload.path` and `.service` must remain absent. Enforce this
   source contract with
   `Caddy/tests/systemd-boot-persistence-policy.sh --check`.
+- Durable notification acceptance requires
+  `caddy-apprise-worker.path` and `caddy-apprise-worker.timer` enabled and
+  active, while `caddy-apprise-worker.service` remains static. Keepalived and
+  Caddy failure producers may only enqueue bounded local records; they must
+  not own HTTP transport. Notification delivery success is never a VRRP,
+  Caddy, lsyncd, reconciliation, or health acceptance input. Preserve queued
+  and dead-letter records across rollback or uninstall unless an explicitly
+  authorized disposition proves they are transaction-owned.
 - DNS readiness must retain the server, port, name, type, command status, and
   safe answer used by the decision. These may be one structured query record;
   they do not require a separate Boolean label for every field.

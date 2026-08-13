@@ -117,6 +117,8 @@ Caddy/manifests/caddy-ha-reliability-action33l.yaml	failed-consumed	no	Caddy/doc
 Caddy/manifests/caddy-ha-reliability-action33m.yaml	failed-consumed	no	Caddy/docs/33-PLAN.md
 Caddy/manifests/caddy-ha-reliability-action33n.yaml	failed-consumed	no	Caddy/docs/33-PLAN.md
 Caddy/manifests/caddy-ha-reliability-action33o.yaml	accepted-executed-definition	no	Caddy/docs/33-PLAN.md
+Caddy/manifests/durable-apprise-action34.tsv	defined-unexecuted	no	Caddy/docs/caddy_plan-v1.1.md
+Caddy/manifests/durable-apprise-action34.yaml	defined-unexecuted	no	Caddy/docs/caddy_plan-v1.1.md
 Caddy/manifests/script-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/protocol-ipv6-response-path-action26-a.yaml	workstation-only	no	Caddy/docs/caddy_plan-v1.1.md
 Caddy/manifests/protocol-v2-a-to-b-action28.yaml	failed-consumed	no	Caddy/docs/caddy_plan-v1.1.md

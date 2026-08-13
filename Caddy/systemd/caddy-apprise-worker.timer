@@ -1,0 +1,12 @@
+[Unit]
+Description=Retry durable Caddy HA notifications
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=1min
+Persistent=true
+RandomizedDelaySec=10s
+Unit=caddy-apprise-worker.service
+
+[Install]
+WantedBy=timers.target

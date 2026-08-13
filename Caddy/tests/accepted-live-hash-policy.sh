@@ -88,7 +88,7 @@ validate_lifecycle_implementation() {
         /^[[:space:]]*(#|$)/ { next }
         NF != 4 { exit 1 }
         $1 !~ /^Caddy\/manifests\/[A-Za-z0-9._-]+\.(yaml|tsv|md)$/ { exit 1 }
-        $2 !~ /^(production-current|accepted-executed-definition|failed-consumed|superseded|rejected|workstation-only|deferred)$/ { exit 1 }
+        $2 !~ /^(production-current|defined-unexecuted|accepted-executed-definition|failed-consumed|superseded|rejected|workstation-only|deferred)$/ { exit 1 }
         $3 !~ /^(yes|no)$/ { exit 1 }
         $3 == "yes" && $2 != "production-current" { exit 1 }
         $4 !~ /^Caddy\/[A-Za-z0-9._/-]+$/ { exit 1 }

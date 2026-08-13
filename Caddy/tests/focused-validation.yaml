@@ -19,6 +19,54 @@
     "test-lifecycle"
   ],
   "profiles": {
+    "durable-apprise": {
+      "description": "Durable shared Apprise queue, bounded producers, retry worker, systemd activation, and deployment definition.",
+      "path_patterns": [
+        "Caddy/configs/tmpfiles.d/caddy-ha.conf",
+        "Caddy/docs/APPRISE_DELIVERY.md",
+        "Caddy/manifests/durable-apprise-action34.*",
+        "Caddy/manifests/manifest-lifecycle.tsv",
+        "Caddy/manifests/production-artifacts.tsv",
+        "Caddy/manifests/script-lifecycle.tsv",
+        "Caddy/manifests/systemd-lifecycle.tsv",
+        "Caddy/scripts/apply-durable-apprise-action34.sh",
+        "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/scripts/lsyncd-sync-failure-notify.sh",
+        "Caddy/scripts/run-dual-node-durable-apprise-action34-outer.sh",
+        "Caddy/systemd/caddy-apprise-worker.*",
+        "Caddy/systemd/caddy-sync-failure@.service",
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "debian_path_patterns": [
+        "Caddy/configs/tmpfiles.d/caddy-ha.conf",
+        "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/systemd/caddy-apprise-worker.*",
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "shell_files": [
+        "Caddy/scripts/apply-durable-apprise-action34.sh",
+        "Caddy/scripts/caddy-apprise-delivery-worker.sh",
+        "Caddy/scripts/caddy-apprise-enqueue.sh",
+        "Caddy/scripts/lsyncd-sync-failure-notify.sh",
+        "Caddy/scripts/run-dual-node-durable-apprise-action34-outer.sh",
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "host_tests": [
+        "Caddy/tests/durable-apprise-queue-regression.sh",
+        "Caddy/tests/deployment-lifecycle-regression.sh"
+      ],
+      "debian_tests": [
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "policies": [
+        "selected-shell",
+        "accepted-live-hashes",
+        "remote-cwd",
+        "ssh-evidence",
+        "deployment-lifecycle",
+        "test-lifecycle"
+      ]
+    },
     "action33-reliability": {
       "description": "Neutral production contracts supporting the completed dual-node protocol, outage, reboot, continuity, and recovery exercise.",
       "path_patterns": [

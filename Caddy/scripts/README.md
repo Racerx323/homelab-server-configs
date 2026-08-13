@@ -34,3 +34,9 @@ Run the focused lifecycle checks from the repository root:
 Caddy/tests/deployment-lifecycle-policy.sh --check
 Caddy/tests/deployment-lifecycle-regression.sh
 ```
+
+The current notification programs are `caddy-apprise-enqueue.sh` and
+`caddy-apprise-delivery-worker.sh`. Producers use only the enqueue helper; the
+worker exclusively owns the IP-based HTTP transport, retry schedule,
+deduplication receipts, and dead-letter disposition. See
+[`../docs/APPRISE_DELIVERY.md`](../docs/APPRISE_DELIVERY.md).

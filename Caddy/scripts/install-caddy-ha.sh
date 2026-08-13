@@ -331,6 +331,12 @@ if selected directories; then
         0750 caddy-sync caddy-sync
     ensure_directory "$(root_path /var/lib/caddy-sync/.ssh)" \
         0700 caddy-sync caddy-sync
+    ensure_directory "$(root_path /var/lib/caddy-apprise-queue)" \
+        0700 pi pi
+    for queue_directory in pending inflight dead-letter delivered; do
+        ensure_directory "$(root_path /var/lib/caddy-apprise-queue/$queue_directory)" \
+            0700 pi pi
+    done
 fi
 
 if selected caddy; then
