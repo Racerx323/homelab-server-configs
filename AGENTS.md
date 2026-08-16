@@ -19,6 +19,28 @@ executed deployment archive.
   authorized successor. Repository cleanup and current-contract maintenance do
   not create deployment actions.
 
+## Active deployment windows
+
+- `deployment-streams.tsv` is the repository-wide deployment-window registry.
+  Every deployment stream must be registered there, even when its state is
+  `clean`.
+- A stream may be `clean`, have exactly one `defined` successor, or be
+  `terminal-pending` while an accepted or failed-consumed action awaits its
+  archive tag. Never carry two pending actions in one stream.
+- A terminal-result commit retains the executed action files, records the
+  planned annotated tag in the stream history, clears the deployable-successor
+  registry, and sets the stream to `terminal-pending`.
+- Create and push the annotated tag for that exact terminal-result commit.
+  Immediately follow it with a cleanup commit that removes the consumed
+  runner, transaction, action manifest, action coverage, action regression,
+  fixtures, and retained repository evidence, then sets the stream to `clean`.
+- Action-numbered implementation files are allowed only for the action named by
+  a `defined` or `terminal-pending` stream. Current validation profiles and
+  neutral tests must never invoke them.
+- The neutral repository policy
+  `Caddy/tests/deployment-window-policy.sh --check` enforces these rules for
+  every registered stream. Do not add component-specific exceptions.
+
 ## Authorization cadence
 
 - Workstation edits, definitions, focused tests, formatters, and policy checks
@@ -104,6 +126,18 @@ absent, exact, partial, extra, malformed, unsafe-metadata, symlink, and node-rol
 states when they affect the action. Emitted labels without entrypoint execution
 do not prove coverage.
 
+Production-path tests may create isolated input state and bounded substitutes
+for unavailable external systems. They must not pre-write, copy, or print an
+expected result as though the real producer, helper, outer runner, or
+transaction created it. This prohibition includes fabricated command,
+transport, journal, status, mutation, rollback, and acceptance evidence.
+Substitutes must receive the exact command emitted by the real entrypoint and
+record observable calls and filesystem effects for assertions. A success label
+is only a summary emitted after those actual effects have been independently
+validated; labels and fixture-authored result files are never evidence by
+themselves. Authorization readiness must fail when a production result can be
+obtained without executing the registered outer and transaction paths.
+
 ## Shell rules
 
 - Invoke Bash scripts with `/bin/bash`; do not rely on an executable bit as
@@ -156,8 +190,9 @@ do not prove coverage.
   certificate timer failures do not change VRRP ownership.
 - Keep probes within their Keepalived timeout and validate exact IPv4 and IPv6
   paths.
-- Action 35 owns the pending serving-health migration. The generic installer
-  must not deploy it.
+- Action 35 is failed-consumed. Corrected Action 35a owns the next
+  serving-health migration after the Action 35 terminal archive and cleanup.
+  The generic installer must not deploy it.
 
 ## Synchronization contract
 

@@ -2,9 +2,16 @@
 
 ## Status
 
-Repository implementation and Action 35 definition are complete. Live
-execution remains separately authorization-gated. This work changed no node
-state.
+Action 35 was authorized and its outer runner was invoked, but it failed on the
+workstation before SSH or mutation because its evidence parent directory did
+not exist. No node state changed. Action 35 is failed-consumed and must not be
+rerun or modified.
+
+The audit after that failure also rejected Action 35's production-path tests:
+they fabricated expected evidence and success markers instead of executing the
+real outer and transaction state machines. Synthetic production results are
+prohibited. Action 35a is the corrected installation successor and must be
+defined and validated before another live authorization is requested.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -372,10 +379,10 @@ On failure, restore Node A and then Node B in reverse mutation order, reload
 Keepalived sequentially, and prove the exact accepted Action 34m state. Return
 status `125` only when mutation occurred and recovery cannot be proven.
 
-## Action 35a: controlled serving-failure exercise
+## Action 35b: controlled serving-failure exercise
 
-Action 35a is separately authorized only after Action 35 is accepted. It does
-not reinstall Action 35 and does not create production fixtures. It exercises
+Action 35b is separately authorized only after Action 35a is accepted. It does
+not reinstall Action 35a and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure
@@ -441,9 +448,31 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 - Stop immediately with status `125` if service restoration, VIP convergence,
   or exact cleanup cannot be proven.
 
+## Corrected-successor validation ratchet
+
+The corrected installation successor must preserve Action 35 unchanged and
+replace its invalid validation boundary. Its no-network tests may construct
+isolated input state and controlled external-command substitutes, but they must
+execute the actual registered outer runner and transaction entrypoints.
+
+The tests must derive results from observable calls and filesystem effects.
+They must not pre-create expected upload events, remote commands, statuses,
+mutation counts, journal evidence, rollback evidence, or success results. A
+summary label is permitted only after independent assertions prove that the
+real entrypoint produced the underlying evidence.
+
+The outer path must exercise real payload construction, evidence-parent
+creation, remote-path generation, upload preparation and disposition, exact
+remote command construction, transaction dispatch, cleanup, and the
+pre-mutation failure trap. The transaction path must exercise its actual
+baseline, parser, identity, ordering, mutation-boundary, convergence,
+acceptance, rollback, and residue branches against isolated current-production
+state. Authorization readiness must fail if either registered path can report
+success without those paths running.
+
 ## Final acceptance
 
-Action 35a closes the plan only when:
+The controlled failure exercise closes the plan only when:
 
 - Every DNS and Caddy serving-path failure produces the expected bounded
   failover behavior.
@@ -461,6 +490,6 @@ Action 35a closes the plan only when:
 - Production inventories and the governing plan are updated from accepted live
   evidence, and the deployable-successor registry returns to `none`.
 
-No separate diagnostic or read-only post-action is planned. Action 35 embeds
-its complete installation acceptance; Action 35a embeds recovery and final
+No separate diagnostic or read-only post-action is planned. Action 35a embeds
+its complete installation acceptance; Action 35b embeds recovery and final
 acceptance for every controlled failure.

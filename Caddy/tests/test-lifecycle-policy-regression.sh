@@ -36,6 +36,19 @@ if CADDY_TEST_LIFECYCLE_REGISTRY=$wrong_lifecycle /bin/bash "$policy" --check >/
     exit 1
 fi
 
+action_current=$fixture_root/action-current.tsv
+awk -F '\t' 'BEGIN { OFS = FS }
+    $1 == "Caddy/tests/coupled-serving-health-deployment-regression.sh" {
+        $2 = "production-current"; $3 = "current-focused"
+    }
+    { print }
+' "$registry" >"$action_current"
+if CADDY_TEST_LIFECYCLE_REGISTRY=$action_current /bin/bash "$policy" --check >/dev/null 2>&1; then
+    printf '%s_action_current_rejected=false\n' "$prefix" >&2
+    exit 1
+fi
+
 printf '%s_missing_entry_rejected=true\n' "$prefix"
 printf '%s_noncurrent_lifecycle_rejected=true\n' "$prefix"
+printf '%s_action_current_rejected=true\n' "$prefix"
 printf '%s_complete=true\n' "$prefix"

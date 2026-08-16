@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35 awaits live authorization
+Current status: core deployment accepted; Action 35 failed pre-mutation and is consumed
 
 ## 1. Purpose
 
@@ -316,15 +316,17 @@ uses cleanup only.
 | Runtime lifecycle, Action 32g | Accepted production baseline | pre-cleanup tag |
 | Reliability exercise, Action 33o | Accepted and complete | pre-cleanup tag |
 | Durable Apprise, Action 34m | Accepted | pre-cleanup tag |
-| Serving-health coupling, Action 35 | Defined, unexecuted | current branch |
+| Serving-health coupling, Action 35 | Failed-consumed before SSH or mutation | current branch |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35 is the next live gate. It installs the serving-health correction
-standby first.
+The next gate is corrected append-only serving-health installation Action 35a.
+Action 35 must not be rerun or modified. Action 35a installs the serving-health
+correction standby first. The controlled serving-failure exercise is Action
+35b and remains separately gated until Action 35a is accepted.
 
 The transaction must:
 
@@ -341,6 +343,14 @@ The transaction must:
 
 The generic installer must not perform this migration. Live execution requires
 authorization of the refreshed outer-runner SHA-256 after repository validation.
+
+Production-path validation must execute the registered outer and transaction
+state machines and assert their actual calls and filesystem effects. Tests may
+create isolated inputs and bounded external-command substitutes, but they must
+never fabricate command, transport, status, mutation, acceptance, rollback, or
+journal results. Emitted success markers and fixture-authored result files are
+not evidence. Authorization readiness must reject any successor that can report
+success without executing both registered production paths.
 
 ## 18. Pending work
 

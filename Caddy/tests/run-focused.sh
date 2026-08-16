@@ -343,6 +343,9 @@ run_policy() {
         deployment-lifecycle)
             /bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check
             ;;
+        deployment-window)
+            /bin/bash "$test_directory/deployment-window-policy.sh" --check
+            ;;
         deployable-successor)
             /bin/bash "$test_directory/deployable-successor-policy.sh" --check
             ;;

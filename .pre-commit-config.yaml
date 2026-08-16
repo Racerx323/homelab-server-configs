@@ -38,6 +38,13 @@ repos:
         pass_filenames: false
         files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
+      - id: deployment-window-policy
+        name: Enforce repository deployment windows
+        entry: /bin/bash Caddy/tests/deployment-window-policy.sh --check
+        language: system
+        pass_filenames: false
+        files: ^(?:Caddy/|deployment-streams\.tsv$|DEPLOYMENT_LIFECYCLE\.md$|AGENTS\.md$|\.pre-commit-config\.yaml$)
+
       - id: systemd-boot-persistence-policy
         name: Validate Caddy systemd boot persistence contract
         entry: Caddy/tests/systemd-boot-persistence-policy.sh --check

@@ -10,6 +10,7 @@
     "systemd-boot",
     "template-lifecycle",
     "deployment-lifecycle",
+    "deployment-window",
     "deployable-successor",
     "environment-v2",
     "test-lifecycle"
@@ -130,11 +131,8 @@
         "Caddy/scripts/caddy-apprise-*.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
-        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
-        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
         "Caddy/systemd/caddy-pihole-web-health.*",
-        "Caddy/tests/serving-health-regression.sh",
-        "Caddy/tests/coupled-serving-health-deployment-regression.sh"
+        "Caddy/tests/serving-health-regression.sh"
       ],
       "debian_path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
@@ -142,30 +140,22 @@
         "Caddy/scripts/caddy-apprise-*.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
-        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
-        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
         "Caddy/systemd/caddy-pihole-web-health.*",
-        "Caddy/tests/serving-health-regression.sh",
-        "Caddy/tests/coupled-serving-health-deployment-regression.sh"
+        "Caddy/tests/serving-health-regression.sh"
       ],
       "shell_files": [
         "Caddy/scripts/caddy-apprise-delivery-worker.sh",
         "Caddy/scripts/caddy-apprise-enqueue.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
-        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
-        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
-        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
         "Caddy/tests/serving-health-regression.sh"
       ],
       "host_tests": [
         "Caddy/tests/serving-health-regression.sh",
-        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/serving-health-regression.sh",
-        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "policies": [
@@ -289,6 +279,8 @@
       "path_patterns": [
         ".pre-commit-config.yaml",
         "AGENTS.md",
+        "DEPLOYMENT_LIFECYCLE.md",
+        "deployment-streams.tsv",
         "Caddy/README.md",
         "Caddy/configs/README.md",
         "Caddy/manifests/README.md",
@@ -313,6 +305,7 @@
         "Caddy/systemd/*",
         "Caddy/templates/*",
         "Caddy/tests/deployment-lifecycle-*.sh",
+        "Caddy/tests/deployment-window-policy*.sh",
         "Caddy/tests/template-lifecycle-*.sh",
         "Caddy/tests/accepted-live-hash-policy*.sh",
         "Caddy/tests/caddy-environment-v2-*.sh",
@@ -337,6 +330,8 @@
         "Caddy/scripts/validate-caddy-ha.sh",
         "Caddy/tests/deployment-lifecycle-policy.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
+        "Caddy/tests/deployment-window-policy.sh",
+        "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/caddy-environment-v2-policy.sh",
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/conditional-validator-errexit-policy-regression.sh",
@@ -351,12 +346,14 @@
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
+        "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/template-lifecycle-regression.sh",
         "Caddy/tests/test-lifecycle-policy-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
+        "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/template-lifecycle-regression.sh"
       ],
       "policies": [
@@ -364,6 +361,7 @@
         "conditional-validator",
         "executable-modes",
         "deployment-lifecycle",
+        "deployment-window",
         "template-lifecycle",
         "environment-v2",
         "test-lifecycle"

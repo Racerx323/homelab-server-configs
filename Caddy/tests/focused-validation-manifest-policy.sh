@@ -71,6 +71,7 @@ schema_valid() {
                 . == "systemd-boot" or
                 . == "template-lifecycle" or
                 . == "deployment-lifecycle" or
+                . == "deployment-window" or
                 . == "deployable-successor" or
                 . == "environment-v2" or
                 . == "test-lifecycle"))

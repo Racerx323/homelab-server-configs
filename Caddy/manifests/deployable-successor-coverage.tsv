@@ -1,13 +1,1 @@
 scenario	phase	entrypoint	expectation	marker
-outer-dispatch	pre-mutation	outer	reach	production_path_outer_dispatch_entry
-outer-payload	pre-mutation	outer	reach	production_path_outer_payload_constructed
-outer-remote-command	pre-mutation	outer	reach	production_path_outer_remote_command_constructed
-transaction-unsafe-payload	pre-mutation	transaction	reject	production_path_unsafe_payload_rejected
-transaction-dispatch	accepted-path	transaction	reach	production_path_dispatch_entry
-transaction-payload	accepted-path	transaction	reach	production_path_payload_validation_reached
-transaction-baseline	accepted-path	transaction	reach	production_path_baseline_current
-transaction-node-order	accepted-path	transaction	reach	production_path_node_b_before_node_a
-transaction-health	accepted-path	transaction	reach	production_path_serving_health_accepted
-transaction-backend-independent	accepted-path	transaction	reach	production_path_backend_vrrp_independent
-transaction-mutation	accepted-path	transaction	reach	production_path_mutation_boundary_reached
-transaction-rollback	accepted-path	transaction	reach	production_path_reverse_rollback

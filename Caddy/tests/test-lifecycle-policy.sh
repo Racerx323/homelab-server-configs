@@ -32,8 +32,10 @@ registry_schema_valid() {
         NR == 1 { next }
         NF != 4 { invalid = 1; exit }
         $1 !~ /^Caddy\/tests\/[A-Za-z0-9._\/-]+$/ { invalid = 1; exit }
-        $2 != "production-current" { invalid = 1; exit }
-        $3 !~ /^(current-focused|support)$/ { invalid = 1; exit }
+        $2 !~ /^(production-current|terminal-pending)$/ { invalid = 1; exit }
+        $3 !~ /^(current-focused|support|archive-only)$/ { invalid = 1; exit }
+        $2 == "production-current" && $3 == "archive-only" { invalid = 1; exit }
+        $2 == "terminal-pending" && $3 != "archive-only" { invalid = 1; exit }
         $4 == "" { invalid = 1; exit }
         seen[$1]++ { invalid = 1; exit }
         END { exit invalid || NR <= 1 }
@@ -56,7 +58,9 @@ classification_valid() {
     # conditional-validator-explicit-failures-begin
     awk -F '\t' '
         NR == 1 { next }
-        $1 ~ /(^|\/)action[0-9]/ { exit 1 }
+        $1 ~ /(^|\/)[^\/]*action[0-9]/ && $2 != "terminal-pending" { exit 1 }
+        $2 == "terminal-pending" && $4 !~ /^action[0-9]+[a-z0-9-]*-terminal-archive$/ { exit 1 }
+        $4 ~ /^action[0-9]+[a-z0-9-]*-terminal-archive$/ && $2 != "terminal-pending" { exit 1 }
     ' "$registry" || return 1
     # conditional-validator-explicit-failures-end
 }
