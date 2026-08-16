@@ -7,9 +7,10 @@ finalizer, reconciler, health helpers, durable notification programs, and
 certificate checks. The renderer, installer, validator, and uninstaller are
 repository tools.
 
-Action 35 is the only approved future transaction in this directory. Its
-transaction and outer runner remain noninstallable until live authorization.
-The generic installer cannot deploy Action 35.
+No action-specific transaction is retained after its terminal archive. The
+next successor is added only while its deployment window is `defined`. The
+generic installer cannot perform a migration of an existing production
+deployment.
 
 Run:
 

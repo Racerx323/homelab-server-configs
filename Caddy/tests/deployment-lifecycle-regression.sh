@@ -85,7 +85,7 @@ cp -- \
     "$caddy_root/manifests/synchronization-protocol-v2.yaml" \
     "$negative_root/Caddy/manifests/"
 sed -i \
-    's|Caddy/scripts/apply-coupled-serving-health-action35.sh\tfuture-task\tno\t-\t-|Caddy/scripts/apply-coupled-serving-health-action35.sh\tproduction-current\tyes\t/usr/local/libexec/unsafe-action35\t0755|' \
+    's|Caddy/scripts/render-node-config.sh\tproduction-current\tno\t-\t-|Caddy/scripts/render-node-config.sh\tproduction-current\tyes\t/usr/local/libexec/unsafe-renderer\t0755|' \
     "$negative_root/Caddy/manifests/script-lifecycle.tsv"
 negative_status=0
 /bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \

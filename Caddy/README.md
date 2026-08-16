@@ -24,12 +24,12 @@ action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 | Path | Contents |
 | --- | --- |
 | `configs/` | Deployable Caddy, lighttpd, lsyncd, sysctl, and tmpfiles state |
-| `manifests/` | Current contracts, accepted identities, and Action 35 |
-| `scripts/` | Current runtime tools, repository tools, and Action 35 |
+| `manifests/` | Current contracts, accepted identities, and successor registries |
+| `scripts/` | Current runtime and repository tools |
 | `systemd/` | Current installable units and drop-ins |
 | `templates/` | Two production templates and one approved future example |
 | `tests/` | Neutral current-production validation |
-| `docs/` | Governing plan, Action 35 plan, and durable notification runbook |
+| `docs/` | Governing plan, serving-health plan, and durable notification runbook |
 
 The `homelab-dns` repository owns Keepalived, Pi-hole, and Unbound sources.
 The `homelab-network` repository owns network-controller configuration.
@@ -44,9 +44,9 @@ unauthorized candidates.
 ## Services
 
 Both nodes run Caddy, managed lsyncd, reconciliation, certificate checks,
-synchronization health checks, and durable Apprise delivery. Action 35 adds
-Caddy serving health to VRRP and keeps Pi-hole/lighttpd backend health as a
-notification-only timer.
+synchronization health checks, and durable Apprise delivery. Planned Action
+35a adds Caddy serving health to VRRP and keeps Pi-hole/lighttpd backend health
+as a notification-only timer.
 
 ## Validation
 

@@ -65,7 +65,7 @@ record_check explain_manifest_host diff -u \
     <(grep -E $'^host_test\t' "$explain_output") || exit 1
 
 record_check action_selection_removed command_rejected 64 \
-    /bin/bash "$runner" --action action35 --explain || exit 1
+    /bin/bash "$runner" --action legacy --explain || exit 1
 record_check unknown_profile_rejected command_rejected 64 \
     /bin/bash "$runner" --profile not-a-profile --explain || exit 1
 
@@ -77,7 +77,7 @@ record_check unknown_policy_rejected command_rejected 1 env \
     /bin/bash "$policy" --check || exit 1
 
 action_test_manifest=$work_root/action-test.yaml
-jq '.profiles["current-synchronization"].host_tests += ["Caddy/tests/action35-regression.sh"]' \
+jq '.profiles["current-synchronization"].host_tests += ["Caddy/tests/legacy-action-regression.sh"]' \
     "$manifest" >"$action_test_manifest"
 record_check action_test_rejected command_rejected 1 env \
     CADDY_FOCUSED_VALIDATION_MANIFEST="$action_test_manifest" \

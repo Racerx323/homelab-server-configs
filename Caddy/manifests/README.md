@@ -13,13 +13,13 @@ future transaction.
 | `dns-records.yaml` | Application DNS contract |
 | `synchronization-protocol-v2.yaml` | Release transport and reconciliation |
 | `durable-apprise-production.tsv` | Notification queue installation contract |
-| `serving-health-production.tsv` | Action 35 candidate artifacts |
-| `coupled-serving-health-action35.yaml` | Defined, unexecuted Action 35 |
+| `serving-health-production.tsv` | Current serving-health candidate artifacts |
 | `deployable-successor.tsv` | Single live successor registry |
 | `deployable-successor-coverage.tsv` | Outer and transaction coverage matrix |
 
 Lifecycle registries classify the complete manifests, scripts, systemd units,
-and templates. The main branch contains no executed action definitions.
+and templates. The main branch contains no executed action definitions; exact
+consumed definitions are retained by the annotated tags in `Caddy/HISTORY.md`.
 
 Keepalived, Pi-hole, and Unbound paths use the `homelab-dns` repository
 identity. Caddy paths use `homelab-server-configs`.

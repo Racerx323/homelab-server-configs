@@ -66,7 +66,7 @@ Caddy health covers:
 - node-specific address binding and hostname handling;
 - completion within the Keepalived script timeout.
 
-Action 35 sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
+Action 35a sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
 Six seconds of sustained serving failure can trigger failover.
 
 Pi-hole/lighttpd web-backend health remains notification-only. A backend
@@ -228,7 +228,7 @@ Enabled and active:
 - `caddy-sync-health.timer`;
 - `caddy-apprise-worker.path`;
 - `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer` after Action 35.
+- `caddy-pihole-web-health.timer` after Action 35a.
 
 Static workers:
 
@@ -354,7 +354,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35:
+After Action 35a:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;
@@ -374,7 +374,8 @@ git status --short
 Caddy/tests/run-focused.sh --profile current-serving-health
 Caddy/tests/run-focused-container.sh --profiles current-serving-health
 Caddy/tests/deployable-successor-policy.sh --authorization-ready
-sha256sum Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh
+sha256sum "$(awk -F '\t' 'NR == 2 { print $6 }' \
+  Caddy/manifests/deployable-successor.tsv)"
 ```
 
 Stop after definition and hash reporting. Execute only after the user authorizes

@@ -38,9 +38,7 @@ fi
 
 action_current=$fixture_root/action-current.tsv
 awk -F '\t' 'BEGIN { OFS = FS }
-    $1 == "Caddy/tests/coupled-serving-health-deployment-regression.sh" {
-        $2 = "production-current"; $3 = "current-focused"
-    }
+    NR == 2 { $4 = "action999-terminal-archive" }
     { print }
 ' "$registry" >"$action_current"
 if CADDY_TEST_LIFECYCLE_REGISTRY=$action_current /bin/bash "$policy" --check >/dev/null 2>&1; then

@@ -17,11 +17,14 @@ historical tests, workstation experiments, and the former full deployment
 journal. Do not restore archived files to the current branch unless an operator
 requests a historical reconstruction.
 
-## Pending terminal archive
+## Action 35 terminal archive
 
 - Tag: `caddy-action35-terminal-2026-08-16`
+- Commit: `b20e834f481944ea3eb5b9d945c256fd8d4fb96f`
+- Tag object: `afef8b98bcac6781f9a408adb0ceb0e614c72fa6`
 - Action: 35
 - Result: failed-consumed before SSH or live mutation
-- Status: terminal-pending; create the annotated tag from the terminal-result
-  commit before removing the Action 35 runner, transaction, manifest, and
-  regression from the main branch
+- Scope: exact authorized runner, transaction, manifest, regression, failed
+  workstation result, and repository-wide deployment-window framework
+- Remote state: terminal tag, terminal commit, and immediate cleanup commit are
+  synchronized as one clean-as-you-go checkpoint

@@ -288,18 +288,14 @@ Repository work requires no live authorization. It must:
 8. Run current focused host validation and one network-disabled Debian 12
    focused batch.
 
-The repository gate stops after reporting the exact future Action 35 outer
-SHA-256. No node contact occurs during definition.
+The repository gate stops after reporting the exact future Action 35a outer
+SHA-256. No node contact occurs during definition. The consumed Action 35 gate
+is not reusable: its tests were invalidated because they fabricated production
+results, and its execution failed before SSH or mutation. Its exact files and
+authorization provenance are retained by the terminal tag recorded in
+`Caddy/HISTORY.md`.
 
-Repository gate accepted on 2026-08-16. The current host profile passed with
-evidence at `/tmp/caddy-focused-validation.7CPRpH`; the single
-network-disabled Debian 12 batch passed with host-retained evidence at
-`/tmp/caddy-focused-container-evidence.fWtA8E`. Authorization readiness passed
-for the populated Action 35 successor registry. Exact outer-runner SHA-256:
-`4d99351b9254c6c0e8d505fe7367e0da339aadd58a441d5f9e75561cfe853121`.
-Live execution remains unauthorized.
-
-## Action 35: standby-first installation transaction
+## Action 35a: standby-first installation transaction
 
 Live execution requires separate authorization of the definition-complete
 outer runner. One transaction must install and accept the corrected health
@@ -355,12 +351,12 @@ Node A must not be mutated unless Node B is fully eligible to take ownership.
    four VIPs and Node B stable dual-stack `BACKUP` with zero VIPs.
 
 The generic `install-caddy-ha.sh` Caddy component is prohibited during this
-live migration. Action 35 must regression-test that the generic installer
+live migration. Action 35a must regression-test that the generic installer
 fails closed when `/etc/caddy/current` exists. Rollback restores both original
 release selections through the transactional release boundary before restoring
 the remaining files in reverse node order.
 
-### Action 35 acceptance
+### Action 35a acceptance
 
 - Both production helpers and Keepalived configurations match exact candidate
   identities, owners, groups, and modes.
@@ -434,9 +430,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35a`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35a` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback

@@ -124,7 +124,6 @@
         "Caddy/docs/35-PLAN.md",
         "Caddy/manifests/deployment.yaml",
         "Caddy/manifests/serving-health-production.tsv",
-        "Caddy/manifests/coupled-serving-health-action35.yaml",
         "Caddy/manifests/deployable-successor*.tsv",
         "Caddy/manifests/script-lifecycle.tsv",
         "Caddy/manifests/systemd-lifecycle.tsv",
