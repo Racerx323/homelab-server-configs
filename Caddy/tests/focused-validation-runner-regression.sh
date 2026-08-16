@@ -11,8 +11,10 @@ readonly prefix=focused_validation_runner_regression
 test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
 readonly manifest=$test_directory/focused-validation.yaml
+readonly historical_manifest=$test_directory/historical-actions.yaml
 readonly runner=$test_directory/run-focused.sh
 readonly policy=$test_directory/focused-validation-manifest-policy.sh
+readonly historical_policy=$test_directory/historical-action-index-policy.sh
 readonly container_wrapper=$test_directory/run-focused-container.sh
 
 record_check() {
@@ -66,6 +68,7 @@ cleanup() { rm -rf -- "$work_root"; }
 trap cleanup EXIT INT TERM
 
 record_check manifest_policy /bin/bash "$policy" --check || exit 1
+record_check historical_policy /bin/bash "$historical_policy" --check || exit 1
 
 list_output=$work_root/list.out
 /bin/bash "$runner" --list >"$list_output"
@@ -73,7 +76,7 @@ record_check list_profile grep -Fqx $'profile\tcurrent-synchronization' "$list_o
 record_check list_historical_action grep -Fqx $'action\taction20d-c\thistorical-preserved' "$list_output" || exit 1
 accepted_action_line=$(jq -r \
     'first(.actions[] | select(.lifecycle == "accepted-executed") | "action\t\(.id)\t\(.lifecycle)") // empty' \
-    "$manifest")
+    "$historical_manifest")
 record_check list_accepted_action test -n "$accepted_action_line" || exit 1
 record_check list_accepted_action_manifest_derived grep -Fqx \
     "$accepted_action_line" "$list_output" || exit 1
@@ -111,17 +114,27 @@ record_check documentation_skips_debian profile_pattern_absent \
     current-repository-policies debian_path_patterns Caddy/docs/caddy_plan-v1.1.md || exit 1
 
 duplicate_manifest=$work_root/duplicate.yaml
-jq '.actions += [.actions[0]]' "$manifest" >"$duplicate_manifest"
-record_check duplicate_action_rejected manifest_rejected "$duplicate_manifest" || exit 1
+jq '.actions += [.actions[0]]' "$historical_manifest" >"$duplicate_manifest"
+record_check duplicate_action_rejected command_rejected 1 env \
+    CADDY_HISTORICAL_ACTION_MANIFEST="$duplicate_manifest" \
+    /bin/bash "$historical_policy" --check || exit 1
 
 missing_manifest=$work_root/missing.yaml
-jq '.actions = .actions[1:]' "$manifest" >"$missing_manifest"
-record_check missing_action_rejected manifest_rejected "$missing_manifest" || exit 1
+jq '.actions = .actions[1:]' "$historical_manifest" >"$missing_manifest"
+record_check missing_action_rejected command_rejected 1 env \
+    CADDY_HISTORICAL_ACTION_MANIFEST="$missing_manifest" \
+    /bin/bash "$historical_policy" --check || exit 1
 
 unknown_policy_manifest=$work_root/unknown-policy.yaml
 jq '.profiles["current-synchronization"].policies += ["arbitrary-command"]' \
     "$manifest" >"$unknown_policy_manifest"
 record_check unknown_policy_rejected manifest_rejected "$unknown_policy_manifest" || exit 1
+
+embedded_action_manifest=$work_root/embedded-action.yaml
+jq '.profiles["current-repository-policies"].host_tests += ["Caddy/tests/durable-apprise-action34j-regression.sh"]' \
+    "$manifest" >"$embedded_action_manifest"
+record_check embedded_action_test_rejected manifest_rejected \
+    "$embedded_action_manifest" || exit 1
 
 hash_manifest=$work_root/hash.yaml
 jq '.profiles["current-synchronization"].description = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"' \
@@ -187,7 +200,7 @@ record_check container_evidence_environment grep -Fq -- \
 record_check parent_evidence_directory_distinct grep -Fq -- \
     'container_evidence_root=$evidence_root/debian-evidence' "$runner" || exit 1
 record_check historical_default_false jq -e \
-    '.historical_suite.default_selected == false' "$manifest" || exit 1
+    '.historical_suite.default_selected == false' "$historical_manifest" || exit 1
 record_check manifest_has_no_commands test \
     "$(jq '[.. | objects | select(has("command"))] | length' "$manifest")" -eq 0 || exit 1
 

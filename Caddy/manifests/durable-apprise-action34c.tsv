@@ -1,0 +1,10 @@
+# source-path	installed-path	mode	baseline-sha256	candidate-sha256
+Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	absent	0d57d64e4bf2bbcda69488b276578e7e51f421f781e08bc429424506282314ad
+Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	absent	da34364d8a801a7c81ddfccbe6266b6c050e98504c4c302d37733e55009bf1b9
+Caddy/scripts/lsyncd-sync-failure-notify.sh	/usr/local/libexec/lsyncd-sync-failure-notify.sh	0755	cf59ceab47ae48e2793205c90cf39fccec236d21b1d55e39821560899dc83cd6	6c7ee11509246719658f7f377c976d5a3eb8ae9495b74086c13bbda01e0d37d4
+Caddy/systemd/caddy-apprise-worker.service	/etc/systemd/system/caddy-apprise-worker.service	0644	absent	7c8ba4a0ed41d817635ecccfe7d619a280fec3df14aaa0e0fe5163ea3e239b76
+Caddy/systemd/caddy-apprise-worker.path	/etc/systemd/system/caddy-apprise-worker.path	0644	absent	e14d0dc2775438b0efa660a87922304407d7901a4edd4a5c96b4e7d5b2576fd4
+Caddy/systemd/caddy-apprise-worker.timer	/etc/systemd/system/caddy-apprise-worker.timer	0644	absent	f303b756a085433983eb26686dd86fbe49bc16df93473dbd3e29f4f4e9f3fa51
+Caddy/systemd/caddy-sync-failure@.service	/etc/systemd/system/caddy-sync-failure@.service	0644	28ca79621befe618976a4df129abf399dca58b6c58a3ee14d689dad308a5bdde	ee964a2751025a504058671b4a1843b1d52c891b51631aae6df90c9326b40110
+Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	9d36d8b3e6a872bed9a435f569b543db8517e6ee79c2aa089583b8ca3dac6bc2	8fea97566f16f3656740a7b978cd5c4adc9432bcab3c94b5baad5bbf568d9e35
+homelab-dns/Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	0a2898c08d64e126f393bc17529e33f9e5890bebdbbfc9bccbfd0ec84a09afe6	4008bb94e0d8de04295f5b9669f69efbb12340c024a944e52adb59d673dd1bdb

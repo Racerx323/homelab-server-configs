@@ -22,7 +22,11 @@ its current repository disposition without changing historical bytes.
 | `dependencies.yaml` | Runtime and validation dependency inventory |
 | `accepted-live-artifacts.tsv` | Canonical deployed identities by node and accepting action |
 | `production-artifacts.tsv` | Typed mapping from repository source to installed artifact and deployed identity |
+| `current-live-state.tsv` | Canonical semantic input state for the next deployable successor; updated only from accepted execution or proven recovery evidence |
+| `deployable-successor.tsv` | Single typed pointer to the currently deployable successor, or an explicit `none` state |
+| `deployable-successor-coverage.tsv` | Required full-entrypoint state matrix and emitted acceptance markers for that successor |
 | `deployable-live-hash-consumers.tsv` | Still-deployable shell consumers of accepted-live identities |
+| `durable-apprise-production.tsv` | Neutral current source-to-install contract for durable notification artifacts; never derives current status from a failed action manifest |
 | `template-lifecycle.tsv` | Canonical lifecycle of files beneath `Caddy/templates/` |
 | `script-lifecycle.tsv` | Complete script classification and exact node-installable executable mapping |
 | `systemd-lifecycle.tsv` | Complete systemd classification and exact node-installable unit mapping |
@@ -72,11 +76,25 @@ Run the governing structural check from the server repository root:
 ```bash
 Caddy/tests/accepted-live-hash-policy.sh --check
 Caddy/tests/deployment-lifecycle-policy.sh --check
+Caddy/tests/deployable-successor-policy.sh --check
+Caddy/tests/deployable-successor-policy.sh --authorization-ready
 ```
 
 The check rejects unclassified manifest files, incomplete or mismatched
 accepted-live inventory, stale deployable consumers, unsafe paths, duplicate
-keys, and mismatched current-repository source hashes.
+keys, and mismatched current-repository source hashes. The deployable-successor
+policy additionally runs the registered outer runner's and remote
+transaction's actual no-network `--production-path-test` entrypoints. It
+rejects stale state contracts, action-named current regressions, incomplete
+state matrices, missing outer-to-transaction boundary coverage, and missing
+production-path markers before an outer runner can be authorized.
+
+The coverage matrix columns are `scenario`, `phase`, `entrypoint`,
+`expectation`, and `marker`. `entrypoint` is exactly `outer` or `transaction`,
+so one entrypoint cannot satisfy the other's contract by echoing its labels.
+The routine `--check` accepts the explicit `none` registry between actions.
+The `--authorization-ready` form requires one registered successor and is the
+only valid gate before reporting or authorizing an outer-runner SHA-256.
 
 The deployment lifecycle policy separately requires every file beneath
 `Caddy/scripts/` and `Caddy/systemd/` to have exactly one disposition. It also

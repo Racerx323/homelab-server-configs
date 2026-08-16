@@ -107,6 +107,16 @@ fi
 temporary=$(mktemp "$queue_root/pending/.enqueue.XXXXXX") || exit 1
 trap 'rm -f -- "$temporary"' EXIT
 chmod 0600 "$temporary" || exit 1
+if [[ "${CADDY_APPRISE_TEST_MODE:-}" != 1 ]]; then
+    pi_uid=$(id -u pi) || exit 77
+    pi_gid=$(id -g pi) || exit 77
+    case "$(id -u)" in
+        0) chown "$pi_uid:$pi_gid" "$temporary" || exit 77 ;;
+        "$pi_uid") : ;;
+        *) exit 77 ;;
+    esac
+    [[ "$(stat -c '%u:%g:%a' "$temporary")" = "$pi_uid:$pi_gid:600" ]] || exit 77
+fi
 jq -n \
     --arg schema "$schema" \
     --arg event_id "$event_id" \

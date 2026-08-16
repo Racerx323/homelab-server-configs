@@ -14,8 +14,6 @@ readonly repository_root=${caddy_root%/Caddy}
 readonly enqueue=$caddy_root/scripts/caddy-apprise-enqueue.sh
 readonly worker=$caddy_root/scripts/caddy-apprise-delivery-worker.sh
 readonly keepalived_producer=$repository_root/../homelab-dns/Keepalived/scripts/keepalived-notify.sh
-readonly transaction=$caddy_root/scripts/apply-durable-apprise-action34.sh
-readonly outer=$caddy_root/scripts/run-dual-node-durable-apprise-action34-outer.sh
 
 fixture_root=$(mktemp -d /tmp/caddy-apprise-regression.XXXXXX)
 readonly fixture_root
@@ -125,12 +123,14 @@ calls_before_receipt=$(wc -l <"$call_file")
 
 enqueue_record retry-case
 printf 'fail\n' >"$mock_state"
+retry_started=$(date +%s)
 "$worker"
+retry_finished=$(date +%s)
 retry_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' -print -quit)
 [[ "$(jq -r '.retry.attempt' "$retry_record")" -eq 1 ]] || fail retry_attempt
 now=$(date +%s)
 next=$(jq -r '.retry.next_attempt_epoch' "$retry_record")
-((next >= now + 15 && next <= now + 25)) || fail bounded_backoff
+((next >= retry_started + 15 && next <= retry_finished + 25)) || fail bounded_backoff
 retry_tmp=$queue_root/pending/.test-retry
 jq --argjson now "$now" '.retry.next_attempt_epoch = $now' "$retry_record" >"$retry_tmp"
 chmod 0600 "$retry_tmp"
@@ -206,6 +206,10 @@ grep -Fq 'Persistent=true' "$caddy_root/systemd/caddy-apprise-worker.timer" || f
 grep -Fq 'PathChanged=/var/lib/caddy-apprise-queue/pending' \
     "$caddy_root/systemd/caddy-apprise-worker.path" || fail path_activation
 grep -Fq 'ProtectSystem=strict' "$caddy_root/systemd/caddy-apprise-worker.service" || fail hardening
+# shellcheck disable=SC2016
+grep -Fq 'chown "$pi_uid:$pi_gid" "$temporary"' "$enqueue" || fail production_record_owner
+# shellcheck disable=SC2016
+grep -Fq 'stat -c '\''%u:%g:%a'\'' "$temporary"' "$enqueue" || fail production_record_metadata
 if [[ -f "$keepalived_producer" ]]; then
     if grep -Eq '\bcurl\b|APPRISE_(URL|KEY|ENDPOINT)' "$keepalived_producer"; then
         fail keepalived_direct_transport
@@ -217,20 +221,6 @@ fi
 if grep -Eq '\bcurl\b' "$caddy_root/scripts/lsyncd-sync-failure-notify.sh"; then
     fail caddy_direct_transport
 fi
-grep -Fq 'journalctl --after-cursor' "$transaction" || fail cursor_journal
-grep -Fq 'systemctl stop caddy-apprise-worker.path caddy-apprise-worker.timer' \
-    "$transaction" || fail bounded_producer_capture
-grep -Fq 'CADDY_APPRISE_EVENT_ALLOWLIST=' "$transaction" || fail controlled_retry
-grep -Fq 'manual_intervention_required=true' "$transaction" || fail status_125_boundary
-grep -Fq 'verify_runtime_baseline' "$transaction" || fail action32g_baseline
-grep -Fq 'node_a_started=true' "$outer" || fail node_a_attempted_rollback
-grep -Fq 'node_b_started=true' "$outer" || fail node_b_attempted_rollback
-grep -Fq "return \"\$action34_outer_status\"" "$outer" || fail remote_status_preservation
-printf -v streamed_remote_boundary '%s%s' 'cd / && sudo -n /bin/bash ' '-s --'
-readonly streamed_remote_boundary
-grep -Fq "$streamed_remote_boundary" "$outer" || fail remote_cwd
-grep -Fq 'ssh-local-evidence-contract-v1' "$outer" || fail workstation_evidence
-
 printf '%s_check_schema=true\n' "$prefix"
 printf '%s_check_atomic_enqueue=true\n' "$prefix"
 printf '%s_check_ordering=true\n' "$prefix"

@@ -6,8 +6,9 @@
 | --- | --- |
 | Phase | Core deployment accepted; post-deployment work |
 | DBus ownership | Keepalived—not Caddy—owns DBus support, the `org.keepalived.Vrrp1` bus name, and all `/org/keepalived/Vrrp1/...` objects. Paths under `Instance/...` represent Keepalived VRRP instances associated with the Caddy HA service; they do not imply that Caddy implements or exposes DBus |
-| Current next single gate | Action 33 reliability and outage exercise is complete through accepted Action 33o. Actions 33 through 33o are consumed, immutable, and prohibited from rerun. Durable Apprise delivery Action 34 is now defined and workstation-validated without node contact. Its exact outer SHA-256 `de580de5a11233d7d7c6611eef40adc15ac4f2dd8128686de1389e9759c3f12a` requires separate authorization before the standby-first live installation; notification delivery remains outside VRRP and service-health decisions |
-| Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; durable Apprise delivery and operator documentation remain required; reliability exercises precede documentation; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
+| Current next single gate | Durable Apprise delivery is accepted through Action 34m. The next repository activity is operator documentation incorporating the accepted reliability exercise and durable notification behavior; it is not a live node action. Actions 34 through 34l are failed-consumed, Action 34m is accepted-executed, and every executed artifact remains immutable and prohibited from rerun. The deployable-successor registry is explicitly `none`; no live execution is currently defined or authorized |
+| Current-validation audit 2026-08-15 | Action 34m executed once and was accepted. The exact streamed transaction passed the complete Node B then Node A installation, final acceptance, queue, ownership, evidence, rollback-readiness, and status-125 contract. The retained Action 34l Node B upload was validated and removed; every retained status was zero and every retained stderr stream was empty. Current profiles and changed-path selection remain separated from the opt-in historical action index. Deployable coverage is typed by `outer` or `transaction`, the neutral regression consumes the registry rather than an Action 34 wrapper, and observable mode-checked outer evidence is required. Routine checks allow the explicit `none` registry, while `--authorization-ready` requires a fully registered successor before any future outer SHA-256 may be reported. Pre-commit Caddy policies are path-scoped |
+| Post-deployment disposition 2026-08-12 | Live Munin work is canceled; Home Assistant Yellow is removed to a future DNS update; reliability exercises and durable Apprise delivery are complete; operator documentation remains required; canonical LikeC4 follows accepted documentation. The obsolete statement that core deployment still had two gates is retired because both gates are complete |
 | Repository runtime-lifecycle correction | Implemented repository-only without contacting either HA node. Current reusable sources now deterministically drain safely ordered protocol-v2 candidates, remove accepted incoming state, reject competing children, and leave divergence quarantine fail closed. Worker scripts emit exact failure reasons while systemd `OnFailure` exclusively owns notification delivery. Managed lsyncd can read its configuration and synchronization roots but can write only `/run/caddy-lsyncd`; the Caddy environment file is mandatory; services have conservative filesystem/process hardening; and the monotonic health timer no longer carries calendar-only `Persistent=` semantics. The typed production inventory covers every installable script and systemd artifact for both nodes and deliberately retains separately typed current-source and last-accepted-deployed hashes. The repository bytes remain distinct from accepted live state. Failed Action 32 is consumed; Action 32a is the corrected separately scoped live installation boundary and still requires exact-hash authorization. Executed artifacts and prior authorization provenance remain unchanged |
 | Caddy runtime-lifecycle installation Action 32 | Definition-only; neither HA node was contacted. The action consumes accepted Actions 28ah, 29k, 30e, and 31 and installs exactly ten changed production artifacts: the certificate worker, protocol-v2 reconciler, synchronization-health worker, five affected synchronization/certificate systemd units, the health timer, and the mandatory Caddy environment drop-in. It creates a deterministic hash-validated payload, stages transport beneath `/tmp`, adopts validation into a protected direct child of `/run`, and records bounded stdout, stderr, statuses, journals, semantic inventory, and rollback evidence beneath node-local and workstation `/tmp`. Node B is fully accepted before Node A changes. Each node must match exact accepted-live hashes, coupled role/VIP ownership, active/enabled services, a safe role-specific outbound inventory, no finalized incoming candidate, and unchanged historical quarantine inventory. The transaction stops only managed lsyncd and reconciliation, installs atomically, reloads systemd, proves five-sample lsyncd stability, invokes certificate/health workers and a no-op reconciliation, rejects new post-cursor transport/quarantine failures, and requires release and VIP ownership unchanged. It never reloads Caddy or Keepalived and performs no publication. Protected backups roll back Node A then Node B; unproven recovery exits `125`. Current production-path host and network-disabled Debian validation passed; the historical suite was not run. Exact outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`. Live execution is not authorized until that exact hash is separately approved |
 | Caddy runtime-lifecycle installation Action 32 execution | Executed once under exact authorization with outer SHA-256 `c248ecb2f678d1c5c4638b25634498d4dcb57a50cd0cc02a9f2f293afe1df245`; consumed and must not be rerun. All workstation gates and payload upload passed. Node B passed exact accepted-live artifact hashes, active/enabled services, BACKUP state, zero shared VIPs, current release `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`, empty outbound inventory, and the exact three-entry historical quarantine inventory. Its incoming inventory contained `.reconcile-trigger` and `node-a`; the deeper finalized-candidate guard then failed. This is the retained incoming work that the new candidate-draining reconciler is intended to consume, so requiring it absent before installing that reconciler was an avoidable definition defect. The action stopped before journal cursor, backup creation, service stop, file installation, systemd reload, worker invocation, timer restart, Caddy or Keepalived reload, or Node A contact. Recovery independently reconfirmed Node B continuity with empty stderr and emitted `recovery_proven=true`. Evidence `/tmp/caddy-ssh-evidence/action32/run.7VSbcR`; Node B apply stdout SHA-256 `0bebde754a318c960bca922b00706c3b64151b1323c60abb0ff37eaa4eb30038`, stderr SHA-256 `6e0b19d2293ac9914e362f60d0bbdf41493f2b7f55b2ff7557a85347ac069aa8`, rollback stdout SHA-256 `42a1b1f3949620d6f421b96de076342705b903d8f943b8a30861b4c116c7cc01`, and rollback stderr empty. No separate diagnostic is needed |
@@ -28868,14 +28869,1078 @@ Live execution is not authorized. The exact outer-runner SHA-256 required for
 later authorization is
 `de580de5a11233d7d7c6611eef40adc15ac4f2dd8128686de1389e9759c3f12a`.
 
+### Action 34 execution journal and direct Action 34a successor
+
+Action 34 was executed once under exact authorization of outer SHA-256
+`de580de5a11233d7d7c6611eef40adc15ac4f2dd8128686de1389e9759c3f12a`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates
+passed. Node B upload completed and the live service, VRRP, four-VIP ownership,
+queue-absence, and Action 32g runtime gates passed. The aggregate accepted
+artifact baseline then failed before `mutation_started=true`; Node A was never
+contacted and no production file, unit, service, queue, or ownership state was
+mutated. The old outer marked Node B started at upload time and incorrectly
+attempted rollback despite the absent mutation boundary. Because no baseline
+backup existed, that rollback returned `125`. Evidence is retained at
+`/tmp/caddy-ssh-evidence/action34/run.rXhmyy`. The uploaded payload SHA-256 is
+`15ff568ac2e0f66d6ba662d9d300470ec17ec37b6140782c8b47d2df3081dcd3`.
+
+Action 34a is the direct append-only successor and consumes that failed run.
+It does not invoke Action 34. Before mutation, every manifest artifact emits
+its independently labeled expected legacy and candidate identities plus its
+observed identity. An artifact is accepted only when absent was the declared
+legacy state, its exact declared legacy hash is observed, or its exact current
+candidate hash is observed. Symlinks, nonregular objects, unknown hashes, and
+unlabeled aggregate acceptance remain rejected. This directly handles a
+partially current, idempotent migration boundary without weakening any
+identity prerequisite.
+
+Each node inventories bounded, exact-name Action 34 upload paths and removes
+at most one regular file whose SHA-256 exactly matches the retained failed
+payload. Unmatched files are reported and preserved. Backups are completed
+before a durable transaction-local mutation marker is created. A failure
+before that marker performs only exact payload and incomplete-backup cleanup;
+it never invokes rollback and cannot produce status `125`. Recovery invokes
+rollback only when the marker proves that a production installation entrypoint
+ran. Status `125` remains reserved for an actual mutation whose reverse-order
+recovery cannot be proven.
+
+The original Action 34 queue architecture, controlled retry/success exercise,
+notification isolation, Node B then Node A order, evidence retention, service
+and ownership acceptance, reverse recovery, and nonblocking notifier behavior
+remain unchanged. Action-specific regression sources the actual transaction
+identity functions in library-test mode, accepts exact legacy, candidate, and
+declared-absent states, rejects unknown and symlink state, exercises exact
+payload disposition, validates real manifest candidate sources, pins every
+executed Action 34 artifact hash, and proves the corrected backup, mutation,
+and recovery ordering. Definition hashes and focused-validation evidence are
+recorded after validation below.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.apQSXf`. The one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.0YLy29`.
+The historical complete suite was not run.
+
+Action 34a transaction SHA-256:
+`723d249f9746317eab37779a4172006a4d06e0e5fbc8da906e0e1f6120a4e6d0`.
+Action 34a regression SHA-256:
+`a4f1bef36d9d168d91b4d45304e19be28022dc53488c7ba2c0f0b47d8edb4911`.
+Action 34a artifact-manifest SHA-256:
+`6eb8b42edf4120ad60befbdbddf54cf71435a0f8ba52840c8d748cac176ae621`.
+Action 34a exact future outer SHA-256:
+`6dfd94c46a0c759aec4f0bc81f48ccab769e5b6f527a290241e45316bfba24f7`.
+
+#### Action 34a execution journal
+
+Action 34a was executed once under exact authorization of outer SHA-256
+`6dfd94c46a0c759aec4f0bc81f48ccab769e5b6f527a290241e45316bfba24f7`.
+It is failed-consumed, immutable, and must not be rerun. All local gates and
+the Node B upload passed. Node B passed its complete service, reconciliation,
+Keepalived, VRRP, exact four-VIP, queue-absence, and Action 32g runtime
+baseline. The retained failed Action 34 payload was independently observed at
+exact SHA-256
+`15ff568ac2e0f66d6ba662d9d300470ec17ec37b6140782c8b47d2df3081dcd3`
+and removed; its bounded match count was one.
+
+Six artifact baseline identities then emitted independently and passed. Before
+the seventh artifact could emit, `artifact_label` rejected the literal `@` in
+installed target `/etc/systemd/system/caddy-sync-failure@.service`. This is a
+deterministic successor-definition defect, not live drift. It occurred before
+the backup or durable mutation marker and before any production installation.
+The corrected cleanup-only path removed the Action 34a upload and any
+incomplete backup without invoking rollback. The outer's explicit recovery
+returned `0`, independently reconfirming Node B service, ownership, queue
+absence, and pre-mutation cleanup. The action returned `1`, not `125`; Node A
+was never contacted and no production artifact, unit, service, queue, or VIP
+state changed.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34a/run.Q7NQSf`. Node B apply stdout is 3,442
+bytes with SHA-256
+`110380761db1ea7c1496fdcc1ac84d1bb02c39582770b34e2982010f3b5fb510`;
+apply stderr is 60 bytes with SHA-256
+`23420cae820665daf374f320b5e8dd7d50767cc5d28c089961b7189bf24ba566`.
+Recovery stdout is 647 bytes with SHA-256
+`45e56a55a98ec277c108ad54acffed53ed5eaa56d0cd94e6c88011f80589ba3b`;
+recovery stderr is empty. No additional node diagnostic is needed. A direct
+append-only successor must replace the restrictive label sanitizer with a
+deterministic collision-free encoding, regression-test every real installed
+target—including `@`—and preserve all Action 34a transaction and recovery
+controls.
+
+#### Collision-free artifact-label successor Action 34b
+
+Action 34b is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed, pre-mutation Actions 34 and
+34a without rerunning or modifying either executed artifact. The only live
+transaction correction is artifact-label construction: every absolute target
+path is encoded byte-for-byte as lowercase hexadecimal with a fixed `path_`
+prefix. This permits systemd template-unit names containing `@`, cannot merge
+distinct target paths such as `a-b` and `a_b`, remains safe as a structured
+assertion label, and does not depend on a hand-maintained character allowlist.
+
+The production-path regression reads the actual Action 34b artifact manifest,
+requires one unique encoded label for every installed target, explicitly
+covers `/etc/systemd/system/caddy-sync-failure@.service`, and rejects label
+collisions. It also pins every executed Action 34 and 34a artifact, exercises
+the real Action 34b baseline verifier and exact retained-payload cleanup, and
+preserves the original standby-first mutation, cleanup-only pre-mutation
+recovery, reverse-order rollback, queue preservation, and status-125
+boundaries. Definition hashes and focused-validation evidence are recorded
+after validation below.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.tvPDVI`. The one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.Nr1OF5`.
+The historical Action 34 regressions and complete historical suite were not
+run. The shared queue regression's backoff assertion now bounds the worker's
+actual start and finish interval rather than assuming the wall clock cannot
+advance during the worker call; production backoff behavior is unchanged.
+
+Action 34c transaction SHA-256:
+`898aa7be094b8dc4f5398b3b0968d8d7a2106b2fe2d0b58d4b277b927d044274`.
+Action 34c regression SHA-256:
+`0da927e8a4f10f289b0aff4bec24a0b26e74b52ef59531068b6759bb75ef90e4`.
+Action 34c artifact-manifest SHA-256:
+`ca4a5be9a19c55ebc9940a5a7a45efbccacfaeb1ca881f9b139df000b9880aec`.
+Action 34c exact future outer SHA-256:
+`866f5226030c286070d785e18dda756893e6d6509ebe4232b6663bfe41157e84`.
+
+#### Action 34c execution journal
+
+Action 34c was executed once under exact authorization of outer SHA-256
+`866f5226030c286070d785e18dda756893e6d6509ebe4232b6663bfe41157e84`.
+It is failed-consumed, immutable, and must not be rerun. Every workstation
+gate, Node B upload, accepted Action 32g baseline, exact current-production
+notifier prerequisite, candidate identity, collision-free label, protected
+backup, installation, queue metadata, controlled producer enqueue, retry,
+queue/dead-letter cleanup, worker/path/timer enablement, service continuity,
+and VRRP/VIP assertion passed. The remote transaction emitted
+`apply_complete=true` and returned status `0`.
+
+The transaction's successful `systemctl enable --now` invocation wrote two
+ordinary symlink-creation messages to stderr. The outer correctly retained and
+classified the 272-byte UTF-8 stream as bounded-safe, but its generic remote
+boundary then treated any nonempty stderr as failure despite the zero command
+status and complete acceptance transcript. This is a deterministic stream-
+ownership defect, not a node or service failure. The authorized recovery path
+detected the mutation marker, rolled Node B back completely, reconfirmed Caddy,
+managed lsyncd, reconciliation, Keepalived, dual-stack BACKUP state, zero
+shared VIPs, and returned `0`. Node A was not contacted. The outer proved
+recovery and returned `1`, not `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34c/run.8L1zAM`. Node B apply stdout is 12,378
+bytes with SHA-256
+`5d5963c3406d4d5d9a1e4d16689883d2f644ece73bafb95e25ca92a2b49190f1`;
+apply stderr is 272 bytes with SHA-256
+`0d36b50347e26cbb302246c8c3d0d18f81ad1bbf37c058faaf090272d04349de`.
+Recovery stdout is 634 bytes with SHA-256
+`626b5d5253ed86abd711cb80dc312e4bf2b4b3faf6c21bd49dfb8d360352a658`;
+recovery stderr is empty. No separate diagnostic is needed.
+
+#### Service-identity and stream-safe successor Action 34d
+
+Action 34d is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes Action 34c without rerunning or
+modifying Actions 34 through 34c. The retained failure evidence and operator
+journal are conclusive: the transaction's direct root worker tests created
+`/run/caddy-apprise/worker.lock` as root, while the real systemd worker runs as
+`pi`; the later service invocation therefore failed at the lock-open boundary.
+The outer independently rejected ordinary `systemctl enable` stderr and then
+proved complete rollback.
+
+The current enqueue helper now normalizes production records created by either
+root or `pi` to `pi:pi:0600` and rejects any other production caller. Action
+34d invokes both controlled retry and delivery worker passes through
+`runuser --user pi`, using only transaction-owned `pi`-readable test controls
+beneath `/run/caddy-apprise`. It requires every controlled record and the
+resulting lock to have exact `pi:pi:0600` metadata. Before activation it resets
+the specifically observed failed worker state if present. It then captures
+stdout, stderr, and status independently for `systemctl enable --now` and an
+explicit worker service start, validates bounded UTF-8-safe content without
+placing it on SSH stderr, and requires worker `Result=success` and the expected
+inactive oneshot state. Rollback removes only transaction-owned state, reloads
+systemd, and clears the removed worker's failed state.
+
+Production regression exercises the actual capture function, including safe
+stdout/stderr and rejected control-byte output; pins every Action 34c artifact;
+requires the service identity, record ownership, lock metadata, worker result,
+failed-state reset, and internal stream-capture boundaries; and retains the
+complete manifest and collision-free-label contract. Definition hashes and
+focused-validation evidence are recorded after validation below.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.MyLNp2`. The one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.MzBmcM`.
+The historical complete suite was not run.
+
+Action 34d transaction SHA-256:
+`eb394c3e6b74cb979ed281fc2075389a17317b63d107867f120a6079161b7c8c`.
+Action 34d regression SHA-256:
+`c1beffea7b97e0475ebcc50d82ab1bf66b8842c83bca625c1bc0704adfd6b66b`.
+Action 34d artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34d exact future outer SHA-256:
+`2835f20d205383f0af538c6aa2e90df8219316e49b0d939de076c4c1d30b789a`.
+
+#### Action 34d execution journal
+
+Action 34d was executed once under exact authorization of outer SHA-256
+`2835f20d205383f0af538c6aa2e90df8219316e49b0d939de076c4c1d30b789a`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates,
+payload construction, and the Node B upload passed. Node B reaccepted Caddy,
+managed lsyncd, reconciliation, Keepalived, dual-stack BACKUP state, zero
+shared VIPs, queue absence, and the exact Action 32g runtime baseline. All nine
+artifact baselines and candidates matched, installation completed, the queue
+metadata passed, and both controlled producer records were normalized to
+`pi:pi:0600`.
+
+The first controlled worker invocation through `runuser --user pi` then
+returned `1` before the retry assertions. The retained sequence and the
+operator's exact worker failure at line 100 establish the cause: the existing
+`/run/caddy-apprise/worker.lock` was the stale `root:root:0600` file created by
+the earlier direct root worker. Although the runtime directory itself was
+correctly `pi:pi:0700`, the real service identity could not reopen that lock.
+No `systemctl enable` or explicit service-start command ran, so their newly
+internal capture boundary was not reached.
+
+Automatic rollback returned `0`, restored the accepted Node B baseline, and
+reconfirmed Caddy, managed lsyncd, reconciliation, Keepalived, BACKUP state,
+and zero shared VIPs. The outer then ran explicit recovery, which returned `0`
+and proved the mutation rollback. Node A was not contacted. The outer returned
+`1`, not `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34d/run.9E5pPm`. Node B apply stdout is 11,883
+bytes with SHA-256
+`1d39a57452ece5af0cd673f10536ac2fa25fdce153b684933e192b7b64ba0fb7`;
+apply stderr is 49 bytes with SHA-256
+`f232fd5ab6ebc8fc487e183315340d27a24271204f29c7919e2671dc4ccede42`.
+Recovery stdout is 634 bytes with SHA-256
+`0de6d3fcda7222c1cc8ccc0cb083381bb32d0bbae9c3c9fa676284409efe99ce`;
+recovery stderr is empty. No separate diagnostic is needed. The direct
+successor must stop worker activation, accept and remove only a regular,
+non-symlink `root:root:0600` stale lock under the exact `pi:pi:0700` runtime
+directory, reject every other lock state, and then retain every Action 34d
+service-identity, stream-capture, standby-first, evidence, and recovery gate.
+
+#### Stale-lock-aware successor Action 34e
+
+Action 34e is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed Action 34d without rerunning
+or modifying Actions 34 through 34d. Before the first real `pi` worker
+invocation, it stops the path, timer, and worker service and independently
+requires the worker to be inactive. It then validates the runtime directory as
+exactly `pi:pi:0700`. An absent lock is accepted. An existing lock is removed
+only when it is a regular non-symlink with exact `root:root:0600` metadata;
+every other existing file type, owner, group, or mode fails closed. The
+transaction proves the exact stale lock is absent before continuing.
+
+The transaction otherwise retains Action 34d's complete artifact identity,
+standby-first ordering, `pi:pi:0600` producer records, real `pi` worker
+identity, internal systemctl stream capture, explicit worker acceptance,
+queue isolation, journald evidence, rollback, and status-125 recovery
+boundaries. Missing `caddy-sync-release-receiver-v2.service` and
+`caddy-sync-rsync-receiver.service` units are not defects: the current
+receivers are SSH forced-command executables and are intentionally not
+systemd services.
+
+Production regression pins every Action 34d artifact, rejects any predecessor
+rerun, checks the exact lock-disposition code path, rejects symlink and
+non-root-owned locks, and exercises the positive `root:root:0600` disposition
+under the Debian root validation context. Focused host validation passed with
+evidence `/tmp/caddy-focused-validation.B7tpdz`; the single network-disabled
+Debian 12 batch passed with evidence
+`/tmp/caddy-focused-container-evidence.Pck9v1`. The historical complete suite
+was not run.
+
+Action 34e transaction SHA-256:
+`93c6fdd462b56b2df104c83a6a00e94dfb07eebc6103988bc4421d9c66fe8aad`.
+Action 34e regression SHA-256:
+`d3786a3d5646ef4fa83ba087d16df533aedec04a84e4ec99a4150488b8d2ee4c`.
+Action 34e artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34e exact future outer SHA-256:
+`742dceae6b0552f7e2a437ca30a0f8cfc1d3168a95618ca999dd2ffb1c24fa97`.
+
+#### Action 34e execution journal
+
+Action 34e was executed once under exact authorization of outer SHA-256
+`742dceae6b0552f7e2a437ca30a0f8cfc1d3168a95618ca999dd2ffb1c24fa97`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates,
+payload construction, and Node B upload passed. Node B reaccepted the full
+Action 32g baseline, installed all nine exact candidates, created the queue,
+and normalized both controlled producer records to `pi:pi:0600`. Worker
+activation was stopped, the worker was independently inactive, the runtime
+directory was `pi:pi:0700`, and the stale-lock disposition correctly reported
+`absent`; the Action 34d root-lock defect did not recur.
+
+The first controlled worker invocation through `runuser --user pi` then
+returned nonzero before any retry assertion. That command was still invoked
+directly rather than through the transaction's bounded stream-capture helper,
+so its own stdout, stderr, and exit status were not independently retained.
+The original evidence therefore identifies the exact worker boundary but does
+not justify guessing at a deeper cause. No `systemctl enable` or explicit
+worker-service start ran.
+
+Automatic rollback returned `0`, restored the accepted Node B baseline, and
+reconfirmed Caddy, managed lsyncd, reconciliation, Keepalived, BACKUP state,
+and zero shared VIPs. Explicit recovery returned `0` and proved mutation
+rollback. Node A was not contacted. The outer returned `1`, not `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34e/run.plLNEz`. Node B apply stdout is 12,079
+bytes with SHA-256
+`18a152c2a1f1c6176fc94d91839a72144af31fd1150b257f13ee23abbc114195`;
+apply stderr is 49 bytes with SHA-256
+`32b6516e016f2c74ecb7ede0b5bf2d24c964a041a8973afb53e3686ff542d55c`.
+Recovery stdout is 634 bytes with SHA-256
+`3612bff89e5aeee9f4925460b7af955a538bf392aff765389ab4469cbfbd7bf0`;
+recovery stderr is empty. The direct successor must capture both controlled
+worker invocations with the existing bounded classifier inside the original
+transaction and validate that exact `pi` execution path in Debian. No separate
+node diagnostic is proposed.
+
+#### Worker-stream-aware successor Action 34f
+
+Action 34f is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed Action 34e without rerunning
+or modifying Actions 34 through 34e. Both controlled worker invocations now
+run through the transaction's existing `capture_command`: the retry pass is
+labeled `controlled_worker_retry`, and the delivery pass is labeled
+`controlled_worker_delivery`. Each command independently precreates protected
+stdout, stderr, and status files, records byte and line counts plus SHA-256,
+classifies bounded UTF-8-safe content, and emits safe content only on the
+transaction's stdout. SSH transport stderr therefore remains reserved for the
+transaction outcome.
+
+All Action 34e controls remain, including stopped activation, absent-or-exact
+stale-lock disposition, real `pi` identity, exact producer records, bounded
+retry and delivery behavior, internal systemctl capture, explicit oneshot
+acceptance, queue isolation, standby-first ordering, reverse rollback, and
+status-125 recovery. The Debian regression now constructs the real queue and
+runtime ownership, enqueues through the production helper as `pi`, invokes the
+actual delivery worker through `runuser --user pi` under `capture_command`,
+requires empty transport stderr and status zero, and proves the durable receipt.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.AUlZm7`. The single network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.ONewvr`.
+The historical complete suite was not run.
+
+Action 34f transaction SHA-256:
+`0ab7747d5824f71ba0b1c5685085c6d44318c85bd7b08191f4daf0dd2beb1c6f`.
+Action 34f regression SHA-256:
+`8588977fb1b4c10169f15a5223952105a9488eacee44581ad9952998f60d8893`.
+Action 34f artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34f exact future outer SHA-256:
+`6a5421a91f88c805a208daf9549b9309e0027dd928945ab9b85aa7132a974720`.
+
+#### Action 34f execution journal
+
+Action 34f was executed once under exact authorization of outer SHA-256
+`6a5421a91f88c805a208daf9549b9309e0027dd928945ab9b85aa7132a974720`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates,
+the Node B payload upload, accepted-live identity checks, service and dual-stack
+BACKUP checks, zero-shared-VIP checks, stopped worker activation, runtime
+ownership, absent-or-exact-stale-lock disposition, candidate installation, and
+both controlled producer enqueues passed. Both producer records were exact
+regular `pi:pi:0600` files.
+
+The first controlled `pi` worker invocation was captured inside the transaction
+as `controlled_worker_retry` and returned status `70`. Its stdout and stderr
+were both empty. In the current worker, status `70` is confined to initial
+controlled-transport validation: the mock transport must be an absolute,
+regular, non-symlink executable, and the optional event allowlist must be an
+absolute, regular, non-symlink mode-`0600` file whose nonempty lines are exactly
+one lowercase 64-hex event identity followed by `.json`. The retained evidence
+therefore proves that boundary without distinguishing which prerequisite
+failed. The action stopped before retry-result acceptance, delivery invocation,
+`systemctl enable`, explicit worker-service start, or Node A contact.
+
+Automatic Node B rollback returned `0`, and explicit recovery returned `0`,
+reaccepted the original service and VRRP state, and proved the mutation was
+rolled back. The outer returned `1`, not `125`. Workstation evidence is retained
+at `/tmp/caddy-ssh-evidence/action34f/run.xIL46r`. Node B apply stdout is 12,690
+bytes over 96 lines with SHA-256
+`cd82923ef71fa5d2784c19e19c27b55f76d787e4af30d88454972e9a0a55e307`;
+apply stderr is 49 bytes over one line with SHA-256
+`32d2967c1cfcaa63572bdba237b7a16b330cc5c6242635cc2b77a479ef757797`.
+Recovery stdout is 634 bytes over 12 lines with SHA-256
+`d25dcaa91ece8bec8f26d3443e61a70e8cbc799208fd7cb47df1c64367f7af4d`;
+recovery stderr is empty. No separate diagnostic is needed.
+
+#### Pi-prerequisite-complete successor Action 34g
+
+Action 34g is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed Action 34f without rerunning
+or modifying Actions 34 through 34f. The controlled allowlist is now created
+as `pi:pi:0600` directly beneath `/run/caddy-apprise`; the mock transport is
+installed there as `pi:pi:0700`. This removes the extra root-owned
+evidence-to-runtime prerequisite from the worker invocation boundary.
+
+Immediately before both the retry and delivery worker invocations, the
+transaction independently labels and accepts the mock's absolute path,
+searchable parent, regular-file type, non-symlink state, readability,
+executability, and exact metadata under the real `pi` identity. It similarly
+accepts the allowlist's absolute path, searchable parent, regular-file type,
+non-symlink state, readability, exact metadata, exact entry count, and the
+worker's portable lowercase-64-hex plus `.json` grammar. A failed prerequisite
+therefore stops with its own label before the aggregate worker exit boundary.
+The actual controlled worker invocations remain captured with bounded stdout,
+stderr, and status, and transport stderr remains empty.
+
+The production regression invokes the real helper and worker under `pi`,
+requires every positive prerequisite label, rejects a non-executable mock and
+malformed allowlist through their exact labels, and proves prerequisite
+validation precedes both worker invocations. All Action 34f artifact,
+accepted-live, stopped-activation, stale-lock, producer-record, retry,
+delivery, systemctl-stream, queue-isolation, standby-first, reverse-rollback,
+local-evidence, and status-125 controls remain.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.Nq85In`. One network-disabled Debian 12 batch
+passed both current durable-Apprise regressions with evidence
+`/tmp/caddy-focused-container-evidence.tzxiju`. The outer self-test passed and
+emitted `action_34g_outer_node_contact=false`; the historical complete suite
+was not run.
+
+Action 34g transaction SHA-256:
+`c9dc4cb453c979e524ab0cac2b429560f83dc29642cc29dd2f988ca54065c6df`.
+Action 34g regression SHA-256:
+`4efdb22b4b806a757d6a3771f184563d2e588b8967546abf33cab3f1c2f0b177`.
+Action 34g artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34g action-manifest SHA-256:
+`8bcab08a1de7d1fdbd36dcf120fb62b438a14a0aaa83e79c28d071ac6ff2400b`.
+Action 34g exact future outer SHA-256:
+`1728da7b70ea7e50be758b13c5c255dacf500614776a96fa2536df4f21256c5d`.
+
+#### Action 34g execution journal
+
+Action 34g was executed once under exact authorization of outer SHA-256
+`1728da7b70ea7e50be758b13c5c255dacf500614776a96fa2536df4f21256c5d`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates,
+the Node B upload, accepted-live identities, services, dual-stack BACKUP state,
+zero shared VIPs, candidate installation, stopped activation, stale-lock
+disposition, controlled producer enqueues, record ownership, and the first five
+new retry-transport prerequisite checks passed.
+
+The independently labeled boundary then emitted
+`retry_mock_executable_by_pi=false`. The mock was an exact regular,
+non-symlink, readable `pi:pi:0700` file beneath the searchable
+`/run/caddy-apprise` runtime directory; the failed executable-access check
+therefore proves the runtime filesystem's no-exec boundary. The controlled
+worker was never invoked. The direct correction is to use the already-installed
+executable `/usr/bin/false` for the retry case and `/usr/bin/true` for the
+delivery case rather than placing executable test code beneath `/run`.
+
+Automatic rollback restored Node B's original artifacts, systemd state,
+services, and VRRP state and emitted `rollback_complete=true`. The Action 34g
+definition had moved the controlled-record inventory from protected evidence
+to its runtime allowlist, while rollback still read
+`$evidence_root/controlled-records`. After runtime cleanup it therefore
+preserved the two pending records instead of removing them:
+`30e1e40455a0f893f47dc6b8731b83f3e81018d139dd85fa254163b916ffda5f.json`
+and
+`73c17e8e70d538a2dbbf564cb47878690e351e0d141289636a8752c6968c8184.json`.
+The explicit recovery command returned `0` and again proved the baseline
+services and role, but emitted `unexpected_queue_preserved=true`; the outer
+correctly rejected nonempty recovery stderr, emitted
+`manual_intervention_required=true`, and returned status `125`. Node A was
+not contacted.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34g/run.cKb2xr`. Node B apply stdout is 12,398
+bytes over 94 lines with SHA-256
+`10f701410ce07b3ba0fc6be77bd8dbfbc34a1fd7c5c85dd0868a74e476d02750`;
+apply stderr is 171 bytes over three lines with SHA-256
+`c77a73ee54c8e79ecf4f1e8a02cc2e25049d55bab621b0b35fb542595c4fc824`.
+Recovery stdout is 634 bytes over 12 lines with SHA-256
+`b96d2fad65149bd21f5bf65c65a03e57e61c981c278435df6f1f69b8ef8340c4`;
+recovery stderr is 57 bytes over one line with SHA-256
+`fbf38ffb658f9786631ce0f2f18623b216b2f5fb2915bfbeb6da02464ce2b7c4`.
+No separate diagnostic is needed.
+
+#### Residue-recovered system-transport successor Action 34h
+
+Action 34h is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed Action 34g without rerunning
+or modifying Actions 34 through 34g. On Node B, before artifact installation,
+it requires the persistent queue to contain exactly the four expected queue
+directories and exactly these two pending regular records:
+`30e1e40455a0f893f47dc6b8731b83f3e81018d139dd85fa254163b916ffda5f.json`
+and
+`73c17e8e70d538a2dbbf564cb47878690e351e0d141289636a8752c6968c8184.json`.
+Each record must have exact `pi:pi:0600` identity, bounded size, valid
+`caddy-apprise-queue/v1` JSON, matching event ID, untouched retry state, and
+one of the two exact Action 34g controlled payload semantics. Extra, missing,
+relocated, malformed, linked, over-permissive, or unrelated records are
+rejected and preserved. Node A must still have no queue.
+
+After validation, the transaction emits each record's SHA-256, saves the exact
+two IDs as `root:root:0600` protected evidence, removes only those two files,
+and removes the now-empty queue directories. The current transaction's
+controlled record inventory is created first beneath protected node evidence,
+then copied as `pi:pi:0600` into the runtime directory for worker filtering.
+Rollback always reads the protected copy, so runtime cleanup can no longer
+erase the only disposition inventory.
+
+The retry worker now receives the installed regular executable
+`/usr/bin/false`; delivery receives `/usr/bin/true`. Both are independently
+accepted under the real `pi` identity as absolute, parent-searchable,
+regular, non-symlink, readable and executable `root:root:0755` files. No
+executable fixture is created beneath `/run`. All remaining artifact,
+notifier, stale-lock, producer, queue-isolation, retry, delivery, systemd
+activation, standby-first, reverse-rollback, evidence, and status-`125`
+controls are retained.
+
+The focused host profile passed with evidence
+`/tmp/caddy-focused-validation.h3bKrQ`. The single network-disabled Debian
+12 batch passed the Action 34h and neutral queue regressions with evidence
+`/tmp/caddy-focused-container-evidence.BCYmh6`. The outer self-test passed
+and emitted `action_34h_outer_node_contact=false`; the historical complete
+suite was not run.
+
+Action 34h transaction SHA-256:
+`a909614f5d806e9c0da1d283090e5c8aa332ba9bf00a558707439899c5dac55c`.
+Action 34h regression SHA-256:
+`66e3cc0fb6ffa8edc9c83da34e622a6e31143e93d8905d3d70d26a2a2b160765`.
+Action 34h artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34h action-manifest SHA-256:
+`d5b2d55cf0c7f29c105b3d600f15433d3d8b96e92b4690e8e6b23f3ac61958b6`.
+Action 34h exact future outer SHA-256:
+`7e8824a4314908cc9e8802307e01693bc52dc316f0e9a8360b96460b072aee34`.
+
+#### Action 34h execution journal
+
+Action 34h was executed once under exact authorization of outer SHA-256
+`7e8824a4314908cc9e8802307e01693bc52dc316f0e9a8360b96460b072aee34`.
+It is failed-consumed, immutable, and must not be rerun. Every workstation
+gate passed, including exact transaction, regression, artifact-manifest, and
+runtime-baseline identities. The deterministic payload SHA-256 was
+`524a1083b78a7d4862cd03d8e0affecc4e9de3cce7ae51bcab0cb6691755a5fb`.
+
+The first Node B upload returned status `255`. Its stdout was empty with
+SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`;
+its 33-byte, one-line bounded-safe stderr had SHA-256
+`9bd98851bf7a3e4ce9955d79a2aec838b37686ab980aa19f45376e6f83fccfc5`
+and contained `/usr/bin/scp: Connection closed`. The remote transaction
+entrypoint never ran, the outer never marked Node B as started, Node A was not
+contacted, and no artifact, queue, service, worker, Keepalived, or VRRP
+mutation occurred. No rollback was therefore run.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34h/run.LINw6h`. The failed upload attempt
+cannot prove that no partial remote payload was created, and this outer did not
+persist the generated remote pathname in its evidence. A direct successor must
+therefore make upload-attempt cleanup part of its bounded transport contract;
+it must not rerun Action 34h or add a separate node diagnostic.
+
+#### Upload-boundary-safe successor Action 34i
+
+Action 34i is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. Actions 34 through 34h remain consumed,
+immutable, and prohibited from rerun. The successor retains the exact Action
+34h application transaction SHA-256
+`a909614f5d806e9c0da1d283090e5c8aa332ba9bf00a558707439899c5dac55c`;
+the new transaction owns only upload preparation, evidence, acceptance, and
+cleanup.
+
+Before any SSH or SCP call, the outer writes the generated Node A and Node B
+upload paths to separate `0600` files beneath its retained workstation
+evidence directory. On Node B it first inventories the exact
+`/tmp/caddy-action34h-payload-node-b-RUN.tar` namespace. Zero entries are
+accepted. One entry is accepted only when it is a regular non-symlink owned
+`pi:pi:0600` and no larger than the known 40,960-byte Action 34h payload. Its
+exact path, metadata, size, and observed SHA-256 are retained beneath
+`/tmp/caddy-action34i`; the exact entry is then removed. Multiple entries,
+unsafe metadata, symlinks, or an oversized entry fail closed and remain
+untouched.
+
+Each new Action 34i upload requires a root-owned preparation marker beneath
+`/run/caddy-action34i-upload` containing the exact path, payload SHA-256, and
+payload size. A failed SCP invokes cleanup immediately. Cleanup accepts only
+the prepared exact path with regular non-symlink `pi:pi:0600` metadata and a
+size from zero through the expected payload size, retains its path, metadata,
+size, and SHA-256, removes only that path and its marker, and stops the action.
+A successful SCP is independently accepted only at the exact expected size
+and SHA-256 before the unchanged Action 34h application transaction can run.
+Failure to prove upload cleanup returns `125`; application recovery retains
+the original reverse-order and mutation-marker boundary.
+
+Production-path regression covers a partial new upload, exact cleanup,
+full-upload acceptance, and the actual Action 34h residue namespace. Focused
+host validation passed with evidence
+`/tmp/caddy-focused-validation.RAs6NV`. The single network-disabled Debian 12
+batch passed with evidence
+`/tmp/caddy-focused-container-evidence.DIVp9D`. The outer self-test emitted
+`action_34i_outer_node_contact=false`; the historical complete suite was not
+run.
+
+Action 34i upload transaction SHA-256:
+`34d43af6e72bcb40826eb8510cfe0a2d11369f8b7ec94529772e47217505675f`.
+Action 34i resumed Action 34h transaction SHA-256:
+`a909614f5d806e9c0da1d283090e5c8aa332ba9bf00a558707439899c5dac55c`.
+Action 34i regression SHA-256:
+`d9c06d97ded16bbab221c527964df5ac771ae36a2499ed12905b832d18bce825`.
+Action 34i artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34i action-manifest SHA-256:
+`602035f23d1f69216b76144c0a08069b54c1a5d5d448b9f275a7e9c4e297a13f`.
+Action 34i exact future outer SHA-256:
+`194730c4a2a3ad512a9e9636961bd87dfec0e07e90f3e83258ed727a9765cf83`.
+
+#### Action 34i execution journal
+
+Action 34i was executed once under exact authorization of outer SHA-256
+`194730c4a2a3ad512a9e9636961bd87dfec0e07e90f3e83258ed727a9765cf83`.
+It is failed-consumed, immutable, and must not be rerun. Every workstation
+gate passed. Node B contained no retained Action 34h upload. The newly
+generated upload path was absent, its preparation marker was accepted, SCP
+completed with empty stdout and stderr, and the full 40,960-byte payload was
+accepted at SHA-256
+`524a1083b78a7d4862cd03d8e0affecc4e9de3cce7ae51bcab0cb6691755a5fb`.
+
+Node B passed service, coupled ownership, Action 32g runtime, artifact
+baseline, candidate, residue, queue, transport, allowlist, and producer gates.
+The controlled retry worker ran successfully as `pi` and scheduled both test
+records. The transaction then forced both records immediately eligible using
+a root-created `0600` temporary file followed by atomic rename. That changed
+their ownership from the previously accepted `pi:pi:0600` to
+`root:root:0600`. The controlled delivery worker, correctly invoked as `pi`,
+could no longer read either record and emitted `Permission denied` from the
+record-size and JSON validation boundary. The later
+`controlled_dead_letter_empty` gate failed.
+
+Because mutation had begun, Action 34i automatically rolled Node B back. Its
+independent recovery invocation returned status zero, emitted
+`rollback_complete=true` and `recovery_mutation_rollback=true`, reconfirmed
+all services and coupled BACKUP ownership, and had empty stderr. Node A was
+not contacted. No separate diagnostic is necessary: the retained transaction
+source and output identify the ownership-changing atomic rewrite directly.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34i/run.ukxsjy`. Node B apply stdout is 17,740
+bytes with SHA-256
+`f6ae7c5a222dff697aafd902ce98d2fdd8198ce6769a1101e47ad350bf0aa986`;
+apply stderr is 115 bytes with SHA-256
+`5a9ca4b3e3e08db2ea48f4711b4b489441934e6d9e28b7a91120cde21088766b`.
+Recovery stdout is 634 bytes with SHA-256
+`0aa3ab9b68e352ec230564629b931988e4a0312b306b1b0a73dd23b2920a12f1`;
+recovery stderr is empty.
+
+#### Ownership-preserving successor Action 34j
+
+Action 34j is definition-complete and unexecuted. Neither HA node was
+contacted while defining or validating it. Actions 34 through 34i remain
+failed-consumed, immutable, and prohibited from rerun. Action 34j retains the
+accepted Action 34i upload-boundary transaction and every Action 34h
+standby-first installation, queue-preservation, evidence, reverse-order
+rollback, cleanup-only pre-mutation recovery, and status-125 control.
+
+The correction is limited to the transaction-owned forced-eligibility rewrite.
+Before rewriting, the record must be a regular non-symlink with exact
+`pi:pi:0600` identity. The replacement is created in the same directory,
+validated JSON is written, and the temporary file is assigned exact
+`pi:pi:0600` identity before atomic rename. Independent post-rename assertions
+then require the same owner, group, mode, and requested eligibility timestamp
+before the controlled worker may run. Invalid JSON, unsafe source metadata,
+ownership drift, mode drift, or timestamp mismatch fails closed without
+replacing or accepting the source record.
+
+The production regression executes the actual Action 34j helper through its
+transaction library boundary. It reproduces retry scheduling, the exact
+root-side forced-eligibility rewrite, and subsequent `pi` worker access;
+verifies that attempt state is retained; rejects the Action 34i root-owned
+replacement pattern; and retains the Action 34i partial-upload cleanup and
+full-upload acceptance coverage. The outer self-test emitted
+`action_34j_outer_node_contact=false`. Focused host validation passed with
+evidence `/tmp/caddy-focused-validation.f2WmMl`. The single network-disabled
+Debian 12 batch passed with evidence
+`/tmp/caddy-focused-container-evidence.RspjYh`; both selected Debian tests
+returned status zero. The historical complete suite was not run.
+
+Action 34j upload-boundary transaction SHA-256:
+`34d43af6e72bcb40826eb8510cfe0a2d11369f8b7ec94529772e47217505675f`.
+Action 34j application transaction SHA-256:
+`35bae81b90a822dfbdb07ac4f2bd1d1fb4d8489ad12de978218f10f64aeed256`.
+Action 34j regression SHA-256:
+`38619b196abf9784e6bb31dac35b75cb0f6b37fe310bba8d3e36aa85c8068c2a`.
+Action 34j artifact-manifest SHA-256:
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`.
+Action 34j action-manifest SHA-256:
+`d8166de35ca4b81cbff30f326da1995c5740ab608aa47f69f7e593221435e6cb`.
+Action 34j exact future outer SHA-256:
+`e346d8fb0e9640b2aaf9dbcf0608fd374ce7f6903ad789715b0d255d40581dae`.
+Live execution remains unauthorized until that exact outer identity is
+separately approved.
+
+#### Action 34j execution journal
+
+Action 34j was executed once under exact authorization of outer SHA-256
+`e346d8fb0e9640b2aaf9dbcf0608fd374ce7f6903ad789715b0d255d40581dae`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates
+passed. The retained Action 34h upload from the prior failed run was an exact
+40,960-byte payload with expected SHA-256
+`524a1083b78a7d4862cd03d8e0affecc4e9de3cce7ae51bcab0cb6691755a5fb`
+and was safely removed. The new Node B upload preparation, SCP, and exact
+size/hash acceptance all passed with empty transport stderr.
+
+Node B then passed all ten service, VRRP-state, and shared-VIP baseline gates.
+The next inherited call, `dispose_action34g_residue_at`, required Node B's
+queue root and the two exact retained Action 34g records to exist. Accepted
+Action 34i recovery had already removed that queue and independently emitted
+`recovery_queue_absent=true`; therefore Action 34j rejected the exact recovered
+baseline before `queue_baseline_absent`, payload validation, backup creation,
+mutation, installation, worker activation, or the ownership-preserving rewrite.
+This is an idempotence defect in the successor's residue consumer, not an
+Apprise, service, queue, or live-system failure.
+
+Pre-mutation cleanup completed. Independent Node B recovery returned status
+zero, reaccepted all ten baseline gates plus queue absence, and emitted
+`recovery_pre_mutation_cleanup=true` and `recovery_proven=true`. Node A was not
+contacted. Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34j/run.4xDZwW`. Node B apply stdout SHA-256 is
+`a7e0ba4cfbe3e9d072b85f331bd3b16ce2f798b35f63e9b8e76aee70893d06db`;
+apply stderr SHA-256 is
+`a25ddeb9d68d43b59975af2e6841b2a18eeddab8ef7219c8ee7090791c07db58`;
+recovery stdout SHA-256 is
+`b4d6679c24bf8ea0e7803f97d2137779f03f9db18fb9a5c1250d25351950f9d7`;
+recovery stderr is empty. No separate diagnostic is needed.
+
+#### Action 34b execution journal
+
+Action 34b was executed once under exact authorization of outer SHA-256
+`8e73e85a5f7e7495758f855cbf3bcdc8d2b2f30d2b812c992e834d6aa53df0ee`.
+It is failed-consumed, immutable, and must not be rerun. All workstation gates
+and the Node B upload passed. Node B reaccepted Caddy, managed lsyncd,
+reconciliation, Keepalived, dual-stack BACKUP state, zero shared VIPs, queue
+absence, and the exact Action 32g runtime baseline. The collision-free label
+encoding then emitted unique expected and observed identities for every
+artifact, including `caddy-sync-failure@.service`; the Action 34a label defect
+is corrected.
+
+The ninth artifact, `/usr/local/bin/keepalived-notify.sh`, was observed at
+SHA-256
+`0a2898c08d64e126f393bc17529e33f9e5890bebdbbfc9bccbfd0ec84a09afe6`,
+which matches neither the registered legacy identity
+`353bf6df313802c51b589d08b43758d53d586aa6ce7257b9b28c46b60d1a5b4f`
+nor candidate identity
+`4008bb94e0d8de04295f5b9669f69efbb12340c024a944e52adb59d673dd1bdb`.
+The transaction therefore failed closed before journal cursor, backup,
+mutation marker, artifact installation, systemd reload, queue creation, worker
+activation, service restart, or Node A contact. Cleanup-only recovery returned
+`0`, reconfirmed Node B continuity and queue absence, and the outer proved
+recovery. The action returned `1`, not `125`.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34b/run.dGDiDD`. Node B apply stdout is 5,790
+bytes with SHA-256
+`0f13a77ef21639751cd50fc1a18de84994191c19e029afdfa4bfc7164b7f696e`;
+apply stderr is 191 bytes with SHA-256
+`1dca775f6c92dfcd5897456ee63fd5611df16931c276f39a138350df2042b205`.
+Recovery stdout is 647 bytes with SHA-256
+`8cd7ea952a3df5314e0fa84282302dcf24ac9ac9a5d79737f0733b589ae2a1dd`;
+recovery stderr is empty. No separate diagnostic is needed.
+
+#### Current-production notifier prerequisite successor Action 34c
+
+Action 34c is definition-complete and unexecuted. Neither HA node was
+contacted while defining it. It consumes failed Action 34b without rerunning
+or modifying Actions 34, 34a, or 34b. The retained Action 34b evidence is
+conclusive: all first eight manifest targets matched their registered
+identities, while the ninth target had one exact regular-file identity. The
+Action 34c manifest therefore changes only the Keepalived notifier's baseline
+from the stale historical hash to the observed current-production SHA-256
+`0a2898c08d64e126f393bc17529e33f9e5890bebdbbfc9bccbfd0ec84a09afe6`.
+Its repository candidate, target path, mode, and candidate SHA-256 remain
+unchanged.
+
+The production-path regression pins every executed Action 34b artifact,
+requires exactly one notifier row with the observed baseline and current
+repository candidate, validates every manifest candidate source, and reruns
+the complete collision-free installed-target label contract. The transaction
+retains exact baseline-or-candidate idempotence for all artifacts, protected
+backup before mutation, Node B completion before Node A, queue preservation,
+bounded test delivery, reverse-order rollback, cleanup-only pre-mutation
+recovery, workstation and node `/tmp` evidence, and status `125` only when a
+real mutation cannot be recovered. Definition hashes and focused-validation
+evidence are recorded after validation below.
+
+#### Queue-baseline-complete durable Apprise successor Action 34k
+
+Action 34k is definition-complete and unexecuted. Neither HA node was
+contacted. It consumes the exact `current-live-state.tsv` contract established
+from Action 34j recovery: both durable queues and both durable Apprise
+installations are absent, Node A remains preferred MASTER, Node B remains
+BACKUP, and both nodes retain the accepted Action 32g runtime baseline. Actions
+34 through 34j remain immutable and must not be rerun.
+
+The corrected pre-mutation consumer accepts an absent Node B queue as already
+disposed. If a queue exists, it must be a physical mode-0700 queue with exactly
+the four physical mode-0700 state directories and exactly the two known
+mode-0600 records. Both records must have their filename-bound event identity,
+valid bounded queue schema, and the exact Caddy-sync and Keepalived controlled
+payload classifications before removal. A partial inventory, extra record,
+malformed record, symlink, unsafe metadata, or any other queue shape fails
+closed without mutation. Node A accepts only an absent queue.
+
+The transaction preserves Action 34j's ownership-preserving atomic eligibility
+rewrite. Its `--production-path-test` recursively dispatches the real
+`apply_action` boundary for every registered queue state, reaches payload
+validation, runs the atomic rewrite with exact owner/mode verification, and
+stops at a labeled no-mutation sentinel. The neutral production regression and
+the deployable-successor policy both execute that same entrypoint. The
+successor registry pins the accepted state hash and its coverage registry now
+contains the complete required matrix.
+
+Live execution remains standby-first: Node B must install and accept completely
+before Node A begins. Reverse-order recovery and exit status `125` for unproven
+recovery are unchanged. Node and workstation evidence remain beneath
+`/tmp/caddy-action34k` and `/tmp/caddy-ssh-evidence/action34k`. Focused host and
+one network-disabled Debian 12 validation replace the historical complete
+suite. Transaction SHA-256
+`4bd8df19ab7f75870b0993259503eea1192eb26a9f5ddebbd7b3732c5cc39920`,
+neutral regression SHA-256
+`56266054495509deeb6d70e9378f2589ae1b69385571625611807d2e1b0db9c2`,
+artifact-manifest SHA-256
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`,
+and exact outer-runner SHA-256
+`5265f442c9ff0769200b37cc3a2b0bd5b2d99683dcc184a34059399d22e8fc39`.
+That exact definition was subsequently authorized and consumed as recorded
+below.
+
+#### Queue-baseline-complete durable Apprise Action 34k execution
+
+Action 34k executed once under exact authorization with outer-runner SHA-256
+`5265f442c9ff0769200b37cc3a2b0bd5b2d99683dcc184a34059399d22e8fc39`;
+it failed closed before upload or mutation and must not be rerun. All
+workstation gates, the complete real-dispatch queue matrix, payload creation,
+and the Node B retained Action 34h upload-residue disposition passed. The
+residue inventory was exactly zero and both transport stderr captures were
+empty.
+
+Node B upload preparation then returned status `1` with empty stdout and
+stderr. The cause is deterministic from the executed paths and immutable
+upload boundary: Action 34k generated
+`/tmp/caddy-action34k-payload-node-b-1786837685-438456.tar`, while
+`apply-durable-apprise-action34i.sh` accepts only the exact grammar
+`/tmp/caddy-action34h-payload-<role>-<run-token>.tar`. Its `validate_common`
+rejected the unsupported namespace before `prepare_roots`, upload creation,
+payload transfer, transaction dispatch, queue inspection, backup, mutation,
+service action, or Node A contact. No recovery action was required because no
+mutation entrypoint ran.
+
+Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34k/run.RGjiTV`. The payload SHA-256 is
+`6624efc7687c13d53830d5a3c2f7bb87f623378ba8833ddc3b004bed845a191f`.
+Node B residue stdout SHA-256 is
+`0a89bcb040a7dbae315464c18e67c0fb9db395376e6c06964d4eade3db11dfe8`;
+its stderr is empty. Upload-preparation stdout and stderr are both empty.
+The direct successor must correct the path namespace and exercise that actual
+upload-preparation producer path; no separate diagnostic is needed.
+
+#### Upload-namespace-corrected durable Apprise Action 34l definition
+
+Action 34l is definition-complete and unexecuted. Neither HA node was
+contacted. It consumes the proven pre-upload Action 34k failure and the exact
+Action 34j recovered queue-absent baseline without rerunning any consumed
+Action 34 action. The sole live behavioral correction changes Node A and Node
+B remote payload paths to the immutable Action 34i helper's accepted grammar:
+`/tmp/caddy-action34h-payload-<role>-<run-token>.tar`.
+
+The Action 34k transaction contract otherwise remains intact: Node B completes
+before Node A begins; absent queues are accepted; exactly both retained records
+may be validated and removed; partial, extra, malformed, symlinked, or unsafe
+queue state fails closed; the ownership-preserving forced-eligibility rewrite
+is retained; recovery runs Node A before Node B; and unproven recovery returns
+`125`. Notification delivery remains outside VRRP, Caddy, synchronization, and
+health decisions.
+
+The populated deployable-successor registry binds Action 34l to the accepted
+current-live state, neutral durable regression, and a coverage matrix whose
+markers are owned independently by the outer runner or transaction. The real
+outer `--production-path-test` constructs the payload, generates the corrected
+remote paths, invokes the actual Action 34i prepare, accept, and disposition
+functions against isolated state, constructs the exact remote command,
+dispatches the transaction production path, and leaves six mode-`0600`
+evidence files beneath the caller-provided mode-`0700` `/tmp` directory. The
+transaction independently exercises the complete queue-state matrix through
+payload validation and the no-mutation boundary. Both streams were empty on
+stderr.
+
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.i5JOBw`. The one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.C3QqcG`.
+The complete historical suite was not run. Transaction SHA-256 is
+`7bd7b3860b6983765ec99afb4ade0e177c4e60c0369e2731f088b605cdb8f95e`;
+artifact manifest SHA-256 is
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`;
+action manifest SHA-256 is
+`dc3070d96d288fc8da329deba01843b82506db6baa20a8ca3fbef664d991a9af`;
+neutral regression SHA-256 is
+`c3fa0b29389b510f60010c93879a83aa28f68b15f08aed7ad90f8fe04eebb13f`.
+The fully populated registry passed
+`deployable-successor-policy.sh --authorization-ready` before the exact outer
+SHA-256 was calculated. Live execution requires separate authorization of
+outer SHA-256
+`0030d7b8848b8f4cc97d24a75a3764a7f2cc9ff574876040650d5296f2eb3e5c`.
+
+#### Upload-namespace-corrected durable Apprise Action 34l execution
+
+Action 34l executed once under exact authorization of outer SHA-256
+`0030d7b8848b8f4cc97d24a75a3764a7f2cc9ff574876040650d5296f2eb3e5c`.
+It failed closed and is consumed; it must not be rerun or modified. Node B's
+retained Action 34h residue check, upload preparation, payload transfer, and
+upload acceptance all completed. The accepted payload is the exact regular
+file `/tmp/caddy-action34h-payload-node-b-1786840719-615179.tar`, size `40960`,
+SHA-256
+`8653c5379bd86226ec1d0a8d03da21e2f7071b223c3ba42c3ac31b9907fd349f`.
+
+The streamed transaction then exited at its prologue with
+`BASH_SOURCE[0]: unbound variable`. Recovery encountered the same prologue
+failure and the outer returned status `125`. The failure occurred before mode
+dispatch, queue inspection, backup, installation, service action, or any other
+production mutation. Node A was not contacted. The accepted Node B upload is
+the only Action 34l residue and is now represented explicitly in
+`current-live-state.tsv`. Workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34l/run.OAgagf`. Action 34l's manifest lifecycle
+is `failed-consumed`; its immutable definition files retain their original
+definition-time status and authorization record.
+
+#### Stdin-stream-safe durable Apprise Action 34m definition
+
+Action 34m is definition-complete and unexecuted. Neither HA node was contacted
+while defining it. It consumes the exact failed Action 34l boundary and retains
+every Action 34k/34l queue, ownership, standby-first, rollback, evidence, and
+status-`125` control. Before starting the unchanged Node B installation it
+accepts an already absent retained upload or removes only the exact Action 34l
+path after validating its role, run token, regular non-symlink type, `pi`
+ownership, bounded safe mode, exact size, and exact SHA-256. Every other state
+fails closed. Actions 34 through 34l remain immutable and must not be rerun.
+
+The transaction no longer dereferences `BASH_SOURCE[0]` during live startup.
+Its source path is optional and used only by the file-backed recursive
+production matrix. The outer production path additionally streams the actual
+transaction bytes through `/bin/bash -s -- --production-path-case`, requires
+payload validation and the labeled no-mutation boundary, and emits the
+independently registered
+`production_path_outer_stdin_transaction_dispatched=true` marker. The neutral
+regression also requires the constructed remote command to use
+`/bin/bash -s --`. This closes the exact file-versus-stdin gap exposed by Action
+34l rather than testing a helper substitute.
+
+The successor registry consumes `current-live-state.tsv` SHA-256
+`53a1d8ef950ed31e35defd6f2163efa7deeba709c6ce45104669282467043c35`.
+Transaction SHA-256 is
+`bbe08dfab49e71a1a1297ca0f1cc164529a30df343ca1820898989fb85307ca6`;
+artifact-manifest SHA-256 is
+`cde29cecd1d2bd39fa17add94fdb9d003c833cff1cb85ad356cf1ef14ba6e881`;
+action-manifest SHA-256 is
+`ec8d7716d39c9068947842add8413bfa222230c8e6028f0be4b59c2a14ef2029`;
+neutral-regression SHA-256 is
+`8a52ea31ea824d6099f21c9c1731e6a8256bf49ac69a569ad66f4d25625432aa`.
+Focused host validation passed with evidence
+`/tmp/caddy-focused-validation.49IUz6`; the one network-disabled Debian 12
+batch passed with evidence `/tmp/caddy-focused-container-evidence.dnF6M4`.
+The historical complete suite was not run. The populated registry and complete
+entrypoint-owned matrix passed
+`deployable-successor-policy.sh --authorization-ready`. Live execution remains
+separately gated by exact outer SHA-256
+`f8268d1f715cf2da9c55469a5d37eecec89ca5b8f7db18268070a2915a301626`.
+
+#### Stdin-stream-safe durable Apprise Action 34m execution
+
+Action 34m executed once under exact authorization of outer SHA-256
+`f8268d1f715cf2da9c55469a5d37eecec89ca5b8f7db18268070a2915a301626`
+and returned `0`. It is accepted, immutable, and must not be rerun. The outer
+validated and removed the exact retained Action 34l Node B upload, then
+completed the standby-first Node B installation and acceptance before the
+Node A installation and acceptance. The actual transaction was streamed
+through `/bin/bash -s --`; the live path no longer depended on
+`BASH_SOURCE[0]`.
+
+Both nodes accepted every exact production artifact, systemd path/timer state,
+queue permission, producer, controlled retry, queue-drain, service-health,
+release, and coupled ownership assertion. Node A remained dual-stack MASTER
+with all four shared VIPs; Node B remained dual-stack BACKUP with zero shared
+VIPs. Caddy, managed lsyncd, reconciliation, and Keepalived remained healthy.
+Both queues ended with zero pending, inflight, and dead-letter records. No
+rollback or manual intervention was required.
+
+All retained status files are `0`, all retained stderr streams are empty, and
+workstation evidence is retained at
+`/tmp/caddy-ssh-evidence/action34m/run.2dqqFO`. The generated per-node payload
+was 40,960 bytes with SHA-256
+`e3342ca3b3c4c838b8e30e44c62087cc3f4bbd93e625af0016ad745ac028f4a4`.
+The accepted-live and production-artifact inventories now record Action 34m,
+the current-state contract contains no Action 34 upload residue, and the
+deployable-successor registry is explicitly `none`.
+
 ### Remaining ordered work
 
-1. Execute and accept the defined standby-first durable Apprise Action 34
-   under separate exact SHA-256 authorization.
-2. Create and accept the operator documentation listed below, incorporating
+1. Create and accept the operator documentation listed below, incorporating
    the reliability exercise and durable-notification behavior.
-3. Update the canonical LikeC4 model and generated views from the accepted
+2. Update the canonical LikeC4 model and generated views from the accepted
    operator documentation.
+
+#### Deployable-successor validation ratchet
+
+The repeated Action 34 definition failures exposed a repository governance
+defect: the current profile selected an action-named regression whose dynamic
+test called only the edited ownership-rewrite helper. It never dispatched the
+generated transaction from the recovered Node B queue-absent baseline. The
+focused-manifest policy also recognized only filenames beginning with
+`action`, so the embedded `-action34j-` name bypassed the historical-only rule.
+
+The repository-only correction establishes three canonical contracts:
+
+- `current-live-state.tsv` records the accepted Action 32g/33o baseline plus
+  Action 34j's proven Node B recovery state; it is the successor's input, not
+  an inferred historical fixture;
+- `deployable-successor.tsv` permits exactly one defined successor or an
+  explicit `none` state and pins the current-state hash;
+- `deployable-successor-coverage.tsv` requires queue absent, exact two-record,
+  partial, extra, unsafe-metadata, symlink, malformed, Node A absent, payload
+  validation, mutation-boundary, payload-construction, exact remote-path,
+  upload prepare/accept/disposition, remote-command, and transaction-dispatch
+  coverage.
+
+The always-run policy rejects incomplete coverage, stale state, an
+action-named current regression, or an outer runner or remote transaction that
+does not expose and successfully execute its real no-network production-path
+test entrypoint. Static inspection, helper-only tests, and an outer self-test
+that stops before upload are insufficient. The outer production-path test must
+exercise the generated payload and remote path, the real upload helper's
+prepare/accept/disposition modes against isolated local state, and exact remote
+command construction before it dispatches the transaction's state matrix and
+no-mutation sentinel. Host and Debian are recorded as runtime environments for
+the same behavior, not two independent proofs. Executed Actions 34 through 34k
+remain unchanged and non-runnable. Action 34k stopped before upload or live
+mutation, leaving the recovered queue-absent state recorded by
+`current-live-state.tsv`; the registry's current `none` state does not imply an
+Action 34l definition.
+
+The 2026-08-15 regression audit further separates
+`focused-validation.yaml`, which contains only current production profiles,
+from opt-in `historical-actions.yaml`. Current changed-path validation skips
+entries whose lifecycle is not `production-current`; historical reconstruction
+remains available only through explicit `--action`. The current conditional
+validator no longer scans two hundred preserved historical validators or
+maintains per-action hash exceptions. A neutral registry-driven durable
+regression replaces the Action-34k-pinned current regression. Coverage rows now
+identify their owning `outer` or `transaction` stdout stream, and an outer
+production-path test must leave protected evidence of its payload identity,
+remote path, upload prepare/accept/disposition sequence, remote command,
+transaction status, and zero-mutation result. `--check` remains suitable
+between actions with a registry state of `none`; `--authorization-ready`
+rejects that state and is mandatory before an outer hash is reported or
+authorized. This is a repository governance correction, not Action 34l, and it
+does not change the next live gate.
 
 Operator documentation must include:
 

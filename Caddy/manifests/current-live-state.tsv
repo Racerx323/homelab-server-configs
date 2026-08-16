@@ -1,0 +1,14 @@
+schema_version	scope	key	value	evidence
+1	cluster	accepted-live-artifacts-sha256	cf656921cf46a4cbfbef55f9d145476f0b1a7443a404bd07827c9c227beb9f8f	accepted-live-artifacts.tsv
+1	cluster	runtime-baseline-sha256	705c0e2e590e83da942048ca47c61fab545eb52c9f7b5fe866ba18524c7d1587	accepted-action32g
+1	cluster	durable-apprise-evidence	/tmp/caddy-ssh-evidence/action34m/run.2dqqFO	accepted-action34m
+1	node-a	ownership	ipv4-master,ipv6-master,shared-vips=4	accepted-action34m
+1	node-a	services	caddy=active,lsyncd=active,reconcile-path=active,keepalived=active	accepted-action34m
+1	node-a	release	action32g-exact	accepted-action34m
+1	node-a	durable-apprise-installation	installed-exact,path=enabled,timer=enabled	accepted-action34m
+1	node-a	apprise-queue	pending=0,inflight=0,dead-letter=0	accepted-action34m
+1	node-b	ownership	ipv4-backup,ipv6-backup,shared-vips=0	accepted-action34m
+1	node-b	services	caddy=active,lsyncd=active,reconcile-path=active,keepalived=active	accepted-action34m
+1	node-b	release	action32g-exact	accepted-action34m
+1	node-b	durable-apprise-installation	installed-exact,path=enabled,timer=enabled	accepted-action34m
+1	node-b	apprise-queue	pending=0,inflight=0,dead-letter=0	accepted-action34m

@@ -57,7 +57,7 @@ classification_valid() {
     # conditional-validator-explicit-failures-begin
     awk -F '\t' '
         NR == 1 { next }
-        $1 ~ /^Caddy\/tests\/action.*[.]sh$/ && $2 != "historical-preserved" { exit 1 }
+        $1 ~ /^Caddy\/tests\/[^/]*action[0-9].*[.]sh$/ && $2 != "historical-preserved" { exit 1 }
         ($1 == "Caddy/tests/run.sh" || $1 == "Caddy/tests/integration.sh") &&
             ($2 != "historical-preserved" || $3 != "historical-opt-in") { exit 1 }
         $1 ~ /^Caddy\/tests\/fixtures\// && $2 != "test-fixture" { exit 1 }

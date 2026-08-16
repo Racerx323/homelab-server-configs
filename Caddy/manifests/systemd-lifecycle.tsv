@@ -1,7 +1,7 @@
 # source-path	lifecycle	node-installable	installed-path	mode	authority
-Caddy/systemd/caddy-apprise-worker.path	production-current	yes	/etc/systemd/system/caddy-apprise-worker.path	0644	Caddy/manifests/durable-apprise-action34.tsv
-Caddy/systemd/caddy-apprise-worker.service	production-current	yes	/etc/systemd/system/caddy-apprise-worker.service	0644	Caddy/manifests/durable-apprise-action34.tsv
-Caddy/systemd/caddy-apprise-worker.timer	production-current	yes	/etc/systemd/system/caddy-apprise-worker.timer	0644	Caddy/manifests/durable-apprise-action34.tsv
+Caddy/systemd/caddy-apprise-worker.path	production-current	yes	/etc/systemd/system/caddy-apprise-worker.path	0644	Caddy/manifests/durable-apprise-production.tsv
+Caddy/systemd/caddy-apprise-worker.service	production-current	yes	/etc/systemd/system/caddy-apprise-worker.service	0644	Caddy/manifests/durable-apprise-production.tsv
+Caddy/systemd/caddy-apprise-worker.timer	production-current	yes	/etc/systemd/system/caddy-apprise-worker.timer	0644	Caddy/manifests/durable-apprise-production.tsv
 Caddy/systemd/caddy-cert-expiry.service	production-current	yes	/etc/systemd/system/caddy-cert-expiry.service	0644	Caddy/manifests/production-artifacts.tsv
 Caddy/systemd/caddy-cert-expiry.timer	production-current	yes	/etc/systemd/system/caddy-cert-expiry.timer	0644	Caddy/manifests/production-artifacts.tsv
 Caddy/systemd/caddy-lsyncd.service	production-current	yes	/etc/systemd/system/caddy-lsyncd.service	0644	Caddy/manifests/production-artifacts.tsv

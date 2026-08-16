@@ -5,22 +5,6 @@ not describe services that are not configured in this repository. GitHub
 automation is authoritative only when represented by a tracked file under
 `.github/`.
 
-## CodeRabbit reviews
-
-CodeRabbit requires external network access. Run all `coderabbit review` commands with network escalation (`sandbox_permissions: "require_escalated"`). Request the reusable approval prefix `["coderabbit", "review"]`.
-
-Do not wait for a sandboxed review to time out. If it stalls while connecting, rerun it immediately with network escalation.
-
----
-
-## Security considerations
-
-- **Least Privilege**: Each automated agent should operate with the minimum permissions necessary to perform its tasks. Review and adjust permissions regularly.
-- **Secrets Management**: Sensitive information such as API keys and tokens should be stored securely using GitHub Secrets and not hard-coded in workflows.
-- **Monitoring and Alerts**: Set up monitoring for automated workflows to detect and respond to any unusual activity or failures.
-
----
-
 ## Deployment authorization cadence
 
 - Workstation-only definitions, edits, focused tests, formatters, linters, and
@@ -46,12 +30,13 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
 - Require all in-scope current-production tests and governing policies to pass.
   Record an unrelated historical failure, but do not block current work unless
   it exposes a shared dependency or policy defect.
-- `Caddy/tests/run.sh` is a Podman wrapper, not a host-only test command. Run it
-  outside the filesystem sandbox on its first attempt with the narrowest
-  applicable scoped escalation because its final integration phase requires
-  the rootless runtime under `/run/user`.
+- `Caddy/tests/run.sh` is an opt-in historical reconstruction wrapper, not a
+  current-production gate. Run it only when historical reconstruction is
+  explicitly requested. It uses Podman and therefore must run outside the
+  filesystem sandbox on its first attempt.
 - Run focused Debian validation only through
-  `Caddy/tests/run-focused-container.sh Caddy/tests/TEST_SCRIPT`. The wrapper
+  `Caddy/tests/run-focused-container.sh --profiles CSV` or its explicitly
+  historical `--action ID` form. The wrapper
   owns the validation image's existing Bash entrypoint, passes `-lc` directly
   instead of supplying a second `/bin/bash`, exports the required
   `CADDY_VALIDATION_CONTAINER=1` marker, disables networking, and mounts the
@@ -63,7 +48,6 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   `!/.vscode/**` rules in `.gitignore`, and run
   `Caddy/tests/vscode-tracking-policy-regression.sh` after ignore-policy
   changes.
-- After moving files or changing imports, check that all files or imports adhere to the project's coding standards.
 - Add or update tests when executable behavior or a safety boundary changes.
   Documentation, journal, manifest-only metadata, and current-hash updates need
   structural validation, not a new behavioral regression by default.
@@ -107,6 +91,46 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   record its current disposition in the lifecycle registry. The accepted-live
   policy rejects missing inventory entries, source drift in this repository,
   identity/action mismatches, and unclassified manifest files.
+- Treat `Caddy/manifests/current-live-state.tsv` as the typed semantic input to
+  the next live successor. Its evidence must describe the last accepted final
+  state or proven recovery state, including absence or partial-installation
+  facts that alter pre-mutation behavior. Never reconstruct that input from an
+  older action's initial assumptions.
+- Before reporting an outer-runner SHA-256, register the one deployable
+  successor in `Caddy/manifests/deployable-successor.tsv` and its complete
+  state matrix in `Caddy/manifests/deployable-successor-coverage.tsv`. Both the
+  outer runner and remote transaction must expose a no-network
+  `--production-path-test`. Routine repository checks use
+  `Caddy/tests/deployable-successor-policy.sh --check`, while the mandatory
+  pre-authorization gate is
+  `Caddy/tests/deployable-successor-policy.sh --authorization-ready`; it must
+  reject an empty successor registry, execute both exact entrypoints, and
+  require each registered marker exactly once from the entrypoint that owns it.
+  The neutral
+  registered regression filename must not contain an action identifier.
+  Static inspection, direct helper calls, copied predecessor fixtures, emitted
+  labels without entrypoint execution, and an outer `--self-test` that stops
+  before its first transport boundary are not production-path coverage. Do not
+  report or request authorization for an outer SHA-256 unless the
+  `--authorization-ready` gate passes.
+- Production-path coverage must follow the real generated data and command
+  flow from the outer dispatch through every fallible pre-mutation boundary.
+  It must build the payload, generate the exact remote path, invoke the real
+  upload helper's prepare, accept, and disposition modes against isolated
+  local state, construct the exact remote command and arguments without SSH,
+  dispatch the transaction test, exercise every state-dependent transaction
+  branch, and prove that an accepted branch reaches payload validation and a
+  no-mutation sentinel at the mutation boundary. The coverage registry must
+  identify `outer` or `transaction` ownership for every marker, and the outer
+  test must leave mode-checked evidence of payload identity, remote path,
+  prepare/accept/disposition calls, remote command arguments, transaction
+  status, and zero mutation beneath an isolated caller-provided `/tmp`
+  directory. Cover absent, exact, partial,
+  extra, unsafe-metadata, symlink, malformed, and node-role states when they
+  affect the successor. Reject any untested outer-to-helper grammar or argument
+  boundary. Host and Debian runs are environments for this same logical
+  contract, not independent coverage. Both must pass before authorization when
+  Debian-sensitive behavior is in scope.
 - Shell tooling must target Debian's default POSIX `awk`, not GNU `awk`.
   Interval quantifiers such as `{64}` and `{3,4}` are prohibited inside awk
   regular expressions because support varies across default awk
@@ -270,8 +294,9 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   it only in a protected evidence path for separately authorized inspection.
   Never defer stream capture to a follow-on action, delete the only useful
   capture before its evidence outcome is secured, or print unclassified raw
-  output. Preserve historical deficient actions only behind an exact immutable
-  hash exception, and require corrected or new actions to pass
+  output. Classify executed historical actions in the lifecycle registries and
+  exclude them from current-production policies; do not accumulate per-action
+  hash exceptions in current checks. Require corrected or new actions to pass
   `Caddy/tests/transaction-output-evidence-policy-regression.sh`.
 - Validate executable changes with the focused host tests and governing
   policies for the changed boundary. Add the focused Debian 12 Podman slice
@@ -290,9 +315,11 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   network-disabled Debian container for a selected batch. The manifest may
   contain only tracked test paths and named policy identifiers; never place
   shell commands or copied SHA-256 identities in it. Enforce completeness,
-  path safety, lifecycle classification, and the immutable historical-wrapper
-  inventory with
-  `Caddy/tests/focused-validation-manifest-policy.sh --check`.
+  path safety, and lifecycle classification with
+  `Caddy/tests/focused-validation-manifest-policy.sh --check`. Keep historical
+  action selection in `Caddy/tests/historical-actions.yaml` and validate that
+  opt-in index separately with
+  `Caddy/tests/historical-action-index-policy.sh --check`.
 - Treat `Caddy/tests/test-lifecycle.tsv` as the complete lifecycle registry for
   every tracked entry beneath `Caddy/tests/`. Current profiles select only
   neutral `production-current` regressions; action-named tests, `run.sh`, and
@@ -338,21 +365,6 @@ Do not wait for a sandboxed review to time out. If it stalls while connecting, r
   let stale historical hashes block current work. `Caddy/tests/run.sh` and
   `Caddy/tests/integration.sh` are explicit opt-in historical reconstruction
   entrypoints and must not be called by a current-production profile.
-- Test edge cases and error handling in proportion to the changed risk.
-- Document any new features or changes to existing functionality.
 - Preserve backward compatibility only when it is an explicit requirement;
   intentional migrations and replacements may deliberately break obsolete
   internal contracts.
-- Update any relevant documentation or comments in the code.
-
----
-
-## PR instructions
-
-- **Title format**: [&lt;project_name&gt;] &lt;Title&gt;
-- **Description**: Provide a clear and concise description of the changes made in the PR.
-- **Related Issues**: Link any related issues or pull requests.
-- **Checklist**:
-  - [ ] Code is well-tested
-  - [ ] Documentation has been updated
-  - [ ] Changes have been reviewed by at least one other person

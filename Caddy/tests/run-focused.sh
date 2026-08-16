@@ -12,6 +12,7 @@ test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
 readonly repository_root=${test_directory%/Caddy/tests}
 readonly manifest=${CADDY_FOCUSED_VALIDATION_MANIFEST:-$test_directory/focused-validation.yaml}
+readonly historical_manifest=${CADDY_HISTORICAL_ACTION_MANIFEST:-$test_directory/historical-actions.yaml}
 
 selection_mode=
 selection_action=
@@ -142,11 +143,31 @@ stable_unique() {
     awk 'NF && !seen[$0]++'
 }
 
+nonproduction_inventory_path() {
+    local focused_runner_changed_path=$1
+    local focused_runner_registry=
+    local focused_runner_lifecycle=
+
+    case "$focused_runner_changed_path" in
+        Caddy/tests/*) focused_runner_registry=$test_directory/test-lifecycle.tsv ;;
+        Caddy/scripts/*) focused_runner_registry=$repository_root/Caddy/manifests/script-lifecycle.tsv ;;
+        Caddy/manifests/*) focused_runner_registry=$repository_root/Caddy/manifests/manifest-lifecycle.tsv ;;
+        Caddy/systemd/*) focused_runner_registry=$repository_root/Caddy/manifests/systemd-lifecycle.tsv ;;
+        Caddy/templates/*) focused_runner_registry=$repository_root/Caddy/manifests/template-lifecycle.tsv ;;
+        *) return 1 ;;
+    esac
+    focused_runner_lifecycle=$(awk -F '\t' -v path="$focused_runner_changed_path" \
+        '$1 == path { print $2; found++ } END { if (found != 1) exit 1 }' \
+        "$focused_runner_registry") || return 1
+    [[ "$focused_runner_lifecycle" != production-current ]]
+}
+
 /bin/bash "$test_directory/focused-validation-manifest-policy.sh" --check >/dev/null
 
 if [[ "$list_only" = true ]]; then
+    /bin/bash "$test_directory/historical-action-index-policy.sh" --check >/dev/null
     jq -r '.profiles | keys[] | "profile\t\(.)"' "$manifest"
-    jq -r '.actions[] | "action\t\(.id)\t\(.lifecycle)"' "$manifest"
+    jq -r '.actions[] | "action\t\(.id)\t\(.lifecycle)"' "$historical_manifest"
     printf '%s_evidence_path=%s\n' "$prefix" "$evidence_root"
     exit 0
 fi
@@ -180,10 +201,11 @@ load_profile() {
 case "$selection_mode" in
     action)
         [[ "$selection_action" =~ ^action[0-9][a-z0-9-]*$ ]] || exit 64
-        jq -e --arg action "$selection_action" 'any(.actions[]; .id == $action)' "$manifest" >/dev/null || exit 64
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .host_tests[]' "$manifest" >>"$host_raw"
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .debian_tests[]' "$manifest" >>"$debian_raw"
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .policies[]' "$manifest" >>"$policies_raw"
+        /bin/bash "$test_directory/historical-action-index-policy.sh" --check >/dev/null
+        jq -e --arg action "$selection_action" 'any(.actions[]; .id == $action)' "$historical_manifest" >/dev/null || exit 64
+        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .host_tests[]' "$historical_manifest" >>"$host_raw"
+        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .debian_tests[]' "$historical_manifest" >>"$debian_raw"
+        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .policies[]' "$historical_manifest" >>"$policies_raw"
         ;;
     profiles)
         [[ "$selection_profiles_csv" =~ ^[a-z0-9-]+(,[a-z0-9-]+)*$ ]] || exit 64
@@ -235,6 +257,9 @@ case "$selection_mode" in
             fi
         done < <(jq -r '.profiles | keys[]' "$manifest")
         while IFS= read -r focused_runner_changed_path; do
+            if nonproduction_inventory_path "$focused_runner_changed_path"; then
+                continue
+            fi
             case "$focused_runner_changed_path" in
                 Caddy/* | AGENTS.md | .pre-commit-config.yaml)
                     focused_runner_path_covered=false
@@ -339,8 +364,14 @@ run_policy() {
         deployment-lifecycle)
             /bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check
             ;;
+        deployable-successor)
+            /bin/bash "$test_directory/deployable-successor-policy.sh" --check
+            ;;
         environment-v2)
             /bin/bash "$test_directory/caddy-environment-v2-policy.sh" --check
+            ;;
+        historical-action-index)
+            /bin/bash "$test_directory/historical-action-index-policy.sh" --check
             ;;
         test-lifecycle)
             /bin/bash "$test_directory/test-lifecycle-policy.sh" --check

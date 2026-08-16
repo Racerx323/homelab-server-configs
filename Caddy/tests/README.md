@@ -5,7 +5,9 @@ This directory contains two deliberately separate test surfaces.
 ## Current production validation
 
 `focused-validation.yaml` maps current production paths to bounded host tests,
-Debian-sensitive tests, and named repository policies. Use:
+Debian-sensitive tests, and named repository policies. Historical action
+selection lives separately in `historical-actions.yaml`; it is never part of
+changed-path or current-profile selection. Use:
 
 ```bash
 Caddy/tests/run-focused.sh --changed --base HEAD --explain
@@ -18,10 +20,10 @@ hash registries, and workstation-only consumers remain host-only. Debian runs
 use one network-disabled container and retain their summary beneath the host
 evidence directory reported by the runner.
 
-Neutral current-production regressions may delegate to an immutable accepted
-producer regression when the reusable producer still has a historical action
-name. The neutral entry point owns current selection; the action file remains
-unchanged provenance and is never selected directly by a current profile.
+Neutral current-production regressions test the current contract directly.
+They must not delegate to an executed action regression merely to reuse its
+labels or fixtures. Historical action wrappers remain unchanged provenance and
+are selected only through the separate historical index.
 
 ## Historical reconstruction
 
@@ -30,6 +32,9 @@ They are explicit opt-in reconstruction tools and are not deployment gates.
 Use `run-focused.sh --action ID` only when intentionally reconstructing one
 historical action. Do not run the complete historical host/Podman suite for
 routine development or final deployment acceptance.
+
+`historical-action-index-policy.sh --check` validates the opt-in index without
+making it a current deployment gate.
 
 ## Lifecycle registry
 
@@ -53,3 +58,11 @@ when a neutral current regression consumes their accepted producer contract.
 4. Keep action-specific artifacts out of current profile test arrays.
 5. Run the focused manifest, lifecycle, shell-mode, formatting, and relevant
    profile checks. Do not repair preserved historical artifacts in bulk.
+
+For a live successor, register its neutral regression and entrypoint-owned
+coverage matrix before reporting the runner hash. Routine checks permit an
+explicit `none` registry; `deployable-successor-policy.sh
+--authorization-ready` does not. Both outer and transaction production-path
+tests must run without network access. Outer coverage is accepted only with
+isolated filesystem evidence for payload construction, upload disposition,
+remote command construction, transaction status, and zero mutation.

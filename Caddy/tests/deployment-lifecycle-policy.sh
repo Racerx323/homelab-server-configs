@@ -107,8 +107,8 @@ require_row() {
 }
 
 require_row "$script_registry" $'Caddy/scripts/caddy-sync-release-receiver-v2\tproduction-current\tyes\t/usr/local/libexec/caddy-sync-release-receiver-v2\t0755\tCaddy/manifests/synchronization-protocol-v2.yaml'
-require_row "$script_registry" $'Caddy/scripts/caddy-apprise-delivery-worker.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-delivery-worker\t0755\tCaddy/manifests/durable-apprise-action34.tsv'
-require_row "$script_registry" $'Caddy/scripts/caddy-apprise-enqueue.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-enqueue\t0755\tCaddy/manifests/durable-apprise-action34.tsv'
+require_row "$script_registry" $'Caddy/scripts/caddy-apprise-delivery-worker.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-delivery-worker\t0755\tCaddy/manifests/durable-apprise-production.tsv'
+require_row "$script_registry" $'Caddy/scripts/caddy-apprise-enqueue.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-enqueue\t0755\tCaddy/manifests/durable-apprise-production.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-caddy-vrrp-action20h.sh\tproduction-current\tyes\t/usr/local/libexec/check-caddy.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-certificate-expiry.sh\tproduction-current\tyes\t/usr/local/libexec/check-certificate-expiry.sh\t0755\tCaddy/systemd/caddy-cert-expiry.service'
 require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
@@ -156,7 +156,7 @@ readonly -a expected_installable_systemd=(
 for lifecycle_systemd_relative in "${expected_installable_systemd[@]}"; do
     lifecycle_systemd_authority=Caddy/manifests/production-artifacts.tsv
     case "$lifecycle_systemd_relative" in
-        caddy-apprise-worker.*) lifecycle_systemd_authority=Caddy/manifests/durable-apprise-action34.tsv ;;
+        caddy-apprise-worker.*) lifecycle_systemd_authority=Caddy/manifests/durable-apprise-production.tsv ;;
     esac
     require_row "$systemd_registry" \
         "Caddy/systemd/$lifecycle_systemd_relative"$'\tproduction-current\tyes\t'"/etc/systemd/system/$lifecycle_systemd_relative"$'\t0644\t'"$lifecycle_systemd_authority"
@@ -210,7 +210,7 @@ validate_node_inventory_pair() {
         }
     ' "$production_inventory" && return 0
 
-    [[ "$inventory_authority" = Caddy/manifests/durable-apprise-action34.tsv ]] || return 1
+    [[ "$inventory_authority" = Caddy/manifests/durable-apprise-production.tsv ]] || return 1
     awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
         /^[[:space:]]*(#|$)/ { next }
         $1 == source && $2 == target { found++ }

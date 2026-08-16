@@ -38,4 +38,17 @@ fi
 
 printf '%s_missing_entry_rejected=true\n' "$prefix"
 printf '%s_wrong_action_lifecycle_rejected=true\n' "$prefix"
+
+embedded_action=$fixture_root/embedded-action.tsv
+awk -F '\t' 'BEGIN { OFS = FS }
+    $1 ~ /^Caddy\/tests\/[^/]*action[0-9]/ && $1 !~ /^Caddy\/tests\/action/ && !changed {
+        $2 = "production-current"; $3 = "current-focused"; changed = 1
+    }
+    { print }
+' "$registry" >"$embedded_action"
+if CADDY_TEST_LIFECYCLE_REGISTRY=$embedded_action /bin/bash "$policy" --check >/dev/null 2>&1; then
+    printf '%s_embedded_action_lifecycle_rejected=false\n' "$prefix" >&2
+    exit 1
+fi
+printf '%s_embedded_action_lifecycle_rejected=true\n' "$prefix"
 printf '%s_complete=true\n' "$prefix"

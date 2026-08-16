@@ -29,56 +29,69 @@ repos:
         entry: Caddy/tests/accepted-live-hash-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+
+      - id: deployable-successor-policy
+        name: Validate full-path deployable successor coverage
+        entry: /bin/bash Caddy/tests/deployable-successor-policy.sh --check
+        language: system
+        pass_filenames: false
+        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: systemd-boot-persistence-policy
         name: Validate Caddy systemd boot persistence contract
         entry: Caddy/tests/systemd-boot-persistence-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/(?:scripts|systemd|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: focused-validation-manifest-policy
         name: Validate focused Caddy test manifest
         entry: Caddy/tests/focused-validation-manifest-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/tests/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: test-lifecycle-policy
         name: Validate Caddy test lifecycle inventory
         entry: /bin/bash Caddy/tests/test-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/tests/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+
+      - id: historical-action-index-policy
+        name: Validate opt-in historical Caddy action index
+        entry: /bin/bash Caddy/tests/historical-action-index-policy.sh --check
+        language: system
+        pass_filenames: false
+        files: ^Caddy/tests/(?:historical-actions\.yaml|action.*-focused-validation\.sh)$
 
       - id: template-lifecycle-policy
         name: Reject nonproduction Caddy template consumers
         entry: /bin/bash Caddy/tests/template-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/(?:templates|configs|scripts|manifests|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: deployment-lifecycle-policy
         name: Reject nonproduction Caddy deployment inputs
         entry: /bin/bash Caddy/tests/deployment-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: caddy-environment-v2-policy
         name: Validate minimal Caddy node environment
         entry: /bin/bash Caddy/tests/caddy-environment-v2-policy.sh --check
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^(?:Caddy/(?:templates|configs|scripts|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: portable-awk-policy
         name: Reject non-portable awk interval expressions
         entry: Caddy/tests/portable-awk-policy.sh --check
         language: system
-        pass_filenames: false
-        always_run: true
+        types: [shell]
 
       - id: remote-streamed-bash-cwd-policy
         name: Require root cwd for streamed remote Bash

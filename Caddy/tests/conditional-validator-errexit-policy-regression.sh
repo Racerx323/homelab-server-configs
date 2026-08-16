@@ -11,11 +11,12 @@ script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly script_directory
 caddy_root=$(cd -- "$script_directory/.." && pwd)
 readonly caddy_root
-readonly repository_root="$caddy_root/.."
+repository_root=$(cd -- "$caddy_root/.." && pwd)
+readonly repository_root
 readonly action_regression="$script_directory/action17u-a-node-b-postinstall-regression.sh"
 readonly action19c_definition_regression="$script_directory/action19c-a-node-a-keepalived-prerequisite-definition-regression.sh"
-readonly immutable_action28ad="$caddy_root/scripts/transact-coupled-go-live-action28ad.sh"
-readonly immutable_action28ad_sha256=5fa6a8fe85b3d9f4c8f2333d1a3f2ebab3117ecc3b4eb0bf8f7ac734a48f310f
+readonly script_lifecycle="$caddy_root/manifests/script-lifecycle.tsv"
+readonly test_lifecycle="$script_directory/test-lifecycle.tsv"
 
 report_error() {
     local error_line=$1
@@ -95,23 +96,34 @@ grep -Fq 'Never rely on `set -e` or `set -E`' "$repository_root/AGENTS.md"
 grep -Fq 'conditional-validator-explicit-failures-begin' "$repository_root/AGENTS.md"
 
 marked_count=0
-immutable_exception_count=0
+historical_skipped_count=0
 while IFS= read -r marked_file; do
-    [[ "$(readlink -f "$marked_file")" != "$(readlink -f "$0")" ]] || continue
-    if [[ "$(readlink -f "$marked_file")" = "$(readlink -f "$immutable_action28ad")" ]]; then
-        [[ "$(sha256sum "$marked_file" | awk '{ print $1 }')" = "$immutable_action28ad_sha256" ]]
-        immutable_exception_count=$((immutable_exception_count + 1))
+    marked_relative=${marked_file#"$repository_root/"}
+    case "$marked_relative" in
+        Caddy/scripts/*) marked_registry=$script_lifecycle ;;
+        Caddy/tests/*) marked_registry=$test_lifecycle ;;
+        *)
+            printf 'Unclassified marked validator: %s\n' "$marked_relative" >&2
+            exit 1
+            ;;
+    esac
+    marked_lifecycle=$(awk -F '\t' -v path="$marked_relative" \
+        '$1 == path { print $2; found++ } END { if (found != 1) exit 1 }' \
+        "$marked_registry")
+    if [[ "$marked_lifecycle" != production-current ]]; then
+        historical_skipped_count=$((historical_skipped_count + 1))
         continue
     fi
+    [[ "$(readlink -f "$marked_file")" != "$(readlink -f "$0")" ]] || continue
     validate_marked_file "$marked_file"
     marked_count=$((marked_count + 1))
 done < <(find "$caddy_root" -type f -name '*.sh' -exec \
     grep -l 'conditional-validator-explicit-failures-begin' {} + | LC_ALL=C sort)
 [[ "$marked_count" -gt 0 ]]
-[[ "$immutable_exception_count" -eq 1 ]]
+[[ "$historical_skipped_count" -gt 0 ]]
 printf 'conditional_validator_marked_file_count=%s\n' "$marked_count"
-printf 'conditional_validator_immutable_exception_count=%s\n' \
-    "$immutable_exception_count"
+printf 'conditional_validator_historical_skipped_count=%s\n' \
+    "$historical_skipped_count"
 
 regression_output=$("$action_regression")
 if [[ "${CADDY_VALIDATION_CONTAINER:-}" == 1 ]]; then
