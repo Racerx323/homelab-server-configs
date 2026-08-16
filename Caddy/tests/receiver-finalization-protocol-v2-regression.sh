@@ -16,9 +16,12 @@ readonly publisher="$caddy_root/scripts/publish-release-v2.sh"
 readonly receiver="$caddy_root/scripts/caddy-sync-release-receiver-v2"
 readonly finalizer="$caddy_root/scripts/finalize-incoming-release-v2.sh"
 readonly reconciler="$caddy_root/scripts/reconcile-release-v2.sh"
-readonly lsyncd_template="$caddy_root/templates/lsyncd-caddy-receiver-finalized-v2.lua.in"
 readonly authorization_template="$caddy_root/templates/authorized-key-receiver-finalized-v2.in"
-readonly collision_checker="$script_dir/check-shell-readonly-local-collisions.sh"
+readonly collision_checker="$script_dir/check-shell-readonly-local-collisions-v2.sh"
+readonly -a lsyncd_configs=(
+    "$caddy_root/configs/lsyncd/caddy-node-a.lua"
+    "$caddy_root/configs/lsyncd/caddy-node-b.lua"
+)
 
 for artifact in \
     "$publisher" \
@@ -33,8 +36,8 @@ done
 
 for data_artifact in \
     "$manifest" \
-    "$lsyncd_template" \
-    "$authorization_template"; do
+    "$authorization_template" \
+    "${lsyncd_configs[@]}"; do
     [[ -f "$data_artifact" ]]
     [[ ! -L "$data_artifact" ]]
 done
@@ -61,18 +64,21 @@ grep -Fq 'forced_command_source_role: peer-role' "$manifest"
 grep -Fxq \
     'from="@PEER_IPV4@,@PEER_IPV6@",restrict,command="/usr/local/libexec/caddy-sync-release-receiver-v2 --source-role @PEER_ROLE@"' \
     "$authorization_template"
-grep -Fq 'default.rsync,' "$lsyncd_template"
-grep -Fq 'target = "caddy-sync@@PEER_FQDN@:/"' "$lsyncd_template"
-grep -Fq 'protect_args = false' "$lsyncd_template"
-grep -Fq 'rsh = "/usr/bin/ssh -6 ' "$lsyncd_template"
-if grep -Fq 'default.rsyncssh,' "$lsyncd_template"; then
-    printf 'Protocol v2 uses standalone SSH filesystem operations.\n' >&2
-    exit 1
-fi
-grep -Fq '"--exclude=.complete"' "$lsyncd_template"
-grep -Fq '"--exclude=.complete.pending"' "$lsyncd_template"
-grep -Fq '"--no-perms"' "$lsyncd_template"
-grep -Fq 'delete = false' "$lsyncd_template"
+for lsyncd_config in "${lsyncd_configs[@]}"; do
+    grep -Fq 'default.rsync,' "$lsyncd_config"
+    grep -Eq 'target = "caddy-sync@pihole0{1,2}[.]local[.]theama[.]co:/"' \
+        "$lsyncd_config"
+    grep -Fq 'protect_args = false' "$lsyncd_config"
+    grep -Fq 'rsh = "/usr/bin/ssh -6 ' "$lsyncd_config"
+    if grep -Fq 'default.rsyncssh,' "$lsyncd_config"; then
+        printf 'Protocol v2 uses standalone SSH filesystem operations.\n' >&2
+        exit 1
+    fi
+    grep -Fq '"--exclude=.complete"' "$lsyncd_config"
+    grep -Fq '"--exclude=.complete.pending"' "$lsyncd_config"
+    grep -Fq '"--no-perms"' "$lsyncd_config"
+    grep -Fq 'delete = false' "$lsyncd_config"
+done
 # These are intentional literal shell-source assertions.
 # shellcheck disable=SC2016
 grep -Fq '/usr/bin/rrsync -wo -no-del "$receiver_root"' "$receiver"
@@ -111,13 +117,13 @@ grep -Fq 'restore_previous_selection "$previous_destination"' "$reconciler"
 
 if grep -Eq \
     'rsync.*[.]complete|cp.*[.]complete|scp.*[.]complete' \
-    "$publisher" "$receiver" "$finalizer" "$reconciler" "$lsyncd_template"; then
+    "$publisher" "$receiver" "$finalizer" "$reconciler" "${lsyncd_configs[@]}"; then
     printf 'Protocol v2 contains completion-marker transport behavior.\n' >&2
     exit 1
 fi
 
 if grep -Eq -- '--delete([=[:space:]]|$)' \
-    "$publisher" "$receiver" "$finalizer" "$reconciler" "$lsyncd_template"; then
+    "$publisher" "$receiver" "$finalizer" "$reconciler" "${lsyncd_configs[@]}"; then
     printf 'Protocol v2 contains a remote-delete request.\n' >&2
     exit 1
 fi

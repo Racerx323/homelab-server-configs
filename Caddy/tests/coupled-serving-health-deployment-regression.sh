@@ -53,9 +53,9 @@ awk -F '\t' '
 
 awk -F '\t' '
     /^[[:space:]]*(#|$)/ { next }
-    NF != 6 || $6 != "production-candidate" { exit 1 }
-    seen[$1 FS $2 FS $3]++ { exit 1 }
-    END { exit(NR > 1 ? 0 : 1) }
+    NF != 6 || $6 != "production-candidate" { invalid = 1; exit }
+    seen[$1 FS $2 FS $3]++ { invalid = 1; exit }
+    END { exit invalid || NR <= 1 }
 ' "$candidate_manifest"
 
 printf 'coupled_serving_health_deployment_regression=true\n'

@@ -5,7 +5,6 @@ Caddy/systemd/caddy-apprise-worker.timer	production-current	yes	/etc/systemd/sys
 Caddy/systemd/caddy-cert-expiry.service	production-current	yes	/etc/systemd/system/caddy-cert-expiry.service	0644	Caddy/manifests/production-artifacts.tsv
 Caddy/systemd/caddy-cert-expiry.timer	production-current	yes	/etc/systemd/system/caddy-cert-expiry.timer	0644	Caddy/manifests/production-artifacts.tsv
 Caddy/systemd/caddy-lsyncd.service	production-current	yes	/etc/systemd/system/caddy-lsyncd.service	0644	Caddy/manifests/production-artifacts.tsv
-Caddy/systemd/caddy-pihole-backend.service	rejected	no	-	-	Caddy/manifests/pihole-admin-backend-action28k.yaml
 Caddy/systemd/caddy-pihole-web-health.service	production-current	yes	/etc/systemd/system/caddy-pihole-web-health.service	0644	Caddy/manifests/serving-health-production.tsv
 Caddy/systemd/caddy-pihole-web-health.timer	production-current	yes	/etc/systemd/system/caddy-pihole-web-health.timer	0644	Caddy/manifests/serving-health-production.tsv
 Caddy/systemd/caddy-sync-failure@.service	production-current	yes	/etc/systemd/system/caddy-sync-failure@.service	0644	Caddy/manifests/production-artifacts.tsv

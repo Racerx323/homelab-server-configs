@@ -57,11 +57,6 @@ run_checks() {
             $2 == "production-current" && $3 == "yes" { found++ }
         END { exit(found == 1 ? 0 : 1) }
     ' "$systemd_registry" || return 1
-    check rejected_backend_noninstallable awk -F '\t' '
-        $1 == "Caddy/systemd/caddy-pihole-backend.service" &&
-            $2 == "rejected" && $3 == "no" { found++ }
-        END { exit(found == 1 ? 0 : 1) }
-    ' "$systemd_registry" || return 1
     check status_age_contract_absent test -z \
         "$(grep -E 'maximum_lsyncd_status_age|lsyncd_status_(age|fresh)|status.*mtime|wait_for_lsyncd_status_advance' \
             "$health_worker" || true)" || return 1
@@ -74,7 +69,7 @@ run_checks() {
     check health_worker_parseable_snapshot grep -Fq \
         "grep -Eq '^Lsyncd status report at .+\$'" "$health_worker" || return 1
     check lsyncd_success_exit_exact test "$(grep -Fxc 'SuccessExitStatus=143' "$lsyncd_unit")" -eq 1 || return 1
-    check repository_rule grep -Fq 'Production service acceptance must validate boot persistence' "$agents_file" || return 1
+    check repository_rule grep -Fq '## Systemd contract' "$agents_file" || return 1
     # conditional-validator-explicit-failures-end
     printf '%s_complete=true\n' "$prefix"
 }

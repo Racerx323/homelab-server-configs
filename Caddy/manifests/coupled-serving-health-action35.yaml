@@ -31,6 +31,7 @@ deployment:
     - node-a
   candidate_manifest: Caddy/manifests/serving-health-production.tsv
   transaction: Caddy/scripts/apply-coupled-serving-health-action35.sh
+  transaction_sha256: f4c4053641f2aeba6d922dfcad7e9e03f71707f42de12fd1fa4d2d95d7f2006e
   outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh
   rollback_order:
     - node-a
@@ -49,7 +50,6 @@ evidence:
 validation:
   focused_profile: current-serving-health
   debian_batches: 1
-  historical_complete_suite: prohibited
 authorization:
   live_execution_authorized: false
-  exact_outer_sha256: d811cbd9b04a60b9913e94130f6c2d6e5bb41eefa7e226b4b1a6fa685ff69c9c
+  exact_outer_sha256: 4d99351b9254c6c0e8d505fe7367e0da339aadd58a441d5f9e75561cfe853121

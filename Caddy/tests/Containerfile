@@ -27,7 +27,6 @@ RUN apt-get update \
         keepalived \
         lighttpd \
         lsyncd \
-        munin-node \
         openssh-client \
         openssl \
         procps \

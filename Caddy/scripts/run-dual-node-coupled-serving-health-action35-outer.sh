@@ -20,6 +20,7 @@ readonly script_directory
 readonly repository_root=${script_directory%/Caddy/scripts}
 readonly workspace_root=${repository_root%/homelab-server-configs}
 readonly transaction=$script_directory/apply-coupled-serving-health-action35.sh
+readonly transaction_sha256=f4c4053641f2aeba6d922dfcad7e9e03f71707f42de12fd1fa4d2d95d7f2006e
 readonly candidate_manifest=$repository_root/Caddy/manifests/serving-health-production.tsv
 readonly action_manifest=$repository_root/Caddy/manifests/coupled-serving-health-action35.yaml
 readonly accepted_manifest=$repository_root/Caddy/manifests/accepted-live-artifacts.tsv
@@ -187,6 +188,7 @@ production_path_test() {
     local action35_probe_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:-}
     local action35_transaction_stdout action35_transaction_stderr action35_status=0
 
+    [[ "$(file_hash "$transaction")" = "$transaction_sha256" ]]
     [[ "$action35_probe_root" = /tmp/* && -d "$action35_probe_root" && ! -L "$action35_probe_root" ]]
     [[ "$(stat -c '%a' "$action35_probe_root")" = 700 ]]
     [[ -z "$(find "$action35_probe_root" -mindepth 1 -maxdepth 1 -print -quit)" ]]
@@ -226,6 +228,7 @@ run_live() {
     local action35_status=0
 
     [[ "$PWD" = /home/aaron/code/homelab-server-configs ]]
+    [[ "$(file_hash "$transaction")" = "$transaction_sha256" ]]
     yamllint -s "$action_manifest"
     /bin/bash Caddy/tests/deployable-successor-policy.sh --authorization-ready
     /bin/bash Caddy/tests/coupled-serving-health-deployment-regression.sh

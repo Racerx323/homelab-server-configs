@@ -38,10 +38,6 @@ packages:
       - tcpdump
       - util-linux
       - uuid-runtime
-  monitoring:
-    source: debian_bookworm
-    names:
-      - munin-node
   secrets:
     scope: operator_workstation_only
     source: official_doppler_apt_repository

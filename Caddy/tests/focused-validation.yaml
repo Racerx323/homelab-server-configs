@@ -1,6 +1,5 @@
 {
-  "schema_version": 3,
-  "historical_actions_manifest": "Caddy/tests/historical-actions.yaml",
+  "schema_version": 4,
   "policy_ids": [
     "selected-shell",
     "accepted-live-hashes",
@@ -13,7 +12,6 @@
     "deployment-lifecycle",
     "deployable-successor",
     "environment-v2",
-    "historical-action-index",
     "test-lifecycle"
   ],
   "profiles": {
@@ -22,7 +20,6 @@
       "path_patterns": [
         "Caddy/configs/tmpfiles.d/caddy-ha.conf",
         "Caddy/docs/APPRISE_DELIVERY.md",
-        "Caddy/manifests/durable-apprise-action34*.*",
         "Caddy/manifests/current-live-state.tsv",
         "Caddy/manifests/deployable-successor*.tsv",
         "Caddy/manifests/durable-apprise-production.tsv",
@@ -30,10 +27,8 @@
         "Caddy/manifests/production-artifacts.tsv",
         "Caddy/manifests/script-lifecycle.tsv",
         "Caddy/manifests/systemd-lifecycle.tsv",
-        "Caddy/scripts/apply-durable-apprise-action34*.sh",
         "Caddy/scripts/caddy-apprise-*.sh",
         "Caddy/scripts/lsyncd-sync-failure-notify.sh",
-        "Caddy/scripts/run-dual-node-durable-apprise-action34*-outer.sh",
         "Caddy/systemd/caddy-apprise-worker.*",
         "Caddy/systemd/caddy-sync-failure@.service",
         "Caddy/tests/durable-apprise-queue-regression.sh",
@@ -80,8 +75,6 @@
         "Caddy/scripts/publish-release-v2.sh",
         "Caddy/scripts/reconcile-release-v2.sh",
         "Caddy/scripts/finalize-incoming-release-v2.sh",
-        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh",
-        "Caddy/templates/lsyncd-*.lua.in",
         "Caddy/configs/lsyncd/*.lua",
         "Caddy/systemd/caddy-lsyncd.service",
         "Caddy/systemd/caddy-sync-reconcile.*",
@@ -92,8 +85,6 @@
         "Caddy/scripts/publish-release-v2.sh",
         "Caddy/scripts/reconcile-release-v2.sh",
         "Caddy/scripts/finalize-incoming-release-v2.sh",
-        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh",
-        "Caddy/templates/lsyncd-*.lua.in",
         "Caddy/configs/lsyncd/*.lua",
         "Caddy/systemd/caddy-lsyncd.service",
         "Caddy/systemd/caddy-sync-reconcile.*"
@@ -102,7 +93,6 @@
         "Caddy/scripts/publish-release-v2.sh",
         "Caddy/scripts/reconcile-release-v2.sh",
         "Caddy/scripts/finalize-incoming-release-v2.sh",
-        "Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh",
         "Caddy/tests/receiver-finalization-protocol-v2-regression.sh",
         "Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh",
         "Caddy/tests/deployment-lifecycle-policy.sh",
@@ -236,16 +226,12 @@
       "description": "Focused-runner manifest parsing, selection, one-batch Debian dispatch, and negative controls.",
       "path_patterns": [
         "Caddy/tests/focused-validation.yaml",
-        "Caddy/tests/historical-actions.yaml",
-        "Caddy/tests/historical-action-index-policy.sh",
         "Caddy/tests/run-focused.sh",
         "Caddy/tests/run-focused-container.sh",
         "Caddy/tests/focused-validation-*.sh"
       ],
       "debian_path_patterns": [
         "Caddy/tests/focused-validation.yaml",
-        "Caddy/tests/historical-actions.yaml",
-        "Caddy/tests/historical-action-index-policy.sh",
         "Caddy/tests/run-focused.sh",
         "Caddy/tests/run-focused-container.sh",
         "Caddy/tests/focused-validation-*.sh"
@@ -254,8 +240,7 @@
         "Caddy/tests/run-focused.sh",
         "Caddy/tests/run-focused-container.sh",
         "Caddy/tests/focused-validation-manifest-policy.sh",
-        "Caddy/tests/focused-validation-runner-regression.sh",
-        "Caddy/tests/historical-action-index-policy.sh"
+        "Caddy/tests/focused-validation-runner-regression.sh"
       ],
       "host_tests": [
         "Caddy/tests/focused-validation-runner-regression.sh"
@@ -267,8 +252,7 @@
         "selected-shell",
         "accepted-live-hashes",
         "conditional-validator",
-        "executable-modes",
-        "historical-action-index"
+        "executable-modes"
       ]
     },
     "current-environment-v2": {
@@ -308,11 +292,7 @@
         "Caddy/README.md",
         "Caddy/configs/README.md",
         "Caddy/manifests/README.md",
-        "Caddy/configs/keepalived/.gitkeep",
         "Caddy/configs/lsyncd/.gitkeep",
-        "Caddy/configs/munin/*",
-        "Caddy/configs/ssh/authorized_keys.options",
-        "Caddy/configs/unifi/firewall-state-summary.jq",
         "Caddy/docs/*.md",
         "Caddy/manifests/accepted-live-artifacts.tsv",
         "Caddy/manifests/deployable-live-hash-consumers.tsv",
@@ -337,8 +317,7 @@
         "Caddy/tests/accepted-live-hash-policy*.sh",
         "Caddy/tests/caddy-environment-v2-*.sh",
         "Caddy/tests/conditional-validator-errexit-policy-regression.sh",
-        "Caddy/tests/test-lifecycle-*.sh",
-        "Caddy/tools/unifi/*.jq"
+        "Caddy/tests/test-lifecycle-*.sh"
       ],
       "debian_path_patterns": [
         "Caddy/scripts/install-caddy-ha.sh",

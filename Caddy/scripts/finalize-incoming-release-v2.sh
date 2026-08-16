@@ -31,6 +31,7 @@ require_check() {
     printf 'caddy_sync_finalize_v2_check_%s=false\n' "$check_label" >&2
     return 1
 }
+
 signal_reconciliation() {
     local finalizer_trigger_path=$1
     local finalizer_trigger_metadata=$2
@@ -45,6 +46,29 @@ signal_reconciliation() {
     require_check reconcile_trigger_metadata test \
         "$(stat -c '%U:%G:%a' "$finalizer_trigger_path")" = \
         "$finalizer_trigger_metadata"
+}
+
+validate_caddy_configuration() {
+    local validation_release_path=$1
+    local validation_error
+    local validation_status=0
+
+    validation_error=$(mktemp "${TMPDIR:-/tmp}/caddy-finalize-validate.XXXXXX")
+    if env CADDY_CONFIG_ROOT="$validation_release_path" \
+        NODE_FQDN="$NODE_FQDN" \
+        NODE_IPV4="$NODE_IPV4" \
+        NODE_IPV6="$NODE_IPV6" \
+        caddy validate --config "$validation_release_path/Caddyfile" \
+        --adapter caddyfile >/dev/null 2>"$validation_error"; then
+        rm -f -- "$validation_error"
+        return 0
+    else
+        validation_status=$?
+    fi
+
+    cat -- "$validation_error" >&2 || :
+    rm -f -- "$validation_error" || :
+    return "$validation_status"
 }
 
 set_receiver_identity() {
@@ -197,12 +221,7 @@ validate_release() {
     require_check receiver_identity_known \
         set_receiver_identity "$release_source_role"
     require_check caddy_configuration_valid \
-        env CADDY_CONFIG_ROOT="$release_path" \
-        NODE_FQDN="$NODE_FQDN" \
-        NODE_IPV4="$NODE_IPV4" \
-        NODE_IPV6="$NODE_IPV6" \
-        caddy validate --config "$release_path/Caddyfile" \
-        --adapter caddyfile
+        validate_caddy_configuration "$release_path"
 }
 
 finalize_release() {
@@ -268,8 +287,9 @@ if [[ "${1:-}" == --self-test && $# -eq 1 ]]; then
     printf 'caddy_sync_finalize_v2_self_test_complete=true\n'
     exit 0
 fi
+
 if [[ "${1:-}" == --reconciliation-trigger-self-test && $# -eq 1 ]]; then
-    trigger_fixture=$(mktemp -d /tmp/caddy-finalizer-trigger.XXXXXX)
+    trigger_fixture=$(mktemp -d /tmp/caddy-finalizer-trigger-action28ac.XXXXXX)
     readonly trigger_fixture
     trap 'rm -rf -- "$trigger_fixture"' EXIT INT TERM
     trigger_path=$trigger_fixture/.reconcile-trigger

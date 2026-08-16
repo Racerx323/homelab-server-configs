@@ -94,15 +94,6 @@ append_registered_paths() {
 append_registered_paths "$caddy_root/manifests/script-lifecycle.tsv"
 append_registered_paths "$caddy_root/manifests/systemd-lifecycle.tsv"
 
-# Remove known obsolete Caddy-owned remnants, but never externally owned
-# Keepalived state or deferred Munin configuration.
-paths+=(
-    /etc/systemd/system/caddy-pihole-backend.service
-    /usr/local/libexec/caddy-sync-rsync-receiver
-    /usr/local/libexec/lsyncd-ha-failover-notify.sh
-    /usr/local/libexec/publish-release.sh
-)
-
 if [[ "$preserve_releases" == false ]]; then
     paths+=(/etc/caddy/current /etc/caddy/releases/bootstrap)
 fi

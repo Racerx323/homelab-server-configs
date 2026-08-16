@@ -54,10 +54,11 @@ if ! git -C "$server_repository" rev-parse --is-inside-work-tree \
     exit 1
 fi
 
-mapfile -d '' tracked_shell_entrypoints < <(
-    git -C "$server_repository" ls-files -z -- \
-        'Caddy/scripts/*.sh' \
-        'Caddy/tests/*.sh'
+mapfile -t tracked_shell_entrypoints < <(
+    awk -F '\t' '!/^[[:space:]]*(#|$)/ && $1 ~ /\.sh$/ { print $1 }' \
+        "$server_repository/Caddy/manifests/script-lifecycle.tsv" \
+        "$server_repository/Caddy/tests/test-lifecycle.tsv" |
+        LC_ALL=C sort -u
 )
 if ((${#tracked_shell_entrypoints[@]} == 0)); then
     printf 'executable_policy_assertion_tracked_entrypoints_present=false\n' >&2

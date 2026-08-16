@@ -48,8 +48,7 @@ executable_file() {
 
 schema_valid() {
     jq -e '
-        .schema_version == 3 and
-        .historical_actions_manifest == "Caddy/tests/historical-actions.yaml" and
+        .schema_version == 4 and
         (.policy_ids | type == "array" and length > 0 and length == (unique | length)) and
         (.profiles | type == "object" and length > 0) and
         (has("actions") | not) and
@@ -74,7 +73,6 @@ schema_valid() {
                 . == "deployment-lifecycle" or
                 . == "deployable-successor" or
                 . == "environment-v2" or
-                . == "historical-action-index" or
                 . == "test-lifecycle"))
     ' "$manifest" >/dev/null
 }

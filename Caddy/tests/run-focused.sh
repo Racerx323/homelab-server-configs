@@ -12,10 +12,8 @@ test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
 readonly repository_root=${test_directory%/Caddy/tests}
 readonly manifest=${CADDY_FOCUSED_VALIDATION_MANIFEST:-$test_directory/focused-validation.yaml}
-readonly historical_manifest=${CADDY_HISTORICAL_ACTION_MANIFEST:-$test_directory/historical-actions.yaml}
 
 selection_mode=
-selection_action=
 selection_profiles_csv=
 changed_base=HEAD
 container_mode=auto
@@ -24,7 +22,7 @@ explain=false
 list_only=false
 
 usage() {
-    printf 'Usage: %s (--action ID | --profile NAME [...] | --profiles CSV | --changed [--base REF] | --list) [--explain] [--container auto|always|never] [--phase all|host|container]\n' "${0##*/}" >&2
+    printf 'Usage: %s (--profile NAME [...] | --profiles CSV | --changed [--base REF] | --list) [--explain] [--container auto|always|never] [--phase all|host|container]\n' "${0##*/}" >&2
 }
 
 append_profile() {
@@ -40,15 +38,6 @@ append_profile() {
 
 while (($#)); do
     case "$1" in
-        --action)
-            [[ $# -ge 2 && -z "$selection_mode" ]] || {
-                usage
-                exit 64
-            }
-            selection_mode=action
-            selection_action=$2
-            shift 2
-            ;;
         --profile)
             [[ $# -ge 2 && (-z "$selection_mode" || "$selection_mode" = profiles) ]] || {
                 usage
@@ -165,9 +154,7 @@ nonproduction_inventory_path() {
 /bin/bash "$test_directory/focused-validation-manifest-policy.sh" --check >/dev/null
 
 if [[ "$list_only" = true ]]; then
-    /bin/bash "$test_directory/historical-action-index-policy.sh" --check >/dev/null
     jq -r '.profiles | keys[] | "profile\t\(.)"' "$manifest"
-    jq -r '.actions[] | "action\t\(.id)\t\(.lifecycle)"' "$historical_manifest"
     printf '%s_evidence_path=%s\n' "$prefix" "$evidence_root"
     exit 0
 fi
@@ -199,14 +186,6 @@ load_profile() {
 }
 
 case "$selection_mode" in
-    action)
-        [[ "$selection_action" =~ ^action[0-9][a-z0-9-]*$ ]] || exit 64
-        /bin/bash "$test_directory/historical-action-index-policy.sh" --check >/dev/null
-        jq -e --arg action "$selection_action" 'any(.actions[]; .id == $action)' "$historical_manifest" >/dev/null || exit 64
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .host_tests[]' "$historical_manifest" >>"$host_raw"
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .debian_tests[]' "$historical_manifest" >>"$debian_raw"
-        jq -r --arg action "$selection_action" '.actions[] | select(.id == $action) | .policies[]' "$historical_manifest" >>"$policies_raw"
-        ;;
     profiles)
         [[ "$selection_profiles_csv" =~ ^[a-z0-9-]+(,[a-z0-9-]+)*$ ]] || exit 64
         IFS=, read -r -a focused_runner_requested_profiles <<<"$selection_profiles_csv"
@@ -370,9 +349,6 @@ run_policy() {
         environment-v2)
             /bin/bash "$test_directory/caddy-environment-v2-policy.sh" --check
             ;;
-        historical-action-index)
-            /bin/bash "$test_directory/historical-action-index-policy.sh" --check
-            ;;
         test-lifecycle)
             /bin/bash "$test_directory/test-lifecycle-policy.sh" --check
             ;;
@@ -413,11 +389,7 @@ if [[ "$execution_phase" = container ]]; then
     done <"$debian_path"
 elif [[ "$execution_phase" = all && "$container_mode" != never && -s "$debian_path" ]]; then
     focused_runner_container_args=()
-    if [[ "$selection_mode" = action ]]; then
-        focused_runner_container_args=(--action "$selection_action")
-    else
-        focused_runner_container_args=(--profiles "$(paste -sd, "$profiles_path")")
-    fi
+    focused_runner_container_args=(--profiles "$(paste -sd, "$profiles_path")")
     container_evidence_root=$evidence_root/debian-evidence
     focused_runner_container_status=0
     CADDY_FOCUSED_HOST_EVIDENCE_DIR=$container_evidence_root \

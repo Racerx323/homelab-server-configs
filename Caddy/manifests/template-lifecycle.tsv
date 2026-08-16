@@ -1,12 +1,4 @@
 # path	lifecycle	deployable	current-authority
 Caddy/templates/authorized-key-receiver-finalized-v2.in	production-current	yes	Caddy/manifests/synchronization-protocol-v2.yaml
 Caddy/templates/caddy-ha.env-v2.in	production-current	yes	Caddy/templates/caddy-ha.env-v2.in
-Caddy/templates/caddy-ha.env.in	historical-superseded	no	Caddy/templates/caddy-ha.env-v2.in
-Caddy/templates/keepalived-caddy-ha-v2.conf.in	historical-obsolete	no	homelab-dns/Keepalived/configs
-Caddy/templates/keepalived-caddy-ha.conf.in	historical-obsolete	no	homelab-dns/Keepalived/configs
-Caddy/templates/lsyncd-caddy-receiver-finalized-v2.lua.in	historical-superseded	no	Caddy/configs/lsyncd
-Caddy/templates/lsyncd-caddy-source-bound.lua.in	historical-obsolete	no	Caddy/configs/lsyncd
-Caddy/templates/lsyncd-caddy.lua.in	historical-obsolete	no	Caddy/configs/lsyncd
-Caddy/templates/pihole-admin-backend.Caddyfile.in	historical-rejected	no	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy
-Caddy/templates/pihole-admin-dns-owner.caddy.in	historical-rejected	no	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy
-Caddy/templates/reverse-proxy.caddy.example	deferred-example	no	none
+Caddy/templates/reverse-proxy.caddy.example	future-task	no	Caddy/docs/caddy_plan-v1.1.md

@@ -1,9 +1,9 @@
-service.local.theama.co {
-	import local_tls
-	reverse_proxy 10.1.0.100:8080 {
-		health_uri /health
-		health_interval 30s
-		health_timeout 3s
-	}
-}
+# Future application reverse-proxy template input.
+# This file is not installed or consumed by current production tooling.
+#
+# A future documentation task will add explicit placeholders, TLS policy,
+# trusted health validation, default-deny behavior, and a validation example.
 
+https://app.example.internal {
+    reverse_proxy 127.0.0.1:8080
+}

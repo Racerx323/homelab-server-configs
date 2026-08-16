@@ -96,24 +96,14 @@ case "${1:-}" in
             _ "$2"
         exit $?
         ;;
-    --action)
-        [[ $# -eq 2 && "$2" =~ ^action[0-9][a-z0-9-]*$ ]] || exit 64
-        # The child Bash expands its positional parameter.
-        # shellcheck disable=SC2016
-        run_container \
-            "$validation_image" -lc \
-            'cd /workspace/homelab-server-configs && exec /bin/bash Caddy/tests/run-focused.sh --action "$1" --phase container --container never' \
-            _ "$2"
-        exit $?
-        ;;
     "")
-        printf 'Usage: %s TEST_SCRIPT | --profiles CSV | --action ID\n' "${0##*/}" >&2
+        printf 'Usage: %s TEST_SCRIPT | --profiles CSV\n' "${0##*/}" >&2
         exit 64
         ;;
 esac
 
 [[ $# -eq 1 ]] || {
-    printf 'Usage: %s TEST_SCRIPT | --profiles CSV | --action ID\n' "${0##*/}" >&2
+    printf 'Usage: %s TEST_SCRIPT | --profiles CSV\n' "${0##*/}" >&2
     exit 64
 }
 requested_script=$1

@@ -207,7 +207,7 @@ run_quarantine_replay_self_test() {
     quarantine_replay_fixture_root=$(mktemp -d /tmp/caddy-reconcile-replay.XXXXXX)
     trap cleanup_quarantine_replay_fixture EXIT INT TERM
     replay_fixture_candidate=$quarantine_replay_fixture_root/incoming/node-a/fixture
-    replay_fixture_quarantine=$quarantine_replay_fixture_root/quarantine/historical-retained-name
+    replay_fixture_quarantine=$quarantine_replay_fixture_root/quarantine/retained-name
     mkdir -p "$replay_fixture_quarantine"
     printf 'fixture\n' >"$replay_fixture_quarantine/Caddyfile"
     printf '{"revision":"fixture","source_node":"node-a"}\n' \

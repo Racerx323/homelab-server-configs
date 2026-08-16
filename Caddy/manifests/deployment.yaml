@@ -40,7 +40,6 @@ ports:
   http3_udp: 443
   caddy_admin_loopback_tcp: 2019
   lighttpd_loopback_tcp: 8080
-  munin_node_tcp: 4949
   apprise_tcp: 8000
 
 secrets:

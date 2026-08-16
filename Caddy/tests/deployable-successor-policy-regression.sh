@@ -60,13 +60,13 @@ install -d -m 0700 \
     "$successor_regression_root/Caddy/scripts" \
     "$successor_regression_root/Caddy/tests"
 printf 'accepted-live fixture\n' >"$successor_regression_root/Caddy/manifests/accepted-live-artifacts.tsv"
-printf 'runtime fixture\n' >"$successor_regression_root/Caddy/manifests/caddy-runtime-lifecycle-action32g.tsv"
+printf 'runtime fixture\n' >"$successor_regression_root/Caddy/manifests/runtime-production.tsv"
 successor_regression_accepted_hash=$(sha256sum "$successor_regression_root/Caddy/manifests/accepted-live-artifacts.tsv" | awk '{ print $1 }')
-successor_regression_runtime_hash=$(sha256sum "$successor_regression_root/Caddy/manifests/caddy-runtime-lifecycle-action32g.tsv" | awk '{ print $1 }')
+successor_regression_runtime_hash=$(sha256sum "$successor_regression_root/Caddy/manifests/runtime-production.tsv" | awk '{ print $1 }')
 printf '%s\n' \
     $'schema_version\tscope\tkey\tvalue\tevidence' \
     "1"$'\t'"cluster"$'\t'"accepted-live-artifacts-sha256"$'\t'"$successor_regression_accepted_hash"$'\t'"fixture" \
-    "1"$'\t'"cluster"$'\t'"runtime-baseline-sha256"$'\t'"$successor_regression_runtime_hash"$'\t'"fixture" \
+    "1"$'\t'"cluster"$'\t'"runtime-production-sha256"$'\t'"$successor_regression_runtime_hash"$'\t'"fixture" \
     $'1\tnode-a\townership\tipv4-master,ipv6-master,shared-vips=4\tfixture' \
     $'1\tnode-a\tservices\tcaddy=active,lsyncd=active,reconcile-path=active,keepalived=active\tfixture' \
     $'1\tnode-a\trelease\taction32g-exact\tfixture' \
@@ -120,6 +120,10 @@ printf '%s\n' \
     >"$successor_regression_transaction"
 chmod 0755 "$successor_regression_transaction"
 cp "$successor_regression_transaction" "$successor_regression_transaction.good"
+successor_regression_transaction_hash=$(sha256sum "$successor_regression_transaction" |
+    awk '{ print $1 }')
+printf 'transaction_sha256: %s\n' "$successor_regression_transaction_hash" \
+    >>"$successor_regression_root/Caddy/manifests/deployable-successor-fixture.yaml"
 
 successor_regression_test=$successor_regression_root/Caddy/tests/durable-apprise-deployment-regression.sh
 # The generated fixture must retain child-shell path expansion literally.
@@ -141,6 +145,7 @@ successor_regression_outer=$successor_regression_root/Caddy/scripts/run-dual-nod
 printf '%s\n' \
     '#!/usr/bin/env bash' \
     'set -Eeuo pipefail' \
+    "readonly transaction_sha256=$successor_regression_transaction_hash" \
     'if [[ "${1:-}" = --production-path-test ]]; then' \
     '    evidence=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?}' \
     '    printf "%064d\n" 0 >"$evidence/payload.sha256"' \

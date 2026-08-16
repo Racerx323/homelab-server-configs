@@ -59,13 +59,6 @@ repos:
         pass_filenames: false
         files: ^(?:Caddy/tests/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
-      - id: historical-action-index-policy
-        name: Validate opt-in historical Caddy action index
-        entry: /bin/bash Caddy/tests/historical-action-index-policy.sh --check
-        language: system
-        pass_filenames: false
-        files: ^Caddy/tests/(?:historical-actions\.yaml|action.*-focused-validation\.sh)$
-
       - id: template-lifecycle-policy
         name: Reject nonproduction Caddy template consumers
         entry: /bin/bash Caddy/tests/template-lifecycle-policy.sh --check

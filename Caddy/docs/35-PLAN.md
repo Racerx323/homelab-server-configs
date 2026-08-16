@@ -113,10 +113,8 @@ and executed as the unprivileged `pi` identity.
 
 Introduce the neutral current source
 `Caddy/scripts/check-caddy-serving-health.sh` and install it as
-`/usr/local/libexec/check-caddy.sh`. Preserve the executed Action 20 helper
-unchanged and classify it as historical; no Action 20 implementation or
-regression may be used as Action 35's current behavioral contract. The neutral
-helper must:
+`/usr/local/libexec/check-caddy.sh`. The archived predecessor is not part of
+the current behavioral contract. The neutral helper must:
 
 1. Require `caddy.service` active.
 2. Require bounded IPv4 and IPv6 loopback Caddy health responses.
@@ -240,19 +238,18 @@ intervals, unicast TTL 255, peer TTL bounds, and source tracking.
 - The Pi-hole web-backend monitor, timer, persistent state contract, and
   durable-notification producer.
 - Caddy helper tests and production-artifact identity.
-- This plan and the governing Caddy deployment journal.
+- This plan and the current-state Caddy governing plan.
 - The dual-repository deployment transaction and workstation evidence.
 
-No historical Caddy VRRP fragment may be reactivated. The retired
+No separate Caddy VRRP fragment may be introduced. The retired
 `CADDY_IPV4`, `CADDY_IPV6`, and `CADDY_DUALSTACK` instances remain obsolete.
 
 The monitor units are named `caddy-pihole-web-health.service` and
 `caddy-pihole-web-health.timer`. The service remains static, runs as `pi`, and
 uses protected persistent state beneath `/var/lib` plus runtime state beneath
 `/run`. It receives only the local IPv4/IPv6 and queue access required for its
-checks. The timer is enabled and active. The rejected
-`caddy-pihole-backend.service` remains non-installable and must not be revived
-or confused with this monitor.
+checks. The timer is enabled and active. No protected-backend service belongs
+to this design.
 
 ## Repository implementation gate
 
@@ -282,7 +279,7 @@ Repository work requires no live authorization. It must:
    `PIHOLE_DUALSTACK` wiring, backend transition and reboot deduplication,
    enqueue failure, and proof that lighttpd failure cannot affect VRRP.
 8. Run current focused host validation and one network-disabled Debian 12
-   focused batch. Do not run the historical complete suite.
+   focused batch.
 
 The repository gate stops after reporting the exact future Action 35 outer
 SHA-256. No node contact occurs during definition.
@@ -292,7 +289,7 @@ evidence at `/tmp/caddy-focused-validation.7CPRpH`; the single
 network-disabled Debian 12 batch passed with host-retained evidence at
 `/tmp/caddy-focused-container-evidence.fWtA8E`. Authorization readiness passed
 for the populated Action 35 successor registry. Exact outer-runner SHA-256:
-`d811cbd9b04a60b9913e94130f6c2d6e5bb41eefa7e226b4b1a6fa685ff69c9c`.
+`4d99351b9254c6c0e8d505fe7367e0da339aadd58a441d5f9e75561cfe853121`.
 Live execution remains unauthorized.
 
 ## Action 35: standby-first installation transaction

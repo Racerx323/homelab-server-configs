@@ -30,14 +30,25 @@ check_file() {
     grep -Eq '2>"\$[A-Za-z_][A-Za-z0-9_]*stderr' "$ssh_evidence_source" || return 1
     grep -Eq '\|\|[[:space:]]*$|\|\|[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=\$\?' \
         "$ssh_evidence_source" || return 1
-    grep -Eq 'emit_stream[^[:alnum:]_]+remote_stdout' "$ssh_evidence_source" || return 1
-    grep -Eq 'emit_stream[^[:alnum:]_]+remote_stderr' "$ssh_evidence_source" || return 1
-    grep -Eq 'status_file|remote_status' "$ssh_evidence_source" || return 1
-    grep -Eq 'evidence_(path|directory)' "$ssh_evidence_source" || return 1
-    # Dollar-prefixed tokens are intentionally matched as literal source text.
-    # shellcheck disable=SC2016
-    ! grep -Eq 'rm -rf -- "\$work_root"|rm -rf -- "\$[A-Za-z_][A-Za-z0-9_]*evidence' \
+    grep -Eq 'emit_stream[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stdout"' \
         "$ssh_evidence_source" || return 1
+    grep -Eq 'emit_stream[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stderr"' \
+        "$ssh_evidence_source" || return 1
+    grep -Eq 'status_file|remote_status' "$ssh_evidence_source" || return 1
+    grep -Eq 'evidence_(path|directory|parent)' "$ssh_evidence_source" || return 1
+    if grep -Eq '^run_live\(\)' "$ssh_evidence_source"; then
+        awk '
+            /^run_live\(\)/ { inside = 1 }
+            inside && /^}/ { inside = 0 }
+            inside && /rm -rf/ { unsafe++ }
+            END { exit unsafe ? 1 : 0 }
+        ' "$ssh_evidence_source" || return 1
+    else
+        # Dollar-prefixed tokens are intentionally matched as literal source text.
+        # shellcheck disable=SC2016
+        ! grep -Eq 'rm -rf -- "\$work_root"|rm -rf -- "\$[A-Za-z_][A-Za-z0-9_]*evidence' \
+            "$ssh_evidence_source" || return 1
+    fi
 }
 run_checks() {
     local ssh_evidence_checked=0
@@ -88,10 +99,12 @@ SAFE
     ssh_evidence_status=0
     run_checks "$ssh_evidence_deleted_capture" >/dev/null 2>&1 || ssh_evidence_status=$?
     [[ "$ssh_evidence_status" -eq 1 ]] || return 1
-    grep -Fq 'Every SSH transport that streams a command or Bash artifact must preserve a' \
+    # The backticks are literal repository-rule text.
+    # shellcheck disable=SC2016
+    grep -Fq 'Capture SSH stdout, stderr, and status in workstation files beneath `/tmp`.' \
         "$repository_agents" || return 1
     # shellcheck disable=SC2016
-    grep -Fq 'local workstation evidence copy under `/tmp` during the original execution.' \
+    grep -Fq 'Long-running node commands must write node-local evidence beneath `/tmp`' \
         "$repository_agents" || return 1
     printf '%s_self_test_complete=true\n' "$prefix"
 }

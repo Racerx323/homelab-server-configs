@@ -55,7 +55,7 @@ validate_registry() {
         NF != 6 { exit 1 }
         kind == "script" && $1 !~ /^Caddy\/scripts\/[A-Za-z0-9._@+-]+$/ { exit 1 }
         kind == "systemd" && $1 !~ /^Caddy\/systemd\/[A-Za-z0-9._@+-]+(\/[A-Za-z0-9._@+-]+)?$/ { exit 1 }
-        $2 !~ /^(production-current|historical-action|historical-superseded|workstation-only|rejected|deferred)$/ { exit 1 }
+        $2 !~ /^(production-current|future-task)$/ { exit 1 }
         $3 !~ /^(yes|no)$/ { exit 1 }
         $3 == "yes" && $2 != "production-current" { exit 1 }
         $3 == "yes" && $4 !~ /^\/(etc|usr)\// { exit 1 }
@@ -112,13 +112,12 @@ require_row "$script_registry" $'Caddy/scripts/caddy-apprise-enqueue.sh\tproduct
 require_row "$script_registry" $'Caddy/scripts/check-caddy-serving-health.sh\tproduction-current\tyes\t/usr/local/libexec/check-caddy.sh\t0755\tCaddy/manifests/serving-health-production.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-pihole-web-health.sh\tproduction-current\tyes\t/usr/local/libexec/check-pihole-web-health.sh\t0755\tCaddy/manifests/serving-health-production.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-certificate-expiry.sh\tproduction-current\tyes\t/usr/local/libexec/check-certificate-expiry.sh\t0755\tCaddy/systemd/caddy-cert-expiry.service'
-require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
+require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/lsyncd-sync-failure-notify.sh\tproduction-current\tyes\t/usr/local/libexec/lsyncd-sync-failure-notify.sh\t0755\tCaddy/systemd/caddy-sync-failure@.service'
 require_row "$script_registry" $'Caddy/scripts/prepare-lighttpd-config.sh\tproduction-current\tyes\t/usr/local/libexec/prepare-lighttpd-config.sh\t0755\tCaddy/configs/lighttpd/desired-state.conf'
 require_row "$script_registry" $'Caddy/scripts/publish-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/publish-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/reconcile-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/reconcile-release.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/validate-sync-health.sh\tproduction-current\tyes\t/usr/local/libexec/validate-sync-health.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
-require_row "$systemd_registry" $'Caddy/systemd/caddy-pihole-backend.service\trejected\tno\t-\t-\tCaddy/manifests/pihole-admin-backend-action28k.yaml'
 
 readonly -a expected_installable_scripts=(
     Caddy/scripts/caddy-apprise-delivery-worker.sh
@@ -127,7 +126,7 @@ readonly -a expected_installable_scripts=(
     Caddy/scripts/check-caddy-serving-health.sh
     Caddy/scripts/check-certificate-expiry.sh
     Caddy/scripts/check-pihole-web-health.sh
-    Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh
+    Caddy/scripts/finalize-incoming-release-v2.sh
     Caddy/scripts/lsyncd-sync-failure-notify.sh
     Caddy/scripts/prepare-lighttpd-config.sh
     Caddy/scripts/publish-release-v2.sh
@@ -259,9 +258,6 @@ grep -Fq "$installer_systemd_registry_call" "$installer" ||
     fail installer_systemd_registry_missing
 if grep -Fq "$installer_systemd_tree_call" "$installer"; then
     fail installer_systemd_tree_copy
-fi
-if grep -Fq 'configs/munin/' "$installer"; then
-    fail installer_deferred_munin
 fi
 grep -Fq "$validator_script_registry_call" "$validator" ||
     fail validator_script_registry_missing

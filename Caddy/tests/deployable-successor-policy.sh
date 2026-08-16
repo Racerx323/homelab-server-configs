@@ -66,14 +66,14 @@ successor_policy_state_valid() {
     [[ "$(sed -n '1p' "$successor_policy_state")" = $'schema_version\tscope\tkey\tvalue\tevidence' ]] || return 1
     awk -F '\t' '
         NR == 1 { next }
-        NF != 5 || $1 != "1" { exit 1 }
-        $2 !~ /^(cluster|node-a|node-b)$/ { exit 1 }
-        $3 !~ /^[a-z0-9][a-z0-9-]*$/ || $4 == "" || $5 == "" { exit 1 }
-        seen[$2 FS $3]++ { exit 1 }
-        END { exit !(NR > 1) }
+        NF != 5 || $1 != "1" { invalid = 1; exit }
+        $2 !~ /^(cluster|node-a|node-b)$/ { invalid = 1; exit }
+        $3 !~ /^[a-z0-9][a-z0-9-]*$/ || $4 == "" || $5 == "" { invalid = 1; exit }
+        seen[$2 FS $3]++ { invalid = 1; exit }
+        END { exit invalid || NR <= 1 }
     ' "$successor_policy_state" || return 1
     for successor_policy_required in \
-        cluster:accepted-live-artifacts-sha256 cluster:runtime-baseline-sha256 \
+        cluster:accepted-live-artifacts-sha256 cluster:runtime-production-sha256 \
         node-a:ownership node-a:services node-a:release \
         node-a:durable-apprise-installation node-a:apprise-queue \
         node-b:ownership node-b:services node-b:release \
@@ -84,9 +84,9 @@ successor_policy_state_valid() {
         ' "$successor_policy_state" || return 1
     done
     successor_policy_accepted_hash=$(awk -F '\t' '$2 == "cluster" && $3 == "accepted-live-artifacts-sha256" { print $4 }' "$successor_policy_state") || return 1
-    successor_policy_runtime_hash=$(awk -F '\t' '$2 == "cluster" && $3 == "runtime-baseline-sha256" { print $4 }' "$successor_policy_state") || return 1
+    successor_policy_runtime_hash=$(awk -F '\t' '$2 == "cluster" && $3 == "runtime-production-sha256" { print $4 }' "$successor_policy_state") || return 1
     [[ "$successor_policy_accepted_hash" = "$(sha256sum "$successor_policy_repository_root/Caddy/manifests/accepted-live-artifacts.tsv" | awk '{ print $1 }')" ]] || return 1
-    [[ "$successor_policy_runtime_hash" = "$(sha256sum "$successor_policy_repository_root/Caddy/manifests/caddy-runtime-lifecycle-action32g.tsv" | awk '{ print $1 }')" ]] || return 1
+    [[ "$successor_policy_runtime_hash" = "$(sha256sum "$successor_policy_repository_root/Caddy/manifests/runtime-production.tsv" | awk '{ print $1 }')" ]] || return 1
     # conditional-validator-explicit-failures-end
 }
 
@@ -98,12 +98,12 @@ successor_policy_coverage_valid() {
     [[ "$(sed -n '1p' "$successor_policy_coverage")" = $'scenario\tphase\tentrypoint\texpectation\tmarker' ]] || return 1
     awk -F '\t' '
         NR == 1 { next }
-        NF != 5 { exit 1 }
-        $1 !~ /^[a-z0-9][a-z0-9-]*$/ || $2 !~ /^(pre-mutation|accepted-path)$/ { exit 1 }
-        $3 !~ /^(outer|transaction)$/ || $4 !~ /^(accept|reject|reach)$/ { exit 1 }
-        $5 !~ /^[a-z0-9][a-z0-9_]*$/ { exit 1 }
-        seen_scenario[$1]++ || seen_marker[$5]++ { exit 1 }
-        END { exit !(NR > 1) }
+        NF != 5 { invalid = 1; exit }
+        $1 !~ /^[a-z0-9][a-z0-9-]*$/ || $2 !~ /^(pre-mutation|accepted-path)$/ { invalid = 1; exit }
+        $3 !~ /^(outer|transaction)$/ || $4 !~ /^(accept|reject|reach)$/ { invalid = 1; exit }
+        $5 !~ /^[a-z0-9][a-z0-9_]*$/ { invalid = 1; exit }
+        seen_scenario[$1]++ || seen_marker[$5]++ { invalid = 1; exit }
+        END { exit invalid || NR <= 1 }
     ' "$successor_policy_coverage" || return 1
     awk -F '\t' '
         NR == 1 { next }
@@ -158,6 +158,7 @@ successor_policy_defined_valid() {
     local successor_policy_outer_output successor_policy_outer_error
     local successor_policy_probe_root successor_policy_marker_entrypoint
     local successor_policy_marker successor_policy_marker_output
+    local successor_policy_transaction_hash
 
     # conditional-validator-explicit-failures-begin
     [[ "$successor_policy_action" =~ ^[0-9]+[a-z0-9-]*$ ]] || return 1
@@ -171,6 +172,13 @@ successor_policy_defined_valid() {
     successor_policy_executable_file "$successor_policy_transaction" || return 1
     successor_policy_executable_file "$successor_policy_outer" || return 1
     successor_policy_executable_file "$successor_policy_regression" || return 1
+    successor_policy_transaction_hash=$(sha256sum \
+        "$successor_policy_repository_root/$successor_policy_transaction" |
+        awk '{ print $1 }') || return 1
+    grep -Fxq "readonly transaction_sha256=$successor_policy_transaction_hash" \
+        "$successor_policy_repository_root/$successor_policy_outer" || return 1
+    grep -Fq "transaction_sha256: $successor_policy_transaction_hash" \
+        "$successor_policy_repository_root/$successor_policy_action_manifest" || return 1
     successor_policy_coverage_valid "$successor_policy_repository_root/$successor_policy_coverage" || return 1
     awk -F '\t' -v path="$successor_policy_action_manifest" '
         $1 == path && $2 == "defined-unexecuted" { found++ }

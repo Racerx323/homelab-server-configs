@@ -59,21 +59,17 @@ if grep -Fxq 'Persistent=true' "$caddy_root/systemd/caddy-sync-health.timer"; th
     exit 1
 fi
 
-for rejected_component in keepalived munin; do
-    rejected_status=0
-    /bin/bash "$caddy_root/scripts/install-caddy-ha.sh" \
-        --node node-a --component "$rejected_component" --dry-run \
-        >"$work_directory/$rejected_component.stdout" \
-        2>"$work_directory/$rejected_component.stderr" || rejected_status=$?
-    [[ "$rejected_status" -eq 2 ]]
-    [[ ! -s "$work_directory/$rejected_component.stdout" ]]
-done
+rejected_component=keepalived
+rejected_status=0
+/bin/bash "$caddy_root/scripts/install-caddy-ha.sh" \
+    --node node-a --component "$rejected_component" --dry-run \
+    >"$work_directory/$rejected_component.stdout" \
+    2>"$work_directory/$rejected_component.stderr" || rejected_status=$?
+[[ "$rejected_status" -eq 2 ]]
+[[ ! -s "$work_directory/$rejected_component.stdout" ]]
 grep -Fxq \
     'Keepalived is externally owned by homelab-dns/Keepalived/configs; installation from Caddy is prohibited.' \
     "$work_directory/keepalived.stderr"
-grep -Fxq \
-    'Munin integration is deferred and cannot be installed by this script.' \
-    "$work_directory/munin.stderr"
 
 negative_root=$work_directory/negative-repository
 readonly negative_root
@@ -89,17 +85,8 @@ cp -- \
     "$caddy_root/manifests/synchronization-protocol-v2.yaml" \
     "$negative_root/Caddy/manifests/"
 sed -i \
-    's|Caddy/scripts/caddy-sync-rsync-receiver\thistorical-superseded\tno\t-\t-|Caddy/scripts/caddy-sync-rsync-receiver\tproduction-current\tyes\t/usr/local/libexec/caddy-sync-rsync-receiver\t0755|' \
+    's|Caddy/scripts/apply-coupled-serving-health-action35.sh\tfuture-task\tno\t-\t-|Caddy/scripts/apply-coupled-serving-health-action35.sh\tproduction-current\tyes\t/usr/local/libexec/unsafe-action35\t0755|' \
     "$negative_root/Caddy/manifests/script-lifecycle.tsv"
-negative_status=0
-/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
-    --repository-root "$negative_root" >/dev/null 2>&1 || negative_status=$?
-[[ "$negative_status" -eq 1 ]]
-cp -- "$caddy_root/manifests/script-lifecycle.tsv" \
-    "$negative_root/Caddy/manifests/script-lifecycle.tsv"
-sed -i \
-    's|Caddy/systemd/caddy-pihole-backend.service\trejected\tno\t-\t-|Caddy/systemd/caddy-pihole-backend.service\tproduction-current\tyes\t/etc/systemd/system/caddy-pihole-backend.service\t0644|' \
-    "$negative_root/Caddy/manifests/systemd-lifecycle.tsv"
 negative_status=0
 /bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
     --repository-root "$negative_root" >/dev/null 2>&1 || negative_status=$?
@@ -118,14 +105,12 @@ certificate_directory=$work_directory/certificates
 readonly root certificate_directory
 install -d -m 0700 \
     "$certificate_directory" \
-    "$root/etc/keepalived/conf.d" \
-    "$root/etc/munin/plugin-conf.d"
+    "$root/etc/keepalived/conf.d"
 for certificate_file in \
     leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
     printf 'fixture-%s\n' "$certificate_file" >"$certificate_directory/$certificate_file"
 done
 printf 'externally-owned\n' >"$root/etc/keepalived/conf.d/caddy-ha.conf"
-printf 'deferred-owned\n' >"$root/etc/munin/plugin-conf.d/caddy-ha"
 
 /bin/bash "$caddy_root/scripts/install-caddy-ha.sh" \
     --node node-a \
@@ -164,24 +149,10 @@ find "$root/etc/systemd/system" -type f -printf '%P\n' | LC_ALL=C sort \
 cmp --silent "$work_directory/expected-systemd" \
     "$work_directory/observed-systemd"
 
-[[ ! -e "$root/etc/systemd/system/caddy-pihole-backend.service" ]]
-[[ ! -e "$root/usr/local/libexec/caddy-sync-rsync-receiver" ]]
-[[ ! -e "$root/usr/local/libexec/lsyncd-ha-failover-notify.sh" ]]
-[[ ! -e "$root/usr/local/libexec/publish-release.sh" ]]
 grep -Fxq externally-owned "$root/etc/keepalived/conf.d/caddy-ha.conf"
-grep -Fxq deferred-owned "$root/etc/munin/plugin-conf.d/caddy-ha"
 
 /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
     --node node-a --root "$root" >/dev/null
-
-install -m 0755 "$caddy_root/scripts/caddy-sync-rsync-receiver" \
-    "$root/usr/local/libexec/caddy-sync-rsync-receiver"
-if /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
-    --node node-a --root "$root" >/dev/null 2>&1; then
-    printf 'Validator accepted a superseded receiver.\n' >&2
-    exit 1
-fi
-rm -- "$root/usr/local/libexec/caddy-sync-rsync-receiver"
 
 printf 'drift\n' >>"$root/usr/local/libexec/caddy-sync-release-receiver-v2"
 if /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
@@ -197,7 +168,6 @@ install -m 0755 "$caddy_root/scripts/caddy-sync-release-receiver-v2" \
 jq -e '.node == "node-a" and .service_mutations == false' \
     "$work_directory/uninstall.json" >/dev/null
 grep -Fxq externally-owned "$root/etc/keepalived/conf.d/caddy-ha.conf"
-grep -Fxq deferred-owned "$root/etc/munin/plugin-conf.d/caddy-ha"
 
 while IFS=$'\t' read -r lifecycle_source lifecycle_state \
     lifecycle_deployable lifecycle_target lifecycle_mode lifecycle_authority; do

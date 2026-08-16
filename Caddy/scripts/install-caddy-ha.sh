@@ -78,11 +78,6 @@ case "$component" in
             'Keepalived is externally owned by homelab-dns/Keepalived/configs; installation from Caddy is prohibited.' >&2
         exit 2
         ;;
-    munin)
-        printf '%s\n' \
-            'Munin integration is deferred and cannot be installed by this script.' >&2
-        exit 2
-        ;;
     all | identities | directories | caddy | lighttpd | lsyncd | \
         scripts | systemd | sysctl | tmpfiles) ;;
     *)
@@ -131,7 +126,7 @@ validate_install_registry() {
     awk -F '\t' '
         /^[[:space:]]*(#|$)/ { next }
         NF != 6 { exit 1 }
-        $2 !~ /^(production-current|historical-action|historical-superseded|workstation-only|rejected|deferred)$/ { exit 1 }
+        $2 !~ /^(production-current|future-task)$/ { exit 1 }
         $3 !~ /^(yes|no)$/ { exit 1 }
         $3 == "yes" && ($2 != "production-current" || $4 !~ /^\// || $5 !~ /^0[0-7][0-7][0-7]$/) { exit 1 }
         $3 == "no" && ($4 != "-" || $5 != "-") { exit 1 }
@@ -161,7 +156,6 @@ trap 'rm -rf -- "$render_dir"' EXIT
 "$script_dir/render-node-config.sh" \
     --node "$node_role" \
     --output "$render_dir" \
-    --manifest "$manifest_file" \
     >/dev/null
 
 root_path() {

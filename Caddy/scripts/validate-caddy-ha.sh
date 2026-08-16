@@ -148,19 +148,6 @@ cmp --silent "$caddy_root/configs/tmpfiles.d/caddy-ha.conf" \
 validate_registered "$script_lifecycle"
 validate_registered "$systemd_lifecycle"
 
-for validation_forbidden in \
-    /etc/systemd/system/caddy-pihole-backend.service \
-    /usr/local/libexec/caddy-sync-rsync-receiver \
-    /usr/local/libexec/lsyncd-ha-failover-notify.sh \
-    /usr/local/libexec/publish-release.sh; do
-    [[ ! -e "$(root_path "$validation_forbidden")" &&
-    ! -L "$(root_path "$validation_forbidden")" ]] || {
-        printf 'Nonproduction artifact is installed: %s\n' \
-            "$validation_forbidden" >&2
-        exit 1
-    }
-done
-
 if grep -R -I -nE '@[A-Z0-9_]+@' \
     "$(root_path /etc/default/caddy-ha)" \
     "$(root_path /etc/lsyncd/caddy.lua)" \

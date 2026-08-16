@@ -86,10 +86,10 @@ validate_payload() {
     tar -tf "$payload_archive" >"$action35_listing"
     # shellcheck disable=SC2016
     check payload_paths awk '
-        /^\/?$/ || /^\// || /(^|\/)\.\.?(\/|$)/ { exit 1 }
+        /^\/?$/ || /^\// || /(^|\/)\.\.?(\/|$)/ { invalid = 1; exit }
         { seen[$0]++ }
-        seen[$0] > 1 { exit 1 }
-        END { exit !(NR > 0) }
+        seen[$0] > 1 { invalid = 1; exit }
+        END { exit invalid || NR == 0 }
     ' "$action35_listing"
     stage_root=$(mktemp -d /run/caddy-action35.XXXXXX)
     readonly stage_root

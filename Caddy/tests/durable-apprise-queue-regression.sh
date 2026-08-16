@@ -71,7 +71,7 @@ count_records() {
     find "$regression_directory" -maxdepth 1 -type f -name '*.json' -printf x | wc -c
 }
 
-enqueue_record schema-one
+CADDY_APPRISE_NOW_EPOCH=300 enqueue_record schema-one
 first_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' -print -quit)
 [[ -n "$first_record" && ! -L "$first_record" ]] || fail atomic_record
 [[ "$(stat -c '%a' "$first_record")" = 600 ]] || fail record_mode
@@ -84,13 +84,13 @@ jq -e '
 [[ -z "$(find "$queue_root/pending" -maxdepth 1 -type f -name '.enqueue.*' -print -quit)" ]] || fail atomic_cleanup
 
 before_dedupe=$(count_records "$queue_root/pending")
-enqueue_record schema-one
+CADDY_APPRISE_NOW_EPOCH=300 enqueue_record schema-one
 [[ "$(count_records "$queue_root/pending")" -eq "$before_dedupe" ]] || fail dedupe
 grep -Fq 'event=deduplicated' "$log_file" || fail dedupe_journal
 
 dedupe_inflight=$queue_root/inflight/${first_record##*/}
 mv "$first_record" "$dedupe_inflight"
-enqueue_record schema-one
+CADDY_APPRISE_NOW_EPOCH=300 enqueue_record schema-one
 [[ ! -e "$first_record" ]] || fail inflight_dedupe
 mv "$dedupe_inflight" "$first_record"
 
@@ -108,7 +108,11 @@ CADDY_APPRISE_NOW_EPOCH=300 "$enqueue" --source pihole-web \
     --stable-id episode-1-failed --title 'Pi-hole backend failed' \
     --body 'Bounded backend failure'
 stable_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
-    -exec jq -er 'select(.source == "pihole-web") | input_filename' {} +)
+    -print0 | while IFS= read -r -d '' queue_candidate; do
+    if jq -e '.source == "pihole-web"' "$queue_candidate" >/dev/null; then
+        printf '%s\n' "$queue_candidate"
+    fi
+done)
 [[ -n "$stable_record" ]] || fail stable_transition_record_absent
 CADDY_APPRISE_NOW_EPOCH=900 "$enqueue" --source pihole-web \
     --severity failure --event-key backend-failed \
@@ -128,7 +132,8 @@ enqueue_record schema-two
 printf 'success\nsuccess\nsuccess\n' >"$mock_state"
 "$worker"
 [[ "$(count_records "$queue_root/pending")" -eq 0 ]] || fail delivery_pending
-[[ "$(count_records "$queue_root/delivered")" -eq 3 ]] || fail delivery_receipts
+delivery_receipt_count=$(count_records "$queue_root/delivered")
+[[ "$delivery_receipt_count" -eq 3 ]] || fail "delivery_receipts_$delivery_receipt_count"
 [[ "$(wc -l <"$call_file")" -eq 3 ]] || fail oldest_first_call_count
 first_id=${first_record##*/}
 grep -Fq "Idempotency-Key: ${first_id%.json}" "$call_file" || fail idempotency_header
