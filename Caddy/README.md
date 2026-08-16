@@ -45,7 +45,7 @@ unauthorized candidates.
 
 Both nodes run Caddy, managed lsyncd, reconciliation, certificate checks,
 synchronization health checks, and durable Apprise delivery. Planned Action
-35a adds Caddy serving health to VRRP and keeps Pi-hole/lighttpd backend health
+35b adds Caddy serving health to VRRP and keeps Pi-hole/lighttpd backend health
 as a notification-only timer.
 
 ## Validation

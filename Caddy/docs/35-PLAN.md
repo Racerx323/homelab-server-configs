@@ -10,8 +10,9 @@ rerun or modified.
 The audit after that failure also rejected Action 35's production-path tests:
 they fabricated expected evidence and success markers instead of executing the
 real outer and transaction state machines. Synthetic production results are
-prohibited. Action 35a is the corrected installation successor and must be
-defined and validated before another live authorization is requested.
+prohibited. Its first corrected successor, Action 35a, is also failed-consumed
+and archived as recorded below. Action 35b is the next installation successor;
+the controlled failure exercise moves to Action 35c.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -300,14 +301,14 @@ Repository work requires no live authorization. It must:
 8. Run current focused host validation and one network-disabled Debian 12
    focused batch.
 
-The repository gate stops after reporting the exact future Action 35a outer
+The repository gate stops after reporting the exact future Action 35b outer
 SHA-256. No node contact occurs during definition. The consumed Action 35 gate
 is not reusable: its tests were invalidated because they fabricated production
 results, and its execution failed before SSH or mutation. Its exact files and
 authorization provenance are retained by the terminal tag recorded in
 `Caddy/HISTORY.md`.
 
-## Action 35a: standby-first installation transaction
+## Action 35b: standby-first installation transaction
 
 Live execution requires separate authorization of the definition-complete
 outer runner. One transaction must install and accept the corrected health
@@ -363,12 +364,12 @@ Node A must not be mutated unless Node B is fully eligible to take ownership.
    four VIPs and Node B stable dual-stack `BACKUP` with zero VIPs.
 
 The generic `install-caddy-ha.sh` Caddy component is prohibited during this
-live migration. Action 35a must regression-test that the generic installer
+live migration. Action 35b must regression-test that the generic installer
 fails closed when `/etc/caddy/current` exists. Rollback restores both original
 release selections through the transactional release boundary before restoring
 the remaining files in reverse node order.
 
-### Action 35a acceptance
+### Action 35b acceptance
 
 - Both production helpers and Keepalived configurations match exact candidate
   identities, owners, groups, and modes.
@@ -387,10 +388,10 @@ On failure, restore Node A and then Node B in reverse mutation order, reload
 Keepalived sequentially, and prove the exact accepted Action 34m state. Return
 status `125` only when mutation occurred and recovery cannot be proven.
 
-## Action 35b: controlled serving-failure exercise
+## Action 35c: controlled serving-failure exercise
 
-Action 35b is separately authorized only after Action 35a is accepted. It does
-not reinstall Action 35a and does not create production fixtures. It exercises
+Action 35c is separately authorized only after Action 35b is accepted. It does
+not reinstall Action 35b and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure
@@ -442,9 +443,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35a`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35b`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35a` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35b` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback

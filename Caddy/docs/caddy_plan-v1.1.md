@@ -66,7 +66,7 @@ Caddy health covers:
 - node-specific address binding and hostname handling;
 - completion within the Keepalived script timeout.
 
-Action 35a sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
+Action 35b sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
 Six seconds of sustained serving failure can trigger failover.
 
 Pi-hole/lighttpd web-backend health remains notification-only. A backend
@@ -228,7 +228,7 @@ Enabled and active:
 - `caddy-sync-health.timer`;
 - `caddy-apprise-worker.path`;
 - `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer` after Action 35a.
+- `caddy-pihole-web-health.timer` after Action 35b.
 
 Static workers:
 
@@ -324,13 +324,13 @@ successors.
 
 ## 17. Current next gate
 
-Action 35a is failed-consumed and awaiting its terminal archive and immediate
-cleanup. It must not be rerun or modified. No live successor is currently
-registered. After the stream returns to clean, the corrected standby-first
-installation will be defined from neutral current-production components with
-an SSH serialization policy that prohibits the failed remote Bash boundary.
-The controlled serving-failure exercise remains separately gated until the
-corrected installation is accepted.
+Action 35a is failed-consumed, archived at
+`caddy-action35a-terminal-2026-08-16`, and removed from the production branch.
+It must not be rerun or modified. No live successor is currently registered.
+Corrected standby-first installation Action 35b will be defined from neutral
+current-production components with an SSH serialization policy that prohibits
+the failed remote Bash boundary. Controlled serving-failure exercise Action
+35c remains separately gated until Action 35b is accepted.
 
 The transaction must:
 
@@ -360,7 +360,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35a:
+After Action 35b:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;

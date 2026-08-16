@@ -153,7 +153,18 @@ obtained without executing the registered outer and transaction paths.
   files. Do not run bare `shfmt -w`.
 - Use `Caddy/tests/multifile-grep-count-policy.sh --check FILE...` for changed
   shell files.
-- Stream remote Bash only after `cd /`.
+- Never send a multi-command program through `ssh ... /bin/bash -c ...` or
+  `ssh ... sudo /bin/bash -c ...`. OpenSSH rebuilds its command arguments as a
+  remote-shell string; local argument boundaries and quoting are not preserved.
+- Stream every multi-command remote Bash program on standard input through the
+  exact boundary `ssh HOST 'cd / && sudo -n /bin/bash -s -- ARG...' <PROGRAM`.
+  A deliberately unprivileged program may omit `sudo -n`, but it must retain
+  `cd /`, `/bin/bash -s --`, explicit positional arguments, and stdin streaming.
+- A production-path test for an SSH runner must execute the runner's live
+  transport branch through an isolated SSH substitute that reproduces
+  OpenSSH's space-joined remote command and remote-shell parsing. Replacing the
+  transport branch with direct local commands, or invoking arguments directly
+  without that serialization step, is prohibited.
 - Capture SSH stdout, stderr, and status in workstation files beneath `/tmp`.
   Long-running node commands must write node-local evidence beneath `/tmp`
   before the workstation reads it back.
@@ -190,9 +201,9 @@ obtained without executing the registered outer and transaction paths.
   certificate timer failures do not change VRRP ownership.
 - Keep probes within their Keepalived timeout and validate exact IPv4 and IPv6
   paths.
-- Action 35 is failed-consumed. Corrected Action 35a owns the next
-  serving-health migration after the Action 35 terminal archive and cleanup.
-  The generic installer must not deploy it.
+- Actions 35 and 35a are failed-consumed and archived. Corrected Action 35b
+  owns the next serving-health migration after the Action 35a terminal archive
+  and cleanup. The generic installer must not deploy it.
 
 ## Synchronization contract
 

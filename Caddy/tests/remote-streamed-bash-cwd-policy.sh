@@ -36,6 +36,10 @@ check_file() {
     ' "$cwd_policy_source" >"$cwd_policy_logical" || return 1
 
     awk '
+        /ssh[[:space:]]/ && /\/bin\/bash -c([[:space:]]|$)/ {
+            print NR ": remote Bash -c is unsafe across OpenSSH serialization"
+            next
+        }
         /bash -s/ && /<"?\$[A-Za-z_][A-Za-z0-9_]*"?/ &&
         !/cd \/ && sudo -n \/bin\/bash -s/ {
             print NR ": streamed remote Bash does not establish cd / before sudo"
@@ -67,6 +71,7 @@ run_checks() {
 run_self_test() {
     local cwd_policy_safe=$work_root/Caddy/scripts/run-safe.sh
     local cwd_policy_unsafe=$work_root/Caddy/scripts/run-unsafe.sh
+    local cwd_policy_unsafe_command=$work_root/Caddy/scripts/run-unsafe-command.sh
     local cwd_policy_status=0
 
     install -d -m 0700 "$work_root/Caddy/scripts" || return 1
@@ -76,11 +81,18 @@ run_self_test() {
     printf '%s\n' '#!/usr/bin/env bash' \
         "ssh pi@node 'sudo -n /bin/bash -s' <\"\$inspector\"" \
         >"$cwd_policy_unsafe" || return 1
+    printf '%s\n' '#!/usr/bin/env bash' \
+        "ssh pi@node /bin/bash -c 'set -Eeuo pipefail; install -d \"\$1\"' _ /tmp/example" \
+        >"$cwd_policy_unsafe_command" || return 1
     run_checks "$cwd_policy_safe" >/dev/null || return 1
     printf '%s_self_test_root_transition_accepted=true\n' "$prefix"
     run_checks "$cwd_policy_unsafe" >/dev/null 2>&1 || cwd_policy_status=$?
     [[ "$cwd_policy_status" -eq 1 ]] || return 1
     printf '%s_self_test_missing_root_transition_rejected=true\n' "$prefix"
+    cwd_policy_status=0
+    run_checks "$cwd_policy_unsafe_command" >/dev/null 2>&1 || cwd_policy_status=$?
+    [[ "$cwd_policy_status" -eq 1 ]] || return 1
+    printf '%s_self_test_remote_bash_c_rejected=true\n' "$prefix"
     printf '%s_self_test_complete=true\n' "$prefix"
 }
 
