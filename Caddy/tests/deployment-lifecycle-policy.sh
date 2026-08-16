@@ -109,7 +109,8 @@ require_row() {
 require_row "$script_registry" $'Caddy/scripts/caddy-sync-release-receiver-v2\tproduction-current\tyes\t/usr/local/libexec/caddy-sync-release-receiver-v2\t0755\tCaddy/manifests/synchronization-protocol-v2.yaml'
 require_row "$script_registry" $'Caddy/scripts/caddy-apprise-delivery-worker.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-delivery-worker\t0755\tCaddy/manifests/durable-apprise-production.tsv'
 require_row "$script_registry" $'Caddy/scripts/caddy-apprise-enqueue.sh\tproduction-current\tyes\t/usr/local/libexec/caddy-apprise-enqueue\t0755\tCaddy/manifests/durable-apprise-production.tsv'
-require_row "$script_registry" $'Caddy/scripts/check-caddy-vrrp-action20h.sh\tproduction-current\tyes\t/usr/local/libexec/check-caddy.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
+require_row "$script_registry" $'Caddy/scripts/check-caddy-serving-health.sh\tproduction-current\tyes\t/usr/local/libexec/check-caddy.sh\t0755\tCaddy/manifests/serving-health-production.tsv'
+require_row "$script_registry" $'Caddy/scripts/check-pihole-web-health.sh\tproduction-current\tyes\t/usr/local/libexec/check-pihole-web-health.sh\t0755\tCaddy/manifests/serving-health-production.tsv'
 require_row "$script_registry" $'Caddy/scripts/check-certificate-expiry.sh\tproduction-current\tyes\t/usr/local/libexec/check-certificate-expiry.sh\t0755\tCaddy/systemd/caddy-cert-expiry.service'
 require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/lsyncd-sync-failure-notify.sh\tproduction-current\tyes\t/usr/local/libexec/lsyncd-sync-failure-notify.sh\t0755\tCaddy/systemd/caddy-sync-failure@.service'
@@ -123,8 +124,9 @@ readonly -a expected_installable_scripts=(
     Caddy/scripts/caddy-apprise-delivery-worker.sh
     Caddy/scripts/caddy-apprise-enqueue.sh
     Caddy/scripts/caddy-sync-release-receiver-v2
-    Caddy/scripts/check-caddy-vrrp-action20h.sh
+    Caddy/scripts/check-caddy-serving-health.sh
     Caddy/scripts/check-certificate-expiry.sh
+    Caddy/scripts/check-pihole-web-health.sh
     Caddy/scripts/finalize-incoming-release-v2-stderr-safe-trigger-action28ac.sh
     Caddy/scripts/lsyncd-sync-failure-notify.sh
     Caddy/scripts/prepare-lighttpd-config.sh
@@ -145,6 +147,8 @@ readonly -a expected_installable_systemd=(
     caddy-cert-expiry.service
     caddy-cert-expiry.timer
     caddy-lsyncd.service
+    caddy-pihole-web-health.service
+    caddy-pihole-web-health.timer
     caddy-sync-failure@.service
     caddy-sync-health.service
     caddy-sync-health.timer
@@ -157,6 +161,7 @@ for lifecycle_systemd_relative in "${expected_installable_systemd[@]}"; do
     lifecycle_systemd_authority=Caddy/manifests/production-artifacts.tsv
     case "$lifecycle_systemd_relative" in
         caddy-apprise-worker.*) lifecycle_systemd_authority=Caddy/manifests/durable-apprise-production.tsv ;;
+        caddy-pihole-web-health.*) lifecycle_systemd_authority=Caddy/manifests/serving-health-production.tsv ;;
     esac
     require_row "$systemd_registry" \
         "Caddy/systemd/$lifecycle_systemd_relative"$'\tproduction-current\tyes\t'"/etc/systemd/system/$lifecycle_systemd_relative"$'\t0644\t'"$lifecycle_systemd_authority"
@@ -210,12 +215,23 @@ validate_node_inventory_pair() {
         }
     ' "$production_inventory" && return 0
 
-    [[ "$inventory_authority" = Caddy/manifests/durable-apprise-production.tsv ]] || return 1
-    awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
-        /^[[:space:]]*(#|$)/ { next }
-        $1 == source && $2 == target { found++ }
-        END { exit(found == 1 ? 0 : 1) }
-    ' "$repository_root/$inventory_authority"
+    case "$inventory_authority" in
+        Caddy/manifests/durable-apprise-production.tsv)
+            awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
+                /^[[:space:]]*(#|$)/ { next }
+                $1 == source && $2 == target { found++ }
+                END { exit(found == 1 ? 0 : 1) }
+            ' "$repository_root/$inventory_authority"
+            ;;
+        Caddy/manifests/serving-health-production.tsv)
+            awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
+                /^[[:space:]]*(#|$)/ { next }
+                $2 == source && $3 == target { found++ }
+                END { exit(found == 1 ? 0 : 1) }
+            ' "$repository_root/$inventory_authority"
+            ;;
+        *) return 1 ;;
+    esac
 }
 
 while IFS=$'\t' read -r lifecycle_source lifecycle_state \

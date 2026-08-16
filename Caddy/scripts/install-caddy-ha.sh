@@ -340,6 +340,12 @@ if selected directories; then
 fi
 
 if selected caddy; then
+    current_link=$(root_path /etc/caddy/current)
+    if [[ -e "$current_link" || -L "$current_link" ]]; then
+        printf '%s\n' \
+            'The generic Caddy component is bootstrap-only and refuses an existing /etc/caddy/current.' >&2
+        exit 2
+    fi
     release_dir=$(root_path /etc/caddy/releases/bootstrap)
     ensure_directory "$release_dir" 0750 root caddy-tls
     ensure_directory "$release_dir/conf.d" 0750 root caddy-tls
@@ -380,7 +386,6 @@ if selected caddy; then
         record 'CERTIFICATES would install from --certificate-dir'
     fi
 
-    current_link=$(root_path /etc/caddy/current)
     if [[ ! -L "$current_link" ]] ||
         [[ "$(readlink "$current_link")" != /etc/caddy/releases/bootstrap ]]; then
         changes=$((changes + 1))

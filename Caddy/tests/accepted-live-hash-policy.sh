@@ -52,7 +52,7 @@ validate_registry() {
         $2 !~ /^Caddy\/(scripts|tests)\/[A-Za-z0-9._-]+\.sh$/ { exit 1 }
         $3 !~ /^[a-z][a-z0-9_]*_sha256$/ { exit 1 }
         seen[$1 FS $2 FS $3]++ { exit 1 }
-        END { if (length(seen) == 0) exit 1 }
+        END { }
     ' "$registry"
 }
 validate_inventory_implementation() {

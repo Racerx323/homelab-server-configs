@@ -1,2 +1,2 @@
 schema_version	status	action	action_manifest	transaction	outer_runner	state_contract	state_sha256	coverage	regression
-1	none	-	-	-	-	Caddy/manifests/current-live-state.tsv	6d63bd8de3ac8caac6ae88ce8a935878544c186560738dd33c4bad82802703be	Caddy/manifests/deployable-successor-coverage.tsv	-
+1	defined	35	Caddy/manifests/coupled-serving-health-action35.yaml	Caddy/scripts/apply-coupled-serving-health-action35.sh	Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh	Caddy/manifests/current-live-state.tsv	c220609527cb44e772b2d2c6a83896938b9d619f0fcf5db20e2faa8e2efa66da	Caddy/manifests/deployable-successor-coverage.tsv	Caddy/tests/coupled-serving-health-deployment-regression.sh

@@ -1,13 +1,1 @@
 # key<TAB>consumer-path<TAB>readonly-variable
-node_a_health_helper	Caddy/scripts/run-node-a-keepalived-dbus-action20p-outer.sh	node_a_health_sha256
-node_b_health_helper	Caddy/scripts/build-node-b-caddy-health-helper-postinstall-action20i-a-retry.sh	expected_health_sha256
-node_b_health_helper	Caddy/scripts/build-node-b-caddy-vrrp-activation-action20j.sh	accepted_health_sha256
-node_b_health_helper	Caddy/scripts/build-dual-node-caddy-postactivation-action20j-a.sh	accepted_health_sha256
-node_a_health_helper	Caddy/scripts/inspect-dual-node-caddy-failover-action28j.sh	node_a_health_sha256
-node_b_health_helper	Caddy/scripts/inspect-dual-node-caddy-failover-action28j.sh	node_b_health_sha256
-node_a_unbound_local_zone	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_local_zone_sha256
-node_b_unbound_local_zone	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_local_zone_sha256
-node_a_pihole_ftl	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_pihole_ftl_sha256
-node_b_pihole_ftl	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_pihole_ftl_sha256
-node_a_pihole_local_domain	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_pihole_domain_sha256
-node_b_pihole_local_domain	Caddy/scripts/run-dual-node-dns-record-families-action24-retry4-outer.sh	accepted_pihole_domain_sha256

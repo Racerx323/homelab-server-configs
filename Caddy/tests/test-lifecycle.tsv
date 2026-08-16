@@ -565,6 +565,8 @@ Caddy/tests/source-test-context-policy-regression.sh	historical-preserved	histor
 Caddy/tests/ssh-stream-local-evidence-policy.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/stderr-safe-finalizer-trigger-regression.sh	historical-preserved	historical-opt-in	delegates-to-executed-action
 Caddy/tests/systemd-boot-persistence-policy.sh	production-current	current-focused	current-test-or-policy
+Caddy/tests/serving-health-regression.sh	production-current	current-focused	current-test-or-policy
+Caddy/tests/coupled-serving-health-deployment-regression.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/template-lifecycle-policy.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/template-lifecycle-regression.sh	production-current	current-focused	current-test-or-policy
 Caddy/tests/test-lifecycle-policy-regression.sh	production-current	current-focused	current-test-or-policy

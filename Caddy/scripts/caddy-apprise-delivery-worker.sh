@@ -55,7 +55,7 @@ valid_record() {
     jq -e --arg schema "$schema" --arg id "${worker_basename%.json}" '
       type == "object" and keys == ["created_at","created_epoch","event_id","host","payload","retry","schema","severity","source"] and
       .schema == $schema and .event_id == $id and
-      (.source | test("^(caddy-sync|keepalived)$")) and
+      (.source | test("^(caddy-sync|keepalived|pihole-web)$")) and
       (.host | type == "string" and test("^[A-Za-z0-9.-]{1,253}$")) and
       (.severity | test("^(info|success|warning|failure)$")) and
       (.created_at | type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")) and

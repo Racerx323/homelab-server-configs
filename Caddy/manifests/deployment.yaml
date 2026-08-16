@@ -31,7 +31,8 @@ production_ownership:
   ipv6_instance: PIHOLE_IPV6
   ipv6_vrid: 101
   caddy_vips_follow_dns_ownership: true
-  caddy_health_is_dns_dependency: false
+  caddy_health_is_dns_dependency: true
+  pihole_lighttpd_backend_health_is_notification_only: true
 
 ports:
   http_tcp: 80

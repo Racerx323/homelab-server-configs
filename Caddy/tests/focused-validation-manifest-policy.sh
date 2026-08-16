@@ -37,7 +37,13 @@ executable_file() {
 
     regular_file "$focused_manifest_path" || return 1
     [[ -x "$focused_manifest_path" ]] || return 1
-    [[ "$(git -C "$repository_root" ls-files -s -- "$focused_manifest_relative" | awk '{ print $1 }')" = 100755 ]]
+    if git -C "$repository_root" ls-files --error-unmatch -- \
+        "$focused_manifest_relative" >/dev/null 2>&1; then
+        [[ "$(git -C "$repository_root" ls-files -s -- "$focused_manifest_relative" | awk '{ print $1 }')" = 100755 ]]
+        return
+    fi
+    [[ -n "$(git -C "$repository_root" ls-files --others --exclude-standard -- \
+        "$focused_manifest_relative")" ]]
 }
 
 schema_valid() {

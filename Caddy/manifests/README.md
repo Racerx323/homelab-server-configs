@@ -27,6 +27,7 @@ its current repository disposition without changing historical bytes.
 | `deployable-successor-coverage.tsv` | Required full-entrypoint state matrix and emitted acceptance markers for that successor |
 | `deployable-live-hash-consumers.tsv` | Still-deployable shell consumers of accepted-live identities |
 | `durable-apprise-production.tsv` | Neutral current source-to-install contract for durable notification artifacts; never derives current status from a failed action manifest |
+| `serving-health-production.tsv` | Action 35 candidate source-to-install contract; candidate hashes are not accepted deployed identities |
 | `template-lifecycle.tsv` | Canonical lifecycle of files beneath `Caddy/templates/` |
 | `script-lifecycle.tsv` | Complete script classification and exact node-installable executable mapping |
 | `systemd-lifecycle.tsv` | Complete systemd classification and exact node-installable unit mapping |

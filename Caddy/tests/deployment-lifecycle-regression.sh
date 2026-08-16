@@ -135,6 +135,17 @@ printf 'deferred-owned\n' >"$root/etc/munin/plugin-conf.d/caddy-ha"
 jq -e '.node == "node-a" and .component == "all" and .service_mutations == false' \
     "$work_directory/install.json" >/dev/null
 
+bootstrap_selection=$(readlink "$root/etc/caddy/current")
+readonly bootstrap_selection
+bootstrap_retry_status=0
+/bin/bash "$caddy_root/scripts/install-caddy-ha.sh" \
+    --node node-a --root "$root" --certificate-dir "$certificate_directory" \
+    --component caddy >"$work_directory/bootstrap-retry.stdout" \
+    2>"$work_directory/bootstrap-retry.stderr" || bootstrap_retry_status=$?
+[[ "$bootstrap_retry_status" -eq 2 ]]
+[[ "$(readlink "$root/etc/caddy/current")" = "$bootstrap_selection" ]]
+grep -Fq 'bootstrap-only' "$work_directory/bootstrap-retry.stderr"
+
 awk -F '\t' '$2 == "production-current" && $3 == "yes" {
     sub("^/usr/local/libexec/", "", $4); print $4
 }' "$caddy_root/manifests/script-lifecycle.tsv" | LC_ALL=C sort \

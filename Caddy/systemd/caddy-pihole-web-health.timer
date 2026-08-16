@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically monitor node-local Pi-hole web health
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=30s
+AccuracySec=2s
+Persistent=yes
+Unit=caddy-pihole-web-health.service
+
+[Install]
+WantedBy=timers.target

@@ -126,6 +126,68 @@
         "deployment-lifecycle"
       ]
     },
+    "current-serving-health": {
+      "description": "Current DNS and Caddy VRRP serving checks plus notification-only Pi-hole web monitoring.",
+      "path_patterns": [
+        "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
+        "Caddy/docs/35-PLAN.md",
+        "Caddy/manifests/deployment.yaml",
+        "Caddy/manifests/serving-health-production.tsv",
+        "Caddy/manifests/coupled-serving-health-action35.yaml",
+        "Caddy/manifests/deployable-successor*.tsv",
+        "Caddy/manifests/script-lifecycle.tsv",
+        "Caddy/manifests/systemd-lifecycle.tsv",
+        "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/scripts/check-caddy-serving-health.sh",
+        "Caddy/scripts/check-pihole-web-health.sh",
+        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
+        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
+        "Caddy/systemd/caddy-pihole-web-health.*",
+        "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh"
+      ],
+      "debian_path_patterns": [
+        "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
+        "Caddy/manifests/serving-health-production.tsv",
+        "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/scripts/check-caddy-serving-health.sh",
+        "Caddy/scripts/check-pihole-web-health.sh",
+        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
+        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
+        "Caddy/systemd/caddy-pihole-web-health.*",
+        "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh"
+      ],
+      "shell_files": [
+        "Caddy/scripts/caddy-apprise-delivery-worker.sh",
+        "Caddy/scripts/caddy-apprise-enqueue.sh",
+        "Caddy/scripts/check-caddy-serving-health.sh",
+        "Caddy/scripts/check-pihole-web-health.sh",
+        "Caddy/scripts/apply-coupled-serving-health-action35.sh",
+        "Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
+        "Caddy/tests/serving-health-regression.sh"
+      ],
+      "host_tests": [
+        "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "debian_tests": [
+        "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
+        "Caddy/tests/durable-apprise-queue-regression.sh"
+      ],
+      "policies": [
+        "selected-shell",
+        "accepted-live-hashes",
+        "conditional-validator",
+        "executable-modes",
+        "systemd-boot",
+        "deployment-lifecycle",
+        "test-lifecycle"
+      ]
+    },
     "current-systemd-boot-persistence": {
       "description": "Current Caddy boot persistence, managed lsyncd lifecycle, timers, masks, and synchronization health.",
       "path_patterns": [
@@ -133,10 +195,7 @@
         "Caddy/systemd/*.timer",
         "Caddy/systemd/*.path",
         "Caddy/systemd/*.service.d/*.conf",
-        "Caddy/scripts/apply-caddy-systemd-boot-persistence-action30e.sh",
-        "Caddy/scripts/apply-caddy-runtime-lifecycle-action32.sh",
-        "Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32-outer.sh",
-        "Caddy/manifests/caddy-runtime-lifecycle-action32.*",
+        "Caddy/manifests/systemd-lifecycle.tsv",
         "Caddy/scripts/validate-sync-health.sh",
         "Caddy/tests/systemd-boot-persistence-policy.sh"
       ],
@@ -145,10 +204,7 @@
         "Caddy/systemd/*.timer",
         "Caddy/systemd/*.path",
         "Caddy/systemd/*.service.d/*.conf",
-        "Caddy/scripts/apply-caddy-systemd-boot-persistence-action30e.sh",
-        "Caddy/scripts/apply-caddy-runtime-lifecycle-action32.sh",
-        "Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32-outer.sh",
-        "Caddy/manifests/caddy-runtime-lifecycle-action32.*",
+        "Caddy/manifests/systemd-lifecycle.tsv",
         "Caddy/scripts/validate-sync-health.sh",
         "Caddy/tests/systemd-boot-persistence-policy.sh"
       ],
@@ -156,8 +212,6 @@
         "Caddy/scripts/check-certificate-expiry.sh",
         "Caddy/scripts/reconcile-release-v2.sh",
         "Caddy/scripts/validate-sync-health.sh",
-        "Caddy/scripts/apply-caddy-runtime-lifecycle-action32.sh",
-        "Caddy/scripts/run-dual-node-caddy-runtime-lifecycle-action32-outer.sh",
         "Caddy/tests/deployment-lifecycle-policy.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/systemd-boot-persistence-policy.sh"

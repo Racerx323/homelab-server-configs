@@ -75,7 +75,9 @@ Caddy/scripts/caddy-sync-rsync-receiver	historical-superseded	no	-	-	Caddy/scrip
 Caddy/scripts/capture-node-b-coupled-vip-observation-start-action28r.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
 Caddy/scripts/check-caddy-action20b.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
 Caddy/scripts/check-caddy-instrumented-action20d-retry10-d.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
-Caddy/scripts/check-caddy-vrrp-action20h.sh	production-current	yes	/usr/local/libexec/check-caddy.sh	0755	Caddy/manifests/production-artifacts.tsv
+Caddy/scripts/check-caddy-vrrp-action20h.sh	historical-action	no	-	-	Caddy/docs/caddy_plan-v1.1.md
+Caddy/scripts/check-caddy-serving-health.sh	production-current	yes	/usr/local/libexec/check-caddy.sh	0755	Caddy/manifests/serving-health-production.tsv
+Caddy/scripts/check-pihole-web-health.sh	production-current	yes	/usr/local/libexec/check-pihole-web-health.sh	0755	Caddy/manifests/serving-health-production.tsv
 Caddy/scripts/check-caddy.sh	historical-superseded	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/check-certificate-expiry.sh	production-current	yes	/usr/local/libexec/check-certificate-expiry.sh	0755	Caddy/systemd/caddy-cert-expiry.service
 Caddy/scripts/check-vip-vrid-availability.sh	historical-superseded	no	-	-	Caddy/scripts/README.md
@@ -891,3 +893,5 @@ Caddy/scripts/run-dual-node-caddy-ha-reliability-action33n-outer.sh	historical-a
 Caddy/scripts/transact-caddy-ha-reliability-action33n.sh	historical-action	no	-	-	Caddy/docs/33-PLAN.md
 Caddy/scripts/run-dual-node-caddy-ha-reliability-action33o-outer.sh	historical-action	no	-	-	Caddy/docs/33-PLAN.md
 Caddy/scripts/transact-caddy-ha-reliability-action33o.sh	historical-action	no	-	-	Caddy/docs/33-PLAN.md
+Caddy/scripts/apply-coupled-serving-health-action35.sh	historical-action	no	-	-	Caddy/docs/35-PLAN.md
+Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh	historical-action	no	-	-	Caddy/docs/35-PLAN.md

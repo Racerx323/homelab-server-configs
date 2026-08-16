@@ -1,0 +1,31 @@
+[Unit]
+Description=Monitor node-local Pi-hole web health without affecting VRRP
+After=network-online.target caddy.service lighttpd.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+ExecStart=/usr/local/libexec/check-pihole-web-health.sh
+StateDirectory=caddy-pihole-web-health
+StateDirectoryMode=0700
+RuntimeDirectory=caddy-pihole-web-health
+RuntimeDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadOnlyPaths=/etc/default/caddy-ha
+ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native

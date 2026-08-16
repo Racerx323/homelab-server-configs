@@ -59,6 +59,7 @@ Caddy/manifests/dependencies.yaml	production-current	no	Caddy/manifests/README.m
 Caddy/manifests/current-live-state.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-successor-coverage.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-successor.tsv	production-current	yes	Caddy/manifests/README.md
+Caddy/manifests/coupled-serving-health-action35.yaml	defined-unexecuted	no	Caddy/docs/35-PLAN.md
 Caddy/manifests/deployable-live-hash-consumers.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployment.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/dns-action23a-a-records.yaml	superseded	no	Caddy/docs/caddy_plan-v1.1.md
@@ -150,6 +151,7 @@ Caddy/manifests/durable-apprise-action34m.tsv	accepted-executed-definition	no	Ca
 Caddy/manifests/durable-apprise-action34m.yaml	accepted-executed-definition	no	Caddy/docs/caddy_plan-v1.1.md
 Caddy/manifests/durable-apprise-production.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/script-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
+Caddy/manifests/serving-health-production.tsv	production-current	yes	Caddy/docs/35-PLAN.md
 Caddy/manifests/protocol-ipv6-response-path-action26-a.yaml	workstation-only	no	Caddy/docs/caddy_plan-v1.1.md
 Caddy/manifests/protocol-v2-a-to-b-action28.yaml	failed-consumed	no	Caddy/docs/caddy_plan-v1.1.md
 Caddy/manifests/protocol-v2-a-to-b-action28c.yaml	failed-consumed	no	Caddy/docs/caddy_plan-v1.1.md

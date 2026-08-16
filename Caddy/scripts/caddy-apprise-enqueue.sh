@@ -15,12 +15,14 @@ readonly queue_root
 readonly maximum_record_bytes=8192
 readonly dedupe_window_seconds=300
 readonly event_key_pattern='^[-A-Za-z0-9._:@/+ ]{1,256}$'
+readonly stable_id_pattern='^[-A-Za-z0-9._:@+]{1,128}$'
 
 source_name=
 severity=
 event_key=
 title=
 body=
+stable_id=
 
 queue_log() {
     if [[ "${CADDY_APPRISE_TEST_MODE:-}" = 1 && -n "${CADDY_APPRISE_LOG_FILE:-}" ]]; then
@@ -31,7 +33,7 @@ queue_log() {
 }
 
 usage() {
-    printf 'Usage: %s --source caddy-sync|keepalived --severity info|success|warning|failure --event-key KEY --title TITLE --body BODY\n' "${0##*/}" >&2
+    printf 'Usage: %s --source caddy-sync|keepalived|pihole-web --severity info|success|warning|failure --event-key KEY [--stable-id ID] --title TITLE --body BODY\n' "${0##*/}" >&2
 }
 
 while (($#)); do
@@ -56,6 +58,10 @@ while (($#)); do
             body=${2:-}
             shift 2
             ;;
+        --stable-id)
+            stable_id=${2:-}
+            shift 2
+            ;;
         *)
             usage
             exit 64
@@ -74,9 +80,10 @@ safe_text() {
         'BEGIN [A-Z ]*PRIVATE KEY|Authorization:[[:space:]]*Bearer|WEBPASSWORD|(^|[^[:alnum:]_])(password|passwd|token|secret|api[_-]?key)[[:space:]]*[:=]'
 }
 
-[[ "$source_name" =~ ^(caddy-sync|keepalived)$ ]] || exit 65
+[[ "$source_name" =~ ^(caddy-sync|keepalived|pihole-web)$ ]] || exit 65
 [[ "$severity" =~ ^(info|success|warning|failure)$ ]] || exit 65
 [[ "$event_key" =~ $event_key_pattern ]] || exit 65
+[[ -z "$stable_id" || "$stable_id" =~ $stable_id_pattern ]] || exit 65
 safe_text "$title" 256 || exit 65
 safe_text "$body" 2048 || exit 65
 
@@ -89,10 +96,20 @@ done
 hostname_value=$(hostname -f 2>/dev/null || hostname) || exit 1
 [[ "$hostname_value" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || exit 65
 created_epoch=$(date +%s) || exit 1
+if [[ "${CADDY_APPRISE_TEST_MODE:-}" = 1 && -n "${CADDY_APPRISE_NOW_EPOCH:-}" ]]; then
+    [[ "$CADDY_APPRISE_NOW_EPOCH" =~ ^[0-9]+$ ]] || exit 65
+    created_epoch=$CADDY_APPRISE_NOW_EPOCH
+fi
 created_at=$(date -u +%Y-%m-%dT%H:%M:%SZ) || exit 1
-dedupe_bucket=$((created_epoch / dedupe_window_seconds))
+if [[ -n "$stable_id" ]]; then
+    event_identity="stable:$stable_id"
+else
+    dedupe_bucket=$((created_epoch / dedupe_window_seconds))
+    event_identity="$event_key:$dedupe_bucket"
+fi
+readonly event_identity
 event_id=$(printf '%s\0%s\0%s\0%s' "$schema" "$source_name" \
-    "$hostname_value" "$event_key:$dedupe_bucket" | sha256sum | awk '{ print $1 }') || exit 1
+    "$hostname_value" "$event_identity" | sha256sum | awk '{ print $1 }') || exit 1
 [[ ${#event_id} -eq 64 && "$event_id" =~ ^[0-9a-f]+$ ]] || exit 1
 
 target=$queue_root/pending/$event_id.json

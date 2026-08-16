@@ -103,13 +103,33 @@ if "$enqueue" --source keepalived --severity warning --event-key bad-secret \
     fail secret_acceptance
 fi
 
+CADDY_APPRISE_NOW_EPOCH=300 "$enqueue" --source pihole-web \
+    --severity failure --event-key backend-failed \
+    --stable-id episode-1-failed --title 'Pi-hole backend failed' \
+    --body 'Bounded backend failure'
+stable_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -er 'select(.source == "pihole-web") | input_filename' {} +)
+[[ -n "$stable_record" ]] || fail stable_transition_record_absent
+CADDY_APPRISE_NOW_EPOCH=900 "$enqueue" --source pihole-web \
+    --severity failure --event-key backend-failed \
+    --stable-id episode-1-failed --title 'Pi-hole backend failed' \
+    --body 'Bounded backend failure'
+[[ "$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -er 'select(.source == "pihole-web") | input_filename' {} + | wc -l)" -eq 1 ]] || fail stable_transition_dedupe
+[[ -f "$stable_record" ]] || fail stable_transition_identity_changed
+if "$enqueue" --source pihole-web --severity failure \
+    --event-key backend-failed --stable-id '../unsafe' \
+    --title 'bad' --body 'bad'; then
+    fail unsafe_stable_id_acceptance
+fi
+
 sleep 1
 enqueue_record schema-two
-printf 'success\nsuccess\n' >"$mock_state"
+printf 'success\nsuccess\nsuccess\n' >"$mock_state"
 "$worker"
 [[ "$(count_records "$queue_root/pending")" -eq 0 ]] || fail delivery_pending
-[[ "$(count_records "$queue_root/delivered")" -eq 2 ]] || fail delivery_receipts
-[[ "$(wc -l <"$call_file")" -eq 2 ]] || fail oldest_first_call_count
+[[ "$(count_records "$queue_root/delivered")" -eq 3 ]] || fail delivery_receipts
+[[ "$(wc -l <"$call_file")" -eq 3 ]] || fail oldest_first_call_count
 first_id=${first_record##*/}
 grep -Fq "Idempotency-Key: ${first_id%.json}" "$call_file" || fail idempotency_header
 
@@ -226,6 +246,7 @@ printf '%s_check_atomic_enqueue=true\n' "$prefix"
 printf '%s_check_ordering=true\n' "$prefix"
 printf '%s_check_retry_backoff=true\n' "$prefix"
 printf '%s_check_deduplication=true\n' "$prefix"
+printf '%s_check_stable_transition_deduplication=true\n' "$prefix"
 printf '%s_check_reboot_recovery=true\n' "$prefix"
 printf '%s_check_concurrency_lock=true\n' "$prefix"
 printf '%s_check_controlled_record_isolation=true\n' "$prefix"

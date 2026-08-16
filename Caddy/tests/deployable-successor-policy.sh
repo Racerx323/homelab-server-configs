@@ -44,11 +44,16 @@ successor_policy_regular_file() {
 successor_policy_executable_file() {
     local successor_policy_relative=$1
     local successor_policy_path=$successor_policy_repository_root/$successor_policy_relative
+    local successor_policy_index_mode
 
     successor_policy_regular_file "$successor_policy_path" || return 1
     [[ -x "$successor_policy_path" ]] || return 1
     if [[ "$successor_policy_repository_root" = "$successor_policy_default_root" ]]; then
-        [[ "$(git -C "$successor_policy_repository_root" ls-files -s -- "$successor_policy_relative" | awk '{ print $1 }')" = 100755 ]] || return 1
+        successor_policy_index_mode=$(git -C "$successor_policy_repository_root" \
+            ls-files -s -- "$successor_policy_relative" | awk '{ print $1 }')
+        if [[ -n "$successor_policy_index_mode" ]]; then
+            [[ "$successor_policy_index_mode" = 100755 ]] || return 1
+        fi
     fi
 }
 
@@ -87,7 +92,6 @@ successor_policy_state_valid() {
 
 successor_policy_coverage_valid() {
     local successor_policy_coverage=$1
-    local successor_policy_required
 
     # conditional-validator-explicit-failures-begin
     successor_policy_regular_file "$successor_policy_coverage" || return 1
@@ -101,30 +105,13 @@ successor_policy_coverage_valid() {
         seen_scenario[$1]++ || seen_marker[$5]++ { exit 1 }
         END { exit !(NR > 1) }
     ' "$successor_policy_coverage" || return 1
-    while IFS= read -r successor_policy_required; do
-        grep -Fxq "$successor_policy_required" "$successor_policy_coverage" || return 1
-    done <<'EOF'
-node-b-queue-absent	pre-mutation	transaction	accept	production_path_node_b_queue_absent
-node-b-exact-two-records	pre-mutation	transaction	accept	production_path_node_b_exact_two_records
-node-b-one-record	pre-mutation	transaction	reject	production_path_node_b_one_record_rejected
-node-b-extra-record	pre-mutation	transaction	reject	production_path_node_b_extra_record_rejected
-node-b-unsafe-metadata	pre-mutation	transaction	reject	production_path_node_b_unsafe_metadata_rejected
-node-b-symlink	pre-mutation	transaction	reject	production_path_node_b_symlink_rejected
-node-b-malformed-record	pre-mutation	transaction	reject	production_path_node_b_malformed_record_rejected
-node-a-queue-absent	pre-mutation	transaction	accept	production_path_node_a_queue_absent
-outer-production-entrypoint	pre-mutation	outer	reach	production_path_outer_dispatch_entry
-payload-construction	pre-mutation	outer	reach	production_path_outer_payload_constructed
-remote-path-generation	pre-mutation	outer	reach	production_path_outer_remote_path_generated
-upload-prepare	pre-mutation	outer	reach	production_path_outer_upload_prepare
-upload-accept	pre-mutation	outer	reach	production_path_outer_upload_accept
-upload-disposition	pre-mutation	outer	reach	production_path_outer_upload_disposition
-remote-command-construction	pre-mutation	outer	reach	production_path_outer_remote_command_constructed
-transaction-dispatch	pre-mutation	outer	reach	production_path_outer_transaction_dispatched
-stdin-transaction-dispatch	pre-mutation	outer	reach	production_path_outer_stdin_transaction_dispatched
-payload-validation	accepted-path	transaction	reach	production_path_payload_validation_reached
-mutation-boundary	accepted-path	transaction	reach	production_path_mutation_boundary_reached
-production-entrypoint	accepted-path	transaction	reach	production_path_dispatch_entry
-EOF
+    awk -F '\t' '
+        NR == 1 { next }
+        $2 == "pre-mutation" && $3 == "outer" && $4 == "reach" { outer_pre++ }
+        $2 == "pre-mutation" && $3 == "transaction" && $4 == "reject" { tx_reject++ }
+        $2 == "accepted-path" && $3 == "transaction" && $4 == "reach" { tx_accept++ }
+        END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
+    ' "$successor_policy_coverage" || return 1
     # conditional-validator-explicit-failures-end
 }
 

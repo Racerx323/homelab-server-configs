@@ -1,6 +1,6 @@
 # source-path	installed-path	mode	baseline-sha256	candidate-sha256
-Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	absent	eb5f3a8dfa8765c747a9116b8444bc2571a21d4015ada0e3c432af9e67416950
-Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	absent	da34364d8a801a7c81ddfccbe6266b6c050e98504c4c302d37733e55009bf1b9
+Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	eb5f3a8dfa8765c747a9116b8444bc2571a21d4015ada0e3c432af9e67416950	1fa1353118e2c53c387785c2acfbaa4012086e5f5561401aa832abbd211252c6
+Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	da34364d8a801a7c81ddfccbe6266b6c050e98504c4c302d37733e55009bf1b9	370e31cdfa68c31763028299b9e2d9aa67abaec2b9a34d8ac85d950cef94ab52
 Caddy/scripts/lsyncd-sync-failure-notify.sh	/usr/local/libexec/lsyncd-sync-failure-notify.sh	0755	cf59ceab47ae48e2793205c90cf39fccec236d21b1d55e39821560899dc83cd6	6c7ee11509246719658f7f377c976d5a3eb8ae9495b74086c13bbda01e0d37d4
 Caddy/systemd/caddy-apprise-worker.service	/etc/systemd/system/caddy-apprise-worker.service	0644	absent	7c8ba4a0ed41d817635ecccfe7d619a280fec3df14aaa0e0fe5163ea3e239b76
 Caddy/systemd/caddy-apprise-worker.path	/etc/systemd/system/caddy-apprise-worker.path	0644	absent	e14d0dc2775438b0efa660a87922304407d7901a4edd4a5c96b4e7d5b2576fd4

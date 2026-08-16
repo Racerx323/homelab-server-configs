@@ -186,7 +186,7 @@ successor_regression_write_registry
 
 cp "$successor_regression_root/Caddy/manifests/deployable-successor-coverage.tsv" \
     "$successor_regression_root/Caddy/manifests/deployable-successor-coverage.tsv.good"
-sed '/node-b-one-record/d' \
+awk -F '\t' 'NR == 1 || !($2 == "pre-mutation" && $3 == "transaction" && $4 == "reject")' \
     "$successor_regression_root/Caddy/manifests/deployable-successor-coverage.tsv.good" \
     >"$successor_regression_root/Caddy/manifests/deployable-successor-coverage.tsv"
 successor_regression_check incomplete_matrix_rejected successor_regression_rejected || exit 1

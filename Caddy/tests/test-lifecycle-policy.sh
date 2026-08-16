@@ -46,7 +46,7 @@ inventory_complete() {
     local test_lifecycle_expected=$work_root/expected
     local test_lifecycle_observed=$work_root/observed
 
-    git -C "$repository_root" ls-files Caddy/tests |
+    git -C "$repository_root" ls-files --cached --others --exclude-standard Caddy/tests |
         LC_ALL=C sort -u >"$test_lifecycle_expected" || return 1
     awk -F '\t' 'NR > 1 { print $1 }' "$registry" |
         LC_ALL=C sort >"$test_lifecycle_observed" || return 1

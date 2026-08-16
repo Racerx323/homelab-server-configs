@@ -108,6 +108,11 @@ printf '%s_stale_source_identity_rejected=true\n' "$prefix"
 
 printf 'node_a_health_helper\thomelab-server-configs\tCaddy/scripts/source.sh\t/usr/local/libexec/source.sh\tnode-a\t%s\t%s\taccepted-action\tproduction-current\n' \
     "$source_hash" "$current_hash" >"$inventory"
+: >"$registry"
+run_policy
+[[ ! -s "$root/policy.stderr" ]]
+printf '%s_empty_deployable_registry_accepted=true\n' "$prefix"
+printf 'node_a_health_helper\tCaddy/scripts/consumer.sh\tnode_a_health_sha256\n' >"$registry"
 printf '%s\n' 'unclassified' >"$root/Caddy/manifests/unclassified.yaml"
 if run_policy; then
     printf '%s_unclassified_manifest_rejected=false\n' "$prefix" >&2

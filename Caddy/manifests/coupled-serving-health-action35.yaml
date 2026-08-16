@@ -1,0 +1,55 @@
+---
+schema_version: 1
+action: 35
+title: Coupled serving-health correction
+status: definition-only
+consumes:
+  accepted_actions:
+    - 32g
+    - 33o
+    - 34m
+architecture:
+  ownership_group: PIHOLE_DUALSTACK
+  caddy_health_is_dns_dependency: true
+  pihole_lighttpd_backend_health_is_notification_only: true
+  local_recursive_internet_health_is_dependency: false
+  serving_probe:
+    interval_seconds: 3
+    timeout_seconds: 2
+    fall: 2
+    rise: 3
+release:
+  producer: node-a
+  publication: protocol-v2-normal
+  order:
+    - activate-node-b
+    - promote-identical-revision-node-a
+  generic_installer_caddy_component: prohibited
+deployment:
+  order:
+    - node-b
+    - node-a
+  candidate_manifest: Caddy/manifests/serving-health-production.tsv
+  transaction: Caddy/scripts/apply-coupled-serving-health-action35.sh
+  outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35-outer.sh
+  rollback_order:
+    - node-a
+    - node-b
+  manual_intervention_status: 125
+production_path:
+  transaction_entrypoint: --production-path-test
+  outer_entrypoint: --production-path-test
+  coverage: Caddy/manifests/deployable-successor-coverage.tsv
+  regression: Caddy/tests/coupled-serving-health-deployment-regression.sh
+  authorization_gate: >-
+    Caddy/tests/deployable-successor-policy.sh --authorization-ready
+evidence:
+  node_root: /tmp/caddy-action35
+  workstation_root: /tmp/caddy-ssh-evidence/action35
+validation:
+  focused_profile: current-serving-health
+  debian_batches: 1
+  historical_complete_suite: prohibited
+authorization:
+  live_execution_authorized: false
+  exact_outer_sha256: d811cbd9b04a60b9913e94130f6c2d6e5bb41eefa7e226b4b1a6fa685ff69c9c

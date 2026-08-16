@@ -163,8 +163,11 @@ automation is authoritative only when represented by a tracked file under
 - Production service acceptance must validate boot persistence as well as
   current activity. For Caddy HA, require `caddy.service`,
   `caddy-lsyncd.service`, `caddy-sync-reconcile.path`,
-  `caddy-cert-expiry.timer`, and `caddy-sync-health.timer` to be enabled and
-  active; require `caddy-api.service` to be masked and inactive; and require
+  `caddy-cert-expiry.timer`, `caddy-sync-health.timer`, and
+  `caddy-pihole-web-health.timer` to be enabled and active. Require the static
+  `caddy-pihole-web-health.service` worker to be independently accepted but
+  never enabled directly. Require `caddy-api.service` to be masked and
+  inactive; and require
   the distribution `lsyncd.service` to remain masked and inactive so that only
   `caddy-lsyncd.service` can run the managed configuration. The standard
   `emergency.service` and Caddy workers invoked by timers, paths, or
@@ -196,6 +199,16 @@ automation is authoritative only when represented by a tracked file under
   Caddy, lsyncd, reconciliation, or health acceptance input. Preserve queued
   and dead-letter records across rollback or uninstall unless an explicitly
   authorized disposition proves they are transaction-owned.
+- A producer-side health transition is not durably enqueued until atomic local
+  enqueueing succeeds. Persist a stable transition identity and pending state
+  before enqueue, retry failed local enqueueing from the producer's subsequent
+  timer runs, and acknowledge the transition only after enqueue success. The
+  network delivery worker owns retries only after a valid queue record exists.
+  Its time-window deduplication is not a substitute for producer-side crash
+  recovery. A transition producer must use a stable idempotency identity so a
+  crash after enqueue but before local acknowledgement cannot create a later
+  duplicate. Notification state and delivery success remain outside VRRP and
+  serving-health decisions.
 - DNS readiness must retain the server, port, name, type, command status, and
   safe answer used by the decision. These may be one structured query record;
   they do not require a separate Boolean label for every field.
@@ -324,11 +337,17 @@ automation is authoritative only when represented by a tracked file under
   every tracked entry beneath `Caddy/tests/`. Current profiles select only
   neutral `production-current` regressions; action-named tests, `run.sh`, and
   `integration.sh` remain `historical-preserved` opt-in reconstruction
-  artifacts. A neutral current regression may invoke an immutable accepted
-  producer regression while that reusable producer retains a historical name,
-  but current profiles must never select the action path directly. Enforce
+  artifacts. A neutral current regression must execute the current production
+  entry point directly and may not delegate its behavioral decision to an
+  action-specific historical regression. Historical fixtures may provide
+  provenance or rejection inputs, but they cannot substitute for exercising
+  the current entry point. Enforce
   inventory completeness and classification with the always-run
   `Caddy/tests/test-lifecycle-policy.sh --check` hook.
+- The generic `install-caddy-ha.sh` Caddy component is bootstrap-only. It must
+  fail closed when `/etc/caddy/current` already exists and must never modify an
+  accepted production release or selection. Production release changes use the
+  current protocol-v2 publisher, receiver, finalizer, and reconciler contract.
 - Treat `Caddy/manifests/template-lifecycle.tsv` as the canonical lifecycle
   registry for `Caddy/templates/`, with the human-readable disposition in
   `Caddy/templates/README.md`. A retained template is not deployable unless its

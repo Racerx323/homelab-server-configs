@@ -2,8 +2,9 @@
 
 ## Status
 
-Planning complete; repository implementation and live execution are not yet
-defined or authorized. This document changes no node state.
+Repository implementation and Action 35 definition are complete. Live
+execution remains separately authorization-gated. This work changed no node
+state.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -110,8 +111,12 @@ and executed as the unprivileged `pi` identity.
 
 ### Caddy serving-health helper
 
-Promote the accepted Caddy helper from an observational helper to a tracked
-serving-health helper. It must:
+Introduce the neutral current source
+`Caddy/scripts/check-caddy-serving-health.sh` and install it as
+`/usr/local/libexec/check-caddy.sh`. Preserve the executed Action 20 helper
+unchanged and classify it as historical; no Action 20 implementation or
+regression may be used as Action 35's current behavioral contract. The neutral
+helper must:
 
 1. Require `caddy.service` active.
 2. Require bounded IPv4 and IPv6 loopback Caddy health responses.
@@ -160,11 +165,27 @@ Every 30 seconds, the worker must:
 7. Suppress duplicate events during a continuing failure, including across a
    reboot, while retaining bounded journald evidence for every check.
 
+The monitor uses the bounded durable-queue source `pihole-web`. Before the
+first enqueue attempt for a new failure episode, it must atomically persist a
+stable producer-supplied transition identity and a pending-notification state.
+It must pass that stable identity to the enqueue helper so the resulting queue
+event identity remains constant across time windows, retries, crashes, and
+reboots. After atomic enqueue succeeds, it atomically records the transition as
+enqueued. A crash after enqueue but before acknowledgement therefore retries
+the same queue identity and reconciles against the pending, inflight,
+dead-letter, or delivered record rather than creating a duplicate.
+
+If local enqueue fails, the monitor retains the pending transition and retries
+local enqueue on its next timer run. The network delivery worker owns retry,
+backoff, and dead-letter processing only after a valid queue record exists. On
+recovery, any still-pending failure notification is enqueued first, followed by
+one recovery notification with its own stable identity; successful recovery
+acknowledgement closes the episode.
+
 If Caddy itself is unavailable, the monitor must not misclassify the resulting
 route failure as a Pi-hole backend failure; the Caddy serving-health path owns
-that event and failover. A failed notification enqueue remains non-blocking and
-is retried by the existing durable delivery system, not by this monitor's
-network path.
+that event and failover. Local enqueue failure remains non-blocking and retains
+pending producer state. The monitor never performs network delivery.
 
 ### Keepalived tracking
 
@@ -225,6 +246,14 @@ intervals, unicast TTL 255, peer TTL bounds, and source tracking.
 No historical Caddy VRRP fragment may be reactivated. The retired
 `CADDY_IPV4`, `CADDY_IPV6`, and `CADDY_DUALSTACK` instances remain obsolete.
 
+The monitor units are named `caddy-pihole-web-health.service` and
+`caddy-pihole-web-health.timer`. The service remains static, runs as `pi`, and
+uses protected persistent state beneath `/var/lib` plus runtime state beneath
+`/run`. It receives only the local IPv4/IPv6 and queue access required for its
+checks. The timer is enabled and active. The rejected
+`caddy-pihole-backend.service` remains non-installable and must not be revived
+or confused with this monitor.
+
 ## Repository implementation gate
 
 Repository work requires no live authorization. It must:
@@ -246,11 +275,25 @@ Repository work requires no live authorization. It must:
    DNS, TLS, and listener cases. Independently exercise backend failure,
    repeated failure, reboot-retained failure, recovery, and enqueue-failure
    cases without permitting the monitor to affect VRRP.
-7. Run current focused host validation and one network-disabled Debian 12
+7. Add a `current-serving-health` focused profile that executes the neutral
+   production entry points and covers DNS A/AAAA through both loopback
+   families, trusted Caddy IPv4/IPv6 `/healthz`, the two-second worst-case
+   ceiling, `interval 3`, `timeout 2`, `fall 2`, `rise 3`, exact
+   `PIHOLE_DUALSTACK` wiring, backend transition and reboot deduplication,
+   enqueue failure, and proof that lighttpd failure cannot affect VRRP.
+8. Run current focused host validation and one network-disabled Debian 12
    focused batch. Do not run the historical complete suite.
 
 The repository gate stops after reporting the exact future Action 35 outer
 SHA-256. No node contact occurs during definition.
+
+Repository gate accepted on 2026-08-16. The current host profile passed with
+evidence at `/tmp/caddy-focused-validation.7CPRpH`; the single
+network-disabled Debian 12 batch passed with host-retained evidence at
+`/tmp/caddy-focused-container-evidence.fWtA8E`. Authorization readiness passed
+for the populated Action 35 successor registry. Exact outer-runner SHA-256:
+`d811cbd9b04a60b9913e94130f6c2d6e5bb41eefa7e226b4b1a6fa685ff69c9c`.
+Live execution remains unauthorized.
 
 ## Action 35: standby-first installation transaction
 
@@ -273,15 +316,21 @@ contract standby first.
 
 ### Node B
 
-1. Validate the complete candidate payload and staged Keepalived configuration.
-2. Create and verify protected rollback copies.
-3. Atomically install the DNS helper, Caddy helper, backend-monitor helper and
-   units, backend-independent Caddy health route, and Node B Keepalived
+1. Construct one immutable, validated Node A protocol-v2 release candidate
+   containing the backend-independent Caddy health route.
+2. Publish that candidate through the normal A-to-B protocol-v2 path and
+   require Node B to finalize, reconcile, activate, and independently accept
+   the exact revision while Node A remains on the original release.
+3. Validate the remaining candidate payload and staged Keepalived
    configuration.
-4. Perform one bounded Keepalived reload.
-5. Permit only the explicitly bounded mixed-policy transition while Node A
+4. Create and verify protected rollback copies.
+5. Atomically install the DNS helper, Caddy helper, backend-monitor helper and
+   units, and Node B Keepalived configuration. Do not edit Node B's selected
+   release outside the accepted protocol-v2 transaction.
+6. Perform one bounded Keepalived reload.
+7. Permit only the explicitly bounded mixed-policy transition while Node A
    remains the stable owner.
-6. Require both tracked scripts healthy, the backend monitor and timer
+8. Require both tracked scripts healthy, the backend monitor and timer
    accepted, Node B stable `BACKUP`, zero shared VIPs, unchanged
    release/service health, and no parser, script-security, timeout, overlap, or
    new transport failure.
@@ -291,14 +340,21 @@ Node A must not be mutated unless Node B is fully eligible to take ownership.
 ### Node A
 
 1. Repeat candidate validation and protected backup creation.
-2. Atomically install the DNS helper, Caddy helper, backend-monitor helper and
-   units, backend-independent Caddy health route, and Node A Keepalived
-   configuration.
-3. Perform one bounded Keepalived reload, never simultaneous with Node B.
-4. Treat a brief Node B ownership transition during reload as observable
+2. Promote the exact revision already accepted on Node B; do not construct a
+   second release or directly edit the selected release.
+3. Atomically install the DNS helper, Caddy helper, backend-monitor helper and
+   units, and Node A Keepalived configuration.
+4. Perform one bounded Keepalived reload, never simultaneous with Node B.
+5. Treat a brief Node B ownership transition during reload as observable
    transition state rather than immediate failure.
-5. Require bounded convergence to Node A stable dual-stack `MASTER` with all
+6. Require bounded convergence to Node A stable dual-stack `MASTER` with all
    four VIPs and Node B stable dual-stack `BACKUP` with zero VIPs.
+
+The generic `install-caddy-ha.sh` Caddy component is prohibited during this
+live migration. Action 35 must regression-test that the generic installer
+fails closed when `/etc/caddy/current` exists. Rollback restores both original
+release selections through the transactional release boundary before restoring
+the remaining files in reverse node order.
 
 ### Action 35 acceptance
 
