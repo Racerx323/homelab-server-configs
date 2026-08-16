@@ -28,3 +28,18 @@ requests a historical reconstruction.
   workstation result, and repository-wide deployment-window framework
 - Remote state: terminal tag, terminal commit, and immediate cleanup commit are
   synchronized as one clean-as-you-go checkpoint
+
+## Pending Action 35a terminal archive
+
+- Tag: `caddy-action35a-terminal-2026-08-16`
+- Action: 35a
+- Authorized outer SHA-256:
+  `9ee5dca58b4169a326742da8c4e001aa2ecf31f36d65dd9cc1a376a8c996fa6e`
+- Result: failed-consumed after Node A SSH preparation contact and before
+  upload, transaction dispatch, or persistent mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35a`
+- Failure: OpenSSH remote-shell reconstruction split a multiword
+  `/bin/bash -c` command boundary
+- Status: terminal-pending; create the annotated tag from this terminal-result
+  commit before removing Action 35a-specific files from the main branch

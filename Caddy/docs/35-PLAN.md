@@ -18,6 +18,18 @@ node-local DNS-serving or Caddy-serving failure causes the healthy peer to
 acquire all four shared VIPs. Pi-hole web-backend failures remain local and
 notification-only; they do not move otherwise healthy DNS and Caddy service.
 
+Action 35a was authorized with outer SHA-256
+`9ee5dca58b4169a326742da8c4e001aa2ecf31f36d65dd9cc1a376a8c996fa6e`
+and exited `1` during Node A's upload-directory preparation. OpenSSH rebuilt
+the multiword `/bin/bash -c` invocation through the remote shell, splitting
+the intended command string: `set` printed the remote environment and
+`install` received an empty path. Node A was contacted, but no upload,
+publication, transaction dispatch, service operation, Keepalived operation, or
+persistent mutation began. Evidence is retained at
+`/tmp/caddy-ssh-evidence/action35a`. Action 35a is failed-consumed and must not
+be rerun or modified; its terminal archive is
+`caddy-action35a-terminal-2026-08-16`.
+
 ## Architecture decision
 
 `PIHOLE_DUALSTACK` remains the sole ownership authority for:
@@ -486,6 +498,6 @@ The controlled failure exercise closes the plan only when:
 - Production inventories and the governing plan are updated from accepted live
   evidence, and the deployable-successor registry returns to `none`.
 
-No separate diagnostic or read-only post-action is planned. Action 35a embeds
-its complete installation acceptance; Action 35b embeds recovery and final
-acceptance for every controlled failure.
+No separate diagnostic or read-only post-action is planned. The corrected
+installation successor must embed complete installation acceptance. The
+controlled failure exercise follows only after that installation is accepted.

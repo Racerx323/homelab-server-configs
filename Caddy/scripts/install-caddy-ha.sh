@@ -126,7 +126,7 @@ validate_install_registry() {
     awk -F '\t' '
         /^[[:space:]]*(#|$)/ { next }
         NF != 6 { exit 1 }
-        $2 !~ /^(production-current|future-task)$/ { exit 1 }
+        $2 !~ /^(production-current|future-task|defined-unexecuted)$/ { exit 1 }
         $3 !~ /^(yes|no)$/ { exit 1 }
         $3 == "yes" && ($2 != "production-current" || $4 !~ /^\// || $5 !~ /^0[0-7][0-7][0-7]$/) { exit 1 }
         $3 == "no" && ($4 != "-" || $5 != "-") { exit 1 }

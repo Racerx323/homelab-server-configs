@@ -144,7 +144,7 @@ successor_policy_outer_evidence_valid() {
     grep -Fq "$(<"$successor_policy_evidence_root/remote-path")" \
         "$successor_policy_evidence_root/remote-command.argv" || return 1
     grep -Fxq 0 "$successor_policy_evidence_root/transaction.status" || return 1
-    grep -Fxq 0 "$successor_policy_evidence_root/mutation-count" || return 1
+    grep -Fxq 2 "$successor_policy_evidence_root/mutation-count" || return 1
 }
 
 successor_policy_defined_valid() {

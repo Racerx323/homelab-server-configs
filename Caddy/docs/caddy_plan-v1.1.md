@@ -316,17 +316,21 @@ uses cleanup only.
 | Runtime lifecycle, Action 32g | Accepted production baseline | pre-cleanup tag |
 | Reliability exercise, Action 33o | Accepted and complete | pre-cleanup tag |
 | Durable Apprise, Action 34m | Accepted | pre-cleanup tag |
-| Serving-health coupling, Action 35 | Failed-consumed before SSH or mutation | current branch |
+| Serving-health coupling, Action 35 | Failed-consumed before SSH or mutation | `caddy-action35-terminal-2026-08-16` |
+| Corrected serving-health installation, Action 35a | Failed-consumed after Node A SSH preparation contact and before upload or mutation | `caddy-action35a-terminal-2026-08-16` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-The next gate is corrected append-only serving-health installation Action 35a.
-Action 35 must not be rerun or modified. Action 35a installs the serving-health
-correction standby first. The controlled serving-failure exercise is Action
-35b and remains separately gated until Action 35a is accepted.
+Action 35a is failed-consumed and awaiting its terminal archive and immediate
+cleanup. It must not be rerun or modified. No live successor is currently
+registered. After the stream returns to clean, the corrected standby-first
+installation will be defined from neutral current-production components with
+an SSH serialization policy that prohibits the failed remote Bash boundary.
+The controlled serving-failure exercise remains separately gated until the
+corrected installation is accepted.
 
 The transaction must:
 
@@ -336,8 +340,10 @@ The transaction must:
 - update Keepalived on Node B, then Node A;
 - publish one immutable Caddy release through protocol v2;
 - accept Node B before Node A;
-- prove DNS and Caddy failures trigger bounded failover;
-- prove lighttpd/Pi-hole backend failure only enqueues a notification;
+- prove the DNS and Caddy helpers are eligible bounded VRRP inputs without
+  inducing a serving failure;
+- prove the lighttpd/Pi-hole monitor is notification-only by configuration and
+  service boundaries;
 - restore Node A preferred ownership;
 - retain all evidence and roll back in reverse order.
 

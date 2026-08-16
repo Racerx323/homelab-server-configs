@@ -55,7 +55,7 @@ validate_registry() {
         NF != 6 { exit 1 }
         kind == "script" && $1 !~ /^Caddy\/scripts\/[A-Za-z0-9._@+-]+$/ { exit 1 }
         kind == "systemd" && $1 !~ /^Caddy\/systemd\/[A-Za-z0-9._@+-]+(\/[A-Za-z0-9._@+-]+)?$/ { exit 1 }
-        $2 !~ /^(production-current|future-task)$/ { exit 1 }
+        $2 !~ /^(production-current|future-task|defined-unexecuted|failed-consumed)$/ { exit 1 }
         $3 !~ /^(yes|no)$/ { exit 1 }
         $3 == "yes" && $2 != "production-current" { exit 1 }
         $3 == "yes" && $4 !~ /^\/(etc|usr)\// { exit 1 }
