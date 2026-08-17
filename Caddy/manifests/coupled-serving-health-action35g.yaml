@@ -1,0 +1,40 @@
+schema_version: 1
+action: 35g
+title: Production-ownership-derived standby-first coupled serving-health installation
+state: failed-consumed
+consumes:
+  accepted_baseline: Caddy/manifests/current-live-state.tsv
+  failed_consumed_action: caddy-action35f-terminal-2026-08-17
+  retained_candidate_path: /tmp/caddy-action35c-release
+  retained_candidate_root_mode_source: Caddy/manifests/synchronization-protocol-v2.yaml
+  retained_candidate_owner_source: Caddy/scripts/reconcile-release-v2.sh
+  retained_candidate_owner: root:caddy-tls
+  retained_candidate_route_sha256: 93df2e2d056052b92505f70f3d79e826d5c7c6c69baaededd2c5c1b9bb410512
+transaction: Caddy/scripts/apply-coupled-serving-health-action35g.sh
+transaction_sha256: 77d7ff81181363bc642efc5b11425e2d343e6a4f2d7f47213fcf91077a9caac3
+outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35g-outer.sh
+ordering:
+  - derive-final-directory-mode-from-current-protocol-v2-contract
+  - derive-final-owner-from-current-reconciler
+  - verify-publisher-finalizer-and-reconciler-enforce-derived-mode
+  - resolve-current-releases-through-streamed-privileged-bash
+  - validate-real-action35c-candidate-producer-and-dispose-exact-path
+  - validate-current-baseline
+  - construct-and-real-parser-validate-one-node-a-protocol-v2-release
+  - install-and-accept-node-b
+  - promote-identical-revision-and-install-node-a
+  - converge-and-accept-cluster
+  - exact-residue-cleanup
+rollback:
+  order: [node-a, node-b]
+  manual_intervention_status: 125
+constraints:
+  node_contact_during_definition: prohibited
+  action35f_rerun: prohibited
+  simultaneous_reload: prohibited
+  generic_installer_caddy_component: prohibited
+  pihole_web_health_vrrp_dependency: false
+  notification_delivery_blocking: false
+  remote_bash_c: prohibited
+  candidate_environment_required: /etc/default/caddy-ha
+  production_path_results_may_be_fabricated: false

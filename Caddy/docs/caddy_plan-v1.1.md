@@ -323,6 +323,7 @@ uses cleanup only.
 | Environment-complete serving-health installation, Action 35d | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35d-terminal-2026-08-16` |
 | Retained-mode-corrected serving-health installation, Action 35e | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35e-terminal-2026-08-16` |
 | Protocol-mode-corrected serving-health installation, Action 35f | Failed-consumed during retained-candidate ownership validation and before upload or live mutation | `caddy-action35f-terminal-2026-08-17` |
+| Production-ownership-corrected serving-health installation, Action 35g | Failed-consumed after Node B selected the published release and before the installation transaction | `caddy-action35g-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
@@ -351,17 +352,24 @@ root as `0755`, despite the current protocol-v2 contract and implementations
 requiring `0550`. Action 35f is also failed-consumed and must not be rerun. It
 correctly derived mode `0550` but rejected the exact production candidate
 because it expected `root:root` instead of the reconciler-owned
-`root:caddy-tls`. The direct installation successor is Action 35g, and the
-controlled serving-failure exercise moves to Action 35h.
+`root:caddy-tls`. Action 35g is also failed-consumed and must not be rerun. It
+validated and removed the retained candidate, published one new protocol-v2
+release, and Node B selected it. Its unprivileged acceptance poll then failed
+to traverse `/etc/caddy/current`, before the installation transaction ran. The
+direct recovery-and-installation successor is Action 35h, and the controlled
+serving-failure exercise moves to Action 35i.
 
-Action 35g must validate and remove only the exact retained Node A path
-`/tmp/caddy-action35c-release`, load and validate the root-owned node
-environment before candidate parsing, and require the current
-`root:caddy-tls:0550` immutable-release contract while reproducing the exact
-Action 35c `cp -a` producer path from a correctly modeled accepted release.
-It must exercise the real Caddy parser in Debian production-path coverage and
-retain independent DNS IPv4, DNS IPv6, HTTPS IPv4, and HTTPS IPv6 availability
-statuses before resuming the same standby-first transaction.
+Action 35h must consume the exact split-release state without republishing:
+Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
+`20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`, whose parent is Action
+32g and whose source is Node A. It must validate that revision and all semantic,
+path, ownership, inventory, and normalized manifest identities through
+privileged streamed Bash, correct the Node B current-release acceptance poll,
+and reproduce the real `pi` directory-traversal boundary in host and Debian
+production-path coverage. It then resumes the same standby-first transaction
+without production-state seeding. Continuous IPv6 acceptance must execute from
+a path that can actually reach the ULA VIPs; the WSL workstation's retained
+`network unreachable` results may not be treated as successful acceptance.
 
 The transaction must:
 
@@ -391,7 +399,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35g and the separately accepted Action 35h exercise:
+After Action 35h and the separately accepted Action 35i exercise:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;

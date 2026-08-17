@@ -122,6 +122,7 @@
       "path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
         "Caddy/docs/35-PLAN.md",
+        "Caddy/manifests/coupled-serving-health-action35g.yaml",
         "Caddy/manifests/deployment.yaml",
         "Caddy/manifests/serving-health-production.tsv",
         "Caddy/manifests/deployable-successor*.tsv",
@@ -130,8 +131,11 @@
         "Caddy/scripts/caddy-apprise-*.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
+        "Caddy/scripts/apply-coupled-serving-health-action35g.sh",
+        "Caddy/scripts/run-dual-node-coupled-serving-health-action35g-outer.sh",
         "Caddy/systemd/caddy-pihole-web-health.*",
-        "Caddy/tests/serving-health-regression.sh"
+        "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh"
       ],
       "debian_path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
@@ -151,10 +155,12 @@
       ],
       "host_tests": [
         "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/coupled-serving-health-deployment-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "policies": [

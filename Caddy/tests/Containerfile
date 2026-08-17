@@ -29,6 +29,7 @@ RUN apt-get update \
         lsyncd \
         openssh-client \
         openssl \
+        passwd \
         procps \
         rsync \
         shellcheck \

@@ -23,8 +23,11 @@ not create. Action 35e is also failed-consumed: its isolated baseline ignored
 the protocol-v2 `0550` final-directory contract. Action 35f is failed-consumed
 after it derived the correct mode but imposed the stale `root:root` ownership
 prerequisite on a production `root:caddy-tls` release candidate. The direct
-installation successor is Action 35g; the controlled failure exercise moves
-to Action 35h.
+Action 35g accepted and removed that retained candidate, published one new
+protocol-v2 release, and Node B selected it. Action 35g then failed because its
+unprivileged Node B acceptance poll could not traverse `/etc/caddy/current`.
+The direct recovery-and-installation successor is Action 35h; the controlled
+failure exercise moves to Action 35i.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -495,10 +498,56 @@ unchanged standby-first installation. Its host and Debian production-path
 coverage must reproduce the real reconciler-owned accepted release and the
 real Action 35c `cp -a` producer path.
 
-## Action 35h: controlled serving-failure exercise
+Action 35g was authorized with outer SHA-256
+`2d22ccf81441b159dd99176efd14f7ea3188ca04439903c750ce0eada0eb0ba3`
+and exited `1` after publication. It validated and removed the exact retained
+Node A candidate, uploaded both transaction payloads, published revision
+`20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`, and Node B reconciled
+and selected that revision. Its acceptance poll then repeatedly invoked `jq`
+as the unprivileged SSH identity against
+`/etc/caddy/current/release-manifest.json` and received `Permission denied`.
+The installation transaction never ran. Exact upload and candidate cleanup
+succeeded. Read-only post-failure capture proves Node A remains preferred
+IPv4/IPv6 `MASTER` with all four VIPs on the accepted Action 32g release, Node
+B remains IPv4/IPv6 `BACKUP` with zero VIPs on the exact Action 35g release,
+both Caddy and Keepalived services are active, and there is no exact Action 35g
+outgoing, incoming, or quarantine residue. Evidence is retained under
+`/tmp/caddy-ssh-evidence/action35g` and
+`/tmp/caddy-ssh-evidence/action35g-postcheck`.
 
-Action 35h is separately authorized only after Action 35g is accepted. It does
-not reinstall Action 35g and does not create production fixtures. It exercises
+The workstation availability monitor also proved IPv4 DNS and HTTPS
+continuity but could not reach either IPv6 VIP from WSL. Those failures are
+workstation-route failures, not node serving-path evidence, and must not be
+silently counted as successful IPv6 acceptance. Action 35h must obtain its
+continuous IPv6 evidence from a current network path that can actually reach
+the ULA VIPs while retaining the workstation files and exact statuses.
+
+## Action 35h: direct post-publication recovery-and-installation successor
+
+Action 35h consumes Action 35g without rerunning it. Before installation, it
+must validate the exact split-release baseline through privileged streamed
+Bash: Node A on
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04` and Node B on
+`20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`. It must validate the
+new Node B release's exact revision, Node A source, Action 32g parent, installed
+path, `root:caddy-tls:0550` identity, file inventory, per-file hashes, and
+normalized manifest identities. It must reject any outgoing, incoming,
+quarantine, release, ownership, or service drift.
+
+The Node B current-release acceptance poll must run through privileged streamed
+Bash, and host plus Debian production-path coverage must reproduce the real
+`pi` traversal boundary around `/etc/caddy/current`. After that correction,
+Action 35h resumes the same standby-first installation using the already
+validated identical release on Node B; it must not republish or seed production
+state. It installs and accepts Node B completely, promotes the identical
+revision on Node A through the transaction's defined immutable-release path,
+installs Node A, converges ownership, and retains the existing embedded
+acceptance, reverse rollback, and status-125 controls.
+
+## Action 35i: controlled serving-failure exercise
+
+Action 35i is separately authorized only after Action 35h is accepted. It does
+not reinstall Action 35h and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure

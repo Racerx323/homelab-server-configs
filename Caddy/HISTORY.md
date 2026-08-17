@@ -118,6 +118,39 @@ requests a historical reconstruction.
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
 
+## Action 35g terminal archive
+
+- Tag: `caddy-action35g-terminal-2026-08-17`
+- Action: 35g
+- Authorized outer SHA-256:
+  `2d22ccf81441b159dd99176efd14f7ea3188ca04439903c750ce0eada0eb0ba3`
+- Transaction SHA-256:
+  `77d7ff81181363bc642efc5b11425e2d343e6a4f2d7f47213fcf91077a9caac3`
+- Result: failed-consumed after protocol-v2 publication and Node B release
+  selection, before installation transaction dispatch, service reload, or
+  Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35g` and
+  `/tmp/caddy-ssh-evidence/action35g-postcheck`
+- Node A current release:
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`
+- Node B current release:
+  `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`
+- Published release identity: Node A source, Action 32g parent,
+  `root:caddy-tls:0550`, manifest JSON SHA-256
+  `6049da00c0e7318c3fce98bc6cc78348ded5286998a346f00657df8c1d2a046d`,
+  and payload-manifest SHA-256
+  `ecb1a00827899bffc47d9e180b4f0a19a6daf0fc4beee9cb52898a9608102962`
+- Ownership: Node A IPv4/IPv6 `MASTER` with all four VIPs; Node B IPv4/IPv6
+  `BACKUP` with zero VIPs
+- Residue: exact outgoing, incoming, and quarantine paths absent on both nodes;
+  Node B retains the selected immutable release and Node A has no copy
+- Failure: the unprivileged Node B acceptance poll could not traverse
+  `/etc/caddy/current`; the direct successor must use privileged streamed Bash
+- Availability evidence: IPv4 DNS and HTTPS passed; WSL lacked an IPv6 route,
+  so its IPv6 failures are retained but are not valid node-serving acceptance
+- Status: terminal-pending
+
 ## Action 35d terminal archive
 
 - Tag: `caddy-action35d-terminal-2026-08-16`
