@@ -13,9 +13,8 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`; the Action 35k terminal commit and annotated tag are
-synchronized, its machinery is removed, and the successor and causal-coverage
-registries are clear.
+stream is `terminal-pending` for Action 35l; its successor and causal-coverage
+registries are cleared for terminal archival.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -62,9 +61,21 @@ not the registered/source identity
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
 The failure occurred before candidate validation, backup, installation,
 Keepalived reload, Node A promotion, or any other mutation entrypoint.
-A later direct successor must accept only that exact observed Node B baseline,
-install the repository bytes transactionally, and preserve every remaining
-Action 35k installation and rollback control. It must not rerun Action 35k.
+After Action 35k, the operator made both node files exact replicas of the
+repository source. Action 35l therefore accepts only SHA-256
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`
+as the current local-zone identity; the former Node B observation is historical
+and is not an allowed baseline. Action 35l backs up and atomically reinstalls
+the exact repository file on standby Node B and then Node A, validates Unbound,
+reloads it sequentially, and includes the file in reverse rollback. It
+preserves every remaining Action 35k installation and recovery control and
+does not rerun Action 35k.
+
+Action 35l accepted the exact repository local-zone identity on Node B, proving
+the manual synchronization. It then failed-consumed because the registered
+production target `/etc/tmpfiles.d/caddy-ha.conf` was absent on Node B. This was
+before candidate validation, backup, installation, reload, or any mutation
+entrypoint. Both exact upload trees were removed and rollback was not required.
 
 ## Architecture decision
 

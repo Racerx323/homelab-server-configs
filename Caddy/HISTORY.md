@@ -319,3 +319,25 @@ requests a historical reconstruction.
   required or attempted
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35l terminal archive
+
+- Tag: `caddy-action35l-terminal-2026-08-17`
+- Commit: pending terminal-result commit
+- Action: 35l
+- Authorized outer SHA-256:
+  `452d9e6d2640ce6442fed74154c3a17b768e543c1da48789f585f06f18f47602`
+- Transaction SHA-256:
+  `967a63621b682dbb4aefb979f0d152f8437f17b4779daad68f33dd122516460d`
+- Result: failed-consumed during Node B current-production tmpfiles artifact
+  presence validation, before candidate validation or any mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35l.LHr03k`
+- Accepted local-zone SHA-256:
+  `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`
+- Failed assertion: `artifact_node_b_apprise_tmpfiles_regular=false` for
+  `/etc/tmpfiles.d/caddy-ha.conf`
+- Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
+  disposition all returned 0; no mutation entrypoint ran, so rollback was not
+  required or attempted
+- Status: terminal-pending until this exact tree is committed and tagged

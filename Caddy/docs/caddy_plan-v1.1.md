@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35k archived; deployment stream clean
+Current status: core deployment accepted; Action 35l failed-consumed and terminal-pending
 
 ## 1. Purpose
 
@@ -365,8 +365,11 @@ Both upload trees were removed; rollback was not required.
 The operator subsequently aligned comment-only production bytes on both nodes
 with the renamed ignored source. Current source and deployed SHA-256 is
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-The next direct successor must accept the exact Action 35k Node B observed
-local-zone identity, install Node B first, then promote Node A's own
+The operator subsequently made both production local-zone files exact replicas
+of the repository source. Action 35l accepts only repository SHA-256
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`,
+transactionally reinstalls that file on Node B and then Node A, validates and
+reloads Unbound sequentially, and then promotes Node A's own
 candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
@@ -374,7 +377,7 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-The next direct successor must:
+Action 35l must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;
