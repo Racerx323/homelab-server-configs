@@ -1,0 +1,47 @@
+schema_version: 1
+action: 35h
+title: Split-release recovery and standby-first coupled serving-health installation
+state: failed-consumed
+terminal_result:
+  exit_status: 1
+  mutation_boundary: pre-serving-health-mutation
+  failed_assertion: node_b_dns_health_helper_identity
+  workstation_evidence: /tmp/caddy-ssh-evidence/action35h
+  recovered_evidence: /tmp/caddy-ssh-evidence/action35h-evidence-recovery
+consumes:
+  accepted_baseline: Caddy/manifests/current-live-state.tsv
+  failed_consumed_action: caddy-action35g-terminal-2026-08-17
+  node_a_current_revision: 20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
+  node_a_outbound_revision: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
+  node_b_current_revision: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
+  release_manifest_sha256: 6049da00c0e7318c3fce98bc6cc78348ded5286998a346f00657df8c1d2a046d
+  payload_manifest_sha256: ecb1a00827899bffc47d9e180b4f0a19a6daf0fc4beee9cb52898a9608102962
+transaction: Caddy/scripts/apply-coupled-serving-health-action35h.sh
+transaction_sha256: f77dc10659ec610fb88a5ac1371e083ce3ac5e442ce2a334e17dabc75441986a
+outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35h-outer.sh
+ordering:
+  - validate-exact-split-release-and-outbound-state
+  - upload-only-action35h-transaction-payload
+  - privileged-node-b-release-acceptance
+  - install-and-accept-node-b
+  - locally-finalize-and-reconcile-node-a-outbound-candidate
+  - install-and-accept-node-a
+  - converge-and-accept-cluster
+  - remove-only-consumed-protocol-residue
+rollback:
+  order: [node-a, node-b]
+  baseline: exact-pre-action35h-split-release-state
+  manual_intervention_status: 125
+constraints:
+  node_contact_during_definition: prohibited
+  action35g_rerun: prohibited
+  protocol_republication: prohibited
+  node_b_to_node_a_configuration_streaming: prohibited
+  production_state_seeding: prohibited
+  simultaneous_reload: prohibited
+  generic_installer_caddy_component: prohibited
+  pihole_web_health_vrrp_dependency: false
+  notification_delivery_blocking: false
+  remote_bash_c: prohibited
+  production_path_results_may_be_fabricated: false
+  ipv6_continuity_source: both-ha-nodes

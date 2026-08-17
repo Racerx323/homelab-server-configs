@@ -143,8 +143,12 @@ requests a historical reconstruction.
   `ecb1a00827899bffc47d9e180b4f0a19a6daf0fc4beee9cb52898a9608102962`
 - Ownership: Node A IPv4/IPv6 `MASTER` with all four VIPs; Node B IPv4/IPv6
   `BACKUP` with zero VIPs
-- Residue: exact outgoing, incoming, and quarantine paths absent on both nodes;
-  Node B retains the selected immutable release and Node A has no copy
+- Initial postcheck incorrectly inspected `/var/lib/caddy-lsyncd/outgoing`.
+  Corrected privileged inspection of the production protocol-v2 root proves
+  Node A retains the exact finalized outbound candidate at
+  `/var/lib/caddy-sync/outbound/20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`
+  as `caddy-sync:caddy-sync:0550`; Node B retains the identical selected
+  immutable release. Matching incoming and quarantine paths are absent.
 - Failure: the unprivileged Node B acceptance poll could not traverse
   `/etc/caddy/current`; the direct successor must use privileged streamed Bash
 - Availability evidence: IPv4 DNS and HTTPS passed; WSL lacked an IPv6 route,
@@ -203,3 +207,33 @@ requests a historical reconstruction.
   `0755`; its real `cp -a` path therefore reproduced the wrong source mode
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35h terminal archive
+
+- Tag: `caddy-action35h-terminal-2026-08-17`
+- Status: terminal-pending
+- Action: 35h
+- Authorized outer SHA-256:
+  `e921503c9a46d5a18777933cc3518b1868a982aa48e1004a14a6f782cff4b9a3`
+- Transaction SHA-256:
+  `f77dc10659ec610fb88a5ac1371e083ce3ac5e442ce2a334e17dabc75441986a`
+- Result: failed-consumed during Node B current-production baseline identity
+  validation, before candidate validation, backup creation, serving-health
+  installation, Keepalived reload, Node A promotion, or Node A dispatch
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence/action35h`
+- Recovered Node B evidence:
+  `/tmp/caddy-ssh-evidence/action35h-evidence-recovery`
+- Accepted baseline checks: exact split-release and protocol identities, all
+  required active/enabled unit checks, baseline residue, and the deployed Node
+  B Caddy-helper identity
+- Failed assertion: `node_b_dns_health_helper` was the next production
+  inventory row and was not accepted or recorded. Expected deployed SHA-256 was
+  `7af57e70d80d32434e9cac717afa4af8d9e67c6c6ccd08d15ca9d7046d337b25`.
+  The executed transaction did not emit the observed identity, which is an
+  evidence-contract defect and must not be guessed.
+- Availability: all 384 retained DNS and trusted-HTTPS IPv4/IPv6 samples from
+  both nodes returned status 0
+- Recovery: both upload trees were removed; Node B rollback and restoration
+  handlers returned 0. The exact pre-35h split-release selection was restored.
+  No serving-health or Keepalived configuration mutation occurred.

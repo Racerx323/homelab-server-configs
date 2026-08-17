@@ -1,2 +1,2 @@
 schema_version	status	action	action_manifest	transaction	outer_runner	state_contract	state_sha256	coverage	regression
-1	none	-	-	-	-	Caddy/manifests/current-live-state.tsv	8d8a13d261083e1329268ea1bd06e9fd38c01c339110618dcaf68cb765652777	Caddy/manifests/deployable-successor-coverage.tsv	-
+1	none	-	-	-	-	Caddy/manifests/current-live-state.tsv	a18548725713feecff66e760f774d3204a213b7d38b9c0c014e635d3a74bdcff	Caddy/manifests/deployable-successor-coverage.tsv	-

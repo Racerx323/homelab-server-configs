@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35b failed pre-mutation and is consumed
+Current status: core deployment accepted; Action 35h failed before serving-health mutation and is consumed
 
 ## 1. Purpose
 
@@ -66,7 +66,8 @@ Caddy health covers:
 - node-specific address binding and hostname handling;
 - completion within the Keepalived script timeout.
 
-Action 35c sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
+The pending serving-health migration targets interval 3, timeout 2, fall 2,
+rise 3.
 Six seconds of sustained serving failure can trigger failover.
 
 Pi-hole/lighttpd web-backend health remains notification-only. A backend
@@ -228,7 +229,7 @@ Enabled and active:
 - `caddy-sync-health.timer`;
 - `caddy-apprise-worker.path`;
 - `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer` after Action 35c.
+- `caddy-pihole-web-health.timer` after the serving-health migration is accepted.
 
 Static workers:
 
@@ -324,42 +325,21 @@ uses cleanup only.
 | Retained-mode-corrected serving-health installation, Action 35e | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35e-terminal-2026-08-16` |
 | Protocol-mode-corrected serving-health installation, Action 35f | Failed-consumed during retained-candidate ownership validation and before upload or live mutation | `caddy-action35f-terminal-2026-08-17` |
 | Production-ownership-corrected serving-health installation, Action 35g | Failed-consumed after Node B selected the published release and before the installation transaction | `caddy-action35g-terminal-2026-08-17` |
+| Split-release serving-health installation, Action 35h | Failed-consumed during Node B production-inventory validation and before serving-health mutation | `caddy-action35h-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35a is failed-consumed, archived at
-`caddy-action35a-terminal-2026-08-16`, and removed from the production branch.
-It must not be rerun or modified. Corrected standby-first installation Action
-35b is failed-consumed and must not be rerun. It uploaded its exact payload to
-both nodes, then failed before publication or transaction dispatch because the
-unprivileged SSH identity could not resolve `/etc/caddy/current`. Its direct
-Action 35c is also failed-consumed and must not be rerun. It removed the exact
-retained Action 35b uploads, uploaded its payload to both nodes, and captured
-both current releases through privileged streamed Bash. Candidate validation
-then failed because `/etc/default/caddy-ha` was not loaded, leaving the
-node-specific site label empty. No protocol publication, transaction dispatch,
-service reload, or Keepalived mutation occurred. Action 35d is also
-failed-consumed and must not be rerun. It captured both current releases, then
-rejected the exact retained Node A candidate before upload because its real
-Action 35c producer yielded root-owned mode `0755` while Action 35d incorrectly
-required `0700`. The direct installation successor is Action 35e; the
-controlled serving-failure exercise moves to Action 35f. Action 35e is also
-failed-consumed and must not be rerun: its fixture modeled the accepted release
-root as `0755`, despite the current protocol-v2 contract and implementations
-requiring `0550`. Action 35f is also failed-consumed and must not be rerun. It
-correctly derived mode `0550` but rejected the exact production candidate
-because it expected `root:root` instead of the reconciler-owned
-`root:caddy-tls`. Action 35g is also failed-consumed and must not be rerun. It
-validated and removed the retained candidate, published one new protocol-v2
-release, and Node B selected it. Its unprivileged acceptance poll then failed
-to traverse `/etc/caddy/current`, before the installation transaction ran. The
-direct recovery-and-installation successor is Action 35h, and the controlled
-serving-failure exercise moves to Action 35i.
+Actions 35 through 35h are failed-consumed and preserved by the annotated tags
+listed above. They must not be rerun or copied into current validation. Action
+35g published one valid Node A release and Node B selected it. Action 35h then
+validated that exact split-release protocol state but failed during Node B
+production-inventory validation, before candidate validation or serving-health
+mutation. No successor is currently defined.
 
-Action 35h must consume the exact split-release state without republishing:
+The current split-release state is:
 Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
 `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`, whose parent is Action
 32g and whose source is Node A. It must validate that revision and all semantic,
@@ -367,17 +347,22 @@ path, ownership, inventory, and normalized manifest identities through
 privileged streamed Bash, correct the Node B current-release acceptance poll,
 and reproduce the real `pi` directory-traversal boundary in host and Debian
 production-path coverage. It then resumes the same standby-first transaction
-without production-state seeding. Continuous IPv6 acceptance must execute from
-a path that can actually reach the ULA VIPs; the WSL workstation's retained
+without production-state seeding or Node B-to-Node A configuration streaming.
+Corrected privileged inspection proves Node A retains the exact finalized
+candidate beneath `/var/lib/caddy-sync/outbound`; the earlier postcheck used an
+obsolete path. Action 35h installs Node B first, then promotes that candidate
+through Node A's local `incoming/node-a/<revision>` finalizer and reconciler
+path. Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read
+back to bounded workstation evidence; the WSL workstation's retained
 `network unreachable` results may not be treated as successful acceptance.
 
-The transaction must:
+Any later corrected installation must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;
 - install the Pi-hole web notification monitor and timer;
 - update Keepalived on Node B, then Node A;
-- publish one immutable Caddy release through protocol v2;
+- reuse the already-published immutable Caddy release without republishing;
 - accept Node B before Node A;
 - prove the DNS and Caddy helpers are eligible bounded VRRP inputs without
   inducing a serving failure;
@@ -399,7 +384,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35h and the separately accepted Action 35i exercise:
+After a corrected installation and separately accepted controlled exercise:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;
