@@ -17,8 +17,10 @@ nodes but failed before publication or transaction dispatch because the
 unprivileged SSH identity could not resolve `/etc/caddy/current`. The direct
 Action 35c is also failed-consumed. It reached pre-publication candidate
 validation but did not load the required node environment, so Caddy rejected
-the empty node-specific site label. The direct installation successor is
-Action 35d; the controlled failure exercise moves to Action 35e.
+the empty node-specific site label. Action 35d is failed-consumed after its
+pre-upload residue check required a mode that the real Action 35c producer did
+not create. The direct installation successor is Action 35e; the controlled
+failure exercise moves to Action 35f.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -426,10 +428,31 @@ IPv6, HTTPS IPv4, and HTTPS IPv6 statuses and safe classified evidence. Action
 35d then resumes the unchanged standby-first transaction and complete embedded
 acceptance described above.
 
-## Action 35e: controlled serving-failure exercise
+Action 35d was authorized with outer SHA-256
+`5e131a1a1ec2e95e1bab6b7cc71475f8b4b9281d8789127516a0aa2b05878727`
+and exited `1` during exact Node A retained-candidate validation, before upload,
+publication, transaction dispatch, service reload, or Keepalived mutation.
+Both nodes remained on release
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`. Evidence is retained
+at `/tmp/caddy-ssh-evidence/action35d`. The Action 35c candidate remains at
+`/tmp/caddy-action35c-release`. Its exact producer applies `cp -a` to the
+accepted release and yields a root-owned `0755` candidate root; the Action 35d
+test incorrectly forced `0700` after that copy.
 
-Action 35e is separately authorized only after Action 35d is accepted. It does
-not reinstall Action 35d and does not create production fixtures. It exercises
+## Action 35e: direct retained-mode-corrected installation successor
+
+Action 35e consumes Action 35d without rerunning it. It must reproduce the
+actual Action 35c candidate producer in both host and Debian production-path
+coverage, accept only the exact root-owned, non-symlink `0755` candidate with
+the known route identity and otherwise exact accepted-release semantics, and
+remove only that validated path. It retains Action 35d's environment-loaded
+real Caddy parser, independent four-family availability evidence, standby-first
+transaction, embedded acceptance, reverse rollback, and status-125 controls.
+
+## Action 35f: controlled serving-failure exercise
+
+Action 35f is separately authorized only after Action 35e is accepted. It does
+not reinstall Action 35e and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure
@@ -481,9 +504,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35d`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35e`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35d` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35e` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback

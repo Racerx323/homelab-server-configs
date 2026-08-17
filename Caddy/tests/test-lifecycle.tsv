@@ -7,6 +7,7 @@ Caddy/tests/caddy-environment-v2-policy.sh	production-current	current-focused	cu
 Caddy/tests/caddy-environment-v2-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/check-shell-readonly-local-collisions-v2.sh	production-current	current-focused	current-production-validation
 Caddy/tests/conditional-validator-errexit-policy-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/coupled-serving-health-deployment-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployable-successor-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployable-successor-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployment-window-policy-regression.sh	production-current	current-focused	current-production-validation

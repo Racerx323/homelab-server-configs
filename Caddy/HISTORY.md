@@ -92,3 +92,25 @@ requests a historical reconstruction.
   IPv6 statuses
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35d terminal archive
+
+- Tag: `caddy-action35d-terminal-2026-08-16`
+- Action: 35d
+- Authorized outer SHA-256:
+  `5e131a1a1ec2e95e1bab6b7cc71475f8b4b9281d8789127516a0aa2b05878727`
+- Transaction SHA-256:
+  `f0e21e91c5dc0050559eba0bcce99289cf7b974672741204313cab8473c502b1`
+- Result: failed-consumed after privileged current-release capture on both
+  nodes and during exact Node A retained-candidate validation, before upload,
+  publication, transaction dispatch, service reload, or Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35d`
+- Original release on both nodes:
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`
+- Retained exact candidate path on Node A: `/tmp/caddy-action35c-release`
+- Failure: Action 35c's real `cp -a current/. candidate/` producer preserved
+  the source release root mode as `0755`; Action 35d incorrectly required
+  `0700`, and its isolated test hid the mismatch by forcing `0700` after the
+  copy
+- Status: terminal-pending; terminal commit and annotated tag pending
