@@ -20,8 +20,11 @@ validation but did not load the required node environment, so Caddy rejected
 the empty node-specific site label. Action 35d is failed-consumed after its
 pre-upload residue check required a mode that the real Action 35c producer did
 not create. Action 35e is also failed-consumed: its isolated baseline ignored
-the protocol-v2 `0550` final-directory contract. The direct installation
-successor is Action 35f; the controlled failure exercise moves to Action 35g.
+the protocol-v2 `0550` final-directory contract. Action 35f is failed-consumed
+after it derived the correct mode but imposed the stale `root:root` ownership
+prerequisite on a production `root:caddy-tls` release candidate. The direct
+installation successor is Action 35g; the controlled failure exercise moves
+to Action 35h.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -472,10 +475,30 @@ after every semantic, path, inventory, and hash check succeeds. It otherwise
 retains the unchanged environment-loaded parser, standby-first transaction,
 embedded acceptance, reverse rollback, and status-125 controls.
 
-## Action 35g: controlled serving-failure exercise
+Action 35f was authorized with outer SHA-256
+`dd160b4a25c5a94dc7d5ae4c15fc1f7195ee8d95a6fd00df493606efdc683c3f`
+and exited `1` during exact Node A retained-candidate validation. It captured
+the original release on both nodes and observed the exact retained candidate
+as `root:caddy-tls:0550`. Its check correctly derived mode `0550` from the
+protocol-v2 manifest but incorrectly required owner `root:root`. No upload,
+publication, transaction dispatch, service reload, or Keepalived mutation
+began. Evidence is retained at `/tmp/caddy-ssh-evidence/action35f`.
 
-Action 35g is separately authorized only after Action 35f is accepted. It does
-not reinstall Action 35f and does not create production fixtures. It exercises
+## Action 35g: direct production-ownership-corrected installation successor
+
+Action 35g consumes Action 35f without rerunning it. It must derive both the
+directory mode and immutable-release ownership from the current production
+reconciler and protocol-v2 contract, accept only the exact non-symlink
+`root:caddy-tls:0550` retained candidate after every semantic, path, inventory,
+and hash check succeeds, remove only that validated path, and resume the
+unchanged standby-first installation. Its host and Debian production-path
+coverage must reproduce the real reconciler-owned accepted release and the
+real Action 35c `cp -a` producer path.
+
+## Action 35h: controlled serving-failure exercise
+
+Action 35h is separately authorized only after Action 35g is accepted. It does
+not reinstall Action 35g and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure

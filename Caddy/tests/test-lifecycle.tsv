@@ -1,4 +1,5 @@
 path	lifecycle	execution_scope	rationale
+Caddy/tests/coupled-serving-health-deployment-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/Containerfile	production-current	support	current-production-validation
 Caddy/tests/README.md	production-current	support	current-production-validation
 Caddy/tests/accepted-live-hash-policy-regression.sh	production-current	current-focused	current-production-validation

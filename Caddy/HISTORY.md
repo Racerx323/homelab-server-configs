@@ -93,6 +93,28 @@ requests a historical reconstruction.
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
 
+## Action 35f terminal archive
+
+- Tag: `caddy-action35f-terminal-2026-08-17`
+- Action: 35f
+- Authorized outer SHA-256:
+  `dd160b4a25c5a94dc7d5ae4c15fc1f7195ee8d95a6fd00df493606efdc683c3f`
+- Transaction SHA-256:
+  `0040150451305ffa43d72eb834d0228f376404123a0eb0cd05721af1e1b3819e`
+- Result: failed-consumed during exact Node A retained-candidate validation,
+  before upload, publication, transaction dispatch, service reload, or
+  Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35f`
+- Original release on both nodes:
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`
+- Retained exact candidate path on Node A: `/tmp/caddy-action35c-release`
+- Observed candidate root identity: `root:caddy-tls:0550`
+- Failure: Action 35f correctly derived mode `0550` from protocol v2 but
+  incorrectly required owner `root:root`; the production reconciler owns
+  immutable releases as `root:caddy-tls`
+- Status: terminal-pending
+
 ## Action 35d terminal archive
 
 - Tag: `caddy-action35d-terminal-2026-08-16`
