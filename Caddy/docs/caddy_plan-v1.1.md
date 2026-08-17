@@ -342,19 +342,17 @@ mutation. No successor is currently defined.
 The current split-release state is:
 Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
 `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`, whose parent is Action
-32g and whose source is Node A. It must validate that revision and all semantic,
-path, ownership, inventory, and normalized manifest identities through
-privileged streamed Bash, correct the Node B current-release acceptance poll,
-and reproduce the real `pi` directory-traversal boundary in host and Debian
-production-path coverage. It then resumes the same standby-first transaction
-without production-state seeding or Node B-to-Node A configuration streaming.
-Corrected privileged inspection proves Node A retains the exact finalized
-candidate beneath `/var/lib/caddy-sync/outbound`; the earlier postcheck used an
-obsolete path. Action 35h installs Node B first, then promotes that candidate
-through Node A's local `incoming/node-a/<revision>` finalizer and reconciler
-path. Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read
-back to bounded workstation evidence; the WSL workstation's retained
-`network unreachable` results may not be treated as successful acceptance.
+32g and whose source is Node A. Privileged inspection proves Node A retains the
+exact finalized candidate beneath `/var/lib/caddy-sync/outbound`; matching
+incoming and quarantine entries are absent. Neither node received the
+serving-health mutation. A future direct successor must validate every semantic,
+path, ownership, inventory, and normalized manifest identity before mutation.
+It must install Node B first, then promote Node A's own candidate through its
+local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
+republish, seed production state, or stream Node B configuration to Node A.
+Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
+bounded workstation evidence on success and failure; WSL `network unreachable`
+results cannot count as successful IPv6 acceptance.
 
 Any later corrected installation must:
 
@@ -378,9 +376,13 @@ Production-path validation must execute the registered outer and transaction
 state machines and assert their actual calls and filesystem effects. Tests may
 create isolated inputs and bounded external-command substitutes, but they must
 never fabricate command, transport, status, mutation, acceptance, rollback, or
-journal results. Emitted success markers and fixture-authored result files are
-not evidence. Authorization readiness must reject any successor that can report
-success without executing both registered production paths.
+journal results. Each coverage decision must contain independently obtained
+expected and observed values, status, and the SHA-256 of bounded raw evidence.
+Coverage includes every production-inventory key and successful and failed
+evidence readback for both nodes. Emitted success markers, marker counting, and
+fixture-authored production results are not evidence. Authorization readiness
+must reject any successor that can report success without executing both
+registered production paths.
 
 ## 18. Pending work
 

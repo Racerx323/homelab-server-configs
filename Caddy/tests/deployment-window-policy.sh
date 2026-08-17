@@ -118,7 +118,7 @@ deployment_window_stream_valid() {
     deployment_window_regular_file "$deployment_window_history" || return 1
     deployment_window_regular_file "$deployment_window_successor" || return 1
     deployment_window_regular_file "$deployment_window_coverage" || return 1
-    [[ "$(sed -n '1p' "$deployment_window_coverage")" = $'scenario\tphase\tentrypoint\texpectation\tmarker' ]] || return 1
+    [[ "$(sed -n '1p' "$deployment_window_coverage")" = $'scenario\tphase\tentrypoint\texpectation\tdecision-evidence\traw-evidence' ]] || return 1
     IFS=$'\t' read -r deployment_window_successor_status deployment_window_successor_action < <(
         deployment_window_successor_fields "$deployment_window_successor"
     ) || return 1

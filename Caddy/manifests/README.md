@@ -15,7 +15,7 @@ future transaction.
 | `durable-apprise-production.tsv` | Notification queue installation contract |
 | `serving-health-production.tsv` | Current serving-health candidate artifacts |
 | `deployable-successor.tsv` | Single live successor registry |
-| `deployable-successor-coverage.tsv` | Outer and transaction coverage matrix |
+| `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
 
 Lifecycle registries classify the complete manifests, scripts, systemd units,
 and templates. The main branch contains no executed action definitions; exact

@@ -69,7 +69,7 @@ printf '# Plan\n' >"$deployment_window_regression_root/Caddy/docs/plan.md"
 printf '%s\n' '# History' "- Tag: \`caddy-action35-terminal\`" \
     '- Status: terminal-pending' >"$deployment_window_regression_root/Caddy/HISTORY.md"
 printf '{}\n' >"$deployment_window_regression_root/Caddy/tests/focused-validation.yaml"
-printf '%s\n' $'scenario\tphase\tentrypoint\texpectation\tmarker' \
+printf '%s\n' $'scenario\tphase\tentrypoint\texpectation\tdecision-evidence\traw-evidence' \
     >"$deployment_window_regression_root/Caddy/manifests/deployable-successor-coverage.tsv"
 printf '#!/usr/bin/env bash\nexit 0\n' \
     >"$deployment_window_regression_root/Caddy/scripts/apply-action35.sh"
@@ -88,7 +88,7 @@ deployment_window_regression_record unrelated_action_rejected \
 rm -f -- "$deployment_window_regression_root/Caddy/scripts/apply-action34.sh"
 
 deployment_window_regression_write_successor defined 35
-printf '%s\n' $'defined\taccepted-path\ttransaction\treach\tdefined_path' \
+printf '%s\n' $'defined\taccepted-path\ttransaction\treach\tdecisions/defined.tsv\traw/defined.txt' \
     >>"$deployment_window_regression_root/Caddy/manifests/deployable-successor-coverage.tsv"
 deployment_window_regression_write_registry defined 35 - -
 deployment_window_regression_record defined_accepts \
@@ -99,7 +99,7 @@ deployment_window_regression_record mismatched_successor_rejected \
     deployment_window_regression_policy_rejects || exit 1
 
 rm -f -- "$deployment_window_regression_root/Caddy/scripts/apply-action35.sh"
-printf '%s\n' $'scenario\tphase\tentrypoint\texpectation\tmarker' \
+printf '%s\n' $'scenario\tphase\tentrypoint\texpectation\tdecision-evidence\traw-evidence' \
     >"$deployment_window_regression_root/Caddy/manifests/deployable-successor-coverage.tsv"
 deployment_window_regression_write_successor none -
 deployment_window_regression_write_registry clean - - caddy-action35-terminal

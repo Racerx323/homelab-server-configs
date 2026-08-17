@@ -33,7 +33,6 @@
         "Caddy/systemd/caddy-apprise-worker.*",
         "Caddy/systemd/caddy-sync-failure@.service",
         "Caddy/tests/durable-apprise-queue-regression.sh",
-        "Caddy/tests/durable-apprise-deployment-regression.sh",
         "Caddy/tests/deployable-successor-policy*.sh"
       ],
       "debian_path_patterns": [
@@ -305,6 +304,7 @@
         "Caddy/templates/*",
         "Caddy/tests/deployment-lifecycle-*.sh",
         "Caddy/tests/deployment-window-policy*.sh",
+        "Caddy/tests/deployable-successor-policy*.sh",
         "Caddy/tests/template-lifecycle-*.sh",
         "Caddy/tests/accepted-live-hash-policy*.sh",
         "Caddy/tests/caddy-environment-v2-*.sh",
@@ -319,6 +319,7 @@
         "Caddy/systemd/*",
         "Caddy/templates/*",
         "Caddy/tests/deployment-lifecycle-*.sh",
+        "Caddy/tests/deployable-successor-policy*.sh",
         "Caddy/tests/template-lifecycle-*.sh",
         "Caddy/tests/caddy-environment-v2-*.sh"
       ],
@@ -331,6 +332,8 @@
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
+        "Caddy/tests/deployable-successor-policy.sh",
+        "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/caddy-environment-v2-policy.sh",
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/conditional-validator-errexit-policy-regression.sh",
@@ -346,6 +349,7 @@
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
+        "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/template-lifecycle-regression.sh",
         "Caddy/tests/test-lifecycle-policy-regression.sh"
       ],
@@ -353,6 +357,7 @@
         "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
+        "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/template-lifecycle-regression.sh"
       ],
       "policies": [
@@ -361,6 +366,7 @@
         "executable-modes",
         "deployment-lifecycle",
         "deployment-window",
+        "deployable-successor",
         "template-lifecycle",
         "environment-v2",
         "test-lifecycle"

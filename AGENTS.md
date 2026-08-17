@@ -83,6 +83,12 @@ executed deployment archive.
   `Caddy/manifests/deployable-successor.tsv`.
 - Populate `deployable-successor-coverage.tsv` before reporting an outer
   runner hash.
+- Every coverage row names a decision record and its raw evidence. The decision
+  must contain independently obtained expected and observed values, command
+  status, and the raw-evidence SHA-256. Stdout labels and manually emitted
+  coverage markers are summaries only and never satisfy authorization.
+- Coverage must include every current production-inventory key and successful
+  and failed node-evidence readback paths for both nodes.
 - Run
   `Caddy/tests/deployable-successor-policy.sh --authorization-ready` before
   requesting live authorization.
@@ -119,6 +125,8 @@ The outer test must:
 - dispatch the transaction test;
 - retain mode-checked evidence under a caller-provided `/tmp` directory;
 - prove zero mutation.
+- execute success and failure readback branches for each node and retain the
+  actual bounded node evidence in the caller-provided evidence directory.
 
 The transaction test must exercise each state-dependent pre-mutation branch and
 reach payload validation plus a no-mutation sentinel on accepted paths. Cover
@@ -137,6 +145,8 @@ is only a summary emitted after those actual effects have been independently
 validated; labels and fixture-authored result files are never evidence by
 themselves. Authorization readiness must fail when a production result can be
 obtained without executing the registered outer and transaction paths.
+The authorization policy verifies causal decision records against their raw
+evidence; it never counts stdout markers.
 
 ## Shell rules
 

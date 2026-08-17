@@ -13,7 +13,6 @@ Caddy/tests/deployment-window-policy-regression.sh	production-current	current-fo
 Caddy/tests/deployment-window-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployment-lifecycle-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployment-lifecycle-regression.sh	production-current	current-focused	current-production-validation
-Caddy/tests/durable-apprise-deployment-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/durable-apprise-queue-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/executable-wrapper-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/focused-validation-manifest-policy.sh	production-current	current-focused	current-production-validation
