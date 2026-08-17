@@ -67,7 +67,9 @@ requests a historical reconstruction.
 
 ## Action 35c terminal archive
 
-- Tag: `caddy-action35c-terminal-2026-08-16` (planned until terminal commit)
+- Tag: `caddy-action35c-terminal-2026-08-16`
+- Commit: `07bf6eaf1bc90d023184c34048d2dc7f5cbbe113`
+- Tag object: `ab007a3cb43991755a64e0a3966e6a49c440732d`
 - Action: 35c
 - Authorized outer SHA-256:
   `eb832297cff590075cc9f70e931cd38f7bbccf7dc594fa1995f59a85d89c525a`
@@ -88,4 +90,5 @@ requests a historical reconstruction.
 - Availability evidence: two aggregate samples returned status 9; the direct
   successor must retain independent DNS IPv4, DNS IPv6, HTTPS IPv4, and HTTPS
   IPv6 statuses
-- Status: terminal-pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit

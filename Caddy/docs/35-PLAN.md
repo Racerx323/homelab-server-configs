@@ -481,9 +481,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35c`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35d`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35c` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35d` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback
