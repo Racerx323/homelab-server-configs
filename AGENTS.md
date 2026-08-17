@@ -100,9 +100,13 @@ executed deployment archive.
 - Run tests selected by `Caddy/tests/focused-validation.yaml`.
 - Current tests must execute current entrypoints. They may not delegate behavior
   to archived action regressions.
-- Use `Caddy/tests/run-focused.sh --profile NAME` for host validation.
+- Use
+  `Caddy/tests/run-focused.sh --profile NAME --phase host --container never`
+  for host-only validation. Never omit both flags from a host-only run: the
+  default `all/auto` mode intentionally launches Podman after the host phase.
 - Use `Caddy/tests/run-focused-container.sh --profiles CSV` for one
-  network-disabled Debian 12 batch when Debian behavior is in scope.
+  network-disabled Debian 12 batch when Debian behavior is in scope. Invoke
+  this Podman wrapper outside the filesystem sandbox on its first attempt.
 - Do not reconstruct the archived full suite during current production work.
 - Documentation and manifest metadata need structural checks, not a new
   behavioral test.

@@ -2,14 +2,15 @@
 
 ## Status and scope
 
-The serving-health architecture is approved. No installation successor or
-controlled failure exercise is currently defined.
+The serving-health architecture is approved. Action 35i is failed-consumed
+before mutation and awaits its terminal archive boundary. No controlled failure
+exercise or replacement successor is currently defined.
 
 Every consumed implementation through Action 35h is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. The current branch contains only the production contract and future
-work. The Caddy deployment stream is `clean`, and the deployable-successor and
-coverage registries are empty.
+work. The Caddy deployment stream is `terminal-pending`; the deployable
+successor and causal-coverage registries are cleared.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -20,10 +21,12 @@ baseline checks and all 384 node-local availability samples passed. The next
 decision, `node_b_dns_health_helper`, retained its expected SHA-256 but no
 observed SHA-256. Action 35h is failed-consumed.
 
-The neutral authorization framework must pass current host and Debian
-validation before another direct installation successor is defined. The
-controlled serving-failure exercise follows only after that installation is
-accepted.
+Action 35i validated the split revision and the preceding Node B inventory rows,
+then rejected the stale registered DNS-helper identity before any candidate
+check or mutation. Bounded readback proved both nodes currently have exact
+`root:root:0755` helper identity `4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`.
+The desired repository identity remains `294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa`.
+The next direct installation successor must consume that exact baseline.
 
 ## Architecture decision
 
@@ -162,17 +165,19 @@ with expected and observed identities. It reuses the existing Node A outbound
 candidate and Node B installed release; it does not republish, seed state,
 reconstruct a historical fixture, or copy Node B configuration to Node A.
 
-## Direct installation successor
+## Direct installation successor contract
 
-The future successor is one transaction with complete embedded acceptance:
+The next direct successor is one transaction with complete embedded acceptance:
 
 1. Validate exact split releases, outbound/incoming/quarantine inventories,
    artifact identities, permissions, services, unit enablement, synchronization,
    durable notifications, VRRP ownership, and absence of unsafe residue.
 2. Parser-test both candidate Keepalived configurations and execute the DNS and
    Caddy helpers under their real service identities.
-3. Start continuous node-local DNS and trusted-HTTPS IPv4/IPv6 probes and read
-   their bounded `/tmp` evidence back to the workstation on success and failure.
+3. Start continuous node-local DNS, trusted-HTTPS, shared Pi-hole UI, and
+   node-specific Pi-hole UI IPv4/IPv6 probes. Capture pre-mutation journal
+   cursors and bounded post-mutation service and notifier journals, then read
+   all node `/tmp` evidence back to the workstation on success and failure.
 4. Install and completely accept Node B's release, helpers, monitor, units, and
    Keepalived configuration before changing Node A.
 5. Promote Node A's own validated outbound candidate through the installed
@@ -182,7 +187,8 @@ The future successor is one transaction with complete embedded acceptance:
    only a bounded sampled mixed-policy interval.
 7. Require Node A stable IPv4/IPv6 `MASTER` with all four VIPs, Node B stable
    `BACKUP` with none, healthy DNS/TLS/UI, healthy control plane, complete
-   inventories, and zero unsafe residue.
+   installed-candidate inventories, and independently verified zero incoming,
+   outgoing, or quarantine residue.
 8. On failure, reverse Node A then Node B and restore the exact split baseline.
    Return `125` only when mutation occurred and recovery cannot be proven.
 

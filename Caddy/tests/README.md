@@ -9,11 +9,15 @@ tests, and named policies.
 
 ```bash
 Caddy/tests/run-focused.sh --list
-Caddy/tests/run-focused.sh --profile current-synchronization
+Caddy/tests/run-focused.sh --profile current-synchronization --phase host --container never
 Caddy/tests/run-focused.sh --changed --base HEAD --explain
 ```
 
-Use one network-disabled Debian batch when Debian behavior is in scope:
+The explicit `--phase host --container never` pair is required for a host-only
+run. Without it, the runner's default `all/auto` mode continues into Podman.
+
+Use one network-disabled Debian batch when Debian behavior is in scope. Run
+this wrapper outside the filesystem sandbox on its first attempt:
 
 ```bash
 Caddy/tests/run-focused-container.sh --profiles current-synchronization

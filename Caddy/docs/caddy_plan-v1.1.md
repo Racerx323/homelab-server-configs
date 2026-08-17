@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35h failed before serving-health mutation and is consumed
+Current status: core deployment accepted; Action 35i failed pre-mutation and is terminal-pending
 
 ## 1. Purpose
 
@@ -337,7 +337,10 @@ listed above. They must not be rerun or copied into current validation. Action
 35g published one valid Node A release and Node B selected it. Action 35h then
 validated that exact split-release protocol state but failed during Node B
 production-inventory validation, before candidate validation or serving-health
-mutation. No successor is currently defined.
+mutation. Action 35i then failed-consumed during the same Node B DNS-helper
+identity boundary, before candidate validation or mutation. Its bounded
+completion readback proved both nodes have exact `root:root:0755` SHA-256
+`4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`.
 
 The current split-release state is:
 Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
@@ -345,7 +348,7 @@ Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
 32g and whose source is Node A. Privileged inspection proves Node A retains the
 exact finalized candidate beneath `/var/lib/caddy-sync/outbound`; matching
 incoming and quarantine entries are absent. Neither node received the
-serving-health mutation. A future direct successor must validate every semantic,
+serving-health mutation. The next direct successor must validate every semantic,
 path, ownership, inventory, and normalized manifest identity before mutation.
 It must install Node B first, then promote Node A's own candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
@@ -354,7 +357,7 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-Any later corrected installation must:
+The next direct successor must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

@@ -240,3 +240,28 @@ requests a historical reconstruction.
   No serving-health or Keepalived configuration mutation occurred.
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35i terminal archive
+
+- Tag: `caddy-action35i-terminal-2026-08-17`
+- Commit: pending terminal-result commit
+- Action: 35i
+- Authorized outer SHA-256:
+  `9de2ca4bc38a62e686c26947a07928943f755467b44cab7f1b44b6e4e220457e`
+- Transaction SHA-256:
+  `658a53d92cbccd50af9d1f906e513fe2e55ead60b79fb749c76ec4036e5924d0`
+- Result: failed-consumed during Node B current-production DNS-helper identity
+  validation, before candidate validation, backup creation, installation,
+  Keepalived reload, publication, Node A promotion, or Node A transaction
+  dispatch
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35i.qvBXIf`
+- Expected deployed DNS-helper SHA-256:
+  `7af57e70d80d32434e9cac717afa4af8d9e67c6c6ccd08d15ca9d7046d337b25`
+- Observed on both nodes: `root:root:0755`, SHA-256
+  `4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`
+- Desired repository SHA-256:
+  `294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa`
+- Recovery: both uploaded payload trees were removed successfully; no live
+  mutation entrypoint ran, so rollback was neither required nor attempted
+- Status: terminal-pending
