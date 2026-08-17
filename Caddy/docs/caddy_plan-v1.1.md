@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35j archived and deployment stream clean
+Current status: core deployment accepted; Action 35k failed-consumed and terminal-pending
 
 ## 1. Purpose
 
@@ -353,11 +353,16 @@ then failed-consumed because the inventory used the former repository source
 name `pihole0-local-zone.conf` as the installed filename. Production and the
 renamed private source now both use `pihole-local-zone.conf`. No mutation
 entrypoint ran, and both exact upload trees were removed. Its terminal tag is
-synchronized and its machinery removed; no installation successor is defined.
+synchronized and its machinery removed. Action 35k then failed-consumed before
+mutation because Node B's corrected local-zone path had observed SHA-256
+`c3cf7224451a17e419cc4f2401d032aca435e6fe6e0ac61d37acb3e48b829dd9`
+rather than registered SHA-256
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
+Both upload trees were removed; rollback was not required.
 The operator subsequently aligned comment-only production bytes on both nodes
 with the renamed ignored source. Current source and deployed SHA-256 is
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-A later direct successor must install Node B first, then promote Node A's own
+Action 35k must install Node B first, then promote Node A's own
 candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
@@ -365,7 +370,7 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-Any later direct successor must:
+Action 35k must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

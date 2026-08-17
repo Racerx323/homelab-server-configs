@@ -295,3 +295,25 @@ requests a historical reconstruction.
   required or attempted
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35k terminal archive
+
+- Tag: `caddy-action35k-terminal-2026-08-17`
+- Commit: pending terminal-result commit
+- Action: 35k
+- Authorized outer SHA-256:
+  `bfaab7f1d14cd0e2d718d8d95ea3acc3646d794a982b0a455512a526e08d43e9`
+- Transaction SHA-256:
+  `b5caa7691086c82d37b7c98d69fc0a0f13a50c882d43eaff841c65a545f664e9`
+- Result: failed-consumed during Node B current-production Unbound local-zone
+  identity validation, before candidate validation or any mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35k.gLE53y`
+- Expected repository and deployed SHA-256:
+  `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`
+- Observed Node B SHA-256:
+  `c3cf7224451a17e419cc4f2401d032aca435e6fe6e0ac61d37acb3e48b829dd9`
+- Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
+  disposition all returned 0; no mutation entrypoint ran, so rollback was not
+  required or attempted
+- Status: terminal-pending until this exact tree is committed and tagged

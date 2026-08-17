@@ -2,16 +2,19 @@
 
 ## Status and scope
 
-The serving-health architecture is approved. Action 35i is archived and
-removed. Action 35j consumed its proven pre-mutation state and is now
-failed-consumed at a later baseline boundary. Its terminal commit and annotated
-tag are synchronized, its machinery is removed, and no successor or controlled
-failure exercise is defined.
+The serving-health architecture is approved. Action 35j is archived and
+removed after failing at a pre-mutation inventory boundary. Its terminal commit,
+annotated tag, immediate cleanup commit, and corrected cross-repository
+inventory bookkeeping are synchronized. Action 35k is failed-consumed at the
+corrected Node B local-zone identity boundary. No mutation entrypoint ran, both
+exact upload trees were removed, and rollback was not required. No diagnostic,
+Action 35j rerun, or Action 35k rerun is permitted.
 
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`; the successor and causal-coverage registries are cleared.
+stream is `terminal-pending` for Action 35k; its successor and causal-coverage
+registries are cleared for terminal archival.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -27,7 +30,7 @@ then rejected the stale registered DNS-helper identity before any candidate
 check or mutation. Bounded readback proved both nodes currently have exact
 `root:root:0755` helper identity `4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`.
 The desired repository identity remains `294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa`.
-Action 35j consumes that exact baseline. It emits expected and observed
+Action 35j consumed that exact baseline. It emitted expected and observed
 identities before every inventory equality decision, accepts only the recorded
 deployed DNS-helper identity, and installs the desired repository helper during
 the unchanged Node B then Node A transaction. No additional diagnostic or
@@ -46,7 +49,18 @@ On 2026-08-17 the operator made comment-only changes to the production file on
 both nodes and copied those exact bytes to the ignored private source. The
 canonical deployed and source identity is now
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-This current-contract correction does not define or execute a deployment action.
+This current-contract correction did not define or execute a deployment action.
+Action 35k consumes the corrected path and exact identity, preserves the
+standby-first installation logic, and starts from Action 35j's proven
+pre-mutation state. It does not republish the retained release, seed production
+state, or stream Node B configuration to Node A.
+
+Action 35k execution proved the installed Node B file at the corrected path has
+SHA-256 `c3cf7224451a17e419cc4f2401d032aca435e6fe6e0ac61d37acb3e48b829dd9`,
+not the registered/source identity
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
+The failure occurred before candidate validation, backup, installation,
+Keepalived reload, Node A promotion, or any other mutation entrypoint.
 
 ## Architecture decision
 
