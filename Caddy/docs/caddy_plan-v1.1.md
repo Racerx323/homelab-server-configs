@@ -349,12 +349,16 @@ Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
 exact finalized candidate beneath `/var/lib/caddy-sync/outbound`; matching
 incoming and quarantine entries are absent. Neither node received the
 serving-health mutation. Action 35j accepted the corrected DNS-helper identity,
-then failed-consumed because the inventory used the repository source name
-`pihole0-local-zone.conf` as the installed filename. Production uses
-`/etc/unbound/unbound.conf.d/pihole-local-zone.conf`. No mutation entrypoint ran,
-and both exact upload trees were removed. Its terminal tag is synchronized and
-its machinery removed; no installation successor is defined.
-It must install Node B first, then promote Node A's own candidate through its
+then failed-consumed because the inventory used the former repository source
+name `pihole0-local-zone.conf` as the installed filename. Production and the
+renamed private source now both use `pihole-local-zone.conf`. No mutation
+entrypoint ran, and both exact upload trees were removed. Its terminal tag is
+synchronized and its machinery removed; no installation successor is defined.
+The operator subsequently aligned comment-only production bytes on both nodes
+with the renamed ignored source. Current source and deployed SHA-256 is
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
+A later direct successor must install Node B first, then promote Node A's own
+candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
 Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to

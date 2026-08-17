@@ -288,6 +288,8 @@ requests a historical reconstruction.
 - Failed assertion: `artifact_node_b_unbound_local_zone_regular=false`; the
   inventory incorrectly used repository source name `pihole0-local-zone.conf`
   as the production target instead of `pihole-local-zone.conf`
+- Current-contract correction: the ignored private repository source was later
+  renamed to `pihole-local-zone.conf`, matching the production filename
 - Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
   disposition all returned 0; no mutation entrypoint ran, so rollback was not
   required or attempted

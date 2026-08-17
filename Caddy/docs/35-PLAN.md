@@ -36,9 +36,17 @@ corrected identity and every preceding Node B row, then rejected the missing
 stale Node B inventory target
 `/etc/unbound/unbound.conf.d/pihole0-local-zone.conf` before any mutation
 entrypoint ran. The production target is
-`/etc/unbound/unbound.conf.d/pihole-local-zone.conf`; the `pihole0` name belongs
-only to the repository source file. Both exact upload trees were removed
-successfully, and the current production inventory now records that distinction.
+`/etc/unbound/unbound.conf.d/pihole-local-zone.conf`; at execution time the
+`pihole0` name belonged only to the repository source file. The private source
+was subsequently renamed to `pihole-local-zone.conf` to match production. Both
+exact upload trees were removed successfully, and the current inventory now
+uses the same source and installed filename.
+
+On 2026-08-17 the operator made comment-only changes to the production file on
+both nodes and copied those exact bytes to the ignored private source. The
+canonical deployed and source identity is now
+`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
+This current-contract correction does not define or execute a deployment action.
 
 ## Architecture decision
 

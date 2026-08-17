@@ -1,5 +1,5 @@
 schema_version	scope	key	value	evidence
-1	cluster	accepted-live-artifacts-sha256	450b1ac7ca2fd3320b5d54c2f2fcc84d69d9e70f745359fcca7e1dbe8e59fdd4	accepted-live-artifacts.tsv
+1	cluster	accepted-live-artifacts-sha256	406d3f1e1a25ba8bc7308450a8f397a5af0a764c2dd72a448b82fd4587f6b556	accepted-live-artifacts.tsv
 1	cluster	runtime-production-sha256	495fcabc6640bf93d4e06b3c02f457911f352509df862731cccfecb72be401a7	runtime-production.tsv
 1	cluster	durable-apprise-evidence	/tmp/caddy-ssh-evidence/action34m/run.2dqqFO	accepted-action34m
 1	node-a	ownership	ipv4-master,ipv6-master,shared-vips=4	accepted-action34m
