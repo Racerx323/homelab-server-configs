@@ -96,6 +96,8 @@ requests a historical reconstruction.
 ## Action 35f terminal archive
 
 - Tag: `caddy-action35f-terminal-2026-08-17`
+- Commit: `903ac8b0098a3f2abf4a048b185f074b72a28812`
+- Tag object: `7266ae48ab21469cb04fb00e066db669aca6d7e0`
 - Action: 35f
 - Authorized outer SHA-256:
   `dd160b4a25c5a94dc7d5ae4c15fc1f7195ee8d95a6fd00df493606efdc683c3f`
@@ -113,7 +115,8 @@ requests a historical reconstruction.
 - Failure: Action 35f correctly derived mode `0550` from protocol v2 but
   incorrectly required owner `root:root`; the production reconciler owns
   immutable releases as `root:caddy-tls`
-- Status: terminal-pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit
 
 ## Action 35d terminal archive
 
