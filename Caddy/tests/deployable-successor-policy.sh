@@ -123,12 +123,12 @@ successor_policy_outer_evidence_valid() {
     [[ "$(stat -c '%a' "$successor_policy_evidence_root")" = 700 ]] || return 1
     diff -u \
         <(printf '%s\n' mutation-count payload.sha256 remote-command.argv remote-path \
-            transaction.status upload-events.tsv | LC_ALL=C sort) \
+            transaction.status transport-events.tsv upload-events.tsv | LC_ALL=C sort) \
         <(find "$successor_policy_evidence_root" -mindepth 1 -maxdepth 1 \
             -printf '%f\n' | LC_ALL=C sort) >/dev/null || return 1
     for successor_policy_evidence_file in \
         mutation-count payload.sha256 remote-command.argv remote-path \
-        transaction.status upload-events.tsv; do
+        transaction.status transport-events.tsv upload-events.tsv; do
         successor_policy_regular_file \
             "$successor_policy_evidence_root/$successor_policy_evidence_file" || return 1
         [[ "$(stat -c '%a' \
@@ -145,6 +145,16 @@ successor_policy_outer_evidence_valid() {
         "$successor_policy_evidence_root/remote-command.argv" || return 1
     grep -Fxq 0 "$successor_policy_evidence_root/transaction.status" || return 1
     grep -Fxq 2 "$successor_policy_evidence_root/mutation-count" || return 1
+    [[ "$(awk -F '\t' '$1 == "scp" { n++ } END { print n + 0 }' \
+        "$successor_policy_evidence_root/transport-events.tsv")" -eq 2 ]] || return 1
+    [[ "$(awk -F '\t' '$1 == "ssh" { n++ } END { print n + 0 }' \
+        "$successor_policy_evidence_root/transport-events.tsv")" -ge 9 ]] || return 1
+    grep -Fq $'ssh\tpi@10.1.0.53\tcd / && /bin/bash -s -- /tmp/' \
+        "$successor_policy_evidence_root/transport-events.tsv" || return 1
+    grep -Fq $'ssh\tpi@10.1.0.54\tcd / && /bin/bash -s -- /tmp/' \
+        "$successor_policy_evidence_root/transport-events.tsv" || return 1
+    ! grep -Eq $'ssh\t[^\t]+\t.*(/bin/bash|bash) -c([[:space:]]|$)' \
+        "$successor_policy_evidence_root/transport-events.tsv" || return 1
 }
 
 successor_policy_defined_valid() {

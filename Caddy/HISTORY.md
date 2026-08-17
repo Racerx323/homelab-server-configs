@@ -45,3 +45,19 @@ requests a historical reconstruction.
   `/bin/bash -c` command boundary
 - Remote state: terminal tag and terminal-result commit pushed before the
   immediate production-branch cleanup
+
+## Action 35b terminal archive
+
+- Tag: `caddy-action35b-terminal-2026-08-16`
+- Action: 35b
+- Authorized outer SHA-256:
+  `06bcab00cbd868c96a600499f4d6e8402686a95d62827c2d4d164f3c6db95d58`
+- Result: failed-consumed after both bounded payload uploads and before release
+  publication, transaction dispatch, service reload, or Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35b`
+- Retained payload SHA-256:
+  `487cebeff7f13da4a301293f1a80ccc70ca4e7c38768136b9694294d9369a6fe`
+- Failure: the unprivileged SSH identity could not traverse and resolve
+  `/etc/caddy/current`; the successor must use streamed privileged resolution
+- Status: terminal-pending

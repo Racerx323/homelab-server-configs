@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35 failed pre-mutation and is consumed
+Current status: core deployment accepted; Action 35b failed pre-mutation and is consumed
 
 ## 1. Purpose
 
@@ -326,11 +326,12 @@ successors.
 
 Action 35a is failed-consumed, archived at
 `caddy-action35a-terminal-2026-08-16`, and removed from the production branch.
-It must not be rerun or modified. No live successor is currently registered.
-Corrected standby-first installation Action 35b will be defined from neutral
-current-production components with an SSH serialization policy that prohibits
-the failed remote Bash boundary. Controlled serving-failure exercise Action
-35c remains separately gated until Action 35b is accepted.
+It must not be rerun or modified. Corrected standby-first installation Action
+35b is failed-consumed and must not be rerun. It uploaded its exact payload to
+both nodes, then failed before publication or transaction dispatch because the
+unprivileged SSH identity could not resolve `/etc/caddy/current`. Its direct
+installation successor is Action 35c; the controlled serving-failure exercise
+moves to Action 35d.
 
 The transaction must:
 

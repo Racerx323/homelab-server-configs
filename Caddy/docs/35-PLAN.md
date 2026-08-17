@@ -11,8 +11,12 @@ The audit after that failure also rejected Action 35's production-path tests:
 they fabricated expected evidence and success markers instead of executing the
 real outer and transaction state machines. Synthetic production results are
 prohibited. Its first corrected successor, Action 35a, is also failed-consumed
-and archived as recorded below. Action 35b is the next installation successor;
-the controlled failure exercise moves to Action 35c.
+and archived as recorded below. Action 35b is the single registered,
+failed-consumed installation successor. It uploaded the exact payload to both
+nodes but failed before publication or transaction dispatch because the
+unprivileged SSH identity could not resolve `/etc/caddy/current`. The direct
+installation successor is Action 35c; the controlled failure exercise moves
+to Action 35d.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -309,6 +313,12 @@ authorization provenance are retained by the terminal tag recorded in
 `Caddy/HISTORY.md`.
 
 ## Action 35b: standby-first installation transaction
+
+Action 35b's production-path validation executes the generated SSH transport,
+upload, transaction, publisher, acceptance, rollback, and cleanup boundaries.
+Remote multi-command Bash is streamed on standard input from `cd /`; remote
+Bash `-c` is prohibited. Action 35a is consumed only as failure provenance and
+is never invoked.
 
 Live execution requires separate authorization of the definition-complete
 outer runner. One transaction must install and accept the corrected health

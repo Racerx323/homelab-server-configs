@@ -9,9 +9,11 @@ Caddy/scripts/finalize-incoming-release-v2.sh	production-current	yes	/usr/local/
 Caddy/scripts/install-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/lsyncd-sync-failure-notify.sh	production-current	yes	/usr/local/libexec/lsyncd-sync-failure-notify.sh	0755	Caddy/systemd/caddy-sync-failure@.service
 Caddy/scripts/prepare-lighttpd-config.sh	production-current	yes	/usr/local/libexec/prepare-lighttpd-config.sh	0755	Caddy/configs/lighttpd/desired-state.conf
+Caddy/scripts/apply-coupled-serving-health-action35b.sh	failed-consumed	no	-	-	Caddy/HISTORY.md
 Caddy/scripts/publish-release-v2.sh	production-current	yes	/usr/local/libexec/publish-release-v2.sh	0755	Caddy/manifests/production-artifacts.tsv
 Caddy/scripts/reconcile-release-v2.sh	production-current	yes	/usr/local/libexec/reconcile-release.sh	0755	Caddy/manifests/production-artifacts.tsv
 Caddy/scripts/render-node-config.sh	production-current	no	-	-	Caddy/scripts/README.md
+Caddy/scripts/run-dual-node-coupled-serving-health-action35b-outer.sh	failed-consumed	no	-	-	Caddy/HISTORY.md
 Caddy/scripts/uninstall-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/validate-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/validate-sync-health.sh	production-current	yes	/usr/local/libexec/validate-sync-health.sh	0755	Caddy/manifests/production-artifacts.tsv
