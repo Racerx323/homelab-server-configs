@@ -5,16 +5,17 @@
 The serving-health architecture is approved. Action 35j is archived and
 removed after failing at a pre-mutation inventory boundary. Its terminal commit,
 annotated tag, immediate cleanup commit, and corrected cross-repository
-inventory bookkeeping are synchronized. Action 35k is failed-consumed at the
-corrected Node B local-zone identity boundary. No mutation entrypoint ran, both
-exact upload trees were removed, and rollback was not required. No diagnostic,
-Action 35j rerun, or Action 35k rerun is permitted.
+inventory bookkeeping are synchronized. Action 35k is archived and removed
+after failing at the corrected Node B local-zone identity boundary. No mutation
+entrypoint ran, both exact upload trees were removed, and rollback was not
+required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `terminal-pending` for Action 35k; its successor and causal-coverage
-registries are cleared for terminal archival.
+stream is `clean`; the Action 35k terminal commit and annotated tag are
+synchronized, its machinery is removed, and the successor and causal-coverage
+registries are clear.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -50,9 +51,9 @@ both nodes and copied those exact bytes to the ignored private source. The
 canonical deployed and source identity is now
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
 This current-contract correction did not define or execute a deployment action.
-Action 35k consumes the corrected path and exact identity, preserves the
-standby-first installation logic, and starts from Action 35j's proven
-pre-mutation state. It does not republish the retained release, seed production
+Action 35k consumed the corrected path and registered identity, preserved the
+standby-first installation logic, and started from Action 35j's proven
+pre-mutation state. It did not republish the retained release, seed production
 state, or stream Node B configuration to Node A.
 
 Action 35k execution proved the installed Node B file at the corrected path has
@@ -61,6 +62,9 @@ not the registered/source identity
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
 The failure occurred before candidate validation, backup, installation,
 Keepalived reload, Node A promotion, or any other mutation entrypoint.
+A later direct successor must accept only that exact observed Node B baseline,
+install the repository bytes transactionally, and preserve every remaining
+Action 35k installation and rollback control. It must not rerun Action 35k.
 
 ## Architecture decision
 

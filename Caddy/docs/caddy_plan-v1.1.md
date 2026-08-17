@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35k failed-consumed and terminal-pending
+Current status: core deployment accepted; Action 35k archived; deployment stream clean
 
 ## 1. Purpose
 
@@ -326,13 +326,16 @@ uses cleanup only.
 | Protocol-mode-corrected serving-health installation, Action 35f | Failed-consumed during retained-candidate ownership validation and before upload or live mutation | `caddy-action35f-terminal-2026-08-17` |
 | Production-ownership-corrected serving-health installation, Action 35g | Failed-consumed after Node B selected the published release and before the installation transaction | `caddy-action35g-terminal-2026-08-17` |
 | Split-release serving-health installation, Action 35h | Failed-consumed during Node B production-inventory validation and before serving-health mutation | `caddy-action35h-terminal-2026-08-17` |
+| Evidence-complete serving-health installation, Action 35i | Failed-consumed during Node B DNS-helper identity validation and before mutation | `caddy-action35i-terminal-2026-08-17` |
+| Corrected DNS-consumer serving-health installation, Action 35j | Failed-consumed during Node B Unbound local-zone path validation and before mutation | `caddy-action35j-terminal-2026-08-17` |
+| Corrected-production-path serving-health installation, Action 35k | Failed-consumed during Node B Unbound local-zone identity validation and before mutation | `caddy-action35k-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Actions 35 through 35h are failed-consumed and preserved by the annotated tags
+Actions 35 through 35k are failed-consumed and preserved by the annotated tags
 listed above. They must not be rerun or copied into current validation. Action
 35g published one valid Node A release and Node B selected it. Action 35h then
 validated that exact split-release protocol state but failed during Node B
@@ -362,7 +365,8 @@ Both upload trees were removed; rollback was not required.
 The operator subsequently aligned comment-only production bytes on both nodes
 with the renamed ignored source. Current source and deployed SHA-256 is
 `f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-Action 35k must install Node B first, then promote Node A's own
+The next direct successor must accept the exact Action 35k Node B observed
+local-zone identity, install Node B first, then promote Node A's own
 candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
@@ -370,7 +374,7 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-Action 35k must:
+The next direct successor must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;
