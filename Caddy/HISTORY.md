@@ -149,7 +149,10 @@ requests a historical reconstruction.
   `/etc/caddy/current`; the direct successor must use privileged streamed Bash
 - Availability evidence: IPv4 DNS and HTTPS passed; WSL lacked an IPv6 route,
   so its IPv6 failures are retained but are not valid node-serving acceptance
-- Status: terminal-pending
+- Commit: `e79db2b96ffde720e33cbcd79032b852a9989d69`
+- Tag object: `8bed4ea2582be5693601c7c0f5370155abdbdc67`
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit
 
 ## Action 35d terminal archive
 

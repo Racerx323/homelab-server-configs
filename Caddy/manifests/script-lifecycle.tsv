@@ -1,6 +1,4 @@
 # source-path	lifecycle	node-installable	installed-path	mode	authority
-Caddy/scripts/apply-coupled-serving-health-action35g.sh	failed-consumed	no	-	-	Caddy/manifests/coupled-serving-health-action35g.yaml
-Caddy/scripts/run-dual-node-coupled-serving-health-action35g-outer.sh	failed-consumed	no	-	-	Caddy/manifests/coupled-serving-health-action35g.yaml
 Caddy/scripts/caddy-apprise-delivery-worker.sh	production-current	yes	/usr/local/libexec/caddy-apprise-delivery-worker	0755	Caddy/manifests/durable-apprise-production.tsv
 Caddy/scripts/caddy-apprise-enqueue.sh	production-current	yes	/usr/local/libexec/caddy-apprise-enqueue	0755	Caddy/manifests/durable-apprise-production.tsv
 Caddy/scripts/caddy-sync-release-receiver-v2	production-current	yes	/usr/local/libexec/caddy-sync-release-receiver-v2	0755	Caddy/manifests/synchronization-protocol-v2.yaml
