@@ -344,3 +344,26 @@ requests a historical reconstruction.
   required or attempted
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35m terminal archive
+
+- Tag: `caddy-action35m-terminal-2026-08-17` (pending)
+- Commit: pending terminal-result commit
+- Action: 35m
+- Authorized outer SHA-256:
+  `337f0ef966da2dc15206952f73e47ca32531ccef734b8e789cfaf7aa5751e0de`
+- Transaction SHA-256:
+  `a845b7999db81b390778d3bbb21cd7082dd58bbcdcb6c32c5b352bb1c7295195`
+- Result: failed-consumed during Node B current-production incoming inventory
+  validation, before candidate validation or any mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35m.huceey`
+- Failed assertion: `incoming_node_a_inventory_empty=false`
+- Bounded completion readback: Node B
+  `/tmp/caddy-action35m-completion-readback.tsv` contains the sole regular
+  `action17p-node-a-to-node-b-bootstrap` directory with exact
+  `caddy-sync:caddy-sync:0500` metadata
+- Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
+  disposition all returned 0; no mutation entrypoint ran, so rollback was not
+  required or attempted
+- Status: terminal-pending until this exact tree is committed and tagged

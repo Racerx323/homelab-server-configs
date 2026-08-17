@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35l archived; deployment stream clean
+Current status: core deployment accepted; Action 35m failed-consumed pre-mutation and awaits terminal archival
 
 ## 1. Purpose
 
@@ -330,6 +330,7 @@ uses cleanup only.
 | Corrected DNS-consumer serving-health installation, Action 35j | Failed-consumed during Node B Unbound local-zone path validation and before mutation | `caddy-action35j-terminal-2026-08-17` |
 | Corrected-production-path serving-health installation, Action 35k | Failed-consumed during Node B Unbound local-zone identity validation and before mutation | `caddy-action35k-terminal-2026-08-17` |
 | Exact-local-zone serving-health installation, Action 35l | Failed-consumed at a stale tmpfiles inventory path and before mutation | `caddy-action35l-terminal-2026-08-17` |
+| Corrected-inventory serving-health installation, Action 35m | Failed-consumed at the retained Node B incoming inventory and before mutation | `caddy-action35m-terminal-2026-08-17` (pending) |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
@@ -378,7 +379,20 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-Action 35l must:
+Action 35l then accepted the exact local-zone identity but failed before
+mutation because the production inventory targeted the obsolete
+`/usr/lib/tmpfiles.d/caddy-ha.conf` path. Operator readback proved the installed
+artifact is the exact regular `/etc/tmpfiles.d/caddy-ha.conf` file. Its terminal
+tag is synchronized, its machinery is removed, and it must not be rerun.
+
+Action 35m accepted the corrected tmpfiles inventory, then failed-consumed
+before candidate validation or mutation because Node B retains the sole regular
+`incoming/node-a/action17p-node-a-to-node-b-bootstrap` directory with exact
+`caddy-sync:caddy-sync:0500` metadata. Bounded completion readback is retained
+at `/tmp/caddy-action35m-completion-readback.tsv`; the entry was not altered.
+Both uploads were removed and rollback was not required. Action 35m must not be
+rerun. Its direct successor must classify this exact current inventory and then
+resume the unchanged standby-first transaction:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

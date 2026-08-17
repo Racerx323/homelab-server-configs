@@ -13,9 +13,9 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`; Action 35l's terminal commit and annotated tag are
-synchronized, its machinery is removed, and the successor and causal-coverage
-registries are clear.
+stream is `terminal-pending` for failed-consumed Action 35m. Action 35l's
+terminal commit and annotated tag are synchronized, its machinery is removed,
+and the deployable-successor and causal-coverage registries are clear.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -81,6 +81,27 @@ installation, reload, or any mutation entrypoint. Both exact upload trees were
 removed and rollback was not required. The current inventory now uses the
 production path. A direct successor may consume that correction without a
 diagnostic or Action 35l rerun.
+
+Action 35m consumes this corrected current-production inventory and resumes
+the unchanged standby-first installation. It requires the exact regular
+`/etc/tmpfiles.d/caddy-ha.conf` artifact on each node, never substitutes the
+obsolete `/usr/lib/tmpfiles.d/caddy-ha.conf` path, and does not reinstall or
+otherwise mutate the accepted tmpfiles artifact. Action 35m retains the exact
+local-zone transaction, split-release baseline, Node B then Node A ordering,
+continuous acceptance, reverse rollback, and status-125 controls from Action
+35l. No diagnostic or Action 35l rerun is permitted.
+
+Action 35m accepted every Node B artifact identity through the corrected
+`/etc/tmpfiles.d/caddy-ha.conf` row. It then failed-consumed before candidate
+validation or mutation because the baseline required an empty
+`incoming/node-a` directory. Bounded completion readback retained on Node B at
+`/tmp/caddy-action35m-completion-readback.tsv` proved the sole entry is the
+regular historical `action17p-node-a-to-node-b-bootstrap` directory, owned
+`caddy-sync:caddy-sync` with mode `0500`. Both exact upload trees were removed,
+no mutation entrypoint ran, and rollback was neither required nor attempted.
+The entry was not modified or removed. A direct successor must classify this
+exact current-production inventory safely rather than imposing a blanket empty
+directory assumption; it must not rerun Action 35m or add a separate diagnostic.
 
 ## Architecture decision
 
