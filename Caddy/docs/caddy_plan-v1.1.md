@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35i failed pre-mutation and is archived
+Current status: core deployment accepted; Action 35j failed pre-mutation and is terminal-pending archival
 
 ## 1. Purpose
 
@@ -348,8 +348,12 @@ Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
 32g and whose source is Node A. Privileged inspection proves Node A retains the
 exact finalized candidate beneath `/var/lib/caddy-sync/outbound`; matching
 incoming and quarantine entries are absent. Neither node received the
-serving-health mutation. The next direct successor must validate every semantic,
-path, ownership, inventory, and normalized manifest identity before mutation.
+serving-health mutation. Action 35j accepted the corrected DNS-helper identity,
+then failed-consumed because the inventory used the repository source name
+`pihole0-local-zone.conf` as the installed filename. Production uses
+`/etc/unbound/unbound.conf.d/pihole-local-zone.conf`. No mutation entrypoint ran,
+and both exact upload trees were removed. Action 35j terminal archival and
+cleanup is the current gate; no installation successor is defined.
 It must install Node B first, then promote Node A's own candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
@@ -357,7 +361,7 @@ Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
 bounded workstation evidence on success and failure; WSL `network unreachable`
 results cannot count as successful IPv6 acceptance.
 
-The next direct successor must:
+Any later direct successor must:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

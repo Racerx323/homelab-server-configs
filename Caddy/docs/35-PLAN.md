@@ -2,15 +2,16 @@
 
 ## Status and scope
 
-The serving-health architecture is approved. Action 35i is failed-consumed,
-archived, and removed from the production branch. No controlled failure
-exercise or replacement successor is currently defined.
+The serving-health architecture is approved. Action 35i is archived and
+removed. Action 35j consumed its proven pre-mutation state and is now
+failed-consumed at a later baseline boundary. It is terminal-pending archival;
+no successor or controlled failure exercise is defined.
 
-Every consumed implementation through Action 35h is preserved by the annotated
+Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
-branch. The current branch contains only the production contract and future
-work. The Caddy deployment stream is `clean`; the deployable successor and
-causal-coverage registries are cleared.
+branch. Action 35j remains only for its terminal commit and annotated tag. The
+Caddy deployment stream is `terminal-pending`; the successor and causal-coverage
+registries are cleared.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -26,7 +27,18 @@ then rejected the stale registered DNS-helper identity before any candidate
 check or mutation. Bounded readback proved both nodes currently have exact
 `root:root:0755` helper identity `4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`.
 The desired repository identity remains `294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa`.
-The next direct installation successor must consume that exact baseline.
+Action 35j consumes that exact baseline. It emits expected and observed
+identities before every inventory equality decision, accepts only the recorded
+deployed DNS-helper identity, and installs the desired repository helper during
+the unchanged Node B then Node A transaction. No additional diagnostic or
+controlled failure exercise was part of Action 35j. Its execution accepted this
+corrected identity and every preceding Node B row, then rejected the missing
+stale Node B inventory target
+`/etc/unbound/unbound.conf.d/pihole0-local-zone.conf` before any mutation
+entrypoint ran. The production target is
+`/etc/unbound/unbound.conf.d/pihole-local-zone.conf`; the `pihole0` name belongs
+only to the repository source file. Both exact upload trees were removed
+successfully, and the current production inventory now records that distinction.
 
 ## Architecture decision
 

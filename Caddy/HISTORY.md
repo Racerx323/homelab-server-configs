@@ -267,3 +267,27 @@ requests a historical reconstruction.
   mutation entrypoint ran, so rollback was neither required nor attempted
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35j terminal archive
+
+- Tag: `caddy-action35j-terminal-2026-08-17`
+- Commit: terminal tag target; recorded exactly by the immediate cleanup commit
+- Action: 35j
+- Authorized outer SHA-256:
+  `aa354aa398c9b1495e48587c6b3bd670bf4ef495eb5fa5a72e930f9392043658`
+- Transaction SHA-256:
+  `c3ae04896a4c84bdd67d5e8c6de13b161ae09f2e44e99c709d0c7a2ec9e28b24`
+- Result: failed-consumed during Node B current-production Unbound local-zone
+  path validation, before candidate validation, backup creation, installation,
+  Keepalived reload, publication, Node A promotion, or Node A dispatch
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35j.v2B8Mg`
+- Accepted corrected DNS-helper identity:
+  `4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`
+- Failed assertion: `artifact_node_b_unbound_local_zone_regular=false`; the
+  inventory incorrectly used repository source name `pihole0-local-zone.conf`
+  as the production target instead of `pihole-local-zone.conf`
+- Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
+  disposition all returned 0; no mutation entrypoint ran, so rollback was not
+  required or attempted
+- Status: terminal-pending
