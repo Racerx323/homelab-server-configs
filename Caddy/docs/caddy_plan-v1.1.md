@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35l failed-consumed and terminal-pending
+Current status: core deployment accepted; Action 35l archived; deployment stream clean
 
 ## 1. Purpose
 
@@ -329,13 +329,14 @@ uses cleanup only.
 | Evidence-complete serving-health installation, Action 35i | Failed-consumed during Node B DNS-helper identity validation and before mutation | `caddy-action35i-terminal-2026-08-17` |
 | Corrected DNS-consumer serving-health installation, Action 35j | Failed-consumed during Node B Unbound local-zone path validation and before mutation | `caddy-action35j-terminal-2026-08-17` |
 | Corrected-production-path serving-health installation, Action 35k | Failed-consumed during Node B Unbound local-zone identity validation and before mutation | `caddy-action35k-terminal-2026-08-17` |
+| Exact-local-zone serving-health installation, Action 35l | Failed-consumed at a stale tmpfiles inventory path and before mutation | `caddy-action35l-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Actions 35 through 35k are failed-consumed and preserved by the annotated tags
+Actions 35 through 35l are failed-consumed and preserved by the annotated tags
 listed above. They must not be rerun or copied into current validation. Action
 35g published one valid Node A release and Node B selected it. Action 35h then
 validated that exact split-release protocol state but failed during Node B

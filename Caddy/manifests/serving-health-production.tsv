@@ -7,6 +7,5 @@ homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.service	/etc/system
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.timer	/etc/systemd/system/caddy-pihole-web-health.timer	0644	f214b69fecaeb322dbaba61f683f9cf35970596784adcd707e25278f0ace1505	production-candidate
 homelab-server-configs	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	/etc/caddy/releases/REVISION/conf.d/10-pihole-admin.caddy	0640	93df2e2d056052b92505f70f3d79e826d5c7c6c69baaededd2c5c1b9bb410512	production-candidate
 homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa	production-candidate
-homelab-dns	Unbound/configs/pihole-local-zone.conf	/etc/unbound/unbound.conf.d/pihole-local-zone.conf	0644	f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d	production-candidate
 homelab-dns	Keepalived/configs/keepalived-pihole0.conf	/etc/keepalived/keepalived.conf	0644	18560da8026928b3107da667bdea8762cea85d3a55946e979437e861ce8bd826	production-candidate
 homelab-dns	Keepalived/configs/keepalived-pihole00.conf	/etc/keepalived/keepalived.conf	0644	dffb9c0076b553e085a3dd6223d004829ba3e15570e6985b88646ff037d5ea57	production-candidate

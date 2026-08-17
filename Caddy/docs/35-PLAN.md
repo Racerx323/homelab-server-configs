@@ -13,8 +13,9 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `terminal-pending` for Action 35l; its successor and causal-coverage
-registries are cleared for terminal archival.
+stream is `clean`; Action 35l's terminal commit and annotated tag are
+synchronized, its machinery is removed, and the successor and causal-coverage
+registries are clear.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -72,10 +73,14 @@ preserves every remaining Action 35k installation and recovery control and
 does not rerun Action 35k.
 
 Action 35l accepted the exact repository local-zone identity on Node B, proving
-the manual synchronization. It then failed-consumed because the registered
-production target `/etc/tmpfiles.d/caddy-ha.conf` was absent on Node B. This was
-before candidate validation, backup, installation, reload, or any mutation
-entrypoint. Both exact upload trees were removed and rollback was not required.
+the manual synchronization. It then failed-consumed because the inventory
+incorrectly targeted `/usr/lib/tmpfiles.d/caddy-ha.conf`; operator readback
+proved the exact file exists at the installer-owned production path
+`/etc/tmpfiles.d/caddy-ha.conf`. This was before candidate validation, backup,
+installation, reload, or any mutation entrypoint. Both exact upload trees were
+removed and rollback was not required. The current inventory now uses the
+production path. A direct successor may consume that correction without a
+diagnostic or Action 35l rerun.
 
 ## Architecture decision
 
