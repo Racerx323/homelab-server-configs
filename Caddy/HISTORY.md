@@ -117,3 +117,25 @@ requests a historical reconstruction.
   copy
 - Status: terminal tag and terminal commit are synchronized; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35e terminal archive
+
+- Tag: `caddy-action35e-terminal-2026-08-16`
+- Action: 35e
+- Authorized outer SHA-256:
+  `1ac3ae3dd8ac24938794f2ef9731fc534d0ce164f8b8ae78ee34ae8ac77c1ec1`
+- Transaction SHA-256:
+  `2c31fcabc2357bfc11e21f67ba8bac041f0a12c5eb29e110ac5c453e3ca5f903`
+- Result: failed-consumed after privileged current-release capture on both
+  nodes and during exact Node A retained-candidate validation, before upload,
+  publication, transaction dispatch, service reload, or Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35e`
+- Original release on both nodes:
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`
+- Retained exact candidate path on Node A: `/tmp/caddy-action35c-release`
+- Observed candidate root mode: `0550`
+- Failure: protocol-v2 declares and enforces final release directories as
+  `0550`, but the Action 35e isolated baseline created its source release as
+  `0755`; its real `cp -a` path therefore reproduced the wrong source mode
+- Status: terminal-pending; terminal commit and annotated tag pending

@@ -19,8 +19,9 @@ Action 35c is also failed-consumed. It reached pre-publication candidate
 validation but did not load the required node environment, so Caddy rejected
 the empty node-specific site label. Action 35d is failed-consumed after its
 pre-upload residue check required a mode that the real Action 35c producer did
-not create. The direct installation successor is Action 35e; the controlled
-failure exercise moves to Action 35f.
+not create. Action 35e is also failed-consumed: its isolated baseline ignored
+the protocol-v2 `0550` final-directory contract. The direct installation
+successor is Action 35f; the controlled failure exercise moves to Action 35g.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -449,10 +450,32 @@ remove only that validated path. It retains Action 35d's environment-loaded
 real Caddy parser, independent four-family availability evidence, standby-first
 transaction, embedded acceptance, reverse rollback, and status-125 controls.
 
-## Action 35f: controlled serving-failure exercise
+Action 35e was authorized with outer SHA-256
+`1ac3ae3dd8ac24938794f2ef9731fc534d0ce164f8b8ae78ee34ae8ac77c1ec1`
+and exited `1` during exact Node A retained-candidate validation, before upload,
+publication, transaction dispatch, service reload, or Keepalived mutation.
+Both nodes remained on release
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`. Evidence is retained
+at `/tmp/caddy-ssh-evidence/action35e`. The observed candidate root mode was
+`0550`, which is the current protocol-v2 final-directory contract enforced by
+the publisher and reconciler. Action 35e's fixture incorrectly created the
+accepted source release as `0755`.
 
-Action 35f is separately authorized only after Action 35e is accepted. It does
-not reinstall Action 35e and does not create production fixtures. It exercises
+## Action 35f: direct protocol-mode-corrected installation successor
+
+Action 35f consumes Action 35e without rerunning it. It must derive its
+accepted-release directory and candidate expectations directly from
+`synchronization-protocol-v2.yaml` and execute the real Action 35c `cp -a`
+producer against an exact `0550` source in both host and Debian coverage. It
+may remove only the exact root-owned, non-symlink `0550` retained candidate
+after every semantic, path, inventory, and hash check succeeds. It otherwise
+retains the unchanged environment-loaded parser, standby-first transaction,
+embedded acceptance, reverse rollback, and status-125 controls.
+
+## Action 35g: controlled serving-failure exercise
+
+Action 35g is separately authorized only after Action 35f is accepted. It does
+not reinstall Action 35f and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure
@@ -504,9 +527,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35e`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35f`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35e` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35f` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback

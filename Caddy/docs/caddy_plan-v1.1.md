@@ -321,6 +321,7 @@ uses cleanup only.
 | SSH-boundary-corrected serving-health installation, Action 35b | Failed-consumed after exact dual-node upload and before publication or transaction dispatch | `caddy-action35b-terminal-2026-08-16` |
 | Privileged-resolution serving-health installation, Action 35c | Failed-consumed during candidate validation and before publication or live serving mutation | `caddy-action35c-terminal-2026-08-16` |
 | Environment-complete serving-health installation, Action 35d | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35d-terminal-2026-08-16` |
+| Retained-mode-corrected serving-health installation, Action 35e | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35e-terminal-2026-08-16` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
@@ -343,12 +344,17 @@ failed-consumed and must not be rerun. It captured both current releases, then
 rejected the exact retained Node A candidate before upload because its real
 Action 35c producer yielded root-owned mode `0755` while Action 35d incorrectly
 required `0700`. The direct installation successor is Action 35e; the
-controlled serving-failure exercise moves to Action 35f.
+controlled serving-failure exercise moves to Action 35f. Action 35e is also
+failed-consumed and must not be rerun: its fixture modeled the accepted release
+root as `0755`, despite the current protocol-v2 contract and implementations
+requiring `0550`. The direct installation successor is Action 35f, and the
+controlled serving-failure exercise moves to Action 35g.
 
-Action 35e must validate and remove only the exact retained Node A path
+Action 35f must validate and remove only the exact retained Node A path
 `/tmp/caddy-action35c-release`, load and validate the root-owned node
-environment before candidate parsing, and accept root-owned mode `0755` only
-after reproducing and validating the exact Action 35c `cp -a` producer path.
+environment before candidate parsing, and require the protocol-v2 `0550`
+directory contract while reproducing the exact Action 35c `cp -a` producer
+path from a correctly modeled accepted release.
 It must exercise the real Caddy parser in Debian production-path coverage and
 retain independent DNS IPv4, DNS IPv6, HTTPS IPv4, and HTTPS IPv6 availability
 statuses before resuming the same standby-first transaction.
@@ -381,7 +387,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35e and the separately accepted Action 35f exercise:
+After Action 35f and the separately accepted Action 35g exercise:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;

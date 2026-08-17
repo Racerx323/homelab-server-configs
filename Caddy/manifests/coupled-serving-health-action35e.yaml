@@ -1,0 +1,46 @@
+schema_version: 1
+action: 35e
+title: Retained-mode-corrected standby-first coupled serving-health installation
+state: failed-consumed
+terminal_result:
+  authorized_outer_sha256: 1ac3ae3dd8ac24938794f2ef9731fc534d0ce164f8b8ae78ee34ae8ac77c1ec1
+  exit_status: 1
+  mutation_entrypoint_reached: false
+  node_contact: dual-node-current-release-capture-and-node-a-residue-validation
+  workstation_evidence: /tmp/caddy-ssh-evidence/action35e
+  original_release: 20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
+  retained_candidate_path: /tmp/caddy-action35c-release
+  observed_retained_candidate_root_mode: "0550"
+  failure: fixture-ignored-protocol-v2-final-directory-mode
+consumes:
+  accepted_baseline: Caddy/manifests/current-live-state.tsv
+  failed_consumed_action: caddy-action35d-terminal-2026-08-16
+  retained_candidate_path: /tmp/caddy-action35c-release
+  retained_candidate_root_mode: "0755"
+  retained_candidate_owner: root:root
+  retained_candidate_route_sha256: 93df2e2d056052b92505f70f3d79e826d5c7c6c69baaededd2c5c1b9bb410512
+transaction: Caddy/scripts/apply-coupled-serving-health-action35e.sh
+transaction_sha256: 2c31fcabc2357bfc11e21f67ba8bac041f0a12c5eb29e110ac5c453e3ca5f903
+outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35e-outer.sh
+ordering:
+  - resolve-current-releases-through-streamed-privileged-bash
+  - validate-real-action35c-candidate-producer-and-dispose-exact-path
+  - validate-current-baseline
+  - construct-and-real-parser-validate-one-node-a-protocol-v2-release
+  - install-and-accept-node-b
+  - promote-identical-revision-and-install-node-a
+  - converge-and-accept-cluster
+  - exact-residue-cleanup
+rollback:
+  order: [node-a, node-b]
+  manual_intervention_status: 125
+constraints:
+  node_contact_during_definition: prohibited
+  action35d_rerun: prohibited
+  simultaneous_reload: prohibited
+  generic_installer_caddy_component: prohibited
+  pihole_web_health_vrrp_dependency: false
+  notification_delivery_blocking: false
+  remote_bash_c: prohibited
+  candidate_environment_required: /etc/default/caddy-ha
+  production_path_results_may_be_fabricated: false
