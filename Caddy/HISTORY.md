@@ -96,6 +96,8 @@ requests a historical reconstruction.
 ## Action 35d terminal archive
 
 - Tag: `caddy-action35d-terminal-2026-08-16`
+- Commit: `1a9e30b7088093ddf8444838bfca8705a404ed19`
+- Tag object: `ffc6864994c62b7293919cff7a4fbefff17ae300`
 - Action: 35d
 - Authorized outer SHA-256:
   `5e131a1a1ec2e95e1bab6b7cc71475f8b4b9281d8789127516a0aa2b05878727`
@@ -113,4 +115,5 @@ requests a historical reconstruction.
   the source release root mode as `0755`; Action 35d incorrectly required
   `0700`, and its isolated test hid the mismatch by forcing `0700` after the
   copy
-- Status: terminal-pending; terminal commit and annotated tag pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit
