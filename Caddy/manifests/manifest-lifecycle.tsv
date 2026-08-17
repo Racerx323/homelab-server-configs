@@ -2,7 +2,6 @@
 Caddy/manifests/README.md	production-current	no	Caddy/manifests/README.md
 Caddy/manifests/accepted-live-artifacts.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/current-live-state.tsv	production-current	yes	Caddy/manifests/README.md
-Caddy/manifests/coupled-serving-health-action35b.yaml	failed-consumed	no	Caddy/HISTORY.md
 Caddy/manifests/dependencies.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-live-hash-consumers.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-successor-coverage.tsv	production-current	yes	Caddy/manifests/README.md
