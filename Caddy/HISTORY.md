@@ -211,7 +211,8 @@ requests a historical reconstruction.
 ## Action 35h terminal archive
 
 - Tag: `caddy-action35h-terminal-2026-08-17`
-- Status: terminal-pending
+- Commit: `1db3debe848fb2b1913e7fb592f2272403a7e18f`
+- Tag object: `3c058c962181b5bc2e9294aa781e0699d27eb1be`
 - Action: 35h
 - Authorized outer SHA-256:
   `e921503c9a46d5a18777933cc3518b1868a982aa48e1004a14a6f782cff4b9a3`
@@ -237,3 +238,5 @@ requests a historical reconstruction.
 - Recovery: both upload trees were removed; Node B rollback and restoration
   handlers returned 0. The exact pre-35h split-release selection was restored.
   No serving-health or Keepalived configuration mutation occurred.
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit
