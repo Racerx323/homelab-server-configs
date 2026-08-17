@@ -4,14 +4,14 @@
 
 The serving-health architecture is approved. Action 35i is archived and
 removed. Action 35j consumed its proven pre-mutation state and is now
-failed-consumed at a later baseline boundary. It is terminal-pending archival;
-no successor or controlled failure exercise is defined.
+failed-consumed at a later baseline boundary. Its terminal commit and annotated
+tag are synchronized, its machinery is removed, and no successor or controlled
+failure exercise is defined.
 
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
-branch. Action 35j remains only for its terminal commit and annotated tag. The
-Caddy deployment stream is `terminal-pending`; the successor and causal-coverage
-registries are cleared.
+branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
+stream is `clean`; the successor and causal-coverage registries are cleared.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the

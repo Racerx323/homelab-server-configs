@@ -271,7 +271,8 @@ requests a historical reconstruction.
 ## Action 35j terminal archive
 
 - Tag: `caddy-action35j-terminal-2026-08-17`
-- Commit: terminal tag target; recorded exactly by the immediate cleanup commit
+- Commit: `7ed52a2773cb8195d9430686262d9bc02717d953`
+- Tag object: `78b6b12c8f07c66885083f9c68fd8724eeb56c92`
 - Action: 35j
 - Authorized outer SHA-256:
   `aa354aa398c9b1495e48587c6b3bd670bf4ef495eb5fa5a72e930f9392043658`
@@ -290,4 +291,5 @@ requests a historical reconstruction.
 - Recovery: Node A and Node B upload preparation, copy, acceptance, and exact
   disposition all returned 0; no mutation entrypoint ran, so rollback was not
   required or attempted
-- Status: terminal-pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit

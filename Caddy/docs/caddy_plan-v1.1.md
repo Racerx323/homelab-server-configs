@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35j failed pre-mutation and is terminal-pending archival
+Current status: core deployment accepted; Action 35j archived and deployment stream clean
 
 ## 1. Purpose
 
@@ -352,8 +352,8 @@ serving-health mutation. Action 35j accepted the corrected DNS-helper identity,
 then failed-consumed because the inventory used the repository source name
 `pihole0-local-zone.conf` as the installed filename. Production uses
 `/etc/unbound/unbound.conf.d/pihole-local-zone.conf`. No mutation entrypoint ran,
-and both exact upload trees were removed. Action 35j terminal archival and
-cleanup is the current gate; no installation successor is defined.
+and both exact upload trees were removed. Its terminal tag is synchronized and
+its machinery removed; no installation successor is defined.
 It must install Node B first, then promote Node A's own candidate through its
 local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
 republish, seed production state, or stream Node B configuration to Node A.
