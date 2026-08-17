@@ -121,6 +121,8 @@ requests a historical reconstruction.
 ## Action 35e terminal archive
 
 - Tag: `caddy-action35e-terminal-2026-08-16`
+- Commit: `e66e55e3c19b275bab1b604fd5b0fce34831599b`
+- Tag object: `97c731ddb69f22be220f2101eaf1b689168065ee`
 - Action: 35e
 - Authorized outer SHA-256:
   `1ac3ae3dd8ac24938794f2ef9731fc534d0ce164f8b8ae78ee34ae8ac77c1ec1`
@@ -138,4 +140,5 @@ requests a historical reconstruction.
 - Failure: protocol-v2 declares and enforces final release directories as
   `0550`, but the Action 35e isolated baseline created its source release as
   `0755`; its real `cp -a` path therefore reproduced the wrong source mode
-- Status: terminal-pending; terminal commit and annotated tag pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit
