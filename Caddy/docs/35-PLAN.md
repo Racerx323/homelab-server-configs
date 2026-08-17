@@ -2,15 +2,15 @@
 
 ## Status and scope
 
-The serving-health architecture is approved. Action 35i is failed-consumed
-before mutation and awaits its terminal archive boundary. No controlled failure
+The serving-health architecture is approved. Action 35i is failed-consumed,
+archived, and removed from the production branch. No controlled failure
 exercise or replacement successor is currently defined.
 
 Every consumed implementation through Action 35h is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. The current branch contains only the production contract and future
-work. The Caddy deployment stream is `terminal-pending`; the deployable
-successor and causal-coverage registries are cleared.
+work. The Caddy deployment stream is `clean`; the deployable successor and
+causal-coverage registries are cleared.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the

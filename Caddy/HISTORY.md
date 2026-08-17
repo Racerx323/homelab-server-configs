@@ -244,7 +244,8 @@ requests a historical reconstruction.
 ## Action 35i terminal archive
 
 - Tag: `caddy-action35i-terminal-2026-08-17`
-- Commit: pending terminal-result commit
+- Commit: `b1931c917cddcddb369a23214de6b5bb1084c179`
+- Tag object: `ba1d9abd52d78e3b506616bd2c8f8bd4a324ca67`
 - Action: 35i
 - Authorized outer SHA-256:
   `9de2ca4bc38a62e686c26947a07928943f755467b44cab7f1b44b6e4e220457e`
@@ -264,4 +265,5 @@ requests a historical reconstruction.
   `294afb4db26a3ccac454636efe091b872724e648c901b467142b31fae489e8aa`
 - Recovery: both uploaded payload trees were removed successfully; no live
   mutation entrypoint ran, so rollback was neither required nor attempted
-- Status: terminal-pending
+- Status: terminal tag and terminal commit are synchronized; the consumed
+  machinery was removed by the immediate cleanup commit

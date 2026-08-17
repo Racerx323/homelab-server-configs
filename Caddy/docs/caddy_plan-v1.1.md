@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35i failed pre-mutation and is terminal-pending
+Current status: core deployment accepted; Action 35i failed pre-mutation and is archived
 
 ## 1. Purpose
 
