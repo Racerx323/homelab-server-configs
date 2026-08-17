@@ -1,0 +1,44 @@
+---
+schema_version: 1
+action: 35c
+title: Privileged-resolution standby-first coupled serving-health installation
+state: failed-consumed
+terminal_result:
+  authorized_outer_sha256: eb832297cff590075cc9f70e931cd38f7bbccf7dc594fa1995f59a85d89c525a
+  exit_status: 1
+  mutation_entrypoint_reached: false
+  node_contact: dual-node-upload-and-prepublication-validation
+  workstation_evidence: /tmp/caddy-ssh-evidence/action35c
+  original_release: 20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
+  retained_candidate_path: /tmp/caddy-action35c-release
+  failure: candidate-caddy-validation-missing-node-environment
+consumes:
+  accepted_baseline: Caddy/manifests/current-live-state.tsv
+  failed_consumed_action: caddy-action35b-terminal-2026-08-16
+  retained_upload_path: /tmp/caddy-action35b-upload
+  retained_payload_sha256: 487cebeff7f13da4a301293f1a80ccc70ca4e7c38768136b9694294d9369a6fe
+transaction: Caddy/scripts/apply-coupled-serving-health-action35c.sh
+transaction_sha256: a8a9a0210325a18a42d70afbe17395470a052a1beda713f989acbc4518529070
+outer_runner: Caddy/scripts/run-dual-node-coupled-serving-health-action35c-outer.sh
+ordering:
+  - validate-and-dispose-exact-action35b-uploads
+  - resolve-current-releases-through-streamed-privileged-bash
+  - validate-current-baseline
+  - construct-one-node-a-protocol-v2-release
+  - install-and-accept-node-b
+  - promote-identical-revision-and-install-node-a
+  - converge-and-accept-cluster
+  - exact-residue-cleanup
+rollback:
+  order: [node-a, node-b]
+  manual_intervention_status: 125
+constraints:
+  node_contact_during_definition: prohibited
+  action35b_rerun: prohibited
+  simultaneous_reload: prohibited
+  generic_installer_caddy_component: prohibited
+  pihole_web_health_vrrp_dependency: false
+  notification_delivery_blocking: false
+  remote_bash_c: prohibited
+  unprivileged_current_release_resolution: prohibited
+  production_path_results_may_be_fabricated: false

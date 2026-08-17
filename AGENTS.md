@@ -201,9 +201,9 @@ obtained without executing the registered outer and transaction paths.
   certificate timer failures do not change VRRP ownership.
 - Keep probes within their Keepalived timeout and validate exact IPv4 and IPv6
   paths.
-- Actions 35 and 35a are failed-consumed and archived. Corrected Action 35b
-  owns the next serving-health migration after the Action 35a terminal archive
-  and cleanup. The generic installer must not deploy it.
+- Consumed serving-health actions are preserved only by the annotated tags in
+  `Caddy/HISTORY.md`. The single registered successor, when present, owns the
+  next migration. The generic installer must not deploy that migration.
 
 ## Synchronization contract
 

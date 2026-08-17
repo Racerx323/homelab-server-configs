@@ -60,4 +60,32 @@ requests a historical reconstruction.
   `487cebeff7f13da4a301293f1a80ccc70ca4e7c38768136b9694294d9369a6fe`
 - Failure: the unprivileged SSH identity could not traverse and resolve
   `/etc/caddy/current`; the successor must use streamed privileged resolution
+- Commit: `ad7a5d1197c3cfb48f573eb7845f79c4af3c1156`
+- Tag object: `fc5df66631bb0de7445c1e54c7bca0f0aff768a7`
+- Status: terminal tag, terminal commit, and immediate cleanup commit are
+  synchronized
+
+## Action 35c terminal archive
+
+- Tag: `caddy-action35c-terminal-2026-08-16` (planned until terminal commit)
+- Action: 35c
+- Authorized outer SHA-256:
+  `eb832297cff590075cc9f70e931cd38f7bbccf7dc594fa1995f59a85d89c525a`
+- Transaction SHA-256:
+  `a8a9a0210325a18a42d70afbe17395470a052a1beda713f989acbc4518529070`
+- Result: failed-consumed after exact retained-upload disposition, dual-node
+  upload, and privileged current-release capture, but before protocol-v2
+  publication, transaction dispatch, service reload, or Keepalived mutation
+- Exit status: 1
+- Evidence: `/tmp/caddy-ssh-evidence/action35c`
+- Original release on both nodes:
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`
+- Cleanup: both retained Action 35b uploads and both Action 35c upload trees
+  were removed successfully
+- Retained exact candidate path on Node A: `/tmp/caddy-action35c-release`
+- Failure: candidate Caddy validation did not load `/etc/default/caddy-ha`, so
+  `NODE_FQDN` expanded empty and Caddy rejected an empty site label
+- Availability evidence: two aggregate samples returned status 9; the direct
+  successor must retain independent DNS IPv4, DNS IPv6, HTTPS IPv4, and HTTPS
+  IPv6 statuses
 - Status: terminal-pending

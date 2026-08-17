@@ -11,12 +11,14 @@ The audit after that failure also rejected Action 35's production-path tests:
 they fabricated expected evidence and success markers instead of executing the
 real outer and transaction state machines. Synthetic production results are
 prohibited. Its first corrected successor, Action 35a, is also failed-consumed
-and archived as recorded below. Action 35b is the single registered,
-failed-consumed installation successor. It uploaded the exact payload to both
+and archived as recorded below. Action 35b is failed-consumed and no longer
+registered. It uploaded the exact payload to both
 nodes but failed before publication or transaction dispatch because the
 unprivileged SSH identity could not resolve `/etc/caddy/current`. The direct
-installation successor is Action 35c; the controlled failure exercise moves
-to Action 35d.
+Action 35c is also failed-consumed. It reached pre-publication candidate
+validation but did not load the required node environment, so Caddy rejected
+the empty node-specific site label. The direct installation successor is
+Action 35d; the controlled failure exercise moves to Action 35e.
 
 Action 35 corrects the coupled DNS/Caddy ownership model so a sustained
 node-local DNS-serving or Caddy-serving failure causes the healthy peer to
@@ -305,20 +307,24 @@ Repository work requires no live authorization. It must:
 8. Run current focused host validation and one network-disabled Debian 12
    focused batch.
 
-The repository gate stops after reporting the exact future Action 35b outer
-SHA-256. No node contact occurs during definition. The consumed Action 35 gate
+The repository gate for the direct successor stops after reporting its exact
+outer SHA-256. No node contact occurs during definition. The consumed Action 35 gate
 is not reusable: its tests were invalidated because they fabricated production
 results, and its execution failed before SSH or mutation. Its exact files and
 authorization provenance are retained by the terminal tag recorded in
 `Caddy/HISTORY.md`.
 
-## Action 35b: standby-first installation transaction
+## Action 35c: failed-consumed installation transaction
 
-Action 35b's production-path validation executes the generated SSH transport,
+Action 35c's production-path validation executes the generated SSH transport,
 upload, transaction, publisher, acceptance, rollback, and cleanup boundaries.
 Remote multi-command Bash is streamed on standard input from `cd /`; remote
-Bash `-c` is prohibited. Action 35a is consumed only as failure provenance and
-is never invoked.
+Bash `-c` is prohibited. Actions 35a and 35b are consumed only as failure
+provenance and are never invoked. Before creating a new upload, Action 35c
+must accept an absent Action 35b upload or validate and remove the exact
+retained upload matching its recorded payload SHA-256. Partial, extra,
+malformed, symlinked, or unsafe retained state is rejected. Current-release
+resolution is performed only through streamed privileged Bash.
 
 Live execution requires separate authorization of the definition-complete
 outer runner. One transaction must install and accept the corrected health
@@ -374,12 +380,12 @@ Node A must not be mutated unless Node B is fully eligible to take ownership.
    four VIPs and Node B stable dual-stack `BACKUP` with zero VIPs.
 
 The generic `install-caddy-ha.sh` Caddy component is prohibited during this
-live migration. Action 35b must regression-test that the generic installer
+live migration. Action 35c must regression-test that the generic installer
 fails closed when `/etc/caddy/current` exists. Rollback restores both original
 release selections through the transactional release boundary before restoring
 the remaining files in reverse node order.
 
-### Action 35b acceptance
+### Action 35c acceptance
 
 - Both production helpers and Keepalived configurations match exact candidate
   identities, owners, groups, and modes.
@@ -398,10 +404,32 @@ On failure, restore Node A and then Node B in reverse mutation order, reload
 Keepalived sequentially, and prove the exact accepted Action 34m state. Return
 status `125` only when mutation occurred and recovery cannot be proven.
 
-## Action 35c: controlled serving-failure exercise
+Action 35c was authorized with outer SHA-256
+`eb832297cff590075cc9f70e931cd38f7bbccf7dc594fa1995f59a85d89c525a`
+and exited `1` before publication or a live serving mutation. Both nodes
+remained on release
+`20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`. Exact evidence is
+retained at `/tmp/caddy-ssh-evidence/action35c`. The exact Node A candidate
+path `/tmp/caddy-action35c-release` remains for successor disposition.
 
-Action 35c is separately authorized only after Action 35b is accepted. It does
-not reinstall Action 35b and does not create production fixtures. It exercises
+## Action 35d: direct corrected installation successor
+
+Action 35d consumes Action 35c without rerunning it. Before creating a new
+candidate, it must validate and remove only the exact retained
+`/tmp/caddy-action35c-release` derived from the accepted release and Action 35c
+candidate route. Candidate validation must load and validate the exact
+root-owned `/etc/default/caddy-ha` environment. Debian production-path coverage
+must invoke the real Caddy parser rather than a success-only substitute.
+
+The continuous availability sampler must retain independent DNS IPv4, DNS
+IPv6, HTTPS IPv4, and HTTPS IPv6 statuses and safe classified evidence. Action
+35d then resumes the unchanged standby-first transaction and complete embedded
+acceptance described above.
+
+## Action 35e: controlled serving-failure exercise
+
+Action 35e is separately authorized only after Action 35d is accepted. It does
+not reinstall Action 35d and does not create production fixtures. It exercises
 real current services and health paths while continuous one-second DNS,
 trusted HTTPS, and shared Pi-hole UI probes retain availability evidence. The
 planned lighttpd outage is the sole interval in which shared Pi-hole UI failure
@@ -453,9 +481,9 @@ repeated; accepted Action 33 already covers node outage and reboot behavior.
 
 ## Evidence and recovery contract
 
-- Store node-local bounded evidence beneath `/tmp/caddy-action35b`.
+- Store node-local bounded evidence beneath `/tmp/caddy-action35c`.
 - Store every SSH stdout, stderr, and status independently beneath
-  `/tmp/caddy-ssh-evidence/action35b` on the workstation.
+  `/tmp/caddy-ssh-evidence/action35c` on the workstation.
 - Capture journal evidence with pre-command cursors and `--after-cursor`.
 - Record helper duration, exit status, safe answers/response metadata, VRRP
   transitions, VIP ownership, service state, notification events, and rollback

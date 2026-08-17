@@ -66,7 +66,7 @@ Caddy health covers:
 - node-specific address binding and hostname handling;
 - completion within the Keepalived script timeout.
 
-Action 35b sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
+Action 35c sets the target schedule to interval 3, timeout 2, fall 2, rise 3.
 Six seconds of sustained serving failure can trigger failover.
 
 Pi-hole/lighttpd web-backend health remains notification-only. A backend
@@ -228,7 +228,7 @@ Enabled and active:
 - `caddy-sync-health.timer`;
 - `caddy-apprise-worker.path`;
 - `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer` after Action 35b.
+- `caddy-pihole-web-health.timer` after Action 35c.
 
 Static workers:
 
@@ -318,6 +318,8 @@ uses cleanup only.
 | Durable Apprise, Action 34m | Accepted | pre-cleanup tag |
 | Serving-health coupling, Action 35 | Failed-consumed before SSH or mutation | `caddy-action35-terminal-2026-08-16` |
 | Corrected serving-health installation, Action 35a | Failed-consumed after Node A SSH preparation contact and before upload or mutation | `caddy-action35a-terminal-2026-08-16` |
+| SSH-boundary-corrected serving-health installation, Action 35b | Failed-consumed after exact dual-node upload and before publication or transaction dispatch | `caddy-action35b-terminal-2026-08-16` |
+| Privileged-resolution serving-health installation, Action 35c | Failed-consumed during candidate validation and before publication or live serving mutation | `caddy-action35c-terminal-2026-08-16` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
@@ -330,8 +332,21 @@ It must not be rerun or modified. Corrected standby-first installation Action
 35b is failed-consumed and must not be rerun. It uploaded its exact payload to
 both nodes, then failed before publication or transaction dispatch because the
 unprivileged SSH identity could not resolve `/etc/caddy/current`. Its direct
-installation successor is Action 35c; the controlled serving-failure exercise
-moves to Action 35d.
+Action 35c is also failed-consumed and must not be rerun. It removed the exact
+retained Action 35b uploads, uploaded its payload to both nodes, and captured
+both current releases through privileged streamed Bash. Candidate validation
+then failed because `/etc/default/caddy-ha` was not loaded, leaving the
+node-specific site label empty. No protocol publication, transaction dispatch,
+service reload, or Keepalived mutation occurred. The direct installation
+successor is Action 35d; the controlled serving-failure exercise moves to
+Action 35e.
+
+Action 35d must validate and remove only the exact retained Node A path
+`/tmp/caddy-action35c-release`, load and validate the root-owned node
+environment before candidate parsing, exercise the real Caddy parser in Debian
+production-path coverage, and retain independent DNS IPv4, DNS IPv6, HTTPS
+IPv4, and HTTPS IPv6 availability statuses before resuming the same
+standby-first transaction.
 
 The transaction must:
 
@@ -361,7 +376,7 @@ success without executing both registered production paths.
 
 ## 18. Pending work
 
-After Action 35b:
+After Action 35d and the separately accepted Action 35e exercise:
 
 1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;
