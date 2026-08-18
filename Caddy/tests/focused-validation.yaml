@@ -29,6 +29,7 @@
         "Caddy/manifests/script-lifecycle.tsv",
         "Caddy/manifests/systemd-lifecycle.tsv",
         "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/scripts/*action35u*.sh",
         "Caddy/scripts/lsyncd-sync-failure-notify.sh",
         "Caddy/systemd/caddy-apprise-worker.*",
         "Caddy/systemd/caddy-sync-failure@.service",
@@ -130,30 +131,34 @@
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
         "Caddy/systemd/caddy-pihole-web-health.*",
-        "Caddy/tests/serving-health-regression.sh"
+        "Caddy/tests/serving-health*.sh"
       ],
       "debian_path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
         "Caddy/manifests/serving-health-production.tsv",
         "Caddy/scripts/caddy-apprise-*.sh",
+        "Caddy/scripts/*action35u*.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
         "Caddy/systemd/caddy-pihole-web-health.*",
-        "Caddy/tests/serving-health-regression.sh"
+        "Caddy/tests/serving-health*.sh"
       ],
       "shell_files": [
         "Caddy/scripts/caddy-apprise-delivery-worker.sh",
         "Caddy/scripts/caddy-apprise-enqueue.sh",
         "Caddy/scripts/check-caddy-serving-health.sh",
         "Caddy/scripts/check-pihole-web-health.sh",
+        "Caddy/tests/serving-health-readback-regression.sh",
         "Caddy/tests/serving-health-regression.sh"
       ],
       "host_tests": [
         "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/serving-health-readback-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/serving-health-regression.sh",
+        "Caddy/tests/serving-health-readback-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "policies": [

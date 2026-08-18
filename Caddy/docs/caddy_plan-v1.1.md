@@ -2,7 +2,14 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35t archived; Caddy stream clean; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35u accepted read-only with no mutation; Action 35v is the next direct installation successor; installed Keepalived parser modes are prohibited
+
+Action 35u proved Node A's selected older release returns trusted-TLS HTTP 404
+from `/healthz` over IPv4 and IPv6, while Node B returns HTTP 204 over both.
+Listeners, certificates, routing, and Caddy service state are healthy. The
+next gate is direct installation successor Action 35v; it activates Node A's
+already-published serving-health release before requiring the direct helper to
+pass. Actions 35t and 35u remain consumed and may not be restored or rerun.
 
 ## 1. Purpose
 

@@ -1,0 +1,51 @@
+schema_version: 1
+action: 35u
+title: Read-only Caddy serving-health HTTPS completion capture
+status: accepted-executed-definition
+baseline: Caddy/manifests/current-live-state.tsv
+transaction: Caddy/scripts/capture-caddy-serving-health-action35u.sh
+transaction_sha256: 1d8d87f6c23f13f8cc362c7dfe82a7444d6885209e5c7c89a137f91a511d12fb
+outer_runner: Caddy/scripts/run-caddy-serving-health-readback-action35u-outer.sh
+consumes:
+  action: 35t
+  result: failed-consumed
+  rerun: false
+  mutation_entrypoint_ran: false
+  terminal_tag: caddy-action35t-terminal-2026-08-17
+  workstation_evidence: /tmp/caddy-ssh-evidence-action35t.68VRV6
+  node_b_candidate_check: passed
+  node_a_failed_assertion: caddy_serving_health_check_ipv4_https=false
+scope:
+  read_only: true
+  production_mutation_allowed: false
+  installation_successor_allowed: false
+  node_order: [node-b, node-a]
+capture:
+  exact_candidate_helper_sha256: 381c9b371621e1ddfae1eba3f557f8750fc0bbcc162415b038c8043aa1bac208
+  real_identity: keepalived_script
+  protected_environment_keys: [NODE_FQDN, NODE_IPV4, NODE_IPV6]
+  families: [ipv4, ipv6]
+  fields: [curl_arguments, curl_status, stderr, http_status, remote_address, tls_verify_result, redirects, timing, classification]
+  listener_evidence: [tcp, udp]
+  caddy_service_read_only: true
+  node_evidence: /tmp/caddy-action35u-evidence-RUN-NODE
+  workstation_evidence: /tmp/caddy-ssh-evidence-action35u.RUN
+cleanup:
+  remove_only: [temporary_payload, temporary_archive]
+  retain_node_evidence: true
+exit_status:
+  evidence_incomplete: 74
+  cleanup_unproven: 75
+authorization:
+  definition_contacts_nodes: false
+  live_execution_requires_outer_sha256: true
+execution:
+  authorized_outer_sha256: ba4a02e74e2c30c50ed899177e7f6ba756e901e4d3ce0d6d08b4b0442bda9659
+  exit_status: 0
+  result: accepted
+  workstation_evidence: /tmp/caddy-ssh-evidence-action35u.fPCHPN
+  production_mutation: false
+  temporary_payload_cleanup: proven
+  node_a: {ipv4: trusted-tls-http-404, ipv6: trusted-tls-http-404}
+  node_b: {ipv4: trusted-tls-http-204, ipv6: trusted-tls-http-204}
+  capture_deviation: curl-proxy-retained-but-did-not-relay-helper-stdout

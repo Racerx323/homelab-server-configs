@@ -2,6 +2,41 @@
 
 ## Status and scope
 
+The serving-health architecture is approved. Action 35t is archived only at
+`caddy-action35t-terminal-2026-08-17` and must not be restored, modified, or
+rerun. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35t.68VRV6`. No mutation entrypoint ran. Node
+B's candidate checks passed; Node A failed only at
+`caddy_serving_health_check_ipv4_https=false`, after the candidate helper had
+deleted its temporary curl diagnostics.
+
+Action 35u is accepted and terminal. It was a narrow, dual-node, read-only
+completion capture, not the installation successor. It executed the
+exact candidate helper under `keepalived_script`, records the exact IPv4 and
+IPv6 curl arguments and detailed outcomes independently on each node, captures
+Caddy state and listener evidence, and reads bounded evidence back to the
+workstation. It changes no configuration, release, service, synchronization,
+VRRP, ownership, or production filesystem state. Only its transaction payload
+and archive are removed; node evidence is retained. Evidence or readback
+failure returns 74 and unproven payload cleanup returns 75. The installation
+successor remained undefined until Action 35u identified the exact failure:
+Node A's selected older release returns trusted-TLS HTTP 404 from `/healthz`
+over both families, while Node B's serving-health release returns HTTP 204.
+All listeners and Caddy service state were healthy, all temporary payload
+cleanup succeeded, and no production mutation occurred. The capture's curl
+proxy retained but did not relay helper stdout, creating an observer-induced
+Node B helper-status failure; the independently executed detailed curl results
+are authoritative. No further diagnostic or Action 35u rerun is permitted.
+
+The next direct installation successor is Action 35v. It consumes Actions 35t
+and 35u without rerunning either, accepts the exact split-release 404/204
+baseline, activates Node A's already-published serving-health release before
+requiring the unwrapped helper to pass, and then resumes the unchanged
+standby-first installation.
+
+The historical narrative below records the baseline that led to this gate;
+any older "next action" wording is superseded by this status section.
+
 The serving-health architecture is approved. Action 35j is archived and
 removed after failing at a pre-mutation inventory boundary. Its terminal commit,
 annotated tag, immediate cleanup commit, and corrected cross-repository

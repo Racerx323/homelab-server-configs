@@ -480,6 +480,26 @@ requests a historical reconstruction.
 - Status: terminal tag and commit are synchronized; consumed machinery was
   removed by the immediate cleanup commit
 
+## Action 35u terminal archive
+
+- Tag: `caddy-action35u-terminal-2026-08-17`
+- Action: 35u
+- Authorized outer SHA-256:
+  `ba4a02e74e2c30c50ed899177e7f6ba756e901e4d3ce0d6d08b4b0442bda9659`
+- Transaction SHA-256:
+  `1d8d87f6c23f13f8cc362c7dfe82a7444d6885209e5c7c89a137f91a511d12fb`
+- Result: accepted read-only HTTPS completion capture; no production mutation
+- Exit status: 0
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35u.fPCHPN`
+- Finding: Node A returned trusted-TLS HTTP 404 from `/healthz` over IPv4 and
+  IPv6; Node B returned HTTP 204 over both. Both nodes had exact TCP/UDP
+  listeners and active Caddy services.
+- Deviation: the capture proxy retained but did not relay helper stdout, so
+  Node B's helper-status failure was observer-induced. Independent direct curl
+  evidence is authoritative and no additional diagnostic is required.
+- Cleanup: every upload, capture, readback, and payload cleanup status was 0
+- Status: terminal-pending
+
 ## Action 35t terminal archive
 
 - Tag: `caddy-action35t-terminal-2026-08-17`
