@@ -14,8 +14,8 @@ Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. Action 35o's terminal
 commit and annotated tag are recorded, and its machinery is removed. The Caddy
-deployment stream is clean after archiving failed-consumed Action 35q. Actions
-35o through 35q are not rerunnable. The direct successor is not yet registered.
+deployment stream is defined at Action 35r after archiving failed-consumed
+Action 35q. Actions 35o through 35q are not rerunnable.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -205,6 +205,28 @@ semantically, reject changed, additional, malformed, symlinked, referenced, or
 unsafe state, reversibly disposition them like the Node B quarantine, and then
 resume the unchanged standby-first installation. No separate diagnostic or
 Action 35q rerun is permitted.
+
+Action 35r is that direct successor. It pins the four names, revisions, source
+roles, release-manifest identities, payload-manifest identities, normalized
+payload hashes, safe file inventory, ownership, and modes. It rejects any
+changed or additional entry and any link from current, incoming, or outbound
+state. After Node B is completely accepted, it stops Node A synchronization,
+moves only the validated quarantine root into transaction-owned evidence,
+recreates the protected root empty, restores synchronization, and proceeds
+with the existing Node A promotion and installation. Rollback restores the
+exact four-family quarantine before service acceptance. Successful completion
+deletes the staged historical trees only when bounded transaction evidence is
+disposed.
+
+Action 35r execution passed Node B preflight and every Node A baseline check
+through the first quarantine family manifests, metadata, revision, source,
+payload verification, and empty protocol markers. It then failed closed at
+`node_a_quarantine_baseline_..._file_inventory_exact=false`. No quarantine
+disposition, helper removal, candidate validation, installation, reload, or
+other production mutation entrypoint ran. Failure evidence readback and exact
+upload cleanup succeeded on both nodes, so rollback was not required. The
+workstation evidence is `/tmp/caddy-ssh-evidence-action35r.QXPhkL`. Action 35r
+is failed-consumed and must not be rerun.
 
 ## Architecture decision
 

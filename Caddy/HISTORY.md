@@ -479,3 +479,21 @@ requests a historical reconstruction.
   so rollback was not required or attempted.
 - Status: terminal tag and commit are synchronized; consumed machinery was
   removed by the immediate cleanup commit
+
+## Action 35r terminal archive
+
+- Tag: `caddy-action35r-terminal-2026-08-17`
+- Action: 35r
+- Authorized outer SHA-256:
+  `347b9044acde81f2ec9d5dd5b4e86da108bf64c93c731654b78e67b98c201640`
+- Transaction SHA-256:
+  `7f4b7303eb6666b0651ee0110f609021298e0710825da3439f9cf88d2eb3e50c`
+- Result: failed-consumed during Node A quarantine semantic validation,
+  before disposition or any production mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35r.QXPhkL`
+- Failed assertion:
+  `action_35_r_check_node_a_quarantine_baseline_node_b_20260811t174240z_31d43261_5cd7_44ce_83e5_947927184d29_file_inventory_exact=false`
+- Recovery: both failure readbacks and exact upload dispositions completed;
+  no mutation ran, so rollback was not required
+- Status: terminal-pending

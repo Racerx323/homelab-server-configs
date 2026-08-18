@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35q archived; Caddy stream clean
+Current status: core deployment accepted; Action 35r failed-consumed, terminal-pending
 
 ## 1. Purpose
 

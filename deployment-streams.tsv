@@ -1,2 +1,2 @@
 schema_version	component	component_root	plan	history	successor_registry	coverage_registry	window_state	action	terminal_result	archive_tag
-1	caddy	Caddy	Caddy/docs/caddy_plan-v1.1.md	Caddy/HISTORY.md	Caddy/manifests/deployable-successor.tsv	Caddy/manifests/deployable-successor-coverage.tsv	clean	-	-	caddy-action35q-terminal-2026-08-17
+1	caddy	Caddy	Caddy/docs/caddy_plan-v1.1.md	Caddy/HISTORY.md	Caddy/manifests/deployable-successor.tsv	Caddy/manifests/deployable-successor-coverage.tsv	terminal-pending	35r	failed-consumed	caddy-action35r-terminal-2026-08-17
