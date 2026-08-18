@@ -372,8 +372,9 @@ requests a historical reconstruction.
 
 ## Action 35n terminal archive
 
-- Tag: `caddy-action35n-terminal-2026-08-17` (pending)
-- Commit: pending terminal-result commit
+- Tag: `caddy-action35n-terminal-2026-08-17`
+- Commit: `364349a7f416d0800b56eb5c500f0bad15759626`
+- Tag object: `34d993ffe5c13d18629158a0accd1258c81140ac`
 - Action: 35n
 - Authorized outer SHA-256:
   `e0eac2c04da696c5545ad2439a4a59d295a0c38e389b75e035a97a935f5648bd`
@@ -392,4 +393,5 @@ requests a historical reconstruction.
 - Recovery: Node A and Node B upload preparation, copy, acceptance, evidence
   readback, and exact disposition all returned 0; no mutation entrypoint ran,
   so rollback was not required or attempted
-- Status: terminal-pending until this exact tree is committed and tagged
+- Status: terminal tag and terminal commit are recorded; the consumed
+  machinery was removed by the immediate cleanup commit
