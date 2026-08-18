@@ -45,6 +45,7 @@ grep -Fq '_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
 
 for decision in \
     transaction-acceptance transaction-rejection \
+    protocol-namespace-state-equivalence \
     post-promotion-sequence protocol-v2-target-publication \
     protocol-v2-target-promotion minimal-caddy-failure minimal-dns-failure \
     bounded-node-b-convergence node-b-master-rejection; do
@@ -54,6 +55,22 @@ for decision in \
         exit 1
     fi
 done
+grep -Fq $'protocol-namespace-state-equivalence\taccept\t0\t' \
+    "$root/transaction/decisions/protocol-namespace-state-equivalence.tsv"
+for namespace_case in absent empty-protected; do
+    grep -Fq "protocol-namespace-$namespace_case"$'\taccept\t0\t' \
+        "$root/transaction/decisions/protocol-namespace-$namespace_case.tsv"
+done
+for namespace_case in non-empty unsafe-mode unsafe-owner symlink malformed; do
+    awk -F '\t' -v scenario="protocol-namespace-$namespace_case" '
+        $1 == scenario && $2 == "reject" && $3 != 0 { accepted = 1 }
+        END { exit !accepted }
+    ' "$root/transaction/decisions/protocol-namespace-$namespace_case.tsv"
+done
+grep -Fq 'protocol_namespace_state=absent' \
+    "$root/transaction/raw/protocol-namespace-absent.txt"
+grep -Fq 'protocol_namespace_metadata=true' \
+    "$root/transaction/raw/protocol-namespace-empty-protected.txt"
 grep -Fq $'protocol-v2-target-publication\taccept\t0\t' \
     "$root/transaction/decisions/protocol-v2-target-publication.tsv"
 grep -Fq $'protocol-v2-target-promotion\taccept\t0\t' \

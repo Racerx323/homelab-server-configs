@@ -541,6 +541,13 @@ publication, service, release, or VRRP mutation ran. Evidence is
 both absent and correctly protected empty protocol namespaces while rejecting
 non-empty, symlinked, malformed, or unsafe state.
 
+Action 35ah is the direct installation operation. It changes only the neutral
+protocol-namespace predicate: absent and `caddy-sync:caddy-sync:0750` empty
+directories are equivalent valid state; non-empty, symlinked, malformed,
+incorrectly owned, or incorrectly mode-set state fails closed. Production-path
+coverage executes this complete state matrix through the real predicate. The
+remaining standby-first transaction is unchanged.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:

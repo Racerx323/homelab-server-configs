@@ -144,6 +144,14 @@ transaction entrypoints. Exercise only state variants that can change the
 current operation's decision. Emitted labels without entrypoint execution do
 not prove coverage.
 
+Every production-state predicate must enumerate all representations the live
+contract treats as equivalent. When a namespace may safely be absent or exist
+as a protected empty directory, production-path coverage must execute both
+states through the real predicate. It must also reject the adjacent non-empty,
+symlinked, malformed, incorrectly owned, and incorrectly mode-set states. Do
+not encode one observed representation as the only valid baseline when the
+production contract permits another.
+
 Production-path tests may create isolated input state and bounded substitutes
 for unavailable external systems. They must not pre-write, copy, or print an
 expected result as though the real producer, helper, outer runner, or

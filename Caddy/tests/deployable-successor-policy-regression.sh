@@ -70,6 +70,10 @@ check neutral_transaction_required \
 check neutral_outer_required \
     grep -Fq 'Caddy/scripts/run-serving-health-deployment-outer.sh' "$policy" || exit 1
 check operation_hash_required grep -Fq 'readonly operation_sha256=' "$policy" || exit 1
+check state_equivalence_contract_required \
+    grep -Fq 'protocol-namespace-state-equivalence' "$policy" || exit 1
+check protected_empty_state_required \
+    grep -Fq 'protected-empty-directory' "$policy" || exit 1
 check proportional_coverage \
     grep -Fq 'Extra bounded evidence is allowed' "$policy" || exit 1
 forbidden_generator=successor_regression_write_entrypoint

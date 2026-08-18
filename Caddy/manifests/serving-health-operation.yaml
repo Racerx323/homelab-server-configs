@@ -1,18 +1,18 @@
 schema_version: 2
-action: 35ag
-title: Direct coupled serving-health installation
-status: failed-consumed
+action: 35ah
+title: Namespace-equivalent coupled serving-health installation
+status: defined-unexecuted
 consumes:
-  - action: 35af
+  - action: 35ag
     result: failed-consumed
     rerun: prohibited
-    archive_tag: caddy-action35af-terminal-2026-08-18
-    evidence: /tmp/caddy-ssh-evidence-action35af.JHd23Z
+    archive_tag: caddy-action35ag-terminal-2026-08-18
+    evidence: /tmp/caddy-ssh-evidence-serving_health.UaFJlC
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 3f4548c6125a33b4aeb0c58f0fa727e67f4066d7548e0f8bff62c2abe2f541ee
+transaction_sha256: 88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 1370eb3cc444c72dc1475a3a3a62182b969b2a43dac450d492458b522180232b
@@ -50,9 +50,13 @@ rollback:
   baseline: exact pre-action split release and inventories
   unrecoverable_status: 125
 live_execution: separately-authorized-by-exact-outer-sha256
-terminal_result:
-  exit_status: 1
-  mutation: none
-  failed_assertion: serving_health_deployment_check_incoming_node_a_absent=false
-  evidence: /tmp/caddy-ssh-evidence-serving_health.UaFJlC
-  recovery: upload-disposition-complete-no-rollback-required
+state_equivalence:
+  protocol_namespace_valid:
+    - absent
+    - protected-empty-directory
+  protocol_namespace_rejected:
+    - non-empty
+    - symlinked
+    - malformed
+    - incorrect-owner
+    - incorrect-mode

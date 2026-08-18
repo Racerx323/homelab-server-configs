@@ -162,6 +162,12 @@ Evidence is `/tmp/caddy-ssh-evidence-serving_health.UaFJlC`. The direct
 correction must accept absent and correctly protected empty namespaces and
 reject non-empty, symlinked, malformed, or unsafe state.
 
+Action 35ah implements only that correction in the neutral reusable
+transaction. Its production-path coverage executes absent and protected-empty
+acceptance plus non-empty, symlinked, malformed, incorrectly owned, and
+incorrectly mode-set rejection. It consumes but does not rerun Action 35ag and
+retains the otherwise unchanged standby-first installation.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

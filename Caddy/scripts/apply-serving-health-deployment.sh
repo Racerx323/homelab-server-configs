@@ -187,7 +187,7 @@ require_exact_directory_inventory() {
     require "${serving_health_label}_root_regular" test -d "$serving_health_root" || return 1
     require "${serving_health_label}_root_not_symlink" test ! -L "$serving_health_root" || return 1
     if ! serving_health_observed=$(find "$serving_health_root" -mindepth 1 -maxdepth 1 \
-        -type d -printf '%f\n' | LC_ALL=C sort); then
+        -printf '%f\n' | LC_ALL=C sort); then
         printf '%s_check_%s_inventory_read=false\n' "$prefix" "$serving_health_label"
         return 1
     fi
@@ -203,6 +203,23 @@ require_empty_or_absent_directory() {
         return 0
     fi
     require_exact_directory_inventory "$serving_health_label" "$serving_health_root" ''
+}
+
+require_empty_or_absent_sync_directory() {
+    local serving_health_label=$1
+    local serving_health_root=$2
+    local serving_health_expected_metadata=caddy-sync:caddy-sync:750
+
+    if [[ ! -e "$serving_health_root" && ! -L "$serving_health_root" ]]; then
+        require_equal "${serving_health_label}_state" absent absent
+        return 0
+    fi
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        serving_health_expected_metadata=${CADDY_SERVING_HEALTH_TEST_EXPECTED_SYNC_METADATA:-$(id -un):$(id -gn):750}
+    fi
+    require_exact_directory_inventory "$serving_health_label" "$serving_health_root" '' || return 1
+    require_equal "${serving_health_label}_metadata" "$serving_health_expected_metadata" \
+        "$(stat -c '%U:%G:%a' "$serving_health_root")"
 }
 
 quarantine_names() {
@@ -795,8 +812,9 @@ validate_split_baseline() {
         require incoming_node_b_absent path_absent "$incoming_root/node-b"
         validate_quarantine_inventory "$quarantine_root" quarantine_baseline
     else
-        require incoming_node_a_absent path_absent "$incoming_root/node-a"
-        require incoming_node_b_empty require_empty_or_absent_directory \
+        require incoming_node_a_empty require_empty_or_absent_sync_directory \
+            incoming_node_a "$incoming_root/node-a"
+        require incoming_node_b_empty require_empty_or_absent_sync_directory \
             incoming_node_b "$incoming_root/node-b"
         validate_node_a_quarantine_inventory "$quarantine_root" \
             node_a_quarantine_baseline
@@ -1337,11 +1355,12 @@ validate_final_residue() {
     require legacy_lighttpd_helper_absent path_absent \
         "$(effective_path "$legacy_lighttpd_helper")"
     if [[ "$node_role" = node-a ]]; then
-        require incoming_node_a_absent path_absent "$incoming_root/node-a"
-        require incoming_node_b_empty require_empty_or_absent_directory \
+        require incoming_node_a_empty require_empty_or_absent_sync_directory \
+            incoming_node_a "$incoming_root/node-a"
+        require incoming_node_b_empty require_empty_or_absent_sync_directory \
             incoming_node_b "$incoming_root/node-b"
     else
-        require incoming_node_a_empty require_empty_or_absent_directory \
+        require incoming_node_a_empty require_empty_or_absent_sync_directory \
             incoming_node_a "$incoming_root/node-a"
         require incoming_node_b_absent path_absent "$incoming_root/node-b"
     fi
@@ -1986,6 +2005,34 @@ CONTRACT
         "$serving_health_raw" "$serving_health_decision"
 }
 
+production_path_test_namespace_case() {
+    local serving_health_test_root=$1
+    local serving_health_case=$2
+    local serving_health_expectation=$3
+    local serving_health_namespace=$4
+    local serving_health_expected_metadata=${5:-}
+    local serving_health_raw=$serving_health_test_root/raw/protocol-namespace-$serving_health_case.txt
+    local serving_health_decision=$serving_health_test_root/decisions/protocol-namespace-$serving_health_case.tsv
+    local serving_health_status=0
+
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_SERVING_HEALTH_TEST_EXPECTED_SYNC_METADATA=$serving_health_expected_metadata \
+        require_empty_or_absent_sync_directory protocol_namespace "$serving_health_namespace" \
+        >"$serving_health_raw" 2>&1; then
+        serving_health_status=0
+    else
+        serving_health_status=$?
+    fi
+    if [[ "$serving_health_expectation" = accept ]]; then
+        [[ "$serving_health_status" -eq 0 ]]
+    else
+        [[ "$serving_health_status" -ne 0 ]]
+    fi
+    write_decision "protocol-namespace-$serving_health_case" "$serving_health_expectation" \
+        "$serving_health_status" "$serving_health_expectation" "$serving_health_status" \
+        "$serving_health_raw" "$serving_health_decision"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root serving_health_inventory serving_health_key serving_health_repository
@@ -2005,6 +2052,7 @@ production_path_test() {
     local serving_health_ss serving_health_unbound_checkconf serving_health_publisher
     local serving_health_current_before serving_health_target_test_revision
     local serving_health_current_after serving_health_phase_helper
+    local serving_health_namespace_root serving_health_namespace_target
 
     serving_health_write_quarantine_manifest() {
         local serving_health_fixture_root=$1
@@ -2074,6 +2122,42 @@ production_path_test() {
     done <"$serving_health_inventory"
 
     serving_health_state_root=$serving_health_test_root/state
+    serving_health_namespace_root=$serving_health_test_root/protocol-namespace
+    serving_health_namespace_target=$serving_health_test_root/protocol-namespace-target
+    production_path_test_namespace_case "$serving_health_test_root" absent accept \
+        "$serving_health_namespace_root"
+    install -d -m 0750 "$serving_health_namespace_root"
+    production_path_test_namespace_case "$serving_health_test_root" empty-protected accept \
+        "$serving_health_namespace_root"
+    printf 'unexpected\n' >"$serving_health_namespace_root/unexpected"
+    production_path_test_namespace_case "$serving_health_test_root" non-empty reject \
+        "$serving_health_namespace_root"
+    rm -f -- "$serving_health_namespace_root/unexpected"
+    chmod 0770 "$serving_health_namespace_root"
+    production_path_test_namespace_case "$serving_health_test_root" unsafe-mode reject \
+        "$serving_health_namespace_root"
+    chmod 0750 "$serving_health_namespace_root"
+    production_path_test_namespace_case "$serving_health_test_root" unsafe-owner reject \
+        "$serving_health_namespace_root" different-owner:different-group:750
+    rmdir "$serving_health_namespace_root"
+    install -d -m 0750 "$serving_health_namespace_target"
+    ln -s "$serving_health_namespace_target" "$serving_health_namespace_root"
+    production_path_test_namespace_case "$serving_health_test_root" symlink reject \
+        "$serving_health_namespace_root"
+    rm -f -- "$serving_health_namespace_root"
+    rmdir "$serving_health_namespace_target"
+    printf 'not-a-directory\n' >"$serving_health_namespace_root"
+    production_path_test_namespace_case "$serving_health_test_root" malformed reject \
+        "$serving_health_namespace_root"
+    rm -f -- "$serving_health_namespace_root"
+    serving_health_raw=$serving_health_test_root/raw/protocol-namespace-state-equivalence.txt
+    serving_health_decision=$serving_health_test_root/decisions/protocol-namespace-state-equivalence.tsv
+    cat "$serving_health_test_root"/raw/protocol-namespace-{absent,empty-protected,non-empty,unsafe-mode,unsafe-owner,symlink,malformed}.txt \
+        >"$serving_health_raw"
+    write_decision protocol-namespace-state-equivalence accept 0 \
+        'accept:absent,empty-protected;reject:non-empty,unsafe-mode,unsafe-owner,symlink,malformed' \
+        'accept:absent,empty-protected;reject:non-empty,unsafe-mode,unsafe-owner,symlink,malformed' \
+        "$serving_health_raw" "$serving_health_decision"
     serving_health_payload=$(mktemp -d /tmp/caddy-serving-health-production-payload.XXXXXX)
     serving_health_evidence=$(mktemp -d /tmp/caddy-serving-health-production-evidence.XXXXXX)
     serving_health_candidate=$serving_health_state_root/incoming/node-a/$retained_name

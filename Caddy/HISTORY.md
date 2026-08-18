@@ -5,10 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
+- State: defined
 - Latest archive tag: `caddy-action35ag-terminal-2026-08-18`
-- Next gate: archive Action 35ag, then correct the neutral preflight to accept
-  an absent or correctly protected empty Node A incoming namespace.
+- Next gate: separately authorize Action 35ah through the existing neutral
+  serving-health transaction and outer runner.
 
 ## Action 35ag terminal archive
 
@@ -31,7 +31,8 @@ Git preserves the complete deployment journal and executed action files.
 - Recovery: both exact upload dispositions and failure readbacks returned 0;
   no installation, publication, service, release, or VRRP mutation ran, so no
   rollback was required.
-- Status: terminal-pending
+- Status: archived and cleaned; the neutral implementation now accepts both
+  valid protocol-namespace representations and Action 35ah is defined.
 
 ## Action 35af terminal archive
 

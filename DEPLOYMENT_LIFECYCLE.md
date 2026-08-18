@@ -38,3 +38,13 @@ never retained on the current branch. History belongs in annotated tags.
 Git history and annotated tags are the immutable deployment archive. The main
 branch contains current production, neutral reusable deployment code, neutral
 validation, and at most one defined operation per deployment stream.
+
+## Production-state equivalence
+
+Deployment predicates must distinguish semantic state from one filesystem
+representation. If production permits a namespace to be absent or to exist as
+a protected empty directory, both states are valid and must be exercised by
+the real production-path predicate. Coverage must reject non-empty, symlinked,
+malformed, incorrectly owned, and incorrectly mode-set adjacent states. Tests
+may construct isolated inputs, but they may not change production merely to
+match a narrower test assumption.

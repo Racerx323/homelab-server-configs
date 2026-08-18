@@ -215,6 +215,7 @@ successor_policy_defined_valid() {
     local successor_policy_probe_root successor_policy_transaction_evidence
     local successor_policy_outer_evidence
     local successor_policy_transaction_hash successor_policy_operation_hash
+    local successor_policy_state_variant
 
     # conditional-validator-explicit-failures-begin
     [[ "$successor_policy_action" =~ ^[0-9]+[a-z0-9-]*$ ]] || return 1
@@ -244,7 +245,25 @@ successor_policy_defined_valid() {
         "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
     grep -Fxq 'status: defined-unexecuted' \
         "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    grep -Fxq 'state_equivalence:' \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    grep -Fxq '    - absent' \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    grep -Fxq '    - protected-empty-directory' \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    for successor_policy_state_variant in non-empty symlinked malformed \
+        incorrect-owner incorrect-mode; do
+        grep -Fxq "    - $successor_policy_state_variant" \
+            "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    done
     successor_policy_coverage_valid "$successor_policy_repository_root/$successor_policy_coverage" || return 1
+    awk -F '\t' '
+        $1 == "protocol-namespace-state-equivalence" &&
+        $2 == "pre-mutation" && $3 == "transaction" && $4 == "accept" {
+            found++
+        }
+        END { exit(found == 1 ? 0 : 1) }
+    ' "$successor_policy_repository_root/$successor_policy_coverage" || return 1
     awk -F '\t' -v path="$successor_policy_operation_spec" '
         $1 == path && $2 == "defined-unexecuted" { found++ }
         END { exit(found == 1 ? 0 : 1) }
