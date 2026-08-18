@@ -1,13 +1,7 @@
 schema_version: 2
-action: 35ah
-title: Namespace-equivalent coupled serving-health installation
-status: accepted-executed-definition
-consumes:
-  - action: 35ag
-    result: failed-consumed
-    rerun: prohibited
-    archive_tag: caddy-action35ag-terminal-2026-08-18
-    evidence: /tmp/caddy-ssh-evidence-serving_health.UaFJlC
+action: none
+title: Inactive serving-health deployment operation
+status: inactive
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
@@ -18,57 +12,4 @@ state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 7473a7a44e470ebb28eaa1186010e1d9441b8540a9576dcef3b45fa7c34c965d
 production_contract: Caddy/manifests/serving-health-production.tsv
 quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
-ordering:
-  - validate both nodes without mutation
-  - install and accept Node B
-  - converge Node A to the already installed serving release
-  - publish one current repository child release from Node A
-  - use the target revision already recorded by publication on Node A
-  - record that target revision on Node B only
-  - accept that identical child release on Node B
-  - promote the identical child release on Node A
-  - install and accept Node A
-  - prove final ownership, continuity, and residue
-health_acceptance:
-  decision_source: keepalived-daemon-executions-and-cursor-bounded-journal
-  caddy_probe: /usr/local/libexec/check-caddy.sh
-  dns_probe: /etc/scripts/check-dns.sh
-  timeout_seconds: 2
-  interval_seconds: 3
-  fall: 2
-  rise: 3
-  status_snapshots: prohibited
-  parallel_transaction_schedule: prohibited
-release:
-  publisher: /usr/local/libexec/publish-release-v2.sh
-  parent: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
-  source: current Node A immutable release plus exact repository 10-pihole-admin.caddy
-  node_b_first: true
-  existing_release_mutation: prohibited
-rollback:
-  order: node-a-then-node-b
-  baseline: exact pre-action split release and inventories
-  unrecoverable_status: 125
-live_execution: separately-authorized-by-exact-outer-sha256
-terminal_result:
-  result: accepted
-  exit_status: 0
-  outer_sha256: a5d60392c887d1efc37a04080f8d612f43f0968d564729fa705c31fed6257a49
-  evidence: /tmp/caddy-ssh-evidence-serving_health.tYH9yd
-  release_revision: 20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d
-  final_ownership:
-    node_a: ipv4-master,ipv6-master,shared-vips=4,stable-samples=3
-    node_b: ipv4-backup,ipv6-backup,shared-vips=0,stable-samples=3
-  residue: incoming-empty,quarantine-empty,outbound-empty
-  rollback: not-required
-  archive_tag: caddy-action35ah-terminal-2026-08-18
-state_equivalence:
-  protocol_namespace_valid:
-    - absent
-    - protected-empty-directory
-  protocol_namespace_rejected:
-    - non-empty
-    - symlinked
-    - malformed
-    - incorrect-owner
-    - incorrect-mode
+live_execution: no-operation-defined

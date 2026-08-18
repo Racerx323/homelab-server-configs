@@ -5,10 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
+- State: clean
 - Latest archive tag: `caddy-action35ah-terminal-2026-08-18`
-- Next gate: archive and clean accepted Action 35ah. The separately controlled
-  serving-health failure exercise remains unexecuted.
+- Next gate: the separately controlled serving-health failure exercise remains
+  unexecuted and requires its own definition and authorization.
 
 ## Action 35ah terminal archive
 
@@ -31,7 +31,8 @@ Git preserves the complete deployment journal and executed action files.
   DNS and Caddy health, continuous dual-stack DNS/HTTPS/UI paths, and final
   incoming, quarantine, and outbound residue checks passed.
 - Rollback: not required.
-- Status: terminal-pending for this exact annotated archive boundary.
+- Status: archived and cleaned; the Caddy deployment stream is clean and the
+  neutral operation specification is inactive.
 
 ## Action 35ag terminal archive
 
