@@ -117,7 +117,7 @@
       ]
     },
     "current-serving-health": {
-      "description": "Current DNS and Caddy VRRP serving checks plus notification-only Pi-hole web monitoring.",
+      "description": "Current DNS and Caddy VRRP serving checks, daemon-owned execution acceptance, and notification-only Pi-hole web monitoring.",
       "path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
         "Caddy/docs/35-PLAN.md",

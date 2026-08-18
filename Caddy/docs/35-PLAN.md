@@ -93,14 +93,20 @@ Its terminal commit and annotated tag are synchronized, its consumed machinery
 is removed from the current branch, and the deployment stream is clean before
 the direct successor is defined.
 
-The direct successor must not launch a second health-check schedule. It must
-install Node B, reload Keepalived through the existing bounded rollback guard,
-and accept health only from cursor-bounded records and status transitions
-created by Keepalived's own daemon executions. It must require repeated
-successful daemon results for both helpers and stable Node B `BACKUP` with
-zero VIPs before proceeding to Node A. Any missing, stale, nonzero,
-intermittent, timed-out, signaled, or identity-inconsistent daemon evidence is
-fail-closed. The remaining standby-first installation is unchanged.
+Action 35ab is failed-consumed. It stopped Keepalived on Node B, installed the
+candidate artifacts, captured the activation cursor, and started Keepalived
+once. The daemon's first `check-caddy` and `check-dns` executions both returned
+status 1, and neither helper produced a classified status transition. The
+transaction failed closed at
+`action_35_ab_check_keepalived_daemon_journal_no_failure=false`. Node B rollback
+succeeded and returned it to `BACKUP`; Node A was not mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`. Action 35ab must not be rerun.
+
+The direct successor must make every helper exit produce a bounded classified
+status or journald record, collect the complete bounded daemon observation
+window before evaluating it, and then either continue on repeated clean daemon
+results or roll back with the exact component and failure class. It must retain
+the otherwise unchanged standby-first transaction.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

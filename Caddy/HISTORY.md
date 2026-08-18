@@ -3,6 +3,30 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35ab terminal archive
+
+- Tag: `caddy-action35ab-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ab
+- Authorized outer SHA-256:
+  `f7a294f464d9827a3bd6c5045f0cf62ee2b5a4df404d6d56a3d3cd5b045b0dee`
+- Transaction SHA-256:
+  `64b92402f1b8264ee298d778347aad1f87dfb1cea72c234d7555adabb9df7911`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`
+- Failed boundary:
+  `action_35_ab_check_keepalived_daemon_journal_no_failure=false`
+- Finding: after the intentional Keepalived stop and single restart, the
+  daemon's first `check-caddy` and `check-dns` executions both returned status
+  1. Neither helper produced a classified status transition, so the coupled
+  FAULT notification was necessarily unclassified.
+- Recovery: Node B rollback and rollback readback returned 0, Node B returned
+  to `BACKUP`, and Node A was not mutated
+- Status: terminal-pending until the annotated tag is created and consumed
+  machinery is removed
+
 ## Action 35aa terminal archive
 
 - Tag: `caddy-action35aa-terminal-2026-08-18`

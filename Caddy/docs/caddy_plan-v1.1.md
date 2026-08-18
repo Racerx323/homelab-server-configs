@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35aa archived and cleaned after successful Node B rollback; the Caddy deployment stream is clean; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ab failed-consumed after successful Node B rollback and awaits terminal archival; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -414,10 +414,12 @@ The recovered production baseline remains:
 - The direct successor reuses that candidate and does not republish, seed production
   state, or copy Node B configuration to Node A.
 
-The direct successor preserves the remaining standby-first installation while
-correcting the daemon-owned execution acceptance boundary:
+Action 35ab is failed-consumed. It preserved the remaining standby-first
+installation and reached the daemon-owned execution boundary:
 
 - do not launch a second DNS or Caddy schedule;
+- stop Keepalived, install candidate artifacts, clear only validated prior
+  status snapshots, capture the journal cursor, and start Keepalived once;
 - capture cursor-bounded `Keepalived_vrrp` results and the corresponding
   atomic status-record transitions produced by Keepalived's own executions;
 - require repeated daemon-owned successes for both helpers after reload;
@@ -427,9 +429,15 @@ correcting the daemon-owned execution acceptance boundary:
   split-release continuity endpoints, structured notifications, remaining
   standby-first ordering, and reverse rollback.
 
-This is integrated causal acceptance, not a separate diagnostic. No other
-architecture, inventory, publication, convergence, or rollback boundary
-changes.
+The first daemon-owned `check-caddy` and `check-dns` executions both returned
+status 1 after the single Node B restart. Neither helper emitted a classified
+status transition, so Action 35ab failed closed and rolled Node B back to
+`BACKUP`; Node A was not mutated. Its evidence is
+`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`, and it must not be rerun.
+
+The direct successor must preserve the transaction while making every helper
+exit produce a bounded classified status or journald record and collecting the
+complete bounded daemon observation window before acceptance or rollback.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are
