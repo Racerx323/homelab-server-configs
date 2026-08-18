@@ -13,9 +13,9 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`. Action 35n's terminal commit and annotated tag are recorded,
-its machinery is removed, and the deployable-successor and causal-coverage
-registries are clear.
+stream is `terminal-pending` for failed-consumed Action 35o. Action 35n's
+terminal commit and annotated tag are synchronized and its machinery is
+removed. Action 35o is not rerunnable.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -127,6 +127,28 @@ retained on Node B and the workstation at
 Both upload trees were removed, no mutation entrypoint ran, and rollback was
 not required. The direct successor must require this exact marker-free state,
 disposition only that validated entry, and resume the unchanged installation.
+
+Action 35o implements that direct correction. It requires all three protocol
+control paths—`.finalize-request`, `.complete.pending`, and `.complete`—to be
+absent from the retained Action 17p entry. Its exact inventory is the two
+manifest files plus every file named by `manifest.sha256`; all pinned
+identities, payload validation, safe-type, sibling-inventory, reversible
+disposition, rollback, and standby-first installation controls remain
+unchanged. Action 35n is consumed and must not be rerun.
+
+Action 35o accepted the complete marker-free Action 17p entry, then
+failed-consumed before disposition or production mutation. Node B's
+role-inapplicable `/var/lib/caddy-sync/incoming/node-b` path is absent, while
+the generic empty-directory assertion incorrectly treated absence as an error.
+The transaction also imposed an obsolete empty-quarantine prerequisite.
+Bounded read-only completion evidence at
+`/tmp/caddy-action35o-quarantine-inventory.txt`, SHA-256
+`320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9`,
+classifies the exact existing quarantine as four safe, payload-valid trees:
+Action 17p, Action 33k normalized, and two Action 30c Node B outbound releases.
+The direct successor must accept the non-applicable incoming path only when
+absent, preserve and validate that exact quarantine state, reject any unknown
+or unsafe variation, and resume the unchanged standby-first installation.
 
 ## Architecture decision
 

@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35n archived; deployment stream clean
+Current status: core deployment accepted; Action 35o failed-consumed; terminal archive pending
 
 ## 1. Purpose
 
@@ -402,6 +402,13 @@ historical entry contains neither `.finalize-request` nor `.complete`; both
 uploads were removed and rollback was not required. A direct successor must
 require this exact marker-free state and then resume the unchanged standby-first
 transaction:
+
+Action 35o is the sole defined direct successor. It rejects any protocol
+control marker in the retained Action 17p entry, requires the exact validated
+manifest-derived file inventory captured after Action 35n, reversibly moves
+only that entry with synchronization frozen, and otherwise retains the same
+installation and recovery transaction. Action 35n is archived and must not be
+rerun.
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

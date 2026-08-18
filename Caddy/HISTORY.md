@@ -395,3 +395,32 @@ requests a historical reconstruction.
   so rollback was not required or attempted
 - Status: terminal tag and terminal commit are recorded; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35o terminal archive
+
+- Tag: `caddy-action35o-terminal-2026-08-17` (pending)
+- Commit: pending terminal-result commit
+- Action: 35o
+- Authorized outer SHA-256:
+  `8e287b33412fe6e710feae7cb75b160b766ee9bd4b6e1fea18433f0b31cd7e28`
+- Transaction SHA-256:
+  `a87579d6a2d74992b8af60cbf3c952bf7356d6eb667667920ed2c49a3ab119d4`
+- Result: failed-consumed during Node B pre-mutation inventory validation,
+  before retained-entry disposition or any production mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35o.lHdOqM`
+- Failed assertions: the role-inapplicable
+  `/var/lib/caddy-sync/incoming/node-b` path was absent but passed through an
+  empty-directory helper, and the nonempty quarantine was incorrectly required
+  to be empty
+- Bounded read-only completion inventory: Node B and workstation
+  `/tmp/caddy-action35o-quarantine-inventory.txt`, SHA-256
+  `320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9`
+- Finding: `incoming/node-b` is absent as required on Node B. The quarantine is
+  `caddy-sync:caddy-sync:0750` and contains four exact, safe, payload-valid
+  retained trees: Action 17p, Action 33k normalized, and two Action 30c Node B
+  outbound releases. They were classified read-only and remain unchanged.
+- Recovery: both node upload paths and readbacks were disposed successfully;
+  no retained-entry disposition or production mutation ran, so rollback was
+  not required or attempted
+- Status: terminal-pending until this exact tree is committed and tagged

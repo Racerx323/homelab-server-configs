@@ -42,3 +42,4 @@ Caddy/tests/template-lifecycle-regression.sh	production-current	current-focused	
 Caddy/tests/test-lifecycle-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle.tsv	production-current	support	current-production-validation
+Caddy/tests/serving-health-installation-production-path-regression.sh	terminal-pending	archive-only	action35o-terminal-archive
