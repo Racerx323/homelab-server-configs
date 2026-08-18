@@ -114,11 +114,37 @@ fail() {
             serving_health_check=http-status
             serving_health_failure_class=unexpected-http-status
             serving_health_network="IPv4=${NODE_IPV4:-unknown}:443 endpoint=/healthz"
+            serving_health_status="http=$serving_health_probe_status"
             ;;
         ipv6_status)
             serving_health_check=http-status
             serving_health_failure_class=unexpected-http-status
             serving_health_network="IPv6=[${NODE_IPV6:-unknown}]:443 endpoint=/healthz"
+            serving_health_status="http=$serving_health_probe_status"
+            ;;
+        ipv4_result_missing | ipv4_result_malformed)
+            serving_health_check=probe-result
+            serving_health_failure_class=probe-result-${serving_health_label##*_}
+            serving_health_network="IPv4=${NODE_IPV4:-unknown}:443 endpoint=/healthz"
+            serving_health_status="record=$serving_health_probe_status"
+            ;;
+        ipv6_result_missing | ipv6_result_malformed)
+            serving_health_check=probe-result
+            serving_health_failure_class=probe-result-${serving_health_label##*_}
+            serving_health_network="IPv6=[${NODE_IPV6:-unknown}]:443 endpoint=/healthz"
+            serving_health_status="record=$serving_health_probe_status"
+            ;;
+        ipv4_signal)
+            serving_health_check=trusted-https
+            serving_health_failure_class=signal
+            serving_health_network="IPv4=${NODE_IPV4:-unknown}:443 endpoint=/healthz"
+            serving_health_status="curl=$serving_health_probe_status signal=$((serving_health_probe_status - 128))"
+            ;;
+        ipv6_signal)
+            serving_health_check=trusted-https
+            serving_health_failure_class=signal
+            serving_health_network="IPv6=[${NODE_IPV6:-unknown}]:443 endpoint=/healthz"
+            serving_health_status="curl=$serving_health_probe_status signal=$((serving_health_probe_status - 128))"
             ;;
         ipv4_tcp_listener | ipv4_udp_listener)
             serving_health_check=listener
@@ -180,6 +206,55 @@ probe() {
     return "$serving_health_status"
 }
 
+validate_probe_result() {
+    local serving_health_family=$1
+    local serving_health_address=$2
+    local serving_health_output=$3
+    local serving_health_wait_ok=$4
+    local serving_health_label_prefix=ipv4
+    local serving_health_status_path=${serving_health_output}.status
+    local serving_health_probe_status
+    local serving_health_http_status
+
+    [[ "$serving_health_family" = 4 ]] || serving_health_label_prefix=ipv6
+    if [[ ! -f "$serving_health_status_path" || -L "$serving_health_status_path" ]]; then
+        fail "${serving_health_label_prefix}_result_missing" status
+    fi
+    if [[ "$(wc -c <"$serving_health_status_path")" -gt 4 ]] ||
+        ! grep -Eq '^(0|[1-9][0-9]{0,2})$' "$serving_health_status_path"; then
+        fail "${serving_health_label_prefix}_result_malformed" status
+    fi
+    IFS= read -r serving_health_probe_status <"$serving_health_status_path" ||
+        fail "${serving_health_label_prefix}_result_malformed" status
+    if [[ "$serving_health_probe_status" -gt 255 ]]; then
+        fail "${serving_health_label_prefix}_result_malformed" status
+    fi
+    if [[ "$serving_health_wait_ok" = true && "$serving_health_probe_status" -ne 0 ]] ||
+        [[ "$serving_health_wait_ok" = false && "$serving_health_probe_status" -eq 0 ]]; then
+        fail "${serving_health_label_prefix}_result_malformed" wait-status
+    fi
+    if [[ "$serving_health_probe_status" -ge 129 &&
+        "$serving_health_probe_status" -le 192 ]]; then
+        fail "${serving_health_label_prefix}_signal" "$serving_health_probe_status"
+    fi
+    if [[ "$serving_health_probe_status" -ne 0 ]]; then
+        fail "${serving_health_label_prefix}_https" "$serving_health_probe_status"
+    fi
+    if [[ ! -f "$serving_health_output" || -L "$serving_health_output" ]]; then
+        fail "${serving_health_label_prefix}_result_missing" output
+    fi
+    if [[ "$(wc -c <"$serving_health_output")" -gt 4 ]] ||
+        ! grep -Eq '^[0-9]{3}$' "$serving_health_output"; then
+        fail "${serving_health_label_prefix}_result_malformed" output
+    fi
+    IFS= read -r serving_health_http_status <"$serving_health_output" ||
+        fail "${serving_health_label_prefix}_result_malformed" output
+    [[ "$serving_health_http_status" = 204 ]] ||
+        fail "${serving_health_label_prefix}_status" "$serving_health_http_status"
+    printf 'family=%s address=%s curl=0 http=204\n' \
+        "$serving_health_family" "$serving_health_address"
+}
+
 current_phase=probe-launch
 probe 4 "$NODE_IPV4" "$capture_root/ipv4" &
 ipv4_pid=$!
@@ -193,10 +268,8 @@ current_phase=probe-wait
 wait "$ipv4_pid" || ipv4_ok=false
 wait "$ipv6_pid" || ipv6_ok=false
 current_phase=probe-result
-[[ "$ipv4_ok" = true ]] || fail ipv4_https "$(<"$capture_root/ipv4.status")"
-[[ "$ipv6_ok" = true ]] || fail ipv6_https "$(<"$capture_root/ipv6.status")"
-[[ "$(<"$capture_root/ipv4")" = 204 ]] || fail ipv4_status
-[[ "$(<"$capture_root/ipv6")" = 204 ]] || fail ipv6_status
+validate_probe_result 4 "$NODE_IPV4" "$capture_root/ipv4" "$ipv4_ok" >/dev/null
+validate_probe_result 6 "$NODE_IPV6" "$capture_root/ipv6" "$ipv6_ok" >/dev/null
 
 current_phase=listener-tcp-capture
 "$ss_command" -H -ltn >"$capture_root/tcp"

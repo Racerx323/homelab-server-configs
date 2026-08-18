@@ -1,5 +1,5 @@
 # repository	source-path	installed-path	mode	candidate-sha256	lifecycle
-homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	2e0cafc7d4340ec11a7f838a86a0061c91b29220d8321d9584f9623b17bb0935	production-candidate
+homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	c786c27890ed66964b9e9d38d9a84cb5d9f3111670fbb325bdfe0c99da7eb27b	production-candidate
 homelab-server-configs	Caddy/scripts/check-pihole-web-health.sh	/usr/local/libexec/check-pihole-web-health.sh	0755	803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	5101792e178ede8f6ae4cae23f9d22d57bd4c453c3578dc164175a57fe4dc56f	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	370e31cdfa68c31763028299b9e2d9aa67abaec2b9a34d8ac85d950cef94ab52	production-candidate

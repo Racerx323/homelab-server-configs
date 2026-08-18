@@ -126,12 +126,18 @@ mutated. Evidence is `/tmp/caddy-ssh-evidence-action35ad.gAKDlx`. Action 35ad
 is archived only at `caddy-action35ad-terminal-2026-08-18`, its consumed
 machinery is removed, and it must not be rerun.
 
-The direct installation successor is Action 35ae. It must explicitly validate
-both families' bounded status and output records before reading them, classify
-missing, malformed, timeout, signal, curl, and HTTP-status failures by family,
-preserve the two-second Keepalived boundary and otherwise unchanged
-standby-first transaction, and continue only after repeated daemon-owned
-healthy transitions. No separate diagnostic is required.
+Action 35ae is failed-consumed. It installed Node B, then the real Keepalived
+executions returned 1 within milliseconds: Proxy reported a missing IPv4
+probe-result record while DNS failed during probe-evidence processing. This was
+not the two-second Keepalived timeout. Node B rollback succeeded and returned it
+to `BACKUP`; Node A was not mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35ae.vfzh11`. Action 35ae is archived only at
+`caddy-action35ae-terminal-2026-08-18` and must not be rerun.
+
+The installation-successor chain is paused. Before another live successor is
+defined, the neutral DNS and Proxy tracking probes must be reduced to essential
+checks with direct exit status, default bounded SIGTERM behavior, and no
+background result-file protocol or diagnostic output in the health decision.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

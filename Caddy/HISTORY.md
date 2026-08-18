@@ -5,11 +5,38 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35ad-terminal-2026-08-18`
-- Next action: direct installation successor Action 35ae may be defined only
-  from neutral current-production components after this cleanup checkpoint is
-  synchronized.
+- Action: 35ae
+- Status: terminal-pending, failed-consumed
+- Archive tag: `caddy-action35ae-terminal-2026-08-18`
+- Scope: preserve the executed definition and failed real Keepalived boundary,
+  then remove the consumed machinery and pause the installation-successor
+  chain while the neutral DNS and Proxy tracking probes are simplified.
+
+## Action 35ae terminal archive
+
+- Tag: `caddy-action35ae-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ae
+- Authorized outer SHA-256:
+  `3e6a3dd4a0c66d9f587ef37072f1aa419b46d303f32dac4409ed6a0cad6a439f`
+- Transaction SHA-256:
+  `3d0dac4e42fadf3196ed4cc44e730ecd06c5bcf90d0526d4d294623640e2c33b`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35ae.vfzh11`
+- Failed boundary:
+  `action_35_ae_check_keepalived_daemon_status_records_valid=false`
+- Finding: the real Keepalived executions returned 1 within milliseconds.
+  Proxy reported a missing IPv4 probe-result record while DNS failed during
+  probe-evidence processing. Direct identity checks had passed, and the
+  failures occurred far earlier than the two-second Keepalived timeout. The
+  background-probe and temporary-result protocol is therefore removed from the
+  current tracking helpers rather than wrapped again.
+- Recovery: Node B rollback and rollback readback returned 0, Node B returned
+  to `BACKUP`, and Node A was not mutated
+- Status: terminal-pending until the annotated tag is created and consumed
+  machinery is removed
 
 ## Action 35ad terminal archive
 

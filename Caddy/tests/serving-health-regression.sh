@@ -44,6 +44,30 @@ case "\$*" in
         printf '200 https://pihole0.local.theama.co/admin/login.php\\n'
         ;;
     *'/healthz'*)
+        if [[ " \$* " = *' --ipv4 '* ]]; then
+            case "\$(<"$root/caddy-mode")" in
+                connection-ipv4) exit 7 ;;
+                http-ipv4) printf '503\n'; exit 0 ;;
+                malformed-output-ipv4) printf 'invalid\n'; exit 0 ;;
+                malformed-status-ipv4)
+                    output_path=\$(readlink "/proc/\$\$/fd/1")
+                    printf 'invalid\n' >"\${output_path}.status"
+                    kill -KILL "\$PPID"
+                    exit 137
+                    ;;
+                missing-output-ipv4)
+                    output_path=\$(readlink "/proc/\$\$/fd/1")
+                    rm -f -- "\$output_path"
+                    printf '204\n'
+                    exit 0
+                    ;;
+                missing-status-ipv4)
+                    kill -KILL "\$PPID"
+                    exit 137
+                    ;;
+                signal-ipv4) exit 143 ;;
+            esac
+        fi
         if [[ " \$* " = *' --ipv6 '* ]]; then
             case "\$(<"$root/caddy-mode")" in
                 timeout-ipv6) exit 28 ;;
@@ -119,6 +143,85 @@ if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
 fi
 grep -Fxq 'failure_class=TLS-verification' "$root/run/proxy.status"
 grep -Fxq 'status=curl=60' "$root/run/proxy.status"
+printf 'missing-status-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'check=probe-result' "$root/run/proxy.status"
+grep -Fxq 'failure_class=probe-result-missing' "$root/run/proxy.status"
+grep -Fxq 'network=IPv4=10.1.0.53:443 endpoint=/healthz' "$root/run/proxy.status"
+grep -Fxq 'status=record=status' "$root/run/proxy.status"
+printf 'malformed-status-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=probe-result-malformed' "$root/run/proxy.status"
+grep -Fxq 'status=record=status' "$root/run/proxy.status"
+printf 'missing-output-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=probe-result-missing' "$root/run/proxy.status"
+grep -Fxq 'status=record=output' "$root/run/proxy.status"
+printf 'malformed-output-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=probe-result-malformed' "$root/run/proxy.status"
+grep -Fxq 'status=record=output' "$root/run/proxy.status"
+printf 'signal-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=signal' "$root/run/proxy.status"
+grep -Fxq 'status=curl=143 signal=15' "$root/run/proxy.status"
+printf 'connection-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=connection-refusal' "$root/run/proxy.status"
+grep -Fxq 'status=curl=7' "$root/run/proxy.status"
+printf 'http-ipv4\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=unexpected-http-status' "$root/run/proxy.status"
+grep -Fxq 'status=http=503' "$root/run/proxy.status"
 printf 'healthy\n' >"$root/caddy-mode"
 if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
     CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \

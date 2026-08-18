@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ad is archived and cleaned after successful Node B rollback; Action 35ae is the direct bounded per-family probe-result successor; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ae is failed-consumed after successful Node B rollback; the installation-successor chain is paused while the neutral Keepalived DNS and Proxy probes are simplified; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -459,12 +459,19 @@ rollback returned it to `BACKUP`, and Node A was not mutated. Evidence is
 is archived only at `caddy-action35ad-terminal-2026-08-18`, and its consumed
 machinery is removed from the current branch.
 
-Action 35ae is the direct installation successor. It validates both families'
-bounded status/output records before reading them, classifies missing,
-malformed, timeout, signal, curl, and HTTP-status failures independently,
-retains the two-second Keepalived timeout and otherwise unchanged standby-first
-transaction, and continues only after repeated daemon-owned healthy
-transitions.
+Action 35ae is failed-consumed. The real Keepalived executions returned 1
+within milliseconds after Node B installation: Proxy reported a missing IPv4
+probe-result record while DNS failed during probe-evidence processing. The
+failure occurred far earlier than the two-second Keepalived timeout. Node B
+rollback succeeded and returned it to `BACKUP`; Node A was not mutated.
+Evidence is `/tmp/caddy-ssh-evidence-action35ae.vfzh11`. Action 35ae is archived
+only at `caddy-action35ae-terminal-2026-08-18` and must not be rerun.
+
+The installation-successor chain is paused until both neutral tracking probes
+are reduced to essential synchronous checks. Their exit statuses and
+Keepalived's cursor-bounded journal are authoritative; background result files,
+phase handlers, and development diagnostics must not participate in VRRP
+eligibility.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are
