@@ -17,5 +17,3 @@ Caddy/manifests/synchronization-protocol-v2.yaml	production-current	yes	Caddy/ma
 Caddy/manifests/systemd-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/template-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/manifest-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
-Caddy/manifests/action35x-node-b-quarantine.tsv	defined-unexecuted	no	Caddy/manifests/caddy-serving-health-action35x.yaml
-Caddy/manifests/caddy-serving-health-action35x.yaml	defined-unexecuted	no	Caddy/manifests/deployable-successor.tsv
