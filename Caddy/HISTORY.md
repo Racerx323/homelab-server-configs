@@ -483,6 +483,8 @@ requests a historical reconstruction.
 ## Action 35s terminal archive
 
 - Tag: `caddy-action35s-terminal-2026-08-17`
+- Commit: `61a05390f7eb1d63f3a5e1d2a6fed4217872443f`
+- Tag object: `aff561a82bf4528748399462930ab8caccd72e0c`
 - Action: 35s
 - Authorized outer SHA-256:
   `52a7a1f6dc9cd6eeadef8aafe72a093c081634bb9a3f63a0595de39c4a2aeb4b`
@@ -498,7 +500,8 @@ requests a historical reconstruction.
   is not evidence that the candidate configuration was invalid.
 - Recovery: both failure readbacks and exact upload dispositions completed;
   no mutation ran, so rollback was not required
-- Status: terminal-pending
+- Status: terminal tag and commit are synchronized; consumed machinery was
+  removed by the immediate cleanup commit
 
 ## Action 35r terminal archive
 

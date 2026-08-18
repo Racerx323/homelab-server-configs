@@ -258,6 +258,13 @@ and exact rendered identity; the sequential standby-first reload, bounded
 service/VRRP convergence, and rollback path are the authoritative live
 acceptance boundary.
 
+Action 35s is archived at tag
+`caddy-action35s-terminal-2026-08-17`. Its consumed runner, transaction,
+manifest, coverage, and action-specific regression were removed from the main
+branch, and the Caddy deployment stream is clean. Any direct installation
+successor must start from current neutral production components, consume but
+never rerun Action 35s, and retain the explicit parser-mode prohibition.
+
 ## Architecture decision
 
 `PIHOLE_DUALSTACK` remains the sole ownership authority for:

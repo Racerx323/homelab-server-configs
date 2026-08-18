@@ -2,7 +2,6 @@
 Caddy/scripts/caddy-apprise-delivery-worker.sh	production-current	yes	/usr/local/libexec/caddy-apprise-delivery-worker	0755	Caddy/manifests/durable-apprise-production.tsv
 Caddy/scripts/caddy-apprise-enqueue.sh	production-current	yes	/usr/local/libexec/caddy-apprise-enqueue	0755	Caddy/manifests/durable-apprise-production.tsv
 Caddy/scripts/caddy-sync-release-receiver-v2	production-current	yes	/usr/local/libexec/caddy-sync-release-receiver-v2	0755	Caddy/manifests/synchronization-protocol-v2.yaml
-Caddy/scripts/apply-coupled-serving-health-action35s.sh	failed-consumed	no	-	-	Caddy/manifests/caddy-serving-health-action35s.yaml
 Caddy/scripts/check-caddy-serving-health.sh	production-current	yes	/usr/local/libexec/check-caddy.sh	0755	Caddy/manifests/serving-health-production.tsv
 Caddy/scripts/check-pihole-web-health.sh	production-current	yes	/usr/local/libexec/check-pihole-web-health.sh	0755	Caddy/manifests/serving-health-production.tsv
 Caddy/scripts/check-certificate-expiry.sh	production-current	yes	/usr/local/libexec/check-certificate-expiry.sh	0755	Caddy/systemd/caddy-cert-expiry.service
@@ -12,7 +11,6 @@ Caddy/scripts/lsyncd-sync-failure-notify.sh	production-current	yes	/usr/local/li
 Caddy/scripts/prepare-lighttpd-config.sh	production-current	no	-	-	Caddy/configs/lighttpd/desired-state.conf
 Caddy/scripts/publish-release-v2.sh	production-current	yes	/usr/local/libexec/publish-release-v2.sh	0755	Caddy/manifests/production-artifacts.tsv
 Caddy/scripts/reconcile-release-v2.sh	production-current	yes	/usr/local/libexec/reconcile-release.sh	0755	Caddy/manifests/production-artifacts.tsv
-Caddy/scripts/run-coupled-serving-health-action35s-outer.sh	failed-consumed	no	-	-	Caddy/manifests/caddy-serving-health-action35s.yaml
 Caddy/scripts/render-node-config.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/uninstall-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/validate-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
