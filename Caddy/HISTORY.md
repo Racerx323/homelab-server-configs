@@ -477,9 +477,8 @@ requests a historical reconstruction.
 - Recovery: Node A and Node B upload preparation, copy, acceptance, failure
   readback, and exact disposition all returned 0. No mutation entrypoint ran,
   so rollback was not required or attempted.
-- Status: terminal tag and commits are complete locally; remote synchronization
-  is pending explicit approval. Consumed machinery was removed by the immediate
-  cleanup commit.
+- Status: terminal tag and commit are synchronized; consumed machinery was
+  removed by the immediate cleanup commit
 
 ## Action 35t terminal archive
 
@@ -500,8 +499,9 @@ requests a historical reconstruction.
   passed completely
 - Recovery: both failure readbacks and exact upload dispositions returned 0;
   no mutation ran, so rollback was not required
-- Status: terminal tag and commit are synchronized; consumed machinery was
-  removed by the immediate cleanup commit
+- Status: terminal tag and commits are complete locally; remote synchronization
+  is pending explicit approval. Consumed machinery was removed by the immediate
+  cleanup commit.
 
 ## Action 35s terminal archive
 
