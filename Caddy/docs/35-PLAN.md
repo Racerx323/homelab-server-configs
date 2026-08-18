@@ -89,6 +89,9 @@ dual-stack `Fault` with zero VIPs. After the rollback reload, the native DNS
 check recovered and Node B returned to `BACKUP`; Node A was not promoted or
 mutated. Evidence is
 `/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
+Its terminal commit and annotated tag are synchronized, its consumed machinery
+is removed from the current branch, and the deployment stream is clean before
+the direct successor is defined.
 
 The direct successor must not launch a second health-check schedule. It must
 install Node B, reload Keepalived through the existing bounded rollback guard,

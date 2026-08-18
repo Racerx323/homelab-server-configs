@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35aa failed-consumed after successful Node B rollback and is terminal-pending; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35aa archived and cleaned after successful Node B rollback; the Caddy deployment stream is clean; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -397,11 +397,11 @@ successors.
 
 ## 17. Current next gate
 
-Action 35aa is failed-consumed and awaits archival at
+Action 35aa is failed-consumed and archived at
 `caddy-action35aa-terminal-2026-08-18`. Its retained workstation evidence is
 `/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
-Node B rollback succeeded and Node A was not mutated. The deployment stream
-must be archived and cleaned before one direct successor is defined.
+Node B rollback succeeded, Node A was not mutated, and the consumed machinery
+was removed before one direct successor is defined.
 
 The recovered production baseline remains:
 

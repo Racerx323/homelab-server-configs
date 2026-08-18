@@ -35,7 +35,6 @@ Caddy/tests/run-focused.sh	production-current	current-focused	current-production
 Caddy/tests/run-source-test-in-context.sh	production-current	current-focused	current-production-validation
 Caddy/tests/serving-health-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/serving-health-installation-production-path-regression.sh	production-current	current-focused	registered-successor-production-path
-Caddy/tests/serving-health-scheduled-execution-regression.sh	production-current	current-focused	real-scheduled-helper-boundary
 Caddy/tests/shfmt-canonical.sh	production-current	current-focused	current-production-validation
 Caddy/tests/ssh-stream-local-evidence-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/systemd-boot-persistence-policy.sh	production-current	current-focused	current-production-validation

@@ -30,8 +30,8 @@ Git preserves the complete deployment journal and executed action files.
   capture, and exact upload dispositions returned 0; after the rollback
   reload at 11:02:37, the native DNS check recovered and Node B entered
   `BACKUP` at 11:02:39; Node A was not mutated
-- Status: terminal-pending; the annotated tag will preserve this exact commit,
-  then consumed machinery will be removed by the immediate cleanup commit
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35z terminal archive
 
