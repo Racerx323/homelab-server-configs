@@ -1,6 +1,8 @@
 # path	lifecycle	deployable	authority
 Caddy/manifests/README.md	production-current	no	Caddy/manifests/README.md
 Caddy/manifests/accepted-live-artifacts.tsv	production-current	yes	Caddy/manifests/README.md
+Caddy/manifests/action35t-node-b-quarantine.tsv	failed-consumed	no	Caddy/manifests/caddy-serving-health-action35t.yaml
+Caddy/manifests/caddy-serving-health-action35t.yaml	failed-consumed	no	Caddy/docs/35-PLAN.md
 Caddy/manifests/current-live-state.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/dependencies.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-live-hash-consumers.tsv	production-current	yes	Caddy/manifests/README.md

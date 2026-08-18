@@ -1,0 +1,125 @@
+---
+schema_version: 1
+action: 35t
+title: Parser-free coupled serving-health installation
+status: failed-consumed
+baseline: Caddy/manifests/current-live-state.tsv
+transaction: Caddy/scripts/apply-coupled-serving-health-action35t.sh
+transaction_sha256: e3280a9eebedce710db1596d00ad2bc07d56d09d1d522ce20c11c2619bab6c83
+outer_runner: Caddy/scripts/run-coupled-serving-health-action35t-outer.sh
+consumes:
+  action: 35s
+  result: failed-consumed
+  rerun: false
+  mutation_entrypoint_ran: false
+  terminal_tag: caddy-action35s-terminal-2026-08-17
+  failure_boundary: installed-keepalived-config-test-known-broken
+corrected_prerequisite:
+  keepalived_parser_mode_allowed: false
+  removed_invocation: keepalived --config-test
+  pre_mutation_validation:
+    - repository-structure
+    - exact-rendered-identity
+    - unbound-parser
+    - real-service-identity-probes
+  authoritative_live_acceptance:
+    - standby-first-keepalived-reload
+    - bounded-service-and-vrrp-convergence
+    - reverse-rollback
+  otherwise_unchanged_from_action35s: true
+corrected_production_contract:
+  repository_source: Unbound/configs/pihole-local-zone.conf
+  installed_target: /etc/unbound/unbound.conf.d/pihole-local-zone.conf
+  source_and_deployed_sha256: f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d
+  operator_reconciled_nodes_after_action35k: true
+  stale_action35k_observed_sha256_allowed: false
+  transactional_install: true
+  unbound_validation_and_reload: true
+  tmpfiles_installed_target: /etc/tmpfiles.d/caddy-ha.conf
+retained_node_b_entry:
+  path: /var/lib/caddy-sync/incoming/node-a/action17p-node-a-to-node-b-bootstrap
+  metadata: caddy-sync:caddy-sync:0500
+  release_manifest_sha256: 81afa957c65b4f8a3f539b0018ebd700b0c926812f1b1e18b2ea7ade0be0e1b3
+  payload_manifest_sha256: f4dc87dab7075c4b20ed2acafb4969b757534bad49f5b47c85de4474d17175c8
+  completion_inventory_sha256: 190986c5ca8976ac50729dd5cb040eff4eea9426d17f7e9aa73c1c4c4b170b40
+  finalize_request_required_absent: true
+  complete_required_absent: true
+  complete_pending_required_absent: true
+  exact_sibling_inventory_required: true
+  unsafe_file_types_rejected: true
+  disposition: reversible-transaction-owned-move
+  delete_only_after_full_acceptance: true
+node_b_quarantine:
+  captured_inventory: /tmp/caddy-action35o-quarantine-inventory.txt
+  captured_inventory_sha256: 320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9
+  deployable_inventory: Caddy/manifests/action35t-node-b-quarantine.tsv
+  deployable_inventory_sha256: 2989c2bc4cef06864cf2e5c2abc30114fac0830841e52a1bd8d5983ed26a2083
+  expected_entries: 4
+  classifications:
+    - action17p-bootstrap
+    - action33k-reboot-normalized
+    - action30c-node-b-outbound-174240
+    - action30c-node-b-outbound-180716
+  active_release_reference_allowed: false
+  incoming_or_outbound_path_reference_allowed: false
+  unknown_or_unsafe_entry_allowed: false
+  disposition: reversible-transaction-owned-root-move
+  required_final_state: empty
+node_b_nonapplicable_incoming:
+  path: /var/lib/caddy-sync/incoming/node-b
+  required_state: absent
+node_a_quarantine:
+  expected_entries: 4
+  semantic_identity:
+    - exact-path
+    - revision
+    - source-node
+    - release-manifest-sha256
+    - payload-manifest-sha256
+    - protocol-v2-canonical-dot-path-file-set
+    - payload-file-hashes
+  active_release_reference_allowed: false
+  incoming_or_outbound_path_reference_allowed: false
+  changed_additional_symlinked_malformed_or_unsafe_entry_allowed: false
+  disposition: reversible-transaction-owned-root-move
+  required_final_state: empty
+legacy_lighttpd_helper:
+  repository_path: Caddy/scripts/prepare-lighttpd-config.sh
+  repository_lifecycle: non-installable-migration-tool
+  installed_path: /usr/local/libexec/prepare-lighttpd-config.sh
+  exact_sha256: ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f
+  node_a_initial_state: absent
+  node_b_initial_state: root:root:0755-exact
+  node_b_disposition: transactional-removal
+  rollback: restore-exact-node-b-copy
+  final_state_both_nodes: absent
+architecture:
+  node_a_initial_revision: 20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
+  node_b_initial_revision: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
+  retained_node_a_outbound_revision: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
+  publish_again: false
+  seed_production_state: false
+  copy_node_b_release_to_node_a: false
+ordering:
+  - dual-node-preflight
+  - node-b-retained-entry-quarantine-and-legacy-helper-disposition
+  - node-b-install-and-accept
+  - node-a-quarantine-semantic-validation-and-disposition
+  - node-a-local-finalize-and-reconcile
+  - node-a-install-and-accept
+  - dual-node-convergence-and-residue
+rollback:
+  order:
+    - node-a
+    - node-b
+  manual_intervention_status: 125
+evidence:
+  workstation_root: /tmp/caddy-ssh-evidence-action35t.RUN
+  node_root: /tmp/caddy-action35t-RUN-NODE
+  journal_cursor_before_mutation: true
+  service_and_notifier_journal_after_mutation: true
+  shared_and_node_specific_ui_ipv4_ipv6: true
+  notifier_delivery_failure_blocking: false
+authorization:
+  definition_contacts_nodes: false
+  live_execution_requires_outer_sha256: true

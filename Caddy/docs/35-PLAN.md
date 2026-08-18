@@ -265,6 +265,25 @@ branch, and the Caddy deployment stream is clean. Any direct installation
 successor must start from current neutral production components, consume but
 never rerun Action 35s, and retain the explicit parser-mode prohibition.
 
+Action 35t is that direct successor. It is derived mechanically from the
+archived Action 35s terminal transaction and changes only the invalid
+Keepalived parser prerequisite: the `keepalived --config-test` invocation and
+its test substitute dependency are removed. A production-path tripwire fails
+if any Keepalived parser command is invoked. All baseline, quarantine,
+publication, standby-first installation, convergence, evidence, rollback, and
+status-125 behavior remains unchanged.
+
+Action 35t execution removed the parser boundary successfully: both preflights
+and Node B candidate validation passed. Node A candidate validation failed
+before mutation because the real `keepalived_script`-identity Caddy probe
+reported only `caddy_serving_health_check_ipv4_https=false`. Node A DNS
+identity and Unbound validation passed. No quarantine disposition,
+installation, reload, or other mutation entrypoint ran. Both node failure
+readbacks and exact upload cleanup completed successfully; rollback was not
+required. Workstation evidence is
+`/tmp/caddy-ssh-evidence-action35t.68VRV6`. Action 35t is failed-consumed and
+must not be rerun.
+
 ## Architecture decision
 
 `PIHOLE_DUALSTACK` remains the sole ownership authority for:
@@ -409,8 +428,9 @@ The next direct successor is one transaction with complete embedded acceptance:
 1. Validate exact split releases, outbound/incoming/quarantine inventories,
    artifact identities, permissions, services, unit enablement, synchronization,
    durable notifications, VRRP ownership, and absence of unsafe residue.
-2. Parser-test both candidate Keepalived configurations and execute the DNS and
-   Caddy helpers under their real service identities.
+2. Verify both candidate Keepalived configurations by repository structure and
+   exact rendered identity without invoking a Keepalived parser mode. Execute
+   the DNS and Caddy helpers under their real service identities.
 3. Start continuous node-local DNS, trusted-HTTPS, shared Pi-hole UI, and
    node-specific Pi-hole UI IPv4/IPv6 probes. Capture pre-mutation journal
    cursors and bounded post-mutation service and notifier journals, then read

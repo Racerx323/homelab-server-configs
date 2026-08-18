@@ -480,6 +480,25 @@ requests a historical reconstruction.
 - Status: terminal tag and commit are synchronized; consumed machinery was
   removed by the immediate cleanup commit
 
+## Action 35t terminal archive
+
+- Tag: `caddy-action35t-terminal-2026-08-17`
+- Action: 35t
+- Authorized outer SHA-256:
+  `61e1a6c582b76e5c95efcfdeea3b5038043b8270df44c2eb644e985020818f81`
+- Transaction SHA-256:
+  `e3280a9eebedce710db1596d00ad2bc07d56d09d1d522ce20c11c2619bab6c83`
+- Result: failed-consumed during Node A candidate real-identity Caddy
+  validation, before disposition or any production mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35t.68VRV6`
+- Failed assertion: `caddy_serving_health_check_ipv4_https=false`; Node A
+  DNS identity and Unbound validation passed, and Node B candidate validation
+  passed completely
+- Recovery: both failure readbacks and exact upload dispositions returned 0;
+  no mutation ran, so rollback was not required
+- Status: terminal-pending
+
 ## Action 35s terminal archive
 
 - Tag: `caddy-action35s-terminal-2026-08-17`

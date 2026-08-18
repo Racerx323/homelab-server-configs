@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35s archived; Caddy stream clean; installed Keepalived `--config-test` is prohibited
+Current status: core deployment accepted; Action 35t failed-consumed, terminal-pending; installed Keepalived parser modes are prohibited
 
 ## 1. Purpose
 
@@ -333,13 +333,18 @@ uses cleanup only.
 | Corrected-inventory serving-health installation, Action 35m | Failed-consumed at the retained Node B incoming inventory and before mutation | `caddy-action35m-terminal-2026-08-17` |
 | Exact-retained-entry serving-health installation, Action 35n | Failed-consumed at an incorrect protocol-marker prerequisite and before mutation | `caddy-action35n-terminal-2026-08-17` |
 | Marker-free retained-entry serving-health installation, Action 35o | Failed-consumed at role-inapplicable incoming and stale empty-quarantine prerequisites before mutation | `caddy-action35o-terminal-2026-08-17` |
+| Quarantine-cleanup serving-health installation, Action 35p | Failed-consumed at the obsolete Node A migration-helper inventory prerequisite before mutation | `caddy-action35p-terminal-2026-08-17` |
+| Legacy-helper-cleanup serving-health installation, Action 35q | Failed-consumed at stale Node A quarantine assumptions before mutation | `caddy-action35q-terminal-2026-08-17` |
+| Node-A quarantine-cleanup serving-health installation, Action 35r | Failed-consumed at a noncanonical protocol-v2 file-set comparison before mutation | `caddy-action35r-terminal-2026-08-17` |
+| Canonical-quarantine serving-health installation, Action 35s | Failed-consumed at the known-broken installed Keepalived parser prerequisite before mutation | `caddy-action35s-terminal-2026-08-17` |
+| Parser-free serving-health installation, Action 35t | Failed-consumed at Node A's real-identity Caddy IPv4 HTTPS probe before mutation | `caddy-action35t-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Actions 35 through 35o are failed-consumed and preserved by the annotated tags
+Actions 35 through 35s are failed-consumed and preserved by the annotated tags
 listed above. They must not be rerun or copied into current validation. Action
 35g published one valid Node A release and Node B selected it. Action 35h then
 validated that exact split-release protocol state but failed during Node B
@@ -451,6 +456,27 @@ failed-consumed and must not be rerun. After terminal archival, the direct
 successor must semantically validate and reversibly disposition only those four
 unreferenced Node A families before resuming the unchanged standby-first
 installation.
+
+Action 35r reused the Node B quarantine disposition design but compared the
+Node A protocol-v2 file set with a noncanonical path representation. Action
+35s corrected that comparison and both node preflights passed. It then failed
+before mutation because it reintroduced the known-broken installed Keepalived
+`--config-test` interface. Action 35t consumes but does not rerun Action 35s,
+removes only that invalid parser prerequisite, and retains the remaining
+standby-first transaction unchanged. Pre-mutation checks retain exact
+repository structure, rendered identity, Unbound validation, and real service
+identity probes. Sequential standby-first reload, bounded service/VRRP
+convergence, and reverse rollback are the authoritative live acceptance path.
+
+Action 35t removed the prohibited parser prerequisite. Both node preflights and
+Node B candidate validation passed. Node A candidate validation then failed
+closed at the real service-identity assertion
+`caddy_serving_health_check_ipv4_https=false`; DNS identity, Unbound
+validation, and the preceding payload checks passed. No disposition,
+installation, reload, or other mutation entrypoint ran. Failure evidence
+readback and exact upload cleanup succeeded on both nodes, so rollback was not
+required. Workstation evidence is
+`/tmp/caddy-ssh-evidence-action35t.68VRV6`. Action 35t must not be rerun.
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;
