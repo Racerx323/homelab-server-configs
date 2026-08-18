@@ -3,6 +3,44 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Current deployment window
+
+- Action: 35ac
+- Status: terminal-pending, failed-consumed
+- Archive tag: `caddy-action35ac-terminal-2026-08-18`
+- Scope: preserve the exact executed Action 35ac definition and its proven
+  pre-Node-A failure, then remove its consumed machinery before defining the
+  direct phase-classified successor.
+- Successor constraint: Action 35ad must consume but never rerun Action 35ac,
+  retain the current helper paths, and identify the exact failing operation
+  through bounded phase-level status records.
+
+## Action 35ac terminal archive
+
+- Tag: `caddy-action35ac-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ac
+- Authorized outer SHA-256:
+  `02636fdf36901d1d05ce02935c60cde03c2553325a4caf2509949917e9e8b319`
+- Transaction SHA-256:
+  `f1407806d7697b15a33146bb64fc9cd0ad0dab0244887c65a9767443949d279e`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`
+- Failed boundary:
+  `action_35_ac_check_keepalived_daemon_status_records_valid=false`
+- Finding: Keepalived's real scheduled DNS and Proxy helpers repeatedly exited
+  1. Both helpers durably classified only the terminal fallback
+  `unclassified-helper-exit`; their direct candidate identity checks and every
+  retained DNS, HTTPS, node-interface, and shared-UI continuity probe passed.
+  The retained evidence therefore proves the failing daemon boundary but does
+  not identify the exact helper operation. No helper path change is justified.
+- Recovery: Node B rollback and rollback readback returned 0, Node B returned
+  to `BACKUP`, and Node A was not mutated
+- Status: terminal-pending until the annotated tag is created and consumed
+  machinery is removed
+
 ## Action 35ab terminal archive
 
 - Tag: `caddy-action35ab-terminal-2026-08-18`

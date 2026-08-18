@@ -104,11 +104,25 @@ succeeded and returned it to `BACKUP`; Node A was not mutated. Evidence is
 `caddy-action35ab-terminal-2026-08-18`, its consumed machinery is removed, and
 it must not be rerun.
 
-The direct successor must make every helper exit produce a bounded classified
-status or journald record, collect the complete bounded daemon observation
-window before evaluating it, and then either continue on repeated clean daemon
-results or roll back with the exact component and failure class. It must retain
-the otherwise unchanged standby-first transaction.
+Action 35ac is failed-consumed. It installed Node B and observed Keepalived's
+real scheduled DNS and Proxy helpers repeatedly exit 1. Both helpers durably
+recorded `unclassified-helper-exit`; their direct candidate identity checks and
+every retained DNS, trusted HTTPS, node-interface, and shared Pi-hole UI probe
+passed. The transaction failed closed at
+`action_35_ac_check_keepalived_daemon_status_records_valid=false`. Node B
+rollback succeeded and returned it to `BACKUP`; Node A was not promoted or
+mutated. Evidence is `/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`. Action 35ac
+must not be rerun.
+
+The direct installation successor is Action 35ad. It retains the existing DNS
+and Caddy helper paths and the otherwise unchanged standby-first transaction.
+It adds bounded phase-level classification inside the real helpers so every
+failure identifies the exact stable operation boundary without exposing raw
+commands, unsafe output, environment data, or secrets. It must collect the
+complete daemon-owned observation window before evaluation, continue only on
+repeated clean results, and otherwise roll back with the exact component,
+phase, and failure class. No speculative path change or separate diagnostic is
+authorized.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

@@ -12,6 +12,20 @@ readonly ss_command=${CADDY_SERVING_HEALTH_SS_COMMAND:-/usr/bin/ss}
 readonly systemctl_command=${CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND:-/usr/bin/systemctl}
 readonly status_file=${CADDY_SERVING_HEALTH_STATUS_FILE:-/run/caddy-serving-health/proxy/status}
 readonly date_command=${CADDY_SERVING_HEALTH_DATE_COMMAND:-/usr/bin/date}
+readonly logger_command=${CADDY_SERVING_HEALTH_LOGGER_COMMAND:-/usr/bin/logger}
+status_recorded=false
+
+journal_status_fallback() {
+    local serving_health_result=$1
+    local serving_health_component=$2
+    local serving_health_check=$3
+    local serving_health_failure_class=$4
+    local serving_health_exit_status=$5
+
+    "$logger_command" --tag caddy-serving-health --priority daemon.warning -- \
+        "application=Proxy component=$serving_health_component check=$serving_health_check result=$serving_health_result failure_class=$serving_health_failure_class exit_status=$serving_health_exit_status status_record=unavailable"
+    status_recorded=true
+}
 
 write_status() {
     local serving_health_result=$1
@@ -23,18 +37,53 @@ write_status() {
     local serving_health_directory=${status_file%/*}
     local serving_health_temporary
 
-    [[ -d "$serving_health_directory" && ! -L "$serving_health_directory" ]] || return 0
-    serving_health_temporary=$(mktemp "$serving_health_directory/.status.XXXXXX") || return 0
+    if [[ ! -d "$serving_health_directory" || -L "$serving_health_directory" ]]; then
+        journal_status_fallback "$serving_health_result" "$serving_health_component" \
+            "$serving_health_check" status-directory-invalid 1
+        return 0
+    fi
+    serving_health_temporary=$(mktemp "$serving_health_directory/.status.XXXXXX") || {
+        journal_status_fallback "$serving_health_result" "$serving_health_component" \
+            "$serving_health_check" status-create-failed 1
+        return 0
+    }
     printf 'schema=caddy-serving-health-status/v1\napplication=Proxy\ncomponent=%s\ncheck=%s\nresult=%s\nfailure_class=%s\nnetwork=%s\nstatus=%s\nobserved_epoch=%s\n' \
         "$serving_health_component" "$serving_health_check" "$serving_health_result" \
         "$serving_health_failure_class" "$serving_health_network" \
         "$serving_health_status" "$($date_command +%s)" >"$serving_health_temporary" || {
         rm -f -- "$serving_health_temporary"
+        journal_status_fallback "$serving_health_result" "$serving_health_component" \
+            "$serving_health_check" status-write-failed 1
         return 0
     }
-    chmod 0644 "$serving_health_temporary" || return 0
-    mv -fT -- "$serving_health_temporary" "$status_file" || return 0
+    if ! chmod 0644 "$serving_health_temporary" ||
+        ! mv -fT -- "$serving_health_temporary" "$status_file"; then
+        rm -f -- "$serving_health_temporary"
+        journal_status_fallback "$serving_health_result" "$serving_health_component" \
+            "$serving_health_check" status-commit-failed 1
+        return 0
+    fi
+    status_recorded=true
 }
+
+# Invoked indirectly by the EXIT trap below.
+# shellcheck disable=SC2317
+record_unclassified_exit() {
+    local serving_health_exit_status=$1
+
+    trap - EXIT
+    if [[ -n "${capture_root:-}" && "$capture_root" = /tmp/check-caddy-serving-health.* &&
+        -d "$capture_root" && ! -L "$capture_root" ]]; then
+        rm -rf -- "$capture_root" || true
+    fi
+    if [[ "$serving_health_exit_status" -ne 0 && "$status_recorded" != true ]]; then
+        write_status failed Caddy internal-error unclassified-helper-exit \
+            'not applicable' "exit=$serving_health_exit_status"
+    fi
+    exit "$serving_health_exit_status"
+}
+
+trap 'record_unclassified_exit "$?"' EXIT
 
 fail() {
     local serving_health_label=$1
@@ -106,7 +155,6 @@ readonly NODE_FQDN NODE_IPV4 NODE_IPV6
 
 capture_root=$(mktemp -d /tmp/check-caddy-serving-health.XXXXXX)
 readonly capture_root
-trap 'rm -rf -- "$capture_root"' EXIT
 
 probe() {
     local serving_health_family=$1

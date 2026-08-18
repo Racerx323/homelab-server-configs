@@ -1,5 +1,5 @@
 # repository	source-path	installed-path	mode	candidate-sha256	lifecycle
-homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	88d49e1179bd43ba0b3c2ecad7bee17e1262f59cb67c37a4274bb81c8224b2d7	production-candidate
+homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	0017768c2feda7744d03b3150d66b20b2d2e8af1d3aa6e1b34eed146b912a86e	production-candidate
 homelab-server-configs	Caddy/scripts/check-pihole-web-health.sh	/usr/local/libexec/check-pihole-web-health.sh	0755	803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	5101792e178ede8f6ae4cae23f9d22d57bd4c453c3578dc164175a57fe4dc56f	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	370e31cdfa68c31763028299b9e2d9aa67abaec2b9a34d8ac85d950cef94ab52	production-candidate
@@ -8,7 +8,7 @@ homelab-server-configs	Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/ca
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.service	/etc/systemd/system/caddy-pihole-web-health.service	0644	a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0	production-candidate
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.timer	/etc/systemd/system/caddy-pihole-web-health.timer	0644	f214b69fecaeb322dbaba61f683f9cf35970596784adcd707e25278f0ace1505	production-candidate
 homelab-server-configs	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	/etc/caddy/releases/REVISION/conf.d/10-pihole-admin.caddy	0640	93df2e2d056052b92505f70f3d79e826d5c7c6c69baaededd2c5c1b9bb410512	production-candidate
-homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	ab76f563289a0180d8a506c5c72a292843b72c4b37932bacc0097d05bff1b414	production-candidate
+homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	3b5f758535d1994995df2a6bdc0eb418762993fd07fad3a781e4bdcdfe660423	production-candidate
 homelab-dns	Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	60b758b3dd73f092bfb9bb46eb33148a7d1ecc1a913b6c83c6301dc0a905e22d	production-candidate
 homelab-dns	Unbound/configs/pihole-local-zone.conf	/etc/unbound/unbound.conf.d/pihole-local-zone.conf	0644	f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d	production-candidate
 homelab-dns	Keepalived/configs/keepalived-pihole0.conf	/etc/keepalived/keepalived.conf	0644	de67123685edb21cdfaee95eb0497d9ab527c546cf730a5f51506bc293eab92a	production-candidate

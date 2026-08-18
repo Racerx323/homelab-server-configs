@@ -20,6 +20,7 @@ readonly node_b_keepalived=$dns_root/Keepalived/configs/keepalived-pihole00.conf
 root=$(mktemp -d /tmp/caddy-serving-health-regression.XXXXXX)
 readonly root
 trap 'rm -rf -- "$root"' EXIT
+trap 'printf "serving_health_regression_failure_line=%s status=%s\n" "$LINENO" "$?" >&2' ERR
 
 install -d -m 0700 "$root/bin" "$root/state" "$root/run"
 printf 'NODE_FQDN=pihole0.local.theama.co\nNODE_IPV4=10.1.0.53\nNODE_IPV6=fd36:5aa8:6971:1::53\n' >"$root/environment"
@@ -79,6 +80,10 @@ case " \$* " in
     *) exit 2 ;;
 esac
 EOF
+cat >"$root/bin/logger" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >>"$root/logger.log"
+EOF
 chmod 0755 "$root/bin/"*
 
 CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
@@ -114,6 +119,29 @@ if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
 fi
 grep -Fxq 'failure_class=TLS-verification' "$root/run/proxy.status"
 grep -Fxq 'status=curl=60' "$root/run/proxy.status"
+printf 'healthy\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=/usr/bin/false \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=unclassified-helper-exit' "$root/run/proxy.status"
+rm -f -- "$root/logger.log"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=/usr/bin/false \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/missing/proxy.status \
+    CADDY_SERVING_HEALTH_LOGGER_COMMAND=$root/bin/logger \
+    /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+[[ "$(wc -l <"$root/logger.log")" -eq 1 ]]
+grep -Fq 'application=Proxy' "$root/logger.log"
+grep -Fq 'failure_class=status-directory-invalid' "$root/logger.log"
 printf 'healthy\n' >"$root/caddy-mode"
 printf '%s_caddy_entrypoint=true\n' "$prefix"
 
@@ -184,6 +212,17 @@ if [[ -f "$dns_helper" ]]; then
     fi
     grep -Fxq 'application=DNS' "$root/run/dns.status"
     grep -Fxq 'result=failed' "$root/run/dns.status"
+    rm -f -- "$root/logger.log"
+    if DNS_CHECK_DIG_COMMAND=$root/bin/dig \
+        DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+        DNS_CHECK_STATUS_FILE=$root/missing/dns.status \
+        DNS_CHECK_LOGGER_COMMAND=$root/bin/logger \
+        /bin/bash "$dns_helper" >/dev/null 2>&1; then
+        exit 1
+    fi
+    [[ "$(wc -l <"$root/logger.log")" -eq 1 ]]
+    grep -Fq 'application=DNS' "$root/logger.log"
+    grep -Fq 'failure_class=status-directory-invalid' "$root/logger.log"
     for keepalived_config in "$node_a_keepalived" "$node_b_keepalived"; do
         [[ "$(grep -Fc '        check-caddy' "$keepalived_config")" -eq 1 ]]
         [[ "$(grep -Fc '    script_user pi' "$keepalived_config")" -eq 1 ]]
