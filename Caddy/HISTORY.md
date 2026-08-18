@@ -369,3 +369,27 @@ requests a historical reconstruction.
   required or attempted
 - Status: terminal tag and terminal commit are recorded; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35n terminal archive
+
+- Tag: `caddy-action35n-terminal-2026-08-17` (pending)
+- Commit: pending terminal-result commit
+- Action: 35n
+- Authorized outer SHA-256:
+  `e0eac2c04da696c5545ad2439a4a59d295a0c38e389b75e035a97a935f5648bd`
+- Transaction SHA-256:
+  `1a3ef5c67aae2a57bcd20cce26c1fa8be0e97cc230fee3caef72c2cd2f2da2f8`
+- Result: failed-consumed during exact Node B retained-entry inventory
+  validation, before disposition or any other mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35n.XLa3wW`
+- Failed assertion: `retained_file_inventory_exact=false`
+- Bounded read-only completion inventory: Node B and workstation
+  `/tmp/caddy-action35n-retained-inventory.txt`, SHA-256
+  `190986c5ca8976ac50729dd5cb040eff4eea9426d17f7e9aa73c1c4c4b170b40`
+- Finding: the exact entry is marker-free; `.finalize-request` and `.complete`
+  are both absent, while pinned manifests and every payload hash validate
+- Recovery: Node A and Node B upload preparation, copy, acceptance, evidence
+  readback, and exact disposition all returned 0; no mutation entrypoint ran,
+  so rollback was not required or attempted
+- Status: terminal-pending until this exact tree is committed and tagged

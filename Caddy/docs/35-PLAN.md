@@ -13,9 +13,9 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`. Action 35m's terminal commit and annotated tag are recorded,
-its machinery is removed, and the deployable-successor and causal-coverage
-registries are clear.
+stream is `terminal-pending` for failed-consumed Action 35n. Action 35m's
+terminal commit and annotated tag are recorded, its machinery is removed, and
+the deployable-successor and causal-coverage registries are clear.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -102,6 +102,31 @@ no mutation entrypoint ran, and rollback was neither required nor attempted.
 The entry was not modified or removed. A direct successor must classify this
 exact current-production inventory safely rather than imposing a blanket empty
 directory assumption; it must not rerun Action 35m or add a separate diagnostic.
+
+Action 35n validates the sole Node B entry at
+`incoming/node-a/action17p-node-a-to-node-b-bootstrap` using its exact
+`caddy-sync:caddy-sync:0500` metadata, pinned release-manifest and payload-
+manifest identities, strict payload verification, safe file types, marker
+boundaries, and exact sibling inventory. With reconciliation and managed
+lsyncd stopped, it moves only that entry into transaction-owned evidence.
+Rollback restores it before services are reaccepted; successful final
+acceptance deletes it only when the transaction evidence root is disposed.
+Absent, partial, malformed, symlinked, extra-entry, identity-mismatched, or
+unsafe states fail closed. The remainder of the standby-first installation is
+unchanged. No Action 35m rerun or separate diagnostic is permitted.
+
+Action 35n accepted the entry's exact metadata, pinned manifests, revision,
+source, payload hashes, and safe file types, then failed-consumed before any
+mutation because its inventory unconditionally required `.finalize-request`
+and `.complete`. Bounded read-only completion capture proved the exact retained
+tree is marker-free and otherwise contains only `manifest.sha256`,
+`release-manifest.json`, and the files named by that manifest. The capture is
+retained on Node B and the workstation at
+`/tmp/caddy-action35n-retained-inventory.txt`, with SHA-256
+`190986c5ca8976ac50729dd5cb040eff4eea9426d17f7e9aa73c1c4c4b170b40`.
+Both upload trees were removed, no mutation entrypoint ran, and rollback was
+not required. The direct successor must require this exact marker-free state,
+disposition only that validated entry, and resume the unchanged installation.
 
 ## Architecture decision
 

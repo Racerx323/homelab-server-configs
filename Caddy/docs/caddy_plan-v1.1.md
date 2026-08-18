@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35m archived; deployment stream clean
+Current status: core deployment accepted; Action 35n failed-consumed; terminal archive pending
 
 ## 1. Purpose
 
@@ -391,8 +391,17 @@ before candidate validation or mutation because Node B retains the sole regular
 `caddy-sync:caddy-sync:0500` metadata. Bounded completion readback is retained
 at `/tmp/caddy-action35m-completion-readback.tsv`; the entry was not altered.
 Both uploads were removed and rollback was not required. Action 35m must not be
-rerun. Its direct successor must classify this exact current inventory and then
-resume the unchanged standby-first transaction:
+rerun. Action 35n required the exact retained
+metadata and pinned manifest identities, rejects every sibling or unsafe state,
+moves only that entry into transaction-owned evidence with synchronization
+frozen, restores it on rollback, and deletes it only after full acceptance.
+It failed before mutation because its file inventory incorrectly required both
+protocol-v2 markers. Bounded read-only capture at
+`/tmp/caddy-action35n-retained-inventory.txt` proved that the exact validated
+historical entry contains neither `.finalize-request` nor `.complete`; both
+uploads were removed and rollback was not required. A direct successor must
+require this exact marker-free state and then resume the unchanged standby-first
+transaction:
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

@@ -57,6 +57,15 @@ successor_policy_executable_file() {
     fi
 }
 
+successor_policy_remove_probe_root() {
+    local successor_policy_cleanup_root=$1
+
+    [[ "$successor_policy_cleanup_root" = /tmp/caddy-successor-production-evidence.* ]]
+    [[ -d "$successor_policy_cleanup_root" && ! -L "$successor_policy_cleanup_root" ]]
+    chmod -R u+rwX -- "$successor_policy_cleanup_root"
+    rm -rf -- "$successor_policy_cleanup_root"
+}
+
 successor_policy_state_valid() {
     local successor_policy_state=$1
     local successor_policy_accepted_hash successor_policy_runtime_hash
@@ -301,13 +310,13 @@ successor_policy_defined_valid() {
         2>"$successor_policy_transaction_error"; then
         rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
             "$successor_policy_outer_output" "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     if [[ -s "$successor_policy_transaction_error" ]]; then
         rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
             "$successor_policy_outer_output" "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     if ! CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$successor_policy_outer_evidence \
@@ -316,20 +325,20 @@ successor_policy_defined_valid() {
         2>"$successor_policy_outer_error"; then
         rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
             "$successor_policy_outer_output" "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     if [[ -s "$successor_policy_outer_error" ]]; then
         rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
             "$successor_policy_outer_output" "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     if ! successor_policy_evidence_valid "$successor_policy_transaction_evidence" \
         "$successor_policy_repository_root/$successor_policy_coverage" transaction; then
         rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
             "$successor_policy_outer_output" "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     if ! successor_policy_evidence_valid "$successor_policy_outer_evidence" \
@@ -337,12 +346,12 @@ successor_policy_defined_valid() {
         rm -f -- "$successor_policy_transaction_output" \
             "$successor_policy_transaction_error" "$successor_policy_outer_output" \
             "$successor_policy_outer_error"
-        rm -rf -- "$successor_policy_probe_root"
+        successor_policy_remove_probe_root "$successor_policy_probe_root"
         return 1
     fi
     rm -f -- "$successor_policy_transaction_output" "$successor_policy_transaction_error" \
         "$successor_policy_outer_output" "$successor_policy_outer_error" || return 1
-    rm -rf -- "$successor_policy_probe_root" || return 1
+    successor_policy_remove_probe_root "$successor_policy_probe_root" || return 1
     /bin/bash "$successor_policy_repository_root/$successor_policy_regression" || return 1
     # conditional-validator-explicit-failures-end
 }
