@@ -282,7 +282,9 @@ installation, reload, or other mutation entrypoint ran. Both node failure
 readbacks and exact upload cleanup completed successfully; rollback was not
 required. Workstation evidence is
 `/tmp/caddy-ssh-evidence-action35t.68VRV6`. Action 35t is failed-consumed and
-must not be rerun.
+must not be rerun. It is archived at tag
+`caddy-action35t-terminal-2026-08-17`; its consumed machinery was removed
+from the main branch and the Caddy stream returned to clean.
 
 ## Architecture decision
 
