@@ -483,6 +483,8 @@ requests a historical reconstruction.
 ## Action 35r terminal archive
 
 - Tag: `caddy-action35r-terminal-2026-08-17`
+- Commit: `f264e43fd6176132104f7dd1f351c295e58700ec`
+- Tag object: `7a716beff8b8ea1503c594f2d7ce685b090bdd3d`
 - Action: 35r
 - Authorized outer SHA-256:
   `347b9044acde81f2ec9d5dd5b4e86da108bf64c93c731654b78e67b98c201640`
@@ -496,4 +498,5 @@ requests a historical reconstruction.
   `action_35_r_check_node_a_quarantine_baseline_node_b_20260811t174240z_31d43261_5cd7_44ce_83e5_947927184d29_file_inventory_exact=false`
 - Recovery: both failure readbacks and exact upload dispositions completed;
   no mutation ran, so rollback was not required
-- Status: terminal-pending
+- Status: terminal tag and commit are synchronized; consumed machinery was
+  removed by the immediate cleanup commit

@@ -226,7 +226,9 @@ disposition, helper removal, candidate validation, installation, reload, or
 other production mutation entrypoint ran. Failure evidence readback and exact
 upload cleanup succeeded on both nodes, so rollback was not required. The
 workstation evidence is `/tmp/caddy-ssh-evidence-action35r.QXPhkL`. Action 35r
-is failed-consumed and must not be rerun.
+is archived at annotated tag `caddy-action35r-terminal-2026-08-17`, its
+consumed machinery is removed, and it must not be rerun. The Caddy deployment
+stream is clean before definition of a direct successor.
 
 ## Architecture decision
 
