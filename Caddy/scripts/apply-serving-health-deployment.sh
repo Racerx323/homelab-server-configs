@@ -987,7 +987,7 @@ accept_web_health_unit() {
     local serving_health_installed
     local serving_health_attempt
     local serving_health_service_name
-    local serving_health_start_count=0
+    local serving_health_healthy_count=0
     local serving_health_finish_count=0
     local serving_health_start_status=0
 
@@ -1018,25 +1018,33 @@ accept_web_health_unit() {
     require web_unit_direct_supplementary_group grep -Fxq \
         'SupplementaryGroups=caddy-tls' "$evidence_root/web_unit_direct_state.stdout"
 
+    capture_journal_cursor
+
     for ((serving_health_attempt = 1;  \
     serving_health_attempt <= web_health_observation_attempts;  \
     serving_health_attempt++)); do
         capture_command web_unit_timer_journal "$journalctl_command" --quiet --no-pager \
             -o cat --after-cursor "$(<"$evidence_root/journal.cursor")" \
             -u "$web_health_service"
-        serving_health_start_count=$(grep -Fc \
-            'Starting caddy-pihole-web-health.service' \
+        serving_health_healthy_count=$(grep -Fc \
+            'pihole_web_health event=healthy' \
             "$evidence_root/web_unit_timer_journal.stdout" || :)
         serving_health_finish_count=$(grep -Ec \
             'Finished caddy-pihole-web-health.service|Deactivated successfully' \
             "$evidence_root/web_unit_timer_journal.stdout" || :)
-        if [[ "$serving_health_start_count" -ge 2 && "$serving_health_finish_count" -ge 2 ]]; then
+        if [[ "$serving_health_healthy_count" -ge 1 && "$serving_health_finish_count" -ge 1 ]]; then
             break
         fi
         "$sleep_command" "$web_health_observation_delay"
     done
-    require web_unit_direct_and_timer_starts test "$serving_health_start_count" -ge 2
-    require web_unit_direct_and_timer_finishes test "$serving_health_finish_count" -ge 2
+    require web_unit_timer_healthy_event test "$serving_health_healthy_count" -ge 1
+    require web_unit_timer_successful_completion test "$serving_health_finish_count" -ge 1
+    capture_command web_unit_timer_state "$systemctl_command" show "$web_health_service" \
+        -p LoadState -p ActiveState -p SubState -p Result -p ExecMainStatus
+    require web_unit_timer_result grep -Fxq 'Result=success' \
+        "$evidence_root/web_unit_timer_state.stdout"
+    require web_unit_timer_status grep -Fxq 'ExecMainStatus=0' \
+        "$evidence_root/web_unit_timer_state.stdout"
     require web_unit_timer_failures_absent test \
         "$(grep -Ec 'Failed to start|status=226/NAMESPACE|Failed at step NAMESPACE' \
             "$evidence_root/web_unit_timer_journal.stdout" || :)" -eq 0
@@ -2281,7 +2289,7 @@ case "$1" in
     start)
         [[ "${2:-}" = caddy-pihole-web-health.service ]]
         printf '%s\n' \
-            'Starting caddy-pihole-web-health.service - direct invocation' \
+            'pihole_web_health event=healthy' \
             'Finished caddy-pihole-web-health.service - direct invocation' \
             >>"$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
         ;;
@@ -2300,17 +2308,23 @@ SYSTEMCTL
 set -Eeuo pipefail
 printf '%s\n' "$*" >>"$CADDY_WEB_HEALTH_TEST_ROOT/journalctl.calls"
 if [[ " $* " = *' --show-cursor '* ]]; then
-    printf '%s\n' '-- cursor: s=web-health-test-cursor'
+    cursor_count=0
+    if [[ -f "$CADDY_WEB_HEALTH_TEST_ROOT/cursor-count" ]]; then
+        cursor_count=$(<"$CADDY_WEB_HEALTH_TEST_ROOT/cursor-count")
+    fi
+    ((cursor_count += 1))
+    printf '%s\n' "$cursor_count" >"$CADDY_WEB_HEALTH_TEST_ROOT/cursor-count"
+    printf '%s\n' "-- cursor: s=web-health-test-cursor-$cursor_count"
     exit
 fi
 if [[ ! -e "$CADDY_WEB_HEALTH_TEST_ROOT/timer-observed" ]]; then
     printf '%s\n' \
-        'Starting caddy-pihole-web-health.service - timer invocation' \
+        'pihole_web_health event=healthy' \
         'Finished caddy-pihole-web-health.service - timer invocation' \
-        >>"$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
+        >"$CADDY_WEB_HEALTH_TEST_ROOT/timer.journal"
     : >"$CADDY_WEB_HEALTH_TEST_ROOT/timer-observed"
 fi
-cat "$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
+cat "$CADDY_WEB_HEALTH_TEST_ROOT/timer.journal"
 JOURNALCTL
     cat >"$serving_health_sleep" <<'SLEEP'
 #!/usr/bin/env bash
@@ -2392,7 +2406,7 @@ SLEEP
     [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = "$web_health_unit_deployed_sha256" ]]
     grep -Fxq 'start caddy-pihole-web-health.service' \
         "$serving_health_test_root/systemctl.calls"
-    grep -Fq 'timer invocation' "$serving_health_test_root/service.journal"
+    grep -Fq 'timer invocation' "$serving_health_test_root/timer.journal"
 
     printf '# changed\n' >>"$serving_health_candidate"
     serving_health_raw=$serving_health_test_root/raw/web-unit-candidate-tamper.txt

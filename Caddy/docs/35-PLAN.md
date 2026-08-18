@@ -225,6 +225,18 @@ required two literal systemd `Starting` messages and observed only one. Node A
 was not mutated. Node B rollback, readback, and both payload dispositions
 passed. Evidence is `/tmp/caddy-ssh-evidence-serving_health.YgxxZn`.
 
+Action 35ak is the defined direct successor. It retains the exact Action 35aj
+unit and installation logic. After direct success it captures a fresh journal
+cursor and accepts only a subsequent timer-owned healthy event, successful
+completion, and successful unit result. It does not count systemd `Starting`
+messages. Node B then Node A ordering and reverse rollback are unchanged.
+
+Action 35ak is accepted with exit status 0 and evidence at
+`/tmp/caddy-ssh-evidence-serving_health.secstj`. Node B completed before Node A;
+both installed the exact unit, and direct plus later timer-owned invocations
+returned successful unit results and emitted the required healthy event.
+Readback and payload disposition passed on both nodes; rollback was not needed.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

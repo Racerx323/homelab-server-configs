@@ -6,9 +6,9 @@ Git preserves the complete deployment journal and executed action files.
 ## Current deployment window
 
 - State: terminal-pending
-- Latest archive tag: `caddy-action35aj-terminal-2026-08-18`
-- Terminal action: Action 35aj, failed-consumed after Node B mutation with
-  exact rollback proven. Action 35aj must not be rerun.
+- Planned archive tag: `caddy-action35ak-terminal-2026-08-18`
+- Terminal action: Action 35ak, accepted on both nodes. The exact operation
+  remains only until its annotated terminal tag is created.
 
 ## Action 35ah terminal archive
 
@@ -120,7 +120,7 @@ Git preserves the complete deployment journal and executed action files.
 - Transaction SHA-256:
   `0f89055f46e0109ef8fb5cf1b32997b096eb10ea69e2f77c7edd9b159f3d92e3`
 - Result: failed-consumed after Node B mutation; exit status 1.
-- Status: terminal-pending.
+- Status: archived and cleaned. Action 35aj is consumed and must not be rerun.
 - Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.YgxxZn`.
 - Both node preflights passed. Node B installed the exact candidate, and its
   direct invocation returned `Result=success`, `ExecMainStatus=0`, and
@@ -133,6 +133,36 @@ Git preserves the complete deployment journal and executed action files.
   `a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0`;
   both payload dispositions and rollback readback passed. Recovery was proven,
   so status 125 was not used.
+
+## Action 35ak definition
+
+- Action 35ak consumes but never reruns failed-consumed Action 35aj.
+- It retains the exact proven unit and standby-first installation logic.
+- After direct service success it captures a fresh journal cursor, then
+  requires one later `pihole_web_health event=healthy`, one successful systemd
+  completion, and `Result=success` with `ExecMainStatus=0`.
+- Literal systemd `Starting` message counts are not an acceptance input.
+- Node B remains fully accepted before Node A; reverse rollback and all
+  no-serving-restart constraints remain unchanged.
+
+### Action 35ak terminal result
+
+- Tag: `caddy-action35ak-terminal-2026-08-18`
+- Authorized outer SHA-256:
+  `d3e0a1cc4f04c9c362c6c6974578a788f1fb1f7a10913cbef0b6993022842770`
+- Transaction SHA-256:
+  `1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7`
+- Result: accepted; exit status 0.
+- Status: terminal-pending.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.secstj`.
+- Node B completed before Node A. Both nodes installed exact unit SHA-256
+  `d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc`.
+- Direct and later timer-owned invocations returned `Result=success` and
+  `ExecMainStatus=0`; each timer window contained the required
+  `pihole_web_health event=healthy` record.
+- Required services, timer state, supplementary identity, persistent queue
+  ownership and modes, readback, and payload disposition passed on both nodes.
+  Rollback was not required.
 
 ## Action 35ag terminal archive
 

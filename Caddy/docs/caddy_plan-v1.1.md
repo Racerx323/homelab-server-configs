@@ -591,6 +591,20 @@ successor must retain the proven unit and replace that count with a fresh
 post-direct cursor followed by one timer-owned healthy result, successful
 completion, and successful unit result.
 
+Action 35ak is the defined direct successor. The unit and installation phases
+are unchanged. Acceptance takes a fresh cursor after direct success and then
+requires a later timer-owned healthy event, successful completion, and
+successful unit result. Node B remains first and reverse rollback remains
+unchanged.
+
+Action 35ak is accepted with exit status 0. Node B completed before Node A,
+both installed exact unit SHA-256
+`d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc`,
+and direct plus later timer-owned invocations returned successful unit results
+with the required healthy event. Both payloads were dispositioned and rollback
+was not required. Evidence is
+`/tmp/caddy-ssh-evidence-serving_health.secstj`.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:

@@ -8,8 +8,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=0f89055f46e0109ef8fb5cf1b32997b096eb10ea69e2f77c7edd9b159f3d92e3
-readonly operation_sha256=453a65a0a9d8248861264eabcf2962d3db0cd35c788e2f1308c3ea61808f4f5b
+readonly transaction_sha256=1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7
+readonly operation_sha256=0fb7fd27828b345870e2ef40e10e8f82affe270b20e8afeb219e7710c3c26392
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 readonly max_stream_bytes=1048576
@@ -594,7 +594,7 @@ case "$1" in
             exit 1
         fi
         printf '%s\n' \
-            'Starting caddy-pihole-web-health.service - direct invocation' \
+            'pihole_web_health event=healthy' \
             'Finished caddy-pihole-web-health.service - direct invocation' \
             >>"$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
         ;;
@@ -614,17 +614,24 @@ set -Eeuo pipefail
 printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" \
     >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journalctl.calls"
 if [[ " $* " = *' --show-cursor '* ]]; then
-    printf '%s\n' "-- cursor: s=web-health-$CADDY_SERVING_HEALTH_TEST_NODE"
+    cursor_count=0
+    if [[ -f "$CADDY_SERVING_HEALTH_TARGET_ROOT/cursor-count" ]]; then
+        cursor_count=$(<"$CADDY_SERVING_HEALTH_TARGET_ROOT/cursor-count")
+    fi
+    ((cursor_count += 1))
+    printf '%s\n' "$cursor_count" >"$CADDY_SERVING_HEALTH_TARGET_ROOT/cursor-count"
+    printf '%s\n' \
+        "-- cursor: s=web-health-$CADDY_SERVING_HEALTH_TEST_NODE-$cursor_count"
     exit
 fi
 if [[ ! -e "$CADDY_SERVING_HEALTH_TARGET_ROOT/timer-observed" ]]; then
     printf '%s\n' \
-        'Starting caddy-pihole-web-health.service - timer invocation' \
+        'pihole_web_health event=healthy' \
         'Finished caddy-pihole-web-health.service - timer invocation' \
-        >>"$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
+        >"$CADDY_SERVING_HEALTH_TARGET_ROOT/timer.journal"
     : >"$CADDY_SERVING_HEALTH_TARGET_ROOT/timer-observed"
 fi
-cat "$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
+cat "$CADDY_SERVING_HEALTH_TARGET_ROOT/timer.journal"
 JOURNALCTL
     cat >"$test_remote_base/bin/sleep" <<'SLEEP'
 #!/usr/bin/env bash
@@ -706,7 +713,11 @@ SCP
     : >"$test_remote_base/systemctl.calls"
     : >"$test_remote_base/journalctl.calls"
     rm -f -- "$test_remote_base/node-a-root/timer-observed" \
-        "$test_remote_base/node-b-root/timer-observed"
+        "$test_remote_base/node-b-root/timer-observed" \
+        "$test_remote_base/node-a-root/timer.journal" \
+        "$test_remote_base/node-b-root/timer.journal" \
+        "$test_remote_base/node-a-root/cursor-count" \
+        "$test_remote_base/node-b-root/cursor-count"
     : >"$test_remote_base/node-a-root/service.journal"
     : >"$test_remote_base/node-b-root/service.journal"
     run_web_health_unit_live

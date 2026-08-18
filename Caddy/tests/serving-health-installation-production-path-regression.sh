@@ -55,8 +55,16 @@ if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         "$root/transaction/decisions/web-unit-candidate-tamper.tsv"
     grep -Fxq 'start caddy-pihole-web-health.service' \
         "$root/transaction/systemctl.calls"
-    grep -Fq 'web_unit_direct_and_timer_starts=true' \
+    grep -Fq 'web_unit_timer_healthy_event=true' \
         "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_successful_completion=true' \
+        "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_result=true' \
+        "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_status=true' \
+        "$root/transaction/raw/web-unit-accept.txt"
+    awk '/--show-cursor/ { count++ } END { exit(count == 2 ? 0 : 1) }' \
+        "$root/transaction/journalctl.calls"
     grep -Fq 'web_unit_timer_failures_absent=true' \
         "$root/transaction/raw/web-unit-accept.txt"
     if [[ "$EUID" -eq 0 ]]; then
