@@ -430,7 +430,8 @@ requests a historical reconstruction.
 ## Action 35p terminal archive
 
 - Tag: `caddy-action35p-terminal-2026-08-17`
-- Commit: recorded by the terminal tag
+- Commit: `2e9f757b43cc120bb6736b764aea0bbb5e55d136`
+- Tag object: `adb7f88c7934959b3ce413e604c68a730e62786f`
 - Action: 35p
 - Authorized outer SHA-256:
   `70da8af9e01c5449607a3cada7579c12c933adde5fd0dd5a616f2b7912a646cb`
@@ -450,5 +451,6 @@ requests a historical reconstruction.
 - Recovery: both node upload paths were disposed successfully; no quarantine
   disposition, candidate validation, installation, reload, or production
   mutation ran, so rollback was not required or attempted
-- Status: terminal-pending
-- Cleanup: consumed machinery will be removed by the immediate cleanup commit
+- Status: terminal tag and commit are synchronized; consumed machinery and the
+  stale runtime-inventory requirement were removed by the immediate cleanup
+  commit

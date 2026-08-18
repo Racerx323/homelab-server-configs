@@ -114,7 +114,7 @@ require_row "$script_registry" $'Caddy/scripts/check-pihole-web-health.sh\tprodu
 require_row "$script_registry" $'Caddy/scripts/check-certificate-expiry.sh\tproduction-current\tyes\t/usr/local/libexec/check-certificate-expiry.sh\t0755\tCaddy/systemd/caddy-cert-expiry.service'
 require_row "$script_registry" $'Caddy/scripts/finalize-incoming-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/finalize-incoming-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/lsyncd-sync-failure-notify.sh\tproduction-current\tyes\t/usr/local/libexec/lsyncd-sync-failure-notify.sh\t0755\tCaddy/systemd/caddy-sync-failure@.service'
-require_row "$script_registry" $'Caddy/scripts/prepare-lighttpd-config.sh\tproduction-current\tyes\t/usr/local/libexec/prepare-lighttpd-config.sh\t0755\tCaddy/configs/lighttpd/desired-state.conf'
+require_row "$script_registry" $'Caddy/scripts/prepare-lighttpd-config.sh\tproduction-current\tno\t-\t-\tCaddy/configs/lighttpd/desired-state.conf'
 require_row "$script_registry" $'Caddy/scripts/publish-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/publish-release-v2.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/reconcile-release-v2.sh\tproduction-current\tyes\t/usr/local/libexec/reconcile-release.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
 require_row "$script_registry" $'Caddy/scripts/validate-sync-health.sh\tproduction-current\tyes\t/usr/local/libexec/validate-sync-health.sh\t0755\tCaddy/manifests/production-artifacts.tsv'
@@ -128,7 +128,6 @@ readonly -a expected_installable_scripts=(
     Caddy/scripts/check-pihole-web-health.sh
     Caddy/scripts/finalize-incoming-release-v2.sh
     Caddy/scripts/lsyncd-sync-failure-notify.sh
-    Caddy/scripts/prepare-lighttpd-config.sh
     Caddy/scripts/publish-release-v2.sh
     Caddy/scripts/reconcile-release-v2.sh
     Caddy/scripts/validate-sync-health.sh

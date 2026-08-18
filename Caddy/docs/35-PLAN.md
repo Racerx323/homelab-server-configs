@@ -14,8 +14,9 @@ Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. Action 35o's terminal
 commit and annotated tag are recorded, and its machinery is removed. The Caddy
-deployment stream is `terminal-pending` for failed-consumed Action 35p. Action
-35o and Action 35p are not rerunnable.
+deployment stream is clean after archiving failed-consumed Action 35p. Action
+35o and Action 35p are not rerunnable. The next direct successor has not yet
+been registered.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
