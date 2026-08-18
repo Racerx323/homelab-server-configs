@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ac archived and cleaned after successful Node B rollback; the Caddy deployment stream is clean before Action 35ad definition; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ad is failed-consumed after successful Node B rollback and awaits terminal archival; Action 35ae is the direct bounded per-family probe-result successor; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -448,12 +448,21 @@ rollback returned it to `BACKUP`, and Node A was not mutated. Its evidence is
 `caddy-action35ac-terminal-2026-08-18`, its consumed machinery is removed, and
 it must not be rerun.
 
-Action 35ad is the direct successor after Action 35ac terminal archival and
-cleanup. It retains the existing helper paths and standby-first transaction,
-adds stable bounded phase identifiers to the real DNS and Proxy helpers, and
-uses the complete daemon-owned observation window to report the exact failing
-operation. It does not introduce a speculative path change or separate
-diagnostic.
+Action 35ad is failed-consumed. It installed Node B and the real scheduled
+Caddy helper durably classified the failing boundary as `probe-result`,
+`phase-operation-failed`, exit 1. Its unchecked status/output command
+substitution can terminate under `set -e` before identifying the affected
+family or specific curl/HTTP result. The transaction failed closed at
+`action_35_ad_check_keepalived_daemon_status_records_valid=false`, Node B
+rollback returned it to `BACKUP`, and Node A was not mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35ad.gAKDlx`; Action 35ad must not be rerun.
+
+Action 35ae is the direct installation successor. It validates both families'
+bounded status/output records before reading them, classifies missing,
+malformed, timeout, signal, curl, and HTTP-status failures independently,
+retains the two-second Keepalived timeout and otherwise unchanged standby-first
+transaction, and continues only after repeated daemon-owned healthy
+transitions.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are

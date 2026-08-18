@@ -115,15 +115,22 @@ mutated. Evidence is `/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`. Action 35ac
 is archived only at `caddy-action35ac-terminal-2026-08-18`, its consumed
 machinery is removed, and it must not be rerun.
 
-The direct installation successor is Action 35ad. It retains the existing DNS
-and Caddy helper paths and the otherwise unchanged standby-first transaction.
-It adds bounded phase-level classification inside the real helpers so every
-failure identifies the exact stable operation boundary without exposing raw
-commands, unsafe output, environment data, or secrets. It must collect the
-complete daemon-owned observation window before evaluation, continue only on
-repeated clean results, and otherwise roll back with the exact component,
-phase, and failure class. No speculative path change or separate diagnostic is
-authorized.
+Action 35ad is failed-consumed. It installed Node B and Keepalived's real Caddy
+helper durably localized the failure to `probe-result` with failure class
+`phase-operation-failed` and exit 1. The helper's unchecked read of an IPv4 or
+IPv6 probe status/output file can exit under `set -e` before recording the
+family and specific curl or HTTP result. The transaction failed closed at
+`action_35_ad_check_keepalived_daemon_status_records_valid=false`. Node B
+rollback succeeded and returned it to `BACKUP`; Node A was not promoted or
+mutated. Evidence is `/tmp/caddy-ssh-evidence-action35ad.gAKDlx`. Action 35ad
+must not be rerun.
+
+The direct installation successor is Action 35ae. It must explicitly validate
+both families' bounded status and output records before reading them, classify
+missing, malformed, timeout, signal, curl, and HTTP-status failures by family,
+preserve the two-second Keepalived boundary and otherwise unchanged
+standby-first transaction, and continue only after repeated daemon-owned
+healthy transitions. No separate diagnostic is required.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

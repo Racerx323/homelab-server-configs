@@ -3,6 +3,44 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Current deployment window
+
+- Action: 35ad
+- Status: terminal-pending, failed-consumed
+- Archive tag: `caddy-action35ad-terminal-2026-08-18`
+- Scope: preserve the exact executed Action 35ad definition and its proven
+  pre-Node-A failure, then remove its consumed machinery before defining the
+  bounded per-family probe-result successor.
+- Successor constraint: Action 35ae must consume but never rerun Action 35ad,
+  retain the two-second Keepalived boundary and standby-first transaction, and
+  validate both families' result records explicitly before classification.
+
+## Action 35ad terminal archive
+
+- Tag: `caddy-action35ad-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ad
+- Authorized outer SHA-256:
+  `c08a0d3fb6aab1daa2f70672b9a32ab4af20ee19af0e56b00fdf6a7babfe9ea4`
+- Transaction SHA-256:
+  `680478c318b865e3387365ac3cbd3d45a1bbcf9db07788295db8950099e9b4db`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35ad.gAKDlx`
+- Failed boundary:
+  `action_35_ad_check_keepalived_daemon_status_records_valid=false`
+- Finding: Keepalived's real scheduled Caddy helper failed at phase
+  `probe-result` and durably recorded `phase-operation-failed` with exit 1.
+  The unchecked read of an IPv4 or IPv6 probe status/output file can terminate
+  under `set -e` before the helper records the family, curl result, or HTTP
+  result. The retained evidence therefore localizes the defect without safely
+  distinguishing the affected family or result-file state.
+- Recovery: Node B rollback and rollback readback returned 0, Node B returned
+  to `BACKUP`, and Node A was not mutated
+- Status: terminal-pending until the annotated tag is created and consumed
+  machinery is removed
+
 ## Action 35ac terminal archive
 
 - Tag: `caddy-action35ac-terminal-2026-08-18`

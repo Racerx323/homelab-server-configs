@@ -14,6 +14,7 @@ readonly status_file=${CADDY_SERVING_HEALTH_STATUS_FILE:-/run/caddy-serving-heal
 readonly date_command=${CADDY_SERVING_HEALTH_DATE_COMMAND:-/usr/bin/date}
 readonly logger_command=${CADDY_SERVING_HEALTH_LOGGER_COMMAND:-/usr/bin/logger}
 status_recorded=false
+current_phase=startup
 
 journal_status_fallback() {
     local serving_health_result=$1
@@ -68,7 +69,7 @@ write_status() {
 
 # Invoked indirectly by the EXIT trap below.
 # shellcheck disable=SC2317
-record_unclassified_exit() {
+record_phase_exit() {
     local serving_health_exit_status=$1
 
     trap - EXIT
@@ -77,13 +78,13 @@ record_unclassified_exit() {
         rm -rf -- "$capture_root" || true
     fi
     if [[ "$serving_health_exit_status" -ne 0 && "$status_recorded" != true ]]; then
-        write_status failed Caddy internal-error unclassified-helper-exit \
-            'not applicable' "exit=$serving_health_exit_status"
+        write_status failed Caddy "$current_phase" phase-operation-failed \
+            'not applicable' "phase=$current_phase exit=$serving_health_exit_status"
     fi
     exit "$serving_health_exit_status"
 }
 
-trap 'record_unclassified_exit "$?"' EXIT
+trap 'record_phase_exit "$?"' EXIT
 
 fail() {
     local serving_health_label=$1
@@ -143,16 +144,21 @@ fail() {
     exit 1
 }
 
+current_phase=environment-metadata
 [[ -f "$environment_file" && ! -L "$environment_file" ]] || fail environment
+current_phase=environment-load
 # shellcheck disable=SC1090
 source "$environment_file"
+current_phase=environment-values
 : "${NODE_FQDN:?missing NODE_FQDN}"
 : "${NODE_IPV4:?missing NODE_IPV4}"
 : "${NODE_IPV6:?missing NODE_IPV6}"
 readonly NODE_FQDN NODE_IPV4 NODE_IPV6
 
+current_phase=caddy-service
 "$systemctl_command" is-active --quiet caddy.service || fail service
 
+current_phase=capture-create
 capture_root=$(mktemp -d /tmp/check-caddy-serving-health.XXXXXX)
 readonly capture_root
 
@@ -174,6 +180,7 @@ probe() {
     return "$serving_health_status"
 }
 
+current_phase=probe-launch
 probe 4 "$NODE_IPV4" "$capture_root/ipv4" &
 ipv4_pid=$!
 probe 6 "[$NODE_IPV6]" "$capture_root/ipv6" &
@@ -182,24 +189,31 @@ readonly ipv4_pid ipv6_pid
 
 ipv4_ok=true
 ipv6_ok=true
+current_phase=probe-wait
 wait "$ipv4_pid" || ipv4_ok=false
 wait "$ipv6_pid" || ipv6_ok=false
+current_phase=probe-result
 [[ "$ipv4_ok" = true ]] || fail ipv4_https "$(<"$capture_root/ipv4.status")"
 [[ "$ipv6_ok" = true ]] || fail ipv6_https "$(<"$capture_root/ipv6.status")"
 [[ "$(<"$capture_root/ipv4")" = 204 ]] || fail ipv4_status
 [[ "$(<"$capture_root/ipv6")" = 204 ]] || fail ipv6_status
 
+current_phase=listener-tcp-capture
 "$ss_command" -H -ltn >"$capture_root/tcp"
+current_phase=listener-udp-capture
 "$ss_command" -H -lun >"$capture_root/udp"
+current_phase=listener-validate
 grep -Fq -- "$NODE_IPV4:443" "$capture_root/tcp" || fail ipv4_tcp_listener
 grep -Fq -- "[$NODE_IPV6]:443" "$capture_root/tcp" || fail ipv6_tcp_listener
 grep -Fq -- "$NODE_IPV4:443" "$capture_root/udp" || fail ipv4_udp_listener
 grep -Fq -- "[$NODE_IPV6]:443" "$capture_root/udp" || fail ipv6_udp_listener
 
+current_phase=status-healthy
 write_status healthy Caddy serving-health none \
     "IPv4=$NODE_IPV4:443 IPv6=[$NODE_IPV6]:443 endpoint=/healthz" \
     'service=active https=204 listeners=present'
 
+current_phase=completion-output
 printf 'caddy_serving_health_check_service=true\n'
 printf 'caddy_serving_health_check_ipv4_https=true\n'
 printf 'caddy_serving_health_check_ipv6_https=true\n'

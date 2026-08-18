@@ -128,7 +128,9 @@ if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
     /bin/bash "$caddy_helper" >/dev/null 2>&1; then
     exit 1
 fi
-grep -Fxq 'failure_class=unclassified-helper-exit' "$root/run/proxy.status"
+grep -Fxq 'check=listener-tcp-capture' "$root/run/proxy.status"
+grep -Fxq 'failure_class=phase-operation-failed' "$root/run/proxy.status"
+grep -Fxq 'status=phase=listener-tcp-capture exit=1' "$root/run/proxy.status"
 rm -f -- "$root/logger.log"
 if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
     CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
@@ -212,7 +214,18 @@ if [[ -f "$dns_helper" ]]; then
     fi
     grep -Fxq 'application=DNS' "$root/run/dns.status"
     grep -Fxq 'result=failed' "$root/run/dns.status"
+    printf 'healthy\n' >"$root/dns-mode"
+    if DNS_CHECK_DIG_COMMAND=$root/bin/dig \
+        DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+        DNS_CHECK_STATUS_FILE=$root/run/dns.status \
+        /bin/bash "$dns_helper" >/dev/full 2>/dev/null; then
+        exit 1
+    fi
+    grep -Fxq 'check=probe-evidence-output' "$root/run/dns.status"
+    grep -Fxq 'failure_class=phase-operation-failed' "$root/run/dns.status"
+    grep -Fxq 'status=phase=probe-evidence-output exit=1' "$root/run/dns.status"
     rm -f -- "$root/logger.log"
+    printf 'extra\n' >"$root/dns-mode"
     if DNS_CHECK_DIG_COMMAND=$root/bin/dig \
         DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl \
         DNS_CHECK_STATUS_FILE=$root/missing/dns.status \
@@ -223,6 +236,7 @@ if [[ -f "$dns_helper" ]]; then
     [[ "$(wc -l <"$root/logger.log")" -eq 1 ]]
     grep -Fq 'application=DNS' "$root/logger.log"
     grep -Fq 'failure_class=status-directory-invalid' "$root/logger.log"
+    printf 'healthy\n' >"$root/dns-mode"
     for keepalived_config in "$node_a_keepalived" "$node_b_keepalived"; do
         [[ "$(grep -Fc '        check-caddy' "$keepalived_config")" -eq 1 ]]
         [[ "$(grep -Fc '    script_user pi' "$keepalived_config")" -eq 1 ]]
