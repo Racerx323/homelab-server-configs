@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35p archived; Caddy stream clean
+Current status: core deployment accepted; Action 35q failed-consumed, terminal archive pending
 
 ## 1. Purpose
 
@@ -430,6 +430,26 @@ tool, not a node runtime artifact. Node B retains one exact legacy copy.
 Action 35p is failed-consumed and must not be rerun. The direct successor must
 remove only that validated Node B legacy copy transactionally, require the
 helper absent on both nodes, and resume the unchanged standby-first
+installation.
+
+Action 35q is that sole defined successor. It consumes Action 35p without
+rerunning it, treats `prepare-lighttpd-config.sh` as a repository-only migration
+tool, requires the helper absent on Node A, and accepts only the exact
+`root:root:0755` Node B legacy copy with SHA-256
+`ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f`.
+Node B removal is backed up before deletion, restored by rollback, and required
+absent on both nodes at final acceptance. The quarantine cleanup and remaining
+standby-first installation are otherwise unchanged.
+
+Action 35q passed Node B preflight and failed before mutation during Node A
+quarantine validation. Node A retains four exact historical quarantine
+families: two Node B release revisions and two Action 30d outbound revisions.
+The transaction's empty-Node-A-quarantine assumption was stale. Both uploaded
+payloads were disposed, failure readback returned success on both nodes, no
+mutation entrypoint ran, and rollback was not required. Action 35q is
+failed-consumed and must not be rerun. After terminal archival, the direct
+successor must semantically validate and reversibly disposition only those four
+unreferenced Node A families before resuming the unchanged standby-first
 installation.
 
 - consume the accepted current baseline;

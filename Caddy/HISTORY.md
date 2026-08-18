@@ -454,3 +454,27 @@ requests a historical reconstruction.
 - Status: terminal tag and commit are synchronized; consumed machinery and the
   stale runtime-inventory requirement were removed by the immediate cleanup
   commit
+
+## Action 35q terminal archive
+
+- Tag: `caddy-action35q-terminal-2026-08-17`
+- Commit: recorded by the terminal tag
+- Action: 35q
+- Authorized outer SHA-256:
+  `042e8bb25c5b44c7e3f6f7c330bb128ba1b6be54128913ad9ea6f6526c5fb7f5`
+- Transaction SHA-256:
+  `d07bc39db0316a52e82fb3aa94bfc5354b8576b1e487527aca0ad5692597764a`
+- Result: failed-consumed during Node A quarantine inventory validation,
+  before retained-entry disposition or any production mutation entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35q.rtMxPJ`
+- Failed assertions: `action_35_q_check_quarantine_empty_inventory=false` and
+  `action_35_q_check_quarantine_inventory_empty=false`
+- Finding: Node A retains four exact top-level quarantine families: two Node B
+  release revisions and two Action 30d outbound revisions. Node B preflight
+  and every preceding Node A assertion passed.
+- Recovery: Node A and Node B upload preparation, copy, acceptance, failure
+  readback, and exact disposition all returned 0. No mutation entrypoint ran,
+  so rollback was not required or attempted.
+- Status: terminal-pending
+- Cleanup: consumed machinery will be removed by the immediate cleanup commit

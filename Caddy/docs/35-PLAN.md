@@ -14,9 +14,8 @@ Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. Action 35o's terminal
 commit and annotated tag are recorded, and its machinery is removed. The Caddy
-deployment stream is clean after archiving failed-consumed Action 35p. Action
-35o and Action 35p are not rerunnable. The next direct successor has not yet
-been registered.
+deployment stream is terminal-pending for failed-consumed Action 35q after
+archiving Action 35p. Actions 35o through 35q are not rerunnable.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -177,6 +176,35 @@ After terminal archival, the direct successor must require the path absent on
 Node A, validate and remove only that exact Node B legacy copy transactionally,
 restore it on rollback, require it absent on both nodes at final acceptance,
 and resume the unchanged standby-first installation.
+
+Action 35q implements that correction. The helper remains in the repository as
+a non-installable migration tool and is absent from accepted-live and
+production runtime inventories. The generic installer, validator, and
+uninstaller consume the corrected lifecycle registry and therefore do not
+treat it as a node runtime artifact. Action 35q preserves the exact Node B copy
+before removal, restores it if rollback runs, and otherwise completes the
+unchanged quarantine disposition and standby-first installation.
+
+Action 35q passed Node B preflight and every preceding Node A artifact,
+service, enablement, incoming, and helper assertion. It then failed-consumed
+during Node A pre-mutation quarantine validation because the transaction
+incorrectly required Node A's quarantine to be empty. The exact observed
+top-level inventory is:
+
+- `node-b-20260811T174240Z-31d43261-5cd7-44ce-83e5-947927184d29`;
+- `node-b-20260811T180716Z-d45a4dc3-64b6-47c5-bebc-02dade4d9ec4`;
+- `node_a-outbound-20260809T193432Z-6a2fab64-69e6-4cfb-a026-0a38fcae5b63-action30d`;
+- `node_a-outbound-action17p-node-a-to-node-b-bootstrap-action30d`.
+
+No retained-entry disposition, helper removal, candidate validation,
+installation, reload, or other production mutation entrypoint ran. Both exact
+upload trees were removed, failure readback completed on both nodes, rollback
+was not required, and the recovered split-release baseline remains unchanged.
+The direct successor must validate these four exact Node A revision families
+semantically, reject changed, additional, malformed, symlinked, referenced, or
+unsafe state, reversibly disposition them like the Node B quarantine, and then
+resume the unchanged standby-first installation. No separate diagnostic or
+Action 35q rerun is permitted.
 
 ## Architecture decision
 
