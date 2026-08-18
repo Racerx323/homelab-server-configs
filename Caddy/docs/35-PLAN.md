@@ -230,6 +230,34 @@ is archived at annotated tag `caddy-action35r-terminal-2026-08-17`, its
 consumed machinery is removed, and it must not be rerun. The Caddy deployment
 stream is clean before definition of a direct successor.
 
+Action 35s is the direct successor. It preserves Action 35r's complete
+transaction, ordering, identities, disposition, recovery, and acceptance
+logic. Its sole live-path correction replaces the newly invented Node A file
+inventory representation with the protocol-v2 canonical comparison already
+used by the publisher and finalizer: both expected and observed paths retain
+their leading `./` from `find .`. Regression construction runs that same
+publisher manifest pipeline, including `release-manifest.json`, rather than a
+handwritten alternate manifest. Action 35s consumes but does not rerun Action
+35r and resumes the unchanged standby-first installation without another
+diagnostic or inventory capture.
+
+Action 35s execution proved the canonical Node A quarantine correction: both
+node preflights passed, including all four semantic families. It then reached
+Node B candidate validation, where the transaction incorrectly invoked the
+installed Keepalived `--config-test` parser. That parser is known to be broken
+and unsupported on the installed Keepalived version; it terminated with status
+143 and empty stdout/stderr. This was an invalid acceptance prerequisite, not
+evidence of a candidate-configuration defect. No disposition,
+installation, reload, or other mutation entrypoint ran. Failure readback and
+exact upload cleanup succeeded on both nodes; rollback was not required. The
+workstation evidence is `/tmp/caddy-ssh-evidence-action35s.BCbKva`. Action 35s
+is failed-consumed and must not be rerun. A direct successor must remove every
+Keepalived parser-mode prerequisite and reuse the otherwise unchanged
+standby-first transaction. Before mutation it must verify repository structure
+and exact rendered identity; the sequential standby-first reload, bounded
+service/VRRP convergence, and rollback path are the authoritative live
+acceptance boundary.
+
 ## Architecture decision
 
 `PIHOLE_DUALSTACK` remains the sole ownership authority for:

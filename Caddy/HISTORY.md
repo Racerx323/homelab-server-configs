@@ -480,6 +480,26 @@ requests a historical reconstruction.
 - Status: terminal tag and commit are synchronized; consumed machinery was
   removed by the immediate cleanup commit
 
+## Action 35s terminal archive
+
+- Tag: `caddy-action35s-terminal-2026-08-17`
+- Action: 35s
+- Authorized outer SHA-256:
+  `52a7a1f6dc9cd6eeadef8aafe72a093c081634bb9a3f63a0595de39c4a2aeb4b`
+- Transaction SHA-256:
+  `100e584cdaed7a53bcdd44868f9061275af3226f80e0b338c465330b7a6b5574`
+- Result: failed-consumed during Node B candidate Keepalived parser validation,
+  before disposition or any production mutation entrypoint
+- Exit status: 143
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35s.BCbKva`
+- Failed boundary: the transaction incorrectly used the known-broken,
+  unsupported `keepalived --config-test` interface on the installed Keepalived
+  version. It terminated with empty stdout/stderr and retained status 143; this
+  is not evidence that the candidate configuration was invalid.
+- Recovery: both failure readbacks and exact upload dispositions completed;
+  no mutation ran, so rollback was not required
+- Status: terminal-pending
+
 ## Action 35r terminal archive
 
 - Tag: `caddy-action35r-terminal-2026-08-17`

@@ -215,6 +215,12 @@ evidence; it never counts stdout markers.
   certificate timer failures do not change VRRP ownership.
 - Keep probes within their Keepalived timeout and validate exact IPv4 and IPv6
   paths.
+- Never invoke `keepalived --config-test` or use another Keepalived parser mode
+  as a candidate-acceptance prerequisite on the installed production version;
+  that interface is known broken in this environment. Validate repository
+  structure and exact rendered identity before mutation, then use the
+  standby-first reload, bounded service/VRRP convergence, and rollback path as
+  the authoritative live acceptance boundary.
 - Consumed serving-health actions are preserved only by the annotated tags in
   `Caddy/HISTORY.md`. The single registered successor, when present, owns the
   next migration. The generic installer must not deploy that migration.

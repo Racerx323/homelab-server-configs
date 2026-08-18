@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35r archived; Caddy stream clean
+Current status: core deployment accepted; Action 35s failed-consumed, terminal-pending; installed Keepalived `--config-test` is prohibited
 
 ## 1. Purpose
 
