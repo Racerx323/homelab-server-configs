@@ -28,8 +28,8 @@ Git preserves the complete deployment journal and executed action files.
 - Recovery: Node B rollback, rollback readback, sampler shutdown, journal
   capture, and exact upload dispositions returned 0; Node B returned to
   `BACKUP` and Node A was not mutated
-- Status: terminal-pending; the annotated tag will preserve this exact commit,
-  then consumed machinery will be removed by the immediate cleanup commit
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35y terminal archive
 
