@@ -34,7 +34,6 @@ Caddy/tests/run-focused-container.sh	production-current	current-focused	current-
 Caddy/tests/run-focused.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-source-test-in-context.sh	production-current	current-focused	current-production-validation
 Caddy/tests/serving-health-regression.sh	production-current	current-focused	current-production-validation
-Caddy/tests/serving-health-installation-production-path-regression.sh	terminal-pending	archive-only	action35q-terminal-archive
 Caddy/tests/shfmt-canonical.sh	production-current	current-focused	current-production-validation
 Caddy/tests/ssh-stream-local-evidence-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/systemd-boot-persistence-policy.sh	production-current	current-focused	current-production-validation
