@@ -6,6 +6,8 @@ Git preserves the complete deployment journal and executed action files.
 ## Action 35v terminal archive
 
 - Tag: `caddy-action35v-terminal-2026-08-17`
+- Commit: `9c5f955a5fb7382d48429e37b7e3f1beb4abb962`
+- Tag object: `e7c8b0c1c90561a9b0701688879aa9f6c62c679b`
 - Action: 35v
 - Authorized outer SHA-256:
   `8aee367408d1d09b7e9490bc9400050bc5b2012b92baad20e41fbed5fc643803`
@@ -22,7 +24,8 @@ Git preserves the complete deployment journal and executed action files.
   already-proven pre-promotion `/healthz` HTTP 404 as a continuity failure
 - Recovery: Node B rollback and both node evidence readbacks returned 0; Node B
   returned to `BACKUP`; Node A was not promoted or mutated
-- Status: terminal-pending
+- Status: terminal tag created locally; consumed machinery removed by the
+  immediate cleanup commit; remote synchronization is pending
 
 ## Archive boundary
 
