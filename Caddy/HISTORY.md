@@ -3,6 +3,35 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35x terminal archive
+
+- Tag: `caddy-action35x-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35x
+- Authorized outer SHA-256:
+  `7658678cc77877fea3cda054ee3cadd766d65667a5a84c96858a7a7089e92881`
+- Transaction SHA-256:
+  `a592ab73a4e54591ae968be0fe6be7462233932c02fced4506e5378d279b9dd8`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35x.LPohmq`
+- Failed boundary: all 24 bounded Node B ownership samples remained
+  dual-stack `Fault` with zero shared VIPs, so
+  `action_35_x_check_ownership_convergence=false`
+- Finding: the installed DNS and Proxy helpers both passed when invoked through
+  `runuser`, which initializes supplementary groups. Keepalived's
+  `check-caddy` declaration specified only `user keepalived_script`, while the
+  protected environment is `root:caddy-tls:0640`; the daemon path therefore
+  did not reproduce the accepted Caddy probe's explicit group context
+- Availability: every retained DNS, trusted HTTPS, node-interface, and shared
+  Pi-hole UI sample returned status 0
+- Recovery: Node B rollback, rollback readback, sampler shutdown, journal
+  capture, and exact upload dispositions returned 0; Node B returned to
+  `BACKUP` and Node A was not mutated
+- Status: terminal-pending; the annotated tag will preserve this exact commit,
+  then consumed machinery will be removed by the immediate cleanup commit
+
 ## Action 35w terminal archive
 
 - Tag: `caddy-action35w-terminal-2026-08-18`

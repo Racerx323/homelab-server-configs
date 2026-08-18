@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35v archived after successful Node B rollback; Action 35w is defined but unexecuted; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35x failed-consumed after successful Node B rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -11,6 +11,16 @@ configured `interval 3`, `rise 3` health initialization could converge. It
 also sampled Node A's known pre-promotion `/healthz` 404 as a continuity
 failure. Node B rollback completed, Node B returned to `BACKUP`, and Node A
 was not promoted or mutated. Action 35v is consumed and must not be rerun.
+
+Action 35x initialized healthy DNS and Proxy snapshots before the Node B
+Keepalived reload, then observed dual-stack `Fault` with zero VIPs throughout
+all 24 bounded ownership samples. All retained service-continuity probes passed.
+The candidate helper was accepted through `runuser`, which initializes
+supplementary groups, but the Keepalived `check-caddy` declaration specified
+only `user keepalived_script` while its protected environment is
+`root:caddy-tls:0640`. Node B rollback succeeded and returned it to `BACKUP`;
+Node A was not promoted or mutated. Action 35x is consumed and must not be
+rerun.
 
 ## 1. Purpose
 
@@ -348,15 +358,16 @@ uses cleanup only.
 | Parser-free serving-health installation, Action 35t | Failed-consumed at Node A's real-identity Caddy IPv4 HTTPS probe before mutation | `caddy-action35t-terminal-2026-08-17` |
 | Post-promotion-health serving-health installation, Action 35v | Failed-consumed after Node B installation at an immediate pre-convergence ownership assertion; Node B rollback succeeded and Node A was not mutated | `caddy-action35v-terminal-2026-08-17` |
 | Bounded-convergence and expressive-notification serving-health installation, Action 35w | Failed-consumed after Node B installation because the production DNS status snapshot had not been initialized before Keepalived reload; Node B rollback succeeded and Node A was not mutated | `caddy-action35w-terminal-2026-08-18` |
+| Initialization-order serving-health installation, Action 35x | Failed-consumed after Node B installation because the Caddy probe's Keepalived execution group did not reproduce its accepted protected-environment access; Node B rollback succeeded and Node A was not mutated | `caddy-action35x-terminal-2026-08-18` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35w is failed-consumed and archived at
-`caddy-action35w-terminal-2026-08-18`. Its retained workstation evidence is
-`/tmp/caddy-ssh-evidence-action35w.XsZ21C`. Action 35w must not be rerun. Node B
+Action 35x is failed-consumed and awaits archival at
+`caddy-action35x-terminal-2026-08-18`. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35x.LPohmq`. Action 35x must not be rerun. Node B
 rollback succeeded and Node A was not mutated. The deployment stream must be
 archived and cleaned before one direct successor is defined.
 
@@ -368,22 +379,26 @@ The recovered production baseline remains:
   `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`.
 - Node A retains the finalized outbound candidate for Node B's selected
   serving-health release.
-- Action 35w reuses that candidate and does not republish, seed production
+- The direct successor reuses that candidate and does not republish, seed production
   state, or copy Node B configuration to Node A.
 
-Action 35x preserves the remaining Action 35w installation
-transaction while correcting only the proven ordering boundary:
+The direct successor preserves the remaining Action 35x installation
+transaction while correcting only the proven execution-group boundary:
 
-- after installing tmpfiles and both serving-health helpers, invoke the
-  installed DNS helper as `pi` and the installed Caddy helper as
-  `keepalived_script` using their default production status paths;
-- require valid current DNS and Proxy snapshots before Keepalived reload;
-- then retain Action 35w's bounded post-reload initialization interval, stable
+- retain global `script_user pi`, so `check-dns` and notify hooks continue to
+  use the existing default identity;
+- declare `user keepalived_script caddy-tls` only in the `check-caddy`
+  `vrrp_script`, giving that probe the explicit group required to read the
+  protected `root:caddy-tls:0640` environment;
+- execute candidate validation with the same explicit UID/GID context instead
+  of relying on supplementary groups initialized by `runuser`;
+- retain Action 35x's snapshot initialization before Keepalived reload, bounded
+  post-reload initialization interval, stable
   Node B `BACKUP` samples, split-release continuity endpoints, structured
   notifications, remaining standby-first ordering, and reverse rollback.
 
 No other prerequisite, architecture decision, inventory baseline, publication
-path, convergence rule, or rollback boundary changes in Action 35x.
+path, convergence rule, or rollback boundary changes in the direct successor.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are

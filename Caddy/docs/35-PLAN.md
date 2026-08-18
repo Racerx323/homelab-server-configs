@@ -47,14 +47,23 @@ succeeded and returned it to `BACKUP`; Node A was not promoted or mutated.
 Evidence is `/tmp/caddy-ssh-evidence-action35w.XsZ21C`. Action 35w must not be
 rerun and no separate diagnostic is required.
 
-Action 35x is the direct ordering-corrected installation successor. It consumes
-Action 35w without rerunning it. After installing tmpfiles and the exact DNS
-and Caddy helpers on each node, it invokes the installed DNS helper as `pi` and
-the installed Caddy helper as `keepalived_script`, using their default
-production status paths. It requires current healthy DNS and Proxy snapshots
-before reloading Keepalived. The bounded post-reload convergence, structured
-notifications, split-release continuity endpoints, Node B then Node A order,
-remaining acceptance, and reverse rollback are unchanged from Action 35w.
+Action 35x is failed-consumed. It initialized valid healthy DNS and Proxy
+snapshots before reloading Keepalived, but Node B remained dual-stack `Fault`
+with zero shared VIPs for all 24 bounded ownership samples. Every retained DNS,
+trusted HTTPS, node-interface, and shared Pi-hole UI availability sample passed.
+Node B rollback succeeded and returned it to `BACKUP`; Node A was not promoted
+or mutated. Evidence is `/tmp/caddy-ssh-evidence-action35x.LPohmq`. Action 35x
+must not be rerun and no separate diagnostic is required.
+
+The direct successor must preserve the Action 35x installation transaction and
+correct only the proven Caddy probe execution-group boundary. The global
+`script_user pi` remains the default, so `check-dns` and notify hooks continue
+to run as `pi`. The `check-caddy` block must explicitly declare
+`user keepalived_script caddy-tls`; this overrides both user and group for only
+the Caddy health probe and permits it to read the protected
+`root:caddy-tls:0640` environment. Candidate and production-path validation
+must execute the helper with that exact UID/GID context rather than relying on
+supplementary groups initialized by `runuser`.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving
