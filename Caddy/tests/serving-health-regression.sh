@@ -186,6 +186,9 @@ if [[ -f "$dns_helper" ]]; then
     grep -Fxq 'result=failed' "$root/run/dns.status"
     for keepalived_config in "$node_a_keepalived" "$node_b_keepalived"; do
         [[ "$(grep -Fc '        check-caddy' "$keepalived_config")" -eq 1 ]]
+        [[ "$(grep -Fc '    script_user pi' "$keepalived_config")" -eq 1 ]]
+        [[ "$(grep -Fc '    user keepalived_script caddy-tls' \
+            "$keepalived_config")" -eq 1 ]]
         [[ "$(grep -Fc '    interval 3' "$keepalived_config")" -eq 2 ]]
         [[ "$(grep -Fc '    timeout 2' "$keepalived_config")" -eq 2 ]]
         [[ "$(grep -Fc '    fall 2' "$keepalived_config")" -eq 2 ]]

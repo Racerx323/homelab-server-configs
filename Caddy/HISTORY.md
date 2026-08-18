@@ -3,6 +3,34 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35y terminal archive
+
+- Tag: `caddy-action35y-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35y
+- Authorized outer SHA-256:
+  `2a9c7ea384c67fff6e5ec224da8c91c798f1783b70edc492f4b25303d2a1364a`
+- Transaction SHA-256:
+  `70ef7928deee004748fcb36fd12f403a0b46e3b96c869edd3cc4dd201957f3dd`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35y.DS3AuU`
+- Failed boundary: the installed Caddy helper passed under explicit identity
+  `keepalived_script:caddy-tls`, then acceptance rejected the generated Proxy
+  status file at `action_35_y_check_proxy_status_metadata=false`
+- Finding: the helper creates its atomic status file with the executing
+  process's primary group. The new explicit Keepalived group therefore
+  correctly produces `keepalived_script:caddy-tls:0644`; the transaction still
+  expected the superseded `keepalived_script:keepalived_script:0644` metadata
+- Availability: every retained DNS, trusted HTTPS, node-interface, and shared
+  Pi-hole UI sample returned status 0
+- Recovery: Node B rollback, rollback readback, sampler shutdown, journal
+  capture, and exact upload dispositions returned 0; Node B returned to
+  `BACKUP` and Node A was not mutated
+- Status: terminal-pending; the annotated tag will preserve this exact commit,
+  then consumed machinery will be removed by the immediate cleanup commit
+
 ## Action 35x terminal archive
 
 - Tag: `caddy-action35x-terminal-2026-08-18`

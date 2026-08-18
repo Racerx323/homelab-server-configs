@@ -55,15 +55,22 @@ Node B rollback succeeded and returned it to `BACKUP`; Node A was not promoted
 or mutated. Evidence is `/tmp/caddy-ssh-evidence-action35x.LPohmq`. Action 35x
 must not be rerun and no separate diagnostic is required.
 
-The direct successor must preserve the Action 35x installation transaction and
-correct only the proven Caddy probe execution-group boundary. The global
-`script_user pi` remains the default, so `check-dns` and notify hooks continue
-to run as `pi`. The `check-caddy` block must explicitly declare
-`user keepalived_script caddy-tls`; this overrides both user and group for only
-the Caddy health probe and permits it to read the protected
-`root:caddy-tls:0640` environment. Candidate and production-path validation
-must execute the helper with that exact UID/GID context rather than relying on
-supplementary groups initialized by `runuser`.
+Action 35y is failed-consumed. It installed Node B and successfully executed
+the Caddy helper as `keepalived_script:caddy-tls`, then rejected the generated
+Proxy status file at `action_35_y_check_proxy_status_metadata=false`. The
+helper atomically creates that file with its executing primary group, so the
+correct result is `keepalived_script:caddy-tls:0644`; Action 35y still expected
+the superseded `keepalived_script:keepalived_script:0644` metadata. Every
+retained DNS, trusted HTTPS, node-interface, and shared Pi-hole UI sample
+passed. Node B rollback succeeded and returned it to `BACKUP`; Node A was not
+promoted or mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35y.DS3AuU`. Action 35y must not be rerun and no
+separate diagnostic is required.
+
+The direct successor must consume Action 35y without rerunning it, correct only
+the Proxy status-file metadata contract and its neutral regression to
+`keepalived_script:caddy-tls:0644`, and retain the otherwise unchanged
+standby-first transaction.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

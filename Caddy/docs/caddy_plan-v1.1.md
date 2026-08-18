@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35x failed-consumed after successful Node B rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35y failed-consumed after successful Node B rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -21,6 +21,15 @@ only `user keepalived_script` while its protected environment is
 `root:caddy-tls:0640`. Node B rollback succeeded and returned it to `BACKUP`;
 Node A was not promoted or mutated. Action 35x is consumed and must not be
 rerun.
+
+Action 35y installed Node B and successfully executed the Caddy helper as
+`keepalived_script:caddy-tls`, then rejected the generated Proxy status file
+because acceptance still expected its superseded
+`keepalived_script:keepalived_script:0644` metadata. The helper's atomic status
+file correctly inherited the explicit `caddy-tls` primary group. All retained
+service-continuity probes passed. Node B rollback succeeded and returned it to
+`BACKUP`; Node A was not promoted or mutated. Action 35y is consumed and must
+not be rerun.
 
 ## 1. Purpose
 
@@ -359,15 +368,16 @@ uses cleanup only.
 | Post-promotion-health serving-health installation, Action 35v | Failed-consumed after Node B installation at an immediate pre-convergence ownership assertion; Node B rollback succeeded and Node A was not mutated | `caddy-action35v-terminal-2026-08-17` |
 | Bounded-convergence and expressive-notification serving-health installation, Action 35w | Failed-consumed after Node B installation because the production DNS status snapshot had not been initialized before Keepalived reload; Node B rollback succeeded and Node A was not mutated | `caddy-action35w-terminal-2026-08-18` |
 | Initialization-order serving-health installation, Action 35x | Failed-consumed after Node B installation because the Caddy probe's Keepalived execution group did not reproduce its accepted protected-environment access; Node B rollback succeeded and Node A was not mutated | `caddy-action35x-terminal-2026-08-18` |
+| Explicit-group serving-health installation, Action 35y | Failed-consumed after Node B installation because acceptance retained the superseded Proxy status-file group; Node B rollback succeeded and Node A was not mutated | `caddy-action35y-terminal-2026-08-18` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35x is failed-consumed and awaits archival at
-`caddy-action35x-terminal-2026-08-18`. Its retained workstation evidence is
-`/tmp/caddy-ssh-evidence-action35x.LPohmq`. Action 35x must not be rerun. Node B
+Action 35y is failed-consumed and awaits archival at
+`caddy-action35y-terminal-2026-08-18`. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35y.DS3AuU`. Action 35y must not be rerun. Node B
 rollback succeeded and Node A was not mutated. The deployment stream must be
 archived and cleaned before one direct successor is defined.
 
@@ -382,19 +392,15 @@ The recovered production baseline remains:
 - The direct successor reuses that candidate and does not republish, seed production
   state, or copy Node B configuration to Node A.
 
-The direct successor preserves the remaining Action 35x installation
-transaction while correcting only the proven execution-group boundary:
+The direct successor preserves the remaining Action 35y installation
+transaction while correcting only the proven status-file metadata boundary:
 
-- retain global `script_user pi`, so `check-dns` and notify hooks continue to
-  use the existing default identity;
-- declare `user keepalived_script caddy-tls` only in the `check-caddy`
-  `vrrp_script`, giving that probe the explicit group required to read the
-  protected `root:caddy-tls:0640` environment;
-- execute candidate validation with the same explicit UID/GID context instead
-  of relying on supplementary groups initialized by `runuser`;
-- retain Action 35x's snapshot initialization before Keepalived reload, bounded
-  post-reload initialization interval, stable
-  Node B `BACKUP` samples, split-release continuity endpoints, structured
+- require the Proxy status file produced under the explicit Caddy probe
+  identity to be `keepalived_script:caddy-tls:0644`;
+- update the neutral regression to exercise and require that exact metadata;
+- retain Action 35y's explicit DNS and Caddy identities, snapshot
+  initialization, bounded post-reload initialization interval, stable Node B
+  `BACKUP` samples, split-release continuity endpoints, structured
   notifications, remaining standby-first ordering, and reverse rollback.
 
 No other prerequisite, architecture decision, inventory baseline, publication
