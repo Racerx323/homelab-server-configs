@@ -3,6 +3,31 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35w terminal archive
+
+- Tag: `caddy-action35w-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35w
+- Authorized outer SHA-256:
+  `63126af7ecb6439ca64725f65ec2b24a6ba5fac5a69cd7fb89ad0bf72ca84659`
+- Transaction SHA-256:
+  `d6009f031c756652819979d9516967428431559d7884889cbbf965cadac60c01`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35w.XsZ21C`
+- Failed boundary: Node B acceptance required
+  `/run/caddy-serving-health/dns/status`, but the installed DNS helper had not
+  yet initialized that production snapshot before Keepalived was reloaded
+- Notification evidence: Node B entered the bounded coupled-group `FAULT`
+  transition and subsequently returned to `BACKUP`; the absent source snapshot
+  forced the expressive notification fallback
+  `eligibility-fault-unclassified`
+- Recovery: Node B rollback, rollback readback, both journal captures, sampler
+  shutdown, and exact upload dispositions returned 0; Node A was not mutated
+- Status: terminal-pending; the annotated tag will preserve this exact commit,
+  then consumed machinery will be removed by the immediate cleanup commit
+
 ## Action 35v terminal archive
 
 - Tag: `caddy-action35v-terminal-2026-08-17`
@@ -24,8 +49,7 @@ Git preserves the complete deployment journal and executed action files.
   already-proven pre-promotion `/healthz` HTTP 404 as a continuity failure
 - Recovery: Node B rollback and both node evidence readbacks returned 0; Node B
   returned to `BACKUP`; Node A was not promoted or mutated
-- Status: terminal tag created locally; consumed machinery removed by the
-  immediate cleanup commit; remote synchronization is pending
+- Status: terminal tag and immediate cleanup commit synchronized
 
 ## Archive boundary
 

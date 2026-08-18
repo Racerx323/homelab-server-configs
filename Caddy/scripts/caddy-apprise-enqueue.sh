@@ -23,6 +23,20 @@ event_key=
 title=
 body=
 stable_id=
+application=
+component=
+check_name=
+event_name=
+state_transition=
+impact=
+failure_class=
+network_context=
+ha_context=
+bounded_status=
+timing=
+correlation=
+evidence_pointer=
+first_check=
 
 queue_log() {
     if [[ "${CADDY_APPRISE_TEST_MODE:-}" = 1 && -n "${CADDY_APPRISE_LOG_FILE:-}" ]]; then
@@ -33,7 +47,7 @@ queue_log() {
 }
 
 usage() {
-    printf 'Usage: %s --source caddy-sync|keepalived|pihole-web --severity info|success|warning|failure --event-key KEY [--stable-id ID] --title TITLE --body BODY\n' "${0##*/}" >&2
+    printf 'Usage: %s --source SOURCE --severity SEVERITY --event-key KEY [--stable-id ID] (--title TITLE --body BODY | --application APP --component COMPONENT --check CHECK --event EVENT --state STATE --impact IMPACT --failure-class CLASS --network-context CONTEXT --ha-context CONTEXT --status STATUS --timing TIMING --correlation ID --evidence POINTER --first-check COMMAND)\n' "${0##*/}" >&2
 }
 
 while (($#)); do
@@ -62,6 +76,62 @@ while (($#)); do
             stable_id=${2:-}
             shift 2
             ;;
+        --application)
+            application=${2:-}
+            shift 2
+            ;;
+        --component)
+            component=${2:-}
+            shift 2
+            ;;
+        --check)
+            check_name=${2:-}
+            shift 2
+            ;;
+        --event)
+            event_name=${2:-}
+            shift 2
+            ;;
+        --state)
+            state_transition=${2:-}
+            shift 2
+            ;;
+        --impact)
+            impact=${2:-}
+            shift 2
+            ;;
+        --failure-class)
+            failure_class=${2:-}
+            shift 2
+            ;;
+        --network-context)
+            network_context=${2:-}
+            shift 2
+            ;;
+        --ha-context)
+            ha_context=${2:-}
+            shift 2
+            ;;
+        --status)
+            bounded_status=${2:-}
+            shift 2
+            ;;
+        --timing)
+            timing=${2:-}
+            shift 2
+            ;;
+        --correlation)
+            correlation=${2:-}
+            shift 2
+            ;;
+        --evidence)
+            evidence_pointer=${2:-}
+            shift 2
+            ;;
+        --first-check)
+            first_check=${2:-}
+            shift 2
+            ;;
         *)
             usage
             exit 64
@@ -84,6 +154,31 @@ safe_text() {
 [[ "$severity" =~ ^(info|success|warning|failure)$ ]] || exit 65
 [[ "$event_key" =~ $event_key_pattern ]] || exit 65
 [[ -z "$stable_id" || "$stable_id" =~ $stable_id_pattern ]] || exit 65
+
+hostname_value=$(hostname -f 2>/dev/null || hostname) || exit 1
+[[ "$hostname_value" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || exit 65
+short_hostname=${hostname_value%%.*}
+
+if [[ -n "$application" || -n "$component" || -n "$check_name" ||
+    -n "$event_name" || -n "$impact" || -n "$failure_class" ]]; then
+    [[ -z "$title" && -z "$body" ]] || exit 65
+    [[ "$application" =~ ^(DNS|Proxy|Replication|Notification\ Delivery)$ ]] || exit 65
+    for structured_value in "$component" "$check_name" "$event_name" \
+        "$state_transition" "$impact" "$failure_class" "$network_context" \
+        "$ha_context" "$bounded_status" "$timing" "$correlation" \
+        "$evidence_pointer" "$first_check"; do
+        safe_text "$structured_value" 256 || exit 65
+    done
+    case "$severity" in
+        failure) severity_icon='🚨' ;;
+        warning) severity_icon='⚠️' ;;
+        info) severity_icon='ℹ️' ;;
+        success) severity_icon='✅' ;;
+    esac
+    title="$severity_icon [$application] $event_name on $short_hostname"
+    body="Application: $application | Node: $short_hostname ($hostname_value) | Component: $component | Check: $check_name | Event: $event_name | State: $state_transition | Impact: $impact | Failure class: $failure_class | Network: $network_context | HA: $ha_context | Status: $bounded_status | Timing: $timing | Correlation: $correlation | Evidence: $evidence_pointer | First check: $first_check"
+fi
+
 safe_text "$title" 256 || exit 65
 safe_text "$body" 2048 || exit 65
 
@@ -93,8 +188,6 @@ for enqueue_directory in "$queue_root" "$queue_root/pending" \
     [[ "$(stat -c '%a' "$enqueue_directory")" = 700 ]] || exit 73
 done
 
-hostname_value=$(hostname -f 2>/dev/null || hostname) || exit 1
-[[ "$hostname_value" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || exit 65
 created_epoch=$(date +%s) || exit 1
 if [[ "${CADDY_APPRISE_TEST_MODE:-}" = 1 && -n "${CADDY_APPRISE_NOW_EPOCH:-}" ]]; then
     [[ "$CADDY_APPRISE_NOW_EPOCH" =~ ^[0-9]+$ ]] || exit 65

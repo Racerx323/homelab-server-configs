@@ -62,12 +62,33 @@ load_state() {
 enqueue_transition() {
     local web_health_kind=$1
     local web_health_severity=$2
-    local web_health_message=$3
+    local web_health_failure_class=$3
+    local web_health_state_transition='healthy -> failed'
+    local web_health_impact='Pi-hole web interface unavailable; DNS and VRRP eligibility unchanged'
+    local web_health_first_check='systemctl status lighttpd.service caddy.service'
+
+    if [[ "$web_health_kind" = recovery ]]; then
+        web_health_state_transition='failed -> healthy'
+        web_health_impact='Pi-hole web interface restored; DNS and VRRP ownership unchanged'
+    fi
 
     "$enqueue_command" --source pihole-web --severity "$web_health_severity" \
         --event-key "pihole-web-$web_health_kind" \
         --stable-id "$episode_id-$web_health_kind" \
-        --title "Pi-hole web $web_health_kind" --body "$web_health_message"
+        --application Proxy \
+        --component 'Pi-hole/lighttpd backend' \
+        --check node-specific-web-interface \
+        --event "$web_health_kind" \
+        --state "$web_health_state_transition" \
+        --impact "$web_health_impact" \
+        --failure-class "$web_health_failure_class" \
+        --network-context "IPv4=$NODE_IPV4:443 IPv6=[$NODE_IPV6]:443 endpoint=/admin/login.php" \
+        --ha-context 'VIP movement: none; VRRP dependency: no' \
+        --status "caddy=$("$systemctl_command" is-active caddy.service 2>/dev/null || printf unknown) lighttpd=$("$systemctl_command" is-active lighttpd.service 2>/dev/null || printf unknown)" \
+        --timing "observed: $("$date_command" -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --correlation "$episode_id" \
+        --evidence 'journalctl -u caddy-pihole-web-health.service' \
+        --first-check "$web_health_first_check"
 }
 
 probe_family() {
@@ -136,8 +157,7 @@ if [[ "$healthy" != true ]]; then
         write_state failed "$episode_id" false false
     fi
     if [[ "$failure_enqueued" != true ]]; then
-        if enqueue_transition failure failure \
-            "Pi-hole web health failed on $NODE_FQDN: $failure_class"; then
+        if enqueue_transition failure failure "$failure_class"; then
             failure_enqueued=true
             write_state failed "$episode_id" true false
         else
@@ -151,8 +171,7 @@ fi
 
 if [[ "$current_state" != healthy ]]; then
     if [[ "$failure_enqueued" != true ]]; then
-        enqueue_transition failure failure \
-            "Pi-hole web health failed on $NODE_FQDN: recovered-before-enqueue" || {
+        enqueue_transition failure failure recovered-before-enqueue || {
             log_event enqueue-failure-pending
             exit 0
         }
@@ -161,7 +180,7 @@ if [[ "$current_state" != healthy ]]; then
     fi
     if [[ "$recovery_enqueued" != true ]]; then
         write_state recovery-pending "$episode_id" true false
-        enqueue_transition recovery info "Pi-hole web health recovered on $NODE_FQDN" || {
+        enqueue_transition recovery success recovered || {
             log_event enqueue-recovery-pending
             exit 0
         }

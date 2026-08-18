@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35v failed-consumed after the Node B mutation and successful rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35v archived after successful Node B rollback; Action 35w is defined but unexecuted; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -347,15 +347,18 @@ uses cleanup only.
 | Canonical-quarantine serving-health installation, Action 35s | Failed-consumed at the known-broken installed Keepalived parser prerequisite before mutation | `caddy-action35s-terminal-2026-08-17` |
 | Parser-free serving-health installation, Action 35t | Failed-consumed at Node A's real-identity Caddy IPv4 HTTPS probe before mutation | `caddy-action35t-terminal-2026-08-17` |
 | Post-promotion-health serving-health installation, Action 35v | Failed-consumed after Node B installation at an immediate pre-convergence ownership assertion; Node B rollback succeeded and Node A was not mutated | `caddy-action35v-terminal-2026-08-17` |
+| Bounded-convergence and expressive-notification serving-health installation, Action 35w | Failed-consumed after Node B installation because the production DNS status snapshot had not been initialized before Keepalived reload; Node B rollback succeeded and Node A was not mutated | `caddy-action35w-terminal-2026-08-18` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35v is terminal-pending and no successor is currently registered. Its
-retained workstation evidence is
-`/tmp/caddy-ssh-evidence-action35v.Og4PSy`. Action 35v must not be rerun.
+Action 35w is failed-consumed and archived at
+`caddy-action35w-terminal-2026-08-18`. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35w.XsZ21C`. Action 35w must not be rerun. Node B
+rollback succeeded and Node A was not mutated. The deployment stream must be
+archived and cleaned before one direct successor is defined.
 
 The recovered production baseline remains:
 
@@ -365,20 +368,25 @@ The recovered production baseline remains:
   `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`.
 - Node A retains the finalized outbound candidate for Node B's selected
   serving-health release.
-- Action 35v reuses that candidate and does not republish, seed production
+- Action 35w reuses that candidate and does not republish, seed production
   state, or copy Node B configuration to Node A.
 
-After Action 35v is archived and removed, the direct successor must preserve
-the installation transaction while correcting only the proven boundaries:
+The direct successor preserves the remaining Action 35w installation
+transaction while correcting only the proven ordering boundary:
 
-- allow the bounded post-reload Keepalived initialization interval;
-- require several stable Node B `BACKUP` samples with zero VIPs before
-  acceptance;
-- use existing production continuity endpoints during the split-release phase
-  instead of requiring Node A's not-yet-present `/healthz`;
-- standardize producer notifications with application, component/check, node,
-  transition, impact, bounded failure class, episode identity, and useful
-  service/ownership context while preserving Apprise severity icons.
+- after installing tmpfiles and both serving-health helpers, invoke the
+  installed DNS helper as `pi` and the installed Caddy helper as
+  `keepalived_script` using their default production status paths;
+- require valid current DNS and Proxy snapshots before Keepalived reload;
+- then retain Action 35w's bounded post-reload initialization interval, stable
+  Node B `BACKUP` samples, split-release continuity endpoints, structured
+  notifications, remaining standby-first ordering, and reverse rollback.
+
+Caddy failures are classified as Proxy serving failures and may change VRRP
+eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are
+explicitly notification-only. DNS and Replication retain distinct application
+classifications. Notification Delivery records its own retry and dead-letter
+state in journald without recursively enqueueing another notification.
 
 The installed Keepalived parser interface remains prohibited. Candidate
 acceptance uses repository structure, exact rendered identities, real service

@@ -5,6 +5,41 @@ synchronization failures and Keepalived state notifications. Producers enqueue
 bounded records and return without contacting Apprise. Notification delivery
 never participates in VRRP, Caddy, lsyncd, reconciliation, or health decisions.
 
+## Alert content contract
+
+Production producers use one bounded text layout. The enqueue helper adds the
+Apprise severity icon and node identity, then validates the complete title and
+body before writing the queue record.
+
+| Field | Contract |
+| --- | --- |
+| Severity | `🚨` failure, `⚠️` warning, `ℹ️` information, or `✅` success/recovery |
+| Application | DNS, Proxy, Replication, or Notification Delivery |
+| Node | Short hostname and FQDN obtained by the enqueue helper |
+| Component and check | Exact service, worker, listener, endpoint, or ownership check |
+| Event and state | Failure, transition, failover, recovery, quarantine, retry, or dead-letter, plus the bounded state transition |
+| Impact | Serving, ownership, replication, or delivery effect |
+| Failure class | Bounded classification such as service inactive, timeout, answer mismatch, TLS failure, HTTP status, listener mismatch, manifest rejection, or ownership mismatch |
+| Network and HA context | Relevant address family, endpoint, port, VRRP state, VIP effect, and peer role |
+| Status and timing | Bounded command or protocol status, first observation, duration, attempt, or next retry when available |
+| Correlation | Stable episode or event identity |
+| Evidence and first check | Journald unit/tag or runbook pointer and one safe starting command |
+
+Keepalived reads bounded runtime snapshots written by the DNS and Caddy serving
+checks. A `FAULT` notification can name Pi-hole FTL, Unbound, or Caddy and the
+failed check without rerunning a probe from the notifier. Pi-hole/lighttpd
+monitoring identifies Proxy backend failures and states that VRRP ownership did
+not change. Replication workers identify lsyncd, reconciliation,
+synchronization health, or certificate-expiry failures.
+
+The notification-delivery worker records retry, dead-letter, and queue health
+events in journald. It does not enqueue an alert about its own delivery failure
+because that would recurse through the failed channel.
+
+Alerts exclude secrets, environment dumps, complete HTTP responses, unbounded
+journal text, and raw command output. Journald and retained transaction
+evidence hold the detailed diagnostic data.
+
 ## Ownership and paths
 
 | Item | Owner | Path |

@@ -43,8 +43,11 @@ case "\$*" in
         printf '200 https://pihole0.local.theama.co/admin/login.php\\n'
         ;;
     *'/healthz'*)
-        if [[ "\$(<"$root/caddy-mode")" = fail-ipv6 && " \$* " = *' --ipv6 '* ]]; then
-            exit 22
+        if [[ " \$* " = *' --ipv6 '* ]]; then
+            case "\$(<"$root/caddy-mode")" in
+                timeout-ipv6) exit 28 ;;
+                tls-ipv6) exit 60 ;;
+            esac
         fi
         printf '204\\n'
         ;;
@@ -82,16 +85,35 @@ CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
     CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
     CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
     CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
     /usr/bin/timeout 2 /bin/bash "$caddy_helper" >"$root/caddy.out"
 grep -Fxq 'caddy_serving_health_complete=true' "$root/caddy.out"
-printf 'fail-ipv6\n' >"$root/caddy-mode"
+grep -Fxq 'application=Proxy' "$root/run/proxy.status"
+grep -Fxq 'result=healthy' "$root/run/proxy.status"
+printf 'timeout-ipv6\n' >"$root/caddy-mode"
 if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
     CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
     CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
     CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
     /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
     exit 1
 fi
+grep -Fxq 'application=Proxy' "$root/run/proxy.status"
+grep -Fxq 'result=failed' "$root/run/proxy.status"
+grep -Fxq 'failure_class=timeout' "$root/run/proxy.status"
+grep -Fxq 'status=curl=28' "$root/run/proxy.status"
+printf 'tls-ipv6\n' >"$root/caddy-mode"
+if CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment \
+    CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl \
+    CADDY_SERVING_HEALTH_SS_COMMAND=$root/bin/ss \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+    CADDY_SERVING_HEALTH_STATUS_FILE=$root/run/proxy.status \
+    /usr/bin/timeout 2 /bin/bash "$caddy_helper" >/dev/null 2>&1; then
+    exit 1
+fi
+grep -Fxq 'failure_class=TLS-verification' "$root/run/proxy.status"
+grep -Fxq 'status=curl=60' "$root/run/proxy.status"
 printf 'healthy\n' >"$root/caddy-mode"
 printf '%s_caddy_entrypoint=true\n' "$prefix"
 
@@ -127,6 +149,9 @@ PIHOLE_WEB_HEALTH_ENVIRONMENT_FILE=$root/environment \
     PIHOLE_WEB_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl \
     /bin/bash "$web_helper" >"$root/web-enqueued.out"
 grep -Fq -- "--stable-id $episode-failure" "$root/enqueue.log"
+grep -Fq -- '--application Proxy' "$root/enqueue.log"
+grep -Fq -- "--component Pi-hole/lighttpd backend" "$root/enqueue.log"
+grep -Fq -- '--ha-context VIP movement: none; VRRP dependency: no' "$root/enqueue.log"
 grep -Fxq 'failure_enqueued=true' "$root/state/state"
 
 printf 'healthy\n' >"$root/web-mode"
@@ -145,14 +170,20 @@ printf '%s_web_transition_entrypoint=true\n' "$prefix"
 if [[ -f "$dns_helper" ]]; then
     DNS_CHECK_DIG_COMMAND=$root/bin/dig \
         DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+        DNS_CHECK_STATUS_FILE=$root/run/dns.status \
         /bin/bash "$dns_helper" >"$root/dns.out"
     [[ "$(grep -c '^check=.* status=0 answer=' "$root/dns.out")" -eq 8 ]]
+    grep -Fxq 'application=DNS' "$root/run/dns.status"
+    grep -Fxq 'result=healthy' "$root/run/dns.status"
     printf 'extra\n' >"$root/dns-mode"
     if DNS_CHECK_DIG_COMMAND=$root/bin/dig \
         DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl \
+        DNS_CHECK_STATUS_FILE=$root/run/dns.status \
         /usr/bin/timeout 2 /bin/bash "$dns_helper" >/dev/null 2>&1; then
         exit 1
     fi
+    grep -Fxq 'application=DNS' "$root/run/dns.status"
+    grep -Fxq 'result=failed' "$root/run/dns.status"
     for keepalived_config in "$node_a_keepalived" "$node_b_keepalived"; do
         [[ "$(grep -Fc '        check-caddy' "$keepalived_config")" -eq 1 ]]
         [[ "$(grep -Fc '    interval 3' "$keepalived_config")" -eq 2 ]]

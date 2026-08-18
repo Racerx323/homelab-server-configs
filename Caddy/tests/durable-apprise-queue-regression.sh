@@ -14,6 +14,7 @@ readonly repository_root=${caddy_root%/Caddy}
 readonly enqueue=$caddy_root/scripts/caddy-apprise-enqueue.sh
 readonly worker=$caddy_root/scripts/caddy-apprise-delivery-worker.sh
 readonly keepalived_producer=$repository_root/../homelab-dns/Keepalived/scripts/keepalived-notify.sh
+readonly replication_producer=$caddy_root/scripts/lsyncd-sync-failure-notify.sh
 
 fixture_root=$(mktemp -d /tmp/caddy-apprise-regression.XXXXXX)
 readonly fixture_root
@@ -46,6 +47,34 @@ printf 'accepted\n'
 MOCK
 chmod 0755 "$mock_curl"
 
+mock_logger=$fixture_root/mock-logger
+mock_systemctl=$fixture_root/mock-systemctl
+mock_hostname=$fixture_root/mock-hostname
+mock_ip=$fixture_root/mock-ip
+cat >"$mock_logger" <<'LOGGER'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"${CADDY_APPRISE_PRODUCER_LOG:?}"
+LOGGER
+cat >"$mock_systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+case "$1" in
+    show) printf 'exit-code\n' ;;
+    is-active) printf 'active\n' ;;
+    *) exit 64 ;;
+esac
+SYSTEMCTL
+cat >"$mock_hostname" <<'HOSTNAME'
+#!/usr/bin/env bash
+[[ "$1" = -s ]]
+printf 'j1-svpihole00\n'
+HOSTNAME
+cat >"$mock_ip" <<'IP'
+#!/usr/bin/env bash
+printf '2: eth0    inet 10.1.0.54/22 scope global eth0\n'
+printf '2: eth0    inet6 fd36:5aa8:6971:1::54/64 scope global\n'
+IP
+chmod 0755 "$mock_logger" "$mock_systemctl" "$mock_hostname" "$mock_ip"
+
 export CADDY_APPRISE_TEST_MODE=1
 export CADDY_APPRISE_QUEUE_ROOT=$queue_root
 export CADDY_APPRISE_RUNTIME_ROOT=$runtime_root
@@ -53,6 +82,8 @@ export CADDY_APPRISE_LOG_FILE=$log_file
 export CADDY_APPRISE_CURL=$mock_curl
 export CADDY_APPRISE_CALL_FILE=$call_file
 export CADDY_APPRISE_MOCK_STATE=$mock_state
+export CADDY_APPRISE_PRODUCER_LOG=$fixture_root/producer.log
+install -m 0600 /dev/null "$CADDY_APPRISE_PRODUCER_LOG"
 
 fail() {
     printf '%s_failure=%s\n' "$prefix" "$1" >&2
@@ -62,8 +93,21 @@ fail() {
 enqueue_record() {
     local regression_key=$1
     "$enqueue" --source caddy-sync --severity failure \
-        --event-key "$regression_key" --title "Test $regression_key" \
-        --body "Bounded regression body $regression_key"
+        --event-key "$regression_key" \
+        --application Replication \
+        --component lsyncd \
+        --check systemd-unit \
+        --event failure \
+        --state 'active -> failed' \
+        --impact 'release replication stopped; serving traffic unaffected' \
+        --failure-class systemd-unit-failed \
+        --network-context 'not applicable' \
+        --ha-context 'VIP movement: none; VRRP dependency: no' \
+        --status 'unit=caddy-lsyncd.service result=exit-code' \
+        --timing 'first observed: 2026-08-17T23:30:00Z' \
+        --correlation "$regression_key" \
+        --evidence 'journalctl -u caddy-lsyncd.service' \
+        --first-check 'systemctl status caddy-lsyncd.service'
 }
 
 count_records() {
@@ -79,7 +123,13 @@ jq -e '
   .schema == "caddy-apprise-queue/v1" and
   (.event_id | test("^[0-9a-f]{64}$")) and
   .source == "caddy-sync" and .severity == "failure" and
-  .retry.attempt == 0 and .payload.format == "text"
+  .retry.attempt == 0 and .payload.format == "text" and
+  (.payload.title | startswith("🚨 [Replication] failure on ")) and
+  (.payload.body | contains("Application: Replication") and
+    contains("Component: lsyncd") and
+    contains("Check: systemd-unit") and
+    contains("Failure class: systemd-unit-failed") and
+    contains("First check: systemctl status caddy-lsyncd.service"))
 ' "$first_record" >/dev/null || fail schema
 [[ -z "$(find "$queue_root/pending" -maxdepth 1 -type f -name '.enqueue.*' -print -quit)" ]] || fail atomic_cleanup
 
@@ -240,12 +290,96 @@ if [[ -f "$keepalived_producer" ]]; then
         fail keepalived_direct_transport
     fi
     grep -Fq '/usr/local/libexec/caddy-apprise-enqueue' "$keepalived_producer" || fail keepalived_enqueue
+    # shellcheck disable=SC2016
+    grep -Fq -- '--application "$application"' "$keepalived_producer" || fail keepalived_application
+    # shellcheck disable=SC2016
+    grep -Fq -- '--component "$component"' "$keepalived_producer" || fail keepalived_component
+    # shellcheck disable=SC2016
+    grep -Fq -- '--failure-class "$failure_class"' "$keepalived_producer" || fail keepalived_failure_class
 else
     [[ "${CADDY_VALIDATION_CONTAINER:-}" = 1 ]] || fail keepalived_producer_missing
 fi
-if grep -Eq '\bcurl\b' "$caddy_root/scripts/lsyncd-sync-failure-notify.sh"; then
+if grep -Eq '\bcurl\b' "$replication_producer"; then
     fail caddy_direct_transport
 fi
+# shellcheck disable=SC2016
+grep -Fq -- '--application "$application"' \
+    "$replication_producer" || fail replication_application
+
+proxy_snapshot=$fixture_root/proxy-status
+dns_snapshot=$fixture_root/dns-status
+keepalived_state_root=$fixture_root/keepalived-state
+install -d -m 0755 "$keepalived_state_root"
+cat >"$proxy_snapshot" <<'SNAPSHOT'
+schema=caddy-serving-health-status/v1
+application=Proxy
+component=Caddy
+check=trusted-https
+result=failed
+failure_class=TLS-verification
+network=IPv4=10.1.0.54:443 endpoint=/healthz
+status=curl=60
+observed_epoch=1786946400
+SNAPSHOT
+cat >"$dns_snapshot" <<'SNAPSHOT'
+schema=caddy-serving-health-status/v1
+application=DNS
+component=Pi-hole FTL and Unbound
+check=local-answer
+result=healthy
+failure_class=none
+network=IPv4 and IPv6 loopback
+status=all eight answers exact
+observed_epoch=1786946399
+SNAPSHOT
+chmod 0644 "$proxy_snapshot" "$dns_snapshot"
+CADDY_APPRISE_NOW_EPOCH=1200 \
+    KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_DNS_STATUS_FILE=$dns_snapshot \
+    KEEPALIVED_NOTIFY_PROXY_STATUS_FILE=$proxy_snapshot \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$keepalived_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+keepalived_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -er 'select(.source == "keepalived") | input_filename' {} +)
+[[ -n "$keepalived_record" ]] || fail keepalived_record_absent
+jq -e '
+  .severity == "failure" and
+  (.payload.title | startswith("🚨 [Proxy] failure on ")) and
+  (.payload.body | contains("Application: Proxy") and
+    contains("Component: Caddy") and
+    contains("Check: trusted-https") and
+    contains("Failure class: TLS-verification") and
+    contains("VIPs must move") and
+    contains("local_vips=0") and
+    contains("local_role=standby-node-b") and
+    contains("peer_role=preferred-node-a") and
+    contains("failover=pending-peer-convergence"))
+' "$keepalived_record" >/dev/null || fail keepalived_proxy_contract
+[[ "$(<"$keepalived_state_root/PIHOLE_DUALSTACK")" = FAULT ]] ||
+    fail keepalived_transition_state
+
+CADDY_APPRISE_NOW_EPOCH=1500 \
+    CADDY_SYNC_FAILURE_ENQUEUE_COMMAND=$enqueue \
+    CADDY_SYNC_FAILURE_SYSTEMCTL_COMMAND=$mock_systemctl \
+    CADDY_SYNC_FAILURE_LOGGER_COMMAND=$mock_logger \
+    /bin/bash "$replication_producer" \
+    'systemd unit failed: caddy-sync-reconcile.service'
+replication_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -er 'select(.source == "caddy-sync" and (.payload.title | contains("[Replication]"))) | input_filename' {} + | tail -1)
+[[ -n "$replication_record" ]] || fail replication_record_absent
+jq -e '
+  .severity == "failure" and
+  (.payload.body | contains("Component: reconciler") and
+    contains("received releases cannot activate") and
+    contains("VRRP dependency: no"))
+' "$replication_record" >/dev/null || fail replication_contract
+grep -Fq -- "failure) severity_icon='🚨'" "$enqueue" || fail failure_icon
+grep -Fq -- "warning) severity_icon='⚠️'" "$enqueue" || fail warning_icon
+grep -Fq -- "info) severity_icon='ℹ️'" "$enqueue" || fail info_icon
+grep -Fq -- "success) severity_icon='✅'" "$enqueue" || fail success_icon
 printf '%s_check_schema=true\n' "$prefix"
 printf '%s_check_atomic_enqueue=true\n' "$prefix"
 printf '%s_check_ordering=true\n' "$prefix"

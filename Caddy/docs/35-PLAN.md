@@ -38,10 +38,26 @@ Node A availability sampler also repeated the already-proven `/healthz` 404.
 Evidence is `/tmp/caddy-ssh-evidence-action35v.Og4PSy`. No Action 35v rerun or
 separate diagnostic is permitted.
 
-After terminal archival, the direct successor preserves the installation logic
-and corrects the bounded convergence and split-release continuity assertions.
-It also installs standardized, expressive notifications without making
-delivery part of any serving or ownership decision.
+Action 35w is failed-consumed. It installed Node B, then failed acceptance
+because `/run/caddy-serving-health/dns/status` did not yet exist. The
+transaction had installed the tmpfiles contract and helper, but reloaded
+Keepalived before invoking the installed DNS and Caddy helpers under their real
+identities to initialize both production status snapshots. Node B rollback
+succeeded and returned it to `BACKUP`; Node A was not promoted or mutated.
+Evidence is `/tmp/caddy-ssh-evidence-action35w.XsZ21C`. Action 35w must not be
+rerun and no separate diagnostic is required.
+
+Action 35w also defined one structured notification contract for DNS, Proxy,
+Replication, and Notification Delivery events. Caddy is the Proxy serving
+component and remains a VRRP eligibility input. Pi-hole/lighttpd backend health
+is a separate Proxy alert and remains notification-only. Producers report a
+severity icon, node identity, component, exact check, event, transition,
+impact, bounded failure class and status, network and HA context, timing,
+correlation identity, evidence pointer, and a first troubleshooting command.
+Delivery remains non-blocking and outside health and ownership decisions. The
+observed fallback `eligibility-fault-unclassified` confirms that a coupled
+FAULT cannot identify its originating application until the production DNS
+and Proxy status snapshots exist.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
