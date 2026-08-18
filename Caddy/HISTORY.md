@@ -5,10 +5,33 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: defined
-- Latest archive tag: `caddy-action35af-terminal-2026-08-18`
-- Next gate: separately authorize Action 35ag through the neutral serving-health
-  transaction and outer runner.
+- State: terminal-pending
+- Latest archive tag: `caddy-action35ag-terminal-2026-08-18`
+- Next gate: archive Action 35ag, then correct the neutral preflight to accept
+  an absent or correctly protected empty Node A incoming namespace.
+
+## Action 35ag terminal archive
+
+- Tag: `caddy-action35ag-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ag
+- Authorized outer SHA-256:
+  `18fc4e3a97bfe7a36e8b30c286d39c56177ce83ece9963ef8c42df9f20f99511`
+- Transaction SHA-256:
+  `3f4548c6125a33b4aeb0c58f0fa727e67f4066d7548e0f8bff62c2abe2f541ee`
+- Result: failed-consumed during Node A preflight, before any production
+  mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.UaFJlC`
+- Failed boundary:
+  `serving_health_deployment_check_incoming_node_a_absent=false`
+- Finding: Node A's `/var/lib/caddy-sync/incoming/node-a` is an ordinary,
+  empty `caddy-sync:caddy-sync:0750` namespace. The preflight incorrectly
+  required the valid empty namespace itself to be absent.
+- Recovery: both exact upload dispositions and failure readbacks returned 0;
+  no installation, publication, service, release, or VRRP mutation ran, so no
+  rollback was required.
+- Status: terminal-pending
 
 ## Action 35af terminal archive
 

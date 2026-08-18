@@ -532,6 +532,15 @@ ownership evidence. All other standby-first behavior remains unchanged. One
 small versioned operation specification replaces action-specific transaction,
 runner, and regression copies.
 
+Action 35ag is failed-consumed after a pre-mutation Node A preflight rejected
+the correctly protected empty `/var/lib/caddy-sync/incoming/node-a` namespace
+because it required the path itself to be absent. Node B preflight passed; both
+payload dispositions and failure readbacks succeeded; no installation,
+publication, service, release, or VRRP mutation ran. Evidence is
+`/tmp/caddy-ssh-evidence-serving_health.UaFJlC`. The direct correction accepts
+both absent and correctly protected empty protocol namespaces while rejecting
+non-empty, symlinked, malformed, or unsafe state.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:

@@ -152,6 +152,16 @@ the original split release, outbound and quarantine state, retained continuous
 IPv4/IPv6 service, and reconverged to preferred Node A ownership. Evidence is
 `/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
 
+Action 35ag is failed-consumed. Node B preflight passed, then Node A preflight
+rejected its ordinary empty `caddy-sync:caddy-sync:0750`
+`/var/lib/caddy-sync/incoming/node-a` namespace because the transaction
+incorrectly required the path itself to be absent. Both payload dispositions
+and failure readbacks succeeded. No installation, publication, service,
+release, synchronization, or VRRP mutation ran and rollback was not required.
+Evidence is `/tmp/caddy-ssh-evidence-serving_health.UaFJlC`. The direct
+correction must accept absent and correctly protected empty namespaces and
+reject non-empty, symlinked, malformed, or unsafe state.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

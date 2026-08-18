@@ -1,7 +1,7 @@
 schema_version: 2
 action: 35ag
 title: Direct coupled serving-health installation
-status: defined-unexecuted
+status: failed-consumed
 consumes:
   - action: 35af
     result: failed-consumed
@@ -50,3 +50,9 @@ rollback:
   baseline: exact pre-action split release and inventories
   unrecoverable_status: 125
 live_execution: separately-authorized-by-exact-outer-sha256
+terminal_result:
+  exit_status: 1
+  mutation: none
+  failed_assertion: serving_health_deployment_check_incoming_node_a_absent=false
+  evidence: /tmp/caddy-ssh-evidence-serving_health.UaFJlC
+  recovery: upload-disposition-complete-no-rollback-required
