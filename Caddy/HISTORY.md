@@ -5,10 +5,36 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35ae-terminal-2026-08-18`
-- Next gate: none. The installation-successor chain remains paused while the
-  neutral DNS and Proxy Keepalived probes are simplified and validated.
+- State: terminal-pending
+- Latest archive tag: `caddy-action35af-terminal-2026-08-18`
+- Next gate: archive and clean Action 35af, then define the narrow direct
+  Action 35ag successor.
+
+## Action 35af terminal archive
+
+- Tag: `caddy-action35af-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35af
+- Authorized outer SHA-256:
+  `7f92c77f68e7b4dd349d6f293057eb49b5216cbaee62f96877c01b2019ea8af5`
+- Transaction SHA-256:
+  `69e9ac737a8e89f25fbfbc21b0f222dd98c2fc455f8e974919f140fd4efa3366`
+- Result: failed-consumed after Node B installation, Node A split-release
+  convergence, and publication of the new immutable child release
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35af.JHd23Z`
+- Failed boundary: `action_35_af_check_target_revision_absent=false`
+- Finding: the publish phase correctly created revision
+  `20260818T210340Z-76baa78a-e88a-4ed6-84eb-ced5d2c4cb0c` and durably wrote
+  the Node A target record. The following redundant Node A `record-target`
+  phase incorrectly required that same record to be absent.
+- Recovery: reverse rollback returned status 0 on both nodes, removed only the
+  exact new release and outbound candidate, restored the original split
+  release, outbound and quarantine state, and kept all IPv4/IPv6 DNS, HTTPS,
+  shared-UI, and node-UI probes successful. Keepalived subsequently converged
+  to preferred Node A `MASTER` after its normal initial `BACKUP` interval.
+- Status: terminal-pending; consumed machinery remains only for this terminal
+  commit and annotated tag
 
 ## Action 35ae terminal archive
 

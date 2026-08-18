@@ -17,6 +17,10 @@ next successor is added only while its deployment window is `defined`. The
 generic installer cannot perform a migration of an existing production
 deployment.
 
+Action 35af is currently the single defined successor. Its transaction and
+outer runner are non-installable repository entrypoints and are removed from
+the current branch immediately after terminal archival.
+
 Run:
 
 ```bash

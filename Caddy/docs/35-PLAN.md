@@ -134,10 +134,27 @@ to `BACKUP`; Node A was not mutated. Evidence is
 `/tmp/caddy-ssh-evidence-action35ae.vfzh11`. Action 35ae is archived only at
 `caddy-action35ae-terminal-2026-08-18` and must not be rerun.
 
-The installation-successor chain is paused. Before another live successor is
-defined, the neutral DNS and Proxy tracking probes must be reduced to essential
-checks with direct exit status, default bounded SIGTERM behavior, and no
-background result-file protocol or diagnostic output in the health decision.
+Action 35af is failed-consumed and must not be rerun.
+It consumed Action 35ae without rerunning it and deployed the reduced neutral
+DNS and Proxy probes with direct exit status, default bounded SIGTERM behavior,
+and no background result-file protocol or development diagnostics in the
+health decision.
+
+Action 35af installed and accepted Node B from the exact split baseline,
+promoted Node A's already-published serving release, consumed that exact
+outbound entry, and published immutable child
+`20260818T210340Z-76baa78a-e88a-4ed6-84eb-ced5d2c4cb0c`. It then failed only
+because the redundant Node A `record-target` phase required the target record
+already written by `publish` to be absent. Reverse rollback returned status 0
+on both nodes, removed only that new release and outbound candidate, restored
+the original split release, outbound and quarantine state, retained continuous
+IPv4/IPv6 service, and reconverged to preferred Node A ownership. Evidence is
+`/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
+
+The direct successor removes only the redundant Node A `record-target` call,
+retains Node B target recording, proves the real publish-to-accept sequence,
+and requires settled ownership after both final acceptance and rollback. The
+remaining standby-first transaction is unchanged.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

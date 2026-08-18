@@ -471,11 +471,11 @@ rollback succeeded and returned it to `BACKUP`; Node A was not mutated.
 Evidence is `/tmp/caddy-ssh-evidence-action35ae.vfzh11`. Action 35ae is archived
 only at `caddy-action35ae-terminal-2026-08-18` and must not be rerun.
 
-The installation-successor chain is paused until both neutral tracking probes
-are reduced to essential synchronous checks. Their exit statuses and
-Keepalived's cursor-bounded journal are authoritative; background result files,
-phase handlers, and development diagnostics must not participate in VRRP
-eligibility.
+Action 35af is failed-consumed and must not be rerun. It consumed Action 35ae
+and deployed the neutral synchronous
+tracking probes. Their exit statuses and Keepalived's cursor-bounded journal
+are authoritative; background result files, phase handlers, parallel probe
+schedules, and development diagnostics do not participate in VRRP eligibility.
 
 The repository correction implements that boundary. The Proxy helper checks
 only `caddy.service` and trusted node-specific IPv4 and IPv6 `/healthz` status.
@@ -488,7 +488,15 @@ directories and notifier snapshot reads are removed so stale diagnostics cannot
 override Keepalived's authoritative exit and journal evidence. Neutral lifecycle
 coverage exercises process-group SIGTERM,
 Keepalived-style SIGKILL escalation, repeated three-second execution, service
-identities, and zero new helper residue. No installation successor is defined.
+identities, and zero new helper residue.
+
+Action 35af retains the proven split-release convergence step, then constructs
+one new immutable protocol-v2 child release from Node A's current release and
+the exact repository `10-pihole-admin.caddy`. Node B must receive, activate,
+and accept that child before Node A promotes the identical revision. Existing
+immutable release directories are never edited. Node A is installed only after
+Node B is fully accepted; rollback restores the exact pre-action split release,
+outbound candidate, services, and ownership.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are
@@ -511,10 +519,16 @@ nodes. Test inputs are isolated; command, mutation, acceptance, rollback, and
 success results are produced by the real entrypoints and observable
 substitutes, not fabricated markers.
 
-Live execution requires one exact outer-runner SHA-256 authorization after the
-current host profiles, one network-disabled Debian 12 batch, the complete
-pre-commit suite, and
-`Caddy/tests/deployable-successor-policy.sh --authorization-ready` all pass.
+Action 35af passed Node B installation, Node A split-release convergence, and
+new child publication, then failed only because a redundant Node A
+`record-target` step required the target record already written by `publish`
+to be absent. Reverse rollback succeeded on both nodes, service continuity
+remained healthy, and preferred Node A ownership reconverged. Evidence is
+`/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
+
+The next direct installation successor removes that redundant call, retains
+Node B target recording, and requires settled final and rollback ownership
+evidence. All other standby-first behavior remains unchanged.
 
 ## 18. Pending work
 

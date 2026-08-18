@@ -1,0 +1,47 @@
+schema_version: 1
+action: 35af
+title: Minimal-probe coupled serving-health installation
+status: failed-consumed
+consumes:
+  - action: 35ae
+    result: failed-consumed
+    rerun: prohibited
+    archive_tag: caddy-action35ae-terminal-2026-08-18
+    evidence: /tmp/caddy-ssh-evidence-action35ae.vfzh11
+transaction: Caddy/scripts/apply-coupled-serving-health-action35af.sh
+transaction_sha256: 69e9ac737a8e89f25fbfbc21b0f222dd98c2fc455f8e974919f140fd4efa3366
+outer_runner: Caddy/scripts/run-coupled-serving-health-action35af-outer.sh
+state_contract: Caddy/manifests/current-live-state.tsv
+state_sha256: 1370eb3cc444c72dc1475a3a3a62182b969b2a43dac450d492458b522180232b
+production_contract: Caddy/manifests/serving-health-production.tsv
+quarantine_contract: Caddy/manifests/action35af-node-b-quarantine.tsv
+ordering:
+  - validate both nodes without mutation
+  - install and accept Node B
+  - converge Node A to the already installed serving release
+  - publish one current repository child release from Node A
+  - accept that identical child release on Node B
+  - promote the identical child release on Node A
+  - install and accept Node A
+  - prove final ownership, continuity, and residue
+health_acceptance:
+  decision_source: keepalived-daemon-executions-and-cursor-bounded-journal
+  caddy_probe: /usr/local/libexec/check-caddy.sh
+  dns_probe: /etc/scripts/check-dns.sh
+  timeout_seconds: 2
+  interval_seconds: 3
+  fall: 2
+  rise: 3
+  status_snapshots: prohibited
+  parallel_transaction_schedule: prohibited
+release:
+  publisher: /usr/local/libexec/publish-release-v2.sh
+  parent: 20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
+  source: current Node A immutable release plus exact repository 10-pihole-admin.caddy
+  node_b_first: true
+  existing_release_mutation: prohibited
+rollback:
+  order: node-a-then-node-b
+  baseline: exact pre-action split release and inventories
+  unrecoverable_status: 125
+live_execution: separately-authorized-by-exact-outer-sha256
