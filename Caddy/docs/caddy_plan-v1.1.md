@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35o archived; deployment stream clean
+Current status: core deployment accepted; Action 35p failed-consumed, terminal archive pending
 
 ## 1. Purpose
 
@@ -331,13 +331,15 @@ uses cleanup only.
 | Corrected-production-path serving-health installation, Action 35k | Failed-consumed during Node B Unbound local-zone identity validation and before mutation | `caddy-action35k-terminal-2026-08-17` |
 | Exact-local-zone serving-health installation, Action 35l | Failed-consumed at a stale tmpfiles inventory path and before mutation | `caddy-action35l-terminal-2026-08-17` |
 | Corrected-inventory serving-health installation, Action 35m | Failed-consumed at the retained Node B incoming inventory and before mutation | `caddy-action35m-terminal-2026-08-17` |
+| Exact-retained-entry serving-health installation, Action 35n | Failed-consumed at an incorrect protocol-marker prerequisite and before mutation | `caddy-action35n-terminal-2026-08-17` |
+| Marker-free retained-entry serving-health installation, Action 35o | Failed-consumed at role-inapplicable incoming and stale empty-quarantine prerequisites before mutation | `caddy-action35o-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Actions 35 through 35l are failed-consumed and preserved by the annotated tags
+Actions 35 through 35o are failed-consumed and preserved by the annotated tags
 listed above. They must not be rerun or copied into current validation. Action
 35g published one valid Node A release and Node B selected it. Action 35h then
 validated that exact split-release protocol state but failed during Node B
@@ -403,12 +405,32 @@ uploads were removed and rollback was not required. A direct successor must
 require this exact marker-free state and then resume the unchanged standby-first
 transaction:
 
-Action 35o is the sole defined direct successor. It rejects any protocol
-control marker in the retained Action 17p entry, requires the exact validated
-manifest-derived file inventory captured after Action 35n, reversibly moves
-only that entry with synchronization frozen, and otherwise retains the same
-installation and recovery transaction. Action 35n is archived and must not be
-rerun.
+Action 35o accepted the exact marker-free Action 17p entry but failed before
+disposition or production mutation because Node B's role-inapplicable
+`incoming/node-b` path is absent and the transaction also imposed an obsolete
+empty-quarantine prerequisite. Its terminal tag is synchronized, its machinery
+is removed, and it must not be rerun. Bounded capture SHA-256
+`320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9`
+proved four exact payload-valid historical quarantine trees: Action 17p,
+Action 33k normalized, and two Action 30c Node B outbound releases.
+
+Action 35p accepted the non-applicable
+incoming path only when absent. It validates the captured quarantine inventory
+byte-for-byte, proves none of the four trees is active or referenced by current,
+incoming, or outbound state, freezes synchronization, and reversibly stages
+only those four trees for deletion. It requires the protected quarantine root
+to be empty after disposition and at final acceptance. Changed, additional,
+missing, symlinked, malformed, unsafe, or referenced state fails closed.
+Rollback would have restored the exact captured quarantine. Execution reached
+the Node A production inventory and failed before disposition or mutation
+because the obsolete migration helper
+`/usr/local/libexec/prepare-lighttpd-config.sh` is absent. This is the correct
+Node A runtime state: the repository helper is a non-installable migration
+tool, not a node runtime artifact. Node B retains one exact legacy copy.
+Action 35p is failed-consumed and must not be rerun. The direct successor must
+remove only that validated Node B legacy copy transactionally, require the
+helper absent on both nodes, and resume the unchanged standby-first
+installation.
 
 - consume the accepted current baseline;
 - install the neutral Caddy serving-health helper;

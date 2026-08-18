@@ -12,10 +12,10 @@ required. No diagnostic, Action 35j rerun, or Action 35k rerun is permitted.
 
 Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
-branch. Action 35j is preserved only by its annotated tag. The Caddy deployment
-stream is `clean`. Action 35o's terminal commit and annotated tag are recorded,
-its machinery is removed, and the deployable-successor and causal-coverage
-registries are clear. Action 35o is not rerunnable.
+branch. Action 35j is preserved only by its annotated tag. Action 35o's terminal
+commit and annotated tag are recorded, and its machinery is removed. The Caddy
+deployment stream is `terminal-pending` for failed-consumed Action 35p. Action
+35o and Action 35p are not rerunnable.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -146,9 +146,36 @@ Bounded read-only completion evidence at
 `320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9`,
 classifies the exact existing quarantine as four safe, payload-valid trees:
 Action 17p, Action 33k normalized, and two Action 30c Node B outbound releases.
-The direct successor must accept the non-applicable incoming path only when
-absent, preserve and validate that exact quarantine state, reject any unknown
-or unsafe variation, and resume the unchanged standby-first installation.
+The earlier instruction to preserve these trees was a temporary fail-closed
+boundary while the quarantine state was not fully classified. The bounded
+capture now proves that all four trees are historical, payload-valid, and
+unreferenced by the current release or current incoming/outgoing state. They
+have no current production or recovery role.
+
+Action 35p therefore replaces preservation with an exact cleanup disposition.
+It accepts the non-applicable incoming path only when absent, validates every
+captured quarantine path, type, owner, group, mode, and file SHA-256, validates
+each payload manifest and release-manifest schema, and rejects any changed,
+additional, missing, symlinked, malformed, unsafe, or referenced entry. With
+reconciliation and managed lsyncd stopped, it reversibly moves the whole exact
+quarantine root into transaction evidence and recreates an empty protected
+root. Rollback restores the exact captured root; successful final acceptance
+deletes the staged historical trees when transaction evidence is disposed.
+The quarantine directory must be empty after disposition and at final
+acceptance. The remainder of the standby-first installation is unchanged.
+
+Action 35p passed Node B preflight, including the exact quarantine inventory,
+then failed during Node A production inventory validation at
+`artifact_node_a_lighttpd_prepare_helper_regular=false`. No disposition,
+candidate validation, installation, reload, or production mutation ran. Both
+exact uploaded payloads were removed. The missing Node A path is correct: the
+repository `prepare-lighttpd-config.sh` is a migration tool and is not required
+at runtime. Node B retains the exact legacy `root:root:0755` copy with SHA-256
+`ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f`.
+After terminal archival, the direct successor must require the path absent on
+Node A, validate and remove only that exact Node B legacy copy transactionally,
+restore it on rollback, require it absent on both nodes at final acceptance,
+and resume the unchanged standby-first installation.
 
 ## Architecture decision
 

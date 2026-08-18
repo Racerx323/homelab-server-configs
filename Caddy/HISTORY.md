@@ -426,3 +426,29 @@ requests a historical reconstruction.
   not required or attempted
 - Status: terminal tag and terminal commit are recorded; the consumed
   machinery was removed by the immediate cleanup commit
+
+## Action 35p terminal archive
+
+- Tag: `caddy-action35p-terminal-2026-08-17`
+- Commit: recorded by the terminal tag
+- Action: 35p
+- Authorized outer SHA-256:
+  `70da8af9e01c5449607a3cada7579c12c933adde5fd0dd5a616f2b7912a646cb`
+- Transaction SHA-256:
+  `9a99c0f86090bea279f66a9fd2b2bc06f4d58cdaf9ee7dc6fb37860fc4ebbd1b`
+- Result: failed-consumed during Node A current-production inventory
+  validation, before retained-entry disposition or any production mutation
+  entrypoint
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35p.RTAd6J`
+- Failed assertion:
+  `action_35_p_check_artifact_node_a_lighttpd_prepare_helper_regular=false`
+- Finding: `/usr/local/libexec/prepare-lighttpd-config.sh` is absent on Node A;
+  it is a repository migration tool rather than a required runtime artifact.
+  Node B retains the exact legacy `root:root:0755` copy with SHA-256
+  `ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f`.
+- Recovery: both node upload paths were disposed successfully; no quarantine
+  disposition, candidate validation, installation, reload, or production
+  mutation ran, so rollback was not required or attempted
+- Status: terminal-pending
+- Cleanup: consumed machinery will be removed by the immediate cleanup commit
