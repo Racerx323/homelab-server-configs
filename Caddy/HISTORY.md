@@ -483,6 +483,8 @@ requests a historical reconstruction.
 ## Action 35u terminal archive
 
 - Tag: `caddy-action35u-terminal-2026-08-17`
+- Commit: `62fc5a7f1cf2e9b6bb1b849d8596ed1fa0c4c9d3`
+- Tag object: `e12e8b0c9f102bd8da8b817b842e7232f12df60f`
 - Action: 35u
 - Authorized outer SHA-256:
   `ba4a02e74e2c30c50ed899177e7f6ba756e901e4d3ce0d6d08b4b0442bda9659`
@@ -498,7 +500,8 @@ requests a historical reconstruction.
   Node B's helper-status failure was observer-induced. Independent direct curl
   evidence is authoritative and no additional diagnostic is required.
 - Cleanup: every upload, capture, readback, and payload cleanup status was 0
-- Status: terminal-pending
+- Status: terminal tag and commit are synchronized; consumed machinery was
+  removed by the immediate cleanup commit
 
 ## Action 35t terminal archive
 
