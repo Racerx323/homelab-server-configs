@@ -5,10 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
+- State: defined
 - Latest archive tag: `caddy-action35af-terminal-2026-08-18`
-- Next gate: archive and clean Action 35af, then define the narrow direct
-  Action 35ag successor.
+- Next gate: separately authorize Action 35ag through the neutral serving-health
+  transaction and outer runner.
 
 ## Action 35af terminal archive
 
@@ -33,8 +33,8 @@ Git preserves the complete deployment journal and executed action files.
   release, outbound and quarantine state, and kept all IPv4/IPv6 DNS, HTTPS,
   shared-UI, and node-UI probes successful. Keepalived subsequently converged
   to preferred Node A `MASTER` after its normal initial `BACKUP` interval.
-- Status: terminal-pending; consumed machinery remains only for this terminal
-  commit and annotated tag
+- Status: archived and cleaned; the current branch retains the neutral reusable
+  implementation and Action 35ag operation data
 
 ## Action 35ae terminal archive
 

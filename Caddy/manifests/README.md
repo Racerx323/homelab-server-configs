@@ -16,11 +16,11 @@ future transaction.
 | `serving-health-production.tsv` | Current serving-health candidate artifacts |
 | `deployable-successor.tsv` | Single live successor registry |
 | `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
-| `coupled-serving-health-action35af.yaml` | Single defined, unexecuted serving-health installation successor |
-| `action35af-node-b-quarantine.tsv` | Exact current Node B cleanup input consumed only by Action 35af |
+| `serving-health-operation.yaml` | Single versioned operation spec consumed by the neutral deployment entrypoints |
+| `serving-health-quarantine-baseline.tsv` | Exact current quarantine baseline used by the active operation |
 
 Lifecycle registries classify the complete manifests, scripts, systemd units,
-and templates. The main branch contains no executed action definitions; exact
+and templates. The main branch contains no action-numbered implementations; exact
 consumed definitions are retained by the annotated tags in `Caddy/HISTORY.md`.
 
 Keepalived, Pi-hole, and Unbound paths use the `homelab-dns` repository

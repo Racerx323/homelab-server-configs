@@ -97,4 +97,25 @@ grep -Fq 'VRRP_Script\(check-caddy\)' "$transaction"
 grep -Fq 'publish-release-v2.sh' "$transaction"
 grep -Fq '10-pihole-admin.caddy' "$transaction"
 
+live_sequence=$root/live-sequence.txt
+sed -n '/^run_live()/,/^}/p' "$outer" >"$live_sequence"
+if grep -Fq 'node-a-record-target' "$live_sequence"; then
+    printf 'redundant_node_a_record_target=true\n' >&2
+    exit 1
+fi
+publish_line=$(grep -n 'node-a-publish' "$live_sequence" | head -n 1 | cut -d: -f1)
+node_b_record_line=$(grep -n 'node-b-record-target' "$live_sequence" | head -n 1 | cut -d: -f1)
+node_b_wait_line=$(grep -n 'node-b-wait-target' "$live_sequence" | head -n 1 | cut -d: -f1)
+node_b_accept_line=$(grep -n 'node-b-target-accept' "$live_sequence" | head -n 1 | cut -d: -f1)
+node_a_promote_line=$(grep -n 'node-a-promote-target' "$live_sequence" | head -n 1 | cut -d: -f1)
+[[ "$publish_line" -lt "$node_b_record_line" &&
+    "$node_b_record_line" -lt "$node_b_wait_line" &&
+    "$node_b_wait_line" -lt "$node_b_accept_line" &&
+    "$node_b_accept_line" -lt "$node_a_promote_line" ]]
+grep -Fq 'serving-health-operation.yaml' "$outer"
+if grep -Eq 'action[0-9]+.*(transaction|outer|regression)' \
+    "$transaction" "$outer"; then
+    exit 1
+fi
+
 printf '%s_complete=true\n' "$prefix"

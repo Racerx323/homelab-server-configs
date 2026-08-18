@@ -89,9 +89,10 @@ dual-stack `Fault` with zero VIPs. After the rollback reload, the native DNS
 check recovered and Node B returned to `BACKUP`; Node A was not promoted or
 mutated. Evidence is
 `/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
-Its terminal commit and annotated tag are synchronized, its consumed machinery
-is removed from the current branch, and the deployment stream is clean before
-the direct successor is defined.
+Its terminal commit and annotated tag are synchronized and its consumed
+operation data is removed from the current branch. The neutral deployment
+implementation remains reusable; the next repository state may atomically
+register the validated direct successor without an empty clean-state commit.
 
 Action 35ab is failed-consumed. It stopped Keepalived on Node B, installed the
 candidate artifacts, captured the activation cursor, and started Keepalived
@@ -151,10 +152,11 @@ the original split release, outbound and quarantine state, retained continuous
 IPv4/IPv6 service, and reconverged to preferred Node A ownership. Evidence is
 `/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
 
-The direct successor removes only the redundant Node A `record-target` call,
-retains Node B target recording, proves the real publish-to-accept sequence,
-and requires settled ownership after both final acceptance and rollback. The
-remaining standby-first transaction is unchanged.
+Action 35ag uses the neutral reusable deployment transaction. It removes only
+the redundant Node A `record-target` call, retains Node B target recording,
+proves the real publish-to-accept sequence, and requires settled ownership
+after final acceptance and rollback. The remaining standby-first transaction
+is unchanged; no action-numbered implementation copy is created.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

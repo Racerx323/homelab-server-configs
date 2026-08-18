@@ -17,9 +17,10 @@ next successor is added only while its deployment window is `defined`. The
 generic installer cannot perform a migration of an existing production
 deployment.
 
-Action 35af is currently the single defined successor. Its transaction and
-outer runner are non-installable repository entrypoints and are removed from
-the current branch immediately after terminal archival.
+`apply-serving-health-deployment.sh` and
+`run-serving-health-deployment-outer.sh` are the single neutral, non-installable
+deployment entrypoints. Successors change the small operation specification;
+they never copy or rename these implementations.
 
 Run:
 

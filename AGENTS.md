@@ -24,19 +24,24 @@ executed deployment archive.
 - `deployment-streams.tsv` is the repository-wide deployment-window registry.
   Every deployment stream must be registered there, even when its state is
   `clean`.
-- A stream may be `clean`, have exactly one `defined` successor, or be
-  `terminal-pending` while an accepted or failed-consumed action awaits its
-  archive tag. Never carry two pending actions in one stream.
-- A terminal-result commit retains the executed action files, records the
+- A stream may be `clean`, have exactly one `defined` operation, or be
+  `terminal-pending` while an accepted or failed-consumed operation awaits its
+  archive tag. Never carry two pending operations in one stream.
+- Each stream has one neutral reusable transaction, one neutral outer runner,
+  one production artifact manifest, and at most one small versioned operation
+  specification. Never copy the transaction or runner to create a successor.
+- A terminal-result commit retains the operation specification, records the
   planned annotated tag in the stream history, clears the deployable-successor
   registry, and sets the stream to `terminal-pending`.
 - Create and push the annotated tag for that exact terminal-result commit.
-  Immediately follow it with a cleanup commit that removes the consumed
-  runner, transaction, action manifest, action coverage, action regression,
-  fixtures, and retained repository evidence, then sets the stream to `clean`.
-- Action-numbered implementation files are allowed only for the action named by
-  a `defined` or `terminal-pending` stream. Current validation profiles and
-  neutral tests must never invoke them.
+  The next repository commit must remove the consumed operation data,
+  operation coverage, and retained repository evidence. That commit either
+  returns the stream to `clean` or atomically registers one already validated
+  replacement operation. Do not require an otherwise empty intermediate
+  cleanup commit. Neutral implementations and regressions remain.
+- Action-numbered implementation, manifest, regression, and fixture filenames
+  are prohibited on the current branch. The operation ID belongs only in the
+  operation specification, stream registry, plan, history, commit, and tag.
 - The neutral repository policy
   `Caddy/tests/deployment-window-policy.sh --check` enforces these rules for
   every registered stream. Do not add component-specific exceptions.
@@ -56,12 +61,12 @@ executed deployment archive.
 ## Current source boundaries
 
 - `Caddy/configs/` contains production configuration only.
-- `Caddy/scripts/` contains current runtime tools, repository tools, and the
-  one registered future transaction.
+- `Caddy/scripts/` contains current runtime tools, repository tools, and neutral
+  reusable deployment entrypoints.
 - `Caddy/systemd/` contains installable current units only.
 - `Caddy/templates/` contains current templates plus approved future examples.
-- `Caddy/manifests/` contains current contracts, accepted identities, and the
-  one deployable successor.
+- `Caddy/manifests/` contains current contracts, accepted identities, one
+  production manifest per deployment stream, and at most one operation spec.
 - `Caddy/tests/` contains neutral current-production validation only.
 - Keepalived, Pi-hole, and Unbound sources belong to `homelab-dns`.
 - Network controller artifacts belong to `homelab-network`.
@@ -83,12 +88,14 @@ executed deployment archive.
   `Caddy/manifests/deployable-successor.tsv`.
 - Populate `deployable-successor-coverage.tsv` before reporting an outer
   runner hash.
-- Every coverage row names a decision record and its raw evidence. The decision
+- Every proportional coverage row names a decision record and its raw evidence. The decision
   must contain independently obtained expected and observed values, command
   status, and the raw-evidence SHA-256. Stdout labels and manually emitted
   coverage markers are summaries only and never satisfy authorization.
-- Coverage must include every current production-inventory key and successful
-  and failed node-evidence readback paths for both nodes.
+- Coverage must prove payload construction, exact transport/command generation,
+  the full standby-first phase order, mutation boundaries, convergence,
+  rollback, and residue. Do not create one row per ordinary assertion or
+  duplicate the production inventory as coverage labels.
 - Run
   `Caddy/tests/deployable-successor-policy.sh --authorization-ready` before
   requesting live authorization.
@@ -117,7 +124,7 @@ executed deployment archive.
 
 ## Production-path tests
 
-A registered live transaction and its outer runner must expose no-network
+A registered operation's neutral transaction and outer runner must expose no-network
 `--production-path-test` modes.
 
 The outer test must:
@@ -132,11 +139,10 @@ The outer test must:
 - execute success and failure readback branches for each node and retain the
   actual bounded node evidence in the caller-provided evidence directory.
 
-The transaction test must exercise each state-dependent pre-mutation branch and
-reach payload validation plus a no-mutation sentinel on accepted paths. Cover
-absent, exact, partial, extra, malformed, unsafe-metadata, symlink, and node-role
-states when they affect the action. Emitted labels without entrypoint execution
-do not prove coverage.
+The tests must execute the exact full phase sequence used by the live outer and
+transaction entrypoints. Exercise only state variants that can change the
+current operation's decision. Emitted labels without entrypoint execution do
+not prove coverage.
 
 Production-path tests may create isolated input state and bounded substitutes
 for unavailable external systems. They must not pre-write, copy, or print an
@@ -151,6 +157,11 @@ themselves. Authorization readiness must fail when a production result can be
 obtained without executing the registered outer and transaction paths.
 The authorization policy verifies causal decision records against their raw
 evidence; it never counts stdout markers.
+
+Fix neutral implementations in place before a defined operation is executed.
+After execution, archive the terminal operation and define a new operation spec
+only when live behavior must change. Never create a successor solely to correct
+an orchestration call that can be corrected before execution.
 
 ## Shell rules
 
@@ -185,7 +196,8 @@ evidence; it never counts stdout markers.
 - Bound all captured output. Reject control characters, binary data, secrets,
   and oversized streams.
 - Give mutation status, rollback, ownership, service state, and final acceptance
-  distinct decision labels. Group ordinary observations in structured evidence.
+  distinct decision records. Group ordinary observations in structured
+  evidence; do not emit hundreds of assertion labels.
 
 ## Live transaction rules
 

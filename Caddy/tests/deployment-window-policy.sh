@@ -64,7 +64,7 @@ deployment_window_schema_valid() {
 deployment_window_successor_fields() {
     local deployment_window_successor=$1
 
-    [[ "$(sed -n '1p' "$deployment_window_successor")" = $'schema_version\tstatus\taction\taction_manifest\ttransaction\touter_runner\tstate_contract\tstate_sha256\tcoverage\tregression' ]] || return 1
+    [[ "$(sed -n '1p' "$deployment_window_successor")" = $'schema_version\tstatus\taction\toperation_spec\ttransaction\touter_runner\tstate_contract\tstate_sha256\tcoverage\tregression' ]] || return 1
     [[ "$(wc -l <"$deployment_window_successor")" -eq 2 ]] || return 1
     awk -F '\t' 'NR == 2 && NF == 10 { print $2 "\t" $3 }' \
         "$deployment_window_successor"
@@ -72,27 +72,19 @@ deployment_window_successor_fields() {
 
 deployment_window_action_files_valid() {
     local deployment_window_component_root=$1
-    local deployment_window_state=$2
-    local deployment_window_action=$3
     local deployment_window_path deployment_window_name
-    local deployment_window_count=0
 
     while IFS= read -r deployment_window_path; do
         deployment_window_name=${deployment_window_path##*/}
         [[ "$deployment_window_name" =~ action[0-9] ]] || continue
-        deployment_window_count=$((deployment_window_count + 1))
-        [[ "$deployment_window_state" != clean ]] || return 1
-        case "$deployment_window_name" in
-            *"action${deployment_window_action}-"* | *"action${deployment_window_action}."* | *"action${deployment_window_action}_"*) ;;
-            *) return 1 ;;
-        esac
+        return 1
     done < <(
         find "$deployment_window_component_root" \
             \( -path '*/scripts/*' -o -path '*/manifests/*' -o -path '*/tests/*' \) \
             -type f -print | LC_ALL=C sort
     )
 
-    [[ "$deployment_window_state" = clean || "$deployment_window_count" -gt 0 ]]
+    return 0
 }
 
 deployment_window_stream_valid() {
@@ -147,8 +139,7 @@ deployment_window_stream_valid() {
         *) return 1 ;;
     esac
 
-    deployment_window_action_files_valid "$deployment_window_component_root" \
-        "$deployment_window_state" "$deployment_window_action" || return 1
+    deployment_window_action_files_valid "$deployment_window_component_root" || return 1
     ! jq -e '
         [.profiles[].host_tests[], .profiles[].debian_tests[],
          .profiles[].shell_files[]] |

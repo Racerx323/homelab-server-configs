@@ -7,14 +7,17 @@ component-specific exceptions.
 
 ## Window states
 
-- `clean`: accepted production state only; no action-numbered implementation
-  files and no deployable successor.
-- `defined`: exactly one registered successor with real production-path
-  coverage. Only that action's numbered implementation files may exist.
+- `clean`: accepted production state only; the neutral deployment implementation
+  remains, the operation specification is inactive, and no successor is registered.
+- `defined`: exactly one operation specification is registered against the
+  stream's neutral transaction and outer runner with real production-path coverage.
 - `terminal-pending`: the action ran and reached an accepted,
   `failed-consumed`, or `manual-intervention` result. Its deployable registry is
-  already cleared, but its exact files remain for the terminal-result commit
-  and annotated archive tag.
+  already cleared, but its exact operation specification remains for the
+  terminal-result commit and annotated archive tag.
+
+Action-numbered implementation, manifest, regression, and fixture filenames are
+never retained on the current branch. History belongs in annotated tags.
 
 ## Close an action
 
@@ -24,10 +27,14 @@ component-specific exceptions.
    planned annotated tag.
 4. Commit while the executed action files are still present.
 5. Create and push the annotated tag for that exact commit.
-6. Remove the consumed action files and retained repository evidence.
-7. Set the stream to `clean`, retaining the latest archive tag.
-8. Commit and push the cleanup before defining another action.
+6. Reset the consumed operation specification and coverage; remove retained
+   repository evidence. Keep neutral implementations and regressions.
+7. In the next repository commit, either set the stream to `clean` or
+   atomically register one already validated replacement operation. Retain the
+   latest archive tag in either case.
+8. Do not create an otherwise empty clean-state commit between an archived
+   terminal operation and its validated replacement.
 
 Git history and annotated tags are the immutable deployment archive. The main
-branch contains current production, neutral validation, and at most one
-defined successor per deployment stream.
+branch contains current production, neutral reusable deployment code, neutral
+validation, and at most one defined operation per deployment stream.

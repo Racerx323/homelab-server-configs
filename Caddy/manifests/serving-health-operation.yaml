@@ -1,25 +1,30 @@
-schema_version: 1
-action: 35af
-title: Minimal-probe coupled serving-health installation
-status: failed-consumed
+schema_version: 2
+action: 35ag
+title: Direct coupled serving-health installation
+status: defined-unexecuted
 consumes:
-  - action: 35ae
+  - action: 35af
     result: failed-consumed
     rerun: prohibited
-    archive_tag: caddy-action35ae-terminal-2026-08-18
-    evidence: /tmp/caddy-ssh-evidence-action35ae.vfzh11
-transaction: Caddy/scripts/apply-coupled-serving-health-action35af.sh
-transaction_sha256: 69e9ac737a8e89f25fbfbc21b0f222dd98c2fc455f8e974919f140fd4efa3366
-outer_runner: Caddy/scripts/run-coupled-serving-health-action35af-outer.sh
+    archive_tag: caddy-action35af-terminal-2026-08-18
+    evidence: /tmp/caddy-ssh-evidence-action35af.JHd23Z
+implementation:
+  lifecycle: neutral-reusable
+  copy_per_action: prohibited
+transaction: Caddy/scripts/apply-serving-health-deployment.sh
+transaction_sha256: 3f4548c6125a33b4aeb0c58f0fa727e67f4066d7548e0f8bff62c2abe2f541ee
+outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 1370eb3cc444c72dc1475a3a3a62182b969b2a43dac450d492458b522180232b
 production_contract: Caddy/manifests/serving-health-production.tsv
-quarantine_contract: Caddy/manifests/action35af-node-b-quarantine.tsv
+quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
 ordering:
   - validate both nodes without mutation
   - install and accept Node B
   - converge Node A to the already installed serving release
   - publish one current repository child release from Node A
+  - use the target revision already recorded by publication on Node A
+  - record that target revision on Node B only
   - accept that identical child release on Node B
   - promote the identical child release on Node A
   - install and accept Node A

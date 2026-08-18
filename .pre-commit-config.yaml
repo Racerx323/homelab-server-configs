@@ -32,11 +32,11 @@ repos:
         files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: deployable-successor-policy
-        name: Validate full-path deployable successor coverage
+        name: Validate neutral full-path deployment operation
         entry: /bin/bash Caddy/tests/deployable-successor-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|deployment-streams\.tsv$|DEPLOYMENT_LIFECYCLE\.md$|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
       - id: deployment-window-policy
         name: Enforce repository deployment windows

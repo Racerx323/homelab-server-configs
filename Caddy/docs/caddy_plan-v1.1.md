@@ -526,9 +526,11 @@ to be absent. Reverse rollback succeeded on both nodes, service continuity
 remained healthy, and preferred Node A ownership reconverged. Evidence is
 `/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
 
-The next direct installation successor removes that redundant call, retains
-Node B target recording, and requires settled final and rollback ownership
-evidence. All other standby-first behavior remains unchanged.
+Action 35ag removes that redundant call in the neutral reusable transaction,
+retains Node B target recording, and requires settled final and rollback
+ownership evidence. All other standby-first behavior remains unchanged. One
+small versioned operation specification replaces action-specific transaction,
+runner, and regression copies.
 
 ## 18. Pending work
 

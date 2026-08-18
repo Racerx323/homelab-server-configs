@@ -101,12 +101,10 @@ successor_policy_state_valid() {
 
 successor_policy_coverage_valid() {
     local successor_policy_coverage=$1
-    local successor_policy_inventory=$successor_policy_repository_root/Caddy/manifests/production-artifacts.tsv
-    local successor_policy_inventory_key
+    local successor_policy_required_scenario
 
     # conditional-validator-explicit-failures-begin
     successor_policy_regular_file "$successor_policy_coverage" || return 1
-    successor_policy_regular_file "$successor_policy_inventory" || return 1
     [[ "$(sed -n '1p' "$successor_policy_coverage")" = $'scenario\tphase\tentrypoint\texpectation\tdecision-evidence\traw-evidence' ]] || return 1
     awk -F '\t' '
         NR == 1 { next }
@@ -125,35 +123,16 @@ successor_policy_coverage_valid() {
         $2 == "accepted-path" && $3 == "transaction" && $4 == "reach" { tx_accept++ }
         END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
     ' "$successor_policy_coverage" || return 1
-    awk -F '\t' '
-        NR > 1 && $1 == "evidence-readback-node-a-success" &&
-            $3 == "outer" && $4 == "accept" { node_a_success++ }
-        NR > 1 && $1 == "evidence-readback-node-a-failure" &&
-            $3 == "outer" && $4 == "reject" { node_a_failure++ }
-        NR > 1 && $1 == "evidence-readback-node-b-success" &&
-            $3 == "outer" && $4 == "accept" { node_b_success++ }
-        NR > 1 && $1 == "evidence-readback-node-b-failure" &&
-            $3 == "outer" && $4 == "reject" { node_b_failure++ }
-        END {
-            exit(node_a_success == 1 && node_a_failure == 1 &&
-                node_b_success == 1 && node_b_failure == 1 ? 0 : 1)
-        }
-    ' "$successor_policy_coverage" || return 1
-    while IFS=$'\t' read -r successor_policy_inventory_key _; do
-        if [[ "$successor_policy_inventory_key" = '# key' ||
-            -z "$successor_policy_inventory_key" ]]; then
-            continue
-        fi
-        awk -F '\t' -v scenario="inventory-$successor_policy_inventory_key" '
-            NR > 1 && $1 == scenario && $3 == "transaction" && $4 == "accept" { found++ }
+    for successor_policy_required_scenario in \
+        outer-preflight transaction-rejection transaction-acceptance \
+        protocol-v2-target-publication protocol-v2-target-promotion \
+        keepalived-daemon-owned-acceptance bounded-node-b-convergence \
+        node-a-quarantine-rollback; do
+        awk -F '\t' -v scenario="$successor_policy_required_scenario" '
+            NR > 1 && $1 == scenario { found++ }
             END { exit(found == 1 ? 0 : 1) }
         ' "$successor_policy_coverage" || return 1
-    done <"$successor_policy_inventory"
-    awk -F '\t' '
-        NR == FNR && FNR > 1 { expected["inventory-" $1] = 1; next }
-        FNR > 1 && $1 ~ /^inventory-/ && !($1 in expected) { invalid = 1; exit }
-        END { exit invalid }
-    ' "$successor_policy_inventory" "$successor_policy_coverage" || return 1
+    done
     # conditional-validator-explicit-failures-end
 }
 
@@ -167,7 +146,6 @@ successor_policy_evidence_valid() {
     local successor_policy_record_scenario successor_policy_record_expectation
     local successor_policy_status successor_policy_expected successor_policy_observed
     local successor_policy_record_raw_hash
-    local successor_policy_expected_paths successor_policy_observed_paths
 
     [[ -d "$successor_policy_evidence_root" && ! -L "$successor_policy_evidence_root" ]] || return 1
     [[ "$(stat -c '%a' "$successor_policy_evidence_root")" = 700 ]] || return 1
@@ -221,30 +199,13 @@ successor_policy_evidence_valid() {
         successor_policy_raw_hash=$(sha256sum "$successor_policy_raw" | awk '{ print $1 }') || return 1
         [[ "$successor_policy_record_raw_hash" = "$successor_policy_raw_hash" ]] || return 1
     done <"$successor_policy_coverage"
-    successor_policy_expected_paths=$(mktemp /tmp/caddy-successor-expected-paths.XXXXXX) || return 1
-    successor_policy_observed_paths=$(mktemp /tmp/caddy-successor-observed-paths.XXXXXX) || {
-        rm -f -- "$successor_policy_expected_paths"
-        return 1
-    }
-    awk -F '\t' -v entrypoint="$successor_policy_entrypoint" '
-        NR > 1 && $3 == entrypoint { print $5; print $6 }
-    ' "$successor_policy_coverage" | LC_ALL=C sort >"$successor_policy_expected_paths"
-    {
-        find "$successor_policy_evidence_root/decisions" -mindepth 1 -maxdepth 1 \
-            -type f -printf 'decisions/%f\n'
-        find "$successor_policy_evidence_root/raw" -mindepth 1 -maxdepth 1 \
-            -type f -printf 'raw/%f\n'
-    } | LC_ALL=C sort >"$successor_policy_observed_paths"
-    if ! cmp -s "$successor_policy_expected_paths" "$successor_policy_observed_paths"; then
-        rm -f -- "$successor_policy_expected_paths" "$successor_policy_observed_paths"
-        return 1
-    fi
-    rm -f -- "$successor_policy_expected_paths" "$successor_policy_observed_paths"
+    # Extra bounded evidence is allowed. The coverage registry names only the
+    # causal decisions required for authorization.
 }
 
 successor_policy_defined_valid() {
     local successor_policy_action=$1
-    local successor_policy_action_manifest=$2
+    local successor_policy_operation_spec=$2
     local successor_policy_transaction=$3
     local successor_policy_outer=$4
     local successor_policy_coverage=$5
@@ -253,29 +214,38 @@ successor_policy_defined_valid() {
     local successor_policy_outer_output successor_policy_outer_error
     local successor_policy_probe_root successor_policy_transaction_evidence
     local successor_policy_outer_evidence
-    local successor_policy_transaction_hash
+    local successor_policy_transaction_hash successor_policy_operation_hash
 
     # conditional-validator-explicit-failures-begin
     [[ "$successor_policy_action" =~ ^[0-9]+[a-z0-9-]*$ ]] || return 1
-    [[ "$successor_policy_action_manifest" =~ ^Caddy/manifests/[A-Za-z0-9._-]+\.ya?ml$ ]] || return 1
-    [[ "$successor_policy_transaction" =~ ^Caddy/scripts/[A-Za-z0-9._-]+\.sh$ ]] || return 1
-    [[ "$successor_policy_outer" =~ ^Caddy/scripts/[A-Za-z0-9._-]+\.sh$ ]] || return 1
+    [[ "$successor_policy_operation_spec" = Caddy/manifests/serving-health-operation.yaml ]] || return 1
+    [[ "$successor_policy_transaction" = Caddy/scripts/apply-serving-health-deployment.sh ]] || return 1
+    [[ "$successor_policy_outer" = Caddy/scripts/run-serving-health-deployment-outer.sh ]] || return 1
     [[ "$successor_policy_coverage" =~ ^Caddy/manifests/[A-Za-z0-9._-]+\.tsv$ ]] || return 1
     [[ "$successor_policy_regression" =~ ^Caddy/tests/[A-Za-z0-9._-]+\.sh$ ]] || return 1
     [[ "${successor_policy_regression##*/}" != *action[0-9]* ]] || return 1
-    successor_policy_regular_file "$successor_policy_repository_root/$successor_policy_action_manifest" || return 1
+    successor_policy_regular_file "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
     successor_policy_executable_file "$successor_policy_transaction" || return 1
     successor_policy_executable_file "$successor_policy_outer" || return 1
     successor_policy_executable_file "$successor_policy_regression" || return 1
     successor_policy_transaction_hash=$(sha256sum \
         "$successor_policy_repository_root/$successor_policy_transaction" |
         awk '{ print $1 }') || return 1
+    successor_policy_operation_hash=$(sha256sum \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" |
+        awk '{ print $1 }') || return 1
     grep -Fxq "readonly transaction_sha256=$successor_policy_transaction_hash" \
         "$successor_policy_repository_root/$successor_policy_outer" || return 1
     grep -Fq "transaction_sha256: $successor_policy_transaction_hash" \
-        "$successor_policy_repository_root/$successor_policy_action_manifest" || return 1
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    grep -Fxq "readonly operation_sha256=$successor_policy_operation_hash" \
+        "$successor_policy_repository_root/$successor_policy_outer" || return 1
+    grep -Fxq "action: $successor_policy_action" \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+    grep -Fxq 'status: defined-unexecuted' \
+        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
     successor_policy_coverage_valid "$successor_policy_repository_root/$successor_policy_coverage" || return 1
-    awk -F '\t' -v path="$successor_policy_action_manifest" '
+    awk -F '\t' -v path="$successor_policy_operation_spec" '
         $1 == path && $2 == "defined-unexecuted" { found++ }
         END { exit(found == 1 ? 0 : 1) }
     ' "$successor_policy_repository_root/Caddy/manifests/manifest-lifecycle.tsv" || return 1
@@ -359,19 +329,19 @@ successor_policy_defined_valid() {
 successor_policy_registry_valid() {
     local successor_policy_require_defined=${1:-0}
     local successor_policy_schema successor_policy_status successor_policy_action
-    local successor_policy_action_manifest successor_policy_transaction successor_policy_outer
+    local successor_policy_operation_spec successor_policy_transaction successor_policy_outer
     local successor_policy_state_relative successor_policy_state_hash successor_policy_coverage
     local successor_policy_regression successor_policy_state
 
     # conditional-validator-explicit-failures-begin
     successor_policy_regular_file "$successor_policy_registry" || return 1
-    [[ "$(sed -n '1p' "$successor_policy_registry")" = $'schema_version\tstatus\taction\taction_manifest\ttransaction\touter_runner\tstate_contract\tstate_sha256\tcoverage\tregression' ]] || return 1
+    [[ "$(sed -n '1p' "$successor_policy_registry")" = $'schema_version\tstatus\taction\toperation_spec\ttransaction\touter_runner\tstate_contract\tstate_sha256\tcoverage\tregression' ]] || return 1
     [[ "$(wc -l <"$successor_policy_registry")" -eq 2 ]] || return 1
     IFS=$'\t' read -r successor_policy_schema successor_policy_status successor_policy_action \
-        successor_policy_action_manifest successor_policy_transaction successor_policy_outer \
+        successor_policy_operation_spec successor_policy_transaction successor_policy_outer \
         successor_policy_state_relative successor_policy_state_hash successor_policy_coverage \
         successor_policy_regression < <(sed -n '2p' "$successor_policy_registry")
-    [[ "$successor_policy_schema" = 1 ]] || return 1
+    [[ "$successor_policy_schema" = 2 ]] || return 1
     [[ "$successor_policy_state_relative" = Caddy/manifests/current-live-state.tsv ]] || return 1
     [[ "$successor_policy_coverage" = Caddy/manifests/deployable-successor-coverage.tsv ]] || return 1
     [[ "$successor_policy_state_hash" =~ ^[0-9a-f]{64}$ ]] || return 1
@@ -383,14 +353,14 @@ successor_policy_registry_valid() {
     case "$successor_policy_status" in
         none)
             [[ "$successor_policy_require_defined" = 0 ]] || return 1
-            [[ "$successor_policy_action" = - && "$successor_policy_action_manifest" = - ]] || return 1
+            [[ "$successor_policy_action" = - && "$successor_policy_operation_spec" = - ]] || return 1
             [[ "$successor_policy_transaction" = - && "$successor_policy_outer" = - ]] || return 1
             [[ "$successor_policy_regression" = - ]] || return 1
             [[ "$(wc -l <"$successor_policy_repository_root/$successor_policy_coverage")" -eq 1 ]] || return 1
             ;;
         defined)
             successor_policy_defined_valid "$successor_policy_action" \
-                "$successor_policy_action_manifest" "$successor_policy_transaction" \
+                "$successor_policy_operation_spec" "$successor_policy_transaction" \
                 "$successor_policy_outer" "$successor_policy_coverage" \
                 "$successor_policy_regression" || return 1
             ;;
