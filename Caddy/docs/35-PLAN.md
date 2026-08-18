@@ -100,7 +100,9 @@ status 1, and neither helper produced a classified status transition. The
 transaction failed closed at
 `action_35_ab_check_keepalived_daemon_journal_no_failure=false`. Node B rollback
 succeeded and returned it to `BACKUP`; Node A was not mutated. Evidence is
-`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`. Action 35ab must not be rerun.
+`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`. Action 35ab is archived only at
+`caddy-action35ab-terminal-2026-08-18`, its consumed machinery is removed, and
+it must not be rerun.
 
 The direct successor must make every helper exit produce a bounded classified
 status or journald record, collect the complete bounded daemon observation

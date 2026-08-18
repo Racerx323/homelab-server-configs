@@ -24,8 +24,8 @@ Git preserves the complete deployment journal and executed action files.
   FAULT notification was necessarily unclassified.
 - Recovery: Node B rollback and rollback readback returned 0, Node B returned
   to `BACKUP`, and Node A was not mutated
-- Status: terminal-pending until the annotated tag is created and consumed
-  machinery is removed
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35aa terminal archive
 

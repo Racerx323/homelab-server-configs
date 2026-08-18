@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ab failed-consumed after successful Node B rollback and awaits terminal archival; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ab archived and cleaned after successful Node B rollback; the Caddy deployment stream is clean; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -433,7 +433,9 @@ The first daemon-owned `check-caddy` and `check-dns` executions both returned
 status 1 after the single Node B restart. Neither helper emitted a classified
 status transition, so Action 35ab failed closed and rolled Node B back to
 `BACKUP`; Node A was not mutated. Its evidence is
-`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`, and it must not be rerun.
+`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`. It is archived only at
+`caddy-action35ab-terminal-2026-08-18`, its consumed machinery is removed, and
+it must not be rerun.
 
 The direct successor must preserve the transaction while making every helper
 exit produce a bounded classified status or journald record and collecting the
