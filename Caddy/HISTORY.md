@@ -3,18 +3,6 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
-## Current deployment window
-
-- Action: 35ac
-- Status: terminal-pending, failed-consumed
-- Archive tag: `caddy-action35ac-terminal-2026-08-18`
-- Scope: preserve the exact executed Action 35ac definition and its proven
-  pre-Node-A failure, then remove its consumed machinery before defining the
-  direct phase-classified successor.
-- Successor constraint: Action 35ad must consume but never rerun Action 35ac,
-  retain the current helper paths, and identify the exact failing operation
-  through bounded phase-level status records.
-
 ## Action 35ac terminal archive
 
 - Tag: `caddy-action35ac-terminal-2026-08-18`
@@ -38,8 +26,8 @@ Git preserves the complete deployment journal and executed action files.
   not identify the exact helper operation. No helper path change is justified.
 - Recovery: Node B rollback and rollback readback returned 0, Node B returned
   to `BACKUP`, and Node A was not mutated
-- Status: terminal-pending until the annotated tag is created and consumed
-  machinery is removed
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35ab terminal archive
 

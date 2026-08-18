@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ac failed-consumed after successful Node B rollback and awaits terminal archival; Action 35ad is the direct phase-classified successor after cleanup; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ac archived and cleaned after successful Node B rollback; the Caddy deployment stream is clean before Action 35ad definition; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -444,7 +444,9 @@ and Proxy helper executions repeatedly returned status 1, and both recorded
 serving-continuity probes passed. The transaction failed closed at
 `action_35_ac_check_keepalived_daemon_status_records_valid=false`, Node B
 rollback returned it to `BACKUP`, and Node A was not mutated. Its evidence is
-`/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`; it must not be rerun.
+`/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`. It is archived only at
+`caddy-action35ac-terminal-2026-08-18`, its consumed machinery is removed, and
+it must not be rerun.
 
 Action 35ad is the direct successor after Action 35ac terminal archival and
 cleanup. It retains the existing helper paths and standby-first transaction,
