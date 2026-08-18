@@ -306,37 +306,10 @@ fi
 grep -Fq -- '--application "$application"' \
     "$replication_producer" || fail replication_application
 
-proxy_snapshot=$fixture_root/proxy-status
-dns_snapshot=$fixture_root/dns-status
 keepalived_state_root=$fixture_root/keepalived-state
 install -d -m 0755 "$keepalived_state_root"
-cat >"$proxy_snapshot" <<'SNAPSHOT'
-schema=caddy-serving-health-status/v1
-application=Proxy
-component=Caddy
-check=trusted-https
-result=failed
-failure_class=TLS-verification
-network=IPv4=10.1.0.54:443 endpoint=/healthz
-status=curl=60
-observed_epoch=1786946400
-SNAPSHOT
-cat >"$dns_snapshot" <<'SNAPSHOT'
-schema=caddy-serving-health-status/v1
-application=DNS
-component=Pi-hole FTL and Unbound
-check=local-answer
-result=healthy
-failure_class=none
-network=IPv4 and IPv6 loopback
-status=all eight answers exact
-observed_epoch=1786946399
-SNAPSHOT
-chmod 0644 "$proxy_snapshot" "$dns_snapshot"
 CADDY_APPRISE_NOW_EPOCH=1200 \
     KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
-    KEEPALIVED_NOTIFY_DNS_STATUS_FILE=$dns_snapshot \
-    KEEPALIVED_NOTIFY_PROXY_STATUS_FILE=$proxy_snapshot \
     KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
     KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
     KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
@@ -347,17 +320,22 @@ keepalived_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json
 [[ -n "$keepalived_record" ]] || fail keepalived_record_absent
 jq -e '
   .severity == "failure" and
-  (.payload.title | startswith("🚨 [Proxy] failure on ")) and
-  (.payload.body | contains("Application: Proxy") and
-    contains("Component: Caddy") and
-    contains("Check: trusted-https") and
-    contains("Failure class: TLS-verification") and
+  (.payload.title | startswith("🚨 [DNS] failure on ")) and
+  (.payload.body | contains("Application: DNS") and
+    contains("Component: Keepalived PIHOLE_DUALSTACK") and
+    contains("Check: ownership-state") and
+    contains("Failure class: eligibility-fault-unclassified") and
     contains("VIPs must move") and
     contains("local_vips=0") and
     contains("local_role=standby-node-b") and
     contains("peer_role=preferred-node-a") and
-    contains("failover=pending-peer-convergence"))
-' "$keepalived_record" >/dev/null || fail keepalived_proxy_contract
+    contains("failover=pending-peer-convergence") and
+    contains("First check: journalctl -u keepalived.service -n 50 --no-pager"))
+' "$keepalived_record" >/dev/null || fail keepalived_fault_contract
+if grep -Eq 'KEEPALIVED_NOTIFY_(DNS|PROXY)_STATUS_FILE|caddy-serving-health/(dns|proxy)|snapshot_(field|valid)' \
+    "$keepalived_producer"; then
+    fail keepalived_stale_snapshot_dependency
+fi
 [[ "$(<"$keepalived_state_root/PIHOLE_DUALSTACK")" = FAULT ]] ||
     fail keepalived_transition_state
 
@@ -380,6 +358,20 @@ grep -Fq -- "failure) severity_icon='🚨'" "$enqueue" || fail failure_icon
 grep -Fq -- "warning) severity_icon='⚠️'" "$enqueue" || fail warning_icon
 grep -Fq -- "info) severity_icon='ℹ️'" "$enqueue" || fail info_icon
 grep -Fq -- "success) severity_icon='✅'" "$enqueue" || fail success_icon
+while IFS=$'\t' read -r production_source production_target production_mode \
+    production_baseline_hash production_candidate_hash; do
+    [[ -n "$production_source" && "$production_source" != \#* ]] || continue
+    production_path=$repository_root/$production_source
+    if [[ "$production_source" = homelab-dns/* ]]; then
+        production_path=$repository_root/../$production_source
+    fi
+    [[ -f "$production_path" && ! -L "$production_path" ]] || fail production_source
+    [[ "$production_target" = /* && "$production_mode" =~ ^0[0-7]{3}$ ]] ||
+        fail production_contract
+    [[ "$production_baseline_hash" = absent ||
+        "$production_baseline_hash" =~ ^[0-9a-f]{64}$ ]] || fail production_baseline_hash
+    [[ "$(sha256sum "$production_path" | awk '{ print $1 }')" = "$production_candidate_hash" ]] || fail production_candidate_hash
+done <"$caddy_root/manifests/durable-apprise-production.tsv"
 printf '%s_check_schema=true\n' "$prefix"
 printf '%s_check_atomic_enqueue=true\n' "$prefix"
 printf '%s_check_ordering=true\n' "$prefix"
@@ -392,4 +384,5 @@ printf '%s_check_controlled_record_isolation=true\n' "$prefix"
 printf '%s_check_malformed_dead_letter=true\n' "$prefix"
 printf '%s_check_permissions=true\n' "$prefix"
 printf '%s_check_systemd_hardening=true\n' "$prefix"
+printf '%s_check_production_manifest=true\n' "$prefix"
 printf '%s_complete=true\n' "$prefix"

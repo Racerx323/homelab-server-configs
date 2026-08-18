@@ -21,7 +21,7 @@ if [[ "$successor_status" = none ]]; then
     printf '%s_no_registered_successor=true\n' "$prefix"
     exit 0
 fi
-[[ "$successor_status" = defined && "$successor_action" = 35ae ]]
+[[ "$successor_status" = defined && "$successor_action" = 35ad ]]
 readonly transaction=$repository_root/$transaction_relative
 readonly outer=$repository_root/$outer_relative
 root=$(mktemp -d /tmp/caddy-serving-health-installation-regression.XXXXXX)
@@ -39,16 +39,16 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
 CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
     /bin/bash "$outer" --production-path-test >"$root/outer.stdout"
 
-grep -Fq 'action_35_ae_production_path_test_complete=true' "$root/transaction.stdout"
-grep -Fq 'action_35_ae_expected_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_ad_production_path_test_complete=true' "$root/transaction.stdout"
+grep -Fq 'action_35_ad_expected_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_ae_observed_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_ad_observed_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_ae_outer_production_path_test_complete=true' "$root/outer.stdout"
-grep -Fq 'action_35_ae_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
+grep -Fq 'action_35_ad_outer_production_path_test_complete=true' "$root/outer.stdout"
+grep -Fq 'action_35_ad_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
 grep -Fq 'cd / && sudo -n /bin/bash -s --' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35ae-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35ae-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35ad-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35ad-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
 grep -Fxq 'pi:default' "$root/outer/raw/outer-preflight.txt"
 grep -Fxq 'keepalived_script:caddy-tls' "$root/outer/raw/outer-preflight.txt"
 grep -Fq 'payload_identity.stdout' "$root/outer/raw/evidence-readback-node-a-success.txt"
@@ -92,7 +92,7 @@ grep -Fq 'current_before=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04' 
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'current_after=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
-grep -Fq 'action_35_ae_check_local_candidate_selected=true' \
+grep -Fq 'action_35_ad_check_local_candidate_selected=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'caddy_serving_health_check_ipv4_https=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
@@ -127,11 +127,11 @@ for decision in \
     node-a-quarantine-rollback; do
     test -s "$root/transaction/decisions/$decision.tsv"
 done
-grep -Fq 'action_35_ae_check_node_a_quarantine_top_level_exact=true' \
+grep -Fq 'action_35_ad_check_node_a_quarantine_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-baseline.txt"
-grep -Fq 'action_35_ae_check_node_a_quarantine_after_disposition_inventory=true' \
+grep -Fq 'action_35_ad_check_node_a_quarantine_after_disposition_inventory=true' \
     "$root/transaction/raw/node-a-quarantine-disposition.txt"
-grep -Fq 'action_35_ae_check_node_a_quarantine_restored_top_level_exact=true' \
+grep -Fq 'action_35_ad_check_node_a_quarantine_restored_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-rollback.txt"
 canonical_candidate=$root/transaction/state/quarantine/node-b-20260811T174240Z-31d43261-5cd7-44ce-83e5-947927184d29
 grep -Eq '^[0-9a-f]{64}  \./Caddyfile$' "$canonical_candidate/manifest.sha256"
@@ -189,39 +189,18 @@ grep -Fq 'check=listener-tcp-capture' \
     "$root/transaction/raw/helper-phase-caddy-rejection.txt"
 grep -Fq 'check=probe-evidence-output' \
     "$root/transaction/raw/helper-phase-dns-rejection.txt"
-for probe_family in ipv4 ipv6; do
-    for probe_case in missing-status malformed-status missing-output \
-        malformed-output signal timeout curl http; do
-        case "$probe_case" in
-            missing-status | missing-output) probe_expected=probe-result-missing ;;
-            malformed-status | malformed-output) probe_expected=probe-result-malformed ;;
-            signal) probe_expected=signal ;;
-            timeout) probe_expected=timeout ;;
-            curl) probe_expected=connection-refusal ;;
-            http) probe_expected=unexpected-http-status ;;
-        esac
-        probe_scenario=probe-result-$probe_family-$probe_case-rejection
-        test -s "$root/transaction/decisions/$probe_scenario.tsv"
-        test -s "$root/transaction/raw/$probe_scenario.txt"
-        grep -Fq $'\treject\t' "$root/transaction/decisions/$probe_scenario.tsv"
-        grep -Fq $'\t'"$probe_expected"$'\t'"$probe_expected"$'\t' \
-            "$root/transaction/decisions/$probe_scenario.tsv"
-        grep -Fq "failure_class=$probe_expected" \
-            "$root/transaction/raw/$probe_scenario.txt"
-    done
-done
-grep -Fq 'action_35_ae_check_keepalived_daemon_status_records_valid=false' \
+grep -Fq 'action_35_ad_check_keepalived_daemon_status_records_valid=false' \
     "$root/outer/raw/daemon-dns-intermittent-rejection.txt"
-grep -Fq 'action_35_ae_check_keepalived_daemon_status_records_valid=false' \
+grep -Fq 'action_35_ad_check_keepalived_daemon_status_records_valid=false' \
     "$root/outer/raw/daemon-caddy-intermittent-rejection.txt"
-grep -Fq 'action_35_ae_check_keepalived_daemon_dns_transition_count=true' \
+grep -Fq 'action_35_ad_check_keepalived_daemon_dns_transition_count=true' \
     "$root/outer/raw/daemon-journal-failure-rejection.txt"
-grep -Fq 'action_35_ae_check_keepalived_daemon_proxy_transition_count=true' \
+grep -Fq 'action_35_ad_check_keepalived_daemon_proxy_transition_count=true' \
     "$root/outer/raw/daemon-journal-failure-rejection.txt"
-grep -Fq 'action_35_ae_check_keepalived_daemon_journal_no_failure=false' \
+grep -Fq 'action_35_ad_check_keepalived_daemon_journal_no_failure=false' \
     "$root/outer/raw/daemon-journal-failure-rejection.txt"
 if sed -n '/^daemon_serving_health_acceptance()/,/^}/p' "$transaction" |
-    grep -Eq 'action35ae_invalid=1[^}]*break'; then
+    grep -Eq 'action35ad_invalid=1[^}]*break'; then
     exit 1
 fi
 if sed -n '/^install_serving_artifacts()/,/^}/p' "$transaction" |

@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ae is failed-consumed after successful Node B rollback; the installation-successor chain is paused while the neutral Keepalived DNS and Proxy probes are simplified; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ae is archived after successful Node B rollback; neutral Keepalived DNS and Proxy probes are simplified and awaiting a separately defined installation successor; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -160,7 +160,11 @@ The current release contains:
 
 Caddy serves trusted TLS on node-specific and shared addresses. Exact listener
 default-deny routes prevent cross-path acceptance. The shared Pi-hole route
-selects the backend that belongs to the current coupled owner.
+selects the backend that belongs to the current coupled owner. Its single local
+lighttpd upstream uses a 30-second active `/admin/` check with explicit final
+status 200 and a 30-second passive failure window. These controls make the
+local proxy fail fast; they do not move VIPs or replace the notification-only
+backend monitor.
 
 The node environment contains three values:
 
@@ -472,6 +476,19 @@ are reduced to essential synchronous checks. Their exit statuses and
 Keepalived's cursor-bounded journal are authoritative; background result files,
 phase handlers, and development diagnostics must not participate in VRRP
 eligibility.
+
+The repository correction implements that boundary. The Proxy helper checks
+only `caddy.service` and trusted node-specific IPv4 and IPv6 `/healthz` status.
+The DNS helper checks only Pi-hole FTL and Unbound service state plus exact A
+and AAAA answers through both loopback families on ports 53 and 5335. Its eight
+one-second queries run concurrently in Keepalived's process group so the probe
+fits the two-second timeout. Both helpers are silent, create no state, and
+retain the default SIGTERM disposition. The obsolete DNS and Proxy status
+directories and notifier snapshot reads are removed so stale diagnostics cannot
+override Keepalived's authoritative exit and journal evidence. Neutral lifecycle
+coverage exercises process-group SIGTERM,
+Keepalived-style SIGKILL escalation, repeated three-second execution, service
+identities, and zero new helper residue. No installation successor is defined.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are

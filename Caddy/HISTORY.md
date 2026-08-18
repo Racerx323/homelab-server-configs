@@ -5,12 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- Action: 35ae
-- Status: terminal-pending, failed-consumed
-- Archive tag: `caddy-action35ae-terminal-2026-08-18`
-- Scope: preserve the executed definition and failed real Keepalived boundary,
-  then remove the consumed machinery and pause the installation-successor
-  chain while the neutral DNS and Proxy tracking probes are simplified.
+- State: clean
+- Latest archive tag: `caddy-action35ae-terminal-2026-08-18`
+- Next gate: none. The installation-successor chain remains paused while the
+  neutral DNS and Proxy Keepalived probes are simplified and validated.
 
 ## Action 35ae terminal archive
 
@@ -35,8 +33,8 @@ Git preserves the complete deployment journal and executed action files.
   current tracking helpers rather than wrapped again.
 - Recovery: Node B rollback and rollback readback returned 0, Node B returned
   to `BACKUP`, and Node A was not mutated
-- Status: terminal-pending until the annotated tag is created and consumed
-  machinery is removed
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35ad terminal archive
 

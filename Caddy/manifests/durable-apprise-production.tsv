@@ -6,5 +6,5 @@ Caddy/systemd/caddy-apprise-worker.service	/etc/systemd/system/caddy-apprise-wor
 Caddy/systemd/caddy-apprise-worker.path	/etc/systemd/system/caddy-apprise-worker.path	0644	absent	e14d0dc2775438b0efa660a87922304407d7901a4edd4a5c96b4e7d5b2576fd4
 Caddy/systemd/caddy-apprise-worker.timer	/etc/systemd/system/caddy-apprise-worker.timer	0644	absent	f303b756a085433983eb26686dd86fbe49bc16df93473dbd3e29f4f4e9f3fa51
 Caddy/systemd/caddy-sync-failure@.service	/etc/systemd/system/caddy-sync-failure@.service	0644	28ca79621befe618976a4df129abf399dca58b6c58a3ee14d689dad308a5bdde	ee964a2751025a504058671b4a1843b1d52c891b51631aae6df90c9326b40110
-Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	9d36d8b3e6a872bed9a435f569b543db8517e6ee79c2aa089583b8ca3dac6bc2	4313578a3914ae15cecb69f920a0acc59444753eacc1960c6e95bd49acad67b9
-homelab-dns/Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	0a2898c08d64e126f393bc17529e33f9e5890bebdbbfc9bccbfd0ec84a09afe6	60b758b3dd73f092bfb9bb46eb33148a7d1ecc1a913b6c83c6301dc0a905e22d
+Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	9d36d8b3e6a872bed9a435f569b543db8517e6ee79c2aa089583b8ca3dac6bc2	21bc21a73056f7eb8abd549e9315c640522e32b28b4d0989ca43ba57a82da98b
+homelab-dns/Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	0a2898c08d64e126f393bc17529e33f9e5890bebdbbfc9bccbfd0ec84a09afe6	ffaf6d7e09b808dd71848ca481da01e144c715a305858d2922accedaecb5aabf

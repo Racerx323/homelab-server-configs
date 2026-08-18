@@ -1,15 +1,15 @@
 # repository	source-path	installed-path	mode	candidate-sha256	lifecycle
-homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	c786c27890ed66964b9e9d38d9a84cb5d9f3111670fbb325bdfe0c99da7eb27b	production-candidate
+homelab-server-configs	Caddy/scripts/check-caddy-serving-health.sh	/usr/local/libexec/check-caddy.sh	0755	60c2c196e75a17452d16174b08f9ba20d63699b2931a7ccf69779e55b96ddc32	production-candidate
 homelab-server-configs	Caddy/scripts/check-pihole-web-health.sh	/usr/local/libexec/check-pihole-web-health.sh	0755	803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec/caddy-apprise-enqueue	0755	5101792e178ede8f6ae4cae23f9d22d57bd4c453c3578dc164175a57fe4dc56f	production-candidate
 homelab-server-configs	Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	370e31cdfa68c31763028299b9e2d9aa67abaec2b9a34d8ac85d950cef94ab52	production-candidate
 homelab-server-configs	Caddy/scripts/lsyncd-sync-failure-notify.sh	/usr/local/libexec/lsyncd-sync-failure-notify.sh	0755	278e0ff1695feca3806f24cf74c6e4007723e0b8ddbb086aaf1e121d7e9c183c	production-candidate
-homelab-server-configs	Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	4313578a3914ae15cecb69f920a0acc59444753eacc1960c6e95bd49acad67b9	production-candidate
+homelab-server-configs	Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	21bc21a73056f7eb8abd549e9315c640522e32b28b4d0989ca43ba57a82da98b	production-candidate
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.service	/etc/systemd/system/caddy-pihole-web-health.service	0644	a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0	production-candidate
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.timer	/etc/systemd/system/caddy-pihole-web-health.timer	0644	f214b69fecaeb322dbaba61f683f9cf35970596784adcd707e25278f0ace1505	production-candidate
-homelab-server-configs	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	/etc/caddy/releases/REVISION/conf.d/10-pihole-admin.caddy	0640	93df2e2d056052b92505f70f3d79e826d5c7c6c69baaededd2c5c1b9bb410512	production-candidate
-homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	8b33b542f9834ad136c4f82f935f51e006109e0776589064fcbe7b64df3fd117	production-candidate
-homelab-dns	Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	60b758b3dd73f092bfb9bb46eb33148a7d1ecc1a913b6c83c6301dc0a905e22d	production-candidate
+homelab-server-configs	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	/etc/caddy/releases/REVISION/conf.d/10-pihole-admin.caddy	0640	8e1b07f254c8dee21b9671de02993484c87b1838189341f605acb6581f7f49d8	production-candidate
+homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	10bbabead80305d57e8be420d521ff28883e5dbdbb81d4d4e680c05cd6848279	production-candidate
+homelab-dns	Keepalived/scripts/keepalived-notify.sh	/usr/local/bin/keepalived-notify.sh	0755	ffaf6d7e09b808dd71848ca481da01e144c715a305858d2922accedaecb5aabf	production-candidate
 homelab-dns	Unbound/configs/pihole-local-zone.conf	/etc/unbound/unbound.conf.d/pihole-local-zone.conf	0644	f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d	production-candidate
 homelab-dns	Keepalived/configs/keepalived-pihole0.conf	/etc/keepalived/keepalived.conf	0644	de67123685edb21cdfaee95eb0497d9ab527c546cf730a5f51506bc293eab92a	production-candidate
 homelab-dns	Keepalived/configs/keepalived-pihole00.conf	/etc/keepalived/keepalived.conf	0644	cb4749c6f9e1a247dc481809652470e5b35c5ea3992e87945bada9292f5cbd66	production-candidate

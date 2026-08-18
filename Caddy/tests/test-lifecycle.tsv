@@ -33,6 +33,7 @@ Caddy/tests/remote-streamed-bash-cwd-precommit.sh	production-current	current-foc
 Caddy/tests/run-focused-container.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-focused.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-source-test-in-context.sh	production-current	current-focused	current-production-validation
+Caddy/tests/keepalived-tracking-script-lifecycle-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/serving-health-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/serving-health-installation-production-path-regression.sh	production-current	current-focused	registered-successor-production-path
 Caddy/tests/shfmt-canonical.sh	production-current	current-focused	current-production-validation

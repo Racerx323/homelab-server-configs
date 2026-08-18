@@ -215,6 +215,13 @@ evidence; it never counts stdout markers.
   certificate timer failures do not change VRRP ownership.
 - Keep probes within their Keepalived timeout and validate exact IPv4 and IPv6
   paths.
+- Keep tracking probes synchronous, silent, and limited to serving decisions.
+  They must not create background schedules, temporary result protocols,
+  status snapshots, handlers, or development diagnostics.
+- Retain the default SIGTERM disposition in tracking probes. Keepalived owns
+  their process groups, timeout termination, escalation, and exit-status
+  collection; lifecycle coverage must prove prompt group termination and no
+  orphan processes.
 - Never invoke `keepalived --config-test` or use another Keepalived parser mode
   as a candidate-acceptance prerequisite on the installed production version;
   that interface is known broken in this environment. Validate repository

@@ -147,9 +147,12 @@ severity icon, node identity, component, exact check, event, transition,
 impact, bounded failure class and status, network and HA context, timing,
 correlation identity, evidence pointer, and a first troubleshooting command.
 Delivery remains non-blocking and outside health and ownership decisions. The
-observed fallback `eligibility-fault-unclassified` confirms that a coupled
-FAULT cannot identify its originating application until the production DNS
-and Proxy status snapshots exist.
+tracking helpers do not own notification diagnostics. The repository correction
+removes their superseded runtime status directories and prevents the notifier
+from reading stale helper snapshots. Bounded failure attribution comes from
+Keepalived's script-result journal; until a separate observer contract exists,
+a coupled FAULT may remain
+`eligibility-fault-unclassified` rather than risk reporting stale data.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
@@ -485,8 +488,10 @@ The neutral DNS helper must:
 2. Query Pi-hole on port 53 through IPv4 and IPv6 loopback.
 3. Query Unbound on port 5335 through IPv4 and IPv6 loopback.
 4. Require exact A `10.1.0.55` and AAAA `fd36:5aa8:6971:1::55` answers.
-5. Run independent queries concurrently and retain every command status and
-   bounded safe observed answer.
+5. Run the eight local queries sequentially and fail immediately on the first
+   command or answer failure. Healthy local queries remain comfortably inside
+   the two-second Keepalived boundary, while no failure can incur more than one
+   one-second DNS timeout.
 6. Reject empty, duplicate, extra, malformed, cross-family, public, or
    node-specific answers.
 7. Test only the authoritative local zone, never shared upstream availability.
@@ -503,13 +508,22 @@ installs as `/usr/local/libexec/check-caddy.sh`. It must:
 2. Exercise exact node-specific physical IPv4 and IPv6 bindings.
 3. Require trusted certificate chain, hostname, validity, and exact `/healthz`
    status without `--insecure` or redirect acceptance.
-4. Verify expected local TCP and UDP listeners without requiring shared VIP
-   ownership.
-5. Complete within the Keepalived timeout and retain only bounded safe metadata.
+4. Run the IPv4 and IPv6 probes sequentially with a 0.75-second bound each so
+   the complete helper remains inside Keepalived's two-second timeout.
 
 The helper must not query lighttpd, PHP, FastCGI, or a Pi-hole application
 route. Full `caddy validate` remains mandatory for release installation and
 reload, but is too expensive for the periodic VRRP probe.
+
+Both tracking helpers are intentionally silent and bounded. They create no
+temporary files, status records, handlers, or development diagnostics. The
+Proxy checks run sequentially; the eight one-second DNS queries run concurrently
+inside the single Keepalived-owned process group so the complete DNS probe fits
+the two-second limit. Exit 0 means every essential check passed; any other exit
+makes the run fail. They retain the default SIGTERM disposition so Keepalived
+can terminate the top-level script and every child in its process group. The
+Keepalived exit/signal result and cursor-bounded daemon journal are the
+authoritative runtime evidence.
 
 ### Pi-hole web notification monitor
 
@@ -525,6 +539,14 @@ local enqueue remains pending for the next timer run. Network retry begins only
 after a valid queue record exists. One failure and one recovery event are
 emitted per episode, including across reboot. The monitor never delivers over
 the network and never affects VRRP.
+
+The Pi-hole reverse-proxy block also uses Caddy's native upstream health
+controls. Active checks request `/admin/` every 30 seconds with a three-second
+timeout, follow the expected redirect, and require final status 200. Passive
+checks remember live transport failures for 30 seconds. Because each node has
+one local lighttpd upstream, these controls provide local fail-fast behavior;
+they do not select the peer node, change VRRP eligibility, or replace the
+notification-only monitor.
 
 ## Keepalived coupling
 
