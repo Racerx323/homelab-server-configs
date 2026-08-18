@@ -16,7 +16,7 @@ IFS=$'\t' read -r successor_status successor_action transaction_relative outer_r
     awk -F '\t' 'NR == 2 { print $2 "\t" $3 "\t" $5 "\t" $6 }' \
         "$successor_registry"
 )
-[[ "$successor_status" = defined && "$successor_action" = 35y ]]
+[[ "$successor_status" = defined && "$successor_action" = 35z ]]
 readonly transaction=$repository_root/$transaction_relative
 readonly outer=$repository_root/$outer_relative
 root=$(mktemp -d /tmp/caddy-serving-health-installation-regression.XXXXXX)
@@ -34,16 +34,16 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
 CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
     /bin/bash "$outer" --production-path-test >"$root/outer.stdout"
 
-grep -Fq 'action_35_y_production_path_test_complete=true' "$root/transaction.stdout"
-grep -Fq 'action_35_y_expected_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_z_production_path_test_complete=true' "$root/transaction.stdout"
+grep -Fq 'action_35_z_expected_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_y_observed_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_z_observed_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_y_outer_production_path_test_complete=true' "$root/outer.stdout"
-grep -Fq 'action_35_y_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
+grep -Fq 'action_35_z_outer_production_path_test_complete=true' "$root/outer.stdout"
+grep -Fq 'action_35_z_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
 grep -Fq 'cd / && sudo -n /bin/bash -s --' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35y-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35y-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35z-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35z-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
 grep -Fxq 'pi:default' "$root/outer/raw/outer-preflight.txt"
 grep -Fxq 'keepalived_script:caddy-tls' "$root/outer/raw/outer-preflight.txt"
 grep -Fq 'payload_identity.stdout' "$root/outer/raw/evidence-readback-node-a-success.txt"
@@ -82,7 +82,7 @@ grep -Fq 'current_before=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04' 
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'current_after=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
-grep -Fq 'action_35_y_check_local_candidate_selected=true' \
+grep -Fq 'action_35_z_check_local_candidate_selected=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'caddy_serving_health_check_ipv4_https=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
@@ -93,6 +93,10 @@ grep -Fq 'stable_samples=3' \
 test -s "$root/transaction/decisions/bounded-node-b-convergence.tsv"
 test -s "$root/transaction/decisions/node-b-master-rejection.tsv"
 grep -Fq 'https://proxy.local.theama.co/' "$transaction"
+grep -Fq 'keepalived_script:caddy-tls:644' "$transaction"
+if grep -Fq 'keepalived_script:keepalived_script:644' "$transaction"; then
+    exit 1
+fi
 if sed -n '/^start_sampler()/,/^}/p' "$transaction" | grep -Fq '/healthz'; then
     exit 1
 fi
@@ -117,11 +121,11 @@ for decision in \
     node-a-quarantine-rollback; do
     test -s "$root/transaction/decisions/$decision.tsv"
 done
-grep -Fq 'action_35_y_check_node_a_quarantine_top_level_exact=true' \
+grep -Fq 'action_35_z_check_node_a_quarantine_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-baseline.txt"
-grep -Fq 'action_35_y_check_node_a_quarantine_after_disposition_inventory=true' \
+grep -Fq 'action_35_z_check_node_a_quarantine_after_disposition_inventory=true' \
     "$root/transaction/raw/node-a-quarantine-disposition.txt"
-grep -Fq 'action_35_y_check_node_a_quarantine_restored_top_level_exact=true' \
+grep -Fq 'action_35_z_check_node_a_quarantine_restored_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-rollback.txt"
 canonical_candidate=$root/transaction/state/quarantine/node-b-20260811T174240Z-31d43261-5cd7-44ce-83e5-947927184d29
 grep -Eq '^[0-9a-f]{64}  \./Caddyfile$' "$canonical_candidate/manifest.sha256"

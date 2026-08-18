@@ -3,6 +3,34 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35z terminal archive
+
+- Tag: `caddy-action35z-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35z
+- Authorized outer SHA-256:
+  `6348b45b2c8840f23ddf11d0987da5652c7e3ac18bf0d1dfa4aefd84be53ae92`
+- Transaction SHA-256:
+  `c442ae83bb4ab6a504b639bfa9439da93e6a6dd750f98ac55ad18f65b676aa8f`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35z.riR2sq`
+- Failed boundary: all 24 bounded ownership samples remained dual-stack
+  `Fault` with zero shared VIPs, so
+  `action_35_z_check_ownership_convergence=false`
+- Finding: the retained operator journal proved that Keepalived's real
+  scheduled boundary reported `check-caddy` status 1 immediately and an
+  intermittent `check-dns` status 1 three seconds later. Both direct
+  transaction identity checks and every retained continuity probe passed.
+  The transaction's journal selector retained the notification enqueue but
+  omitted the decisive `Keepalived_vrrp` script-result records.
+- Recovery: Node B rollback, rollback readback, sampler shutdown, journal
+  capture, and exact upload dispositions returned 0; Node B returned to
+  `BACKUP` and Node A was not mutated
+- Status: terminal-pending; the annotated tag will preserve this exact commit,
+  then consumed machinery will be removed by the immediate cleanup commit
+
 ## Action 35y terminal archive
 
 - Tag: `caddy-action35y-terminal-2026-08-18`

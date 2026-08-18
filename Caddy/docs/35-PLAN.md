@@ -67,10 +67,27 @@ promoted or mutated. Evidence is
 `/tmp/caddy-ssh-evidence-action35y.DS3AuU`. Action 35y must not be rerun and no
 separate diagnostic is required.
 
-The direct successor must consume Action 35y without rerunning it, correct only
-the Proxy status-file metadata contract and its neutral regression to
-`keepalived_script:caddy-tls:0644`, and retain the otherwise unchanged
-standby-first transaction.
+Action 35z is failed-consumed. It corrected and accepted the Proxy status-file
+metadata, installed and accepted Node B, and then observed both VRRP instances
+in `Fault` with zero VIPs for all 24 bounded ownership samples. The retained
+operator journal proves that Keepalived's scheduled execution reported
+`check-caddy` status 1 immediately and an intermittent `check-dns` status 1
+three seconds later. Both direct transaction identity checks passed and every
+retained DNS, trusted HTTPS, node-interface, and shared Pi-hole UI sample
+returned status 0. The transaction's journal selector omitted the decisive
+`Keepalived_vrrp` records. Node B rollback succeeded and returned it to
+`BACKUP`; Node A was not promoted or mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35z.riR2sq`. Action 35z must not be rerun.
+
+The direct successor must execute both exact installed helpers through the
+same direct invocation, UID, GID, environment, timeout, and overlapping
+schedule used by Keepalived. It must retain bounded per-invocation start,
+identity, duration, exit, timeout or signal, failure label, and status-record
+transition evidence; capture all `Keepalived_vrrp` script-result records; and
+require repeated DNS and Caddy successes before Keepalived reload. It then
+resumes the otherwise unchanged standby-first installation. This causal
+acceptance is part of the successor transaction and is not a separate
+diagnostic.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving
