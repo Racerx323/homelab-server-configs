@@ -8,8 +8,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0
-readonly operation_sha256=dc8f2964335b73e811ce8e5bc9fdc207b5761bee3ac9c093c464b601dcc25402
+readonly transaction_sha256=d26c9a01b0b8ca9191b610486b9bfabb24e7e8a525d2346e989a3ecd3bea4c64
+readonly operation_sha256=c5ec2c9b0b5e34b2b12916cd23401269129d0ac24883e52a9c288ed6227e6d00
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 readonly max_stream_bytes=1048576
@@ -58,8 +58,19 @@ build_payload() {
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
 
     install -d -m 0700 "$payload_stage/manifests" "$payload_stage/repositories"
-    install -m 0600 "$repository_root/Caddy/manifests/serving-health-production.tsv" \
-        "$payload_stage/manifests/serving-health-production.tsv"
+    if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
+        {
+            sed -n '1p' "$repository_root/Caddy/manifests/serving-health-production.tsv"
+            awk -F '\t' '
+                $2 == "Caddy/systemd/caddy-pihole-web-health.service" { print }
+            ' "$repository_root/Caddy/manifests/serving-health-production.tsv"
+        } >"$payload_stage/manifests/serving-health-production.tsv"
+        [[ "$(wc -l <"$payload_stage/manifests/serving-health-production.tsv")" -eq 2 ]]
+        chmod 0600 "$payload_stage/manifests/serving-health-production.tsv"
+    else
+        install -m 0600 "$repository_root/Caddy/manifests/serving-health-production.tsv" \
+            "$payload_stage/manifests/serving-health-production.tsv"
+    fi
     install -m 0600 "$repository_root/Caddy/manifests/production-artifacts.tsv" \
         "$payload_stage/manifests/production-artifacts.tsv"
     install -m 0600 "$repository_root/Caddy/manifests/serving-health-quarantine-baseline.tsv" \
@@ -204,12 +215,83 @@ cleanup_remote() {
         "$disposition_program" "$serving_health_remote_root" "$serving_health_remote_archive"
 }
 
+run_web_health_unit_live() {
+    local serving_health_node_b_mutated=false
+    local serving_health_node_a_mutated=false
+    local serving_health_failure=0
+    local serving_health_phase_status=0
+
+    if upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" &&
+        upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" &&
+        remote_transaction node-b-web-unit-preflight "$node_b_host" web-unit-preflight \
+            node-b "$node_b_payload" "$node_b_evidence" &&
+        remote_transaction node-a-web-unit-preflight "$node_a_host" web-unit-preflight \
+            node-a "$node_a_payload" "$node_a_evidence"; then
+        :
+    else
+        serving_health_phase_status=$?
+        readback node-a-failure "$node_a_host" "$node_a_evidence" || :
+        readback node-b-failure "$node_b_host" "$node_b_evidence" || :
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || :
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || :
+        return "$serving_health_phase_status"
+    fi
+
+    serving_health_node_b_mutated=true
+    remote_transaction node-b-web-unit-install "$node_b_host" web-unit-install \
+        node-b "$node_b_payload" "$node_b_evidence" || serving_health_failure=$?
+    if [[ "$serving_health_failure" -eq 0 ]]; then
+        remote_transaction node-b-web-unit-accept "$node_b_host" web-unit-accept \
+            node-b "$node_b_payload" "$node_b_evidence" || serving_health_failure=$?
+    fi
+    if [[ "$serving_health_failure" -eq 0 ]]; then
+        serving_health_node_a_mutated=true
+        remote_transaction node-a-web-unit-install "$node_a_host" web-unit-install \
+            node-a "$node_a_payload" "$node_a_evidence" || serving_health_failure=$?
+    fi
+    if [[ "$serving_health_failure" -eq 0 ]]; then
+        remote_transaction node-a-web-unit-accept "$node_a_host" web-unit-accept \
+            node-a "$node_a_payload" "$node_a_evidence" || serving_health_failure=$?
+    fi
+
+    readback node-a "$node_a_host" "$node_a_evidence" || {
+        [[ "$serving_health_failure" -ne 0 ]] || serving_health_failure=1
+    }
+    readback node-b "$node_b_host" "$node_b_evidence" || {
+        [[ "$serving_health_failure" -ne 0 ]] || serving_health_failure=1
+    }
+
+    if [[ "$serving_health_failure" -ne 0 ]]; then
+        if [[ "$serving_health_node_a_mutated" = true ]]; then
+            remote_transaction node-a-web-unit-rollback "$node_a_host" web-unit-rollback \
+                node-a "$node_a_payload" "$node_a_evidence" || exit 125
+        fi
+        if [[ "$serving_health_node_b_mutated" = true ]]; then
+            remote_transaction node-b-web-unit-rollback "$node_b_host" web-unit-rollback \
+                node-b "$node_b_payload" "$node_b_evidence" || exit 125
+        fi
+        readback node-a-rollback "$node_a_host" "$node_a_evidence" || exit 125
+        readback node-b-rollback "$node_b_host" "$node_b_evidence" || exit 125
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || exit 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || exit 125
+        return "$serving_health_failure"
+    fi
+
+    cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive"
+    cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive"
+}
+
 run_live() {
     local serving_health_node_b_mutated=false
     local serving_health_node_a_mutated=false
     local serving_health_failure=0
     local serving_health_phase_status=0
     local serving_health_target_revision=
+
+    if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
+        run_web_health_unit_live
+        return
+    fi
 
     if upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" &&
         upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" &&
@@ -451,6 +533,223 @@ write_decision() {
     chmod 0600 "$serving_health_raw" "$serving_health_decision"
 }
 
+web_health_unit_outer_production_path_test() {
+    local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
+    local serving_health_remote_base
+    local serving_health_node_root
+    local serving_health_queue_directory
+    local serving_health_installed
+    local serving_health_failure_status=0
+    local serving_health_raw
+    local serving_health_decision
+    local serving_health_observed
+
+    serving_health_remote_base=$(mktemp -d /tmp/caddy-serving-health-web-outer.XXXXXX)
+    test_remote_base=$serving_health_remote_base
+    export CADDY_SERVING_HEALTH_TEST_REMOTE_BASE=$test_remote_base
+    install -d -m 0700 "$test_remote_base/bin"
+    for serving_health_node_root in node-a-root node-b-root; do
+        install -d -m 0755 "$test_remote_base/$serving_health_node_root/etc/systemd/system"
+        install -d -m 0700 "$test_remote_base/$serving_health_node_root/var/lib/caddy-apprise-queue"
+        for serving_health_queue_directory in pending inflight dead-letter delivered; do
+            install -d -m 0700 \
+                "$test_remote_base/$serving_health_node_root/var/lib/caddy-apprise-queue/$serving_health_queue_directory"
+        done
+        serving_health_installed=$test_remote_base/$serving_health_node_root/etc/systemd/system/caddy-pihole-web-health.service
+        sed 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
+            "$repository_root/Caddy/systemd/caddy-pihole-web-health.service" >"$serving_health_installed"
+        chmod 0644 "$serving_health_installed"
+        [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0 ]]
+    done
+
+    cat >"$test_remote_base/bin/sudo" <<'SUDO'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -n ]]
+shift
+export CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1
+exec "$@"
+SUDO
+    cat >"$test_remote_base/bin/systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" \
+    >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/systemctl.calls"
+case "$1" in
+    is-enabled)
+        if [[ "${2:-}" = --quiet ]]; then
+            [[ "${3:-}" = caddy-pihole-web-health.timer ]]
+            exit
+        fi
+        [[ "${2:-}" = caddy-pihole-web-health.service ]]
+        printf 'static\n'
+        ;;
+    is-active) exit 0 ;;
+    daemon-reload) exit 0 ;;
+    start)
+        [[ "${2:-}" = caddy-pihole-web-health.service ]]
+        if [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a &&
+            -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-node-a" ]]; then
+            exit 1
+        fi
+        printf '%s\n' \
+            'Starting caddy-pihole-web-health.service - direct invocation' \
+            'Finished caddy-pihole-web-health.service - direct invocation' \
+            >>"$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
+        ;;
+    show)
+        printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' 'SubState=dead' \
+            'Result=success' 'ExecMainStatus=0' \
+            'FragmentPath=/etc/systemd/system/caddy-pihole-web-health.service' \
+            'ReadWritePaths=/var/lib/caddy-apprise-queue'
+        ;;
+    *) exit 64 ;;
+esac
+SYSTEMCTL
+    cat >"$test_remote_base/bin/journalctl" <<'JOURNALCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" \
+    >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journalctl.calls"
+if [[ " $* " = *' --show-cursor '* ]]; then
+    printf '%s\n' "-- cursor: s=web-health-$CADDY_SERVING_HEALTH_TEST_NODE"
+    exit
+fi
+if [[ ! -e "$CADDY_SERVING_HEALTH_TARGET_ROOT/timer-observed" ]]; then
+    printf '%s\n' \
+        'Starting caddy-pihole-web-health.service - timer invocation' \
+        'Finished caddy-pihole-web-health.service - timer invocation' \
+        >>"$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
+    : >"$CADDY_SERVING_HEALTH_TARGET_ROOT/timer-observed"
+fi
+cat "$CADDY_SERVING_HEALTH_TARGET_ROOT/service.journal"
+JOURNALCTL
+    cat >"$test_remote_base/bin/sleep" <<'SLEEP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ $# -eq 1 && "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]
+SLEEP
+    cat >"$test_remote_base/fake-ssh" <<'SSH'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+host=$1
+shift
+command="$*"
+case "$host" in
+    test-node-a) node=node-a ;;
+    test-node-b) node=node-b ;;
+    *) exit 64 ;;
+esac
+target_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$node-root
+printf '%s\t%s\n' "$node" "$command" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/ssh.calls"
+PATH="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin:/usr/bin:/bin" \
+    CADDY_SERVING_HEALTH_TEST_NODE=$node \
+    CADDY_SERVING_HEALTH_TARGET_ROOT=$target_root \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/systemctl" \
+    CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/journalctl" \
+    CADDY_SERVING_HEALTH_SLEEP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/sleep" \
+    CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS=2 \
+    CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY=0 \
+    /bin/bash -c "$command"
+SSH
+    cat >"$test_remote_base/fake-scp" <<'SCP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -p && "$2" = -- ]]
+source=$3
+target=${4#*:}
+printf '%s\t%s\n' "${4%%:*}" "$target" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/scp.calls"
+install -m 0600 "$source" "$target"
+SCP
+    chmod 0700 "$test_remote_base/bin/"* "$test_remote_base/fake-ssh" \
+        "$test_remote_base/fake-scp"
+    : >"$test_remote_base/systemctl.calls"
+    : >"$test_remote_base/journalctl.calls"
+    : >"$test_remote_base/ssh.calls"
+    : >"$test_remote_base/scp.calls"
+    : >"$test_remote_base/node-a-root/service.journal"
+    : >"$test_remote_base/node-b-root/service.journal"
+    ssh_command=$test_remote_base/fake-ssh
+    scp_command=$test_remote_base/fake-scp
+    node_a_host=test-node-a
+    node_b_host=test-node-b
+
+    : >"$test_remote_base/fail-node-a"
+    if run_web_health_unit_live; then
+        serving_health_failure_status=0
+    else
+        serving_health_failure_status=$?
+    fi
+    [[ "$serving_health_failure_status" -ne 0 && "$serving_health_failure_status" -ne 125 ]]
+    for serving_health_node_root in node-a-root node-b-root; do
+        serving_health_installed=$test_remote_base/$serving_health_node_root/etc/systemd/system/caddy-pihole-web-health.service
+        [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0 ]]
+    done
+    serving_health_raw=$serving_health_test_root/raw/outer-reverse-rollback.txt
+    serving_health_decision=$serving_health_test_root/decisions/outer-reverse-rollback.tsv
+    grep -E 'web-unit-(install|rollback)' "$test_remote_base/ssh.calls" >"$serving_health_raw"
+    grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- web-unit-rollback' "$serving_health_raw"
+    grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- web-unit-rollback' "$serving_health_raw"
+    write_decision outer-reverse-rollback reject "$serving_health_failure_status" \
+        node-a-accept-success node-a-accept-failed-and-both-restored \
+        "$serving_health_raw" "$serving_health_decision"
+
+    rm -f -- "$test_remote_base/fail-node-a"
+    : >"$test_remote_base/ssh.calls"
+    : >"$test_remote_base/scp.calls"
+    : >"$test_remote_base/systemctl.calls"
+    : >"$test_remote_base/journalctl.calls"
+    rm -f -- "$test_remote_base/node-a-root/timer-observed" \
+        "$test_remote_base/node-b-root/timer-observed"
+    : >"$test_remote_base/node-a-root/service.journal"
+    : >"$test_remote_base/node-b-root/service.journal"
+    run_web_health_unit_live
+
+    serving_health_raw=$serving_health_test_root/raw/outer-preflight.txt
+    serving_health_decision=$serving_health_test_root/decisions/outer-preflight.tsv
+    cat "$test_remote_base/scp.calls" "$test_remote_base/ssh.calls" >"$serving_health_raw"
+    serving_health_observed=$(wc -l <"$serving_health_raw")
+    write_decision outer-preflight reach 0 "$serving_health_observed" \
+        "$serving_health_observed" "$serving_health_raw" "$serving_health_decision"
+
+    serving_health_raw=$serving_health_test_root/raw/outer-standby-first.txt
+    serving_health_decision=$serving_health_test_root/decisions/outer-standby-first.tsv
+    grep -E 'web-unit-(install|accept)' "$test_remote_base/ssh.calls" >"$serving_health_raw"
+    [[ "$(sed -n '1p' "$serving_health_raw")" = *$'node-b\t'*web-unit-install* ]]
+    [[ "$(sed -n '2p' "$serving_health_raw")" = *$'node-b\t'*web-unit-accept* ]]
+    [[ "$(sed -n '3p' "$serving_health_raw")" = *$'node-a\t'*web-unit-install* ]]
+    [[ "$(sed -n '4p' "$serving_health_raw")" = *$'node-a\t'*web-unit-accept* ]]
+    write_decision outer-standby-first accept 0 node-b-then-node-a node-b-then-node-a \
+        "$serving_health_raw" "$serving_health_decision"
+
+    serving_health_raw=$serving_health_test_root/raw/outer-evidence-readback.txt
+    serving_health_decision=$serving_health_test_root/decisions/outer-evidence-readback.tsv
+    cat "$workstation_evidence/node-b-readback.stdout" \
+        "$workstation_evidence/node-a-readback.stdout" >"$serving_health_raw"
+    grep -Fq 'file=web_unit_timer_journal.stdout' "$serving_health_raw"
+    write_decision outer-evidence-readback accept 0 both-nodes both-nodes \
+        "$serving_health_raw" "$serving_health_decision"
+
+    serving_health_raw=$serving_health_test_root/raw/outer-zero-residue.txt
+    serving_health_decision=$serving_health_test_root/decisions/outer-zero-residue.tsv
+    {
+        printf 'node_a_payload_absent=%s\n' "$([[ ! -e "$node_a_payload" ]] && printf true || printf false)"
+        printf 'node_b_payload_absent=%s\n' "$([[ ! -e "$node_b_payload" ]] && printf true || printf false)"
+    } >"$serving_health_raw"
+    grep -Fxq 'node_a_payload_absent=true' "$serving_health_raw"
+    grep -Fxq 'node_b_payload_absent=true' "$serving_health_raw"
+    write_decision outer-zero-residue accept 0 absent absent \
+        "$serving_health_raw" "$serving_health_decision"
+
+    if grep -Eq $'\t(restart|reload) (caddy|lighttpd|pihole-FTL|unbound|keepalived)\\.service$' \
+        "$test_remote_base/systemctl.calls"; then
+        return 1
+    fi
+    chmod -R u+rwX -- "$serving_health_remote_base"
+    rm -rf -- "$serving_health_remote_base"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_remote_base serving_health_raw serving_health_decision serving_health_observed
@@ -464,6 +763,10 @@ production_path_test() {
     [[ "$serving_health_test_root" = /tmp/* && -d "$serving_health_test_root" && ! -L "$serving_health_test_root" ]]
     chmod 0700 "$serving_health_test_root"
     install -d -m 0700 "$serving_health_test_root/raw" "$serving_health_test_root/decisions"
+    if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
+        web_health_unit_outer_production_path_test
+        return
+    fi
     serving_health_remote_base=$(mktemp -d /tmp/caddy-serving-health-production-path.XXXXXX)
     serving_health_test_id=${serving_health_remote_base##*.}
     test_remote_base=$serving_health_remote_base
@@ -901,6 +1204,9 @@ regular_file "$transaction"
 regular_file "$operation_spec"
 [[ "$(sha256sum "$transaction" | awk '{ print $1 }')" = "$transaction_sha256" ]]
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
+operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
+readonly operation_scope
+[[ "$operation_scope" = pihole-web-health-unit-only ]]
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)

@@ -41,8 +41,15 @@ readonly ownership_attempts=${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-24}
 readonly ownership_stable_samples=${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-3}
 readonly ownership_sample_delay=${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-2}
 readonly target_root=${CADDY_SERVING_HEALTH_TARGET_ROOT:-}
+readonly web_health_unit=/etc/systemd/system/caddy-pihole-web-health.service
+readonly web_health_unit_deployed_sha256=a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
+readonly web_health_unit_candidate_sha256=2786e8fc92ee201f58e3c52d893fdc991c6d226687484ed1f3894aa8eafe719a
+readonly web_health_timer=caddy-pihole-web-health.timer
+readonly web_health_service=caddy-pihole-web-health.service
+readonly web_health_observation_attempts=${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-45}
+readonly web_health_observation_delay=${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-1}
 
-if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING_ROOT:-}${CADDY_SERVING_HEALTH_QUARANTINE_ROOT:-}${CADDY_SERVING_HEALTH_RELEASES_ROOT:-}${CADDY_SERVING_HEALTH_RETAINED_RELEASE_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_RETAINED_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_QUARANTINE_INVENTORY_MANIFEST:-}${CADDY_SERVING_HEALTH_NODE_A_QUARANTINE_CONTRACT:-}${CADDY_SERVING_HEALTH_SERVING_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_FINALIZER_COMMAND:-}${CADDY_SERVING_HEALTH_PUBLISHER_COMMAND:-}${CADDY_SERVING_HEALTH_SYNC_USER:-}${CADDY_SERVING_HEALTH_SYNC_GROUP:-}${CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND:-}${CADDY_SERVING_HEALTH_SLEEP_COMMAND:-}${CADDY_SERVING_HEALTH_BUSCTL_COMMAND:-}${CADDY_SERVING_HEALTH_IP_COMMAND:-}${CADDY_SERVING_HEALTH_DATE_COMMAND:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-}${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-}${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-}" &&
+if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING_ROOT:-}${CADDY_SERVING_HEALTH_QUARANTINE_ROOT:-}${CADDY_SERVING_HEALTH_RELEASES_ROOT:-}${CADDY_SERVING_HEALTH_RETAINED_RELEASE_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_RETAINED_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_QUARANTINE_INVENTORY_MANIFEST:-}${CADDY_SERVING_HEALTH_NODE_A_QUARANTINE_CONTRACT:-}${CADDY_SERVING_HEALTH_SERVING_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_FINALIZER_COMMAND:-}${CADDY_SERVING_HEALTH_PUBLISHER_COMMAND:-}${CADDY_SERVING_HEALTH_SYNC_USER:-}${CADDY_SERVING_HEALTH_SYNC_GROUP:-}${CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND:-}${CADDY_SERVING_HEALTH_SLEEP_COMMAND:-}${CADDY_SERVING_HEALTH_BUSCTL_COMMAND:-}${CADDY_SERVING_HEALTH_IP_COMMAND:-}${CADDY_SERVING_HEALTH_DATE_COMMAND:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-}${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-}${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-}" &&
     "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
     exit 64
 fi
@@ -53,6 +60,16 @@ usage() {
 
 safe_root() {
     local serving_health_root=$1
+
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 &&
+        -n "${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:-}" &&
+        "$serving_health_root" = "$CADDY_PRODUCTION_PATH_EVIDENCE_ROOT"/* ]]; then
+        [[ "$CADDY_PRODUCTION_PATH_EVIDENCE_ROOT" = /tmp/* &&
+            -d "$CADDY_PRODUCTION_PATH_EVIDENCE_ROOT" &&
+            ! -L "$CADDY_PRODUCTION_PATH_EVIDENCE_ROOT" &&
+            -d "$serving_health_root" && ! -L "$serving_health_root" ]]
+        return
+    fi
 
     [[ "$serving_health_root" == /tmp/caddy-serving-health-* &&
         -d "$serving_health_root" && ! -L "$serving_health_root" ]]
@@ -881,6 +898,152 @@ validate_installed_candidate_inventory() {
         require "candidate_${serving_health_expected_hash}_identity" test \
             "$serving_health_observed" = "$serving_health_expected_hash"
     done <"$serving_health_manifest"
+}
+
+validate_web_health_queue_permissions() {
+    local serving_health_queue_root
+    local serving_health_queue_directory
+    local serving_health_queue_label
+
+    serving_health_queue_root=$(effective_path /var/lib/caddy-apprise-queue)
+    require web_queue_root_regular test -d "$serving_health_queue_root"
+    require web_queue_root_not_symlink test ! -L "$serving_health_queue_root"
+    if [[ -z "$target_root" ]]; then
+        require_equal web_queue_root_metadata pi:pi:700 \
+            "$(stat -c '%U:%G:%a' "$serving_health_queue_root")"
+    else
+        require_equal web_queue_root_mode 700 "$(stat -c '%a' "$serving_health_queue_root")"
+    fi
+    for serving_health_queue_directory in pending inflight dead-letter delivered; do
+        serving_health_queue_label=${serving_health_queue_directory//-/_}
+        require "web_queue_${serving_health_queue_label}_regular" \
+            test -d "$serving_health_queue_root/$serving_health_queue_directory"
+        require "web_queue_${serving_health_queue_label}_not_symlink" \
+            test ! -L "$serving_health_queue_root/$serving_health_queue_directory"
+        if [[ -z "$target_root" ]]; then
+            require_equal "web_queue_${serving_health_queue_label}_metadata" \
+                pi:pi:700 "$(stat -c '%U:%G:%a' \
+                    "$serving_health_queue_root/$serving_health_queue_directory")"
+        else
+            require_equal "web_queue_${serving_health_queue_label}_mode" 700 \
+                "$(stat -c '%a' "$serving_health_queue_root/$serving_health_queue_directory")"
+        fi
+    done
+}
+
+web_health_unit_preflight() {
+    local serving_health_installed
+    local serving_health_service_name
+
+    serving_health_installed=$(effective_path "$web_health_unit")
+    require web_unit_regular regular_file "$serving_health_installed"
+    if [[ -z "$target_root" ]]; then
+        require_equal web_unit_metadata root:root:644 \
+            "$(stat -c '%U:%G:%a' "$serving_health_installed")"
+    else
+        require_equal web_unit_test_mode 644 "$(stat -c '%a' "$serving_health_installed")"
+    fi
+    require_equal web_unit_deployed_identity "$web_health_unit_deployed_sha256" \
+        "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')"
+    require web_unit_broken_runtime_dependency \
+        grep -Fq 'ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise' \
+        "$serving_health_installed"
+    require web_timer_enabled "$systemctl_command" is-enabled --quiet "$web_health_timer"
+    require web_timer_active "$systemctl_command" is-active --quiet "$web_health_timer"
+    require web_service_static test "$($systemctl_command is-enabled "$web_health_service")" = static
+    for serving_health_service_name in caddy.service lighttpd.service pihole-FTL.service \
+        unbound.service keepalived.service caddy-lsyncd.service; do
+        require "baseline_${serving_health_service_name//[^a-zA-Z0-9]/_}_active" \
+            "$systemctl_command" is-active --quiet "$serving_health_service_name"
+    done
+    validate_web_health_queue_permissions
+    capture_journal_cursor
+    capture_command web_unit_preflight_state "$systemctl_command" show "$web_health_service" \
+        -p LoadState -p ActiveState -p SubState -p Result -p ExecMainStatus \
+        -p FragmentPath -p ReadWritePaths
+}
+
+install_web_health_unit() {
+    local serving_health_candidate
+
+    serving_health_candidate=$(candidate_file homelab-server-configs \
+        Caddy/systemd/caddy-pihole-web-health.service)
+    require web_unit_candidate_regular regular_file "$serving_health_candidate"
+    require_equal web_unit_candidate_identity "$web_health_unit_candidate_sha256" \
+        "$(sha256sum "$serving_health_candidate" | awk '{ print $1 }')"
+    require web_unit_candidate_queue_only \
+        grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' "$serving_health_candidate"
+    require web_unit_candidate_worker_runtime_absent \
+        test "$(grep -Fc '/run/caddy-apprise' "$serving_health_candidate")" -eq 0
+    install_target "$serving_health_candidate" "$web_health_unit" 0644 root root
+    "$systemctl_command" daemon-reload
+    printf 'web-health-unit\n' >"$evidence_root/mutation"
+    chmod 0600 "$evidence_root/mutation"
+}
+
+accept_web_health_unit() {
+    local serving_health_installed
+    local serving_health_attempt
+    local serving_health_service_name
+    local serving_health_start_count=0
+    local serving_health_finish_count=0
+
+    serving_health_installed=$(effective_path "$web_health_unit")
+    require_equal web_unit_installed_identity "$web_health_unit_candidate_sha256" \
+        "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')"
+    require_equal web_unit_installed_mode 644 "$(stat -c '%a' "$serving_health_installed")"
+    if [[ -z "$target_root" ]]; then
+        require_equal web_unit_installed_owner root:root \
+            "$(stat -c '%U:%G' "$serving_health_installed")"
+    fi
+    capture_command web_unit_direct_start "$systemctl_command" start "$web_health_service"
+    capture_command web_unit_direct_state "$systemctl_command" show "$web_health_service" \
+        -p LoadState -p ActiveState -p SubState -p Result -p ExecMainStatus
+    require web_unit_direct_result grep -Fxq 'Result=success' \
+        "$evidence_root/web_unit_direct_state.stdout"
+    require web_unit_direct_status grep -Fxq 'ExecMainStatus=0' \
+        "$evidence_root/web_unit_direct_state.stdout"
+
+    for ((serving_health_attempt = 1;  \
+    serving_health_attempt <= web_health_observation_attempts;  \
+    serving_health_attempt++)); do
+        capture_command web_unit_timer_journal "$journalctl_command" --quiet --no-pager \
+            -o cat --after-cursor "$(<"$evidence_root/journal.cursor")" \
+            -u "$web_health_service"
+        serving_health_start_count=$(grep -Fc \
+            'Starting caddy-pihole-web-health.service' \
+            "$evidence_root/web_unit_timer_journal.stdout" || :)
+        serving_health_finish_count=$(grep -Ec \
+            'Finished caddy-pihole-web-health.service|Deactivated successfully' \
+            "$evidence_root/web_unit_timer_journal.stdout" || :)
+        if [[ "$serving_health_start_count" -ge 2 && "$serving_health_finish_count" -ge 2 ]]; then
+            break
+        fi
+        "$sleep_command" "$web_health_observation_delay"
+    done
+    require web_unit_direct_and_timer_starts test "$serving_health_start_count" -ge 2
+    require web_unit_direct_and_timer_finishes test "$serving_health_finish_count" -ge 2
+    require web_unit_timer_failures_absent test \
+        "$(grep -Ec 'Failed to start|status=226/NAMESPACE|Failed at step NAMESPACE' \
+            "$evidence_root/web_unit_timer_journal.stdout" || :)" -eq 0
+    require web_timer_enabled "$systemctl_command" is-enabled --quiet "$web_health_timer"
+    require web_timer_active "$systemctl_command" is-active --quiet "$web_health_timer"
+    for serving_health_service_name in caddy.service lighttpd.service pihole-FTL.service \
+        unbound.service keepalived.service caddy-lsyncd.service; do
+        require "accepted_${serving_health_service_name//[^a-zA-Z0-9]/_}_active" \
+            "$systemctl_command" is-active --quiet "$serving_health_service_name"
+    done
+    validate_web_health_queue_permissions
+}
+
+rollback_web_health_unit() {
+    if [[ -f "$(backup_path "$web_health_unit").state" ]]; then
+        restore_target "$web_health_unit"
+    fi
+    "$systemctl_command" daemon-reload
+    require_equal web_unit_rollback_identity "$web_health_unit_deployed_sha256" \
+        "$(sha256sum "$(effective_path "$web_health_unit")" | awk '{ print $1 }')"
+    validate_web_health_queue_permissions
 }
 
 candidate_file() {
@@ -2033,6 +2196,166 @@ production_path_test_namespace_case() {
         "$serving_health_raw" "$serving_health_decision"
 }
 
+web_health_unit_production_path_test() {
+    local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
+    local serving_health_repo_root=$1
+    local serving_health_payload=$serving_health_test_root/payload
+    local serving_health_evidence=$serving_health_test_root/evidence
+    local serving_health_target=$serving_health_test_root/target
+    local serving_health_bin=$serving_health_test_root/bin
+    local serving_health_systemctl=$serving_health_bin/systemctl
+    local serving_health_journalctl=$serving_health_bin/journalctl
+    local serving_health_sleep=$serving_health_bin/sleep
+    local serving_health_candidate
+    local serving_health_installed
+    local serving_health_raw
+    local serving_health_decision
+    local serving_health_status
+    local serving_health_scenario
+
+    [[ "$serving_health_test_root" = /tmp/* && -d "$serving_health_test_root" &&
+        ! -L "$serving_health_test_root" ]]
+    chmod 0700 "$serving_health_test_root"
+    install -d -m 0700 "$serving_health_test_root/raw" \
+        "$serving_health_test_root/decisions" "$serving_health_payload/manifests" \
+        "$serving_health_payload/repositories/homelab-server-configs/Caddy/systemd" \
+        "$serving_health_evidence" "$serving_health_bin"
+    install -d -m 0755 "$serving_health_target/etc/systemd/system"
+    install -d -m 0700 "$serving_health_target/var/lib/caddy-apprise-queue"
+    for serving_health_queue_directory in pending inflight dead-letter delivered; do
+        install -d -m 0700 \
+            "$serving_health_target/var/lib/caddy-apprise-queue/$serving_health_queue_directory"
+    done
+
+    serving_health_candidate=$serving_health_payload/repositories/homelab-server-configs/Caddy/systemd/caddy-pihole-web-health.service
+    install -m 0600 \
+        "$serving_health_repo_root/Caddy/systemd/caddy-pihole-web-health.service" \
+        "$serving_health_candidate"
+    {
+        sed -n '1p' "$serving_health_repo_root/Caddy/manifests/serving-health-production.tsv"
+        awk -F '\t' '$2 == "Caddy/systemd/caddy-pihole-web-health.service" { print }' \
+            "$serving_health_repo_root/Caddy/manifests/serving-health-production.tsv"
+    } >"$serving_health_payload/manifests/serving-health-production.tsv"
+    install -m 0600 \
+        "$serving_health_repo_root/Caddy/manifests/serving-health-quarantine-baseline.tsv" \
+        "$serving_health_payload/manifests/serving-health-quarantine-baseline.tsv"
+
+    serving_health_installed=$serving_health_target$web_health_unit
+    sed 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
+        "$serving_health_candidate" >"$serving_health_installed"
+    chmod 0644 "$serving_health_installed"
+    [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = "$web_health_unit_deployed_sha256" ]]
+
+    cat >"$serving_health_systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$*" >>"$CADDY_WEB_HEALTH_TEST_ROOT/systemctl.calls"
+case "$1" in
+    is-enabled)
+        if [[ "${2:-}" = --quiet ]]; then
+            [[ "${3:-}" = caddy-pihole-web-health.timer ]]
+            exit
+        fi
+        [[ "${2:-}" = caddy-pihole-web-health.service ]]
+        printf 'static\n'
+        ;;
+    is-active) exit 0 ;;
+    daemon-reload) exit 0 ;;
+    start)
+        [[ "${2:-}" = caddy-pihole-web-health.service ]]
+        printf '%s\n' \
+            'Starting caddy-pihole-web-health.service - direct invocation' \
+            'Finished caddy-pihole-web-health.service - direct invocation' \
+            >>"$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
+        ;;
+    show)
+        printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' 'SubState=dead' \
+            'Result=success' 'ExecMainStatus=0' \
+            'FragmentPath=/etc/systemd/system/caddy-pihole-web-health.service' \
+            'ReadWritePaths=/var/lib/caddy-apprise-queue'
+        ;;
+    *) exit 64 ;;
+esac
+SYSTEMCTL
+    cat >"$serving_health_journalctl" <<'JOURNALCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$*" >>"$CADDY_WEB_HEALTH_TEST_ROOT/journalctl.calls"
+if [[ " $* " = *' --show-cursor '* ]]; then
+    printf '%s\n' '-- cursor: s=web-health-test-cursor'
+    exit
+fi
+if [[ ! -e "$CADDY_WEB_HEALTH_TEST_ROOT/timer-observed" ]]; then
+    printf '%s\n' \
+        'Starting caddy-pihole-web-health.service - timer invocation' \
+        'Finished caddy-pihole-web-health.service - timer invocation' \
+        >>"$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
+    : >"$CADDY_WEB_HEALTH_TEST_ROOT/timer-observed"
+fi
+cat "$CADDY_WEB_HEALTH_TEST_ROOT/service.journal"
+JOURNALCTL
+    cat >"$serving_health_sleep" <<'SLEEP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ $# -eq 1 && "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]
+SLEEP
+    chmod 0700 "$serving_health_systemctl" "$serving_health_journalctl" \
+        "$serving_health_sleep"
+    : >"$serving_health_test_root/systemctl.calls"
+    : >"$serving_health_test_root/journalctl.calls"
+    : >"$serving_health_test_root/service.journal"
+    export CADDY_WEB_HEALTH_TEST_ROOT=$serving_health_test_root
+
+    for serving_health_scenario in preflight install accept rollback; do
+        serving_health_raw=$serving_health_test_root/raw/web-unit-$serving_health_scenario.txt
+        serving_health_decision=$serving_health_test_root/decisions/web-unit-$serving_health_scenario.tsv
+        if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+            CADDY_SERVING_HEALTH_TARGET_ROOT=$serving_health_target \
+            CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$serving_health_systemctl \
+            CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$serving_health_journalctl \
+            CADDY_SERVING_HEALTH_SLEEP_COMMAND=$serving_health_sleep \
+            CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS=2 \
+            CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY=0 \
+            /bin/bash "$serving_health_repo_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+            "web-unit-$serving_health_scenario" node-b "$serving_health_payload" \
+            "$serving_health_evidence" >"$serving_health_raw" 2>&1; then
+            serving_health_status=0
+        else
+            serving_health_status=$?
+        fi
+        write_decision "web-unit-$serving_health_scenario" accept \
+            "$serving_health_status" success \
+            "$([[ "$serving_health_status" -eq 0 ]] && printf success || printf failure)" \
+            "$serving_health_raw" "$serving_health_decision"
+        [[ "$serving_health_status" -eq 0 ]]
+    done
+    [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = "$web_health_unit_deployed_sha256" ]]
+    grep -Fxq 'start caddy-pihole-web-health.service' \
+        "$serving_health_test_root/systemctl.calls"
+    grep -Fq 'timer invocation' "$serving_health_test_root/service.journal"
+
+    printf '# changed\n' >>"$serving_health_candidate"
+    serving_health_raw=$serving_health_test_root/raw/web-unit-candidate-tamper.txt
+    serving_health_decision=$serving_health_test_root/decisions/web-unit-candidate-tamper.tsv
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_SERVING_HEALTH_TARGET_ROOT=$serving_health_target \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$serving_health_systemctl \
+        /bin/bash "$serving_health_repo_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+        web-unit-install node-b "$serving_health_payload" "$serving_health_evidence" \
+        >"$serving_health_raw" 2>&1; then
+        serving_health_status=0
+    else
+        serving_health_status=$?
+    fi
+    write_decision web-unit-candidate-tamper reject "$serving_health_status" \
+        "$web_health_unit_candidate_sha256" changed "$serving_health_raw" \
+        "$serving_health_decision"
+    [[ "$serving_health_status" -ne 0 ]]
+
+    printf '%s_web_unit_production_path_test_complete=true\n' "$prefix"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root serving_health_inventory serving_health_key serving_health_repository
@@ -2092,6 +2415,11 @@ production_path_test() {
         serving_health_repo_root=$CADDY_SERVING_HEALTH_TEST_REPOSITORY_ROOT
     else
         serving_health_repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+    fi
+    if grep -Fxq 'scope: pihole-web-health-unit-only' \
+        "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then
+        web_health_unit_production_path_test "$serving_health_repo_root"
+        return
     fi
     serving_health_inventory=$serving_health_repo_root/Caddy/manifests/production-artifacts.tsv
     while IFS=$'\t' read -r serving_health_key serving_health_repository serving_health_source \
@@ -3007,7 +3335,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback)$ ]]
 [[ "$node_role" =~ ^node-[ab]$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -3043,4 +3371,8 @@ case "$mode" in
     consume-target) consume_target_outbound ;;
     final-residue) validate_final_residue ;;
     evidence-probe) produce_bounded_evidence ;;
+    web-unit-preflight) web_health_unit_preflight ;;
+    web-unit-install) install_web_health_unit ;;
+    web-unit-accept) accept_web_health_unit ;;
+    web-unit-rollback) rollback_web_health_unit ;;
 esac

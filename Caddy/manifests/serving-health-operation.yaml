@@ -1,15 +1,54 @@
 schema_version: 2
-action: none
-title: Inactive serving-health deployment operation
-status: inactive
+action: 35ai
+title: Pi-hole web-monitor namespace repair
+status: failed-consumed
+scope: pihole-web-health-unit-only
+consumes:
+  - action: 35ah
+    result: accepted-with-post-acceptance-monitor-defect
+    rerun: prohibited
+    archive_tag: caddy-action35ah-terminal-2026-08-18
+    evidence: /tmp/caddy-ssh-evidence-serving_health.tYH9yd
+  - audit: pihole-web-health-namespace
+    result: both-nodes-status-226-namespace
+    evidence: /tmp/caddy-pihole-web-health-namespace-journal.stdout
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0
+transaction_sha256: d26c9a01b0b8ca9191b610486b9bfabb24e7e8a525d2346e989a3ecd3bea4c64
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 9809c2fe41a4bdd65f2c30f752e565a2b3d376813b2282a8c469813c785047e9
 production_contract: Caddy/manifests/serving-health-production.tsv
-quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
-live_execution: no-operation-defined
+mutation:
+  source: Caddy/systemd/caddy-pihole-web-health.service
+  target: /etc/systemd/system/caddy-pihole-web-health.service
+  deployed_sha256: a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
+  candidate_sha256: 2786e8fc92ee201f58e3c52d893fdc991c6d226687484ed1f3894aa8eafe719a
+  mode: "0644"
+  owner: root
+  group: root
+ordering:
+  - validate both nodes without mutation
+  - replace and accept the unit on standby Node B
+  - replace and accept the unit on preferred Node A
+  - read back bounded evidence and remove transaction payloads
+acceptance:
+  - direct systemd invocation succeeds
+  - later timer-triggered invocation succeeds
+  - persistent queue ownership and modes remain exact
+  - Caddy, lighttpd, Pi-hole FTL, Unbound, Keepalived, and caddy-lsyncd remain active
+  - Caddy, lighttpd, DNS, and Keepalived are not restarted or reloaded
+rollback:
+  order: node-a-then-node-b
+  restore: exact deployed unit bytes
+  unrecoverable_status: 125
+live_execution: separately-authorized-by-exact-outer-sha256
+terminal_result:
+  exit_status: 1
+  evidence: /tmp/caddy-ssh-evidence-serving_health.gC2cIP
+  failure: node-b-direct-service-environment-permission-denied
+  node_a_mutated: false
+  node_b_rollback: proven
+  payload_cleanup: proven

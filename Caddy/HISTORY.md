@@ -5,10 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35ah-terminal-2026-08-18`
-- Next gate: define the narrow standby-first Pi-hole web-monitor unit repair
-  before the separately controlled serving-health failure exercise.
+- State: terminal-pending
+- Planned archive tag: `caddy-action35ai-terminal-2026-08-18`
+- Next gate: archive failed-consumed Action 35ai, clean its operation data, and
+  define the direct supplementary-group correction as Action 35aj.
 
 ## Action 35ah terminal archive
 
@@ -49,6 +49,50 @@ Git preserves the complete deployment journal and executed action files.
   successor must replace only this unit on Node B and then Node A, prove a
   successful direct invocation and subsequent timer-triggered invocation on
   each node, and require no serving-service restart.
+
+## Action 35ai definition
+
+- Action 35ai consumes the accepted Action 35ah state and its bounded
+  post-acceptance namespace evidence without modifying or rerunning Action
+  35ah.
+- It replaces only
+  `/etc/systemd/system/caddy-pihole-web-health.service`, first on Node B and
+  then on Node A. The corrected unit permits queue writes only beneath the
+  persistent `/var/lib/caddy-apprise-queue` hierarchy.
+- Each node must pass one direct systemd invocation and a later independent
+  timer-triggered invocation. Acceptance also preserves the timer state,
+  queue permissions, bounded journal evidence, and active Caddy, lighttpd,
+  Pi-hole FTL, Unbound, Keepalived, and caddy-lsyncd services.
+- Caddy, lighttpd, DNS, Keepalived, release selection, synchronization, and
+  VRRP ownership are outside the mutation set and must not be restarted or
+  reloaded.
+- On failure after mutation, rollback restores Node A and then Node B to the
+  exact accepted unit bytes. Status 125 is reserved for recovery or evidence
+  cleanup that cannot be proven.
+
+### Action 35ai terminal result
+
+- Tag: `caddy-action35ai-terminal-2026-08-18`
+- Authorized outer SHA-256:
+  `7843781191b540bb2614070ebf1e548fcfdb89ee4bf77ae1ee01867cc11d11af`
+- Transaction SHA-256:
+  `d26c9a01b0b8ca9191b610486b9bfabb24e7e8a525d2346e989a3ecd3bea4c64`
+- Result: failed-consumed after Node B mutation; exit status 1.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.gC2cIP`.
+- Both node preflights passed. Node B installed the exact corrected unit, but
+  its direct systemd invocation failed because the `pi` service identity could
+  not read root:`caddy-tls`:0640 `/etc/default/caddy-ha`.
+- Cursor-bounded operator journal evidence at
+  `2026-08-18T18:04:59.350802-0500` records `Permission denied` at
+  `check-pihole-web-health.sh` line 110. This proves the namespace correction
+  reached `ExecStart`; the remaining prerequisite is supplementary membership
+  in `caddy-tls`.
+- Node A was not mutated. Node B rollback restored exact deployed unit hash
+  `a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0`,
+  queue permissions remained exact, both payloads were removed, and both
+  rollback readbacks passed. Recovery was proven, so status 125 was not used.
+- Status: terminal-pending. Action 35ai is consumed and must not be modified or
+  rerun.
 
 ## Action 35ag terminal archive
 

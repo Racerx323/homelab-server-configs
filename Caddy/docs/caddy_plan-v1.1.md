@@ -559,6 +559,22 @@ its unit unnecessarily requires the delivery worker's ephemeral
 the persistent queue. A narrow standby-first unit replacement must be accepted
 before the separately controlled failure exercise proceeds.
 
+Action 35ai is the defined narrow replacement. It changes only the static
+`caddy-pihole-web-health.service` unit, Node B then Node A. Each node must pass
+a direct systemd invocation and a later timer-triggered invocation while the
+persistent queue permissions and all serving/synchronization service states
+remain exact. No Caddy, lighttpd, Pi-hole FTL, Unbound, Keepalived, release,
+synchronization, or VRRP mutation is permitted. Failure recovery restores Node
+A and then Node B to the exact accepted unit bytes.
+
+Action 35ai is failed-consumed after Node B mutation. The corrected namespace
+allowed systemd to reach `ExecStart`, where the `pi` identity could not read
+root:`caddy-tls`:0640 `/etc/default/caddy-ha`. Node A was not mutated, Node B
+was restored to the exact accepted unit bytes, queue permissions remained
+exact, and all payload cleanup and recovery readback passed. The direct
+successor adds only supplementary `caddy-tls` membership to the unit and must
+retain the same unit-only standby-first and rollback boundaries.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:

@@ -186,6 +186,27 @@ systemd, observes one subsequent successful timer activation on each node, and
 does not restart Caddy, lighttpd, DNS, or Keepalived. This correction precedes
 the controlled failure exercise.
 
+Action 35ai is the defined direct correction. It uses the neutral reusable
+transaction and outer runner with a unit-only operation specification. It
+validates both accepted broken-unit identities before mutation, replaces and
+accepts Node B completely before Node A, and requires both a successful direct
+systemd execution and a later timer-owned execution on each node. Persistent
+queue permissions, cursor-bounded journal evidence, active serving and
+synchronization services, exact payload cleanup, and reverse rollback are part
+of the same transaction. It does not reload or restart Caddy, lighttpd,
+Pi-hole FTL, Unbound, Keepalived, or caddy-lsyncd.
+
+Action 35ai is failed-consumed. Both preflights passed and Node B installed the
+corrected unit, proving the `/run/caddy-apprise` namespace dependency was
+removed. The direct service invocation then reached
+`check-pihole-web-health.sh` and failed to read root:`caddy-tls`:0640
+`/etc/default/caddy-ha` as `pi`. Node A was not mutated. Node B rollback,
+queue-permission validation, evidence readback, and both payload dispositions
+passed; recovery was proven and the action returned 1 rather than 125.
+Action 35ai must not be rerun. The direct correction is supplementary
+`caddy-tls` membership for the `pi` service identity without changing the
+environment or queue permissions.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

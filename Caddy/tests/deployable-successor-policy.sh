@@ -101,7 +101,9 @@ successor_policy_state_valid() {
 
 successor_policy_coverage_valid() {
     local successor_policy_coverage=$1
+    local successor_policy_scope=$2
     local successor_policy_required_scenario
+    local successor_policy_required_scenarios
 
     # conditional-validator-explicit-failures-begin
     successor_policy_regular_file "$successor_policy_coverage" || return 1
@@ -120,14 +122,15 @@ successor_policy_coverage_valid() {
         NR == 1 { next }
         $2 == "pre-mutation" && $3 == "outer" && $4 == "reach" { outer_pre++ }
         $2 == "pre-mutation" && $3 == "transaction" && $4 == "reject" { tx_reject++ }
-        $2 == "accepted-path" && $3 == "transaction" && $4 == "reach" { tx_accept++ }
+        $2 == "accepted-path" && $3 == "transaction" && ($4 == "accept" || $4 == "reach") { tx_accept++ }
         END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
     ' "$successor_policy_coverage" || return 1
-    for successor_policy_required_scenario in \
-        outer-preflight transaction-rejection transaction-acceptance \
-        protocol-v2-target-publication protocol-v2-target-promotion \
-        keepalived-daemon-owned-acceptance bounded-node-b-convergence \
-        node-a-quarantine-rollback; do
+    if [[ "$successor_policy_scope" = pihole-web-health-unit-only ]]; then
+        successor_policy_required_scenarios='outer-preflight web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
+    else
+        successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'
+    fi
+    for successor_policy_required_scenario in $successor_policy_required_scenarios; do
         awk -F '\t' -v scenario="$successor_policy_required_scenario" '
             NR > 1 && $1 == scenario { found++ }
             END { exit(found == 1 ? 0 : 1) }
@@ -215,7 +218,7 @@ successor_policy_defined_valid() {
     local successor_policy_probe_root successor_policy_transaction_evidence
     local successor_policy_outer_evidence
     local successor_policy_transaction_hash successor_policy_operation_hash
-    local successor_policy_state_variant
+    local successor_policy_scope successor_policy_state_variant
 
     # conditional-validator-explicit-failures-begin
     [[ "$successor_policy_action" =~ ^[0-9]+[a-z0-9-]*$ ]] || return 1
@@ -245,25 +248,28 @@ successor_policy_defined_valid() {
         "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
     grep -Fxq 'status: defined-unexecuted' \
         "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
-    grep -Fxq 'state_equivalence:' \
-        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
-    grep -Fxq '    - absent' \
-        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
-    grep -Fxq '    - protected-empty-directory' \
-        "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
-    for successor_policy_state_variant in non-empty symlinked malformed \
-        incorrect-owner incorrect-mode; do
-        grep -Fxq "    - $successor_policy_state_variant" \
+    successor_policy_scope=$(sed -n 's/^scope: //p' \
+        "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
+    case "$successor_policy_scope" in
+        pihole-web-health-unit-only | full-serving-health) : ;;
+        *) return 1 ;;
+    esac
+    if [[ "$successor_policy_scope" = full-serving-health ]]; then
+        grep -Fxq 'state_equivalence:' \
             "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
-    done
-    successor_policy_coverage_valid "$successor_policy_repository_root/$successor_policy_coverage" || return 1
-    awk -F '\t' '
-        $1 == "protocol-namespace-state-equivalence" &&
-        $2 == "pre-mutation" && $3 == "transaction" && $4 == "accept" {
-            found++
-        }
-        END { exit(found == 1 ? 0 : 1) }
-    ' "$successor_policy_repository_root/$successor_policy_coverage" || return 1
+        grep -Fxq '    - absent' \
+            "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+        grep -Fxq '    - protected-empty-directory' \
+            "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+        for successor_policy_state_variant in non-empty symlinked malformed \
+            incorrect-owner incorrect-mode; do
+            grep -Fxq "    - $successor_policy_state_variant" \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+        done
+    fi
+    successor_policy_coverage_valid \
+        "$successor_policy_repository_root/$successor_policy_coverage" \
+        "$successor_policy_scope" || return 1
     awk -F '\t' -v path="$successor_policy_operation_spec" '
         $1 == path && $2 == "defined-unexecuted" { found++ }
         END { exit(found == 1 ? 0 : 1) }

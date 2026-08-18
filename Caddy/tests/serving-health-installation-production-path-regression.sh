@@ -24,6 +24,9 @@ fi
 [[ "$successor_status" = defined ]]
 readonly transaction=$repository_root/$transaction_relative
 readonly outer=$repository_root/$outer_relative
+operation_scope=$(sed -n 's/^scope: //p' \
+    "$repository_root/Caddy/manifests/serving-health-operation.yaml")
+readonly operation_scope
 root=$(mktemp -d /tmp/caddy-serving-health-installation-regression.XXXXXX)
 readonly root
 cleanup() {
@@ -41,6 +44,45 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
 
 grep -Eq '_production_path_test_complete=true$' "$root/transaction.stdout"
 grep -Eq '_production_path_test_complete=true$' "$root/outer.stdout"
+if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
+    for decision in web-unit-preflight web-unit-install web-unit-accept \
+        web-unit-rollback web-unit-candidate-tamper; do
+        test -s "$root/transaction/decisions/$decision.tsv"
+        test -s "$root/transaction/raw/$decision.txt"
+    done
+    awk -F '\t' '$1 == "web-unit-candidate-tamper" && $2 == "reject" && $3 != 0 { found++ }
+        END { exit(found == 1 ? 0 : 1) }' \
+        "$root/transaction/decisions/web-unit-candidate-tamper.tsv"
+    grep -Fxq 'start caddy-pihole-web-health.service' \
+        "$root/transaction/systemctl.calls"
+    grep -Fq 'web_unit_direct_and_timer_starts=true' \
+        "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_failures_absent=true' \
+        "$root/transaction/raw/web-unit-accept.txt"
+    for decision in outer-preflight outer-reverse-rollback outer-standby-first \
+        outer-evidence-readback outer-zero-residue; do
+        test -s "$root/outer/decisions/$decision.tsv"
+        test -s "$root/outer/raw/$decision.txt"
+    done
+    grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- web-unit-install' \
+        "$root/outer/raw/outer-standby-first.txt"
+    grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- web-unit-install' \
+        "$root/outer/raw/outer-standby-first.txt"
+    grep -Fq 'node_a_payload_absent=true' "$root/outer/raw/outer-zero-residue.txt"
+    grep -Fq 'node_b_payload_absent=true' "$root/outer/raw/outer-zero-residue.txt"
+    grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' \
+        "$repository_root/Caddy/systemd/caddy-pihole-web-health.service"
+    if grep -Fq '/run/caddy-apprise' \
+        "$repository_root/Caddy/systemd/caddy-pihole-web-health.service"; then
+        exit 1
+    fi
+    if sed -n '/^run_web_health_unit_live()/,/^}/p' "$outer" |
+        grep -Eq 'restart|reload.*(caddy|lighttpd|pihole-FTL|unbound|keepalived)'; then
+        exit 1
+    fi
+    printf '%s_complete=true\n' "$prefix"
+    exit 0
+fi
 grep -Fq '_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
 
 for decision in \
