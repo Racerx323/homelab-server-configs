@@ -575,6 +575,22 @@ exact, and all payload cleanup and recovery readback passed. The direct
 successor adds only supplementary `caddy-tls` membership to the unit and must
 retain the same unit-only standby-first and rollback boundaries.
 
+Action 35aj is that defined successor. It retains the `pi:pi` primary service
+identity and persistent queue access while adding only supplementary
+`caddy-tls` membership for the protected environment. Acceptance executes the
+service directly and through its timer on Node B before Node A, preserves all
+serving and synchronization services without restart or reload, captures the
+failure journal before any rollback, and removes only its transaction payloads.
+
+Action 35aj is failed-consumed and must not be rerun. Node B installed the
+candidate and produced two healthy monitor results with two successful
+completions. Acceptance failed only because it counted literal systemd
+`Starting` messages and observed one rather than two. Node A was not mutated;
+Node B exact rollback, readback, and payload cleanup passed. The direct
+successor must retain the proven unit and replace that count with a fresh
+post-direct cursor followed by one timer-owned healthy result, successful
+completion, and successful unit result.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:

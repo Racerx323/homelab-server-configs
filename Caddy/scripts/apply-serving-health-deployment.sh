@@ -43,7 +43,7 @@ readonly ownership_sample_delay=${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-2
 readonly target_root=${CADDY_SERVING_HEALTH_TARGET_ROOT:-}
 readonly web_health_unit=/etc/systemd/system/caddy-pihole-web-health.service
 readonly web_health_unit_deployed_sha256=a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
-readonly web_health_unit_candidate_sha256=2786e8fc92ee201f58e3c52d893fdc991c6d226687484ed1f3894aa8eafe719a
+readonly web_health_unit_candidate_sha256=d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
 readonly web_health_timer=caddy-pihole-web-health.timer
 readonly web_health_service=caddy-pihole-web-health.service
 readonly web_health_observation_attempts=${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-45}
@@ -975,6 +975,8 @@ install_web_health_unit() {
         grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' "$serving_health_candidate"
     require web_unit_candidate_worker_runtime_absent \
         test "$(grep -Fc '/run/caddy-apprise' "$serving_health_candidate")" -eq 0
+    require web_unit_candidate_supplementary_group \
+        grep -Fxq 'SupplementaryGroups=caddy-tls' "$serving_health_candidate"
     install_target "$serving_health_candidate" "$web_health_unit" 0644 root root
     "$systemctl_command" daemon-reload
     printf 'web-health-unit\n' >"$evidence_root/mutation"
@@ -987,6 +989,7 @@ accept_web_health_unit() {
     local serving_health_service_name
     local serving_health_start_count=0
     local serving_health_finish_count=0
+    local serving_health_start_status=0
 
     serving_health_installed=$(effective_path "$web_health_unit")
     require_equal web_unit_installed_identity "$web_health_unit_candidate_sha256" \
@@ -996,13 +999,24 @@ accept_web_health_unit() {
         require_equal web_unit_installed_owner root:root \
             "$(stat -c '%U:%G' "$serving_health_installed")"
     fi
-    capture_command web_unit_direct_start "$systemctl_command" start "$web_health_service"
+    if capture_command web_unit_direct_start "$systemctl_command" start "$web_health_service"; then
+        serving_health_start_status=0
+    else
+        serving_health_start_status=$?
+        capture_command web_unit_failure_journal "$journalctl_command" --quiet --no-pager \
+            -o cat --after-cursor "$(<"$evidence_root/journal.cursor")" \
+            -u "$web_health_service" || :
+        return "$serving_health_start_status"
+    fi
     capture_command web_unit_direct_state "$systemctl_command" show "$web_health_service" \
-        -p LoadState -p ActiveState -p SubState -p Result -p ExecMainStatus
+        -p LoadState -p ActiveState -p SubState -p Result -p ExecMainStatus \
+        -p SupplementaryGroups
     require web_unit_direct_result grep -Fxq 'Result=success' \
         "$evidence_root/web_unit_direct_state.stdout"
     require web_unit_direct_status grep -Fxq 'ExecMainStatus=0' \
         "$evidence_root/web_unit_direct_state.stdout"
+    require web_unit_direct_supplementary_group grep -Fxq \
+        'SupplementaryGroups=caddy-tls' "$evidence_root/web_unit_direct_state.stdout"
 
     for ((serving_health_attempt = 1;  \
     serving_health_attempt <= web_health_observation_attempts;  \
@@ -2212,6 +2226,8 @@ web_health_unit_production_path_test() {
     local serving_health_decision
     local serving_health_status
     local serving_health_scenario
+    local serving_health_identity_root
+    local serving_health_identity_status=0
 
     [[ "$serving_health_test_root" = /tmp/* && -d "$serving_health_test_root" &&
         ! -L "$serving_health_test_root" ]]
@@ -2241,7 +2257,8 @@ web_health_unit_production_path_test() {
         "$serving_health_payload/manifests/serving-health-quarantine-baseline.tsv"
 
     serving_health_installed=$serving_health_target$web_health_unit
-    sed 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
+    sed -e '/^SupplementaryGroups=caddy-tls$/d' \
+        -e 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
         "$serving_health_candidate" >"$serving_health_installed"
     chmod 0644 "$serving_health_installed"
     [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = "$web_health_unit_deployed_sha256" ]]
@@ -2272,7 +2289,8 @@ case "$1" in
         printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' 'SubState=dead' \
             'Result=success' 'ExecMainStatus=0' \
             'FragmentPath=/etc/systemd/system/caddy-pihole-web-health.service' \
-            'ReadWritePaths=/var/lib/caddy-apprise-queue'
+            'ReadWritePaths=/var/lib/caddy-apprise-queue' \
+            'SupplementaryGroups=caddy-tls'
         ;;
     *) exit 64 ;;
 esac
@@ -2305,6 +2323,48 @@ SLEEP
     : >"$serving_health_test_root/journalctl.calls"
     : >"$serving_health_test_root/service.journal"
     export CADDY_WEB_HEALTH_TEST_ROOT=$serving_health_test_root
+
+    serving_health_raw=$serving_health_test_root/raw/web-unit-service-identity.txt
+    serving_health_decision=$serving_health_test_root/decisions/web-unit-service-identity.tsv
+    if [[ "$EUID" -eq 0 ]]; then
+        serving_health_identity_root=$(mktemp -d /tmp/caddy-web-health-identity.XXXXXX)
+        chown 62000:62000 "$serving_health_identity_root"
+        install -m 0640 /dev/null "$serving_health_identity_root/caddy-ha"
+        install -d -m 0700 "$serving_health_identity_root/queue"
+        chown 0:62001 "$serving_health_identity_root/caddy-ha"
+        chown 62000:62000 "$serving_health_identity_root/queue"
+        if /usr/bin/setpriv --reuid 62000 --regid 62000 --clear-groups -- \
+            test -r "$serving_health_identity_root/caddy-ha"; then
+            serving_health_identity_status=1
+        fi
+        # The child Bash expands its positional parameters.
+        # shellcheck disable=SC2016
+        if ! /usr/bin/setpriv --reuid 62000 --regid 62000 --groups 62001 -- \
+            /bin/bash -c 'test -r "$1" && : >"$2/write-test"' _ \
+            "$serving_health_identity_root/caddy-ha" \
+            "$serving_health_identity_root/queue"; then
+            serving_health_identity_status=1
+        fi
+        if [[ "$serving_health_identity_status" -eq 0 ]]; then
+            printf '%s\n' \
+                'without_caddy_tls_readable=false' \
+                'with_caddy_tls_readable=true' \
+                'pi_primary_queue_writable=true' \
+                'kernel_dac_execution=true' >"$serving_health_raw"
+        fi
+        chmod -R u+rwX -- "$serving_health_identity_root"
+        rm -rf -- "$serving_health_identity_root"
+        [[ "$serving_health_identity_status" -eq 0 ]]
+    else
+        grep -Fxq 'User=pi' "$serving_health_candidate"
+        grep -Fxq 'Group=pi' "$serving_health_candidate"
+        grep -Fxq 'SupplementaryGroups=caddy-tls' "$serving_health_candidate"
+        printf '%s\n' \
+            'kernel_dac_execution=requires-root-debian-batch' \
+            'unit_identity_contract=true' >"$serving_health_raw"
+    fi
+    write_decision web-unit-service-identity accept 0 identity-access identity-access \
+        "$serving_health_raw" "$serving_health_decision"
 
     for serving_health_scenario in preflight install accept rollback; do
         serving_health_raw=$serving_health_test_root/raw/web-unit-$serving_health_scenario.txt

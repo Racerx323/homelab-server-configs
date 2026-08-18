@@ -8,8 +8,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=d26c9a01b0b8ca9191b610486b9bfabb24e7e8a525d2346e989a3ecd3bea4c64
-readonly operation_sha256=c5ec2c9b0b5e34b2b12916cd23401269129d0ac24883e52a9c288ed6227e6d00
+readonly transaction_sha256=0f89055f46e0109ef8fb5cf1b32997b096eb10ea69e2f77c7edd9b159f3d92e3
+readonly operation_sha256=453a65a0a9d8248861264eabcf2962d3db0cd35c788e2f1308c3ea61808f4f5b
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 readonly max_stream_bytes=1048576
@@ -556,7 +556,8 @@ web_health_unit_outer_production_path_test() {
                 "$test_remote_base/$serving_health_node_root/var/lib/caddy-apprise-queue/$serving_health_queue_directory"
         done
         serving_health_installed=$test_remote_base/$serving_health_node_root/etc/systemd/system/caddy-pihole-web-health.service
-        sed 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
+        sed -e '/^SupplementaryGroups=caddy-tls$/d' \
+            -e 's|^ReadWritePaths=/var/lib/caddy-apprise-queue$|ReadWritePaths=/var/lib/caddy-apprise-queue /run/caddy-apprise|' \
             "$repository_root/Caddy/systemd/caddy-pihole-web-health.service" >"$serving_health_installed"
         chmod 0644 "$serving_health_installed"
         [[ "$(sha256sum "$serving_health_installed" | awk '{ print $1 }')" = a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0 ]]
@@ -601,7 +602,8 @@ case "$1" in
         printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' 'SubState=dead' \
             'Result=success' 'ExecMainStatus=0' \
             'FragmentPath=/etc/systemd/system/caddy-pihole-web-health.service' \
-            'ReadWritePaths=/var/lib/caddy-apprise-queue'
+            'ReadWritePaths=/var/lib/caddy-apprise-queue' \
+            'SupplementaryGroups=caddy-tls'
         ;;
     *) exit 64 ;;
 esac
@@ -687,9 +689,13 @@ SCP
     done
     serving_health_raw=$serving_health_test_root/raw/outer-reverse-rollback.txt
     serving_health_decision=$serving_health_test_root/decisions/outer-reverse-rollback.tsv
-    grep -E 'web-unit-(install|rollback)' "$test_remote_base/ssh.calls" >"$serving_health_raw"
+    {
+        grep -E 'web-unit-(install|rollback)' "$test_remote_base/ssh.calls"
+        cat "$workstation_evidence/node-a-rollback-readback.stdout"
+    } >"$serving_health_raw"
     grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- web-unit-rollback' "$serving_health_raw"
     grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- web-unit-rollback' "$serving_health_raw"
+    grep -Fq 'file=web_unit_failure_journal.stdout' "$serving_health_raw"
     write_decision outer-reverse-rollback reject "$serving_health_failure_status" \
         node-a-accept-success node-a-accept-failed-and-both-restored \
         "$serving_health_raw" "$serving_health_decision"

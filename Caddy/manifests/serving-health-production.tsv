@@ -5,7 +5,7 @@ homelab-server-configs	Caddy/scripts/caddy-apprise-enqueue.sh	/usr/local/libexec
 homelab-server-configs	Caddy/scripts/caddy-apprise-delivery-worker.sh	/usr/local/libexec/caddy-apprise-delivery-worker	0755	370e31cdfa68c31763028299b9e2d9aa67abaec2b9a34d8ac85d950cef94ab52	production-candidate
 homelab-server-configs	Caddy/scripts/lsyncd-sync-failure-notify.sh	/usr/local/libexec/lsyncd-sync-failure-notify.sh	0755	278e0ff1695feca3806f24cf74c6e4007723e0b8ddbb086aaf1e121d7e9c183c	production-candidate
 homelab-server-configs	Caddy/configs/tmpfiles.d/caddy-ha.conf	/etc/tmpfiles.d/caddy-ha.conf	0644	21bc21a73056f7eb8abd549e9315c640522e32b28b4d0989ca43ba57a82da98b	production-candidate
-homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.service	/etc/systemd/system/caddy-pihole-web-health.service	0644	2786e8fc92ee201f58e3c52d893fdc991c6d226687484ed1f3894aa8eafe719a	production-candidate
+homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.service	/etc/systemd/system/caddy-pihole-web-health.service	0644	d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc	production-candidate
 homelab-server-configs	Caddy/systemd/caddy-pihole-web-health.timer	/etc/systemd/system/caddy-pihole-web-health.timer	0644	f214b69fecaeb322dbaba61f683f9cf35970596784adcd707e25278f0ace1505	production-candidate
 homelab-server-configs	Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	/etc/caddy/releases/REVISION/conf.d/10-pihole-admin.caddy	0640	8e1b07f254c8dee21b9671de02993484c87b1838189341f605acb6581f7f49d8	production-candidate
 homelab-dns	Keepalived/scripts/dns-check.sh	/etc/scripts/check-dns.sh	0755	10bbabead80305d57e8be420d521ff28883e5dbdbb81d4d4e680c05cd6848279	production-candidate

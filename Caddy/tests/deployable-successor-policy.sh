@@ -126,7 +126,7 @@ successor_policy_coverage_valid() {
         END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
     ' "$successor_policy_coverage" || return 1
     if [[ "$successor_policy_scope" = pihole-web-health-unit-only ]]; then
-        successor_policy_required_scenarios='outer-preflight web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
+        successor_policy_required_scenarios='outer-preflight web-unit-service-identity web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
     else
         successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'
     fi
@@ -266,6 +266,11 @@ successor_policy_defined_valid() {
             grep -Fxq "    - $successor_policy_state_variant" \
                 "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
         done
+    else
+        grep -Fxq 'SupplementaryGroups=caddy-tls' \
+            "$successor_policy_repository_root/Caddy/systemd/caddy-pihole-web-health.service" || return 1
+        grep -Fxq '  - service keeps User=pi and Group=pi with SupplementaryGroups=caddy-tls' \
+            "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
     fi
     successor_policy_coverage_valid \
         "$successor_policy_repository_root/$successor_policy_coverage" \

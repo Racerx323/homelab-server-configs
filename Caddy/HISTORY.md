@@ -6,9 +6,9 @@ Git preserves the complete deployment journal and executed action files.
 ## Current deployment window
 
 - State: terminal-pending
-- Planned archive tag: `caddy-action35ai-terminal-2026-08-18`
-- Next gate: archive failed-consumed Action 35ai, clean its operation data, and
-  define the direct supplementary-group correction as Action 35aj.
+- Latest archive tag: `caddy-action35aj-terminal-2026-08-18`
+- Terminal action: Action 35aj, failed-consumed after Node B mutation with
+  exact rollback proven. Action 35aj must not be rerun.
 
 ## Action 35ah terminal archive
 
@@ -91,8 +91,48 @@ Git preserves the complete deployment journal and executed action files.
   `a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0`,
   queue permissions remained exact, both payloads were removed, and both
   rollback readbacks passed. Recovery was proven, so status 125 was not used.
-- Status: terminal-pending. Action 35ai is consumed and must not be modified or
-  rerun.
+- Status: archived and cleaned. Action 35ai is consumed and must not be
+  modified or rerun.
+
+## Action 35aj definition
+
+- Action 35aj consumes but never reruns failed-consumed Action 35ai.
+- It adds only `SupplementaryGroups=caddy-tls` while retaining `User=pi` and
+  `Group=pi`, the persistent queue-only writable path, and all existing unit
+  hardening.
+- Kernel DAC coverage proves that the service identity cannot read the
+  protected environment without the supplementary group, can read it with the
+  group, and retains primary-identity queue write access. The root-required
+  identity case runs in the network-disabled Debian batch.
+- The same neutral transaction installs and accepts Node B before Node A,
+  requires direct and later timer-owned successful invocations, and captures
+  cursor-bounded journal evidence before rollback on every direct-start
+  failure.
+- No serving, synchronization, release, or VRRP service is restarted or
+  reloaded. Reverse rollback remains Node A then Node B, with status 125 only
+  when recovery or cleanup cannot be proven.
+
+### Action 35aj terminal result
+
+- Tag: `caddy-action35aj-terminal-2026-08-18`
+- Authorized outer SHA-256:
+  `6c257535f012db198948c94224bc7d67a5d772ab28246cfa7b970b93429e999c`
+- Transaction SHA-256:
+  `0f89055f46e0109ef8fb5cf1b32997b096eb10ea69e2f77c7edd9b159f3d92e3`
+- Result: failed-consumed after Node B mutation; exit status 1.
+- Status: terminal-pending.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.YgxxZn`.
+- Both node preflights passed. Node B installed the exact candidate, and its
+  direct invocation returned `Result=success`, `ExecMainStatus=0`, and
+  `SupplementaryGroups=caddy-tls`.
+- The bounded journal contains two `pihole_web_health event=healthy` records
+  and two successful completions. Acceptance nevertheless rejected the run
+  because only one literal systemd `Starting` message appeared after the
+  original cursor.
+- Node A was not mutated. Node B rollback restored exact deployed unit hash
+  `a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0`;
+  both payload dispositions and rollback readback passed. Recovery was proven,
+  so status 125 was not used.
 
 ## Action 35ag terminal archive
 

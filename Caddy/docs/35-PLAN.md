@@ -207,6 +207,24 @@ Action 35ai must not be rerun. The direct correction is supplementary
 `caddy-tls` membership for the `pi` service identity without changing the
 environment or queue permissions.
 
+Action 35aj is the defined direct correction. The unit retains `User=pi` and
+`Group=pi` for persistent queue ownership and adds only
+`SupplementaryGroups=caddy-tls` to read the protected environment. Repository
+coverage exercises the actual kernel DAC boundary in the root-capable Debian
+batch and verifies queue write access remains available through the primary
+identity. The neutral transaction captures cursor-bounded failure journals
+before rollback and otherwise retains the Action 35ai Node B then Node A
+unit-only installation, direct/timer acceptance, service-continuity, cleanup,
+and reverse-rollback controls.
+
+Action 35aj is failed-consumed and must not be rerun. Both preflights passed;
+Node B installed the exact candidate and the direct service returned success
+with supplementary `caddy-tls` membership. The journal proved two healthy
+monitor results and two successful completions, but acceptance incorrectly
+required two literal systemd `Starting` messages and observed only one. Node A
+was not mutated. Node B rollback, readback, and both payload dispositions
+passed. Evidence is `/tmp/caddy-ssh-evidence-serving_health.YgxxZn`.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

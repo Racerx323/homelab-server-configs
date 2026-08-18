@@ -7,6 +7,7 @@ Wants=network-online.target
 Type=oneshot
 User=pi
 Group=pi
+SupplementaryGroups=caddy-tls
 ExecStart=/usr/local/libexec/check-pihole-web-health.sh
 StateDirectory=caddy-pihole-web-health
 StateDirectoryMode=0700

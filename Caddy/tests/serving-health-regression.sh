@@ -198,12 +198,15 @@ grep -Fq -- '--application Proxy' "$root/enqueue.log"
 printf '%s_web_monitor_entrypoint=true\n' "$prefix"
 
 grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' "$web_service"
+grep -Fxq 'User=pi' "$web_service"
+grep -Fxq 'Group=pi' "$web_service"
+grep -Fxq 'SupplementaryGroups=caddy-tls' "$web_service"
 if grep -Fq '/run/caddy-apprise' "$web_service"; then
     exit 1
 fi
 grep -Fxq 'RuntimeDirectory=caddy-pihole-web-health' "$web_service"
 grep -Fxq 'StateDirectory=caddy-pihole-web-health' "$web_service"
-printf '%s_web_monitor_namespace_contract=true\n' "$prefix"
+printf '%s_web_monitor_namespace_and_identity_contract=true\n' "$prefix"
 
 while IFS=$'\t' read -r health_repository health_source health_target \
     health_mode health_hash health_lifecycle; do

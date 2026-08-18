@@ -45,7 +45,7 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
 grep -Eq '_production_path_test_complete=true$' "$root/transaction.stdout"
 grep -Eq '_production_path_test_complete=true$' "$root/outer.stdout"
 if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
-    for decision in web-unit-preflight web-unit-install web-unit-accept \
+    for decision in web-unit-service-identity web-unit-preflight web-unit-install web-unit-accept \
         web-unit-rollback web-unit-candidate-tamper; do
         test -s "$root/transaction/decisions/$decision.tsv"
         test -s "$root/transaction/raw/$decision.txt"
@@ -59,6 +59,19 @@ if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         "$root/transaction/raw/web-unit-accept.txt"
     grep -Fq 'web_unit_timer_failures_absent=true' \
         "$root/transaction/raw/web-unit-accept.txt"
+    if [[ "$EUID" -eq 0 ]]; then
+        grep -Fxq 'without_caddy_tls_readable=false' \
+            "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'with_caddy_tls_readable=true' \
+            "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'pi_primary_queue_writable=true' \
+            "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'kernel_dac_execution=true' \
+            "$root/transaction/raw/web-unit-service-identity.txt"
+    else
+        grep -Fxq 'kernel_dac_execution=requires-root-debian-batch' \
+            "$root/transaction/raw/web-unit-service-identity.txt"
+    fi
     for decision in outer-preflight outer-reverse-rollback outer-standby-first \
         outer-evidence-readback outer-zero-residue; do
         test -s "$root/outer/decisions/$decision.tsv"
@@ -70,12 +83,16 @@ if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         "$root/outer/raw/outer-standby-first.txt"
     grep -Fq 'node_a_payload_absent=true' "$root/outer/raw/outer-zero-residue.txt"
     grep -Fq 'node_b_payload_absent=true' "$root/outer/raw/outer-zero-residue.txt"
+    grep -Fq 'file=web_unit_failure_journal.stdout' \
+        "$root/outer/raw/outer-reverse-rollback.txt"
     grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' \
         "$repository_root/Caddy/systemd/caddy-pihole-web-health.service"
     if grep -Fq '/run/caddy-apprise' \
         "$repository_root/Caddy/systemd/caddy-pihole-web-health.service"; then
         exit 1
     fi
+    grep -Fxq 'SupplementaryGroups=caddy-tls' \
+        "$repository_root/Caddy/systemd/caddy-pihole-web-health.service"
     if sed -n '/^run_web_health_unit_live()/,/^}/p' "$outer" |
         grep -Eq 'restart|reload.*(caddy|lighttpd|pihole-FTL|unbound|keepalived)'; then
         exit 1

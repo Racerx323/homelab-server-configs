@@ -1,22 +1,20 @@
 schema_version: 2
-action: 35ai
-title: Pi-hole web-monitor namespace repair
+action: 35aj
+title: Pi-hole web-monitor service-identity repair
 status: failed-consumed
 scope: pihole-web-health-unit-only
 consumes:
-  - action: 35ah
-    result: accepted-with-post-acceptance-monitor-defect
+  - action: 35ai
+    result: failed-consumed-after-node-b-mutation
     rerun: prohibited
-    archive_tag: caddy-action35ah-terminal-2026-08-18
-    evidence: /tmp/caddy-ssh-evidence-serving_health.tYH9yd
-  - audit: pihole-web-health-namespace
-    result: both-nodes-status-226-namespace
-    evidence: /tmp/caddy-pihole-web-health-namespace-journal.stdout
+    archive_tag: caddy-action35ai-terminal-2026-08-18
+    evidence: /tmp/caddy-ssh-evidence-serving_health.gC2cIP
+    proven_failure: pi-cannot-read-root-caddy-tls-0640-environment
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: d26c9a01b0b8ca9191b610486b9bfabb24e7e8a525d2346e989a3ecd3bea4c64
+transaction_sha256: 0f89055f46e0109ef8fb5cf1b32997b096eb10ea69e2f77c7edd9b159f3d92e3
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 9809c2fe41a4bdd65f2c30f752e565a2b3d376813b2282a8c469813c785047e9
@@ -25,7 +23,7 @@ mutation:
   source: Caddy/systemd/caddy-pihole-web-health.service
   target: /etc/systemd/system/caddy-pihole-web-health.service
   deployed_sha256: a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
-  candidate_sha256: 2786e8fc92ee201f58e3c52d893fdc991c6d226687484ed1f3894aa8eafe719a
+  candidate_sha256: d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
   mode: "0644"
   owner: root
   group: root
@@ -35,6 +33,8 @@ ordering:
   - replace and accept the unit on preferred Node A
   - read back bounded evidence and remove transaction payloads
 acceptance:
+  - service keeps User=pi and Group=pi with SupplementaryGroups=caddy-tls
+  - service identity can read the protected environment and write the persistent queue
   - direct systemd invocation succeeds
   - later timer-triggered invocation succeeds
   - persistent queue ownership and modes remain exact
@@ -47,8 +47,8 @@ rollback:
 live_execution: separately-authorized-by-exact-outer-sha256
 terminal_result:
   exit_status: 1
-  evidence: /tmp/caddy-ssh-evidence-serving_health.gC2cIP
-  failure: node-b-direct-service-environment-permission-denied
+  evidence: /tmp/caddy-ssh-evidence-serving_health.YgxxZn
+  failure: node-b-acceptance-start-message-count
   node_a_mutated: false
   node_b_rollback: proven
   payload_cleanup: proven
