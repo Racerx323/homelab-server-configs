@@ -168,6 +168,14 @@ acceptance plus non-empty, symlinked, malformed, incorrectly owned, and
 incorrectly mode-set rejection. It consumes but does not rerun Action 35ag and
 retains the otherwise unchanged standby-first installation.
 
+Action 35ah is accepted. Both nodes selected immutable revision
+`20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d`; Node A settled as
+dual-stack `MASTER` with all four VIPs and Node B as dual-stack `BACKUP` with
+zero VIPs. Repository artifact identities, services, daemon-owned health,
+continuous DNS/HTTPS/UI probes, and final protocol-v2 residue all passed.
+Evidence is `/tmp/caddy-ssh-evidence-serving_health.tYH9yd`. The controlled
+failure exercise remains separately gated and unexecuted.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership
@@ -188,6 +196,20 @@ from reading stale helper snapshots. Bounded failure attribution comes from
 Keepalived's script-result journal; until a separate observer contract exists,
 a coupled FAULT may remain
 `eligibility-fault-unclassified` rather than risk reporting stale data.
+
+Notification standardization is not complete until a later, separately
+reviewed operation does all of the following:
+
+1. remove the legacy `[Failover Alert] Pi-hole DNS Cluster` producer path so a
+   transition emits one durable structured notification rather than both
+   legacy and structured messages;
+2. persist a bounded, crash-safe last acknowledged Keepalived state and report
+   the real `previous -> current` transition, reserving `unknown` for a proven
+   first observation with no prior state; and
+3. give authorized transactions a bounded planned-maintenance context so their
+   intentional Keepalived stop/restart transitions are informational planned
+   maintenance rather than unexpected warnings. That context must not affect
+   VRRP eligibility or delivery and must be removed on success and rollback.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.

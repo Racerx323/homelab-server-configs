@@ -1,7 +1,7 @@
 schema_version: 2
 action: 35ah
 title: Namespace-equivalent coupled serving-health installation
-status: defined-unexecuted
+status: accepted-executed-definition
 consumes:
   - action: 35ag
     result: failed-consumed
@@ -15,7 +15,7 @@ transaction: Caddy/scripts/apply-serving-health-deployment.sh
 transaction_sha256: 88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: 1370eb3cc444c72dc1475a3a3a62182b969b2a43dac450d492458b522180232b
+state_sha256: 7473a7a44e470ebb28eaa1186010e1d9441b8540a9576dcef3b45fa7c34c965d
 production_contract: Caddy/manifests/serving-health-production.tsv
 quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
 ordering:
@@ -50,6 +50,18 @@ rollback:
   baseline: exact pre-action split release and inventories
   unrecoverable_status: 125
 live_execution: separately-authorized-by-exact-outer-sha256
+terminal_result:
+  result: accepted
+  exit_status: 0
+  outer_sha256: a5d60392c887d1efc37a04080f8d612f43f0968d564729fa705c31fed6257a49
+  evidence: /tmp/caddy-ssh-evidence-serving_health.tYH9yd
+  release_revision: 20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d
+  final_ownership:
+    node_a: ipv4-master,ipv6-master,shared-vips=4,stable-samples=3
+    node_b: ipv4-backup,ipv6-backup,shared-vips=0,stable-samples=3
+  residue: incoming-empty,quarantine-empty,outbound-empty
+  rollback: not-required
+  archive_tag: caddy-action35ah-terminal-2026-08-18
 state_equivalence:
   protocol_namespace_valid:
     - absent

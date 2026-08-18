@@ -40,6 +40,21 @@ Alerts exclude secrets, environment dumps, complete HTTP responses, unbounded
 journal text, and raw command output. Journald and retained transaction
 evidence hold the detailed diagnostic data.
 
+## Remaining notification-standardization work
+
+Notification standardization is not complete until the legacy
+`[Failover Alert] Pi-hole DNS Cluster` message path is removed, so each event
+has one structured durable notification. Keepalived producers must also retain
+a bounded, crash-safe last acknowledged state so ordinary events report the
+actual `previous -> current` transition; `unknown` is valid only for a proven
+first observation without prior state.
+
+Authorized deployment transactions must provide a bounded planned-maintenance
+context for intentional Keepalived stops and restarts. Those events are
+informational planned maintenance, not unexpected warnings. The context must
+not influence VRRP eligibility, source-service success, queue delivery, or
+deduplication, and it must be removed after both success and rollback.
+
 ## Ownership and paths
 
 | Item | Owner | Path |

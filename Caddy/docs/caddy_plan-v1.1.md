@@ -548,14 +548,26 @@ incorrectly owned, or incorrectly mode-set state fails closed. Production-path
 coverage executes this complete state matrix through the real predicate. The
 remaining standby-first transaction is unchanged.
 
+Action 35ah is accepted with evidence at
+`/tmp/caddy-ssh-evidence-serving_health.tYH9yd`. Both nodes selected revision
+`20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d`; Node A settled as
+dual-stack `MASTER` with four VIPs and Node B as dual-stack `BACKUP` with zero
+VIPs. The separately controlled failure exercise remains unexecuted.
+
 ## 18. Pending work
 
 After a corrected installation and separately accepted controlled exercise:
 
-1. write operator quick-start, installation, uninstallation, and
+1. finish notification standardization by removing the legacy duplicate
+   `[Failover Alert]` producer, persisting the actual acknowledged prior VRRP
+   state for `previous -> current`, and classifying transaction-authorized
+   Keepalived stop/restart events as bounded planned maintenance rather than
+   unexpected transitions; the maintenance context must never affect VRRP or
+   notification delivery and must be cleaned on success and rollback;
+2. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;
-2. create the canonical LikeC4 model and generated views;
-3. improve the future reverse-proxy application template, using
+3. create the canonical LikeC4 model and generated views;
+4. improve the future reverse-proxy application template, using
    `reverse-proxy.caddy.example` as input.
 
 Munin monitoring is canceled. Home Assistant DNS work belongs to a future DNS

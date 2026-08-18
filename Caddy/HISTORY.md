@@ -5,10 +5,33 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: defined
-- Latest archive tag: `caddy-action35ag-terminal-2026-08-18`
-- Next gate: separately authorize Action 35ah through the existing neutral
-  serving-health transaction and outer runner.
+- State: terminal-pending
+- Latest archive tag: `caddy-action35ah-terminal-2026-08-18`
+- Next gate: archive and clean accepted Action 35ah. The separately controlled
+  serving-health failure exercise remains unexecuted.
+
+## Action 35ah terminal archive
+
+- Tag: `caddy-action35ah-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35ah
+- Authorized outer SHA-256:
+  `a5d60392c887d1efc37a04080f8d612f43f0968d564729fa705c31fed6257a49`
+- Transaction SHA-256:
+  `88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0`
+- Result: accepted
+- Exit status: 0
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.tYH9yd`
+- Release: both nodes selected immutable revision
+  `20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d` from Node A.
+- Ownership: Node A settled IPv4/IPv6 `MASTER` with all four VIPs; Node B
+  settled IPv4/IPv6 `BACKUP` with zero VIPs. Each retained three stable
+  samples.
+- Acceptance: all repository artifacts, service enablement/state, daemon-owned
+  DNS and Caddy health, continuous dual-stack DNS/HTTPS/UI paths, and final
+  incoming, quarantine, and outbound residue checks passed.
+- Rollback: not required.
+- Status: terminal-pending for this exact annotated archive boundary.
 
 ## Action 35ag terminal archive
 

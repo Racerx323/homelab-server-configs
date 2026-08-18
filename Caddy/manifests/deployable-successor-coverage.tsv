@@ -1,11 +1,1 @@
 scenario	phase	entrypoint	expectation	decision-evidence	raw-evidence
-outer-preflight	pre-mutation	outer	reach	decisions/outer-preflight.tsv	raw/outer-preflight.txt
-transaction-rejection	pre-mutation	transaction	reject	decisions/transaction-rejection.tsv	raw/transaction-rejection.txt
-transaction-acceptance	accepted-path	transaction	reach	decisions/transaction-acceptance.tsv	raw/transaction-acceptance.txt
-protocol-namespace-state-equivalence	pre-mutation	transaction	accept	decisions/protocol-namespace-state-equivalence.tsv	raw/protocol-namespace-state-equivalence.txt
-protocol-v2-target-publication	accepted-path	transaction	accept	decisions/protocol-v2-target-publication.tsv	raw/protocol-v2-target-publication.txt
-protocol-v2-target-promotion	accepted-path	transaction	accept	decisions/protocol-v2-target-promotion.tsv	raw/protocol-v2-target-promotion.txt
-keepalived-daemon-owned-acceptance	accepted-path	outer	accept	decisions/keepalived-daemon-owned-acceptance.tsv	raw/keepalived-daemon-owned-acceptance.txt
-daemon-journal-failure-rejection	pre-mutation	outer	reject	decisions/daemon-journal-failure-rejection.tsv	raw/daemon-journal-failure-rejection.txt
-bounded-node-b-convergence	accepted-path	transaction	accept	decisions/bounded-node-b-convergence.tsv	raw/bounded-node-b-convergence.txt
-node-a-quarantine-rollback	accepted-path	transaction	accept	decisions/node-a-quarantine-rollback.tsv	raw/node-a-quarantine-rollback.txt
