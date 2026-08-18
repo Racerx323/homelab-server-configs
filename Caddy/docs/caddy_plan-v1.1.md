@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ad is failed-consumed after successful Node B rollback and awaits terminal archival; Action 35ae is the direct bounded per-family probe-result successor; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35ad is archived and cleaned after successful Node B rollback; Action 35ae is the direct bounded per-family probe-result successor; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -455,7 +455,9 @@ substitution can terminate under `set -e` before identifying the affected
 family or specific curl/HTTP result. The transaction failed closed at
 `action_35_ad_check_keepalived_daemon_status_records_valid=false`, Node B
 rollback returned it to `BACKUP`, and Node A was not mutated. Evidence is
-`/tmp/caddy-ssh-evidence-action35ad.gAKDlx`; Action 35ad must not be rerun.
+`/tmp/caddy-ssh-evidence-action35ad.gAKDlx`; Action 35ad must not be rerun. It
+is archived only at `caddy-action35ad-terminal-2026-08-18`, and its consumed
+machinery is removed from the current branch.
 
 Action 35ae is the direct installation successor. It validates both families'
 bounded status/output records before reading them, classifies missing,

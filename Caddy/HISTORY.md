@@ -5,15 +5,11 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- Action: 35ad
-- Status: terminal-pending, failed-consumed
-- Archive tag: `caddy-action35ad-terminal-2026-08-18`
-- Scope: preserve the exact executed Action 35ad definition and its proven
-  pre-Node-A failure, then remove its consumed machinery before defining the
-  bounded per-family probe-result successor.
-- Successor constraint: Action 35ae must consume but never rerun Action 35ad,
-  retain the two-second Keepalived boundary and standby-first transaction, and
-  validate both families' result records explicitly before classification.
+- State: clean
+- Latest archive tag: `caddy-action35ad-terminal-2026-08-18`
+- Next action: direct installation successor Action 35ae may be defined only
+  from neutral current-production components after this cleanup checkpoint is
+  synchronized.
 
 ## Action 35ad terminal archive
 
@@ -38,8 +34,8 @@ Git preserves the complete deployment journal and executed action files.
   distinguishing the affected family or result-file state.
 - Recovery: Node B rollback and rollback readback returned 0, Node B returned
   to `BACKUP`, and Node A was not mutated
-- Status: terminal-pending until the annotated tag is created and consumed
-  machinery is removed
+- Status: terminal tag and commit recorded; consumed machinery was removed by
+  the immediate cleanup commit
 
 ## Action 35ac terminal archive
 

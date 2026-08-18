@@ -123,7 +123,8 @@ family and specific curl or HTTP result. The transaction failed closed at
 `action_35_ad_check_keepalived_daemon_status_records_valid=false`. Node B
 rollback succeeded and returned it to `BACKUP`; Node A was not promoted or
 mutated. Evidence is `/tmp/caddy-ssh-evidence-action35ad.gAKDlx`. Action 35ad
-must not be rerun.
+is archived only at `caddy-action35ad-terminal-2026-08-18`, its consumed
+machinery is removed, and it must not be rerun.
 
 The direct installation successor is Action 35ae. It must explicitly validate
 both families' bounded status and output records before reading them, classify
