@@ -371,7 +371,7 @@ The recovered production baseline remains:
 - Action 35w reuses that candidate and does not republish, seed production
   state, or copy Node B configuration to Node A.
 
-The direct successor preserves the remaining Action 35w installation
+Action 35x preserves the remaining Action 35w installation
 transaction while correcting only the proven ordering boundary:
 
 - after installing tmpfiles and both serving-health helpers, invoke the
@@ -381,6 +381,9 @@ transaction while correcting only the proven ordering boundary:
 - then retain Action 35w's bounded post-reload initialization interval, stable
   Node B `BACKUP` samples, split-release continuity endpoints, structured
   notifications, remaining standby-first ordering, and reverse rollback.
+
+No other prerequisite, architecture decision, inventory baseline, publication
+path, convergence rule, or rollback boundary changes in Action 35x.
 
 Caddy failures are classified as Proxy serving failures and may change VRRP
 eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are

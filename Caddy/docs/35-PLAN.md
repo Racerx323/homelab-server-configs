@@ -47,6 +47,15 @@ succeeded and returned it to `BACKUP`; Node A was not promoted or mutated.
 Evidence is `/tmp/caddy-ssh-evidence-action35w.XsZ21C`. Action 35w must not be
 rerun and no separate diagnostic is required.
 
+Action 35x is the direct ordering-corrected installation successor. It consumes
+Action 35w without rerunning it. After installing tmpfiles and the exact DNS
+and Caddy helpers on each node, it invokes the installed DNS helper as `pi` and
+the installed Caddy helper as `keepalived_script`, using their default
+production status paths. It requires current healthy DNS and Proxy snapshots
+before reloading Keepalived. The bounded post-reload convergence, structured
+notifications, split-release continuity endpoints, Node B then Node A order,
+remaining acceptance, and reverse rollback are unchanged from Action 35w.
+
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving
 component and remains a VRRP eligibility input. Pi-hole/lighttpd backend health

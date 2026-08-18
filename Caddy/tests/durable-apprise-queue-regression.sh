@@ -169,7 +169,7 @@ CADDY_APPRISE_NOW_EPOCH=900 "$enqueue" --source pihole-web \
     --stable-id episode-1-failed --title 'Pi-hole backend failed' \
     --body 'Bounded backend failure'
 [[ "$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
-    -exec jq -er 'select(.source == "pihole-web") | input_filename' {} + | wc -l)" -eq 1 ]] || fail stable_transition_dedupe
+    -exec jq -r 'if .source == "pihole-web" then input_filename else empty end' {} + | wc -l)" -eq 1 ]] || fail stable_transition_dedupe
 [[ -f "$stable_record" ]] || fail stable_transition_identity_changed
 if "$enqueue" --source pihole-web --severity failure \
     --event-key backend-failed --stable-id '../unsafe' \
@@ -343,7 +343,7 @@ CADDY_APPRISE_NOW_EPOCH=1200 \
     KEEPALIVED_NOTIFY_STATE_ROOT=$keepalived_state_root \
     /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
 keepalived_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
-    -exec jq -er 'select(.source == "keepalived") | input_filename' {} +)
+    -exec jq -r 'if .source == "keepalived" then input_filename else empty end' {} +)
 [[ -n "$keepalived_record" ]] || fail keepalived_record_absent
 jq -e '
   .severity == "failure" and
@@ -368,7 +368,7 @@ CADDY_APPRISE_NOW_EPOCH=1500 \
     /bin/bash "$replication_producer" \
     'systemd unit failed: caddy-sync-reconcile.service'
 replication_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
-    -exec jq -er 'select(.source == "caddy-sync" and (.payload.title | contains("[Replication]"))) | input_filename' {} + | tail -1)
+    -exec jq -r 'if .source == "caddy-sync" and (.payload.title | contains("[Replication]")) then input_filename else empty end' {} + | tail -1)
 [[ -n "$replication_record" ]] || fail replication_record_absent
 jq -e '
   .severity == "failure" and

@@ -16,7 +16,7 @@ IFS=$'\t' read -r successor_status successor_action transaction_relative outer_r
     awk -F '\t' 'NR == 2 { print $2 "\t" $3 "\t" $5 "\t" $6 }' \
         "$successor_registry"
 )
-[[ "$successor_status" = defined && "$successor_action" = 35w ]]
+[[ "$successor_status" = defined && "$successor_action" = 35x ]]
 readonly transaction=$repository_root/$transaction_relative
 readonly outer=$repository_root/$outer_relative
 root=$(mktemp -d /tmp/caddy-serving-health-installation-regression.XXXXXX)
@@ -34,16 +34,16 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
 CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
     /bin/bash "$outer" --production-path-test >"$root/outer.stdout"
 
-grep -Fq 'action_35_w_production_path_test_complete=true' "$root/transaction.stdout"
-grep -Fq 'action_35_w_expected_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_x_production_path_test_complete=true' "$root/transaction.stdout"
+grep -Fq 'action_35_x_expected_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_w_observed_production_inventory_node_a_dns_health_helper=' \
+grep -Fq 'action_35_x_observed_production_inventory_node_a_dns_health_helper=' \
     "$root/transaction.stdout"
-grep -Fq 'action_35_w_outer_production_path_test_complete=true' "$root/outer.stdout"
-grep -Fq 'action_35_w_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
+grep -Fq 'action_35_x_outer_production_path_test_complete=true' "$root/outer.stdout"
+grep -Fq 'action_35_x_outer_check_keepalived_parser_not_invoked=true' "$root/outer.stdout"
 grep -Fq 'cd / && sudo -n /bin/bash -s --' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35w-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
-grep -Eq '/tmp/caddy-action35w-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35x-test-[A-Za-z0-9]+-node-a' "$root/outer/raw/outer-preflight.txt"
+grep -Eq '/tmp/caddy-action35x-test-[A-Za-z0-9]+-node-b' "$root/outer/raw/outer-preflight.txt"
 grep -Fxq pi "$root/outer/raw/outer-preflight.txt"
 grep -Fxq keepalived_script "$root/outer/raw/outer-preflight.txt"
 grep -Fq 'payload_identity.stdout' "$root/outer/raw/evidence-readback-node-a-success.txt"
@@ -63,7 +63,7 @@ fi
 grep -Fxq pi "$root/outer/transaction-through-outer/runuser.calls"
 grep -Fxq keepalived_script "$root/outer/transaction-through-outer/runuser.calls"
 [[ "$(find "$root/transaction/decisions" -type f | wc -l)" -gt 60 ]]
-[[ "$(find "$root/outer/decisions" -type f | wc -l)" -eq 5 ]]
+[[ "$(find "$root/outer/decisions" -type f | wc -l)" -eq 6 ]]
 grep -Fq 'retained_candidate_dispositioned=true' "$root/transaction/raw/transaction-acceptance.txt"
 grep -Fq 'retained_finalize_request_absent=true' "$root/transaction/raw/transaction-acceptance.txt"
 grep -Fq 'retained_complete_absent=true' "$root/transaction/raw/transaction-acceptance.txt"
@@ -81,7 +81,7 @@ grep -Fq 'current_before=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04' 
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'current_after=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
-grep -Fq 'action_35_w_check_local_candidate_selected=true' \
+grep -Fq 'action_35_x_check_local_candidate_selected=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
 grep -Fq 'caddy_serving_health_check_ipv4_https=true' \
     "$root/outer/transaction-through-outer/raw/post-promotion-sequence.txt"
@@ -116,11 +116,11 @@ for decision in \
     node-a-quarantine-rollback; do
     test -s "$root/transaction/decisions/$decision.tsv"
 done
-grep -Fq 'action_35_w_check_node_a_quarantine_top_level_exact=true' \
+grep -Fq 'action_35_x_check_node_a_quarantine_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-baseline.txt"
-grep -Fq 'action_35_w_check_node_a_quarantine_after_disposition_inventory=true' \
+grep -Fq 'action_35_x_check_node_a_quarantine_after_disposition_inventory=true' \
     "$root/transaction/raw/node-a-quarantine-disposition.txt"
-grep -Fq 'action_35_w_check_node_a_quarantine_restored_top_level_exact=true' \
+grep -Fq 'action_35_x_check_node_a_quarantine_restored_top_level_exact=true' \
     "$root/transaction/raw/node-a-quarantine-rollback.txt"
 canonical_candidate=$root/transaction/state/quarantine/node-b-20260811T174240Z-31d43261-5cd7-44ce-83e5-947927184d29
 grep -Eq '^[0-9a-f]{64}  \./Caddyfile$' "$canonical_candidate/manifest.sha256"
@@ -129,5 +129,27 @@ grep -Eq '^[0-9a-f]{64}  \./release-manifest.json$' \
 if grep -Eq '^[0-9a-f]{64}  Caddyfile$' "$canonical_candidate/manifest.sha256"; then
     exit 1
 fi
+grep -Fxq pi "$root/outer/transaction-through-outer/runuser.calls"
+grep -Fxq keepalived_script "$root/outer/transaction-through-outer/runuser.calls"
+grep -Fq 'initialize_dns_status.status' \
+    "$root/outer/raw/evidence-readback-node-b-success.txt"
+grep -Fq 'initialize_proxy_status.status' \
+    "$root/outer/raw/evidence-readback-node-b-success.txt"
+dns_initialize_line=$(grep -n 'initialize_dns_status.status' \
+    "$root/outer/raw/evidence-readback-node-b-success.txt" | cut -d: -f1)
+proxy_initialize_line=$(grep -n 'initialize_proxy_status.status' \
+    "$root/outer/raw/evidence-readback-node-b-success.txt" | cut -d: -f1)
+[[ "$dns_initialize_line" -lt "$proxy_initialize_line" ]]
+grep -Fq 'reload keepalived.service' "$root/outer/raw/outer-preflight.txt"
+test -s \
+    "$root/outer/decisions/status-snapshot-initialization-before-keepalived-reload.tsv"
+snapshot_ordering=$root/outer/raw/status-snapshot-initialization-before-keepalived-reload.txt
+tmpfiles_line=$(grep -n '^tmpfiles --create ' "$snapshot_ordering" | cut -d: -f1)
+dns_line=$(grep -n '^runuser pi$' "$snapshot_ordering" | cut -d: -f1)
+proxy_line=$(grep -n '^runuser keepalived_script$' "$snapshot_ordering" | cut -d: -f1)
+keepalived_line=$(grep -n '^systemctl reload keepalived.service$' \
+    "$snapshot_ordering" | cut -d: -f1)
+[[ "$tmpfiles_line" -lt "$dns_line" && "$dns_line" -lt "$proxy_line" &&
+    "$proxy_line" -lt "$keepalived_line" ]]
 
 printf '%s_complete=true\n' "$prefix"
