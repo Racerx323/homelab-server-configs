@@ -15,3 +15,5 @@ Caddy/scripts/render-node-config.sh	production-current	no	-	-	Caddy/scripts/READ
 Caddy/scripts/uninstall-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/validate-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/README.md
 Caddy/scripts/validate-sync-health.sh	production-current	yes	/usr/local/libexec/validate-sync-health.sh	0755	Caddy/manifests/production-artifacts.tsv
+Caddy/scripts/apply-coupled-serving-health-action35aa.sh	defined-unexecuted	no	-	-	Caddy/manifests/caddy-serving-health-action35aa.yaml
+Caddy/scripts/run-coupled-serving-health-action35aa-outer.sh	defined-unexecuted	no	-	-	Caddy/manifests/caddy-serving-health-action35aa.yaml

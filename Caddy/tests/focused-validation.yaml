@@ -150,16 +150,19 @@
         "Caddy/scripts/check-pihole-web-health.sh",
         "Caddy/scripts/lsyncd-sync-failure-notify.sh",
         "Caddy/tests/serving-health-installation-production-path-regression.sh",
+        "Caddy/tests/serving-health-scheduled-execution-regression.sh",
         "Caddy/tests/serving-health-regression.sh"
       ],
       "host_tests": [
         "Caddy/tests/serving-health-regression.sh",
         "Caddy/tests/serving-health-installation-production-path-regression.sh",
+        "Caddy/tests/serving-health-scheduled-execution-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/serving-health-regression.sh",
         "Caddy/tests/serving-health-installation-production-path-regression.sh",
+        "Caddy/tests/serving-health-scheduled-execution-regression.sh",
         "Caddy/tests/durable-apprise-queue-regression.sh"
       ],
       "policies": [

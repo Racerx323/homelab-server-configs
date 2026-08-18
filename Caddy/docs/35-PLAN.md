@@ -79,15 +79,25 @@ returned status 0. The transaction's journal selector omitted the decisive
 `BACKUP`; Node A was not promoted or mutated. Evidence is
 `/tmp/caddy-ssh-evidence-action35z.riR2sq`. Action 35z must not be rerun.
 
-The direct successor must execute both exact installed helpers through the
-same direct invocation, UID, GID, environment, timeout, and overlapping
-schedule used by Keepalived. It must retain bounded per-invocation start,
-identity, duration, exit, timeout or signal, failure label, and status-record
-transition evidence; capture all `Keepalived_vrrp` script-result records; and
-require repeated DNS and Caddy successes before Keepalived reload. It then
-resumes the otherwise unchanged standby-first installation. This causal
-acceptance is part of the successor transaction and is not a separate
-diagnostic.
+Action 35aa is failed-consumed. It installed Node B and all five independently
+launched DNS and Caddy cycles succeeded under the intended identities. The
+daemon's own `check-dns` execution entered FAULT ten seconds before the
+candidate reload while that independent schedule was still active. The reload
+inherited DNS as unsuccessful and the daemon's immediate `check-caddy`
+execution also returned status 1. All 24 bounded ownership samples remained
+dual-stack `Fault` with zero VIPs. After the rollback reload, the native DNS
+check recovered and Node B returned to `BACKUP`; Node A was not promoted or
+mutated. Evidence is
+`/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
+
+The direct successor must not launch a second health-check schedule. It must
+install Node B, reload Keepalived through the existing bounded rollback guard,
+and accept health only from cursor-bounded records and status transitions
+created by Keepalived's own daemon executions. It must require repeated
+successful daemon results for both helpers and stable Node B `BACKUP` with
+zero VIPs before proceeding to Node A. Any missing, stale, nonzero,
+intermittent, timed-out, signaled, or identity-inconsistent daemon evidence is
+fail-closed. The remaining standby-first installation is unchanged.
 
 Action 35w also defined one structured notification contract for DNS, Proxy,
 Replication, and Notification Delivery events. Caddy is the Proxy serving

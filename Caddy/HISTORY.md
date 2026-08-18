@@ -3,6 +3,36 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35aa terminal archive
+
+- Tag: `caddy-action35aa-terminal-2026-08-18`
+- Commit: recorded by the annotated tag
+- Action: 35aa
+- Authorized outer SHA-256:
+  `976e1c4a2bccfd49cecf7e8b8a5a01f0c949d825c2a4f3d749ccd437010092e2`
+- Transaction SHA-256:
+  `4011f7a3edc27491d603bcec28587824a16a3f202555aa915e129e98f7209415`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35aa.o4OC8v`
+- Failed boundary: all 24 bounded ownership samples remained dual-stack
+  `Fault` with zero shared VIPs, so
+  `action_35_aa_check_ownership_convergence=false`
+- Finding: all five transaction-launched DNS and Caddy cycles succeeded, but
+  Keepalived's own `check-dns` execution entered FAULT at 11:01:30, ten
+  seconds before the candidate reload, while the independent schedule was
+  still active. The reload inherited DNS as unsuccessful and the daemon's
+  immediate `check-caddy` execution also returned status 1. The independent
+  schedule perturbed rather than proved the real daemon execution boundary
+  and must not be repeated by the successor.
+- Recovery: Node B rollback, rollback readback, sampler shutdown, journal
+  capture, and exact upload dispositions returned 0; after the rollback
+  reload at 11:02:37, the native DNS check recovered and Node B entered
+  `BACKUP` at 11:02:39; Node A was not mutated
+- Status: terminal-pending; the annotated tag will preserve this exact commit,
+  then consumed machinery will be removed by the immediate cleanup commit
+
 ## Action 35z terminal archive
 
 - Tag: `caddy-action35z-terminal-2026-08-18`

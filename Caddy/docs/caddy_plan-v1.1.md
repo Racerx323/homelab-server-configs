@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35z failed-consumed after successful Node B rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35aa failed-consumed after successful Node B rollback and is terminal-pending; installed Keepalived parser modes are prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -40,6 +40,16 @@ and every continuity probe passed. The action's journal selector omitted those
 decisive `Keepalived_vrrp` records. Node B rollback succeeded and returned it
 to `BACKUP`; Node A was not promoted or mutated. Action 35z is consumed and
 must not be rerun.
+
+Action 35aa installed Node B and obtained five successful transaction-launched
+DNS and Caddy cycles. Keepalived's own DNS execution entered FAULT ten seconds
+before the candidate reload while that independent schedule was still active.
+The reload inherited DNS as unsuccessful, the daemon's immediate Caddy check
+also returned status 1, and all 24 ownership samples remained dual-stack
+`Fault` with zero VIPs. The independent schedule perturbed rather than proved
+the daemon execution boundary. After rollback reload, native DNS recovered
+and Node B returned to `BACKUP`; Node A was not promoted or mutated. Action
+35aa is consumed and must not be rerun.
 
 ## 1. Purpose
 
@@ -380,17 +390,18 @@ uses cleanup only.
 | Initialization-order serving-health installation, Action 35x | Failed-consumed after Node B installation because the Caddy probe's Keepalived execution group did not reproduce its accepted protected-environment access; Node B rollback succeeded and Node A was not mutated | `caddy-action35x-terminal-2026-08-18` |
 | Explicit-group serving-health installation, Action 35y | Failed-consumed after Node B installation because acceptance retained the superseded Proxy status-file group; Node B rollback succeeded and Node A was not mutated | `caddy-action35y-terminal-2026-08-18` |
 | Metadata-corrected serving-health installation, Action 35z | Failed-consumed after Node B installation because the real Keepalived schedule returned status 1 for Caddy and intermittently for DNS; Node B rollback succeeded and Node A was not mutated | `caddy-action35z-terminal-2026-08-18` |
+| Scheduled-execution-accepted serving-health installation, Action 35aa | Failed-consumed after Node B installation because transaction-launched cycles passed while Keepalived's own DNS and Caddy executions returned status 1; Node B rollback succeeded and Node A was not mutated | `caddy-action35aa-terminal-2026-08-18` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Action 35z is failed-consumed and awaits archival at
-`caddy-action35z-terminal-2026-08-18`. Its retained workstation evidence is
-`/tmp/caddy-ssh-evidence-action35z.riR2sq`. Action 35z must not be rerun. Node B
-rollback succeeded and Node A was not mutated. The deployment stream must be
-archived and cleaned before one direct successor is defined.
+Action 35aa is failed-consumed and awaits archival at
+`caddy-action35aa-terminal-2026-08-18`. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
+Node B rollback succeeded and Node A was not mutated. The deployment stream
+must be archived and cleaned before one direct successor is defined.
 
 The recovered production baseline remains:
 
@@ -404,17 +415,14 @@ The recovered production baseline remains:
   state, or copy Node B configuration to Node A.
 
 The direct successor preserves the remaining standby-first installation while
-correcting the real scheduled-execution acceptance boundary:
+correcting the daemon-owned execution acceptance boundary:
 
-- execute the exact installed DNS and Caddy helpers using Keepalived's direct
-  invocation form, UID, GID, environment, two-second timeout, three-second
-  interval, and overlapping schedule;
-- retain bounded per-invocation start, identity, duration, exit status,
-  timeout or signal, failure label, and status-record transition evidence;
-- reject intermittent DNS or Caddy results and require repeated successes
-  before Keepalived reload;
-- capture all cursor-bounded `Keepalived_vrrp` script-result records rather
-  than only notifier enqueue evidence;
+- do not launch a second DNS or Caddy schedule;
+- capture cursor-bounded `Keepalived_vrrp` results and the corresponding
+  atomic status-record transitions produced by Keepalived's own executions;
+- require repeated daemon-owned successes for both helpers after reload;
+- reject missing, stale, nonzero, intermittent, timed-out, signaled, or
+  identity-inconsistent daemon evidence;
 - retain snapshot initialization, stable Node B `BACKUP` samples,
   split-release continuity endpoints, structured notifications, remaining
   standby-first ordering, and reverse rollback.
