@@ -176,6 +176,16 @@ continuous DNS/HTTPS/UI probes, and final protocol-v2 residue all passed.
 Evidence is `/tmp/caddy-ssh-evidence-serving_health.tYH9yd`. The controlled
 failure exercise remains separately gated and unexecuted.
 
+A post-acceptance read-only audit found one notification-only defect on both
+nodes: `caddy-pihole-web-health.service` fails before `ExecStart` with systemd
+status `226/NAMESPACE` because its sandbox unnecessarily requires the delivery
+worker's ephemeral `/run/caddy-apprise` directory. The producer writes only to
+the persistent `/var/lib/caddy-apprise-queue`. The direct correction replaces
+only this unit on standby Node B and then Node A, runs it successfully under
+systemd, observes one subsequent successful timer activation on each node, and
+does not restart Caddy, lighttpd, DNS, or Keepalived. This correction precedes
+the controlled failure exercise.
+
 Action 35ag uses the neutral reusable deployment transaction. It removes only
 the redundant Node A `record-target` call, retains Node B target recording,
 proves the real publish-to-accept sequence, and requires settled ownership

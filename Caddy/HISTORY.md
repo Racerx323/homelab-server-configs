@@ -7,8 +7,8 @@ Git preserves the complete deployment journal and executed action files.
 
 - State: clean
 - Latest archive tag: `caddy-action35ah-terminal-2026-08-18`
-- Next gate: the separately controlled serving-health failure exercise remains
-  unexecuted and requires its own definition and authorization.
+- Next gate: define the narrow standby-first Pi-hole web-monitor unit repair
+  before the separately controlled serving-health failure exercise.
 
 ## Action 35ah terminal archive
 
@@ -33,6 +33,22 @@ Git preserves the complete deployment journal and executed action files.
 - Rollback: not required.
 - Status: archived and cleaned; the Caddy deployment stream is clean and the
   neutral operation specification is inactive.
+
+### Post-acceptance finding 2026-08-18
+
+- A bounded read-only audit found that both timer-triggered
+  `caddy-pihole-web-health.service` invocations fail before `ExecStart` with
+  systemd status `226/NAMESPACE`.
+- The accepted unit unnecessarily made its mount namespace depend on
+  `/run/caddy-apprise`, a delivery-worker runtime directory that is absent
+  while the worker is inactive. The enqueue producer uses only the persistent
+  `/var/lib/caddy-apprise-queue` path.
+- DNS, Caddy, lighttpd, and VRRP serving state remain healthy; the defect
+  suppresses notification-only Pi-hole web-health monitoring.
+- The Action 35ah tag and accepted evidence remain unchanged. The direct
+  successor must replace only this unit on Node B and then Node A, prove a
+  successful direct invocation and subsequent timer-triggered invocation on
+  each node, and require no serving-service restart.
 
 ## Action 35ag terminal archive
 

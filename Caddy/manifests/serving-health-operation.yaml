@@ -9,7 +9,7 @@ transaction: Caddy/scripts/apply-serving-health-deployment.sh
 transaction_sha256: 88eac36e3ce093b761ab8085d83c9359c378e03e2c265880bde1bcff131e9ef0
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: 7473a7a44e470ebb28eaa1186010e1d9441b8540a9576dcef3b45fa7c34c965d
+state_sha256: 9809c2fe41a4bdd65f2c30f752e565a2b3d376813b2282a8c469813c785047e9
 production_contract: Caddy/manifests/serving-health-production.tsv
 quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
 live_execution: no-operation-defined

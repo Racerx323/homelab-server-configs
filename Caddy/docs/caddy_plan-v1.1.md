@@ -552,7 +552,12 @@ Action 35ah is accepted with evidence at
 `/tmp/caddy-ssh-evidence-serving_health.tYH9yd`. Both nodes selected revision
 `20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d`; Node A settled as
 dual-stack `MASTER` with four VIPs and Node B as dual-stack `BACKUP` with zero
-VIPs. The separately controlled failure exercise remains unexecuted.
+VIPs. A later read-only audit found that the notification-only Pi-hole web
+monitor fails before `ExecStart` with systemd status `226/NAMESPACE` because
+its unit unnecessarily requires the delivery worker's ephemeral
+`/run/caddy-apprise` directory. The corrected repository unit writes only to
+the persistent queue. A narrow standby-first unit replacement must be accepted
+before the separately controlled failure exercise proceeds.
 
 ## 18. Pending work
 

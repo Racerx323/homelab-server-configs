@@ -18,6 +18,7 @@ readonly dns_helper=$dns_root/Keepalived/scripts/dns-check.sh
 readonly node_a_keepalived=$dns_root/Keepalived/configs/keepalived-pihole0.conf
 readonly node_b_keepalived=$dns_root/Keepalived/configs/keepalived-pihole00.conf
 readonly proxy_route=$caddy_root/configs/caddy/conf.d/10-pihole-admin.caddy
+readonly web_service=$caddy_root/systemd/caddy-pihole-web-health.service
 root=$(mktemp -d /tmp/caddy-serving-health-regression.XXXXXX)
 readonly root
 trap 'rm -rf -- "$root"' EXIT
@@ -195,6 +196,14 @@ PIHOLE_WEB_HEALTH_ENVIRONMENT_FILE=$root/environment \
 grep -Fxq 'state=failed' "$root/state/state"
 grep -Fq -- '--application Proxy' "$root/enqueue.log"
 printf '%s_web_monitor_entrypoint=true\n' "$prefix"
+
+grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' "$web_service"
+if grep -Fq '/run/caddy-apprise' "$web_service"; then
+    exit 1
+fi
+grep -Fxq 'RuntimeDirectory=caddy-pihole-web-health' "$web_service"
+grep -Fxq 'StateDirectory=caddy-pihole-web-health' "$web_service"
+printf '%s_web_monitor_namespace_contract=true\n' "$prefix"
 
 while IFS=$'\t' read -r health_repository health_source health_target \
     health_mode health_hash health_lifecycle; do
