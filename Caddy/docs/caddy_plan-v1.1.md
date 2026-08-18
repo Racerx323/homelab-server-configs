@@ -2,14 +2,15 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35u accepted read-only with no mutation; Action 35v is the next direct installation successor; installed Keepalived parser modes are prohibited
+Current status: core deployment accepted; Action 35v failed-consumed after the Node B mutation and successful rollback; the stream is terminal-pending; installed Keepalived parser modes are prohibited
 
-Action 35u proved Node A's selected older release returns trusted-TLS HTTP 404
-from `/healthz` over IPv4 and IPv6, while Node B returns HTTP 204 over both.
-Listeners, certificates, routing, and Caddy service state are healthy. The
-next gate is direct installation successor Action 35v; it activates Node A's
-already-published serving-health release before requiring the direct helper to
-pass. Actions 35t and 35u remain consumed and may not be restored or rerun.
+Action 35v completely accepted the candidate on Node B, then observed Node B
+in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
+Keepalived. The transaction incorrectly required immediate `BACKUP` before the
+configured `interval 3`, `rise 3` health initialization could converge. It
+also sampled Node A's known pre-promotion `/healthz` 404 as a continuity
+failure. Node B rollback completed, Node B returned to `BACKUP`, and Node A
+was not promoted or mutated. Action 35v is consumed and must not be rerun.
 
 ## 1. Purpose
 
@@ -345,173 +346,59 @@ uses cleanup only.
 | Node-A quarantine-cleanup serving-health installation, Action 35r | Failed-consumed at a noncanonical protocol-v2 file-set comparison before mutation | `caddy-action35r-terminal-2026-08-17` |
 | Canonical-quarantine serving-health installation, Action 35s | Failed-consumed at the known-broken installed Keepalived parser prerequisite before mutation | `caddy-action35s-terminal-2026-08-17` |
 | Parser-free serving-health installation, Action 35t | Failed-consumed at Node A's real-identity Caddy IPv4 HTTPS probe before mutation | `caddy-action35t-terminal-2026-08-17` |
+| Post-promotion-health serving-health installation, Action 35v | Failed-consumed after Node B installation at an immediate pre-convergence ownership assertion; Node B rollback succeeded and Node A was not mutated | `caddy-action35v-terminal-2026-08-17` |
 
 The archive tag contains the detailed predecessors and failed-consumed
 successors.
 
 ## 17. Current next gate
 
-Actions 35 through 35s are failed-consumed and preserved by the annotated tags
-listed above. They must not be rerun or copied into current validation. Action
-35g published one valid Node A release and Node B selected it. Action 35h then
-validated that exact split-release protocol state but failed during Node B
-production-inventory validation, before candidate validation or serving-health
-mutation. Action 35i then failed-consumed during the same Node B DNS-helper
-identity boundary, before candidate validation or mutation. Its bounded
-completion readback proved both nodes have exact `root:root:0755` SHA-256
-`4972282ef0a0bed1bc2edec941125b2b3275812445039eede3a720099b95f33d`.
+Action 35v is terminal-pending and no successor is currently registered. Its
+retained workstation evidence is
+`/tmp/caddy-ssh-evidence-action35v.Og4PSy`. Action 35v must not be rerun.
 
-The current split-release state is:
-Node A remains on Action 32g, while Node B is `BACKUP` on exact revision
-`20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`, whose parent is Action
-32g and whose source is Node A. Privileged inspection proves Node A retains the
-exact finalized candidate beneath `/var/lib/caddy-sync/outbound`; matching
-incoming and quarantine entries are absent. Neither node received the
-serving-health mutation. Action 35j accepted the corrected DNS-helper identity,
-then failed-consumed because the inventory used the former repository source
-name `pihole0-local-zone.conf` as the installed filename. Production and the
-renamed private source now both use `pihole-local-zone.conf`. No mutation
-entrypoint ran, and both exact upload trees were removed. Its terminal tag is
-synchronized and its machinery removed. Action 35k then failed-consumed before
-mutation because Node B's corrected local-zone path had observed SHA-256
-`c3cf7224451a17e419cc4f2401d032aca435e6fe6e0ac61d37acb3e48b829dd9`
-rather than registered SHA-256
-`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-Both upload trees were removed; rollback was not required.
-The operator subsequently aligned comment-only production bytes on both nodes
-with the renamed ignored source. Current source and deployed SHA-256 is
-`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`.
-The operator subsequently made both production local-zone files exact replicas
-of the repository source. Action 35l accepts only repository SHA-256
-`f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d`,
-transactionally reinstalls that file on Node B and then Node A, validates and
-reloads Unbound sequentially, and then promotes Node A's own
-candidate through its
-local `incoming/node-a/<revision>` finalizer and reconciler path. It must not
-republish, seed production state, or stream Node B configuration to Node A.
-Continuous IPv4 and IPv6 acceptance runs on both HA nodes and is read back to
-bounded workstation evidence on success and failure; WSL `network unreachable`
-results cannot count as successful IPv6 acceptance.
+The recovered production baseline remains:
 
-Action 35l then accepted the exact local-zone identity but failed before
-mutation because the production inventory targeted the obsolete
-`/usr/lib/tmpfiles.d/caddy-ha.conf` path. Operator readback proved the installed
-artifact is the exact regular `/etc/tmpfiles.d/caddy-ha.conf` file. Its terminal
-tag is synchronized, its machinery is removed, and it must not be rerun.
+- Node A is preferred dual-stack `MASTER`, owns all four VIPs, and selects
+  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`.
+- Node B is dual-stack `BACKUP`, owns no VIP, and selects
+  `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`.
+- Node A retains the finalized outbound candidate for Node B's selected
+  serving-health release.
+- Action 35v reuses that candidate and does not republish, seed production
+  state, or copy Node B configuration to Node A.
 
-Action 35m accepted the corrected tmpfiles inventory, then failed-consumed
-before candidate validation or mutation because Node B retains the sole regular
-`incoming/node-a/action17p-node-a-to-node-b-bootstrap` directory with exact
-`caddy-sync:caddy-sync:0500` metadata. Bounded completion readback is retained
-at `/tmp/caddy-action35m-completion-readback.tsv`; the entry was not altered.
-Both uploads were removed and rollback was not required. Action 35m must not be
-rerun. Action 35n required the exact retained
-metadata and pinned manifest identities, rejects every sibling or unsafe state,
-moves only that entry into transaction-owned evidence with synchronization
-frozen, restores it on rollback, and deletes it only after full acceptance.
-It failed before mutation because its file inventory incorrectly required both
-protocol-v2 markers. Bounded read-only capture at
-`/tmp/caddy-action35n-retained-inventory.txt` proved that the exact validated
-historical entry contains neither `.finalize-request` nor `.complete`; both
-uploads were removed and rollback was not required. A direct successor must
-require this exact marker-free state and then resume the unchanged standby-first
-transaction:
+After Action 35v is archived and removed, the direct successor must preserve
+the installation transaction while correcting only the proven boundaries:
 
-Action 35o accepted the exact marker-free Action 17p entry but failed before
-disposition or production mutation because Node B's role-inapplicable
-`incoming/node-b` path is absent and the transaction also imposed an obsolete
-empty-quarantine prerequisite. Its terminal tag is synchronized, its machinery
-is removed, and it must not be rerun. Bounded capture SHA-256
-`320a6b0718233c69c939f9cd471006f284efcee060cbca7df6b53be2438af7e9`
-proved four exact payload-valid historical quarantine trees: Action 17p,
-Action 33k normalized, and two Action 30c Node B outbound releases.
+- allow the bounded post-reload Keepalived initialization interval;
+- require several stable Node B `BACKUP` samples with zero VIPs before
+  acceptance;
+- use existing production continuity endpoints during the split-release phase
+  instead of requiring Node A's not-yet-present `/healthz`;
+- standardize producer notifications with application, component/check, node,
+  transition, impact, bounded failure class, episode identity, and useful
+  service/ownership context while preserving Apprise severity icons.
 
-Action 35p accepted the non-applicable
-incoming path only when absent. It validates the captured quarantine inventory
-byte-for-byte, proves none of the four trees is active or referenced by current,
-incoming, or outbound state, freezes synchronization, and reversibly stages
-only those four trees for deletion. It requires the protected quarantine root
-to be empty after disposition and at final acceptance. Changed, additional,
-missing, symlinked, malformed, unsafe, or referenced state fails closed.
-Rollback would have restored the exact captured quarantine. Execution reached
-the Node A production inventory and failed before disposition or mutation
-because the obsolete migration helper
-`/usr/local/libexec/prepare-lighttpd-config.sh` is absent. This is the correct
-Node A runtime state: the repository helper is a non-installable migration
-tool, not a node runtime artifact. Node B retains one exact legacy copy.
-Action 35p is failed-consumed and must not be rerun. The direct successor must
-remove only that validated Node B legacy copy transactionally, require the
-helper absent on both nodes, and resume the unchanged standby-first
-installation.
+The installed Keepalived parser interface remains prohibited. Candidate
+acceptance uses repository structure, exact rendered identities, real service
+identities, standby-first reload, bounded live convergence, and reverse
+rollback. Pi-hole/lighttpd backend health remains notification-only.
 
-Action 35q is that sole defined successor. It consumes Action 35p without
-rerunning it, treats `prepare-lighttpd-config.sh` as a repository-only migration
-tool, requires the helper absent on Node A, and accepts only the exact
-`root:root:0755` Node B legacy copy with SHA-256
-`ce9a78aa487ce55c6fbba553b238160687852361d81c9b37179e4def8f83166f`.
-Node B removal is backed up before deletion, restored by rollback, and required
-absent on both nodes at final acceptance. The quarantine cleanup and remaining
-standby-first installation are otherwise unchanged.
+The registered no-network production-path coverage executes the actual outer
+and transaction entrypoints. It observes payload upload boundaries, complete
+production-inventory decisions, retained-state rejection and disposition,
+Node B installation before Node A promotion, the selected-release transition,
+finalizer and reconcile calls, post-promotion IPv4/IPv6 helper success, Node A
+installation, reverse rollback, and success/failure evidence readback for both
+nodes. Test inputs are isolated; command, mutation, acceptance, rollback, and
+success results are produced by the real entrypoints and observable
+substitutes, not fabricated markers.
 
-Action 35q passed Node B preflight and failed before mutation during Node A
-quarantine validation. Node A retains four exact historical quarantine
-families: two Node B release revisions and two Action 30d outbound revisions.
-The transaction's empty-Node-A-quarantine assumption was stale. Both uploaded
-payloads were disposed, failure readback returned success on both nodes, no
-mutation entrypoint ran, and rollback was not required. Action 35q is
-failed-consumed and must not be rerun. After terminal archival, the direct
-successor must semantically validate and reversibly disposition only those four
-unreferenced Node A families before resuming the unchanged standby-first
-installation.
-
-Action 35r reused the Node B quarantine disposition design but compared the
-Node A protocol-v2 file set with a noncanonical path representation. Action
-35s corrected that comparison and both node preflights passed. It then failed
-before mutation because it reintroduced the known-broken installed Keepalived
-`--config-test` interface. Action 35t consumes but does not rerun Action 35s,
-removes only that invalid parser prerequisite, and retains the remaining
-standby-first transaction unchanged. Pre-mutation checks retain exact
-repository structure, rendered identity, Unbound validation, and real service
-identity probes. Sequential standby-first reload, bounded service/VRRP
-convergence, and reverse rollback are the authoritative live acceptance path.
-
-Action 35t removed the prohibited parser prerequisite. Both node preflights and
-Node B candidate validation passed. Node A candidate validation then failed
-closed at the real service-identity assertion
-`caddy_serving_health_check_ipv4_https=false`; DNS identity, Unbound
-validation, and the preceding payload checks passed. No disposition,
-installation, reload, or other mutation entrypoint ran. Failure evidence
-readback and exact upload cleanup succeeded on both nodes, so rollback was not
-required. Workstation evidence is
-`/tmp/caddy-ssh-evidence-action35t.68VRV6`. Action 35t must not be rerun.
-
-- consume the accepted current baseline;
-- install the neutral Caddy serving-health helper;
-- install the Pi-hole web notification monitor and timer;
-- update Keepalived on Node B, then Node A;
-- reuse the already-published immutable Caddy release without republishing;
-- accept Node B before Node A;
-- prove the DNS and Caddy helpers are eligible bounded VRRP inputs without
-  inducing a serving failure;
-- prove the lighttpd/Pi-hole monitor is notification-only by configuration and
-  service boundaries;
-- restore Node A preferred ownership;
-- retain all evidence and roll back in reverse order.
-
-The generic installer must not perform this migration. Live execution requires
-authorization of the refreshed outer-runner SHA-256 after repository validation.
-
-Production-path validation must execute the registered outer and transaction
-state machines and assert their actual calls and filesystem effects. Tests may
-create isolated inputs and bounded external-command substitutes, but they must
-never fabricate command, transport, status, mutation, acceptance, rollback, or
-journal results. Each coverage decision must contain independently obtained
-expected and observed values, status, and the SHA-256 of bounded raw evidence.
-Coverage includes every production-inventory key and successful and failed
-evidence readback for both nodes. Emitted success markers, marker counting, and
-fixture-authored production results are not evidence. Authorization readiness
-must reject any successor that can report success without executing both
-registered production paths.
+Live execution requires one exact outer-runner SHA-256 authorization after the
+current host profiles, one network-disabled Debian 12 batch, the complete
+pre-commit suite, and
+`Caddy/tests/deployable-successor-policy.sh --authorization-ready` all pass.
 
 ## 18. Pending work
 

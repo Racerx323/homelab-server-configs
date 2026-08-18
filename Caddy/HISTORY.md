@@ -3,6 +3,27 @@
 The main branch contains current production artifacts and approved future work.
 Git preserves the complete deployment journal and executed action files.
 
+## Action 35v terminal archive
+
+- Tag: `caddy-action35v-terminal-2026-08-17`
+- Action: 35v
+- Authorized outer SHA-256:
+  `8aee367408d1d09b7e9490bc9400050bc5b2012b92baad20e41fbed5fc643803`
+- Transaction SHA-256:
+  `5b948fe56bc4cf5d5be07631fc4b5418214faf0390ed9534fe9b7f53e5c8d838`
+- Result: failed-consumed after Node B installation and before any Node A
+  promotion or mutation
+- Exit status: 1
+- Workstation evidence: `/tmp/caddy-ssh-evidence-action35v.Og4PSy`
+- Failed boundary: Node B was sampled in dual-stack `FAULT` with zero VIPs
+  immediately after Keepalived reload, before the configured three successful
+  health checks could establish stable `BACKUP`
+- Secondary rejected evidence: Node A's split-release sampler treated the
+  already-proven pre-promotion `/healthz` HTTP 404 as a continuity failure
+- Recovery: Node B rollback and both node evidence readbacks returned 0; Node B
+  returned to `BACKUP`; Node A was not promoted or mutated
+- Status: terminal-pending
+
 ## Archive boundary
 
 - Tag: `caddy-pre-cleanup-history-2026-08-16`

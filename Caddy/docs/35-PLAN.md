@@ -28,11 +28,20 @@ proxy retained but did not relay helper stdout, creating an observer-induced
 Node B helper-status failure; the independently executed detailed curl results
 are authoritative. No further diagnostic or Action 35u rerun is permitted.
 
-The next direct installation successor is Action 35v. It consumes Actions 35t
-and 35u without rerunning either, accepts the exact split-release 404/204
-baseline, activates Node A's already-published serving-health release before
-requiring the unwrapped helper to pass, and then resumes the unchanged
-standby-first installation.
+Action 35v is failed-consumed. It accepted and installed Node B's candidate,
+then sampled ownership immediately after the Keepalived reload and observed
+dual-stack `FAULT` with zero VIPs. That assertion ran before `interval 3`,
+`rise 3` could establish three successful checks. Candidate DNS and Caddy
+helpers had passed under their real identities. Node B rollback succeeded and
+returned it to `BACKUP`; Node A was not promoted or mutated. The pre-promotion
+Node A availability sampler also repeated the already-proven `/healthz` 404.
+Evidence is `/tmp/caddy-ssh-evidence-action35v.Og4PSy`. No Action 35v rerun or
+separate diagnostic is permitted.
+
+After terminal archival, the direct successor preserves the installation logic
+and corrects the bounded convergence and split-release continuity assertions.
+It also installs standardized, expressive notifications without making
+delivery part of any serving or ownership decision.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
@@ -49,8 +58,8 @@ Every consumed implementation through Action 35i is preserved by the annotated
 tags in `Caddy/HISTORY.md`; none is restored, modified, or rerun from the current
 branch. Action 35j is preserved only by its annotated tag. Action 35o's terminal
 commit and annotated tag are recorded, and its machinery is removed. The Caddy
-deployment stream is defined at Action 35r after archiving failed-consumed
-Action 35q. Actions 35o through 35q are not rerunnable.
+deployment stream is now defined only at Action 35v. Actions 35o through 35u
+are consumed and are not rerunnable.
 
 Action 35g published one immutable serving-health Caddy release and Node B
 selected it. Node A remains on the accepted Action 32g release and retains the
@@ -440,7 +449,7 @@ immutable protocol-v2 release.
 
 ## Actual split-release baseline
 
-The next direct installation successor starts from the current production
+Action 35v starts from the current production
 state, not a historical fixture:
 
 - Node A is preferred dual-stack `MASTER`, owns all four VIPs, and selects
@@ -460,7 +469,7 @@ reconstruct a historical fixture, or copy Node B configuration to Node A.
 
 ## Direct installation successor contract
 
-The next direct successor is one transaction with complete embedded acceptance:
+Action 35v is one transaction with complete embedded acceptance:
 
 1. Validate exact split releases, outbound/incoming/quarantine inventories,
    artifact identities, permissions, services, unit enablement, synchronization,
