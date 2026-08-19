@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: core deployment accepted; Action 35ae is archived after successful Node B rollback; neutral Keepalived DNS and Proxy probes are simplified and awaiting a separately defined installation successor; installed Keepalived parser modes are prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35ak; both Pi-hole web-monitor units are accepted and healthy; the Caddy deployment stream is clean; notification standardization is the next gate and must finish before the controlled serving-failure exercise; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -607,18 +607,26 @@ was not required. Evidence is
 
 ## 18. Pending work
 
-After a corrected installation and separately accepted controlled exercise:
+Before the controlled serving-failure exercise:
 
 1. finish notification standardization by removing the legacy duplicate
    `[Failover Alert]` producer, persisting the actual acknowledged prior VRRP
    state for `previous -> current`, and classifying transaction-authorized
    Keepalived stop/restart events as bounded planned maintenance rather than
    unexpected transitions; the maintenance context must never affect VRRP or
-   notification delivery and must be cleaned on success and rollback;
-2. write operator quick-start, installation, uninstallation, and
+   notification delivery and must be cleaned on success and rollback; replace
+   the pipe-delimited notification body with a readable multiline plain-text
+   layout using labeled sections and bullet lists while preserving the
+   Apprise severity emojis in every title;
+2. define and separately authorize the controlled serving-failure exercise
+   only after notification standardization is accepted.
+
+After the controlled exercise:
+
+1. write operator quick-start, installation, uninstallation, and
    troubleshooting documentation;
-3. create the canonical LikeC4 model and generated views;
-4. improve the future reverse-proxy application template, using
+2. create the canonical LikeC4 model and generated views;
+3. improve the future reverse-proxy application template, using
    `reverse-proxy.caddy.example` as input.
 
 Munin monitoring is canceled. Home Assistant DNS work belongs to a future DNS

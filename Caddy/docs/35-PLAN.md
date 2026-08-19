@@ -270,7 +270,19 @@ reviewed operation does all of the following:
 3. give authorized transactions a bounded planned-maintenance context so their
    intentional Keepalived stop/restart transitions are informational planned
    maintenance rather than unexpected warnings. That context must not affect
-   VRRP eligibility or delivery and must be removed on success and rollback.
+   VRRP eligibility or delivery and must be removed on success and rollback;
+   and
+4. replace the pipe-delimited body with a readable multiline plain-text layout
+   using short labeled sections and bullet lists. Preserve the Apprise severity
+   emojis (`🚨`, `⚠️`, `ℹ️`, and `✅`) in notification titles. Do not remove
+   bounded troubleshooting fields; reorganize them into `Summary`, `Impact`,
+   `HA and network`, `Details`, and `Next step` sections.
+
+The operator has selected notification standardization as the next gate. It
+must be accepted before the controlled serving-failure exercise is defined so
+that exercise notifications are evaluated against the final production
+contract rather than the transitional duplicate and `unknown -> state`
+behavior.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
@@ -776,7 +788,7 @@ network-disabled Debian 12 focused batch, the complete pre-commit suite, and
 must reject while the registry is `none`; a future hash may be reported only
 after one successor is defined and the causal evidence contract passes.
 
-## Deferred controlled serving-failure exercise
+## Controlled serving-failure exercise deferred until notification acceptance
 
 The controlled exercise is not assigned an action number until installation is
 accepted. It uses current services and no production fixtures. Each scenario

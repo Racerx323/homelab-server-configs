@@ -7,9 +7,10 @@ never participates in VRRP, Caddy, lsyncd, reconciliation, or health decisions.
 
 ## Alert content contract
 
-Production producers use one bounded text layout. The enqueue helper adds the
-Apprise severity icon and node identity, then validates the complete title and
-body before writing the queue record.
+Production producers use one bounded multiline plain-text layout. The enqueue
+helper adds the Apprise severity icon and node identity, then validates the
+complete title and body before writing the queue record. Dense pipe-delimited
+bodies are prohibited.
 
 | Field | Contract |
 | --- | --- |
@@ -40,6 +41,44 @@ Alerts exclude secrets, environment dumps, complete HTTP responses, unbounded
 journal text, and raw command output. Journald and retained transaction
 evidence hold the detailed diagnostic data.
 
+The rendered notification uses this structure:
+
+```text
+✅ [DNS] Recovery on j1-svpihole0
+
+Summary
+- Node: j1-svpihole0.local.theama.co
+- Component: Keepalived PIHOLE_DUALSTACK
+- Event: recovery
+- State: BACKUP -> MASTER
+
+Impact
+Node owns all DNS and Proxy VIPs and serves both applications.
+
+HA and network
+- Local role: preferred-node-a
+- Peer role: standby-node-b
+- Shared VIPs: 4
+- DNS: 10.1.0.55 and fd36:5aa8:6971:1::55
+- Proxy: 10.1.0.56 and fd36:5aa8:6971:1::56
+
+Details
+- Check: ownership-state
+- Failure class: none
+- Status: keepalived_state=MASTER
+- Observed: 2026-08-18T22:15:40Z
+- Correlation: bounded-event-id
+
+Next step
+- Evidence: journalctl -u keepalived.service -t keepalived-notify
+- First check: systemctl status keepalived.service
+```
+
+Sections with no meaningful value are omitted rather than rendered as
+`not applicable`. Values remain bounded and validated before enqueue. The
+layout is plain text so it remains readable across Apprise targets without
+depending on target-specific Markdown.
+
 ## Remaining notification-standardization work
 
 Notification standardization is not complete until the legacy
@@ -54,6 +93,10 @@ context for intentional Keepalived stops and restarts. Those events are
 informational planned maintenance, not unexpected warnings. The context must
 not influence VRRP eligibility, source-service success, queue delivery, or
 deduplication, and it must be removed after both success and rollback.
+
+The enqueue helper must render every structured producer through the same
+multiline formatter. The four existing severity emojis remain unchanged:
+`🚨` failure, `⚠️` warning, `ℹ️` information, and `✅` success or recovery.
 
 ## Ownership and paths
 
