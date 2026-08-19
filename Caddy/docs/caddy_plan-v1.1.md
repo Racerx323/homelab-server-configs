@@ -591,10 +591,10 @@ successor must retain the proven unit and replace that count with a fresh
 post-direct cursor followed by one timer-owned healthy result, successful
 completion, and successful unit result.
 
-Action 35ak is the defined direct successor. The unit and installation phases
-are unchanged. Acceptance takes a fresh cursor after direct success and then
-requires a later timer-owned healthy event, successful completion, and
-successful unit result. Node B remains first and reverse rollback remains
+Action 35ak was the defined direct successor. The unit and installation phases
+were unchanged. Acceptance took a fresh cursor after direct success and then
+required a later timer-owned healthy event, successful completion, and
+successful unit result. Node B remained first and reverse rollback remained
 unchanged.
 
 Action 35ak is accepted with exit status 0. Node B completed before Node A,

@@ -5,10 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
-- Planned archive tag: `caddy-action35ak-terminal-2026-08-18`
-- Terminal action: Action 35ak, accepted on both nodes. The exact operation
-  remains only until its annotated terminal tag is created.
+- State: clean
+- Latest archive tag: `caddy-action35ak-terminal-2026-08-18`
+- Terminal action: Action 35ak is accepted, archived, and cleaned. No
+  deployment successor is defined.
 
 ## Action 35ah terminal archive
 
@@ -153,7 +153,8 @@ Git preserves the complete deployment journal and executed action files.
 - Transaction SHA-256:
   `1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7`
 - Result: accepted; exit status 0.
-- Status: terminal-pending.
+- Status: archived and cleaned; the neutral operation specification is
+  inactive and the Caddy deployment stream is clean.
 - Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.secstj`.
 - Node B completed before Node A. Both nodes installed exact unit SHA-256
   `d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc`.

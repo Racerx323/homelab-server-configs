@@ -225,11 +225,11 @@ required two literal systemd `Starting` messages and observed only one. Node A
 was not mutated. Node B rollback, readback, and both payload dispositions
 passed. Evidence is `/tmp/caddy-ssh-evidence-serving_health.YgxxZn`.
 
-Action 35ak is the defined direct successor. It retains the exact Action 35aj
-unit and installation logic. After direct success it captures a fresh journal
-cursor and accepts only a subsequent timer-owned healthy event, successful
-completion, and successful unit result. It does not count systemd `Starting`
-messages. Node B then Node A ordering and reverse rollback are unchanged.
+Action 35ak was the defined direct successor. It retained the exact Action 35aj
+unit and installation logic. After direct success it captured a fresh journal
+cursor and accepted only a subsequent timer-owned healthy event, successful
+completion, and successful unit result. It did not count systemd `Starting`
+messages. Node B then Node A ordering and reverse rollback were unchanged.
 
 Action 35ak is accepted with exit status 0 and evidence at
 `/tmp/caddy-ssh-evidence-serving_health.secstj`. Node B completed before Node A;

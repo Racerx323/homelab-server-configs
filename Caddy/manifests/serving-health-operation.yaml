@@ -1,15 +1,7 @@
 schema_version: 2
-action: 35ak
-title: Pi-hole web-monitor timer-acceptance repair
-status: accepted-executed-definition
-scope: pihole-web-health-unit-only
-consumes:
-  - action: 35aj
-    result: failed-consumed-after-node-b-mutation
-    rerun: prohibited
-    archive_tag: caddy-action35aj-terminal-2026-08-18
-    evidence: /tmp/caddy-ssh-evidence-serving_health.YgxxZn
-    proven_failure: start-message-count-rejected-proven-healthy-invocations
+action: none
+title: Inactive serving-health deployment operation
+status: inactive
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
@@ -17,47 +9,7 @@ transaction: Caddy/scripts/apply-serving-health-deployment.sh
 transaction_sha256: 1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: 9809c2fe41a4bdd65f2c30f752e565a2b3d376813b2282a8c469813c785047e9
+state_sha256: 26210b6588f183119853497bfce6473eec9d37f5dd6c50c441ea21409d8d35aa
 production_contract: Caddy/manifests/serving-health-production.tsv
-mutation:
-  source: Caddy/systemd/caddy-pihole-web-health.service
-  target: /etc/systemd/system/caddy-pihole-web-health.service
-  deployed_sha256: a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
-  candidate_sha256: d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
-  mode: "0644"
-  owner: root
-  group: root
-ordering:
-  - validate both nodes without mutation
-  - replace and accept the unit on standby Node B
-  - replace and accept the unit on preferred Node A
-  - read back bounded evidence and remove transaction payloads
-acceptance:
-  - service keeps User=pi and Group=pi with SupplementaryGroups=caddy-tls
-  - service identity can read the protected environment and write the persistent queue
-  - direct systemd invocation succeeds
-  - a fresh post-direct journal cursor is captured
-  - a later timer-triggered healthy event and successful completion occur
-  - the timer-owned unit result and exit status are successful
-  - persistent queue ownership and modes remain exact
-  - Caddy, lighttpd, Pi-hole FTL, Unbound, Keepalived, and caddy-lsyncd remain active
-  - Caddy, lighttpd, DNS, and Keepalived are not restarted or reloaded
-rollback:
-  order: node-a-then-node-b
-  restore: exact deployed unit bytes
-  unrecoverable_status: 125
-live_execution: separately-authorized-by-exact-outer-sha256
-terminal_result:
-  result: accepted
-  exit_status: 0
-  outer_sha256: d3e0a1cc4f04c9c362c6c6974578a788f1fb1f7a10913cbef0b6993022842770
-  transaction_sha256: 1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7
-  evidence: /tmp/caddy-ssh-evidence-serving_health.secstj
-  ordering: node-b-then-node-a
-  node_a_installed_sha256: d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
-  node_b_installed_sha256: d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
-  direct_acceptance: result-success,exec-main-status-0
-  timer_acceptance: healthy-event,result-success,exec-main-status-0
-  payload_cleanup: proven
-  rollback: not-required
-  archive_tag: caddy-action35ak-terminal-2026-08-18
+quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
+live_execution: no-operation-defined
