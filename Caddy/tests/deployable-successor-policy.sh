@@ -136,7 +136,7 @@ successor_policy_coverage_valid() {
             successor_policy_required_scenarios='endpoint-only secret-bearing-evidence-rejection exact-legacy-title-search second-caller-attribution scheduled-job-attribution retained-replay-attribution multiple-candidate-ambiguity no-evidence-unattributed bounded-journal-selection zero-production-mutation outer-preflight exact-remote-cleanup evidence-readback-success evidence-readback-failure zero-production-mutation-outer'
             ;;
         controlled-serving-failure-exercise)
-            successor_policy_required_scenarios='exercise-role-rejection exercise-service-control exercise-ownership-convergence exercise-journal-bounded exercise-reverse-restoration outer-preflight outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup'
+            successor_policy_required_scenarios='exercise-role-rejection exercise-service-control exercise-ownership-convergence exercise-journal-bounded exercise-reverse-restoration outer-preflight outer-real-preflight outer-stale-preflight outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup'
             ;;
         *)
             successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'

@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=b53258a8d12d6b9e966e7be6597e755793361eb013a833670751c4fddac6f40f
-readonly operation_sha256=9daab19ddcc59267e3cbe5994dc0d9349a5f4e86ed1f63dc097c30ad44ee45c9
+readonly transaction_sha256=fc0feed5d506d53b9f9cc755aec56d9bb540ce0ecea82ffa31aee89ea19604bf
+readonly operation_sha256=0cbac141435cccbefc448620b765b0984ce49b108245c0a2a6e7126310fbe308
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -100,6 +100,8 @@ build_payload() {
     fi
     install -m 0600 "$repository_root/Caddy/manifests/production-artifacts.tsv" \
         "$payload_stage/manifests/production-artifacts.tsv"
+    install -m 0600 "$repository_root/Caddy/manifests/current-live-state.tsv" \
+        "$payload_stage/manifests/current-live-state.tsv"
     install -m 0600 "$repository_root/Caddy/manifests/serving-health-quarantine-baseline.tsv" \
         "$payload_stage/manifests/serving-health-quarantine-baseline.tsv"
     while IFS=$'\t' read -r serving_health_repository serving_health_source serving_health_target \
@@ -1255,11 +1257,56 @@ SSH
 controlled_failure_outer_production_path_test() {
     local exercise_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local exercise_remote_base exercise_raw exercise_decision exercise_status
+    local exercise_role exercise_node_root exercise_key exercise_repository exercise_source
+    local exercise_target exercise_inventory_node exercise_source_hash exercise_deployed_hash
+    local exercise_accepted exercise_lifecycle exercise_source_path exercise_installed
+    local exercise_revision exercise_parent exercise_release
+
+    CADDY_NOTIFICATION_STATE_CONTRACT_ONLY=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        /bin/bash "$transaction" --production-path-test >/dev/null
 
     exercise_remote_base=$(mktemp -d /tmp/caddy-controlled-exercise-outer.XXXXXX)
     test_remote_base=$exercise_remote_base
     export CADDY_SERVING_HEALTH_TEST_REMOTE_BASE=$test_remote_base
     install -d -m 0700 "$test_remote_base/bin"
+    cat >"$test_remote_base/bin/systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+case "$1" in
+    is-active) exit 0 ;;
+    is-enabled)
+        if [[ "${2:-}" = --quiet ]]; then
+            exit 0
+        fi
+        case "${2:-}" in
+            caddy-api.service | lsyncd.service) printf 'masked\n' ;;
+            *) printf 'enabled\n' ;;
+        esac
+        ;;
+    *) exit 64 ;;
+esac
+SYSTEMCTL
+    cat >"$test_remote_base/bin/busctl" <<'BUSCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ "${CADDY_SERVING_HEALTH_TEST_NODE:?}" = node-a ]]; then
+    printf 's "Master"\n'
+else
+    printf 's "Backup"\n'
+fi
+BUSCTL
+    cat >"$test_remote_base/bin/ip" <<'IP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ "${CADDY_SERVING_HEALTH_TEST_NODE:?}" = node-a ]]; then
+    printf '%s\n' \
+        '1: eth0    inet 10.1.0.55/22 scope global eth0' \
+        '1: eth0    inet 10.1.0.56/22 scope global eth0' \
+        '1: eth0    inet6 fd36:5aa8:6971:1::55/128 scope global' \
+        '1: eth0    inet6 fd36:5aa8:6971:1::56/128 scope global'
+fi
+IP
     cat >"$test_remote_base/bin/sudo" <<'SUDO'
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -1267,7 +1314,6 @@ set -Eeuo pipefail
 shift
 if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
     ( "${4:-}" = exercise-* || "${4:-}" = sampler-* ) ]]; then
-    cat >/dev/null
     mode=$4
     role=$5
     payload=$6
@@ -1276,6 +1322,19 @@ if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
     install -d -m 0700 "$evidence"
     printf '%s\t%s\t%s\n' "$role" "$mode" "$argument" \
         >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/transaction.calls"
+    if [[ "$mode" = exercise-preflight ]]; then
+        node_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$role-root
+        exec env \
+            CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+            CADDY_SERVING_HEALTH_TARGET_ROOT="$node_root" \
+            CADDY_SERVING_HEALTH_RELEASES_ROOT="$node_root/etc/caddy/releases" \
+            CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/systemctl" \
+            CADDY_SERVING_HEALTH_BUSCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl" \
+            CADDY_SERVING_HEALTH_IP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/ip" \
+            CADDY_SERVING_HEALTH_TEST_NODE="$role" \
+            "$@"
+    fi
+    cat >/dev/null
     state_directory=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/state
     install -d -m 0700 "$state_directory"
     service_for() {
@@ -1314,7 +1373,6 @@ if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
                 >"$evidence/availability.tsv"
             ;;
         sampler-stop) test -s "$evidence/availability.tsv" ;;
-        exercise-preflight) : ;;
         exercise-cursor)
             printf '%s\n' controlled-cursor >"$evidence/exercise-$argument.cursor.tsv"
             ;;
@@ -1400,8 +1458,9 @@ target=${4#*:}
 printf '%s\t%s\n' "${4%%:*}" "$target" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/scp.calls"
 install -m 0600 "$source" "$target"
 SCP
-    chmod 0700 "$test_remote_base/bin/sudo" "$test_remote_base/fake-ssh" \
-        "$test_remote_base/fake-scp"
+    chmod 0700 "$test_remote_base/bin/sudo" "$test_remote_base/bin/systemctl" \
+        "$test_remote_base/bin/busctl" "$test_remote_base/bin/ip" \
+        "$test_remote_base/fake-ssh" "$test_remote_base/fake-scp"
     : >"$test_remote_base/ssh.calls"
     : >"$test_remote_base/scp.calls"
     : >"$test_remote_base/transaction.calls"
@@ -1409,6 +1468,113 @@ SCP
     scp_command=$test_remote_base/fake-scp
     node_a_host=test-node-a
     node_b_host=test-node-b
+
+    exercise_revision=$(awk -F '\t' '$2 == "node-a" && $3 == "release" { print $4 }' \
+        "$repository_root/Caddy/manifests/current-live-state.tsv" |
+        sed -n 's/.*revision=\([^,]*\).*/\1/p')
+    exercise_parent=$(awk -F '\t' '$2 == "node-a" && $3 == "release" { print $4 }' \
+        "$repository_root/Caddy/manifests/current-live-state.tsv" |
+        sed -n 's/.*parent=\([^,]*\).*/\1/p')
+    for exercise_role in node-a node-b; do
+        exercise_node_root=$test_remote_base/$exercise_role-root
+        install -d -m 0700 "$exercise_node_root"
+        while IFS=$'\t' read -r exercise_key exercise_repository exercise_source \
+            exercise_target exercise_inventory_node exercise_source_hash \
+            exercise_deployed_hash exercise_accepted exercise_lifecycle; do
+            [[ "$exercise_key" = '# key' ]] && continue
+            [[ "$exercise_inventory_node" = "$exercise_role" ||
+                "$exercise_inventory_node" = both ]] || continue
+            [[ "$exercise_repository" != runtime-generated ]] || continue
+            [[ -n "$exercise_accepted" && "$exercise_lifecycle" = production-current ]]
+            exercise_installed=$exercise_node_root$exercise_target
+            install -d -m 0755 "$(dirname -- "$exercise_installed")"
+            case "$exercise_key" in
+                *_caddy_environment)
+                    if [[ "$exercise_role" = node-a ]]; then
+                        printf 'NODE_FQDN=pihole0.local.theama.co\nNODE_IPV4=10.1.0.53\nNODE_IPV6=fd36:5aa8:6971:1::53\n' \
+                            >"$exercise_installed"
+                    else
+                        printf 'NODE_FQDN=pihole00.local.theama.co\nNODE_IPV4=10.1.0.54\nNODE_IPV6=fd36:5aa8:6971:1::54\n' \
+                            >"$exercise_installed"
+                    fi
+                    ;;
+                *_protocol_v2_reconciler)
+                    git -C "$repository_root" show \
+                        d131b9d:Caddy/scripts/reconcile-release-v2.sh \
+                        >"$exercise_installed"
+                    ;;
+                *)
+                    exercise_source_path=$workspace_root/$exercise_repository/$exercise_source
+                    [[ "$(sha256sum "$exercise_source_path" | awk '{ print $1 }')" = "$exercise_source_hash" ]]
+                    install -m 0600 "$exercise_source_path" "$exercise_installed"
+                    ;;
+            esac
+            case "$exercise_target" in
+                /etc/default/caddy-ha) chmod 0640 "$exercise_installed" ;;
+                /etc/scripts/* | /usr/local/bin/* | /usr/local/libexec/*)
+                    chmod 0755 "$exercise_installed"
+                    ;;
+                *) chmod 0644 "$exercise_installed" ;;
+            esac
+            [[ "$(sha256sum "$exercise_installed" | awk '{ print $1 }')" = "$exercise_deployed_hash" ]]
+        done <"$repository_root/Caddy/manifests/production-artifacts.tsv"
+        exercise_release=$exercise_node_root/etc/caddy/releases/$exercise_revision
+        install -d -m 0750 "$exercise_release"
+        cp -a -- "$repository_root/Caddy/configs/caddy/." "$exercise_release/"
+        jq -n --arg revision "$exercise_revision" --arg parent "$exercise_parent" \
+            '{revision:$revision,parent_revision:$parent,source_node:"node-a",created_at:"2026-08-18T17:15:16-05:00"}' \
+            >"$exercise_release/release-manifest.json"
+        (
+            cd "$exercise_release"
+            find . -type f ! -path ./manifest.sha256 ! -path ./.complete \
+                ! -path ./.finalize-request -print0 | LC_ALL=C sort -z | xargs -0 sha256sum
+        ) >"$exercise_release/manifest.sha256"
+        find "$exercise_release" -type d -exec chmod 0550 {} +
+        find "$exercise_release" -type f -exec chmod 0440 {} +
+        install -d -m 0755 "$exercise_node_root/etc/caddy"
+        ln -s "releases/$exercise_revision" "$exercise_node_root/etc/caddy/current"
+        install -d -m 0700 "$exercise_node_root/var/lib/caddy-apprise-queue"/{pending,inflight,dead-letter,delivered}
+        chmod 0700 "$exercise_node_root/var/lib/caddy-apprise-queue" \
+            "$exercise_node_root/var/lib/caddy-apprise-queue"/*
+        install -d -m 0755 "$exercise_node_root/var/lib/caddy-serving-health"
+        install -d -m 0700 \
+            "$exercise_node_root/var/lib/caddy-serving-health/keepalived-notify"
+        if [[ "$exercise_role" = node-a ]]; then
+            printf 'MASTER\n' >"$exercise_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+        else
+            printf 'BACKUP\n' >"$exercise_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+        fi
+        chmod 0600 \
+            "$exercise_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+    done
+
+    exercise_release=$test_remote_base/node-b-root/etc/caddy/releases/$exercise_revision
+    chmod 0640 "$exercise_release/release-manifest.json"
+    cp -- "$exercise_release/release-manifest.json" \
+        "$test_remote_base/node-b-release-manifest.saved"
+    jq '.revision = "stale-release"' "$test_remote_base/node-b-release-manifest.saved" \
+        >"$exercise_release/release-manifest.json"
+    chmod 0440 "$exercise_release/release-manifest.json"
+    if run_controlled_failure_exercise_live; then
+        exercise_status=0
+    else
+        exercise_status=$?
+    fi
+    [[ "$exercise_status" -ne 0 && "$exercise_status" -ne 125 ]]
+    exercise_raw=$exercise_test_root/raw/outer-stale-preflight.txt
+    exercise_decision=$exercise_test_root/decisions/outer-stale-preflight.tsv
+    cat "$workstation_evidence/node-b-exercise-preflight.stdout" \
+        "$workstation_evidence/node-b-exercise-preflight.stderr" >"$exercise_raw"
+    grep -Fq 'serving_health_deployment_check_current_live_release_revision=false' \
+        "$exercise_raw"
+    write_decision outer-stale-preflight reject "$exercise_status" \
+        current-production-release stale-release "$exercise_raw" "$exercise_decision"
+    chmod 0750 "$exercise_release"
+    chmod 0640 "$exercise_release/release-manifest.json"
+    mv -- "$test_remote_base/node-b-release-manifest.saved" \
+        "$exercise_release/release-manifest.json"
+    chmod 0440 "$exercise_release/release-manifest.json"
+    chmod 0550 "$exercise_release"
 
     : >"$test_remote_base/fail-next-stop"
     if run_controlled_failure_exercise_live; then
@@ -1438,6 +1604,20 @@ SCP
     grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- exercise-preflight node-b' "$exercise_raw"
     grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- exercise-preflight node-a' "$exercise_raw"
     write_decision outer-preflight reach 0 dual-node-preflight dual-node-preflight \
+        "$exercise_raw" "$exercise_decision"
+
+    exercise_raw=$exercise_test_root/raw/outer-real-preflight.txt
+    exercise_decision=$exercise_test_root/decisions/outer-real-preflight.tsv
+    cat "$workstation_evidence/node-b-exercise-preflight.stdout" \
+        "$workstation_evidence/node-a-exercise-preflight.stdout" >"$exercise_raw"
+    [[ "$(grep -Fc 'serving_health_deployment_check_current_live_manifest_valid=true' \
+        "$exercise_raw")" -eq 2 ]]
+    [[ "$(grep -Fc 'serving_health_deployment_check_notification_state_inventory=true' \
+        "$exercise_raw")" -eq 2 ]]
+    [[ "$(grep -Fc 'serving_health_deployment_check_exercise_mutation_residue_absent=true' \
+        "$exercise_raw")" -eq 2 ]]
+    write_decision outer-real-preflight reach 0 \
+        dual-node-real-transaction-preflight dual-node-real-transaction-preflight \
         "$exercise_raw" "$exercise_decision"
 
     exercise_raw=$exercise_test_root/raw/outer-full-scenario-sequence.txt

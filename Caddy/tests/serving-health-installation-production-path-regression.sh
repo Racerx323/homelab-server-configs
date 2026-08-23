@@ -113,8 +113,8 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         test -s "$root/transaction/decisions/$decision.tsv"
         test -s "$root/transaction/raw/$decision.txt"
     done
-    for decision in outer-preflight outer-full-scenario-sequence \
-        outer-recovery-status125 outer-readback-cleanup; do
+    for decision in outer-preflight outer-real-preflight outer-stale-preflight \
+        outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup; do
         test -s "$root/outer/decisions/$decision.tsv"
         test -s "$root/outer/raw/$decision.txt"
     done

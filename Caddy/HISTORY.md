@@ -5,10 +5,58 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35an-terminal-2026-08-23`
-- Terminal action: Action 35an is failed-consumed, pre-mutation, and must not be
-  rerun. Its consumed operation data is cleaned and no successor is defined.
+- State: terminal-pending
+- Archive tag: `caddy-action35ao-terminal-2026-08-23`
+- Terminal action: Action 35ao is failed-consumed after the first controlled
+  scenario and must not be restored, modified, or rerun.
+- Successor registry: none. Audit and correct the neutral controlled-exercise
+  contract before defining another live operation.
+
+## Action 35ao terminal result
+
+- Tag: `caddy-action35ao-terminal-2026-08-23`
+- Authorized outer SHA-256:
+  `b36a91890b21c7a7550f45caf6a1e6756af0d2f132d6207ad3591fd8bd62df22`
+- Transaction SHA-256:
+  `fc0feed5d506d53b9f9cc755aec56d9bb540ce0ecea82ffa31aee89ea19604bf`
+- Result: failed-consumed after mutation; exit status 125.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.IUbJF4`.
+- The first `node-a-transient-caddy` scenario stopped and restored Caddy on
+  Node A. It unexpectedly crossed the coupled failure threshold: Node A moved
+  `MASTER -> FAULT`, Node B moved `BACKUP -> MASTER`, and the preferred baseline
+  was subsequently restored. No later scenario ran.
+- Defect 1: the transient scenario did not bound the interruption to exactly
+  one failed Keepalived execution and did not observe ownership continuously;
+  its post-restoration ownership check could not prove that VIP movement never
+  occurred.
+- Defect 2: the journal acceptance expected one
+  `VRRP_Script(check-caddy) failed` record but the retained cursor-bounded
+  journal observed zero. Structured notifications independently prove the
+  `MASTER -> FAULT`, failover, standby, and recovery transitions, so this is an
+  incomplete causal-evidence contract rather than an absent notification.
+- Defect 3: Node B's continuous sampler recorded one IPv4 shared Pi-hole UI
+  failure, `curl: (16) Send failure: Connection reset by peer`; uninterrupted
+  shared-UI continuity was not proven.
+- Final recovery evidence passed: Node A was dual-stack `MASTER` with all four
+  VIPs, Node B was dual-stack `BACKUP` with zero VIPs, all five serving services
+  were active on both nodes, mutation/watchdog residue was absent, and upload
+  disposition and final ownership checks passed.
+- Status 125 is retained because mutation occurred while the complete recovery
+  and continuity acceptance contract could not be proven.
+- Status: terminal-pending until this exact result is committed and preserved
+  by the annotated tag above.
+
+## Action 35ao definition
+
+- Scope: controlled Node A and Node B DNS/Proxy serving-failure exercise from
+  the accepted current-production baseline.
+- Action 35ao consumes Action 35an without restoring or rerunning it.
+- The real `exercise-preflight` entrypoint is exercised through the actual
+  streamed outer/transaction boundary in production-path coverage. It derives
+  the active release contract from `current-live-state.tsv`; the former
+  action-pinned release assumption and marker-only preflight are prohibited.
+- The scenarios, continuity requirements, service thresholds, restoration,
+  status-125 rule, and zero-residue contract remain unchanged from Action 35an.
 
 ## Action 35an terminal result
 

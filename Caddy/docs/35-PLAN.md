@@ -897,7 +897,7 @@ zero-length `PIHOLE_DUALSTACK.lock`. A pending transition, unknown entry,
 symlink, malformed state, or metadata mismatch fails closed. No successor is
 defined by this repository-only correction.
 
-Action 35an is the definition-only controlled serving-failure exercise. It
+Action 35an was the definition-only controlled serving-failure exercise. It
 uses the existing neutral transaction and outer runner with one versioned
 operation specification; it adds no action-numbered implementation, regression,
 fixture, or wrapper. Definition and production-path validation contact no node.
@@ -927,3 +927,57 @@ before final baseline validation. Status 125 is reserved for a mutation whose
 recovery cannot be proven. Success requires the exact accepted starting state,
 all five serving services active on both nodes, complete readback, removal of
 only the bounded payload/evidence roots, and zero exercise residue.
+
+## Action 35ao definition
+
+Action 35ao is the direct controlled-exercise successor. It consumes failed-
+consumed Action 35an without restoring, modifying, or rerunning it. The
+exercise scenarios and safety boundaries above are unchanged.
+
+The correction is confined to the reusable preflight and its production-path
+coverage. `exercise-preflight` now derives the accepted release revision,
+parent, source, and payload-manifest identity from `current-live-state.tsv`
+instead of an installation-era action pin. Both Node B and Node A preflights
+must execute the actual neutral transaction through the real streamed outer
+boundary. A no-op, substitute, manually emitted marker, stale release, or
+incomplete production inventory cannot authorize execution.
+
+Action 35ao is definition-only until the repository-policy and current-serving-
+health host profiles, the network-disabled Debian 12 batch, the complete pre-
+commit suite, and `deployable-successor-policy.sh --authorization-ready` pass.
+Definition and validation contact no HA node. Live execution requires a new
+authorization for the exact neutral outer-runner SHA-256.
+
+## Action 35ao terminal result
+
+Action 35ao was authorized with outer SHA-256
+`b36a91890b21c7a7550f45caf6a1e6756af0d2f132d6207ad3591fd8bd62df22`
+and exited 125 after the first `node-a-transient-caddy` scenario. Evidence is
+retained at `/tmp/caddy-ssh-evidence-serving_health.IUbJF4`. It is failed-
+consumed and must not be restored, modified, or rerun.
+
+The retained evidence and delivered notifications establish three defects:
+
+1. The transient scenario stopped Caddy long enough to cross the coupled
+   failure threshold. Node A moved `MASTER -> FAULT` and Node B moved
+   `BACKUP -> MASTER`; the later ownership assertion proved only restoration,
+   not the required absence of VIP movement after one failed sample.
+2. Journal acceptance counted zero `VRRP_Script(check-caddy) failed` records
+   in its cursor-bounded readback although structured notifications prove the
+   coupled failure, failover, standby, and recovery transitions. The causal
+   journal evidence contract is incomplete; the notification was not absent.
+3. Node B's continuous sampler recorded one IPv4 shared Pi-hole UI failure:
+   `curl: (16) Send failure: Connection reset by peer`. Uninterrupted shared-UI
+   continuity was not proven.
+
+Final recovery checks passed: Node A was dual-stack `MASTER` with four VIPs,
+Node B was dual-stack `BACKUP` with zero VIPs, Caddy, lighttpd, Pi-hole FTL,
+Unbound, and Keepalived were active on both nodes, mutation and watchdog residue
+were absent, and payload disposition succeeded. Status 125 remains correct
+because mutation occurred while complete recovery and continuity acceptance
+could not be proven.
+
+The next repository gate is an audit and correction of the neutral controlled-
+exercise process and records. No successor may be defined until the audit
+reconciles the plan, operation lifecycle, scenario ordering, journal selectors,
+availability sampling, rollback semantics, and real production-path coverage.

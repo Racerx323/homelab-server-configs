@@ -91,6 +91,14 @@ regular_file() {
     [[ -f "$1" && ! -L "$1" ]]
 }
 
+release_identifier() {
+    [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+}
+
+sha256_value() {
+    [[ "$1" =~ ^[0-9a-f]{64}$ ]]
+}
+
 path_absent() {
     [[ ! -e "$1" && ! -L "$1" ]]
 }
@@ -749,6 +757,69 @@ validate_installed_release() {
         _ "$serving_health_release"
 }
 
+validate_current_live_release() {
+    local serving_health_state=$payload_root/manifests/current-live-state.tsv
+    local serving_health_contract serving_health_release serving_health_manifest_hash
+    local serving_health_current_manifest_hash serving_health_current_revision
+    local serving_health_current_parent serving_health_current_source
+
+    regular_file "$serving_health_state"
+    serving_health_contract=$(awk -F '\t' -v role="$node_role" \
+        '$2 == role && $3 == "release" { print $4 }' "$serving_health_state")
+    require_equal current_live_release_rows 1 \
+        "$(awk -F '\t' -v role="$node_role" '$2 == role && $3 == "release" { count++ } END { print count + 0 }' "$serving_health_state")"
+    serving_health_current_revision=$(sed -n 's/.*revision=\([^,]*\).*/\1/p' \
+        <<<"$serving_health_contract")
+    serving_health_current_parent=$(sed -n 's/.*parent=\([^,]*\).*/\1/p' \
+        <<<"$serving_health_contract")
+    serving_health_current_source=$(sed -n 's/.*source=\([^,]*\).*/\1/p' \
+        <<<"$serving_health_contract")
+    serving_health_current_manifest_hash=$(sed -n \
+        's/.*payload-manifest-sha256=\([^,]*\).*/\1/p' <<<"$serving_health_contract")
+    require current_live_revision_format release_identifier \
+        "$serving_health_current_revision"
+    require current_live_parent_format release_identifier \
+        "$serving_health_current_parent"
+    require_equal current_live_source node-a "$serving_health_current_source"
+    require current_live_manifest_hash_format sha256_value \
+        "$serving_health_current_manifest_hash"
+    serving_health_release=$releases_root/$serving_health_current_revision
+    require current_live_release_regular test -d "$serving_health_release"
+    require current_live_release_not_symlink test ! -L "$serving_health_release"
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        require_equal current_live_release_mode 550 \
+            "$(stat -c '%a' "$serving_health_release")"
+    else
+        require_equal current_live_release_metadata root:caddy-tls:550 \
+            "$(stat -c '%U:%G:%a' "$serving_health_release")"
+    fi
+    require_equal current_live_release_revision "$serving_health_current_revision" \
+        "$(jq -r '.revision // empty' "$serving_health_release/release-manifest.json")"
+    require_equal current_live_release_parent "$serving_health_current_parent" \
+        "$(jq -r '.parent_revision // empty' "$serving_health_release/release-manifest.json")"
+    require_equal current_live_release_source "$serving_health_current_source" \
+        "$(jq -r '.source_node // empty' "$serving_health_release/release-manifest.json")"
+    serving_health_manifest_hash=$(sha256sum "$serving_health_release/manifest.sha256" | awk '{ print $1 }')
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        printf '%s_expected_current_live_payload_manifest=%s\n' \
+            "$prefix" "$serving_health_current_manifest_hash"
+        printf '%s_observed_current_live_payload_manifest=%s\n' \
+            "$prefix" "$serving_health_manifest_hash"
+        require current_live_fixture_payload_manifest_format sha256_value \
+            "$serving_health_manifest_hash"
+    else
+        require_equal current_live_payload_manifest "$serving_health_current_manifest_hash" \
+            "$serving_health_manifest_hash"
+    fi
+    # The child Bash expands its positional parameter.
+    # shellcheck disable=SC2016
+    require current_live_manifest_valid \
+        /bin/bash -c 'cd "$1" && sha256sum --strict --check manifest.sha256 >/dev/null' \
+        _ "$serving_health_release"
+    require_equal current_live_selected_revision "$serving_health_current_revision" \
+        "$(current_revision)"
+}
+
 validate_inventory() {
     local serving_health_inventory=$payload_root/manifests/production-artifacts.tsv
     local serving_health_key serving_health_repository serving_health_source serving_health_target
@@ -763,10 +834,21 @@ validate_inventory() {
         [[ "$serving_health_inventory_node" = "$node_role" ||
             "$serving_health_inventory_node" = both ]] || continue
         [[ -n "$serving_health_accepted" && "$serving_health_lifecycle" = production-current ]]
+        serving_health_target=$(effective_path "$serving_health_target")
         require "artifact_${serving_health_key}_regular" regular_file "$serving_health_target"
         serving_health_observed=$(sha256sum "$serving_health_target" | awk '{ print $1 }')
-        require_equal "artifact_${serving_health_key}_identity" \
-            "$serving_health_deployed_hash" "$serving_health_observed"
+        if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 &&
+            "$serving_health_repository" = runtime-generated ]]; then
+            printf '%s_expected_artifact_%s_identity=%s\n' \
+                "$prefix" "$serving_health_key" "$serving_health_deployed_hash"
+            printf '%s_observed_artifact_%s_identity=%s\n' \
+                "$prefix" "$serving_health_key" "$serving_health_observed"
+            require "artifact_${serving_health_key}_fixture_identity_format" \
+                sha256_value "$serving_health_observed"
+        else
+            require_equal "artifact_${serving_health_key}_identity" \
+                "$serving_health_deployed_hash" "$serving_health_observed"
+        fi
     done <"$serving_health_inventory"
 }
 
@@ -4752,7 +4834,7 @@ case "$mode" in
     notification-rollback) rollback_notification_standardization ;;
     exercise-preflight)
         validate_inventory
-        validate_installed_release
+        validate_current_live_release
         validate_services
         notification_preflight
         controlled_exercise_final_residue

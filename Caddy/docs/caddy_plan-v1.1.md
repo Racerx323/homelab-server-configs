@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35an is failed-consumed pre-mutation, archived, and cleaned; its stale empty-notification-state predicate is corrected in the neutral transaction; the Caddy deployment stream is clean with no successor defined; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed after its first scenario and awaits terminal archival; no successor is defined pending an audit and correction of the neutral exercise evidence and continuity contract; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -675,7 +675,8 @@ Readback integrity and exact temporary-program cleanup passed. No HA node was
 contacted, no notification was sent, and no production state changed.
 Repository history subsequently identified the legacy messages as historical
 output from notifier revisions `e9fe1bc` and `6063aa3`, retired by `192b1e1`.
-Notification standardization is accepted and Action 35an is the next gate.
+Notification standardization is accepted. Action 35an is archived failed-
+consumed, and Action 35ao is the current definition-only gate.
 
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
@@ -701,7 +702,7 @@ zero-length lock. It rejects pending transitions, additional entries,
 symlinks, malformed state, and metadata mismatches. The operation specification
 is inactive, its consumed data is removed, and no successor is defined.
 
-Action 35an is the definition-only controlled DNS and Proxy serving-failure
+Action 35an was the definition-only controlled DNS and Proxy serving-failure
 exercise. It uses the neutral reusable transaction and outer runner and one
 operation specification. It changes no production configuration or release.
 The sequence covers one non-triggering Caddy sample; Node A Caddy, lighttpd,
@@ -716,6 +717,45 @@ dual-stack shared DNS, trusted HTTPS, and Pi-hole UI evidence, cursor-bounded
 journals, current structured notifications, exact restoration, and zero
 residue are mandatory. Action 33 interface, SSH, reboot, and whole-node cases
 remain authoritative and are not repeated.
+
+### Action 35ao definition
+
+Action 35ao consumes Action 35an without restoring or rerunning it. It retains
+the exact controlled-failure scenarios and safety contract. The neutral
+preflight now derives the accepted release identity from
+`current-live-state.tsv`, and production-path coverage executes the actual
+dual-node `exercise-preflight` calls through the streamed outer/transaction
+boundary. No-op preflight handling, action-pinned release assumptions, and
+marker-only acceptance are prohibited.
+
+Action 35ao is definition-only. Repository validation contacts no node. The
+controlled exercise may run only after authorization readiness passes and the
+exact neutral outer-runner SHA-256 receives separate authorization.
+
+### Action 35ao terminal result
+
+Action 35ao was authorized with outer SHA-256
+`b36a91890b21c7a7550f45caf6a1e6756af0d2f132d6207ad3591fd8bd62df22`
+and exited 125 after the first `node-a-transient-caddy` scenario. Evidence is
+retained at `/tmp/caddy-ssh-evidence-serving_health.IUbJF4`. The operation is
+failed-consumed and must not be restored, modified, or rerun.
+
+The transient implementation stopped Caddy long enough for Node A to move
+`MASTER -> FAULT` and Node B to move `BACKUP -> MASTER`; it therefore did not
+prove the required single failed sample without VIP movement. Its final
+ownership check observed only the restored state. The cursor-bounded journal
+then counted zero `VRRP_Script(check-caddy) failed` records even though delivered
+structured notifications prove the coupled failure, failover, standby, and
+recovery transitions. Separately, Node B's sampler recorded one IPv4 shared-UI
+`curl: (16) Send failure: Connection reset by peer` result.
+
+Final recovery checks found Node A dual-stack `MASTER` with all four VIPs, Node
+B dual-stack `BACKUP` with zero VIPs, all five serving services active on both
+nodes, and no mutation or watchdog residue. The successor registry is cleared.
+Before another live operation is defined, audit the neutral exercise against
+the governing lifecycle and correct its transient bounding, causal journal
+evidence, and continuous shared-UI acceptance without adding a copied runner or
+transaction.
 
 ## 19. Checkpoint procedure
 
