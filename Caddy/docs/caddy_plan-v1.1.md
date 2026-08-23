@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted, archived, and cleaned; the Caddy deployment stream is clean; the legacy duplicate remains unattributed and notification standardization remains incomplete; controlled serving-failure exercise Action 35an remains deferred; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted, archived, and cleaned; repository history identifies the legacy messages as output from notifier revisions retired by `192b1e1`; notification standardization is accepted; the Caddy deployment stream is clean; definition-only controlled serving-failure exercise Action 35an is the next gate; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -607,19 +607,15 @@ was not required. Evidence is
 
 ## 18. Pending work
 
-Before the controlled serving-failure exercise:
+Notification standardization is accepted. Git history identifies the exact
+legacy title and message bodies in notifier revisions `e9fe1bc` and `6063aa3`;
+revision `192b1e1` retired that formatter. Actions 35al and 35am prove there is
+no current node, queue, API-host, replay, or template path for those messages.
+Action 35al accepted the actual acknowledged prior VRRP state, bounded
+planned-maintenance context, shared multiline layout, and severity emojis.
 
-1. finish notification standardization by removing the legacy duplicate
-   `[Failover Alert]` producer, persisting the actual acknowledged prior VRRP
-   state for `previous -> current`, and classifying transaction-authorized
-   Keepalived stop/restart events as bounded planned maintenance rather than
-   unexpected transitions; the maintenance context must never affect VRRP or
-   notification delivery and must be cleaned on success and rollback; replace
-   the pipe-delimited notification body with a readable multiline plain-text
-   layout using labeled sections and bullet lists while preserving the
-   Apprise severity emojis in every title;
-2. define and separately authorize the controlled serving-failure exercise
-   only after notification standardization is accepted.
+The next gate is definition and separate authorization of controlled
+serving-failure exercise Action 35an.
 
 After the controlled exercise:
 
@@ -649,7 +645,8 @@ planned-maintenance classification, conservative journal-based component
 attribution, and minimal SIGTERM-friendly probes with distinct exit codes.
 Ambiguous or missing journal evidence stays unclassified. Installation is Node
 B then Node A, rollback is Node A then Node B, delivery remains non-blocking,
-and no serving service is restarted or reloaded. Action 35am remains deferred.
+and no serving service is restarted or reloaded. At definition time the
+external attribution capture remained pending; it later became Action 35am.
 
 Action 35al is accepted with exit status 0. Node B completed before Node A,
 accepted `BACKUP`, and Node A accepted `MASTER`. Both nodes installed and
@@ -676,8 +673,9 @@ an endpoint list and attribution as `unattributed` with zero causal producer
 candidates. Source-match and request-observation records contain no data rows.
 Readback integrity and exact temporary-program cleanup passed. No HA node was
 contacted, no notification was sent, and no production state changed.
-Notification standardization remains incomplete and Action 35an remains
-deferred.
+Repository history subsequently identified the legacy messages as historical
+output from notifier revisions `e9fe1bc` and `6063aa3`, retired by `192b1e1`.
+Notification standardization is accepted and Action 35an is the next gate.
 
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral

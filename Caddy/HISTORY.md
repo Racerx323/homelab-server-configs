@@ -28,9 +28,10 @@ Git preserves the complete deployment journal and executed action files.
 - All capture, evidence-readback, integrity, and temporary-program cleanup
   statuses were zero. No HA node was contacted, no notification was sent, and
   no production state was changed.
-- Notification standardization remains incomplete until the separate legacy
-  producer is causally identified or retired. The controlled serving-failure
-  exercise remains deferred.
+- Repository history identifies the exact legacy title and bodies in notifier
+  revisions `e9fe1bc` and `6063aa3`; revision `192b1e1` retired that formatter.
+  Together with Actions 35al and 35am proving no current production path,
+  notification standardization is accepted. Action 35an is the next gate.
 
 ## Action 35al definition
 
@@ -39,8 +40,9 @@ Git preserves the complete deployment journal and executed action files.
 - A bounded read-only capture found no legacy `[Failover Alert] Pi-hole DNS
   Cluster` literal, queued record, or second notifier on either HA node. The
   remaining duplicate is therefore classified outside the node producer and
-  durable queue. Config ID `apprise` contains endpoints only and no template;
-  a separate external producer or delivery path remains to be identified.
+  durable queue. Config ID `apprise` contains endpoints only and no template.
+  Later repository-history review identified the messages as output from
+  notifier revisions retired by `192b1e1`.
 - The operation installs only the multiline formatter, durable transition
   state producer, minimal distinct-exit health probes, and their exact
   supporting tmpfiles/worker artifacts, Node B before Node A.
@@ -66,9 +68,9 @@ Git preserves the complete deployment journal and executed action files.
   artifacts were installed and accepted on both nodes. Installed-form DNS and
   Caddy probes passed, service state remained active, payload disposition was
   proven, and rollback was not required.
-- Legacy duplicate attribution remains outside the audited node producer and
-  queue. The supplied Apprise config has no template; identify the separate
-  external source before notification standardization is declared complete.
+- The supplied Apprise config has no template. Subsequent Action 35am and
+  repository-history review identified the observed legacy messages as
+  historical output from notifier revisions retired by `192b1e1`.
 
 ## Action 35ah terminal archive
 

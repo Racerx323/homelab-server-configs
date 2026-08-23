@@ -79,31 +79,27 @@ Sections with no meaningful value are omitted rather than rendered as
 layout is plain text so it remains readable across Apprise targets without
 depending on target-specific Markdown.
 
-## Remaining notification-standardization work
+## Accepted notification standardization
 
-Notification standardization is not complete until the legacy
-`[Failover Alert] Pi-hole DNS Cluster` message path is removed, so each event
-has one structured durable notification. Keepalived producers must also retain
-a bounded, crash-safe last acknowledged state so ordinary events report the
-actual `previous -> current` transition; `unknown` is valid only for a proven
-first observation without prior state.
+Notification standardization is accepted through Actions 35al and 35am. Git
+history identifies the exact legacy `[Failover Alert] Pi-hole DNS Cluster`
+title and message bodies in notifier revisions `e9fe1bc` and `6063aa3`.
+Revision `192b1e1` retired that formatter. Action 35al installed and accepted
+the current notifier on both nodes and found no legacy producer or queued
+record. Action 35am found no producer, request, replay, or template on the
+Apprise API host. The observed legacy notifications are consequently
+historical deliveries from the retired notifier, not evidence of a current
+second production path.
 
-Authorized deployment transactions must provide a bounded planned-maintenance
-context for intentional Keepalived stops and restarts. Those events are
-informational planned maintenance, not unexpected warnings. The context must
-not influence VRRP eligibility, source-service success, queue delivery, or
-deduplication, and it must be removed after both success and rollback.
-
-The enqueue helper must render every structured producer through the same
-multiline formatter. The four existing severity emojis remain unchanged:
-`🚨` failure, `⚠️` warning, `ℹ️` information, and `✅` success or recovery.
-
-Action 35al is the accepted node-side standardization operation. Its bounded
-read-only attribution found no legacy producer or record on either HA node.
-Config ID `apprise` contains delivery endpoints only and no message template,
-so a separate external producer or delivery path remains to be identified.
-Node-side acceptance must not claim that external disposition from marker or
-fixture evidence.
+The accepted producer retains bounded, crash-safe acknowledged and pending
+state, reports the actual `previous -> current` transition, and reserves
+`unknown` for a proven first observation. Authorized deployment transactions
+provide a bounded planned-maintenance context for intentional Keepalived stops
+and restarts without affecting VRRP eligibility, source-service success,
+delivery, or deduplication. The enqueue helper renders every structured
+producer through the shared multiline formatter and preserves the four
+severity emojis: `🚨` failure, `⚠️` warning, `ℹ️` information, and `✅` success
+or recovery.
 
 ## Ownership and paths
 

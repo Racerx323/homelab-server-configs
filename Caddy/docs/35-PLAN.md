@@ -258,31 +258,20 @@ Keepalived's script-result journal; until a separate observer contract exists,
 a coupled FAULT may remain
 `eligibility-fault-unclassified` rather than risk reporting stale data.
 
-Notification standardization is not complete until a later, separately
-reviewed operation does all of the following:
+Notification standardization is accepted through Actions 35al and 35am. Git
+history identifies the exact legacy title and message bodies in notifier
+revisions `e9fe1bc` and `6063aa3`; revision `192b1e1` retired that formatter.
+Action 35al installed and accepted the current notifier on both nodes and found
+no legacy producer or queued record. Action 35am found no producer, request,
+replay, or template on the Apprise API host. The observed legacy messages are
+therefore historical deliveries from the retired notifier, not a current
+second production path.
 
-1. remove the legacy `[Failover Alert] Pi-hole DNS Cluster` producer path so a
-   transition emits one durable structured notification rather than both
-   legacy and structured messages;
-2. persist a bounded, crash-safe last acknowledged Keepalived state and report
-   the real `previous -> current` transition, reserving `unknown` for a proven
-   first observation with no prior state; and
-3. give authorized transactions a bounded planned-maintenance context so their
-   intentional Keepalived stop/restart transitions are informational planned
-   maintenance rather than unexpected warnings. That context must not affect
-   VRRP eligibility or delivery and must be removed on success and rollback;
-   and
-4. replace the pipe-delimited body with a readable multiline plain-text layout
-   using short labeled sections and bullet lists. Preserve the Apprise severity
-   emojis (`🚨`, `⚠️`, `ℹ️`, and `✅`) in notification titles. Do not remove
-   bounded troubleshooting fields; reorganize them into `Summary`, `Impact`,
-   `HA and network`, `Details`, and `Next step` sections.
-
-The operator has selected notification standardization as the next gate. It
-must be accepted before the controlled serving-failure exercise is defined so
-that exercise notifications are evaluated against the final production
-contract rather than the transitional duplicate and `unknown -> state`
-behavior.
+Action 35al also accepted the crash-safe acknowledged and pending state,
+actual `previous -> current` transitions, bounded planned-maintenance context,
+shared multiline formatter, and severity emojis. No further attribution or
+notification deployment is required before the controlled serving-failure
+exercise. Action 35an is the next definition-only gate.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
@@ -831,15 +820,16 @@ distinct minimal DNS and Caddy probe exit codes, and their exact supporting
 worker and tmpfiles artifacts. It preserves conservative unclassified FAULT
 fallback when current journal evidence is missing or ambiguous, proceeds Node B
 before Node A, rolls back Node A before Node B, and performs no serving-service
-restart or reload. The controlled exercise is deferred as Action 35am.
+restart or reload. At definition time the external attribution capture remained
+pending; it later became Action 35am.
 
 Action 35al is accepted with exit status 0 and retained workstation evidence at
 `/tmp/caddy-ssh-evidence-serving_health.5JumxL`. Node B completed before Node A,
 accepted `BACKUP`, and Node A accepted `MASTER`. Exact installed artifacts,
 installed-form DNS and Caddy probes, active service state, payload readback, and
-payload disposition passed on both nodes; rollback was not required. The
-controlled exercise remains deferred until the separate external legacy
-notification source is identified.
+payload disposition passed on both nodes; rollback was not required. Subsequent
+Action 35am and repository-history review identified the legacy messages as
+historical output from the retired notifier.
 
 Action 35al is archived at `caddy-action35al-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
@@ -870,9 +860,10 @@ bounded capture classified config ID `apprise` as an endpoint list and returned
 `unattributed` with zero causal producer candidates. Request observations and
 source matches contained only their headers. Evidence readback integrity and
 exact temporary-program cleanup passed; neither HA node was contacted, no
-notification was sent, and no production state changed. Notification
-standardization therefore remains incomplete and controlled failure exercise
-Action 35an remains deferred.
+notification was sent, and no production state changed. Subsequent repository
+history review found the exact title and bodies in revisions `e9fe1bc` and
+`6063aa3` and their removal in `192b1e1`. Notification standardization is
+accepted and Action 35an is the next definition-only gate.
 
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
