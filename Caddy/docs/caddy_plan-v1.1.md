@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed after its first scenario and awaits terminal archival; no successor is defined pending an audit and correction of the neutral exercise evidence and continuity contract; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed, archived, and cleaned after its first scenario; the Caddy stream is clean and no successor is defined pending an audit and correction of the neutral exercise evidence and continuity contract; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -676,7 +676,8 @@ contacted, no notification was sent, and no production state changed.
 Repository history subsequently identified the legacy messages as historical
 output from notifier revisions `e9fe1bc` and `6063aa3`, retired by `192b1e1`.
 Notification standardization is accepted. Action 35an is archived failed-
-consumed, and Action 35ao is the current definition-only gate.
+consumed; Action 35ao subsequently became the definition-only gate at that
+checkpoint.
 
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
@@ -720,7 +721,7 @@ remain authoritative and are not repeated.
 
 ### Action 35ao definition
 
-Action 35ao consumes Action 35an without restoring or rerunning it. It retains
+Action 35ao consumed Action 35an without restoring or rerunning it. It retained
 the exact controlled-failure scenarios and safety contract. The neutral
 preflight now derives the accepted release identity from
 `current-live-state.tsv`, and production-path coverage executes the actual
@@ -728,9 +729,10 @@ dual-node `exercise-preflight` calls through the streamed outer/transaction
 boundary. No-op preflight handling, action-pinned release assumptions, and
 marker-only acceptance are prohibited.
 
-Action 35ao is definition-only. Repository validation contacts no node. The
-controlled exercise may run only after authorization readiness passes and the
-exact neutral outer-runner SHA-256 receives separate authorization.
+Before execution, Action 35ao was definition-only. Repository validation
+contacted no node, and live execution remained gated by authorization readiness
+and a separately authorized exact neutral outer-runner SHA-256. Its terminal
+result below supersedes this archived definition.
 
 ### Action 35ao terminal result
 
@@ -749,6 +751,15 @@ structured notifications prove the coupled failure, failover, standby, and
 recovery transitions. Separately, Node B's sampler recorded one IPv4 shared-UI
 `curl: (16) Send failure: Connection reset by peer` result.
 
+The repository audit also found that the outer production-path test fabricated
+expected journal, availability, and ownership results for controlled-exercise
+modes instead of executing the real transaction modes. Authorization readiness
+therefore did not cover the failing live paths. The outer also mapped the
+sampler acceptance failure to status 125 even though final ownership, service
+restoration, residue, and disposition checks proved recovery. The lifecycle
+reserves 125 for unproven recovery; this run's observed 125 is immutable
+history, but its classification is a neutral-runner defect.
+
 Final recovery checks found Node A dual-stack `MASTER` with all four VIPs, Node
 B dual-stack `BACKUP` with zero VIPs, all five serving services active on both
 nodes, and no mutation or watchdog residue. The successor registry is cleared.
@@ -756,6 +767,11 @@ Before another live operation is defined, audit the neutral exercise against
 the governing lifecycle and correct its transient bounding, causal journal
 evidence, and continuous shared-UI acceptance without adding a copied runner or
 transaction.
+
+The terminal result is archived at
+`caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
+are removed, the neutral operation specification is inactive, and the Caddy
+deployment stream is clean.
 
 ## 19. Checkpoint procedure
 

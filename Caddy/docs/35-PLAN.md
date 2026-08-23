@@ -271,7 +271,7 @@ Action 35al also accepted the crash-safe acknowledged and pending state,
 actual `previous -> current` transitions, bounded planned-maintenance context,
 shared multiline formatter, and severity emojis. No further attribution or
 notification deployment is required before the controlled serving-failure
-exercise. Action 35an is the next definition-only gate.
+exercise. At that checkpoint, Action 35an became the next definition-only gate.
 
 The historical narrative below records the baseline that led to this gate;
 any older "next action" wording is superseded by this status section.
@@ -863,7 +863,7 @@ exact temporary-program cleanup passed; neither HA node was contacted, no
 notification was sent, and no production state changed. Subsequent repository
 history review found the exact title and bodies in revisions `e9fe1bc` and
 `6063aa3` and their removal in `192b1e1`. Notification standardization is
-accepted and Action 35an is the next definition-only gate.
+accepted; at that checkpoint, Action 35an became the next definition-only gate.
 
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
@@ -930,7 +930,7 @@ only the bounded payload/evidence roots, and zero exercise residue.
 
 ## Action 35ao definition
 
-Action 35ao is the direct controlled-exercise successor. It consumes failed-
+Action 35ao was the direct controlled-exercise successor. It consumed failed-
 consumed Action 35an without restoring, modifying, or rerunning it. The
 exercise scenarios and safety boundaries above are unchanged.
 
@@ -942,11 +942,12 @@ must execute the actual neutral transaction through the real streamed outer
 boundary. A no-op, substitute, manually emitted marker, stale release, or
 incomplete production inventory cannot authorize execution.
 
-Action 35ao is definition-only until the repository-policy and current-serving-
-health host profiles, the network-disabled Debian 12 batch, the complete pre-
-commit suite, and `deployable-successor-policy.sh --authorization-ready` pass.
-Definition and validation contact no HA node. Live execution requires a new
-authorization for the exact neutral outer-runner SHA-256.
+Before execution, Action 35ao remained definition-only until the repository-
+policy and current-serving-health host profiles, the network-disabled Debian 12
+batch, the complete pre-commit suite, and
+`deployable-successor-policy.sh --authorization-ready` passed. Definition and
+validation contacted no HA node. Its terminal result below supersedes this
+archived definition.
 
 ## Action 35ao terminal result
 
@@ -969,15 +970,30 @@ The retained evidence and delivered notifications establish three defects:
 3. Node B's continuous sampler recorded one IPv4 shared Pi-hole UI failure:
    `curl: (16) Send failure: Connection reset by peer`. Uninterrupted shared-UI
    continuity was not proven.
+4. The outer production-path test directly wrote expected controlled-exercise
+   journal, availability, and ownership results rather than executing the real
+   transaction modes and observing their effects. This violates the repository
+   anti-fabrication rule and allowed authorization readiness to pass without
+   covering the live failure paths.
+5. The outer treated the sampler acceptance failure as a recovery failure and
+   returned 125 although final ownership, service restoration, residue, and
+   disposition checks proved recovery. The lifecycle reserves 125 for unproven
+   recovery; proven restoration plus failed acceptance requires an ordinary
+   nonzero result.
 
 Final recovery checks passed: Node A was dual-stack `MASTER` with four VIPs,
 Node B was dual-stack `BACKUP` with zero VIPs, Caddy, lighttpd, Pi-hole FTL,
 Unbound, and Keepalived were active on both nodes, mutation and watchdog residue
-were absent, and payload disposition succeeded. Status 125 remains correct
-because mutation occurred while complete recovery and continuity acceptance
-could not be proven.
+were absent, and payload disposition succeeded. Exit status 125 remains
+recorded as the immutable observed result, but its recovery classification was
+incorrect and must be fixed in the neutral outer runner.
 
 The next repository gate is an audit and correction of the neutral controlled-
 exercise process and records. No successor may be defined until the audit
 reconciles the plan, operation lifecycle, scenario ordering, journal selectors,
 availability sampling, rollback semantics, and real production-path coverage.
+
+The terminal result is archived at
+`caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
+are removed, the neutral operation specification is inactive, and the Caddy
+deployment stream is clean.

@@ -5,12 +5,13 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
-- Archive tag: `caddy-action35ao-terminal-2026-08-23`
+- State: clean
+- Latest archive tag: `caddy-action35ao-terminal-2026-08-23`
 - Terminal action: Action 35ao is failed-consumed after the first controlled
   scenario and must not be restored, modified, or rerun.
-- Successor registry: none. Audit and correct the neutral controlled-exercise
-  contract before defining another live operation.
+- Successor registry: none. The consumed operation data and coverage are
+  removed. Audit and correct the neutral controlled-exercise contract before
+  defining another live operation.
 
 ## Action 35ao terminal result
 
@@ -37,14 +38,25 @@ Git preserves the complete deployment journal and executed action files.
 - Defect 3: Node B's continuous sampler recorded one IPv4 shared Pi-hole UI
   failure, `curl: (16) Send failure: Connection reset by peer`; uninterrupted
   shared-UI continuity was not proven.
+- Defect 4: the outer production-path test directly wrote expected journal,
+  availability, and ownership results for controlled-exercise modes instead of
+  executing the real transaction modes and observing their effects. This
+  contradicts the repository anti-fabrication rule and allowed authorization
+  readiness to pass without covering the live failure paths.
+- Defect 5: the outer classified the sampler acceptance failure as a recovery
+  failure and returned 125 even though final ownership, service restoration,
+  residue, and disposition checks proved recovery. Status 125 is reserved for
+  unproven recovery; an acceptance failure with proven restoration must return
+  an ordinary nonzero status.
 - Final recovery evidence passed: Node A was dual-stack `MASTER` with all four
   VIPs, Node B was dual-stack `BACKUP` with zero VIPs, all five serving services
   were active on both nodes, mutation/watchdog residue was absent, and upload
   disposition and final ownership checks passed.
-- Status 125 is retained because mutation occurred while the complete recovery
-  and continuity acceptance contract could not be proven.
-- Status: terminal-pending until this exact result is committed and preserved
-  by the annotated tag above.
+- Exit status 125 is the immutable observed result. The audit records its
+  classification as defective; it does not reinterpret the successful final
+  recovery checks as unproven recovery.
+- Status: archived and cleaned. The neutral operation specification is inactive
+  and the Caddy deployment stream is clean.
 
 ## Action 35ao definition
 
@@ -114,7 +126,8 @@ Git preserves the complete deployment journal and executed action files.
 - Repository history identifies the exact legacy title and bodies in notifier
   revisions `e9fe1bc` and `6063aa3`; revision `192b1e1` retired that formatter.
   Together with Actions 35al and 35am proving no current production path,
-  notification standardization is accepted. Action 35an is the next gate.
+  notification standardization was accepted and Action 35an became the next
+  gate at that checkpoint.
 
 ## Action 35al definition
 
