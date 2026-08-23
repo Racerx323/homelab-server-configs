@@ -57,6 +57,25 @@ successor_policy_executable_file() {
     fi
 }
 
+successor_policy_neutral_entrypoints_are_real() {
+    local successor_policy_outer_path=$successor_policy_repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh
+
+    successor_policy_regular_file "$successor_policy_outer_path" || return 1
+    grep -Fq 'exec env' "$successor_policy_outer_path" || return 1
+    grep -Fq 'CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=' \
+        "$successor_policy_outer_path" || return 1
+    # The policy intentionally searches for literal shell source, not expansion.
+    # shellcheck disable=SC2016
+    if grep -Eq '>[[:space:]]*"\$evidence/(availability\.tsv|exercise_.*_journal\.stdout|exercise-ownership-samples\.tsv)"' \
+        "$successor_policy_outer_path"; then
+        return 1
+    fi
+    # shellcheck disable=SC2016
+    if grep -Fq 'case "$mode" in' "$successor_policy_outer_path"; then
+        return 1
+    fi
+}
+
 successor_policy_remove_probe_root() {
     local successor_policy_cleanup_root=$1
 
@@ -136,7 +155,7 @@ successor_policy_coverage_valid() {
             successor_policy_required_scenarios='endpoint-only secret-bearing-evidence-rejection exact-legacy-title-search second-caller-attribution scheduled-job-attribution retained-replay-attribution multiple-candidate-ambiguity no-evidence-unattributed bounded-journal-selection zero-production-mutation outer-preflight exact-remote-cleanup evidence-readback-success evidence-readback-failure zero-production-mutation-outer'
             ;;
         controlled-serving-failure-exercise)
-            successor_policy_required_scenarios='exercise-role-rejection exercise-service-control exercise-ownership-convergence exercise-journal-bounded exercise-reverse-restoration outer-preflight outer-real-preflight outer-stale-preflight outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup'
+            successor_policy_required_scenarios='exercise-role-rejection exercise-service-control exercise-ownership-convergence exercise-journal-bounded exercise-reverse-restoration outer-preflight outer-real-preflight outer-stale-preflight outer-full-scenario-sequence outer-restored-failure-non125 outer-acceptance-failure-non125 outer-readback-cleanup'
             ;;
         *)
             successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'
@@ -443,11 +462,19 @@ successor_policy_registry_valid() {
 case "${1:-}" in
     --check)
         [[ $# -eq 1 ]] || exit 64
+        if [[ "$successor_policy_repository_root" = "$successor_policy_default_root" ]]; then
+            successor_policy_check neutral_entrypoints_real \
+                successor_policy_neutral_entrypoints_are_real || exit 1
+        fi
         successor_policy_check registry successor_policy_registry_valid 0 || exit 1
         printf '%s_complete=true\n' "$successor_policy_prefix"
         ;;
     --authorization-ready)
         [[ $# -eq 1 ]] || exit 64
+        if [[ "$successor_policy_repository_root" = "$successor_policy_default_root" ]]; then
+            successor_policy_check neutral_entrypoints_real \
+                successor_policy_neutral_entrypoints_are_real || exit 1
+        fi
         successor_policy_check authorization_ready successor_policy_registry_valid 1 || exit 1
         printf '%s_complete=true\n' "$successor_policy_prefix"
         ;;

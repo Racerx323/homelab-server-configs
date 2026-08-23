@@ -768,6 +768,23 @@ the governing lifecycle and correct its transient bounding, causal journal
 evidence, and continuous shared-UI acceptance without adding a copied runner or
 transaction.
 
+The repository-only audit removed the nondeterministic transient scenario,
+separated daemon and notification journal selectors, made their readiness
+scenario-specific, corrected sampler failure to be an acceptance rather than
+recovery classification, and replaced the outer test's fabricated results with
+real streamed transaction modes backed by causal command substitutes. The
+authorization policy now rejects outer-runner transaction-mode dispatch and
+direct result-file fabrication.
+
+The retained Node B sampler places its sole IPv4 shared-UI reset at
+`2026-08-23T23:09:56.742761874Z`, during preferred-owner failback, between
+successful IPv4 samples and alongside a successful IPv6 sample. Because the
+retained curl record has neither remote-address nor connection timing evidence,
+it cannot distinguish an in-flight TCP reset from a serving gap. That historical
+attribution remains unresolved. A subsequent exercise must first define the
+bounded evidence needed to make that distinction; no direct controlled-exercise
+successor is authorized by this audit.
+
 The terminal result is archived at
 `caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
 are removed, the neutral operation specification is inactive, and the Caddy

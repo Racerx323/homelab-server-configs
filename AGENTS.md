@@ -163,6 +163,13 @@ is only a summary emitted after those actual effects have been independently
 validated; labels and fixture-authored result files are never evidence by
 themselves. Authorization readiness must fail when a production result can be
 obtained without executing the registered outer and transaction paths.
+External-system substitutes must be causal state machines: an observed journal,
+service state, ownership state, or availability result may be produced only in
+response to the exact command that creates or queries that state. An outer-runner
+test may not implement transaction modes, pre-write their result files, or emit
+scenario-success records on their behalf. Cursor-bounded journal tests must
+create events through the exercised service-control path and read only events
+after the captured cursor.
 The authorization policy verifies causal decision records against their raw
 evidence; it never counts stdout markers.
 

@@ -58,6 +58,29 @@ Git preserves the complete deployment journal and executed action files.
 - Status: archived and cleaned. The neutral operation specification is inactive
   and the Caddy deployment stream is clean.
 
+## Post-Action 35ao neutral-framework audit
+
+- Scope: repository-only; neither HA node was contacted and no successor was
+  defined.
+- Removed the nondeterministic single-sample Caddy scenario because stopping a
+  service until the first daemon record cannot guarantee restoration before the
+  second `interval 3` execution.
+- Journal acceptance now uses separate daemon/service and notification
+  selectors after the same cursor and waits for causal scenario-specific
+  failure and recovery records.
+- Sampler rejection is an ordinary acceptance failure when service restoration,
+  final ownership, residue, readback, and cleanup remain proven. Status 125 is
+  reserved for unproven recovery after mutation.
+- The outer production-path test now streams all controlled-exercise modes
+  through the real transaction. Its command substitutes derive journal,
+  service, and ownership observations from the exact invoked commands; they do
+  not write expected transaction results.
+- The single Node B IPv4 shared-UI reset occurred at
+  `2026-08-23T23:09:56.742761874Z` during preferred-owner failback. Adjacent
+  IPv4 and paired IPv6 samples passed. Missing remote-address and connection
+  timing evidence prevents a causal distinction between an in-flight TCP reset
+  and a serving gap, so the attribution remains unresolved.
+
 ## Action 35ao definition
 
 - Scope: controlled Node A and Node B DNS/Proxy serving-failure exercise from

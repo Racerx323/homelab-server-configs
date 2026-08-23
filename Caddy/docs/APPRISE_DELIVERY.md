@@ -126,6 +126,14 @@ inside the notifier's bounded retry protocol; deployment and controlled-failure
 preflight requires a quiescent state and therefore rejects it, along with any
 unknown entry, symlink, malformed state, or metadata mismatch.
 
+Controlled serving-failure acceptance keeps notification evidence distinct
+from daemon and service evidence. Both captures begin after the same fresh
+journal cursor, but notification records are selected by notifier/queue
+identifiers while tracking-script and service transitions are selected by
+their systemd units. A notification record cannot substitute for a missing
+Keepalived or service record, and a fixed test transcript cannot satisfy either
+contract.
+
 ## Delivery contract
 
 Records use `caddy-apprise-queue/v1` and contain a stable event ID, source,

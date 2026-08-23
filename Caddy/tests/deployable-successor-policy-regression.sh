@@ -79,5 +79,14 @@ check proportional_coverage \
 forbidden_generator=successor_regression_write_entrypoint
 check fabricated_entrypoint_absent \
     test -z "$(grep -F "$forbidden_generator()" "$0" || :)" || exit 1
+check neutral_real_entrypoint_policy \
+    grep -Fq 'successor_policy_neutral_entrypoints_are_real' "$policy" || exit 1
+check fabricated_availability_policy \
+    grep -Fq 'availability\.tsv' "$policy" || exit 1
+check fabricated_journal_policy \
+    grep -Fq 'exercise_.*_journal\.stdout' "$policy" || exit 1
+# shellcheck disable=SC2016
+check mode_dispatch_policy \
+    grep -Fq 'case "$mode" in' "$policy" || exit 1
 
 printf '%s_complete=true\n' "$prefix"

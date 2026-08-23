@@ -48,3 +48,14 @@ the real production-path predicate. Coverage must reject non-empty, symlinked,
 malformed, incorrectly owned, and incorrectly mode-set adjacent states. Tests
 may construct isolated inputs, but they may not change production merely to
 match a narrower test assumption.
+
+## Causal production-path evidence
+
+The neutral outer runner must stream the real transaction for every tested
+mode. It may not duplicate transaction behavior or write expected availability,
+journal, ownership, mutation, rollback, or acceptance results. Bounded command
+substitutes may model unavailable external systems only by changing state in
+response to the exact emitted command and returning later observations from
+that state. Cursor-based journal coverage must obtain its records from the
+service-control events executed after the cursor. A marker, fixed transcript,
+or mode-aware result generator cannot authorize a deployment.

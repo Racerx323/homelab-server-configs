@@ -38,6 +38,23 @@ if [[ "$successor_status" = none ]]; then
         "$root/transaction/decisions/notification-state-"{unexpected,pending,symlink,malformed,state-mode,root-mode,missing}.tsv
     grep -Fq 'notification_state_contract_production_path_test_complete=true' \
         "$root/transaction.stdout"
+    install -d -m 0700 "$root/controlled-transaction" "$root/controlled-outer"
+    CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/controlled-transaction \
+        /bin/bash "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+        --production-path-test >"$root/controlled-transaction.stdout"
+    CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/controlled-outer \
+        /bin/bash "$repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh" \
+        --production-path-test >"$root/controlled-outer.stdout"
+    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
+        "$root/controlled-transaction.stdout"
+    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
+        "$root/controlled-outer.stdout"
+    grep -Fq 'VRRP_Script(check-caddy) failed' \
+        "$root/controlled-transaction/raw/exercise-journal-bounded.txt"
+    grep -Fq $'node-a\texercise-service\tnode-a-caddy:stop' \
+        "$root/controlled-outer/raw/outer-full-scenario-sequence.txt"
     printf '%s_no_registered_successor=true\n' "$prefix"
     exit 0
 fi
@@ -114,7 +131,8 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         test -s "$root/transaction/raw/$decision.txt"
     done
     for decision in outer-preflight outer-real-preflight outer-stale-preflight \
-        outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup; do
+        outer-full-scenario-sequence outer-restored-failure-non125 \
+        outer-acceptance-failure-non125 outer-readback-cleanup; do
         test -s "$root/outer/decisions/$decision.tsv"
         test -s "$root/outer/raw/$decision.txt"
     done
@@ -122,11 +140,19 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         "$root/transaction.stdout"
     grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
         "$root/outer.stdout"
-    for scenario in node-a-transient-caddy node-a-caddy node-a-lighttpd \
-        node-a-pihole-ftl node-a-unbound node-a-keepalived node-b-caddy \
+    for scenario in node-a-caddy node-a-lighttpd node-a-pihole-ftl \
+        node-a-unbound node-a-keepalived node-b-caddy \
         node-b-lighttpd node-b-pihole-ftl node-b-unbound; do
         grep -Fq "$scenario" "$root/outer/raw/outer-full-scenario-sequence.txt"
     done
+    grep -Fq $'node-a\texercise-service\tnode-a-caddy:stop' \
+        "$root/outer/raw/outer-full-scenario-sequence.txt"
+    grep -Fq $'node-a\texercise-journal\tnode-a-caddy' \
+        "$root/outer/raw/outer-full-scenario-sequence.txt"
+    grep -Fq 'VRRP_Script(check-caddy) failed' \
+        "$root/transaction/raw/exercise-journal-bounded.txt"
+    grep -Fq 'VRRP_Script(check-caddy) succeeded' \
+        "$root/transaction/raw/exercise-journal-bounded.txt"
     grep -Fxq 'node_a_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
     grep -Fxq 'node_b_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
     printf '%s_complete=true\n' "$prefix"

@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=fc0feed5d506d53b9f9cc755aec56d9bb540ce0ecea82ffa31aee89ea19604bf
-readonly operation_sha256=0cbac141435cccbefc448620b765b0984ce49b108245c0a2a6e7126310fbe308
+readonly transaction_sha256=83f0a144eaccc4fcb16866c5b819d4f55408ad81a0ebe70c4a24f0b97c7eb804
+readonly operation_sha256=044d6b7b2e735a9486f298f8a69c04d635401dfaddfc6e7bab1608317888f136
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -493,16 +493,6 @@ run_controlled_exercise_scenario() {
     remote_transaction "$serving_health_scenario-cursor" "$serving_health_host" \
         exercise-cursor "$serving_health_role" "$serving_health_payload_root" \
         "$serving_health_remote_evidence" "$serving_health_scenario" || return $?
-    if [[ "$serving_health_scenario" = node-a-transient-caddy ]]; then
-        remote_transaction "$serving_health_scenario-sample" "$serving_health_host" \
-            exercise-service "$serving_health_role" "$serving_health_payload_root" \
-            "$serving_health_remote_evidence" "$serving_health_scenario:transient" || return $?
-        exercise_expect_pair "$serving_health_scenario" master4 backup0 || return $?
-        remote_transaction "$serving_health_scenario-journal" "$serving_health_host" \
-            exercise-journal "$serving_health_role" "$serving_health_payload_root" \
-            "$serving_health_remote_evidence" "$serving_health_scenario" || return $?
-        return
-    fi
     remote_transaction "$serving_health_scenario-stop" "$serving_health_host" \
         exercise-service "$serving_health_role" "$serving_health_payload_root" \
         "$serving_health_remote_evidence" "$serving_health_scenario:stop" || return $?
@@ -554,10 +544,11 @@ run_controlled_exercise_scenario() {
 }
 
 run_controlled_failure_exercise_live() {
-    local serving_health_failure=0 serving_health_recovery_failure=0 serving_health_scenario
+    local serving_health_failure=0 serving_health_acceptance_failure=0
+    local serving_health_recovery_failure=0 serving_health_scenario
     local -a serving_health_scenarios=(
-        node-a-transient-caddy node-a-caddy node-a-lighttpd node-a-pihole-ftl
-        node-a-unbound node-a-keepalived node-b-caddy node-b-lighttpd
+        node-a-caddy node-a-lighttpd node-a-pihole-ftl node-a-unbound
+        node-a-keepalived node-b-caddy node-b-lighttpd
         node-b-pihole-ftl node-b-unbound
     )
 
@@ -619,11 +610,11 @@ run_controlled_failure_exercise_live() {
     fi
     if [[ -e "$workstation_evidence/node-a-exercise-sampler-start.status" ]]; then
         remote_transaction node-a-exercise-sampler-stop "$node_a_host" sampler-stop \
-            node-a "$node_a_payload" "$node_a_evidence" shared-only || serving_health_recovery_failure=1
+            node-a "$node_a_payload" "$node_a_evidence" shared-only || serving_health_acceptance_failure=1
     fi
     if [[ -e "$workstation_evidence/node-b-exercise-sampler-start.status" ]]; then
         remote_transaction node-b-exercise-sampler-stop "$node_b_host" sampler-stop \
-            node-b "$node_b_payload" "$node_b_evidence" shared-only || serving_health_recovery_failure=1
+            node-b "$node_b_payload" "$node_b_evidence" shared-only || serving_health_acceptance_failure=1
     fi
     exercise_expect_pair exercise-final master4 backup0 || serving_health_recovery_failure=1
     remote_transaction node-a-exercise-final-residue "$node_a_host" exercise-final-residue \
@@ -635,6 +626,12 @@ run_controlled_failure_exercise_live() {
     cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || serving_health_recovery_failure=1
     cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || serving_health_recovery_failure=1
     [[ "$serving_health_recovery_failure" -eq 0 ]] || return 125
+    if [[ "$serving_health_failure" -eq 0 && "$serving_health_acceptance_failure" -ne 0 ]]; then
+        return 1
+    fi
+    if [[ "$serving_health_failure" -eq 125 ]]; then
+        return 1
+    fi
     return "$serving_health_failure"
 }
 
@@ -1262,7 +1259,7 @@ controlled_failure_outer_production_path_test() {
     local exercise_accepted exercise_lifecycle exercise_source_path exercise_installed
     local exercise_revision exercise_parent exercise_release
 
-    CADDY_NOTIFICATION_STATE_CONTRACT_ONLY=1 \
+    CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
         CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
         /bin/bash "$transaction" --production-path-test >/dev/null
 
@@ -1273,8 +1270,15 @@ controlled_failure_outer_production_path_test() {
     cat >"$test_remote_base/bin/systemctl" <<'SYSTEMCTL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
+service=${*: -1}
+state_directory=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/state
+state_file=$state_directory/$CADDY_SERVING_HEALTH_TEST_NODE-${service//[^a-zA-Z0-9]/_}.inactive
+event_log=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log
+install -d -m 0700 "$state_directory"
+printf '%s\t%s\t%s\n' "$CADDY_SERVING_HEALTH_TEST_NODE" "$1" "$service" \
+    >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/systemctl.calls"
 case "$1" in
-    is-active) exit 0 ;;
+    is-active) [[ ! -e "$state_file" ]] ;;
     is-enabled)
         if [[ "${2:-}" = --quiet ]]; then
             exit 0
@@ -1284,22 +1288,91 @@ case "$1" in
             *) printf 'enabled\n' ;;
         esac
         ;;
+    show)
+        [[ -e "$state_file" ]] && printf 'inactive\n' || printf 'active\n'
+        ;;
+    stop)
+        if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop" ]]; then
+            rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop"
+            exit 1
+        fi
+        : >"$state_file"
+        case "$service" in
+            caddy.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-caddy) failed (exited with status 1)' \
+                    'event=enqueued event_id=caddy-failure source=keepalived severity=failure' \
+                    >>"$event_log"
+                ;;
+            pihole-FTL.service | unbound.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-dns) failed (exited with status 1)' \
+                    'event=enqueued event_id=dns-failure source=keepalived severity=failure' \
+                    >>"$event_log"
+                ;;
+            lighttpd.service)
+                printf '%s\n' \
+                    'pihole_web_health event=failure-retained' \
+                    'event=enqueued event_id=web-failure source=pihole-web severity=failure' \
+                    >>"$event_log"
+                ;;
+        esac
+        ;;
+    start)
+        rm -f -- "$state_file"
+        case "$service" in
+            caddy.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-caddy) succeeded' \
+                    'event=enqueued event_id=caddy-recovery source=keepalived severity=success' \
+                    >>"$event_log"
+                ;;
+            pihole-FTL.service | unbound.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-dns) succeeded' \
+                    'event=enqueued event_id=dns-recovery source=keepalived severity=success' \
+                    >>"$event_log"
+                ;;
+            lighttpd.service)
+                printf '%s\n' \
+                    'pihole_web_health event=recovery-enqueued' \
+                    'event=enqueued event_id=web-recovery source=pihole-web severity=success' \
+                    >>"$event_log"
+                ;;
+            keepalived.service)
+                printf '%s\n' \
+                    'systemd: Started keepalived.service' \
+                    'event=enqueued event_id=keepalived-recovery source=keepalived severity=success' \
+                    >>"$event_log"
+                ;;
+        esac
+        ;;
     *) exit 64 ;;
 esac
 SYSTEMCTL
     cat >"$test_remote_base/bin/busctl" <<'BUSCTL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-if [[ "${CADDY_SERVING_HEALTH_TEST_NODE:?}" = node-a ]]; then
-    printf 's "Master"\n'
+state_directory=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/state
+active() { [[ ! -e "$state_directory/$1-${2//[^a-zA-Z0-9]/_}.inactive" ]]; }
+if ! active node-a keepalived.service; then
+    [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-b ]] && state=Master || state=Fault
+elif ! active node-a caddy.service || ! active node-a pihole-FTL.service || \
+    ! active node-a unbound.service; then
+    [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a ]] && state=Fault || state=Master
+elif ! active node-b caddy.service || ! active node-b pihole-FTL.service || \
+    ! active node-b unbound.service; then
+    [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a ]] && state=Master || state=Fault
 else
-    printf 's "Backup"\n'
+    [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a ]] && state=Master || state=Backup
 fi
+printf 's "%s"\n' "$state"
 BUSCTL
     cat >"$test_remote_base/bin/ip" <<'IP'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-if [[ "${CADDY_SERVING_HEALTH_TEST_NODE:?}" = node-a ]]; then
+state=$($CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl)
+if [[ "$state" = 's "Master"' ]]; then
     printf '%s\n' \
         '1: eth0    inet 10.1.0.55/22 scope global eth0' \
         '1: eth0    inet 10.1.0.56/22 scope global eth0' \
@@ -1307,6 +1380,64 @@ if [[ "${CADDY_SERVING_HEALTH_TEST_NODE:?}" = node-a ]]; then
         '1: eth0    inet6 fd36:5aa8:6971:1::56/128 scope global'
 fi
 IP
+    cat >"$test_remote_base/bin/journalctl" <<'JOURNALCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+arguments=$*
+printf '%s\n' "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journalctl.calls"
+if [[ " $* " = *' --show-cursor '* ]]; then
+    lines=0
+    [[ ! -f "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log" ]] || \
+        lines=$(wc -l <"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log")
+    printf '%s\n' "-- cursor: s=$lines"
+elif [[ -f "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log" ]]; then
+    cursor=0
+    while [[ $# -gt 0 ]]; do
+        if [[ "$1" = --after-cursor ]]; then
+            cursor=${2#s=}
+            break
+        fi
+        shift
+    done
+    if [[ " $arguments " = *' -t '* ]]; then
+        tail -n "+$((cursor + 1))" "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log" |
+            grep -E 'event=enqueued|keepalived-notify' || :
+    else
+        tail -n "+$((cursor + 1))" "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/journal.log" |
+            grep -Ev '^event=enqueued' || :
+    fi
+fi
+JOURNALCTL
+    cat >"$test_remote_base/bin/dig" <<'DIG'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-curl" ]]; then
+    rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-curl"
+    exit 16
+fi
+case " $* " in
+    *' AAAA '*) printf '%s\n' 'fd36:5aa8:6971:1::55' ;;
+    *) printf '%s\n' '10.1.0.55' ;;
+esac
+DIG
+    cat >"$test_remote_base/bin/curl" <<'CURL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+case " $* " in
+    *' https://proxy.local.theama.co/ '*) printf '204' ;;
+    *) printf '200' ;;
+esac
+CURL
+    cat >"$test_remote_base/bin/date" <<'DATE'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+/usr/bin/date "$@"
+DATE
+    cat >"$test_remote_base/bin/sleep" <<'SLEEP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+:
+SLEEP
     cat >"$test_remote_base/bin/sudo" <<'SUDO'
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -1316,124 +1447,27 @@ if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
     ( "${4:-}" = exercise-* || "${4:-}" = sampler-* ) ]]; then
     mode=$4
     role=$5
-    payload=$6
-    evidence=$7
     argument=${8:-}
-    install -d -m 0700 "$evidence"
     printf '%s\t%s\t%s\n' "$role" "$mode" "$argument" \
         >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/transaction.calls"
-    if [[ "$mode" = exercise-preflight ]]; then
-        node_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$role-root
-        exec env \
-            CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
-            CADDY_SERVING_HEALTH_TARGET_ROOT="$node_root" \
-            CADDY_SERVING_HEALTH_RELEASES_ROOT="$node_root/etc/caddy/releases" \
-            CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/systemctl" \
-            CADDY_SERVING_HEALTH_BUSCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl" \
-            CADDY_SERVING_HEALTH_IP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/ip" \
-            CADDY_SERVING_HEALTH_TEST_NODE="$role" \
-            "$@"
-    fi
-    cat >/dev/null
-    state_directory=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/state
-    install -d -m 0700 "$state_directory"
-    service_for() {
-        case "$1" in
-            *-caddy) printf '%s\n' caddy.service ;;
-            *-lighttpd) printf '%s\n' lighttpd.service ;;
-            *-pihole-ftl) printf '%s\n' pihole-FTL.service ;;
-            *-unbound) printf '%s\n' unbound.service ;;
-            *-keepalived) printf '%s\n' keepalived.service ;;
-            *) exit 64 ;;
-        esac
-    }
-    active() {
-        [[ ! -e "$state_directory/$1-${2//[^a-zA-Z0-9]/_}.inactive" ]]
-    }
-    expected_state() {
-        local expected_role=$1
-        if ! active node-a keepalived.service; then
-            [[ "$expected_role" = node-b ]] && printf '%s\n' master4 || printf '%s\n' stopped
-        elif ! active node-a caddy.service || ! active node-a pihole-FTL.service ||
-            ! active node-a unbound.service; then
-            [[ "$expected_role" = node-a ]] && printf '%s\n' fault0 || printf '%s\n' master4
-        elif ! active node-b caddy.service || ! active node-b pihole-FTL.service ||
-            ! active node-b unbound.service; then
-            [[ "$expected_role" = node-a ]] && printf '%s\n' master4 || printf '%s\n' fault0
-        else
-            [[ "$expected_role" = node-a ]] && printf '%s\n' master4 || printf '%s\n' backup0
-        fi
-    }
-    case "$mode" in
-        sampler-start)
-            printf '%s\n' '1 2026-08-23T12:00:00Z 4 dns=0 https=0 node_ui=0 shared_ui=0' \
-                '1 2026-08-23T12:00:00Z 6 dns=0 https=0 node_ui=0 shared_ui=0' \
-                '2 2026-08-23T12:00:01Z 4 dns=0 https=0 node_ui=0 shared_ui=0' \
-                '2 2026-08-23T12:00:01Z 6 dns=0 https=0 node_ui=0 shared_ui=0' \
-                >"$evidence/availability.tsv"
-            ;;
-        sampler-stop) test -s "$evidence/availability.tsv" ;;
-        exercise-cursor)
-            printf '%s\n' controlled-cursor >"$evidence/exercise-$argument.cursor.tsv"
-            ;;
-        exercise-observe)
-            printf '%s\n' 'pihole_web_health event=failure-retained' \
-                >"$evidence/exercise_${argument}_outage.stdout"
-            ;;
-        exercise-service)
-            scenario=${argument%:*}
-            operation=${argument#*:}
-            if [[ "$scenario" = node-a-transient-caddy ]]; then
-                printf '%s\n' 'one failed check-caddy sample; service restored' \
-                    >"$evidence/exercise_node-a-transient-caddy_journal.stdout"
-            else
-                service=$(service_for "$scenario")
-                state=$state_directory/$role-${service//[^a-zA-Z0-9]/_}.inactive
-                marker=$evidence/exercise-$scenario.mutation.tsv
-                case "$operation" in
-                    stop)
-                        : >"$state"
-                        printf '%s\t%s\n' "$scenario" "$service" >"$marker"
-                        if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop" ]]; then
-                            rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop"
-                            rm -f -- "$state" "$marker"
-                            exit 1
-                        fi
-                        ;;
-                    start | restore) rm -f -- "$state" "$marker" ;;
-                    *) exit 64 ;;
-                esac
-            fi
-            ;;
-        exercise-ownership)
-            observed=$(expected_state "$role")
-            [[ "$observed" = "$argument" ]]
-            printf '%s\t%s\n' "$role" "$observed" >>"$evidence/exercise-ownership-samples.tsv"
-            ;;
-        exercise-journal)
-            printf '%s\n' \
-                "scenario=$argument structured-notification=true legacy-title=false" \
-                'VRRP_Script(check-caddy) failed' \
-                'VRRP_Script(check-caddy) succeeded' \
-                'VRRP_Script(check-dns) failed' \
-                'VRRP_Script(check-dns) succeeded' \
-                'pihole_web_health event=failure-retained' \
-                'pihole_web_health event=recovery-enqueued' \
-                'event=enqueued event_id=failure source=pihole-web severity=failure' \
-                'event=enqueued event_id=recovery source=pihole-web severity=success' \
-                'event=enqueued event_id=keepalived source=keepalived severity=failure' \
-                'Started keepalived.service' \
-                >"$evidence/exercise_${argument}_journal.stdout"
-            ;;
-        exercise-final-residue)
-            ! find "$evidence" -maxdepth 1 -name 'exercise-*.mutation.tsv' -print -quit | grep -q .
-            for service in caddy.service lighttpd.service pihole-FTL.service unbound.service keepalived.service; do
-                active "$role" "$service"
-            done
-            ;;
-        *) exit 64 ;;
-    esac
-    exit
+    node_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$role-root
+    exec env \
+        CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_SERVING_HEALTH_TARGET_ROOT="$node_root" \
+        CADDY_SERVING_HEALTH_RELEASES_ROOT="$node_root/etc/caddy/releases" \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/systemctl" \
+        CADDY_SERVING_HEALTH_BUSCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl" \
+        CADDY_SERVING_HEALTH_IP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/ip" \
+        CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/journalctl" \
+        CADDY_SERVING_HEALTH_DNS_DIG_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/dig" \
+        CADDY_SERVING_HEALTH_CURL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/curl" \
+        CADDY_SERVING_HEALTH_DATE_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/date" \
+        CADDY_SERVING_HEALTH_SLEEP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/sleep" \
+        CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS=2 \
+        CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES=1 \
+        CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY=0 \
+        CADDY_SERVING_HEALTH_TEST_NODE="$role" \
+        "$@"
 fi
 exec "$@"
 SUDO
@@ -1460,10 +1494,16 @@ install -m 0600 "$source" "$target"
 SCP
     chmod 0700 "$test_remote_base/bin/sudo" "$test_remote_base/bin/systemctl" \
         "$test_remote_base/bin/busctl" "$test_remote_base/bin/ip" \
+        "$test_remote_base/bin/journalctl" "$test_remote_base/bin/dig" \
+        "$test_remote_base/bin/curl" "$test_remote_base/bin/date" \
+        "$test_remote_base/bin/sleep" \
         "$test_remote_base/fake-ssh" "$test_remote_base/fake-scp"
     : >"$test_remote_base/ssh.calls"
     : >"$test_remote_base/scp.calls"
     : >"$test_remote_base/transaction.calls"
+    : >"$test_remote_base/systemctl.calls"
+    : >"$test_remote_base/journalctl.calls"
+    : >"$test_remote_base/journal.log"
     ssh_command=$test_remote_base/fake-ssh
     scp_command=$test_remote_base/fake-scp
     node_a_host=test-node-a
@@ -1583,16 +1623,33 @@ SCP
         exercise_status=$?
     fi
     [[ "$exercise_status" -ne 0 && "$exercise_status" -ne 125 ]]
-    exercise_raw=$exercise_test_root/raw/outer-recovery-status125.txt
-    exercise_decision=$exercise_test_root/decisions/outer-recovery-status125.tsv
+    exercise_raw=$exercise_test_root/raw/outer-restored-failure-non125.txt
+    exercise_decision=$exercise_test_root/decisions/outer-restored-failure-non125.tsv
     {
         printf 'exit_status=%s\n' "$exercise_status"
         find "$test_remote_base/state" -type f -printf '%f\n' 2>/dev/null | LC_ALL=C sort
         grep -F 'exercise-service' "$test_remote_base/transaction.calls"
     } >"$exercise_raw"
     [[ -z "$(find "$test_remote_base/state" -type f -print -quit 2>/dev/null)" ]]
-    write_decision outer-recovery-status125 reject "$exercise_status" all-services-restored \
+    write_decision outer-restored-failure-non125 reject "$exercise_status" all-services-restored \
         failed-step-restored "$exercise_raw" "$exercise_decision"
+
+    : >"$test_remote_base/fail-next-curl"
+    if run_controlled_failure_exercise_live; then
+        exercise_status=0
+    else
+        exercise_status=$?
+    fi
+    [[ "$exercise_status" -ne 0 && "$exercise_status" -ne 125 ]]
+    exercise_raw=$exercise_test_root/raw/outer-acceptance-failure-non125.txt
+    exercise_decision=$exercise_test_root/decisions/outer-acceptance-failure-non125.tsv
+    {
+        printf 'exit_status=%s\n' "$exercise_status"
+        grep -F 'sampler-stop' "$test_remote_base/transaction.calls" | tail -2
+    } >"$exercise_raw"
+    write_decision outer-acceptance-failure-non125 reject "$exercise_status" \
+        restored-acceptance-failure restored-acceptance-failure \
+        "$exercise_raw" "$exercise_decision"
 
     : >"$test_remote_base/ssh.calls"
     : >"$test_remote_base/scp.calls"
@@ -1623,9 +1680,8 @@ SCP
     exercise_raw=$exercise_test_root/raw/outer-full-scenario-sequence.txt
     exercise_decision=$exercise_test_root/decisions/outer-full-scenario-sequence.tsv
     cp -- "$test_remote_base/transaction.calls" "$exercise_raw"
-    for scenario in node-a-transient-caddy node-a-caddy node-a-lighttpd node-a-pihole-ftl \
-        node-a-unbound node-a-keepalived node-b-caddy node-b-lighttpd node-b-pihole-ftl \
-        node-b-unbound; do
+    for scenario in node-a-caddy node-a-lighttpd node-a-pihole-ftl node-a-unbound \
+        node-a-keepalived node-b-caddy node-b-lighttpd node-b-pihole-ftl node-b-unbound; do
         grep -Fq "$scenario" "$exercise_raw"
     done
     write_decision outer-full-scenario-sequence accept 0 complete complete \
@@ -2301,7 +2357,11 @@ regular_file "$transaction"
 regular_file "$operation_spec"
 [[ "$(sha256sum "$transaction" | awk '{ print $1 }')" = "$transaction_sha256" ]]
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
-operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
+if [[ "${CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY:-0}" = 1 ]]; then
+    operation_scope=controlled-serving-failure-exercise
+else
+    operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
+fi
 readonly operation_scope
 [[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health)$ ]]
 

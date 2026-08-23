@@ -792,12 +792,17 @@ starts and ends with Node A owning all four VIPs and Node B owning none:
 6. Repeat Caddy, DNS, and notification-only lighttpd eligibility checks on Node
    B while Node A remains healthy.
 
-One isolated failed sample must not move ownership. Each triggering scenario
-requires two failed probes, healthy Node B before takeover, zero Node A VIPs
-during failover, three successful recovery probes, preferred-owner failback,
-exact restoration, cursor-based journals, and no scenario residue. Accepted
-Action 33 already covers interface, SSH, reboot, and whole-node outage; those
-tests are not repeated.
+The exercise does not attempt to induce exactly one failed tracking-script
+sample. Keepalived's internal schedule does not expose a deterministic boundary
+that can guarantee Caddy is restored before the second `interval 3` execution;
+the attempted timing-based scenario crossed `fall 2` in Action 35ao. The
+configured `fall 2` and `rise 3` thresholds remain covered by configuration and
+neutral tracking-script regressions. Each full triggering scenario requires a
+healthy peer before takeover, zero VIPs on the ineligible node, all four VIPs
+on the healthy peer, preferred-owner failback, exact restoration, causal
+cursor-based journals, and no scenario residue. Accepted Action 33 already
+covers interface, SSH, reboot, and whole-node outage; those tests are not
+repeated.
 
 The plan closes only after installation and this controlled exercise prove the
 coupled DNS/Caddy failover contract, notification-only backend behavior, stable
@@ -903,10 +908,10 @@ operation specification; it adds no action-numbered implementation, regression,
 fixture, or wrapper. Definition and production-path validation contact no node.
 
 The authorized live operation will first require the accepted Node A `MASTER`
-four-VIP and Node B `BACKUP` zero-VIP baseline. It then exercises one isolated
-Caddy failed sample, the five Node A service scenarios, and the equivalent
-Caddy, DNS, and notification-only lighttpd scenarios on Node B. Every stopped
-service is restored before the next scenario. A background sampler on each HA
+four-VIP and Node B `BACKUP` zero-VIP baseline. It then exercises the five Node
+A service scenarios and the equivalent Caddy, DNS, and notification-only
+lighttpd scenarios on Node B. Every stopped service is restored before the next
+scenario. A background sampler on each HA
 node continuously records shared IPv4 and IPv6 DNS, trusted HTTPS, and Pi-hole
 UI availability; node-local UI failure is evidence but cannot invalidate the
 shared-continuity result during its deliberate outage.
@@ -992,6 +997,34 @@ The next repository gate is an audit and correction of the neutral controlled-
 exercise process and records. No successor may be defined until the audit
 reconciles the plan, operation lifecycle, scenario ordering, journal selectors,
 availability sampling, rollback semantics, and real production-path coverage.
+
+## Post-Action 35ao neutral-framework audit
+
+The repository-only audit confirmed all five recorded defects and corrected the
+neutral implementation without contacting either HA node or defining a
+successor:
+
+- the nondeterministic single-sample Caddy scenario was removed;
+- daemon/service journals and structured-notification journals are captured by
+  separate selectors after the same fresh cursor, and acceptance waits for the
+  scenario-specific failure and recovery records;
+- sampler failures are acceptance failures, not recovery failures; status 125
+  remains reserved for inability to prove restoration after mutation;
+- the outer production-path test now streams every controlled-exercise mode
+  through the real transaction and uses causal command substitutes instead of
+  writing availability, journal, ownership, or mutation results itself;
+- repository policy rejects outer-runner transaction-mode dispatch and direct
+  fabrication of those production result files.
+
+The retained Node B evidence identifies one IPv4 shared-UI reset at
+`2026-08-23T23:09:56.742761874Z`, with successful immediately adjacent IPv4
+samples and a successful paired IPv6 sample. It coincides with preferred-owner
+failback, but the retained curl evidence lacks remote-address and connection
+timing fields. The historical reset therefore cannot be causally classified as
+an in-flight TCP handoff or a serving gap. This is an unresolved evidence gap;
+the audit does not waive it or infer a cause. No Action 35ap controlled exercise
+may be defined until its continuity contract explicitly states the evidence
+needed to distinguish those outcomes.
 
 The terminal result is archived at
 `caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage

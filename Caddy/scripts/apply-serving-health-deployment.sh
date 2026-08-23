@@ -2293,11 +2293,11 @@ stop_sampler() {
 
 controlled_exercise_service() {
     local serving_health_scenario serving_health_operation serving_health_expected_role
-    local serving_health_service serving_health_marker serving_health_state serving_health_attempt
+    local serving_health_service serving_health_marker serving_health_state
 
     IFS=: read -r serving_health_scenario serving_health_operation <<<"$target_revision_argument"
     case "$serving_health_scenario" in
-        node-a-caddy | node-a-transient-caddy)
+        node-a-caddy)
             serving_health_expected_role=node-a
             serving_health_service=caddy.service
             ;;
@@ -2374,39 +2374,6 @@ controlled_exercise_service() {
                 printf '%s\n' "$!" >"$evidence_root/exercise-$serving_health_scenario.watchdog.tsv"
                 chmod 0600 "$evidence_root/exercise-$serving_health_scenario.watchdog.tsv"
             fi
-            ;;
-        transient)
-            require_equal exercise_transient_scenario node-a-transient-caddy \
-                "$serving_health_scenario"
-            require exercise_transient_cursor regular_file \
-                "$evidence_root/exercise-node-a-transient-caddy.cursor.tsv"
-            require exercise_marker_absent path_absent "$serving_health_marker"
-            require exercise_service_initially_active "$systemctl_command" is-active --quiet \
-                "$serving_health_service"
-            printf 'scenario\tservice\tinitial_state\n%s\t%s\tactive\n' \
-                "$serving_health_scenario" "$serving_health_service" >"$serving_health_marker"
-            chmod 0600 "$serving_health_marker"
-            trap '"$systemctl_command" start "$serving_health_service" >/dev/null 2>&1 || :; rm -f -- "$serving_health_marker"' \
-                EXIT TERM INT
-            "$systemctl_command" stop "$serving_health_service"
-            serving_health_state=0
-            for ((serving_health_attempt = 1; serving_health_attempt <= 10; serving_health_attempt++)); do
-                if "$journalctl_command" --no-pager --after-cursor \
-                    "$(<"$evidence_root/exercise-node-a-transient-caddy.cursor.tsv")" \
-                    -u keepalived.service | grep -Fq 'VRRP_Script(check-caddy) failed'; then
-                    serving_health_state=1
-                    break
-                fi
-                "$sleep_command" 1
-            done
-            if ! "$systemctl_command" start "$serving_health_service"; then
-                return 125
-            fi
-            require exercise_service_restored "$systemctl_command" is-active --quiet \
-                "$serving_health_service" || return 125
-            rm -f -- "$serving_health_marker"
-            trap - EXIT TERM INT
-            require_equal exercise_transient_sample_observed 1 "$serving_health_state"
             ;;
         start | restore)
             require exercise_marker_regular regular_file "$serving_health_marker"
@@ -2497,7 +2464,7 @@ controlled_exercise_cursor() {
     local serving_health_scenario=$target_revision_argument
     local serving_health_cursor
 
-    [[ "$serving_health_scenario" =~ ^node-[ab]-(caddy|lighttpd|pihole-ftl|unbound|keepalived|transient-caddy)$ ]]
+    [[ "$serving_health_scenario" =~ ^node-[ab]-(caddy|lighttpd|pihole-ftl|unbound|keepalived)$ ]]
     capture_command "exercise_${serving_health_scenario}_cursor" \
         "$journalctl_command" --quiet --no-pager -n 0 --show-cursor
     serving_health_cursor=$(sed -n 's/^-- cursor: //p' \
@@ -2512,20 +2479,57 @@ controlled_exercise_journal() {
     local serving_health_scenario=$target_revision_argument
     local serving_health_cursor_file=$evidence_root/exercise-$target_revision_argument.cursor.tsv
     local serving_health_journal_label=exercise_${target_revision_argument}_journal
+    local serving_health_daemon_label=${serving_health_journal_label}_daemon
+    local serving_health_notification_label=${serving_health_journal_label}_notification
     local serving_health_attempt serving_health_ready=false
 
     regular_file "$serving_health_cursor_file"
     for ((serving_health_attempt = 1; serving_health_attempt <= 45; serving_health_attempt++)); do
-        capture_command "$serving_health_journal_label" "$journalctl_command" --no-pager \
+        capture_command "$serving_health_daemon_label" "$journalctl_command" --no-pager \
             -o short-iso-precise --after-cursor "$(<"$serving_health_cursor_file")" \
             -u keepalived.service -u caddy.service -u pihole-FTL.service \
-            -u unbound.service -u lighttpd.service -u caddy-pihole-web-health.service \
+            -u unbound.service -u lighttpd.service -u caddy-pihole-web-health.service
+        capture_command "$serving_health_notification_label" "$journalctl_command" --no-pager \
+            -o short-iso-precise --after-cursor "$(<"$serving_health_cursor_file")" \
             -t keepalived-notify -t caddy-ha-health -t caddy-apprise-queue
-        serving_health_ready=true
-        if [[ "$serving_health_scenario" = *lighttpd ]]; then
-            grep -Fq 'pihole_web_health event=recovery-enqueued' \
-                "$evidence_root/$serving_health_journal_label.stdout" || serving_health_ready=false
-        fi
+        cat "$evidence_root/$serving_health_daemon_label.stdout" \
+            "$evidence_root/$serving_health_notification_label.stdout" \
+            >"$evidence_root/$serving_health_journal_label.stdout"
+        chmod 0600 "$evidence_root/$serving_health_journal_label.stdout"
+        case "$serving_health_scenario" in
+            *-lighttpd)
+                grep -Fq 'pihole_web_health event=failure-retained' \
+                    "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Fq 'pihole_web_health event=recovery-enqueued' \
+                        "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    serving_health_ready=true
+                ;;
+            *-caddy)
+                grep -Fq 'VRRP_Script(check-caddy) failed' \
+                    "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Fq 'VRRP_Script(check-caddy) succeeded' \
+                        "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Eq 'event=enqueued .*source=keepalived ' \
+                        "$evidence_root/$serving_health_notification_label.stdout" &&
+                    serving_health_ready=true
+                ;;
+            *-pihole-ftl | *-unbound)
+                grep -Fq 'VRRP_Script(check-dns) failed' \
+                    "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Fq 'VRRP_Script(check-dns) succeeded' \
+                        "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Eq 'event=enqueued .*source=keepalived ' \
+                        "$evidence_root/$serving_health_notification_label.stdout" &&
+                    serving_health_ready=true
+                ;;
+            *-keepalived)
+                grep -Fq 'Started keepalived.service' \
+                    "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    grep -Eq 'event=enqueued .*source=keepalived ' \
+                        "$evidence_root/$serving_health_notification_label.stdout" &&
+                    serving_health_ready=true
+                ;;
+        esac
         [[ "$serving_health_ready" = true ]] && break
         "$sleep_command" 1
     done
@@ -2547,11 +2551,6 @@ controlled_exercise_journal() {
                     "$evidence_root/$serving_health_journal_label.stdout")"
             require_equal exercise_lighttpd_recovery_notification_count 1 \
                 "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=success' \
-                    "$evidence_root/$serving_health_journal_label.stdout")"
-            ;;
-        *-transient-caddy)
-            require_equal exercise_transient_single_failure 1 \
-                "$(grep -Fc 'VRRP_Script(check-caddy) failed' \
                     "$evidence_root/$serving_health_journal_label.stdout")"
             ;;
         *-caddy)
@@ -2593,7 +2592,7 @@ controlled_exercise_observe() {
     for ((serving_health_attempt = 1; serving_health_attempt <= 45; serving_health_attempt++)); do
         capture_command "$serving_health_observation_label" "$journalctl_command" --no-pager \
             -o short-iso-precise --after-cursor "$(<"$serving_health_cursor_file")" \
-            -u caddy-pihole-web-health.service -t caddy-apprise-queue
+            -u caddy-pihole-web-health.service
         if grep -Fq 'pihole_web_health event=failure-retained' \
             "$evidence_root/$serving_health_observation_label.stdout"; then
             serving_health_observed=true
@@ -3532,8 +3531,56 @@ case "$1" in
             exit 1
         fi
         printf 'inactive\n' >"$state_file"
+        case "$service" in
+            caddy.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-caddy) failed (exited with status 1)' \
+                    'event=enqueued event_id=caddy-failure source=keepalived severity=failure' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+            pihole-FTL.service | unbound.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-dns) failed (exited with status 1)' \
+                    'event=enqueued event_id=dns-failure source=keepalived severity=failure' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+            lighttpd.service)
+                printf '%s\n' \
+                    'pihole_web_health event=failure-retained' \
+                    'event=enqueued event_id=web-failure source=pihole-web severity=failure' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+        esac
         ;;
-    start) printf 'active\n' >"$state_file" ;;
+    start)
+        printf 'active\n' >"$state_file"
+        case "$service" in
+            caddy.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-caddy) succeeded' \
+                    'event=enqueued event_id=caddy-recovery source=keepalived severity=success' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+            pihole-FTL.service | unbound.service)
+                printf '%s\n' \
+                    'Keepalived_vrrp: VRRP_Script(check-dns) succeeded' \
+                    'event=enqueued event_id=dns-recovery source=keepalived severity=success' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+            lighttpd.service)
+                printf '%s\n' \
+                    'pihole_web_health event=recovery-enqueued' \
+                    'event=enqueued event_id=web-recovery source=pihole-web severity=success' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+            keepalived.service)
+                printf '%s\n' \
+                    'systemd: Started keepalived.service' \
+                    'event=enqueued event_id=keepalived-recovery source=keepalived severity=success' \
+                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                ;;
+        esac
+        ;;
     show) cat "$state_file" ;;
     *) exit 64 ;;
 esac
@@ -3541,22 +3588,29 @@ SYSTEMCTL
     cat >"$exercise_journalctl" <<'JOURNALCTL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
+arguments=$*
 printf '%s\n' "$*" >>"$CADDY_EXERCISE_TEST_ROOT/journalctl.calls"
 if [[ " $* " = *' --show-cursor '* ]]; then
-    printf '%s\n' '-- cursor: s=controlled-exercise-test'
-else
-    printf '%s\n' \
-        'Keepalived_vrrp: VRRP_Script(check-caddy) failed (exited with status 1)' \
-        'Keepalived_vrrp: VRRP_Script(check-caddy) succeeded' \
-        'Keepalived_vrrp: VRRP_Script(check-dns) failed (exited with status 1)' \
-        'Keepalived_vrrp: VRRP_Script(check-dns) succeeded' \
-        'systemd: Started keepalived.service' \
-        'keepalived-notify: structured notification queued' \
-        'pihole_web_health event=failure-retained' \
-        'pihole_web_health event=recovery-enqueued' \
-        'event=enqueued event_id=failure source=pihole-web severity=failure' \
-        'event=enqueued event_id=recovery source=pihole-web severity=success' \
-        'event=enqueued event_id=keepalived source=keepalived severity=failure'
+    lines=0
+    [[ ! -f "$CADDY_EXERCISE_TEST_ROOT/journal.log" ]] || \
+        lines=$(wc -l <"$CADDY_EXERCISE_TEST_ROOT/journal.log")
+    printf '%s\n' "-- cursor: s=$lines"
+elif [[ -f "$CADDY_EXERCISE_TEST_ROOT/journal.log" ]]; then
+    cursor=0
+    while [[ $# -gt 0 ]]; do
+        if [[ "$1" = --after-cursor ]]; then
+            cursor=${2#s=}
+            break
+        fi
+        shift
+    done
+    if [[ " $arguments " = *' -t '* ]]; then
+        tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+            grep -E 'event=enqueued|keepalived-notify' || :
+    else
+        tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+            grep -Ev '^event=enqueued' || :
+    fi
 fi
 JOURNALCTL
     cat >"$exercise_busctl" <<'BUSCTL'
@@ -3589,6 +3643,7 @@ DATE
         "$exercise_ip" "$exercise_sleep" "$exercise_date"
     : >"$exercise_test_root/systemctl.calls"
     : >"$exercise_test_root/journalctl.calls"
+    : >"$exercise_test_root/journal.log"
 
     for exercise_scenario in "${exercise_scenarios[@]}"; do
         exercise_role=${exercise_scenario%%-*}-${exercise_scenario#*-}
@@ -3654,6 +3709,18 @@ DATE
         CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
         /bin/bash "$exercise_script" exercise-cursor node-a "$exercise_payload" \
         "$exercise_evidence" node-a-caddy
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-service node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-caddy:stop
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-service node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-caddy:start
     CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
         CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
         CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$exercise_journalctl \
@@ -3838,6 +3905,11 @@ production_path_test() {
     notification_state_contract_production_path_test "$serving_health_test_root"
     if [[ "${CADDY_NOTIFICATION_STATE_CONTRACT_ONLY:-0}" = 1 ]]; then
         printf '%s_production_path_test_complete=true\n' "$prefix"
+        return
+    fi
+    if [[ "${CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY:-0}" = 1 ]]; then
+        controlled_failure_exercise_production_path_test "$serving_health_test_root" \
+            "$serving_health_repo_root"
         return
     fi
     if grep -Fxq 'scope: pihole-web-health-unit-only' \
