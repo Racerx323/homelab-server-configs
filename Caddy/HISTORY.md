@@ -5,10 +5,42 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35am-terminal-2026-08-23`
-- Terminal action: Action 35am is accepted, archived, and cleaned. No
-  deployment successor is defined.
+- State: terminal-pending
+- Latest archive tag: `caddy-action35an-terminal-2026-08-23` (planned for this
+  terminal-result commit)
+- Terminal action: Action 35an is failed-consumed, pre-mutation, and must not be
+  rerun.
+
+## Action 35an terminal result
+
+- Tag: `caddy-action35an-terminal-2026-08-23`
+- Authorized outer SHA-256:
+  `1508a4a9eaedfa3b2c6d35c62161102d1ecf49943fad771e72bdd4ff419097d3`
+- Transaction SHA-256:
+  `b53258a8d12d6b9e966e7be6597e755793361eb013a833670751c4fddac6f40f`
+- Result: failed-consumed during Node B preflight; exit status 1.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.o6fsV4`.
+- Exact failed assertion:
+  `serving_health_deployment_check_notification_state_root_empty=false`.
+- Cause: the preflight retained the obsolete pre-Action-35al requirement that
+  `/var/lib/caddy-serving-health/keepalived-notify` be empty. Accepted Action
+  35al production instead maintains the durable
+  `PIHOLE_DUALSTACK.state` record there.
+- No controlled failure or production mutation ran. Node A was not exercised.
+  Both bounded payloads were disposed, failure evidence was read back, and all
+  upload, disposition, and readback statuses were zero.
+- Status: terminal-pending. The successor and coverage registries are cleared;
+  the exact consumed operation remains only until this commit is archived.
+
+## Action 35an archived definition
+
+- Action 35an uses the neutral reusable transaction and outer runner with one
+  versioned operation specification; no action-numbered implementation exists.
+- Scope: controlled Node A and Node B DNS/Proxy serving-failure exercise with
+  continuous dual-stack shared-service evidence, exact VIP ownership,
+  structured notification acceptance, restoration, and zero residue.
+- Live execution was separately authorized by the exact outer-runner SHA-256
+  above and is now consumed.
 
 ## Action 35am terminal result
 

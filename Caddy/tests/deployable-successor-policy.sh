@@ -135,6 +135,9 @@ successor_policy_coverage_valid() {
         external-notification-attribution-read-only)
             successor_policy_required_scenarios='endpoint-only secret-bearing-evidence-rejection exact-legacy-title-search second-caller-attribution scheduled-job-attribution retained-replay-attribution multiple-candidate-ambiguity no-evidence-unattributed bounded-journal-selection zero-production-mutation outer-preflight exact-remote-cleanup evidence-readback-success evidence-readback-failure zero-production-mutation-outer'
             ;;
+        controlled-serving-failure-exercise)
+            successor_policy_required_scenarios='exercise-role-rejection exercise-service-control exercise-ownership-convergence exercise-journal-bounded exercise-reverse-restoration outer-preflight outer-full-scenario-sequence outer-recovery-status125 outer-readback-cleanup'
+            ;;
         *)
             successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'
             ;;
@@ -260,7 +263,7 @@ successor_policy_defined_valid() {
     successor_policy_scope=$(sed -n 's/^scope: //p' \
         "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
     case "$successor_policy_scope" in
-        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | full-serving-health) : ;;
+        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
         *) return 1 ;;
     esac
     case "$successor_policy_scope" in
@@ -291,6 +294,16 @@ successor_policy_defined_valid() {
             grep -Fxq '  - no notification or test notification' \
                 "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
             grep -Fxq '  - incomplete causal evidence reports unattributed' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            ;;
+        controlled-serving-failure-exercise)
+            grep -Fxq '  - changes no repository or node configuration artifact' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  - stops no service on both nodes simultaneously' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  - status 125 is reserved for recovery that cannot be proven after mutation' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  - synthetic production results or marker-only acceptance' \
                 "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
             ;;
         *)

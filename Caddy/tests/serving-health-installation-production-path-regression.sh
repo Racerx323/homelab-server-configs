@@ -76,6 +76,31 @@ if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
     fi
     printf '%s_complete=true\n' "$prefix"
     exit 0
+elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
+    for decision in exercise-role-rejection exercise-service-control \
+        exercise-ownership-convergence exercise-journal-bounded \
+        exercise-reverse-restoration; do
+        test -s "$root/transaction/decisions/$decision.tsv"
+        test -s "$root/transaction/raw/$decision.txt"
+    done
+    for decision in outer-preflight outer-full-scenario-sequence \
+        outer-recovery-status125 outer-readback-cleanup; do
+        test -s "$root/outer/decisions/$decision.tsv"
+        test -s "$root/outer/raw/$decision.txt"
+    done
+    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
+        "$root/transaction.stdout"
+    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
+        "$root/outer.stdout"
+    for scenario in node-a-transient-caddy node-a-caddy node-a-lighttpd \
+        node-a-pihole-ftl node-a-unbound node-a-keepalived node-b-caddy \
+        node-b-lighttpd node-b-pihole-ftl node-b-unbound; do
+        grep -Fq "$scenario" "$root/outer/raw/outer-full-scenario-sequence.txt"
+    done
+    grep -Fxq 'node_a_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
+    grep -Fxq 'node_b_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
+    printf '%s_complete=true\n' "$prefix"
+    exit 0
 elif [[ "$operation_scope" = notification-standardization-only ]]; then
     for decision in notification-preflight notification-install notification-accept \
         notification-rollback notification-candidate-tamper; do

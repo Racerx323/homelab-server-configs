@@ -777,7 +777,7 @@ network-disabled Debian 12 focused batch, the complete pre-commit suite, and
 must reject while the registry is `none`; a future hash may be reported only
 after one successor is defined and the causal evidence contract passes.
 
-## Controlled serving-failure exercise deferred until notification acceptance
+## Action 35an controlled serving-failure exercise
 
 The controlled exercise is not assigned an action number until installation is
 accepted. It uses current services and no production fixtures. Each scenario
@@ -868,3 +868,54 @@ accepted and Action 35an is the next definition-only gate.
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
 operation specification is inactive, and the Caddy deployment stream is clean.
+
+## Action 35an definition
+
+Action 35an is failed-consumed and must not be rerun. Its authorized outer
+SHA-256 was
+`1508a4a9eaedfa3b2c6d35c62161102d1ecf49943fad771e72bdd4ff419097d3`.
+It exited 1 during Node B preflight before any controlled failure or production
+mutation. Node A was not exercised. All payload disposition and failure
+readback statuses were zero. Retained workstation evidence is
+`/tmp/caddy-ssh-evidence-serving_health.o6fsV4`.
+
+The exact failed assertion was
+`serving_health_deployment_check_notification_state_root_empty=false`. That
+predicate was stale: accepted Action 35al deliberately maintains the durable
+`PIHOLE_DUALSTACK.state` record beneath
+`/var/lib/caddy-serving-health/keepalived-notify`. The neutral preflight must
+accept only the exact protected durable state appropriate to the node and must
+continue to reject unknown, malformed, symlinked, incorrectly owned, or
+incorrectly mode-set state. This repository correction follows the Action 35an
+terminal archive and does not authorize a rerun.
+
+Action 35an is the definition-only controlled serving-failure exercise. It
+uses the existing neutral transaction and outer runner with one versioned
+operation specification; it adds no action-numbered implementation, regression,
+fixture, or wrapper. Definition and production-path validation contact no node.
+
+The authorized live operation will first require the accepted Node A `MASTER`
+four-VIP and Node B `BACKUP` zero-VIP baseline. It then exercises one isolated
+Caddy failed sample, the five Node A service scenarios, and the equivalent
+Caddy, DNS, and notification-only lighttpd scenarios on Node B. Every stopped
+service is restored before the next scenario. A background sampler on each HA
+node continuously records shared IPv4 and IPv6 DNS, trusted HTTPS, and Pi-hole
+UI availability; node-local UI failure is evidence but cannot invalidate the
+shared-continuity result during its deliberate outage.
+
+Each scenario retains a fresh journal cursor, the complete bounded observation
+window, exact service-control status, repeated ownership samples, structured
+notification evidence, and final residue evidence. Coupled failures require
+two failed probes before movement, zero VIPs on the ineligible node, all four
+VIPs on its healthy peer, three healthy probes before recovery, and preferred
+Node A failback. Lighttpd requires unchanged ownership, one failure episode,
+no duplicate notification, and one recovery. The legacy notification title is
+rejected. Interface, SSH, reboot, and whole-node failures accepted by Action 33
+are not repeated.
+
+No configuration, release, synchronization, or ownership-policy artifact is
+changed. On a failure after a service stop, the exact service is restored
+before final baseline validation. Status 125 is reserved for a mutation whose
+recovery cannot be proven. Success requires the exact accepted starting state,
+all five serving services active on both nodes, complete readback, removal of
+only the bounded payload/evidence roots, and zero exercise residue.

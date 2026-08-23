@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted, archived, and cleaned; repository history identifies the legacy messages as output from notifier revisions retired by `192b1e1`; notification standardization is accepted; the Caddy deployment stream is clean; definition-only controlled serving-failure exercise Action 35an is the next gate; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35an is failed-consumed during Node B preflight before mutation and awaits its terminal archive; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -680,6 +680,35 @@ Notification standardization is accepted and Action 35an is the next gate.
 Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
 operation specification is inactive, and the Caddy deployment stream is clean.
+
+### Action 35an definition
+
+Action 35an is failed-consumed and must not be rerun. Its exact authorized
+outer SHA-256 was
+`1508a4a9eaedfa3b2c6d35c62161102d1ecf49943fad771e72bdd4ff419097d3`.
+It exited 1 during Node B preflight because the neutral transaction required
+the accepted notification state directory to be empty. Action 35al established
+the current production contract: that protected directory contains the durable
+`PIHOLE_DUALSTACK.state` record. No controlled failure or production mutation
+ran, Node A was not exercised, and bounded payload disposition and evidence
+readback succeeded. Evidence is retained at
+`/tmp/caddy-ssh-evidence-serving_health.o6fsV4`.
+
+Action 35an is the definition-only controlled DNS and Proxy serving-failure
+exercise. It uses the neutral reusable transaction and outer runner and one
+operation specification. It changes no production configuration or release.
+The sequence covers one non-triggering Caddy sample; Node A Caddy, lighttpd,
+Pi-hole FTL, Unbound, and Keepalived failures; and Node B Caddy, lighttpd,
+Pi-hole FTL, and Unbound failures while Node A remains healthy.
+
+Every scenario begins and ends at Node A `MASTER` with all four VIPs and Node B
+`BACKUP` with none. Coupled serving failures must move all four VIPs after the
+configured failure threshold and restore preferred ownership only after the
+configured recovery threshold. Lighttpd remains notification-only. Continuous
+dual-stack shared DNS, trusted HTTPS, and Pi-hole UI evidence, cursor-bounded
+journals, current structured notifications, exact restoration, and zero
+residue are mandatory. Action 33 interface, SSH, reboot, and whole-node cases
+remain authoritative and are not repeated.
 
 ## 19. Checkpoint procedure
 
