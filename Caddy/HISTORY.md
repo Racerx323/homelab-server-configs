@@ -5,10 +5,32 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
+- State: terminal-pending
+- Planned archive tag: `caddy-action35am-terminal-2026-08-23`
 - Latest archive tag: `caddy-action35al-terminal-2026-08-23`
-- Terminal action: Action 35al is accepted, archived, and cleaned. No
-  deployment successor is defined.
+- Terminal action: Action 35am is accepted. Its exact operation remains only
+  until the annotated terminal tag is created.
+
+## Action 35am terminal result
+
+- Tag: `caddy-action35am-terminal-2026-08-23`
+- Authorized outer SHA-256:
+  `0eaac466e254c97a4d1a886d64a8be82cb533552687124483fd666677289ea7f`
+- Transaction SHA-256:
+  `369ec7ce6081680256b592dc7db6f51ef4eb63bc187c583e481704ad4070ce73`
+- Result: accepted read-only capture; exit status 0.
+- Status: terminal-pending.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.IoAYyJ`.
+- Attribution: `unattributed`; zero causal producer candidates were found.
+- Config ID `apprise` was confirmed to be an endpoint list without a message
+  template. No request observation or retained source matched the exact legacy
+  title within the bounded capture contract.
+- All capture, evidence-readback, integrity, and temporary-program cleanup
+  statuses were zero. No HA node was contacted, no notification was sent, and
+  no production state was changed.
+- Notification standardization remains incomplete until the separate legacy
+  producer is causally identified or retired. The controlled serving-failure
+  exercise remains deferred.
 
 ## Action 35al definition
 

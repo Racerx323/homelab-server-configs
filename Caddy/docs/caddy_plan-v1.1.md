@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; Action 35al is archived and the deployment stream is clean; the external legacy duplicate source remains to be identified before controlled failure exercise Action 35am; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted and awaits terminal archival; the legacy duplicate remains unattributed and notification standardization remains incomplete; controlled serving-failure exercise Action 35an remains deferred; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -656,8 +656,28 @@ accepted `BACKUP`, and Node A accepted `MASTER`. Both nodes installed and
 accepted the exact notification, worker, tmpfiles, DNS probe, Caddy probe, and
 notifier artifacts. Installed-form DNS and Caddy probes passed, all payloads
 were dispositioned, and rollback was not required. Evidence is
-`/tmp/caddy-ssh-evidence-serving_health.5JumxL`. Action 35am remains deferred
-until the separate external legacy-notification source is identified.
+`/tmp/caddy-ssh-evidence-serving_health.5JumxL`.
+
+Action 35am is the single defined successor. It is a bounded, read-only
+external attribution capture against the Apprise API host, not another HA-node
+deployment. Config ID `apprise` is treated only as an endpoint list; its
+credentials are never read into retained evidence. The capture searches for
+the exact legacy title in bounded producer inventories, scheduled jobs,
+retained delivery metadata, and bounded API journals. It may attribute a
+producer only from causal evidence, rejects multiple candidates, and reports
+`unattributed` when evidence is incomplete. It sends no notification, changes
+no service or file, retains sanitized 0600 evidence beneath unique 0700 `/tmp`
+directories, and removes only its exact temporary remote program after
+readback. The controlled serving-failure exercise moves to Action 35an.
+
+Action 35am is accepted as a read-only capture with exit status 0. Evidence at
+`/tmp/caddy-ssh-evidence-serving_health.IoAYyJ` reports config ID `apprise` as
+an endpoint list and attribution as `unattributed` with zero causal producer
+candidates. Source-match and request-observation records contain no data rows.
+Readback integrity and exact temporary-program cleanup passed. No HA node was
+contacted, no notification was sent, and no production state changed.
+Notification standardization remains incomplete and Action 35an remains
+deferred.
 
 ## 19. Checkpoint procedure
 

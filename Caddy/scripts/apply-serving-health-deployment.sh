@@ -67,7 +67,7 @@ if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING
 fi
 
 usage() {
-    printf 'Usage: %s --production-path-test | MODE node-a|node-b PAYLOAD_ROOT EVIDENCE_ROOT\n' "${0##*/}" >&2
+    printf 'Usage: %s --production-path-test | MODE node-a|node-b|external-apprise PAYLOAD_ROOT EVIDENCE_ROOT\n' "${0##*/}" >&2
 }
 
 safe_root() {
@@ -2158,6 +2158,121 @@ write_decision() {
     chmod 0600 "$serving_health_raw" "$serving_health_decision"
 }
 
+external_attribution_redact() {
+    sed -E \
+        -e 's#([A-Za-z][A-Za-z0-9+.-]*://)[^[:space:]]+#\1[REDACTED]#g' \
+        -e 's#([Aa]uthorization:)[[:space:]]*[^[:space:]]+#\1 [REDACTED]#g' \
+        -e 's#((token|password|api[_-]?key|webhook)[=:])[[:graph:]]+#\1[REDACTED]#Ig'
+}
+
+external_attribution_safe_file() {
+    local attribution_path=$1
+    local attribution_expected_owner=root:root
+
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        attribution_expected_owner=$(id -un):$(id -gn)
+    fi
+
+    regular_file "$attribution_path"
+    [[ "$(stat -c '%U:%G' "$attribution_path")" = "$attribution_expected_owner" ]]
+    [[ "$(stat -c '%a' "$attribution_path")" = 600 ]]
+    [[ "$(stat -c '%s' "$attribution_path")" -le 1048576 ]]
+    iconv -f UTF-8 -t UTF-8 "$attribution_path" >/dev/null
+    if LC_ALL=C grep -Paq '[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]' "$attribution_path"; then
+        return 1
+    fi
+    if grep -Eiq \
+        '([A-Za-z][A-Za-z0-9+.-]*://[^[]|authorization:[[:space:]]*[^[]|((token|password|api[_-]?key|webhook)[=:])[^[])' \
+        "$attribution_path"; then
+        return 1
+    fi
+}
+
+external_attribution_capture() {
+    local attribution_title='[Failover Alert] Pi-hole DNS Cluster'
+    local attribution_roots attribution_root attribution_candidate attribution_relative
+    local attribution_matches=$evidence_root/source-matches.tsv
+    local attribution_journal_raw=$evidence_root/.journal.raw
+    local attribution_journal=$evidence_root/request-observations.tsv
+    local attribution_result=$evidence_root/attribution.tsv
+    local attribution_class=unattributed attribution_candidate_count=0
+    local attribution_class_count=0 attribution_observed_class
+    local attribution_file_count
+    local attribution_expected_owner=root:root
+    local attribution_journalctl=${CADDY_ATTRIBUTION_JOURNALCTL_COMMAND:-/usr/bin/journalctl}
+    local attribution_podman=${CADDY_ATTRIBUTION_PODMAN_COMMAND:-/usr/bin/podman}
+
+    safe_root "$evidence_root"
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        attribution_expected_owner=$(id -un):$(id -gn)
+    fi
+    [[ "$(stat -c '%U:%G' "$evidence_root")" = "$attribution_expected_owner" ]]
+    [[ "$(stat -c '%a' "$evidence_root")" = 700 ]]
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+        attribution_roots=${CADDY_ATTRIBUTION_SCAN_ROOTS:?missing test scan roots}
+    else
+        attribution_roots='/etc/systemd/system:/etc/cron.d:/etc/cron.daily:/etc/cron.hourly:/etc/cron.weekly:/etc/cron.monthly:/usr/local/bin:/usr/local/libexec:/opt:/home/pi:/var/lib/caddy-apprise-queue'
+    fi
+    printf 'classification\tsource\n' >"$attribution_matches"
+    IFS=: read -r -a attribution_root_list <<<"$attribution_roots"
+    for attribution_root in "${attribution_root_list[@]}"; do
+        [[ "$attribution_root" = /* && "$attribution_root" != *$'\n'* ]]
+        [[ ! -L "$attribution_root" ]] || return 66
+        [[ -e "$attribution_root" ]] || continue
+        attribution_file_count=$(find "$attribution_root" -xdev -type f \
+            -size -1048577c -printf . 2>/dev/null | wc -c)
+        [[ "$attribution_file_count" -le 5000 ]] || return 67
+        while IFS= read -r -d '' attribution_candidate; do
+            [[ -f "$attribution_candidate" && ! -L "$attribution_candidate" ]]
+            [[ "$(stat -c '%s' "$attribution_candidate")" -le 1048576 ]] || continue
+            if LC_ALL=C grep -IlF -- "$attribution_title" "$attribution_candidate" >/dev/null; then
+                attribution_relative=$attribution_candidate
+                [[ "$attribution_relative" != *$'\t'* && "$attribution_relative" != *$'\n'* ]]
+                case "$attribution_relative" in
+                    */cron.*/* | */systemd/system/*.timer) attribution_observed_class=scheduled-job ;;
+                    */caddy-apprise-queue/* | */receipt*/* | */delivered/*) attribution_observed_class=retained-replay ;;
+                    */usr/local/bin/* | */usr/local/libexec/* | */opt/* | */home/pi/*) attribution_observed_class=second-api-caller ;;
+                    *) attribution_observed_class=external-producer ;;
+                esac
+                printf '%s\t%s\n' "$attribution_observed_class" "$attribution_relative" \
+                    >>"$attribution_matches"
+                attribution_candidate_count=$((attribution_candidate_count + 1))
+            fi
+        done < <(find "$attribution_root" -xdev -type f -size -1048577c -print0 2>/dev/null)
+    done
+    : >"$attribution_journal_raw"
+    if [[ -x "$attribution_journalctl" ]]; then
+        "$attribution_journalctl" --since '-14 days' --no-pager -n 2000 \
+            -o short-iso-precise -u apprise-api.service >"$attribution_journal_raw" 2>/dev/null || :
+    fi
+    if [[ -x "$attribution_podman" ]]; then
+        "$attribution_podman" logs --since 336h --tail 2000 apprise-api \
+            >>"$attribution_journal_raw" 2>/dev/null || :
+    fi
+    [[ "$(stat -c '%s' "$attribution_journal_raw")" -le 1048576 ]] || return 67
+    {
+        printf 'timestamp\tsource-address\thttp-path\tstatus\tuser-agent\tprocess\tdestination-count\tlegacy-title\n'
+        grep -F -- "$attribution_title" "$attribution_journal_raw" | external_attribution_redact || :
+    } >"$attribution_journal"
+    chmod 0600 "$attribution_matches" "$attribution_journal"
+    rm -f -- "$attribution_journal_raw"
+    external_attribution_safe_file "$attribution_matches" || return 68
+    external_attribution_safe_file "$attribution_journal" || return 68
+    attribution_class_count=$(awk -F '\t' 'NR > 1 { seen[$1] = 1 } END { for (item in seen) count++; print count + 0 }' "$attribution_matches")
+    if [[ "$attribution_class_count" -gt 1 || "$attribution_candidate_count" -gt 1 ]]; then
+        attribution_class=ambiguous
+    elif [[ "$attribution_candidate_count" -eq 1 ]]; then
+        attribution_class=$(awk -F '\t' 'NR == 2 { print $1 }' "$attribution_matches")
+    fi
+    printf 'config-id\tconfig-model\tattribution\tcandidates\n%s\t%s\t%s\t%s\n' \
+        apprise endpoint-list-only "$attribution_class" "$attribution_candidate_count" \
+        >"$attribution_result"
+    chmod 0600 "$attribution_result"
+    external_attribution_safe_file "$attribution_result" || return 68
+    printf '%s_external_attribution=%s\n' "$prefix" "$attribution_class"
+    [[ "$attribution_class" != ambiguous ]] || return 69
+}
+
 production_path_test_node_a_quarantine() {
     local serving_health_test_root=$1
     local serving_health_repo_root=$2
@@ -2756,6 +2871,144 @@ IP
     printf '%s_production_path_test_complete=true\n' "$prefix"
 }
 
+external_attribution_production_path_test() {
+    local attribution_test_root=$1
+    local attribution_script=$2
+    local attribution_fake_journal=$attribution_test_root/fake-journalctl
+    local attribution_fake_podman=$attribution_test_root/fake-podman
+    local attribution_fixture attribution_case_evidence
+    local attribution_raw attribution_decision attribution_status attribution_expected
+    local attribution_observed attribution_before attribution_after
+
+    cat >"$attribution_fake_journal" <<'JOURNAL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ -n "${CADDY_ATTRIBUTION_TEST_JOURNAL:-}" ]]; then
+    cat -- "$CADDY_ATTRIBUTION_TEST_JOURNAL"
+fi
+JOURNAL
+    cat >"$attribution_fake_podman" <<'PODMAN'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+exit 0
+PODMAN
+    chmod 0700 "$attribution_fake_journal" "$attribution_fake_podman"
+
+    external_attribution_test_case() {
+        local attribution_case=$1
+        local attribution_kind=$2
+        local attribution_expectation=$3
+        local attribution_journal_file=
+
+        attribution_fixture=$attribution_test_root/fixtures/$attribution_case
+        attribution_case_evidence=$attribution_test_root/cases/$attribution_case
+        install -d -m 0700 "$attribution_fixture" "$attribution_case_evidence"
+        case "$attribution_kind" in
+            none) : ;;
+            caller)
+                install -d -m 0700 "$attribution_fixture/usr/local/bin"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/usr/local/bin/legacy-caller.sh"
+                ;;
+            scheduled)
+                install -d -m 0700 "$attribution_fixture/etc/cron.d"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/etc/cron.d/legacy-notify"
+                ;;
+            replay)
+                install -d -m 0700 "$attribution_fixture/var/lib/caddy-apprise-queue/delivered"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/var/lib/caddy-apprise-queue/delivered/legacy-record"
+                ;;
+            ambiguous)
+                install -d -m 0700 "$attribution_fixture/usr/local/bin" \
+                    "$attribution_fixture/etc/cron.d"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/usr/local/bin/legacy-caller.sh"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/etc/cron.d/legacy-notify"
+                ;;
+            secret)
+                install -d -m 0700 "$attribution_fixture/usr/local/bin"
+                printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_fixture/usr/local/bin/token=unsafe"
+                ;;
+            journal)
+                install -d -m 0700 "$attribution_test_root/journals"
+                attribution_journal_file=$attribution_test_root/journals/$attribution_case.txt
+                printf '%s\n' \
+                    '2026-08-23T12:00:00Z 10.1.3.10 POST /notify/apprise 200 legacy-agent apprise-api destinations=3 [Failover Alert] Pi-hole DNS Cluster' \
+                    >"$attribution_journal_file"
+                ;;
+            *) return 64 ;;
+        esac
+        find "$attribution_fixture" -type f -exec chmod 0600 {} +
+        if [[ -n "$attribution_journal_file" ]]; then
+            chmod 0600 "$attribution_journal_file"
+        fi
+        attribution_before=$(find "$attribution_fixture" -type f -print0 | LC_ALL=C sort -z | xargs -0r sha256sum | sha256sum | awk '{ print $1 }')
+        if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+            CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$attribution_test_root \
+            CADDY_ATTRIBUTION_SCAN_ROOTS=$attribution_fixture \
+            CADDY_ATTRIBUTION_JOURNALCTL_COMMAND=$attribution_fake_journal \
+            CADDY_ATTRIBUTION_PODMAN_COMMAND=$attribution_fake_podman \
+            CADDY_ATTRIBUTION_TEST_JOURNAL=$attribution_journal_file \
+            /bin/bash "$attribution_script" external-attribution-capture external-apprise \
+            "$attribution_case_evidence" "$attribution_case_evidence" \
+            >"$attribution_case_evidence/invocation.stdout" \
+            2>"$attribution_case_evidence/invocation.stderr"; then
+            attribution_status=0
+        else
+            attribution_status=$?
+        fi
+        chmod 0600 "$attribution_case_evidence/invocation.stdout" \
+            "$attribution_case_evidence/invocation.stderr"
+        attribution_after=$(find "$attribution_fixture" -type f -print0 | LC_ALL=C sort -z | xargs -0r sha256sum | sha256sum | awk '{ print $1 }')
+        [[ "$attribution_before" = "$attribution_after" ]]
+        attribution_raw=$attribution_test_root/raw/$attribution_case.txt
+        attribution_decision=$attribution_test_root/decisions/$attribution_case.tsv
+        {
+            printf 'fixture_before=%s\nfixture_after=%s\nexit_status=%s\n' \
+                "$attribution_before" "$attribution_after" "$attribution_status"
+            find "$attribution_case_evidence" -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort
+            if [[ -f "$attribution_case_evidence/attribution.tsv" ]]; then
+                cat "$attribution_case_evidence/attribution.tsv"
+                attribution_observed=$(awk -F '\t' 'NR == 2 { print $3 }' \
+                    "$attribution_case_evidence/attribution.tsv")
+            else
+                attribution_observed=rejected
+            fi
+        } >"$attribution_raw"
+        attribution_expected=$attribution_expectation
+        write_decision "$attribution_case" \
+            "$([[ "$attribution_expectation" = rejected ]] && printf reject || printf accept)" \
+            "$attribution_status" "$attribution_expected" "$attribution_observed" \
+            "$attribution_raw" "$attribution_decision"
+        if [[ "$attribution_expectation" = rejected ]]; then
+            [[ "$attribution_status" -ne 0 ]]
+        else
+            [[ "$attribution_status" -eq 0 && "$attribution_observed" = "$attribution_expectation" ]]
+        fi
+    }
+
+    external_attribution_test_case endpoint-only none unattributed
+    external_attribution_test_case no-evidence-unattributed none unattributed
+    external_attribution_test_case exact-legacy-title-search caller second-api-caller
+    external_attribution_test_case second-caller-attribution caller second-api-caller
+    external_attribution_test_case scheduled-job-attribution scheduled scheduled-job
+    external_attribution_test_case retained-replay-attribution replay retained-replay
+    external_attribution_test_case multiple-candidate-ambiguity ambiguous rejected
+    external_attribution_test_case secret-bearing-evidence-rejection secret rejected
+    external_attribution_test_case bounded-journal-selection journal unattributed
+    attribution_raw=$attribution_test_root/raw/zero-production-mutation.txt
+    attribution_decision=$attribution_test_root/decisions/zero-production-mutation.tsv
+    printf 'all_fixture_hashes_stable=true\n' >"$attribution_raw"
+    write_decision zero-production-mutation accept 0 true true \
+        "$attribution_raw" "$attribution_decision"
+    printf '%s_external_attribution_production_path_test_complete=true\n' "$prefix"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root serving_health_inventory serving_health_key serving_health_repository
@@ -2824,6 +3077,12 @@ production_path_test() {
     if grep -Fxq 'scope: notification-standardization-only' \
         "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then
         notification_standardization_production_path_test "$serving_health_repo_root"
+        return
+    fi
+    if grep -Fxq 'scope: external-notification-attribution-read-only' \
+        "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then
+        external_attribution_production_path_test "$serving_health_test_root" \
+            "$serving_health_repo_root/Caddy/scripts/apply-serving-health-deployment.sh"
         return
     fi
     serving_health_inventory=$serving_health_repo_root/Caddy/manifests/production-artifacts.tsv
@@ -3735,15 +3994,27 @@ fi
     usage
     exit 64
 }
-readonly mode=$1
+readonly requested_mode=$1
+if [[ "$requested_mode" = external-attribution-capture ]]; then
+    mode=preflight
+else
+    mode=$requested_mode
+fi
+readonly mode
 readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
 [[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback)$ ]]
-[[ "$node_role" =~ ^node-[ab]$ ]]
+[[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
+if [[ "$requested_mode" = external-attribution-capture ]]; then
+    [[ "$node_role" = external-apprise && "$payload_root" = "$evidence_root" ]]
+    external_attribution_capture
+    exit
+fi
+[[ "$node_role" =~ ^node-[ab]$ ]]
 validate_payload
 
 case "$mode" in

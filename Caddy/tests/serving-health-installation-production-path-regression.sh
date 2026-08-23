@@ -44,7 +44,39 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
 
 grep -Eq '_production_path_test_complete=true$' "$root/transaction.stdout"
 grep -Eq '_production_path_test_complete=true$' "$root/outer.stdout"
-if [[ "$operation_scope" = notification-standardization-only ]]; then
+if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
+    for decision in endpoint-only secret-bearing-evidence-rejection \
+        exact-legacy-title-search second-caller-attribution scheduled-job-attribution \
+        retained-replay-attribution multiple-candidate-ambiguity no-evidence-unattributed \
+        bounded-journal-selection zero-production-mutation; do
+        test -s "$root/transaction/decisions/$decision.tsv"
+        test -s "$root/transaction/raw/$decision.txt"
+    done
+    for decision in outer-preflight exact-remote-cleanup evidence-readback-success \
+        evidence-readback-failure zero-production-mutation-outer; do
+        test -s "$root/outer/decisions/$decision.tsv"
+        test -s "$root/outer/raw/$decision.txt"
+    done
+    awk -F '\t' '$1 == "multiple-candidate-ambiguity" && $2 == "reject" && $3 != 0 { found++ }
+        END { exit(found == 1 ? 0 : 1) }' \
+        "$root/transaction/decisions/multiple-candidate-ambiguity.tsv"
+    awk -F '\t' '$1 == "secret-bearing-evidence-rejection" && $2 == "reject" && $3 != 0 { found++ }
+        END { exit(found == 1 ? 0 : 1) }' \
+        "$root/transaction/decisions/secret-bearing-evidence-rejection.tsv"
+    grep -Fq 'external_attribution_production_path_test_complete=true' \
+        "$root/transaction.stdout"
+    grep -Fq 'external_attribution_production_path_test_complete=true' \
+        "$root/outer.stdout"
+    grep -Fxq 'remote_program_absent=true' "$root/outer/raw/exact-remote-cleanup.txt"
+    grep -Fxq 'remote_evidence_preserved=true' "$root/outer/raw/exact-remote-cleanup.txt"
+    grep -Fq 'caddy-notification-attribution-' "$root/outer/raw/outer-preflight.txt"
+    if grep -Eq '(systemctl|curl[[:space:]].*(-X|--request)[[:space:]]*POST)' \
+        "$root/outer/raw/outer-preflight.txt"; then
+        exit 1
+    fi
+    printf '%s_complete=true\n' "$prefix"
+    exit 0
+elif [[ "$operation_scope" = notification-standardization-only ]]; then
     for decision in notification-preflight notification-install notification-accept \
         notification-rollback notification-candidate-tamper; do
         test -s "$root/transaction/decisions/$decision.tsv"

@@ -844,3 +844,32 @@ notification source is identified.
 Action 35al is archived at `caddy-action35al-terminal-2026-08-23`. Its consumed
 operation data and coverage are removed from the current branch, the neutral
 operation specification is inactive, and the Caddy deployment stream is clean.
+
+## Action 35am external attribution definition
+
+Action 35am reuses the neutral transaction and outer runner for one bounded,
+read-only capture on the Apprise API host. It does not contact either HA node,
+send a notification, or alter configuration, services, routes, queues,
+databases, or deployment state. The supplied `apprise` config ID is an endpoint
+list and is not a message template. Endpoint credentials and authorization
+headers are excluded from output and retained evidence.
+
+The capture searches for the exact legacy title in bounded installed producer
+inventories, systemd and cron definitions, retained queue and receipt metadata,
+and bounded Apprise API journals. A result is attributed only when one causal
+producer is evidenced. Multiple candidates fail closed; incomplete evidence is
+reported as `unattributed`, never inferred from timing. Remote and workstation
+evidence use unique 0700 `/tmp` roots and 0600 files. The exact temporary remote
+program is removed only after evidence readback, while the remote evidence root
+is retained for authorized follow-up. Action 35an remains the separately gated
+controlled DNS/Caddy serving-failure exercise.
+
+Action 35am is accepted as a read-only capture with exit status 0 and retained
+workstation evidence at `/tmp/caddy-ssh-evidence-serving_health.IoAYyJ`. The
+bounded capture classified config ID `apprise` as an endpoint list and returned
+`unattributed` with zero causal producer candidates. Request observations and
+source matches contained only their headers. Evidence readback integrity and
+exact temporary-program cleanup passed; neither HA node was contacted, no
+notification was sent, and no production state changed. Notification
+standardization therefore remains incomplete and controlled failure exercise
+Action 35an remains deferred.

@@ -1,15 +1,56 @@
 schema_version: 2
-action: none
-title: Inactive serving-health deployment operation
-status: inactive
+action: 35am
+title: External legacy-notification source attribution capture
+status: accepted-executed-definition
+scope: external-notification-attribution-read-only
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: ddffc3b03638ece5e3a780adf0e09bdc470afff0eedcdac1965d3c1492f09db9
+transaction_sha256: 369ec7ce6081680256b592dc7db6f51ef4eb63bc187c583e481704ad4070ce73
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
-live_execution: no-operation-defined
+live_execution: separately-authorized-read-only-capture
+apprise_config:
+  id: apprise
+  model: endpoint-list-only
+  credentials: prohibited-from-evidence
+legacy_message:
+  exact_title: "[Failover Alert] Pi-hole DNS Cluster"
+capture_contract:
+  - no HA-node contact
+  - no notification or test notification
+  - no configuration, service, queue, database, route, or deployment mutation
+  - bounded read-only Apprise host and producer inventory capture
+  - redact credentials before retaining evidence
+  - causal attribution required; timing alone is insufficient
+  - incomplete causal evidence reports unattributed
+  - ambiguous candidates are rejected
+  - remote and workstation evidence directories are 0700 with 0600 files
+  - exact temporary remote program is removed after evidence readback
+  - remote evidence remains available beneath its unique bounded /tmp path
+attribution_classes:
+  - second-api-caller
+  - scheduled-job
+  - retained-replay
+  - external-producer
+  - unattributed
+  - ambiguous-rejected
+deferred_successor:
+  action: 35an
+  purpose: controlled DNS and Caddy serving-failure exercise
+terminal_result:
+  result: accepted-read-only-capture
+  exit_status: 0
+  outer_sha256: 0eaac466e254c97a4d1a886d64a8be82cb533552687124483fd666677289ea7f
+  transaction_sha256: 369ec7ce6081680256b592dc7db6f51ef4eb63bc187c583e481704ad4070ce73
+  evidence: /tmp/caddy-ssh-evidence-serving_health.IoAYyJ
+  attribution: unattributed
+  candidates: 0
+  request_observations: 0
+  readback_integrity: verified
+  temporary_program_cleanup: proven
+  production_mutation: none
+  archive_tag: caddy-action35am-terminal-2026-08-23

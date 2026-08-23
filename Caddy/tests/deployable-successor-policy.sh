@@ -132,6 +132,9 @@ successor_policy_coverage_valid() {
         notification-standardization-only)
             successor_policy_required_scenarios='outer-preflight notification-preflight notification-install notification-accept notification-candidate-tamper outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
             ;;
+        external-notification-attribution-read-only)
+            successor_policy_required_scenarios='endpoint-only secret-bearing-evidence-rejection exact-legacy-title-search second-caller-attribution scheduled-job-attribution retained-replay-attribution multiple-candidate-ambiguity no-evidence-unattributed bounded-journal-selection zero-production-mutation outer-preflight exact-remote-cleanup evidence-readback-success evidence-readback-failure zero-production-mutation-outer'
+            ;;
         *)
             successor_policy_required_scenarios='outer-preflight transaction-rejection transaction-acceptance protocol-v2-target-publication protocol-v2-target-promotion keepalived-daemon-owned-acceptance bounded-node-b-convergence node-a-quarantine-rollback protocol-namespace-state-equivalence'
             ;;
@@ -257,7 +260,7 @@ successor_policy_defined_valid() {
     successor_policy_scope=$(sed -n 's/^scope: //p' \
         "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
     case "$successor_policy_scope" in
-        pihole-web-health-unit-only | notification-standardization-only | full-serving-health) : ;;
+        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | full-serving-health) : ;;
         *) return 1 ;;
     esac
     case "$successor_policy_scope" in
@@ -278,6 +281,16 @@ successor_policy_defined_valid() {
             grep -Fxq 'SupplementaryGroups=caddy-tls' \
                 "$successor_policy_repository_root/Caddy/systemd/caddy-pihole-web-health.service" || return 1
             grep -Fxq '  - service keeps User=pi and Group=pi with SupplementaryGroups=caddy-tls' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            ;;
+        external-notification-attribution-read-only)
+            grep -Fxq '  model: endpoint-list-only' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  credentials: prohibited-from-evidence' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  - no notification or test notification' \
+                "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
+            grep -Fxq '  - incomplete causal evidence reports unattributed' \
                 "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
             ;;
         *)

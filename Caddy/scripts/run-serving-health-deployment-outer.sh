@@ -9,10 +9,11 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=ddffc3b03638ece5e3a780adf0e09bdc470afff0eedcdac1965d3c1492f09db9
-readonly operation_sha256=03bda7b469d554f4959cfc2059c7338a985fc4d326b6896f647fe8856f07a926
+readonly transaction_sha256=369ec7ce6081680256b592dc7db6f51ef4eb63bc187c583e481704ad4070ce73
+readonly operation_sha256=9e3f413cab40a38c037f201a86f7efa56478ccb0042d4d682986ab1d73ddba97
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
+apprise_host=pi@10.1.3.83
 readonly max_stream_bytes=1048576
 
 usage() {
@@ -59,6 +60,17 @@ build_payload() {
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
 
     install -d -m 0700 "$payload_stage/manifests" "$payload_stage/repositories"
+    if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
+        printf 'read-only external attribution; no production payload\n' \
+            >"$payload_stage/manifests/README"
+        chmod 0600 "$payload_stage/manifests/README"
+        tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C "$payload_stage" -cf "$payload_archive" .
+        chmod 0600 "$payload_archive"
+        sha256sum "$payload_archive" >"$workstation_evidence/payload.sha256"
+        chmod 0600 "$workstation_evidence/payload.sha256"
+        return
+    fi
     if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         {
             sed -n '1p' "$repository_root/Caddy/manifests/serving-health-production.tsv"
@@ -174,8 +186,65 @@ while IFS= read -r -d '' file; do
     printf '\n'
 done
 PROGRAM
+    cat >"$external_accept_program" <<'PROGRAM'
+set -Eeuo pipefail
+umask 077
+readonly remote_program=$1
+readonly expected_hash=$2
+readonly evidence_root=$3
+case "$remote_program" in /tmp/caddy-notification-attribution-*.sh) ;; *) exit 64 ;; esac
+case "$evidence_root" in /tmp/caddy-serving-health-*) ;; *) exit 64 ;; esac
+[[ -f "$remote_program" && ! -L "$remote_program" ]]
+[[ "$(stat -c '%a' "$remote_program")" = 755 ]]
+expected_owner=pi:pi
+if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+    expected_owner=$(id -un):$(id -gn)
+fi
+[[ "$(stat -c '%U:%G' "$remote_program")" = "$expected_owner" ]]
+[[ "$(sha256sum "$remote_program" | awk '{ print $1 }')" = "$expected_hash" ]]
+[[ ! -e "$evidence_root" && ! -L "$evidence_root" ]]
+install -d -m 0700 "$evidence_root"
+exec /bin/bash "$remote_program" external-attribution-capture external-apprise \
+    "$evidence_root" "$evidence_root"
+PROGRAM
+    cat >"$external_readback_program" <<'PROGRAM'
+set -Eeuo pipefail
+readonly evidence_root=$1
+expected_owner=root:root
+if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 ]]; then
+    expected_owner=$(id -un):$(id -gn)
+fi
+case "$evidence_root" in /tmp/caddy-serving-health-*) ;; *) exit 64 ;; esac
+[[ -d "$evidence_root" && ! -L "$evidence_root" ]]
+[[ "$(stat -c '%U:%G' "$evidence_root")" = "$expected_owner" ]]
+[[ "$(stat -c '%a' "$evidence_root")" = 700 ]]
+find "$evidence_root" -maxdepth 1 -type f -print0 | LC_ALL=C sort -z |
+while IFS= read -r -d '' file; do
+    [[ ! -L "$file" && "$(stat -c '%a' "$file")" = 600 ]]
+    [[ "$(stat -c '%U:%G' "$file")" = "$expected_owner" ]]
+    [[ "$(stat -c '%s' "$file")" -le 1048576 ]]
+    iconv -f UTF-8 -t UTF-8 "$file" >/dev/null
+    ! LC_ALL=C grep -Paq '[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]' "$file"
+    ! grep -Eiq '([A-Za-z][A-Za-z0-9+.-]*://[^[]|authorization:[[:space:]]*[^[]|((token|password|api[_-]?key|webhook)[=:])[^[])' "$file"
+    printf 'file=%s bytes=%s sha256=%s\n' "${file##*/}" \
+        "$(stat -c '%s' "$file")" "$(sha256sum "$file" | awk '{ print $1 }')"
+    base64 -w 0 "$file"
+    printf '\n'
+done
+PROGRAM
+    cat >"$external_cleanup_program" <<'PROGRAM'
+set -Eeuo pipefail
+readonly remote_program=$1
+case "$remote_program" in /tmp/caddy-notification-attribution-*.sh) ;; *) exit 64 ;; esac
+if [[ -e "$remote_program" || -L "$remote_program" ]]; then
+    [[ -f "$remote_program" && ! -L "$remote_program" ]]
+    rm -f -- "$remote_program"
+fi
+[[ ! -e "$remote_program" && ! -L "$remote_program" ]]
+PROGRAM
     chmod 0600 "$prepare_program" "$accept_program" "$disposition_program" \
-        "$readback_program"
+        "$readback_program" "$external_accept_program" "$external_readback_program" \
+        "$external_cleanup_program"
 }
 
 ssh_stream() {
@@ -358,6 +427,33 @@ run_notification_standardization_live() {
     cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive"
 }
 
+run_external_attribution_live() {
+    local attribution_remote_program=/tmp/caddy-notification-attribution-$run_id.sh
+    local attribution_remote_evidence=/tmp/caddy-serving-health-$run_id-external-attribution
+    local attribution_transaction_hash attribution_status=0 attribution_readback_status=0
+    local attribution_cleanup_status=0
+
+    attribution_transaction_hash=$(sha256sum "$transaction" | awk '{ print $1 }')
+    capture external-program-copy "$scp_command" -p -- "$transaction" \
+        "$apprise_host:$attribution_remote_program" || attribution_status=$?
+    if [[ "$attribution_status" -eq 0 ]]; then
+        capture external-capture ssh_stream "$apprise_host" "$external_accept_program" \
+            "$attribution_remote_program" "$attribution_transaction_hash" \
+            "$attribution_remote_evidence" || attribution_status=$?
+    fi
+    if [[ -e "$workstation_evidence/external-capture.status" ]]; then
+        capture external-readback ssh_stream "$apprise_host" "$external_readback_program" \
+            "$attribution_remote_evidence" || attribution_readback_status=$?
+    else
+        attribution_readback_status=71
+    fi
+    capture external-program-cleanup ssh_stream "$apprise_host" "$external_cleanup_program" \
+        "$attribution_remote_program" || attribution_cleanup_status=$?
+    [[ "$attribution_cleanup_status" -eq 0 ]] || return 72
+    [[ "$attribution_readback_status" -eq 0 ]] || return 71
+    return "$attribution_status"
+}
+
 run_live() {
     local serving_health_node_b_mutated=false
     local serving_health_node_a_mutated=false
@@ -371,6 +467,10 @@ run_live() {
     fi
     if [[ "$operation_scope" = notification-standardization-only ]]; then
         run_notification_standardization_live
+        return
+    fi
+    if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
+        run_external_attribution_live
         return
     fi
 
@@ -848,6 +948,124 @@ SCP
     printf '%s_production_path_test_complete=true\n' "$prefix"
 }
 
+external_attribution_outer_production_path_test() {
+    local attribution_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
+    local attribution_remote_base attribution_fixture attribution_program attribution_evidence
+    local attribution_raw attribution_decision attribution_status attribution_observed
+    local attribution_transaction_hash
+
+    attribution_remote_base=$(mktemp -d /tmp/caddy-notification-attribution-outer.XXXXXX)
+    attribution_transaction_hash=$(sha256sum "$transaction" | awk '{ print $1 }')
+    test_remote_base=$attribution_remote_base
+    export CADDY_SERVING_HEALTH_TEST_REMOTE_BASE=$test_remote_base
+    attribution_fixture=$test_remote_base/scan
+    install -d -m 0700 "$attribution_fixture/usr/local/bin" "$test_remote_base/bin"
+    printf '%s\n' '[Failover Alert] Pi-hole DNS Cluster' \
+        >"$attribution_fixture/usr/local/bin/legacy-caller.sh"
+    chmod 0600 "$attribution_fixture/usr/local/bin/legacy-caller.sh"
+    cat >"$test_remote_base/fake-journalctl" <<'JOURNAL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' '2026-08-23T12:00:00Z 10.1.3.10 POST /notify/apprise 200 legacy-agent apprise-api destinations=3 [Failover Alert] Pi-hole DNS Cluster'
+JOURNAL
+    cat >"$test_remote_base/fake-podman" <<'PODMAN'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+exit 0
+PODMAN
+    cat >"$test_remote_base/bin/sudo" <<'SUDO'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -n ]]
+shift
+exec "$@"
+SUDO
+    cat >"$test_remote_base/fake-scp" <<'SCP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -p && "$2" = -- ]]
+source=$3
+target=${4#*:}
+printf '%s\t%s\n' "${4%%:*}" "$target" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/scp.calls"
+install -m 0755 "$source" "$target"
+SCP
+    cat >"$test_remote_base/fake-ssh" <<'SSH'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+host=$1
+shift
+[[ "$host" = test-apprise ]]
+printf '%s\n' "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/ssh.calls"
+PATH="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin:/usr/bin:/bin" \
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+    CADDY_ATTRIBUTION_SCAN_ROOTS="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/scan" \
+    CADDY_ATTRIBUTION_JOURNALCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fake-journalctl" \
+    CADDY_ATTRIBUTION_PODMAN_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fake-podman" \
+    /bin/bash -c "$*"
+SSH
+    chmod 0700 "$test_remote_base/fake-journalctl" "$test_remote_base/fake-podman" \
+        "$test_remote_base/fake-scp" "$test_remote_base/fake-ssh" \
+        "$test_remote_base/bin/sudo"
+    : >"$test_remote_base/scp.calls"
+    : >"$test_remote_base/ssh.calls"
+    ssh_command=$test_remote_base/fake-ssh
+    scp_command=$test_remote_base/fake-scp
+    apprise_host=test-apprise
+    run_external_attribution_live
+    attribution_program=/tmp/caddy-notification-attribution-$run_id.sh
+    attribution_evidence=/tmp/caddy-serving-health-$run_id-external-attribution
+
+    attribution_raw=$attribution_test_root/raw/outer-preflight.txt
+    attribution_decision=$attribution_test_root/decisions/outer-preflight.tsv
+    cat "$test_remote_base/scp.calls" "$test_remote_base/ssh.calls" >"$attribution_raw"
+    grep -Fq 'test-apprise' "$attribution_raw"
+    grep -Fq "$attribution_transaction_hash" "$attribution_raw"
+    write_decision outer-preflight reach 0 real-ssh-stream real-ssh-stream \
+        "$attribution_raw" "$attribution_decision"
+
+    attribution_raw=$attribution_test_root/raw/exact-remote-cleanup.txt
+    attribution_decision=$attribution_test_root/decisions/exact-remote-cleanup.tsv
+    printf 'remote_program=%s\nremote_program_absent=%s\nremote_evidence_preserved=%s\n' \
+        "$attribution_program" "$([[ ! -e "$attribution_program" && ! -L "$attribution_program" ]] && printf true || printf false)" \
+        "$([[ -d "$attribution_evidence" && ! -L "$attribution_evidence" ]] && printf true || printf false)" \
+        >"$attribution_raw"
+    grep -Fxq 'remote_program_absent=true' "$attribution_raw"
+    grep -Fxq 'remote_evidence_preserved=true' "$attribution_raw"
+    write_decision exact-remote-cleanup accept 0 absent absent \
+        "$attribution_raw" "$attribution_decision"
+
+    attribution_raw=$attribution_test_root/raw/evidence-readback-success.txt
+    attribution_decision=$attribution_test_root/decisions/evidence-readback-success.tsv
+    cp "$workstation_evidence/external-readback.stdout" "$attribution_raw"
+    grep -Fq 'file=attribution.tsv' "$attribution_raw"
+    write_decision evidence-readback-success accept 0 complete complete \
+        "$attribution_raw" "$attribution_decision"
+
+    attribution_raw=$attribution_test_root/raw/evidence-readback-failure.txt
+    attribution_decision=$attribution_test_root/decisions/evidence-readback-failure.tsv
+    if ssh_stream "$apprise_host" "$external_readback_program" \
+        "$attribution_evidence-absent" >"$attribution_raw" 2>&1; then
+        attribution_status=0
+    else
+        attribution_status=$?
+    fi
+    printf 'exit_status=%s\n' "$attribution_status" >>"$attribution_raw"
+    [[ "$attribution_status" -ne 0 ]]
+    write_decision evidence-readback-failure reject "$attribution_status" present absent \
+        "$attribution_raw" "$attribution_decision"
+
+    attribution_raw=$attribution_test_root/raw/zero-production-mutation-outer.txt
+    attribution_decision=$attribution_test_root/decisions/zero-production-mutation-outer.tsv
+    attribution_observed=$(sha256sum "$attribution_fixture/usr/local/bin/legacy-caller.sh" | awk '{ print $1 }')
+    printf 'fixture_sha256=%s\n' "$attribution_observed" >"$attribution_raw"
+    write_decision zero-production-mutation-outer accept 0 "$attribution_observed" \
+        "$attribution_observed" "$attribution_raw" "$attribution_decision"
+    chmod -R u+rwX -- "$attribution_evidence" "$test_remote_base"
+    rm -rf -- "$attribution_evidence" "$test_remote_base"
+    printf '%s_external_attribution_production_path_test_complete=true\n' "$prefix"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 notification_outer_production_path_test() {
     local notification_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local notification_remote_root notification_node_root notification_path
@@ -1041,6 +1259,10 @@ production_path_test() {
     fi
     if [[ "$operation_scope" = notification-standardization-only ]]; then
         notification_outer_production_path_test
+        return
+    fi
+    if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
+        external_attribution_outer_production_path_test
         return
     fi
     serving_health_remote_base=$(mktemp -d /tmp/caddy-serving-health-production-path.XXXXXX)
@@ -1482,7 +1704,7 @@ regular_file "$operation_spec"
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
 operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
 readonly operation_scope
-[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|full-serving-health)$ ]]
+[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|full-serving-health)$ ]]
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)
@@ -1497,7 +1719,11 @@ prepare_program=$workstation_evidence/remote-prepare.sh
 accept_program=$workstation_evidence/remote-accept.sh
 disposition_program=$workstation_evidence/remote-disposition.sh
 readback_program=$workstation_evidence/remote-readback.sh
+external_accept_program=$workstation_evidence/external-accept.sh
+external_readback_program=$workstation_evidence/external-readback.sh
+external_cleanup_program=$workstation_evidence/external-cleanup.sh
 readonly payload_stage payload_archive prepare_program accept_program disposition_program readback_program
+readonly external_accept_program external_readback_program external_cleanup_program
 run_id=$(date -u +%Y%m%dT%H%M%SZ)-$$
 readonly run_id
 node_a_payload=/tmp/caddy-serving-health-$run_id-node-a
