@@ -1481,6 +1481,19 @@ notification_outer_production_path_test() {
         install -d -m 0700 "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue"/{pending,inflight,dead-letter,delivered}
         chmod 0700 "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue" \
             "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue"/*
+        install -d -m 0755 \
+            "$test_remote_base/$notification_node_root/var/lib/caddy-serving-health"
+        install -d -m 0700 \
+            "$test_remote_base/$notification_node_root/var/lib/caddy-serving-health/keepalived-notify"
+        if [[ "$notification_node_root" = node-a-root ]]; then
+            printf 'MASTER\n' \
+                >"$test_remote_base/$notification_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+        else
+            printf 'BACKUP\n' \
+                >"$test_remote_base/$notification_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+        fi
+        chmod 0600 \
+            "$test_remote_base/$notification_node_root/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
         while IFS=$'\t' read -r notification_repository notification_source notification_path \
             notification_mode _notification_baseline _notification_candidate; do
             install -d -m 0755 "$test_remote_base/$notification_node_root/$(dirname "$notification_path")"

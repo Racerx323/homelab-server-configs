@@ -889,6 +889,14 @@ continue to reject unknown, malformed, symlinked, incorrectly owned, or
 incorrectly mode-set state. This repository correction follows the Action 35an
 terminal archive and does not authorize a rerun.
 
+The terminal result is archived at
+`caddy-action35an-terminal-2026-08-23`, and its consumed operation data is
+removed. The corrected neutral predicate requires the node-appropriate durable
+state in `PIHOLE_DUALSTACK.state` and accepts the notifier's optional safe
+zero-length `PIHOLE_DUALSTACK.lock`. A pending transition, unknown entry,
+symlink, malformed state, or metadata mismatch fails closed. No successor is
+defined by this repository-only correction.
+
 Action 35an is the definition-only controlled serving-failure exercise. It
 uses the existing neutral transaction and outer runner with one versioned
 operation specification; it adds no action-numbered implementation, regression,

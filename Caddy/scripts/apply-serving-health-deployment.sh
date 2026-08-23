@@ -1130,10 +1130,67 @@ notification_capture_bootstrap_state() {
     chmod 0600 "$evidence_root/notification-bootstrap-state"
 }
 
+validate_notification_state_contract() {
+    local notification_state_parent=$1
+    local notification_state_root=$2
+    local notification_expected_state=$3
+    local notification_parent_owner=$4
+    local notification_parent_group=$5
+    local notification_state_owner=$6
+    local notification_state_group=$7
+    local notification_state_evidence=$8
+    local notification_state_file=$notification_state_root/PIHOLE_DUALSTACK.state
+    local notification_lock_file=$notification_state_root/PIHOLE_DUALSTACK.lock
+    local notification_inventory notification_inventory_state
+
+    require notification_state_parent_directory test -d "$notification_state_parent" || return 1
+    require notification_state_parent_not_symlink test ! -L "$notification_state_parent" || return 1
+    require_equal notification_state_parent_metadata \
+        "$notification_parent_owner:$notification_parent_group:755" \
+        "$(stat -c '%U:%G:%a' "$notification_state_parent")" || return 1
+    require notification_state_root_directory test -d "$notification_state_root" || return 1
+    require notification_state_root_not_symlink test ! -L "$notification_state_root" || return 1
+    require_equal notification_state_root_metadata \
+        "$notification_state_owner:$notification_state_group:700" \
+        "$(stat -c '%U:%G:%a' "$notification_state_root")" || return 1
+    notification_inventory=$(find "$notification_state_root" -mindepth 1 -maxdepth 1 \
+        -printf '%f\n' | LC_ALL=C sort) || return 1
+    notification_inventory_state=unsafe
+    case "$notification_inventory" in
+        PIHOLE_DUALSTACK.state) notification_inventory_state=state ;;
+        $'PIHOLE_DUALSTACK.lock\nPIHOLE_DUALSTACK.state')
+            notification_inventory_state=state-lock
+            ;;
+    esac
+    printf '%s_expected_notification_state_inventory=state-or-state-lock\n' "$prefix"
+    printf '%s_observed_notification_state_inventory=%s\n' \
+        "$prefix" "$notification_inventory_state"
+    require notification_state_inventory test "$notification_inventory_state" != unsafe || return 1
+    require notification_state_file_regular regular_file "$notification_state_file" || return 1
+    require_equal notification_state_file_metadata \
+        "$notification_state_owner:$notification_state_group:600" \
+        "$(stat -c '%U:%G:%a' "$notification_state_file")" || return 1
+    require_equal notification_state_file_lines 1 "$(wc -l <"$notification_state_file")" || return 1
+    require_equal notification_state_file_value "$notification_expected_state" \
+        "$(<"$notification_state_file")" || return 1
+    if [[ -e "$notification_lock_file" || -L "$notification_lock_file" ]]; then
+        require notification_lock_file_regular regular_file "$notification_lock_file" || return 1
+        require_equal notification_lock_file_metadata \
+            "$notification_state_owner:$notification_state_group:600:0" \
+            "$(stat -c '%U:%G:%a:%s' "$notification_lock_file")" || return 1
+    fi
+    install -m 0600 "$notification_state_file" \
+        "$notification_state_evidence/notification-state.baseline"
+    printf '%s\n' "$notification_inventory" \
+        >"$notification_state_evidence/notification-state-inventory.baseline"
+    chmod 0600 "$notification_state_evidence/notification-state-inventory.baseline"
+}
+
 notification_preflight() {
     local notification_repository notification_source notification_target notification_mode
     local notification_deployed_hash notification_candidate_hash notification_installed
-    local notification_candidate
+    local notification_candidate notification_parent_owner notification_parent_group
+    local notification_state_owner notification_state_group
 
     while IFS=$'\t' read -r notification_repository notification_source notification_target \
         notification_mode notification_deployed_hash notification_candidate_hash; do
@@ -1156,28 +1213,22 @@ notification_preflight() {
     done
     notification_capture_bootstrap_state
     validate_web_health_queue_permissions
-    if path_absent "$(effective_path /var/lib/caddy-serving-health)"; then
-        printf 'absent\n' >"$evidence_root/notification-state-parent.baseline"
-    else
-        require notification_state_parent_directory test -d \
-            "$(effective_path /var/lib/caddy-serving-health)"
-        require notification_state_parent_not_symlink test ! -L \
-            "$(effective_path /var/lib/caddy-serving-health)"
-        printf 'present\n' >"$evidence_root/notification-state-parent.baseline"
+    notification_parent_owner=root
+    notification_parent_group=root
+    notification_state_owner=pi
+    notification_state_group=pi
+    if [[ -n "$target_root" ]]; then
+        notification_parent_owner=$(id -un)
+        notification_parent_group=$(id -gn)
+        notification_state_owner=$(id -un)
+        notification_state_group=$(id -gn)
     fi
-    chmod 0600 "$evidence_root/notification-state-parent.baseline"
-    if path_absent "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"; then
-        printf 'absent\n' >"$evidence_root/notification-state-root.baseline"
-    else
-        require notification_state_root_directory test -d \
-            "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"
-        require notification_state_root_not_symlink test ! -L \
-            "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"
-        require notification_state_root_empty test -z \
-            "$(find "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)" -mindepth 1 -maxdepth 1 -print -quit)"
-        printf 'empty\n' >"$evidence_root/notification-state-root.baseline"
-    fi
-    chmod 0600 "$evidence_root/notification-state-root.baseline"
+    validate_notification_state_contract \
+        "$(effective_path /var/lib/caddy-serving-health)" \
+        "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)" \
+        "$(<"$evidence_root/notification-bootstrap-state")" \
+        "$notification_parent_owner" "$notification_parent_group" \
+        "$notification_state_owner" "$notification_state_group" "$evidence_root"
 }
 
 install_notification_standardization() {
@@ -1240,6 +1291,8 @@ accept_notification_standardization() {
 rollback_notification_standardization() {
     local notification_repository notification_source notification_target notification_mode
     local notification_deployed_hash notification_candidate_hash notification_state_root
+    local notification_parent_owner notification_parent_group
+    local notification_state_owner notification_state_group
 
     while IFS=$'\t' read -r notification_repository notification_source notification_target \
         notification_mode notification_deployed_hash notification_candidate_hash; do
@@ -1249,17 +1302,24 @@ rollback_notification_standardization() {
             "$(sha256sum "$(effective_path "$notification_target")" | awk '{ print $1 }')"
     done < <(notification_artifact_rows)
     notification_state_root=$(effective_path /var/lib/caddy-serving-health/keepalived-notify)
-    if [[ "$(<"$evidence_root/notification-state-root.baseline")" = absent ]]; then
-        require_exact_directory_inventory notification_rollback_state_root \
-            "$notification_state_root" PIHOLE_DUALSTACK.state
-        rm -f -- "$notification_state_root/PIHOLE_DUALSTACK.state"
-        rmdir "$notification_state_root"
-        if [[ "$(<"$evidence_root/notification-state-parent.baseline")" = absent ]]; then
-            rmdir "$(effective_path /var/lib/caddy-serving-health)"
-        fi
-    else
-        rm -f -- "$notification_state_root/PIHOLE_DUALSTACK.state"
+    notification_parent_owner=root
+    notification_parent_group=root
+    notification_state_owner=pi
+    notification_state_group=pi
+    if [[ -n "$target_root" ]]; then
+        notification_parent_owner=$(id -un)
+        notification_parent_group=$(id -gn)
+        notification_state_owner=$(id -un)
+        notification_state_group=$(id -gn)
     fi
+    install -o "$notification_state_owner" -g "$notification_state_group" -m 0600 \
+        "$evidence_root/notification-state.baseline" \
+        "$notification_state_root/PIHOLE_DUALSTACK.state"
+    validate_notification_state_contract \
+        "$(effective_path /var/lib/caddy-serving-health)" "$notification_state_root" \
+        "$(<"$evidence_root/notification-bootstrap-state")" \
+        "$notification_parent_owner" "$notification_parent_group" \
+        "$notification_state_owner" "$notification_state_group" "$evidence_root"
 }
 
 candidate_file() {
@@ -3157,6 +3217,13 @@ IP
     : >"$notification_test_root/busctl.calls"
     : >"$notification_test_root/ip.calls"
     export CADDY_NOTIFICATION_TEST_ROOT=$notification_test_root
+    install -d -m 0755 "$notification_target/var/lib/caddy-serving-health"
+    install -d -m 0700 \
+        "$notification_target/var/lib/caddy-serving-health/keepalived-notify"
+    printf 'BACKUP\n' \
+        >"$notification_target/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
+    chmod 0600 \
+        "$notification_target/var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state"
 
     for notification_scenario in preflight install accept rollback; do
         notification_raw=$notification_test_root/raw/notification-$notification_scenario.txt
@@ -3537,6 +3604,95 @@ DATE
     printf '%s_production_path_test_complete=true\n' "$prefix"
 }
 
+notification_state_contract_production_path_test() {
+    local notification_test_root=$1
+    local notification_fixture=$notification_test_root/notification-state-contract
+    local notification_parent=$notification_fixture/var/lib/caddy-serving-health
+    local notification_root=$notification_parent/keepalived-notify
+    local notification_state=$notification_root/PIHOLE_DUALSTACK.state
+    local notification_lock=$notification_root/PIHOLE_DUALSTACK.lock
+    local notification_evidence=$notification_fixture/evidence
+    local notification_owner notification_group notification_raw notification_decision
+    local notification_status notification_scenario
+
+    notification_owner=$(id -un)
+    notification_group=$(id -gn)
+    install -d -m 0755 "$notification_parent"
+    install -d -m 0700 "$notification_root"
+    install -d -m 0700 "$notification_evidence"
+    printf 'BACKUP\n' >"$notification_state"
+    chmod 0600 "$notification_state"
+
+    notification_raw=$notification_test_root/raw/notification-state-only.txt
+    notification_decision=$notification_test_root/decisions/notification-state-only.tsv
+    validate_notification_state_contract "$notification_parent" "$notification_root" BACKUP \
+        "$notification_owner" "$notification_group" "$notification_owner" \
+        "$notification_group" "$notification_evidence" \
+        >"$notification_raw" 2>&1
+    write_decision notification-state-only accept 0 state state \
+        "$notification_raw" "$notification_decision"
+
+    : >"$notification_lock"
+    chmod 0600 "$notification_lock"
+    notification_raw=$notification_test_root/raw/notification-state-lock.txt
+    notification_decision=$notification_test_root/decisions/notification-state-lock.tsv
+    validate_notification_state_contract "$notification_parent" "$notification_root" BACKUP \
+        "$notification_owner" "$notification_group" "$notification_owner" \
+        "$notification_group" "$notification_evidence" \
+        >"$notification_raw" 2>&1
+    write_decision notification-state-lock accept 0 state-lock state-lock \
+        "$notification_raw" "$notification_decision"
+    rm -f -- "$notification_lock"
+
+    for notification_scenario in unexpected pending symlink malformed state-mode root-mode missing; do
+        case "$notification_scenario" in
+            unexpected) : >"$notification_root/unexpected" ;;
+            pending)
+                printf 'BACKUP\tFAULT\taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\t2026-08-23T12:00:00Z\n' \
+                    >"$notification_root/PIHOLE_DUALSTACK.pending"
+                chmod 0600 "$notification_root/PIHOLE_DUALSTACK.pending"
+                ;;
+            symlink)
+                mv -- "$notification_state" "$notification_fixture/state.saved"
+                ln -s -- "$notification_fixture/state.saved" "$notification_state"
+                ;;
+            malformed) printf 'not-valid\n' >"$notification_state" ;;
+            state-mode) chmod 0644 "$notification_state" ;;
+            root-mode) chmod 0755 "$notification_root" ;;
+            missing) mv -- "$notification_state" "$notification_fixture/state.saved" ;;
+        esac
+        notification_raw=$notification_test_root/raw/notification-state-$notification_scenario.txt
+        notification_decision=$notification_test_root/decisions/notification-state-$notification_scenario.tsv
+        if validate_notification_state_contract "$notification_parent" "$notification_root" BACKUP \
+            "$notification_owner" "$notification_group" "$notification_owner" \
+            "$notification_group" "$notification_evidence" \
+            >"$notification_raw" 2>&1; then
+            notification_status=0
+        else
+            notification_status=$?
+        fi
+        write_decision "notification-state-$notification_scenario" reject \
+            "$notification_status" safe "$notification_scenario" \
+            "$notification_raw" "$notification_decision"
+        [[ "$notification_status" -ne 0 ]]
+        case "$notification_scenario" in
+            unexpected) rm -f -- "$notification_root/unexpected" ;;
+            pending) rm -f -- "$notification_root/PIHOLE_DUALSTACK.pending" ;;
+            symlink)
+                rm -f -- "$notification_state"
+                mv -- "$notification_fixture/state.saved" "$notification_state"
+                ;;
+            malformed) printf 'BACKUP\n' >"$notification_state" ;;
+            state-mode) chmod 0600 "$notification_state" ;;
+            root-mode) chmod 0700 "$notification_root" ;;
+            missing) mv -- "$notification_fixture/state.saved" "$notification_state" ;;
+        esac
+    done
+    chmod -R u+rwX -- "$notification_fixture"
+    rm -rf -- "$notification_fixture"
+    printf '%s_notification_state_contract_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root serving_health_inventory serving_health_key serving_health_repository
@@ -3596,6 +3752,11 @@ production_path_test() {
         serving_health_repo_root=$CADDY_SERVING_HEALTH_TEST_REPOSITORY_ROOT
     else
         serving_health_repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+    fi
+    notification_state_contract_production_path_test "$serving_health_test_root"
+    if [[ "${CADDY_NOTIFICATION_STATE_CONTRACT_ONLY:-0}" = 1 ]]; then
+        printf '%s_production_path_test_complete=true\n' "$prefix"
+        return
     fi
     if grep -Fxq 'scope: pihole-web-health-unit-only' \
         "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then

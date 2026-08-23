@@ -117,6 +117,15 @@ directories are `pi:pi:0700`; records are regular, non-symlink files with mode
 `0600`. Pending, inflight, delivered-receipt, and dead-letter state survives a
 reboot beneath `/var/lib`.
 
+Keepalived transition acknowledgement state is separate from the delivery
+queue. `/var/lib/caddy-serving-health/keepalived-notify` is `pi:pi:0700` and
+must contain the node's regular `PIHOLE_DUALSTACK.state` file as `pi:pi:0600`.
+After the notifier has run it may also contain its regular, zero-length
+`PIHOLE_DUALSTACK.lock` as `pi:pi:0600`. A pending transition is valid only
+inside the notifier's bounded retry protocol; deployment and controlled-failure
+preflight requires a quiescent state and therefore rejects it, along with any
+unknown entry, symlink, malformed state, or metadata mismatch.
+
 ## Delivery contract
 
 Records use `caddy-apprise-queue/v1` and contain a stable event ID, source,

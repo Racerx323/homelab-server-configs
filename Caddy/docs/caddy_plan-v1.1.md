@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35an is failed-consumed during Node B preflight before mutation and awaits its terminal archive; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35an is failed-consumed pre-mutation, archived, and cleaned; its stale empty-notification-state predicate is corrected in the neutral transaction; the Caddy deployment stream is clean with no successor defined; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -693,6 +693,13 @@ the current production contract: that protected directory contains the durable
 ran, Node A was not exercised, and bounded payload disposition and evidence
 readback succeeded. Evidence is retained at
 `/tmp/caddy-ssh-evidence-serving_health.o6fsV4`.
+
+The terminal result is archived at
+`caddy-action35an-terminal-2026-08-23`. The neutral preflight now requires the
+node-appropriate durable state record and accepts the notifier's optional safe
+zero-length lock. It rejects pending transitions, additional entries,
+symlinks, malformed state, and metadata mismatches. The operation specification
+is inactive, its consumed data is removed, and no successor is defined.
 
 Action 35an is the definition-only controlled DNS and Proxy serving-failure
 exercise. It uses the neutral reusable transaction and outer runner and one

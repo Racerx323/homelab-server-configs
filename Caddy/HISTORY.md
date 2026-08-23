@@ -5,11 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
-- Latest archive tag: `caddy-action35an-terminal-2026-08-23` (planned for this
-  terminal-result commit)
+- State: clean
+- Latest archive tag: `caddy-action35an-terminal-2026-08-23`
 - Terminal action: Action 35an is failed-consumed, pre-mutation, and must not be
-  rerun.
+  rerun. Its consumed operation data is cleaned and no successor is defined.
 
 ## Action 35an terminal result
 
@@ -29,8 +28,12 @@ Git preserves the complete deployment journal and executed action files.
 - No controlled failure or production mutation ran. Node A was not exercised.
   Both bounded payloads were disposed, failure evidence was read back, and all
   upload, disposition, and readback statuses were zero.
-- Status: terminal-pending. The successor and coverage registries are cleared;
-  the exact consumed operation remains only until this commit is archived.
+- Status: archived and cleaned. The successor and coverage registries are
+  clear, and the neutral operation specification is inactive.
+- Repository correction: the neutral preflight now validates the accepted
+  durable state file and optional safe persistent lock instead of requiring an
+  empty directory. It rejects pending, additional, symlinked, malformed, and
+  incorrectly mode-set state. This correction did not contact either node.
 
 ## Action 35an archived definition
 

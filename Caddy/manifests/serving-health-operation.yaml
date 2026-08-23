@@ -1,50 +1,15 @@
 schema_version: 2
-action: 35an
-title: Controlled DNS and Proxy serving-failure exercise
-status: failed-consumed
-scope: controlled-serving-failure-exercise
+action: none
+title: Inactive serving-health deployment operation
+status: inactive
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: b53258a8d12d6b9e966e7be6597e755793361eb013a833670751c4fddac6f40f
+transaction_sha256: 7529ffa1ba9472afbd984eca07e469a38fbc067c2401b610940b054adda386ff
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: consumed-pre-mutation
-baseline:
-  node_a: MASTER with all four DNS and Proxy VIPs
-  node_b: BACKUP with zero shared VIPs
-  services: Caddy, Pi-hole FTL, Unbound, lighttpd, and Keepalived active on both nodes
-scenarios:
-  - node-a-transient-caddy-single-failed-sample-no-movement
-  - node-a-caddy-coupled-failover-and-recovery
-  - node-a-lighttpd-notification-only-no-vip-movement
-  - node-a-pihole-ftl-coupled-failover-and-recovery
-  - node-a-unbound-coupled-failover-and-recovery
-  - node-a-keepalived-advertisement-loss-failover-and-recovery
-  - node-b-caddy-ineligible-while-node-a-remains-master
-  - node-b-lighttpd-notification-only-no-vip-movement
-  - node-b-pihole-ftl-ineligible-while-node-a-remains-master
-  - node-b-unbound-ineligible-while-node-a-remains-master
-acceptance:
-  - uses only the neutral reusable transaction and outer runner
-  - changes no repository or node configuration artifact
-  - stops no service on both nodes simultaneously
-  - requires two failed probes before coupled failover and three healthy probes before recovery
-  - requires continuous dual-stack shared DNS, trusted HTTPS, and Pi-hole UI service
-  - requires exact four-VIP ownership with no simultaneous ownership
-  - lighttpd failure produces one failure and one recovery notification without VIP movement
-  - current structured notifications are retained and the legacy title is absent
-  - every stopped service is restored before the next scenario
-  - reverse restoration is attempted after every failed mutation boundary
-  - every deliberate stop has a bounded automatic restoration watchdog
-  - status 125 is reserved for recovery that cannot be proven after mutation
-  - final state exactly matches the accepted baseline with zero exercise residue
-excluded:
-  - interface, SSH, reboot, and whole-node failures already accepted by Action 33
-  - installation, publication, synchronization, release, or ownership-policy changes
-  - synthetic production results or marker-only acceptance
-follow_on:
-  result: close Action 35 plan after accepted controlled exercise
+quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
+live_execution: no-operation-defined

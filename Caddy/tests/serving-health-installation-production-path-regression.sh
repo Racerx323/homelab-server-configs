@@ -18,6 +18,26 @@ IFS=$'\t' read -r successor_status successor_action transaction_relative outer_r
 )
 if [[ "$successor_status" = none ]]; then
     [[ "$successor_action" = - && "$transaction_relative" = - && "$outer_relative" = - ]]
+    root=$(mktemp -d /tmp/caddy-serving-health-state-contract.XXXXXX)
+    trap 'chmod -R u+rwX -- "$root" 2>/dev/null || true; rm -rf -- "$root"' EXIT
+    install -d -m 0700 "$root/transaction"
+    CADDY_NOTIFICATION_STATE_CONTRACT_ONLY=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
+        /bin/bash "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+        --production-path-test >"$root/transaction.stdout"
+    for decision in notification-state-only notification-state-lock \
+        notification-state-unexpected notification-state-pending \
+        notification-state-symlink notification-state-malformed \
+        notification-state-state-mode notification-state-root-mode \
+        notification-state-missing; do
+        test -s "$root/transaction/decisions/$decision.tsv"
+        test -s "$root/transaction/raw/$decision.txt"
+    done
+    awk -F '\t' '$2 == "reject" && $3 != 0 { rejected++ }
+        END { exit(rejected == 7 ? 0 : 1) }' \
+        "$root/transaction/decisions/notification-state-"{unexpected,pending,symlink,malformed,state-mode,root-mode,missing}.tsv
+    grep -Fq 'notification_state_contract_production_path_test_complete=true' \
+        "$root/transaction.stdout"
     printf '%s_no_registered_successor=true\n' "$prefix"
     exit 0
 fi
@@ -44,6 +64,16 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
 
 grep -Eq '_production_path_test_complete=true$' "$root/transaction.stdout"
 grep -Eq '_production_path_test_complete=true$' "$root/outer.stdout"
+for entrypoint_root in transaction outer; do
+    for decision in notification-state-only notification-state-lock \
+        notification-state-unexpected notification-state-pending \
+        notification-state-symlink notification-state-malformed \
+        notification-state-state-mode notification-state-root-mode \
+        notification-state-missing; do
+        test -s "$root/$entrypoint_root/decisions/$decision.tsv"
+        test -s "$root/$entrypoint_root/raw/$decision.txt"
+    done
+done
 if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
     for decision in endpoint-only secret-bearing-evidence-rejection \
         exact-legacy-title-search second-caller-attribution scheduled-job-attribution \
