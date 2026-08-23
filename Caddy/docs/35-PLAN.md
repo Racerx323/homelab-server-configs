@@ -840,3 +840,7 @@ installed-form DNS and Caddy probes, active service state, payload readback, and
 payload disposition passed on both nodes; rollback was not required. The
 controlled exercise remains deferred until the separate external legacy
 notification source is identified.
+
+Action 35al is archived at `caddy-action35al-terminal-2026-08-23`. Its consumed
+operation data and coverage are removed from the current branch, the neutral
+operation specification is inactive, and the Caddy deployment stream is clean.

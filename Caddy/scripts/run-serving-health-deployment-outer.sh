@@ -10,7 +10,7 @@ readonly PATH
 
 readonly prefix=serving_health_deployment_outer
 readonly transaction_sha256=ddffc3b03638ece5e3a780adf0e09bdc470afff0eedcdac1965d3c1492f09db9
-readonly operation_sha256=722d89d60de35c2806030df8196017c823e6ad999201e9d1841c46a65cfe3bdb
+readonly operation_sha256=03bda7b469d554f4959cfc2059c7338a985fc4d326b6896f647fe8856f07a926
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 readonly max_stream_bytes=1048576

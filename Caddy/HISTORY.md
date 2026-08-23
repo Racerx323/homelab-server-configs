@@ -5,11 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
-- Planned archive tag: `caddy-action35al-terminal-2026-08-23`
-- Latest archive tag: `caddy-action35ak-terminal-2026-08-18`
-- Terminal action: Action 35al is accepted on both nodes. Its exact operation
-  remains only until the annotated terminal tag is created.
+- State: clean
+- Latest archive tag: `caddy-action35al-terminal-2026-08-23`
+- Terminal action: Action 35al is accepted, archived, and cleaned. No
+  deployment successor is defined.
 
 ## Action 35al definition
 
@@ -36,7 +35,8 @@ Git preserves the complete deployment journal and executed action files.
 - DNS source commit:
   `a8b45d827b1771e16141572c3facce7624fa28e0`
 - Result: accepted; exit status 0.
-- Status: terminal-pending.
+- Status: archived and cleaned; the neutral operation specification is
+  inactive and the Caddy deployment stream is clean.
 - Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.5JumxL`.
 - Node B completed before Node A. Node B accepted the durable bootstrap state
   `BACKUP`; Node A accepted `MASTER`.
