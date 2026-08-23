@@ -67,7 +67,8 @@ valid_record() {
       (.payload.title | type == "string" and length > 0 and length <= 256) and
       (.payload.body | type == "string" and length > 0 and length <= 2048) and
       .payload.type == .severity and .payload.format == "text" and
-      ([.payload.title,.payload.body] | all(test("[[:cntrl:]]") | not)) and
+      (.payload.title | test("[[:cntrl:]]") | not) and
+      (.payload.body | explode | all(. == 10 or (. >= 32 and . != 127))) and
       ([.payload.title,.payload.body] | all(test("BEGIN [A-Z ]*PRIVATE KEY|Authorization:[[:space:]]*Bearer|WEBPASSWORD|(^|[^[:alnum:]_])(password|passwd|token|secret|api[_-]?key)[[:space:]]*[:=]"; "i") | not))
     ' "$worker_record" >/dev/null
 }

@@ -156,7 +156,9 @@ if grep -En 'wait |&$' "$caddy_helper"; then
 fi
 [[ "$(grep -Ec '&$' "$dns_helper")" -eq 2 ]]
 # shellcheck disable=SC2016
-grep -Fq 'wait "$health_pid" || health_result=1' "$dns_helper"
+grep -Fq 'wait "${health_pids[$health_index]}"' "$dns_helper"
+# shellcheck disable=SC2016
+grep -Fq 'health_result=${health_codes[$health_index]}' "$dns_helper"
 printf '%s_minimal_probe_contract=true\n' "$prefix"
 
 for keepalived_config in "$node_a_keepalived" "$node_b_keepalived"; do

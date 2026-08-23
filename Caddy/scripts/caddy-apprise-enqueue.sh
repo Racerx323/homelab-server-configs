@@ -142,10 +142,16 @@ done
 safe_text() {
     local enqueue_text=$1
     local enqueue_maximum=$2
+    local enqueue_allow_newlines=${3:-0}
 
     [[ -n "$enqueue_text" && ${#enqueue_text} -le "$enqueue_maximum" ]] || return 1
+    [[ "$enqueue_text" != *' | '* ]] || return 1
     printf '%s' "$enqueue_text" | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1 || return 1
-    jq -en --arg value "$enqueue_text" '$value | test("[[:cntrl:]]") | not' >/dev/null || return 1
+    if [[ "$enqueue_allow_newlines" = 1 ]]; then
+        ! LC_ALL=C grep -Pq '[\x00-\x09\x0b\x0c\x0e-\x1f\x7f]' <<<"$enqueue_text" || return 1
+    else
+        jq -en --arg value "$enqueue_text" '$value | test("[[:cntrl:]]") | not' >/dev/null || return 1
+    fi
     ! printf '%s' "$enqueue_text" | grep -Eqi \
         'BEGIN [A-Z ]*PRIVATE KEY|Authorization:[[:space:]]*Bearer|WEBPASSWORD|(^|[^[:alnum:]_])(password|passwd|token|secret|api[_-]?key)[[:space:]]*[:=]'
 }
@@ -163,10 +169,12 @@ if [[ -n "$application" || -n "$component" || -n "$check_name" ||
     -n "$event_name" || -n "$impact" || -n "$failure_class" ]]; then
     [[ -z "$title" && -z "$body" ]] || exit 65
     [[ "$application" =~ ^(DNS|Proxy|Replication|Notification\ Delivery)$ ]] || exit 65
+    [[ -n "$component" && -n "$check_name" && -n "$event_name" && -n "$impact" ]] || exit 65
     for structured_value in "$component" "$check_name" "$event_name" \
         "$state_transition" "$impact" "$failure_class" "$network_context" \
         "$ha_context" "$bounded_status" "$timing" "$correlation" \
         "$evidence_pointer" "$first_check"; do
+        [[ -n "$structured_value" ]] || continue
         safe_text "$structured_value" 256 || exit 65
     done
     case "$severity" in
@@ -176,11 +184,47 @@ if [[ -n "$application" || -n "$component" || -n "$check_name" ||
         success) severity_icon='✅' ;;
     esac
     title="$severity_icon [$application] $event_name on $short_hostname"
-    body="Application: $application | Node: $short_hostname ($hostname_value) | Component: $component | Check: $check_name | Event: $event_name | State: $state_transition | Impact: $impact | Failure class: $failure_class | Network: $network_context | HA: $ha_context | Status: $bounded_status | Timing: $timing | Correlation: $correlation | Evidence: $evidence_pointer | First check: $first_check"
+    printf -v body 'Summary\n\n- Application: %s\n- Node: %s (%s)\n- Event: %s' \
+        "$application" "$short_hostname" "$hostname_value" "$event_name"
+    if [[ -n "$state_transition" ]]; then
+        printf -v body '%s\n- State: %s' "$body" "$state_transition"
+    fi
+    printf -v body '%s\n\nImpact\n\n- %s' "$body" "$impact"
+    if [[ -n "$failure_class" && "$failure_class" != none ]]; then
+        printf -v body '%s\n- Failure class: %s' "$body" "$failure_class"
+    fi
+    if [[ (-n "$network_context" && "$network_context" != 'not applicable') ||
+        (-n "$ha_context" && "$ha_context" != 'not applicable') ]]; then
+        printf -v body '%s\n\nHA and network' "$body"
+        if [[ -n "$network_context" && "$network_context" != 'not applicable' ]]; then
+            printf -v body '%s\n\n- Network: %s' "$body" "$network_context"
+        fi
+        if [[ -n "$ha_context" && "$ha_context" != 'not applicable' ]]; then
+            printf -v body '%s\n- HA: %s' "$body" "$ha_context"
+        fi
+    fi
+    printf -v body '%s\n\nDetails\n\n- Component: %s\n- Check: %s' \
+        "$body" "$component" "$check_name"
+    [[ -z "$bounded_status" || "$bounded_status" = 'not applicable' ]] ||
+        printf -v body '%s\n- Status: %s' "$body" "$bounded_status"
+    [[ -z "$timing" || "$timing" = 'not applicable' ]] ||
+        printf -v body '%s\n- Timing: %s' "$body" "$timing"
+    [[ -z "$correlation" || "$correlation" = 'not applicable' ]] ||
+        printf -v body '%s\n- Correlation: %s' "$body" "$correlation"
+    if [[ (-n "$first_check" && "$first_check" != 'not applicable') ||
+        (-n "$evidence_pointer" && "$evidence_pointer" != 'not applicable') ]]; then
+        printf -v body '%s\n\nNext step' "$body"
+        if [[ -n "$first_check" && "$first_check" != 'not applicable' ]]; then
+            printf -v body '%s\n\n- First check: %s' "$body" "$first_check"
+        fi
+        if [[ -n "$evidence_pointer" && "$evidence_pointer" != 'not applicable' ]]; then
+            printf -v body '%s\n- Evidence: %s' "$body" "$evidence_pointer"
+        fi
+    fi
 fi
 
 safe_text "$title" 256 || exit 65
-safe_text "$body" 2048 || exit 65
+safe_text "$body" 2048 1 || exit 65
 
 for enqueue_directory in "$queue_root" "$queue_root/pending" \
     "$queue_root/inflight" "$queue_root/dead-letter" "$queue_root/delivered"; do

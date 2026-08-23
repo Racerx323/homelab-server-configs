@@ -217,6 +217,28 @@ grep -Eq "^dns uid=$dns_expected_uid gid=$dns_expected_gid pgid=[0-9]+$" \
 printf '%s_three_second_repeated_execution=true\n' "$prefix"
 printf '%s_identity_boundary=true\n' "$prefix"
 
+printf 'failed\n' >"$root/mode"
+if setsid "${caddy_identity[@]}" env \
+    "CADDY_SERVING_HEALTH_ENVIRONMENT_FILE=$root/environment" \
+    "CADDY_SERVING_HEALTH_CURL_COMMAND=$root/bin/curl" \
+    "CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl" \
+    "$caddy_helper"; then
+    exit 1
+else
+    caddy_failure_status=$?
+fi
+[[ "$caddy_failure_status" -eq 20 ]]
+if setsid "${dns_identity[@]}" env \
+    "DNS_CHECK_DIG_COMMAND=$root/bin/dig" \
+    "DNS_CHECK_SYSTEMCTL_COMMAND=$root/bin/systemctl" \
+    "$dns_helper"; then
+    exit 1
+else
+    dns_failure_status=$?
+fi
+[[ "$dns_failure_status" -eq 20 ]]
+printf '%s_distinct_failure_codes=true\n' "$prefix"
+
 residue_after=$(find /tmp -maxdepth 1 -type d \
     \( -name 'check-caddy-serving-health.*' -o -name 'check-dns.*' \) \
     -printf '%f\n' | sort)

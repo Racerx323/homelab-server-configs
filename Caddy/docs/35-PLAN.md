@@ -814,3 +814,29 @@ The plan closes only after installation and this controlled exercise prove the
 coupled DNS/Caddy failover contract, notification-only backend behavior, stable
 preferred ownership, exact releases, healthy synchronization and notification
 systems, and zero unsafe residue.
+
+## Action 35al notification-standardization definition
+
+Action 35al is the single defined successor and uses only the neutral reusable
+transaction and outer runner. The read-only attribution evidence at
+`/tmp/caddy-action35al-attribution.5O21wN` found no legacy title, legacy queue
+record, or second notifier on either HA node. The remaining legacy duplicate is
+outside the audited node producer and queue. Config ID `apprise` contains
+delivery endpoints only and no template; a separate external producer or
+delivery path remains to be identified.
+
+The node operation installs only the shared multiline formatter, persistent
+crash-safe Keepalived transition state, bounded planned-maintenance handling,
+distinct minimal DNS and Caddy probe exit codes, and their exact supporting
+worker and tmpfiles artifacts. It preserves conservative unclassified FAULT
+fallback when current journal evidence is missing or ambiguous, proceeds Node B
+before Node A, rolls back Node A before Node B, and performs no serving-service
+restart or reload. The controlled exercise is deferred as Action 35am.
+
+Action 35al is accepted with exit status 0 and retained workstation evidence at
+`/tmp/caddy-ssh-evidence-serving_health.5JumxL`. Node B completed before Node A,
+accepted `BACKUP`, and Node A accepted `MASTER`. Exact installed artifacts,
+installed-form DNS and Caddy probes, active service state, payload readback, and
+payload disposition passed on both nodes; rollback was not required. The
+controlled exercise remains deferred until the separate external legacy
+notification source is identified.

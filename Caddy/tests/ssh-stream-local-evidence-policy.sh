@@ -21,6 +21,12 @@ check_file() {
 
     [[ -f "$ssh_evidence_source" && ! -L "$ssh_evidence_source" ]] || return 1
     grep -Fq 'bash -s' "$ssh_evidence_source" || return 0
+    # Dollar-prefixed token is intentionally matched as literal source text.
+    # shellcheck disable=SC2016
+    if ! grep -Fq '"$ssh_command"' "$ssh_evidence_source" &&
+        ! grep -Eq '^[[:space:]]*ssh[[:space:]]' "$ssh_evidence_source"; then
+        return 0
+    fi
     grep -Fq 'ssh-local-evidence-contract-v1' "$ssh_evidence_source" || return 1
     grep -Eq '(^|[=/"])tmp/' "$ssh_evidence_source" || return 1
     grep -Fq 'mktemp -d' "$ssh_evidence_source" || return 1
@@ -28,14 +34,14 @@ check_file() {
     grep -Fq 'chmod 0600' "$ssh_evidence_source" || return 1
     grep -Eq '>"\$[A-Za-z_][A-Za-z0-9_]*stdout' "$ssh_evidence_source" || return 1
     grep -Eq '2>"\$[A-Za-z_][A-Za-z0-9_]*stderr' "$ssh_evidence_source" || return 1
-    grep -Eq '\|\|[[:space:]]*$|\|\|[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=\$\?' \
+    grep -Eq '\|\|[[:space:]]*$|\|\|[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=\$\?|if "\$@" >' \
         "$ssh_evidence_source" || return 1
-    grep -Eq 'emit_stream[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stdout"' \
+    grep -Eq '(emit_stream|safe_capture)[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stdout"' \
         "$ssh_evidence_source" || return 1
-    grep -Eq 'emit_stream[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stderr"' \
+    grep -Eq '(emit_stream|safe_capture)[^[:cntrl:]]*"\$[A-Za-z_][A-Za-z0-9_]*stderr"' \
         "$ssh_evidence_source" || return 1
-    grep -Eq 'status_file|remote_status' "$ssh_evidence_source" || return 1
-    grep -Eq 'evidence_(path|directory|parent)' "$ssh_evidence_source" || return 1
+    grep -Eq 'status_file|remote_status|serving_health_status' "$ssh_evidence_source" || return 1
+    grep -Eq 'evidence_(path|directory|parent)|workstation_evidence' "$ssh_evidence_source" || return 1
     if grep -Eq '^run_live\(\)' "$ssh_evidence_source"; then
         awk '
             /^run_live\(\)/ { inside = 1 }

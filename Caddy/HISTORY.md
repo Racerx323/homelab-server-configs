@@ -5,10 +5,48 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
+- State: terminal-pending
+- Planned archive tag: `caddy-action35al-terminal-2026-08-23`
 - Latest archive tag: `caddy-action35ak-terminal-2026-08-18`
-- Terminal action: Action 35ak is accepted, archived, and cleaned. No
-  deployment successor is defined.
+- Terminal action: Action 35al is accepted on both nodes. Its exact operation
+  remains only until the annotated terminal tag is created.
+
+## Action 35al definition
+
+- Action 35al uses the neutral reusable transaction and outer runner; it adds
+  no action-numbered implementation.
+- A bounded read-only capture found no legacy `[Failover Alert] Pi-hole DNS
+  Cluster` literal, queued record, or second notifier on either HA node. The
+  remaining duplicate is therefore classified outside the node producer and
+  durable queue. Config ID `apprise` contains endpoints only and no template;
+  a separate external producer or delivery path remains to be identified.
+- The operation installs only the multiline formatter, durable transition
+  state producer, minimal distinct-exit health probes, and their exact
+  supporting tmpfiles/worker artifacts, Node B before Node A.
+- No serving service is restarted or reloaded. The controlled failure exercise
+  remains deferred as Action 35am until Action 35al is accepted.
+
+### Action 35al terminal result
+
+- Tag: `caddy-action35al-terminal-2026-08-23`
+- Authorized outer SHA-256:
+  `9a93d23ce165dbc9d385b7b978897073c16534a82aca61cbd5e4d86a139a75eb`
+- Transaction SHA-256:
+  `a8a077ff3475b783434a81b4804bfb2461b358fd36965f3d4b970b0401dff6f8`
+- DNS source commit:
+  `a8b45d827b1771e16141572c3facce7624fa28e0`
+- Result: accepted; exit status 0.
+- Status: terminal-pending.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.5JumxL`.
+- Node B completed before Node A. Node B accepted the durable bootstrap state
+  `BACKUP`; Node A accepted `MASTER`.
+- Exact notification, worker, tmpfiles, DNS probe, Caddy probe, and notifier
+  artifacts were installed and accepted on both nodes. Installed-form DNS and
+  Caddy probes passed, service state remained active, payload disposition was
+  proven, and rollback was not required.
+- Legacy duplicate attribution remains outside the audited node producer and
+  queue. The supplied Apprise config has no template; identify the separate
+  external source before notification standardization is declared complete.
 
 ## Action 35ah terminal archive
 

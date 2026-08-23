@@ -51,6 +51,7 @@ mock_logger=$fixture_root/mock-logger
 mock_systemctl=$fixture_root/mock-systemctl
 mock_hostname=$fixture_root/mock-hostname
 mock_ip=$fixture_root/mock-ip
+mock_journalctl=$fixture_root/mock-journalctl
 cat >"$mock_logger" <<'LOGGER'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >>"${CADDY_APPRISE_PRODUCER_LOG:?}"
@@ -73,7 +74,12 @@ cat >"$mock_ip" <<'IP'
 printf '2: eth0    inet 10.1.0.54/22 scope global eth0\n'
 printf '2: eth0    inet6 fd36:5aa8:6971:1::54/64 scope global\n'
 IP
-chmod 0755 "$mock_logger" "$mock_systemctl" "$mock_hostname" "$mock_ip"
+cat >"$mock_journalctl" <<'JOURNALCTL'
+#!/usr/bin/env bash
+printf '%s\n' "${KEEPALIVED_NOTIFY_TEST_JOURNAL:-}"
+JOURNALCTL
+chmod 0755 "$mock_logger" "$mock_systemctl" "$mock_hostname" "$mock_ip" \
+    "$mock_journalctl"
 
 export CADDY_APPRISE_TEST_MODE=1
 export CADDY_APPRISE_QUEUE_ROOT=$queue_root
@@ -83,6 +89,7 @@ export CADDY_APPRISE_CURL=$mock_curl
 export CADDY_APPRISE_CALL_FILE=$call_file
 export CADDY_APPRISE_MOCK_STATE=$mock_state
 export CADDY_APPRISE_PRODUCER_LOG=$fixture_root/producer.log
+export KEEPALIVED_NOTIFY_TEST_MODE=1
 install -m 0600 /dev/null "$CADDY_APPRISE_PRODUCER_LOG"
 
 fail() {
@@ -145,13 +152,31 @@ CADDY_APPRISE_NOW_EPOCH=300 enqueue_record schema-one
 mv "$dedupe_inflight" "$first_record"
 
 if "$enqueue" --source keepalived --severity warning --event-key bad-control \
-    --title 'bad' --body $'bad\ncontrol'; then
+    --title 'bad' --body $'bad\vcontrol'; then
     fail control_character_acceptance
 fi
 if "$enqueue" --source keepalived --severity warning --event-key bad-secret \
     --title 'bad' --body 'token=do-not-store'; then
     fail secret_acceptance
 fi
+if "$enqueue" --source keepalived --severity warning --event-key bad-pipes \
+    --title 'bad' --body 'one | two'; then
+    fail pipe_delimited_body_acceptance
+fi
+
+CADDY_APPRISE_NOW_EPOCH=300 "$enqueue" --source keepalived --severity info \
+    --event-key optional-sections --application DNS --component Keepalived \
+    --check ownership-state --event standby --impact 'Node remains available as standby' \
+    --failure-class none
+optional_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -r 'if .source == "keepalived" and (.payload.title | contains("standby")) then input_filename else empty end' {} + | tail -1)
+[[ -n "$optional_record" ]] || fail optional_section_record_absent
+jq -e '.payload.body |
+    contains("Summary") and contains("Impact") and contains("Details") and
+    (contains("HA and network") | not) and (contains("Next step") | not) and
+    (contains("Failure class: none") | not) and (contains("not applicable") | not)' \
+    "$optional_record" >/dev/null || fail optional_section_omission
+rm -f -- "$optional_record"
 
 CADDY_APPRISE_NOW_EPOCH=300 "$enqueue" --source pihole-web \
     --severity failure --event-key backend-failed \
@@ -307,12 +332,13 @@ grep -Fq -- '--application "$application"' \
     "$replication_producer" || fail replication_application
 
 keepalived_state_root=$fixture_root/keepalived-state
-install -d -m 0755 "$keepalived_state_root"
+install -d -m 0700 "$keepalived_state_root"
 CADDY_APPRISE_NOW_EPOCH=1200 \
     KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
     KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
     KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
     KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
     KEEPALIVED_NOTIFY_STATE_ROOT=$keepalived_state_root \
     /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
 keepalived_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
@@ -336,8 +362,158 @@ if grep -Eq 'KEEPALIVED_NOTIFY_(DNS|PROXY)_STATUS_FILE|caddy-serving-health/(dns
     "$keepalived_producer"; then
     fail keepalived_stale_snapshot_dependency
 fi
-[[ "$(<"$keepalived_state_root/PIHOLE_DUALSTACK")" = FAULT ]] ||
+[[ "$(<"$keepalived_state_root/PIHOLE_DUALSTACK.state")" = FAULT ]] ||
     fail keepalived_transition_state
+[[ ! -e "$keepalived_state_root/PIHOLE_DUALSTACK.pending" ]] ||
+    fail keepalived_pending_acknowledgement
+
+KEEPALIVED_NOTIFY_TEST_JOURNAL='VRRP_Script(check-caddy) failed (exited with status 20)' \
+    CADDY_APPRISE_NOW_EPOCH=1500 \
+    KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$keepalived_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+keepalived_proxy_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -r 'if .source == "keepalived" and (.payload.title | contains("[Proxy]")) then input_filename else empty end' {} + | tail -1)
+[[ -n "$keepalived_proxy_record" ]] || fail keepalived_proxy_attribution
+jq -e '.payload.body | contains("- Component: Caddy") and contains("- Check: ipv4-trusted-https") and contains("- Failure class: https-probe-failed")' \
+    "$keepalived_proxy_record" >/dev/null || fail keepalived_proxy_classification
+body_value=$(jq -r '.payload.body' "$keepalived_proxy_record")
+[[ "$body_value" = *$'Summary\n'*$'\nImpact\n'*$'\nHA and network\n'*$'\nDetails\n'*$'\nNext step\n'* ]] ||
+    fail multiline_section_order
+[[ "$body_value" != *' | '* ]] || fail pipe_delimited_body_retained
+
+ambiguous_state_root=$fixture_root/keepalived-ambiguous-state
+install -d -m 0700 "$ambiguous_state_root"
+printf 'BACKUP\n' >"$ambiguous_state_root/PIHOLE_DUALSTACK.state"
+chmod 0600 "$ambiguous_state_root/PIHOLE_DUALSTACK.state"
+ambiguous_records_before=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -r 'if .source == "keepalived" and (.payload.body | contains("eligibility-fault-unclassified")) then "x" else empty end' {} + | wc -l)
+KEEPALIVED_NOTIFY_TEST_JOURNAL=$'VRRP_Script(check-caddy) failed (exited with status 20)\nVRRP_Script(check-dns) failed (exited with status 10)' \
+    CADDY_APPRISE_NOW_EPOCH=1600 \
+    KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$ambiguous_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+ambiguous_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -r 'if .source == "keepalived" and (.payload.title | contains("[DNS]")) and (.payload.body | contains("eligibility-fault-unclassified")) then input_filename else empty end' {} + | tail -1)
+[[ -n "$ambiguous_record" ]] || fail keepalived_ambiguous_attribution
+ambiguous_records_after=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+    -exec jq -r 'if .source == "keepalived" and (.payload.body | contains("eligibility-fault-unclassified")) then "x" else empty end' {} + | wc -l)
+[[ "$ambiguous_records_after" -eq "$((ambiguous_records_before + 1))" ]] ||
+    fail keepalived_ambiguous_attribution_count
+
+crash_state_root=$fixture_root/keepalived-crash-state
+install -d -m 0700 "$crash_state_root"
+printf 'BACKUP\n' >"$crash_state_root/PIHOLE_DUALSTACK.state"
+printf 'BACKUP\tFAULT\t%s\t2026-08-18T23:00:00Z\n' \
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    >"$crash_state_root/PIHOLE_DUALSTACK.pending"
+chmod 0600 "$crash_state_root"/*
+records_before_pending_retry=$(count_records "$queue_root/pending")
+CADDY_APPRISE_NOW_EPOCH=1700 \
+    KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$crash_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+[[ "$((records_before_pending_retry + 1))" -eq "$(count_records "$queue_root/pending")" ]] ||
+    fail keepalived_crash_before_enqueue_retry
+[[ "$(<"$crash_state_root/PIHOLE_DUALSTACK.state")" = FAULT &&
+! -e "$crash_state_root/PIHOLE_DUALSTACK.pending" ]] ||
+    fail keepalived_crash_before_enqueue_ack
+printf 'BACKUP\n' >"$crash_state_root/PIHOLE_DUALSTACK.state"
+printf 'BACKUP\tFAULT\t%s\t2026-08-18T23:00:00Z\n' \
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    >"$crash_state_root/PIHOLE_DUALSTACK.pending"
+chmod 0600 "$crash_state_root"/*
+records_before_pending_retry=$(count_records "$queue_root/pending")
+CADDY_APPRISE_NOW_EPOCH=1800 \
+    KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$crash_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+[[ "$records_before_pending_retry" -eq "$(count_records "$queue_root/pending")" ]] ||
+    fail keepalived_crash_after_enqueue_deduplication
+[[ "$(<"$crash_state_root/PIHOLE_DUALSTACK.state")" = FAULT &&
+! -e "$crash_state_root/PIHOLE_DUALSTACK.pending" ]] ||
+    fail keepalived_crash_after_enqueue_ack
+
+unsafe_state_root=$fixture_root/keepalived-unsafe-state
+install -d -m 0700 "$unsafe_state_root"
+printf 'not-valid\n' >"$unsafe_state_root/PIHOLE_DUALSTACK.state"
+chmod 0600 "$unsafe_state_root/PIHOLE_DUALSTACK.state"
+records_before_unsafe_state=$(count_records "$queue_root/pending")
+KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+    KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+    KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+    KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+    KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+    KEEPALIVED_NOTIFY_STATE_ROOT=$unsafe_state_root \
+    /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK FAULT
+[[ "$records_before_unsafe_state" -eq "$(count_records "$queue_root/pending")" ]] ||
+    fail keepalived_unsafe_state_enqueued
+grep -Fq 'malformed acknowledged state retained' "$CADDY_APPRISE_PRODUCER_LOG" ||
+    fail keepalived_unsafe_state_not_classified
+
+if grep -Fq '[Failover Alert] Pi-hole DNS Cluster' "$keepalived_producer"; then
+    fail legacy_keepalived_notification_retained
+fi
+grep -Fq 'caddy-planned-maintenance/v1' "$keepalived_producer" ||
+    fail planned_maintenance_contract_absent
+if [[ "$EUID" -eq 0 ]]; then
+    maintenance_state_root=$fixture_root/keepalived-maintenance-state
+    maintenance_file=$fixture_root/planned-maintenance
+    install -d -m 0700 "$maintenance_state_root"
+    printf 'BACKUP\n' >"$maintenance_state_root/PIHOLE_DUALSTACK.state"
+    printf 'caddy-planned-maintenance/v1\taction35al-test\t9999999999\n' >"$maintenance_file"
+    chmod 0600 "$maintenance_state_root/PIHOLE_DUALSTACK.state"
+    chmod 0644 "$maintenance_file"
+    CADDY_APPRISE_NOW_EPOCH=1900 \
+        KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+        KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+        KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+        KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+        KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+        KEEPALIVED_NOTIFY_STATE_ROOT=$maintenance_state_root \
+        KEEPALIVED_NOTIFY_MAINTENANCE_FILE=$maintenance_file \
+        /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK STOP
+    maintenance_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+        -exec jq -r 'if .source == "keepalived" and (.payload.body | contains("Event: planned-maintenance")) then input_filename else empty end' {} + | tail -1)
+    [[ -n "$maintenance_record" ]] || fail planned_maintenance_classification
+    rm -f -- "$maintenance_file"
+    [[ ! -e "$maintenance_file" ]] || fail planned_maintenance_cleanup
+    expired_state_root=$fixture_root/keepalived-expired-maintenance-state
+    install -d -m 0700 "$expired_state_root"
+    printf 'BACKUP\n' >"$expired_state_root/PIHOLE_DUALSTACK.state"
+    printf 'caddy-planned-maintenance/v1\taction35al-expired\t1000000000\n' >"$maintenance_file"
+    chmod 0600 "$expired_state_root/PIHOLE_DUALSTACK.state"
+    chmod 0644 "$maintenance_file"
+    CADDY_APPRISE_NOW_EPOCH=2000 \
+        KEEPALIVED_NOTIFY_ENQUEUE_COMMAND=$enqueue \
+        KEEPALIVED_NOTIFY_LOGGER_COMMAND=$mock_logger \
+        KEEPALIVED_NOTIFY_HOSTNAME_COMMAND=$mock_hostname \
+        KEEPALIVED_NOTIFY_IP_COMMAND=$mock_ip \
+        KEEPALIVED_NOTIFY_JOURNALCTL_COMMAND=$mock_journalctl \
+        KEEPALIVED_NOTIFY_STATE_ROOT=$expired_state_root \
+        KEEPALIVED_NOTIFY_MAINTENANCE_FILE=$maintenance_file \
+        /bin/bash "$keepalived_producer" INSTANCE PIHOLE_DUALSTACK STOP
+    expired_record=$(find "$queue_root/pending" -maxdepth 1 -type f -name '*.json' \
+        -exec jq -r 'if .source == "keepalived" and (.payload.body | contains("action35al-expired") | not) and (.payload.body | contains("State: BACKUP -> STOP")) then input_filename else empty end' {} + | tail -1)
+    [[ -n "$expired_record" ]] || fail expired_maintenance_isolation
+    rm -f -- "$maintenance_file"
+fi
 
 CADDY_APPRISE_NOW_EPOCH=1500 \
     CADDY_SYNC_FAILURE_ENQUEUE_COMMAND=$enqueue \

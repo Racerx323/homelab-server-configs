@@ -98,6 +98,13 @@ The enqueue helper must render every structured producer through the same
 multiline formatter. The four existing severity emojis remain unchanged:
 `🚨` failure, `⚠️` warning, `ℹ️` information, and `✅` success or recovery.
 
+Action 35al is the accepted node-side standardization operation. Its bounded
+read-only attribution found no legacy producer or record on either HA node.
+Config ID `apprise` contains delivery endpoints only and no message template,
+so a separate external producer or delivery path remains to be identified.
+Node-side acceptance must not claim that external disposition from marker or
+fixture evidence.
+
 ## Ownership and paths
 
 | Item | Owner | Path |

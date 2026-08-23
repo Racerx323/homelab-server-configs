@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# ssh-local-evidence-contract-v1
 
 set -Eeuo pipefail
 set +x
@@ -8,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7
-readonly operation_sha256=0fb7fd27828b345870e2ef40e10e8f82affe270b20e8afeb219e7710c3c26392
+readonly transaction_sha256=ddffc3b03638ece5e3a780adf0e09bdc470afff0eedcdac1965d3c1492f09db9
+readonly operation_sha256=722d89d60de35c2806030df8196017c823e6ad999201e9d1841c46a65cfe3bdb
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 readonly max_stream_bytes=1048576
@@ -66,6 +67,20 @@ build_payload() {
             ' "$repository_root/Caddy/manifests/serving-health-production.tsv"
         } >"$payload_stage/manifests/serving-health-production.tsv"
         [[ "$(wc -l <"$payload_stage/manifests/serving-health-production.tsv")" -eq 2 ]]
+        chmod 0600 "$payload_stage/manifests/serving-health-production.tsv"
+    elif [[ "$operation_scope" = notification-standardization-only ]]; then
+        {
+            sed -n '1p' "$repository_root/Caddy/manifests/serving-health-production.tsv"
+            awk -F '\t' '
+                $2 == "Caddy/scripts/caddy-apprise-enqueue.sh" ||
+                $2 == "Caddy/scripts/caddy-apprise-delivery-worker.sh" ||
+                $2 == "Caddy/configs/tmpfiles.d/caddy-ha.conf" ||
+                $2 == "Caddy/scripts/check-caddy-serving-health.sh" ||
+                $2 == "Keepalived/scripts/dns-check.sh" ||
+                $2 == "Keepalived/scripts/keepalived-notify.sh" { print }
+            ' "$repository_root/Caddy/manifests/serving-health-production.tsv"
+        } >"$payload_stage/manifests/serving-health-production.tsv"
+        [[ "$(wc -l <"$payload_stage/manifests/serving-health-production.tsv")" -eq 7 ]]
         chmod 0600 "$payload_stage/manifests/serving-health-production.tsv"
     else
         install -m 0600 "$repository_root/Caddy/manifests/serving-health-production.tsv" \
@@ -281,6 +296,68 @@ run_web_health_unit_live() {
     cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive"
 }
 
+run_notification_standardization_live() {
+    local notification_node_b_mutated=false
+    local notification_node_a_mutated=false
+    local notification_failure=0
+    local notification_phase_status=0
+
+    if upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" &&
+        upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" &&
+        remote_transaction node-b-notification-preflight "$node_b_host" notification-preflight \
+            node-b "$node_b_payload" "$node_b_evidence" &&
+        remote_transaction node-a-notification-preflight "$node_a_host" notification-preflight \
+            node-a "$node_a_payload" "$node_a_evidence"; then
+        :
+    else
+        notification_phase_status=$?
+        readback node-a-failure "$node_a_host" "$node_a_evidence" || :
+        readback node-b-failure "$node_b_host" "$node_b_evidence" || :
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || :
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || :
+        return "$notification_phase_status"
+    fi
+    notification_node_b_mutated=true
+    remote_transaction node-b-notification-install "$node_b_host" notification-install \
+        node-b "$node_b_payload" "$node_b_evidence" || notification_failure=$?
+    if [[ "$notification_failure" -eq 0 ]]; then
+        remote_transaction node-b-notification-accept "$node_b_host" notification-accept \
+            node-b "$node_b_payload" "$node_b_evidence" || notification_failure=$?
+    fi
+    if [[ "$notification_failure" -eq 0 ]]; then
+        notification_node_a_mutated=true
+        remote_transaction node-a-notification-install "$node_a_host" notification-install \
+            node-a "$node_a_payload" "$node_a_evidence" || notification_failure=$?
+    fi
+    if [[ "$notification_failure" -eq 0 ]]; then
+        remote_transaction node-a-notification-accept "$node_a_host" notification-accept \
+            node-a "$node_a_payload" "$node_a_evidence" || notification_failure=$?
+    fi
+    readback node-a "$node_a_host" "$node_a_evidence" || {
+        [[ "$notification_failure" -ne 0 ]] || notification_failure=1
+    }
+    readback node-b "$node_b_host" "$node_b_evidence" || {
+        [[ "$notification_failure" -ne 0 ]] || notification_failure=1
+    }
+    if [[ "$notification_failure" -ne 0 ]]; then
+        if [[ "$notification_node_a_mutated" = true ]]; then
+            remote_transaction node-a-notification-rollback "$node_a_host" notification-rollback \
+                node-a "$node_a_payload" "$node_a_evidence" || exit 125
+        fi
+        if [[ "$notification_node_b_mutated" = true ]]; then
+            remote_transaction node-b-notification-rollback "$node_b_host" notification-rollback \
+                node-b "$node_b_payload" "$node_b_evidence" || exit 125
+        fi
+        readback node-a-rollback "$node_a_host" "$node_a_evidence" || exit 125
+        readback node-b-rollback "$node_b_host" "$node_b_evidence" || exit 125
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || exit 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || exit 125
+        return "$notification_failure"
+    fi
+    cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive"
+    cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive"
+}
+
 run_live() {
     local serving_health_node_b_mutated=false
     local serving_health_node_a_mutated=false
@@ -290,6 +367,10 @@ run_live() {
 
     if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         run_web_health_unit_live
+        return
+    fi
+    if [[ "$operation_scope" = notification-standardization-only ]]; then
+        run_notification_standardization_live
         return
     fi
 
@@ -767,6 +848,180 @@ SCP
     printf '%s_production_path_test_complete=true\n' "$prefix"
 }
 
+notification_outer_production_path_test() {
+    local notification_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
+    local notification_remote_root notification_node_root notification_path
+    local notification_raw notification_decision notification_status notification_observed
+
+    notification_remote_root=$(mktemp -d /tmp/caddy-notification-outer.XXXXXX)
+    test_remote_base=$notification_remote_root
+    export CADDY_SERVING_HEALTH_TEST_REMOTE_BASE=$test_remote_base
+    install -d -m 0700 "$test_remote_base/bin"
+    for notification_node_root in node-a-root node-b-root; do
+        install -d -m 0700 "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue"/{pending,inflight,dead-letter,delivered}
+        chmod 0700 "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue" \
+            "$test_remote_base/$notification_node_root/var/lib/caddy-apprise-queue"/*
+        while IFS=$'\t' read -r notification_repository notification_source notification_path \
+            notification_mode _notification_baseline _notification_candidate; do
+            install -d -m 0755 "$test_remote_base/$notification_node_root/$(dirname "$notification_path")"
+            if [[ "$notification_repository" = homelab-server-configs ]]; then
+                git -C "$repository_root" show \
+                    "eb1e4471f87af7c80662d4e8aabb577e848bd03c:$notification_source" \
+                    >"$test_remote_base/$notification_node_root$notification_path"
+            else
+                git -C "$workspace_root/homelab-dns" show "ab9965fd:$notification_source" \
+                    >"$test_remote_base/$notification_node_root$notification_path"
+            fi
+            chmod "$notification_mode" "$test_remote_base/$notification_node_root$notification_path"
+        done < <(
+            printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+                homelab-server-configs Caddy/scripts/caddy-apprise-enqueue.sh /usr/local/libexec/caddy-apprise-enqueue 0755 x x \
+                homelab-server-configs Caddy/scripts/caddy-apprise-delivery-worker.sh /usr/local/libexec/caddy-apprise-delivery-worker 0755 x x \
+                homelab-dns Keepalived/scripts/keepalived-notify.sh /usr/local/bin/keepalived-notify.sh 0755 x x \
+                homelab-server-configs Caddy/configs/tmpfiles.d/caddy-ha.conf /etc/tmpfiles.d/caddy-ha.conf 0644 x x \
+                homelab-dns Keepalived/scripts/dns-check.sh /etc/scripts/check-dns.sh 0755 x x \
+                homelab-server-configs Caddy/scripts/check-caddy-serving-health.sh /usr/local/libexec/check-caddy.sh 0755 x x
+        )
+    done
+    cat >"$test_remote_base/bin/sudo" <<'SUDO'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -n ]]
+shift
+export CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1
+exec "$@"
+SUDO
+    cat >"$test_remote_base/bin/systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/systemctl.calls"
+[[ "$1" = is-active && "$2" = --quiet ]]
+SYSTEMCTL
+    cat >"$test_remote_base/bin/tmpfiles" <<'TMPFILES'
+#!/usr/bin/env bash
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/tmpfiles.calls"
+install -d -m 0755 "$CADDY_SERVING_HEALTH_TARGET_ROOT/var/lib/caddy-serving-health"
+install -d -m 0700 "$CADDY_SERVING_HEALTH_TARGET_ROOT/var/lib/caddy-serving-health/keepalived-notify"
+TMPFILES
+    cat >"$test_remote_base/bin/busctl" <<'BUSCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/busctl.calls"
+if [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a ]]; then
+    printf 's "Master"\n'
+else
+    printf 's "Backup"\n'
+fi
+BUSCTL
+    cat >"$test_remote_base/bin/ip" <<'IP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\t%s\n' "${CADDY_SERVING_HEALTH_TEST_NODE:?}" "$*" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/ip.calls"
+if [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = node-a ]]; then
+    printf '2: eth0    inet 10.1.0.55/22 scope global eth0\n'
+    printf '2: eth0    inet 10.1.0.56/22 scope global eth0\n'
+    printf '2: eth0    inet6 fd36:5aa8:6971:1::55/128 scope global\n'
+    printf '2: eth0    inet6 fd36:5aa8:6971:1::56/128 scope global\n'
+else
+    printf '2: eth0    inet 10.1.0.54/22 scope global eth0\n'
+    printf '2: eth0    inet6 fd36:5aa8:6971:1::54/64 scope global\n'
+fi
+IP
+    cat >"$test_remote_base/fake-ssh" <<'SSH'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+host=$1
+shift
+command="$*"
+case "$host" in test-node-a) node=node-a ;; test-node-b) node=node-b ;; *) exit 64 ;; esac
+target_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$node-root
+printf '%s\t%s\n' "$node" "$command" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/ssh.calls"
+if [[ "$node" = node-a && -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-node-a" &&
+    "$command" = *' notification-accept '* ]]; then
+    printf '# tamper\n' >>"$target_root/usr/local/libexec/caddy-apprise-enqueue"
+fi
+PATH="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin:/usr/bin:/bin" \
+    CADDY_SERVING_HEALTH_TEST_NODE=$node \
+    CADDY_SERVING_HEALTH_TARGET_ROOT=$target_root \
+    CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/systemctl" \
+    CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/tmpfiles" \
+    CADDY_SERVING_HEALTH_BUSCTL_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl" \
+    CADDY_SERVING_HEALTH_IP_COMMAND="$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/ip" \
+    /bin/bash -c "$command"
+SSH
+    cat >"$test_remote_base/fake-scp" <<'SCP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ "$1" = -p && "$2" = -- ]]
+source=$3
+target=${4#*:}
+printf '%s\t%s\n' "${4%%:*}" "$target" >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/scp.calls"
+install -m 0600 "$source" "$target"
+SCP
+    chmod 0700 "$test_remote_base/bin/"* "$test_remote_base/fake-ssh" "$test_remote_base/fake-scp"
+    : >"$test_remote_base/systemctl.calls"
+    : >"$test_remote_base/tmpfiles.calls"
+    : >"$test_remote_base/busctl.calls"
+    : >"$test_remote_base/ip.calls"
+    : >"$test_remote_base/ssh.calls"
+    : >"$test_remote_base/scp.calls"
+    ssh_command=$test_remote_base/fake-ssh
+    scp_command=$test_remote_base/fake-scp
+    node_a_host=test-node-a
+    node_b_host=test-node-b
+
+    : >"$test_remote_base/fail-node-a"
+    if run_notification_standardization_live; then notification_status=0; else notification_status=$?; fi
+    [[ "$notification_status" -ne 0 && "$notification_status" -ne 125 ]]
+    notification_raw=$notification_test_root/raw/outer-reverse-rollback.txt
+    notification_decision=$notification_test_root/decisions/outer-reverse-rollback.tsv
+    grep -E 'notification-(install|rollback)' "$test_remote_base/ssh.calls" >"$notification_raw"
+    grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- notification-rollback' "$notification_raw"
+    grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- notification-rollback' "$notification_raw"
+    write_decision outer-reverse-rollback reject "$notification_status" failed-and-restored failed-and-restored \
+        "$notification_raw" "$notification_decision"
+
+    rm -f -- "$test_remote_base/fail-node-a"
+    : >"$test_remote_base/ssh.calls"
+    : >"$test_remote_base/scp.calls"
+    run_notification_standardization_live
+    notification_raw=$notification_test_root/raw/outer-preflight.txt
+    notification_decision=$notification_test_root/decisions/outer-preflight.tsv
+    cat "$test_remote_base/scp.calls" "$test_remote_base/ssh.calls" \
+        "$test_remote_base/busctl.calls" "$test_remote_base/ip.calls" \
+        >"$notification_raw"
+    notification_observed=$(wc -l <"$notification_raw")
+    write_decision outer-preflight reach 0 "$notification_observed" "$notification_observed" \
+        "$notification_raw" "$notification_decision"
+    notification_raw=$notification_test_root/raw/outer-standby-first.txt
+    notification_decision=$notification_test_root/decisions/outer-standby-first.tsv
+    grep -E 'notification-(install|accept)' "$test_remote_base/ssh.calls" >"$notification_raw"
+    [[ "$(sed -n '1p' "$notification_raw")" = *$'node-b\t'*notification-install* ]]
+    [[ "$(sed -n '2p' "$notification_raw")" = *$'node-b\t'*notification-accept* ]]
+    [[ "$(sed -n '3p' "$notification_raw")" = *$'node-a\t'*notification-install* ]]
+    [[ "$(sed -n '4p' "$notification_raw")" = *$'node-a\t'*notification-accept* ]]
+    write_decision outer-standby-first accept 0 node-b-then-node-a node-b-then-node-a \
+        "$notification_raw" "$notification_decision"
+    notification_raw=$notification_test_root/raw/outer-evidence-readback.txt
+    notification_decision=$notification_test_root/decisions/outer-evidence-readback.tsv
+    cat "$workstation_evidence/node-b-readback.stdout" "$workstation_evidence/node-a-readback.stdout" \
+        >"$notification_raw"
+    grep -Fq 'file=mutation.tsv' "$notification_raw"
+    write_decision outer-evidence-readback accept 0 both-nodes both-nodes \
+        "$notification_raw" "$notification_decision"
+    notification_raw=$notification_test_root/raw/outer-zero-residue.txt
+    notification_decision=$notification_test_root/decisions/outer-zero-residue.tsv
+    printf 'node_a=%s\nnode_b=%s\n' \
+        "$([[ ! -e "$node_a_payload" ]] && printf absent || printf present)" \
+        "$([[ ! -e "$node_b_payload" ]] && printf absent || printf present)" >"$notification_raw"
+    write_decision outer-zero-residue accept 0 absent absent "$notification_raw" "$notification_decision"
+    if grep -Eq $'\t(restart|reload|stop|start) (caddy|lighttpd|pihole-FTL|unbound|keepalived)\\.service$' \
+        "$test_remote_base/systemctl.calls"; then return 1; fi
+    chmod -R u+rwX -- "$test_remote_base"
+    rm -rf -- "$test_remote_base"
+    printf '%s_notification_standardization_production_path_test_complete=true\n' "$prefix"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_remote_base serving_health_raw serving_health_decision serving_health_observed
@@ -782,6 +1037,10 @@ production_path_test() {
     install -d -m 0700 "$serving_health_test_root/raw" "$serving_health_test_root/decisions"
     if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         web_health_unit_outer_production_path_test
+        return
+    fi
+    if [[ "$operation_scope" = notification-standardization-only ]]; then
+        notification_outer_production_path_test
         return
     fi
     serving_health_remote_base=$(mktemp -d /tmp/caddy-serving-health-production-path.XXXXXX)
@@ -1223,7 +1482,7 @@ regular_file "$operation_spec"
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
 operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
 readonly operation_scope
-[[ "$operation_scope" = pihole-web-health-unit-only ]]
+[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|full-serving-health)$ ]]
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)
@@ -1257,3 +1516,4 @@ if [[ "$invocation_mode" = --production-path-test ]]; then
 else
     run_live
 fi
+printf 'evidence_directory=%s\n' "$workstation_evidence"

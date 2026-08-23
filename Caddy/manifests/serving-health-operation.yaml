@@ -1,15 +1,73 @@
 schema_version: 2
-action: none
-title: Inactive serving-health deployment operation
-status: inactive
+action: 35al
+title: Notification standardization and durable Keepalived transition state
+status: accepted-executed-definition
+scope: notification-standardization-only
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 1be1360d0cc214b8db067919c2a27176b044a06ab0d6871ff6ba45cd7f14dce7
+transaction_sha256: ddffc3b03638ece5e3a780adf0e09bdc470afff0eedcdac1965d3c1492f09db9
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: 26210b6588f183119853497bfce6473eec9d37f5dd6c50c441ea21409d8d35aa
+state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
-live_execution: no-operation-defined
+live_execution: separately-hash-authorized
+ordering:
+  - node-b-preflight
+  - node-a-preflight
+  - node-b-install-and-accept
+  - node-a-install-and-accept
+rollback: node-a-then-node-b
+legacy_attribution:
+  evidence: /tmp/caddy-action35al-attribution.5O21wN
+  node_a_literal_present: false
+  node_b_literal_present: false
+  node_queue_record_present: false
+  second_node_notifier_present: false
+  apprise_config_template_present: false
+  classification: external-producer-or-delivery-path
+  disposition: preserve-node-producer-and-require-separate-external-source-identification
+artifacts:
+  - Caddy/scripts/caddy-apprise-enqueue.sh
+  - Caddy/scripts/caddy-apprise-delivery-worker.sh
+  - Caddy/configs/tmpfiles.d/caddy-ha.conf
+  - Caddy/scripts/check-caddy-serving-health.sh
+  - homelab-dns/Keepalived/scripts/dns-check.sh
+  - homelab-dns/Keepalived/scripts/keepalived-notify.sh
+contracts:
+  - multiline Summary, Impact, HA and network, Details, and Next step sections
+  - severity titles retain 🚨, ⚠️, ℹ️, and ✅
+  - acknowledged state is persistent and pending transitions are retried with one stable identity
+  - unknown previous state is restricted to a proven first observation
+  - planned maintenance context is bounded, root-owned, read-only, and cannot affect eligibility
+  - failure attribution uses distinct helper exit codes plus current Keepalived_vrrp journal evidence
+  - missing or ambiguous journal evidence remains eligibility-fault-unclassified
+  - probes remain minimal and SIGTERM-friendly without status files or diagnostic services
+  - no Caddy, Pi-hole FTL, Unbound, lighttpd, or Keepalived restart or reload
+  - notification delivery remains non-blocking
+acceptance:
+  - exact baseline and candidate identity
+  - independently verified dual-family Keepalived state and exact four-VIP count before bootstrap
+  - empty or absent persistent state bootstrap
+  - installed-form helper identities and exit classifications
+  - crash-before-enqueue and crash-after-enqueue acknowledgement recovery
+  - stable-id deduplication across retry windows
+  - planned and unplanned STOP classification
+  - causal DNS and Proxy FAULT attribution with conservative fallback
+  - Node B before Node A and reverse rollback
+  - zero unsafe residue
+deferred_action: 35am
+terminal_result:
+  result: accepted
+  exit_status: 0
+  outer_sha256: 9a93d23ce165dbc9d385b7b978897073c16534a82aca61cbd5e4d86a139a75eb
+  transaction_sha256: a8a077ff3475b783434a81b4804bfb2461b358fd36965f3d4b970b0401dff6f8
+  evidence: /tmp/caddy-ssh-evidence-serving_health.5JumxL
+  ordering: node-b-then-node-a
+  node_a_bootstrap_state: MASTER
+  node_b_bootstrap_state: BACKUP
+  installed_form_probes: dns-and-caddy-passed-both-nodes
+  payload_cleanup: proven
+  rollback: not-required
+  archive_tag: caddy-action35al-terminal-2026-08-23

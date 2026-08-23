@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35ak; both Pi-hole web-monitor units are accepted and healthy; the Caddy deployment stream is clean; notification standardization is the next gate and must finish before the controlled serving-failure exercise; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification-standardization node changes await terminal archival; the external legacy duplicate source remains to be identified before controlled failure exercise Action 35am; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -631,6 +631,33 @@ After the controlled exercise:
 
 Munin monitoring is canceled. Home Assistant DNS work belongs to a future DNS
 change outside this plan.
+
+### Action 35al definition
+
+Action 35al is notification-standardization-only. A bounded read-only capture
+on both nodes proved that the legacy title is absent from installed node files,
+the durable queue, retained delivery receipts, and Keepalived journals, and
+that only the canonical notifier is configured. The duplicate legacy message
+is consequently outside the audited node producer and queue. Config ID
+`apprise` contains delivery endpoints only and no message template; a separate
+external producer or delivery path remains to be identified. The node
+transaction does not invent or remove an unobserved node producer.
+
+The node-side operation installs the shared readable multiline formatter,
+crash-safe acknowledged and pending Keepalived transition state, bounded
+planned-maintenance classification, conservative journal-based component
+attribution, and minimal SIGTERM-friendly probes with distinct exit codes.
+Ambiguous or missing journal evidence stays unclassified. Installation is Node
+B then Node A, rollback is Node A then Node B, delivery remains non-blocking,
+and no serving service is restarted or reloaded. Action 35am remains deferred.
+
+Action 35al is accepted with exit status 0. Node B completed before Node A,
+accepted `BACKUP`, and Node A accepted `MASTER`. Both nodes installed and
+accepted the exact notification, worker, tmpfiles, DNS probe, Caddy probe, and
+notifier artifacts. Installed-form DNS and Caddy probes passed, all payloads
+were dispositioned, and rollback was not required. Evidence is
+`/tmp/caddy-ssh-evidence-serving_health.5JumxL`. Action 35am remains deferred
+until the separate external legacy-notification source is identified.
 
 ## 19. Checkpoint procedure
 

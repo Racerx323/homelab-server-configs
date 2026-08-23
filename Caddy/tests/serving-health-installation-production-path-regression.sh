@@ -44,7 +44,35 @@ CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/outer \
 
 grep -Eq '_production_path_test_complete=true$' "$root/transaction.stdout"
 grep -Eq '_production_path_test_complete=true$' "$root/outer.stdout"
-if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
+if [[ "$operation_scope" = notification-standardization-only ]]; then
+    for decision in notification-preflight notification-install notification-accept \
+        notification-rollback notification-candidate-tamper; do
+        test -s "$root/transaction/decisions/$decision.tsv"
+        test -s "$root/transaction/raw/$decision.txt"
+    done
+    awk -F '\t' '$1 == "notification-candidate-tamper" && $2 == "reject" && $3 != 0 { found++ }
+        END { exit(found == 1 ? 0 : 1) }' \
+        "$root/transaction/decisions/notification-candidate-tamper.tsv"
+    grep -Fq 'notification_standardization_production_path_test_complete=true' \
+        "$root/transaction.stdout"
+    grep -Fq $'node-b\tcd / && sudo -n /bin/bash -s -- notification-install' \
+        "$root/outer/raw/outer-standby-first.txt"
+    grep -Fq $'node-a\tcd / && sudo -n /bin/bash -s -- notification-install' \
+        "$root/outer/raw/outer-standby-first.txt"
+    grep -Fq 'file=mutation.tsv' "$root/outer/raw/outer-evidence-readback.txt"
+    [[ "$(wc -l <"$root/transaction/busctl.calls")" -eq 2 ]]
+    [[ "$(wc -l <"$root/transaction/ip.calls")" -eq 1 ]]
+    grep -Fq '/org/keepalived/Vrrp1/Instance/eth0/100/IPv4' \
+        "$root/outer/raw/outer-preflight.txt"
+    grep -Fq '/org/keepalived/Vrrp1/Instance/eth0/101/IPv6' \
+        "$root/outer/raw/outer-preflight.txt"
+    grep -Fq $'node-a\t-o address show dev eth0' \
+        "$root/outer/raw/outer-preflight.txt"
+    grep -Fq $'node-b\t-o address show dev eth0' \
+        "$root/outer/raw/outer-preflight.txt"
+    printf '%s_complete=true\n' "$prefix"
+    exit 0
+elif [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
     for decision in web-unit-service-identity web-unit-preflight web-unit-install web-unit-accept \
         web-unit-rollback web-unit-candidate-tamper; do
         test -s "$root/transaction/decisions/$decision.tsv"
@@ -53,29 +81,19 @@ if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
     awk -F '\t' '$1 == "web-unit-candidate-tamper" && $2 == "reject" && $3 != 0 { found++ }
         END { exit(found == 1 ? 0 : 1) }' \
         "$root/transaction/decisions/web-unit-candidate-tamper.tsv"
-    grep -Fxq 'start caddy-pihole-web-health.service' \
-        "$root/transaction/systemctl.calls"
-    grep -Fq 'web_unit_timer_healthy_event=true' \
-        "$root/transaction/raw/web-unit-accept.txt"
-    grep -Fq 'web_unit_timer_successful_completion=true' \
-        "$root/transaction/raw/web-unit-accept.txt"
-    grep -Fq 'web_unit_timer_result=true' \
-        "$root/transaction/raw/web-unit-accept.txt"
-    grep -Fq 'web_unit_timer_status=true' \
-        "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fxq 'start caddy-pihole-web-health.service' "$root/transaction/systemctl.calls"
+    grep -Fq 'web_unit_timer_healthy_event=true' "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_successful_completion=true' "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_result=true' "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_status=true' "$root/transaction/raw/web-unit-accept.txt"
     awk '/--show-cursor/ { count++ } END { exit(count == 2 ? 0 : 1) }' \
         "$root/transaction/journalctl.calls"
-    grep -Fq 'web_unit_timer_failures_absent=true' \
-        "$root/transaction/raw/web-unit-accept.txt"
+    grep -Fq 'web_unit_timer_failures_absent=true' "$root/transaction/raw/web-unit-accept.txt"
     if [[ "$EUID" -eq 0 ]]; then
-        grep -Fxq 'without_caddy_tls_readable=false' \
-            "$root/transaction/raw/web-unit-service-identity.txt"
-        grep -Fxq 'with_caddy_tls_readable=true' \
-            "$root/transaction/raw/web-unit-service-identity.txt"
-        grep -Fxq 'pi_primary_queue_writable=true' \
-            "$root/transaction/raw/web-unit-service-identity.txt"
-        grep -Fxq 'kernel_dac_execution=true' \
-            "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'without_caddy_tls_readable=false' "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'with_caddy_tls_readable=true' "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'pi_primary_queue_writable=true' "$root/transaction/raw/web-unit-service-identity.txt"
+        grep -Fxq 'kernel_dac_execution=true' "$root/transaction/raw/web-unit-service-identity.txt"
     else
         grep -Fxq 'kernel_dac_execution=requires-root-debian-batch' \
             "$root/transaction/raw/web-unit-service-identity.txt"

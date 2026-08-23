@@ -12,15 +12,15 @@ readonly systemctl_command=${CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND:-/usr/bin/sy
 
 # Keep SIGTERM at its default disposition; Keepalived signals the full process group.
 
-[[ -f "$environment_file" && ! -L "$environment_file" ]] || exit 1
+[[ -f "$environment_file" && ! -L "$environment_file" ]] || exit 10
 # shellcheck disable=SC1090
-source "$environment_file" || exit 1
+source "$environment_file" || exit 10
 
-[[ ${NODE_FQDN:-} =~ ^[A-Za-z0-9.-]+$ ]] || exit 1
-[[ ${NODE_IPV4:-} =~ ^[0-9.]+$ ]] || exit 1
-[[ ${NODE_IPV6:-} =~ ^[0-9A-Fa-f:]+$ ]] || exit 1
+[[ ${NODE_FQDN:-} =~ ^[A-Za-z0-9.-]+$ ]] || exit 10
+[[ ${NODE_IPV4:-} =~ ^[0-9.]+$ ]] || exit 10
+[[ ${NODE_IPV6:-} =~ ^[0-9A-Fa-f:]+$ ]] || exit 10
 
-"$systemctl_command" is-active --quiet caddy.service || exit 1
+"$systemctl_command" is-active --quiet caddy.service || exit 11
 
 check_https() {
     local health_family=$1
@@ -35,7 +35,7 @@ check_https() {
     [[ "$health_status" = 204 ]]
 }
 
-check_https 4 "$NODE_IPV4" || exit 1
-check_https 6 "[$NODE_IPV6]" || exit 1
+check_https 4 "$NODE_IPV4" || exit 20
+check_https 6 "[$NODE_IPV6]" || exit 21
 
 exit 0

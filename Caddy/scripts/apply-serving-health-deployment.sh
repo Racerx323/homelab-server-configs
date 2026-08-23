@@ -42,12 +42,24 @@ readonly ownership_stable_samples=${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLE
 readonly ownership_sample_delay=${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-2}
 readonly target_root=${CADDY_SERVING_HEALTH_TARGET_ROOT:-}
 readonly web_health_unit=/etc/systemd/system/caddy-pihole-web-health.service
-readonly web_health_unit_deployed_sha256=a1afee302fa521c9d4ba2eb6d7085e98f261ec5fdd464c156dd11aa1f1cfa3f0
+readonly web_health_unit_deployed_sha256=d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
 readonly web_health_unit_candidate_sha256=d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc
 readonly web_health_timer=caddy-pihole-web-health.timer
 readonly web_health_service=caddy-pihole-web-health.service
 readonly web_health_observation_attempts=${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-45}
 readonly web_health_observation_delay=${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-1}
+readonly notification_enqueue_deployed_sha256=5abad15885a9d35405f060e956828dfcca6406f447273259155b0daf23b851bf
+readonly notification_enqueue_candidate_sha256=5abad15885a9d35405f060e956828dfcca6406f447273259155b0daf23b851bf
+readonly notification_worker_deployed_sha256=0fbf8133e0f4ea16098c58cea424f1d4cdf475f991ec245dc3e7e5fa332fcddc
+readonly notification_worker_candidate_sha256=0fbf8133e0f4ea16098c58cea424f1d4cdf475f991ec245dc3e7e5fa332fcddc
+readonly notification_notifier_deployed_sha256=81d3ebb308e9b326282f60a0887376c4eb50af9cd7ac29180c5278b14abfcdc9
+readonly notification_notifier_candidate_sha256=81d3ebb308e9b326282f60a0887376c4eb50af9cd7ac29180c5278b14abfcdc9
+readonly notification_tmpfiles_deployed_sha256=0a6fa67671acb390e8faff5a22c44eb673767351e65d72035917470c31f550f3
+readonly notification_tmpfiles_candidate_sha256=0a6fa67671acb390e8faff5a22c44eb673767351e65d72035917470c31f550f3
+readonly notification_dns_deployed_sha256=39e13951657bc02e054c6387a4647fea031177f92c0bda86f55e8970f6005f98
+readonly notification_dns_candidate_sha256=39e13951657bc02e054c6387a4647fea031177f92c0bda86f55e8970f6005f98
+readonly notification_caddy_deployed_sha256=6b95393d5a07c1dc8086a14fb33ccfe435af9435b13f766847e13846456e410d
+readonly notification_caddy_candidate_sha256=6b95393d5a07c1dc8086a14fb33ccfe435af9435b13f766847e13846456e410d
 
 if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING_ROOT:-}${CADDY_SERVING_HEALTH_QUARANTINE_ROOT:-}${CADDY_SERVING_HEALTH_RELEASES_ROOT:-}${CADDY_SERVING_HEALTH_RETAINED_RELEASE_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_RETAINED_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_QUARANTINE_INVENTORY_MANIFEST:-}${CADDY_SERVING_HEALTH_NODE_A_QUARANTINE_CONTRACT:-}${CADDY_SERVING_HEALTH_SERVING_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_FINALIZER_COMMAND:-}${CADDY_SERVING_HEALTH_PUBLISHER_COMMAND:-}${CADDY_SERVING_HEALTH_SYNC_USER:-}${CADDY_SERVING_HEALTH_SYNC_GROUP:-}${CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND:-}${CADDY_SERVING_HEALTH_SLEEP_COMMAND:-}${CADDY_SERVING_HEALTH_BUSCTL_COMMAND:-}${CADDY_SERVING_HEALTH_IP_COMMAND:-}${CADDY_SERVING_HEALTH_DATE_COMMAND:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-}${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-}${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-}" &&
     "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
@@ -1066,6 +1078,188 @@ rollback_web_health_unit() {
     require_equal web_unit_rollback_identity "$web_health_unit_deployed_sha256" \
         "$(sha256sum "$(effective_path "$web_health_unit")" | awk '{ print $1 }')"
     validate_web_health_queue_permissions
+}
+
+notification_artifact_rows() {
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+        homelab-server-configs Caddy/scripts/caddy-apprise-enqueue.sh /usr/local/libexec/caddy-apprise-enqueue 0755 "$notification_enqueue_deployed_sha256" "$notification_enqueue_candidate_sha256" \
+        homelab-server-configs Caddy/scripts/caddy-apprise-delivery-worker.sh /usr/local/libexec/caddy-apprise-delivery-worker 0755 "$notification_worker_deployed_sha256" "$notification_worker_candidate_sha256" \
+        homelab-dns Keepalived/scripts/keepalived-notify.sh /usr/local/bin/keepalived-notify.sh 0755 "$notification_notifier_deployed_sha256" "$notification_notifier_candidate_sha256" \
+        homelab-server-configs Caddy/configs/tmpfiles.d/caddy-ha.conf /etc/tmpfiles.d/caddy-ha.conf 0644 "$notification_tmpfiles_deployed_sha256" "$notification_tmpfiles_candidate_sha256" \
+        homelab-dns Keepalived/scripts/dns-check.sh /etc/scripts/check-dns.sh 0755 "$notification_dns_deployed_sha256" "$notification_dns_candidate_sha256" \
+        homelab-server-configs Caddy/scripts/check-caddy-serving-health.sh /usr/local/libexec/check-caddy.sh 0755 "$notification_caddy_deployed_sha256" "$notification_caddy_candidate_sha256"
+}
+
+notification_capture_bootstrap_state() {
+    local notification_ipv4_state notification_ipv6_state notification_addresses notification_vip
+    local notification_vip_count=0 notification_expected_state notification_expected_vips
+
+    notification_ipv4_state=$(
+        "$busctl_command" get-property org.keepalived.Vrrp1 \
+            /org/keepalived/Vrrp1/Instance/eth0/100/IPv4 \
+            org.keepalived.Vrrp1.Instance State |
+            sed -n 's/.*"\([^"]*\)".*/\1/p'
+    )
+    notification_ipv6_state=$(
+        "$busctl_command" get-property org.keepalived.Vrrp1 \
+            /org/keepalived/Vrrp1/Instance/eth0/101/IPv6 \
+            org.keepalived.Vrrp1.Instance State |
+            sed -n 's/.*"\([^"]*\)".*/\1/p'
+    )
+    notification_addresses=$("$ip_command" -o address show dev eth0)
+    for notification_vip in 10.1.0.55/22 10.1.0.56/22 \
+        fd36:5aa8:6971:1::55/128 fd36:5aa8:6971:1::56/128; do
+        if grep -Fq " $notification_vip " <<<"$notification_addresses"; then
+            notification_vip_count=$((notification_vip_count + 1))
+        fi
+    done
+    notification_expected_state=Backup
+    notification_expected_vips=0
+    if [[ "$node_role" = node-a ]]; then
+        notification_expected_state=Master
+        notification_expected_vips=4
+    fi
+    require_equal notification_bootstrap_ipv4 "$notification_expected_state" \
+        "$notification_ipv4_state"
+    require_equal notification_bootstrap_ipv6 "$notification_expected_state" \
+        "$notification_ipv6_state"
+    require_equal notification_bootstrap_vips "$notification_expected_vips" \
+        "$notification_vip_count"
+    printf '%s\n' "${notification_expected_state^^}" \
+        >"$evidence_root/notification-bootstrap-state"
+    chmod 0600 "$evidence_root/notification-bootstrap-state"
+}
+
+notification_preflight() {
+    local notification_repository notification_source notification_target notification_mode
+    local notification_deployed_hash notification_candidate_hash notification_installed
+    local notification_candidate
+
+    while IFS=$'\t' read -r notification_repository notification_source notification_target \
+        notification_mode notification_deployed_hash notification_candidate_hash; do
+        notification_installed=$(effective_path "$notification_target")
+        notification_candidate=$(candidate_file "$notification_repository" "$notification_source")
+        require "notification_${notification_target//[^a-zA-Z0-9]/_}_installed_regular" \
+            regular_file "$notification_installed"
+        require_equal "notification_${notification_target//[^a-zA-Z0-9]/_}_baseline" \
+            "$notification_deployed_hash" "$(sha256sum "$notification_installed" | awk '{ print $1 }')"
+        require_equal "notification_${notification_target//[^a-zA-Z0-9]/_}_mode" \
+            "${notification_mode#0}" "$(stat -c '%a' "$notification_installed")"
+        require "notification_${notification_target//[^a-zA-Z0-9]/_}_candidate_regular" \
+            regular_file "$notification_candidate"
+        require_equal "notification_${notification_target//[^a-zA-Z0-9]/_}_candidate" \
+            "$notification_candidate_hash" "$(sha256sum "$notification_candidate" | awk '{ print $1 }')"
+    done < <(notification_artifact_rows)
+    for notification_service in caddy.service pihole-FTL.service unbound.service keepalived.service; do
+        require "notification_${notification_service//[^a-zA-Z0-9]/_}_active" \
+            "$systemctl_command" is-active --quiet "$notification_service"
+    done
+    notification_capture_bootstrap_state
+    validate_web_health_queue_permissions
+    if path_absent "$(effective_path /var/lib/caddy-serving-health)"; then
+        printf 'absent\n' >"$evidence_root/notification-state-parent.baseline"
+    else
+        require notification_state_parent_directory test -d \
+            "$(effective_path /var/lib/caddy-serving-health)"
+        require notification_state_parent_not_symlink test ! -L \
+            "$(effective_path /var/lib/caddy-serving-health)"
+        printf 'present\n' >"$evidence_root/notification-state-parent.baseline"
+    fi
+    chmod 0600 "$evidence_root/notification-state-parent.baseline"
+    if path_absent "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"; then
+        printf 'absent\n' >"$evidence_root/notification-state-root.baseline"
+    else
+        require notification_state_root_directory test -d \
+            "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"
+        require notification_state_root_not_symlink test ! -L \
+            "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)"
+        require notification_state_root_empty test -z \
+            "$(find "$(effective_path /var/lib/caddy-serving-health/keepalived-notify)" -mindepth 1 -maxdepth 1 -print -quit)"
+        printf 'empty\n' >"$evidence_root/notification-state-root.baseline"
+    fi
+    chmod 0600 "$evidence_root/notification-state-root.baseline"
+}
+
+install_notification_standardization() {
+    local notification_repository notification_source notification_target notification_mode
+    local notification_deployed_hash notification_candidate_hash notification_state_root
+    local notification_initial_state notification_state_owner notification_state_group
+
+    while IFS=$'\t' read -r notification_repository notification_source notification_target \
+        notification_mode notification_deployed_hash notification_candidate_hash; do
+        install_target "$(candidate_file "$notification_repository" "$notification_source")" \
+            "$notification_target" "$notification_mode" root root
+    done < <(notification_artifact_rows)
+    "$systemd_tmpfiles_command" --create "$(effective_path /etc/tmpfiles.d/caddy-ha.conf)"
+    notification_state_root=$(effective_path /var/lib/caddy-serving-health/keepalived-notify)
+    require notification_state_root_created test -d "$notification_state_root"
+    require notification_state_root_created_not_symlink test ! -L "$notification_state_root"
+    notification_initial_state=$(<"$evidence_root/notification-bootstrap-state")
+    notification_state_owner=pi
+    notification_state_group=pi
+    if [[ -n "$target_root" ]]; then
+        notification_state_owner=$(id -un)
+        notification_state_group=$(id -gn)
+    fi
+    install -o "$notification_state_owner" -g "$notification_state_group" -m 0600 \
+        /dev/null "$notification_state_root/PIHOLE_DUALSTACK.state"
+    printf '%s\n' "$notification_initial_state" >"$notification_state_root/PIHOLE_DUALSTACK.state"
+    printf 'component\tmutation\nnotification\tstandardization\n' \
+        >"$evidence_root/mutation.tsv"
+    chmod 0600 "$evidence_root/mutation.tsv"
+}
+
+accept_notification_standardization() {
+    local notification_repository notification_source notification_target notification_mode
+    local notification_deployed_hash notification_candidate_hash notification_installed
+    local notification_expected_state
+
+    while IFS=$'\t' read -r notification_repository notification_source notification_target \
+        notification_mode notification_deployed_hash notification_candidate_hash; do
+        notification_installed=$(effective_path "$notification_target")
+        require_equal "notification_${notification_target//[^a-zA-Z0-9]/_}_accepted" \
+            "$notification_candidate_hash" "$(sha256sum "$notification_installed" | awk '{ print $1 }')"
+    done < <(notification_artifact_rows)
+    notification_expected_state=BACKUP
+    [[ "$node_role" = node-b ]] || notification_expected_state=MASTER
+    require_equal notification_bootstrap_state "$notification_expected_state" \
+        "$(<"$(effective_path /var/lib/caddy-serving-health/keepalived-notify/PIHOLE_DUALSTACK.state)")"
+    if [[ -z "$target_root" ]]; then
+        capture_command notification_caddy_installed_form "$runuser_command" \
+            -u keepalived_script -g caddy-tls -- /usr/local/libexec/check-caddy.sh
+        capture_command notification_dns_installed_form "$runuser_command" \
+            -u pi -- /etc/scripts/check-dns.sh
+    fi
+    for notification_service in caddy.service pihole-FTL.service unbound.service keepalived.service; do
+        require "notification_accepted_${notification_service//[^a-zA-Z0-9]/_}_active" \
+            "$systemctl_command" is-active --quiet "$notification_service"
+    done
+    validate_web_health_queue_permissions
+}
+
+rollback_notification_standardization() {
+    local notification_repository notification_source notification_target notification_mode
+    local notification_deployed_hash notification_candidate_hash notification_state_root
+
+    while IFS=$'\t' read -r notification_repository notification_source notification_target \
+        notification_mode notification_deployed_hash notification_candidate_hash; do
+        restore_target "$notification_target"
+        require_equal "notification_${notification_target//[^a-zA-Z0-9]/_}_rollback" \
+            "$notification_deployed_hash" \
+            "$(sha256sum "$(effective_path "$notification_target")" | awk '{ print $1 }')"
+    done < <(notification_artifact_rows)
+    notification_state_root=$(effective_path /var/lib/caddy-serving-health/keepalived-notify)
+    if [[ "$(<"$evidence_root/notification-state-root.baseline")" = absent ]]; then
+        require_exact_directory_inventory notification_rollback_state_root \
+            "$notification_state_root" PIHOLE_DUALSTACK.state
+        rm -f -- "$notification_state_root/PIHOLE_DUALSTACK.state"
+        rmdir "$notification_state_root"
+        if [[ "$(<"$evidence_root/notification-state-parent.baseline")" = absent ]]; then
+            rmdir "$(effective_path /var/lib/caddy-serving-health)"
+        fi
+    else
+        rm -f -- "$notification_state_root/PIHOLE_DUALSTACK.state"
+    fi
 }
 
 candidate_file() {
@@ -2430,6 +2624,138 @@ SLEEP
     printf '%s_production_path_test_complete=true\n' "$prefix"
 }
 
+notification_standardization_production_path_test() {
+    local notification_repo_root=$1
+    local notification_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
+    local notification_payload notification_evidence notification_target
+    local notification_systemctl notification_tmpfiles notification_busctl notification_ip
+    local notification_raw notification_decision
+    local notification_status notification_repository notification_source notification_installed
+    local notification_mode notification_baseline_hash notification_candidate_hash
+
+    notification_payload=$notification_test_root/payload
+    notification_evidence=$notification_test_root/transaction-evidence
+    notification_target=$(mktemp -d /tmp/caddy-notification-production-target.XXXXXX)
+    install -d -m 0700 "$notification_payload/manifests" "$notification_evidence" \
+        "$notification_target/var/lib/caddy-apprise-queue"/{pending,inflight,dead-letter,delivered}
+    chmod 0700 "$notification_target/var/lib/caddy-apprise-queue" \
+        "$notification_target/var/lib/caddy-apprise-queue"/*
+    install -m 0600 "$notification_repo_root/Caddy/manifests/serving-health-quarantine-baseline.tsv" \
+        "$notification_payload/manifests/serving-health-quarantine-baseline.tsv"
+    printf '# repository\tsource-path\tinstalled-path\tmode\tcandidate-sha256\tlifecycle\n' \
+        >"$notification_payload/manifests/serving-health-production.tsv"
+    while IFS=$'\t' read -r notification_repository notification_source notification_installed \
+        notification_mode notification_baseline_hash notification_candidate_hash; do
+        install -d -m 0700 \
+            "$notification_payload/repositories/$notification_repository/$(dirname "$notification_source")" \
+            "$notification_target/$(dirname "$notification_installed")"
+        if [[ "$notification_repository" = homelab-server-configs ]]; then
+            install -m 0600 "$notification_repo_root/$notification_source" \
+                "$notification_payload/repositories/$notification_repository/$notification_source"
+            git -C "$notification_repo_root" show \
+                "eb1e4471f87af7c80662d4e8aabb577e848bd03c:$notification_source" \
+                >"$notification_target$notification_installed"
+        else
+            install -m 0600 "$notification_repo_root/../homelab-dns/$notification_source" \
+                "$notification_payload/repositories/$notification_repository/$notification_source"
+            git -C "$notification_repo_root/../homelab-dns" show \
+                "ab9965fd:$notification_source" >"$notification_target$notification_installed"
+        fi
+        chmod "$notification_mode" "$notification_target$notification_installed"
+        require_equal "notification_test_baseline_${notification_installed//[^a-zA-Z0-9]/_}" \
+            "$notification_baseline_hash" \
+            "$(sha256sum "$notification_target$notification_installed" | awk '{ print $1 }')"
+        awk -F '\t' -v source="$notification_source" '$2 == source { print }' \
+            "$notification_repo_root/Caddy/manifests/serving-health-production.tsv" \
+            >>"$notification_payload/manifests/serving-health-production.tsv"
+    done < <(notification_artifact_rows)
+
+    notification_systemctl=$notification_test_root/notification-systemctl
+    notification_tmpfiles=$notification_test_root/notification-tmpfiles
+    notification_busctl=$notification_test_root/notification-busctl
+    notification_ip=$notification_test_root/notification-ip
+    cat >"$notification_systemctl" <<'SYSTEMCTL'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"${CADDY_NOTIFICATION_TEST_ROOT:?}/systemctl.calls"
+[[ "$1" = is-active && "$2" = --quiet ]]
+SYSTEMCTL
+    cat >"$notification_tmpfiles" <<'TMPFILES'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$*" >>"${CADDY_NOTIFICATION_TEST_ROOT:?}/tmpfiles.calls"
+install -d -m 0755 "$CADDY_SERVING_HEALTH_TARGET_ROOT/var/lib/caddy-serving-health"
+install -d -m 0700 "$CADDY_SERVING_HEALTH_TARGET_ROOT/var/lib/caddy-serving-health/keepalived-notify"
+TMPFILES
+    cat >"$notification_busctl" <<'BUSCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$*" >>"${CADDY_NOTIFICATION_TEST_ROOT:?}/busctl.calls"
+printf 's "Backup"\n'
+BUSCTL
+    cat >"$notification_ip" <<'IP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$*" >>"${CADDY_NOTIFICATION_TEST_ROOT:?}/ip.calls"
+printf '2: eth0    inet 10.1.0.54/22 scope global eth0\n'
+printf '2: eth0    inet6 fd36:5aa8:6971:1::54/64 scope global\n'
+IP
+    chmod 0700 "$notification_systemctl" "$notification_tmpfiles" \
+        "$notification_busctl" "$notification_ip"
+    : >"$notification_test_root/systemctl.calls"
+    : >"$notification_test_root/tmpfiles.calls"
+    : >"$notification_test_root/busctl.calls"
+    : >"$notification_test_root/ip.calls"
+    export CADDY_NOTIFICATION_TEST_ROOT=$notification_test_root
+
+    for notification_scenario in preflight install accept rollback; do
+        notification_raw=$notification_test_root/raw/notification-$notification_scenario.txt
+        notification_decision=$notification_test_root/decisions/notification-$notification_scenario.tsv
+        if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+            CADDY_SERVING_HEALTH_TARGET_ROOT=$notification_target \
+            CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$notification_systemctl \
+            CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND=$notification_tmpfiles \
+            CADDY_SERVING_HEALTH_BUSCTL_COMMAND=$notification_busctl \
+            CADDY_SERVING_HEALTH_IP_COMMAND=$notification_ip \
+            /bin/bash "$notification_repo_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+            "notification-$notification_scenario" node-b "$notification_payload" \
+            "$notification_evidence" >"$notification_raw" 2>&1; then
+            notification_status=0
+        else
+            notification_status=$?
+        fi
+        write_decision "notification-$notification_scenario" accept "$notification_status" success \
+            "$([[ "$notification_status" -eq 0 ]] && printf success || printf failure)" \
+            "$notification_raw" "$notification_decision"
+        [[ "$notification_status" -eq 0 ]]
+    done
+    if grep -Eq '(^| )(restart|reload|stop|start) (caddy|pihole-FTL|unbound|keepalived)\.service$' \
+        "$notification_test_root/systemctl.calls"; then
+        return 1
+    fi
+    notification_raw=$notification_test_root/raw/notification-candidate-tamper.txt
+    notification_decision=$notification_test_root/decisions/notification-candidate-tamper.tsv
+    printf '# tamper\n' >>"$notification_payload/repositories/homelab-server-configs/Caddy/scripts/caddy-apprise-enqueue.sh"
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_SERVING_HEALTH_TARGET_ROOT=$notification_target \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$notification_systemctl \
+        CADDY_SERVING_HEALTH_BUSCTL_COMMAND=$notification_busctl \
+        CADDY_SERVING_HEALTH_IP_COMMAND=$notification_ip \
+        /bin/bash "$notification_repo_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+        notification-preflight node-b "$notification_payload" "$notification_evidence" \
+        >"$notification_raw" 2>&1; then
+        notification_status=0
+    else
+        notification_status=$?
+    fi
+    write_decision notification-candidate-tamper reject "$notification_status" exact changed \
+        "$notification_raw" "$notification_decision"
+    [[ "$notification_status" -ne 0 ]]
+    chmod -R u+rwX -- "$notification_payload" "$notification_evidence" "$notification_target"
+    rm -rf -- "$notification_payload" "$notification_evidence" "$notification_target"
+    printf '%s_notification_standardization_production_path_test_complete=true\n' "$prefix"
+    printf '%s_production_path_test_complete=true\n' "$prefix"
+}
+
 production_path_test() {
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root serving_health_inventory serving_health_key serving_health_repository
@@ -2493,6 +2819,11 @@ production_path_test() {
     if grep -Fxq 'scope: pihole-web-health-unit-only' \
         "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then
         web_health_unit_production_path_test "$serving_health_repo_root"
+        return
+    fi
+    if grep -Fxq 'scope: notification-standardization-only' \
+        "$serving_health_repo_root/Caddy/manifests/serving-health-operation.yaml"; then
+        notification_standardization_production_path_test "$serving_health_repo_root"
         return
     fi
     serving_health_inventory=$serving_health_repo_root/Caddy/manifests/production-artifacts.tsv
@@ -3409,7 +3740,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback)$ ]]
 [[ "$node_role" =~ ^node-[ab]$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -3449,4 +3780,8 @@ case "$mode" in
     web-unit-install) install_web_health_unit ;;
     web-unit-accept) accept_web_health_unit ;;
     web-unit-rollback) rollback_web_health_unit ;;
+    notification-preflight) notification_preflight ;;
+    notification-install) install_notification_standardization ;;
+    notification-accept) accept_notification_standardization ;;
+    notification-rollback) rollback_notification_standardization ;;
 esac
