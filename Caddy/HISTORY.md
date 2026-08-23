@@ -5,11 +5,10 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending
-- Planned archive tag: `caddy-action35am-terminal-2026-08-23`
-- Latest archive tag: `caddy-action35al-terminal-2026-08-23`
-- Terminal action: Action 35am is accepted. Its exact operation remains only
-  until the annotated terminal tag is created.
+- State: clean
+- Latest archive tag: `caddy-action35am-terminal-2026-08-23`
+- Terminal action: Action 35am is accepted, archived, and cleaned. No
+  deployment successor is defined.
 
 ## Action 35am terminal result
 
@@ -19,7 +18,8 @@ Git preserves the complete deployment journal and executed action files.
 - Transaction SHA-256:
   `369ec7ce6081680256b592dc7db6f51ef4eb63bc187c583e481704ad4070ce73`
 - Result: accepted read-only capture; exit status 0.
-- Status: terminal-pending.
+- Status: archived and cleaned; the neutral operation specification is
+  inactive and the Caddy deployment stream is clean.
 - Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.IoAYyJ`.
 - Attribution: `unattributed`; zero causal producer candidates were found.
 - Config ID `apprise` was confirmed to be an endpoint list without a message

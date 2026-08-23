@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted and awaits terminal archival; the legacy duplicate remains unattributed and notification standardization remains incomplete; controlled serving-failure exercise Action 35an remains deferred; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; read-only external attribution Action 35am is accepted, archived, and cleaned; the Caddy deployment stream is clean; the legacy duplicate remains unattributed and notification standardization remains incomplete; controlled serving-failure exercise Action 35an remains deferred; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -678,6 +678,10 @@ Readback integrity and exact temporary-program cleanup passed. No HA node was
 contacted, no notification was sent, and no production state changed.
 Notification standardization remains incomplete and Action 35an remains
 deferred.
+
+Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
+operation data and coverage are removed from the current branch, the neutral
+operation specification is inactive, and the Caddy deployment stream is clean.
 
 ## 19. Checkpoint procedure
 

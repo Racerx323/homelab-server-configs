@@ -873,3 +873,7 @@ exact temporary-program cleanup passed; neither HA node was contacted, no
 notification was sent, and no production state changed. Notification
 standardization therefore remains incomplete and controlled failure exercise
 Action 35an remains deferred.
+
+Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
+operation data and coverage are removed from the current branch, the neutral
+operation specification is inactive, and the Caddy deployment stream is clean.
