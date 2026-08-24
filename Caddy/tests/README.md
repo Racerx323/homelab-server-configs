@@ -31,3 +31,7 @@ Policy files own their focused negative controls through a no-argument
 self-test mode; pre-commit invokes the same files with `--check`. Do not add a
 separate regression or pre-commit adapter when the policy can exercise the
 case directly.
+
+`operator-documentation-policy.sh` enforces the six-document operator set,
+authority links, current entrypoints, accepted-live boundary, and isolation of
+future-project prompts from current runbooks.

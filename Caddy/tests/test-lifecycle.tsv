@@ -22,6 +22,7 @@ Caddy/tests/focused-validation.yaml	production-current	support	current-productio
 Caddy/tests/generate-test-certificate.sh	production-current	current-focused	current-production-validation
 Caddy/tests/multifile-grep-count-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/outer-local-gate-label-policy-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/operator-documentation-policy.sh	production-current	current-focused	current-operator-documentation-structure
 Caddy/tests/portable-awk-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/receiver-finalization-protocol-v2-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh	production-current	current-focused	current-production-validation

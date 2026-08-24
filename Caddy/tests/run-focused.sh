@@ -352,6 +352,9 @@ run_policy() {
         environment-v2)
             /bin/bash "$test_directory/caddy-environment-v2-policy.sh" --check
             ;;
+        operator-documentation)
+            /bin/bash "$test_directory/operator-documentation-policy.sh" --check
+            ;;
         test-lifecycle)
             /bin/bash "$test_directory/test-lifecycle-policy.sh" --check
             ;;

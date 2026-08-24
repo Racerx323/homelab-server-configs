@@ -105,10 +105,12 @@ for reproducibility_contract in \
     '## Required Unbound configuration pair' \
     '## Required external inputs' \
     '## Inventory reconciliation' \
-    '## Rebuild order'; do
+    '## Recovery acceptance boundary'; do
     grep -Fxq "$reproducibility_contract" "$reproducibility_document" ||
         fail reproducibility_document_contract
 done
+! grep -Fxq '## Rebuild order' "$reproducibility_document" ||
+    fail reproducibility_document_obsolete_rebuild_order
 
 validate_registry() {
     local lifecycle_registry=$1

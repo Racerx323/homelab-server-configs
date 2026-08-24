@@ -13,6 +13,7 @@
     "deployment-window",
     "deployable-successor",
     "environment-v2",
+    "operator-documentation",
     "test-lifecycle"
   ],
   "profiles": {
@@ -331,6 +332,7 @@
         "Caddy/tests/accepted-live-hash-policy*.sh",
         "Caddy/tests/caddy-environment-v2-*.sh",
         "Caddy/tests/conditional-validator-errexit-policy-regression.sh",
+        "Caddy/tests/operator-documentation-policy.sh",
         "Caddy/tests/test-lifecycle-*.sh"
       ],
       "debian_path_patterns": [
@@ -362,7 +364,8 @@
         "Caddy/tests/accepted-live-hash-policy.sh",
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
         "Caddy/tests/template-lifecycle-policy.sh",
-        "Caddy/tests/portable-awk-policy.sh"
+        "Caddy/tests/portable-awk-policy.sh",
+        "Caddy/tests/operator-documentation-policy.sh"
       ],
       "host_tests": [
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
@@ -372,7 +375,8 @@
         "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/template-lifecycle-policy.sh",
         "Caddy/tests/test-lifecycle-policy.sh",
-        "Caddy/tests/portable-awk-policy.sh"
+        "Caddy/tests/portable-awk-policy.sh",
+        "Caddy/tests/operator-documentation-policy.sh"
       ],
       "debian_tests": [
         "Caddy/tests/caddy-environment-v2-policy.sh",
@@ -391,6 +395,7 @@
         "deployable-successor",
         "template-lifecycle",
         "environment-v2",
+        "operator-documentation",
         "test-lifecycle"
       ]
     }

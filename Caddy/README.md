@@ -29,17 +29,32 @@ action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 | `systemd/` | Current installable units and drop-ins |
 | `templates/` | Two production templates and one approved future example |
 | `tests/` | Neutral current-production validation |
-| `docs/` | Governing plan, serving-health plan, and durable notification runbook |
+| `docs/` | Governing plan, operator runbooks, architecture, reproducibility, and durable notification contract |
 
 The `homelab-dns` repository owns Keepalived, Pi-hole, and Unbound sources.
 The `homelab-network` repository owns network-controller configuration.
 
+## Operator documentation
+
+| Document | Use |
+| --- | --- |
+| [`docs/QUICK_START.md`](docs/QUICK_START.md) | Routine inspection and first response |
+| [`docs/INSTALLATION.md`](docs/INSTALLATION.md) | Current installation boundary and automation gaps |
+| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Publication, maintenance, synchronization, and rollback |
+| [`docs/UNINSTALLATION.md`](docs/UNINSTALLATION.md) | Standby-first removal and preservation rules |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Component-specific diagnosis and evidence |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Accepted as-built component and data-flow model |
+| [`docs/APPRISE_DELIVERY.md`](docs/APPRISE_DELIVERY.md) | Notification and persistent queue authority |
+| [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | Rebuild inputs and external recovery authority |
+| [`docs/caddy_plan-v1.1.md`](docs/caddy_plan-v1.1.md) | Architecture decisions, lifecycle, and authorization authority |
+
 The exact source-control boundary, required external inputs, and known gaps for
 a bare-metal rebuild are documented in
 [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md). The accepted Caddy HA
-layer is reproducible from its manifests. Exact non-secret production
-identities are recorded; private keys, TLS material, credentials, and their
-external recovery systems remain deliberately outside this repository.
+layer's exact non-secret production identities and known inputs are recorded;
+the repository does not provide a complete installation or recovery workflow.
+Private keys, TLS material, credentials, and their external recovery systems
+remain deliberately outside this repository.
 
 ## Synchronization
 

@@ -73,6 +73,13 @@ repos:
         pass_filenames: false
         files: ^(?:Caddy/(?:templates|configs|scripts|manifests|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
 
+      - id: operator-documentation-policy
+        name: Validate Caddy operator documentation contract
+        entry: /bin/bash Caddy/tests/operator-documentation-policy.sh --check
+        language: system
+        pass_filenames: false
+        files: ^(?:Caddy/(?:README\.md|docs/.*\.md|scripts/|manifests/|tests/)|AGENTS\.md$|\.pre-commit-config\.yaml$)
+
       - id: deployment-lifecycle-policy
         name: Reject nonproduction Caddy deployment inputs
         entry: /bin/bash Caddy/tests/deployment-lifecycle-policy.sh --check

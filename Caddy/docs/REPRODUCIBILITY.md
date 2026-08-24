@@ -93,21 +93,17 @@ Private keys, TLS private-key bytes, environment secrets, and notification
 credentials were neither read nor retained. Restoring those external inputs
 from their owning systems remains part of a rebuild.
 
-## Rebuild order
+## Recovery acceptance boundary
 
-1. Install the recorded Debian package set and verify exact package versions
-   against an approved baseline.
-2. Restore the externally owned Pi-hole, Unbound, Keepalived, network, Apprise,
-   TLS, and SSH trust inputs.
-3. Install the Caddy HA runtime with the neutral installer on Node B first.
-4. Render Node B's environment locally and publish the accepted immutable
-   release through protocol v2.
-5. Validate services, node-specific endpoints, and zero shared VIP ownership on
-   Node B.
-6. Repeat the installation and validation on Node A, then require settled Node
-   A MASTER and Node B BACKUP ownership with all four VIPs on Node A.
-7. Run the current synchronization and serving-health validation profiles.
+No current entrypoint performs a complete clean-node installation or disaster
+recovery. The inventories above identify required state; they do not define an
+executable ordering for packages, Pi-hole application state, cross-repository
+configuration, secrets, trust, service activation, or HA convergence.
 
-Never restart or reload both HA nodes together. A rebuild is complete only when
-installed hashes, service state, dual-stack endpoints, synchronization, durable
-notifications, and settled VRRP ownership all pass.
+Do not treat `install-caddy-ha.sh` as a complete recovery tool. It installs part
+of the repository-owned filesystem and identity state only. A recovery claim
+requires exact installed hashes, active services and timers, matching immutable
+releases, protocol-v2 synchronization, durable notifications, dual-stack DNS
+and trusted HTTPS, and settled Node A MASTER and Node B BACKUP ownership.
+
+Never restart or reload both HA nodes together.

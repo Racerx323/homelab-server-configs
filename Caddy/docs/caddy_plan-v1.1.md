@@ -346,6 +346,11 @@ repository-owned filesystem and identity state; operators must not use it as a
 production installation, migration, or recovery workflow. Routine production
 changes continue through the neutral operation and protocol-v2 release path.
 
+Checkpoint 1 is complete. The six documents, README index, and neutral
+`operator-documentation-policy.sh` now enforce the current authority,
+entrypoint, accepted-live, and operational boundaries. No node contact or live
+change occurred.
+
 ### Checkpoint 2: Canonical LikeC4 architecture
 
 Update `homelab-docs/architecture/likec4` to describe accepted production.

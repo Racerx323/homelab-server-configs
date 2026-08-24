@@ -74,6 +74,7 @@ schema_valid() {
                 . == "deployment-window" or
                 . == "deployable-successor" or
                 . == "environment-v2" or
+                . == "operator-documentation" or
                 . == "test-lifecycle"))
     ' "$manifest" >/dev/null
 }
