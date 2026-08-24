@@ -58,7 +58,7 @@ is the future interface.
 
 ## Validation design
 
-Specify validation against a clean Debian 12 arm64 or Raspberry Pi-compatible
+Specify validation against a clean Debian 13 arm64 or Raspberry Pi-compatible
 environment before any HA-node use. The future implementation must prove:
 
 - exact repository and accepted-live hashes;
