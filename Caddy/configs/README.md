@@ -15,3 +15,8 @@ Keepalived, Pi-hole, and Unbound configuration belongs to
 `homelab-dns`. Network-controller configuration belongs to
 `homelab-network`. The production installer must not consume configuration
 from any other Caddy subdirectory.
+
+`lighttpd/desired-state.conf` is not a complete lighttpd configuration. It is a
+bounded transformation contract for an existing Pi-hole v5 package-owned tree.
+The package baseline must be supplied and verified as described in
+`Caddy/docs/REPRODUCIBILITY.md`.

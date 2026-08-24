@@ -34,7 +34,9 @@ packages:
       - jq
       - ndisc6
       - openssl
+      - passwd
       - procps
+      - systemd
       - tcpdump
       - util-linux
       - uuid-runtime
@@ -48,6 +50,11 @@ packages:
     names:
       - lighttpd
       - php-cgi
+  existing_dns_stack:
+    source: existing_installation
+    names:
+      - unbound
+      - dnsutils
   repository_validation:
     source: operator_workstation
     names:
@@ -61,18 +68,84 @@ packages:
 
 commands:
   required:
+    - busctl
     - caddy
     - curl
+    - dig
     - flock
+    - groupadd
     - ip
     - jq
+    - journalctl
     - keepalived
+    - lighttpd
     - logger
     - lsyncd
     - openssl
     - rsync
+    - rrsync
+    - runuser
+    - setpriv
+    - sha256sum
+    - ss
     - ssh
+    - stat
+    - systemd-tmpfiles
     - systemctl
+    - unbound-checkconf
+    - useradd
     - uuidgen
   operator_workstation_required:
     - doppler
+
+applications:
+  pihole:
+    management: pihole_application
+    components:
+      - pihole-core
+      - pihole-web
+      - pihole-FTL
+    production_identity: Caddy/manifests/reproducibility-production.yaml
+
+configuration_sources:
+  accepted_live_inventory:
+    repository: homelab-server-configs
+    path: Caddy/manifests/production-artifacts.tsv
+  caddy_release:
+    repository: homelab-server-configs
+    path: Caddy/manifests/caddy-release-source.tsv
+  dns_and_ownership:
+    repository: homelab-dns
+    paths:
+      - Keepalived/configs/keepalived-pihole0.conf
+      - Keepalived/configs/keepalived-pihole00.conf
+      - Keepalived/scripts/dns-check.sh
+      - Keepalived/scripts/keepalived-notify.sh
+      - Pi-Hole/configs/local.theama.co.conf
+      - Pi-Hole/configs/pihole-FTL.conf
+      - Unbound/configs/pihole-local-zone.conf
+      - Unbound/configs/pihole.conf
+
+external_inputs:
+  tls:
+    source: Doppler
+    contract: Caddy/manifests/deployment.yaml
+    repository_policy: certificate and private-key bytes are not committed
+  synchronization_ssh:
+    template: Caddy/templates/authorized-key-receiver-finalized-v2.in
+    repository_policy: private keys and host trust material are not committed
+  apprise_api:
+    source_repository: homelab-notification
+    endpoint_contract: Caddy/manifests/deployment.yaml
+  network_and_firewall:
+    source_repository: homelab-network
+    intent_contract: Caddy/manifests/deployment.yaml
+
+reproducibility_evidence:
+  production_identity: Caddy/manifests/reproducibility-production.yaml
+  package_versions: recorded
+  pihole_application_versions: recorded
+  pihole_lighttpd_tree_identity: recorded
+  synchronization_ssh_fingerprints: recorded
+  unbound_main_deployed_sha256: recorded
+  private_keys_and_credentials: external_not_recorded

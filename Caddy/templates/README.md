@@ -6,6 +6,10 @@ Production templates:
   command.
 - `caddy-ha.env-v2.in` renders the three-value node environment.
 
+The authorized-key template does not provision SSH identity or trust. Private
+keys, peer public keys, and `known_hosts` data are external inputs; see
+`Caddy/docs/REPRODUCIBILITY.md`.
+
 `reverse-proxy.caddy.example` is an approved future task input. No production
 inventory or installer may consume it. A later documentation task will turn it
 into a supported application template.

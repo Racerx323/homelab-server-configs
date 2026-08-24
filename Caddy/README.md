@@ -34,6 +34,13 @@ action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 The `homelab-dns` repository owns Keepalived, Pi-hole, and Unbound sources.
 The `homelab-network` repository owns network-controller configuration.
 
+The exact source-control boundary, required external inputs, and known gaps for
+a bare-metal rebuild are documented in
+[`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md). The accepted Caddy HA
+layer is reproducible from its manifests. Exact non-secret production
+identities are recorded; private keys, TLS material, credentials, and their
+external recovery systems remain deliberately outside this repository.
+
 ## Synchronization
 
 Node A publishes normal protocol-v2 releases to Node B. Node B can publish with

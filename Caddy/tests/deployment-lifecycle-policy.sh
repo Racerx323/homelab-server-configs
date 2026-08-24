@@ -26,6 +26,9 @@ readonly config_registry=$repository_root/Caddy/manifests/config-lifecycle.tsv
 readonly release_source_registry=$repository_root/Caddy/manifests/caddy-release-source.tsv
 readonly production_inventory=$repository_root/Caddy/manifests/production-artifacts.tsv
 readonly synchronization_manifest=$repository_root/Caddy/manifests/synchronization-protocol-v2.yaml
+readonly dependency_manifest=$repository_root/Caddy/manifests/dependencies.yaml
+readonly reproducibility_manifest=$repository_root/Caddy/manifests/reproducibility-production.yaml
+readonly reproducibility_document=$repository_root/Caddy/docs/REPRODUCIBILITY.md
 readonly installer=$repository_root/Caddy/scripts/install-caddy-ha.sh
 readonly validator=$repository_root/Caddy/scripts/validate-caddy-ha.sh
 readonly uninstaller=$repository_root/Caddy/scripts/uninstall-caddy-ha.sh
@@ -48,12 +51,57 @@ for required_file in \
     "$release_source_registry" \
     "$production_inventory" \
     "$synchronization_manifest" \
+    "$dependency_manifest" \
+    "$reproducibility_manifest" \
+    "$reproducibility_document" \
     "$installer" \
     "$validator" \
     "$uninstaller" \
     "$repository_root/Caddy/scripts/README.md"; do
     [[ -f "$required_file" && ! -L "$required_file" ]] ||
         fail "required_${required_file##*/}"
+done
+
+for dependency_contract in \
+    '      - dnsutils' \
+    '    - dig' \
+    '      - Unbound/configs/pihole-local-zone.conf' \
+    '      - Unbound/configs/pihole.conf' \
+    '    management: pihole_application' \
+    '  package_versions: recorded' \
+    '  pihole_lighttpd_tree_identity: recorded' \
+    '  synchronization_ssh_fingerprints: recorded' \
+    '  unbound_main_deployed_sha256: recorded'; do
+    grep -Fxq "$dependency_contract" "$dependency_manifest" ||
+        fail dependency_manifest_contract
+done
+
+awk '
+    /^  existing_dns_stack:/ { in_dns_packages = 1; next }
+    in_dns_packages && /^  [a-z_]+:/ { in_dns_packages = 0 }
+    in_dns_packages && /pihole-FTL/ { invalid = 1 }
+    END { exit invalid }
+' "$dependency_manifest" || fail pihole_ftl_package_classification
+
+for reproducibility_identity in \
+    'capture_mode: bounded_read_only_dual_node' \
+    '  nodes_identical: true' \
+    '  management: pihole_application' \
+    '  active_nodes_identical: true' \
+    '  reciprocal_sync_keys: true' \
+    '  reciprocal_ed25519_host_trust: true' \
+    '  mutation_performed: false'; do
+    grep -Fxq "$reproducibility_identity" "$reproducibility_manifest" ||
+        fail reproducibility_manifest_contract
+done
+
+for reproducibility_contract in \
+    '## Package-owned state' \
+    '## Required external inputs' \
+    '## Inventory reconciliation' \
+    '## Rebuild order'; do
+    grep -Fxq "$reproducibility_contract" "$reproducibility_document" ||
+        fail reproducibility_document_contract
 done
 
 validate_registry() {

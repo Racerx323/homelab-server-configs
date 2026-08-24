@@ -28,6 +28,28 @@ config_negative_status=0
     --repository-root "$config_negative_root" >/dev/null 2>&1 || config_negative_status=$?
 [[ "$config_negative_status" -eq 1 ]]
 
+dependency_negative_root=$work_directory/dependency-negative-repository
+readonly dependency_negative_root
+install -d -m 0700 "$dependency_negative_root"
+cp -a -- "$caddy_root" "$dependency_negative_root/Caddy"
+sed -i '/^      - Unbound\/configs\/pihole.conf$/d' \
+    "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
+dependency_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$dependency_negative_root" >/dev/null 2>&1 ||
+    dependency_negative_status=$?
+[[ "$dependency_negative_status" -eq 1 ]]
+
+cp -- "$caddy_root/manifests/dependencies.yaml" \
+    "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
+sed -i '/^      - dnsutils$/a\      - pihole-FTL' \
+    "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
+dependency_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$dependency_negative_root" >/dev/null 2>&1 ||
+    dependency_negative_status=$?
+[[ "$dependency_negative_status" -eq 1 ]]
+
 /bin/bash "$caddy_root/scripts/reconcile-release-v2.sh" \
     --candidate-selection-self-test >/dev/null
 

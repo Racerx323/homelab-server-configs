@@ -7,6 +7,7 @@ clean; no successor is registered.
 | --- | --- |
 | `accepted-live-artifacts.tsv` | Canonical deployed identities |
 | `production-artifacts.tsv` | Source, target, node, and deployed identity mapping |
+| `reproducibility-production.yaml` | Exact package, application, lighttpd-tree, Unbound, and public SSH identities |
 | `caddy-release-source.tsv` | Non-secret repository sources pinned to the accepted immutable Caddy payload |
 | `config-lifecycle.tsv` | Complete classification of the Caddy configuration tree |
 | `runtime-production.tsv` | Neutral current runtime boundary |
@@ -20,6 +21,7 @@ clean; no successor is registered.
 | `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
 | `serving-health-operation.yaml` | Inactive neutral operation contract; changed to a defined operation only for an authorized successor |
 | `serving-health-quarantine-baseline.tsv` | Canonical empty quarantine inventory; historical trees are retained only in tagged history |
+| `dependencies.yaml` | Package, command, cross-repository, external-input, and rebuild-gap contract |
 
 Lifecycle registries classify the complete configurations, manifests, scripts,
 systemd units, and templates. The main branch contains no action-numbered implementations; exact
@@ -27,6 +29,11 @@ consumed definitions are retained by the annotated tags in `Caddy/HISTORY.md`.
 
 Keepalived, Pi-hole, and Unbound paths use the `homelab-dns` repository
 identity. Caddy paths use `homelab-server-configs`.
+
+An absent accepted-live row is not evidence that a dependency is unnecessary.
+The main Unbound configuration and the non-secret rebuild identities are now
+recorded from the bounded dual-node inventory described in
+`Caddy/docs/REPRODUCIBILITY.md`.
 
 Run:
 

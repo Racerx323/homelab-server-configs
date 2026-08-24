@@ -1,0 +1,119 @@
+---
+schema_version: 1
+captured_at: "2026-08-24"
+capture_mode: bounded_read_only_dual_node
+
+platform:
+  os: Debian
+  version: "12"
+  architecture: arm64
+  os_release_sha256: 59a77b5f2666d9c85c489bd1911a6eebbd91ef22fe48b90a3b75f1b21f3844d4
+  kernel_release: 6.12.96+rpt-rpi-2712
+
+package_set:
+  nodes_identical: true
+  canonical_sha256: e05f57e90344d93549d20ba59a6632c5eab1c7906c88dbdc57abf1fc716bb195
+  packages:
+    apt-transport-https: "2.6.1"
+    bash: "5.2.15-2+b13"
+    ca-certificates: "20250419~deb12u1"
+    caddy: "2.11.4"
+    coreutils: "9.1-1"
+    curl: "7.88.1-10+deb12u15"
+    debian-archive-keyring: "2023.3+deb12u2"
+    debian-keyring: "2022.12.24"
+    dnsutils: "1:9.18.49-1~deb12u2"
+    findutils: "4.9.0-4"
+    gnupg: "2.2.40-1.1+deb12u2"
+    iproute2: "6.1.0-3"
+    iputils-arping: "3:20221126-1+deb12u1"
+    jq: "1.6-2.1+deb12u2"
+    keepalived: "1:2.2.7-1+b2"
+    lighttpd: "1.4.69-1"
+    lsyncd: "2.2.3-1"
+    ndisc6: "1.0.5-1+b2"
+    openssh-client: "1:9.2p1-2+deb12u10"
+    openssh-server: "1:9.2p1-2+deb12u10"
+    openssl: "3.0.20-1~deb12u2+rpt1"
+    passwd: "1:4.13+dfsg1-1+deb12u2"
+    php-cgi: "2:8.2+93"
+    procps: "2:4.0.2-3"
+    rsync: "3.2.7-1+deb12u6"
+    systemd: "252.39-1~deb12u2"
+    tcpdump: "4.99.3-1"
+    unbound: "1.17.1-2+deb12u4"
+    util-linux: "2.38.1-5+deb12u3"
+    uuid-runtime: "2.38.1-5+deb12u3"
+
+pihole_application:
+  management: pihole_application
+  core_version: v5.18.3
+  web_version: v5.21
+  ftl_version: v5.25.2
+  ftl_binary:
+    path: /usr/bin/pihole-FTL
+    owner: root
+    group: root
+    mode: "0755"
+    sha256: 6f2bda645f4fe1c82b88c2d370c3cf3b39d6c8a107410dbee73707e02b61efe8
+  nodes_identical: true
+
+unbound_main:
+  repository: homelab-dns
+  source: Unbound/configs/pihole.conf
+  installed_path: /etc/unbound/unbound.conf.d/pihole.conf
+  owner: root
+  group: root
+  mode: "0644"
+  source_sha256: a9da92342ddcd653536e75f75c67a5b922112952dfa6081a41d5c4891c22ad8f
+  deployed_sha256: a9da92342ddcd653536e75f75c67a5b922112952dfa6081a41d5c4891c22ad8f
+  nodes_identical: true
+
+lighttpd_tree:
+  root: /etc/lighttpd
+  owner: root
+  group: root
+  mode: "0750"
+  entry_count: 35
+  active_tree_sha256: ba62c9ff4048222d5ff0866b15564821689895f3cec4733619e66a6d31d55964
+  active_nodes_identical: true
+  package_conffile_modified: /etc/lighttpd/lighttpd.conf
+  source_management:
+    base: exact_lighttpd_and_pihole_application_versions_above
+    transformation: Caddy/scripts/prepare-lighttpd-config.sh
+    desired_state: Caddy/configs/lighttpd/desired-state.conf
+  inactive_node_specific_entry:
+    path: conf-disabled-by-caddy-ha/external.conf
+    active_configuration: false
+    node_a_sha256: 6da587363054a4db69fb742d23bddde06aec866e11fb7a91bff1a8d75a713f7a
+    node_b_sha256: b731ccf108d5f42c32fea0f176c1aa0c9ccc7f35bdf0440f5b2c41d88604846c
+  full_tree_sha256:
+    node_a: 39f6bc029c6aeda74522bd450826cb6017be644f2f27ac069136a73f8c2ce91a
+    node_b: eea4ae4ed6596030a849b3e88ffcdd1a98a7307d92a9a636a3ab66b28ecb7fb0
+
+ssh_public_identity:
+  private_key_material: external_not_recorded
+  node_a:
+    sync_key: SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0
+    authorized_peer: SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g
+    known_peer_host: SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo
+    host_ed25519: SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI
+    host_ecdsa: SHA256:Za4AvV+6lH4yTd5Vqx7U4o9fgJuZaivotvtFikvzC+U
+    host_rsa: SHA256:6scm1UYFpOqNN5/cN1v5tZjJEVpflhvo/VgDD9Vtauc
+  node_b:
+    sync_key: SHA256:ykJmrl499fd2qRm9bYjgyrgeiTCA1rzTelBBKX0gy5g
+    authorized_peer: SHA256:QVvqXXcmH7JqqpqddUFjTdyxIvC/nb56VfAQpK4Y8V0
+    known_peer_host: SHA256:tuPVPiBenlqqCDmfqEFfQMpM0q90zj94QMGlNZNC1QI
+    host_ed25519: SHA256:eDdqL/bS/EuVysKQ7yxJ6lpjJWf2PcymtfPwMlzacbo
+    host_ecdsa: SHA256:sTh2Z8PJbx1QWfuSbA819tYJPQ+mGDBaJLNIBxDN4Vc
+    host_rsa: SHA256:1BohqJ5dXCCfrfti25zwAk2kNhu9D0jPiP0e7+meE3w
+  reciprocal_sync_keys: true
+  reciprocal_ed25519_host_trust: true
+
+evidence:
+  node_a_inventory_sha256: 6afcb93ecd9e44e82cb0dfe7747e90d5d5c0f92c739a59ae3100930b1a396613
+  node_b_inventory_sha256: e8cfecb92102a312dbf22726d3459e877334c725eeef21bb549b05ad448d150f
+  node_a_application_sha256: eea501fb9310c41e40d78f962745d9015abb4803396c6c9ea9de030b0c3e3fd6
+  node_b_application_sha256: bca8b4d30ce0770e8484ef0de4a0d73a3771e5fb29f77b3d3f68f6722feb8e26
+  stderr_empty: true
+  mutation_performed: false

@@ -12,6 +12,7 @@ Caddy/manifests/deployment.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/dns-records.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/durable-apprise-production.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/production-artifacts.tsv	production-current	yes	Caddy/manifests/README.md
+Caddy/manifests/reproducibility-production.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/runtime-production.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/script-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/serving-health-production.tsv	production-current	yes	Caddy/manifests/README.md
@@ -20,4 +21,4 @@ Caddy/manifests/systemd-lifecycle.tsv	production-current	yes	Caddy/manifests/REA
 Caddy/manifests/template-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/manifest-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/serving-health-quarantine-baseline.tsv	production-current	yes	Caddy/manifests/current-live-state.tsv
-Caddy/manifests/serving-health-operation.yaml	production-current	no	Caddy/docs/35-PLAN.md
+Caddy/manifests/serving-health-operation.yaml	production-current	no	Caddy/docs/caddy_plan-v1.1.md

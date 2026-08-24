@@ -17,6 +17,10 @@ next successor is added only while its deployment window is `defined`. The
 generic installer cannot perform a migration of an existing production
 deployment.
 
+The installer covers repository-owned Caddy HA state; it is not a complete
+bare-metal provisioner. Package-owned files, cross-repository configuration,
+SSH trust, and secrets are covered by `Caddy/docs/REPRODUCIBILITY.md`.
+
 `apply-serving-health-deployment.sh` and
 `run-serving-health-deployment-outer.sh` are the single neutral, non-installable
 deployment entrypoints. Successors change the small operation specification;

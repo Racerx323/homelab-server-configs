@@ -275,8 +275,20 @@ The clean stream must reject `--authorization-ready`.
 
 Action 35 accepted coupled DNS and Caddy health, immutable publication,
 standby-first installation, durable notifications, and controlled failure
-behavior. `Caddy/HISTORY.md` records each terminal result and annotated tag.
-Git history holds the full executed definitions.
+behavior. It closed through accepted Action 35as on 2026-08-24. The final
+accepted checkpoint is preserved by annotated tag
+`caddy-action35as-terminal-2026-08-24`.
+
+The controlled failure exercise proved that owner-node Caddy, Pi-hole FTL,
+Unbound, and Keepalived failures cause coupled failover with bounded
+dual-stack continuity; a lighttpd failure produces one failure and one
+recovery notification without VIP movement; and equivalent standby-node
+failures do not take ownership from a healthy preferred node. Every scenario
+restored services, release state, ownership, queues, and temporary paths.
+
+`Caddy/HISTORY.md` records each terminal result and annotated tag. Git history
+holds the full executed definitions. Consumed Action 35 operations must not be
+restored or rerun. Action 35 has no pending deployment successor.
 
 ## Next work
 
