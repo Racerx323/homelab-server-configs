@@ -1030,3 +1030,29 @@ The terminal result is archived at
 `caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
 are removed, the neutral operation specification is inactive, and the Caddy
 deployment stream is clean.
+
+### Continuity-evidence contract correction
+
+The repository-only correction is complete. The neutral sampler now retains
+one bounded record per DNS, Proxy HTTPS, node UI, and shared UI request for each
+address family. Records include scenario, monotonic sequence, primary/retry
+identity, start/end timestamps, exact result, bounded failure class, curl
+connect/TLS/first-byte/total timings, local and remote addresses, and the
+nearest IPv4/IPv6 VRRP states and four-VIP count. A failed primary request is
+always an acceptance failure; its immediate retry is classification evidence
+only.
+
+Both nodes now run a timestamped kernel address observer from before the first
+scenario through final convergence. The workstation outer runner validates and
+correlates both readbacks and classifies each primary failure as
+`handoff-overlap`, `settled-owner-serving-failure`, `family-degraded`, or
+`unclassified-insufficient-evidence`; every class rejects. Missing, malformed,
+duplicate, reordered, oversized, symlinked, incomplete, or uncorrelatable
+evidence fails closed. Sampler and observer lifecycle coverage proves bounded
+SIGTERM handling, forced-kill escalation for a noncooperative child, and zero
+temporary or orphaned residue through the real transaction path.
+
+No node was contacted and no Action 35ap operation was defined. Once this
+repository checkpoint is synchronized, the next gate may define the controlled
+failure exercise against this corrected neutral contract without restoring or
+rerunning Action 35ao.

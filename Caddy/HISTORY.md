@@ -81,6 +81,23 @@ Git preserves the complete deployment journal and executed action files.
   timing evidence prevents a causal distinction between an in-flight TCP reset
   and a serving gap, so the attribution remains unresolved.
 
+### Continuity-evidence correction checkpoint
+
+- Repository-only; neither HA node was contacted and Action 35ap was not
+  defined.
+- The neutral sampler records each family and endpoint invocation separately,
+  preserving primary/retry identity, bounded timing and error classification,
+  exact response evidence, local/remote addresses, VRRP state, and VIP count.
+- Timestamped kernel address observers span the complete scenario and final
+  convergence window on both nodes. The workstation outer runner validates both
+  readbacks and causally classifies any primary failure; every failure class
+  rejects acceptance.
+- Real transaction coverage proves bounded SIGTERM handling, forced-kill
+  escalation for a noncooperative observer child, independent evidence records,
+  and zero process or temporary residue.
+- Action 35ao remains immutable at `caddy-action35ao-terminal-2026-08-23`; the
+  stream and registries remain clean pending definition of Action 35ap.
+
 ## Action 35ao definition
 
 - Scope: controlled Node A and Node B DNS/Proxy serving-failure exercise from

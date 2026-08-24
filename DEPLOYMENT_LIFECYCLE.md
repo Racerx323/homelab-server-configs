@@ -59,3 +59,13 @@ response to the exact emitted command and returning later observations from
 that state. Cursor-based journal coverage must obtain its records from the
 service-control events executed after the cursor. A marker, fixed transcript,
 or mode-aware result generator cannot authorize a deployment.
+
+HA continuity acceptance uses independently retained per-request records from
+both nodes plus timestamped kernel address-monitor events covering the complete
+mutation and final-convergence window. The workstation outer runner performs
+the causal correlation. Primary request failures always reject; retries only
+classify. Evidence that is missing, malformed, duplicated, reordered,
+oversized, unsafe, incomplete, or cannot distinguish handoff overlap from a
+settled-owner serving failure also rejects. The sampler and observer lifecycle
+must prove bounded SIGTERM handling, child termination, timeout escalation, and
+zero residue through the real entrypoints.

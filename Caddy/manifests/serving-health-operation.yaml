@@ -6,7 +6,7 @@ implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 83f0a144eaccc4fcb16866c5b819d4f55408ad81a0ebe70c4a24f0b97c7eb804
+transaction_sha256: 45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149

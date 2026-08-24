@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=83f0a144eaccc4fcb16866c5b819d4f55408ad81a0ebe70c4a24f0b97c7eb804
-readonly operation_sha256=044d6b7b2e735a9486f298f8a69c04d635401dfaddfc6e7bab1608317888f136
+readonly transaction_sha256=45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21
+readonly operation_sha256=1dc11e28107595096a889c2ca9d4c0840271d3e6214a3a50ec631e419571b24c
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -291,6 +291,136 @@ readback() {
         "$readback_program" "$serving_health_remote_evidence"
 }
 
+extract_readback_file() {
+    local serving_health_stream=$1
+    local serving_health_name=$2
+    local serving_health_destination=$3
+    local serving_health_metadata serving_health_encoded serving_health_count=0
+    local serving_health_bytes serving_health_hash
+
+    [[ "$serving_health_name" =~ ^[a-zA-Z0-9._-]+$ ]] || return 1
+    safe_capture "$serving_health_stream" || return 1
+    [[ ! -e "$serving_health_destination" && ! -L "$serving_health_destination" ]] || return 1
+    exec 3<"$serving_health_stream"
+    while IFS= read -r serving_health_metadata <&3; do
+        IFS= read -r serving_health_encoded <&3 || {
+            exec 3<&-
+            return 1
+        }
+        [[ "$serving_health_metadata" =~ ^file=([a-zA-Z0-9._-]+)[[:space:]]bytes=([0-9]+)[[:space:]]sha256=([0-9a-f]{64})$ ]] || {
+            exec 3<&-
+            return 1
+        }
+        [[ "${BASH_REMATCH[2]}" -le "$max_stream_bytes" ]] || {
+            exec 3<&-
+            return 1
+        }
+        if [[ "${BASH_REMATCH[1]}" = "$serving_health_name" ]]; then
+            serving_health_count=$((serving_health_count + 1))
+            serving_health_bytes=${BASH_REMATCH[2]}
+            serving_health_hash=${BASH_REMATCH[3]}
+            printf '%s' "$serving_health_encoded" | base64 --decode \
+                >"$serving_health_destination" || {
+                exec 3<&-
+                return 1
+            }
+        fi
+    done
+    exec 3<&-
+    [[ "$serving_health_count" -eq 1 ]] || return 1
+    chmod 0600 "$serving_health_destination" || return 1
+    safe_capture "$serving_health_destination" || return 1
+    [[ "$(stat -c '%s' "$serving_health_destination")" -eq "$serving_health_bytes" ]] || return 1
+    [[ "$(sha256sum "$serving_health_destination" | awk '{ print $1 }')" = "$serving_health_hash" ]] || return 1
+}
+
+correlate_controlled_exercise_continuity() {
+    local serving_health_correlation_root=$workstation_evidence/continuity-correlation
+    local serving_health_role serving_health_availability serving_health_monitor
+    local serving_health_failure_count=0 serving_health_classification serving_health_peer
+
+    if [[ -e "$serving_health_correlation_root" || -L "$serving_health_correlation_root" ]]; then
+        [[ -d "$serving_health_correlation_root" && ! -L "$serving_health_correlation_root" ]] || return 1
+        rm -rf -- "$serving_health_correlation_root"
+    fi
+    install -d -m 0700 "$serving_health_correlation_root"
+    printf '%s\n' $'role\tscenario\tsequence\tprobe\tfamily\tstart\tend\tclassification' \
+        >"$serving_health_correlation_root/classifications.tsv"
+    chmod 0600 "$serving_health_correlation_root/classifications.tsv"
+    for serving_health_role in node-a node-b; do
+        serving_health_availability=$serving_health_correlation_root/$serving_health_role-availability.tsv
+        serving_health_monitor=$serving_health_correlation_root/$serving_health_role-vip-address-monitor.tsv
+        extract_readback_file "$workstation_evidence/$serving_health_role-readback.stdout" \
+            availability.tsv "$serving_health_availability" || return 1
+        extract_readback_file "$workstation_evidence/$serving_health_role-readback.stdout" \
+            vip-address-monitor.tsv "$serving_health_monitor" || return 1
+        awk -F '\t' '
+            NR == 1 {
+                if ($0 != "role\tscenario\tsequence\tprobe\tfamily\tendpoint\tport\tattempt\tstart\tend\texit_status\tresult\tvalue\tstderr_class\tconnect\ttls\tfirst_byte\ttotal\tremote\tlocal\tstate4\tstate6\tvip_count") exit 1
+                next
+            }
+            NF != 23 || $1 !~ /^node-[ab]$/ || $2 !~ /^(baseline|final|node-[ab]-(caddy|lighttpd|pihole-ftl|unbound|keepalived))$/ ||
+            $3 !~ /^[1-9][0-9]*$/ || $4 !~ /^(dns|proxy_https|node_ui|shared_ui)$/ ||
+            $5 !~ /^[46]$/ || $7 !~ /^(53|443)$/ || $8 !~ /^(primary|retry)$/ ||
+            $11 !~ /^[0-9]+$/ || $12 !~ /^(success|failure)$/ || $23 !~ /^[0-4]$/ { exit 1 }
+            {
+                key=$1 FS $2 FS $3 FS $4 FS $5 FS $8
+                if (seen[key]++ || $3 < previous_sequence) exit 1
+                previous_sequence=$3
+                base=$1 FS $2 FS $3 FS $4 FS $5
+                if ($8 == "retry" && !primary[base]) exit 1
+                if ($8 == "primary") primary[base]=1
+            }
+            END { if (NR < 9) exit 1 }
+        ' "$serving_health_availability" || return 1
+        awk -F '\t' '
+            NR == 1 { if ($1 != "observer-start" || NF != 4) exit 1; next }
+            $1 == "address-event" && NF == 3 { next }
+            $1 == "observer-end" && NF == 3 && $3 ~ /^status=(0|143)$/ { ended++ ; next }
+            { exit 1 }
+            END { exit(ended == 1 ? 0 : 1) }
+        ' "$serving_health_monitor" || return 1
+    done
+    while IFS=$'\t' read -r role scenario sequence probe family _endpoint _port attempt \
+        start end _status result _value _error_class _connect _tls _first _total _remote _local_ip \
+        state4 state6 vip_count; do
+        [[ "$role" = role || "$attempt" != primary || "$result" = success ]] && continue
+        serving_health_failure_count=$((serving_health_failure_count + 1))
+        if [[ "$role" = node-a ]]; then serving_health_peer=node-b; else serving_health_peer=node-a; fi
+        serving_health_monitor=$serving_health_correlation_root/$role-vip-address-monitor.tsv
+        if awk -F '\t' -v start="$start" -v end="$end" \
+            '$1 == "address-event" && $2 >= start && $2 <= end { found=1 } END { exit !found }' \
+            "$serving_health_monitor"; then
+            serving_health_classification=handoff-overlap
+        elif awk -F '\t' -v role="$role" -v scenario="$scenario" -v sequence="$sequence" \
+            -v probe="$probe" -v family="$family" '
+                NR > 1 && $1 == role && $2 == scenario && $3 == sequence && $4 == probe &&
+                $5 != family && $8 == "primary" && $12 == "success" { found=1 }
+                END { exit !found }
+            ' "$serving_health_correlation_root/$role-availability.tsv"; then
+            serving_health_classification='family-degraded'
+        elif [[ "$state4" = Master && "$state6" = Master && "$vip_count" -eq 4 ]]; then
+            serving_health_classification=settled-owner-serving-failure
+        elif awk -F '\t' -v start="$start" -v end="$end" '
+            NR > 1 && $9 <= end && $10 >= start && $21 == "Master" &&
+            $22 == "Master" && $23 == 4 { found=1 }
+            END { exit !found }
+        ' "$serving_health_correlation_root/$serving_health_peer-availability.tsv"; then
+            serving_health_classification=settled-owner-serving-failure
+        else
+            serving_health_classification=unclassified-insufficient-evidence
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$role" "$scenario" "$sequence" \
+            "$probe" "$family" "$start" "$end" "$serving_health_classification" \
+            >>"$serving_health_correlation_root/classifications.tsv"
+    done < <(
+        tail -n +2 "$serving_health_correlation_root/node-a-availability.tsv"
+        tail -n +2 "$serving_health_correlation_root/node-b-availability.tsv"
+    )
+    safe_capture "$serving_health_correlation_root/classifications.tsv" || return 1
+    [[ "$serving_health_failure_count" -eq 0 ]]
+}
+
 cleanup_remote() {
     local serving_health_role=$1
     local serving_health_host=$2
@@ -490,6 +620,12 @@ run_controlled_exercise_scenario() {
             ;;
         *) return 64 ;;
     esac
+    remote_transaction "$serving_health_scenario-node-a-sampler-scenario" "$node_a_host" \
+        sampler-scenario node-a "$node_a_payload" "$node_a_evidence" \
+        "$serving_health_scenario" || return $?
+    remote_transaction "$serving_health_scenario-node-b-sampler-scenario" "$node_b_host" \
+        sampler-scenario node-b "$node_b_payload" "$node_b_evidence" \
+        "$serving_health_scenario" || return $?
     remote_transaction "$serving_health_scenario-cursor" "$serving_health_host" \
         exercise-cursor "$serving_health_role" "$serving_health_payload_root" \
         "$serving_health_remote_evidence" "$serving_health_scenario" || return $?
@@ -609,10 +745,14 @@ run_controlled_failure_exercise_live() {
         fi
     fi
     if [[ -e "$workstation_evidence/node-a-exercise-sampler-start.status" ]]; then
+        remote_transaction node-a-exercise-sampler-final "$node_a_host" sampler-scenario \
+            node-a "$node_a_payload" "$node_a_evidence" final || serving_health_acceptance_failure=1
         remote_transaction node-a-exercise-sampler-stop "$node_a_host" sampler-stop \
             node-a "$node_a_payload" "$node_a_evidence" shared-only || serving_health_acceptance_failure=1
     fi
     if [[ -e "$workstation_evidence/node-b-exercise-sampler-start.status" ]]; then
+        remote_transaction node-b-exercise-sampler-final "$node_b_host" sampler-scenario \
+            node-b "$node_b_payload" "$node_b_evidence" final || serving_health_acceptance_failure=1
         remote_transaction node-b-exercise-sampler-stop "$node_b_host" sampler-stop \
             node-b "$node_b_payload" "$node_b_evidence" shared-only || serving_health_acceptance_failure=1
     fi
@@ -621,8 +761,14 @@ run_controlled_failure_exercise_live() {
         node-a "$node_a_payload" "$node_a_evidence" || serving_health_recovery_failure=1
     remote_transaction node-b-exercise-final-residue "$node_b_host" exercise-final-residue \
         node-b "$node_b_payload" "$node_b_evidence" || serving_health_recovery_failure=1
-    readback node-a "$node_a_host" "$node_a_evidence" || serving_health_recovery_failure=1
-    readback node-b "$node_b_host" "$node_b_evidence" || serving_health_recovery_failure=1
+    local serving_health_readback_failure=0
+    readback node-a "$node_a_host" "$node_a_evidence" || serving_health_readback_failure=1
+    readback node-b "$node_b_host" "$node_b_evidence" || serving_health_readback_failure=1
+    if [[ "$serving_health_readback_failure" -eq 0 ]]; then
+        correlate_controlled_exercise_continuity || serving_health_acceptance_failure=1
+    else
+        serving_health_acceptance_failure=1
+    fi
     cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || serving_health_recovery_failure=1
     cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || serving_health_recovery_failure=1
     [[ "$serving_health_recovery_failure" -eq 0 ]] || return 125
@@ -1258,6 +1404,57 @@ controlled_failure_outer_production_path_test() {
     local exercise_target exercise_inventory_node exercise_source_hash exercise_deployed_hash
     local exercise_accepted exercise_lifecycle exercise_source_path exercise_installed
     local exercise_revision exercise_parent exercise_release
+    local exercise_stream exercise_original exercise_payload_file exercise_symlink
+
+    exercise_replace_readback_entry() {
+        local exercise_stream=$1 exercise_name=$2 exercise_payload_file=$3
+        local exercise_replacement=$exercise_test_root/readback-replacement.tmp
+        local exercise_metadata exercise_encoded exercise_current_name
+
+        : >"$exercise_replacement"
+        exec 4<"$exercise_stream"
+        while IFS= read -r exercise_metadata <&4; do
+            IFS= read -r exercise_encoded <&4 || {
+                exec 4<&-
+                return 1
+            }
+            exercise_current_name=${exercise_metadata#file=}
+            exercise_current_name=${exercise_current_name%% *}
+            if [[ "$exercise_current_name" = "$exercise_name" ]]; then
+                {
+                    printf 'file=%s bytes=%s sha256=%s\n' "$exercise_name" \
+                        "$(stat -c '%s' "$exercise_payload_file")" \
+                        "$(sha256sum "$exercise_payload_file" | awk '{ print $1 }')"
+                    base64 -w 0 "$exercise_payload_file"
+                    printf '\n'
+                } >>"$exercise_replacement"
+            else
+                printf '%s\n%s\n' "$exercise_metadata" "$exercise_encoded" \
+                    >>"$exercise_replacement"
+            fi
+        done
+        exec 4<&-
+        mv -T -- "$exercise_replacement" "$exercise_stream"
+        chmod 0600 "$exercise_stream"
+    }
+
+    exercise_expect_correlation_rejection() {
+        local exercise_case=$1 exercise_stream=$2 exercise_original=$3
+        local exercise_raw=$exercise_test_root/raw/outer-continuity-$exercise_case.txt
+        local exercise_decision=$exercise_test_root/decisions/outer-continuity-$exercise_case.tsv
+        local exercise_case_status
+
+        if correlate_controlled_exercise_continuity >"$exercise_raw" 2>&1; then
+            exercise_case_status=0
+        else
+            exercise_case_status=$?
+        fi
+        printf 'exit_status=%s\n' "$exercise_case_status" >>"$exercise_raw"
+        [[ "$exercise_case_status" -ne 0 ]]
+        write_decision "outer-continuity-$exercise_case" reject "$exercise_case_status" \
+            valid-complete-readback "$exercise_case" "$exercise_raw" "$exercise_decision"
+        cp -- "$exercise_original" "$exercise_stream"
+    }
 
     CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
         CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
@@ -1371,6 +1568,10 @@ BUSCTL
     cat >"$test_remote_base/bin/ip" <<'IP'
 #!/usr/bin/env bash
 set -Eeuo pipefail
+if [[ " $* " = *' monitor address '* ]]; then
+    trap 'exit 143' TERM
+    while :; do /usr/bin/sleep 1; done
+fi
 state=$($CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl)
 if [[ "$state" = 's "Master"' ]]; then
     printf '%s\n' \
@@ -1424,9 +1625,10 @@ DIG
 #!/usr/bin/env bash
 set -Eeuo pipefail
 case " $* " in
-    *' https://proxy.local.theama.co/ '*) printf '204' ;;
-    *) printf '200' ;;
+    *' https://proxy.local.theama.co/ '*) status=204 ;;
+    *) status=200 ;;
 esac
+printf '%s\t0.001\t0.002\t0.003\t0.004\t10.1.0.56\t10.1.0.53' "$status"
 CURL
     cat >"$test_remote_base/bin/date" <<'DATE'
 #!/usr/bin/env bash
@@ -1436,7 +1638,10 @@ DATE
     cat >"$test_remote_base/bin/sleep" <<'SLEEP'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-:
+case "${1:-}" in
+    0.01) /usr/bin/sleep 0.01 ;;
+    1) /usr/bin/sleep 0.05 ;;
+esac
 SLEEP
     cat >"$test_remote_base/bin/sudo" <<'SUDO'
 #!/usr/bin/env bash
@@ -1466,6 +1671,8 @@ if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
         CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS=2 \
         CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES=1 \
         CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY=0 \
+        CADDY_SERVING_HEALTH_SAMPLER_MAX_CYCLES=200 \
+        CADDY_SERVING_HEALTH_SAMPLER_DELAY=0.01 \
         CADDY_SERVING_HEALTH_TEST_NODE="$role" \
         "$@"
 fi
@@ -1650,11 +1857,68 @@ SCP
     write_decision outer-acceptance-failure-non125 reject "$exercise_status" \
         restored-acceptance-failure restored-acceptance-failure \
         "$exercise_raw" "$exercise_decision"
+    exercise_raw=$exercise_test_root/raw/outer-causal-continuity-classification.txt
+    exercise_decision=$exercise_test_root/decisions/outer-causal-continuity-classification.tsv
+    cp -- "$workstation_evidence/continuity-correlation/classifications.tsv" "$exercise_raw"
+    grep -Eq $'\t(handoff-overlap|settled-owner-serving-failure|family-degraded|unclassified-insufficient-evidence)$' \
+        "$exercise_raw"
+    write_decision outer-causal-continuity-classification reject "$exercise_status" \
+        continuous-success classified-primary-failure "$exercise_raw" "$exercise_decision"
 
     : >"$test_remote_base/ssh.calls"
     : >"$test_remote_base/scp.calls"
     : >"$test_remote_base/transaction.calls"
     run_controlled_failure_exercise_live
+    exercise_stream=$workstation_evidence/node-a-readback.stdout
+    exercise_original=$exercise_test_root/node-a-readback.saved
+    exercise_payload_file=$exercise_test_root/node-a-availability.saved
+    cp -- "$exercise_stream" "$exercise_original"
+    extract_readback_file "$exercise_stream" availability.tsv "$exercise_payload_file"
+
+    awk '
+        $0 ~ /^file=availability\.tsv / { getline; next }
+        { print }
+    ' "$exercise_original" >"$exercise_stream"
+    exercise_expect_correlation_rejection missing "$exercise_stream" "$exercise_original"
+
+    awk '
+        $0 ~ /^file=availability\.tsv / {
+            metadata=$0; getline; print metadata; print; print metadata; print; next
+        }
+        { print }
+    ' "$exercise_original" >"$exercise_stream"
+    exercise_expect_correlation_rejection duplicate "$exercise_stream" "$exercise_original"
+
+    awk -F '\t' -v OFS='\t' 'NR == 2 { $3="not-a-sequence" } { print }' \
+        "$exercise_payload_file" >"$exercise_test_root/node-a-availability.malformed"
+    exercise_replace_readback_entry "$exercise_stream" availability.tsv \
+        "$exercise_test_root/node-a-availability.malformed"
+    exercise_expect_correlation_rejection malformed "$exercise_stream" "$exercise_original"
+
+    awk 'NR == 1 { header=$0; next } { rows[++count]=$0 }
+        END { print header; for (row_index=count; row_index >= 1; row_index--) print rows[row_index] }' \
+        "$exercise_payload_file" >"$exercise_test_root/node-a-availability.reordered"
+    exercise_replace_readback_entry "$exercise_stream" availability.tsv \
+        "$exercise_test_root/node-a-availability.reordered"
+    exercise_expect_correlation_rejection reordered "$exercise_stream" "$exercise_original"
+
+    sed '0,/bytes=[0-9][0-9]*/s//bytes=1048577/' "$exercise_original" >"$exercise_stream"
+    exercise_expect_correlation_rejection oversized "$exercise_stream" "$exercise_original"
+
+    sed '$d' "$exercise_original" >"$exercise_stream"
+    exercise_expect_correlation_rejection incomplete "$exercise_stream" "$exercise_original"
+
+    exercise_symlink=$exercise_test_root/readback-destination.symlink
+    ln -s /tmp/caddy-readback-unsafe "$exercise_symlink"
+    exercise_raw=$exercise_test_root/raw/outer-continuity-symlinked.txt
+    exercise_decision=$exercise_test_root/decisions/outer-continuity-symlinked.tsv
+    if extract_readback_file "$exercise_original" availability.tsv "$exercise_symlink" \
+        >"$exercise_raw" 2>&1; then exercise_status=0; else exercise_status=$?; fi
+    [[ "$exercise_status" -ne 0 ]]
+    write_decision outer-continuity-symlinked reject "$exercise_status" regular-file symlink \
+        "$exercise_raw" "$exercise_decision"
+    rm -f -- "$exercise_symlink"
+
     exercise_raw=$exercise_test_root/raw/outer-preflight.txt
     exercise_decision=$exercise_test_root/decisions/outer-preflight.tsv
     cat "$test_remote_base/scp.calls" "$test_remote_base/ssh.calls" >"$exercise_raw"

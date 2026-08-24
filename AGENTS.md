@@ -173,6 +173,20 @@ after the captured cursor.
 The authorization policy verifies causal decision records against their raw
 evidence; it never counts stdout markers.
 
+Continuity evidence across HA ownership changes is per request, never an
+aggregate sample. Each record must identify the node role, scenario, monotonic
+sequence, address family, endpoint and port, primary or retry attempt, bounded
+start/end times, command status, expected result, network timings and
+local/remote addresses when exposed, a sanitized failure class, and the nearest
+observed VRRP state and VIP count. A primary failure always rejects acceptance;
+a retry may classify the failure but cannot excuse it. Timestamped kernel
+address-monitor events must span the mutation window on both nodes, and the
+workstation outer runner must correlate those events with request records.
+Missing, malformed, duplicate, reordered, oversized, symlinked, incomplete, or
+uncorrelatable evidence fails closed. Samplers and observers must terminate
+promptly on SIGTERM, terminate their children, and leave no temporary or orphaned
+process residue.
+
 Fix neutral implementations in place before a defined operation is executed.
 After execution, archive the terminal operation and define a new operation spec
 only when live behavior must change. Never create a successor solely to correct

@@ -20,6 +20,7 @@ if [[ "$successor_status" = none ]]; then
     [[ "$successor_action" = - && "$transaction_relative" = - && "$outer_relative" = - ]]
     root=$(mktemp -d /tmp/caddy-serving-health-state-contract.XXXXXX)
     trap 'chmod -R u+rwX -- "$root" 2>/dev/null || true; rm -rf -- "$root"' EXIT
+    trap 'printf "regression_failure_line=%s status=%s\n" "$LINENO" "$?" >&2' ERR
     install -d -m 0700 "$root/transaction"
     CADDY_NOTIFICATION_STATE_CONTRACT_ONLY=1 \
         CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
@@ -53,6 +54,16 @@ if [[ "$successor_status" = none ]]; then
         "$root/controlled-outer.stdout"
     grep -Fq 'VRRP_Script(check-caddy) failed' \
         "$root/controlled-transaction/raw/exercise-journal-bounded.txt"
+    test -s "$root/controlled-transaction/decisions/exercise-sampler-sigterm-lifecycle.tsv"
+    test -s "$root/controlled-outer/decisions/outer-causal-continuity-classification.tsv"
+    grep -Eq $'\t(handoff-overlap|settled-owner-serving-failure|family-degraded|unclassified-insufficient-evidence)$' \
+        "$root/controlled-outer/raw/outer-causal-continuity-classification.txt"
+    for corruption in missing duplicate malformed reordered oversized incomplete symlinked; do
+        test -s "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
+        awk -F '\t' 'NR == 2 && $2 == "reject" && $3 != 0 { found=1 }
+            END { exit(found ? 0 : 1) }' \
+            "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
+    done
     grep -Fq $'node-a\texercise-service\tnode-a-caddy:stop' \
         "$root/controlled-outer/raw/outer-full-scenario-sequence.txt"
     printf '%s_no_registered_successor=true\n' "$prefix"
@@ -126,13 +137,15 @@ if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
 elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
     for decision in exercise-role-rejection exercise-service-control \
         exercise-ownership-convergence exercise-journal-bounded \
+        exercise-sampler-sigterm-lifecycle \
         exercise-reverse-restoration; do
         test -s "$root/transaction/decisions/$decision.tsv"
         test -s "$root/transaction/raw/$decision.txt"
     done
     for decision in outer-preflight outer-real-preflight outer-stale-preflight \
         outer-full-scenario-sequence outer-restored-failure-non125 \
-        outer-acceptance-failure-non125 outer-readback-cleanup; do
+        outer-acceptance-failure-non125 outer-causal-continuity-classification \
+        outer-readback-cleanup; do
         test -s "$root/outer/decisions/$decision.tsv"
         test -s "$root/outer/raw/$decision.txt"
     done
@@ -144,6 +157,9 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         node-a-unbound node-a-keepalived node-b-caddy \
         node-b-lighttpd node-b-pihole-ftl node-b-unbound; do
         grep -Fq "$scenario" "$root/outer/raw/outer-full-scenario-sequence.txt"
+    done
+    for corruption in missing duplicate malformed reordered oversized incomplete symlinked; do
+        test -s "$root/outer/decisions/outer-continuity-$corruption.tsv"
     done
     grep -Fq $'node-a\texercise-service\tnode-a-caddy:stop' \
         "$root/outer/raw/outer-full-scenario-sequence.txt"

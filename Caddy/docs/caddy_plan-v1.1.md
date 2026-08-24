@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed, archived, and cleaned after its first scenario; the Caddy stream is clean and no successor is defined pending an audit and correction of the neutral exercise evidence and continuity contract; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed, archived, and cleaned after its first scenario; the neutral causal continuity-evidence contract is corrected and validated repository-only; the Caddy stream is clean and no successor is defined; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -784,6 +784,17 @@ it cannot distinguish an in-flight TCP reset from a serving gap. That historical
 attribution remains unresolved. A subsequent exercise must first define the
 bounded evidence needed to make that distinction; no direct controlled-exercise
 successor is authorized by this audit.
+
+That bounded evidence contract is now implemented in the neutral transaction
+and outer runner. Each DNS/HTTPS request is independently retained with exact
+scenario, family, endpoint, timing, status, address, sanitized error, nearby
+VRRP state, and VIP-count evidence. A retry never excuses its failed primary.
+Timestamped kernel address events span the full dual-node observation window,
+and the workstation performs the causal classification. Real-path lifecycle
+coverage includes cooperative sampler termination, forced termination of a
+noncooperative address-monitor child, and zero residue. No node was contacted
+and no successor was defined by this repository-only correction. The next gate
+may define Action 35ap against this completed contract.
 
 The terminal result is archived at
 `caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage

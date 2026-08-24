@@ -61,7 +61,7 @@ readonly notification_dns_candidate_sha256=39e13951657bc02e054c6387a4647fea03117
 readonly notification_caddy_deployed_sha256=6b95393d5a07c1dc8086a14fb33ccfe435af9435b13f766847e13846456e410d
 readonly notification_caddy_candidate_sha256=6b95393d5a07c1dc8086a14fb33ccfe435af9435b13f766847e13846456e410d
 
-if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING_ROOT:-}${CADDY_SERVING_HEALTH_QUARANTINE_ROOT:-}${CADDY_SERVING_HEALTH_RELEASES_ROOT:-}${CADDY_SERVING_HEALTH_RETAINED_RELEASE_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_RETAINED_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_QUARANTINE_INVENTORY_MANIFEST:-}${CADDY_SERVING_HEALTH_NODE_A_QUARANTINE_CONTRACT:-}${CADDY_SERVING_HEALTH_SERVING_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_FINALIZER_COMMAND:-}${CADDY_SERVING_HEALTH_PUBLISHER_COMMAND:-}${CADDY_SERVING_HEALTH_SYNC_USER:-}${CADDY_SERVING_HEALTH_SYNC_GROUP:-}${CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND:-}${CADDY_SERVING_HEALTH_SLEEP_COMMAND:-}${CADDY_SERVING_HEALTH_BUSCTL_COMMAND:-}${CADDY_SERVING_HEALTH_IP_COMMAND:-}${CADDY_SERVING_HEALTH_DATE_COMMAND:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-}${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-}${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-}" &&
+if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING_ROOT:-}${CADDY_SERVING_HEALTH_QUARANTINE_ROOT:-}${CADDY_SERVING_HEALTH_RELEASES_ROOT:-}${CADDY_SERVING_HEALTH_RETAINED_RELEASE_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_RETAINED_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_QUARANTINE_INVENTORY_MANIFEST:-}${CADDY_SERVING_HEALTH_NODE_A_QUARANTINE_CONTRACT:-}${CADDY_SERVING_HEALTH_SERVING_PAYLOAD_MANIFEST_SHA256:-}${CADDY_SERVING_HEALTH_FINALIZER_COMMAND:-}${CADDY_SERVING_HEALTH_PUBLISHER_COMMAND:-}${CADDY_SERVING_HEALTH_SYNC_USER:-}${CADDY_SERVING_HEALTH_SYNC_GROUP:-}${CADDY_SERVING_HEALTH_SYSTEMD_TMPFILES_COMMAND:-}${CADDY_SERVING_HEALTH_SLEEP_COMMAND:-}${CADDY_SERVING_HEALTH_BUSCTL_COMMAND:-}${CADDY_SERVING_HEALTH_IP_COMMAND:-}${CADDY_SERVING_HEALTH_DATE_COMMAND:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_DAEMON_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_OWNERSHIP_ATTEMPTS:-}${CADDY_SERVING_HEALTH_OWNERSHIP_STABLE_SAMPLES:-}${CADDY_SERVING_HEALTH_OWNERSHIP_SAMPLE_DELAY:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_ATTEMPTS:-}${CADDY_SERVING_HEALTH_WEB_OBSERVATION_DELAY:-}${CADDY_SERVING_HEALTH_SAMPLER_MAX_CYCLES:-}${CADDY_SERVING_HEALTH_SAMPLER_DELAY:-}" &&
     "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
     exit 64
 fi
@@ -2179,84 +2179,241 @@ capture_post_journal() {
 
 start_sampler() {
     local serving_health_sampler=$evidence_root/availability-sampler.sh
+    local serving_health_observer=$evidence_root/vip-address-observer.sh
 
     require sampler_pid_absent test ! -e "$evidence_root/availability.pid"
+    require observer_pid_absent test ! -e "$evidence_root/vip-address-monitor.pid"
+    printf 'baseline\n' >"$evidence_root/availability.scenario"
+    chmod 0600 "$evidence_root/availability.scenario"
     cat >"$serving_health_sampler" <<'SAMPLER'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-PATH=/usr/bin:/bin
-readonly role=$1
-readonly root=$2
-readonly dig_command=$3
-readonly curl_command=$4
-readonly date_command=$5
-readonly sleep_command=$6
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+readonly role=$1 root=$2 dig_command=$3 curl_command=$4 date_command=$5 sleep_command=$6
+readonly busctl_command=$7 ip_command=$8
+readonly max_cycles=$9 sampler_delay=${10}
+[[ "$max_cycles" =~ ^[1-9][0-9]*$ && "$sampler_delay" =~ ^(0|[1-9][0-9]*)(\.[0-9]+)?$ ]]
 case "$role" in
     node-a) fqdn=pihole0.local.theama.co; ipv4=10.1.0.53; ipv6=fd36:5aa8:6971:1::53 ;;
     node-b) fqdn=pihole00.local.theama.co; ipv4=10.1.0.54; ipv6=fd36:5aa8:6971:1::54 ;;
     *) exit 64 ;;
 esac
+readonly fqdn ipv4 ipv6
+readonly records=$root/availability.tsv scenario_file=$root/availability.scenario
+readonly work=$root/availability-work
+install -d -m 0700 "$work"
+cleanup() { rm -f -- "$work"/* 2>/dev/null || :; rmdir -- "$work" 2>/dev/null || :; }
+trap 'exit 143' TERM INT HUP
+trap cleanup EXIT
+
+stderr_class() {
+    local status=$1 file=$2
+    if [[ "$status" -eq 0 && ! -s "$file" ]]; then printf none
+    elif grep -Eqi 'timed out|timeout' "$file"; then printf timeout
+    elif grep -Eqi 'connection refused|failed to connect' "$file"; then printf connection-refused
+    elif grep -Eqi 'connection reset|send failure' "$file"; then printf connection-reset
+    elif grep -Eqi 'no route|network is unreachable' "$file"; then printf routing-failure
+    elif grep -Eqi 'certificate|tls' "$file"; then printf tls-verification
+    elif grep -Eqi 'host name|hostname' "$file"; then printf hostname-mismatch
+    elif [[ "$status" -ne 0 ]]; then printf 'command-exit-%s' "$status"
+    else printf bounded-stderr; fi
+}
+
+ownership() {
+    local state4 state6 addresses count=0
+    state4=$("$busctl_command" get-property org.keepalived.Vrrp1 \
+        /org/keepalived/Vrrp1/Instance/eth0/100/IPv4 \
+        org.keepalived.Vrrp1.Instance State 2>/dev/null |
+        sed -n 's/.*"\([^"]*\)".*/\1/p') || state4=unavailable
+    state6=$("$busctl_command" get-property org.keepalived.Vrrp1 \
+        /org/keepalived/Vrrp1/Instance/eth0/101/IPv6 \
+        org.keepalived.Vrrp1.Instance State 2>/dev/null |
+        sed -n 's/.*"\([^"]*\)".*/\1/p') || state6=unavailable
+    addresses=$("$ip_command" -o address show dev eth0 2>/dev/null) || addresses=
+    grep -Fq ' 10.1.0.55/22 ' <<<"$addresses" && count=$((count + 1))
+    grep -Fq ' 10.1.0.56/22 ' <<<"$addresses" && count=$((count + 1))
+    grep -Fq ' fd36:5aa8:6971:1::55/128 ' <<<"$addresses" && count=$((count + 1))
+    grep -Fq ' fd36:5aa8:6971:1::56/128 ' <<<"$addresses" && count=$((count + 1))
+    printf '%s\t%s\t%s' "${state4:-unavailable}" "${state6:-unavailable}" "$count"
+}
+
+safe_record() {
+    local file=$1
+    [[ "$(stat -c '%s' "$file")" -le 4096 ]]
+    iconv -f UTF-8 -t UTF-8 "$file" >/dev/null
+    ! LC_ALL=C grep -Paq '[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]' "$file"
+}
+
+record_dns() {
+    local attempt=$1 family=$2 endpoint=$3 expected=$4 type=$5
+    local stdout=$work/$sequence-dns-$family-$attempt.stdout
+    local stderr=$work/$sequence-dns-$family-$attempt.stderr
+    local start end status=0 answer result=failure class ownership_fields scenario
+    start=$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)
+    if "$dig_command" "@$endpoint" -p 53 pihole.local.theama.co "$type" \
+        +short +time=1 +tries=1 >"$stdout" 2>"$stderr"; then status=0; else status=$?; fi
+    end=$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)
+    safe_record "$stdout"; safe_record "$stderr"
+    answer=$(tr -d '\r\n' <"$stdout")
+    [[ "$answer" != *$'\t'* && ${#answer} -le 256 ]]
+    class=$(stderr_class "$status" "$stderr")
+    [[ "$status" -eq 0 && "$answer" = "$expected" ]] && result=success
+    [[ "$status" -ne 0 || "$answer" = "$expected" ]] || class=dns-answer-mismatch
+    ownership_fields=$(ownership); scenario=$(<"$scenario_file")
+    printf '%s\t%s\t%s\tdns\t%s\t%s\t53\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t-\t-\t-\t-\t-\t-\t%s\n' \
+        "$role" "$scenario" "$sequence" "$family" "$endpoint" "$attempt" "$start" "$end" \
+        "$status" "$result" "$answer" "$class" "$ownership_fields" >>"$records"
+    rm -f -- "$stdout" "$stderr"
+    [[ "$result" = success ]]
+}
+
+record_curl() {
+    local attempt=$1 probe=$2 family=$3 endpoint=$4 address=$5 path=$6 expected=$7 redirects=$8
+    local stdout=$work/$sequence-$probe-$family-$attempt.stdout
+    local stderr=$work/$sequence-$probe-$family-$attempt.stderr
+    local start end status=0 result=failure class scenario ownership_fields
+    local http connect tls first total remote local_ip value
+    start=$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)
+    if "$curl_command" "--ipv$family" --silent --show-error --fail --location --max-time 2 \
+        --max-redirs "$redirects" \
+        --resolve "$endpoint:443:$address" "https://$endpoint$path" --output /dev/null \
+        --write-out $'%{http_code}\t%{time_connect}\t%{time_appconnect}\t%{time_starttransfer}\t%{time_total}\t%{remote_ip}\t%{local_ip}' \
+        >"$stdout" 2>"$stderr"; then status=0; else status=$?; fi
+    end=$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)
+    safe_record "$stdout"; safe_record "$stderr"
+    IFS=$'\t' read -r http connect tls first total remote local_ip <"$stdout" || :
+    for value in "${http:--}" "${connect:--}" "${tls:--}" "${first:--}" \
+        "${total:--}" "${remote:--}" "${local_ip:--}"; do
+        [[ "$value" != *$'\t'* && "$value" != *$'\n'* && ${#value} -le 256 ]]
+    done
+    class=$(stderr_class "$status" "$stderr")
+    if [[ "$status" -eq 0 && "$http" = "$expected" ]]; then result=success
+    elif [[ "$status" -eq 0 ]]; then class=http-status; fi
+    ownership_fields=$(ownership); scenario=$(<"$scenario_file")
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t443\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$role" "$scenario" "$sequence" "$probe" "$family" "$endpoint" "$attempt" \
+        "$start" "$end" "$status" "$result" "${http:--}" "$class" "${connect:--}" \
+        "${tls:--}" "${first:--}" "${total:--}" "${remote:--}" "${local_ip:--}" \
+        "$ownership_fields" >>"$records"
+    rm -f -- "$stdout" "$stderr"
+    [[ "$result" = success ]]
+}
+
+retry_dns() { record_dns primary "$@" || { record_dns retry "$@" || :; return 1; }; }
+retry_curl() { record_curl primary "$@" || { record_curl retry "$@" || :; return 1; }; }
+
 sequence=0
-while [[ ! -e "$root/availability.stop" && "$sequence" -lt 900 ]]; do
+while [[ ! -e "$root/availability.stop" && "$sequence" -lt "$max_cycles" ]]; do
     sequence=$((sequence + 1))
-    timestamp=$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)
     for family in 4 6; do
-        dns_status=0
-        https_status=0
-        node_ui_status=0
-        shared_ui_status=0
         if [[ "$family" = 4 ]]; then
-            server=10.1.0.55
-            address=$ipv4
-            shared_address=10.1.0.56
-            type=A
-            expected=10.1.0.55
+            server=10.1.0.55; address=$ipv4; shared_address=10.1.0.56
+            type=A; expected=10.1.0.55
         else
-            server=fd36:5aa8:6971:1::55
-            address="[$ipv6]"
-            shared_address='[fd36:5aa8:6971:1::56]'
-            type=AAAA
+            server=fd36:5aa8:6971:1::55; address="[$ipv6]"
+            shared_address='[fd36:5aa8:6971:1::56]'; type=AAAA
             expected=fd36:5aa8:6971:1::55
         fi
-        answer=$("$dig_command" "@$server" -p 53 pihole.local.theama.co "$type" +short +time=1 +tries=1) || dns_status=$?
-        [[ "$answer" = "$expected" ]] || dns_status=90
-        status=$("$curl_command" "--ipv$family" --silent --show-error --fail --max-time 2 \
-            --max-redirs 0 --output /dev/null --write-out '%{http_code}' \
-            --resolve "proxy.local.theama.co:443:$shared_address" \
-            'https://proxy.local.theama.co/') || https_status=$?
-        [[ "$status" = 204 ]] || https_status=91
-        status=$("$curl_command" "--ipv$family" --silent --show-error --fail --location \
-            --max-time 2 --max-redirs 2 --output /dev/null --write-out '%{http_code}' \
-            --resolve "$fqdn:443:$address" "https://$fqdn/admin/login.php") || node_ui_status=$?
-        [[ "$status" = 200 ]] || node_ui_status=92
-        status=$("$curl_command" "--ipv$family" --silent --show-error --fail --location \
-            --max-time 2 --max-redirs 2 --output /dev/null --write-out '%{http_code}' \
-            --resolve "pihole-admin.local.theama.co:443:$shared_address" \
-            'https://pihole-admin.local.theama.co/admin/login.php') || shared_ui_status=$?
-        [[ "$status" = 200 ]] || shared_ui_status=93
-        printf '%s\t%s\t%s\tdns=%s\thttps=%s\tnode_ui=%s\tshared_ui=%s\n' \
-            "$sequence" "$timestamp" "$family" "$dns_status" "$https_status" \
-            "$node_ui_status" "$shared_ui_status" \
-            >>"$root/availability.tsv"
+        retry_dns "$family" "$server" "$expected" "$type" || :
+        retry_curl proxy_https "$family" proxy.local.theama.co "$shared_address" / 204 0 || :
+        retry_curl node_ui "$family" "$fqdn" "$address" /admin/login.php 200 2 || :
+        retry_curl shared_ui "$family" pihole-admin.local.theama.co "$shared_address" \
+            /admin/login.php 200 2 || :
     done
-    "$sleep_command" 1
+    "$sleep_command" "$sampler_delay"
 done
 SAMPLER
-    chmod 0700 "$serving_health_sampler"
-    : >"$evidence_root/availability.tsv"
-    chmod 0600 "$evidence_root/availability.tsv"
+    cat >"$serving_health_observer" <<'OBSERVER'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+readonly root=$1 ip_command=$2 date_command=$3
+monitor_pid=
+terminate() {
+    if [[ -n "$monitor_pid" ]] && kill -0 "$monitor_pid" 2>/dev/null; then
+        kill -TERM "$monitor_pid" 2>/dev/null || :
+        for _ in 1 2 3 4 5; do
+            kill -0 "$monitor_pid" 2>/dev/null || break
+            /usr/bin/sleep 0.1
+        done
+        kill -KILL "$monitor_pid" 2>/dev/null || :
+        wait "$monitor_pid" 2>/dev/null || :
+    fi
+    printf 'observer-end\t%s\tstatus=143\n' \
+        "$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)" \
+        >>"$root/vip-address-monitor.tsv"
+    exit 143
+}
+trap terminate TERM INT HUP
+printf 'observer-start\t%s\tuid=%s\tgid=%s\n' \
+    "$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)" "$(id -u)" "$(id -g)" \
+    >>"$root/vip-address-monitor.tsv"
+coproc VIP_MONITOR {
+    exec "$ip_command" -o monitor address dev eth0 2>"$root/vip-address-monitor.stderr"
+}
+monitor_pid=$VIP_MONITOR_PID
+while IFS= read -r line <&"${VIP_MONITOR[0]}"; do
+    [[ ${#line} -le 2048 && "$line" != *$'\t'* && "$line" != *$'\r'* ]]
+    printf 'address-event\t%s\t%s\n' \
+        "$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)" "$line" \
+        >>"$root/vip-address-monitor.tsv"
+done
+if wait "$monitor_pid"; then monitor_status=0; else monitor_status=$?; fi
+printf 'observer-end\t%s\tstatus=%s\n' \
+    "$("$date_command" -u +%Y-%m-%dT%H:%M:%S.%NZ)" "$monitor_status" \
+    >>"$root/vip-address-monitor.tsv"
+exit "$monitor_status"
+OBSERVER
+    chmod 0700 "$serving_health_sampler" "$serving_health_observer"
+    printf '%s\n' $'role\tscenario\tsequence\tprobe\tfamily\tendpoint\tport\tattempt\tstart\tend\texit_status\tresult\tvalue\tstderr_class\tconnect\ttls\tfirst_byte\ttotal\tremote\tlocal\tstate4\tstate6\tvip_count' \
+        >"$evidence_root/availability.tsv"
+    : >"$evidence_root/vip-address-monitor.tsv"
+    : >"$evidence_root/vip-address-monitor.stderr"
+    chmod 0600 "$evidence_root/availability.tsv" "$evidence_root/vip-address-monitor.tsv" \
+        "$evidence_root/vip-address-monitor.stderr"
+    nohup /bin/bash "$serving_health_observer" "$evidence_root" "$ip_command" "$date_command" \
+        >"$evidence_root/vip-address-monitor.stdout" \
+        2>>"$evidence_root/vip-address-monitor.stderr" &
+    printf '%s\n' "$!" >"$evidence_root/vip-address-monitor.pid"
+    chmod 0600 "$evidence_root/vip-address-monitor.pid"
     nohup /bin/bash "$serving_health_sampler" "$node_role" "$evidence_root" \
         "${CADDY_SERVING_HEALTH_DNS_DIG_COMMAND:-/usr/bin/dig}" \
         "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
-        "$date_command" "$sleep_command" \
-        >"$evidence_root/availability.stdout" \
-        2>"$evidence_root/availability.stderr" &
+        "$date_command" "$sleep_command" "$busctl_command" "$ip_command" \
+        "${CADDY_SERVING_HEALTH_SAMPLER_MAX_CYCLES:-900}" \
+        "${CADDY_SERVING_HEALTH_SAMPLER_DELAY:-1}" \
+        >"$evidence_root/availability.stdout" 2>"$evidence_root/availability.stderr" &
     printf '%s\n' "$!" >"$evidence_root/availability.pid"
     chmod 0600 "$evidence_root/availability.pid"
 }
 
+set_sampler_scenario() {
+    [[ "$target_revision_argument" =~ ^(baseline|final|node-[ab]-(caddy|lighttpd|pihole-ftl|unbound|keepalived))$ ]]
+    regular_file "$evidence_root/availability.scenario"
+    printf '%s\n' "$target_revision_argument" >"$evidence_root/availability.scenario.next"
+    chmod 0600 "$evidence_root/availability.scenario.next"
+    mv -T -- "$evidence_root/availability.scenario.next" "$evidence_root/availability.scenario"
+}
+
 stop_sampler() {
-    local serving_health_pid serving_health_wait
+    local serving_health_pid serving_health_observer_pid serving_health_wait
+
+    serving_health_terminate_pid() {
+        local serving_health_target_pid=$1
+        local serving_health_target_wait
+
+        kill -TERM "$serving_health_target_pid" 2>/dev/null || :
+        for ((serving_health_target_wait = 0; serving_health_target_wait < 20; serving_health_target_wait++)); do
+            kill -0 "$serving_health_target_pid" 2>/dev/null || return 0
+            /usr/bin/sleep 0.1
+        done
+        kill -KILL "$serving_health_target_pid" 2>/dev/null || :
+        for ((serving_health_target_wait = 0; serving_health_target_wait < 20; serving_health_target_wait++)); do
+            kill -0 "$serving_health_target_pid" 2>/dev/null || return 0
+            /usr/bin/sleep 0.1
+        done
+        return 1
+    }
 
     regular_file "$evidence_root/availability.pid"
     serving_health_pid=$(<"$evidence_root/availability.pid")
@@ -2267,28 +2424,44 @@ stop_sampler() {
         "$sleep_command" 1
     done
     if kill -0 "$serving_health_pid" 2>/dev/null; then
-        kill "$serving_health_pid"
-        wait "$serving_health_pid" 2>/dev/null || :
+        serving_health_terminate_pid "$serving_health_pid"
     fi
-    require availability_minimum test "$(wc -l <"$evidence_root/availability.tsv")" -ge 4
-    require availability_dns_ipv4 test -z \
-        "$(awk -F '\t' '$3 == 4 && $4 != "dns=0" { print; exit }' "$evidence_root/availability.tsv")"
-    require availability_dns_ipv6 test -z \
-        "$(awk -F '\t' '$3 == 6 && $4 != "dns=0" { print; exit }' "$evidence_root/availability.tsv")"
-    require availability_https_ipv4 test -z \
-        "$(awk -F '\t' '$3 == 4 && $5 != "https=0" { print; exit }' "$evidence_root/availability.tsv")"
-    require availability_https_ipv6 test -z \
-        "$(awk -F '\t' '$3 == 6 && $5 != "https=0" { print; exit }' "$evidence_root/availability.tsv")"
-    if [[ "$target_revision_argument" != shared-only ]]; then
-        require availability_node_ui_ipv4 test -z \
-            "$(awk -F '\t' '$3 == 4 && $6 != "node_ui=0" { print; exit }' "$evidence_root/availability.tsv")"
-        require availability_node_ui_ipv6 test -z \
-            "$(awk -F '\t' '$3 == 6 && $6 != "node_ui=0" { print; exit }' "$evidence_root/availability.tsv")"
-    fi
-    require availability_shared_ui_ipv4 test -z \
-        "$(awk -F '\t' '$3 == 4 && $7 != "shared_ui=0" { print; exit }' "$evidence_root/availability.tsv")"
-    require availability_shared_ui_ipv6 test -z \
-        "$(awk -F '\t' '$3 == 6 && $7 != "shared_ui=0" { print; exit }' "$evidence_root/availability.tsv")"
+    regular_file "$evidence_root/vip-address-monitor.pid"
+    serving_health_observer_pid=$(<"$evidence_root/vip-address-monitor.pid")
+    [[ "$serving_health_observer_pid" =~ ^[1-9][0-9]*$ ]]
+    serving_health_terminate_pid "$serving_health_observer_pid"
+    # shellcheck disable=SC2016
+    require availability_schema awk -F '\t' '
+        NR == 1 { next }
+        NF != 23 { exit 1 }
+        $1 !~ /^node-[ab]$/ || $2 !~ /^(baseline|final|node-[ab]-(caddy|lighttpd|pihole-ftl|unbound|keepalived))$/ ||
+        $3 !~ /^[1-9][0-9]*$/ || $4 !~ /^(dns|proxy_https|node_ui|shared_ui)$/ ||
+        $5 !~ /^[46]$/ || $7 !~ /^(53|443)$/ || $8 !~ /^(primary|retry)$/ ||
+        $11 !~ /^[0-9]+$/ || $12 !~ /^(success|failure)$/ || $23 !~ /^[0-4]$/ { exit 1 }
+        END { if (NR < 9) exit 1 }
+    ' "$evidence_root/availability.tsv"
+    require availability_primary_success test -z \
+        "$(awk -F '\t' 'NR > 1 && $8 == "primary" && $12 != "success" { print; exit }' \
+            "$evidence_root/availability.tsv")"
+    # shellcheck disable=SC2016
+    require availability_unique awk -F '\t' '
+        NR == 1 { next }
+        { key=$1 FS $2 FS $3 FS $4 FS $5 FS $8; if (seen[key]++) exit 1 }
+    ' "$evidence_root/availability.tsv"
+    require availability_monitor_nonempty test -s "$evidence_root/vip-address-monitor.tsv"
+    require availability_monitor_bounded test \
+        "$(stat -c '%s' "$evidence_root/vip-address-monitor.tsv")" -le 1048576
+    require availability_monitor_utf8 iconv -f UTF-8 -t UTF-8 \
+        "$evidence_root/vip-address-monitor.tsv" -o /dev/null
+    # shellcheck disable=SC2016
+    require availability_monitor_complete awk -F '\t' '
+        NR == 1 { if ($1 != "observer-start" || NF != 4) exit 1; next }
+        $1 == "address-event" && NF == 3 { next }
+        $1 == "observer-end" && NF == 3 && $3 ~ /^status=(0|143)$/ { ended++ ; next }
+        { exit 1 }
+        END { exit(ended == 1 ? 0 : 1) }
+    ' "$evidence_root/vip-address-monitor.tsv"
+    require availability_no_work_residue test ! -e "$evidence_root/availability-work"
 }
 
 controlled_exercise_service() {
@@ -3504,6 +3677,8 @@ controlled_failure_exercise_production_path_test() {
     local exercise_ip=$exercise_test_root/ip
     local exercise_sleep=$exercise_test_root/sleep
     local exercise_date=$exercise_test_root/date
+    local exercise_dig=$exercise_test_root/dig
+    local exercise_curl=$exercise_test_root/curl
     local exercise_script=$exercise_repo_root/Caddy/scripts/apply-serving-health-deployment.sh
     local exercise_scenario exercise_role exercise_status exercise_raw exercise_decision
     local -a exercise_scenarios=(
@@ -3621,6 +3796,10 @@ BUSCTL
     cat >"$exercise_ip" <<'IP'
 #!/usr/bin/env bash
 set -Eeuo pipefail
+if [[ " $* " = *' monitor address '* ]]; then
+    trap '' TERM
+    while :; do /usr/bin/sleep 1; done
+fi
 if [[ "${CADDY_EXERCISE_VIPS:-0}" = 4 ]]; then
     printf '%s\n' \
         '1: eth0    inet 10.1.0.55/22 scope global eth0' \
@@ -3639,8 +3818,25 @@ SLEEP
 set -Eeuo pipefail
 printf '%s\n' '2026-08-23T12:00:00.000000000Z'
 DATE
+    cat >"$exercise_dig" <<'DIG'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+case " $* " in
+    *' AAAA '*) printf '%s\n' 'fd36:5aa8:6971:1::55' ;;
+    *) printf '%s\n' '10.1.0.55' ;;
+esac
+DIG
+    cat >"$exercise_curl" <<'CURL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+case " $* " in
+    *' https://proxy.local.theama.co/ '*) status=204 ;;
+    *) status=200 ;;
+esac
+printf '%s\t0.001\t0.002\t0.003\t0.004\t10.1.0.56\t10.1.0.53' "$status"
+CURL
     chmod 0700 "$exercise_systemctl" "$exercise_journalctl" "$exercise_busctl" \
-        "$exercise_ip" "$exercise_sleep" "$exercise_date"
+        "$exercise_ip" "$exercise_sleep" "$exercise_date" "$exercise_dig" "$exercise_curl"
     : >"$exercise_test_root/systemctl.calls"
     : >"$exercise_test_root/journalctl.calls"
     : >"$exercise_test_root/journal.log"
@@ -3732,6 +3928,44 @@ DATE
     cp -- "$exercise_evidence/exercise_node-a-caddy_journal.stdout" "$exercise_raw"
     write_decision exercise-journal-bounded accept 0 cursor-bounded cursor-bounded \
         "$exercise_raw" "$exercise_decision"
+
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_BUSCTL_COMMAND=$exercise_busctl \
+        CADDY_SERVING_HEALTH_IP_COMMAND=$exercise_ip \
+        CADDY_SERVING_HEALTH_DATE_COMMAND=$exercise_date \
+        CADDY_SERVING_HEALTH_SLEEP_COMMAND=$exercise_sleep \
+        CADDY_SERVING_HEALTH_DNS_DIG_COMMAND=$exercise_dig \
+        CADDY_SERVING_HEALTH_CURL_COMMAND=$exercise_curl \
+        CADDY_SERVING_HEALTH_SAMPLER_MAX_CYCLES=4 \
+        CADDY_SERVING_HEALTH_SAMPLER_DELAY=0 \
+        CADDY_EXERCISE_STATE=Master CADDY_EXERCISE_VIPS=4 \
+        /bin/bash "$exercise_script" sampler-start node-a "$exercise_payload" \
+        "$exercise_evidence" shared-only
+    /usr/bin/sleep 0.1
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" sampler-scenario node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-caddy
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" sampler-stop node-a "$exercise_payload" \
+        "$exercise_evidence" shared-only
+    exercise_raw=$exercise_test_root/raw/exercise-sampler-sigterm-lifecycle.txt
+    exercise_decision=$exercise_test_root/decisions/exercise-sampler-sigterm-lifecycle.tsv
+    {
+        printf 'sampler_pid_alive=%s\n' \
+            "$(kill -0 "$(<"$exercise_evidence/availability.pid")" 2>/dev/null && printf yes || printf no)"
+        printf 'observer_pid_alive=%s\n' \
+            "$(kill -0 "$(<"$exercise_evidence/vip-address-monitor.pid")" 2>/dev/null && printf yes || printf no)"
+        printf 'work_residue=%s\n' \
+            "$([[ -e "$exercise_evidence/availability-work" ]] && printf present || printf absent)"
+    } >"$exercise_raw"
+    grep -Fxq sampler_pid_alive=no "$exercise_raw"
+    grep -Fxq observer_pid_alive=no "$exercise_raw"
+    grep -Fxq work_residue=absent "$exercise_raw"
+    write_decision exercise-sampler-sigterm-lifecycle accept 0 terminated-cleanly \
+        terminated-cleanly "$exercise_raw" "$exercise_decision"
 
     exercise_raw=$exercise_test_root/raw/exercise-reverse-restoration.txt
     exercise_decision=$exercise_test_root/decisions/exercise-reverse-restoration.tsv
@@ -4854,7 +5088,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -4891,6 +5125,7 @@ case "$mode" in
     journal-cursor) capture_journal_cursor ;;
     journal-capture) capture_post_journal ;;
     sampler-start) start_sampler ;;
+    sampler-scenario) set_sampler_scenario ;;
     sampler-stop) stop_sampler ;;
     consume) consume_outbound ;;
     consume-target) consume_target_outbound ;;
