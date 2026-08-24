@@ -1132,3 +1132,41 @@ validation or watchdog preparation fails; and expose the mutation to outer
 recovery before any fallible post-stop step. Regression coverage must execute
 `inactive`, `failed`, unexpected-active, and post-stop failure paths through the
 real neutral transaction and prove automatic restoration and zero residue.
+
+## Action 35aq terminal result
+
+Action 35aq was authorized with outer SHA-256
+`e35bfd28065ccc5e98c8d5ccdce2f801a6a5a15ef015b3d07ad71b159b2fa0bd`
+and exited 1. It is failed-consumed and must not be restored, modified, or
+rerun. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-serving_health.BPx1JI`.
+
+The corrected stop and recovery boundary worked. Node A's Caddy scenario
+completed its coupled failover and recovery. Node A's subsequent lighttpd stop
+was accepted in systemd state `failed`, and the expected node/shared UI outage
+was repeatedly observed without VIP movement. When the observer rejected the
+scenario, outer emergency restoration returned zero. Final checks proved Node
+A dual-stack `MASTER` with four VIPs, Node B dual-stack `BACKUP` with zero
+VIPs, all five serving services active on both nodes, and no mutation or
+watchdog residue.
+
+The immutable failed assertion was
+`serving_health_deployment_check_exercise_lighttpd_outage_observed=false`.
+During the outage, two timer-owned monitor executions persisted the failure
+episode but logged `enqueue-failure-pending`. The observer accepted only
+`failure-retained`, contradicting the durable-notification contract that local
+enqueue failure remains pending and delivery is non-blocking. After service
+restoration, the monitor enqueued one failure as `recovered-before-enqueue` and
+one recovery with the same correlation ID; the operator's Apprise evidence
+confirms both deliveries.
+
+The retained continuity evidence also exposes two independent defects. First,
+the affected node's local Pi-hole UI failed while that node's Caddy service was
+deliberately stopped. The governing plan classifies that local outage as
+evidence rather than a shared-continuity failure, but the sampler rejected it.
+Second, shared first-attempt requests actually failed during the Caddy handoff:
+Node A IPv6 Proxy HTTPS and shared UI, Node B IPv4 DNS, and a later Node A IPv4
+Proxy HTTPS request. Repository policy currently rejects every failed primary
+request and permits retry only for classification. A successor may not hide
+those shared failures inside the notification fix; the intended continuity
+contract must be resolved explicitly before another live exercise is defined.

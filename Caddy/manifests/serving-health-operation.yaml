@@ -1,34 +1,45 @@
 schema_version: 2
-action: 35ap
-title: Causal-continuity controlled DNS and Proxy serving-failure exercise
+action: 35aq
+title: Recoverable-stop controlled DNS and Proxy serving-failure exercise
 status: failed-consumed
 scope: controlled-serving-failure-exercise
 consumes:
-  - action: 35ao
+  - action: 35ap
     result: failed-consumed
     rerun: prohibited
-    archive_tag: caddy-action35ao-terminal-2026-08-23
-    evidence: /tmp/caddy-ssh-evidence-serving_health.IUbJF4
+    archive_tag: caddy-action35ap-terminal-2026-08-24
+    evidence: /tmp/caddy-ssh-evidence-serving_health.h3GlvO
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21
+transaction_sha256: 86e0653b435d6c0443da46eeb13361edc52a93daf8725d000b6b9e01318ba64b
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
 live_execution: consumed-do-not-rerun
 terminal_result:
-  outer_sha256: 6f045f38c55fe956cb7febeff677f658c30a0d1d7e8f70cf38033a1e7f5d984f
-  transaction_sha256: 45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21
-  exit_status: 125
-  classification: failed-consumed-after-mutation-manual-recovery-proven
-  evidence: /tmp/caddy-ssh-evidence-serving_health.h3GlvO
-  failed_assertion: serving_health_deployment_check_exercise_service_stopped=false
-  orchestration_defect: lighttpd stopped into failed state but the transaction accepted only inactive; the outer mutation flag was not set after the remote stop call failed, so automatic restoration was skipped
-  manual_recovery: Node A lighttpd was started and both nodes were verified at the exact accepted ownership and serving baseline
-  archive_tag: caddy-action35ap-terminal-2026-08-24
+  outer_sha256: e35bfd28065ccc5e98c8d5ccdce2f801a6a5a15ef015b3d07ad71b159b2fa0bd
+  transaction_sha256: 86e0653b435d6c0443da46eeb13361edc52a93daf8725d000b6b9e01318ba64b
+  exit_status: 1
+  classification: failed-consumed-after-mutation-automatic-recovery-proven
+  evidence: /tmp/caddy-ssh-evidence-serving_health.BPx1JI
+  failed_assertion: serving_health_deployment_check_exercise_lighttpd_outage_observed=false
+  notification_defect: the observer accepted only failure-retained and rejected the durable enqueue-failure-pending state; after restoration the producer enqueued one recovered-before-enqueue failure and one recovery
+  local_continuity_defect: the sampler rejected the expected affected-node UI outage while that node's Caddy service was deliberately stopped
+  shared_continuity_defect: primary shared DNS, Proxy HTTPS, and shared UI requests failed during the Node A Caddy handoff; current repository law requires every primary request to succeed
+  automatic_recovery: outer emergency restoration returned zero, final ownership was Node A MASTER with four VIPs and Node B BACKUP with zero VIPs, all five services were active on both nodes, and mutation plus watchdog residue was absent
+  archive_tag: caddy-action35aq-terminal-2026-08-24
+stop_recovery_contract:
+  accepted_stopped_states:
+    - inactive
+    - failed
+  ordinary_failure: local restoration proven and mutation marker removed
+  recovery_failure: status 125 with marker retained for outer emergency restoration
+  outer_boundary: status 125 exposes the active mutation before any fallible post-stop step
+  watchdog: created and process-checked before successful stop acceptance
+  coverage: inactive, failed, unexpected active, status-read failure, recovery failure, restoration, and zero residue
 baseline:
   node_a: MASTER with all four DNS and Proxy VIPs
   node_b: BACKUP with zero shared VIPs
@@ -51,7 +62,7 @@ scenarios:
   - node-b-unbound-ineligible-while-node-a-remains-master
 continuity_evidence:
   granularity: one causal record per request and address family
-  attempts: failed primary always rejects; retry is classification-only
+  attempts: failed primary rejects except the exact expected node/shared UI outage during a lighttpd scenario; retry is classification-only
   fields: role, scenario, sequence, family, endpoint, port, attempt, start, end, status, result, timings, addresses, sanitized error, VRRP states, and VIP count
   address_monitor: timestamped kernel events on both nodes for the complete exercise window
   correlation: workstation outer validates and correlates both node readbacks
@@ -67,9 +78,9 @@ acceptance:
   - changes no repository or node configuration artifact
   - stops no service on both nodes simultaneously
   - requires two failed probes before coupled failover and three healthy probes before recovery
-  - requires continuous dual-stack shared DNS, trusted HTTPS, and Pi-hole UI service
+  - requires continuous dual-stack shared DNS and trusted Proxy HTTPS service
   - requires exact four-VIP ownership with no simultaneous settled ownership
-  - lighttpd failure produces one failure and one recovery notification without VIP movement
+  - lighttpd failure permits only its expected node/shared Pi-hole UI outage, produces one failure and one recovery notification without VIP movement, and proves UI recovery before the next scenario
   - current structured notifications are retained and the legacy title is absent
   - every stopped service is restored before the next scenario
   - reverse restoration is attempted after every failed mutation boundary

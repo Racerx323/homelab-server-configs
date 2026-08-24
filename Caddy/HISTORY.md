@@ -5,14 +5,49 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending; Action 35ap is failed-consumed and awaits its
+- State: terminal-pending; Action 35aq is failed-consumed and awaits its
   annotated terminal tag.
 - Status: terminal-pending
-- Planned archive tag: `caddy-action35ap-terminal-2026-08-24`
-- Terminal action: Action 35ap is failed-consumed after the Node A lighttpd
-  scenario exposed an orchestration recovery gap. It must not be rerun.
+- Planned archive tag: `caddy-action35aq-terminal-2026-08-24`
+- Terminal action: Action 35aq is failed-consumed after the Node A lighttpd
+  scenario exposed notification-observation and continuity defects. It must
+  not be rerun.
 - Successor registry: none until the terminal tag exists and the consumed
   operation is cleaned.
+
+## Action 35aq terminal result
+
+- Tag: `caddy-action35aq-terminal-2026-08-24`
+- Authorized outer SHA-256:
+  `e35bfd28065ccc5e98c8d5ccdce2f801a6a5a15ef015b3d07ad71b159b2fa0bd`
+- Transaction SHA-256:
+  `86e0653b435d6c0443da46eeb13361edc52a93daf8725d000b6b9e01318ba64b`
+- Result: failed-consumed after mutation; observed exit status 1.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.BPx1JI`.
+- Node A's Caddy scenario completed coupled failover and recovery, but the
+  continuous samplers retained primary shared-service failures during the
+  handoff: Node A IPv6 Proxy HTTPS and shared UI, Node B IPv4 DNS, and a later
+  Node A IPv4 Proxy HTTPS request. Current repository law rejects every failed
+  primary request; retries are classification-only.
+- The same scenario's affected-node UI failed while Node A Caddy was
+  deliberately stopped. That local outage is expected and the governing plan
+  says it is evidence rather than a shared-continuity failure, but the sampler
+  predicate did not encode that distinction.
+- Node A's lighttpd stop was accepted in systemd state `failed`, and the
+  expected node/shared UI outage was repeatedly observed with no VIP movement.
+  Two timer invocations durably retained the episode but logged
+  `enqueue-failure-pending`; the observer incorrectly accepted only
+  `failure-retained` and emitted
+  `serving_health_deployment_check_exercise_lighttpd_outage_observed=false`.
+- After automatic restoration, the producer enqueued one Proxy failure as
+  `recovered-before-enqueue` and one recovery with the same correlation ID.
+  The operator's Apprise output confirms both deliveries.
+- Outer emergency restoration returned zero. Final acceptance proved Node A
+  dual-stack `MASTER` with four VIPs, Node B dual-stack `BACKUP` with zero
+  VIPs, all five serving services active on both nodes, and no mutation or
+  watchdog residue.
+- Exit status 1 remains the immutable result. Action 35aq must not be restored,
+  modified, or rerun.
 
 ## Action 35ap terminal result
 

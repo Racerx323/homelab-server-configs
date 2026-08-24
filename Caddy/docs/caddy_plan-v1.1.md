@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ap is failed-consumed after an orchestration recovery gap and awaits its terminal archive tag; bounded manual recovery restored and proved the exact dual-node production baseline; no successor is registered; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35aq is failed-consumed after automatic recovery proved the accepted dual-node baseline; its durable-enqueue observation and continuity defects await explicit contract reconciliation before another successor is defined; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -850,6 +850,26 @@ accepts explicit `inactive` or `failed` non-running states, makes every
 post-stop failure locally recoverable, exposes mutation before fallible
 post-stop work, and proves these paths through the real transaction. The
 remaining controlled-exercise sequence is unchanged.
+
+### Action 35aq terminal result
+
+Action 35aq is failed-consumed with exit status 1 and retained evidence at
+`/tmp/caddy-ssh-evidence-serving_health.BPx1JI`. It must not be rerun. The
+corrected stop-state and automatic-recovery boundary worked: outer recovery
+returned zero and final acceptance proved Node A `MASTER` with four VIPs, Node
+B `BACKUP` with zero VIPs, all five serving services active, and zero mutation
+or watchdog residue.
+
+The lighttpd observer rejected the durable `enqueue-failure-pending` state
+because it accepted only `failure-retained`. After restoration the monitor
+successfully enqueued one `recovered-before-enqueue` failure and one recovery,
+which Apprise delivered. The evidence also proves that the sampler incorrectly
+treated the affected-node UI outage during a deliberate Caddy stop as a shared
+continuity failure. Separately, shared DNS, Proxy HTTPS, and shared UI primary
+requests failed during the Caddy handoff. Current repository policy rejects
+every failed primary request, so that continuity result cannot be waived as
+part of the notification correction. No successor is defined until the
+intended handoff-continuity contract is explicitly reconciled.
 
 ## 19. Checkpoint procedure
 

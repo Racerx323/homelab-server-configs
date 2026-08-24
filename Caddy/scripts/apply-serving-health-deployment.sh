@@ -2441,8 +2441,17 @@ stop_sampler() {
         END { if (NR < 9) exit 1 }
     ' "$evidence_root/availability.tsv"
     require availability_primary_success test -z \
-        "$(awk -F '\t' 'NR > 1 && $8 == "primary" && $12 != "success" { print; exit }' \
-            "$evidence_root/availability.tsv")"
+        "$(awk -F '\t' '
+            function expected_lighttpd_outage() {
+                if ($2 !~ /^node-[ab]-lighttpd$/) return 0
+                if ($4 == "shared_ui") return 1
+                if ($4 != "node_ui") return 0
+                return ($1 == "node-a" && $2 == "node-a-lighttpd") ||
+                    ($1 == "node-b" && $2 == "node-b-lighttpd")
+            }
+            NR > 1 && $8 == "primary" && $12 != "success" &&
+                !expected_lighttpd_outage() { print; exit }
+        ' "$evidence_root/availability.tsv")"
     # shellcheck disable=SC2016
     require availability_unique awk -F '\t' '
         NR == 1 { next }
@@ -2462,6 +2471,29 @@ stop_sampler() {
         END { exit(ended == 1 ? 0 : 1) }
     ' "$evidence_root/vip-address-monitor.tsv"
     require availability_no_work_residue test ! -e "$evidence_root/availability-work"
+}
+
+controlled_exercise_recover_stopped_service() {
+    local serving_health_service=$1
+    local serving_health_marker=$2
+    local serving_health_watchdog=$evidence_root/exercise-${serving_health_marker##*/exercise-}
+    local serving_health_pid
+
+    serving_health_watchdog=${serving_health_watchdog%.mutation.tsv}.watchdog.tsv
+    if regular_file "$serving_health_watchdog"; then
+        serving_health_pid=$(<"$serving_health_watchdog")
+        if [[ "$serving_health_pid" =~ ^[1-9][0-9]*$ ]]; then
+            kill "$serving_health_pid" 2>/dev/null || :
+            wait "$serving_health_pid" 2>/dev/null || :
+        fi
+        rm -f -- "$serving_health_watchdog"
+    fi
+    if "$systemctl_command" start "$serving_health_service" &&
+        "$systemctl_command" is-active --quiet "$serving_health_service"; then
+        rm -f -- "$serving_health_marker"
+        return 0
+    fi
+    return 125
 }
 
 controlled_exercise_service() {
@@ -2520,15 +2552,29 @@ controlled_exercise_service() {
             chmod 0600 "$serving_health_marker"
             if ! capture_command "exercise_${serving_health_scenario}_stop" \
                 "$systemctl_command" stop "$serving_health_service"; then
-                "$systemctl_command" start "$serving_health_service" || return 125
-                rm -f -- "$serving_health_marker"
+                controlled_exercise_recover_stopped_service "$serving_health_service" \
+                    "$serving_health_marker" || return 125
                 return 1
             fi
-            serving_health_state=$(
+            if ! serving_health_state=$(
                 "$systemctl_command" show --property=ActiveState --value \
                     "$serving_health_service"
-            )
-            require_equal exercise_service_stopped inactive "$serving_health_state"
+            ); then
+                controlled_exercise_recover_stopped_service "$serving_health_service" \
+                    "$serving_health_marker" || return 125
+                return 1
+            fi
+            case "$serving_health_state" in
+                inactive | failed)
+                    printf '%s_check_exercise_service_stopped=true\n' "$prefix"
+                    ;;
+                *)
+                    printf '%s_check_exercise_service_stopped=false\n' "$prefix" >&2
+                    controlled_exercise_recover_stopped_service "$serving_health_service" \
+                        "$serving_health_marker" || return 125
+                    return 1
+                    ;;
+            esac
             if [[ -z "$target_root" && "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
                 # The child Bash expands its positional parameters.
                 # shellcheck disable=SC2016
@@ -2544,8 +2590,17 @@ controlled_exercise_service() {
                 ' _ "$serving_health_marker" "$systemctl_command" "$serving_health_service" \
                     >"$evidence_root/exercise-$serving_health_scenario-watchdog.stdout" \
                     2>"$evidence_root/exercise-$serving_health_scenario-watchdog.stderr" &
-                printf '%s\n' "$!" >"$evidence_root/exercise-$serving_health_scenario.watchdog.tsv"
-                chmod 0600 "$evidence_root/exercise-$serving_health_scenario.watchdog.tsv"
+                serving_health_state=$!
+                if ! {
+                    printf '%s\n' "$serving_health_state" \
+                        >"$evidence_root/exercise-$serving_health_scenario.watchdog.tsv" &&
+                        chmod 0600 "$evidence_root/exercise-$serving_health_scenario.watchdog.tsv" &&
+                        kill -0 "$serving_health_state"
+                }; then
+                    controlled_exercise_recover_stopped_service "$serving_health_service" \
+                        "$serving_health_marker" || return 125
+                    return 1
+                fi
             fi
             ;;
         start | restore)
@@ -3705,7 +3760,7 @@ case "$1" in
         if [[ "${CADDY_EXERCISE_FAIL_STOP:-0}" = 1 ]]; then
             exit 1
         fi
-        printf 'inactive\n' >"$state_file"
+        printf '%s\n' "${CADDY_EXERCISE_STOP_STATE:-inactive}" >"$state_file"
         case "$service" in
             caddy.service)
                 printf '%s\n' \
@@ -3728,6 +3783,9 @@ case "$1" in
         esac
         ;;
     start)
+        if [[ "${CADDY_EXERCISE_FAIL_START:-0}" = 1 ]]; then
+            exit 1
+        fi
         printf 'active\n' >"$state_file"
         case "$service" in
             caddy.service)
@@ -3756,7 +3814,10 @@ case "$1" in
                 ;;
         esac
         ;;
-    show) cat "$state_file" ;;
+    show)
+        [[ "${CADDY_EXERCISE_FAIL_SHOW:-0}" != 1 ]] || exit 1
+        cat "$state_file"
+        ;;
     *) exit 64 ;;
 esac
 SYSTEMCTL
@@ -3857,9 +3918,82 @@ CURL
             /bin/bash "$exercise_script" exercise-service "$exercise_role" \
             "$exercise_payload" "$exercise_evidence" "$exercise_scenario:start"
     done
+    printf 'active\n' >"$exercise_test_root/state-lighttpd_service"
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_STOP_STATE=failed \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:stop
+    [[ "$(<"$exercise_test_root/state-lighttpd_service")" = failed ]]
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:start
+    [[ "$(<"$exercise_test_root/state-lighttpd_service")" = active ]]
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_STOP_STATE=active \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:stop \
+        >"$exercise_test_root/unexpected-active.stdout" \
+        2>"$exercise_test_root/unexpected-active.stderr"; then
+        return 1
+    fi
+    [[ "$(<"$exercise_test_root/state-lighttpd_service")" = active ]]
+    path_absent "$exercise_evidence/exercise-node-a-lighttpd.mutation.tsv"
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_FAIL_SHOW=1 \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:stop \
+        >"$exercise_test_root/status-read-failure.stdout" \
+        2>"$exercise_test_root/status-read-failure.stderr"; then
+        return 1
+    fi
+    [[ "$(<"$exercise_test_root/state-lighttpd_service")" = active ]]
+    path_absent "$exercise_evidence/exercise-node-a-lighttpd.mutation.tsv"
+    if CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_STOP_STATE=active CADDY_EXERCISE_FAIL_START=1 \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:stop \
+        >"$exercise_test_root/recovery-failure.stdout" \
+        2>"$exercise_test_root/recovery-failure.stderr"; then
+        exercise_status=0
+    else
+        exercise_status=$?
+    fi
+    [[ "$exercise_status" -eq 125 ]]
+    regular_file "$exercise_evidence/exercise-node-a-lighttpd.mutation.tsv"
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-service node-a \
+        "$exercise_payload" "$exercise_evidence" node-a-lighttpd:restore
+    path_absent "$exercise_evidence/exercise-node-a-lighttpd.mutation.tsv"
     exercise_raw=$exercise_test_root/raw/exercise-service-control.txt
     exercise_decision=$exercise_test_root/decisions/exercise-service-control.tsv
-    cp -- "$exercise_test_root/systemctl.calls" "$exercise_raw"
+    {
+        printf '%s\n' \
+            'inactive_stop_accepted=true' \
+            'failed_stop_accepted=true' \
+            'unexpected_active_recovered=true' \
+            'status_read_failure_recovered=true' \
+            'unproven_recovery_status=125' \
+            'final_residue=absent'
+        cat "$exercise_test_root/systemctl.calls"
+    } >"$exercise_raw"
     write_decision exercise-service-control accept 0 all-scenarios-restored \
         all-scenarios-restored "$exercise_raw" "$exercise_decision"
 

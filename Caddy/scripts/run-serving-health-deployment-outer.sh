@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21
-readonly operation_sha256=0fe8c7c570bad6fe789ab7a8f2bfd9540d0b39db2d89033ece1dee01417b196a
+readonly transaction_sha256=86e0653b435d6c0443da46eeb13361edc52a93daf8725d000b6b9e01318ba64b
+readonly operation_sha256=1b39df4d74b987b0ca0bfe3d14e870687db4694f5bb43e1fd4e5fc1a220f1b23
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -385,6 +385,14 @@ correlate_controlled_exercise_continuity() {
         start end _status result _value _error_class _connect _tls _first _total _remote _local_ip \
         state4 state6 vip_count; do
         [[ "$role" = role || "$attempt" != primary || "$result" = success ]] && continue
+        if [[ "$scenario" = node-a-lighttpd || "$scenario" = node-b-lighttpd ]] &&
+            { [[ "$probe" = shared_ui ]] ||
+                [[ "$probe" = node_ui && "$role" = "${scenario%-lighttpd}" ]]; }; then
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$role" "$scenario" "$sequence" \
+                "$probe" "$family" "$start" "$end" expected-notification-only-outage \
+                >>"$serving_health_correlation_root/classifications.tsv"
+            continue
+        fi
         serving_health_failure_count=$((serving_health_failure_count + 1))
         if [[ "$role" = node-a ]]; then serving_health_peer=node-b; else serving_health_peer=node-a; fi
         serving_health_monitor=$serving_health_correlation_root/$role-vip-address-monitor.tsv
@@ -604,6 +612,7 @@ run_controlled_exercise_scenario() {
     local serving_health_role
     local serving_health_host serving_health_payload_root serving_health_remote_evidence
     local serving_health_node_a_expectation serving_health_node_b_expectation
+    local serving_health_stop_status
 
     case "$serving_health_scenario" in
         node-a-*)
@@ -629,12 +638,19 @@ run_controlled_exercise_scenario() {
     remote_transaction "$serving_health_scenario-cursor" "$serving_health_host" \
         exercise-cursor "$serving_health_role" "$serving_health_payload_root" \
         "$serving_health_remote_evidence" "$serving_health_scenario" || return $?
-    remote_transaction "$serving_health_scenario-stop" "$serving_health_host" \
-        exercise-service "$serving_health_role" "$serving_health_payload_root" \
-        "$serving_health_remote_evidence" "$serving_health_scenario:stop" || return $?
-    exercise_service_mutated=true
     exercise_current_scenario=$serving_health_scenario
     exercise_current_role=$serving_health_role
+    if remote_transaction "$serving_health_scenario-stop" "$serving_health_host" \
+        exercise-service "$serving_health_role" "$serving_health_payload_root" \
+        "$serving_health_remote_evidence" "$serving_health_scenario:stop"; then
+        exercise_service_mutated=true
+    else
+        serving_health_stop_status=$?
+        if [[ "$serving_health_stop_status" -eq 125 ]]; then
+            exercise_service_mutated=true
+        fi
+        return "$serving_health_stop_status"
+    fi
     case "$serving_health_scenario" in
         node-a-lighttpd)
             serving_health_node_a_expectation=master4
@@ -1486,14 +1502,17 @@ case "$1" in
         esac
         ;;
     show)
-        [[ -e "$state_file" ]] && printf 'inactive\n' || printf 'active\n'
+        [[ -e "$state_file" ]] && cat "$state_file" || printf 'active\n'
         ;;
     stop)
         if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop" ]]; then
             rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-stop"
             exit 1
         fi
-        : >"$state_file"
+        case "$service" in
+            lighttpd.service) printf 'failed\n' >"$state_file" ;;
+            *) printf 'inactive\n' >"$state_file" ;;
+        esac
         case "$service" in
             caddy.service)
                 printf '%s\n' \
@@ -1624,6 +1643,19 @@ DIG
     cat >"$test_remote_base/bin/curl" <<'CURL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
+scenario_file=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?}/availability.scenario
+scenario=$([[ -f "$scenario_file" ]] && cat "$scenario_file" || printf baseline)
+if [[ "$scenario" =~ ^node-[ab]-lighttpd$ ]]; then
+    affected_role=${scenario%-lighttpd}
+    state_file=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/state/${affected_role}-lighttpd_service.inactive
+    if [[ -e "$state_file" ]] &&
+        { [[ " $* " = *' https://pihole-admin.local.theama.co/'* ]] ||
+            [[ "$CADDY_SERVING_HEALTH_TEST_NODE" = "$affected_role" &&
+                " $* " = *'/admin/login.php'* ]]; }; then
+        printf '%s\n' 'curl: (22) The requested URL returned error: 503' >&2
+        exit 22
+    fi
+fi
 case " $* " in
     *' https://proxy.local.theama.co/ '*) status=204 ;;
     *) status=200 ;;
