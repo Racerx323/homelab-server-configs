@@ -12,8 +12,8 @@ readonly test_directory
 readonly caddy_root=${test_directory%/tests}
 readonly server_root=${caddy_root%/Caddy}
 readonly dns_root=${server_root%/homelab-server-configs}/homelab-dns
-readonly caddy_helper=$caddy_root/scripts/check-caddy-serving-health.sh
-readonly dns_helper=$dns_root/Keepalived/scripts/dns-check.sh
+readonly caddy_helper_source=$caddy_root/scripts/check-caddy-serving-health.sh
+readonly dns_helper_source=$dns_root/Keepalived/scripts/dns-check.sh
 root=$(mktemp -d /tmp/keepalived-tracking-lifecycle.XXXXXX)
 readonly root
 trap 'rm -rf -- "$root"' EXIT
@@ -24,7 +24,15 @@ residue_before=$(find /tmp -maxdepth 1 -type d \
     -printf '%f\n' | sort)
 readonly residue_before
 
-install -d -m 0755 "$root/bin"
+install -d -m 0755 "$root/bin" "$root/installed"
+install -m 0755 "$caddy_helper_source" "$root/installed/check-caddy.sh"
+install -m 0755 "$dns_helper_source" "$root/installed/check-dns.sh"
+readonly caddy_helper=$root/installed/check-caddy.sh
+readonly dns_helper=$root/installed/check-dns.sh
+cmp -s "$caddy_helper_source" "$caddy_helper"
+cmp -s "$dns_helper_source" "$dns_helper"
+[[ $(stat -c '%a' "$caddy_helper") = 755 ]]
+[[ $(stat -c '%a' "$dns_helper") = 755 ]]
 printf 'NODE_FQDN=pihole0.local.theama.co\nNODE_IPV4=10.1.0.53\nNODE_IPV6=fd36:5aa8:6971:1::53\n' >"$root/environment"
 chmod 0644 "$root/environment"
 printf 'healthy\n' >"$root/mode"
