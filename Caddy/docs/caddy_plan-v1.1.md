@@ -268,8 +268,10 @@ The clean stream must reject `--authorization-ready`.
 3. Apprise delivery remains at least once. The worker sends a stable
    `Idempotency-Key`, but the remote endpoint does not promise duplicate
    suppression.
-4. The generic durable notification package has not replaced the accepted
-   Caddy/DNS client. That work belongs to `homelab-notification`.
+4. A generic durable notification framework is a separate planned project in
+   `homelab-notification`. No Caddy/DNS adoption or migration is approved.
+   Future planning must decide source ownership, version pinning, migration,
+   and the disposition of the accepted Caddy/DNS implementation.
 
 ## Completed work and archive
 
@@ -292,6 +294,131 @@ restored or rerun. Action 35 has no pending deployment successor.
 
 ## Next work
 
-No deployment action is pending. Maintain operator documentation from current
-manifests and neutral scripts. Define a new successor only for a reviewed live
-change.
+No deployment action is pending. The next work consists of three
+repository-only checkpoints. None contacts a node, changes production,
+registers a successor, creates an operation specification, or adds an
+action-numbered implementation artifact. The Caddy deployment stream remains
+`clean`; `deployable-successor.tsv` remains `none`; and
+`deployable-successor-coverage.tsv` remains header-only.
+
+Complete and commit each checkpoint independently. Run the complete
+pre-commit suite in every changed repository. Caddy checkpoints must also pass
+the current repository-policy host profile. Define a deployment successor only
+after the operator approves a specific live change.
+
+### Checkpoint 1: Caddy operator documentation
+
+Build the documentation set from current manifests, neutral scripts, systemd
+inventories, and accepted production state:
+
+| Document | Required scope |
+| --- | --- |
+| `Caddy/docs/QUICK_START.md` | Routine status, expected ownership, endpoint checks, focused validation, and first-response commands |
+| `Caddy/docs/INSTALLATION.md` | Current prerequisites, ownership boundaries, partial-tool limitations, manual boundaries, and known installation-automation gaps |
+| `Caddy/docs/OPERATIONS.md` | Normal and emergency publication, maintenance, failover interpretation, release retention, certificate renewal, and synchronization |
+| `Caddy/docs/UNINSTALLATION.md` | Standby-first removal, release and queue preservation, service disablement, and externally owned boundaries |
+| `Caddy/docs/TROUBLESHOOTING.md` | Caddy, DNS, lighttpd, Keepalived, lsyncd, reconciler, TLS, queue, timer, and ownership failures |
+| `Caddy/docs/ARCHITECTURE.md` | As-built component boundaries and Mermaid steady-state, publication, and failover diagrams |
+
+Keep documentation authority separated:
+
+- `APPRISE_DELIVERY.md` owns the accepted notification contract and queue
+  operations.
+- `REPRODUCIBILITY.md` owns rebuild inputs and external recovery boundaries.
+- This governing plan owns architecture decisions, deviations, lifecycle, and
+  future authorization rules.
+- `Caddy/README.md` becomes the documentation index.
+
+The set must document routine IPv4 and IPv6 DNS and trusted-HTTPS validation;
+Node A MASTER with four VIPs and Node B BACKUP with zero VIPs;
+notification-only Pi-hole/lighttpd failures; standby-first changes; the ban on
+simultaneous node reloads; normal Node A and guarded emergency Node B
+publication; rollback and status 125; queue inspection, retry, dead-letter
+limitations, capacity monitoring, and evidence-preserving uninstall; and the
+package-owned, repository-owned, Pi-hole-owned, and secret/external
+boundaries. Operator commands must come from current neutral entrypoints, not
+historical action procedures.
+
+`INSTALLATION.md` must describe the current installation boundary without
+presenting a clean-node procedure. No current entrypoint performs a complete
+installation or disaster recovery. `install-caddy-ha.sh` installs part of the
+repository-owned filesystem and identity state; operators must not use it as a
+production installation, migration, or recovery workflow. Routine production
+changes continue through the neutral operation and protocol-v2 release path.
+
+### Checkpoint 2: Canonical LikeC4 architecture
+
+Update `homelab-docs/architecture/likec4` to describe accepted production.
+Model the coupled DNS and Proxy platform; both HA nodes; Pi-hole FTL, Unbound,
+lighttpd, Caddy, Keepalived, managed lsyncd, finalizer, and reconciler; the DNS
+and Proxy IPv4 and IPv6 VIPs; one `PIHOLE_DUALSTACK` group controlling all four
+VIPs; immutable protocol-v2 releases; external TLS material; the persistent
+notification queue; Apprise API and notification providers; and repository
+ownership boundaries.
+
+Add or update these views:
+
+- `reverse-proxy-ha` for steady-state components and relationships;
+- `reverse-proxy-failover` for Caddy or DNS failure, coupled VIP movement,
+  continuity, and preferred-owner recovery;
+- protocol-v2 publication from the Node A publisher through lsyncd, Node B
+  finalization, reconciliation, and activation;
+- notification delivery from producer through the durable queue and worker to
+  Apprise API and providers; and
+- deployment instances for Caddy and lsyncd on both nodes plus the shared
+  Proxy VIP.
+
+Remove stale implications of DNS-only VIP ownership, separate Caddy VRRP
+instances, Caddy health outside eligibility, planned Munin integration, or a
+Proxy VIP independent of `PIHOLE_DUALSTACK`. Validate every edited LikeC4
+source with the repository's current validation procedure and record
+generated-view provenance according to `homelab-docs` policy.
+
+### Checkpoint 3: Reverse-proxy backend onboarding
+
+Create `Caddy/docs/APPLICATION_ONBOARDING.md` and turn
+`Caddy/templates/reverse-proxy.caddy.example` into a supported, validated
+example without installing it. The guide and example must require a public
+FQDN; backend scheme, address, and port; trusted backend TLS and SNI when HTTPS
+is used; health URI, expected status, interval, and timeout; connection and
+response timeouts; required request headers; access restrictions where
+applicable; default-deny interaction; dual-stack client checks; Caddy
+adaptation and validation; and release-based rollback.
+
+Before defining a production backend, obtain operator approval for an
+inventory containing the application, public hostname, exact backend
+endpoint, protocol, health contract, authentication owner, allowed networks,
+single- or multi-backend availability, and required A and AAAA records. Do not
+infer applications or endpoints from existing DNS names.
+
+Keep `reverse-proxy.caddy.example` classified as `future-task` and
+`deployable=no` until this checkpoint passes. A supported example remains a
+documentation input, not a production fragment. Each approved backend later
+requires an immutable Caddy release, repository and DNS reconciliation where
+applicable, production-path validation, a defined successor, and separate live
+authorization.
+
+### Future complete-installation project
+
+The three checkpoints above do not design or authorize a clean-node
+installation. A later repository project must begin from
+[`FUTURE_COMPLETE_INSTALLATION_PROMPT.md`](FUTURE_COMPLETE_INSTALLATION_PROMPT.md).
+That prompt is the only current reference to the future project. The six
+operator documents, `Caddy/README.md`, `APPRISE_DELIVERY.md`, and
+`REPRODUCIBILITY.md` must not link to it or present its proposed work as an
+accepted production capability.
+
+The future project remains definition-only until the operator accepts its
+dependency map, ownership model, interfaces, tests, and authorization
+boundaries. It is separate from the operator documentation, LikeC4, backend
+onboarding, and generic durable-notification work.
+
+### Independent durable-notification framework planning
+
+The generic durable Apprise framework is unrelated to these Caddy
+checkpoints. Its planning remains in
+`homelab-notification/durable-apprise/PLANNING_PROMPT.md`. That project does not
+assume migration or replacement of the accepted Caddy/DNS client. Any future
+adoption must first decide repository ownership, version pinning, producer
+integration, state compatibility, migration, rollback, and the disposition of
+the current implementation.
