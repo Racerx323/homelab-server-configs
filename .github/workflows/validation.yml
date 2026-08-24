@@ -19,11 +19,12 @@ jobs:
     name: Caddy current-production contracts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           path: homelab-server-configs
       - name: Check out the accepted DNS dependency
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Racerx323/homelab-dns
           ref: a8b45d827b1771e16141572c3facce7624fa28e0
