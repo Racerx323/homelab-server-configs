@@ -1056,3 +1056,79 @@ No node was contacted and no Action 35ap operation was defined. Once this
 repository checkpoint is synchronized, the next gate may define the controlled
 failure exercise against this corrected neutral contract without restoring or
 rerunning Action 35ao.
+
+## Action 35ap definition
+
+Action 35ap is the single defined, unexecuted controlled serving-failure
+exercise. It consumes failed-consumed Action 35ao and its retained evidence
+without restoring, modifying, or rerunning that operation. Definition and
+validation are repository-only and contact no HA node.
+
+The operation uses the existing neutral reusable transaction and outer runner.
+It registers one versioned operation specification and no action-numbered
+runner, transaction, regression, fixture framework, or copied implementation.
+The nondeterministic transient Caddy scenario remains excluded. The live
+sequence contains the five approved Node A scenarios—Caddy, lighttpd, Pi-hole
+FTL, Unbound, and Keepalived—and the equivalent Node B Caddy, lighttpd, Pi-hole
+FTL, and Unbound scenarios while healthy Node A remains preferred owner.
+
+Every scenario requires the configured failure and recovery thresholds, exact
+four-VIP ownership without simultaneous settled ownership, continuous
+dual-stack DNS and trusted HTTPS, the applicable shared and node-local Pi-hole
+UI behavior, structured notifications without the retired legacy title, exact
+service restoration, and zero residue. Lighttpd remains notification-only and
+cannot alter VRRP eligibility.
+
+Continuity acceptance uses the corrected per-request dual-node records and
+timestamped kernel address events. A failed primary request always rejects;
+its retry is classification evidence only. The workstation outer validates
+both readbacks and rejects `handoff-overlap`,
+`settled-owner-serving-failure`, `family-degraded`, and
+`unclassified-insufficient-evidence`. Missing, malformed, duplicate,
+reordered, oversized, symlinked, incomplete, unsafe, or uncorrelatable evidence
+also rejects. Sampler and observer acceptance requires bounded SIGTERM
+handling, child termination, bounded forced escalation, and zero residue.
+
+Reverse restoration remains mandatory after every failed mutation boundary.
+Status 125 remains reserved for a mutation whose exact recovery cannot be
+proven. Live execution requires separate authorization of the exact neutral
+outer-runner SHA-256 after all real production-path coverage and repository
+authorization checks pass.
+
+## Action 35ap terminal result
+
+Action 35ap was authorized with outer SHA-256
+`6f045f38c55fe956cb7febeff677f658c30a0d1d7e8f70cf38033a1e7f5d984f`
+and exited 125. It is failed-consumed and must not be restored, modified, or
+rerun. Its workstation evidence is
+`/tmp/caddy-ssh-evidence-serving_health.h3GlvO`.
+
+The Node A Caddy scenario proved coupled failover, recovery, and restoration of
+preferred ownership. The subsequent Node A lighttpd stop completed but systemd
+reported `ActiveState=failed`, a valid non-running state. The transaction
+accepted only `inactive` and failed
+`serving_health_deployment_check_exercise_service_stopped=false`.
+
+This exposed an orchestration gap. The transaction wrote the mutation marker
+before stopping lighttpd, while the outer runner recorded the scenario as
+mutated only after the complete remote stop call succeeded. The state assertion
+failed between those boundaries, before watchdog creation, so the outer runner
+did not invoke emergency restoration. Node A lighttpd therefore required
+bounded manual recovery.
+
+Manual recovery started lighttpd. The Pi-hole web monitor then reported one
+Proxy failure and one recovery with the same correlation ID and no VIP
+movement, consistent with Caddy's configured 30-second backend-down interval.
+Final verification proved all five serving services active on both nodes, Node
+A dual-stack `MASTER` with four VIPs, Node B dual-stack `BACKUP` with zero VIPs,
+and healthy backend, node-specific UI, shared UI, trusted IPv4/IPv6, and DNS
+paths. The immutable exit remains 125; recovery was proven only after the
+transaction by manual intervention.
+
+The direct successor must consume but never rerun Action 35ap. It must correct
+the neutral service-stop boundary in place: accept only the explicit non-running
+states `inactive` or `failed`; recover locally and return 125 if any post-stop
+validation or watchdog preparation fails; and expose the mutation to outer
+recovery before any fallible post-stop step. Regression coverage must execute
+`inactive`, `failed`, unexpected-active, and post-stop failure paths through the
+real neutral transaction and prove automatic restoration and zero residue.

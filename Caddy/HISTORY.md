@@ -5,13 +5,48 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: clean
-- Latest archive tag: `caddy-action35ao-terminal-2026-08-23`
-- Terminal action: Action 35ao is failed-consumed after the first controlled
-  scenario and must not be restored, modified, or rerun.
-- Successor registry: none. The consumed operation data and coverage are
-  removed. Audit and correct the neutral controlled-exercise contract before
-  defining another live operation.
+- State: terminal-pending; Action 35ap is failed-consumed and awaits its
+  annotated terminal tag.
+- Status: terminal-pending
+- Planned archive tag: `caddy-action35ap-terminal-2026-08-24`
+- Terminal action: Action 35ap is failed-consumed after the Node A lighttpd
+  scenario exposed an orchestration recovery gap. It must not be rerun.
+- Successor registry: none until the terminal tag exists and the consumed
+  operation is cleaned.
+
+## Action 35ap terminal result
+
+- Tag: `caddy-action35ap-terminal-2026-08-24`
+- Authorized outer SHA-256:
+  `6f045f38c55fe956cb7febeff677f658c30a0d1d7e8f70cf38033a1e7f5d984f`
+- Transaction SHA-256:
+  `45b629440ed9511358e2349ccc3ab3c78abf9f3764fb772c7006d86a1227ce21`
+- Result: failed-consumed after mutation; observed exit status 125.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.h3GlvO`.
+- The Node A Caddy scenario completed its coupled failover and recovery: Node B
+  assumed all four VIPs, Node A recovered, and the preferred ownership baseline
+  returned.
+- The Node A lighttpd stop completed, and systemd reported the valid non-running
+  state `failed`. The transaction accepted only `inactive` and emitted
+  `serving_health_deployment_check_exercise_service_stopped=false`.
+- Orchestration defect: the transaction wrote its mutation marker before the
+  stop, but the outer runner set `exercise_service_mutated=true` only after the
+  entire remote stop call returned successfully. The state assertion failed in
+  that gap, so neither the watchdog nor outer emergency restoration ran.
+- Manual recovery started Node A lighttpd. Caddy initially returned 503 during
+  its configured 30-second backend-down interval, then the Pi-hole web monitor
+  emitted one failure and one recovery with the same correlation ID and no VIP
+  movement.
+- Final manual verification proved Caddy, lighttpd, Pi-hole FTL, Unbound, and
+  Keepalived active on both nodes; Node A dual-stack `MASTER` with all four
+  VIPs; Node B dual-stack `BACKUP` with zero VIPs; and successful backend,
+  node-specific UI, shared UI, trusted IPv4/IPv6, and DNS checks.
+- Manual recovery evidence:
+  `/tmp/caddy-action35ap-recovery-node-a.stdout` and
+  `/tmp/caddy-action35ap-verify-node-{a,b}.stdout`; corresponding stderr files
+  are retained with mode `0600`.
+- Exit status 125 remains the immutable observed result. Recovery is now proven
+  only because the bounded manual intervention completed after the transaction.
 
 ## Action 35ao terminal result
 
@@ -96,7 +131,28 @@ Git preserves the complete deployment journal and executed action files.
   escalation for a noncooperative observer child, independent evidence records,
   and zero process or temporary residue.
 - Action 35ao remains immutable at `caddy-action35ao-terminal-2026-08-23`; the
-  stream and registries remain clean pending definition of Action 35ap.
+  corrected contract was defined repository-only before Action 35ap was
+  registered.
+
+## Action 35ap definition
+
+- Scope: the separately authorized controlled Node A and Node B DNS/Proxy
+  serving-failure exercise from the exact accepted production baseline.
+- Action 35ap consumes failed-consumed Action 35ao without restoring,
+  modifying, or rerunning it.
+- The nondeterministic transient Caddy scenario remains excluded. The nine
+  retained scenarios exercise Node A Caddy, lighttpd, Pi-hole FTL, Unbound,
+  and Keepalived behavior plus equivalent Node B Caddy, lighttpd, Pi-hole FTL,
+  and Unbound behavior.
+- Both nodes retain causal per-request dual-stack evidence and timestamped
+  kernel address events for the complete exercise. Every primary request
+  failure rejects; a retry may classify but never excuse it.
+- Missing, malformed, duplicate, reordered, oversized, symlinked, incomplete,
+  unsafe, or uncorrelatable evidence fails closed. Sampler and observer
+  lifecycle acceptance requires bounded SIGTERM handling, child termination,
+  and zero residue.
+- Definition and production-path validation contact no HA node. Live execution
+  remains gated by a separately reported exact outer-runner SHA-256.
 
 ## Action 35ao definition
 

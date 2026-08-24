@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ao is failed-consumed, archived, and cleaned after its first scenario; the neutral causal continuity-evidence contract is corrected and validated repository-only; the Caddy stream is clean and no successor is defined; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35ap is failed-consumed after an orchestration recovery gap and awaits its terminal archive tag; bounded manual recovery restored and proved the exact dual-node production baseline; no successor is registered; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -614,8 +614,8 @@ no current node, queue, API-host, replay, or template path for those messages.
 Action 35al accepted the actual acknowledged prior VRRP state, bounded
 planned-maintenance context, shared multiline layout, and severity emojis.
 
-The next gate is definition and separate authorization of controlled
-serving-failure exercise Action 35an.
+The next gate is separate exact-hash authorization and execution of controlled
+serving-failure exercise Action 35ap.
 
 After the controlled exercise:
 
@@ -796,10 +796,60 @@ noncooperative address-monitor child, and zero residue. No node was contacted
 and no successor was defined by this repository-only correction. The next gate
 may define Action 35ap against this completed contract.
 
+### Action 35ap definition
+
+Action 35ap is the single defined, unexecuted controlled serving-failure
+exercise. It consumes archived failed-consumed Action 35ao without restoring,
+modifying, or rerunning it. Definition and validation contact no HA node.
+
+The neutral reusable transaction and outer runner execute nine scenarios: Node
+A Caddy, lighttpd, Pi-hole FTL, Unbound, and Keepalived failures followed by
+equivalent Node B Caddy, lighttpd, Pi-hole FTL, and Unbound failures while Node
+A remains healthy. The nondeterministic transient Caddy scenario is excluded.
+Lighttpd remains notification-only and outside VRRP eligibility.
+
+Acceptance requires exact thresholds and VIP ownership, continuous dual-stack
+DNS and trusted HTTPS, applicable shared and node-local Pi-hole UI behavior,
+structured notifications without the retired legacy title, exact restoration,
+and zero residue. Both nodes retain per-request causal evidence and timestamped
+kernel address events. Every failed primary request rejects; retries only
+classify. Missing, unsafe, incomplete, or uncorrelatable evidence fails closed,
+as do `handoff-overlap`, `settled-owner-serving-failure`, `family-degraded`, and
+`unclassified-insufficient-evidence` classifications. Status 125 remains
+reserved for unproven recovery after mutation. Live execution remains gated by
+separate authorization of the exact neutral outer-runner SHA-256.
+
 The terminal result is archived at
 `caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
 are removed, the neutral operation specification is inactive, and the Caddy
 deployment stream is clean.
+
+### Action 35ap terminal result
+
+Action 35ap was authorized with outer SHA-256
+`6f045f38c55fe956cb7febeff677f658c30a0d1d7e8f70cf38033a1e7f5d984f`
+and exited 125 during the Node A lighttpd scenario. It is failed-consumed and
+must not be rerun. Evidence is retained at
+`/tmp/caddy-ssh-evidence-serving_health.h3GlvO`.
+
+The preceding Node A Caddy scenario completed coupled failover and recovery.
+For lighttpd, systemd reported `failed` after a successful stop. The neutral
+transaction accepted only `inactive`; its mutation marker existed, but the
+outer runner had not yet set its mutation flag, and the watchdog had not yet
+been created. Automatic restoration was therefore skipped.
+
+Bounded manual recovery started lighttpd. After Caddy's 30-second backend-down
+window, the web monitor reported recovery without VIP movement. Final checks
+proved all serving services active, Node A `MASTER` with four VIPs, Node B
+`BACKUP` with zero VIPs, and healthy dual-stack DNS, HTTPS, and Pi-hole UI
+paths. The observed 125 remains immutable even though later manual recovery is
+proven.
+
+The direct successor must change only the neutral stop/recovery boundary. It
+accepts explicit `inactive` or `failed` non-running states, makes every
+post-stop failure locally recoverable, exposes mutation before fallible
+post-stop work, and proves these paths through the real transaction. The
+remaining controlled-exercise sequence is unchanged.
 
 ## 19. Checkpoint procedure
 
