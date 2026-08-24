@@ -1,1020 +1,285 @@
-# Caddy HA governing plan
+# HA Caddy governing plan
 
-Version: 1.1 current-state edition
-Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled DNS and Proxy serving-failure Action 35as completed all nine scenarios, is archived and cleaned, and the deployment stream is clean; no successor is registered; installed Keepalived parser modes remain prohibited
+## Current status
 
-Action 35v completely accepted the candidate on Node B, then observed Node B
-in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
-Keepalived. The transaction incorrectly required immediate `BACKUP` before the
-configured `interval 3`, `rise 3` health initialization could converge. It
-also sampled Node A's known pre-promotion `/healthz` 404 as a continuity
-failure. Node B rollback completed, Node B returned to `BACKUP`, and Node A
-was not promoted or mutated. Action 35v is consumed and must not be rerun.
+The dual-node Caddy service is accepted in production. Action 35 closed through
+Action 35as on 2026-08-24. The Caddy deployment stream is clean and has no
+registered successor.
 
-Action 35x initialized healthy DNS and Proxy snapshots before the Node B
-Keepalived reload, then observed dual-stack `Fault` with zero VIPs throughout
-all 24 bounded ownership samples. All retained service-continuity probes passed.
-The candidate helper was accepted through `runuser`, which initializes
-supplementary groups, but the Keepalived `check-caddy` declaration specified
-only `user keepalived_script` while its protected environment is
-`root:caddy-tls:0640`. Node B rollback succeeded and returned it to `BACKUP`;
-Node A was not promoted or mutated. Action 35x is consumed and must not be
-rerun.
+Node A is the preferred owner. Node B is standby. Both nodes run the same
+accepted immutable Caddy release and the same serving-health policy. The
+current semantic state is recorded in `current-live-state.tsv`; exact deployed
+hashes are recorded in `accepted-live-artifacts.tsv` and
+`production-artifacts.tsv`.
 
-Action 35y installed Node B and successfully executed the Caddy helper as
-`keepalived_script:caddy-tls`, then rejected the generated Proxy status file
-because acceptance still expected its superseded
-`keepalived_script:keepalived_script:0644` metadata. The helper's atomic status
-file correctly inherited the explicit `caddy-tls` primary group. All retained
-service-continuity probes passed. Node B rollback succeeded and returned it to
-`BACKUP`; Node A was not promoted or mutated. Action 35y is consumed and must
-not be rerun.
+No live work is authorized by this document. A future mutation requires one
+defined operation, production-path validation, an exact outer-runner SHA-256,
+and operator authorization.
 
-Action 35z corrected and accepted the Proxy status-file metadata, installed
-and accepted Node B, and then observed both VRRP instances in `Fault` with zero
-VIPs for all 24 bounded samples. The retained operator journal proves that the
-real Keepalived schedule reported `check-caddy` status 1 immediately and an
-intermittent `check-dns` status 1 three seconds later. Direct identity checks
-and every continuity probe passed. The action's journal selector omitted those
-decisive `Keepalived_vrrp` records. Node B rollback succeeded and returned it
-to `BACKUP`; Node A was not promoted or mutated. Action 35z is consumed and
-must not be rerun.
+## Ownership
 
-Action 35aa installed Node B and obtained five successful transaction-launched
-DNS and Caddy cycles. Keepalived's own DNS execution entered FAULT ten seconds
-before the candidate reload while that independent schedule was still active.
-The reload inherited DNS as unsuccessful, the daemon's immediate Caddy check
-also returned status 1, and all 24 ownership samples remained dual-stack
-`Fault` with zero VIPs. The independent schedule perturbed rather than proved
-the daemon execution boundary. After rollback reload, native DNS recovered
-and Node B returned to `BACKUP`; Node A was not promoted or mutated. Action
-35aa is consumed and must not be rerun.
+| Area | Repository |
+| --- | --- |
+| Caddy configuration, release tools, systemd units, notification client | `homelab-server-configs` |
+| Keepalived, Pi-hole, Unbound, DNS health probe, transition producer | `homelab-dns` |
+| Network-controller configuration | `homelab-network` |
+| Generic future durable Apprise framework | `homelab-notification` |
 
-## 1. Purpose
+The Caddy installer must not overwrite Keepalived, Pi-hole, or Unbound sources.
+Cross-repository deployment operations pin exact reviewed files from their
+owning repositories.
 
-This document governs the as-built Caddy HA deployment on the two Pi-hole
-resolver nodes. It records current architecture, live acceptance boundaries,
-rollback rules, and approved future work.
+## Nodes and addresses
 
-The annotated tag in `Caddy/HISTORY.md` preserves the former deployment
-journal, full action transcripts, and removed historical artifacts.
-
-## 2. Nodes and addresses
-
-| Role | Host | Node address | Preferred state |
+| Role | Host | IPv4 | IPv6 |
 | --- | --- | --- | --- |
-| Node A | `j1-svpihole0.local.theama.co` | `10.1.0.53`, `fd36:5aa8:6971:1::53` | MASTER |
-| Node B | `j1-svpihole00.local.theama.co` | `10.1.0.54`, `fd36:5aa8:6971:1::54` | BACKUP |
+| Preferred node A | `j1-svpihole0` | `10.1.0.53` | `fd36:5aa8:6971:1::53` |
+| Standby node B | `j1-svpihole00` | `10.1.0.54` | `fd36:5aa8:6971:1::54` |
+| Shared DNS | `pihole.local.theama.co` | `10.1.0.55` | `fd36:5aa8:6971:1::55` |
+| Shared Proxy | `proxy.local.theama.co` | `10.1.0.56` | `fd36:5aa8:6971:1::56` |
 
-Shared service addresses:
+`pihole-admin.local.theama.co` resolves to the shared Proxy VIP. The node names
+remain available for node-specific administration and health checks.
 
-| Service | IPv4 | IPv6 |
-| --- | --- | --- |
-| DNS | `10.1.0.55` | `fd36:5aa8:6971:1::55` |
-| Caddy | `10.1.0.56` | `fd36:5aa8:6971:1::56` |
+## Coupled ownership
 
-Node A should own all four VIPs during normal operation. Node B should own none.
+Keepalived owns four VIPs in one `PIHOLE_DUALSTACK` sync group. The DNS VIPs
+remain in `virtual_ipaddress`; the Proxy VIPs remain in
+`virtual_ipaddress_excluded`. Excluded affects VRRP advertisement encoding, not
+ownership. The sync group still adds and removes all four addresses together.
 
-## 3. Ownership architecture
+Node A should converge to IPv4 and IPv6 MASTER with four VIPs. Node B should
+converge to BACKUP with zero VIPs. The design rejects split ownership,
+simultaneous ownership, one-family ownership, and an owner that cannot serve
+DNS or trusted HTTPS.
 
-Keepalived owns one coupled dual-stack service decision. The IPv4 and IPv6
-instances move the DNS and Caddy addresses together.
+Keepalived uses:
 
-The coupled design enforces these states:
+- `check-dns.sh` for Pi-hole FTL and Unbound serving health.
+- `check-caddy.sh` for trusted Caddy HTTPS serving health.
 
-- normal: Node A MASTER for both families and four VIPs;
-- failover: Node B MASTER for both families and four VIPs;
-- recovery: Node A resumes preferred ownership after bounded convergence;
-- invalid: simultaneous ownership, split-family ownership, or a partial VIP set.
+Both scripts run under their configured `keepalived_script` identities. They
+fit inside the two-second timeout and terminate with their child processes when
+Keepalived sends SIGTERM. Keepalived's exit and signal observation controls
+eligibility. Status publication remains best effort.
 
-Keepalived uses unicast VRRP with `unicast_ttl 255` and peer
-`min_ttl 255 max_ttl 255` on both nodes. Both nodes advertise the same address
-count and protocol settings.
+## Service boundaries
 
-## 4. Serving-health policy
+Pi-hole FTL accepts client DNS. Unbound provides recursive resolution and the
+internal authoritative zone. lighttpd serves the node-local Pi-hole web
+backend. Caddy terminates TLS and proxies web requests. Keepalived assigns the
+shared DNS and Proxy addresses.
 
-Keepalived tracks node-local DNS health and Caddy serving health.
+The Pi-hole/lighttpd monitor runs from a systemd timer. It checks both node
+families through Caddy and reports Proxy backend failure and recovery. It never
+changes VRRP eligibility.
 
-DNS health covers:
+Caddy uses active and passive reverse-proxy health checks for the Pi-hole web
+backend. The backend check and the node `/healthz` endpoint serve different
+purposes: Caddy selects a backend with the first; Keepalived tests the public
+node serving path with the second.
 
-- `pihole-FTL` service state;
-- `unbound` service state;
-- exact local A and AAAA responses;
-- Pi-hole and Unbound loopback paths;
-- bounded completion that cannot overlap the next scheduled probe.
+## Caddy release contract
 
-Caddy health covers:
-
-- `caddy.service` state;
-- IPv4 and IPv6 listeners;
-- trusted TLS;
-- exact `/healthz` status;
-- node-specific address binding and hostname handling;
-- completion within the Keepalived script timeout.
-
-The accepted serving-health deployment uses interval 3, timeout 2, fall 2,
-rise 3.
-Six seconds of sustained serving failure can trigger failover.
-
-Pi-hole/lighttpd web-backend health remains notification-only. A backend
-failure does not move DNS or Caddy VIPs. The
-`caddy-pihole-web-health.timer` records transitions and enqueues durable
-notifications.
-
-These failures remain outside VRRP health:
-
-- lsyncd or reconciliation;
-- SSH;
-- Apprise delivery;
-- certificate-expiry and synchronization timers;
-- shared router or internet access;
-- monitoring.
-
-## 5. DNS and Pi-hole boundary
-
-The `homelab-dns` repository owns Pi-hole, Unbound, and Keepalived source
-configuration.
-
-Pi-hole v5 forwards these namespaces to local Unbound on port 5335:
-
-- `local.theama.co`;
-- IPv4 PTR zones for `10.1.0.0/22`;
-- the local ULA `ip6.arpa` zone.
-
-Unbound owns authoritative A, AAAA, PTR, and SRV records for the local zone.
-
-The shared Pi-hole management name follows the coupled DNS/Caddy owner.
-Node-specific management names remain available through their physical node
-addresses when that node and its applications are healthy.
-
-## 6. Caddy routing
-
-The current release contains:
-
-- `Caddyfile`;
-- `conf.d/00-health.caddy`;
-- `conf.d/10-pihole-admin.caddy`;
-- `conf.d/90-default-deny.caddy`;
-- `conf.d/91-exact-listener-default-deny.caddy`.
-
-Caddy serves trusted TLS on node-specific and shared addresses. Exact listener
-default-deny routes prevent cross-path acceptance. The shared Pi-hole route
-selects the backend that belongs to the current coupled owner. Its single local
-lighttpd upstream uses a 30-second active `/admin/` check with explicit final
-status 200 and a 30-second passive failure window. These controls make the
-local proxy fail fast; they do not move VIPs or replace the notification-only
-backend monitor.
-
-The node environment contains three values:
+`/etc/caddy/current` selects one immutable protocol-v2 release. Each release
+contains its payload manifest, release identity, configuration, and protected
+TLS material. Caddy starts with:
 
 ```text
-NODE_FQDN=...
-NODE_IPV4=...
-NODE_IPV6=...
+/usr/bin/caddy run --environ --config /etc/caddy/current/Caddyfile --adapter caddyfile
 ```
 
-Keepalived priority, peer addresses, transport role, and interface state do not
-belong in the Caddy environment.
-
-## 7. Release model
-
-Caddy releases live beneath `/etc/caddy/releases/REVISION`.
-`/etc/caddy/current` points to one validated immutable release directory.
-
-A release contains a manifest, payload files, and protocol metadata. Validation
-uses per-file identities plus a normalized manifest identity. Caddy validates
-the release before selection.
-
-The reconciler owns:
-
-- candidate validation;
-- deterministic disposition;
-- atomic release installation;
-- current-symlink promotion;
-- Caddy reload;
-- rollback after a failed reload.
-
-No path watcher may race this transaction.
-
-## 8. Protocol-v2 synchronization
-
-Node A publishes normal releases to Node B. Node B rejects normal publication.
-
-Node B may publish to Node A with `--emergency` only while Node B:
-
-- reports MASTER for IPv4;
-- reports MASTER for IPv6;
-- owns all four shared VIPs;
-- passes the guarded publisher preflight.
-
-The transport uses managed lsyncd, a forced SSH receiver, a finalizer, and the
-transactional reconciler. Node-specific lsyncd configurations live under
-`Caddy/configs/lsyncd/`.
-
-The protocol fails closed on:
-
-- malformed manifests;
-- partial transfers;
-- invalid hashes;
-- unexpected source or parent;
-- same-parent ambiguity;
-- unsafe metadata;
-- unauthorized Node B publication.
-
-## 9. Synchronization service health
-
-`caddy-lsyncd.service` runs lsyncd with `-nodaemon` and journald logging.
-The distribution `lsyncd.service` remains masked.
-
-A healthy managed publisher has:
-
-- active/running systemd state;
-- positive MainPID;
-- successful unit result;
-- stable restart count across the acceptance window;
-- regular, nonempty, parseable status snapshot;
-- no new transport or quarantine failure after the journal cursor.
-
-The status snapshot mtime is not a heartbeat. The minute health timer checks
-service state, PID, restart count, snapshot validity, and cursor-bounded errors.
-
-## 10. Durable Apprise delivery
-
-Caddy owns the shared persistent queue and worker. Keepalived and Caddy source
-workers act as enqueue-only producers.
-
-Queue data lives beneath `/var/lib/caddy-apprise`. Runtime locks and temporary
-state live beneath `/run`. The queue survives reboot.
-
-Producers:
-
-- validate bounded UTF-8 input;
-- reject control characters, unsafe paths, malformed records, and secrets;
-- persist a stable transition identity;
-- atomically enqueue;
-- acknowledge the transition after enqueue;
-- retry local enqueue on a later timer run if enqueue fails;
-- never wait on the Apprise endpoint.
-
-The worker:
-
-- delivers oldest eligible records first;
-- uses the IP-based Apprise endpoint;
-- applies bounded backoff with jitter;
-- deduplicates by stable identity;
-- records attempts and dispositions in journald;
-- moves exhausted records to the protected dead-letter directory;
-- uses locking to prevent path/timer overlap.
-
-Delivery failure cannot change VRRP ownership or source-service health.
-
-## 11. Systemd inventory
-
-Enabled and active:
-
-- `caddy.service`;
-- `caddy-lsyncd.service`;
-- `caddy-sync-reconcile.path`;
-- `caddy-cert-expiry.timer`;
-- `caddy-sync-health.timer`;
-- `caddy-apprise-worker.path`;
-- `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer`;
-
-Static workers:
-
-- `caddy-cert-expiry.service`;
-- `caddy-sync-health.service`;
-- `caddy-sync-reconcile.service`;
-- `caddy-sync-failure@.service`;
-- `caddy-apprise-worker.service`;
-- `caddy-pihole-web-health.service`.
-
-Static workers must not be enabled directly.
-
-Required masks:
-
-- `caddy-api.service`;
-- distribution `lsyncd.service`.
-
-The obsolete Caddy validation path and rejected protected-backend unit are
-absent.
-
-## 12. File ownership and modes
-
-Runtime scripts install as root-owned mode 0755.
-Systemd units install as root-owned mode 0644.
-`/etc/default/caddy-ha` uses root:`caddy-tls` mode 0640.
-Release directories and certificate paths restrict access to the Caddy service
-identity.
-
-Transactions reject symlinks, broad globs, unresolved paths, unexpected owners,
-unexpected modes, unsafe archives, and unbounded output.
-
-## 13. Accepted production contracts
-
-These files define current state:
-
-- `Caddy/manifests/accepted-live-artifacts.tsv`;
-- `Caddy/manifests/production-artifacts.tsv`;
-- `Caddy/manifests/runtime-production.tsv`;
-- `Caddy/manifests/current-live-state.tsv`;
-- `Caddy/manifests/deployment.yaml`;
-- `Caddy/manifests/synchronization-protocol-v2.yaml`;
-- `Caddy/manifests/durable-apprise-production.tsv`;
-- `Caddy/manifests/dns-records.yaml`.
-
-Lifecycle registries classify the complete current tree. The main branch does
-not retain executed action files.
-
-## 14. Validation model
-
-`Caddy/tests/focused-validation.yaml` selects neutral current tests.
-
-Required properties:
-
-- current tests execute current entrypoints;
-- no current profile imports an archived action regression;
-- changed-path selection maps each production path;
-- Debian-sensitive profiles use one network-disabled Debian 12 batch;
-- documentation-only changes remain host-only;
-- live successor coverage executes both outer and transaction production paths.
-
-The repository does not carry the former historical full suite. The archive tag
-preserves it for explicit reconstruction.
-
-## 15. Live transaction rules
-
-A dual-node mutation follows this order:
-
-1. validate both nodes and capture journal cursors;
-2. apply Node B;
-3. accept Node B;
-4. apply Node A;
-5. accept Node A;
-6. verify cluster convergence and residue;
-7. retain bounded evidence under node and workstation `/tmp` paths.
-
-Reloads remain sequential. Rollback runs in reverse order. A transaction returns
-125 if it changed live state and cannot prove recovery. A pre-mutation failure
-uses cleanup only.
-
-## 16. Accepted deployment milestones
-
-| Milestone | Terminal result | Archive |
-| --- | --- | --- |
-| Environment v2, Action 31 | Accepted | pre-cleanup tag |
-| Runtime lifecycle, Action 32g | Accepted production baseline | pre-cleanup tag |
-| Reliability exercise, Action 33o | Accepted and complete | pre-cleanup tag |
-| Durable Apprise, Action 34m | Accepted | pre-cleanup tag |
-| Serving-health coupling, Action 35 | Failed-consumed before SSH or mutation | `caddy-action35-terminal-2026-08-16` |
-| Corrected serving-health installation, Action 35a | Failed-consumed after Node A SSH preparation contact and before upload or mutation | `caddy-action35a-terminal-2026-08-16` |
-| SSH-boundary-corrected serving-health installation, Action 35b | Failed-consumed after exact dual-node upload and before publication or transaction dispatch | `caddy-action35b-terminal-2026-08-16` |
-| Privileged-resolution serving-health installation, Action 35c | Failed-consumed during candidate validation and before publication or live serving mutation | `caddy-action35c-terminal-2026-08-16` |
-| Environment-complete serving-health installation, Action 35d | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35d-terminal-2026-08-16` |
-| Retained-mode-corrected serving-health installation, Action 35e | Failed-consumed during retained-candidate validation and before upload or live mutation | `caddy-action35e-terminal-2026-08-16` |
-| Protocol-mode-corrected serving-health installation, Action 35f | Failed-consumed during retained-candidate ownership validation and before upload or live mutation | `caddy-action35f-terminal-2026-08-17` |
-| Production-ownership-corrected serving-health installation, Action 35g | Failed-consumed after Node B selected the published release and before the installation transaction | `caddy-action35g-terminal-2026-08-17` |
-| Split-release serving-health installation, Action 35h | Failed-consumed during Node B production-inventory validation and before serving-health mutation | `caddy-action35h-terminal-2026-08-17` |
-| Evidence-complete serving-health installation, Action 35i | Failed-consumed during Node B DNS-helper identity validation and before mutation | `caddy-action35i-terminal-2026-08-17` |
-| Corrected DNS-consumer serving-health installation, Action 35j | Failed-consumed during Node B Unbound local-zone path validation and before mutation | `caddy-action35j-terminal-2026-08-17` |
-| Corrected-production-path serving-health installation, Action 35k | Failed-consumed during Node B Unbound local-zone identity validation and before mutation | `caddy-action35k-terminal-2026-08-17` |
-| Exact-local-zone serving-health installation, Action 35l | Failed-consumed at a stale tmpfiles inventory path and before mutation | `caddy-action35l-terminal-2026-08-17` |
-| Corrected-inventory serving-health installation, Action 35m | Failed-consumed at the retained Node B incoming inventory and before mutation | `caddy-action35m-terminal-2026-08-17` |
-| Exact-retained-entry serving-health installation, Action 35n | Failed-consumed at an incorrect protocol-marker prerequisite and before mutation | `caddy-action35n-terminal-2026-08-17` |
-| Marker-free retained-entry serving-health installation, Action 35o | Failed-consumed at role-inapplicable incoming and stale empty-quarantine prerequisites before mutation | `caddy-action35o-terminal-2026-08-17` |
-| Quarantine-cleanup serving-health installation, Action 35p | Failed-consumed at the obsolete Node A migration-helper inventory prerequisite before mutation | `caddy-action35p-terminal-2026-08-17` |
-| Legacy-helper-cleanup serving-health installation, Action 35q | Failed-consumed at stale Node A quarantine assumptions before mutation | `caddy-action35q-terminal-2026-08-17` |
-| Node-A quarantine-cleanup serving-health installation, Action 35r | Failed-consumed at a noncanonical protocol-v2 file-set comparison before mutation | `caddy-action35r-terminal-2026-08-17` |
-| Canonical-quarantine serving-health installation, Action 35s | Failed-consumed at the known-broken installed Keepalived parser prerequisite before mutation | `caddy-action35s-terminal-2026-08-17` |
-| Parser-free serving-health installation, Action 35t | Failed-consumed at Node A's real-identity Caddy IPv4 HTTPS probe before mutation | `caddy-action35t-terminal-2026-08-17` |
-| Post-promotion-health serving-health installation, Action 35v | Failed-consumed after Node B installation at an immediate pre-convergence ownership assertion; Node B rollback succeeded and Node A was not mutated | `caddy-action35v-terminal-2026-08-17` |
-| Bounded-convergence and expressive-notification serving-health installation, Action 35w | Failed-consumed after Node B installation because the production DNS status snapshot had not been initialized before Keepalived reload; Node B rollback succeeded and Node A was not mutated | `caddy-action35w-terminal-2026-08-18` |
-| Initialization-order serving-health installation, Action 35x | Failed-consumed after Node B installation because the Caddy probe's Keepalived execution group did not reproduce its accepted protected-environment access; Node B rollback succeeded and Node A was not mutated | `caddy-action35x-terminal-2026-08-18` |
-| Explicit-group serving-health installation, Action 35y | Failed-consumed after Node B installation because acceptance retained the superseded Proxy status-file group; Node B rollback succeeded and Node A was not mutated | `caddy-action35y-terminal-2026-08-18` |
-| Metadata-corrected serving-health installation, Action 35z | Failed-consumed after Node B installation because the real Keepalived schedule returned status 1 for Caddy and intermittently for DNS; Node B rollback succeeded and Node A was not mutated | `caddy-action35z-terminal-2026-08-18` |
-| Scheduled-execution-accepted serving-health installation, Action 35aa | Failed-consumed after Node B installation because transaction-launched cycles passed while Keepalived's own DNS and Caddy executions returned status 1; Node B rollback succeeded and Node A was not mutated | `caddy-action35aa-terminal-2026-08-18` |
-
-The archive tag contains the detailed predecessors and failed-consumed
-successors.
-
-## 17. Current next gate
-
-Action 35aa is failed-consumed and archived at
-`caddy-action35aa-terminal-2026-08-18`. Its retained workstation evidence is
-`/tmp/caddy-ssh-evidence-action35aa.o4OC8v`. Action 35aa must not be rerun.
-Node B rollback succeeded, Node A was not mutated, and the consumed machinery
-was removed before one direct successor is defined.
-
-The recovered production baseline remains:
-
-- Node A is preferred dual-stack `MASTER`, owns all four VIPs, and selects
-  `20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04`.
-- Node B is dual-stack `BACKUP`, owns no VIP, and selects
-  `20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca`.
-- Node A retains the finalized outbound candidate for Node B's selected
-  serving-health release.
-- The direct successor reuses that candidate and does not republish, seed production
-  state, or copy Node B configuration to Node A.
-
-Action 35ab is failed-consumed. It preserved the remaining standby-first
-installation and reached the daemon-owned execution boundary:
-
-- do not launch a second DNS or Caddy schedule;
-- stop Keepalived, install candidate artifacts, clear only validated prior
-  status snapshots, capture the journal cursor, and start Keepalived once;
-- capture cursor-bounded `Keepalived_vrrp` results and the corresponding
-  atomic status-record transitions produced by Keepalived's own executions;
-- require repeated daemon-owned successes for both helpers after reload;
-- reject missing, stale, nonzero, intermittent, timed-out, signaled, or
-  identity-inconsistent daemon evidence;
-- retain snapshot initialization, stable Node B `BACKUP` samples,
-  split-release continuity endpoints, structured notifications, remaining
-  standby-first ordering, and reverse rollback.
-
-The first daemon-owned `check-caddy` and `check-dns` executions both returned
-status 1 after the single Node B restart. Neither helper emitted a classified
-status transition, so Action 35ab failed closed and rolled Node B back to
-`BACKUP`; Node A was not mutated. Its evidence is
-`/tmp/caddy-ssh-evidence-action35ab.Tjs3z3`. It is archived only at
-`caddy-action35ab-terminal-2026-08-18`, its consumed machinery is removed, and
-it must not be rerun.
-
-Action 35ac is failed-consumed. It preserved the transaction and made every
-helper exit produce a bounded status or journald record. Keepalived's real DNS
-and Proxy helper executions repeatedly returned status 1, and both recorded
-`unclassified-helper-exit`. Direct candidate identity checks and all retained
-serving-continuity probes passed. The transaction failed closed at
-`action_35_ac_check_keepalived_daemon_status_records_valid=false`, Node B
-rollback returned it to `BACKUP`, and Node A was not mutated. Its evidence is
-`/tmp/caddy-ssh-evidence-action35ac.4Yvvp3`. It is archived only at
-`caddy-action35ac-terminal-2026-08-18`, its consumed machinery is removed, and
-it must not be rerun.
-
-Action 35ad is failed-consumed. It installed Node B and the real scheduled
-Caddy helper durably classified the failing boundary as `probe-result`,
-`phase-operation-failed`, exit 1. Its unchecked status/output command
-substitution can terminate under `set -e` before identifying the affected
-family or specific curl/HTTP result. The transaction failed closed at
-`action_35_ad_check_keepalived_daemon_status_records_valid=false`, Node B
-rollback returned it to `BACKUP`, and Node A was not mutated. Evidence is
-`/tmp/caddy-ssh-evidence-action35ad.gAKDlx`; Action 35ad must not be rerun. It
-is archived only at `caddy-action35ad-terminal-2026-08-18`, and its consumed
-machinery is removed from the current branch.
-
-Action 35ae is failed-consumed. The real Keepalived executions returned 1
-within milliseconds after Node B installation: Proxy reported a missing IPv4
-probe-result record while DNS failed during probe-evidence processing. The
-failure occurred far earlier than the two-second Keepalived timeout. Node B
-rollback succeeded and returned it to `BACKUP`; Node A was not mutated.
-Evidence is `/tmp/caddy-ssh-evidence-action35ae.vfzh11`. Action 35ae is archived
-only at `caddy-action35ae-terminal-2026-08-18` and must not be rerun.
-
-Action 35af is failed-consumed and must not be rerun. It consumed Action 35ae
-and deployed the neutral synchronous
-tracking probes. Their exit statuses and Keepalived's cursor-bounded journal
-are authoritative; background result files, phase handlers, parallel probe
-schedules, and development diagnostics do not participate in VRRP eligibility.
-
-The repository correction implements that boundary. The Proxy helper checks
-only `caddy.service` and trusted node-specific IPv4 and IPv6 `/healthz` status.
-The DNS helper checks only Pi-hole FTL and Unbound service state plus exact A
-and AAAA answers through both loopback families on ports 53 and 5335. Its eight
-one-second queries run concurrently in Keepalived's process group so the probe
-fits the two-second timeout. Both helpers are silent, create no state, and
-retain the default SIGTERM disposition. The obsolete DNS and Proxy status
-directories and notifier snapshot reads are removed so stale diagnostics cannot
-override Keepalived's authoritative exit and journal evidence. Neutral lifecycle
-coverage exercises process-group SIGTERM,
-Keepalived-style SIGKILL escalation, repeated three-second execution, service
-identities, and zero new helper residue.
-
-Action 35af retains the proven split-release convergence step, then constructs
-one new immutable protocol-v2 child release from Node A's current release and
-the exact repository `10-pihole-admin.caddy`. Node B must receive, activate,
-and accept that child before Node A promotes the identical revision. Existing
-immutable release directories are never edited. Node A is installed only after
-Node B is fully accepted; rollback restores the exact pre-action split release,
-outbound candidate, services, and ownership.
-
-Caddy failures are classified as Proxy serving failures and may change VRRP
-eligibility. Pi-hole/lighttpd backend failures are also Proxy alerts, but are
-explicitly notification-only. DNS and Replication retain distinct application
-classifications. Notification Delivery records its own retry and dead-letter
-state in journald without recursively enqueueing another notification.
-
-The installed Keepalived parser interface remains prohibited. Candidate
-acceptance uses repository structure, exact rendered identities, real service
-identities, standby-first reload, bounded live convergence, and reverse
-rollback. Pi-hole/lighttpd backend health remains notification-only.
-
-The registered no-network production-path coverage executes the actual outer
-and transaction entrypoints. It observes payload upload boundaries, complete
-production-inventory decisions, retained-state rejection and disposition,
-Node B installation before Node A promotion, the selected-release transition,
-finalizer and reconcile calls, post-promotion IPv4/IPv6 helper success, Node A
-installation, reverse rollback, and success/failure evidence readback for both
-nodes. Test inputs are isolated; command, mutation, acceptance, rollback, and
-success results are produced by the real entrypoints and observable
-substitutes, not fabricated markers.
-
-Action 35af passed Node B installation, Node A split-release convergence, and
-new child publication, then failed only because a redundant Node A
-`record-target` step required the target record already written by `publish`
-to be absent. Reverse rollback succeeded on both nodes, service continuity
-remained healthy, and preferred Node A ownership reconverged. Evidence is
-`/tmp/caddy-ssh-evidence-action35af.JHd23Z`.
-
-Action 35ag removes that redundant call in the neutral reusable transaction,
-retains Node B target recording, and requires settled final and rollback
-ownership evidence. All other standby-first behavior remains unchanged. One
-small versioned operation specification replaces action-specific transaction,
-runner, and regression copies.
-
-Action 35ag is failed-consumed after a pre-mutation Node A preflight rejected
-the correctly protected empty `/var/lib/caddy-sync/incoming/node-a` namespace
-because it required the path itself to be absent. Node B preflight passed; both
-payload dispositions and failure readbacks succeeded; no installation,
-publication, service, release, or VRRP mutation ran. Evidence is
-`/tmp/caddy-ssh-evidence-serving_health.UaFJlC`. The direct correction accepts
-both absent and correctly protected empty protocol namespaces while rejecting
-non-empty, symlinked, malformed, or unsafe state.
-
-Action 35ah is the direct installation operation. It changes only the neutral
-protocol-namespace predicate: absent and `caddy-sync:caddy-sync:0750` empty
-directories are equivalent valid state; non-empty, symlinked, malformed,
-incorrectly owned, or incorrectly mode-set state fails closed. Production-path
-coverage executes this complete state matrix through the real predicate. The
-remaining standby-first transaction is unchanged.
-
-Action 35ah is accepted with evidence at
-`/tmp/caddy-ssh-evidence-serving_health.tYH9yd`. Both nodes selected revision
-`20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d`; Node A settled as
-dual-stack `MASTER` with four VIPs and Node B as dual-stack `BACKUP` with zero
-VIPs. A later read-only audit found that the notification-only Pi-hole web
-monitor fails before `ExecStart` with systemd status `226/NAMESPACE` because
-its unit unnecessarily requires the delivery worker's ephemeral
-`/run/caddy-apprise` directory. The corrected repository unit writes only to
-the persistent queue. A narrow standby-first unit replacement must be accepted
-before the separately controlled failure exercise proceeds.
-
-Action 35ai is the defined narrow replacement. It changes only the static
-`caddy-pihole-web-health.service` unit, Node B then Node A. Each node must pass
-a direct systemd invocation and a later timer-triggered invocation while the
-persistent queue permissions and all serving/synchronization service states
-remain exact. No Caddy, lighttpd, Pi-hole FTL, Unbound, Keepalived, release,
-synchronization, or VRRP mutation is permitted. Failure recovery restores Node
-A and then Node B to the exact accepted unit bytes.
-
-Action 35ai is failed-consumed after Node B mutation. The corrected namespace
-allowed systemd to reach `ExecStart`, where the `pi` identity could not read
-root:`caddy-tls`:0640 `/etc/default/caddy-ha`. Node A was not mutated, Node B
-was restored to the exact accepted unit bytes, queue permissions remained
-exact, and all payload cleanup and recovery readback passed. The direct
-successor adds only supplementary `caddy-tls` membership to the unit and must
-retain the same unit-only standby-first and rollback boundaries.
-
-Action 35aj is that defined successor. It retains the `pi:pi` primary service
-identity and persistent queue access while adding only supplementary
-`caddy-tls` membership for the protected environment. Acceptance executes the
-service directly and through its timer on Node B before Node A, preserves all
-serving and synchronization services without restart or reload, captures the
-failure journal before any rollback, and removes only its transaction payloads.
-
-Action 35aj is failed-consumed and must not be rerun. Node B installed the
-candidate and produced two healthy monitor results with two successful
-completions. Acceptance failed only because it counted literal systemd
-`Starting` messages and observed one rather than two. Node A was not mutated;
-Node B exact rollback, readback, and payload cleanup passed. The direct
-successor must retain the proven unit and replace that count with a fresh
-post-direct cursor followed by one timer-owned healthy result, successful
-completion, and successful unit result.
-
-Action 35ak was the defined direct successor. The unit and installation phases
-were unchanged. Acceptance took a fresh cursor after direct success and then
-required a later timer-owned healthy event, successful completion, and
-successful unit result. Node B remained first and reverse rollback remained
-unchanged.
-
-Action 35ak is accepted with exit status 0. Node B completed before Node A,
-both installed exact unit SHA-256
-`d773cf7b88429b819a7919dbdf5e939654616c84be538ca1ebfd3d7e3ed9c3fc`,
-and direct plus later timer-owned invocations returned successful unit results
-with the required healthy event. Both payloads were dispositioned and rollback
-was not required. Evidence is
-`/tmp/caddy-ssh-evidence-serving_health.secstj`.
-
-## 18. Action 35 closure and pending work
-
-Notification standardization is accepted. Git history identifies the exact
-legacy title and message bodies in notifier revisions `e9fe1bc` and `6063aa3`;
-revision `192b1e1` retired that formatter. Actions 35al and 35am prove there is
-no current node, queue, API-host, replay, or template path for those messages.
-Action 35al accepted the actual acknowledged prior VRRP state, bounded
-planned-maintenance context, shared multiline layout, and severity emojis.
-
-Action 35 is closed and accepted through Action 35as. The serving-health
-installation, controlled DNS and Proxy failure exercise, notification-only
-lighttpd behavior, structured notifications, restoration, and final ownership
-contracts are proven. Action 35as is archived and cleaned, the deployment
-stream is clean, and no successor is registered.
-
-The next major task is repository-only operator documentation. It must use only
-current live manifests, neutral scripts, systemd inventories, and the accepted
-as-built architecture, and cover:
-
-1. operator quick-start and routine validation;
-2. standby-first installation and protocol-v2 Caddy publication;
-3. safe uninstallation and restoration boundaries;
-4. DNS and Proxy failover interpretation, including notification-only
-   Pi-hole/lighttpd behavior;
-5. structured-notification handling, local enqueue retry, network-delivery
-   retry, and dead-letter inspection, replay, and purge boundaries;
-6. rollback, recovery, synchronization, and troubleshooting procedures;
-7. the exact Caddy/DNS durable-notification architecture, including atomic
-   enqueue, producer acknowledgement, persistent queue states, path and timer
-   activation, bounded backoff, crash recovery, at-least-once delivery, stable
-   identities, and isolation from serving-health decisions.
-
-The durable-notification documentation must also correct the stale
-runtime-snapshot description in `APPRISE_DELIVERY.md`, document the exact
-Caddy/DNS schema, paths, executables, endpoint, producer/application
-allowlists, and runtime identity, and explicitly record current operational
-gaps. Those gaps are the absence of a supported dead-letter inspect/replay
-tool and incomplete receipt-retention, disk-capacity, queue-health,
-upgrade-compatibility, and independent install/uninstall contracts. The
-post-request, pre-receipt crash boundary remains an at-least-once ambiguity;
-the `Idempotency-Key` header is not documented as a portable upstream
-duplicate-suppression guarantee.
-
-This documentation task contacts no node, registers no deployment successor,
-creates no operation specification, and introduces no action-numbered
-implementation artifact. Validation is limited to documentation and repository
-policy.
-
-After operator documentation:
-
-1. create the canonical LikeC4 model and generated views;
-2. improve the future reverse-proxy application template, using
-   `reverse-proxy.caddy.example` as input.
-
-Munin monitoring is canceled. Home Assistant DNS work belongs to a future DNS
-change outside this plan.
-
-### Action 35al definition
-
-Action 35al is notification-standardization-only. A bounded read-only capture
-on both nodes proved that the legacy title is absent from installed node files,
-the durable queue, retained delivery receipts, and Keepalived journals, and
-that only the canonical notifier is configured. The duplicate legacy message
-is consequently outside the audited node producer and queue. Config ID
-`apprise` contains delivery endpoints only and no message template; a separate
-external producer or delivery path remains to be identified. The node
-transaction does not invent or remove an unobserved node producer.
-
-The node-side operation installs the shared readable multiline formatter,
-crash-safe acknowledged and pending Keepalived transition state, bounded
-planned-maintenance classification, conservative journal-based component
-attribution, and minimal SIGTERM-friendly probes with distinct exit codes.
-Ambiguous or missing journal evidence stays unclassified. Installation is Node
-B then Node A, rollback is Node A then Node B, delivery remains non-blocking,
-and no serving service is restarted or reloaded. At definition time the
-external attribution capture remained pending; it later became Action 35am.
-
-Action 35al is accepted with exit status 0. Node B completed before Node A,
-accepted `BACKUP`, and Node A accepted `MASTER`. Both nodes installed and
-accepted the exact notification, worker, tmpfiles, DNS probe, Caddy probe, and
-notifier artifacts. Installed-form DNS and Caddy probes passed, all payloads
-were dispositioned, and rollback was not required. Evidence is
-`/tmp/caddy-ssh-evidence-serving_health.5JumxL`.
-
-Action 35am is the single defined successor. It is a bounded, read-only
-external attribution capture against the Apprise API host, not another HA-node
-deployment. Config ID `apprise` is treated only as an endpoint list; its
-credentials are never read into retained evidence. The capture searches for
-the exact legacy title in bounded producer inventories, scheduled jobs,
-retained delivery metadata, and bounded API journals. It may attribute a
-producer only from causal evidence, rejects multiple candidates, and reports
-`unattributed` when evidence is incomplete. It sends no notification, changes
-no service or file, retains sanitized 0600 evidence beneath unique 0700 `/tmp`
-directories, and removes only its exact temporary remote program after
-readback. The controlled serving-failure exercise moves to Action 35an.
-
-Action 35am is accepted as a read-only capture with exit status 0. Evidence at
-`/tmp/caddy-ssh-evidence-serving_health.IoAYyJ` reports config ID `apprise` as
-an endpoint list and attribution as `unattributed` with zero causal producer
-candidates. Source-match and request-observation records contain no data rows.
-Readback integrity and exact temporary-program cleanup passed. No HA node was
-contacted, no notification was sent, and no production state changed.
-Repository history subsequently identified the legacy messages as historical
-output from notifier revisions `e9fe1bc` and `6063aa3`, retired by `192b1e1`.
-Notification standardization is accepted. Action 35an is archived failed-
-consumed; Action 35ao subsequently became the definition-only gate at that
-checkpoint.
-
-Action 35am is archived at `caddy-action35am-terminal-2026-08-23`. Its consumed
-operation data and coverage are removed from the current branch, the neutral
-operation specification is inactive, and the Caddy deployment stream is clean.
-
-### Action 35an definition
-
-Action 35an is failed-consumed and must not be rerun. Its exact authorized
-outer SHA-256 was
-`1508a4a9eaedfa3b2c6d35c62161102d1ecf49943fad771e72bdd4ff419097d3`.
-It exited 1 during Node B preflight because the neutral transaction required
-the accepted notification state directory to be empty. Action 35al established
-the current production contract: that protected directory contains the durable
-`PIHOLE_DUALSTACK.state` record. No controlled failure or production mutation
-ran, Node A was not exercised, and bounded payload disposition and evidence
-readback succeeded. Evidence is retained at
-`/tmp/caddy-ssh-evidence-serving_health.o6fsV4`.
-
-The terminal result is archived at
-`caddy-action35an-terminal-2026-08-23`. The neutral preflight now requires the
-node-appropriate durable state record and accepts the notifier's optional safe
-zero-length lock. It rejects pending transitions, additional entries,
-symlinks, malformed state, and metadata mismatches. The operation specification
-is inactive, its consumed data is removed, and no successor is defined.
-
-Action 35an was the definition-only controlled DNS and Proxy serving-failure
-exercise. It uses the neutral reusable transaction and outer runner and one
-operation specification. It changes no production configuration or release.
-The sequence covers one non-triggering Caddy sample; Node A Caddy, lighttpd,
-Pi-hole FTL, Unbound, and Keepalived failures; and Node B Caddy, lighttpd,
-Pi-hole FTL, and Unbound failures while Node A remains healthy.
-
-Every scenario begins and ends at Node A `MASTER` with all four VIPs and Node B
-`BACKUP` with none. Coupled serving failures must move all four VIPs after the
-configured failure threshold and restore preferred ownership only after the
-configured recovery threshold. Lighttpd remains notification-only. Continuous
-dual-stack shared DNS, trusted HTTPS, and Pi-hole UI evidence, cursor-bounded
-journals, current structured notifications, exact restoration, and zero
-residue are mandatory. Action 33 interface, SSH, reboot, and whole-node cases
-remain authoritative and are not repeated.
-
-### Action 35ao definition
-
-Action 35ao consumed Action 35an without restoring or rerunning it. It retained
-the exact controlled-failure scenarios and safety contract. The neutral
-preflight now derives the accepted release identity from
-`current-live-state.tsv`, and production-path coverage executes the actual
-dual-node `exercise-preflight` calls through the streamed outer/transaction
-boundary. No-op preflight handling, action-pinned release assumptions, and
-marker-only acceptance are prohibited.
-
-Before execution, Action 35ao was definition-only. Repository validation
-contacted no node, and live execution remained gated by authorization readiness
-and a separately authorized exact neutral outer-runner SHA-256. Its terminal
-result below supersedes this archived definition.
-
-### Action 35ao terminal result
-
-Action 35ao was authorized with outer SHA-256
-`b36a91890b21c7a7550f45caf6a1e6756af0d2f132d6207ad3591fd8bd62df22`
-and exited 125 after the first `node-a-transient-caddy` scenario. Evidence is
-retained at `/tmp/caddy-ssh-evidence-serving_health.IUbJF4`. The operation is
-failed-consumed and must not be restored, modified, or rerun.
-
-The transient implementation stopped Caddy long enough for Node A to move
-`MASTER -> FAULT` and Node B to move `BACKUP -> MASTER`; it therefore did not
-prove the required single failed sample without VIP movement. Its final
-ownership check observed only the restored state. The cursor-bounded journal
-then counted zero `VRRP_Script(check-caddy) failed` records even though delivered
-structured notifications prove the coupled failure, failover, standby, and
-recovery transitions. Separately, Node B's sampler recorded one IPv4 shared-UI
-`curl: (16) Send failure: Connection reset by peer` result.
-
-The repository audit also found that the outer production-path test fabricated
-expected journal, availability, and ownership results for controlled-exercise
-modes instead of executing the real transaction modes. Authorization readiness
-therefore did not cover the failing live paths. The outer also mapped the
-sampler acceptance failure to status 125 even though final ownership, service
-restoration, residue, and disposition checks proved recovery. The lifecycle
-reserves 125 for unproven recovery; this run's observed 125 is immutable
-history, but its classification is a neutral-runner defect.
-
-Final recovery checks found Node A dual-stack `MASTER` with all four VIPs, Node
-B dual-stack `BACKUP` with zero VIPs, all five serving services active on both
-nodes, and no mutation or watchdog residue. The successor registry is cleared.
-Before another live operation is defined, audit the neutral exercise against
-the governing lifecycle and correct its transient bounding, causal journal
-evidence, and continuous shared-UI acceptance without adding a copied runner or
-transaction.
-
-The repository-only audit removed the nondeterministic transient scenario,
-separated daemon and notification journal selectors, made their readiness
-scenario-specific, corrected sampler failure to be an acceptance rather than
-recovery classification, and replaced the outer test's fabricated results with
-real streamed transaction modes backed by causal command substitutes. The
-authorization policy now rejects outer-runner transaction-mode dispatch and
-direct result-file fabrication.
-
-The retained Node B sampler places its sole IPv4 shared-UI reset at
-`2026-08-23T23:09:56.742761874Z`, during preferred-owner failback, between
-successful IPv4 samples and alongside a successful IPv6 sample. Because the
-retained curl record has neither remote-address nor connection timing evidence,
-it cannot distinguish an in-flight TCP reset from a serving gap. That historical
-attribution remains unresolved. A subsequent exercise must first define the
-bounded evidence needed to make that distinction; no direct controlled-exercise
-successor is authorized by this audit.
-
-That bounded evidence contract is now implemented in the neutral transaction
-and outer runner. Each DNS/HTTPS request is independently retained with exact
-scenario, family, endpoint, timing, status, address, sanitized error, nearby
-VRRP state, and VIP-count evidence. A retry never excuses its failed primary.
-Timestamped kernel address events span the full dual-node observation window,
-and the workstation performs the causal classification. Real-path lifecycle
-coverage includes cooperative sampler termination, forced termination of a
-noncooperative address-monitor child, and zero residue. No node was contacted
-and no successor was defined by this repository-only correction. The next gate
-may define Action 35ap against this completed contract.
-
-### Action 35ap definition
-
-Action 35ap is the single defined, unexecuted controlled serving-failure
-exercise. It consumes archived failed-consumed Action 35ao without restoring,
-modifying, or rerunning it. Definition and validation contact no HA node.
-
-The neutral reusable transaction and outer runner execute nine scenarios: Node
-A Caddy, lighttpd, Pi-hole FTL, Unbound, and Keepalived failures followed by
-equivalent Node B Caddy, lighttpd, Pi-hole FTL, and Unbound failures while Node
-A remains healthy. The nondeterministic transient Caddy scenario is excluded.
-Lighttpd remains notification-only and outside VRRP eligibility.
-
-Acceptance requires exact thresholds and VIP ownership, continuous dual-stack
-DNS and trusted HTTPS, applicable shared and node-local Pi-hole UI behavior,
-structured notifications without the retired legacy title, exact restoration,
-and zero residue. Both nodes retain per-request causal evidence and timestamped
-kernel address events. Under the Action 35ap contract every failed primary
-request rejected and retries only classified; this historical rule was replaced
-after Action 35aq by the bounded-convergence contract below. Missing, unsafe,
-incomplete, or uncorrelatable evidence fails closed. Status 125 remains
-reserved for unproven recovery after mutation. Live execution remains gated by
-separate authorization of the exact neutral outer-runner SHA-256.
-
-The terminal result is archived at
-`caddy-action35ao-terminal-2026-08-23`. Its consumed operation data and coverage
-are removed, the neutral operation specification is inactive, and the Caddy
-deployment stream is clean.
-
-### Action 35ap terminal result
-
-Action 35ap was authorized with outer SHA-256
-`6f045f38c55fe956cb7febeff677f658c30a0d1d7e8f70cf38033a1e7f5d984f`
-and exited 125 during the Node A lighttpd scenario. It is failed-consumed and
-must not be rerun. Evidence is retained at
-`/tmp/caddy-ssh-evidence-serving_health.h3GlvO`.
-
-The preceding Node A Caddy scenario completed coupled failover and recovery.
-For lighttpd, systemd reported `failed` after a successful stop. The neutral
-transaction accepted only `inactive`; its mutation marker existed, but the
-outer runner had not yet set its mutation flag, and the watchdog had not yet
-been created. Automatic restoration was therefore skipped.
-
-Bounded manual recovery started lighttpd. After Caddy's 30-second backend-down
-window, the web monitor reported recovery without VIP movement. Final checks
-proved all serving services active, Node A `MASTER` with four VIPs, Node B
-`BACKUP` with zero VIPs, and healthy dual-stack DNS, HTTPS, and Pi-hole UI
-paths. The observed 125 remains immutable even though later manual recovery is
-proven.
-
-The direct successor must change only the neutral stop/recovery boundary. It
-accepts explicit `inactive` or `failed` non-running states, makes every
-post-stop failure locally recoverable, exposes mutation before fallible
-post-stop work, and proves these paths through the real transaction. The
-remaining controlled-exercise sequence is unchanged.
-
-### Action 35aq terminal result
-
-Action 35aq is failed-consumed with exit status 1 and retained evidence at
-`/tmp/caddy-ssh-evidence-serving_health.BPx1JI`. It must not be rerun. The
-corrected stop-state and automatic-recovery boundary worked: outer recovery
-returned zero and final acceptance proved Node A `MASTER` with four VIPs, Node
-B `BACKUP` with zero VIPs, all five serving services active, and zero mutation
-or watchdog residue.
-
-The lighttpd observer rejected the durable `enqueue-failure-pending` state
-because it accepted only `failure-retained`. After restoration the monitor
-successfully enqueued one `recovered-before-enqueue` failure and one recovery,
-which Apprise delivered. The evidence also proves that the sampler incorrectly
-treated the affected-node UI outage during a deliberate Caddy stop as a shared
-continuity failure. Separately, shared DNS, Proxy HTTPS, and shared UI primary
-requests failed during the Caddy handoff. The then-current repository policy
-rejected every failed primary request. That result was not waived; it is the
-retained evidence used to define the narrow bounded-convergence contract for
-Action 35ar.
-
-### Action 35ar definition
-
-Action 35ar is the single defined, unexecuted controlled serving-failure
-successor. It consumes Action 35aq and its retained evidence without restoring,
-modifying, or rerunning it. The neutral transaction and outer runner remain the
-only implementation; no action-numbered implementation or regression is added.
-
-The lighttpd observer accepts either `failure-retained` or the durable
-`enqueue-failure-pending` state. The latter is accepted only when restoration
-eventually yields exactly one failure enqueue and one recovery enqueue for the
-same retained episode. The affected node's local UI outage during its deliberate
-Caddy stop is expected evidence. Lighttpd remains notification-only and permits
-only its expected affected-node and shared UI outage without VIP movement.
-
-A primary request under settled ownership always rejects. During a deliberately
-induced coupled failover or failback, a failed shared endpoint/family request may
-be accepted only when that exact endpoint and family succeeds within 12 seconds
-and timestamped kernel address evidence on either node proves a VIP transition
-between failure and recovery. Missing or late recovery, missing transition
-evidence, persistent family degradation, ambiguous or simultaneous ownership,
-and every settled-owner failure reject. A retry is evidence, not a broad waiver.
-
-The nine-scenario sequence, stop thresholds, recovery thresholds, restoration,
-status-125, structured-notification, final ownership, and zero-residue contracts
-remain unchanged. Definition and validation contact no HA node. Live execution
-requires separate authorization of outer SHA-256
-`2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`
-for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
-repository root. Authorization readiness passed against the real neutral
-transaction and outer paths.
-
-### Action 35ar terminal result
-
-Action 35ar is failed-consumed with exit status 1 and retained evidence at
-`/tmp/caddy-ssh-evidence-serving_health.cpiT8z`. It must not be rerun. The Node
-A Caddy scenario completed coupled failover and bounded recovery. The Node A
-lighttpd outage remained notification-only and produced
-`enqueue-failure-pending` without VIP movement.
-
-After restoration, the complete cursor-bounded daemon journal contained one
-`pihole-web` failure enqueue and one recovery enqueue, and Apprise delivered
-the failure as `recovered-before-enqueue` followed by recovery with the same
-correlation ID. The narrower identifier-selected notification artifact
-contained only recovery. The readiness predicate counted that incomplete
-artifact and emitted
-`serving_health_deployment_check_exercise_journal_complete=false`.
-
-This is an evidence-selection defect rather than lost durable delivery. A
-direct successor must correct only the bounded journal selection and prove the
-real selector behavior. The remaining exercise, producer state machine, and
-serving-health architecture remain unchanged. Final acceptance proved Node A
-`MASTER` with four VIPs, Node B `BACKUP` with zero VIPs, all five services
-active on both nodes, and zero mutation or watchdog residue.
-
-### Action 35as definition
-
-Action 35as is the single defined, unexecuted direct successor. It consumes
-Action 35ar without restoring or rerunning it. The neutral transaction now
-forms one de-duplicated, cursor-bounded union from the service-unit and
-identifier-selected journals before evaluating the lighttpd failure/recovery
-episode. Exactly one failure enqueue and one recovery enqueue remain required.
-
-Production-path coverage reproduces the Action 35ar selector split, with the
-failure visible only in the service-unit selection and recovery visible only
-in the identifier selection. The complete union passes; the former narrow
-notification-only predicate would fail. No producer state, notification
-delivery, controlled scenario, continuity, ownership, restoration, or
-status-125 behavior changes. Live execution remains separately gated by the
-exact outer-runner SHA-256
-`9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`
-for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
-repository root after authorization readiness passes.
-
-### Action 35as terminal result
-
-Action 35as is accepted with exit status 0 and evidence at
-`/tmp/caddy-ssh-evidence-serving_health.eFo6Gh`. All nine controlled Caddy,
-lighttpd, Pi-hole FTL, Unbound, and Keepalived scenarios completed. Coupled
-failover/recovery, notification-only lighttpd behavior, continuous dual-stack
-service evidence, bounded convergence, structured notifications, exact
-ownership, restoration, readback, and disposition passed.
-
-Operator Apprise readback independently confirmed the structured DNS
-failure/failover/recovery sequence and the correlated Proxy failure/recovery
-pair for the notification-only lighttpd episode.
-
-Both lighttpd episodes retained exactly one failure and one recovery through
-the complete de-duplicated journal. Final state was three stable Node A
-`MASTER/MASTER` samples with four VIPs and three stable Node B `BACKUP/BACKUP`
-samples with zero VIPs. All five serving services were active on both nodes,
-residue was absent, and rollback was not required. Action 35as is consumed and
-must not be rerun.
-
-The terminal checkpoint is archived at
-`caddy-action35as-terminal-2026-08-24`. Its consumed operation data and
-coverage are removed, the neutral operation specification is inactive, and the
-Caddy deployment stream is clean.
-
-## 19. Checkpoint procedure
-
-Before a live action:
+The accepted payload manifest SHA-256 is:
+
+```text
+2253a491e048c9d670865e3d39efa3c9e9acd92a31ec33219f97ba91428b0133
+```
+
+`caddy-release-source.tsv` pins the five non-secret repository sources that
+belong to that release. TLS files remain outside Git.
+
+The repository Caddy source set contains:
+
+- `Caddyfile`
+- `conf.d/00-health.caddy`
+- `conf.d/10-pihole-admin.caddy`
+- `conf.d/90-default-deny.caddy`
+- `conf.d/91-exact-listener-default-deny.caddy`
+
+## Publication and synchronization
+
+Node A performs normal publication. The publisher creates an immutable
+revision, validates it, records the target, and exposes the outbound state to
+managed lsyncd. Node B receives the candidate under its incoming namespace.
+The finalizer validates manifest contents, ownership, modes, marker state, and
+release identity. The reconciler chooses one valid target and activates it.
+
+Node B can publish with `--emergency` while it owns IPv4 and IPv6 and all four
+VIPs. Emergency publication freezes normal transport and retains the same
+manifest, validation, and reconciliation rules.
+
+The receiver rejects unsafe paths, symlinks, hard links, special files,
+malformed manifests, incomplete markers, wrong source identities, and changed
+payloads. The reconciler fails closed on same-parent conflicts and multiple
+eligible targets.
+
+Accepted steady state has empty incoming, outbound, and quarantine namespaces.
+A permitted namespace may be absent or may exist as a protected empty
+directory. Tests execute both accepted forms and reject adjacent unsafe forms.
+
+## Protocol-v2 services
+
+| Component | Purpose |
+| --- | --- |
+| `caddy-lsyncd.service` | Managed release transport |
+| `caddy-sync-reconcile.path` | Watches finalized incoming state |
+| `caddy-sync-reconcile.service` | Validates and activates one release |
+| `caddy-sync-health.timer` | Checks synchronization health |
+| `caddy-cert-expiry.timer` | Checks certificate expiry |
+| `caddy-sync-failure@.service` | Enqueues bounded replication failures |
+
+The generic `lsyncd.service` remains masked. The managed Caddy unit owns the
+transport configuration and runtime directory.
+
+## Durable notification delivery
+
+Producers write bounded `caddy-apprise-queue/v1` records through
+`caddy-apprise-enqueue`. The enqueue helper publishes a record atomically under
+`/var/lib/caddy-apprise-queue`. The path and persistent timer activate the
+delivery worker. The worker retries with bounded backoff, records a local
+receipt after acceptance, and moves an exhausted record to dead letter.
+
+Delivery failure cannot change DNS, Caddy, Keepalived, lsyncd, or
+reconciliation results. The delivery contract is at least once because a
+crash can occur after the remote endpoint accepts a request and before the
+worker commits its receipt.
+
+Current notifications use one multiline plain-text format and the Apprise
+severity icons. Keepalived notifications preserve the prior state. Authorized
+transactions mark intentional stops as planned maintenance. See
+`APPRISE_DELIVERY.md` for operations and security rules.
+
+## Systemd persistence
+
+Installable units and drop-ins are listed in `systemd-lifecycle.tsv`. The
+installer enables the required paths and timers and leaves static services to
+their trigger units. Validation checks enablement, active state where required,
+unit identities, and the correct environment-file boundary.
+
+The Pi-hole web worker runs as `pi:pi` with supplementary group `caddy-tls`.
+Its unit grants write access to the persistent notification queue. Acceptance
+requires a direct successful service invocation followed by a separate
+timer-owned healthy invocation.
+
+## Security and file modes
+
+- Root owns system configuration and systemd units.
+- `caddy-tls` grants bounded read access to protected Caddy environment and TLS
+  material.
+- `caddy-sync` owns protocol transport namespaces.
+- Queue directories use `pi:pi:0700`; queue records use `0600`.
+- Protocol namespace roots use the recorded `caddy-sync` ownership and
+  protected modes.
+- Runtime evidence uses unique `/tmp` roots with bounded UTF-8 files and no
+  secrets.
+
+Scripts reject unsafe roots, symlinks, special files, control characters,
+oversized streams, malformed identities, and ambiguous state.
+
+## Deployment transaction rules
+
+The repository keeps one neutral transaction and one neutral outer runner. A
+small operation specification supplies the versioned intent. The current
+operation is inactive.
+
+Future live work follows this order:
+
+1. Verify repositories and the deployment stream.
+2. Validate the accepted current-production baseline.
+3. Mutate and accept Node B.
+4. Mutate and accept Node A.
+5. Prove stable preferred ownership and continuous service.
+6. Read back bounded evidence and remove exact temporary programs.
+
+Rollback restores Node A and then Node B in reverse mutation order. The
+transaction returns 125 only when mutation occurred and exact recovery cannot
+be proven.
+
+Production-path tests execute the same outer and transaction state machines.
+They may substitute bounded external commands, but those substitutes must
+receive the exact emitted command and create observable causal effects. Tests
+cannot fabricate transport, journal, status, mutation, rollback, acceptance,
+or success evidence.
+
+## Production manifests
+
+| Manifest | Authority |
+| --- | --- |
+| `accepted-live-artifacts.tsv` | Accepted deployed hashes |
+| `production-artifacts.tsv` | Repository-to-node mappings |
+| `current-live-state.tsv` | Accepted semantic cluster state |
+| `runtime-production.tsv` | Runtime lifecycle boundary |
+| `caddy-release-source.tsv` | Accepted non-secret Caddy release sources |
+| `serving-health-production.tsv` | Accepted serving-health files |
+| `durable-apprise-production.tsv` | Accepted durable-notification files |
+| `config-lifecycle.tsv` | Complete configuration classification |
+| `deployable-successor.tsv` | Current successor state |
+
+Lifecycle registries also cover manifests, scripts, systemd units, templates,
+and tests.
+
+## Validation
+
+Run host profiles with explicit host-only flags:
 
 ```bash
-git status --short
-Caddy/tests/run-focused.sh --profile current-serving-health
-Caddy/tests/run-focused-container.sh --profiles current-serving-health
-Caddy/tests/deployable-successor-policy.sh --authorization-ready
-sha256sum "$(awk -F '\t' 'NR == 2 { print $6 }' \
-  Caddy/manifests/deployable-successor.tsv)"
+Caddy/tests/run-focused.sh --profile current-repository-policies --phase host --container never
+Caddy/tests/run-focused.sh --profile current-serving-health --phase host --container never
+Caddy/tests/run-focused.sh --profile current-synchronization --phase host --container never
+Caddy/tests/deployable-successor-policy.sh --check
 ```
 
-Stop after definition and hash reporting. Execute only after the user authorizes
-that exact hash.
+Use one network-disabled Debian batch when a change depends on Debian tooling
+or systemd behavior:
+
+```bash
+Caddy/tests/run-focused-container.sh --profiles current-repository-policies,current-serving-health,current-synchronization
+```
+
+The clean stream must reject `--authorization-ready`.
+
+## Rollback invariants
+
+- Keep one healthy owner throughout a standby-first deployment.
+- Do not reload both nodes at once.
+- Do not accept split-family or simultaneous ownership.
+- Preserve the previous release until the new release passes acceptance.
+- Restore exact files, modes, owners, enablement, and release selection.
+- Prove final Node A MASTER and Node B BACKUP state after rollback.
+- Keep delivery failure outside rollback and serving-health decisions.
+
+## Active deviations
+
+1. The installed Keepalived 2.2.7 parser mode does not provide a sound
+   configuration acceptance check. The deployment validates exact source,
+   script behavior, daemon-owned results, and bounded journals instead.
+2. Proxy VIPs remain under `virtual_ipaddress_excluded` so ownership follows
+   the coupled sync group without placing those addresses in VRRP adverts.
+3. Apprise delivery remains at least once. The worker sends a stable
+   `Idempotency-Key`, but the remote endpoint does not promise duplicate
+   suppression.
+4. The generic durable notification package has not replaced the accepted
+   Caddy/DNS client. That work belongs to `homelab-notification`.
+
+## Completed work and archive
+
+Action 35 accepted coupled DNS and Caddy health, immutable publication,
+standby-first installation, durable notifications, and controlled failure
+behavior. `Caddy/HISTORY.md` records each terminal result and annotated tag.
+Git history holds the full executed definitions.
+
+## Next work
+
+No deployment action is pending. Maintain operator documentation from current
+manifests and neutral scripts. Define a new successor only for a reviewed live
+change.

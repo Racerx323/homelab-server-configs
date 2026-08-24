@@ -38,13 +38,19 @@ fixture_rejected() {
     ! run_fixture
 }
 
-install -d -m 0700 "$root/Caddy/manifests"
+install -d -m 0700 "$root/Caddy/manifests" "$root/Caddy/scripts"
 install -m 0600 \
     "$repository_root/Caddy/manifests/accepted-live-artifacts.tsv" \
     "$repository_root/Caddy/manifests/current-live-state.tsv" \
     "$repository_root/Caddy/manifests/production-artifacts.tsv" \
     "$repository_root/Caddy/manifests/runtime-production.tsv" \
     "$root/Caddy/manifests/"
+install -m 0600 "$repository_root/Caddy/manifests/serving-health-operation.yaml" \
+    "$root/Caddy/manifests/serving-health-operation.yaml"
+install -m 0700 \
+    "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
+    "$repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh" \
+    "$root/Caddy/scripts/"
 printf '%s\n' \
     $'scenario\tphase\tentrypoint\texpectation\tdecision-evidence\traw-evidence' \
     >"$root/Caddy/manifests/deployable-successor-coverage.tsv"
@@ -56,6 +62,18 @@ printf '%s\n' \
     >"$root/Caddy/manifests/deployable-successor.tsv"
 
 check clean_registry_accepts run_fixture || exit 1
+
+sed -i 's/^action: none$/action: stale/' \
+    "$root/Caddy/manifests/serving-health-operation.yaml"
+check inactive_operation_rejected fixture_rejected || exit 1
+install -m 0600 "$repository_root/Caddy/manifests/serving-health-operation.yaml" \
+    "$root/Caddy/manifests/serving-health-operation.yaml"
+
+sed -i 's/^readonly operation_sha256=/readonly operation_sha256=0/' \
+    "$root/Caddy/scripts/run-serving-health-deployment-outer.sh"
+check inactive_operation_pin_rejected fixture_rejected || exit 1
+install -m 0700 "$repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh" \
+    "$root/Caddy/scripts/run-serving-health-deployment-outer.sh"
 
 sed -i '2s/^2/1/' "$root/Caddy/manifests/deployable-successor.tsv"
 check obsolete_schema_rejected fixture_rejected || exit 1

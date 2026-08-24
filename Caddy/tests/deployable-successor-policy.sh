@@ -76,6 +76,40 @@ successor_policy_neutral_entrypoints_are_real() {
     fi
 }
 
+successor_policy_inactive_valid() {
+    local successor_policy_operation=$successor_policy_repository_root/Caddy/manifests/serving-health-operation.yaml
+    local successor_policy_transaction=$successor_policy_repository_root/Caddy/scripts/apply-serving-health-deployment.sh
+    local successor_policy_outer=$successor_policy_repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh
+    local successor_policy_operation_hash successor_policy_transaction_hash
+
+    successor_policy_regular_file "$successor_policy_operation" || return 1
+    successor_policy_executable_file Caddy/scripts/apply-serving-health-deployment.sh || return 1
+    successor_policy_executable_file Caddy/scripts/run-serving-health-deployment-outer.sh || return 1
+    grep -Fxq 'action: none' "$successor_policy_operation" || return 1
+    grep -Fxq 'status: inactive' "$successor_policy_operation" || return 1
+    grep -Fxq '  lifecycle: neutral-reusable' "$successor_policy_operation" || return 1
+    grep -Fxq '  copy_per_action: prohibited' "$successor_policy_operation" || return 1
+    grep -Fxq 'transaction: Caddy/scripts/apply-serving-health-deployment.sh' \
+        "$successor_policy_operation" || return 1
+    grep -Fxq 'outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh' \
+        "$successor_policy_operation" || return 1
+    grep -Fxq 'state_contract: Caddy/manifests/current-live-state.tsv' \
+        "$successor_policy_operation" || return 1
+    grep -Fxq 'production_contract: Caddy/manifests/serving-health-production.tsv' \
+        "$successor_policy_operation" || return 1
+    grep -Fxq 'live_execution: no-operation-defined' "$successor_policy_operation" || return 1
+    ! grep -Eq '^(scope|quarantine_contract|baseline_contract):' \
+        "$successor_policy_operation" || return 1
+    successor_policy_transaction_hash=$(sha256sum "$successor_policy_transaction" | awk '{ print $1 }') || return 1
+    successor_policy_operation_hash=$(sha256sum "$successor_policy_operation" | awk '{ print $1 }') || return 1
+    grep -Fxq "transaction_sha256: $successor_policy_transaction_hash" \
+        "$successor_policy_operation" || return 1
+    grep -Fxq "readonly transaction_sha256=$successor_policy_transaction_hash" \
+        "$successor_policy_outer" || return 1
+    grep -Fxq "readonly operation_sha256=$successor_policy_operation_hash" \
+        "$successor_policy_outer" || return 1
+}
+
 successor_policy_remove_probe_root() {
     local successor_policy_cleanup_root=$1
 
@@ -447,6 +481,7 @@ successor_policy_registry_valid() {
             [[ "$successor_policy_transaction" = - && "$successor_policy_outer" = - ]] || return 1
             [[ "$successor_policy_regression" = - ]] || return 1
             [[ "$(wc -l <"$successor_policy_repository_root/$successor_policy_coverage")" -eq 1 ]] || return 1
+            successor_policy_inactive_valid || return 1
             ;;
         defined)
             successor_policy_defined_valid "$successor_policy_action" \

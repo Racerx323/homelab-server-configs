@@ -15,3 +15,27 @@ jobs:
     name: Baseline validation
     uses: >-
       Racerx323/homelab-docs/.github/workflows/reusable-validation.yml@7d09aae0bdf0fe80bc10263d1e8e5c682037d848
+  caddy-current-production:
+    name: Caddy current-production contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: homelab-server-configs
+      - name: Check out the accepted DNS dependency
+        uses: actions/checkout@v4
+        with:
+          repository: Racerx323/homelab-dns
+          ref: a8b45d827b1771e16141572c3facce7624fa28e0
+          path: homelab-dns
+      - name: Install focused-validation dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq shellcheck shfmt
+      - name: Repository policies
+        run: Caddy/tests/run-focused.sh --profile current-repository-policies --phase host --container never
+        working-directory: homelab-server-configs
+      - name: Serving-health contracts
+        run: Caddy/tests/run-focused.sh --profile current-serving-health --phase host --container never
+        working-directory: homelab-server-configs
+      - name: Synchronization contracts
+        run: Caddy/tests/run-focused.sh --profile current-synchronization --phase host --container never
+        working-directory: homelab-server-configs

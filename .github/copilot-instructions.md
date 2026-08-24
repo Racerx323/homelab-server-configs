@@ -1,10 +1,11 @@
-## vexp context tools <!-- vexp v2.1.7 -->
+## vexp context tools <!-- vexp v2.7.0 -->
 
-**MANDATORY: use `run_pipeline` - do NOT grep, glob, or read files manually.**
-vexp returns pre-indexed, graph-ranked context in a single call.
+Call `run_pipeline` once at the start of an unfamiliar non-trivial task. Skip
+it when the task already names the files or symbols to change. Use native
+search for literal strings and normal file tools for targeted reads.
 
 ### Workflow
-1. `run_pipeline` with your task description - ALWAYS FIRST (replaces all other tools)
+1. `run_pipeline` once for orientation when the task is not already anchored
 2. Make targeted changes based on the context returned
 3. `run_pipeline` again only if you need more context
 
@@ -16,7 +17,7 @@ vexp returns pre-indexed, graph-ranked context in a single call.
 - `expand_vexp_ref` - expand V-REF placeholders in v2 output
 
 ### Agentic search
-- Do NOT use built-in file search, grep, or codebase indexing - always call `run_pipeline` first
+- Use native search for literal constants, paths, and log messages
 - If you spawn sub-agents or background tasks, pass them the context from `run_pipeline`
   rather than letting them search the codebase independently
 

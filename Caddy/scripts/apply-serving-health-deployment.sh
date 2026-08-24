@@ -435,7 +435,7 @@ validate_quarantine_inventory() {
     require "${serving_health_label}_manifest_regular" regular_file "$serving_health_manifest"
     if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
         require_equal "${serving_health_label}_manifest_identity" \
-            2989c2bc4cef06864cf2e5c2abc30114fac0830841e52a1bd8d5983ed26a2083 \
+            325271f1aacb7e6d2e88ada14d664900eea3687477d15844ae111f7936363a35 \
             "$(sha256sum "$serving_health_manifest" | awk '{ print $1 }')"
     fi
     serving_health_expected_file=$(mktemp /tmp/caddy-serving-health-quarantine-expected.XXXXXX)
@@ -950,7 +950,7 @@ validate_payload() {
     require quarantine_inventory_manifest regular_file \
         "$payload_root/manifests/serving-health-quarantine-baseline.tsv"
     require_equal quarantine_inventory_manifest_identity \
-        2989c2bc4cef06864cf2e5c2abc30114fac0830841e52a1bd8d5983ed26a2083 \
+        325271f1aacb7e6d2e88ada14d664900eea3687477d15844ae111f7936363a35 \
         "$(sha256sum "$payload_root/manifests/serving-health-quarantine-baseline.tsv" | awk '{ print $1 }')"
     while IFS=$'\t' read -r serving_health_repository serving_health_source serving_health_target \
         serving_health_mode serving_health_expected_hash serving_health_lifecycle; do
@@ -971,7 +971,7 @@ validate_installed_candidate_inventory() {
     while IFS=$'\t' read -r serving_health_repository serving_health_source serving_health_target \
         serving_health_mode serving_health_expected_hash serving_health_lifecycle; do
         [[ "$serving_health_repository" = '# repository' ]] && continue
-        [[ "$serving_health_lifecycle" = production-candidate ]]
+        [[ "$serving_health_lifecycle" = production-current ]]
         case "$serving_health_target" in
             /etc/caddy/releases/REVISION/*) continue ;;
         esac

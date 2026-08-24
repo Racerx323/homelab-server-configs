@@ -84,6 +84,9 @@ executed deployment archive.
 - `Caddy/manifests/current-live-state.tsv` describes the latest accepted or
   recovered semantic state.
 - Keep all current files classified in the relevant lifecycle registry.
+- Keep the complete `Caddy/configs/` tree classified in
+  `config-lifecycle.tsv`. Pin the non-secret sources of the accepted immutable
+  Caddy release in `caddy-release-source.tsv`.
 - Register only the next deployable action in
   `Caddy/manifests/deployable-successor.tsv`.
 - Populate `deployable-successor-coverage.tsv` before reporting an outer
@@ -96,9 +99,12 @@ executed deployment archive.
   the full standby-first phase order, mutation boundaries, convergence,
   rollback, and residue. Do not create one row per ordinary assertion or
   duplicate the production inventory as coverage labels.
-- Run
-  `Caddy/tests/deployable-successor-policy.sh --authorization-ready` before
-  requesting live authorization.
+- Run `Caddy/tests/deployable-successor-policy.sh --check` while the stream is
+  clean. Run `--authorization-ready` only after a successor is registered and
+  before requesting live authorization.
+- The inactive operation specification must say `action: none`, contain no
+  operation-specific baseline or scope, and remain hash-pinned to the neutral
+  transaction and outer runner. Clean-state policy must reject stale pins.
 - Keep source and rendered identities typed separately. Do not substitute one
   for the other.
 

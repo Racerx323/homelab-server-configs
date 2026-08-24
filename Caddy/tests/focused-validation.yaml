@@ -117,11 +117,13 @@
       ]
     },
     "current-serving-health": {
-      "description": "Current DNS and Caddy VRRP serving checks, daemon-owned execution acceptance, and notification-only Pi-hole web monitoring.",
+      "description": "Accepted DNS and Caddy serving checks, notification-only Pi-hole web monitoring, and clean deployment state.",
       "path_patterns": [
         "Caddy/configs/caddy/conf.d/10-pihole-admin.caddy",
         "Caddy/docs/35-PLAN.md",
         "Caddy/manifests/deployment.yaml",
+        "Caddy/manifests/caddy-release-source.tsv",
+        "Caddy/manifests/config-lifecycle.tsv",
         "Caddy/manifests/serving-health-production.tsv",
         "Caddy/manifests/serving-health-operation.yaml",
         "Caddy/manifests/serving-health-quarantine-baseline.tsv",
@@ -181,6 +183,7 @@
         "executable-modes",
         "systemd-boot",
         "deployment-lifecycle",
+        "deployable-successor",
         "test-lifecycle"
       ]
     },

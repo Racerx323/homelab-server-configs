@@ -31,7 +31,7 @@ fail() {
 [[ -f "$lifecycle_manifest" && ! -L "$lifecycle_manifest" ]] ||
     fail manifest_not_regular
 diff -u \
-    <(find "$template_directory" -maxdepth 1 -type f ! -name README.md \
+    <(find "$template_directory" -maxdepth 1 -type f \
         -printf 'Caddy/templates/%f\n' | LC_ALL=C sort) \
     <(awk -F '\t' '!/^#/ && NF { print $1 }' "$lifecycle_manifest" |
         LC_ALL=C sort) >/dev/null || fail inventory_mismatch
@@ -41,12 +41,15 @@ awk -F '\t' '
     NF != 4 { invalid = 1; exit }
     $2 !~ /^(production-current|future-task)$/ { invalid = 1; exit }
     $3 !~ /^(yes|no)$/ { invalid = 1; exit }
-    $2 == "production-current" && $3 != "yes" { invalid = 1; exit }
+    $2 == "production-current" && $3 == "no" && $1 != "Caddy/templates/README.md" { invalid = 1; exit }
     $2 == "future-task" && $3 != "no" { invalid = 1; exit }
     seen[$1]++ { invalid = 1; exit }
     END { exit invalid || length(seen) == 0 }
 ' "$lifecycle_manifest" || fail invalid_manifest_contract
 
+grep -Fxq \
+    $'Caddy/templates/README.md\tproduction-current\tno\tCaddy/templates/README.md' \
+    "$lifecycle_manifest" || fail template_readme
 grep -Fxq \
     $'Caddy/templates/authorized-key-receiver-finalized-v2.in\tproduction-current\tyes\tCaddy/manifests/synchronization-protocol-v2.yaml' \
     "$lifecycle_manifest" || fail receiver_template

@@ -52,9 +52,10 @@ an accepted notification-only timer and cannot change VRRP eligibility.
 
 ```bash
 Caddy/tests/run-focused.sh --list
-Caddy/tests/run-focused.sh --profile current-synchronization
-Caddy/tests/run-focused.sh --profile current-serving-health
-Caddy/tests/deployable-successor-policy.sh --authorization-ready
+Caddy/tests/run-focused.sh --profile current-synchronization --phase host --container never
+Caddy/tests/run-focused.sh --profile current-serving-health --phase host --container never
+Caddy/tests/deployable-successor-policy.sh --check
 ```
 
-Live changes require a separately authorized outer-runner SHA-256.
+`--authorization-ready` is valid only while a successor is defined. Live
+changes require a separately authorized outer-runner SHA-256.

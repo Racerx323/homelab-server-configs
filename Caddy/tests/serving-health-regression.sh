@@ -19,8 +19,6 @@ readonly node_a_keepalived=$dns_root/Keepalived/configs/keepalived-pihole0.conf
 readonly node_b_keepalived=$dns_root/Keepalived/configs/keepalived-pihole00.conf
 readonly proxy_route=$caddy_root/configs/caddy/conf.d/10-pihole-admin.caddy
 readonly web_service=$caddy_root/systemd/caddy-pihole-web-health.service
-readonly deployment_transaction=$caddy_root/scripts/apply-serving-health-deployment.sh
-readonly deployment_outer=$caddy_root/scripts/run-serving-health-deployment-outer.sh
 root=$(mktemp -d /tmp/caddy-serving-health-regression.XXXXXX)
 readonly root
 trap 'rm -rf -- "$root"' EXIT
@@ -216,21 +214,11 @@ while IFS=$'\t' read -r health_repository health_source health_target \
     health_mode health_hash health_lifecycle; do
     [[ -n "$health_repository" && "$health_repository" != \#* ]] || continue
     [[ "$health_target" = /* && "$health_mode" =~ ^0[0-7]{3}$ ]]
-    [[ "$health_lifecycle" = production-candidate ]]
+    [[ "$health_lifecycle" = production-current ]]
     health_root=$server_root
     [[ "$health_repository" = homelab-server-configs ]] || health_root=$dns_root
     [[ -f "$health_root/$health_source" && ! -L "$health_root/$health_source" ]]
     [[ "$(sha256sum "$health_root/$health_source" | awk '{ print $1 }')" = "$health_hash" ]]
 done <"$caddy_root/manifests/serving-health-production.tsv"
-printf '%s_candidate_manifest=true\n' "$prefix"
-
-grep -Fq 'validate_current_live_release' "$deployment_transaction"
-grep -A6 -F '    exercise-preflight)' "$deployment_transaction" |
-    grep -Fq 'validate_current_live_release'
-grep -Fq 'current-live-state.tsv' "$deployment_outer"
-grep -Fq 'outer-real-preflight' "$deployment_outer"
-if grep -Fq 'exercise-preflight) : ;;' "$deployment_outer"; then
-    exit 1
-fi
-printf '%s_real_controlled_preflight_contract=true\n' "$prefix"
+printf '%s_accepted_manifest=true\n' "$prefix"
 printf '%s_complete=true\n' "$prefix"

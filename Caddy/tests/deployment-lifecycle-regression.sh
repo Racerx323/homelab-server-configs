@@ -17,6 +17,17 @@ trap 'rm -rf -- "$work_directory"' EXIT
 
 /bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check >/dev/null
 
+config_negative_root=$work_directory/config-negative-repository
+readonly config_negative_root
+install -d -m 0700 "$config_negative_root"
+cp -a -- "$caddy_root" "$config_negative_root/Caddy"
+sed -i '/^Caddy\/configs\/sysctl\/70-caddy-ha.conf\t/d' \
+    "$config_negative_root/Caddy/manifests/config-lifecycle.tsv"
+config_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$config_negative_root" >/dev/null 2>&1 || config_negative_status=$?
+[[ "$config_negative_status" -eq 1 ]]
+
 /bin/bash "$caddy_root/scripts/reconcile-release-v2.sh" \
     --candidate-selection-self-test >/dev/null
 
@@ -81,6 +92,8 @@ cp -a -- \
 cp -- \
     "$caddy_root/manifests/script-lifecycle.tsv" \
     "$caddy_root/manifests/systemd-lifecycle.tsv" \
+    "$caddy_root/manifests/config-lifecycle.tsv" \
+    "$caddy_root/manifests/caddy-release-source.tsv" \
     "$caddy_root/manifests/production-artifacts.tsv" \
     "$caddy_root/manifests/synchronization-protocol-v2.yaml" \
     "$negative_root/Caddy/manifests/"

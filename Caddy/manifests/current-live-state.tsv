@@ -1,7 +1,7 @@
 schema_version	scope	key	value	evidence
 1	cluster	accepted-live-artifacts-sha256	686eb9cd399998e62d8995b1d8738974c2e22467b435cbb61795b2ef468fc554	accepted-live-artifacts.tsv
 1	cluster	runtime-production-sha256	495fcabc6640bf93d4e06b3c02f457911f352509df862731cccfecb72be401a7	runtime-production.tsv
-1	cluster	durable-apprise-evidence	/tmp/caddy-ssh-evidence-serving_health.5JumxL	accepted-action35al
+1	cluster	durable-apprise-evidence	tag:caddy-action35al-terminal-2026-08-23	accepted-action35al
 1	cluster	notification-standardization	multiline-rendering,durable-transition-state,planned-maintenance,conservative-fault-attribution	accepted-action35al
 1	node-a	ownership	ipv4-master,ipv6-master,shared-vips=4,stable-samples=3	accepted-action35ah
 1	node-a	services	caddy=active,lsyncd=active,reconcile-path=active,keepalived=active,pihole-web-health-timer=active,pihole-web-health-worker=healthy	accepted-action35al
@@ -13,6 +13,6 @@ schema_version	scope	key	value	evidence
 1	node-b	services	caddy=active,lsyncd=active,reconcile-path=active,keepalived=active,pihole-web-health-timer=active,pihole-web-health-worker=healthy	accepted-action35al
 1	node-b	release	action35ah-exact,revision=20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d,parent=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca,source=node-a,payload-manifest-sha256=2253a491e048c9d670865e3d39efa3c9e9acd92a31ec33219f97ba91428b0133	accepted-action35ah
 1	node-b	protocol-v2-residue	incoming=empty,quarantine=empty,outbound=empty	accepted-action35ah
-1	cluster	serving-health-evidence	/tmp/caddy-ssh-evidence-serving_health.5JumxL	accepted-action35al
+1	cluster	serving-health-evidence	tag:caddy-action35as-terminal-2026-08-24	accepted-action35as
 1	node-b	durable-apprise-installation	installed-exact,path=enabled,timer=enabled	accepted-action35al
 1	node-b	apprise-queue	pending=0,inflight=0,dead-letter=0	accepted-action34m

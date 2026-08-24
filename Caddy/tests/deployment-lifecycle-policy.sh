@@ -22,11 +22,19 @@ fi
 readonly repository_root
 readonly script_registry=$repository_root/Caddy/manifests/script-lifecycle.tsv
 readonly systemd_registry=$repository_root/Caddy/manifests/systemd-lifecycle.tsv
+readonly config_registry=$repository_root/Caddy/manifests/config-lifecycle.tsv
+readonly release_source_registry=$repository_root/Caddy/manifests/caddy-release-source.tsv
 readonly production_inventory=$repository_root/Caddy/manifests/production-artifacts.tsv
 readonly synchronization_manifest=$repository_root/Caddy/manifests/synchronization-protocol-v2.yaml
 readonly installer=$repository_root/Caddy/scripts/install-caddy-ha.sh
 readonly validator=$repository_root/Caddy/scripts/validate-caddy-ha.sh
 readonly uninstaller=$repository_root/Caddy/scripts/uninstall-caddy-ha.sh
+deployment_lifecycle_payload_hash=$(awk -F '\t' '
+    $1 == "node_a_current_caddy_payload_manifest" { node_a = $7 }
+    $1 == "node_b_current_caddy_payload_manifest" { node_b = $7 }
+    END { if (node_a == "" || node_a != node_b) exit 1; print node_a }
+' "$production_inventory") || exit 1
+readonly deployment_lifecycle_payload_hash
 
 fail() {
     printf '%s_failure=%s\n' "$prefix" "$1" >&2
@@ -36,6 +44,8 @@ fail() {
 for required_file in \
     "$script_registry" \
     "$systemd_registry" \
+    "$config_registry" \
+    "$release_source_registry" \
     "$production_inventory" \
     "$synchronization_manifest" \
     "$installer" \
@@ -71,9 +81,40 @@ validate_registry() {
 validate_registry "$script_registry" script || fail script_registry_contract
 validate_registry "$systemd_registry" systemd || fail systemd_registry_contract
 
+awk -F '\t' '
+    /^[[:space:]]*(#|$)/ { next }
+    NF != 4 { exit 1 }
+    $1 !~ /^Caddy\/configs\/[A-Za-z0-9._@+\/-]+$/ { exit 1 }
+    $2 != "production-current" || $3 !~ /^(yes|no)$/ { exit 1 }
+    $4 !~ /^Caddy\/[A-Za-z0-9._@+\/-]+$/ { exit 1 }
+    seen[$1]++ { exit 1 }
+    END { if (length(seen) == 0) exit 1 }
+' "$config_registry" || fail config_registry_contract
+
+diff -u \
+    <(find "$repository_root/Caddy/configs" -type f \
+        -printf 'Caddy/configs/%P\n' | LC_ALL=C sort) \
+    <(awk -F '\t' '!/^[[:space:]]*(#|$)/ { print $1 }' \
+        "$config_registry" | LC_ALL=C sort) >/dev/null ||
+    fail config_inventory_incomplete
+
+awk -F '\t' -v root="$repository_root/" \
+    -v accepted_payload="$deployment_lifecycle_payload_hash" '
+    /^[[:space:]]*(#|$)/ { next }
+    NF != 5 || $1 !~ /^Caddy\/configs\/caddy\// ||
+        $2 !~ /^(Caddyfile|conf\.d\/[A-Za-z0-9._-]+\.caddy)$/ ||
+        length($3) != 64 || $3 !~ /^[0-9a-f]+$/ ||
+        length($4) != 64 || $4 !~ /^[0-9a-f]+$/ ||
+        $4 != accepted_payload || $5 != "production-current" { exit 1 }
+    { command = "sha256sum \"" root $1 "\""; command | getline line; close(command);
+      split(line, hash, " "); if (hash[1] != $3) exit 1 }
+    seen[$1]++ { exit 1 }
+    END { if (length(seen) != 5) exit 1 }
+' "$release_source_registry" || fail caddy_release_source_contract
+
 diff -u \
     <(find "$repository_root/Caddy/scripts" -maxdepth 1 -type f \
-        ! -name README.md -printf 'Caddy/scripts/%f\n' | LC_ALL=C sort) \
+        -printf 'Caddy/scripts/%f\n' | LC_ALL=C sort) \
     <(awk -F '\t' '!/^[[:space:]]*(#|$)/ { print $1 }' \
         "$script_registry" | LC_ALL=C sort) >/dev/null ||
     fail script_inventory_incomplete

@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=77a8e54d5d3596d09c6340d74a4e2d29ff7c4e7de322271a9527aa84a536240b
-readonly operation_sha256=449480676df54d46af617dd9870ef1532725d5436b2128367ccab905db63072d
+readonly transaction_sha256=89a5c89820e1d8139b915a310fe8073d241dca552dc900ac6a73ec53154fde0f
+readonly operation_sha256=d561a3f4fb5457b7902b31398868f3a65775d575005053779f261fc1149c233b
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -108,7 +108,7 @@ build_payload() {
     while IFS=$'\t' read -r serving_health_repository serving_health_source serving_health_target \
         serving_health_mode serving_health_hash serving_health_lifecycle; do
         [[ "$serving_health_repository" = '# repository' ]] && continue
-        [[ "$serving_health_mode" =~ ^0[0-7]{3}$ && "$serving_health_lifecycle" = production-candidate ]]
+        [[ "$serving_health_mode" =~ ^0[0-7]{3}$ && "$serving_health_lifecycle" = production-current ]]
         [[ "$serving_health_target" = /* ]]
         serving_health_source_path=${workspace_root}/$serving_health_repository/$serving_health_source
         regular_file "$serving_health_source_path"

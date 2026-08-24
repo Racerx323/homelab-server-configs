@@ -1,0 +1,12 @@
+# path	lifecycle	deployable	authority
+Caddy/configs/README.md	production-current	no	Caddy/configs/README.md
+Caddy/configs/caddy/Caddyfile	production-current	yes	Caddy/manifests/caddy-release-source.tsv
+Caddy/configs/caddy/conf.d/00-health.caddy	production-current	yes	Caddy/manifests/caddy-release-source.tsv
+Caddy/configs/caddy/conf.d/10-pihole-admin.caddy	production-current	yes	Caddy/manifests/caddy-release-source.tsv
+Caddy/configs/caddy/conf.d/90-default-deny.caddy	production-current	yes	Caddy/manifests/caddy-release-source.tsv
+Caddy/configs/caddy/conf.d/91-exact-listener-default-deny.caddy	production-current	yes	Caddy/manifests/caddy-release-source.tsv
+Caddy/configs/lighttpd/desired-state.conf	production-current	no	Caddy/configs/README.md
+Caddy/configs/lsyncd/caddy-node-a.lua	production-current	yes	Caddy/manifests/production-artifacts.tsv
+Caddy/configs/lsyncd/caddy-node-b.lua	production-current	yes	Caddy/manifests/production-artifacts.tsv
+Caddy/configs/sysctl/70-caddy-ha.conf	production-current	yes	Caddy/scripts/install-caddy-ha.sh
+Caddy/configs/tmpfiles.d/caddy-ha.conf	production-current	yes	Caddy/manifests/production-artifacts.tsv

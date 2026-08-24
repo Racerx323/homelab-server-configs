@@ -26,12 +26,14 @@ bodies are prohibited.
 | Correlation | Stable episode or event identity |
 | Evidence and first check | Journald unit/tag or runbook pointer and one safe starting command |
 
-Keepalived reads bounded runtime snapshots written by the DNS and Caddy serving
-checks. A `FAULT` notification can name Pi-hole FTL, Unbound, or Caddy and the
-failed check without rerunning a probe from the notifier. Pi-hole/lighttpd
-monitoring identifies Proxy backend failures and states that VRRP ownership did
-not change. Replication workers identify lsyncd, reconciliation,
-synchronization health, or certificate-expiry failures.
+Keepalived supplies the authoritative tracking-script exit or signal result.
+The notifier combines that result with cursor-bounded daemon journal evidence
+when the evidence identifies a component. It reports a conservative coupled
+eligibility failure when the journal cannot distinguish DNS from Caddy; it does
+not reuse stale helper snapshots or rerun a probe. Pi-hole/lighttpd monitoring
+identifies Proxy backend failures and states that VRRP ownership did not
+change. Replication workers identify lsyncd, reconciliation, synchronization
+health, or certificate-expiry failures.
 
 The notification-delivery worker records retry, dead-letter, and queue health
 events in journald. It does not enqueue an alert about its own delivery failure
@@ -156,6 +158,22 @@ unavoidable distributed-systems ambiguity: the worker retries with the same
 `Idempotency-Key`, but duplicate suppression at that boundary depends on the
 endpoint honoring that key.
 
+The worker accepts only schema `caddy-apprise-queue/v1`. An upgrade that changes
+record fields, path layout, service identity, or retry semantics requires an
+explicit compatibility step for pending, inflight, receipt, and dead-letter
+records. The installer must not reinterpret an older record as a current one.
+
+The repository has no supported administrator command for replay or purge.
+Operators may inspect bounded metadata. A future replay tool must validate the
+complete record, preserve the event ID, record the disposition in journald,
+and publish the replay atomically. Manual JSON edits are unsupported.
+
+Receipt retention and disk-capacity limits need an operator policy before this
+client becomes a generic package. Until then, monitor filesystem capacity and
+record counts. A full filesystem can prevent enqueue, retry-state updates, or
+receipt creation. Producers report local enqueue failure without changing the
+source service's health result.
+
 ## Operations
 
 ```bash
@@ -163,6 +181,7 @@ systemctl status caddy-apprise-worker.path caddy-apprise-worker.timer
 systemctl start caddy-apprise-worker.service
 journalctl -t caddy-apprise-queue -t caddy-apprise-worker --since today
 find /var/lib/caddy-apprise-queue -maxdepth 2 -type f -printf '%M %u:%g %p\n'
+df -h /var/lib/caddy-apprise-queue
 ```
 
 Do not edit queued JSON in place. Resolve the delivery cause, then start the
@@ -174,3 +193,8 @@ delete a failed record merely to clear an alert.
 Uninstallation removes programs and units but preserves
 `/var/lib/caddy-apprise-queue` by default so undelivered evidence is not lost.
 Purging it is a separate destructive operator decision.
+
+The accepted Caddy installer owns this client installation. The planned
+generic package in `homelab-notification` must provide independent install,
+upgrade, inspect, replay, uninstall, and destructive-purge commands before the
+Caddy/DNS deployment can pin and consume it.

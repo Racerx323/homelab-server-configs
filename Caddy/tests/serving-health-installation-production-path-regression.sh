@@ -18,66 +18,7 @@ IFS=$'\t' read -r successor_status successor_action transaction_relative outer_r
 )
 if [[ "$successor_status" = none ]]; then
     [[ "$successor_action" = - && "$transaction_relative" = - && "$outer_relative" = - ]]
-    root=$(mktemp -d /tmp/caddy-serving-health-state-contract.XXXXXX)
-    trap 'chmod -R u+rwX -- "$root" 2>/dev/null || true; rm -rf -- "$root"' EXIT
-    trap 'printf "regression_failure_line=%s status=%s\n" "$LINENO" "$?" >&2' ERR
-    install -d -m 0700 "$root/transaction"
-    CADDY_NOTIFICATION_STATE_CONTRACT_ONLY=1 \
-        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/transaction \
-        /bin/bash "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
-        --production-path-test >"$root/transaction.stdout"
-    for decision in notification-state-only notification-state-lock \
-        notification-state-unexpected notification-state-pending \
-        notification-state-symlink notification-state-malformed \
-        notification-state-state-mode notification-state-root-mode \
-        notification-state-missing; do
-        test -s "$root/transaction/decisions/$decision.tsv"
-        test -s "$root/transaction/raw/$decision.txt"
-    done
-    awk -F '\t' '$2 == "reject" && $3 != 0 { rejected++ }
-        END { exit(rejected == 7 ? 0 : 1) }' \
-        "$root/transaction/decisions/notification-state-"{unexpected,pending,symlink,malformed,state-mode,root-mode,missing}.tsv
-    grep -Fq 'notification_state_contract_production_path_test_complete=true' \
-        "$root/transaction.stdout"
-    install -d -m 0700 "$root/controlled-transaction" "$root/controlled-outer"
-    CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
-        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/controlled-transaction \
-        /bin/bash "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
-        --production-path-test >"$root/controlled-transaction.stdout"
-    CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY=1 \
-        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$root/controlled-outer \
-        /bin/bash "$repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh" \
-        --production-path-test >"$root/controlled-outer.stdout"
-    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
-        "$root/controlled-transaction.stdout"
-    grep -Fq 'controlled_failure_exercise_production_path_test_complete=true' \
-        "$root/controlled-outer.stdout"
-    grep -Fq 'VRRP_Script(check-caddy) failed' \
-        "$root/controlled-transaction/raw/exercise-journal-bounded.txt"
-    test -s "$root/controlled-transaction/decisions/exercise-sampler-sigterm-lifecycle.tsv"
-    test -s "$root/controlled-outer/decisions/outer-causal-continuity-classification.tsv"
-    grep -Eq $'\t(handoff-overlap|settled-owner-serving-failure|family-degraded|unclassified-insufficient-evidence)$' \
-        "$root/controlled-outer/raw/outer-causal-continuity-classification.txt"
-    grep -Fq $'\tbounded-convergence-retry' \
-        "$root/controlled-outer/raw/outer-bounded-convergence-retry.txt"
-    grep -Fq 'pihole_web_health event=enqueue-failure-pending' \
-        "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
-    grep -Fq 'pihole_web_health event=recovered-before-enqueue' \
-        "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
-    grep -Fxq 'daemon_failure_count=1' \
-        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
-    grep -Fxq 'identifier_failure_count=0' \
-        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
-    grep -Fxq 'combined_failure_count=1' \
-        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
-    for corruption in missing duplicate malformed reordered oversized incomplete symlinked; do
-        test -s "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
-        awk -F '\t' 'NR == 2 && $2 == "reject" && $3 != 0 { found=1 }
-            END { exit(found ? 0 : 1) }' \
-            "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
-    done
-    grep -Fq $'node-a\texercise-service\tnode-a-caddy:stop' \
-        "$root/controlled-outer/raw/outer-full-scenario-sequence.txt"
+    /bin/bash "$repository_root/Caddy/tests/deployable-successor-policy.sh" --check >/dev/null
     printf '%s_no_registered_successor=true\n' "$prefix"
     exit 0
 fi
