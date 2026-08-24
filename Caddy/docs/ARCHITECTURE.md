@@ -47,6 +47,25 @@ Keepalived tracks node-local DNS and trusted Caddy HTTPS serving health.
 Pi-hole/lighttpd backend monitoring reports through notifications and does not
 change VRRP eligibility.
 
+## Proxy DNS identity
+
+Every reverse-proxied application has an A record for `10.1.0.56` and an AAAA
+record for `fd36:5aa8:6971:1::56`. Those names are Caddy virtual hosts, not
+separate network interfaces or separate reverse-DNS identities. Caddy selects
+the application using TLS SNI and the HTTP `Host` header.
+
+The shared Proxy addresses have one canonical reverse identity:
+
+| Address | PTR target |
+| --- | --- |
+| `10.1.0.56` | `proxy.local.theama.co.` |
+| `fd36:5aa8:6971:1::56` | `proxy.local.theama.co.` |
+
+`proxy.local.theama.co` resolves forward to both shared Proxy addresses.
+Do not add a PTR for every application hostname. DNS acceptance proves each
+application's exact A and AAAA answers, both canonical PTR answers, and the
+canonical name's matching forward answers.
+
 ## Protocol-v2 publication
 
 ```mermaid

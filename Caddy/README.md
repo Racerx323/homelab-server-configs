@@ -45,6 +45,7 @@ The `homelab-network` repository owns network-controller configuration.
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Component-specific diagnosis and evidence |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Accepted as-built component and data-flow model |
 | [`docs/APPLICATION_ONBOARDING.md`](docs/APPLICATION_ONBOARDING.md) | Backend inventory, template, validation, and release gate |
+| [`docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md`](docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md) | Immutable release construction, transfer, activation, and bookkeeping |
 | [`docs/APPRISE_DELIVERY.md`](docs/APPRISE_DELIVERY.md) | Notification and persistent queue authority |
 | [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | Rebuild inputs and external recovery authority |
 | [`docs/caddy_plan-v1.1.md`](docs/caddy_plan-v1.1.md) | Architecture decisions, lifecycle, and authorization authority |

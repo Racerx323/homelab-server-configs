@@ -319,6 +319,7 @@ inventories, and accepted production state:
 | `Caddy/docs/UNINSTALLATION.md` | Standby-first removal, release and queue preservation, service disablement, and externally owned boundaries |
 | `Caddy/docs/TROUBLESHOOTING.md` | Caddy, DNS, lighttpd, Keepalived, lsyncd, reconciler, TLS, queue, timer, and ownership failures |
 | `Caddy/docs/ARCHITECTURE.md` | As-built component boundaries and Mermaid steady-state, publication, and failover diagrams |
+| `Caddy/docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md` | Prepared-release construction, protocol-v2 transfer, activation, acceptance, and record reconciliation |
 
 Keep documentation authority separated:
 
@@ -346,7 +347,7 @@ repository-owned filesystem and identity state; operators must not use it as a
 production installation, migration, or recovery workflow. Routine production
 changes continue through the neutral operation and protocol-v2 release path.
 
-Checkpoint 1 is complete. The six documents, README index, and neutral
+Checkpoint 1 is complete. The operator documents, README index, and neutral
 `operator-documentation-policy.sh` now enforce the current authority,
 entrypoint, accepted-live, and operational boundaries. No node contact or live
 change occurred.
@@ -416,10 +417,33 @@ requires an approved inventory, repository and DNS reconciliation, an
 immutable protocol-v2 release, production-path validation, and separate live
 authorization.
 
+The approved onboarding contract gives every application an A and AAAA record
+for the shared Proxy VIPs. Each shared address retains the single canonical
+PTR target `proxy.local.theama.co.`, and that canonical name resolves forward
+to both Proxy VIPs. Application hostnames do not receive individual PTR
+records; Caddy selects them through TLS SNI and the HTTP `Host` header. DNS
+acceptance validates the application forward records and the canonical
+forward-confirmed reverse mapping without rewriting accepted-live records.
+
+### Future reverse-proxy fragment generator project
+
+The next planned Caddy repository project begins from
+[`FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md`](FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md).
+It must define a deterministic noninteractive renderer, its reviewed input
+schema, source-of-truth adapter, orchestration boundary, temporary-release
+validation, lifecycle transitions, and authorization boundaries before
+implementation begins.
+
+The prompt is the only current reference to this project. Current operator
+documents and `Caddy/README.md` must not present the proposed generator as an
+accepted capability. The planning project must not select a backend, change
+DNS, contact a node, register a deployment successor, create an operation
+specification, or publish a release.
+
 ### Future complete-installation project
 
-The next planned Caddy repository project does not design or authorize a
-clean-node installation. It must begin from
+The separately planned complete-installation project does not design or
+authorize a clean-node installation. It must begin from
 [`FUTURE_COMPLETE_INSTALLATION_PROMPT.md`](FUTURE_COMPLETE_INSTALLATION_PROMPT.md).
 That prompt is the only current reference to the future project. The current
 operator documents, `Caddy/README.md`, `APPRISE_DELIVERY.md`, and

@@ -40,6 +40,7 @@ required_documents=(
     ARCHITECTURE.md
     INSTALLATION.md
     OPERATIONS.md
+    PROTOCOL_V2_RELEASE_LIFECYCLE.md
     QUICK_START.md
     TROUBLESHOOTING.md
     UNINSTALLATION.md
@@ -104,6 +105,8 @@ authority_links_complete() {
         '(APPRISE_DELIVERY.md)' || return 1
     require_text "$docs_root/OPERATIONS.md" \
         '(APPLICATION_ONBOARDING.md)' || return 1
+    require_text "$docs_root/OPERATIONS.md" \
+        '(PROTOCOL_V2_RELEASE_LIFECYCLE.md)' || return 1
     require_text "$docs_root/UNINSTALLATION.md" \
         '(REPRODUCIBILITY.md)' || return 1
     require_text "$docs_root/UNINSTALLATION.md" \
@@ -119,6 +122,12 @@ authority_links_complete() {
     require_text "$docs_root/APPLICATION_ONBOARDING.md" \
         '(caddy_plan-v1.1.md)' || return 1
     require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '(OPERATIONS.md)' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '(PROTOCOL_V2_RELEASE_LIFECYCLE.md)' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        '(caddy_plan-v1.1.md)' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
         '(OPERATIONS.md)'
 }
 
@@ -153,29 +162,40 @@ relative_links_resolve() {
 
 future_prompt_isolated() {
     local operator_documentation_surface
+    local operator_documentation_prompt
 
-    for operator_documentation_surface in \
-        "$readme" \
-        "$docs_root/APPRISE_DELIVERY.md" \
-        "$docs_root/REPRODUCIBILITY.md"; do
-        ! grep -Fq 'FUTURE_COMPLETE_INSTALLATION_PROMPT.md' \
-            "$operator_documentation_surface" || return 1
+    for operator_documentation_prompt in \
+        FUTURE_COMPLETE_INSTALLATION_PROMPT.md \
+        FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md; do
+        for operator_documentation_surface in \
+            "$readme" \
+            "$docs_root/APPRISE_DELIVERY.md" \
+            "$docs_root/REPRODUCIBILITY.md" \
+            "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md"; do
+            ! grep -Fq "$operator_documentation_prompt" \
+                "$operator_documentation_surface" || return 1
+        done
+        ! grep -Fq "$operator_documentation_prompt" \
+            "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,PROTOCOL_V2_RELEASE_LIFECYCLE,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md ||
+            return 1
     done
-    ! grep -Fq 'FUTURE_COMPLETE_INSTALLATION_PROMPT.md' \
-        "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
 }
 
 future_prompt_registered() {
     regular_file "$docs_root/FUTURE_COMPLETE_INSTALLATION_PROMPT.md" ||
         return 1
+    regular_file "$docs_root/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md" ||
+        return 1
     require_text "$docs_root/caddy_plan-v1.1.md" \
-        '(FUTURE_COMPLETE_INSTALLATION_PROMPT.md)'
+        '(FUTURE_COMPLETE_INSTALLATION_PROMPT.md)' || return 1
+    require_text "$docs_root/caddy_plan-v1.1.md" \
+        '(FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md)'
 }
 
 historical_commands_absent() {
     ! grep -Eiq \
         '(^|[^[:alnum:]])action[[:space:]]*[0-9]+|run-[^[:space:]`]*action[0-9]+' \
-        "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
+        "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,PROTOCOL_V2_RELEASE_LIFECYCLE,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
 }
 
 entrypoints_current() {
@@ -269,10 +289,67 @@ application_onboarding_contract_present() {
         'Node B before Node A' || return 1
     require_text "$docs_root/APPLICATION_ONBOARDING.md" \
         'immutable release' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'one application per fragment' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '00-09' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '10-19' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '20-79' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '90-99' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'Caddy/manifests/config-lifecycle.tsv' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'Caddy/manifests/caddy-release-source.tsv' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'there is no repository generator' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '## DNS record gate' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.53' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.54' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.55' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @fd36:5aa8:6971:1::55' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.53 -x 10.1.0.56' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.55 -x fd36:5aa8:6971:1::56' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'one canonical reverse identity' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'does not receive another PTR' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'proxy.local.theama.co.' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @10.1.0.55 proxy.local.theama.co A' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'dig +short @fd36:5aa8:6971:1::55 proxy.local.theama.co AAAA' || return 1
+    require_text "$docs_root/ARCHITECTURE.md" \
+        '## Proxy DNS identity' || return 1
+    require_text "$docs_root/ARCHITECTURE.md" \
+        'Do not add a PTR for every application hostname' || return 1
     # Backticks are literal documentation content.
     # shellcheck disable=SC2016
     require_text "$docs_root/APPLICATION_ONBOARDING.md" \
         'existing `421` default-deny routes'
+}
+
+protocol_v2_release_document_present() {
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        '/var/lib/caddy-sync/outbound/REVISION' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        '.complete.pending' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        'Failure to prove restoration returns status' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        '125' || return 1
+    require_text "$docs_root/PROTOCOL_V2_RELEASE_LIFECYCLE.md" \
+        'caddy-release-source.tsv'
 }
 
 check_repository() {
@@ -288,10 +365,13 @@ check_repository() {
     operational_contracts_present || fail operational_contract_missing
     application_onboarding_contract_present ||
         fail application_onboarding_contract_missing
+    protocol_v2_release_document_present ||
+        fail protocol_v2_release_document_missing
 }
 
 run_self_test() {
     local operator_documentation_backup
+    local operator_documentation_generator_backup
 
     self_test_root=$(mktemp -d /tmp/caddy-operator-docs.XXXXXX)
     mkdir -p "$self_test_root/Caddy"
@@ -323,12 +403,29 @@ run_self_test() {
     cp "$operator_documentation_backup" \
         "$self_test_root/Caddy/docs/QUICK_START.md"
 
+    operator_documentation_backup=$self_test_root/INSTALLATION.backup
+    cp "$self_test_root/Caddy/docs/INSTALLATION.md" \
+        "$operator_documentation_backup"
     printf '\n[FUTURE](FUTURE_COMPLETE_INSTALLATION_PROMPT.md)\n' >> \
         "$self_test_root/Caddy/docs/INSTALLATION.md"
     if /bin/bash "$0" --check --repository-root \
         "$self_test_root" >/dev/null 2>&1; then
         fail self_test_future_link_accepted
     fi
+    cp "$operator_documentation_backup" \
+        "$self_test_root/Caddy/docs/INSTALLATION.md"
+
+    operator_documentation_generator_backup=$self_test_root/APPLICATION_ONBOARDING.backup
+    cp "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md" \
+        "$operator_documentation_generator_backup"
+    printf '\n[FUTURE](FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md)\n' >> \
+        "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"
+    if /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >/dev/null 2>&1; then
+        fail self_test_generator_future_link_accepted
+    fi
+    cp "$operator_documentation_generator_backup" \
+        "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"
 
     printf '%s_self_test=true\n' "$prefix"
 }

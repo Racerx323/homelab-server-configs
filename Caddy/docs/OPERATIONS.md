@@ -49,6 +49,11 @@ execution and `--authorization-ready`.
 
 ## Normal protocol-v2 publication
 
+[`PROTOCOL_V2_RELEASE_LIFECYCLE.md`](PROTOCOL_V2_RELEASE_LIFECYCLE.md)
+documents prepared-release construction, publisher validation, manifest and
+marker ownership, managed transfer, finalization, activation, rollback, and
+accepted-record reconciliation.
+
 Node A is the normal publisher. The installed interface is:
 
 ```text
