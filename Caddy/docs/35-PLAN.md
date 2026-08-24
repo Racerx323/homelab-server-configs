@@ -1322,3 +1322,35 @@ The terminal checkpoint is archived at
 `caddy-action35as-terminal-2026-08-24`. Its consumed operation data and
 coverage are removed, the neutral operation specification is inactive, and the
 Caddy deployment stream is clean.
+
+## Action 35 closure and next major task
+
+Action 35 is closed and accepted through Action 35as. Installation and all nine
+controlled scenarios proved coupled DNS and Caddy serving health,
+notification-only Pi-hole/lighttpd backend health, structured notification
+delivery, exact restoration, stable preferred ownership, and zero unsafe
+residue. No further Action 35 deployment successor is required.
+
+The next major task is repository-only operator documentation derived from the
+current live manifests, neutral scripts, systemd inventories, and accepted
+as-built architecture. It covers routine operation and validation,
+standby-first installation, protocol-v2 Caddy publication, failover
+interpretation, notification handling, rollback and recovery, queue and
+dead-letter handling, troubleshooting, and safe uninstallation.
+
+The documentation task includes a dedicated correction and expansion of
+`APPRISE_DELIVERY.md`. It must describe the current journal-based Keepalived
+failure attribution instead of stale runtime snapshots; preserve the proven
+atomic enqueue, producer acknowledgement, persistent state, path/timer,
+backoff, crash-recovery, stable-identity, and health-isolation contracts; and
+record the Caddy/DNS-specific schema, paths, executables, endpoint,
+allowlists, and runtime identity. It must explicitly identify the missing
+supported dead-letter administration tool and define documentation requirements
+for receipt retention, disk exhaustion, queue health, upgrades, installation,
+uninstallation, and the unavoidable at-least-once crash ambiguity.
+
+That task contacts no node, registers no successor, creates no operation
+specification, and introduces no action-numbered implementation artifact. It
+runs documentation and repository-policy validation only. Canonical LikeC4
+modeling and the future reverse-proxy application template follow as separate
+repository tasks.

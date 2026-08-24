@@ -113,7 +113,7 @@ Caddy health covers:
 - node-specific address binding and hostname handling;
 - completion within the Keepalived script timeout.
 
-The pending serving-health migration targets interval 3, timeout 2, fall 2,
+The accepted serving-health deployment uses interval 3, timeout 2, fall 2,
 rise 3.
 Six seconds of sustained serving failure can trigger failover.
 
@@ -280,7 +280,7 @@ Enabled and active:
 - `caddy-sync-health.timer`;
 - `caddy-apprise-worker.path`;
 - `caddy-apprise-worker.timer`;
-- `caddy-pihole-web-health.timer` after the serving-health migration is accepted.
+- `caddy-pihole-web-health.timer`;
 
 Static workers:
 
@@ -605,7 +605,7 @@ with the required healthy event. Both payloads were dispositioned and rollback
 was not required. Evidence is
 `/tmp/caddy-ssh-evidence-serving_health.secstj`.
 
-## 18. Pending work
+## 18. Action 35 closure and pending work
 
 Notification standardization is accepted. Git history identifies the exact
 legacy title and message bodies in notifier revisions `e9fe1bc` and `6063aa3`;
@@ -614,15 +614,49 @@ no current node, queue, API-host, replay, or template path for those messages.
 Action 35al accepted the actual acknowledged prior VRRP state, bounded
 planned-maintenance context, shared multiline layout, and severity emojis.
 
-The next gate is separate exact-hash authorization and execution of controlled
-serving-failure exercise Action 35ap.
+Action 35 is closed and accepted through Action 35as. The serving-health
+installation, controlled DNS and Proxy failure exercise, notification-only
+lighttpd behavior, structured notifications, restoration, and final ownership
+contracts are proven. Action 35as is archived and cleaned, the deployment
+stream is clean, and no successor is registered.
 
-After the controlled exercise:
+The next major task is repository-only operator documentation. It must use only
+current live manifests, neutral scripts, systemd inventories, and the accepted
+as-built architecture, and cover:
 
-1. write operator quick-start, installation, uninstallation, and
-   troubleshooting documentation;
-2. create the canonical LikeC4 model and generated views;
-3. improve the future reverse-proxy application template, using
+1. operator quick-start and routine validation;
+2. standby-first installation and protocol-v2 Caddy publication;
+3. safe uninstallation and restoration boundaries;
+4. DNS and Proxy failover interpretation, including notification-only
+   Pi-hole/lighttpd behavior;
+5. structured-notification handling, local enqueue retry, network-delivery
+   retry, and dead-letter inspection, replay, and purge boundaries;
+6. rollback, recovery, synchronization, and troubleshooting procedures;
+7. the exact Caddy/DNS durable-notification architecture, including atomic
+   enqueue, producer acknowledgement, persistent queue states, path and timer
+   activation, bounded backoff, crash recovery, at-least-once delivery, stable
+   identities, and isolation from serving-health decisions.
+
+The durable-notification documentation must also correct the stale
+runtime-snapshot description in `APPRISE_DELIVERY.md`, document the exact
+Caddy/DNS schema, paths, executables, endpoint, producer/application
+allowlists, and runtime identity, and explicitly record current operational
+gaps. Those gaps are the absence of a supported dead-letter inspect/replay
+tool and incomplete receipt-retention, disk-capacity, queue-health,
+upgrade-compatibility, and independent install/uninstall contracts. The
+post-request, pre-receipt crash boundary remains an at-least-once ambiguity;
+the `Idempotency-Key` header is not documented as a portable upstream
+duplicate-suppression guarantee.
+
+This documentation task contacts no node, registers no deployment successor,
+creates no operation specification, and introduces no action-numbered
+implementation artifact. Validation is limited to documentation and repository
+policy.
+
+After operator documentation:
+
+1. create the canonical LikeC4 model and generated views;
+2. improve the future reverse-proxy application template, using
    `reverse-proxy.caddy.example` as input.
 
 Munin monitoring is canceled. Home Assistant DNS work belongs to a future DNS
