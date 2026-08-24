@@ -5,12 +5,46 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: Action 35ar is the single defined, unexecuted Caddy operation.
-- Status: defined
-- Latest archive tag: `caddy-action35aq-terminal-2026-08-24`
-- Consumed action: Action 35aq is archived, cleaned from the current operation
-  window, and must not be restored, modified, or rerun.
-- Successor registry: Action 35ar only.
+- State: terminal-pending; Action 35ar is failed-consumed and awaits its
+  annotated terminal tag.
+- Status: terminal-pending
+- Planned archive tag: `caddy-action35ar-terminal-2026-08-24`
+- Terminal action: Action 35ar is failed-consumed after its lighttpd journal
+  acceptance selected incomplete notification evidence. It must not be rerun.
+- Successor registry: none until the terminal tag exists and the consumed
+  operation is cleaned.
+
+## Action 35ar terminal result
+
+- Tag: `caddy-action35ar-terminal-2026-08-24`
+- Authorized outer SHA-256:
+  `2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`
+- Transaction SHA-256:
+  `1d7e0a635d1ca395eb6e146308cb8bec85851dcd6260ff7d824ef07ce44ef769`
+- Result: failed-consumed after mutation; observed exit status 1.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.cpiT8z`.
+- The Node A Caddy scenario completed its coupled failover, bounded convergence,
+  and recovery. The deliberate Node A lighttpd outage then produced the valid
+  durable state `enqueue-failure-pending` and no VIP movement.
+- After lighttpd restoration, the full cursor-bounded daemon journal retained
+  exactly one `pihole-web` failure enqueue at `2026-08-24T10:37:08.950857-0500`
+  and one recovery enqueue at `2026-08-24T10:37:09.786285-0500`. The producer
+  logged `recovery-enqueued`, and Apprise delivered the failure as
+  `recovered-before-enqueue` followed by recovery with the same correlation ID.
+- The narrower identifier-selected notification artifact retained only the
+  recovery enqueue. Lighttpd readiness counted that incomplete artifact rather
+  than the complete cursor-bounded journal and emitted
+  `serving_health_deployment_check_exercise_journal_complete=false`.
+- This is an evidence-selection defect, not lost durable delivery and not a
+  serving-health architecture defect. A successor must use the complete bounded
+  journal evidence for the exact failure/recovery episode and regression-test
+  the real selector behavior; the remaining exercise is unchanged.
+- Automatic recovery and final acceptance proved three Node A `MASTER/MASTER`
+  samples with four VIPs, three Node B `BACKUP/BACKUP` samples with zero VIPs,
+  all five serving services active on both nodes, and no mutation or watchdog
+  residue.
+- Exit status 1 remains immutable. Action 35ar must not be restored, modified,
+  or rerun.
 
 ## Action 35aq terminal result
 

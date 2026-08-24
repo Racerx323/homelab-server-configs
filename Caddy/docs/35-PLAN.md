@@ -1219,3 +1219,36 @@ cd /home/aaron/code/homelab-server-configs
 
 The authorization boundary is outer SHA-256
 `2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`.
+
+## Action 35ar terminal result
+
+Action 35ar was authorized with outer SHA-256
+`2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`
+and exited 1. It is failed-consumed after mutation and must not be restored,
+modified, or rerun. Its retained workstation evidence is
+`/tmp/caddy-ssh-evidence-serving_health.cpiT8z`.
+
+The Node A Caddy scenario completed its coupled failover, causally bounded
+convergence, and recovery. The subsequent deliberate lighttpd outage remained
+notification-only with no VIP movement and durably persisted
+`enqueue-failure-pending`. After restoration, the complete cursor-bounded
+daemon journal retained exactly one `pihole-web` failure enqueue at
+`2026-08-24T10:37:08.950857-0500`, one recovery enqueue at
+`2026-08-24T10:37:09.786285-0500`, and `recovery-enqueued`. Apprise delivered
+the failure as `recovered-before-enqueue` and then recovery with the same
+correlation ID.
+
+The immutable failed assertion was
+`serving_health_deployment_check_exercise_journal_complete=false`. The
+lighttpd readiness predicate counted failure and recovery only in the narrower
+identifier-selected notification artifact. That artifact retained only the
+recovery enqueue even though the complete daemon journal contained both. This
+is an evidence-selection defect, not a delivery failure. The direct successor
+must validate the complete bounded failure/recovery episode and exercise the
+real selector behavior; it must not change the durable producer contract or
+the remaining controlled-exercise sequence.
+
+Automatic recovery proved the accepted baseline: three Node A samples were
+dual-stack `MASTER` with four VIPs, three Node B samples were dual-stack
+`BACKUP` with zero VIPs, all five serving services were active on both nodes,
+and mutation and watchdog residue were absent.

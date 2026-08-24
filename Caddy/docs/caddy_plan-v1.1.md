@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35aq is archived failed-consumed with automatic recovery proven; Action 35ar is the single defined, unexecuted successor using the reconciled durable-enqueue and bounded-convergence contracts; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35ar is failed-consumed with automatic recovery proven after incomplete lighttpd journal selection rejected a successfully delivered failure/recovery episode; no successor is registered; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -901,6 +901,29 @@ requires separate authorization of outer SHA-256
 for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
 repository root. Authorization readiness passed against the real neutral
 transaction and outer paths.
+
+### Action 35ar terminal result
+
+Action 35ar is failed-consumed with exit status 1 and retained evidence at
+`/tmp/caddy-ssh-evidence-serving_health.cpiT8z`. It must not be rerun. The Node
+A Caddy scenario completed coupled failover and bounded recovery. The Node A
+lighttpd outage remained notification-only and produced
+`enqueue-failure-pending` without VIP movement.
+
+After restoration, the complete cursor-bounded daemon journal contained one
+`pihole-web` failure enqueue and one recovery enqueue, and Apprise delivered
+the failure as `recovered-before-enqueue` followed by recovery with the same
+correlation ID. The narrower identifier-selected notification artifact
+contained only recovery. The readiness predicate counted that incomplete
+artifact and emitted
+`serving_health_deployment_check_exercise_journal_complete=false`.
+
+This is an evidence-selection defect rather than lost durable delivery. A
+direct successor must correct only the bounded journal selection and prove the
+real selector behavior. The remaining exercise, producer state machine, and
+serving-health architecture remain unchanged. Final acceptance proved Node A
+`MASTER` with four VIPs, Node B `BACKUP` with zero VIPs, all five services
+active on both nodes, and zero mutation or watchdog residue.
 
 ## 19. Checkpoint procedure
 
