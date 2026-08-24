@@ -1,7 +1,7 @@
 schema_version	scope	key	value	evidence
 1	cluster	accepted-live-artifacts-sha256	4ac2ce9778752abeed57bb40b9431925a6c702fead80fd18b91d132d3c294f02	accepted-live-artifacts.tsv
 1	cluster	runtime-production-sha256	495fcabc6640bf93d4e06b3c02f457911f352509df862731cccfecb72be401a7	runtime-production.tsv
-1	cluster	reproducibility-production-sha256	72fdd9d28d65ceaaa6564ca787676d74d74b4e8c7e01ada7e926691686f3e2ce	reproducibility-production.yaml
+1	cluster	reproducibility-production-sha256	1f050df2c2454aaadfbecc560699f77dbd03b0ed7fc792414d091fe640d03a5f	reproducibility-production.yaml
 1	cluster	durable-apprise-evidence	tag:caddy-action35al-terminal-2026-08-23	accepted-action35al
 1	cluster	notification-standardization	multiline-rendering,durable-transition-state,planned-maintenance,conservative-fault-attribution	accepted-action35al
 1	node-a	ownership	ipv4-master,ipv6-master,shared-vips=4,stable-samples=3	accepted-action35ah

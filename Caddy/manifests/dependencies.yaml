@@ -148,4 +148,5 @@ reproducibility_evidence:
   pihole_lighttpd_tree_identity: recorded
   synchronization_ssh_fingerprints: recorded
   unbound_main_deployed_sha256: recorded
+  unbound_local_zone_deployed_sha256: recorded
   private_keys_and_credentials: external_not_recorded

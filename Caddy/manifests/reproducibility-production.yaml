@@ -69,6 +69,18 @@ unbound_main:
   deployed_sha256: a9da92342ddcd653536e75f75c67a5b922112952dfa6081a41d5c4891c22ad8f
   nodes_identical: true
 
+unbound_local_zone:
+  repository: homelab-dns
+  source: Unbound/configs/pihole-local-zone.conf
+  installed_path: /etc/unbound/unbound.conf.d/pihole-local-zone.conf
+  owner: root
+  group: root
+  mode: "0644"
+  source_sha256: f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d
+  deployed_sha256: f1f422d64a55a77af4d77a829ed3360341cf89f5f78c8e87419f01c3e593054d
+  nodes_identical: true
+  accepted_evidence: manual-unbound-comments-2026-08-17
+
 lighttpd_tree:
   root: /etc/lighttpd
   owner: root

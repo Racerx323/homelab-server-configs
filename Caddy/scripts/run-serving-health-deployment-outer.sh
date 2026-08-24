@@ -10,7 +10,7 @@ readonly PATH
 
 readonly prefix=serving_health_deployment_outer
 readonly transaction_sha256=89a5c89820e1d8139b915a310fe8073d241dca552dc900ac6a73ec53154fde0f
-readonly operation_sha256=4145f9b081d2292fe679d934329b282b32d8e9c37e444101a844102ed3c22d03
+readonly operation_sha256=8fe3781dcb605de6f85e8d0688f2c947361e454a6c8dcb58276c21413d27ef67
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83

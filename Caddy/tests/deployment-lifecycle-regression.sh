@@ -42,6 +42,16 @@ dependency_negative_status=0
 
 cp -- "$caddy_root/manifests/dependencies.yaml" \
     "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
+sed -i '/^      - Unbound\/configs\/pihole-local-zone.conf$/d' \
+    "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
+dependency_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$dependency_negative_root" >/dev/null 2>&1 ||
+    dependency_negative_status=$?
+[[ "$dependency_negative_status" -eq 1 ]]
+
+cp -- "$caddy_root/manifests/dependencies.yaml" \
+    "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
 sed -i '/^      - dnsutils$/a\      - pihole-FTL' \
     "$dependency_negative_root/Caddy/manifests/dependencies.yaml"
 dependency_negative_status=0
@@ -49,6 +59,18 @@ dependency_negative_status=0
     --repository-root "$dependency_negative_root" >/dev/null 2>&1 ||
     dependency_negative_status=$?
 [[ "$dependency_negative_status" -eq 1 ]]
+
+reproducibility_negative_root=$work_directory/reproducibility-negative-repository
+readonly reproducibility_negative_root
+install -d -m 0700 "$reproducibility_negative_root"
+cp -a -- "$caddy_root" "$reproducibility_negative_root/Caddy"
+sed -i '/^unbound_local_zone:$/d' \
+    "$reproducibility_negative_root/Caddy/manifests/reproducibility-production.yaml"
+reproducibility_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$reproducibility_negative_root" >/dev/null 2>&1 ||
+    reproducibility_negative_status=$?
+[[ "$reproducibility_negative_status" -eq 1 ]]
 
 /bin/bash "$caddy_root/scripts/reconcile-release-v2.sh" \
     --candidate-selection-self-test >/dev/null

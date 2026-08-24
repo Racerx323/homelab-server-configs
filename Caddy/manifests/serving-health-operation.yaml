@@ -9,6 +9,6 @@ transaction: Caddy/scripts/apply-serving-health-deployment.sh
 transaction_sha256: 89a5c89820e1d8139b915a310fe8073d241dca552dc900ac6a73ec53154fde0f
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: bb83a6ff14cee5260125834957286b2c2fa32e6239521c207d3c5de400dce27f
+state_sha256: 2d46a246f7058be53fc72fac82ddf30cd1e80440ff3137d4680001b04dae36ec
 production_contract: Caddy/manifests/serving-health-production.tsv
 live_execution: no-operation-defined

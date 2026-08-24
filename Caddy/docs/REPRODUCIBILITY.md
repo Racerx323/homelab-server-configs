@@ -47,6 +47,21 @@ only full-tree difference was the node-specific
 `conf-disabled-by-caddy-ha/external.conf`, which is outside the active
 configuration and is not a rebuild input.
 
+## Required Unbound configuration pair
+
+The HA resolver requires both repository-owned Unbound fragments on each node:
+
+- `homelab-dns/Unbound/configs/pihole.conf` at
+  `/etc/unbound/unbound.conf.d/pihole.conf` owns resolver behavior.
+- `homelab-dns/Unbound/configs/pihole-local-zone.conf` at
+  `/etc/unbound/unbound.conf.d/pihole-local-zone.conf` owns the internal zone
+  policy and records.
+
+Both files must be installed as `root:root:0644`. The canonical reproducibility
+manifest records each source hash, deployed hash, path, mode, and dual-node
+identity. A rebuild is incomplete if either fragment is absent or differs from
+its accepted identity.
+
 ## Required external inputs
 
 These inputs are deliberately absent from Git:
@@ -62,10 +77,11 @@ private keys to a production manifest.
 
 ## Inventory reconciliation
 
-`homelab-dns/Unbound/configs/pihole.conf` is required at
-`/etc/unbound/unbound.conf.d/pihole.conf`. The bounded dual-node inventory on
-2026-08-24 proved both installed files match the repository SHA-256 and added
-them to the accepted-live and production inventories.
+The bounded dual-node inventory on 2026-08-24 proved the installed
+`pihole.conf` on both nodes matches the repository SHA-256. The previously
+accepted `pihole-local-zone.conf` identity remains identical across both nodes.
+Both required fragments are recorded in the accepted-live, production, and
+canonical reproducibility inventories.
 
 That inventory also proved identical package sets, Pi-hole application and FTL
 identities, identical active lighttpd trees, reciprocal synchronization keys,

@@ -71,7 +71,8 @@ for dependency_contract in \
     '  package_versions: recorded' \
     '  pihole_lighttpd_tree_identity: recorded' \
     '  synchronization_ssh_fingerprints: recorded' \
-    '  unbound_main_deployed_sha256: recorded'; do
+    '  unbound_main_deployed_sha256: recorded' \
+    '  unbound_local_zone_deployed_sha256: recorded'; do
     grep -Fxq "$dependency_contract" "$dependency_manifest" ||
         fail dependency_manifest_contract
 done
@@ -85,6 +86,10 @@ awk '
 
 for reproducibility_identity in \
     'capture_mode: bounded_read_only_dual_node' \
+    'unbound_main:' \
+    '  installed_path: /etc/unbound/unbound.conf.d/pihole.conf' \
+    'unbound_local_zone:' \
+    '  installed_path: /etc/unbound/unbound.conf.d/pihole-local-zone.conf' \
     '  nodes_identical: true' \
     '  management: pihole_application' \
     '  active_nodes_identical: true' \
@@ -97,6 +102,7 @@ done
 
 for reproducibility_contract in \
     '## Package-owned state' \
+    '## Required Unbound configuration pair' \
     '## Required external inputs' \
     '## Inventory reconciliation' \
     '## Rebuild order'; do
