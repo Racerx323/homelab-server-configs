@@ -1,14 +1,7 @@
 schema_version: 2
-action: 35as
-title: Complete-journal controlled serving-failure exercise
-status: accepted-executed-definition
-scope: controlled-serving-failure-exercise
-consumes:
-  - action: 35ar
-    result: failed-consumed
-    rerun: prohibited
-    archive_tag: caddy-action35ar-terminal-2026-08-24
-    evidence: /tmp/caddy-ssh-evidence-serving_health.cpiT8z
+action: none
+title: Inactive serving-health deployment operation
+status: inactive
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
@@ -18,87 +11,5 @@ outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: consumed-do-not-rerun
-terminal_result:
-  result: accepted
-  exit_status: 0
-  outer_sha256: 9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b
-  transaction_sha256: 77a8e54d5d3596d09c6340d74a4e2d29ff7c4e7de322271a9527aa84a536240b
-  evidence: /tmp/caddy-ssh-evidence-serving_health.eFo6Gh
-  scenarios: all-nine-accepted
-  journal_acceptance: complete-deduplicated-selector-union
-  continuity: accepted-with-bounded-convergence-evidence
-  final_node_a: MASTER-MASTER-four-vips-three-samples
-  final_node_b: BACKUP-BACKUP-zero-vips-three-samples
-  services: all-five-active-on-both-nodes
-  residue: absent
-  rollback: not-required
-  archive_tag: caddy-action35as-terminal-2026-08-24
-baseline:
-  node_a: MASTER with all four DNS and Proxy VIPs
-  node_b: BACKUP with zero shared VIPs
-  services: Caddy, Pi-hole FTL, Unbound, lighttpd, and Keepalived active on both nodes
-  notification_state: current state record with optional safe zero-length lock
-preflight:
-  - execute the real neutral exercise-preflight entrypoint on Node B and Node A
-  - derive current release and production identities from current-live-state.tsv
-  - validate every current production artifact, service, release, queue, notification state, and residue condition
-  - reject stale, missing, malformed, symlinked, unsafe, or unexpected baseline state
-scenarios:
-  - node-a-caddy-coupled-failover-and-recovery
-  - node-a-lighttpd-notification-only-no-vip-movement
-  - node-a-pihole-ftl-coupled-failover-and-recovery
-  - node-a-unbound-coupled-failover-and-recovery
-  - node-a-keepalived-advertisement-loss-failover-and-recovery
-  - node-b-caddy-ineligible-while-node-a-remains-master
-  - node-b-lighttpd-notification-only-no-vip-movement
-  - node-b-pihole-ftl-ineligible-while-node-a-remains-master
-  - node-b-unbound-ineligible-while-node-a-remains-master
-notification_acceptance:
-  outage_states:
-    - failure-retained
-    - enqueue-failure-pending
-  pending_completion: restoration must enqueue exactly one retained failure and one recovery for the episode
-  journal_selection: de-duplicate the cursor-bounded union of service-unit and identifier-selected records before evaluating the episode
-  selector_regression: accept when the failure enqueue is visible only through the service unit and recovery only through the identifier selector
-  delivery: non-blocking and outside serving-health decisions
-continuity_evidence:
-  granularity: one causal record per request and address family
-  settled_ownership: every failed primary rejects
-  induced_convergence: a failed shared request is accepted only when the same endpoint and family succeeds within 12 seconds and a timestamped kernel address event proves a VIP transition between failure and recovery
-  expected_local_outages:
-    - affected-node node-specific UI while that node's Caddy service is deliberately stopped
-    - affected-node and shared UI while lighttpd is deliberately stopped, with no VIP movement
-  retry: evidence only and never a broad waiver
-  rejection_classes:
-    - missing-or-late-recovery
-    - missing-transition-evidence
-    - settled-owner-serving-failure
-    - family-degraded
-    - simultaneous-or-ambiguous-ownership
-    - unclassified-insufficient-evidence
-  fields: role, scenario, sequence, family, endpoint, port, attempt, start, end, status, result, timings, addresses, sanitized error, VRRP states, and VIP count
-  address_monitor: timestamped kernel events on both nodes for the complete exercise window
-  correlation: workstation outer validates and correlates both node readbacks
-  unsafe_evidence: missing, malformed, duplicate, reordered, oversized, symlinked, incomplete, or uncorrelatable evidence rejects
-  lifecycle: sampler and observer terminate children promptly on SIGTERM, use bounded SIGKILL escalation, and leave zero residue
-acceptance:
-  - uses only the neutral reusable transaction and outer runner
-  - changes no repository or node configuration artifact
-  - stops no service on both nodes simultaneously
-  - requires two failed probes before coupled failover and three healthy probes before recovery
-  - requires exact four-VIP ownership with no simultaneous settled ownership
-  - lighttpd failure is notification-only, produces one failure and one recovery without VIP movement, and proves UI recovery before the next scenario
-  - current structured notifications are retained and the legacy title is absent
-  - every stopped service is restored before the next scenario
-  - reverse restoration is attempted after every failed mutation boundary
-  - every deliberate stop has a bounded automatic restoration watchdog
-  - status 125 is reserved for recovery that cannot be proven after mutation
-  - final state exactly matches the accepted baseline with zero exercise residue
-excluded:
-  - transient single-sample scenarios that cannot deterministically remain below the failover threshold
-  - interface, SSH, reboot, and whole-node failures already accepted by Action 33
-  - installation, publication, synchronization, release, or ownership-policy changes
-  - synthetic production results or marker-only acceptance
-follow_on:
-  result: complete operator documentation and LikeC4 work only after separately authorized execution is accepted
+quarantine_contract: Caddy/manifests/serving-health-quarantine-baseline.tsv
+live_execution: no-operation-defined

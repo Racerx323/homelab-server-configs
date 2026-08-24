@@ -1317,3 +1317,8 @@ Final convergence retained three Node A dual-stack `MASTER` samples with four
 VIPs and three Node B dual-stack `BACKUP` samples with zero VIPs. Caddy,
 lighttpd, Pi-hole FTL, Unbound, and Keepalived were active on both nodes;
 mutation and watchdog residue were absent. Rollback was not required.
+
+The terminal checkpoint is archived at
+`caddy-action35as-terminal-2026-08-24`. Its consumed operation data and
+coverage are removed, the neutral operation specification is inactive, and the
+Caddy deployment stream is clean.

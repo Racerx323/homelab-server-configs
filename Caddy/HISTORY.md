@@ -5,14 +5,11 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending; Action 35as is accepted and awaits its annotated
-  terminal tag.
-- Status: terminal-pending
-- Planned archive tag: `caddy-action35as-terminal-2026-08-24`
+- State: clean
+- Latest archive tag: `caddy-action35as-terminal-2026-08-24`
 - Terminal action: Action 35as completed all nine controlled serving-failure
-  scenarios and must not be rerun.
-- Successor registry: none until the terminal tag exists and the consumed
-  operation is cleaned.
+  scenarios, is archived and cleaned, and must not be rerun.
+- Successor registry: none. The neutral operation specification is inactive.
 
 ## Action 35as terminal result
 
@@ -41,6 +38,8 @@ Git preserves the complete deployment journal and executed action files.
 - Caddy, lighttpd, Pi-hole FTL, Unbound, and Keepalived were active on both
   nodes; mutation and watchdog residue were absent. Rollback was not required.
 - Action 35as is consumed and must not be restored, modified, or rerun.
+- Status: archived and cleaned. Its consumed operation data and coverage are
+  absent from the current deployment window, and the Caddy stream is clean.
 
 ## Action 35ar terminal result
 
