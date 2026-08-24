@@ -26,3 +26,8 @@ Caddy/tests/run-focused-container.sh --profiles current-synchronization
 Current tests must execute current entrypoints. They cannot delegate behavior to
 an archived action regression. Register every test in
 `test-lifecycle.tsv`.
+
+Policy files own their focused negative controls through a no-argument
+self-test mode; pre-commit invokes the same files with `--check`. Do not add a
+separate regression or pre-commit adapter when the policy can exercise the
+case directly.

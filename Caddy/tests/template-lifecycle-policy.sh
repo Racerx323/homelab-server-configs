@@ -11,15 +11,21 @@ readonly prefix=template_lifecycle_policy
 test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
 repository_root=${test_directory%/Caddy/tests}
+mode=check
 
-if [[ $# -eq 3 && $1 == --check && $2 == --repository-root ]]; then
+if [[ $# -eq 0 ]]; then
+    mode=self-test
+elif [[ $# -eq 3 && $1 == --check && $2 == --repository-root ]]; then
     repository_root=$3
     [[ "$repository_root" == /tmp/* && -d "$repository_root" &&
         ! -L "$repository_root" ]] || exit 64
+elif [[ $# -eq 1 && $1 == --self-test ]]; then
+    mode=self-test
 elif [[ $# -ne 1 || $1 != --check ]]; then
     exit 64
 fi
 readonly repository_root
+readonly mode
 readonly lifecycle_manifest=$repository_root/Caddy/manifests/template-lifecycle.tsv
 readonly template_directory=$repository_root/Caddy/templates
 
@@ -67,5 +73,24 @@ grep -Fxq \
 ! grep -Eq 'include-historical|keepalived-caddy-ha|templates/lsyncd-' \
     "$repository_root/Caddy/scripts/render-node-config.sh" ||
     fail renderer_nonproduction_consumer
+
+if [[ "$mode" = self-test ]]; then
+    work_root=$(mktemp -d /tmp/caddy-template-lifecycle.XXXXXX)
+    trap 'rm -rf -- "$work_root"' EXIT
+    mkdir -p "$work_root/Caddy/manifests" "$work_root/Caddy/templates" \
+        "$work_root/Caddy/configs/lsyncd" "$work_root/Caddy/scripts"
+    cp -a "$repository_root/Caddy/templates/." "$work_root/Caddy/templates/"
+    cp -a "$repository_root/Caddy/configs/lsyncd/." "$work_root/Caddy/configs/lsyncd/"
+    cp "$repository_root/Caddy/manifests/template-lifecycle.tsv" \
+        "$work_root/Caddy/manifests/"
+    cp "$repository_root/Caddy/scripts/render-node-config.sh" \
+        "$work_root/Caddy/scripts/"
+    printf 'obsolete\n' >"$work_root/Caddy/templates/obsolete.in"
+    if /bin/bash "$0" --check --repository-root "$work_root" >/dev/null 2>&1; then
+        printf '%s_unregistered_rejected=false\n' "$prefix" >&2
+        exit 1
+    fi
+    printf '%s_unregistered_rejected=true\n' "$prefix"
+fi
 
 printf '%s_complete=true\n' "$prefix"

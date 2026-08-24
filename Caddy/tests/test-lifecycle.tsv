@@ -4,7 +4,6 @@ Caddy/tests/README.md	production-current	support	current-production-validation
 Caddy/tests/accepted-live-hash-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/accepted-live-hash-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/caddy-environment-v2-policy.sh	production-current	current-focused	current-production-validation
-Caddy/tests/caddy-environment-v2-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/check-shell-readonly-local-collisions-v2.sh	production-current	current-focused	current-production-validation
 Caddy/tests/conditional-validator-errexit-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/deployable-successor-policy-regression.sh	production-current	current-focused	current-production-validation
@@ -22,14 +21,11 @@ Caddy/tests/focused-validation-smoke-fixture.sh	production-current	current-focus
 Caddy/tests/focused-validation.yaml	production-current	support	current-production-validation
 Caddy/tests/generate-test-certificate.sh	production-current	current-focused	current-production-validation
 Caddy/tests/multifile-grep-count-policy.sh	production-current	current-focused	current-production-validation
-Caddy/tests/multifile-grep-count-precommit.sh	production-current	current-focused	current-production-validation
 Caddy/tests/outer-local-gate-label-policy-regression.sh	production-current	current-focused	current-production-validation
-Caddy/tests/portable-awk-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/portable-awk-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/receiver-finalization-protocol-v2-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/reconcile-release-v2-candidate-drain-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/remote-streamed-bash-cwd-policy.sh	production-current	current-focused	current-production-validation
-Caddy/tests/remote-streamed-bash-cwd-precommit.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-focused-container.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-focused.sh	production-current	current-focused	current-production-validation
 Caddy/tests/run-source-test-in-context.sh	production-current	current-focused	current-production-validation
@@ -40,7 +36,5 @@ Caddy/tests/shfmt-canonical.sh	production-current	current-focused	current-produc
 Caddy/tests/ssh-stream-local-evidence-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/systemd-boot-persistence-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/template-lifecycle-policy.sh	production-current	current-focused	current-production-validation
-Caddy/tests/template-lifecycle-regression.sh	production-current	current-focused	current-production-validation
-Caddy/tests/test-lifecycle-policy-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle.tsv	production-current	support	current-production-validation

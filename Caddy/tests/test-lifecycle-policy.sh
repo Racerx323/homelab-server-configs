@@ -70,7 +70,36 @@ readonly work_root
 cleanup() { rm -rf -- "$work_root"; }
 trap cleanup EXIT INT TERM
 
-case "${1:-}" in
+run_self_test() {
+    local test_lifecycle_fixture_root=$work_root/self-test
+    local test_lifecycle_missing=$test_lifecycle_fixture_root/missing.tsv
+    local test_lifecycle_wrong=$test_lifecycle_fixture_root/wrong-lifecycle.tsv
+    local test_lifecycle_action=$test_lifecycle_fixture_root/action-current.tsv
+
+    mkdir -p "$test_lifecycle_fixture_root"
+    record_check schema registry_schema_valid || return 1
+    record_check inventory inventory_complete || return 1
+    record_check classification classification_valid || return 1
+
+    sed '2d' "$registry" >"$test_lifecycle_missing"
+    ! CADDY_TEST_LIFECYCLE_REGISTRY=$test_lifecycle_missing \
+        /bin/bash "$0" --check >/dev/null 2>&1 || return 1
+    awk -F '\t' 'BEGIN { OFS = FS }
+        NR == 2 { $2 = "historical-preserved"; $3 = "historical-opt-in" }
+        { print }
+    ' "$registry" >"$test_lifecycle_wrong"
+    ! CADDY_TEST_LIFECYCLE_REGISTRY=$test_lifecycle_wrong \
+        /bin/bash "$0" --check >/dev/null 2>&1 || return 1
+    awk -F '\t' 'BEGIN { OFS = FS }
+        NR == 2 { $4 = "action999-terminal-archive" }
+        { print }
+    ' "$registry" >"$test_lifecycle_action"
+    ! CADDY_TEST_LIFECYCLE_REGISTRY=$test_lifecycle_action \
+        /bin/bash "$0" --check >/dev/null 2>&1 || return 1
+    printf '%s_self_test=true\n' "$prefix"
+}
+
+case "${1:---self-test}" in
     --check)
         [[ $# -eq 1 ]] || exit 64
         record_check schema registry_schema_valid || exit 1
@@ -78,8 +107,13 @@ case "${1:-}" in
         record_check classification classification_valid || exit 1
         printf '%s_complete=true\n' "$prefix"
         ;;
+    --self-test)
+        [[ $# -le 1 ]] || exit 64
+        run_self_test || exit 1
+        printf '%s_complete=true\n' "$prefix"
+        ;;
     *)
-        printf 'Usage: %s --check\n' "${0##*/}" >&2
+        printf 'Usage: %s --check|--self-test\n' "${0##*/}" >&2
         exit 64
         ;;
 esac

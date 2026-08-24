@@ -52,7 +52,42 @@ scan_file() {
     [[ "$portable_awk_in_program" = false ]]
 }
 
-case "${1:-}" in
+run_self_test() {
+    local portable_awk_root
+    local portable_awk_invalid_interval='{64}'
+
+    portable_awk_root=$(mktemp -d /tmp/caddy-portable-awk-policy.XXXXXX)
+    {
+        printf '%s\n' '#!/usr/bin/env bash' "awk '"
+        # These are literal source fixtures, not expressions for this shell.
+        # shellcheck disable=SC2016
+        printf '%s\n' '    length($2) != 64 || $2 !~ /^[0-9a-f]+$/ { exit 1 }'
+        # shellcheck disable=SC2016
+        printf '%s\n' "' input" '[[ "$value" =~ ^[0-9a-f]{64}$ ]]'
+    } >"$portable_awk_root/valid.sh"
+    scan_file "$portable_awk_root/valid.sh" || {
+        rm -rf -- "$portable_awk_root"
+        return 1
+    }
+    printf '%s\n' '#!/usr/bin/env bash' \
+        "awk '\$2 !~ /^[0-9a-f]${portable_awk_invalid_interval}\$/ { exit 1 }' input" \
+        >"$portable_awk_root/invalid-inline.sh"
+    ! scan_file "$portable_awk_root/invalid-inline.sh" || {
+        rm -rf -- "$portable_awk_root"
+        return 1
+    }
+    printf '%s\n' '#!/usr/bin/env bash' "awk '" \
+        "    \$2 !~ /^[0-9a-f]${portable_awk_invalid_interval}\$/ { exit 1 }" \
+        "' input" >"$portable_awk_root/invalid-multiline.sh"
+    ! scan_file "$portable_awk_root/invalid-multiline.sh" || {
+        rm -rf -- "$portable_awk_root"
+        return 1
+    }
+    rm -rf -- "$portable_awk_root"
+    printf '%s_self_test=true\n' "$prefix"
+}
+
+case "${1:---self-test}" in
     --check)
         shift
         portable_awk_checked=0
@@ -79,8 +114,13 @@ case "${1:-}" in
         [[ "$portable_awk_checked" -gt 0 && "$portable_awk_failed" -eq 0 ]]
         printf '%s_complete=true\n' "$prefix"
         ;;
+    --self-test)
+        [[ $# -le 1 ]] || exit 64
+        run_self_test || exit 1
+        printf '%s_complete=true\n' "$prefix"
+        ;;
     *)
-        printf 'Usage: %s --check [FILE ...]\n' "${0##*/}" >&2
+        printf 'Usage: %s --check [FILE ...]|--self-test\n' "${0##*/}" >&2
         exit 64
         ;;
 esac

@@ -20,7 +20,7 @@ repos:
 
       - id: multifile-grep-count-policy
         name: Reject multi-file grep scalar counts
-        entry: Caddy/tests/multifile-grep-count-precommit.sh
+        entry: Caddy/tests/multifile-grep-count-policy.sh --check
         language: system
         types: [shell]
 
@@ -95,7 +95,7 @@ repos:
 
       - id: remote-streamed-bash-cwd-policy
         name: Enforce safe remote Bash transport
-        entry: Caddy/tests/remote-streamed-bash-cwd-precommit.sh
+        entry: Caddy/tests/remote-streamed-bash-cwd-policy.sh --check
         language: system
         types: [shell]
 

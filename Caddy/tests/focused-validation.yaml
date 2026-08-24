@@ -275,14 +275,13 @@
         "Caddy/tests/*caddy-environment-v2*.sh"
       ],
       "shell_files": [
-        "Caddy/tests/caddy-environment-v2-policy.sh",
-        "Caddy/tests/caddy-environment-v2-regression.sh"
+        "Caddy/tests/caddy-environment-v2-policy.sh"
       ],
       "host_tests": [
-        "Caddy/tests/caddy-environment-v2-regression.sh"
+        "Caddy/tests/caddy-environment-v2-policy.sh"
       ],
       "debian_tests": [
-        "Caddy/tests/caddy-environment-v2-regression.sh"
+        "Caddy/tests/caddy-environment-v2-policy.sh"
       ],
       "policies": [
         "selected-shell",
@@ -356,30 +355,30 @@
         "Caddy/tests/deployable-successor-policy.sh",
         "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/caddy-environment-v2-policy.sh",
-        "Caddy/tests/caddy-environment-v2-regression.sh",
         "Caddy/tests/conditional-validator-errexit-policy-regression.sh",
         "Caddy/tests/test-lifecycle-policy.sh",
-        "Caddy/tests/test-lifecycle-policy-regression.sh",
         "Caddy/tests/accepted-live-hash-policy.sh",
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
         "Caddy/tests/template-lifecycle-policy.sh",
-        "Caddy/tests/template-lifecycle-regression.sh"
+        "Caddy/tests/portable-awk-policy.sh"
       ],
       "host_tests": [
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
-        "Caddy/tests/caddy-environment-v2-regression.sh",
+        "Caddy/tests/caddy-environment-v2-policy.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/deployable-successor-policy-regression.sh",
-        "Caddy/tests/template-lifecycle-regression.sh",
-        "Caddy/tests/test-lifecycle-policy-regression.sh"
+        "Caddy/tests/template-lifecycle-policy.sh",
+        "Caddy/tests/test-lifecycle-policy.sh",
+        "Caddy/tests/portable-awk-policy.sh"
       ],
       "debian_tests": [
-        "Caddy/tests/caddy-environment-v2-regression.sh",
+        "Caddy/tests/caddy-environment-v2-policy.sh",
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/deployable-successor-policy-regression.sh",
-        "Caddy/tests/template-lifecycle-regression.sh"
+        "Caddy/tests/template-lifecycle-policy.sh",
+        "Caddy/tests/portable-awk-policy.sh"
       ],
       "policies": [
         "accepted-live-hashes",
