@@ -379,7 +379,21 @@ Proxy VIP independent of `PIHOLE_DUALSTACK`. Validate every edited LikeC4
 source with the repository's current validation procedure and record
 generated-view provenance according to `homelab-docs` policy.
 
+Checkpoint 2 is complete at `homelab-docs` commit
+`a0562883357796c392690fd54177a87f3dbf1f25`. The canonical model retains the
+production Pi-hole v5 versions and now records coupled four-VIP ownership,
+both node deployments, protocol-v2 publication, durable notification delivery,
+external inputs, and repository ownership. Validation passed with the
+CI-pinned LikeC4 1.59.1 focused command, `likec4 format --check`, full
+`likec4 validate`, and `pre-commit run --all-files`. LikeC4 1.59.1 calculates
+`filteredFiles` from files containing reported errors, so the valid focused
+run returned `filteredFiles=0` and `filteredErrors=0`; its repeated `--file`
+arguments identify the five edited `.c4` sources. No generated export was
+committed, no node was contacted, and no deployment successor was created.
+
 ### Checkpoint 3: Reverse-proxy backend onboarding
+
+Checkpoint 3 is the next Caddy repository task.
 
 Create `Caddy/docs/APPLICATION_ONBOARDING.md` and turn
 `Caddy/templates/reverse-proxy.caddy.example` into a supported, validated

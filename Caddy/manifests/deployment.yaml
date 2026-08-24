@@ -98,6 +98,3 @@ firewall_intent:
     destination: node_pair
     protocol: tcp
     ports: [4949]
-
-deferred_current_state:
-  - canonical_likec4
