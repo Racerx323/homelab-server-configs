@@ -5,12 +5,42 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: Action 35as is the single defined, unexecuted Caddy operation.
-- Status: defined
-- Latest archive tag: `caddy-action35ar-terminal-2026-08-24`
-- Consumed action: Action 35ar is archived, cleaned from the current operation
-  window, and must not be restored, modified, or rerun.
-- Successor registry: Action 35as only.
+- State: terminal-pending; Action 35as is accepted and awaits its annotated
+  terminal tag.
+- Status: terminal-pending
+- Planned archive tag: `caddy-action35as-terminal-2026-08-24`
+- Terminal action: Action 35as completed all nine controlled serving-failure
+  scenarios and must not be rerun.
+- Successor registry: none until the terminal tag exists and the consumed
+  operation is cleaned.
+
+## Action 35as terminal result
+
+- Tag: `caddy-action35as-terminal-2026-08-24`
+- Authorized outer SHA-256:
+  `9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`
+- Transaction SHA-256:
+  `77a8e54d5d3596d09c6340d74a4e2d29ff7c4e7de322271a9527aa84a536240b`
+- Result: accepted; exit status 0.
+- Workstation evidence: `/tmp/caddy-ssh-evidence-serving_health.eFo6Gh`.
+- All nine Node A and Node B Caddy, lighttpd, Pi-hole FTL, Unbound, and
+  Keepalived scenarios completed with their required coupled or
+  notification-only behavior.
+- The complete de-duplicated lighttpd journal accepted exactly one failure and
+  one recovery for both node scenarios. Durable notification delivery remained
+  outside serving-health decisions.
+- Continuous dual-stack evidence, bounded convergence, exact ownership,
+  configured failure/recovery thresholds, structured notifications, service
+  restoration, evidence readback, and disposition all passed.
+- Operator Apprise readback independently confirms the structured DNS failure,
+  failover, standby, and recovery sequence plus matching-correlation Proxy
+  failure/recovery delivery for the notification-only lighttpd episode.
+- All workstation status records were zero. Final acceptance proved three Node
+  A `MASTER/MASTER` samples with four VIPs and three Node B `BACKUP/BACKUP`
+  samples with zero VIPs.
+- Caddy, lighttpd, Pi-hole FTL, Unbound, and Keepalived were active on both
+  nodes; mutation and watchdog residue were absent. Rollback was not required.
+- Action 35as is consumed and must not be restored, modified, or rerun.
 
 ## Action 35ar terminal result
 

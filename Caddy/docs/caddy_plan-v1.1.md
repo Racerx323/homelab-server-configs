@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35ar is archived failed-consumed with automatic recovery proven; Action 35as is the single defined, unexecuted successor correcting only complete lighttpd journal selection; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled DNS and Proxy serving-failure Action 35as completed all nine scenarios and is accepted; no successor is registered; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -943,6 +943,26 @@ exact outer-runner SHA-256
 `9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`
 for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
 repository root after authorization readiness passes.
+
+### Action 35as terminal result
+
+Action 35as is accepted with exit status 0 and evidence at
+`/tmp/caddy-ssh-evidence-serving_health.eFo6Gh`. All nine controlled Caddy,
+lighttpd, Pi-hole FTL, Unbound, and Keepalived scenarios completed. Coupled
+failover/recovery, notification-only lighttpd behavior, continuous dual-stack
+service evidence, bounded convergence, structured notifications, exact
+ownership, restoration, readback, and disposition passed.
+
+Operator Apprise readback independently confirmed the structured DNS
+failure/failover/recovery sequence and the correlated Proxy failure/recovery
+pair for the notification-only lighttpd episode.
+
+Both lighttpd episodes retained exactly one failure and one recovery through
+the complete de-duplicated journal. Final state was three stable Node A
+`MASTER/MASTER` samples with four VIPs and three stable Node B `BACKUP/BACKUP`
+samples with zero VIPs. All five serving services were active on both nodes,
+residue was absent, and rollback was not required. Action 35as is consumed and
+must not be rerun.
 
 ## 19. Checkpoint procedure
 

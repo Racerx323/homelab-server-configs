@@ -1,7 +1,7 @@
 schema_version: 2
 action: 35as
 title: Complete-journal controlled serving-failure exercise
-status: defined-unexecuted
+status: accepted-executed-definition
 scope: controlled-serving-failure-exercise
 consumes:
   - action: 35ar
@@ -18,7 +18,22 @@ outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: prohibited-until-exact-sha-authorization
+live_execution: consumed-do-not-rerun
+terminal_result:
+  result: accepted
+  exit_status: 0
+  outer_sha256: 9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b
+  transaction_sha256: 77a8e54d5d3596d09c6340d74a4e2d29ff7c4e7de322271a9527aa84a536240b
+  evidence: /tmp/caddy-ssh-evidence-serving_health.eFo6Gh
+  scenarios: all-nine-accepted
+  journal_acceptance: complete-deduplicated-selector-union
+  continuity: accepted-with-bounded-convergence-evidence
+  final_node_a: MASTER-MASTER-four-vips-three-samples
+  final_node_b: BACKUP-BACKUP-zero-vips-three-samples
+  services: all-five-active-on-both-nodes
+  residue: absent
+  rollback: not-required
+  archive_tag: caddy-action35as-terminal-2026-08-24
 baseline:
   node_a: MASTER with all four DNS and Proxy VIPs
   node_b: BACKUP with zero shared VIPs

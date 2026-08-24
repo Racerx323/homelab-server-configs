@@ -1288,3 +1288,32 @@ cd /home/aaron/code/homelab-server-configs
 
 The authorization boundary is outer SHA-256
 `9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`.
+
+## Action 35as terminal result
+
+Action 35as was authorized with outer SHA-256
+`9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`
+and exited 0. It is accepted and consumed, must not be restored or rerun, and
+retains workstation evidence at
+`/tmp/caddy-ssh-evidence-serving_health.eFo6Gh`.
+
+All nine controlled scenarios completed. Node A Caddy, Pi-hole FTL, Unbound,
+and Keepalived failures produced the required coupled failover and recovery;
+Node A lighttpd remained notification-only without VIP movement. Equivalent
+Node B Caddy, Pi-hole FTL, and Unbound failures left healthy Node A ownership
+unchanged, and Node B lighttpd remained notification-only.
+
+The complete de-duplicated lighttpd journal proved exactly one failure enqueue
+and one recovery enqueue for both node episodes. Continuous dual-stack serving
+evidence, causally bounded convergence, configured thresholds, exact VIP
+ownership, current structured notifications, service restoration, readback,
+and disposition passed. Every workstation status record was zero.
+
+Operator Apprise readback independently confirms the structured DNS failure,
+failover, standby, and recovery sequence and the matching-correlation Proxy
+failure/recovery pair for the notification-only lighttpd episode.
+
+Final convergence retained three Node A dual-stack `MASTER` samples with four
+VIPs and three Node B dual-stack `BACKUP` samples with zero VIPs. Caddy,
+lighttpd, Pi-hole FTL, Unbound, and Keepalived were active on both nodes;
+mutation and watchdog residue were absent. Rollback was not required.
