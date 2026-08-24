@@ -10,9 +10,10 @@ The authorized-key template does not provision SSH identity or trust. Private
 keys, peer public keys, and `known_hosts` data are external inputs; see
 `Caddy/docs/REPRODUCIBILITY.md`.
 
-`reverse-proxy.caddy.example` is an approved future task input. No production
-inventory or installer may consume it. A later documentation task will turn it
-into a supported application template.
+`reverse-proxy.caddy.example` is a supported, non-deployable documentation
+input. [`APPLICATION_ONBOARDING.md`](../docs/APPLICATION_ONBOARDING.md) defines
+its tokens, review boundary, validation, publication, and rollback. No
+production inventory, installer, or renderer may consume it.
 
 Keepalived templates and generic lsyncd templates are absent. Their current
 sources live in `homelab-dns` and `Caddy/configs/lsyncd`.

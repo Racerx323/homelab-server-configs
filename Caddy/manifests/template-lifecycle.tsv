@@ -2,4 +2,4 @@
 Caddy/templates/README.md	production-current	no	Caddy/templates/README.md
 Caddy/templates/authorized-key-receiver-finalized-v2.in	production-current	yes	Caddy/manifests/synchronization-protocol-v2.yaml
 Caddy/templates/caddy-ha.env-v2.in	production-current	yes	Caddy/templates/caddy-ha.env-v2.in
-Caddy/templates/reverse-proxy.caddy.example	future-task	no	Caddy/docs/caddy_plan-v1.1.md
+Caddy/templates/reverse-proxy.caddy.example	supported-example	no	Caddy/docs/APPLICATION_ONBOARDING.md

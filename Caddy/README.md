@@ -27,7 +27,7 @@ action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 | `manifests/` | Current contracts, accepted identities, and successor registries |
 | `scripts/` | Current runtime and repository tools |
 | `systemd/` | Current installable units and drop-ins |
-| `templates/` | Two production templates and one approved future example |
+| `templates/` | Two production templates and one supported non-deployable example |
 | `tests/` | Neutral current-production validation |
 | `docs/` | Governing plan, operator runbooks, architecture, reproducibility, and durable notification contract |
 
@@ -44,6 +44,7 @@ The `homelab-network` repository owns network-controller configuration.
 | [`docs/UNINSTALLATION.md`](docs/UNINSTALLATION.md) | Standby-first removal and preservation rules |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Component-specific diagnosis and evidence |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Accepted as-built component and data-flow model |
+| [`docs/APPLICATION_ONBOARDING.md`](docs/APPLICATION_ONBOARDING.md) | Backend inventory, template, validation, and release gate |
 | [`docs/APPRISE_DELIVERY.md`](docs/APPRISE_DELIVERY.md) | Notification and persistent queue authority |
 | [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | Rebuild inputs and external recovery authority |
 | [`docs/caddy_plan-v1.1.md`](docs/caddy_plan-v1.1.md) | Architecture decisions, lifecycle, and authorization authority |

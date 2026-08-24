@@ -1,9 +1,44 @@
-# Future application reverse-proxy template input.
-# This file is not installed or consumed by current production tooling.
+# Supported application reverse-proxy example.
 #
-# A future documentation task will add explicit placeholders, TLS policy,
-# trusted health validation, default-deny behavior, and a validation example.
+# This file is documentation input. No production manifest, installer, or
+# renderer consumes it. Copy it to a reviewed 20-<application>.caddy fragment,
+# replace every marked value, and include that fragment in a new immutable release.
 
-https://app.example.internal {
-    reverse_proxy 127.0.0.1:8080
+https://@@PUBLIC_FQDN@@ {
+    bind 10.1.0.56 fd36:5aa8:6971:1::56
+    import local_tls
+
+    @allowed_clients remote_ip @@ALLOWED_CLIENT_CIDRS@@
+    handle @allowed_clients {
+        reverse_proxy @@BACKEND_UPSTREAMS@@ {
+            lb_policy @@LB_POLICY@@
+
+            health_method GET
+            health_uri @@HEALTH_URI@@
+            health_status @@HEALTH_STATUS@@
+            health_interval @@HEALTH_INTERVAL@@
+            health_timeout @@HEALTH_TIMEOUT@@
+            health_passes @@HEALTH_PASSES@@
+            health_fails @@HEALTH_FAILS@@
+            health_headers {
+                Host @@BACKEND_HOST_HEADER@@
+            }
+
+            fail_duration @@FAIL_DURATION@@
+            max_fails @@MAX_FAILS@@
+            unhealthy_status 5xx
+
+            header_up Host @@BACKEND_HOST_HEADER@@
+
+            transport http {
+                dial_timeout @@DIAL_TIMEOUT@@
+                response_header_timeout @@RESPONSE_HEADER_TIMEOUT@@
+                @@BACKEND_TLS@@
+                @@BACKEND_TLS_SERVER_NAME@@
+                @@BACKEND_TLS_TRUST_POOL@@
+            }
+        }
+    }
+
+    respond 403
 }

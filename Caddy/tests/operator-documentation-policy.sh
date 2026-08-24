@@ -31,9 +31,12 @@ readonly mode
 readonly docs_root=$repository_root/Caddy/docs
 readonly readme=$repository_root/Caddy/README.md
 readonly script_lifecycle=$repository_root/Caddy/manifests/script-lifecycle.tsv
+readonly template_readme=$repository_root/Caddy/templates/README.md
+readonly reverse_proxy_template=$repository_root/Caddy/templates/reverse-proxy.caddy.example
 self_test_root=
 
 required_documents=(
+    APPLICATION_ONBOARDING.md
     ARCHITECTURE.md
     INSTALLATION.md
     OPERATIONS.md
@@ -99,6 +102,8 @@ authority_links_complete() {
         '(QUICK_START.md)' || return 1
     require_text "$docs_root/OPERATIONS.md" \
         '(APPRISE_DELIVERY.md)' || return 1
+    require_text "$docs_root/OPERATIONS.md" \
+        '(APPLICATION_ONBOARDING.md)' || return 1
     require_text "$docs_root/UNINSTALLATION.md" \
         '(REPRODUCIBILITY.md)' || return 1
     require_text "$docs_root/UNINSTALLATION.md" \
@@ -110,7 +115,11 @@ authority_links_complete() {
     require_text "$docs_root/ARCHITECTURE.md" \
         '(caddy_plan-v1.1.md)' || return 1
     require_text "$docs_root/ARCHITECTURE.md" \
-        '(APPRISE_DELIVERY.md)'
+        '(APPRISE_DELIVERY.md)' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '(caddy_plan-v1.1.md)' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '(OPERATIONS.md)'
 }
 
 relative_links_resolve() {
@@ -153,7 +162,7 @@ future_prompt_isolated() {
             "$operator_documentation_surface" || return 1
     done
     ! grep -Fq 'FUTURE_COMPLETE_INSTALLATION_PROMPT.md' \
-        "$docs_root"/{ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
+        "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
 }
 
 future_prompt_registered() {
@@ -166,7 +175,7 @@ future_prompt_registered() {
 historical_commands_absent() {
     ! grep -Eiq \
         '(^|[^[:alnum:]])action[[:space:]]*[0-9]+|run-[^[:space:]`]*action[0-9]+' \
-        "$docs_root"/{ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
+        "$docs_root"/{APPLICATION_ONBOARDING,ARCHITECTURE,INSTALLATION,OPERATIONS,QUICK_START,TROUBLESHOOTING,UNINSTALLATION}.md
 }
 
 entrypoints_current() {
@@ -239,6 +248,33 @@ operational_contracts_present() {
     require_text "$docs_root/ARCHITECTURE.md" '```mermaid'
 }
 
+application_onboarding_contract_present() {
+    regular_file "$template_readme" || return 1
+    regular_file "$reverse_proxy_template" || return 1
+    require_text "$template_readme" \
+        '(../docs/APPLICATION_ONBOARDING.md)' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'Caddy/templates/reverse-proxy.caddy.example' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'tls_insecure_skip_verify' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '10.1.0.56' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'fd36:5aa8:6971:1::56' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'caddy adapt --validate' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'caddy validate --adapter caddyfile' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'Node B before Node A' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'immutable release' || return 1
+    # Backticks are literal documentation content.
+    # shellcheck disable=SC2016
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'existing `421` default-deny routes'
+}
+
 check_repository() {
     documents_regular || fail documents_not_regular
     readme_index_complete || fail readme_index_incomplete
@@ -250,6 +286,8 @@ check_repository() {
     entrypoints_current || fail current_entrypoint_invalid
     installed_boundary_explicit || fail installed_boundary_missing
     operational_contracts_present || fail operational_contract_missing
+    application_onboarding_contract_present ||
+        fail application_onboarding_contract_missing
 }
 
 run_self_test() {
@@ -266,6 +304,8 @@ run_self_test() {
     cp -a "$default_repository_root/Caddy/scripts" \
         "$self_test_root/Caddy/"
     cp -a "$default_repository_root/Caddy/manifests" \
+        "$self_test_root/Caddy/"
+    cp -a "$default_repository_root/Caddy/templates" \
         "$self_test_root/Caddy/"
 
     /bin/bash "$0" --check --repository-root \

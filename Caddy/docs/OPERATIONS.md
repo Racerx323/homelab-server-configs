@@ -13,6 +13,8 @@ a reviewed operation, exact authorization boundary, and retained evidence.
 - `Caddy/manifests/synchronization-protocol-v2.yaml` owns release transport and
   reconciliation.
 - [`APPRISE_DELIVERY.md`](APPRISE_DELIVERY.md) owns notification delivery.
+- [`APPLICATION_ONBOARDING.md`](APPLICATION_ONBOARDING.md) owns the backend
+  inventory and reverse-proxy fragment review contract.
 
 Do not treat a newer repository source hash as installed production. Compare
 repository and accepted-live identities through
@@ -66,6 +68,15 @@ accepted incoming candidate.
 
 Do not copy files into `/etc/caddy/current`, create completion markers, invoke a
 remote finalizer through an ad hoc SSH command, or edit an immutable release.
+
+## Application backends
+
+Use [`APPLICATION_ONBOARDING.md`](APPLICATION_ONBOARDING.md) before preparing a
+new application fragment. Obtain approval for the complete backend inventory;
+render and validate the supported example; reconcile repository and DNS state;
+then define a separate production operation. The example is not deployable and
+does not belong in a production release until the operator approves its exact
+rendered fragment.
 
 ## Emergency Node B publication
 

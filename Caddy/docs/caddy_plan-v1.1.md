@@ -393,36 +393,35 @@ committed, no node was contacted, and no deployment successor was created.
 
 ### Checkpoint 3: Reverse-proxy backend onboarding
 
-Checkpoint 3 is the next Caddy repository task.
+Checkpoint 3 is complete in the repository commit that contains this record.
+[`APPLICATION_ONBOARDING.md`](APPLICATION_ONBOARDING.md) now owns the approval
+inventory, transport and TLS policy, health contract, request-header boundary,
+client restrictions, validation, publication, acceptance, and rollback for a
+new backend. `Caddy/templates/reverse-proxy.caddy.example` is a supported
+example with lifecycle `supported-example` and `deployable=no`; no production
+manifest, installer, or renderer consumes it.
 
-Create `Caddy/docs/APPLICATION_ONBOARDING.md` and turn
-`Caddy/templates/reverse-proxy.caddy.example` into a supported, validated
-example without installing it. The guide and example must require a public
-FQDN; backend scheme, address, and port; trusted backend TLS and SNI when HTTPS
-is used; health URI, expected status, interval, and timeout; connection and
-response timeouts; required request headers; access restrictions where
-applicable; default-deny interaction; dual-stack client checks; Caddy
-adaptation and validation; and release-based rollback.
+The existing template-lifecycle policy renders HTTP and verified-HTTPS forms
+from the exact token allowlist. The network-disabled Debian 12 batch adapted
+and validated both forms with Caddy 2.11.4. The operator-documentation policy
+now enforces the guide, its authority links, current entrypoints, future-prompt
+isolation, and the absence of historical Action commands. Markdown lint, the
+current repository-policy host profile, the Debian profile, and the complete
+pre-commit suite form this checkpoint's repository acceptance.
 
-Before defining a production backend, obtain operator approval for an
-inventory containing the application, public hostname, exact backend
-endpoint, protocol, health contract, authentication owner, allowed networks,
-single- or multi-backend availability, and required A and AAAA records. Do not
-infer applications or endpoints from existing DNS names.
-
-Keep `reverse-proxy.caddy.example` classified as `future-task` and
-`deployable=no` until this checkpoint passes. A supported example remains a
-documentation input, not a production fragment. Each approved backend later
-requires an immutable Caddy release, repository and DNS reconciliation where
-applicable, production-path validation, a defined successor, and separate live
+No application, endpoint, or DNS record was inferred or registered. No HA node
+was contacted, no accepted-live production file or inventory changed, and no
+operation specification or deployment successor was created. A later backend
+requires an approved inventory, repository and DNS reconciliation, an
+immutable protocol-v2 release, production-path validation, and separate live
 authorization.
 
 ### Future complete-installation project
 
-The three checkpoints above do not design or authorize a clean-node
-installation. A later repository project must begin from
+The next planned Caddy repository project does not design or authorize a
+clean-node installation. It must begin from
 [`FUTURE_COMPLETE_INSTALLATION_PROMPT.md`](FUTURE_COMPLETE_INSTALLATION_PROMPT.md).
-That prompt is the only current reference to the future project. The six
+That prompt is the only current reference to the future project. The current
 operator documents, `Caddy/README.md`, `APPRISE_DELIVERY.md`, and
 `REPRODUCIBILITY.md` must not link to it or present its proposed work as an
 accepted production capability.
