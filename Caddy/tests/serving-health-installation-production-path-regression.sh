@@ -64,6 +64,12 @@ if [[ "$successor_status" = none ]]; then
         "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
     grep -Fq 'pihole_web_health event=recovered-before-enqueue' \
         "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
+    grep -Fxq 'daemon_failure_count=1' \
+        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'identifier_failure_count=0' \
+        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'combined_failure_count=1' \
+        "$root/controlled-transaction/raw/exercise-lighttpd-selector-union.txt"
     for corruption in missing duplicate malformed reordered oversized incomplete symlinked; do
         test -s "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
         awk -F '\t' 'NR == 2 && $2 == "reject" && $3 != 0 { found=1 }
@@ -143,7 +149,7 @@ if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
 elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
     for decision in exercise-role-rejection exercise-service-control \
         exercise-ownership-convergence exercise-journal-bounded \
-        exercise-lighttpd-pending-enqueue \
+        exercise-lighttpd-pending-enqueue exercise-lighttpd-selector-union \
         exercise-sampler-sigterm-lifecycle \
         exercise-reverse-restoration; do
         test -s "$root/transaction/decisions/$decision.tsv"
@@ -181,6 +187,16 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         "$root/transaction/raw/exercise-lighttpd-pending-enqueue.txt"
     grep -Fq 'pihole_web_health event=recovered-before-enqueue' \
         "$root/transaction/raw/exercise-lighttpd-pending-enqueue.txt"
+    grep -Fxq 'daemon_failure_count=1' \
+        "$root/transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'identifier_failure_count=0' \
+        "$root/transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'identifier_recovery_count=1' \
+        "$root/transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'combined_failure_count=1' \
+        "$root/transaction/raw/exercise-lighttpd-selector-union.txt"
+    grep -Fxq 'combined_recovery_count=1' \
+        "$root/transaction/raw/exercise-lighttpd-selector-union.txt"
     grep -Fq $'\tbounded-convergence-retry' \
         "$root/outer/raw/outer-bounded-convergence-retry.txt"
     grep -Fxq 'node_a_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"

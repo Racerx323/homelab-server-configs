@@ -1,35 +1,24 @@
 schema_version: 2
-action: 35ar
-title: Durable-notification and bounded-convergence controlled serving-failure exercise
-status: failed-consumed
+action: 35as
+title: Complete-journal controlled serving-failure exercise
+status: defined-unexecuted
 scope: controlled-serving-failure-exercise
 consumes:
-  - action: 35aq
+  - action: 35ar
     result: failed-consumed
     rerun: prohibited
-    archive_tag: caddy-action35aq-terminal-2026-08-24
-    evidence: /tmp/caddy-ssh-evidence-serving_health.BPx1JI
+    archive_tag: caddy-action35ar-terminal-2026-08-24
+    evidence: /tmp/caddy-ssh-evidence-serving_health.cpiT8z
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 1d7e0a635d1ca395eb6e146308cb8bec85851dcd6260ff7d824ef07ce44ef769
+transaction_sha256: 77a8e54d5d3596d09c6340d74a4e2d29ff7c4e7de322271a9527aa84a536240b
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 6051da3870aa7d88cffd205005d57ed25ad4d191916e91e4ef0c3ca47c6f3149
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: consumed-do-not-rerun
-terminal_result:
-  outer_sha256: 2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437
-  transaction_sha256: 1d7e0a635d1ca395eb6e146308cb8bec85851dcd6260ff7d824ef07ce44ef769
-  exit_status: 1
-  classification: failed-consumed-after-mutation-automatic-recovery-proven
-  evidence: /tmp/caddy-ssh-evidence-serving_health.cpiT8z
-  failed_assertion: serving_health_deployment_check_exercise_journal_complete=false
-  evidence_selection_defect: the full cursor-bounded daemon journal contained exactly one pihole-web failure enqueue and one recovery enqueue, but lighttpd readiness counted only the narrower identifier-selected notification artifact, which retained only recovery
-  durable_delivery: the failure was delivered as recovered-before-enqueue and the matching recovery used the same correlation identity
-  automatic_recovery: final samples proved Node A MASTER with four VIPs and Node B BACKUP with zero VIPs, all five services active on both nodes, and no mutation or watchdog residue
-  archive_tag: caddy-action35ar-terminal-2026-08-24
+live_execution: prohibited-until-exact-sha-authorization
 baseline:
   node_a: MASTER with all four DNS and Proxy VIPs
   node_b: BACKUP with zero shared VIPs
@@ -55,6 +44,8 @@ notification_acceptance:
     - failure-retained
     - enqueue-failure-pending
   pending_completion: restoration must enqueue exactly one retained failure and one recovery for the episode
+  journal_selection: de-duplicate the cursor-bounded union of service-unit and identifier-selected records before evaluating the episode
+  selector_regression: accept when the failure enqueue is visible only through the service unit and recovery only through the identifier selector
   delivery: non-blocking and outside serving-health decisions
 continuity_evidence:
   granularity: one causal record per request and address family

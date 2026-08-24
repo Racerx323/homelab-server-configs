@@ -5,14 +5,12 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending; Action 35ar is failed-consumed and awaits its
-  annotated terminal tag.
-- Status: terminal-pending
-- Planned archive tag: `caddy-action35ar-terminal-2026-08-24`
-- Terminal action: Action 35ar is failed-consumed after its lighttpd journal
-  acceptance selected incomplete notification evidence. It must not be rerun.
-- Successor registry: none until the terminal tag exists and the consumed
-  operation is cleaned.
+- State: Action 35as is the single defined, unexecuted Caddy operation.
+- Status: defined
+- Latest archive tag: `caddy-action35ar-terminal-2026-08-24`
+- Consumed action: Action 35ar is archived, cleaned from the current operation
+  window, and must not be restored, modified, or rerun.
+- Successor registry: Action 35as only.
 
 ## Action 35ar terminal result
 
@@ -45,6 +43,30 @@ Git preserves the complete deployment journal and executed action files.
   residue.
 - Exit status 1 remains immutable. Action 35ar must not be restored, modified,
   or rerun.
+
+## Action 35as definition
+
+- Scope: direct continuation of the controlled DNS and Proxy serving-failure
+  exercise using the neutral transaction and outer runner.
+- Consumes Action 35ar and its retained evidence without restoring, modifying,
+  or rerunning it.
+- The complete cursor-bounded journal is the de-duplicated union of the
+  service-unit and identifier-selected records. Lighttpd episode acceptance
+  evaluates exactly one failure enqueue and one recovery enqueue against that
+  complete artifact.
+- Real production-path coverage reproduces the observed selector split: the
+  failure enqueue is visible only through the service-unit selection and the
+  recovery enqueue only through the identifier selection. The old narrow
+  notification-only predicate cannot satisfy this case.
+- No producer, notification, serving-health, scenario, continuity, ownership,
+  restoration, or status-125 behavior changes. The remaining exercise is
+  unchanged.
+- Definition and validation are repository-only and contact no HA node. Live
+  execution requires a separate authorization of the exact neutral outer SHA.
+- Authorization-ready command:
+  `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh`.
+- Outer SHA-256:
+  `9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`.
 
 ## Action 35aq terminal result
 

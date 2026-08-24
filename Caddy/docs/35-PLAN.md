@@ -1252,3 +1252,39 @@ Automatic recovery proved the accepted baseline: three Node A samples were
 dual-stack `MASTER` with four VIPs, three Node B samples were dual-stack
 `BACKUP` with zero VIPs, all five serving services were active on both nodes,
 and mutation and watchdog residue were absent.
+
+## Action 35as definition
+
+Action 35as is the single defined, unexecuted direct successor. It consumes
+failed-consumed Action 35ar and its retained evidence without restoring,
+modifying, or rerunning it. Definition and validation are repository-only and
+contact no HA node. The neutral reusable transaction and outer runner remain
+the only implementation.
+
+The sole orchestration correction is journal completeness. Each polling pass
+captures the cursor-bounded service-unit selection and identifier selection,
+forms a de-duplicated union, and evaluates the lighttpd episode against that
+complete artifact. Acceptance requires the durable outage state,
+`recovery-enqueued`, exactly one `pihole-web` failure enqueue, and exactly one
+`pihole-web` recovery enqueue. Production-path coverage reproduces the observed
+Action 35ar split: failure is visible only through the service-unit selection,
+recovery is visible only through the identifier selection, and their complete
+union passes. Missing either side, duplicate records after de-duplication, or
+an incomplete episode continues to reject.
+
+The durable producer state machine, notification delivery, nine scenarios,
+bounded-convergence law, expected local outages, configured failure/recovery
+thresholds, exact four-VIP ownership, structured notifications, reverse
+restoration, status-125 boundary, final accepted ownership, and zero-residue
+requirements remain unchanged. Live execution requires separate authorization
+of the exact neutral outer-runner SHA-256 after authorization readiness passes.
+
+The live command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh
+```
+
+The authorization boundary is outer SHA-256
+`9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`.

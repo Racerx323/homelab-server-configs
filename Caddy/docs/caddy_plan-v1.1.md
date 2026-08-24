@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35ar is failed-consumed with automatic recovery proven after incomplete lighttpd journal selection rejected a successfully delivered failure/recovery episode; no successor is registered; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35ar is archived failed-consumed with automatic recovery proven; Action 35as is the single defined, unexecuted successor correcting only complete lighttpd journal selection; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -924,6 +924,25 @@ real selector behavior. The remaining exercise, producer state machine, and
 serving-health architecture remain unchanged. Final acceptance proved Node A
 `MASTER` with four VIPs, Node B `BACKUP` with zero VIPs, all five services
 active on both nodes, and zero mutation or watchdog residue.
+
+### Action 35as definition
+
+Action 35as is the single defined, unexecuted direct successor. It consumes
+Action 35ar without restoring or rerunning it. The neutral transaction now
+forms one de-duplicated, cursor-bounded union from the service-unit and
+identifier-selected journals before evaluating the lighttpd failure/recovery
+episode. Exactly one failure enqueue and one recovery enqueue remain required.
+
+Production-path coverage reproduces the Action 35ar selector split, with the
+failure visible only in the service-unit selection and recovery visible only
+in the identifier selection. The complete union passes; the former narrow
+notification-only predicate would fail. No producer state, notification
+delivery, controlled scenario, continuity, ownership, restoration, or
+status-125 behavior changes. Live execution remains separately gated by the
+exact outer-runner SHA-256
+`9e0ad4c77ddd5d44ee69cde1bbd57f2dd4b24005602fc85babb29c7b2e42535b`
+for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
+repository root after authorization readiness passes.
 
 ## 19. Checkpoint procedure
 

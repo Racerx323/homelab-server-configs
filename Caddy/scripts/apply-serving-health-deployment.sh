@@ -2723,20 +2723,20 @@ controlled_exercise_journal() {
         capture_command "$serving_health_notification_label" "$journalctl_command" --no-pager \
             -o short-iso-precise --after-cursor "$(<"$serving_health_cursor_file")" \
             -t keepalived-notify -t caddy-ha-health -t caddy-apprise-queue
-        cat "$evidence_root/$serving_health_daemon_label.stdout" \
+        awk '!seen[$0]++' "$evidence_root/$serving_health_daemon_label.stdout" \
             "$evidence_root/$serving_health_notification_label.stdout" \
             >"$evidence_root/$serving_health_journal_label.stdout"
         chmod 0600 "$evidence_root/$serving_health_journal_label.stdout"
         case "$serving_health_scenario" in
             *-lighttpd)
                 grep -Eq 'pihole_web_health event=(failure-retained|enqueue-failure-pending)' \
-                    "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    "$evidence_root/$serving_health_journal_label.stdout" &&
                     grep -Fq 'pihole_web_health event=recovery-enqueued' \
-                        "$evidence_root/$serving_health_daemon_label.stdout" &&
+                        "$evidence_root/$serving_health_journal_label.stdout" &&
                     [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=failure' \
-                        "$evidence_root/$serving_health_notification_label.stdout")" -eq 1 ]] &&
+                        "$evidence_root/$serving_health_journal_label.stdout")" -eq 1 ]] &&
                     [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=success' \
-                        "$evidence_root/$serving_health_notification_label.stdout")" -eq 1 ]] &&
+                        "$evidence_root/$serving_health_journal_label.stdout")" -eq 1 ]] &&
                     serving_health_ready=true
                 ;;
             *-caddy)
@@ -3743,6 +3743,7 @@ controlled_failure_exercise_production_path_test() {
     local exercise_curl=$exercise_test_root/curl
     local exercise_script=$exercise_repo_root/Caddy/scripts/apply-serving-health-deployment.sh
     local exercise_scenario exercise_role exercise_status exercise_raw exercise_decision
+    local exercise_selector_raw exercise_selector_decision
     local -a exercise_scenarios=(
         node-a-caddy node-a-lighttpd node-a-pihole-ftl node-a-unbound node-a-keepalived
         node-b-caddy node-b-lighttpd node-b-pihole-ftl node-b-unbound
@@ -3865,11 +3866,22 @@ elif [[ -f "$CADDY_EXERCISE_TEST_ROOT/journal.log" ]]; then
         shift
     done
     if [[ " $arguments " = *' -t '* ]]; then
-        tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
-            grep -E 'event=enqueued|keepalived-notify' || :
+        if [[ "${CADDY_EXERCISE_SPLIT_PIHOLE_SELECTORS:-0}" = 1 ]]; then
+            tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+                grep -E 'event=enqueued|keepalived-notify' |
+                grep -Ev 'source=pihole-web .*severity=failure' || :
+        else
+            tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+                grep -E 'event=enqueued|keepalived-notify' || :
+        fi
     else
-        tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
-            grep -Ev '^event=enqueued' || :
+        if [[ "${CADDY_EXERCISE_SPLIT_PIHOLE_SELECTORS:-0}" = 1 ]]; then
+            tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+                awk '!/^event=enqueued/ || /source=pihole-web .*severity=failure/'
+        else
+            tail -n "+$((cursor + 1))" "$CADDY_EXERCISE_TEST_ROOT/journal.log" |
+                grep -Ev '^event=enqueued' || :
+        fi
     fi
 fi
 JOURNALCTL
@@ -4118,6 +4130,7 @@ CURL
         CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$exercise_journalctl \
         CADDY_SERVING_HEALTH_SLEEP_COMMAND=$exercise_sleep \
         CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_SPLIT_PIHOLE_SELECTORS=1 \
         /bin/bash "$exercise_script" exercise-journal node-a "$exercise_payload" \
         "$exercise_evidence" node-a-lighttpd
     exercise_raw=$exercise_test_root/raw/exercise-lighttpd-pending-enqueue.txt
@@ -4129,6 +4142,31 @@ CURL
         "$exercise_raw")" -eq 1 ]]
     [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=success' \
         "$exercise_raw")" -eq 1 ]]
+    exercise_selector_raw=$exercise_test_root/raw/exercise-lighttpd-selector-union.txt
+    exercise_selector_decision=$exercise_test_root/decisions/exercise-lighttpd-selector-union.tsv
+    {
+        printf 'daemon_failure_count=%s\n' "$(grep -Ec \
+            'event=enqueued .*source=pihole-web .*severity=failure' \
+            "$exercise_evidence/exercise_node-a-lighttpd_journal_daemon.stdout")"
+        printf 'identifier_failure_count=%s\n' "$(grep -Ec \
+            'event=enqueued .*source=pihole-web .*severity=failure' \
+            "$exercise_evidence/exercise_node-a-lighttpd_journal_notification.stdout")"
+        printf 'identifier_recovery_count=%s\n' "$(grep -Ec \
+            'event=enqueued .*source=pihole-web .*severity=success' \
+            "$exercise_evidence/exercise_node-a-lighttpd_journal_notification.stdout")"
+        printf 'combined_failure_count=%s\n' "$(grep -Ec \
+            'event=enqueued .*source=pihole-web .*severity=failure' "$exercise_raw")"
+        printf 'combined_recovery_count=%s\n' "$(grep -Ec \
+            'event=enqueued .*source=pihole-web .*severity=success' "$exercise_raw")"
+    } >"$exercise_selector_raw"
+    grep -Fxq 'daemon_failure_count=1' "$exercise_selector_raw"
+    grep -Fxq 'identifier_failure_count=0' "$exercise_selector_raw"
+    grep -Fxq 'identifier_recovery_count=1' "$exercise_selector_raw"
+    grep -Fxq 'combined_failure_count=1' "$exercise_selector_raw"
+    grep -Fxq 'combined_recovery_count=1' "$exercise_selector_raw"
+    write_decision exercise-lighttpd-selector-union accept 0 \
+        complete-deduplicated-selector-union complete-deduplicated-selector-union \
+        "$exercise_selector_raw" "$exercise_selector_decision"
     write_decision exercise-lighttpd-pending-enqueue accept 0 \
         pending-eventual-failure-and-recovery-delivery \
         pending-eventual-failure-and-recovery-delivery "$exercise_raw" "$exercise_decision"
