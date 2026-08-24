@@ -63,9 +63,15 @@ or mode-aware result generator cannot authorize a deployment.
 HA continuity acceptance uses independently retained per-request records from
 both nodes plus timestamped kernel address-monitor events covering the complete
 mutation and final-convergence window. The workstation outer runner performs
-the causal correlation. Primary request failures always reject; retries only
-classify. Evidence that is missing, malformed, duplicated, reordered,
-oversized, unsafe, incomplete, or cannot distinguish handoff overlap from a
-settled-owner serving failure also rejects. The sampler and observer lifecycle
-must prove bounded SIGTERM handling, child termination, timeout escalation, and
-zero residue through the real entrypoints.
+the causal correlation. A primary request failure under settled ownership
+always rejects. During a deliberately induced coupled failover or failback, it
+may be accepted only when the same shared endpoint and address family succeeds
+within 12 seconds and a timestamped kernel address event on either node proves
+a VIP transition between failure and recovery. Missing or late recovery,
+missing transition evidence, persistent family degradation, ambiguous or
+simultaneous ownership, and every settled-owner failure reject; a retry is not
+a broad waiver. Evidence that is missing, malformed, duplicated, reordered,
+oversized, unsafe, incomplete, or cannot distinguish bounded convergence from
+a settled-owner serving failure also rejects. The sampler and observer
+lifecycle must prove bounded SIGTERM handling, child termination, timeout
+escalation, and zero residue through the real entrypoints.

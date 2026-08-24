@@ -1038,9 +1038,10 @@ one bounded record per DNS, Proxy HTTPS, node UI, and shared UI request for each
 address family. Records include scenario, monotonic sequence, primary/retry
 identity, start/end timestamps, exact result, bounded failure class, curl
 connect/TLS/first-byte/total timings, local and remote addresses, and the
-nearest IPv4/IPv6 VRRP states and four-VIP count. A failed primary request is
-always an acceptance failure; its immediate retry is classification evidence
-only.
+nearest IPv4/IPv6 VRRP states and four-VIP count. Under the historical Action
+35ap contract, a failed primary request was always an acceptance failure and
+its immediate retry was classification evidence only. Action 35aq retained the
+evidence that required the bounded-convergence contract defined below.
 
 Both nodes now run a timestamped kernel address observer from before the first
 scenario through final convergence. The workstation outer runner validates and
@@ -1079,10 +1080,10 @@ UI behavior, structured notifications without the retired legacy title, exact
 service restoration, and zero residue. Lighttpd remains notification-only and
 cannot alter VRRP eligibility.
 
-Continuity acceptance uses the corrected per-request dual-node records and
-timestamped kernel address events. A failed primary request always rejects;
-its retry is classification evidence only. The workstation outer validates
-both readbacks and rejects `handoff-overlap`,
+Continuity acceptance for Action 35ap used the corrected per-request dual-node
+records and timestamped kernel address events. Its failed primary requests
+always rejected and retries only classified. The workstation outer validated
+both readbacks and rejected `handoff-overlap`,
 `settled-owner-serving-failure`, `family-degraded`, and
 `unclassified-insufficient-evidence`. Missing, malformed, duplicate,
 reordered, oversized, symlinked, incomplete, unsafe, or uncorrelatable evidence
@@ -1166,7 +1167,55 @@ deliberately stopped. The governing plan classifies that local outage as
 evidence rather than a shared-continuity failure, but the sampler rejected it.
 Second, shared first-attempt requests actually failed during the Caddy handoff:
 Node A IPv6 Proxy HTTPS and shared UI, Node B IPv4 DNS, and a later Node A IPv4
-Proxy HTTPS request. Repository policy currently rejects every failed primary
-request and permits retry only for classification. A successor may not hide
-those shared failures inside the notification fix; the intended continuity
-contract must be resolved explicitly before another live exercise is defined.
+Proxy HTTPS request. The then-current repository policy rejected every failed
+primary request and permitted retry only for classification. That result was
+not waived; its retained evidence is the basis of the narrow Action 35ar
+bounded-convergence contract.
+
+## Action 35ar definition
+
+Action 35ar is the single defined, unexecuted controlled serving-failure
+successor. It consumes Action 35aq and its retained evidence without restoring,
+modifying, or rerunning it. Definition and validation are repository-only and
+contact no HA node. The neutral reusable transaction and outer runner remain
+the only implementation.
+
+The lighttpd observer accepts `failure-retained` or the durable
+`enqueue-failure-pending` state during the deliberate outage. A pending state
+is accepted only when restoration subsequently produces exactly one failure
+enqueue and one recovery enqueue for that episode. Notification delivery
+remains non-blocking. The affected node's local UI outage during its deliberate
+Caddy stop is expected evidence. The lighttpd scenario permits only its expected
+affected-node and shared UI outage, remains outside VRRP eligibility, and must
+produce no VIP movement.
+
+A primary request under settled ownership always rejects. During a deliberately
+induced coupled failover or failback, a failed shared endpoint/family request
+may be accepted only when that exact endpoint and family succeeds within 12
+seconds and a timestamped kernel address event on either node causally proves a
+VIP transition between failure and recovery. Missing or late recovery, missing
+transition evidence, persistent family degradation, ambiguous or simultaneous
+ownership, and every settled-owner failure reject. Retry evidence is never a
+broad waiver.
+
+Action 35ar retains the nine scenarios, configured fail/recovery thresholds,
+exact four-VIP ownership, structured notifications without the legacy title,
+reverse restoration, status-125 boundary, final accepted ownership, and zero
+residue requirements. Production-path coverage must prove both immediate
+failure enqueue and durable pending-enqueue recovery, the exact expected local
+outages, accepted causally correlated bounded recovery, and rejection of the
+same failed request without a qualifying address transition. Live execution
+requires separate authorization of the exact neutral outer-runner SHA-256.
+
+Definition validation passed the repository-policy and serving-health host
+profiles, the combined network-disabled Debian 12 batch, the full pre-commit
+suite, and `deployable-successor-policy.sh --authorization-ready`. The live
+command is:
+
+```bash
+cd /home/aaron/code/homelab-server-configs
+/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh
+```
+
+The authorization boundary is outer SHA-256
+`2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`.

@@ -2440,18 +2440,21 @@ stop_sampler() {
         $11 !~ /^[0-9]+$/ || $12 !~ /^(success|failure)$/ || $23 !~ /^[0-4]$/ { exit 1 }
         END { if (NR < 9) exit 1 }
     ' "$evidence_root/availability.tsv"
-    require availability_primary_success test -z \
-        "$(awk -F '\t' '
-            function expected_lighttpd_outage() {
-                if ($2 !~ /^node-[ab]-lighttpd$/) return 0
-                if ($4 == "shared_ui") return 1
-                if ($4 != "node_ui") return 0
-                return ($1 == "node-a" && $2 == "node-a-lighttpd") ||
-                    ($1 == "node-b" && $2 == "node-b-lighttpd")
-            }
-            NR > 1 && $8 == "primary" && $12 != "success" &&
-                !expected_lighttpd_outage() { print; exit }
-        ' "$evidence_root/availability.tsv")"
+    # The workstation owns the cross-node decision because only it has both
+    # samplers and both address monitors. The node-local boundary proves that
+    # every failed primary produced the required bounded retry record.
+    # shellcheck disable=SC2016
+    require availability_failed_primary_retry_complete awk -F '\t' '
+        NR == 1 { next }
+        {
+            key=$1 FS $2 FS $3 FS $4 FS $5
+            if ($8 == "primary" && $12 == "failure") failed[key]=1
+            if ($8 == "retry") retried[key]=1
+        }
+        END {
+            for (key in failed) if (!retried[key]) exit 1
+        }
+    ' "$evidence_root/availability.tsv"
     # shellcheck disable=SC2016
     require availability_unique awk -F '\t' '
         NR == 1 { next }
@@ -2726,10 +2729,14 @@ controlled_exercise_journal() {
         chmod 0600 "$evidence_root/$serving_health_journal_label.stdout"
         case "$serving_health_scenario" in
             *-lighttpd)
-                grep -Fq 'pihole_web_health event=failure-retained' \
+                grep -Eq 'pihole_web_health event=(failure-retained|enqueue-failure-pending)' \
                     "$evidence_root/$serving_health_daemon_label.stdout" &&
                     grep -Fq 'pihole_web_health event=recovery-enqueued' \
                         "$evidence_root/$serving_health_daemon_label.stdout" &&
+                    [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=failure' \
+                        "$evidence_root/$serving_health_notification_label.stdout")" -eq 1 ]] &&
+                    [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=success' \
+                        "$evidence_root/$serving_health_notification_label.stdout")" -eq 1 ]] &&
                     serving_health_ready=true
                 ;;
             *-caddy)
@@ -2768,8 +2775,8 @@ controlled_exercise_journal() {
             "$evidence_root/$serving_health_journal_label.stdout" || :)"
     case "$serving_health_scenario" in
         *-lighttpd)
-            require exercise_lighttpd_failure_event grep -Fq \
-                'pihole_web_health event=failure-retained' \
+            require exercise_lighttpd_failure_state grep -Eq \
+                'pihole_web_health event=(failure-retained|enqueue-failure-pending)' \
                 "$evidence_root/$serving_health_journal_label.stdout"
             require exercise_lighttpd_recovery_event grep -Fq \
                 'pihole_web_health event=recovery-enqueued' \
@@ -2821,7 +2828,7 @@ controlled_exercise_observe() {
         capture_command "$serving_health_observation_label" "$journalctl_command" --no-pager \
             -o short-iso-precise --after-cursor "$(<"$serving_health_cursor_file")" \
             -u caddy-pihole-web-health.service
-        if grep -Fq 'pihole_web_health event=failure-retained' \
+        if grep -Eq 'pihole_web_health event=(failure-retained|enqueue-failure-pending)' \
             "$evidence_root/$serving_health_observation_label.stdout"; then
             serving_health_observed=true
             break
@@ -3775,10 +3782,17 @@ case "$1" in
                     >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
                 ;;
             lighttpd.service)
-                printf '%s\n' \
-                    'pihole_web_health event=failure-retained' \
-                    'event=enqueued event_id=web-failure source=pihole-web severity=failure' \
-                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                if [[ "${CADDY_EXERCISE_PENDING_ENQUEUE:-0}" = 1 ]]; then
+                    printf '%s\n' \
+                        'pihole_web_health event=enqueue-failure-pending' \
+                        >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                    : >"$CADDY_EXERCISE_TEST_ROOT/lighttpd-enqueue-pending"
+                else
+                    printf '%s\n' \
+                        'pihole_web_health event=failure-retained' \
+                        'event=enqueued event_id=web-failure source=pihole-web severity=failure' \
+                        >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                fi
                 ;;
         esac
         ;;
@@ -3801,10 +3815,20 @@ case "$1" in
                     >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
                 ;;
             lighttpd.service)
-                printf '%s\n' \
-                    'pihole_web_health event=recovery-enqueued' \
-                    'event=enqueued event_id=web-recovery source=pihole-web severity=success' \
-                    >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                if [[ -e "$CADDY_EXERCISE_TEST_ROOT/lighttpd-enqueue-pending" ]]; then
+                    rm -f -- "$CADDY_EXERCISE_TEST_ROOT/lighttpd-enqueue-pending"
+                    printf '%s\n' \
+                        'pihole_web_health event=recovered-before-enqueue' \
+                        'event=enqueued event_id=web-failure source=pihole-web severity=failure' \
+                        'pihole_web_health event=recovery-enqueued' \
+                        'event=enqueued event_id=web-recovery source=pihole-web severity=success' \
+                        >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                else
+                    printf '%s\n' \
+                        'pihole_web_health event=recovery-enqueued' \
+                        'event=enqueued event_id=web-recovery source=pihole-web severity=success' \
+                        >>"$CADDY_EXERCISE_TEST_ROOT/journal.log"
+                fi
                 ;;
             keepalived.service)
                 printf '%s\n' \
@@ -4062,6 +4086,52 @@ CURL
     cp -- "$exercise_evidence/exercise_node-a-caddy_journal.stdout" "$exercise_raw"
     write_decision exercise-journal-bounded accept 0 cursor-bounded cursor-bounded \
         "$exercise_raw" "$exercise_decision"
+
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$exercise_journalctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-cursor node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-lighttpd
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        CADDY_EXERCISE_PENDING_ENQUEUE=1 \
+        /bin/bash "$exercise_script" exercise-service node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-lighttpd:stop
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$exercise_journalctl \
+        CADDY_SERVING_HEALTH_SLEEP_COMMAND=$exercise_sleep \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-observe node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-lighttpd
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_SYSTEMCTL_COMMAND=$exercise_systemctl \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-service node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-lighttpd:start
+    CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
+        CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \
+        CADDY_SERVING_HEALTH_JOURNALCTL_COMMAND=$exercise_journalctl \
+        CADDY_SERVING_HEALTH_SLEEP_COMMAND=$exercise_sleep \
+        CADDY_EXERCISE_TEST_ROOT=$exercise_test_root \
+        /bin/bash "$exercise_script" exercise-journal node-a "$exercise_payload" \
+        "$exercise_evidence" node-a-lighttpd
+    exercise_raw=$exercise_test_root/raw/exercise-lighttpd-pending-enqueue.txt
+    exercise_decision=$exercise_test_root/decisions/exercise-lighttpd-pending-enqueue.tsv
+    cp -- "$exercise_evidence/exercise_node-a-lighttpd_journal.stdout" "$exercise_raw"
+    grep -Fq 'pihole_web_health event=enqueue-failure-pending' "$exercise_raw"
+    grep -Fq 'pihole_web_health event=recovered-before-enqueue' "$exercise_raw"
+    [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=failure' \
+        "$exercise_raw")" -eq 1 ]]
+    [[ "$(grep -Ec 'event=enqueued .*source=pihole-web .*severity=success' \
+        "$exercise_raw")" -eq 1 ]]
+    write_decision exercise-lighttpd-pending-enqueue accept 0 \
+        pending-eventual-failure-and-recovery-delivery \
+        pending-eventual-failure-and-recovery-delivery "$exercise_raw" "$exercise_decision"
 
     CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST=1 \
         CADDY_PRODUCTION_PATH_EVIDENCE_ROOT=$exercise_test_root \

@@ -9,12 +9,13 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=86e0653b435d6c0443da46eeb13361edc52a93daf8725d000b6b9e01318ba64b
-readonly operation_sha256=1b39df4d74b987b0ca0bfe3d14e870687db4694f5bb43e1fd4e5fc1a220f1b23
+readonly transaction_sha256=1d7e0a635d1ca395eb6e146308cb8bec85851dcd6260ff7d824ef07ce44ef769
+readonly operation_sha256=c847432c94f0b8f4c1d5b798217819a587f3fda941ba2372b1cb197d9d51555b
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
 readonly max_stream_bytes=1048576
+readonly continuity_retry_window_seconds=12
 
 usage() {
     printf 'Usage: %s [--production-path-test]\n' "${0##*/}" >&2
@@ -338,6 +339,9 @@ correlate_controlled_exercise_continuity() {
     local serving_health_correlation_root=$workstation_evidence/continuity-correlation
     local serving_health_role serving_health_availability serving_health_monitor
     local serving_health_failure_count=0 serving_health_classification serving_health_peer
+    local serving_health_recovery_end serving_health_start_epoch serving_health_recovery_epoch
+    local serving_health_recovery_seconds
+    local serving_health_monitor_candidate serving_health_transition_observed
 
     if [[ -e "$serving_health_correlation_root" || -L "$serving_health_correlation_root" ]]; then
         [[ -d "$serving_health_correlation_root" && ! -L "$serving_health_correlation_root" ]] || return 1
@@ -390,6 +394,46 @@ correlate_controlled_exercise_continuity() {
                 [[ "$probe" = node_ui && "$role" = "${scenario%-lighttpd}" ]]; }; then
             printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$role" "$scenario" "$sequence" \
                 "$probe" "$family" "$start" "$end" expected-notification-only-outage \
+                >>"$serving_health_correlation_root/classifications.tsv"
+            continue
+        fi
+        if [[ "$scenario" = node-a-caddy || "$scenario" = node-b-caddy ]] &&
+            [[ "$probe" = node_ui && "$role" = "${scenario%-caddy}" ]]; then
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$role" "$scenario" "$sequence" \
+                "$probe" "$family" "$start" "$end" expected-node-local-caddy-outage \
+                >>"$serving_health_correlation_root/classifications.tsv"
+            continue
+        fi
+        serving_health_recovery_end=$(awk -F '\t' -v role="$role" -v scenario="$scenario" \
+            -v probe="$probe" -v family="$family" -v failed_end="$end" '
+                NR > 1 && $1 == role && $2 == scenario && $4 == probe && $5 == family &&
+                    $9 >= failed_end && $12 == "success" { print $10; exit }
+            ' "$serving_health_correlation_root/$role-availability.tsv")
+        serving_health_transition_observed=false
+        if [[ -n "$serving_health_recovery_end" ]]; then
+            serving_health_start_epoch=$(/usr/bin/date -u -d "$start" +%s) || return 1
+            serving_health_recovery_epoch=$(/usr/bin/date -u -d "$serving_health_recovery_end" +%s) || return 1
+            serving_health_recovery_seconds=$((serving_health_recovery_epoch - serving_health_start_epoch))
+            if [[ "$serving_health_recovery_epoch" -ge "$serving_health_start_epoch" &&
+                "$serving_health_recovery_seconds" -le "$continuity_retry_window_seconds" ]]; then
+                for serving_health_monitor_candidate in \
+                    "$serving_health_correlation_root/node-a-vip-address-monitor.tsv" \
+                    "$serving_health_correlation_root/node-b-vip-address-monitor.tsv"; do
+                    if awk -F '\t' -v start="$start" -v recovery="$serving_health_recovery_end" '
+                        $1 == "address-event" && $2 >= start && $2 <= recovery {
+                            found=1
+                        }
+                        END { exit !found }
+                    ' "$serving_health_monitor_candidate"; then
+                        serving_health_transition_observed=true
+                        break
+                    fi
+                done
+            fi
+        fi
+        if [[ "$serving_health_transition_observed" = true ]]; then
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$role" "$scenario" "$sequence" \
+                "$probe" "$family" "$start" "$end" bounded-convergence-retry \
                 >>"$serving_health_correlation_root/classifications.tsv"
             continue
         fi
@@ -1589,7 +1633,13 @@ BUSCTL
 set -Eeuo pipefail
 if [[ " $* " = *' monitor address '* ]]; then
     trap 'exit 143' TERM
-    while :; do /usr/bin/sleep 1; done
+    while :; do
+        if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/convergence-address-event" ]]; then
+            rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/convergence-address-event"
+            printf '%s\n' 'Deleted 10.1.0.55/22 dev eth0'
+        fi
+        /usr/bin/sleep 0.01
+    done
 fi
 state=$($CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/bin/busctl)
 if [[ "$state" = 's "Master"' ]]; then
@@ -1634,6 +1684,12 @@ set -Eeuo pipefail
 if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-curl" ]]; then
     rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-curl"
     exit 16
+fi
+if [[ -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/inject-convergence-dns" ]]; then
+    rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/inject-convergence-dns"
+    : >"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/convergence-address-event"
+    /usr/bin/sleep 0.1
+    exit 9
 fi
 case " $* " in
     *' AAAA '*) printf '%s\n' 'fd36:5aa8:6971:1::55' ;;
@@ -1685,6 +1741,11 @@ if [[ "$1" = /bin/bash && "$2" = -s && "$3" = -- &&
     mode=$4
     role=$5
     argument=${8:-}
+    if [[ "$mode" = sampler-scenario && "$argument" = node-a-caddy &&
+        -e "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-convergence-dns" ]]; then
+        rm -f -- "$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/fail-next-convergence-dns"
+        : >"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/inject-convergence-dns"
+    fi
     printf '%s\t%s\t%s\n' "$role" "$mode" "$argument" \
         >>"$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/transaction.calls"
     node_root=$CADDY_SERVING_HEALTH_TEST_REMOTE_BASE/$role-root
@@ -1900,7 +1961,15 @@ SCP
     : >"$test_remote_base/ssh.calls"
     : >"$test_remote_base/scp.calls"
     : >"$test_remote_base/transaction.calls"
+    : >"$test_remote_base/fail-next-convergence-dns"
     run_controlled_failure_exercise_live
+    exercise_raw=$exercise_test_root/raw/outer-bounded-convergence-retry.txt
+    exercise_decision=$exercise_test_root/decisions/outer-bounded-convergence-retry.tsv
+    cp -- "$workstation_evidence/continuity-correlation/classifications.tsv" "$exercise_raw"
+    grep -Eq $'\tbounded-convergence-retry$' "$exercise_raw"
+    write_decision outer-bounded-convergence-retry accept 0 \
+        causally-correlated-bounded-recovery causally-correlated-bounded-recovery \
+        "$exercise_raw" "$exercise_decision"
     exercise_stream=$workstation_evidence/node-a-readback.stdout
     exercise_original=$exercise_test_root/node-a-readback.saved
     exercise_payload_file=$exercise_test_root/node-a-availability.saved

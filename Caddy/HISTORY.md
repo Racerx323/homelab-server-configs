@@ -5,15 +5,12 @@ Git preserves the complete deployment journal and executed action files.
 
 ## Current deployment window
 
-- State: terminal-pending; Action 35aq is failed-consumed and awaits its
-  annotated terminal tag.
-- Status: terminal-pending
-- Planned archive tag: `caddy-action35aq-terminal-2026-08-24`
-- Terminal action: Action 35aq is failed-consumed after the Node A lighttpd
-  scenario exposed notification-observation and continuity defects. It must
-  not be rerun.
-- Successor registry: none until the terminal tag exists and the consumed
-  operation is cleaned.
+- State: Action 35ar is the single defined, unexecuted Caddy operation.
+- Status: defined
+- Latest archive tag: `caddy-action35aq-terminal-2026-08-24`
+- Consumed action: Action 35aq is archived, cleaned from the current operation
+  window, and must not be restored, modified, or rerun.
+- Successor registry: Action 35ar only.
 
 ## Action 35aq terminal result
 
@@ -27,8 +24,8 @@ Git preserves the complete deployment journal and executed action files.
 - Node A's Caddy scenario completed coupled failover and recovery, but the
   continuous samplers retained primary shared-service failures during the
   handoff: Node A IPv6 Proxy HTTPS and shared UI, Node B IPv4 DNS, and a later
-  Node A IPv4 Proxy HTTPS request. Current repository law rejects every failed
-  primary request; retries are classification-only.
+  Node A IPv4 Proxy HTTPS request. The then-current repository law rejected
+  every failed primary request and used retries only for classification.
 - The same scenario's affected-node UI failed while Node A Caddy was
   deliberately stopped. That local outage is expected and the governing plan
   says it is evidence rather than a shared-continuity failure, but the sampler
@@ -48,6 +45,32 @@ Git preserves the complete deployment journal and executed action files.
   watchdog residue.
 - Exit status 1 remains the immutable result. Action 35aq must not be restored,
   modified, or rerun.
+
+## Action 35ar definition
+
+- Scope: controlled DNS and Proxy serving-failure exercise using the neutral
+  reusable transaction and outer runner.
+- Consumes Action 35aq and its retained evidence without restoring, modifying,
+  or rerunning it.
+- The durable Pi-hole web state `enqueue-failure-pending` is accepted during
+  the deliberate lighttpd outage only when restoration subsequently produces
+  exactly one failure enqueue and one recovery enqueue for that episode.
+- The affected node's local UI outage during its deliberate Caddy stop is
+  expected evidence. Lighttpd permits only its expected affected-node and
+  shared UI outage and remains notification-only with no VIP movement.
+- A primary request under settled ownership still rejects. During a deliberate
+  coupled failover or failback, a failed shared request is accepted only when
+  the same endpoint and family succeeds within 12 seconds and a timestamped
+  kernel address event causally proves VIP transition before recovery.
+- Missing or late recovery, missing transition evidence, persistent family
+  degradation, ambiguous or simultaneous ownership, and all settled-owner
+  failures reject.
+- Definition and validation are repository-only and contact no HA node. Live
+  execution requires a separate authorization of the exact outer SHA-256.
+- Authorization readiness passed against the real neutral production paths.
+  Command: `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh`.
+  Outer SHA-256:
+  `2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`.
 
 ## Action 35ap terminal result
 
@@ -179,9 +202,10 @@ Git preserves the complete deployment journal and executed action files.
   retained scenarios exercise Node A Caddy, lighttpd, Pi-hole FTL, Unbound,
   and Keepalived behavior plus equivalent Node B Caddy, lighttpd, Pi-hole FTL,
   and Unbound behavior.
-- Both nodes retain causal per-request dual-stack evidence and timestamped
-  kernel address events for the complete exercise. Every primary request
-  failure rejects; a retry may classify but never excuse it.
+- Both nodes retained causal per-request dual-stack evidence and timestamped
+  kernel address events for the complete exercise. Under Action 35ap's
+  historical contract every primary request failure rejected and a retry could
+  classify but not excuse it; Action 35ar supersedes that rule prospectively.
 - Missing, malformed, duplicate, reordered, oversized, symlinked, incomplete,
   unsafe, or uncorrelatable evidence fails closed. Sampler and observer
   lifecycle acceptance requires bounded SIGTERM handling, child termination,

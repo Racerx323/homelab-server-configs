@@ -178,14 +178,20 @@ aggregate sample. Each record must identify the node role, scenario, monotonic
 sequence, address family, endpoint and port, primary or retry attempt, bounded
 start/end times, command status, expected result, network timings and
 local/remote addresses when exposed, a sanitized failure class, and the nearest
-observed VRRP state and VIP count. A primary failure always rejects acceptance;
-a retry may classify the failure but cannot excuse it. Timestamped kernel
-address-monitor events must span the mutation window on both nodes, and the
-workstation outer runner must correlate those events with request records.
-Missing, malformed, duplicate, reordered, oversized, symlinked, incomplete, or
-uncorrelatable evidence fails closed. Samplers and observers must terminate
-promptly on SIGTERM, terminate their children, and leave no temporary or orphaned
-process residue.
+observed VRRP state and VIP count. A primary failure under settled ownership
+always rejects. During a deliberately induced coupled failover or failback, a
+failed primary may be accepted only when the same shared endpoint and address
+family succeeds within 12 seconds and timestamped kernel address-monitor
+evidence on either node causally proves a VIP transition between the failed
+request and recovery. Missing or late recovery, missing transition evidence,
+persistent family degradation, ambiguous or simultaneous ownership, and every
+settled-owner failure reject. A retry is evidence, not a broad waiver.
+Timestamped kernel address-monitor events must span the mutation window on both
+nodes, and the workstation outer runner must correlate those events with request
+records. Missing, malformed, duplicate, reordered, oversized, symlinked,
+incomplete, or uncorrelatable evidence fails closed. Samplers and observers must
+terminate promptly on SIGTERM, terminate their children, and leave no temporary
+or orphaned process residue.
 
 Fix neutral implementations in place before a defined operation is executed.
 After execution, archive the terminal operation and define a new operation spec

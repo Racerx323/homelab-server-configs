@@ -58,6 +58,12 @@ if [[ "$successor_status" = none ]]; then
     test -s "$root/controlled-outer/decisions/outer-causal-continuity-classification.tsv"
     grep -Eq $'\t(handoff-overlap|settled-owner-serving-failure|family-degraded|unclassified-insufficient-evidence)$' \
         "$root/controlled-outer/raw/outer-causal-continuity-classification.txt"
+    grep -Fq $'\tbounded-convergence-retry' \
+        "$root/controlled-outer/raw/outer-bounded-convergence-retry.txt"
+    grep -Fq 'pihole_web_health event=enqueue-failure-pending' \
+        "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
+    grep -Fq 'pihole_web_health event=recovered-before-enqueue' \
+        "$root/controlled-transaction/raw/exercise-lighttpd-pending-enqueue.txt"
     for corruption in missing duplicate malformed reordered oversized incomplete symlinked; do
         test -s "$root/controlled-outer/decisions/outer-continuity-$corruption.tsv"
         awk -F '\t' 'NR == 2 && $2 == "reject" && $3 != 0 { found=1 }
@@ -137,6 +143,7 @@ if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
 elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
     for decision in exercise-role-rejection exercise-service-control \
         exercise-ownership-convergence exercise-journal-bounded \
+        exercise-lighttpd-pending-enqueue \
         exercise-sampler-sigterm-lifecycle \
         exercise-reverse-restoration; do
         test -s "$root/transaction/decisions/$decision.tsv"
@@ -145,6 +152,7 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
     for decision in outer-preflight outer-real-preflight outer-stale-preflight \
         outer-full-scenario-sequence outer-restored-failure-non125 \
         outer-acceptance-failure-non125 outer-causal-continuity-classification \
+        outer-bounded-convergence-retry \
         outer-readback-cleanup; do
         test -s "$root/outer/decisions/$decision.tsv"
         test -s "$root/outer/raw/$decision.txt"
@@ -169,6 +177,12 @@ elif [[ "$operation_scope" = controlled-serving-failure-exercise ]]; then
         "$root/transaction/raw/exercise-journal-bounded.txt"
     grep -Fq 'VRRP_Script(check-caddy) succeeded' \
         "$root/transaction/raw/exercise-journal-bounded.txt"
+    grep -Fq 'pihole_web_health event=enqueue-failure-pending' \
+        "$root/transaction/raw/exercise-lighttpd-pending-enqueue.txt"
+    grep -Fq 'pihole_web_health event=recovered-before-enqueue' \
+        "$root/transaction/raw/exercise-lighttpd-pending-enqueue.txt"
+    grep -Fq $'\tbounded-convergence-retry' \
+        "$root/outer/raw/outer-bounded-convergence-retry.txt"
     grep -Fxq 'node_a_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
     grep -Fxq 'node_b_payload=absent' "$root/outer/raw/outer-readback-cleanup.txt"
     printf '%s_complete=true\n' "$prefix"

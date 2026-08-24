@@ -2,7 +2,7 @@
 
 Version: 1.1 current-state edition
 Archive boundary: `caddy-pre-cleanup-history-2026-08-16`
-Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure exercise Action 35aq is failed-consumed after automatic recovery proved the accepted dual-node baseline; its durable-enqueue observation and continuity defects await explicit contract reconciliation before another successor is defined; installed Keepalived parser modes remain prohibited
+Current status: coupled DNS and Proxy serving-health installation is accepted through Action 35al; both Pi-hole web-monitor units are accepted and healthy; notification standardization is accepted; controlled serving-failure Action 35aq is archived failed-consumed with automatic recovery proven; Action 35ar is the single defined, unexecuted successor using the reconciled durable-enqueue and bounded-convergence contracts; installed Keepalived parser modes remain prohibited
 
 Action 35v completely accepted the candidate on Node B, then observed Node B
 in dual-stack `FAULT` with zero VIPs less than two seconds after reloading
@@ -812,10 +812,10 @@ Acceptance requires exact thresholds and VIP ownership, continuous dual-stack
 DNS and trusted HTTPS, applicable shared and node-local Pi-hole UI behavior,
 structured notifications without the retired legacy title, exact restoration,
 and zero residue. Both nodes retain per-request causal evidence and timestamped
-kernel address events. Every failed primary request rejects; retries only
-classify. Missing, unsafe, incomplete, or uncorrelatable evidence fails closed,
-as do `handoff-overlap`, `settled-owner-serving-failure`, `family-degraded`, and
-`unclassified-insufficient-evidence` classifications. Status 125 remains
+kernel address events. Under the Action 35ap contract every failed primary
+request rejected and retries only classified; this historical rule was replaced
+after Action 35aq by the bounded-convergence contract below. Missing, unsafe,
+incomplete, or uncorrelatable evidence fails closed. Status 125 remains
 reserved for unproven recovery after mutation. Live execution remains gated by
 separate authorization of the exact neutral outer-runner SHA-256.
 
@@ -866,10 +866,41 @@ successfully enqueued one `recovered-before-enqueue` failure and one recovery,
 which Apprise delivered. The evidence also proves that the sampler incorrectly
 treated the affected-node UI outage during a deliberate Caddy stop as a shared
 continuity failure. Separately, shared DNS, Proxy HTTPS, and shared UI primary
-requests failed during the Caddy handoff. Current repository policy rejects
-every failed primary request, so that continuity result cannot be waived as
-part of the notification correction. No successor is defined until the
-intended handoff-continuity contract is explicitly reconciled.
+requests failed during the Caddy handoff. The then-current repository policy
+rejected every failed primary request. That result was not waived; it is the
+retained evidence used to define the narrow bounded-convergence contract for
+Action 35ar.
+
+### Action 35ar definition
+
+Action 35ar is the single defined, unexecuted controlled serving-failure
+successor. It consumes Action 35aq and its retained evidence without restoring,
+modifying, or rerunning it. The neutral transaction and outer runner remain the
+only implementation; no action-numbered implementation or regression is added.
+
+The lighttpd observer accepts either `failure-retained` or the durable
+`enqueue-failure-pending` state. The latter is accepted only when restoration
+eventually yields exactly one failure enqueue and one recovery enqueue for the
+same retained episode. The affected node's local UI outage during its deliberate
+Caddy stop is expected evidence. Lighttpd remains notification-only and permits
+only its expected affected-node and shared UI outage without VIP movement.
+
+A primary request under settled ownership always rejects. During a deliberately
+induced coupled failover or failback, a failed shared endpoint/family request may
+be accepted only when that exact endpoint and family succeeds within 12 seconds
+and timestamped kernel address evidence on either node proves a VIP transition
+between failure and recovery. Missing or late recovery, missing transition
+evidence, persistent family degradation, ambiguous or simultaneous ownership,
+and every settled-owner failure reject. A retry is evidence, not a broad waiver.
+
+The nine-scenario sequence, stop thresholds, recovery thresholds, restoration,
+status-125, structured-notification, final ownership, and zero-residue contracts
+remain unchanged. Definition and validation contact no HA node. Live execution
+requires separate authorization of outer SHA-256
+`2087730e7bb817c63939dca4f488554492601e5d831b7ab1199cdb9a5e71a437`
+for `/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh` from the
+repository root. Authorization readiness passed against the real neutral
+transaction and outer paths.
 
 ## 19. Checkpoint procedure
 
