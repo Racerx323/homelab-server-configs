@@ -94,7 +94,8 @@ rollback decision. The selected sequence is:
 
 1. Confirm local-console recovery and backup status.
 2. Perform Option D under the separately defined and hash-authorized
-   `nautobot-uas-quirk-v1` operation.
+   corrected `nautobot-uas-quirk-v2` operation. Version 2 reuses the retained,
+   hash-verified rollback backup from the rolled-back version 1 operation.
 3. Prove the running kernel command line contains the quirk exactly once, the
    root source remains `/dev/sda2`, and JMicron `152d:0583` binds to
    `usb-storage` rather than `uas`.

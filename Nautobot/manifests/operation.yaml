@@ -2,9 +2,9 @@
 schema_version: 1
 
 operation:
-  id: nautobot-uas-quirk-v1
-  state: pending
-  authorization_ready: true
+  id: nautobot-uas-quirk-v2
+  state: definition
+  authorization_ready: false
   stage: storage_remediation
   target: {host: j2-svpi4mf, address: 10.1.2.170, ssh_user: ama}
   architecture:
@@ -12,7 +12,14 @@ operation:
     decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
   source:
     repository: homelab-server-configs
-    base_commit: 7169bada63ff0998cd891a0c52d8e40ad838f785
+    base_commit: 05c7c21e5c494db46d24529a8d10a29a1027e100
+
+predecessor:
+  operation: nautobot-uas-quirk-v1
+  terminal_tag: nautobot-uas-quirk-v1-rolled-back-action-required
+  definition_commit: c8682930bc6906284b1ffa8d2d17d2a4e556bc16
+  bundle_sha256: 14d4f39a672b6b9ca6843948091fe3c6815779a3ae973b9505b0af337fb912ae
+  result: rolled_back_storage_action_required
 
 deferred_operation:
   id: nautobot-host-baseline-rollback-v1
@@ -25,9 +32,9 @@ preflight:
   command: /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh preflight
   read_only: true
   maximum_age_minutes: 30
-  status: passed
-  evidence_manifest_sha256: f285381a83388a3d07b1871de13d47ddc04266c425e7ff61b70c7bba06284c6d
-  completed_at_utc: "2026-08-25T19:24:04Z"
+  status: pending
+  evidence_manifest_sha256: null
+  completed_at_utc: null
   require_local_console_recovery: true
   local_console_recovery_confirmed: true
   require_current_backup: true
@@ -46,6 +53,8 @@ preflight:
 mutation:
   boot_cmdline_path: /boot/firmware/cmdline.txt
   backup_path: /boot/firmware/cmdline.txt.nautobot-uas-quirk-v1.bak
+  create_backup: false
+  reuse_verified_backup: true
   append_token: usb-storage.quirks=152d:0583:u
   preserve_single_logical_line: true
   preserve_no_trailing_newline: true
@@ -93,4 +102,4 @@ authorization:
   bundle_algorithm: sha256
   authorized_stage: storage_remediation
   excluded_stages: [host_baseline_rollback, filesystem_repair, hardware_change, package_change, dual_stack_identity, nautobot_pilot, caddy_onboarding, authority_migration, semaphore]
-  blockers: []
+  blockers: [fresh_read_only_preflight_required, implementation_checkpoint_and_review_required]

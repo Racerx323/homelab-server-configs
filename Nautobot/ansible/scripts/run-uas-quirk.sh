@@ -97,7 +97,7 @@ calculate_bundle_hash() {
     bundle_file_list=$(mktemp /tmp/nautobot-uas-quirk-bundle.XXXXXX)
     write_bundle_file_hashes "$bundle_file_list"
     {
-        printf '%s\n' nautobot-uas-quirk-bundle-v1
+        printf '%s\n' nautobot-uas-quirk-bundle-v2
         cat "$bundle_file_list"
     } | sha256sum | cut -d ' ' -f 1
     rm -f -- "$bundle_file_list"
@@ -146,7 +146,7 @@ write_evidence_manifest() {
     local -a evidence_names=(bundle-files.sha256 stdout.log stderr.log status.txt preflight.yaml mutation.yaml reboot-acceptance.yaml rollback.yaml)
 
     {
-        printf '%s\n' '---' 'schema_version: 1' 'operation_id: nautobot-uas-quirk-v1'
+        printf '%s\n' '---' 'schema_version: 1' 'operation_id: nautobot-uas-quirk-v2'
         printf 'target: %s\naddress: %s\n' "$operation_target" "$operation_address"
         printf 'bundle_sha256: %s\nstarted_at_utc: %s\nfinished_at_utc: %s\n' \
             "$bundle_hash" "$started_at" "$finished_at"
@@ -168,8 +168,10 @@ write_evidence_manifest() {
 
 verify_playbook() {
     python3 - "$playbook_file" <<'PY'
+import base64
 import sys
 import yaml
+from jinja2 import Environment
 
 with open(sys.argv[1], encoding="utf-8") as stream:
     playbook = yaml.safe_load(stream)
@@ -179,12 +181,17 @@ assert play["hosts"] == "inventory_automation"
 assert play["gather_facts"] is False
 assert play["become"] is False
 serialized = yaml.safe_dump(play, sort_keys=True)
-operation_block = play["tasks"][2]
+operation_blocks = [task for task in play["tasks"] if "block" in task]
+assert len(operation_blocks) == 1
+operation_block = operation_blocks[0]
+block_tasks = operation_block["block"]
+rescue_tasks = operation_block["rescue"]
 replace_tasks = [
     task["ansible.builtin.replace"]
-    for task in operation_block["block"]
+    for task in block_tasks
     if "ansible.builtin.replace" in task
 ]
+task_by_name = {task["name"]: task for task in block_tasks + rescue_tasks}
 assert "ansible.builtin.shell" not in serialized
 assert "ansible.builtin.raw" not in serialized
 assert serialized.count("ansible.builtin.reboot") == 2
@@ -193,6 +200,11 @@ assert "mutation.append_token" in serialized
 assert len(replace_tasks) == 1
 assert replace_tasks[0]["regexp"] == r"\Z"
 assert replace_tasks[0]["replace"] == " {{ mutation.append_token }}"
+assert "Create the exact rollback copy" not in serialized
+assert "uas_quirk_backup.stat.checksum == rollback.expected_restored_sha256" in serialized
+assert "uas_quirk_boot_content.content" in serialized
+assert block_tasks.index(task_by_name["Record that the boot-file mutation completed"]) == 1
+assert block_tasks.index(task_by_name["Enforce the exact boot-file mutation"]) == 3
 original = "console=tty1 root=PARTUUID=3e6cba06-02 rootwait"
 mutated = __import__("re").sub(
     replace_tasks[0]["regexp"],
@@ -201,7 +213,37 @@ mutated = __import__("re").sub(
 )
 assert mutated == original + " usb-storage.quirks=152d:0583:u"
 assert "\n" not in mutated
-assert "remote_src: true" in serialized
+exact_condition = task_by_name["Enforce the exact boot-file mutation"]["ansible.builtin.assert"]["that"][0]
+environment = Environment(autoescape=False)
+environment.filters["b64decode"] = lambda value: base64.b64decode(value).decode("utf-8")
+condition_template = environment.from_string("{{ (%s) | string | lower }}" % exact_condition)
+template_variables = {
+    "mutation": {"append_token": "usb-storage.quirks=152d:0583:u"},
+    "uas_quirk_boot_content": {"content": base64.b64encode(original.encode()).decode()},
+    "uas_quirk_mutated_content": {
+        "content": base64.b64encode(mutated.encode()).decode()
+    },
+}
+assert condition_template.render(**template_variables) == "true"
+template_variables["uas_quirk_mutated_content"]["content"] = base64.b64encode(
+    (mutated + " usb-storage.quirks=152d:0583:u").encode()
+).decode()
+assert condition_template.render(**template_variables) == "false"
+for task_name in (
+    "Read the post-reboot kernel command line",
+    "Read the post-reboot root source",
+    "Read the post-reboot bridge driver",
+    "Read post-reboot failed units",
+    "Read new storage events",
+    "Read rollback kernel command line",
+    "Read rollback bridge driver",
+    "Read rollback root source",
+):
+    assert task_by_name[task_name]["become"] is False
+assert task_by_name["Read new storage events"]["ansible.builtin.command"]["argv"][:3] == [
+    "/usr/bin/sudo", "-n", "/usr/bin/journalctl"
+]
+assert serialized.count("remote_src: true") == 1
 assert "ID_USB_DRIVER=" in serialized
 assert "passed_pending_24_hour_soak" in serialized
 PY

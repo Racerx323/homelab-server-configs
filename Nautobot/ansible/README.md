@@ -160,8 +160,9 @@ forward host-baseline reapply are outside this rollback operation.
 `playbooks/apply-uas-quirk.yaml` and `scripts/run-uas-quirk.sh` define the
 single-host transport A/B test for JMicron `152d:0583`. The operation verifies
 the exact root device, bridge identity, current `uas` binding, active
-`/boot/firmware/cmdline.txt` hash, single-line formatting, and absence of a
-prior rollback copy before mutation.
+`/boot/firmware/cmdline.txt` hash, single-line formatting, and the retained
+rollback copy's exact hash before mutation. The corrected successor reuses
+that backup without overwriting it.
 
 Review the definition without host contact:
 
@@ -183,8 +184,11 @@ gates are satisfied, the mutation command has this form:
 ```
 
 The playbook appends `usb-storage.quirks=152d:0583:u` without adding a newline,
-reboots once, and requires `usb-storage` rather than `uas`. A reachable
-post-reboot acceptance failure restores the exact backup and reboots again.
+records mutation immediately, compares the exact bytes with the original plus
+the one reviewed token, reboots once, and requires `usb-storage` rather than
+`uas`. Post-reboot read checks do not inherit Ansible privilege escalation; the
+journal query uses explicit noninteractive sudo. A reachable acceptance
+failure restores the exact backup and reboots again.
 Failure to regain SSH requires local-console restoration. Immediate acceptance
 remains provisional until the corrected storage diagnostic and 24-hour soak
 pass; the rollback copy remains in place until terminal acceptance.

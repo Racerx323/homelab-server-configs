@@ -16,7 +16,7 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-uas-quirk-v1"
+          - operation.id == "nautobot-uas-quirk-v2"
           - operation.stage == "storage_remediation"
           - >-
             (uas_quirk_preflight_only | default(false) | bool)
@@ -84,9 +84,10 @@
       changed_when: false
       check_mode: false
 
-    - name: Check that the dedicated rollback backup is absent
+    - name: Inspect the retained dedicated rollback backup
       ansible.builtin.stat:
         path: "{{ mutation.backup_path }}"
+        checksum_algorithm: sha256
       register: uas_quirk_backup
 
     - name: Enforce exact pre-mutation identity
@@ -105,7 +106,9 @@
           - "'ID_VENDOR_ID=' ~ preflight.expected.usb_vendor_id in uas_quirk_udev.stdout_lines"
           - "'ID_MODEL_ID=' ~ preflight.expected.usb_product_id in uas_quirk_udev.stdout_lines"
           - "'ID_USB_DRIVER=' ~ preflight.expected.usb_driver in uas_quirk_udev.stdout_lines"
-          - not uas_quirk_backup.stat.exists
+          - uas_quirk_backup.stat.isreg | default(false)
+          - not uas_quirk_backup.stat.islnk | default(false)
+          - uas_quirk_backup.stat.checksum == rollback.expected_restored_sha256
         fail_msg: Current boot, root-device, or bridge identity differs from the reviewed operation.
 
     - name: Record protected UAS-quirk preflight evidence
@@ -122,6 +125,8 @@
           root_source: {{ uas_quirk_root_source.stdout | trim | to_json }}
           boot_cmdline_path: {{ mutation.boot_cmdline_path | to_json }}
           boot_cmdline_sha256: {{ uas_quirk_boot_file.stat.checksum }}
+          rollback_backup_path: {{ mutation.backup_path | to_json }}
+          rollback_backup_sha256: {{ uas_quirk_backup.stat.checksum }}
           usb_vendor_id: {{ preflight.expected.usb_vendor_id | to_json }}
           usb_product_id: {{ preflight.expected.usb_product_id | to_json }}
           usb_driver: {{ preflight.expected.usb_driver | to_json }}
@@ -140,17 +145,6 @@
       register: uas_quirk_journal_cursor
       changed_when: false
 
-    - name: Create the exact rollback copy
-      become: true
-      ansible.builtin.copy:
-        src: "{{ mutation.boot_cmdline_path }}"
-        dest: "{{ mutation.backup_path }}"
-        remote_src: true
-        force: false
-        owner: root
-        group: root
-        mode: preserve
-
     - name: Apply and verify the UAS transport quirk
       become: true
       block:
@@ -160,19 +154,7 @@
             regexp: '\Z'
             replace: " {{ mutation.append_token }}"
 
-        - name: Inspect the mutated boot command line
-          ansible.builtin.slurp:
-            src: "{{ mutation.boot_cmdline_path }}"
-          register: uas_quirk_mutated_content
-
-        - name: Enforce the exact boot-file mutation
-          ansible.builtin.assert:
-            that:
-              - (uas_quirk_mutated_content.content | b64decode).split().count(mutation.append_token) == 1
-              - (uas_quirk_mutated_content.content | b64decode).count('\n') == 0
-              - not (uas_quirk_mutated_content.content | b64decode).endswith('\n')
-
-        - name: Record the completed boot-file mutation
+        - name: Record that the boot-file mutation completed
           become: false
           delegate_to: localhost
           no_log: true
@@ -183,10 +165,26 @@
               ---
               schema_version: 1
               target: {{ inventory_hostname }}
-              result: boot_file_changed
+              result: boot_file_write_completed_pending_verification
               token: {{ mutation.append_token | to_json }}
               backup_path: {{ mutation.backup_path | to_json }}
           changed_when: false
+
+        - name: Inspect the mutated boot command line
+          ansible.builtin.slurp:
+            src: "{{ mutation.boot_cmdline_path }}"
+          register: uas_quirk_mutated_content
+
+        - name: Enforce the exact boot-file mutation
+          ansible.builtin.assert:
+            that:
+              - >-
+                (uas_quirk_mutated_content.content | b64decode)
+                ==
+                ((uas_quirk_boot_content.content | b64decode)
+                ~ ' ' ~ mutation.append_token)
+              - (uas_quirk_mutated_content.content | b64decode).count('\n') == 0
+              - not (uas_quirk_mutated_content.content | b64decode).endswith('\n')
 
         - name: Reboot once to activate the transport quirk
           ansible.builtin.reboot:
@@ -194,24 +192,28 @@
             reboot_timeout: "{{ mutation.reboot_timeout_seconds }}"
 
         - name: Read the post-reboot kernel command line
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/cat, /proc/cmdline]
           register: uas_quirk_cmdline_after
           changed_when: false
 
         - name: Read the post-reboot root source
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/findmnt, --noheadings, --output=SOURCE, /]
           register: uas_quirk_root_after
           changed_when: false
 
         - name: Read the post-reboot bridge driver
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/udevadm, info, --query=property, --path=/sys/class/block/sda]
           register: uas_quirk_udev_after
           changed_when: false
 
         - name: Read post-reboot failed units
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/systemctl, --failed, --no-legend, --plain]
           register: uas_quirk_failed_units
@@ -219,8 +221,11 @@
           failed_when: false
 
         - name: Read new storage events
+          become: false
           ansible.builtin.command:
             argv:
+              - /usr/bin/sudo
+              - -n
               - /usr/bin/journalctl
               - "--after-cursor={{ uas_quirk_journal_cursor.stdout_lines[-1] | regex_replace('^-- cursor: ', '') }}"
               - --dmesg
@@ -295,18 +300,21 @@
             reboot_timeout: "{{ mutation.reboot_timeout_seconds }}"
 
         - name: Read rollback kernel command line
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/cat, /proc/cmdline]
           register: uas_quirk_rollback_cmdline
           changed_when: false
 
         - name: Read rollback bridge driver
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/udevadm, info, --query=property, --path=/sys/class/block/sda]
           register: uas_quirk_rollback_udev
           changed_when: false
 
         - name: Read rollback root source
+          become: false
           ansible.builtin.command:
             argv: [/usr/bin/findmnt, --noheadings, --output=SOURCE, /]
           register: uas_quirk_rollback_root

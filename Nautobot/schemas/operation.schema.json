@@ -1,17 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-uas-quirk-v1.json",
-  "title": "Nautobot active UAS-quirk remediation operation",
+  "$id": "https://local.theama.co/schemas/nautobot-uas-quirk-v2.json",
+  "title": "Nautobot active corrected UAS-quirk remediation operation",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "operation", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"],
+  "required": ["schema_version", "operation", "predecessor", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"],
   "properties": {
     "schema_version": {"const": 1},
     "operation": {
       "type": "object",
       "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
       "properties": {
-        "id": {"const": "nautobot-uas-quirk-v1"},
+        "id": {"const": "nautobot-uas-quirk-v2"},
         "state": {"enum": ["definition", "pending"]},
         "authorization_ready": {"type": "boolean"},
         "stage": {"const": "storage_remediation"},
@@ -33,6 +33,17 @@
             "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
           }
         }
+      }
+    },
+    "predecessor": {
+      "type": "object",
+      "required": ["operation", "terminal_tag", "definition_commit", "bundle_sha256", "result"],
+      "properties": {
+        "operation": {"const": "nautobot-uas-quirk-v1"},
+        "terminal_tag": {"const": "nautobot-uas-quirk-v1-rolled-back-action-required"},
+        "definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result": {"const": "rolled_back_storage_action_required"}
       }
     },
     "deferred_operation": {
@@ -62,9 +73,11 @@
     },
     "mutation": {
       "type": "object",
-      "required": ["boot_cmdline_path", "backup_path", "append_token", "preserve_single_logical_line", "preserve_no_trailing_newline", "reboot_once", "reboot_timeout_seconds"],
+      "required": ["boot_cmdline_path", "backup_path", "create_backup", "reuse_verified_backup", "append_token", "preserve_single_logical_line", "preserve_no_trailing_newline", "reboot_once", "reboot_timeout_seconds"],
       "properties": {
         "boot_cmdline_path": {"const": "/boot/firmware/cmdline.txt"},
+        "create_backup": {"const": false},
+        "reuse_verified_backup": {"const": true},
         "append_token": {"const": "usb-storage.quirks=152d:0583:u"},
         "preserve_single_logical_line": {"const": true},
         "preserve_no_trailing_newline": {"const": true},
