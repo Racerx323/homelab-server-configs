@@ -178,6 +178,57 @@ write_execution_manifest() {
     } >"${evidence_directory}/manifest.yaml"
 }
 
+classify_operation_result() {
+    local evidence_directory=$1
+    local execution_status=$2
+
+    if [[ "$execution_status" -eq 0 &&
+        -f "${evidence_directory}/acceptance.yaml" &&
+        ! -f "${evidence_directory}/stdout.truncated" &&
+        ! -f "${evidence_directory}/stderr.truncated" ]]; then
+        printf '%s\n' accepted
+    elif [[ -f "${evidence_directory}/rollback.yaml" ]]; then
+        printf '%s\n' rolled_back
+    elif [[ "$execution_status" -ne 0 &&
+        ! -f "${evidence_directory}/preflight.yaml" &&
+        ! -f "${evidence_directory}/mutation.yaml" &&
+        ! -f "${evidence_directory}/acceptance.yaml" ]]; then
+        printf '%s\n' preflight_failed
+    else
+        printf '%s\n' manual_intervention
+    fi
+}
+
+verify_subordinate_id_argv() {
+    python3 - "$playbook_file" <<'PY'
+import sys
+
+import yaml
+
+playbook_path = sys.argv[1]
+with open(playbook_path, encoding="utf-8") as playbook_stream:
+    playbook = yaml.safe_load(playbook_stream)
+
+expected_tasks = {
+    "Check the requested subordinate UID range",
+    "Check the requested subordinate GID range",
+}
+observed_tasks = set()
+for task in playbook[0]["pre_tasks"]:
+    task_name = task.get("name")
+    if task_name not in expected_tasks:
+        continue
+    argv = task["ansible.builtin.command"]["argv"]
+    assert isinstance(argv, list)
+    assert all(isinstance(argument, str) for argument in argv)
+    assert argv[0] == "/usr/bin/awk"
+    assert argv[1] == "-F:"
+    observed_tasks.add(task_name)
+
+assert observed_tasks == expected_tasks
+PY
+}
+
 execute_operation() {
     local expected_hash=$1
     local actual_hash readiness blockers evidence_directory
@@ -247,15 +298,8 @@ execute_operation() {
     printf 'ansible_playbook_exit_status=%s\n' "$execution_status" \
         >"${evidence_directory}/status.txt"
 
-    operation_result=manual_intervention
-    if [[ "$execution_status" -eq 0 &&
-        -f "${evidence_directory}/acceptance.yaml" &&
-        ! -f "${evidence_directory}/stdout.truncated" &&
-        ! -f "${evidence_directory}/stderr.truncated" ]]; then
-        operation_result=accepted
-    elif [[ -f "${evidence_directory}/rollback.yaml" ]]; then
-        operation_result=rolled_back
-    fi
+    operation_result=$(classify_operation_result \
+        "$evidence_directory" "$execution_status")
     write_execution_manifest "$evidence_directory" "$actual_hash" \
         "$started_at" "$finished_at" "$execution_status" "$operation_result"
 
@@ -270,9 +314,11 @@ execute_operation() {
 
 run_self_test() {
     local self_test_directory self_test_fifo self_test_log self_test_marker
-    local self_test_consumer_pid self_test_hash
+    local self_test_classification_directory self_test_consumer_pid
+    local self_test_hash
 
     validate_operation
+    verify_subordinate_id_argv
     self_test_hash=$(calculate_bundle_hash)
     [[ "$self_test_hash" =~ ^[0-9a-f]{64}$ ]]
 
@@ -293,6 +339,21 @@ run_self_test() {
     [[ $(stat --format=%s "$self_test_log") -eq 1024 ]]
     [[ -f "$self_test_marker" ]]
     [[ $(stat --format=%a "$self_test_directory") == 700 ]]
+    self_test_classification_directory="${self_test_directory}/classification"
+    mkdir "$self_test_classification_directory"
+    [[ $(classify_operation_result \
+        "$self_test_classification_directory" 2) == preflight_failed ]]
+    : >"${self_test_classification_directory}/preflight.yaml"
+    [[ $(classify_operation_result \
+        "$self_test_classification_directory" 2) == manual_intervention ]]
+    : >"${self_test_classification_directory}/rollback.yaml"
+    [[ $(classify_operation_result \
+        "$self_test_classification_directory" 2) == rolled_back ]]
+    rm -f -- "${self_test_classification_directory}/preflight.yaml" \
+        "${self_test_classification_directory}/rollback.yaml"
+    : >"${self_test_classification_directory}/acceptance.yaml"
+    [[ $(classify_operation_result \
+        "$self_test_classification_directory" 0) == accepted ]]
     ANSIBLE_LOCAL_TEMP="${self_test_directory}/ansible-local" \
         ansible-playbook \
         --syntax-check \

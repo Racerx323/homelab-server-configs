@@ -54,6 +54,8 @@ The live command has this form:
 The launcher refuses a dirty worktree, an unready operation, or a bundle hash
 mismatch. The playbook applies only the host-baseline stage. It runs rollback
 after a task or acceptance failure and reports manual intervention
-when an unreachable host prevents rollback proof. The launcher keeps bounded
-raw output and separate preflight, mutation, acceptance, rollback, and residue
-records under a mode-0700 directory in `/tmp`.
+when an unreachable host prevents rollback proof. A failure before the
+preflight evidence boundary is reported as `preflight_failed`, because no
+mutation has begun. The launcher keeps bounded raw output and separate
+preflight, mutation, acceptance, rollback, and residue records under a
+mode-0700 directory in `/tmp`.
