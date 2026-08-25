@@ -1,0 +1,103 @@
+---
+schema_version: 1
+
+operation:
+  id: nautobot-uas-quirk-v1
+  result: rolled_back_storage_action_required
+  definition_commit: c8682930bc6906284b1ffa8d2d17d2a4e556bc16
+  bundle_sha256: 14d4f39a672b6b9ca6843948091fe3c6815779a3ae973b9505b0af337fb912ae
+  target: j2-svpi4mf
+  address: 10.1.2.170
+  started_at_utc: "2026-08-25T19:25:56Z"
+  finished_at_utc: "2026-08-25T19:27:38Z"
+  ansible_exit_status: 4
+  mutation_authorized: true
+  boot_file_mutation_performed: true
+  activation_reboot_performed: false
+  rollback_file_restore_performed: true
+  rollback_reboot_performed: true
+
+failure:
+  mutation_assertion_failed: true
+  failed_assertion: exact_mutated_boot_file_content
+  mutation_content_captured: false
+  rollback_automation_interrupted: true
+  interruption: ansible_privilege_escalation_timeout_after_rollback_reboot
+  launcher_emitted_result: preflight_failed
+  corrected_result: rolled_back_storage_action_required
+  correction_basis:
+    - stdout_proves_boot_file_mutation
+    - stdout_proves_exact_hash_restore_before_reboot
+    - independent_audit_proves_restored_running_state
+    - post_operation_storage_events_fail_rollback_storage_acceptance
+
+restored_state:
+  boot_cmdline_path: /boot/firmware/cmdline.txt
+  boot_cmdline_sha256: c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f
+  boot_cmdline_contains_quirk: false
+  rollback_backup_path: /boot/firmware/cmdline.txt.nautobot-uas-quirk-v1.bak
+  rollback_backup_sha256: c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f
+  rollback_backup_retained: true
+  root_source: /dev/sda2
+  usb_vendor_id: "152d"
+  usb_product_id: "0583"
+  usb_driver: uas
+  failed_systemd_units: 0
+
+post_operation_storage_events:
+  observation_start_utc: "2026-08-25T19:25:56Z"
+  uas_reset_cycles: 2
+  superspeed_usb_resets: 2
+  read_io_errors: 3
+  ext4_errors: 0
+  cycle_times_utc:
+    - "2026-08-25T19:27:22Z"
+    - "2026-08-25T19:28:49Z"
+
+decision:
+  quirk_activated: false
+  rollback_configuration_proven: true
+  rollback_storage_acceptance_passed: false
+  retry_requires_corrected_successor: true
+  previous_bundle_consumed: true
+  previous_bundle_must_not_be_reused: true
+
+raw_evidence:
+  committed_to_git: false
+  operation_directory: /tmp/nautobot-uas-quirk.ykul0q
+  operation_files:
+    - name: manifest.yaml
+      bytes: 1114
+      sha256: 42d4a754e709ee4c75d690408a097d44feaa5566775c8ff3e35dcf82c481be75
+    - name: bundle-files.sha256
+      bytes: 848
+      sha256: c2fef028e126661bb98d8660ee4d0a568bf5407dfa09da65209cfa4463b0a27a
+    - name: stdout.log
+      bytes: 4022
+      sha256: b7e11d034d4d81d89a8eb17d9604297c1332c196f28639cd70c78ff91e0cb30e
+    - name: stderr.log
+      bytes: 0
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    - name: status.txt
+      bytes: 31
+      sha256: ded9488f97c1dcaa710f95e413939eaf89f86ba86e8d34cc6011bcdabca57e72
+    - name: preflight.yaml
+      bytes: 278
+      sha256: 27f5c9f91410b757b7109e78a7efb8f2696ac2963591c034e698d1dc3ee1860f
+  audit_directory: /tmp/nautobot-uas-terminal-audit.D4F60o
+  audit_files:
+    - name: boot-hashes.log
+      bytes: 212
+      sha256: df1c3d2cad4c71de6b6605a59abcbdd576aab0e222a159af8c226af22b8755a5
+    - name: root-source.log
+      bytes: 10
+      sha256: 95b616dc775ab555fb41661a83cd93bc99877299adad16a82c03edcadd7eab15
+    - name: udev.log
+      bytes: 1499
+      sha256: 1ccb05c88262f102caa35c619ca4ecae40e162fe87310575087dbf540b22af10
+    - name: failed-units.log
+      bytes: 0
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    - name: storage-events.log
+      bytes: 978
+      sha256: 9e011366c00906d551248255002c48e54658e25e60017d33c8549a99b693a8f0
