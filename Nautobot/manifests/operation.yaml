@@ -2,9 +2,9 @@
 schema_version: 1
 
 operation:
-  id: nautobot-host-baseline-v2
-  state: pending
-  authorization_ready: true
+  id: nautobot-host-baseline-v3
+  state: definition
+  authorization_ready: false
   stage: host_baseline
   target:
     host: j2-svpi4mf
@@ -16,7 +16,7 @@ operation:
     network_owner: homelab-network
   source:
     repository: homelab-server-configs
-    base_commit: f4505a80ca4d9d44b6650eb88cb232218089099b
+    base_commit: 097b2299b492909608a519f2f2024e286ea63f31
 
 qualification:
   command: /bin/bash Nautobot/ansible/scripts/run-qualification.sh execute
@@ -140,4 +140,5 @@ authorization:
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - definition_checkpoint_and_fresh_qualification_required

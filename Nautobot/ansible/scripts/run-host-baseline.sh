@@ -80,7 +80,7 @@ calculate_bundle_hash() {
     write_bundle_file_hashes "$bundle_file_list"
     calculated_hash=$(
         {
-            printf '%s\n' 'nautobot-host-baseline-bundle-v2'
+            printf '%s\n' 'nautobot-host-baseline-bundle-v3'
             cat "$bundle_file_list"
         } | sha256sum | cut -d ' ' -f 1
     )
@@ -159,7 +159,7 @@ write_execution_manifest() {
 
     {
         printf '%s\n' '---' 'schema_version: 1'
-        printf '%s\n' 'operation_id: nautobot-host-baseline-v2'
+        printf '%s\n' 'operation_id: nautobot-host-baseline-v3'
         printf 'target: %s\n' "$operation_target"
         printf 'address: %s\n' "$operation_address"
         printf 'bundle_sha256: %s\n' "$bundle_hash"
@@ -254,16 +254,19 @@ for task in operation_tasks:
     argv = task["ansible.builtin.command"]["argv"]
     assert isinstance(argv, list)
     assert all(isinstance(argument, str) for argument in argv)
-    assert argv[:5] == [
+    assert argv == [
         "/usr/sbin/runuser",
         "--user",
         "{{ inputs.service_account.name }}",
         "--",
         "/usr/bin/env",
+        "--chdir={{ inputs.service_account.home }}",
+        "HOME={{ inputs.service_account.home }}",
+        "XDG_RUNTIME_DIR=/run/user/{{ host_baseline_nautobot_uid.stdout }}",
+        "/usr/bin/podman",
+        "info",
+        "--format=json",
     ]
-    assert argv[5] == "HOME={{ inputs.service_account.home }}"
-    assert argv[6].startswith("XDG_RUNTIME_DIR=/run/user/")
-    assert argv[-3:] == ["/usr/bin/podman", "info", "--format=json"]
     observed_tasks.add(task_name)
 
 assert observed_tasks == expected_tasks

@@ -46,10 +46,13 @@ checkpoint the source, clear the reviewed blockers, and calculate the final
 bundle before requesting live authorization.
 
 Rootless Podman checks run through `/usr/sbin/runuser` from the privileged
-play context. The resulting Podman process runs as the `nautobot` account
-without requiring Ansible to stage a module as an unprivileged user. Rollback
-evidence distinguishes pre-existing, remaining, and newly introduced
-automatically removable package residue; rollback never performs autoremove.
+play context. After switching identity, `/usr/bin/env --chdir` enters
+`/var/lib/nautobot` before invoking Podman, so the service account never
+inherits the SSH user's inaccessible working directory. The resulting Podman
+process runs as the `nautobot` account without requiring Ansible to stage a
+module as an unprivileged user. Rollback evidence distinguishes pre-existing,
+remaining, and newly introduced automatically removable package residue;
+rollback never performs autoremove.
 
 The live command has this form:
 

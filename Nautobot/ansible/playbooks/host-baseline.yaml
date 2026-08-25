@@ -16,7 +16,7 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-host-baseline-v2"
+          - operation.id == "nautobot-host-baseline-v3"
           - operation.stage == "host_baseline"
           - operation.authorization_ready | bool
           - authorization.blockers | length == 0
@@ -384,6 +384,7 @@
               - "{{ inputs.service_account.name }}"
               - --
               - /usr/bin/env
+              - "--chdir={{ inputs.service_account.home }}"
               - "HOME={{ inputs.service_account.home }}"
               - "XDG_RUNTIME_DIR=/run/user/{{ host_baseline_nautobot_uid.stdout }}"
               - /usr/bin/podman
@@ -610,6 +611,7 @@
               - "{{ inputs.service_account.name }}"
               - --
               - /usr/bin/env
+              - "--chdir={{ inputs.service_account.home }}"
               - "HOME={{ inputs.service_account.home }}"
               - "XDG_RUNTIME_DIR=/run/user/{{ host_baseline_nautobot_uid.stdout }}"
               - /usr/bin/podman
