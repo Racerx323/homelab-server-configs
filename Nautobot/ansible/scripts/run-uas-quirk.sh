@@ -38,6 +38,13 @@ validate_operation() {
     check-jsonschema --schemafile "$operation_schema" "$operation_file"
 }
 
+require_active_operation() {
+    [[ $(operation_value 'd["operation"].get("id", "")') == nautobot-uas-quirk-v2 ]] || {
+        printf '%s\n' 'No Nautobot UAS-quirk operation is active.' >&2
+        return 65
+    }
+}
+
 operation_value() {
     python3 - "$operation_file" "$1" <<'PY'
 import sys
@@ -60,7 +67,8 @@ import yaml
 
 with open(sys.argv[1], encoding="utf-8") as stream:
     operation = yaml.safe_load(stream)
-completed_text = sys.argv[3] or operation["preflight"]["completed_at_utc"]
+preflight = operation.get("preflight", {})
+completed_text = sys.argv[3] or preflight.get("completed_at_utc")
 if completed_text is None:
     print("false")
     raise SystemExit
@@ -69,7 +77,7 @@ if sys.argv[2]:
     now = datetime.datetime.fromisoformat(sys.argv[2].replace("Z", "+00:00"))
 else:
     now = datetime.datetime.now(datetime.timezone.utc)
-maximum_age = datetime.timedelta(minutes=operation["preflight"]["maximum_age_minutes"])
+maximum_age = datetime.timedelta(minutes=preflight.get("maximum_age_minutes", 30))
 print(str(completed <= now <= completed + maximum_age).lower())
 PY
 }
@@ -107,6 +115,7 @@ show_bundle() {
     local bundle_file_list
 
     validate_operation
+    require_active_operation
     bundle_file_list=$(mktemp /tmp/nautobot-uas-quirk-bundle.XXXXXX)
     write_bundle_file_hashes "$bundle_file_list"
     printf 'bundle_sha256=%s\n' "$(calculate_bundle_hash)"
@@ -143,7 +152,18 @@ write_evidence_manifest() {
     local execution_status=$5
     local result=$6
     local evidence_name evidence_path
-    local -a evidence_names=(bundle-files.sha256 stdout.log stderr.log status.txt preflight.yaml mutation.yaml reboot-acceptance.yaml rollback.yaml)
+    local -a evidence_names=(
+        bundle-files.sha256
+        stdout.log
+        stderr.log
+        status.txt
+        preflight.yaml
+        mutation.yaml
+        forward-observations.yaml
+        reboot-acceptance.yaml
+        rollback-observations.yaml
+        rollback.yaml
+    )
 
     {
         printf '%s\n' '---' 'schema_version: 1' 'operation_id: nautobot-uas-quirk-v2'
@@ -166,12 +186,36 @@ write_evidence_manifest() {
     } >"${evidence_directory}/manifest.yaml"
 }
 
+classify_result() {
+    local evidence_directory=$1
+    local execution_status=$2
+    local mode=$3
+
+    if [[ -f "${evidence_directory}/stdout.truncated" ||
+        -f "${evidence_directory}/stderr.truncated" ]]; then
+        printf '%s\n' manual_intervention
+    elif [[ "$execution_status" -eq 0 && "$mode" == preflight &&
+        -f "${evidence_directory}/preflight.yaml" ]]; then
+        printf '%s\n' preflight_passed
+    elif [[ "$execution_status" -eq 0 &&
+        -f "${evidence_directory}/reboot-acceptance.yaml" ]]; then
+        printf '%s\n' initial_acceptance_pending_soak
+    elif [[ -f "${evidence_directory}/rollback.yaml" ]]; then
+        printf '%s\n' rolled_back
+    elif [[ -f "${evidence_directory}/mutation.yaml" ]]; then
+        printf '%s\n' manual_intervention
+    else
+        printf '%s\n' preflight_failed
+    fi
+}
+
 verify_playbook() {
     python3 - "$playbook_file" <<'PY'
 import base64
+import copy
 import sys
 import yaml
-from jinja2 import Environment
+from jinja2.nativetypes import NativeEnvironment
 
 with open(sys.argv[1], encoding="utf-8") as stream:
     playbook = yaml.safe_load(stream)
@@ -194,6 +238,7 @@ replace_tasks = [
 task_by_name = {task["name"]: task for task in block_tasks + rescue_tasks}
 assert "ansible.builtin.shell" not in serialized
 assert "ansible.builtin.raw" not in serialized
+assert ".split().count(" not in serialized
 assert serialized.count("ansible.builtin.reboot") == 2
 assert "usb-storage.quirks=152d:0583:u" not in serialized
 assert "mutation.append_token" in serialized
@@ -205,6 +250,8 @@ assert "uas_quirk_backup.stat.checksum == rollback.expected_restored_sha256" in 
 assert "uas_quirk_boot_content.content" in serialized
 assert block_tasks.index(task_by_name["Record that the boot-file mutation completed"]) == 1
 assert block_tasks.index(task_by_name["Enforce the exact boot-file mutation"]) == 3
+assert block_tasks.index(task_by_name["Record forward observations before acceptance"]) < block_tasks.index(task_by_name["Enforce immediate reboot acceptance"])
+assert rescue_tasks.index(task_by_name["Record rollback observations before acceptance"]) < rescue_tasks.index(task_by_name["Enforce rollback acceptance"])
 original = "console=tty1 root=PARTUUID=3e6cba06-02 rootwait"
 mutated = __import__("re").sub(
     replace_tasks[0]["regexp"],
@@ -214,8 +261,10 @@ mutated = __import__("re").sub(
 assert mutated == original + " usb-storage.quirks=152d:0583:u"
 assert "\n" not in mutated
 exact_condition = task_by_name["Enforce the exact boot-file mutation"]["ansible.builtin.assert"]["that"][0]
-environment = Environment(autoescape=False)
+environment = NativeEnvironment(autoescape=False)
 environment.filters["b64decode"] = lambda value: base64.b64decode(value).decode("utf-8")
+environment.filters["split"] = lambda value, separator=None, maxsplit=-1: value.split(separator, maxsplit)
+environment.filters["trim"] = lambda value: value.strip()
 condition_template = environment.from_string("{{ (%s) | string | lower }}" % exact_condition)
 template_variables = {
     "mutation": {"append_token": "usb-storage.quirks=152d:0583:u"},
@@ -229,6 +278,78 @@ template_variables["uas_quirk_mutated_content"]["content"] = base64.b64encode(
     (mutated + " usb-storage.quirks=152d:0583:u").encode()
 ).decode()
 assert condition_template.render(**template_variables) == "false"
+
+def evaluate_conditions(task_name, variables):
+    conditions = task_by_name[task_name]["ansible.builtin.assert"]["that"]
+    return [
+        bool(environment.compile_expression(str(condition))(**variables))
+        for condition in conditions
+    ]
+
+token = "usb-storage.quirks=152d:0583:u"
+forward_variables = {
+    "mutation": {"append_token": token},
+    "acceptance": {
+        "immediate": {
+            "require_cmdline_token_count": 1,
+            "require_root_source": "/dev/sda2",
+            "require_usb_vendor_id": "152d",
+            "require_usb_product_id": "0583",
+            "require_usb_driver": "usb-storage",
+            "reject_usb_driver": "uas",
+        }
+    },
+    "uas_quirk_cmdline_after": {"stdout": original + " " + token},
+    "uas_quirk_root_after": {"stdout": "/dev/sda2\n"},
+    "uas_quirk_udev_after": {
+        "stdout_lines": [
+            "ID_VENDOR_ID=152d",
+            "ID_MODEL_ID=0583",
+            "ID_USB_DRIVER=usb-storage",
+        ]
+    },
+    "uas_quirk_failed_units": {"stdout": ""},
+    "uas_quirk_storage_events": {"stdout": ""},
+}
+assert evaluate_conditions("Enforce immediate reboot acceptance", forward_variables) == [True] * 8
+forward_failures = (
+    ("uas_quirk_cmdline_after", "stdout", original + " " + token + " " + token, 0),
+    ("uas_quirk_root_after", "stdout", "/dev/mmcblk0p2\n", 1),
+    ("uas_quirk_udev_after", "stdout_lines", ["ID_MODEL_ID=0583", "ID_USB_DRIVER=usb-storage"], 2),
+    ("uas_quirk_udev_after", "stdout_lines", ["ID_VENDOR_ID=152d", "ID_USB_DRIVER=usb-storage"], 3),
+    ("uas_quirk_udev_after", "stdout_lines", ["ID_VENDOR_ID=152d", "ID_MODEL_ID=0583", "ID_USB_DRIVER=uas"], 4),
+    ("uas_quirk_failed_units", "stdout", "failed.service", 6),
+    ("uas_quirk_storage_events", "stdout", "I/O error", 7),
+)
+for variable, field, bad_value, failed_index in forward_failures:
+    scenario = copy.deepcopy(forward_variables)
+    scenario[variable][field] = bad_value
+    assert evaluate_conditions("Enforce immediate reboot acceptance", scenario)[failed_index] is False
+
+rollback_variables = {
+    "mutation": {"append_token": token},
+    "preflight": {"expected": {"root_source": "/dev/sda2", "usb_driver": "uas"}},
+    "uas_quirk_rollback_cmdline": {"stdout": original},
+    "uas_quirk_rollback_root": {"stdout": "/dev/sda2\n"},
+    "uas_quirk_rollback_udev": {"stdout_lines": ["ID_USB_DRIVER=uas"]},
+}
+restored_variables = {
+    "rollback": {"expected_restored_sha256": "expected-hash"},
+    "uas_quirk_restored_file": {"stat": {"checksum": "expected-hash"}},
+}
+assert evaluate_conditions("Enforce restored boot-file identity", restored_variables) == [True]
+restored_variables["uas_quirk_restored_file"]["stat"]["checksum"] = "wrong-hash"
+assert evaluate_conditions("Enforce restored boot-file identity", restored_variables) == [False]
+assert evaluate_conditions("Enforce rollback acceptance", rollback_variables) == [True] * 3
+rollback_failures = (
+    ("uas_quirk_rollback_cmdline", "stdout", original + " " + token, 0),
+    ("uas_quirk_rollback_root", "stdout", "/dev/mmcblk0p2\n", 1),
+    ("uas_quirk_rollback_udev", "stdout_lines", ["ID_USB_DRIVER=usb-storage"], 2),
+)
+for variable, field, bad_value, failed_index in rollback_failures:
+    scenario = copy.deepcopy(rollback_variables)
+    scenario[variable][field] = bad_value
+    assert evaluate_conditions("Enforce rollback acceptance", scenario)[failed_index] is False
 for task_name in (
     "Read the post-reboot kernel command line",
     "Read the post-reboot root source",
@@ -247,6 +368,34 @@ assert serialized.count("remote_src: true") == 1
 assert "ID_USB_DRIVER=" in serialized
 assert "passed_pending_24_hour_soak" in serialized
 PY
+}
+
+verify_classification() {
+    local test_directory expected_result actual_result execution_status mode
+    local marker
+
+    classification_case() {
+        expected_result=$1
+        execution_status=$2
+        mode=$3
+        shift 3
+        test_directory=$(mktemp -d /tmp/nautobot-uas-classification.XXXXXX)
+        for marker in "$@"; do
+            : >"${test_directory}/${marker}"
+        done
+        actual_result=$(classify_result "$test_directory" "$execution_status" "$mode")
+        [[ "$actual_result" == "$expected_result" ]]
+        rm -f -- "${test_directory}"/*
+        rmdir -- "$test_directory"
+    }
+
+    classification_case preflight_passed 0 preflight preflight.yaml
+    classification_case initial_acceptance_pending_soak 0 execute mutation.yaml forward-observations.yaml reboot-acceptance.yaml
+    classification_case rolled_back 2 execute mutation.yaml forward-observations.yaml rollback-observations.yaml rollback.yaml
+    classification_case manual_intervention 2 execute mutation.yaml forward-observations.yaml
+    classification_case manual_intervention 2 execute rollback.yaml stdout.truncated
+    classification_case preflight_failed 2 execute
+    classification_case preflight_failed 0 execute
 }
 
 verify_evidence_modes() {
@@ -304,6 +453,7 @@ run_operation() {
     local -a command
 
     validate_operation
+    require_active_operation
     [[ -z "$(git -C "$repository_root" status --porcelain)" ]] || {
         printf '%s\n' 'Refusing host contact from a dirty worktree.' >&2
         return 65
@@ -357,18 +507,7 @@ run_operation() {
     finished_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
     printf 'ansible_playbook_exit_status=%s\n' "$execution_status" >"${evidence_directory}/status.txt"
 
-    if [[ "$execution_status" -eq 0 && "$mode" == preflight && -f "${evidence_directory}/preflight.yaml" ]]; then
-        result=preflight_passed
-    elif [[ "$execution_status" -eq 0 && -f "${evidence_directory}/reboot-acceptance.yaml" ]]; then
-        result=initial_acceptance_pending_soak
-    elif [[ -f "${evidence_directory}/rollback.yaml" ]]; then
-        result=rolled_back
-    elif [[ -f "${evidence_directory}/mutation.yaml" ]]; then
-        result=manual_intervention
-    else
-        result=preflight_failed
-    fi
-    [[ ! -f "${evidence_directory}/stdout.truncated" && ! -f "${evidence_directory}/stderr.truncated" ]] || result=manual_intervention
+    result=$(classify_result "$evidence_directory" "$execution_status" "$mode")
     write_evidence_manifest "$evidence_directory" "$actual_hash" "$started_at" "$finished_at" "$execution_status" "$result"
     printf 'UAS-quirk evidence: %s\nResult: %s\n' "$evidence_directory" "$result"
     [[ "$consumer_status" -eq 0 && "$result" != manual_intervention && "$result" != preflight_failed ]]
@@ -377,6 +516,7 @@ run_operation() {
 self_test() {
     validate_operation
     verify_playbook
+    verify_classification
     verify_evidence_modes
     [[ "$(preflight_is_fresh 2026-08-25T19:16:00Z 2026-08-25T19:15:48Z)" == true ]]
     [[ "$(preflight_is_fresh 2026-08-25T19:46:00Z 2026-08-25T19:15:48Z)" == false ]]

@@ -1,39 +1,52 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-uas-quirk-v2.json",
-  "title": "Nautobot active corrected UAS-quirk remediation operation",
+  "$id": "https://local.theama.co/schemas/nautobot-operation.json",
+  "title": "Nautobot operation state",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "operation", "predecessor", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"],
+  "required": ["schema_version", "operation"],
   "properties": {
     "schema_version": {"const": 1},
     "operation": {
-      "type": "object",
-      "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
-      "properties": {
-        "id": {"const": "nautobot-uas-quirk-v2"},
-        "state": {"enum": ["definition", "pending"]},
-        "authorization_ready": {"type": "boolean"},
-        "stage": {"const": "storage_remediation"},
-        "target": {
+      "oneOf": [
+        {
           "type": "object",
-          "required": ["host", "address", "ssh_user"],
+          "additionalProperties": false,
+          "required": ["state", "authorization_ready"],
           "properties": {
-            "host": {"const": "j2-svpi4mf"},
-            "address": {"const": "10.1.2.170"},
-            "ssh_user": {"const": "ama"}
+            "state": {"const": "clean"},
+            "authorization_ready": {"const": false}
           }
         },
-        "architecture": {"type": "object"},
-        "source": {
+        {
           "type": "object",
-          "required": ["repository", "base_commit"],
+          "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
           "properties": {
-            "repository": {"const": "homelab-server-configs"},
-            "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+            "id": {"const": "nautobot-uas-quirk-v2"},
+            "state": {"enum": ["definition", "pending"]},
+            "authorization_ready": {"type": "boolean"},
+            "stage": {"const": "storage_remediation"},
+            "target": {
+              "type": "object",
+              "required": ["host", "address", "ssh_user"],
+              "properties": {
+                "host": {"const": "j2-svpi4mf"},
+                "address": {"const": "10.1.2.170"},
+                "ssh_user": {"const": "ama"}
+              }
+            },
+            "architecture": {"type": "object"},
+            "source": {
+              "type": "object",
+              "required": ["repository", "base_commit"],
+              "properties": {
+                "repository": {"const": "homelab-server-configs"},
+                "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+              }
+            }
           }
         }
-      }
+      ]
     },
     "predecessor": {
       "type": "object",
@@ -108,6 +121,15 @@
     }
   },
   "allOf": [{
+    "if": {
+      "properties": {
+        "operation": {"required": ["id"]}
+      }
+    },
+    "then": {
+      "required": ["predecessor", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"]
+    }
+  }, {
     "if": {"properties": {"operation": {"properties": {"authorization_ready": {"const": true}}}}},
     "then": {
       "properties": {

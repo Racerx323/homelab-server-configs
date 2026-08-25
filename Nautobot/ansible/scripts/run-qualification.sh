@@ -52,12 +52,25 @@ consume_bounded_stream() {
     exec {stream_file_descriptor}<&-
 }
 
+classify_result() {
+    local evidence_directory=$1
+    local execution_status=$2
+
+    if [[ "$execution_status" -eq 0 &&
+        ! -f "${evidence_directory}/stdout.truncated" &&
+        ! -f "${evidence_directory}/stderr.truncated" ]]; then
+        printf '%s\n' passed
+    else
+        printf '%s\n' incomplete
+    fi
+}
+
 write_evidence_manifest() {
     local evidence_directory=$1
     local started_at=$2
     local finished_at=$3
     local execution_status=$4
-    local stdout_bytes stderr_bytes status_bytes
+    local qualification_result stdout_bytes stderr_bytes status_bytes
     local stdout_hash stderr_hash status_hash
     local launcher_hash playbook_hash inventory_hash group_vars_hash host_vars_hash
     local stdout_truncated=false
@@ -76,6 +89,7 @@ write_evidence_manifest() {
     host_vars_hash=$(sha256sum "$qualification_host_vars" | cut -d ' ' -f 1)
     [[ ! -e "${evidence_directory}/stdout.truncated" ]] || stdout_truncated=true
     [[ ! -e "${evidence_directory}/stderr.truncated" ]] || stderr_truncated=true
+    qualification_result=$(classify_result "$evidence_directory" "$execution_status")
 
     {
         printf '%s\n' '---' 'schema_version: 1'
@@ -84,6 +98,7 @@ write_evidence_manifest() {
         printf 'started_at_utc: %s\n' "$started_at"
         printf 'finished_at_utc: %s\n' "$finished_at"
         printf 'exit_status: %s\n' "$execution_status"
+        printf 'result: %s\n' "$qualification_result"
         printf '%s\n' 'check_mode: true' 'capture_limit_bytes_per_stream: 4194304'
         printf '%s\n' 'inputs:'
         printf '  launcher_sha256: %s\n' "$launcher_hash"
@@ -109,7 +124,8 @@ write_evidence_manifest() {
 execute_qualification() {
     local evidence_directory stdout_fifo stderr_fifo
     local stdout_consumer_pid stderr_consumer_pid
-    local started_at finished_at execution_status consumer_status=0
+    local started_at finished_at execution_status qualification_result
+    local consumer_status=0
     local -a command=(
         ansible-playbook
         --inventory "$qualification_inventory"
@@ -156,13 +172,17 @@ execute_qualification() {
         >"${evidence_directory}/status.txt"
     write_evidence_manifest "$evidence_directory" "$started_at" \
         "$finished_at" "$execution_status"
+    qualification_result=$(classify_result "$evidence_directory" "$execution_status")
 
     printf 'Qualification evidence: %s\n' "$evidence_directory"
     printf 'Ansible exit status: %s\n' "$execution_status"
+    printf 'Qualification result: %s\n' "$qualification_result"
     if [[ "$consumer_status" -ne 0 ]]; then
         printf '%s\n' 'Evidence capture failed.' >&2
         return 70
     fi
+    [[ "$qualification_result" == passed ]] && return 0
+    [[ "$execution_status" -eq 0 ]] && return 70
     return "$execution_status"
 }
 
@@ -188,6 +208,11 @@ run_self_test() {
     self_test_size=$(stat --format=%s "$self_test_log")
     [[ "$self_test_size" -eq 1024 ]]
     [[ -f "$self_test_marker" ]]
+    [[ $(classify_result "$self_test_directory" 0) == incomplete ]]
+    rm -f -- "$self_test_marker"
+    [[ $(classify_result "$self_test_directory" 0) == passed ]]
+    [[ $(classify_result "$self_test_directory" 2) == incomplete ]]
+    : >"$self_test_marker"
     printf '%s\n' 'bounded stderr fixture' >"${self_test_directory}/stderr.log"
     printf '%s\n' 'ansible_playbook_exit_status=0' \
         >"${self_test_directory}/status.txt"

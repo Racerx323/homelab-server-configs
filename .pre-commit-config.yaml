@@ -180,8 +180,17 @@ repos:
         files: >-
           ^Nautobot/ansible/(?:README\.md|playbooks/qualify-host\.yaml|scripts/run-qualification\.sh)$
 
+      - id: nautobot-assertion-expression-policy
+        name: Validate Nautobot Ansible assertion expressions
+        entry: >-
+          python3 Nautobot/ansible/scripts/validate-assertion-expressions.py
+        language: system
+        pass_filenames: false
+        files: >-
+          ^Nautobot/ansible/(?:(?:playbooks|tasks)/.*\.ya?ml|scripts/validate-assertion-expressions\.py)$
+
       - id: nautobot-operation-schema
-        name: Validate Nautobot active operation schema
+        name: Validate Nautobot operation state
         entry: >-
           check-jsonschema
           --schemafile Nautobot/schemas/operation.schema.json

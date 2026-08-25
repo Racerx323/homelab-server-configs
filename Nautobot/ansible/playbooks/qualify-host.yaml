@@ -372,12 +372,12 @@
             | selectattr(
                 'local',
                 'equalto',
-                management.permanent_ipv6_ula.split('/')[0]
+                (management.permanent_ipv6_ula | split('/'))[0]
               )
             | selectattr(
                 'prefixlen',
                 'equalto',
-                management.permanent_ipv6_ula.split('/')[1] | int
+                (management.permanent_ipv6_ula | split('/'))[1] | int
               )
             | list
           }}
@@ -724,13 +724,13 @@
       ansible.builtin.assert:
         that:
           - >-
-            (qualification_loadavg.stdout.split()[0] | float)
+            ((qualification_loadavg.stdout | split)[0] | float)
             < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
           - >-
-            (qualification_loadavg.stdout.split()[1] | float)
+            ((qualification_loadavg.stdout | split)[1] | float)
             < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
           - >-
-            (qualification_loadavg.stdout.split()[2] | float)
+            ((qualification_loadavg.stdout | split)[2] | float)
             < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
           - qualification_vcgencmd.stat.exists
           - qualification_throttling.stdout == "throttled=0x0"

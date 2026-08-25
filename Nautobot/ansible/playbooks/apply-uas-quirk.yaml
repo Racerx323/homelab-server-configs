@@ -99,10 +99,13 @@
           - uas_quirk_boot_file.stat.isreg | default(false)
           - not uas_quirk_boot_file.stat.islnk | default(false)
           - uas_quirk_boot_file.stat.checksum == preflight.expected.boot_cmdline_sha256
-          - (uas_quirk_boot_content.content | b64decode).count('\n') == 0
-          - not (uas_quirk_boot_content.content | b64decode).endswith('\n')
-          - preflight.expected.quirk_absent not in uas_quirk_running_cmdline.stdout.split()
-          - preflight.expected.quirk_absent not in (uas_quirk_boot_content.content | b64decode).split()
+          - "'\n' not in (uas_quirk_boot_content.content | b64decode)"
+          - >-
+            preflight.expected.quirk_absent
+            not in (uas_quirk_running_cmdline.stdout | split)
+          - >-
+            preflight.expected.quirk_absent
+            not in ((uas_quirk_boot_content.content | b64decode) | split)
           - "'ID_VENDOR_ID=' ~ preflight.expected.usb_vendor_id in uas_quirk_udev.stdout_lines"
           - "'ID_MODEL_ID=' ~ preflight.expected.usb_product_id in uas_quirk_udev.stdout_lines"
           - "'ID_USB_DRIVER=' ~ preflight.expected.usb_driver in uas_quirk_udev.stdout_lines"
@@ -183,8 +186,6 @@
                 ==
                 ((uas_quirk_boot_content.content | b64decode)
                 ~ ' ' ~ mutation.append_token)
-              - (uas_quirk_mutated_content.content | b64decode).count('\n') == 0
-              - not (uas_quirk_mutated_content.content | b64decode).endswith('\n')
 
         - name: Reboot once to activate the transport quirk
           ansible.builtin.reboot:
@@ -237,10 +238,34 @@
           changed_when: false
           failed_when: uas_quirk_storage_events.rc not in [0, 1]
 
+        - name: Record forward observations before acceptance
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ uas_quirk_evidence_directory }}/forward-observations.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              kernel_cmdline: {{ uas_quirk_cmdline_after.stdout | trim | to_json }}
+              root_source: {{ uas_quirk_root_after.stdout | trim | to_json }}
+              usb_identity: {{ uas_quirk_udev_after.stdout_lines | select('match', '^ID_(VENDOR_ID|MODEL_ID|USB_DRIVER)=') | list | to_json }}
+              failed_units: {{ uas_quirk_failed_units.stdout_lines | to_json }}
+              storage_event_rc: {{ uas_quirk_storage_events.rc }}
+              storage_event_count: {{ uas_quirk_storage_events.stdout_lines | length }}
+          changed_when: false
+
         - name: Enforce immediate reboot acceptance
           ansible.builtin.assert:
             that:
-              - uas_quirk_cmdline_after.stdout.split().count(mutation.append_token) == 1
+              - >-
+                uas_quirk_cmdline_after.stdout
+                | split
+                | select('equalto', mutation.append_token)
+                | list
+                | length == acceptance.immediate.require_cmdline_token_count
               - uas_quirk_root_after.stdout | trim == acceptance.immediate.require_root_source
               - "'ID_VENDOR_ID=' ~ acceptance.immediate.require_usb_vendor_id in uas_quirk_udev_after.stdout_lines"
               - "'ID_MODEL_ID=' ~ acceptance.immediate.require_usb_product_id in uas_quirk_udev_after.stdout_lines"
@@ -320,10 +345,28 @@
           register: uas_quirk_rollback_root
           changed_when: false
 
+        - name: Record rollback observations before acceptance
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ uas_quirk_evidence_directory }}/rollback-observations.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              kernel_cmdline: {{ uas_quirk_rollback_cmdline.stdout | trim | to_json }}
+              root_source: {{ uas_quirk_rollback_root.stdout | trim | to_json }}
+              usb_identity: {{ uas_quirk_rollback_udev.stdout_lines | select('match', '^ID_(VENDOR_ID|MODEL_ID|USB_DRIVER)=') | list | to_json }}
+          changed_when: false
+
         - name: Enforce rollback acceptance
           ansible.builtin.assert:
             that:
-              - mutation.append_token not in uas_quirk_rollback_cmdline.stdout.split()
+              - >-
+                mutation.append_token
+                not in (uas_quirk_rollback_cmdline.stdout | split)
               - uas_quirk_rollback_root.stdout | trim == preflight.expected.root_source
               - "'ID_USB_DRIVER=' ~ preflight.expected.usb_driver in uas_quirk_rollback_udev.stdout_lines"
 

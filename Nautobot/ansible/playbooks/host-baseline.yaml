@@ -160,7 +160,7 @@
         host_baseline_initially_absent_packages: >-
           {{
             inputs.package_names
-            | difference(ansible_facts.packages.keys() | list)
+            | difference(ansible_facts.packages | list)
           }}
 
     - name: Read current Nautobot account
@@ -180,9 +180,9 @@
           - >-
             host_baseline_account_before.rc == 2
             or (
-              host_baseline_account_before.stdout.split(':')[5]
+              (host_baseline_account_before.stdout | split(':'))[5]
               == inputs.service_account.home
-              and host_baseline_account_before.stdout.split(':')[6]
+              and (host_baseline_account_before.stdout | split(':'))[6]
               == inputs.service_account.shell
             )
         fail_msg: >-
@@ -648,11 +648,11 @@
         - name: Enforce exact package installation
           ansible.builtin.assert:
             that:
-              - item.split('=', 1)[0] in ansible_facts.packages
+              - (item | split('=', 1))[0] in ansible_facts.packages
               - >-
-                item.split('=', 1)[1]
+                (item | split('=', 1))[1]
                 in (
-                  ansible_facts.packages[item.split('=', 1)[0]]
+                  ansible_facts.packages[(item | split('=', 1))[0]]
                   | map(attribute='version') | list
                 )
           loop: "{{ inputs.package_specs }}"

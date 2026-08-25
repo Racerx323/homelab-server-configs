@@ -183,11 +183,11 @@
           - host_baseline_rollback_recent_storage_events.stdout | trim == ''
           - >-
             proven_pre_state.packages_absent
-            | difference(ansible_facts.packages.keys() | list)
+            | difference(ansible_facts.packages | list)
             | length == 0
           - >-
             proven_pre_state.packages_preserved
-            | difference(ansible_facts.packages.keys() | list)
+            | difference(ansible_facts.packages | list)
             | length == 0
           - host_baseline_rollback_account.rc == 0
           - host_baseline_rollback_subuid.rc == 0
@@ -424,11 +424,11 @@
             that:
               - >-
                 proven_pre_state.packages_absent
-                | intersect(ansible_facts.packages.keys() | list)
+                | intersect(ansible_facts.packages | list)
                 | length == 0
               - >-
                 proven_pre_state.packages_preserved
-                | difference(ansible_facts.packages.keys() | list)
+                | difference(ansible_facts.packages | list)
                 | length == 0
               - host_baseline_rollback_account_after.rc == 2
               - >-

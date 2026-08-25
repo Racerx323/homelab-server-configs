@@ -46,7 +46,7 @@ operation_ready() {
 
 operation_blockers() {
     python3 -c \
-        'import sys,yaml; print(",".join(yaml.safe_load(open(sys.argv[1], encoding="utf-8"))["authorization"]["blockers"]))' \
+        'import sys,yaml; d=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(",".join(d.get("authorization", {}).get("blockers", ["no_active_operation"])))' \
         "$operation_file"
 }
 
@@ -390,7 +390,8 @@ execute_operation() {
 }
 
 run_self_test() {
-    local self_test_directory self_test_fifo self_test_log self_test_marker
+    local classification_directory self_test_directory self_test_fifo
+    local self_test_log self_test_marker
     local self_test_consumer_pid
 
     verify_read_only_playbook
@@ -412,6 +413,14 @@ run_self_test() {
     [[ $(stat --format=%s "$self_test_log") -eq 1024 ]]
     [[ -f "$self_test_marker" ]]
     [[ $(stat --format=%a "$self_test_directory") == 700 ]]
+    classification_directory="${self_test_directory}/classification"
+    mkdir "$classification_directory"
+    [[ $(classify_result "$classification_directory" 2) == incomplete ]]
+    : >"${classification_directory}/diagnostic.yaml"
+    [[ $(classify_result "$classification_directory" 2) == incomplete ]]
+    [[ $(classify_result "$classification_directory" 0) == collected ]]
+    : >"${classification_directory}/stderr.truncated"
+    [[ $(classify_result "$classification_directory" 0) == incomplete ]]
     ANSIBLE_LOCAL_TEMP="${self_test_directory}/ansible-local" \
         ansible-playbook \
         --syntax-check \

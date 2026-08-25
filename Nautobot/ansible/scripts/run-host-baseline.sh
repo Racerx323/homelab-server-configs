@@ -48,7 +48,7 @@ operation_ready() {
 
 operation_blockers() {
     python3 -c \
-        'import sys,yaml; print(",".join(yaml.safe_load(open(sys.argv[1], encoding="utf-8"))["authorization"]["blockers"]))' \
+        'import sys,yaml; d=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(",".join(d.get("authorization", {}).get("blockers", ["no_active_operation"])))' \
         "$operation_file"
 }
 
@@ -182,7 +182,10 @@ classify_operation_result() {
     local evidence_directory=$1
     local execution_status=$2
 
-    if [[ "$execution_status" -eq 0 &&
+    if [[ -f "${evidence_directory}/stdout.truncated" ||
+        -f "${evidence_directory}/stderr.truncated" ]]; then
+        printf '%s\n' manual_intervention
+    elif [[ "$execution_status" -eq 0 &&
         -f "${evidence_directory}/acceptance.yaml" &&
         ! -f "${evidence_directory}/stdout.truncated" &&
         ! -f "${evidence_directory}/stderr.truncated" ]]; then
@@ -394,8 +397,12 @@ run_self_test() {
     : >"${self_test_classification_directory}/rollback.yaml"
     [[ $(classify_operation_result \
         "$self_test_classification_directory" 2) == rolled_back ]]
+    : >"${self_test_classification_directory}/stdout.truncated"
+    [[ $(classify_operation_result \
+        "$self_test_classification_directory" 2) == manual_intervention ]]
     rm -f -- "${self_test_classification_directory}/preflight.yaml" \
-        "${self_test_classification_directory}/rollback.yaml"
+        "${self_test_classification_directory}/rollback.yaml" \
+        "${self_test_classification_directory}/stdout.truncated"
     : >"${self_test_classification_directory}/acceptance.yaml"
     [[ $(classify_operation_result \
         "$self_test_classification_directory" 0) == accepted ]]

@@ -89,7 +89,7 @@ show_bundle() {
     validate_operation
     bundle_hash=$(calculate_bundle_hash)
     readiness=$(operation_value 'str(bool(d["operation"]["authorization_ready"])).lower()')
-    blockers=$(operation_value '",".join(d["authorization"]["blockers"])')
+    blockers=$(operation_value '",".join(d.get("authorization", {}).get("blockers", ["no_active_operation"]))')
     bundle_file_list=$(mktemp /tmp/nautobot-host-baseline-rollback-bundle.XXXXXX)
     write_bundle_file_hashes "$bundle_file_list"
     printf 'authorization_ready=%s\n' "$readiness"
@@ -119,7 +119,10 @@ classify_result() {
     local evidence_directory=$1
     local execution_status=$2
 
-    if [[ "$execution_status" -eq 0 &&
+    if [[ -f "${evidence_directory}/stdout.truncated" ||
+        -f "${evidence_directory}/stderr.truncated" ]]; then
+        printf '%s\n' manual_intervention
+    elif [[ "$execution_status" -eq 0 &&
         -f "${evidence_directory}/acceptance.yaml" &&
         ! -f "${evidence_directory}/stdout.truncated" &&
         ! -f "${evidence_directory}/stderr.truncated" ]]; then
@@ -306,7 +309,7 @@ execute_operation() {
     }
     validate_operation
     readiness=$(operation_value 'str(bool(d["operation"]["authorization_ready"])).lower()')
-    blockers=$(operation_value '",".join(d["authorization"]["blockers"])')
+    blockers=$(operation_value '",".join(d.get("authorization", {}).get("blockers", ["no_active_operation"]))')
     [[ "$readiness" == true ]] || {
         printf 'Operation is not authorization-ready: %s\n' "$blockers" >&2
         return 65
@@ -370,7 +373,7 @@ execute_operation() {
 }
 
 run_self_test() {
-    local self_test_directory self_test_hash
+    local classification_directory self_test_directory self_test_hash
 
     validate_operation
     verify_rollback_playbook
@@ -382,6 +385,20 @@ run_self_test() {
         *) return 70 ;;
     esac
     [[ $(stat --format=%a "$self_test_directory") == 700 ]]
+    classification_directory="${self_test_directory}/classification"
+    mkdir "$classification_directory"
+    [[ $(classify_result "$classification_directory" 2) == preflight_failed ]]
+    : >"${classification_directory}/preflight.yaml"
+    [[ $(classify_result "$classification_directory" 2) == manual_intervention ]]
+    : >"${classification_directory}/manual-intervention.yaml"
+    [[ $(classify_result "$classification_directory" 2) == manual_intervention ]]
+    rm -f -- "${classification_directory}/manual-intervention.yaml"
+    : >"${classification_directory}/acceptance.yaml"
+    [[ $(classify_result "$classification_directory" 0) == rolled_back ]]
+    : >"${classification_directory}/stdout.truncated"
+    [[ $(classify_result "$classification_directory" 0) == manual_intervention ]]
+    rm -f -- "${classification_directory}/preflight.yaml"
+    [[ $(classify_result "$classification_directory" 0) == manual_intervention ]]
     ANSIBLE_LOCAL_TEMP="${self_test_directory}/ansible-local" \
         ansible-playbook \
         --syntax-check \
