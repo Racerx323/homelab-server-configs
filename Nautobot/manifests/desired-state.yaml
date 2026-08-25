@@ -1,0 +1,206 @@
+---
+schema_version: 1
+
+target:
+  host: j2-svpi4mf
+  platform: linux/arm64
+  variant: v8
+
+runtime:
+  engine: podman
+  privilege: rootless
+  service_account: nautobot
+  systemd_scope: user
+  unit_format: quadlet
+  network:
+    name: nautobot-private
+    internal_services_only: true
+
+images:
+  nautobot_base:
+    purpose: build_base
+    accepted_version: 3.2.3
+    resolved_release: v3.2.3
+    source_tag: 3.2.3-py3.12
+    python_release: 3.12.14
+    platform: linux/arm64
+    manifest_digest: >-
+      sha256:5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7
+    reference: >-
+      docker.io/networktocode/nautobot@sha256:5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7
+  postgresql:
+    purpose: runtime
+    accepted_version: "17"
+    resolved_release: 17.11-1.pgdg13+2
+    source_tag: "17"
+    platform: linux/arm64/v8
+    manifest_digest: >-
+      sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296
+    reference: >-
+      docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296
+  redis:
+    purpose: runtime
+    accepted_version: "7.4"
+    resolved_release: 7.4.11
+    source_tag: "7.4"
+    platform: linux/arm64/v8
+    manifest_digest: >-
+      sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323
+    reference: >-
+      docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323
+
+custom_image:
+  output_repository: localhost/nautobot-homelab
+  platform: linux/arm64
+  base_image: nautobot_base
+  python_artifacts:
+    - package: nautobot-dns-models
+      version: 2.3.0
+      filename: nautobot_dns_models-2.3.0-py3-none-any.whl
+      index: https://pypi.org/simple/nautobot-dns-models/
+      sha256: 0f518fddd89c4636065bca082d4f10beba981f06e8229d4b0c20490d88c625c3
+      install_without_dependencies: true
+  deployment_identity:
+    algorithm: sha256
+    required_before_operation: true
+    mutable_reference_allowed: false
+
+volumes:
+  postgresql_data:
+    owner: postgresql
+  redis_data:
+    owner: redis
+  nautobot_media:
+    owner: nautobot
+
+services:
+  postgresql:
+    image: postgresql
+    role: database
+    memory_limit_mib: 1536
+    published_endpoints: []
+    volumes:
+      - postgresql_data
+    secret_references:
+      - postgresql_password
+  redis:
+    image: redis
+    role: task_queue
+    memory_limit_mib: 512
+    published_endpoints: []
+    volumes:
+      - redis_data
+    secret_references:
+      - redis_password
+    persistence:
+      appendonly: true
+      appendfsync: everysec
+    memory_policy:
+      maxmemory_mib: 384
+      eviction: noeviction
+  migration:
+    image: custom_nautobot
+    role: migration
+    kind: oneshot
+    command:
+      - nautobot-server
+      - post_upgrade
+    depends_on:
+      - postgresql
+      - redis
+    before:
+      - web
+      - worker
+      - scheduler
+    secret_references:
+      - django_secret_key
+      - postgresql_password
+      - redis_password
+  web:
+    image: custom_nautobot
+    role: web
+    memory_limit_mib: 1536
+    depends_on:
+      - migration
+    volumes:
+      - nautobot_media
+    published_endpoints:
+      - address: 10.1.2.170
+        family: ipv4
+        port: 8080
+      - address: fd36:5aa8:6971:1::170
+        family: ipv6
+        port: 8080
+    secret_references:
+      - django_secret_key
+      - postgresql_password
+      - redis_password
+  worker:
+    image: custom_nautobot
+    role: celery_worker
+    memory_limit_mib: 1536
+    concurrency: 2
+    depends_on:
+      - migration
+    secret_references:
+      - django_secret_key
+      - postgresql_password
+      - redis_password
+  scheduler:
+    image: custom_nautobot
+    role: celery_beat
+    memory_limit_mib: 384
+    depends_on:
+      - migration
+    secret_references:
+      - django_secret_key
+      - postgresql_password
+      - redis_password
+
+application:
+  fqdn: nautobot.local.theama.co
+  authentication_owner: nautobot
+  settings:
+    allowed_hosts:
+      - nautobot.local.theama.co
+    csrf_trusted_origins:
+      - https://nautobot.local.theama.co
+    secure_proxy_ssl_header:
+      - HTTP_X_FORWARDED_PROTO
+      - https
+  health:
+    method: GET
+    path: /health/
+    expected_status: 200
+
+secrets:
+  provider: approved_secrets_system
+  injection:
+    - podman_secret
+    - credential_file
+  references:
+    django_secret_key:
+      consumers: [migration, web, worker, scheduler]
+    postgresql_password:
+      consumers: [postgresql, migration, web, worker, scheduler]
+    redis_password:
+      consumers: [redis, migration, web, worker, scheduler]
+    initial_administrator_credential:
+      consumers: [bootstrap]
+    restic_repository_password:
+      consumers: [backup]
+    backblaze_b2_application_key_id:
+      consumers: [backup]
+    backblaze_b2_application_key:
+      consumers: [backup]
+
+operation_gates:
+  custom_image:
+    require_platform_manifest_digest: true
+  recovery_identity:
+    require_approval: true
+    add_to_allowed_hosts_before_operation: true
+  secrets:
+    require_external_resolution: true
+  semaphore:
+    permitted: false

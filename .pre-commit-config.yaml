@@ -160,6 +160,17 @@ repos:
         files: >-
           (?:^|/)(?:compose|docker-compose|podman-compose)\.ya?ml$
 
+      - id: nautobot-desired-state-schema
+        name: Validate Nautobot desired state schema
+        entry: >-
+          check-jsonschema
+          --schemafile Nautobot/schemas/desired-state.schema.json
+          Nautobot/manifests/desired-state.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^Nautobot/(?:manifests/desired-state\.yaml|schemas/desired-state\.schema\.json)$
+
       - id: check-json
         name: Validate JSON with jq
         entry: jq empty

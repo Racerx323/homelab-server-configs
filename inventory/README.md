@@ -19,10 +19,12 @@ inventory/
     ├── groups/
     │   ├── all.yaml
     │   ├── dns.yaml
+    │   ├── inventory_automation.yaml
     │   ├── monitoring.yaml
     │   ├── notification.yaml
     │   └── reverse_proxy.yaml
     ├── hosts/
+    │   ├── j2-svpi4mf.yaml
     │   ├── monitoring.yaml
     │   ├── notification.yaml
     │   ├── pihole0.yaml
@@ -63,6 +65,18 @@ components:
 
 Keeping these concepts separate lets automation select hosts by purpose without
 mistaking a software package for a server function.
+
+## Host facts
+
+Host-variable files may record stable, non-secret facts needed by automation,
+including hardware model and architecture, memory capacity, storage media and
+filesystem, and an explicit absence of HA or virtual-IP ownership.
+
+A permanent management address may be recorded as a connection identity only
+when an accepted component architecture requires it. Pair it with
+`address_authority` to identify the owning repository. Its presence in this
+inventory does not transfer address-allocation, DHCP, firewall, or DNS
+authority.
 
 ## Ownership boundaries
 

@@ -1,0 +1,15 @@
+---
+functions:
+  - inventory
+  - automation
+
+components:
+  - podman
+  - nautobot
+  - postgresql
+  - redis
+  - restic
+  - munin-node
+  - webmin
+  - needrestart
+  - watchdog

@@ -1,0 +1,16 @@
+FROM docker.io/networktocode/nautobot@sha256:5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7
+
+USER nautobot
+WORKDIR /opt/nautobot
+
+COPY --chown=nautobot:nautobot requirements.lock /tmp/nautobot-requirements.lock
+
+RUN python3 -m pip install \
+        --disable-pip-version-check \
+        --index-url=https://pypi.org/simple \
+        --no-cache-dir \
+        --no-deps \
+        --only-binary=:all: \
+        --require-hashes \
+        --requirement=/tmp/nautobot-requirements.lock \
+    && rm -f /tmp/nautobot-requirements.lock

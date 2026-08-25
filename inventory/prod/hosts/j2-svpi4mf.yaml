@@ -1,0 +1,23 @@
+---
+display_name: Nautobot inventory and automation host
+
+hardware:
+  platform: raspberry_pi_4b
+  architecture: arm64
+  cpu_cores: 4
+  memory_mib: 8192
+
+storage:
+  root:
+    capacity_tb: 1
+    interface: usb_3
+    transport: uas
+    filesystem: ext4
+
+management:
+  permanent_ipv6_ula: fd36:5aa8:6971:1::170/64
+  address_authority: homelab-network
+
+high_availability:
+  role: none
+  owns_virtual_ips: false

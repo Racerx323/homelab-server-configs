@@ -1,0 +1,585 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/nautobot-desired-state-v1.json",
+  "title": "Nautobot desired state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target",
+    "runtime",
+    "images",
+    "custom_image",
+    "volumes",
+    "services",
+    "application",
+    "secrets",
+    "operation_gates"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "platform", "variant"],
+      "properties": {
+        "host": { "const": "j2-svpi4mf" },
+        "platform": { "const": "linux/arm64" },
+        "variant": { "const": "v8" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "privilege",
+        "service_account",
+        "systemd_scope",
+        "unit_format",
+        "network"
+      ],
+      "properties": {
+        "engine": { "const": "podman" },
+        "privilege": { "const": "rootless" },
+        "service_account": { "const": "nautobot" },
+        "systemd_scope": { "const": "user" },
+        "unit_format": { "const": "quadlet" },
+        "network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "internal_services_only"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "internal_services_only": { "const": true }
+          }
+        }
+      }
+    },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nautobot_base", "postgresql", "redis"],
+      "properties": {
+        "nautobot_base": {
+          "allOf": [
+            { "$ref": "#/$defs/image" },
+            {
+              "required": ["python_release"],
+              "properties": {
+                "purpose": { "const": "build_base" },
+                "accepted_version": { "const": "3.2.3" },
+                "source_tag": { "const": "3.2.3-py3.12" },
+                "platform": { "const": "linux/arm64" }
+              }
+            }
+          ]
+        },
+        "postgresql": {
+          "allOf": [
+            { "$ref": "#/$defs/image" },
+            {
+              "properties": {
+                "purpose": { "const": "runtime" },
+                "accepted_version": { "const": "17" },
+                "source_tag": { "const": "17" },
+                "platform": { "const": "linux/arm64/v8" }
+              }
+            }
+          ]
+        },
+        "redis": {
+          "allOf": [
+            { "$ref": "#/$defs/image" },
+            {
+              "properties": {
+                "purpose": { "const": "runtime" },
+                "accepted_version": { "const": "7.4" },
+                "source_tag": { "const": "7.4" },
+                "platform": { "const": "linux/arm64/v8" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "custom_image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_repository",
+        "platform",
+        "base_image",
+        "python_artifacts",
+        "deployment_identity"
+      ],
+      "properties": {
+        "output_repository": { "const": "localhost/nautobot-homelab" },
+        "platform": { "const": "linux/arm64" },
+        "base_image": { "const": "nautobot_base" },
+        "python_artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/pythonArtifact" }
+        },
+        "deployment_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "algorithm",
+            "required_before_operation",
+            "mutable_reference_allowed"
+          ],
+          "properties": {
+            "algorithm": { "const": "sha256" },
+            "required_before_operation": { "const": true },
+            "mutable_reference_allowed": { "const": false }
+          }
+        }
+      }
+    },
+    "volumes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["postgresql_data", "redis_data", "nautobot_media"],
+      "properties": {
+        "postgresql_data": { "$ref": "#/$defs/volume" },
+        "redis_data": { "$ref": "#/$defs/volume" },
+        "nautobot_media": { "$ref": "#/$defs/volume" }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["postgresql", "redis", "migration", "web", "worker", "scheduler"],
+      "properties": {
+        "postgresql": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "memory_limit_mib",
+                "published_endpoints",
+                "volumes",
+                "secret_references"
+              ],
+              "properties": {
+                "image": { "const": "postgresql" },
+                "role": { "const": "database" },
+                "memory_limit_mib": { "const": 1536 },
+                "published_endpoints": { "maxItems": 0 },
+                "volumes": { "const": ["postgresql_data"] },
+                "secret_references": { "const": ["postgresql_password"] }
+              }
+            }
+          ]
+        },
+        "redis": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "memory_limit_mib",
+                "published_endpoints",
+                "volumes",
+                "secret_references",
+                "persistence",
+                "memory_policy"
+              ],
+              "properties": {
+                "image": { "const": "redis" },
+                "role": { "const": "task_queue" },
+                "memory_limit_mib": { "const": 512 },
+                "published_endpoints": { "maxItems": 0 },
+                "volumes": { "const": ["redis_data"] },
+                "secret_references": { "const": ["redis_password"] },
+                "memory_policy": {
+                  "properties": { "maxmemory_mib": { "const": 384 } }
+                }
+              }
+            }
+          ]
+        },
+        "migration": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "kind",
+                "command",
+                "depends_on",
+                "before",
+                "secret_references"
+              ],
+              "properties": {
+                "image": { "const": "custom_nautobot" },
+                "role": { "const": "migration" },
+                "kind": { "const": "oneshot" },
+                "command": { "const": ["nautobot-server", "post_upgrade"] },
+                "depends_on": { "const": ["postgresql", "redis"] },
+                "before": { "const": ["web", "worker", "scheduler"] }
+              }
+            }
+          ]
+        },
+        "web": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "memory_limit_mib",
+                "depends_on",
+                "volumes",
+                "published_endpoints",
+                "secret_references"
+              ],
+              "properties": {
+                "image": { "const": "custom_nautobot" },
+                "role": { "const": "web" },
+                "memory_limit_mib": { "const": 1536 },
+                "depends_on": { "const": ["migration"] },
+                "volumes": { "const": ["nautobot_media"] },
+                "published_endpoints": {
+                  "const": [
+                    { "address": "10.1.2.170", "family": "ipv4", "port": 8080 },
+                    {
+                      "address": "fd36:5aa8:6971:1::170",
+                      "family": "ipv6",
+                      "port": 8080
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "worker": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "memory_limit_mib",
+                "concurrency",
+                "depends_on",
+                "secret_references"
+              ],
+              "properties": {
+                "image": { "const": "custom_nautobot" },
+                "role": { "const": "celery_worker" },
+                "memory_limit_mib": { "const": 1536 },
+                "concurrency": { "const": 2 },
+                "depends_on": { "const": ["migration"] }
+              }
+            }
+          ]
+        },
+        "scheduler": {
+          "allOf": [
+            { "$ref": "#/$defs/service" },
+            {
+              "required": [
+                "memory_limit_mib",
+                "depends_on",
+                "secret_references"
+              ],
+              "properties": {
+                "image": { "const": "custom_nautobot" },
+                "role": { "const": "celery_beat" },
+                "memory_limit_mib": { "const": 384 },
+                "depends_on": { "const": ["migration"] }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fqdn", "authentication_owner", "settings", "health"],
+      "properties": {
+        "fqdn": { "const": "nautobot.local.theama.co" },
+        "authentication_owner": { "const": "nautobot" },
+        "settings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed_hosts",
+            "csrf_trusted_origins",
+            "secure_proxy_ssl_header"
+          ],
+          "properties": {
+            "allowed_hosts": {
+              "type": "array",
+              "contains": { "const": "nautobot.local.theama.co" },
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "csrf_trusted_origins": {
+              "const": ["https://nautobot.local.theama.co"]
+            },
+            "secure_proxy_ssl_header": {
+              "const": ["HTTP_X_FORWARDED_PROTO", "https"]
+            }
+          }
+        },
+        "health": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "path", "expected_status"],
+          "properties": {
+            "method": { "const": "GET" },
+            "path": { "const": "/health/" },
+            "expected_status": { "const": 200 }
+          }
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "injection", "references"],
+      "properties": {
+        "provider": { "const": "approved_secrets_system" },
+        "injection": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["podman_secret", "credential_file"] }
+        },
+        "references": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "django_secret_key",
+            "postgresql_password",
+            "redis_password",
+            "initial_administrator_credential",
+            "restic_repository_password",
+            "backblaze_b2_application_key_id",
+            "backblaze_b2_application_key"
+          ],
+          "properties": {
+            "django_secret_key": { "$ref": "#/$defs/secretReference" },
+            "postgresql_password": { "$ref": "#/$defs/secretReference" },
+            "redis_password": { "$ref": "#/$defs/secretReference" },
+            "initial_administrator_credential": {
+              "$ref": "#/$defs/secretReference"
+            },
+            "restic_repository_password": { "$ref": "#/$defs/secretReference" },
+            "backblaze_b2_application_key_id": {
+              "$ref": "#/$defs/secretReference"
+            },
+            "backblaze_b2_application_key": {
+              "$ref": "#/$defs/secretReference"
+            }
+          }
+        }
+      }
+    },
+    "operation_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["custom_image", "recovery_identity", "secrets", "semaphore"],
+      "properties": {
+        "custom_image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["require_platform_manifest_digest"],
+          "properties": {
+            "require_platform_manifest_digest": { "const": true }
+          }
+        },
+        "recovery_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["require_approval", "add_to_allowed_hosts_before_operation"],
+          "properties": {
+            "require_approval": { "const": true },
+            "add_to_allowed_hosts_before_operation": { "const": true }
+          }
+        },
+        "secrets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["require_external_resolution"],
+          "properties": {
+            "require_external_resolution": { "const": true }
+          }
+        },
+        "semaphore": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["permitted"],
+          "properties": {
+            "permitted": { "const": false }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "accepted_version",
+        "resolved_release",
+        "source_tag",
+        "platform",
+        "manifest_digest",
+        "reference"
+      ],
+      "properties": {
+        "purpose": { "enum": ["build_base", "runtime"] },
+        "accepted_version": { "type": "string", "minLength": 1 },
+        "resolved_release": { "type": "string", "minLength": 1 },
+        "source_tag": { "type": "string", "minLength": 1 },
+        "python_release": { "type": "string", "pattern": "^3\\.12\\.[0-9]+$" },
+        "platform": { "enum": ["linux/arm64", "linux/arm64/v8"] },
+        "manifest_digest": { "$ref": "#/$defs/digest" },
+        "reference": {
+          "type": "string",
+          "pattern": "^[^:@\\s]+(?:/[^:@\\s]+)+@sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "pythonArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package",
+        "version",
+        "filename",
+        "index",
+        "sha256",
+        "install_without_dependencies"
+      ],
+      "properties": {
+        "package": { "const": "nautobot-dns-models" },
+        "version": { "const": "2.3.0" },
+        "filename": { "const": "nautobot_dns_models-2.3.0-py3-none-any.whl" },
+        "index": {
+          "const": "https://pypi.org/simple/nautobot-dns-models/"
+        },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "install_without_dependencies": { "const": true }
+      }
+    },
+    "volume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner"],
+      "properties": {
+        "owner": { "enum": ["postgresql", "redis", "nautobot"] }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address", "family", "port"],
+      "properties": {
+        "address": { "type": "string", "minLength": 1 },
+        "family": { "enum": ["ipv4", "ipv6"] },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image", "role"],
+      "properties": {
+        "image": {
+          "enum": ["postgresql", "redis", "custom_nautobot"]
+        },
+        "role": {
+          "enum": ["database", "task_queue", "migration", "web", "celery_worker", "celery_beat"]
+        },
+        "kind": { "const": "oneshot" },
+        "memory_limit_mib": { "type": "integer", "minimum": 1 },
+        "concurrency": { "type": "integer", "minimum": 1 },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["postgresql", "redis", "migration"] }
+        },
+        "before": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["web", "worker", "scheduler"] }
+        },
+        "published_endpoints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/endpoint" }
+        },
+        "volumes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["postgresql_data", "redis_data", "nautobot_media"]
+          }
+        },
+        "secret_references": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["django_secret_key", "postgresql_password", "redis_password"]
+          }
+        },
+        "persistence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["appendonly", "appendfsync"],
+          "properties": {
+            "appendonly": { "const": true },
+            "appendfsync": { "const": "everysec" }
+          }
+        },
+        "memory_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxmemory_mib", "eviction"],
+          "properties": {
+            "maxmemory_mib": { "type": "integer", "minimum": 1 },
+            "eviction": { "const": "noeviction" }
+          }
+        }
+      }
+    },
+    "secretReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["consumers"],
+      "properties": {
+        "consumers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "postgresql",
+              "redis",
+              "migration",
+              "web",
+              "worker",
+              "scheduler",
+              "bootstrap",
+              "backup"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

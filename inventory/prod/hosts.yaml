@@ -22,3 +22,8 @@ all:
       hosts:
         notification:
           management_fqdn: notification.local.theama.co
+
+    inventory_automation:
+      hosts:
+        j2-svpi4mf:
+          management_fqdn: j2-svpi4mf.local.theama.co
