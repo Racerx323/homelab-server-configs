@@ -3,8 +3,8 @@ schema_version: 1
 
 operation:
   id: nautobot-uas-quirk-v1
-  state: definition
-  authorization_ready: false
+  state: pending
+  authorization_ready: true
   stage: storage_remediation
   target: {host: j2-svpi4mf, address: 10.1.2.170, ssh_user: ama}
   architecture:
@@ -12,7 +12,7 @@ operation:
     decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
   source:
     repository: homelab-server-configs
-    base_commit: 17fa780482f560ff95ab7d4925180c93eb6384cb
+    base_commit: 7169bada63ff0998cd891a0c52d8e40ad838f785
 
 deferred_operation:
   id: nautobot-host-baseline-rollback-v1
@@ -25,9 +25,9 @@ preflight:
   command: /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh preflight
   read_only: true
   maximum_age_minutes: 30
-  status: pending
-  evidence_manifest_sha256: null
-  completed_at_utc: null
+  status: passed
+  evidence_manifest_sha256: f285381a83388a3d07b1871de13d47ddc04266c425e7ff61b70c7bba06284c6d
+  completed_at_utc: "2026-08-25T19:24:04Z"
   require_local_console_recovery: true
   local_console_recovery_confirmed: true
   require_current_backup: true
@@ -93,4 +93,4 @@ authorization:
   bundle_algorithm: sha256
   authorized_stage: storage_remediation
   excluded_stages: [host_baseline_rollback, filesystem_repair, hardware_change, package_change, dual_stack_identity, nautobot_pilot, caddy_onboarding, authority_migration, semaphore]
-  blockers: [fresh_read_only_preflight_required, implementation_checkpoint_and_review_required]
+  blockers: []
