@@ -40,6 +40,8 @@ inputs:
     - dbus-user-session
     - smartmontools
     - restic
+    - msmtp
+    - msmtp-mta
   package_specs:
     - podman=5.4.2+ds1-2+b2
     - uidmap=1:4.17.4-2
@@ -50,6 +52,8 @@ inputs:
     - dbus-user-session=1.16.2-2
     - smartmontools=7.4-3
     - restic=0.18.0-1+b4
+    - msmtp=1.8.28-3
+    - msmtp-mta=1.8.28-3
   service_account:
     name: nautobot
     home: /var/lib/nautobot
@@ -141,4 +145,4 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
-    - definition_checkpoint_and_fresh_qualification_required
+    - definition_checkpoint_and_readiness_review_required

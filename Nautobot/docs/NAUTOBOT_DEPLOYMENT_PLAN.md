@@ -83,7 +83,10 @@ publish a release, reload DNS, contact an HA node, or initiate a live change.
 
 Install the reviewed Debian packages for `podman`, `uidmap`, `passt`,
 `slirp4netns`, `fuse-overlayfs`, `crun`, `dbus-user-session`, `smartmontools`,
-and `restic`. Record exact installed versions.
+`restic`, `msmtp`, and `msmtp-mta`. Record exact installed versions. The two
+MSMTP packages provide a sendmail-compatible outbound transport for host
+software; relay configuration and credentials require separate review and
+must remain outside Git.
 
 ### Required and unwanted services
 

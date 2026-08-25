@@ -24,6 +24,8 @@
       - dbus-user-session
       - smartmontools
       - restic
+      - msmtp
+      - msmtp-mta
     qualification_packages:
       - podman
       - uidmap
@@ -34,6 +36,8 @@
       - dbus-user-session
       - smartmontools
       - restic
+      - msmtp
+      - msmtp-mta
       - openssh-server
       - network-manager
       - systemd-timesyncd
