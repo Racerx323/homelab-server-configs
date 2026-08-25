@@ -75,6 +75,7 @@
       "type": "object",
       "required": [
         "read_only",
+        "privilege_model",
         "stream_limit_bytes",
         "journal_line_limit",
         "observation_start_utc",
@@ -83,6 +84,9 @@
       ],
       "properties": {
         "read_only": { "const": true },
+        "privilege_model": {
+          "const": "ansible_unprivileged_explicit_sudo_n"
+        },
         "stream_limit_bytes": { "type": "integer", "minimum": 1048576 },
         "journal_line_limit": {
           "type": "integer",

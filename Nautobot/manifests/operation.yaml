@@ -3,8 +3,8 @@ schema_version: 1
 
 operation:
   id: nautobot-storage-diagnostic-v1
-  state: pending
-  authorization_ready: true
+  state: definition
+  authorization_ready: false
   stage: storage_diagnostic
   target:
     host: j2-svpi4mf
@@ -15,7 +15,7 @@ operation:
     network_owner: homelab-network
   source:
     repository: homelab-server-configs
-    base_commit: 618ff95c5974884579b3a90a414abf8264c7b22c
+    base_commit: b994508f7bf6c2785150c63bc2b300d854e2f97f
 
 incident:
   predecessor_operation: nautobot-host-baseline-v3
@@ -41,6 +41,7 @@ incident:
 
 collection:
   read_only: true
+  privilege_model: ansible_unprivileged_explicit_sudo_n
   stream_limit_bytes: 8388608
   journal_line_limit: 1000
   observation_start_utc: 2026-08-25T17:34:25Z
@@ -116,4 +117,5 @@ authorization:
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - corrected_definition_checkpoint_and_review_required

@@ -204,7 +204,7 @@ assert len(playbook) == 1
 play = playbook[0]
 assert play["hosts"] == "inventory_automation"
 assert play["gather_facts"] is False
-assert play["become"] is True
+assert play["become"] is False
 
 allowed_modules = {
     "ansible.builtin.assert",
@@ -213,17 +213,80 @@ allowed_modules = {
     "ansible.builtin.set_fact",
     "ansible.builtin.stat",
 }
-prohibited_commands = {
-    "apt",
-    "apt-get",
-    "badblocks",
-    "e2fsck",
-    "fsck",
-    "reboot",
-    "shutdown",
-    "systemctl",
+expected_commands = {
+    "Verify noninteractive read-only privilege access": [
+        "/usr/bin/sudo", "-n", "/usr/bin/true"
+    ],
+    "Read root filesystem identity": [
+        "/usr/bin/sudo", "-n", "/usr/bin/findmnt", "--json", "--bytes",
+        "--output=SOURCE,FSTYPE,SIZE,AVAIL,TARGET", "/",
+    ],
+    "Resolve the mounted root device": [
+        "/usr/bin/sudo", "-n", "/usr/bin/readlink", "--canonicalize-existing",
+        "{{ storage_diagnostic_root_source }}",
+    ],
+    "Read block topology": [
+        "/usr/bin/sudo", "-n", "/usr/bin/lsblk", "--json", "--bytes",
+        "--output=NAME,KNAME,TYPE,SIZE,FSTYPE,MOUNTPOINTS,TRAN,MODEL,SERIAL",
+    ],
+    "Read USB driver and negotiated topology": [
+        "/usr/bin/sudo", "-n", "/usr/bin/lsusb", "--tree",
+    ],
+    "Read root-device udev identity and attribute chain": [
+        "/usr/bin/sudo", "-n", "/usr/bin/udevadm", "info",
+        "--attribute-walk", "{{ incident.root_device }}",
+    ],
+    "Read kernel context since the host-baseline operation": [
+        "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
+        "--since={{ collection.observation_start_utc }}", "--dmesg",
+        "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
+        "--no-pager",
+    ],
+    "Read storage events since the host-baseline operation": [
+        "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
+        "--since={{ collection.observation_start_utc }}", "--dmesg",
+        "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
+        "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
+        "--no-pager",
+    ],
+    "Read storage events after the first incident": [
+        "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
+        "--since={{ incident.recurrence_observation_start_utc }}", "--dmesg",
+        "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
+        "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
+        "--no-pager",
+    ],
+    "Read power and throttling kernel events": [
+        "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
+        "--since={{ collection.observation_start_utc }}", "--dmesg",
+        "--grep=under-voltage|voltage normalised|throttled|over-current",
+        "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
+        "--no-pager",
+    ],
+    "Read Raspberry Pi throttling history": [
+        "/usr/bin/sudo", "-n", "/usr/bin/vcgencmd", "get_throttled",
+    ],
+    "Read Raspberry Pi temperature": [
+        "/usr/bin/sudo", "-n", "/usr/bin/vcgencmd", "measure_temp",
+    ],
+    "Read Raspberry Pi core voltage": [
+        "/usr/bin/sudo", "-n", "/usr/bin/vcgencmd", "measure_volts", "core",
+    ],
+    "Read extended SMART and NVMe health": [
+        "/usr/bin/sudo", "-n", "/usr/sbin/smartctl", "--xall",
+        "{{ incident.root_device }}",
+    ],
+    "Read mounted ext4 metadata": [
+        "/usr/bin/sudo", "-n", "/usr/sbin/tune2fs", "--list",
+        "{{ storage_diagnostic_root_source }}",
+    ],
+    "Read the live ext4 error counter": [
+        "/usr/bin/sudo", "-n", "/usr/bin/cat",
+        "/sys/fs/ext4/{{ storage_diagnostic_root_name }}/errors_count",
+    ],
 }
 
+observed_commands = {}
 for task in play.get("pre_tasks", []) + play.get("tasks", []):
     modules = [key for key in task if key.startswith("ansible.builtin.")]
     assert len(modules) == 1, task.get("name")
@@ -235,14 +298,8 @@ for task in play.get("pre_tasks", []) + play.get("tasks", []):
         argv = task[module]["argv"]
         assert isinstance(argv, list)
         assert all(isinstance(argument, str) for argument in argv)
-        executable = argv[0].rsplit("/", 1)[-1]
-        assert executable not in prohibited_commands
-        if executable == "smartctl":
-            assert argv == [
-                "/usr/sbin/smartctl",
-                "--xall",
-                "{{ incident.root_device }}",
-            ]
+        assert argv[:2] == ["/usr/bin/sudo", "-n"]
+        observed_commands[task["name"]] = argv
     if module == "ansible.builtin.copy":
         assert task.get("delegate_to") == "localhost"
         assert task.get("become") is False
@@ -250,6 +307,7 @@ for task in play.get("pre_tasks", []) + play.get("tasks", []):
         assert destination.startswith("{{ storage_diagnostic_evidence_directory }}/")
 
 assert not any("ansible.builtin.shell" in task for task in play["tasks"])
+assert observed_commands == expected_commands
 PY
 }
 

@@ -78,6 +78,13 @@ state, extended SMART/NVMe health, and mounted ext4 metadata. It does not run a
 SMART self-test, filesystem check, repair, surface scan, USB reset, package or
 service change, or reboot.
 
+The diagnostic does not use Ansible's per-task become transport. It runs the
+play unprivileged, first proves `/usr/bin/sudo -n /usr/bin/true`, and then uses
+an exact reviewed `/usr/bin/sudo -n` argument vector for every remote command
+probe.
+The launcher self-test compares the complete ordered command set and rejects
+additional or altered probe commands.
+
 Review the definition and candidate bundle without contacting the host:
 
 ```bash
