@@ -134,7 +134,7 @@
           - /usr/bin/udevadm
           - info
           - --attribute-walk
-          - "{{ storage.root_device }}"
+          - "{{ diagnostic_storage.root_device }}"
       register: storage_diagnostic_udev
       changed_when: false
       check_mode: false
@@ -243,7 +243,7 @@
           - -n
           - /usr/sbin/smartctl
           - --xall
-          - "{{ storage.root_device }}"
+          - "{{ diagnostic_storage.root_device }}"
       register: storage_diagnostic_smart
       changed_when: false
       failed_when: false
@@ -308,7 +308,7 @@
           {{
             storage_diagnostic_cmdline.stdout
             | split
-            | select('equalto', storage.quirk_token)
+            | select('equalto', diagnostic_storage.quirk_token)
             | list
             | length
           }}
@@ -330,19 +330,19 @@
           }}
         storage_diagnostic_usb_storage_attached: >-
           {{
-            ('DRIVERS=="' ~ storage.expected_driver ~ '"')
+            ('DRIVERS=="' ~ diagnostic_storage.expected_driver ~ '"')
             in storage_diagnostic_udev.stdout
           }}
         storage_diagnostic_usb_identity_matches: >-
           {{
-            ('ATTRS{idVendor}=="' ~ storage.usb_vendor_id ~ '"')
+            ('ATTRS{idVendor}=="' ~ diagnostic_storage.usb_vendor_id ~ '"')
             in storage_diagnostic_udev.stdout
-            and ('ATTRS{idProduct}=="' ~ storage.usb_product_id ~ '"')
+            and ('ATTRS{idProduct}=="' ~ diagnostic_storage.usb_product_id ~ '"')
             in storage_diagnostic_udev.stdout
           }}
         storage_diagnostic_usb_superspeed_link_present: >-
           {{
-            ('ATTRS{speed}=="' ~ (storage.expected_link_mbps | string) ~ '"')
+            ('ATTRS{speed}=="' ~ (diagnostic_storage.expected_link_mbps | string) ~ '"')
             in storage_diagnostic_udev.stdout
           }}
 

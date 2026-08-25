@@ -3,8 +3,8 @@ schema_version: 1
 
 operation:
   id: nautobot-storage-diagnostic-v2
-  state: pending
-  authorization_ready: true
+  state: definition
+  authorization_ready: false
   stage: storage_diagnostic
   target:
     host: j2-svpi4mf
@@ -15,7 +15,7 @@ operation:
     decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
   source:
     repository: homelab-server-configs
-    base_commit: b64d88e5b20c36578007ef624fdf75b0b37eb272
+    base_commit: f58381f104b7e31c2b45dad8b0631a5978542265
 
 predecessor:
   operation: nautobot-uas-quirk-v3
@@ -36,7 +36,7 @@ operator_applied_remediation:
     negotiated_link_mbps: 5000
     focused_current_boot_error_count: 0
 
-storage:
+diagnostic_storage:
   root_device: /dev/sda
   root_source: /dev/sda2
   root_filesystem: ext4
@@ -127,4 +127,6 @@ authorization:
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - corrected_definition_checkpoint_required
+    - explicit_read_only_authorization_required

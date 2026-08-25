@@ -194,6 +194,7 @@ classify_result() {
 verify_read_only_playbook() {
     python3 - "$playbook_file" <<'PY'
 import sys
+from pathlib import Path
 
 import yaml
 
@@ -206,6 +207,36 @@ play = playbook[0]
 assert play["hosts"] == "inventory_automation"
 assert play["gather_facts"] is False
 assert play["become"] is False
+
+expected_vars_files = [
+    "../../manifests/operation.yaml",
+    "../../../inventory/prod/groups/inventory_automation.yaml",
+    "../../../inventory/prod/hosts/j2-svpi4mf.yaml",
+]
+assert play["vars_files"] == expected_vars_files
+
+merged_vars = {}
+vars_file_owners = {}
+for relative_vars_file in expected_vars_files:
+    vars_file_path = (Path(playbook_path).parent / relative_vars_file).resolve()
+    with open(vars_file_path, encoding="utf-8") as vars_stream:
+        vars_data = yaml.safe_load(vars_stream)
+    assert isinstance(vars_data, dict), relative_vars_file
+    collisions = sorted(set(merged_vars) & set(vars_data))
+    assert not collisions, {
+        "vars_file": relative_vars_file,
+        "collisions": collisions,
+        "previous_owners": {
+            key: vars_file_owners[key] for key in collisions
+        },
+    }
+    merged_vars.update(vars_data)
+    vars_file_owners.update(
+        {key: relative_vars_file for key in vars_data}
+    )
+
+assert merged_vars["diagnostic_storage"]["root_device"] == "/dev/sda"
+assert merged_vars["storage"]["root"]["filesystem"] == "ext4"
 
 allowed_modules = {
     "ansible.builtin.assert",
@@ -238,7 +269,7 @@ expected_commands = {
     ],
     "Read root-device udev identity and attribute chain": [
         "/usr/bin/sudo", "-n", "/usr/bin/udevadm", "info",
-        "--attribute-walk", "{{ storage.root_device }}",
+        "--attribute-walk", "{{ diagnostic_storage.root_device }}",
     ],
     "Read current-boot kernel context": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
@@ -271,7 +302,7 @@ expected_commands = {
     ],
     "Read extended SMART and NVMe health": [
         "/usr/bin/sudo", "-n", "/usr/sbin/smartctl", "--xall",
-        "{{ storage.root_device }}",
+        "{{ diagnostic_storage.root_device }}",
     ],
     "Read mounted ext4 metadata": [
         "/usr/bin/sudo", "-n", "/usr/sbin/tune2fs", "-l",

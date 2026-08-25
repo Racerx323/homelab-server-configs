@@ -28,7 +28,7 @@
         "operation",
         "predecessor",
         "operator_applied_remediation",
-        "storage",
+        "diagnostic_storage",
         "collection",
         "decision",
         "evidence",
@@ -111,7 +111,7 @@
             "immediate_observations": {"type": "object"}
           }
         },
-        "storage": {
+        "diagnostic_storage": {
           "type": "object",
           "additionalProperties": false,
           "required": [
