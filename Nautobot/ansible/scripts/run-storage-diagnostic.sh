@@ -17,6 +17,7 @@ readonly operation_user=ama
 readonly evidence_limit_bytes=8388608
 readonly -a bundle_files=(
     Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
+    Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
     Nautobot/manifests/operation.yaml
     Nautobot/schemas/operation.schema.json
     Nautobot/ansible/playbooks/diagnose-storage.yaml
@@ -77,7 +78,7 @@ calculate_bundle_hash() {
     write_bundle_file_hashes "$bundle_file_list"
     calculated_hash=$(
         {
-            printf '%s\n' 'nautobot-storage-diagnostic-bundle-v1'
+            printf '%s\n' 'nautobot-storage-diagnostic-bundle-v2'
             cat "$bundle_file_list"
         } | sha256sum | cut -d ' ' -f 1
     )
@@ -156,7 +157,7 @@ write_evidence_manifest() {
 
     {
         printf '%s\n' '---' 'schema_version: 1'
-        printf '%s\n' 'operation_id: nautobot-storage-diagnostic-v1'
+        printf '%s\n' 'operation_id: nautobot-storage-diagnostic-v2'
         printf 'target: %s\n' "$operation_target"
         printf 'address: %s\n' "$operation_address"
         printf 'bundle_sha256: %s\n' "$bundle_hash"
@@ -217,6 +218,9 @@ expected_commands = {
     "Verify noninteractive read-only privilege access": [
         "/usr/bin/sudo", "-n", "/usr/bin/true"
     ],
+    "Read current kernel command line": [
+        "/usr/bin/sudo", "-n", "/usr/bin/cat", "/proc/cmdline",
+    ],
     "Read root filesystem identity": [
         "/usr/bin/sudo", "-n", "/usr/bin/findmnt", "--json", "--bytes",
         "--output=SOURCE,FSTYPE,SIZE,AVAIL,TARGET", "/",
@@ -234,31 +238,24 @@ expected_commands = {
     ],
     "Read root-device udev identity and attribute chain": [
         "/usr/bin/sudo", "-n", "/usr/bin/udevadm", "info",
-        "--attribute-walk", "{{ incident.root_device }}",
+        "--attribute-walk", "{{ storage.root_device }}",
     ],
-    "Read kernel context since the host-baseline operation": [
+    "Read current-boot kernel context": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
-        "--since={{ collection.observation_start_utc }}", "--dmesg",
+        "--boot=0", "--dmesg",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
         "--no-pager", "--quiet",
     ],
-    "Read storage events since the host-baseline operation": [
+    "Read focused current-boot storage events": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
-        "--since={{ collection.observation_start_utc }}", "--dmesg",
-        "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
+        "--boot=0", "--dmesg",
+        "--grep={{ collection.focused_storage_event_pattern }}",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
         "--no-pager", "--quiet",
     ],
-    "Read storage events after the first incident": [
+    "Read current-boot power and throttling kernel events": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
-        "--since={{ incident.recurrence_observation_start_utc }}", "--dmesg",
-        "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
-        "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
-        "--no-pager", "--quiet",
-    ],
-    "Read power and throttling kernel events": [
-        "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
-        "--since={{ collection.observation_start_utc }}", "--dmesg",
+        "--boot=0", "--dmesg",
         "--grep=under-voltage|voltage normalised|throttled|over-current",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
         "--no-pager", "--quiet",
@@ -274,7 +271,7 @@ expected_commands = {
     ],
     "Read extended SMART and NVMe health": [
         "/usr/bin/sudo", "-n", "/usr/sbin/smartctl", "--xall",
-        "{{ incident.root_device }}",
+        "{{ storage.root_device }}",
     ],
     "Read mounted ext4 metadata": [
         "/usr/bin/sudo", "-n", "/usr/sbin/tune2fs", "-l",

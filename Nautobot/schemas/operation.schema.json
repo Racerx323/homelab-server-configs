@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://local.theama.co/schemas/nautobot-operation.json",
   "title": "Nautobot operation state",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schema_version", "operation"],
-  "properties": {
-    "schema_version": {"const": 1},
-    "operation": {
-      "oneOf": [
-        {
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "operation"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "operation": {
           "type": "object",
           "additionalProperties": false,
           "required": ["state", "authorization_ready"],
@@ -17,17 +17,45 @@
             "state": {"const": "clean"},
             "authorization_ready": {"const": false}
           }
-        },
-        {
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation",
+        "predecessor",
+        "operator_applied_remediation",
+        "storage",
+        "collection",
+        "decision",
+        "evidence",
+        "authorization"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "operation": {
           "type": "object",
-          "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "state",
+            "authorization_ready",
+            "stage",
+            "target",
+            "architecture",
+            "source"
+          ],
           "properties": {
-            "id": {"const": "nautobot-uas-quirk-v3"},
+            "id": {"const": "nautobot-storage-diagnostic-v2"},
             "state": {"enum": ["definition", "pending"]},
             "authorization_ready": {"type": "boolean"},
-            "stage": {"const": "storage_remediation"},
+            "stage": {"const": "storage_diagnostic"},
             "target": {
               "type": "object",
+              "additionalProperties": false,
               "required": ["host", "address", "ssh_user"],
               "properties": {
                 "host": {"const": "j2-svpi4mf"},
@@ -35,9 +63,18 @@
                 "ssh_user": {"const": "ama"}
               }
             },
-            "architecture": {"type": "object"},
+            "architecture": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["plan", "decision"],
+              "properties": {
+                "plan": {"const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"},
+                "decision": {"const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"}
+              }
+            },
             "source": {
               "type": "object",
+              "additionalProperties": false,
               "required": ["repository", "base_commit"],
               "properties": {
                 "repository": {"const": "homelab-server-configs"},
@@ -45,148 +82,191 @@
               }
             }
           }
-        }
-      ]
-    },
-    "predecessor": {
-      "type": "object",
-      "required": ["operation", "terminal_tag", "definition_commit", "bundle_sha256", "result"],
-      "properties": {
-        "operation": {"const": "nautobot-uas-quirk-v2"},
-        "terminal_tag": {"const": "nautobot-uas-quirk-v2-rolled-back-action-required"},
-        "definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "result": {"const": "rolled_back_storage_action_required"}
-      }
-    },
-    "deferred_operation": {
-      "type": "object",
-      "required": ["id", "definition_checkpoint", "reusable_launcher", "reusable_playbook", "resume_only_after"],
-      "properties": {
-        "id": {"const": "nautobot-host-baseline-rollback-v1"},
-        "definition_checkpoint": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "resume_only_after": {"const": "storage_remediation_accepted"}
-      }
-    },
-    "preflight": {
-      "type": "object",
-      "required": ["command", "read_only", "maximum_age_minutes", "status", "evidence_manifest_sha256", "completed_at_utc", "require_local_console_recovery", "local_console_recovery_confirmed", "require_current_backup", "current_backup_confirmed", "expected"],
-      "properties": {
-        "read_only": {"const": true},
-        "maximum_age_minutes": {"type": "integer", "minimum": 1},
-        "status": {"enum": ["pending", "passed"]},
-        "evidence_manifest_sha256": {"type": ["null", "string"], "pattern": "^[0-9a-f]{64}$"},
-        "completed_at_utc": {"type": ["null", "string"], "format": "date-time"},
-        "require_local_console_recovery": {"const": true},
-        "local_console_recovery_confirmed": {"type": "boolean"},
-        "require_current_backup": {"const": true},
-        "current_backup_confirmed": {"type": "boolean"},
-        "expected": {"type": "object"}
-      }
-    },
-    "mutation": {
-      "type": "object",
-      "required": ["boot_cmdline_path", "backup_path", "create_backup", "reuse_verified_backup", "append_token", "preserve_single_logical_line", "preserve_no_trailing_newline", "reboot_once", "reboot_timeout_seconds"],
-      "properties": {
-        "boot_cmdline_path": {"const": "/boot/firmware/cmdline.txt"},
-        "create_backup": {"const": false},
-        "reuse_verified_backup": {"const": true},
-        "append_token": {"const": "usb-storage.quirks=152d:0583:u"},
-        "preserve_single_logical_line": {"const": true},
-        "preserve_no_trailing_newline": {"const": true},
-        "reboot_once": {"const": true},
-        "reboot_timeout_seconds": {"type": "integer", "minimum": 120, "maximum": 600}
-      }
-    },
-    "acceptance": {
-      "type": "object",
-      "required": ["immediate", "soak"],
-      "properties": {
-        "immediate": {
+        },
+        "predecessor": {
           "type": "object",
-          "required": ["require_cmdline_token_count", "require_forward_observations_before_assertion"],
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "terminal_tag",
+            "definition_commit",
+            "bundle_sha256",
+            "result"
+          ],
           "properties": {
-            "require_cmdline_token_count": {"const": 1},
-            "require_forward_observations_before_assertion": {"const": true}
-          }
-        }
-      }
-    },
-    "rollback": {
-      "type": "object",
-      "required": ["trigger", "ordered", "automatic_when_host_reachable", "manual_console_required_when_host_unreachable", "expected_restored_sha256", "preserve_backup_until_terminal_acceptance", "require_rollback_observations_before_assertion"],
-      "properties": {
-        "automatic_when_host_reachable": {"const": true},
-        "manual_console_required_when_host_unreachable": {"const": true},
-        "expected_restored_sha256": {"const": "c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f"},
-        "preserve_backup_until_terminal_acceptance": {"const": true},
-        "require_rollback_observations_before_assertion": {"const": true}
-      }
-    },
-    "evidence": {
-      "type": "object",
-      "required": ["phases"],
-      "properties": {
-        "phases": {
-          "type": "array",
-          "allOf": [
-            {"contains": {"const": "forward_observations"}},
-            {"contains": {"const": "rollback_observations"}}
-          ]
-        }
-      }
-    },
-    "authorization": {
-      "type": "object",
-      "required": ["command", "bundle_algorithm", "authorized_stage", "excluded_stages", "blockers"],
-      "properties": {
-        "bundle_algorithm": {"const": "sha256"},
-        "authorized_stage": {"const": "storage_remediation"},
-        "blockers": {"type": "array", "uniqueItems": true}
-      }
-    }
-  },
-  "allOf": [{
-    "if": {
-      "properties": {
-        "operation": {"required": ["id"]}
-      }
-    },
-    "then": {
-      "required": ["predecessor", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"]
-    }
-  }, {
-    "if": {
-      "properties": {
-        "operation": {
-          "properties": {"state": {"const": "definition"}},
-          "required": ["state"]
-        }
-      }
-    },
-    "then": {
-      "properties": {
-        "operation": {"properties": {"authorization_ready": {"const": false}}},
-        "preflight": {
-          "properties": {
-            "status": {"const": "pending"},
-            "evidence_manifest_sha256": {"type": "null"},
-            "completed_at_utc": {"type": "null"},
-            "local_console_recovery_confirmed": {"const": false},
-            "current_backup_confirmed": {"const": false}
+            "operation": {"const": "nautobot-uas-quirk-v3"},
+            "terminal_tag": {"const": "nautobot-uas-quirk-v3-rolled-back-operator-applied"},
+            "definition_commit": {"const": "f5ce8344ab6f4c2035a617cad4684603586b8c9f"},
+            "bundle_sha256": {"const": "0899f68448ca28696044174c7a55fe68621ffdcc29c274f6782aa15875322336"},
+            "result": {"const": "rolled_back_ambiguous_broad_gate"}
           }
         },
-        "authorization": {"properties": {"blockers": {"minItems": 1}}}
-      }
+        "operator_applied_remediation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "quirk_token", "immediate_observations"],
+          "properties": {
+            "state": {"const": "immediately_effective_soak_pending"},
+            "quirk_token": {"const": "usb-storage.quirks=152d:0583:u"},
+            "immediate_observations": {"type": "object"}
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "root_device",
+            "root_source",
+            "root_filesystem",
+            "quirk_token",
+            "usb_vendor_id",
+            "usb_product_id",
+            "expected_driver",
+            "expected_link_mbps"
+          ],
+          "properties": {
+            "root_device": {"const": "/dev/sda"},
+            "root_source": {"const": "/dev/sda2"},
+            "root_filesystem": {"const": "ext4"},
+            "quirk_token": {"const": "usb-storage.quirks=152d:0583:u"},
+            "usb_vendor_id": {"const": "152d"},
+            "usb_product_id": {"const": "0583"},
+            "expected_driver": {"const": "usb-storage"},
+            "expected_link_mbps": {"const": 5000}
+          }
+        },
+        "collection": {
+          "type": "object",
+          "required": [
+            "read_only",
+            "privilege_model",
+            "current_boot_only",
+            "journal_line_limit",
+            "focused_storage_event_pattern",
+            "preserve_exact_matched_lines",
+            "stream_limit_bytes",
+            "areas",
+            "prohibited"
+          ],
+          "properties": {
+            "read_only": {"const": true},
+            "privilege_model": {"const": "ansible_unprivileged_explicit_sudo_n"},
+            "current_boot_only": {"const": true},
+            "journal_line_limit": {"type": "integer", "minimum": 1, "maximum": 10000},
+            "focused_storage_event_pattern": {
+              "const": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset"
+            },
+            "preserve_exact_matched_lines": {"const": true},
+            "stream_limit_bytes": {"type": "integer", "minimum": 1048576},
+            "areas": {"type": "array", "minItems": 1, "uniqueItems": true},
+            "prohibited": {
+              "type": "array",
+              "contains": {"const": "reboot"},
+              "uniqueItems": true
+            }
+          }
+        },
+        "decision": {
+          "type": "object",
+          "required": [
+            "state",
+            "immediate_baseline_only",
+            "minimum_24_hour_soak_complete",
+            "require_operator_review",
+            "require",
+            "boundaries"
+          ],
+          "properties": {
+            "state": {"const": "pending_evidence"},
+            "immediate_baseline_only": {"const": true},
+            "minimum_24_hour_soak_complete": {"const": false},
+            "require_operator_review": {"const": true},
+            "require": {"type": "array", "minItems": 1, "uniqueItems": true},
+            "boundaries": {"type": "array", "minItems": 1, "uniqueItems": true}
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "required": [
+            "local_root_pattern",
+            "directory_mode",
+            "file_mode",
+            "raw_evidence_in_git",
+            "exact_focused_event_lines_recorded_in",
+            "records"
+          ],
+          "properties": {
+            "local_root_pattern": {"const": "/tmp/nautobot-storage-diagnostic.*"},
+            "directory_mode": {"const": "0700"},
+            "file_mode": {"const": "0600"},
+            "raw_evidence_in_git": {"const": false},
+            "exact_focused_event_lines_recorded_in": {"const": "kernel.log"},
+            "records": {"type": "array", "minItems": 1, "uniqueItems": true}
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "bundle_algorithm",
+            "authorized_stage",
+            "mutation_authorized",
+            "excluded_stages",
+            "blockers"
+          ],
+          "properties": {
+            "command": {"type": "string"},
+            "bundle_algorithm": {"const": "sha256"},
+            "authorized_stage": {"const": "storage_diagnostic"},
+            "mutation_authorized": {"const": false},
+            "excluded_stages": {"type": "array", "minItems": 1, "uniqueItems": true},
+            "blockers": {"type": "array", "uniqueItems": true}
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "properties": {"state": {"const": "definition"}},
+                "required": ["state"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "properties": {"authorization_ready": {"const": false}}
+              },
+              "authorization": {
+                "properties": {"blockers": {"minItems": 1}}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "properties": {"state": {"const": "pending"}},
+                "required": ["state"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "properties": {"authorization_ready": {"const": true}}
+              },
+              "authorization": {
+                "properties": {"blockers": {"maxItems": 0}}
+              }
+            }
+          }
+        }
+      ]
     }
-  }, {
-    "if": {"properties": {"operation": {"properties": {"authorization_ready": {"const": true}}}}},
-    "then": {
-      "properties": {
-        "operation": {"properties": {"state": {"const": "pending"}}},
-        "preflight": {"properties": {"status": {"const": "passed"}, "local_console_recovery_confirmed": {"const": true}, "current_backup_confirmed": {"const": true}, "evidence_manifest_sha256": {"type": "string"}, "completed_at_utc": {"type": "string"}}},
-        "authorization": {"properties": {"blockers": {"maxItems": 0}}}
-      }
-    }
-  }]
+  ]
 }

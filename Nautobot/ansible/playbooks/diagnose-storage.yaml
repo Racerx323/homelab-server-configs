@@ -1,5 +1,5 @@
 ---
-- name: Collect the Nautobot storage incident diagnostic
+- name: Collect the Nautobot post-quirk storage diagnostic
   hosts: inventory_automation
   gather_facts: false
   become: false
@@ -16,7 +16,7 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-storage-diagnostic-v1"
+          - operation.id == "nautobot-storage-diagnostic-v2"
           - operation.stage == "storage_diagnostic"
           - operation.authorization_ready | bool
           - authorization.blockers | length == 0
@@ -40,6 +40,17 @@
       check_mode: false
 
   tasks:
+    - name: Read current kernel command line
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/cat
+          - /proc/cmdline
+      register: storage_diagnostic_cmdline
+      changed_when: false
+      check_mode: false
+
     - name: Read root filesystem identity
       ansible.builtin.command:
         argv:
@@ -60,6 +71,11 @@
           {{
             (storage_diagnostic_findmnt.stdout | from_json)
             .filesystems[0].source
+          }}
+        storage_diagnostic_root_filesystem: >-
+          {{
+            (storage_diagnostic_findmnt.stdout | from_json)
+            .filesystems[0].fstype
           }}
 
     - name: Resolve the mounted root device
@@ -118,18 +134,18 @@
           - /usr/bin/udevadm
           - info
           - --attribute-walk
-          - "{{ incident.root_device }}"
+          - "{{ storage.root_device }}"
       register: storage_diagnostic_udev
       changed_when: false
       check_mode: false
 
-    - name: Read kernel context since the host-baseline operation
+    - name: Read current-boot kernel context
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
           - -n
           - /usr/bin/journalctl
-          - "--since={{ collection.observation_start_utc }}"
+          - --boot=0
           - --dmesg
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
@@ -139,15 +155,15 @@
       changed_when: false
       check_mode: false
 
-    - name: Read storage events since the host-baseline operation
+    - name: Read focused current-boot storage events
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
           - -n
           - /usr/bin/journalctl
-          - "--since={{ collection.observation_start_utc }}"
+          - --boot=0
           - --dmesg
-          - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+          - "--grep={{ collection.focused_storage_event_pattern }}"
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
           - --no-pager
@@ -157,31 +173,13 @@
       failed_when: storage_diagnostic_storage_events.rc not in [0, 1]
       check_mode: false
 
-    - name: Read storage events after the first incident
+    - name: Read current-boot power and throttling kernel events
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
           - -n
           - /usr/bin/journalctl
-          - "--since={{ incident.recurrence_observation_start_utc }}"
-          - --dmesg
-          - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
-          - --output=short-iso
-          - "--lines={{ collection.journal_line_limit }}"
-          - --no-pager
-          - --quiet
-      register: storage_diagnostic_recurrence
-      changed_when: false
-      failed_when: storage_diagnostic_recurrence.rc not in [0, 1]
-      check_mode: false
-
-    - name: Read power and throttling kernel events
-      ansible.builtin.command:
-        argv:
-          - /usr/bin/sudo
-          - -n
-          - /usr/bin/journalctl
-          - "--since={{ collection.observation_start_utc }}"
+          - --boot=0
           - --dmesg
           - --grep=under-voltage|voltage normalised|throttled|over-current
           - --output=short-iso
@@ -245,7 +243,7 @@
           - -n
           - /usr/sbin/smartctl
           - --xall
-          - "{{ incident.root_device }}"
+          - "{{ storage.root_device }}"
       register: storage_diagnostic_smart
       changed_when: false
       failed_when: false
@@ -294,6 +292,11 @@
             storage_diagnostic_smart.stdout
             is search('Media and Data Integrity Errors:\s+0(?:\s|$)')
           }}
+        storage_diagnostic_smart_error_log_entries_zero: >-
+          {{
+            storage_diagnostic_smart.stdout
+            is search('Error Information Log Entries:\s+0(?:\s|$)')
+          }}
         storage_diagnostic_ext4_error_count: >-
           {{ storage_diagnostic_ext4_errors.stdout | default('-1') | trim | int }}
         storage_diagnostic_throttling_clear: >-
@@ -301,11 +304,11 @@
             (storage_diagnostic_throttling.stdout | default(''))
             | trim == 'throttled=0x0'
           }}
-        storage_diagnostic_recurrence_count: >-
+        storage_diagnostic_quirk_token_count: >-
           {{
-            storage_diagnostic_recurrence.stdout_lines
-            | reject('equalto', '-- No entries --')
-            | reject('equalto', '')
+            storage_diagnostic_cmdline.stdout
+            | split
+            | select('equalto', storage.quirk_token)
             | list
             | length
           }}
@@ -325,12 +328,22 @@
             | list
             | length
           }}
-        storage_diagnostic_uas_attached: >-
-          {{ 'DRIVERS=="uas"' in storage_diagnostic_udev.stdout }}
+        storage_diagnostic_usb_storage_attached: >-
+          {{
+            ('DRIVERS=="' ~ storage.expected_driver ~ '"')
+            in storage_diagnostic_udev.stdout
+          }}
+        storage_diagnostic_usb_identity_matches: >-
+          {{
+            ('ATTRS{idVendor}=="' ~ storage.usb_vendor_id ~ '"')
+            in storage_diagnostic_udev.stdout
+            and ('ATTRS{idProduct}=="' ~ storage.usb_product_id ~ '"')
+            in storage_diagnostic_udev.stdout
+          }}
         storage_diagnostic_usb_superspeed_link_present: >-
           {{
-            storage_diagnostic_udev.stdout
-            is search('ATTRS\{speed\}=="5000"')
+            ('ATTRS{speed}=="' ~ (storage.expected_link_mbps | string) ~ '"')
+            in storage_diagnostic_udev.stdout
           }}
 
     - name: Record protected topology evidence
@@ -343,6 +356,8 @@
         content: |
           [findmnt]
           {{ storage_diagnostic_findmnt.stdout }}
+          [kernel-command-line]
+          {{ storage_diagnostic_cmdline.stdout }}
           [lsblk]
           {{ storage_diagnostic_lsblk.stdout }}
           [lsusb-tree]
@@ -363,8 +378,6 @@
           {{ storage_diagnostic_kernel.stdout }}
           [storage-events]
           {{ storage_diagnostic_storage_events.stdout }}
-          [recurrence]
-          {{ storage_diagnostic_recurrence.stdout }}
       changed_when: false
 
     - name: Record protected power evidence
@@ -421,17 +434,20 @@
           target: {{ inventory_hostname }}
           result: collected
           root_source: {{ storage_diagnostic_root_source | to_json }}
-          storage_events_since_operation: {{ storage_diagnostic_storage_event_count }}
-          recurrence_events: {{ storage_diagnostic_recurrence_count }}
+          root_filesystem: {{ storage_diagnostic_root_filesystem | to_json }}
+          quirk_token_count: {{ storage_diagnostic_quirk_token_count }}
+          focused_storage_events_current_boot: {{ storage_diagnostic_storage_event_count }}
           power_kernel_events: {{ storage_diagnostic_power_event_count }}
           throttling_history_clear: {{ storage_diagnostic_throttling_clear | bool | lower }}
           smart_command_rc: {{ storage_diagnostic_smart.rc }}
           smart_health_passed: {{ storage_diagnostic_smart_passed | bool | lower }}
           smart_media_counter_available: {{ storage_diagnostic_smart_media_counter_available | bool | lower }}
           smart_media_errors_zero: {{ storage_diagnostic_smart_media_errors_zero | bool | lower }}
+          smart_error_log_entries_zero: {{ storage_diagnostic_smart_error_log_entries_zero | bool | lower }}
           ext4_metadata_rc: {{ storage_diagnostic_ext4_metadata.rc }}
           ext4_error_count: {{ storage_diagnostic_ext4_error_count }}
-          uas_attached: {{ storage_diagnostic_uas_attached | bool | lower }}
+          usb_storage_attached: {{ storage_diagnostic_usb_storage_attached | bool | lower }}
+          usb_identity_matches: {{ storage_diagnostic_usb_identity_matches | bool | lower }}
           usb_superspeed_link_present: {{ storage_diagnostic_usb_superspeed_link_present | bool | lower }}
           stability_observation_complete: false
           decision: operator_review_required
