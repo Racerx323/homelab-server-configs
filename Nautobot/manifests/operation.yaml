@@ -2,119 +2,149 @@
 schema_version: 1
 
 operation:
-  id: nautobot-storage-diagnostic-v1
-  state: pending
-  authorization_ready: true
-  stage: storage_diagnostic
+  id: nautobot-host-baseline-rollback-v1
+  state: definition
+  authorization_ready: false
+  stage: host_baseline_rollback
   target:
     host: j2-svpi4mf
     address: 10.1.2.170
     ssh_user: ama
   architecture:
     plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
-    network_owner: homelab-network
   source:
     repository: homelab-server-configs
-    base_commit: 6b0e59c260021cd54a6ae8b21e9c5430d5748be5
+    base_commit: 5d6576793839530d58e3176c24223bf04789d55c
 
-incident:
-  predecessor_operation: nautobot-host-baseline-v3
+predecessor:
+  operation: nautobot-host-baseline-v3
   terminal_tag: nautobot-host-baseline-v3-manual-intervention
-  operation_started_at_utc: 2026-08-25T17:34:25Z
-  first_storage_event_at_utc: 2026-08-25T17:37:25Z
-  recurrence_observation_start_utc: 2026-08-25T17:37:26Z
-  root_device: /dev/sda
-  power_path:
-    manufacturer: poe_texas
-    model: GAT-PiHAT
-    standard: ieee_802_3at
-    rated_output_watts: 20
-  storage_adapter:
-    manufacturer: geekworm
-    model: X872_V2.0
-    host_interconnect: usb_3_0
-    maximum_link_gbps: 5
-  observed_events:
+  bundle_sha256: 67bd775d73e2bb05fcf9bb64f794a853b28e4d1dba60dec0a66554ee35a06c50
+  mutation_evidence:
+    package_change: true
+    account_change: true
+    subordinate_uid_change: true
+    subordinate_gid_change: true
+    linger_change: true
+    reboot_performed: true
+  rollback_trigger:
+    diagnostic_operation: nautobot-storage-diagnostic-v1
+    terminal_tag: nautobot-storage-diagnostic-v1-action-required
+    conditions:
+      - storage_event_recurred
+      - uas_usb_attachment_unstable
+
+proven_pre_state:
+  packages_absent:
+    - podman
+    - uidmap
+    - passt
+    - slirp4netns
+    - fuse-overlayfs
+    - crun
+    - smartmontools
+    - restic
+    - msmtp-mta
+  packages_preserved:
+    - dbus-user-session
+    - msmtp
+  service_account_absent: nautobot
+  subordinate_uid_absent: "nautobot:165536:65536"
+  subordinate_gid_absent: "nautobot:165536:65536"
+  lingering_absent: nautobot
+  services_active_enabled:
+    - avahi-daemon.service
+    - avahi-daemon.socket
+    - bluetooth.service
+    - ModemManager.service
+  preexisting_automatically_removable_packages: []
+
+qualification:
+  command: >-
+    /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh preflight
+  read_only: true
+  maximum_age_minutes: 30
+  required_before_live_authorization: true
+  status: pending
+  evidence_manifest_sha256: null
+  completed_at_utc: null
+
+preflight:
+  read_only: true
+  require_root_source: /dev/sda2
+  require_storage_stability_window_minutes: 10
+  require_no_recent_events:
     - read_io_error
     - uas_device_reset
     - superspeed_usb_reset
+  require_exact_package_removal_simulation: true
+  require_proven_predecessor_changes_present: true
+  require_local_recovery_available: true
+  local_recovery_confirmed: false
+  storage_remediation_sequence: undecided
 
-collection:
-  read_only: true
-  privilege_model: ansible_unprivileged_explicit_sudo_n
-  stream_limit_bytes: 8388608
-  journal_line_limit: 1000
-  observation_start_utc: 2026-08-25T17:34:25Z
-  areas:
-    - uas_usb_topology
-    - kernel_context
-    - poe_power_and_throttling
-    - extended_smart_nvme_health
-    - mounted_ext4_metadata
-    - recurrence_after_first_event
-  prohibited:
-    - smart_self_test
-    - filesystem_check_or_repair
-    - block_surface_scan
-    - package_change
-    - service_change
-    - reboot
-    - usb_reset
+rollback:
+  ordered:
+    - restore_preexisting_unwanted_service_states
+    - stop_and_disable_smart_monitoring
+    - disable_nautobot_lingering
+    - remove_nautobot_subordinate_ids
+    - remove_nautobot_service_account_and_home
+    - purge_only_packages_proven_absent_before_v3
+    - retain_dependency_residue_without_autoremove
+    - reboot_once
+  package_autoremove: false
+  preserve_unrelated_packages: true
+  preserve_network_configuration: true
+  preserve_dns_configuration: true
+  preserve_firewall_configuration: true
+  preserve_storage_configuration: true
+  preserve_msmtp: true
 
-decision:
-  state: pending_evidence
-  operator_choice_required: true
-  retain_for_observation_requires:
-    - smart_health_passed
-    - zero_smart_media_errors
-    - zero_ext4_error_count
-    - no_power_or_throttling_fault
-    - no_storage_event_recurrence_after_first_event
-    - stable_uas_usb_attachment
-    - minimum_24_hour_read_only_observation
-  rollback_if:
-    - smart_health_failed
-    - smart_media_errors_present
-    - ext4_errors_present
-    - power_or_throttling_fault_present
-    - storage_event_recurred
-    - uas_usb_attachment_unstable
-    - operator_selects_conservative_rollback
-  boundaries:
-    - retaining_does_not_accept_host_baseline_v3
-    - rollback_requires_separate_definition_and_live_authorization
-    - hardware_or_transport_remediation_requires_separate_authorization
-    - later_acceptance_requires_a_successor_operation
+acceptance:
+  require_packages_absent: true
+  require_preserved_packages_present: true
+  require_service_account_absent: true
+  require_subordinate_ids_absent: true
+  require_lingering_absent: true
+  require_preexisting_service_states_restored: true
+  require_zero_failed_units: true
+  require_no_new_storage_events: true
+  require_dependency_residue_report: true
+
+failure:
+  automatic_forward_reapply: false
+  result_after_mutation_failure: manual_intervention
+  require_bounded_phase_evidence: true
 
 evidence:
-  local_root_pattern: /tmp/nautobot-storage-diagnostic.*
+  local_root_pattern: /tmp/nautobot-host-baseline-rollback.*
   directory_mode: "0700"
   file_mode: "0600"
+  stream_limit_bytes: 8388608
   raw_evidence_in_git: false
-  records:
-    - manifest
-    - topology
-    - kernel
-    - power
-    - smart
-    - filesystem
-    - diagnostic_summary
+  phases:
+    - preflight
+    - rollback
+    - acceptance
+    - residue
 
 authorization:
   command: >-
-    /bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh execute
+    /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh execute
     BUNDLE_SHA256
   bundle_algorithm: sha256
-  authorized_stage: storage_diagnostic
-  mutation_authorized: false
+  authorized_stage: host_baseline_rollback
   excluded_stages:
-    - host_baseline_retry
-    - host_baseline_rollback
-    - hardware_remediation
+    - storage_remediation
     - filesystem_repair
     - dual_stack_identity
     - nautobot_pilot
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - storage_remediation_sequence_decision_required
+    - fresh_read_only_rollback_preflight_required
+    - local_recovery_confirmation_required
+    - implementation_checkpoint_and_review_required

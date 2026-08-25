@@ -85,6 +85,11 @@ probe.
 The launcher self-test compares the complete ordered command set and rejects
 additional or altered probe commands.
 
+The corrected collector uses `tune2fs -l`, asks journalctl to suppress its
+no-entry marker, and independently removes that marker before counting event
+lines. These rules prevent an empty kernel query from being reported as one
+event.
+
 Review the definition and candidate bundle without contacting the host:
 
 ```bash
@@ -107,3 +112,45 @@ host-baseline state. That decision requires operator review of the diagnostic
 and the observation requirements in the active operation. Any rollback,
 hardware remediation, filesystem repair, or later host-baseline acceptance is
 a separate operation and authorization.
+
+## Standalone host-baseline rollback
+
+`playbooks/rollback-host-baseline.yaml` defines the separately authorized
+rollback from the converged v3 host state to its evidence-backed pre-v3 state.
+It does not reuse the original apply-time rollback tasks because their change
+registers existed only in the original Ansible process.
+
+The standalone rollback restores the four service states observed before v3,
+removes the account, subordinate IDs, lingering state, and only the nine
+packages proven absent before v3. It preserves pre-existing `msmtp` and
+`dbus-user-session`, never runs APT autoremove, and reports dependency residue.
+Before mutation it requires a quiet storage window, exact root source, exact
+APT simulation, the expected account state, and local-recovery confirmation in
+the reviewed operation.
+
+Review the unready definition without contacting the host:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh show-bundle
+```
+
+After separate read-only authorization, collect the fresh rollback preflight
+without entering the mutation block:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh preflight
+```
+
+The preflight uses Ansible check mode, forces only its read commands to run,
+writes bounded local evidence, and ends the play before the first systemd,
+account, package, or reboot task.
+
+The eventual live command has this form, but must not be used until every
+operation blocker is cleared and the final bundle receives scoped approval:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh execute BUNDLE_SHA256
+```
+
+Storage remediation, filesystem work, network changes, DNS changes, and a
+forward host-baseline reapply are outside this rollback operation.

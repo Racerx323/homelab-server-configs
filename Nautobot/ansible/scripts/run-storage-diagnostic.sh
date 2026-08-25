@@ -240,28 +240,28 @@ expected_commands = {
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
         "--since={{ collection.observation_start_utc }}", "--dmesg",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
-        "--no-pager",
+        "--no-pager", "--quiet",
     ],
     "Read storage events since the host-baseline operation": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
         "--since={{ collection.observation_start_utc }}", "--dmesg",
         "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
-        "--no-pager",
+        "--no-pager", "--quiet",
     ],
     "Read storage events after the first incident": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
         "--since={{ incident.recurrence_observation_start_utc }}", "--dmesg",
         "--grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
-        "--no-pager",
+        "--no-pager", "--quiet",
     ],
     "Read power and throttling kernel events": [
         "/usr/bin/sudo", "-n", "/usr/bin/journalctl",
         "--since={{ collection.observation_start_utc }}", "--dmesg",
         "--grep=under-voltage|voltage normalised|throttled|over-current",
         "--output=short-iso", "--lines={{ collection.journal_line_limit }}",
-        "--no-pager",
+        "--no-pager", "--quiet",
     ],
     "Read Raspberry Pi throttling history": [
         "/usr/bin/sudo", "-n", "/usr/bin/vcgencmd", "get_throttled",
@@ -277,7 +277,7 @@ expected_commands = {
         "{{ incident.root_device }}",
     ],
     "Read mounted ext4 metadata": [
-        "/usr/bin/sudo", "-n", "/usr/sbin/tune2fs", "--list",
+        "/usr/bin/sudo", "-n", "/usr/sbin/tune2fs", "-l",
         "{{ storage_diagnostic_root_source }}",
     ],
     "Read the live ext4 error counter": [
@@ -391,12 +391,9 @@ execute_operation() {
 
 run_self_test() {
     local self_test_directory self_test_fifo self_test_log self_test_marker
-    local self_test_consumer_pid self_test_hash
+    local self_test_consumer_pid
 
-    validate_operation
     verify_read_only_playbook
-    self_test_hash=$(calculate_bundle_hash)
-    [[ "$self_test_hash" =~ ^[0-9a-f]{64}$ ]]
 
     self_test_directory=$(mktemp -d /tmp/nautobot-storage-diagnostic-self-test.XXXXXX)
     case "$self_test_directory" in

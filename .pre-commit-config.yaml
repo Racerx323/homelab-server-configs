@@ -207,7 +207,16 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/NAUTOBOT_DEPLOYMENT_PLAN\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^Nautobot/ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh)$
+
+      - id: nautobot-host-baseline-rollback-launcher
+        name: Validate Nautobot standalone host-baseline rollback
+        entry: >-
+          /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|STORAGE_REMEDIATION_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: check-json
         name: Validate JSON with jq

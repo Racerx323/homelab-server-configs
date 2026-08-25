@@ -1,0 +1,512 @@
+---
+- name: Restore the pre-v3 Nautobot host baseline
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+
+  vars:
+    ansible_become_timeout: 60
+    ansible_ssh_pipelining: true
+
+  vars_files:
+    - ../../manifests/operation.yaml
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+
+  pre_tasks:
+    - name: Enforce the host-baseline rollback boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == "j2-svpi4mf"
+          - ansible_play_hosts_all | length == 1
+          - operation.id == "nautobot-host-baseline-rollback-v1"
+          - operation.stage == "host_baseline_rollback"
+          - >-
+            (host_baseline_rollback_preflight_only | default(false) | bool)
+            or
+            (
+              operation.authorization_ready | bool
+              and authorization.blockers | length == 0
+              and preflight.local_recovery_confirmed | bool
+              and preflight.storage_remediation_sequence != "undecided"
+            )
+          - host_baseline_rollback_evidence_directory is defined
+          - >-
+            host_baseline_rollback_evidence_directory
+            is match('^/tmp/nautobot-host-baseline-rollback\.[A-Za-z0-9]+$')
+        fail_msg: The host-baseline rollback is not authorization-ready.
+
+    - name: Verify noninteractive privilege access
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/true
+      changed_when: false
+      check_mode: false
+
+    - name: Read the root filesystem source
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/findmnt
+          - --noheadings
+          - --output=SOURCE
+          - /
+      register: host_baseline_rollback_root_source
+      changed_when: false
+      check_mode: false
+
+    - name: Read recent storage transport events
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/journalctl
+          - "--since=-{{ preflight.require_storage_stability_window_minutes }}min"
+          - --dmesg
+          - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+          - --output=short-iso
+          - --no-pager
+          - --quiet
+      register: host_baseline_rollback_recent_storage_events
+      changed_when: false
+      failed_when: host_baseline_rollback_recent_storage_events.rc not in [0, 1]
+      check_mode: false
+
+    - name: Capture the pre-rollback journal cursor
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/journalctl
+          - --show-cursor
+          - --lines=0
+          - --no-pager
+      register: host_baseline_rollback_journal_cursor
+      changed_when: false
+      check_mode: false
+
+    - name: Read installed package state
+      ansible.builtin.package_facts:
+        manager: apt
+
+    - name: Simulate the exact package purge
+      ansible.builtin.command:
+        argv: >-
+          {{
+            ['/usr/bin/apt-get', '--simulate', 'remove', '--purge', '--']
+            + proven_pre_state.packages_absent
+          }}
+      register: host_baseline_rollback_apt_simulation
+      changed_when: false
+      check_mode: false
+
+    - name: Derive the simulated package removal set
+      ansible.builtin.set_fact:
+        host_baseline_rollback_simulated_removals: >-
+          {{
+            host_baseline_rollback_apt_simulation.stdout
+            | regex_findall('(?m)^Remv ([^ ]+)')
+            | sort
+          }}
+
+    - name: Read the Nautobot account
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/getent
+          - passwd
+          - "{{ proven_pre_state.service_account_absent }}"
+      register: host_baseline_rollback_account
+      changed_when: false
+      failed_when: host_baseline_rollback_account.rc not in [0, 2]
+      check_mode: false
+
+    - name: Read the exact subordinate UID line
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/grep
+          - --fixed-strings
+          - --line-regexp
+          - "{{ proven_pre_state.subordinate_uid_absent }}"
+          - /etc/subuid
+      register: host_baseline_rollback_subuid
+      changed_when: false
+      failed_when: host_baseline_rollback_subuid.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read the exact subordinate GID line
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/grep
+          - --fixed-strings
+          - --line-regexp
+          - "{{ proven_pre_state.subordinate_gid_absent }}"
+          - /etc/subgid
+      register: host_baseline_rollback_subgid
+      changed_when: false
+      failed_when: host_baseline_rollback_subgid.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect Nautobot lingering
+      ansible.builtin.stat:
+        path: "/var/lib/systemd/linger/{{ proven_pre_state.lingering_absent }}"
+      register: host_baseline_rollback_linger
+
+    - name: Read service state changed by v3
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - show
+          - --property=Id,LoadState,ActiveState,UnitFileState
+          - "{{ item }}"
+      loop: "{{ proven_pre_state.services_active_enabled }}"
+      register: host_baseline_rollback_service_state
+      changed_when: false
+      check_mode: false
+
+    - name: Read SMART monitoring service state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - show
+          - --property=Id,LoadState,ActiveState,UnitFileState
+          - smartmontools.service
+      register: host_baseline_rollback_smart_service_state
+      changed_when: false
+      check_mode: false
+
+    - name: Enforce the proven rollback preconditions
+      ansible.builtin.assert:
+        that:
+          - host_baseline_rollback_root_source.stdout | trim == preflight.require_root_source
+          - host_baseline_rollback_recent_storage_events.stdout | trim == ''
+          - >-
+            proven_pre_state.packages_absent
+            | difference(ansible_facts.packages.keys() | list)
+            | length == 0
+          - >-
+            proven_pre_state.packages_preserved
+            | difference(ansible_facts.packages.keys() | list)
+            | length == 0
+          - host_baseline_rollback_account.rc == 0
+          - host_baseline_rollback_subuid.rc == 0
+          - host_baseline_rollback_subgid.rc == 0
+          - host_baseline_rollback_linger.stat.exists
+          - >-
+            host_baseline_rollback_service_state.results
+            | map(attribute='stdout')
+            | select('search', 'ActiveState=inactive')
+            | list
+            | length == proven_pre_state.services_active_enabled | length
+          - >-
+            host_baseline_rollback_service_state.results
+            | map(attribute='stdout')
+            | select('search', 'UnitFileState=masked')
+            | list
+            | length == proven_pre_state.services_active_enabled | length
+          - "'ActiveState=active' in host_baseline_rollback_smart_service_state.stdout"
+          - "'UnitFileState=enabled' in host_baseline_rollback_smart_service_state.stdout"
+          - >-
+            host_baseline_rollback_simulated_removals
+            | difference(proven_pre_state.packages_absent)
+            | length == 0
+          - >-
+            proven_pre_state.packages_absent
+            | difference(host_baseline_rollback_simulated_removals)
+            | length == 0
+        fail_msg: >-
+          Current state, storage stability, or the APT removal set differs
+          from the reviewed rollback contract.
+
+    - name: Record protected rollback preflight evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ host_baseline_rollback_evidence_directory }}/preflight.yaml"
+        mode: "0600"
+        content: |
+          ---
+          schema_version: 1
+          target: {{ inventory_hostname }}
+          result: passed
+          root_source: {{ host_baseline_rollback_root_source.stdout | trim | to_json }}
+          recent_storage_event_count: 0
+          simulated_removals: {{ host_baseline_rollback_simulated_removals | to_json }}
+          account_present: true
+          subordinate_ids_present: true
+          lingering_present: true
+      changed_when: false
+      check_mode: false
+
+    - name: Stop after the separately authorized read-only preflight
+      ansible.builtin.meta: end_play
+      when: host_baseline_rollback_preflight_only | default(false) | bool
+
+  tasks:
+    - name: Execute and verify the bounded pre-v3 rollback
+      become: true
+      block:
+        - name: Restore services active and enabled before v3
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            masked: false
+            enabled: true
+            state: started
+          loop: "{{ proven_pre_state.services_active_enabled }}"
+
+        - name: Stop and disable SMART monitoring before package removal
+          ansible.builtin.systemd_service:
+            name: smartmontools.service
+            enabled: false
+            state: stopped
+
+        - name: Disable Nautobot lingering
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/loginctl
+              - disable-linger
+              - "{{ proven_pre_state.lingering_absent }}"
+          changed_when: true
+
+        - name: Remove the Nautobot subordinate UID line
+          ansible.builtin.lineinfile:
+            path: /etc/subuid
+            regexp: '^nautobot:'
+            state: absent
+
+        - name: Remove the Nautobot subordinate GID line
+          ansible.builtin.lineinfile:
+            path: /etc/subgid
+            regexp: '^nautobot:'
+            state: absent
+
+        - name: Remove the Nautobot service account and home
+          ansible.builtin.user:
+            name: "{{ proven_pre_state.service_account_absent }}"
+            state: absent
+            remove: true
+
+        - name: Purge only packages proven absent before v3
+          ansible.builtin.apt:
+            name: "{{ proven_pre_state.packages_absent }}"
+            state: absent
+            purge: true
+            autoremove: false
+            force_apt_get: true
+            lock_timeout: 120
+
+        - name: Record completed rollback mutations
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_rollback_evidence_directory }}/rollback.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: converged_before_reboot
+              restored_services: {{ proven_pre_state.services_active_enabled | to_json }}
+              removed_packages: {{ proven_pre_state.packages_absent | to_json }}
+              removed_account: {{ proven_pre_state.service_account_absent }}
+              package_autoremove_performed: false
+          changed_when: false
+
+        - name: Reboot once after rollback
+          ansible.builtin.reboot:
+            msg: Rebooting after the authorized Nautobot host-baseline rollback
+            connect_timeout: 10
+            reboot_timeout: 600
+            post_reboot_delay: 10
+
+        - name: Refresh installed package state
+          ansible.builtin.package_facts:
+            manager: apt
+
+        - name: Recheck the Nautobot account
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/getent
+              - passwd
+              - "{{ proven_pre_state.service_account_absent }}"
+          register: host_baseline_rollback_account_after
+          changed_when: false
+          failed_when: host_baseline_rollback_account_after.rc not in [0, 2]
+          check_mode: false
+
+        - name: Recheck subordinate ID files
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/grep
+              - --fixed-strings
+              - --line-regexp
+              - "{{ item.value }}"
+              - "{{ item.path }}"
+          loop:
+            - path: /etc/subuid
+              value: "{{ proven_pre_state.subordinate_uid_absent }}"
+            - path: /etc/subgid
+              value: "{{ proven_pre_state.subordinate_gid_absent }}"
+          register: host_baseline_rollback_subids_after
+          changed_when: false
+          failed_when: false
+          check_mode: false
+
+        - name: Recheck Nautobot lingering
+          ansible.builtin.stat:
+            path: "/var/lib/systemd/linger/{{ proven_pre_state.lingering_absent }}"
+          register: host_baseline_rollback_linger_after
+
+        - name: Recheck restored service state
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - show
+              - --property=Id,LoadState,ActiveState,UnitFileState
+              - "{{ item }}"
+          loop: "{{ proven_pre_state.services_active_enabled }}"
+          register: host_baseline_rollback_services_after
+          changed_when: false
+          check_mode: false
+
+        - name: Read failed units after rollback
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - list-units
+              - --state=failed
+              - --all
+              - --no-legend
+              - --plain
+          register: host_baseline_rollback_failed_units
+          changed_when: false
+          check_mode: false
+
+        - name: Read storage events after the rollback cursor
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/journalctl
+              - "--after-cursor={{ host_baseline_rollback_journal_cursor.stdout_lines[-1] | regex_replace('^-- cursor: ', '') }}"
+              - --dmesg
+              - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+              - --output=short-iso
+              - --no-pager
+              - --quiet
+          register: host_baseline_rollback_storage_events_after
+          changed_when: false
+          failed_when: host_baseline_rollback_storage_events_after.rc not in [0, 1]
+          check_mode: false
+
+        - name: Simulate automatic package residue
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/apt-get
+              - --simulate
+              - autoremove
+          register: host_baseline_rollback_autoremove
+          changed_when: false
+          check_mode: false
+
+        - name: Derive automatic package residue
+          ansible.builtin.set_fact:
+            host_baseline_rollback_residue_packages: >-
+              {{
+                host_baseline_rollback_autoremove.stdout
+                | regex_findall('(?m)^Remv ([^ ]+)')
+                | sort
+              }}
+
+        - name: Enforce rollback acceptance
+          ansible.builtin.assert:
+            that:
+              - >-
+                proven_pre_state.packages_absent
+                | intersect(ansible_facts.packages.keys() | list)
+                | length == 0
+              - >-
+                proven_pre_state.packages_preserved
+                | difference(ansible_facts.packages.keys() | list)
+                | length == 0
+              - host_baseline_rollback_account_after.rc == 2
+              - >-
+                host_baseline_rollback_subids_after.results
+                | selectattr('rc', 'equalto', 0)
+                | list
+                | length == 0
+              - not host_baseline_rollback_linger_after.stat.exists
+              - >-
+                host_baseline_rollback_services_after.results
+                | map(attribute='stdout')
+                | select('search', 'ActiveState=active')
+                | list
+                | length == proven_pre_state.services_active_enabled | length
+              - >-
+                host_baseline_rollback_services_after.results
+                | map(attribute='stdout')
+                | select('search', 'UnitFileState=enabled')
+                | list
+                | length == proven_pre_state.services_active_enabled | length
+              - host_baseline_rollback_failed_units.stdout | trim == ''
+              - host_baseline_rollback_storage_events_after.stdout | trim == ''
+            fail_msg: Rollback acceptance failed and requires manual intervention.
+
+        - name: Record protected rollback acceptance evidence
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_rollback_evidence_directory }}/acceptance.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: accepted_rolled_back
+              removed_packages_absent: true
+              preserved_packages_present: true
+              account_and_subordinate_ids_absent: true
+              lingering_absent: true
+              preexisting_service_states_restored: true
+              failed_unit_count: 0
+              new_storage_event_count: 0
+          changed_when: false
+
+        - name: Record protected rollback residue evidence
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_rollback_evidence_directory }}/residue.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              package_autoremove_performed: false
+              automatically_removable_packages: {{ host_baseline_rollback_residue_packages | to_json }}
+          changed_when: false
+
+      rescue:
+        - name: Record rollback manual-intervention evidence
+          become: false
+          delegate_to: localhost
+          no_log: true
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_rollback_evidence_directory }}/manual-intervention.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: manual_intervention
+              automatic_forward_reapply_performed: false
+          changed_when: false
+
+        - name: Stop after rollback failure
+          ansible.builtin.fail:
+            msg: >-
+              Host-baseline rollback did not prove acceptance. Review bounded
+              evidence and use local recovery before further mutation.

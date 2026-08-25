@@ -134,6 +134,7 @@
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
           - --no-pager
+          - --quiet
       register: storage_diagnostic_kernel
       changed_when: false
       check_mode: false
@@ -150,6 +151,7 @@
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
           - --no-pager
+          - --quiet
       register: storage_diagnostic_storage_events
       changed_when: false
       failed_when: storage_diagnostic_storage_events.rc not in [0, 1]
@@ -167,6 +169,7 @@
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
           - --no-pager
+          - --quiet
       register: storage_diagnostic_recurrence
       changed_when: false
       failed_when: storage_diagnostic_recurrence.rc not in [0, 1]
@@ -184,6 +187,7 @@
           - --output=short-iso
           - "--lines={{ collection.journal_line_limit }}"
           - --no-pager
+          - --quiet
       register: storage_diagnostic_power_events
       changed_when: false
       failed_when: storage_diagnostic_power_events.rc not in [0, 1]
@@ -253,7 +257,7 @@
           - /usr/bin/sudo
           - -n
           - /usr/sbin/tune2fs
-          - --list
+          - -l
           - "{{ storage_diagnostic_root_source }}"
       register: storage_diagnostic_ext4_metadata
       changed_when: false
@@ -298,7 +302,29 @@
             | trim == 'throttled=0x0'
           }}
         storage_diagnostic_recurrence_count: >-
-          {{ storage_diagnostic_recurrence.stdout_lines | length }}
+          {{
+            storage_diagnostic_recurrence.stdout_lines
+            | reject('equalto', '-- No entries --')
+            | reject('equalto', '')
+            | list
+            | length
+          }}
+        storage_diagnostic_storage_event_count: >-
+          {{
+            storage_diagnostic_storage_events.stdout_lines
+            | reject('equalto', '-- No entries --')
+            | reject('equalto', '')
+            | list
+            | length
+          }}
+        storage_diagnostic_power_event_count: >-
+          {{
+            storage_diagnostic_power_events.stdout_lines
+            | reject('equalto', '-- No entries --')
+            | reject('equalto', '')
+            | list
+            | length
+          }}
         storage_diagnostic_uas_attached: >-
           {{ 'DRIVERS=="uas"' in storage_diagnostic_udev.stdout }}
         storage_diagnostic_usb_superspeed_link_present: >-
@@ -395,9 +421,9 @@
           target: {{ inventory_hostname }}
           result: collected
           root_source: {{ storage_diagnostic_root_source | to_json }}
-          storage_events_since_operation: {{ storage_diagnostic_storage_events.stdout_lines | length }}
+          storage_events_since_operation: {{ storage_diagnostic_storage_event_count }}
           recurrence_events: {{ storage_diagnostic_recurrence_count }}
-          power_kernel_events: {{ storage_diagnostic_power_events.stdout_lines | length }}
+          power_kernel_events: {{ storage_diagnostic_power_event_count }}
           throttling_history_clear: {{ storage_diagnostic_throttling_clear | bool | lower }}
           smart_command_rc: {{ storage_diagnostic_smart.rc }}
           smart_health_passed: {{ storage_diagnostic_smart_passed | bool | lower }}

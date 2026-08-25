@@ -1,15 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-storage-diagnostic-v1.json",
-  "title": "Nautobot active storage diagnostic operation",
+  "$id": "https://local.theama.co/schemas/nautobot-host-baseline-rollback-v1.json",
+  "title": "Nautobot active host-baseline rollback operation",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "operation",
-    "incident",
-    "collection",
-    "decision",
+    "predecessor",
+    "proven_pre_state",
+    "qualification",
+    "preflight",
+    "rollback",
+    "acceptance",
+    "failure",
     "evidence",
     "authorization"
   ],
@@ -28,10 +32,10 @@
         "source"
       ],
       "properties": {
-        "id": { "const": "nautobot-storage-diagnostic-v1" },
+        "id": { "const": "nautobot-host-baseline-rollback-v1" },
         "state": { "enum": ["definition", "pending"] },
         "authorization_ready": { "type": "boolean" },
-        "stage": { "const": "storage_diagnostic" },
+        "stage": { "const": "host_baseline_rollback" },
         "target": {
           "type": "object",
           "additionalProperties": false,
@@ -57,92 +61,123 @@
         }
       }
     },
-    "incident": {
+    "predecessor": { "type": "object" },
+    "qualification": {
       "type": "object",
       "required": [
-        "predecessor_operation",
-        "terminal_tag",
-        "operation_started_at_utc",
-        "first_storage_event_at_utc",
-        "recurrence_observation_start_utc",
-        "root_device",
-        "power_path",
-        "storage_adapter",
-        "observed_events"
-      ]
-    },
-    "collection": {
-      "type": "object",
-      "required": [
+        "command",
         "read_only",
-        "privilege_model",
-        "stream_limit_bytes",
-        "journal_line_limit",
-        "observation_start_utc",
-        "areas",
-        "prohibited"
+        "maximum_age_minutes",
+        "required_before_live_authorization",
+        "status",
+        "evidence_manifest_sha256",
+        "completed_at_utc"
       ],
       "properties": {
         "read_only": { "const": true },
-        "privilege_model": {
-          "const": "ansible_unprivileged_explicit_sudo_n"
+        "maximum_age_minutes": { "type": "integer", "minimum": 1 },
+        "required_before_live_authorization": { "const": true },
+        "status": { "enum": ["pending", "passed"] },
+        "evidence_manifest_sha256": {
+          "type": ["null", "string"],
+          "pattern": "^[0-9a-f]{64}$"
         },
-        "stream_limit_bytes": { "type": "integer", "minimum": 1048576 },
-        "journal_line_limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 2000
-        },
-        "areas": { "type": "array", "minItems": 6, "uniqueItems": true },
-        "prohibited": { "type": "array", "minItems": 7, "uniqueItems": true }
+        "completed_at_utc": {
+          "type": ["null", "string"],
+          "format": "date-time"
+        }
       }
     },
-    "decision": {
+    "proven_pre_state": {
       "type": "object",
       "required": [
-        "state",
-        "operator_choice_required",
-        "retain_for_observation_requires",
-        "rollback_if",
-        "boundaries"
+        "packages_absent",
+        "packages_preserved",
+        "service_account_absent",
+        "subordinate_uid_absent",
+        "subordinate_gid_absent",
+        "lingering_absent",
+        "services_active_enabled",
+        "preexisting_automatically_removable_packages"
       ],
       "properties": {
-        "state": { "const": "pending_evidence" },
-        "operator_choice_required": { "const": true },
-        "retain_for_observation_requires": {
+        "packages_absent": {
           "type": "array",
-          "minItems": 7,
+          "minItems": 9,
+          "maxItems": 9,
           "uniqueItems": true
         },
-        "rollback_if": { "type": "array", "minItems": 7, "uniqueItems": true },
-        "boundaries": { "type": "array", "minItems": 4, "uniqueItems": true }
+        "packages_preserved": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true
+        }
       }
     },
-    "evidence": {
+    "preflight": {
       "type": "object",
       "required": [
-        "local_root_pattern",
-        "directory_mode",
-        "file_mode",
-        "raw_evidence_in_git",
-        "records"
-      ]
+        "read_only",
+        "require_root_source",
+        "require_storage_stability_window_minutes",
+        "require_no_recent_events",
+        "require_exact_package_removal_simulation",
+        "require_proven_predecessor_changes_present",
+        "require_local_recovery_available",
+        "local_recovery_confirmed",
+        "storage_remediation_sequence"
+      ],
+      "properties": {
+        "read_only": { "const": true },
+        "require_storage_stability_window_minutes": {
+          "type": "integer",
+          "minimum": 10
+        },
+        "local_recovery_confirmed": { "type": "boolean" },
+        "storage_remediation_sequence": {
+          "enum": ["undecided", "rollback_before_remediation", "remediation_before_rollback"]
+        }
+      }
     },
+    "rollback": {
+      "type": "object",
+      "required": [
+        "ordered",
+        "package_autoremove",
+        "preserve_unrelated_packages",
+        "preserve_network_configuration",
+        "preserve_dns_configuration",
+        "preserve_firewall_configuration",
+        "preserve_storage_configuration",
+        "preserve_msmtp"
+      ],
+      "properties": {
+        "ordered": { "type": "array", "minItems": 8, "uniqueItems": true },
+        "package_autoremove": { "const": false },
+        "preserve_unrelated_packages": { "const": true },
+        "preserve_network_configuration": { "const": true },
+        "preserve_dns_configuration": { "const": true },
+        "preserve_firewall_configuration": { "const": true },
+        "preserve_storage_configuration": { "const": true },
+        "preserve_msmtp": { "const": true }
+      }
+    },
+    "acceptance": { "type": "object" },
+    "failure": { "type": "object" },
+    "evidence": { "type": "object" },
     "authorization": {
       "type": "object",
       "required": [
         "command",
         "bundle_algorithm",
         "authorized_stage",
-        "mutation_authorized",
         "excluded_stages",
         "blockers"
       ],
       "properties": {
         "bundle_algorithm": { "const": "sha256" },
-        "authorized_stage": { "const": "storage_diagnostic" },
-        "mutation_authorized": { "const": false },
-        "excluded_stages": { "type": "array", "minItems": 9, "uniqueItems": true },
+        "authorized_stage": { "const": "host_baseline_rollback" },
+        "excluded_stages": { "type": "array", "minItems": 7, "uniqueItems": true },
         "blockers": { "type": "array", "uniqueItems": true }
       }
     }
@@ -164,6 +199,21 @@
           },
           "authorization": {
             "properties": { "blockers": { "maxItems": 0 } }
+          },
+          "preflight": {
+            "properties": {
+              "local_recovery_confirmed": { "const": true },
+              "storage_remediation_sequence": {
+                "enum": ["rollback_before_remediation", "remediation_before_rollback"]
+              }
+            }
+          },
+          "qualification": {
+            "properties": {
+              "status": { "const": "passed" },
+              "evidence_manifest_sha256": { "type": "string" },
+              "completed_at_utc": { "type": "string" }
+            }
           }
         }
       }
