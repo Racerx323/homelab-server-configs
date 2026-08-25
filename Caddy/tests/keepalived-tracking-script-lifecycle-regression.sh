@@ -54,8 +54,8 @@ case "\$(<"$root/mode")" in
     healthy) printf '204' ;;
     block) sleep 30 ;;
     ignore-term)
-        trap '' TERM
-        while :; do sleep 1; done
+        trap '' HUP TERM
+        exec /usr/bin/sleep 30
         ;;
     *) exit 2 ;;
 esac
@@ -192,7 +192,17 @@ fi
 [[ "$stubborn_status" -eq 143 ]]
 group_exists "$stubborn_pid"
 sleep 2
-kill -KILL -- "-$stubborn_pid"
+if ! group_exists "$stubborn_pid"; then
+    printf '%s_sigkill_escalation_failure=group_exited_before_sigkill\n' \
+        "$prefix" >&2
+    exit 1
+fi
+if ! kill -KILL -- "-$stubborn_pid"; then
+    printf '%s_sigkill_escalation_failure=sigkill_delivery_failed\n' \
+        "$prefix" >&2
+    exit 1
+fi
+printf '%s_sigkill_delivery=true\n' "$prefix"
 wait_for_group_exit "$stubborn_pid"
 timeout_finished=$(date +%s)
 ((timeout_finished - timeout_started >= 2))
