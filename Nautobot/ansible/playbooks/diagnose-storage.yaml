@@ -1,0 +1,373 @@
+---
+- name: Collect the Nautobot storage incident diagnostic
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+
+  vars_files:
+    - ../../manifests/operation.yaml
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+
+  pre_tasks:
+    - name: Enforce the read-only diagnostic boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == "j2-svpi4mf"
+          - ansible_play_hosts_all | length == 1
+          - operation.id == "nautobot-storage-diagnostic-v1"
+          - operation.stage == "storage_diagnostic"
+          - operation.authorization_ready | bool
+          - authorization.blockers | length == 0
+          - collection.read_only | bool
+          - not authorization.mutation_authorized | bool
+          - storage_diagnostic_evidence_directory is defined
+          - >-
+            storage_diagnostic_evidence_directory
+            is match('^/tmp/nautobot-storage-diagnostic\.[A-Za-z0-9]+$')
+        fail_msg: >-
+          The operation is not authorization-ready or its target and
+          read-only boundaries are invalid.
+
+  tasks:
+    - name: Read root filesystem identity
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/findmnt
+          - --json
+          - --bytes
+          - --output=SOURCE,FSTYPE,SIZE,AVAIL,TARGET
+          - /
+      register: storage_diagnostic_findmnt
+      changed_when: false
+      check_mode: false
+
+    - name: Derive the mounted root source
+      ansible.builtin.set_fact:
+        storage_diagnostic_root_source: >-
+          {{
+            (storage_diagnostic_findmnt.stdout | from_json)
+            .filesystems[0].source
+          }}
+
+    - name: Resolve the mounted root device
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/readlink
+          - --canonicalize-existing
+          - "{{ storage_diagnostic_root_source }}"
+      register: storage_diagnostic_root_device
+      changed_when: false
+      check_mode: false
+
+    - name: Derive the live ext4 device name
+      ansible.builtin.set_fact:
+        storage_diagnostic_root_name: >-
+          {{ storage_diagnostic_root_device.stdout | trim | basename }}
+
+    - name: Read block topology
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/lsblk
+          - --json
+          - --bytes
+          - --output=NAME,KNAME,TYPE,SIZE,FSTYPE,MOUNTPOINTS,TRAN,MODEL,SERIAL
+      register: storage_diagnostic_lsblk
+      changed_when: false
+      check_mode: false
+
+    - name: Inspect USB topology tool
+      ansible.builtin.stat:
+        path: /usr/bin/lsusb
+      register: storage_diagnostic_lsusb_tool
+
+    - name: Read USB driver and negotiated topology
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/lsusb
+          - --tree
+      register: storage_diagnostic_lsusb
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: storage_diagnostic_lsusb_tool.stat.executable | default(false)
+
+    - name: Read root-device udev identity and attribute chain
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/udevadm
+          - info
+          - --attribute-walk
+          - "{{ incident.root_device }}"
+      register: storage_diagnostic_udev
+      changed_when: false
+      check_mode: false
+
+    - name: Read kernel context since the host-baseline operation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - "--since={{ collection.observation_start_utc }}"
+          - --dmesg
+          - --output=short-iso
+          - "--lines={{ collection.journal_line_limit }}"
+          - --no-pager
+      register: storage_diagnostic_kernel
+      changed_when: false
+      check_mode: false
+
+    - name: Read storage events since the host-baseline operation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - "--since={{ collection.observation_start_utc }}"
+          - --dmesg
+          - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+          - --output=short-iso
+          - "--lines={{ collection.journal_line_limit }}"
+          - --no-pager
+      register: storage_diagnostic_storage_events
+      changed_when: false
+      failed_when: storage_diagnostic_storage_events.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read storage events after the first incident
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - "--since={{ incident.recurrence_observation_start_utc }}"
+          - --dmesg
+          - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+          - --output=short-iso
+          - "--lines={{ collection.journal_line_limit }}"
+          - --no-pager
+      register: storage_diagnostic_recurrence
+      changed_when: false
+      failed_when: storage_diagnostic_recurrence.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read power and throttling kernel events
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - "--since={{ collection.observation_start_utc }}"
+          - --dmesg
+          - --grep=under-voltage|voltage normalised|throttled|over-current
+          - --output=short-iso
+          - "--lines={{ collection.journal_line_limit }}"
+          - --no-pager
+      register: storage_diagnostic_power_events
+      changed_when: false
+      failed_when: storage_diagnostic_power_events.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect the Raspberry Pi firmware utility
+      ansible.builtin.stat:
+        path: /usr/bin/vcgencmd
+      register: storage_diagnostic_vcgencmd_tool
+
+    - name: Read Raspberry Pi throttling history
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/vcgencmd
+          - get_throttled
+      register: storage_diagnostic_throttling
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: storage_diagnostic_vcgencmd_tool.stat.executable | default(false)
+
+    - name: Read Raspberry Pi temperature
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/vcgencmd
+          - measure_temp
+      register: storage_diagnostic_temperature
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: storage_diagnostic_vcgencmd_tool.stat.executable | default(false)
+
+    - name: Read Raspberry Pi core voltage
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/vcgencmd
+          - measure_volts
+          - core
+      register: storage_diagnostic_voltage
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: storage_diagnostic_vcgencmd_tool.stat.executable | default(false)
+
+    - name: Read extended SMART and NVMe health
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/smartctl
+          - --xall
+          - "{{ incident.root_device }}"
+      register: storage_diagnostic_smart
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Read mounted ext4 metadata
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/tune2fs
+          - --list
+          - "{{ storage_diagnostic_root_source }}"
+      register: storage_diagnostic_ext4_metadata
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Read the live ext4 error counter
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - "/sys/fs/ext4/{{ storage_diagnostic_root_name }}/errors_count"
+      register: storage_diagnostic_ext4_errors
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Derive sanitized diagnostic decisions
+      ansible.builtin.set_fact:
+        storage_diagnostic_smart_passed: >-
+          {{
+            storage_diagnostic_smart.stdout is search(
+              'SMART overall-health self-assessment test result:\s+PASSED|SMART Health Status:\s+OK'
+            )
+          }}
+        storage_diagnostic_smart_media_counter_available: >-
+          {{
+            storage_diagnostic_smart.stdout
+            is search('Media and Data Integrity Errors:\s+\d+')
+          }}
+        storage_diagnostic_smart_media_errors_zero: >-
+          {{
+            storage_diagnostic_smart.stdout
+            is search('Media and Data Integrity Errors:\s+0(?:\s|$)')
+          }}
+        storage_diagnostic_ext4_error_count: >-
+          {{ storage_diagnostic_ext4_errors.stdout | default('-1') | trim | int }}
+        storage_diagnostic_throttling_clear: >-
+          {{
+            (storage_diagnostic_throttling.stdout | default(''))
+            | trim == 'throttled=0x0'
+          }}
+        storage_diagnostic_recurrence_count: >-
+          {{ storage_diagnostic_recurrence.stdout_lines | length }}
+        storage_diagnostic_uas_attached: >-
+          {{ 'DRIVERS=="uas"' in storage_diagnostic_udev.stdout }}
+        storage_diagnostic_usb_superspeed_link_present: >-
+          {{
+            storage_diagnostic_udev.stdout
+            is search('ATTRS\{speed\}=="5000"')
+          }}
+
+    - name: Record protected topology evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/topology.log"
+        mode: "0600"
+        content: |
+          [findmnt]
+          {{ storage_diagnostic_findmnt.stdout }}
+          [lsblk]
+          {{ storage_diagnostic_lsblk.stdout }}
+          [lsusb-tree]
+          {{ storage_diagnostic_lsusb.stdout | default('unavailable') }}
+          [udev-attribute-walk]
+          {{ storage_diagnostic_udev.stdout }}
+      changed_when: false
+
+    - name: Record protected kernel evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/kernel.log"
+        mode: "0600"
+        content: |
+          [kernel-context]
+          {{ storage_diagnostic_kernel.stdout }}
+          [storage-events]
+          {{ storage_diagnostic_storage_events.stdout }}
+          [recurrence]
+          {{ storage_diagnostic_recurrence.stdout }}
+      changed_when: false
+
+    - name: Record protected power evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/power.log"
+        mode: "0600"
+        content: |
+          [kernel-power-events]
+          {{ storage_diagnostic_power_events.stdout }}
+          [throttling]
+          {{ storage_diagnostic_throttling.stdout | default('unavailable') }}
+          [temperature]
+          {{ storage_diagnostic_temperature.stdout | default('unavailable') }}
+          [core-voltage]
+          {{ storage_diagnostic_voltage.stdout | default('unavailable') }}
+      changed_when: false
+
+    - name: Record protected SMART evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/smart.log"
+        mode: "0600"
+        content: "{{ storage_diagnostic_smart.stdout }}\n"
+      changed_when: false
+
+    - name: Record protected filesystem evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/filesystem.log"
+        mode: "0600"
+        content: |
+          [mounted-ext4-metadata]
+          {{ storage_diagnostic_ext4_metadata.stdout }}
+          [live-ext4-errors-count]
+          {{ storage_diagnostic_ext4_errors.stdout | default('unavailable') }}
+      changed_when: false
+
+    - name: Record sanitized diagnostic summary
+      become: false
+      delegate_to: localhost
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/diagnostic.yaml"
+        mode: "0600"
+        content: |
+          ---
+          schema_version: 1
+          target: {{ inventory_hostname }}
+          result: collected
+          root_source: {{ storage_diagnostic_root_source | to_json }}
+          storage_events_since_operation: {{ storage_diagnostic_storage_events.stdout_lines | length }}
+          recurrence_events: {{ storage_diagnostic_recurrence_count }}
+          power_kernel_events: {{ storage_diagnostic_power_events.stdout_lines | length }}
+          throttling_history_clear: {{ storage_diagnostic_throttling_clear | bool | lower }}
+          smart_command_rc: {{ storage_diagnostic_smart.rc }}
+          smart_health_passed: {{ storage_diagnostic_smart_passed | bool | lower }}
+          smart_media_counter_available: {{ storage_diagnostic_smart_media_counter_available | bool | lower }}
+          smart_media_errors_zero: {{ storage_diagnostic_smart_media_errors_zero | bool | lower }}
+          ext4_metadata_rc: {{ storage_diagnostic_ext4_metadata.rc }}
+          ext4_error_count: {{ storage_diagnostic_ext4_error_count }}
+          uas_attached: {{ storage_diagnostic_uas_attached | bool | lower }}
+          usb_superspeed_link_present: {{ storage_diagnostic_usb_superspeed_link_present | bool | lower }}
+          stability_observation_complete: false
+          decision: operator_review_required
+      changed_when: false

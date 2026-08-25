@@ -6,6 +6,13 @@ hardware:
   architecture: arm64
   cpu_cores: 4
   memory_mib: 8192
+  power:
+    source: poe
+    adapter:
+      manufacturer: poe_texas
+      model: GAT-PiHAT
+      standard: ieee_802_3at
+      rated_output_watts: 20
 
 storage:
   root:
@@ -13,6 +20,11 @@ storage:
     interface: usb_3
     transport: uas
     filesystem: ext4
+    adapter:
+      manufacturer: geekworm
+      model: X872_V2.0
+      type: usb_3_to_m2_nvme
+      maximum_link_gbps: 5
 
 management:
   permanent_ipv6_ula: fd36:5aa8:6971:1::170/64

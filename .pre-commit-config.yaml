@@ -198,7 +198,16 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/NAUTOBOT_DEPLOYMENT_PLAN\.md|manifests/(?:desired-state|operation)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/host-baseline\.yaml|tasks/rollback-host-baseline\.yaml|scripts/run-host-baseline\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^Nautobot/ansible/(?:playbooks/host-baseline\.yaml|tasks/rollback-host-baseline\.yaml|scripts/run-host-baseline\.sh)$
+
+      - id: nautobot-storage-diagnostic-launcher
+        name: Validate Nautobot read-only storage diagnostic
+        entry: >-
+          /bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:docs/NAUTOBOT_DEPLOYMENT_PLAN\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: check-json
         name: Validate JSON with jq

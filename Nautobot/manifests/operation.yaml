@@ -2,146 +2,119 @@
 schema_version: 1
 
 operation:
-  id: nautobot-host-baseline-v3
-  state: pending
-  authorization_ready: true
-  stage: host_baseline
+  id: nautobot-storage-diagnostic-v1
+  state: definition
+  authorization_ready: false
+  stage: storage_diagnostic
   target:
     host: j2-svpi4mf
     address: 10.1.2.170
     ssh_user: ama
   architecture:
     plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
-    keepalived_owner: homelab-dns
     network_owner: homelab-network
   source:
     repository: homelab-server-configs
-    base_commit: e2893a72dae2be204e1f575d90ed9c7d87e1d0b4
+    base_commit: 1897f653f73e13109257896b5d1a215cb1ef316e
 
-qualification:
-  command: /bin/bash Nautobot/ansible/scripts/run-qualification.sh execute
-  maximum_age_minutes: 30
-  required_after_keepalived_removal: true
-  required_assertions:
-    - immutable_hardware
-    - temperature
-    - load_and_throttling
-    - keepalived_absent
-    - exact_apt_candidates
+incident:
+  predecessor_operation: nautobot-host-baseline-v3
+  terminal_tag: nautobot-host-baseline-v3-manual-intervention
+  operation_started_at_utc: 2026-08-25T17:34:25Z
+  first_storage_event_at_utc: 2026-08-25T17:37:25Z
+  recurrence_observation_start_utc: 2026-08-25T17:37:26Z
+  root_device: /dev/sda
+  power_path:
+    manufacturer: poe_texas
+    model: GAT-PiHAT
+    standard: ieee_802_3at
+    rated_output_watts: 20
+  storage_adapter:
+    manufacturer: geekworm
+    model: X872_V2.0
+    host_interconnect: usb_3_0
+    maximum_link_gbps: 5
+  observed_events:
+    - read_io_error
+    - uas_device_reset
+    - superspeed_usb_reset
 
-inputs:
-  package_names:
-    - podman
-    - uidmap
-    - passt
-    - slirp4netns
-    - fuse-overlayfs
-    - crun
-    - dbus-user-session
-    - smartmontools
-    - restic
-    - msmtp
-    - msmtp-mta
-  package_specs:
-    - podman=5.4.2+ds1-2+b2
-    - uidmap=1:4.17.4-2
-    - passt=0.0~git20250503.587980c-2+deb13u1
-    - slirp4netns=1.2.1-1.1
-    - fuse-overlayfs=1.14-1+b1
-    - crun=1.21-1
-    - dbus-user-session=1.16.2-2
-    - smartmontools=7.4-3
-    - restic=0.18.0-1+b4
-    - msmtp=1.8.28-3
-    - msmtp-mta=1.8.28-3
-  service_account:
-    name: nautobot
-    home: /var/lib/nautobot
-    shell: /usr/sbin/nologin
-    subordinate_id_start: 165536
-    subordinate_id_count: 65536
-    linger: true
-  required_units:
-    - ssh.service
-    - NetworkManager.service
-    - systemd-timesyncd.service
-    - munin-node.service
-    - webmin.service
-    - watchdog.service
-  unwanted_units:
-    - avahi-daemon.service
-    - avahi-daemon.socket
-    - bluetooth.service
-    - ModemManager.service
-  storage:
-    root_device: /dev/sda
-    smart_device_types:
-      - auto
-      - sat
-    allow_documented_bridge_limitation: true
+collection:
+  read_only: true
+  stream_limit_bytes: 8388608
+  journal_line_limit: 1000
+  observation_start_utc: 2026-08-25T17:34:25Z
+  areas:
+    - uas_usb_topology
+    - kernel_context
+    - poe_power_and_throttling
+    - extended_smart_nvme_health
+    - mounted_ext4_metadata
+    - recurrence_after_first_event
+  prohibited:
+    - smart_self_test
+    - filesystem_check_or_repair
+    - block_surface_scan
+    - package_change
+    - service_change
+    - reboot
+    - usb_reset
 
-mutations:
-  ordered:
-    - install_exact_packages
-    - create_service_account
-    - assign_subordinate_ids
-    - enable_lingering
-    - stop_disable_mask_unwanted_units
-    - enable_smart_monitoring_when_supported
-    - initialize_rootless_podman
-    - reboot_if_changed
-
-acceptance:
-  require_zero_failed_units: true
-  require_installed_package_versions: true
-  require_rootless_podman: true
-  require_linger_after_reboot: true
-  require_required_units_active: true
-  require_unwanted_units_inactive_masked: true
-  require_keepalived_absent: true
-  require_smart_health_or_documented_limitation: true
-  require_no_new_storage_io_errors: true
-
-rollback:
-  automatic_on_apply_failure: true
-  reverse_order:
-    - restore_unwanted_unit_dimensions_changed_by_operation
-    - disable_lingering_if_enabled_by_operation
-    - remove_subordinate_ids_added_by_operation
-    - remove_service_account_if_created_by_operation
-    - remove_packages_installed_by_operation
-    - reboot_if_apply_rebooted
-  package_autoremove: false
-  preserve_preexisting_packages: true
-  unreachable_host_result: manual_intervention
-  residue:
-    - dependencies_installed_by_apt_are_reported_and_not_autoremoved
-    - preexisting_automatic_package_residue_is_reported_separately
-    - rootless_storage_for_a_preexisting_account_is_preserved
+decision:
+  state: pending_evidence
+  operator_choice_required: true
+  retain_for_observation_requires:
+    - smart_health_passed
+    - zero_smart_media_errors
+    - zero_ext4_error_count
+    - no_power_or_throttling_fault
+    - no_storage_event_recurrence_after_first_event
+    - stable_uas_usb_attachment
+    - minimum_24_hour_read_only_observation
+  rollback_if:
+    - smart_health_failed
+    - smart_media_errors_present
+    - ext4_errors_present
+    - power_or_throttling_fault_present
+    - storage_event_recurred
+    - uas_usb_attachment_unstable
+    - operator_selects_conservative_rollback
+  boundaries:
+    - retaining_does_not_accept_host_baseline_v3
+    - rollback_requires_separate_definition_and_live_authorization
+    - hardware_or_transport_remediation_requires_separate_authorization
+    - later_acceptance_requires_a_successor_operation
 
 evidence:
-  local_root_pattern: /tmp/nautobot-host-baseline.*
+  local_root_pattern: /tmp/nautobot-storage-diagnostic.*
   directory_mode: "0700"
   file_mode: "0600"
-  stream_limit_bytes: 8388608
-  phases:
-    - preflight
-    - mutation
-    - acceptance
-    - rollback
-    - residue
   raw_evidence_in_git: false
+  records:
+    - manifest
+    - topology
+    - kernel
+    - power
+    - smart
+    - filesystem
+    - diagnostic_summary
 
 authorization:
   command: >-
-    /bin/bash Nautobot/ansible/scripts/run-host-baseline.sh execute
+    /bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh execute
     BUNDLE_SHA256
   bundle_algorithm: sha256
-  authorized_stage: host_baseline
+  authorized_stage: storage_diagnostic
+  mutation_authorized: false
   excluded_stages:
+    - host_baseline_retry
+    - host_baseline_rollback
+    - hardware_remediation
+    - filesystem_repair
     - dual_stack_identity
     - nautobot_pilot
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - definition_checkpoint_and_review_required

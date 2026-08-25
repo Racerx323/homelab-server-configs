@@ -68,3 +68,35 @@ preflight evidence boundary is reported as `preflight_failed`, because no
 mutation has begun. The launcher keeps bounded raw output and separate
 preflight, mutation, acceptance, rollback, and residue records under a
 mode-0700 directory in `/tmp`.
+
+## Storage diagnostic operation
+
+`playbooks/diagnose-storage.yaml` defines the read-only diagnostic that follows
+the host-baseline v3 storage incident. It records the USB/UAS topology and
+negotiated driver, kernel storage and power context, Raspberry Pi throttling
+state, extended SMART/NVMe health, and mounted ext4 metadata. It does not run a
+SMART self-test, filesystem check, repair, surface scan, USB reset, package or
+service change, or reboot.
+
+Review the definition and candidate bundle without contacting the host:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh show-bundle
+```
+
+After the operation is checkpoint-bound, marked authorization-ready, reviewed,
+and separately authorized with its exact bundle hash, the live command has this
+form:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh execute BUNDLE_SHA256
+```
+
+The launcher refuses a dirty worktree, an unready operation, or a bundle hash
+mismatch. It stores bounded raw evidence outside Git in a mode-0700
+`/tmp/nautobot-storage-diagnostic.*` directory and writes a sanitized summary.
+Collection does not decide whether to retain or roll back the converged
+host-baseline state. That decision requires operator review of the diagnostic
+and the observation requirements in the active operation. Any rollback,
+hardware remediation, filesystem repair, or later host-baseline acceptance is
+a separate operation and authorization.

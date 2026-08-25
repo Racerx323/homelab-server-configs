@@ -1,22 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-operation-v1.json",
-  "title": "Nautobot active operation",
+  "$id": "https://local.theama.co/schemas/nautobot-storage-diagnostic-v1.json",
+  "title": "Nautobot active storage diagnostic operation",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "operation", "qualification", "inputs", "mutations", "acceptance", "rollback", "evidence", "authorization"],
+  "required": [
+    "schema_version",
+    "operation",
+    "incident",
+    "collection",
+    "decision",
+    "evidence",
+    "authorization"
+  ],
   "properties": {
     "schema_version": { "const": 1 },
     "operation": {
       "type": "object",
-      "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "state",
+        "authorization_ready",
+        "stage",
+        "target",
+        "architecture",
+        "source"
+      ],
       "properties": {
-        "id": { "const": "nautobot-host-baseline-v3" },
+        "id": { "const": "nautobot-storage-diagnostic-v1" },
         "state": { "enum": ["definition", "pending"] },
         "authorization_ready": { "type": "boolean" },
-        "stage": { "const": "host_baseline" },
+        "stage": { "const": "storage_diagnostic" },
         "target": {
           "type": "object",
+          "additionalProperties": false,
           "required": ["host", "address", "ssh_user"],
           "properties": {
             "host": { "const": "j2-svpi4mf" },
@@ -27,46 +45,103 @@
         "architecture": { "type": "object" },
         "source": {
           "type": "object",
+          "additionalProperties": false,
           "required": ["repository", "base_commit"],
           "properties": {
             "repository": { "const": "homelab-server-configs" },
-            "base_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+            "base_commit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            }
           }
         }
       }
     },
-    "qualification": {
+    "incident": {
       "type": "object",
-      "required": ["command", "maximum_age_minutes", "required_assertions"]
+      "required": [
+        "predecessor_operation",
+        "terminal_tag",
+        "operation_started_at_utc",
+        "first_storage_event_at_utc",
+        "recurrence_observation_start_utc",
+        "root_device",
+        "power_path",
+        "storage_adapter",
+        "observed_events"
+      ]
     },
-    "inputs": {
+    "collection": {
       "type": "object",
-      "required": ["package_names", "package_specs", "service_account", "required_units", "unwanted_units", "storage"],
+      "required": [
+        "read_only",
+        "stream_limit_bytes",
+        "journal_line_limit",
+        "observation_start_utc",
+        "areas",
+        "prohibited"
+      ],
       "properties": {
-        "package_names": {
-          "type": "array",
-          "minItems": 11,
-          "maxItems": 11,
-          "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+        "read_only": { "const": true },
+        "stream_limit_bytes": { "type": "integer", "minimum": 1048576 },
+        "journal_line_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
         },
-        "package_specs": {
-          "type": "array",
-          "maxItems": 11,
-          "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9+.-]*=\\S+$" }
-        },
-        "service_account": { "type": "object" },
-        "required_units": { "type": "array", "minItems": 1, "uniqueItems": true },
-        "unwanted_units": { "type": "array", "minItems": 1, "uniqueItems": true },
-        "storage": { "type": "object" }
+        "areas": { "type": "array", "minItems": 6, "uniqueItems": true },
+        "prohibited": { "type": "array", "minItems": 7, "uniqueItems": true }
       }
     },
-    "mutations": { "type": "object", "required": ["ordered"] },
-    "acceptance": { "type": "object" },
-    "rollback": { "type": "object", "required": ["automatic_on_apply_failure", "reverse_order"] },
-    "evidence": { "type": "object", "required": ["local_root_pattern", "directory_mode", "file_mode", "stream_limit_bytes", "phases"] },
-    "authorization": { "type": "object", "required": ["command", "bundle_algorithm", "authorized_stage", "excluded_stages", "blockers"] }
+    "decision": {
+      "type": "object",
+      "required": [
+        "state",
+        "operator_choice_required",
+        "retain_for_observation_requires",
+        "rollback_if",
+        "boundaries"
+      ],
+      "properties": {
+        "state": { "const": "pending_evidence" },
+        "operator_choice_required": { "const": true },
+        "retain_for_observation_requires": {
+          "type": "array",
+          "minItems": 7,
+          "uniqueItems": true
+        },
+        "rollback_if": { "type": "array", "minItems": 7, "uniqueItems": true },
+        "boundaries": { "type": "array", "minItems": 4, "uniqueItems": true }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "local_root_pattern",
+        "directory_mode",
+        "file_mode",
+        "raw_evidence_in_git",
+        "records"
+      ]
+    },
+    "authorization": {
+      "type": "object",
+      "required": [
+        "command",
+        "bundle_algorithm",
+        "authorized_stage",
+        "mutation_authorized",
+        "excluded_stages",
+        "blockers"
+      ],
+      "properties": {
+        "bundle_algorithm": { "const": "sha256" },
+        "authorized_stage": { "const": "storage_diagnostic" },
+        "mutation_authorized": { "const": false },
+        "excluded_stages": { "type": "array", "minItems": 9, "uniqueItems": true },
+        "blockers": { "type": "array", "uniqueItems": true }
+      }
+    }
   },
   "allOf": [
     {
@@ -80,9 +155,12 @@
       },
       "then": {
         "properties": {
-          "operation": { "properties": { "state": { "const": "pending" } } },
-          "inputs": { "properties": { "package_specs": { "minItems": 11, "maxItems": 11 } } },
-          "authorization": { "properties": { "blockers": { "maxItems": 0 } } }
+          "operation": {
+            "properties": { "state": { "const": "pending" } }
+          },
+          "authorization": {
+            "properties": { "blockers": { "maxItems": 0 } }
+          }
         }
       }
     }

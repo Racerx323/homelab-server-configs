@@ -23,7 +23,9 @@ live stage requires separately reviewed inputs and scoped authorization.
 | Host FQDN | `j2-svpi4mf.local.theama.co` |
 | Application FQDN | `nautobot.local.theama.co` |
 | Platform | Raspberry Pi 4B, four ARM64 cores, 8 GB RAM |
-| Storage | 1 TB USB 3 UAS SSD, ext4 root filesystem |
+| Power | PoE Texas `GAT-PiHAT`, IEEE 802.3at, rated up to 20 W |
+| Storage adapter | Geekworm `X872 V2.0`, USB 3.0 to M.2 NVMe, up to 5 Gbps |
+| Storage | 1 TB NVMe over USB 3 UAS, ext4 root filesystem |
 | Container runtime | Rootless Podman with user Quadlets |
 
 Before defining the host-baseline operation, a fresh read-only qualification
@@ -33,6 +35,13 @@ deployment. Preserve the bounded qualification evidence outside this
 architecture plan and bind its sanitized evidence manifest to the operation.
 ARM64 remains a pilot risk because Nautobot publishes ARM64 images but does not
 cover that architecture in its automated tests.
+
+The storage diagnostic must treat both the power and transport paths as
+possible contributors to a USB/UAS reset. Verify the negotiated PoE supply,
+Raspberry Pi throttling history, USB link speed, bridge identity, UAS driver,
+and NVMe health from the live host rather than inferring them from product
+names. Manufacturer references: [PoE Texas GAT-PiHAT][gat-pihat] and
+[Geekworm X872 V2.0][x872-v2].
 
 Pin these initial application versions:
 
@@ -379,3 +388,6 @@ rollback boundary, and obtain scoped authorization.
 - <https://docs.nautobot.com/projects/dns-models/en/stable/>
 - <https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html>
 - <https://www.backblaze.com/docs/cloud-storage-integrate-restic-with-backblaze-b2>
+
+[gat-pihat]: https://shop.poetexas.com/products/gat-pihat
+[x872-v2]: https://geekworm.com/products/x872-v2
