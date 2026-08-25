@@ -78,16 +78,39 @@
       failed_when: host_baseline_keepalived_unit.rc not in [0, 1, 4]
       check_mode: false
 
+    - name: Read failed systemd units before mutation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - list-units
+          - --state=failed
+          - --all
+          - --no-legend
+          - --plain
+      register: host_baseline_preflight_failed_units
+      changed_when: false
+      check_mode: false
+
     - name: Enforce the Keepalived ownership boundary before mutation
       ansible.builtin.assert:
         that:
-          - host_baseline_keepalived_package.rc == 1
+          - >-
+            host_baseline_keepalived_package.rc == 1
+            or (
+              host_baseline_keepalived_package.rc == 0
+              and (host_baseline_keepalived_package.stdout | trim)
+                == 'not-installed'
+            )
           - not host_baseline_keepalived_configuration.stat.exists
           - host_baseline_keepalived_processes.rc == 1
           - "'LoadState=not-found' in host_baseline_keepalived_unit.stdout_lines"
+          - >-
+            'keepalived.service'
+            not in host_baseline_preflight_failed_units.stdout
         fail_msg: >-
-          Keepalived remains present. This Nautobot operation has no authority
-          to remove it.
+          Keepalived remains installed, configured, running, loaded, or
+          registered as a failed unit. This Nautobot operation has no authority
+          to complete its cleanup.
 
     - name: Simulate the exact package installation
       ansible.builtin.command:

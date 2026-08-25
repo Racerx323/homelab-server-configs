@@ -3,7 +3,8 @@
 `playbooks/qualify-host.yaml` collects the read-only host qualification required
 before you define a host-baseline operation. Its target assertion permits only
 `j2-svpi4mf`, and the playbook contains no configuration-management tasks. The
-collector verifies the Keepalived ownership boundary and records APT candidate
+collector verifies the permanent ULA and the complete Keepalived ownership
+boundary, including any failed-unit registration. It also records APT candidate
 versions for the exact host-baseline package specifications.
 
 Review the fixed live command without contacting the host:

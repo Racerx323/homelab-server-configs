@@ -356,6 +356,28 @@
       changed_when: false
       check_mode: false
 
+    - name: Select the expected permanent ULA
+      ansible.builtin.set_fact:
+        qualification_expected_ula_matches: >-
+          {{
+            qualification_network_addresses.stdout
+            | from_json
+            | map(attribute='addr_info')
+            | flatten
+            | selectattr('family', 'equalto', 'inet6')
+            | selectattr(
+                'local',
+                'equalto',
+                management.permanent_ipv6_ula.split('/')[0]
+              )
+            | selectattr(
+                'prefixlen',
+                'equalto',
+                management.permanent_ipv6_ula.split('/')[1] | int
+              )
+            | list
+          }}
+
     - name: Read network routes
       ansible.builtin.command:
         argv:
@@ -566,6 +588,11 @@
                 {{ qualification_keepalived_configuration.stat.exists }}
               processes: "{{ qualification_keepalived_processes.stdout_lines }}"
               unit: "{{ qualification_keepalived_unit.stdout_lines }}"
+              failed_unit_registered: >-
+                {{
+                  'keepalived.service'
+                  in qualification_failed_units.stdout
+                }}
             systemd:
               selected_units: "{{ qualification_unit_states.stdout_lines }}"
               failed_units: "{{ qualification_failed_units.stdout_lines }}"
@@ -575,6 +602,8 @@
             network:
               addresses: "{{ qualification_network_addresses.stdout | from_json }}"
               routes: "{{ qualification_network_routes.stdout | from_json }}"
+              expected_permanent_ula_present: >-
+                {{ qualification_expected_ula_matches | length == 1 }}
               active_networkmanager_connections: >-
                 {{
                   qualification_networkmanager.stdout_lines
@@ -706,14 +735,31 @@
           throttling status is unavailable, or throttling has occurred. Do not
           proceed to host-baseline mutation.
 
+    - name: Enforce the permanent ULA gate
+      ansible.builtin.assert:
+        that:
+          - qualification_expected_ula_matches | length == 1
+        fail_msg: >-
+          The permanent ULA {{ management.permanent_ipv6_ula }} is absent or
+          duplicated. homelab-network must configure the address before the
+          Nautobot host-baseline operation can mutate this host.
+
     - name: Enforce the Keepalived ownership boundary
       ansible.builtin.assert:
         that:
-          - qualification_keepalived_package.rc == 1
+          - >-
+            qualification_keepalived_package.rc == 1
+            or (
+              qualification_keepalived_package.rc == 0
+              and (qualification_keepalived_package.stdout | trim)
+                == 'not-installed'
+            )
           - not qualification_keepalived_configuration.stat.exists
           - qualification_keepalived_processes.rc == 1
           - "'LoadState=not-found' in qualification_keepalived_unit.stdout_lines"
+          - "'keepalived.service' not in qualification_failed_units.stdout"
         fail_msg: >-
-          Keepalived remains present. homelab-dns must complete and validate
-          its removal before the Nautobot host-baseline operation can mutate
+          Keepalived remains installed, configured, running, loaded, or
+          registered as a failed unit. homelab-dns must complete and validate
+          its cleanup before the Nautobot host-baseline operation can mutate
           this host.
