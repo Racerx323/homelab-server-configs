@@ -40,7 +40,16 @@ inputs:
     - dbus-user-session
     - smartmontools
     - restic
-  package_specs: []
+  package_specs:
+    - podman=5.4.2+ds1-2+b2
+    - uidmap=1:4.17.4-2
+    - passt=0.0~git20250503.587980c-2+deb13u1
+    - slirp4netns=1.2.1-1.1
+    - fuse-overlayfs=1.14-1+b1
+    - crun=1.21-1
+    - dbus-user-session=1.16.2-2
+    - smartmontools=7.4-3
+    - restic=0.18.0-1+b4
   service_account:
     name: nautobot
     home: /var/lib/nautobot
@@ -131,7 +140,5 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
-    - fresh_post_keepalived_qualification
-    - exact_apt_package_specs
     - checkpointed_source_revision
     - reviewed_bundle_sha256
