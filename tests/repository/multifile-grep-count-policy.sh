@@ -34,6 +34,7 @@ check_file() {
         return 1
     fi
 }
+
 run_checks() {
     local multifile_grep_policy_source_index=0
     local multifile_grep_policy_source_path
@@ -52,6 +53,7 @@ run_checks() {
     printf '%s_failed_file_count=%s\n' "$prefix" "$multifile_grep_policy_failure_count"
     [[ "$multifile_grep_policy_failure_count" -eq 0 ]]
 }
+
 run_self_test() {
     local multifile_grep_policy_safe=$work_root/safe.sh
     local multifile_grep_policy_unsafe=$work_root/unsafe.sh
@@ -93,7 +95,7 @@ LONG_UNSAFE
     printf '%s_self_test_complete=true\n' "$prefix"
 }
 
-work_root=$(mktemp -d /tmp/caddy-multifile-grep-count-policy.XXXXXX)
+work_root=$(mktemp -d /tmp/repository-multifile-grep-count-policy.XXXXXX)
 readonly work_root
 cleanup() { rm -rf -- "$work_root"; }
 trap cleanup EXIT INT TERM

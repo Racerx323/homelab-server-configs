@@ -14,97 +14,105 @@ repos:
 
       - id: shfmt
         name: shfmt
-        entry: Caddy/tests/shfmt-canonical.sh --check
+        entry: tests/repository/shfmt-canonical.sh --check
         language: system
         types: [shell]
 
       - id: multifile-grep-count-policy
         name: Reject multi-file grep scalar counts
-        entry: Caddy/tests/multifile-grep-count-policy.sh --check
+        entry: tests/repository/multifile-grep-count-policy.sh --check
         language: system
         types: [shell]
 
       - id: accepted-live-hash-policy
-        name: Reject stale accepted-live hash consumers
+        name: Reject stale Caddy accepted-live hash consumers
         entry: Caddy/tests/accepted-live-hash-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: deployable-successor-policy
-        name: Validate neutral full-path deployment operation
+        name: Validate Caddy neutral full-path deployment operation
         entry: /bin/bash Caddy/tests/deployable-successor-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/|deployment-streams\.tsv$|DEPLOYMENT_LIFECYCLE\.md$|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: deployment-window-policy
-        name: Enforce repository deployment windows
+        name: Enforce Caddy deployment window
         entry: /bin/bash Caddy/tests/deployment-window-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/|deployment-streams\.tsv$|DEPLOYMENT_LIFECYCLE\.md$|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: systemd-boot-persistence-policy
         name: Validate Caddy systemd boot persistence contract
         entry: Caddy/tests/systemd-boot-persistence-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/(?:scripts|systemd|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: focused-validation-manifest-policy
         name: Validate focused Caddy test manifest
         entry: Caddy/tests/focused-validation-manifest-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/tests/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: test-lifecycle-policy
         name: Validate Caddy test lifecycle inventory
         entry: /bin/bash Caddy/tests/test-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/tests/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: template-lifecycle-policy
         name: Reject nonproduction Caddy template consumers
         entry: /bin/bash Caddy/tests/template-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/(?:templates|configs|scripts|manifests|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: operator-documentation-policy
         name: Validate Caddy operator documentation contract
         entry: /bin/bash Caddy/tests/operator-documentation-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/(?:README\.md|docs/.*\.md|scripts/|manifests/|tests/)|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: deployment-lifecycle-policy
         name: Reject nonproduction Caddy deployment inputs
         entry: /bin/bash Caddy/tests/deployment-lifecycle-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: caddy-environment-v2-policy
         name: Validate minimal Caddy node environment
         entry: /bin/bash Caddy/tests/caddy-environment-v2-policy.sh --check
         language: system
         pass_filenames: false
-        files: ^(?:Caddy/(?:templates|configs|scripts|tests)/|AGENTS\.md$|\.pre-commit-config\.yaml$)
+        files: ^(?:Caddy/|\.pre-commit-config\.yaml$)
 
       - id: portable-awk-policy
         name: Reject non-portable awk interval expressions
-        entry: Caddy/tests/portable-awk-policy.sh --check
+        entry: tests/repository/portable-awk-policy.sh --check
         language: system
         types: [shell]
 
-      - id: remote-streamed-bash-cwd-policy
+      - id: remote-streamed-bash-policy
         name: Enforce safe remote Bash transport
-        entry: Caddy/tests/remote-streamed-bash-cwd-policy.sh --check
+        entry: tests/repository/remote-streamed-bash-policy.sh --check
         language: system
         types: [shell]
+        files: ^(?:.*/)?scripts/.*\.sh$
+
+      - id: repository-shell-policy-self-tests
+        name: Validate repository shell policy regressions
+        entry: /bin/bash tests/repository/run-policy-self-tests.sh
+        language: system
+        pass_filenames: false
+        files: ^tests/repository/.*\.sh$
 
       - id: markdownlint-cli2
         name: markdownlint-cli2

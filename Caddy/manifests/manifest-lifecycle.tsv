@@ -9,6 +9,7 @@ Caddy/manifests/deployable-live-hash-consumers.tsv	production-current	yes	Caddy/
 Caddy/manifests/deployable-successor-coverage.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployable-successor.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/deployment.yaml	production-current	yes	Caddy/manifests/README.md
+Caddy/manifests/deployment-streams.tsv	production-current	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
 Caddy/manifests/dns-records.yaml	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/durable-apprise-production.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/production-artifacts.tsv	production-current	yes	Caddy/manifests/README.md

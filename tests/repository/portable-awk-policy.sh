@@ -12,7 +12,7 @@ readonly interval_regex='\{[0-9]+(,[0-9]*)?\}'
 readonly double_quoted_regex='"([^"\\]|\\.)*"'
 test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
-readonly repository_root=${test_directory%/Caddy/tests}
+readonly repository_root=${test_directory%/tests/repository}
 
 scan_file() {
     local portable_awk_path=$1
@@ -56,7 +56,7 @@ run_self_test() {
     local portable_awk_root
     local portable_awk_invalid_interval='{64}'
 
-    portable_awk_root=$(mktemp -d /tmp/caddy-portable-awk-policy.XXXXXX)
+    portable_awk_root=$(mktemp -d /tmp/repository-portable-awk-policy.XXXXXX)
     {
         printf '%s\n' '#!/usr/bin/env bash' "awk '"
         # These are literal source fixtures, not expressions for this shell.
@@ -94,7 +94,12 @@ case "${1:---self-test}" in
         portable_awk_failed=0
         if [[ $# -eq 0 ]]; then
             mapfile -t portable_awk_paths < <(
-                git -C "$repository_root" ls-files 'Caddy/*.sh' 'Caddy/**/*.sh' |
+                git -C "$repository_root" ls-files --cached --others \
+                    --exclude-standard '*.sh' |
+                    while IFS= read -r portable_awk_relative; do
+                        [[ -f "$repository_root/$portable_awk_relative" ]] &&
+                            printf '%s\n' "$portable_awk_relative"
+                    done |
                     LC_ALL=C sort -u
             )
             for portable_awk_index in "${!portable_awk_paths[@]}"; do

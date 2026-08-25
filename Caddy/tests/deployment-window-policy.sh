@@ -20,7 +20,7 @@ else
     deployment_window_repository_root=$deployment_window_default_root
 fi
 readonly deployment_window_repository_root
-readonly deployment_window_registry=${DEPLOYMENT_WINDOW_REGISTRY:-$deployment_window_repository_root/deployment-streams.tsv}
+readonly deployment_window_registry=${DEPLOYMENT_WINDOW_REGISTRY:-$deployment_window_repository_root/Caddy/manifests/deployment-streams.tsv}
 
 deployment_window_record_check() {
     local deployment_window_label=$1

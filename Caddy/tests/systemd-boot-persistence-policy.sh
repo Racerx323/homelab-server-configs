@@ -11,7 +11,7 @@ readonly prefix=systemd_boot_persistence_policy
 test_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly test_directory
 readonly caddy_root=${test_directory%/tests}
-readonly agents_file=$caddy_root/../AGENTS.md
+readonly agents_file=$caddy_root/AGENTS.md
 readonly systemd_registry=$caddy_root/manifests/systemd-lifecycle.tsv
 readonly health_worker=$caddy_root/scripts/validate-sync-health.sh
 readonly lsyncd_unit=$caddy_root/systemd/caddy-lsyncd.service

@@ -2,8 +2,7 @@
 useDefault = true
 
 [allowlist]
-description = "Ignore generated vexp metadata and exact public integrity pins"
-paths = ['''^\.vexp/''']
+description = "Ignore exact public integrity pins"
 regexTarget = "match"
 regexes = [
   '''^key_sha=783dfee04b19e851a928cd87b34710213ebbe7628f98d9f34595ab83be578c00$''',

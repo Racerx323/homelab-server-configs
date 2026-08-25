@@ -46,16 +46,16 @@ readonly -a focused_shell_files
 
 record_check syntax /bin/bash -n "${focused_shell_files[@]}" || exit 1
 record_check shellcheck shellcheck "${focused_shell_files[@]}" || exit 1
-record_check format /bin/bash "$test_directory/shfmt-canonical.sh" --check \
+record_check format /bin/bash "$repository_root/tests/repository/shfmt-canonical.sh" --check \
     "${focused_shell_files[@]}" || exit 1
 record_check readonly_local /bin/bash \
     "$test_directory/check-shell-readonly-local-collisions-v2.sh" \
     "${focused_shell_files[@]}" || exit 1
 record_check multifile_grep /bin/bash \
-    "$test_directory/multifile-grep-count-policy.sh" --check \
+    "$repository_root/tests/repository/multifile-grep-count-policy.sh" --check \
     "${focused_shell_files[@]}" || exit 1
 record_check portable_awk /bin/bash \
-    "$test_directory/portable-awk-policy.sh" --check \
+    "$repository_root/tests/repository/portable-awk-policy.sh" --check \
     "${focused_shell_files[@]}" || exit 1
 
 printf '%s_file_count=%s\n' "$prefix" "${#focused_shell_files[@]}"

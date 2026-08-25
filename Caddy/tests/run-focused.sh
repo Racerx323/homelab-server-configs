@@ -240,7 +240,7 @@ case "$selection_mode" in
                 continue
             fi
             case "$focused_runner_changed_path" in
-                Caddy/* | AGENTS.md | .pre-commit-config.yaml)
+                Caddy/* | .pre-commit-config.yaml)
                     focused_runner_path_covered=false
                     while IFS= read -r focused_runner_profile; do
                         while IFS= read -r focused_runner_pattern; do
@@ -325,7 +325,7 @@ run_policy() {
         remote-cwd)
             [[ -s "$shell_path" ]] || return 1
             mapfile -t focused_runner_shell_files <"$shell_path"
-            /bin/bash "$test_directory/remote-streamed-bash-cwd-policy.sh" --check \
+            /bin/bash "$repository_root/tests/repository/remote-streamed-bash-policy.sh" --check \
                 "${focused_runner_shell_files[@]}"
             ;;
         ssh-evidence)

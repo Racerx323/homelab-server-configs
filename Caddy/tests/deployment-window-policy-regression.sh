@@ -47,7 +47,7 @@ deployment_window_regression_write_registry() {
     printf '%s\n' \
         $'schema_version\tcomponent\tcomponent_root\tplan\thistory\tsuccessor_registry\tcoverage_registry\twindow_state\taction\tterminal_result\tarchive_tag' \
         "1"$'\t'"caddy"$'\t'"Caddy"$'\t'"Caddy/docs/plan.md"$'\t'"Caddy/HISTORY.md"$'\t'"Caddy/manifests/deployable-successor.tsv"$'\t'"Caddy/manifests/deployable-successor-coverage.tsv"$'\t'"$deployment_window_regression_state"$'\t'"$deployment_window_regression_action"$'\t'"$deployment_window_regression_result"$'\t'"$deployment_window_regression_tag" \
-        >"$deployment_window_regression_root/deployment-streams.tsv"
+        >"$deployment_window_regression_root/Caddy/manifests/deployment-streams.tsv"
 }
 
 deployment_window_regression_write_successor() {
@@ -109,7 +109,7 @@ rm -f -- "$deployment_window_regression_root/Caddy/scripts/apply-action35.sh"
 
 printf '%s\n' \
     $'1\tduplicate\tCaddy2\tCaddy/docs/plan.md\tCaddy/HISTORY.md\tCaddy/manifests/deployable-successor.tsv\tCaddy/manifests/deployable-successor-coverage.tsv\tclean\t-\t-\t-' \
-    >>"$deployment_window_regression_root/deployment-streams.tsv"
+    >>"$deployment_window_regression_root/Caddy/manifests/deployment-streams.tsv"
 deployment_window_regression_record duplicate_stream_rejected \
     deployment_window_regression_policy_rejects || exit 1
 

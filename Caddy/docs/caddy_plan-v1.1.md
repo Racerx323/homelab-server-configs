@@ -319,6 +319,7 @@ inventories, and accepted production state:
 | `Caddy/docs/UNINSTALLATION.md` | Standby-first removal, release and queue preservation, service disablement, and externally owned boundaries |
 | `Caddy/docs/TROUBLESHOOTING.md` | Caddy, DNS, lighttpd, Keepalived, lsyncd, reconciler, TLS, queue, timer, and ownership failures |
 | `Caddy/docs/ARCHITECTURE.md` | As-built component boundaries and Mermaid steady-state, publication, and failover diagrams |
+| `Caddy/docs/DEPLOYMENT_LIFECYCLE.md` | Caddy operation-window states, terminal archival, production-state equivalence, and causal evidence rules |
 | `Caddy/docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md` | Prepared-release construction, protocol-v2 transfer, activation, acceptance, and record reconciliation |
 
 Keep documentation authority separated:

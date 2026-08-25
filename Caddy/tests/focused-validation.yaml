@@ -298,9 +298,9 @@
       "description": "Repository documentation, pre-commit, accepted-live, executable, and conditional-validator governance.",
       "path_patterns": [
         ".pre-commit-config.yaml",
-        "AGENTS.md",
-        "DEPLOYMENT_LIFECYCLE.md",
-        "deployment-streams.tsv",
+        "Caddy/AGENTS.md",
+        "Caddy/docs/DEPLOYMENT_LIFECYCLE.md",
+        "Caddy/manifests/deployment-streams.tsv",
         "Caddy/README.md",
         "Caddy/configs/README.md",
         "Caddy/manifests/README.md",
@@ -364,7 +364,6 @@
         "Caddy/tests/accepted-live-hash-policy.sh",
         "Caddy/tests/accepted-live-hash-policy-regression.sh",
         "Caddy/tests/template-lifecycle-policy.sh",
-        "Caddy/tests/portable-awk-policy.sh",
         "Caddy/tests/operator-documentation-policy.sh"
       ],
       "host_tests": [
@@ -375,7 +374,6 @@
         "Caddy/tests/deployable-successor-policy-regression.sh",
         "Caddy/tests/template-lifecycle-policy.sh",
         "Caddy/tests/test-lifecycle-policy.sh",
-        "Caddy/tests/portable-awk-policy.sh",
         "Caddy/tests/operator-documentation-policy.sh"
       ],
       "debian_tests": [
@@ -383,8 +381,7 @@
         "Caddy/tests/deployment-lifecycle-regression.sh",
         "Caddy/tests/deployment-window-policy-regression.sh",
         "Caddy/tests/deployable-successor-policy-regression.sh",
-        "Caddy/tests/template-lifecycle-policy.sh",
-        "Caddy/tests/portable-awk-policy.sh"
+        "Caddy/tests/template-lifecycle-policy.sh"
       ],
       "policies": [
         "accepted-live-hashes",

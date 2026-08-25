@@ -13,6 +13,7 @@ clean; no successor is registered.
 | `runtime-production.tsv` | Neutral current runtime boundary |
 | `current-live-state.tsv` | Accepted semantic input for the next transaction |
 | `deployment.yaml` | Current topology and application contract |
+| `deployment-streams.tsv` | Caddy deployment-window state and terminal archive boundary |
 | `dns-records.yaml` | Application DNS contract |
 | `synchronization-protocol-v2.yaml` | Release transport and reconciliation |
 | `durable-apprise-production.tsv` | Notification queue installation contract |
