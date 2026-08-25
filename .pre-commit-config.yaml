@@ -218,6 +218,15 @@ repos:
         files: >-
           ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|STORAGE_REMEDIATION_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
+      - id: nautobot-uas-quirk-launcher
+        name: Validate Nautobot JMicron UAS-quirk operation
+        entry: >-
+          /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:docs/STORAGE_REMEDIATION_DECISION\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+
       - id: check-json
         name: Validate JSON with jq
         entry: jq empty

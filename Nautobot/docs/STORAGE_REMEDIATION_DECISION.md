@@ -34,7 +34,7 @@ undervoltage less likely; they do not exclude intermittent faults.
 
 ## Options
 
-### A. Controlled physical-path inspection — recommended first
+### A. Controlled physical-path inspection
 
 Perform a clean shutdown with local-console recovery available. Remove power,
 inspect and reseat the X872 board, M.2 device, spacers, GPIO connection, and USB
@@ -71,9 +71,13 @@ instead of UAS, reboot once, prove the active driver, and repeat storage
 validation. This may avoid a UAS compatibility fault at the cost of lower
 performance and a persistent boot configuration change.
 
-Use this only after physical inspection, or when physical replacement is not
-practical. The exact Raspberry Pi boot configuration location and rollback
-must be verified on the installed Debian release before authorization.
+The selected controlled software A/B test uses
+`usb-storage.quirks=152d:0583:u`. Read-only inspection established that this
+host boots from `/boot/firmware/cmdline.txt`; `/boot/cmdline.txt` is only a
+relocation notice. The operation must bind to the observed boot-file hash,
+preserve its single logical line and missing trailing newline, retain an exact
+rollback copy, and stop for local-console recovery if the host does not return
+after reboot.
 
 ### E. Restore the pre-v3 host baseline
 
@@ -86,14 +90,19 @@ window and an explicit sequencing decision.
 ## Required decision and sequence
 
 Select one hardware or transport option independently from the host-baseline
-rollback decision. The recommended sequence is:
+rollback decision. The selected sequence is:
 
 1. Confirm local-console recovery and backup status.
-2. Perform Option A under a separately authorized operation.
-3. Run the corrected read-only diagnostic and observe at least 24 hours with
+2. Perform Option D under the separately defined and hash-authorized
+   `nautobot-uas-quirk-v1` operation.
+3. Prove the running kernel command line contains the quirk exactly once, the
+   root source remains `/dev/sda2`, and JMicron `152d:0583` binds to
+   `usb-storage` rather than `uas`.
+4. Run the corrected read-only diagnostic and observe at least 24 hours with
    no I/O error, USB reset, UAS reset, ext4 error, or SMART degradation.
-4. If resets recur, choose one controlled A/B test: Option B, C, or D.
-5. After storage is stable, separately authorize the pre-v3 host-baseline
+5. If instability recurs, roll back the boot file and reboot when the host is
+   reachable; use the confirmed local-console recovery path if it is not.
+6. After storage is stable, separately resume and authorize the pre-v3 host-baseline
    rollback or approve a new host-baseline convergence operation.
 
 Do not combine physical changes, UAS changes, filesystem repair, package

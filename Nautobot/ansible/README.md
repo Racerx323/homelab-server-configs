@@ -154,3 +154,54 @@ operation blocker is cleared and the final bundle receives scoped approval:
 
 Storage remediation, filesystem work, network changes, DNS changes, and a
 forward host-baseline reapply are outside this rollback operation.
+
+## JMicron UAS-quirk remediation
+
+`playbooks/apply-uas-quirk.yaml` and `scripts/run-uas-quirk.sh` define the
+single-host transport A/B test for JMicron `152d:0583`. The operation verifies
+the exact root device, bridge identity, current `uas` binding, active
+`/boot/firmware/cmdline.txt` hash, single-line formatting, and absence of a
+prior rollback copy before mutation.
+
+Review the definition without host contact:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh show-bundle
+```
+
+The separately authorized read-only preflight is:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh preflight
+```
+
+After local-console recovery, backup, fresh preflight, checkpoint, and bundle
+gates are satisfied, the mutation command has this form:
+
+```bash
+/bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh execute BUNDLE_SHA256
+```
+
+The playbook appends `usb-storage.quirks=152d:0583:u` without adding a newline,
+reboots once, and requires `usb-storage` rather than `uas`. A reachable
+post-reboot acceptance failure restores the exact backup and reboots again.
+Failure to regain SSH requires local-console restoration. Immediate acceptance
+remains provisional until the corrected storage diagnostic and 24-hour soak
+pass; the rollback copy remains in place until terminal acceptance.
+
+If the first reboot does not restore SSH, use the confirmed local console and
+restore only the reviewed boot file:
+
+```bash
+sudo /usr/bin/cp --force --preserve=mode,ownership,timestamps -- \
+  /boot/firmware/cmdline.txt.nautobot-uas-quirk-v1.bak \
+  /boot/firmware/cmdline.txt
+/usr/bin/sha256sum /boot/firmware/cmdline.txt
+sudo /usr/sbin/reboot
+```
+
+The restored hash must be
+`c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f`.
+After reboot, `/proc/cmdline` must omit the quirk, `/` must remain on
+`/dev/sda2`, and udev must again report `ID_USB_DRIVER=uas`. Retain the backup
+until terminal storage acceptance; do not delete it during immediate cleanup.

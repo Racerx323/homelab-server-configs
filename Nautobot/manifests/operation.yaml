@@ -2,149 +2,95 @@
 schema_version: 1
 
 operation:
-  id: nautobot-host-baseline-rollback-v1
+  id: nautobot-uas-quirk-v1
   state: definition
   authorization_ready: false
-  stage: host_baseline_rollback
-  target:
-    host: j2-svpi4mf
-    address: 10.1.2.170
-    ssh_user: ama
+  stage: storage_remediation
+  target: {host: j2-svpi4mf, address: 10.1.2.170, ssh_user: ama}
   architecture:
     plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
+    decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
   source:
     repository: homelab-server-configs
-    base_commit: 5d6576793839530d58e3176c24223bf04789d55c
+    base_commit: 78b17977858d7db24d8f74d83fd17fe8c2ac206a
 
-predecessor:
-  operation: nautobot-host-baseline-v3
-  terminal_tag: nautobot-host-baseline-v3-manual-intervention
-  bundle_sha256: 67bd775d73e2bb05fcf9bb64f794a853b28e4d1dba60dec0a66554ee35a06c50
-  mutation_evidence:
-    package_change: true
-    account_change: true
-    subordinate_uid_change: true
-    subordinate_gid_change: true
-    linger_change: true
-    reboot_performed: true
-  rollback_trigger:
-    diagnostic_operation: nautobot-storage-diagnostic-v1
-    terminal_tag: nautobot-storage-diagnostic-v1-action-required
-    conditions:
-      - storage_event_recurred
-      - uas_usb_attachment_unstable
+deferred_operation:
+  id: nautobot-host-baseline-rollback-v1
+  definition_checkpoint: 78b17977858d7db24d8f74d83fd17fe8c2ac206a
+  reusable_launcher: Nautobot/ansible/scripts/run-host-baseline-rollback.sh
+  reusable_playbook: Nautobot/ansible/playbooks/rollback-host-baseline.yaml
+  resume_only_after: storage_remediation_accepted
 
-proven_pre_state:
-  packages_absent:
-    - podman
-    - uidmap
-    - passt
-    - slirp4netns
-    - fuse-overlayfs
-    - crun
-    - smartmontools
-    - restic
-    - msmtp-mta
-  packages_preserved:
-    - dbus-user-session
-    - msmtp
-  service_account_absent: nautobot
-  subordinate_uid_absent: "nautobot:165536:65536"
-  subordinate_gid_absent: "nautobot:165536:65536"
-  lingering_absent: nautobot
-  services_active_enabled:
-    - avahi-daemon.service
-    - avahi-daemon.socket
-    - bluetooth.service
-    - ModemManager.service
-  preexisting_automatically_removable_packages: []
-
-qualification:
-  command: >-
-    /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh preflight
+preflight:
+  command: /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh preflight
   read_only: true
   maximum_age_minutes: 30
-  required_before_live_authorization: true
   status: pending
   evidence_manifest_sha256: null
   completed_at_utc: null
+  require_local_console_recovery: true
+  local_console_recovery_confirmed: false
+  require_current_backup: true
+  current_backup_confirmed: false
+  expected:
+    hostname: j2-svpi4mf
+    architecture: aarch64
+    root_source: /dev/sda2
+    boot_cmdline_path: /boot/firmware/cmdline.txt
+    boot_cmdline_sha256: c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f
+    usb_vendor_id: 152d
+    usb_product_id: "0583"
+    usb_driver: uas
+    quirk_absent: usb-storage.quirks=152d:0583:u
 
-preflight:
-  read_only: true
-  require_root_source: /dev/sda2
-  require_storage_stability_window_minutes: 10
-  require_no_recent_events:
-    - read_io_error
-    - uas_device_reset
-    - superspeed_usb_reset
-  require_exact_package_removal_simulation: true
-  require_proven_predecessor_changes_present: true
-  require_local_recovery_available: true
-  local_recovery_confirmed: false
-  storage_remediation_sequence: undecided
-
-rollback:
-  ordered:
-    - restore_preexisting_unwanted_service_states
-    - stop_and_disable_smart_monitoring
-    - disable_nautobot_lingering
-    - remove_nautobot_subordinate_ids
-    - remove_nautobot_service_account_and_home
-    - purge_only_packages_proven_absent_before_v3
-    - retain_dependency_residue_without_autoremove
-    - reboot_once
-  package_autoremove: false
-  preserve_unrelated_packages: true
-  preserve_network_configuration: true
-  preserve_dns_configuration: true
-  preserve_firewall_configuration: true
-  preserve_storage_configuration: true
-  preserve_msmtp: true
+mutation:
+  boot_cmdline_path: /boot/firmware/cmdline.txt
+  backup_path: /boot/firmware/cmdline.txt.nautobot-uas-quirk-v1.bak
+  append_token: usb-storage.quirks=152d:0583:u
+  preserve_single_logical_line: true
+  preserve_no_trailing_newline: true
+  reboot_once: true
+  reboot_timeout_seconds: 300
 
 acceptance:
-  require_packages_absent: true
-  require_preserved_packages_present: true
-  require_service_account_absent: true
-  require_subordinate_ids_absent: true
-  require_lingering_absent: true
-  require_preexisting_service_states_restored: true
-  require_zero_failed_units: true
-  require_no_new_storage_events: true
-  require_dependency_residue_report: true
+  immediate:
+    require_root_source: /dev/sda2
+    require_cmdline_token_count: 1
+    require_usb_driver: usb-storage
+    reject_usb_driver: uas
+    require_usb_vendor_id: 152d
+    require_usb_product_id: "0583"
+    require_zero_failed_units: true
+    require_no_new_events: [read_io_error, buffer_io_error, ext4_error, uas_reset, usb_reset]
+  soak:
+    minimum_hours: 24
+    require_corrected_storage_diagnostic: true
+    require_no_new_storage_events: true
+    require_smart_health_passed: true
+    require_zero_media_errors: true
+    require_zero_nvme_error_log_entries: true
+    require_zero_ext4_errors: true
+    require_isolated_backup_restore_before_nautobot_data: true
 
-failure:
-  automatic_forward_reapply: false
-  result_after_mutation_failure: manual_intervention
-  require_bounded_phase_evidence: true
+rollback:
+  trigger: [boot_file_verification_failure, reachable_post_reboot_acceptance_failure, unacceptable_storage_behavior, unacceptable_performance_or_smart_access]
+  ordered: [restore_exact_boot_file_backup, verify_original_boot_file_sha256, reboot_once, verify_original_cmdline_without_quirk, verify_root_source, verify_uas_driver_restored]
+  automatic_when_host_reachable: true
+  manual_console_required_when_host_unreachable: true
+  expected_restored_sha256: c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f
+  preserve_backup_until_terminal_acceptance: true
 
 evidence:
-  local_root_pattern: /tmp/nautobot-host-baseline-rollback.*
+  local_root_pattern: /tmp/nautobot-uas-quirk.*
   directory_mode: "0700"
   file_mode: "0600"
   stream_limit_bytes: 8388608
   raw_evidence_in_git: false
-  phases:
-    - preflight
-    - rollback
-    - acceptance
-    - residue
+  phases: [preflight, mutation, reboot_acceptance, rollback, soak]
 
 authorization:
-  command: >-
-    /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh execute
-    BUNDLE_SHA256
+  command: /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh execute BUNDLE_SHA256
   bundle_algorithm: sha256
-  authorized_stage: host_baseline_rollback
-  excluded_stages:
-    - storage_remediation
-    - filesystem_repair
-    - dual_stack_identity
-    - nautobot_pilot
-    - caddy_onboarding
-    - authority_migration
-    - semaphore
-  blockers:
-    - storage_remediation_sequence_decision_required
-    - fresh_read_only_rollback_preflight_required
-    - local_recovery_confirmation_required
-    - implementation_checkpoint_and_review_required
+  authorized_stage: storage_remediation
+  excluded_stages: [host_baseline_rollback, filesystem_repair, hardware_change, package_change, dual_stack_identity, nautobot_pilot, caddy_onboarding, authority_migration, semaphore]
+  blockers: [local_console_recovery_confirmation_required, current_backup_confirmation_required, fresh_read_only_preflight_required, implementation_checkpoint_and_review_required]

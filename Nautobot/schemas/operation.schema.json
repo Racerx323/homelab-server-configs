@@ -1,222 +1,107 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-host-baseline-rollback-v1.json",
-  "title": "Nautobot active host-baseline rollback operation",
+  "$id": "https://local.theama.co/schemas/nautobot-uas-quirk-v1.json",
+  "title": "Nautobot active UAS-quirk remediation operation",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "operation",
-    "predecessor",
-    "proven_pre_state",
-    "qualification",
-    "preflight",
-    "rollback",
-    "acceptance",
-    "failure",
-    "evidence",
-    "authorization"
-  ],
+  "required": ["schema_version", "operation", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": {"const": 1},
     "operation": {
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "state",
-        "authorization_ready",
-        "stage",
-        "target",
-        "architecture",
-        "source"
-      ],
+      "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
       "properties": {
-        "id": { "const": "nautobot-host-baseline-rollback-v1" },
-        "state": { "enum": ["definition", "pending"] },
-        "authorization_ready": { "type": "boolean" },
-        "stage": { "const": "host_baseline_rollback" },
+        "id": {"const": "nautobot-uas-quirk-v1"},
+        "state": {"enum": ["definition", "pending"]},
+        "authorization_ready": {"type": "boolean"},
+        "stage": {"const": "storage_remediation"},
         "target": {
           "type": "object",
-          "additionalProperties": false,
           "required": ["host", "address", "ssh_user"],
           "properties": {
-            "host": { "const": "j2-svpi4mf" },
-            "address": { "const": "10.1.2.170" },
-            "ssh_user": { "const": "ama" }
+            "host": {"const": "j2-svpi4mf"},
+            "address": {"const": "10.1.2.170"},
+            "ssh_user": {"const": "ama"}
           }
         },
-        "architecture": { "type": "object" },
+        "architecture": {"type": "object"},
         "source": {
           "type": "object",
-          "additionalProperties": false,
           "required": ["repository", "base_commit"],
           "properties": {
-            "repository": { "const": "homelab-server-configs" },
-            "base_commit": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{40}$"
-            }
+            "repository": {"const": "homelab-server-configs"},
+            "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
           }
         }
       }
     },
-    "predecessor": { "type": "object" },
-    "qualification": {
+    "deferred_operation": {
       "type": "object",
-      "required": [
-        "command",
-        "read_only",
-        "maximum_age_minutes",
-        "required_before_live_authorization",
-        "status",
-        "evidence_manifest_sha256",
-        "completed_at_utc"
-      ],
+      "required": ["id", "definition_checkpoint", "reusable_launcher", "reusable_playbook", "resume_only_after"],
       "properties": {
-        "read_only": { "const": true },
-        "maximum_age_minutes": { "type": "integer", "minimum": 1 },
-        "required_before_live_authorization": { "const": true },
-        "status": { "enum": ["pending", "passed"] },
-        "evidence_manifest_sha256": {
-          "type": ["null", "string"],
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "completed_at_utc": {
-          "type": ["null", "string"],
-          "format": "date-time"
-        }
-      }
-    },
-    "proven_pre_state": {
-      "type": "object",
-      "required": [
-        "packages_absent",
-        "packages_preserved",
-        "service_account_absent",
-        "subordinate_uid_absent",
-        "subordinate_gid_absent",
-        "lingering_absent",
-        "services_active_enabled",
-        "preexisting_automatically_removable_packages"
-      ],
-      "properties": {
-        "packages_absent": {
-          "type": "array",
-          "minItems": 9,
-          "maxItems": 9,
-          "uniqueItems": true
-        },
-        "packages_preserved": {
-          "type": "array",
-          "minItems": 2,
-          "uniqueItems": true
-        }
+        "id": {"const": "nautobot-host-baseline-rollback-v1"},
+        "definition_checkpoint": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "resume_only_after": {"const": "storage_remediation_accepted"}
       }
     },
     "preflight": {
       "type": "object",
-      "required": [
-        "read_only",
-        "require_root_source",
-        "require_storage_stability_window_minutes",
-        "require_no_recent_events",
-        "require_exact_package_removal_simulation",
-        "require_proven_predecessor_changes_present",
-        "require_local_recovery_available",
-        "local_recovery_confirmed",
-        "storage_remediation_sequence"
-      ],
+      "required": ["command", "read_only", "maximum_age_minutes", "status", "evidence_manifest_sha256", "completed_at_utc", "require_local_console_recovery", "local_console_recovery_confirmed", "require_current_backup", "current_backup_confirmed", "expected"],
       "properties": {
-        "read_only": { "const": true },
-        "require_storage_stability_window_minutes": {
-          "type": "integer",
-          "minimum": 10
-        },
-        "local_recovery_confirmed": { "type": "boolean" },
-        "storage_remediation_sequence": {
-          "enum": ["undecided", "rollback_before_remediation", "remediation_before_rollback"]
-        }
+        "read_only": {"const": true},
+        "maximum_age_minutes": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["pending", "passed"]},
+        "evidence_manifest_sha256": {"type": ["null", "string"], "pattern": "^[0-9a-f]{64}$"},
+        "completed_at_utc": {"type": ["null", "string"], "format": "date-time"},
+        "require_local_console_recovery": {"const": true},
+        "local_console_recovery_confirmed": {"type": "boolean"},
+        "require_current_backup": {"const": true},
+        "current_backup_confirmed": {"type": "boolean"},
+        "expected": {"type": "object"}
       }
     },
+    "mutation": {
+      "type": "object",
+      "required": ["boot_cmdline_path", "backup_path", "append_token", "preserve_single_logical_line", "preserve_no_trailing_newline", "reboot_once", "reboot_timeout_seconds"],
+      "properties": {
+        "boot_cmdline_path": {"const": "/boot/firmware/cmdline.txt"},
+        "append_token": {"const": "usb-storage.quirks=152d:0583:u"},
+        "preserve_single_logical_line": {"const": true},
+        "preserve_no_trailing_newline": {"const": true},
+        "reboot_once": {"const": true},
+        "reboot_timeout_seconds": {"type": "integer", "minimum": 120, "maximum": 600}
+      }
+    },
+    "acceptance": {"type": "object", "required": ["immediate", "soak"]},
     "rollback": {
       "type": "object",
-      "required": [
-        "ordered",
-        "package_autoremove",
-        "preserve_unrelated_packages",
-        "preserve_network_configuration",
-        "preserve_dns_configuration",
-        "preserve_firewall_configuration",
-        "preserve_storage_configuration",
-        "preserve_msmtp"
-      ],
+      "required": ["trigger", "ordered", "automatic_when_host_reachable", "manual_console_required_when_host_unreachable", "expected_restored_sha256", "preserve_backup_until_terminal_acceptance"],
       "properties": {
-        "ordered": { "type": "array", "minItems": 8, "uniqueItems": true },
-        "package_autoremove": { "const": false },
-        "preserve_unrelated_packages": { "const": true },
-        "preserve_network_configuration": { "const": true },
-        "preserve_dns_configuration": { "const": true },
-        "preserve_firewall_configuration": { "const": true },
-        "preserve_storage_configuration": { "const": true },
-        "preserve_msmtp": { "const": true }
+        "automatic_when_host_reachable": {"const": true},
+        "manual_console_required_when_host_unreachable": {"const": true},
+        "expected_restored_sha256": {"const": "c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f"},
+        "preserve_backup_until_terminal_acceptance": {"const": true}
       }
     },
-    "acceptance": { "type": "object" },
-    "failure": { "type": "object" },
-    "evidence": { "type": "object" },
+    "evidence": {"type": "object"},
     "authorization": {
       "type": "object",
-      "required": [
-        "command",
-        "bundle_algorithm",
-        "authorized_stage",
-        "excluded_stages",
-        "blockers"
-      ],
+      "required": ["command", "bundle_algorithm", "authorized_stage", "excluded_stages", "blockers"],
       "properties": {
-        "bundle_algorithm": { "const": "sha256" },
-        "authorized_stage": { "const": "host_baseline_rollback" },
-        "excluded_stages": { "type": "array", "minItems": 7, "uniqueItems": true },
-        "blockers": { "type": "array", "uniqueItems": true }
+        "bundle_algorithm": {"const": "sha256"},
+        "authorized_stage": {"const": "storage_remediation"},
+        "blockers": {"type": "array", "uniqueItems": true}
       }
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "operation": {
-            "properties": { "authorization_ready": { "const": true } },
-            "required": ["authorization_ready"]
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "operation": {
-            "properties": { "state": { "const": "pending" } }
-          },
-          "authorization": {
-            "properties": { "blockers": { "maxItems": 0 } }
-          },
-          "preflight": {
-            "properties": {
-              "local_recovery_confirmed": { "const": true },
-              "storage_remediation_sequence": {
-                "enum": ["rollback_before_remediation", "remediation_before_rollback"]
-              }
-            }
-          },
-          "qualification": {
-            "properties": {
-              "status": { "const": "passed" },
-              "evidence_manifest_sha256": { "type": "string" },
-              "completed_at_utc": { "type": "string" }
-            }
-          }
-        }
+  "allOf": [{
+    "if": {"properties": {"operation": {"properties": {"authorization_ready": {"const": true}}}}},
+    "then": {
+      "properties": {
+        "operation": {"properties": {"state": {"const": "pending"}}},
+        "preflight": {"properties": {"status": {"const": "passed"}, "local_console_recovery_confirmed": {"const": true}, "current_backup_confirmed": {"const": true}, "evidence_manifest_sha256": {"type": "string"}, "completed_at_utc": {"type": "string"}}},
+        "authorization": {"properties": {"blockers": {"maxItems": 0}}}
       }
     }
-  ]
+  }]
 }
