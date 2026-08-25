@@ -1,0 +1,108 @@
+---
+schema_version: 1
+
+operation:
+  id: nautobot-storage-diagnostic-v1
+  result: diagnostic_complete_action_required
+  definition_commit: e633c66dba4fc18cad72897a91f30311d3e33fdb
+  bundle_sha256: 575a5cad32cd4f836fb2851d83a0efb7123caa8fff5d4bf683dc3a1c4a212451
+  target: j2-svpi4mf
+  address: 10.1.2.170
+  started_at_utc: 2026-08-25T18:09:23Z
+  finished_at_utc: 2026-08-25T18:10:32Z
+  ansible_exit_status: 0
+  mutation_authorized: false
+  persistent_mutation_performed: false
+  stdout_truncated: false
+  stderr_truncated: false
+
+observations:
+  root_source: /dev/sda2
+  usb_bridge:
+    manufacturer: JMicron
+    vendor_id: "152d"
+    product_id: "0583"
+    driver: uas
+    negotiated_link_mbps: 5000
+  nvme:
+    capacity_bytes: 1000204886016
+    smart_health_passed: true
+    critical_warning: "0x00"
+    media_and_data_integrity_errors: 0
+    error_information_log_entries: 0
+    percentage_used: 0
+    temperature_celsius: 45
+    maximum_reported_sensor_celsius: 61
+  filesystem:
+    type: ext4
+    live_error_count: 0
+    metadata_command_rc: 1
+    metadata_collection_complete: false
+  power:
+    kernel_fault_events: 0
+    throttling_history: "0x0"
+    raspberry_pi_temperature_celsius: 50.6
+  storage_incident:
+    original_read_io_error_at_utc: 2026-08-25T17:37:25Z
+    recurrence_reset_cycle_count: 6
+    recurrence_cycle_times_utc:
+      - 2026-08-25T17:42:56Z
+      - 2026-08-25T17:47:59Z
+      - 2026-08-25T17:52:59Z
+      - 2026-08-25T18:01:07Z
+      - 2026-08-25T18:03:04Z
+      - 2026-08-25T18:08:04Z
+
+decision:
+  retain_for_observation_eligible: false
+  rollback_conditions_met:
+    - storage_event_recurred
+    - uas_usb_attachment_unstable
+  rollback_performed: false
+  remediation_performed: false
+  later_live_action_requires_separate_authorization: true
+
+known_summary_corrections:
+  - field: power_kernel_events
+    emitted_value: 1
+    corrected_value: 0
+    basis: journalctl_no_entries_marker_is_not_an_event
+  - field: ext4_metadata_rc
+    emitted_value: 1
+    corrected_value: 1
+    basis: tune2fs_long_option_invalid_and_metadata_not_collected
+
+raw_evidence:
+  committed_to_git: false
+  local_directory: /tmp/nautobot-storage-diagnostic.3yXtI9
+  files:
+    - name: bundle-files.sha256
+      bytes: 854
+      sha256: 2fd6760dba61b56147c04ea20be6f0d491cbed3e864fdf94d20706823d19da38
+    - name: stdout.log
+      bytes: 3197
+      sha256: 2e45bb57afc66e3b124353e1591c892c9e06fe91ba4c2061d3e17360976742f3
+    - name: stderr.log
+      bytes: 0
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    - name: status.txt
+      bytes: 31
+      sha256: 0200a83a60f4d8b308bcfaf5813dfcec982b06cd598c70d1d6922f3f81acf666
+    - name: topology.log
+      bytes: 16417
+      sha256: 335f6d59f9368ed02221ecdfcd17928627dd3ab77b27f3fdcd79e36761aa7147
+    - name: kernel.log
+      bytes: 68513
+      sha256: ba19935e97d6c5f57e56516e2cd5709394c4e2a7421d2474706f1ef1961aa13b
+    - name: power.log
+      bytes: 120
+      sha256: 0770c6273af2e50d1d900760b1250ca6d94cfe9766fe89ab6b1d084eac5df184
+    - name: smart.log
+      bytes: 3110
+      sha256: 6b71078e8f52350d7233409562bef04e1b6d8745e243a3e6ef5731523693edf8
+    - name: filesystem.log
+      bytes: 79
+      sha256: d080e4a36295eee796299fed5193a36546d3747faa8a6e26b5501ffd3993df65
+    - name: diagnostic.yaml
+      bytes: 473
+      sha256: c52d566aea0822adca4a1e2c54c6bb4eb4c04c6f2b17746edda94fa47b8dbb81
