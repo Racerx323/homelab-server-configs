@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+umask 077
 
 script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 readonly script_directory
@@ -180,6 +181,52 @@ assert "passed_pending_24_hour_soak" in serialized
 PY
 }
 
+verify_evidence_modes() {
+    local test_directory test_path
+    local -a test_files=(
+        bundle-files.sha256
+        stdout.log
+        stderr.log
+        status.txt
+        preflight.yaml
+        manifest.yaml
+    )
+
+    test_directory=$(mktemp -d /tmp/nautobot-uas-quirk-self-test.XXXXXX)
+    case "$test_directory" in
+        /tmp/nautobot-uas-quirk-self-test.*) ;;
+        *)
+            printf 'Unexpected self-test directory: %s\n' "$test_directory" >&2
+            return 65
+            ;;
+    esac
+    chmod 0700 "$test_directory"
+    write_bundle_file_hashes "${test_directory}/bundle-files.sha256"
+    : >"${test_directory}/stdout.log"
+    : >"${test_directory}/stderr.log"
+    printf '%s\n' ansible_playbook_exit_status=0 >"${test_directory}/status.txt"
+    printf '%s\n' '---' 'result: passed' >"${test_directory}/preflight.yaml"
+    write_evidence_manifest "$test_directory" \
+        0000000000000000000000000000000000000000000000000000000000000000 \
+        1970-01-01T00:00:00Z 1970-01-01T00:00:01Z 0 preflight_passed
+
+    [[ "$(stat --format=%a "$test_directory")" == 700 ]]
+    for test_path in "${test_files[@]}"; do
+        [[ -f "${test_directory}/${test_path}" ]]
+        [[ ! -L "${test_directory}/${test_path}" ]]
+        [[ "$(stat --format=%a "${test_directory}/${test_path}")" == 600 ]]
+    done
+
+    rm -f -- \
+        "${test_directory}/bundle-files.sha256" \
+        "${test_directory}/stdout.log" \
+        "${test_directory}/stderr.log" \
+        "${test_directory}/status.txt" \
+        "${test_directory}/preflight.yaml" \
+        "${test_directory}/manifest.yaml"
+    rmdir -- "$test_directory"
+}
+
 run_operation() {
     local mode=$1
     local expected_hash=${2:-}
@@ -258,6 +305,7 @@ run_operation() {
 self_test() {
     validate_operation
     verify_playbook
+    verify_evidence_modes
     ansible-playbook --syntax-check --inventory "$inventory_file" "$playbook_file" >/dev/null
     calculate_bundle_hash >/dev/null
     printf '%s\n' 'UAS-quirk launcher self-test passed.'
