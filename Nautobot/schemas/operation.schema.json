@@ -22,7 +22,7 @@
           "type": "object",
           "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
           "properties": {
-            "id": {"const": "nautobot-uas-quirk-v2"},
+            "id": {"const": "nautobot-uas-quirk-v3"},
             "state": {"enum": ["definition", "pending"]},
             "authorization_ready": {"type": "boolean"},
             "stage": {"const": "storage_remediation"},
@@ -52,8 +52,8 @@
       "type": "object",
       "required": ["operation", "terminal_tag", "definition_commit", "bundle_sha256", "result"],
       "properties": {
-        "operation": {"const": "nautobot-uas-quirk-v1"},
-        "terminal_tag": {"const": "nautobot-uas-quirk-v1-rolled-back-action-required"},
+        "operation": {"const": "nautobot-uas-quirk-v2"},
+        "terminal_tag": {"const": "nautobot-uas-quirk-v2-rolled-back-action-required"},
         "definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
         "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "result": {"const": "rolled_back_storage_action_required"}
@@ -98,18 +98,44 @@
         "reboot_timeout_seconds": {"type": "integer", "minimum": 120, "maximum": 600}
       }
     },
-    "acceptance": {"type": "object", "required": ["immediate", "soak"]},
+    "acceptance": {
+      "type": "object",
+      "required": ["immediate", "soak"],
+      "properties": {
+        "immediate": {
+          "type": "object",
+          "required": ["require_cmdline_token_count", "require_forward_observations_before_assertion"],
+          "properties": {
+            "require_cmdline_token_count": {"const": 1},
+            "require_forward_observations_before_assertion": {"const": true}
+          }
+        }
+      }
+    },
     "rollback": {
       "type": "object",
-      "required": ["trigger", "ordered", "automatic_when_host_reachable", "manual_console_required_when_host_unreachable", "expected_restored_sha256", "preserve_backup_until_terminal_acceptance"],
+      "required": ["trigger", "ordered", "automatic_when_host_reachable", "manual_console_required_when_host_unreachable", "expected_restored_sha256", "preserve_backup_until_terminal_acceptance", "require_rollback_observations_before_assertion"],
       "properties": {
         "automatic_when_host_reachable": {"const": true},
         "manual_console_required_when_host_unreachable": {"const": true},
         "expected_restored_sha256": {"const": "c1e8648e70a13b54a7c0e9a3c030838cebdc478d88b8c938ebce67f980d6f22f"},
-        "preserve_backup_until_terminal_acceptance": {"const": true}
+        "preserve_backup_until_terminal_acceptance": {"const": true},
+        "require_rollback_observations_before_assertion": {"const": true}
       }
     },
-    "evidence": {"type": "object"},
+    "evidence": {
+      "type": "object",
+      "required": ["phases"],
+      "properties": {
+        "phases": {
+          "type": "array",
+          "allOf": [
+            {"contains": {"const": "forward_observations"}},
+            {"contains": {"const": "rollback_observations"}}
+          ]
+        }
+      }
+    },
     "authorization": {
       "type": "object",
       "required": ["command", "bundle_algorithm", "authorized_stage", "excluded_stages", "blockers"],
@@ -128,6 +154,30 @@
     },
     "then": {
       "required": ["predecessor", "deferred_operation", "preflight", "mutation", "acceptance", "rollback", "evidence", "authorization"]
+    }
+  }, {
+    "if": {
+      "properties": {
+        "operation": {
+          "properties": {"state": {"const": "definition"}},
+          "required": ["state"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "operation": {"properties": {"authorization_ready": {"const": false}}},
+        "preflight": {
+          "properties": {
+            "status": {"const": "pending"},
+            "evidence_manifest_sha256": {"type": "null"},
+            "completed_at_utc": {"type": "null"},
+            "local_console_recovery_confirmed": {"const": false},
+            "current_backup_confirmed": {"const": false}
+          }
+        },
+        "authorization": {"properties": {"blockers": {"minItems": 1}}}
+      }
     }
   }, {
     "if": {"properties": {"operation": {"properties": {"authorization_ready": {"const": true}}}}},

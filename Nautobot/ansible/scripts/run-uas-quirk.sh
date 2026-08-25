@@ -39,7 +39,7 @@ validate_operation() {
 }
 
 require_active_operation() {
-    [[ $(operation_value 'd["operation"].get("id", "")') == nautobot-uas-quirk-v2 ]] || {
+    [[ $(operation_value 'd["operation"].get("id", "")') == nautobot-uas-quirk-v3 ]] || {
         printf '%s\n' 'No Nautobot UAS-quirk operation is active.' >&2
         return 65
     }
@@ -105,7 +105,7 @@ calculate_bundle_hash() {
     bundle_file_list=$(mktemp /tmp/nautobot-uas-quirk-bundle.XXXXXX)
     write_bundle_file_hashes "$bundle_file_list"
     {
-        printf '%s\n' nautobot-uas-quirk-bundle-v2
+        printf '%s\n' nautobot-uas-quirk-bundle-v3
         cat "$bundle_file_list"
     } | sha256sum | cut -d ' ' -f 1
     rm -f -- "$bundle_file_list"
@@ -166,7 +166,7 @@ write_evidence_manifest() {
     )
 
     {
-        printf '%s\n' '---' 'schema_version: 1' 'operation_id: nautobot-uas-quirk-v2'
+        printf '%s\n' '---' 'schema_version: 1' 'operation_id: nautobot-uas-quirk-v3'
         printf 'target: %s\naddress: %s\n' "$operation_target" "$operation_address"
         printf 'bundle_sha256: %s\nstarted_at_utc: %s\nfinished_at_utc: %s\n' \
             "$bundle_hash" "$started_at" "$finished_at"

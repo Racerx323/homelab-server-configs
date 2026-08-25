@@ -16,7 +16,7 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-uas-quirk-v2"
+          - operation.id == "nautobot-uas-quirk-v3"
           - operation.stage == "storage_remediation"
           - >-
             (uas_quirk_preflight_only | default(false) | bool)
