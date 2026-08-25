@@ -115,6 +115,34 @@
   ansible.builtin.package_facts:
     manager: apt
 
+- name: Simulate automatic package residue after rollback
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/apt-get
+      - --simulate
+      - autoremove
+  register: host_baseline_rollback_autoremove
+  changed_when: false
+  check_mode: false
+
+- name: Record automatic package residue after rollback
+  ansible.builtin.set_fact:
+    host_baseline_rollback_autoremove_packages: >-
+      {{
+        host_baseline_rollback_autoremove.stdout
+        | regex_findall('(?m)^Remv ([^ ]+)')
+        | sort
+      }}
+    host_baseline_rollback_new_autoremove_packages: >-
+      {{
+        (
+          host_baseline_rollback_autoremove.stdout
+          | regex_findall('(?m)^Remv ([^ ]+)')
+        )
+        | difference(host_baseline_preflight_autoremove_packages)
+        | sort
+      }}
+
 - name: Verify requested packages absent before apply remain absent
   ansible.builtin.assert:
     that:
@@ -153,6 +181,12 @@
       removed_requested_packages: >-
         {{ host_baseline_initially_absent_packages }}
       dependency_autoremove_performed: false
+      preexisting_automatically_removable_packages: >-
+        {{ host_baseline_preflight_autoremove_packages }}
+      remaining_automatically_removable_packages: >-
+        {{ host_baseline_rollback_autoremove_packages }}
+      new_automatically_removable_packages: >-
+        {{ host_baseline_rollback_new_autoremove_packages }}
       preexisting_account_storage_removed: false
       failed_units: "{{ host_baseline_rollback_failed_units.stdout_lines }}"
       manual_intervention_required: >-

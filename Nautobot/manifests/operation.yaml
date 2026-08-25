@@ -2,9 +2,9 @@
 schema_version: 1
 
 operation:
-  id: nautobot-host-baseline-v1
-  state: pending
-  authorization_ready: true
+  id: nautobot-host-baseline-v2
+  state: definition
+  authorization_ready: false
   stage: host_baseline
   target:
     host: j2-svpi4mf
@@ -16,7 +16,7 @@ operation:
     network_owner: homelab-network
   source:
     repository: homelab-server-configs
-    base_commit: e832872d7f5143a44599de2f4a0c2789b9d1d65b
+    base_commit: 3b27c7901e472dca0645cf9fc54c1ff29708a542
 
 qualification:
   command: /bin/bash Nautobot/ansible/scripts/run-qualification.sh execute
@@ -112,6 +112,7 @@ rollback:
   unreachable_host_result: manual_intervention
   residue:
     - dependencies_installed_by_apt_are_reported_and_not_autoremoved
+    - preexisting_automatic_package_residue_is_reported_separately
     - rootless_storage_for_a_preexisting_account_is_preserved
 
 evidence:
@@ -139,4 +140,7 @@ authorization:
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers: []
+  blockers:
+    - fresh_post_rollback_qualification
+    - checkpointed_source_revision
+    - reviewed_bundle_sha256

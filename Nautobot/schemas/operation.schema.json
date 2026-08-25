@@ -11,7 +11,7 @@
       "type": "object",
       "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
       "properties": {
-        "id": { "const": "nautobot-host-baseline-v1" },
+        "id": { "const": "nautobot-host-baseline-v2" },
         "state": { "enum": ["definition", "pending"] },
         "authorization_ready": { "type": "boolean" },
         "stage": { "const": "host_baseline" },

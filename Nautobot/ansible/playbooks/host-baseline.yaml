@@ -16,7 +16,7 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-host-baseline-v1"
+          - operation.id == "nautobot-host-baseline-v2"
           - operation.stage == "host_baseline"
           - operation.authorization_ready | bool
           - authorization.blockers | length == 0
@@ -132,6 +132,25 @@
           The exact package set is unavailable or APT proposes removing a
           package. Stop before host mutation.
 
+    - name: Simulate automatic package residue before mutation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/apt-get
+          - --simulate
+          - autoremove
+      register: host_baseline_preflight_autoremove
+      changed_when: false
+      check_mode: false
+
+    - name: Record automatic package residue before mutation
+      ansible.builtin.set_fact:
+        host_baseline_preflight_autoremove_packages: >-
+          {{
+            host_baseline_preflight_autoremove.stdout
+            | regex_findall('(?m)^Remv ([^ ]+)')
+            | sort
+          }}
+
     - name: Read current package facts
       ansible.builtin.package_facts:
         manager: apt
@@ -226,6 +245,22 @@
         path: "/var/lib/systemd/linger/{{ inputs.service_account.name }}"
       register: host_baseline_linger_before
 
+    - name: Inspect the runuser executable
+      ansible.builtin.stat:
+        path: /usr/sbin/runuser
+      register: host_baseline_runuser
+
+    - name: Enforce the rootless execution boundary
+      ansible.builtin.assert:
+        that:
+          - host_baseline_runuser.stat.exists
+          - host_baseline_runuser.stat.isreg
+          - host_baseline_runuser.stat.executable
+        fail_msg: >-
+          /usr/sbin/runuser is unavailable or not executable. Stop before
+          mutation because rootless Podman validation cannot use the reviewed
+          execution path.
+
     - name: Capture the pre-mutation journal cursor
       ansible.builtin.command:
         argv:
@@ -250,6 +285,7 @@
           result: passed
           keepalived_absent: true
           apt_simulation_rc: {{ host_baseline_apt_simulation.rc }}
+          preexisting_automatically_removable_packages: {{ host_baseline_preflight_autoremove_packages | to_json }}
           subordinate_uid_overlap_count: {{ host_baseline_subuid_overlap.stdout_lines | length }}
           subordinate_gid_overlap_count: {{ host_baseline_subgid_overlap.stdout_lines | length }}
       changed_when: false
@@ -341,12 +377,15 @@
           check_mode: false
 
         - name: Validate the rootless Podman runtime
-          become_user: "{{ inputs.service_account.name }}"
-          environment:
-            HOME: "{{ inputs.service_account.home }}"
-            XDG_RUNTIME_DIR: "/run/user/{{ host_baseline_nautobot_uid.stdout }}"
           ansible.builtin.command:
             argv:
+              - /usr/sbin/runuser
+              - --user
+              - "{{ inputs.service_account.name }}"
+              - --
+              - /usr/bin/env
+              - "HOME={{ inputs.service_account.home }}"
+              - "XDG_RUNTIME_DIR=/run/user/{{ host_baseline_nautobot_uid.stdout }}"
               - /usr/bin/podman
               - info
               - --format=json
@@ -564,12 +603,15 @@
               - "'Linger=yes' in host_baseline_linger_state.stdout_lines"
 
         - name: Revalidate rootless Podman after reboot
-          become_user: "{{ inputs.service_account.name }}"
-          environment:
-            HOME: "{{ inputs.service_account.home }}"
-            XDG_RUNTIME_DIR: "/run/user/{{ host_baseline_nautobot_uid.stdout }}"
           ansible.builtin.command:
             argv:
+              - /usr/sbin/runuser
+              - --user
+              - "{{ inputs.service_account.name }}"
+              - --
+              - /usr/bin/env
+              - "HOME={{ inputs.service_account.home }}"
+              - "XDG_RUNTIME_DIR=/run/user/{{ host_baseline_nautobot_uid.stdout }}"
               - /usr/bin/podman
               - info
               - --format=json
@@ -682,6 +724,9 @@
               schema_version: 1
               target: {{ inventory_hostname }}
               apt_dependency_autoremove_performed: false
+              preexisting_automatically_removable_packages: {{ host_baseline_preflight_autoremove_packages | to_json }}
+              remaining_automatically_removable_packages: {{ host_baseline_rollback_autoremove_packages | to_json }}
+              new_automatically_removable_packages: {{ host_baseline_rollback_new_autoremove_packages | to_json }}
               manual_intervention_required: {{ (host_baseline_rollback_failed_units.stdout_lines | length > 0) | bool | lower }}
           changed_when: false
 

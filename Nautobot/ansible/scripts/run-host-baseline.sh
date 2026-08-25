@@ -80,7 +80,7 @@ calculate_bundle_hash() {
     write_bundle_file_hashes "$bundle_file_list"
     calculated_hash=$(
         {
-            printf '%s\n' 'nautobot-host-baseline-bundle-v1'
+            printf '%s\n' 'nautobot-host-baseline-bundle-v2'
             cat "$bundle_file_list"
         } | sha256sum | cut -d ' ' -f 1
     )
@@ -159,7 +159,7 @@ write_execution_manifest() {
 
     {
         printf '%s\n' '---' 'schema_version: 1'
-        printf '%s\n' 'operation_id: nautobot-host-baseline-v1'
+        printf '%s\n' 'operation_id: nautobot-host-baseline-v2'
         printf 'target: %s\n' "$operation_target"
         printf 'address: %s\n' "$operation_address"
         printf 'bundle_sha256: %s\n' "$bundle_hash"
@@ -223,6 +223,47 @@ for task in playbook[0]["pre_tasks"]:
     assert all(isinstance(argument, str) for argument in argv)
     assert argv[0] == "/usr/bin/awk"
     assert argv[1] == "-F:"
+    observed_tasks.add(task_name)
+
+assert observed_tasks == expected_tasks
+PY
+}
+
+verify_rootless_podman_argv() {
+    python3 - "$playbook_file" <<'PY'
+import sys
+
+import yaml
+
+playbook_path = sys.argv[1]
+with open(playbook_path, encoding="utf-8") as playbook_stream:
+    playbook = yaml.safe_load(playbook_stream)
+
+expected_tasks = {
+    "Validate the rootless Podman runtime",
+    "Revalidate rootless Podman after reboot",
+}
+observed_tasks = set()
+operation_tasks = playbook[0]["tasks"][0]["block"]
+for task in operation_tasks:
+    task_name = task.get("name")
+    if task_name not in expected_tasks:
+        continue
+    assert "become_user" not in task
+    assert "environment" not in task
+    argv = task["ansible.builtin.command"]["argv"]
+    assert isinstance(argv, list)
+    assert all(isinstance(argument, str) for argument in argv)
+    assert argv[:5] == [
+        "/usr/sbin/runuser",
+        "--user",
+        "{{ inputs.service_account.name }}",
+        "--",
+        "/usr/bin/env",
+    ]
+    assert argv[5] == "HOME={{ inputs.service_account.home }}"
+    assert argv[6].startswith("XDG_RUNTIME_DIR=/run/user/")
+    assert argv[-3:] == ["/usr/bin/podman", "info", "--format=json"]
     observed_tasks.add(task_name)
 
 assert observed_tasks == expected_tasks
@@ -319,6 +360,7 @@ run_self_test() {
 
     validate_operation
     verify_subordinate_id_argv
+    verify_rootless_podman_argv
     self_test_hash=$(calculate_bundle_hash)
     [[ "$self_test_hash" =~ ^[0-9a-f]{64}$ ]]
 
