@@ -79,6 +79,14 @@ preserve its single logical line and missing trailing newline, retain an exact
 rollback copy, and stop for local-console recovery if the host does not return
 after reboot.
 
+Immediate transport acceptance distinguishes actual storage faults from normal
+USB initialization during reboot. Reject new `I/O error`, `Buffer I/O`,
+`EXT4-fs error`, `uas_eh_`, or `device reset` events. Do not reject merely
+because the kernel registers the UAS interface, reports that UAS is ignored for
+the quirk-matched device, or emits a generic USB reset message without an
+associated storage failure. Preserve every matched journal line before an
+acceptance assertion so the decision remains reviewable.
+
 ### E. Restore the pre-v3 host baseline
 
 Execute the separately defined `nautobot-host-baseline-rollback-v1` operation.
@@ -92,20 +100,20 @@ window and an explicit sequencing decision.
 Select one hardware or transport option independently from the host-baseline
 rollback decision. The selected sequence is:
 
-1. Confirm local-console recovery and backup status.
-2. Define, preflight, and separately hash-authorize the corrected
-   `nautobot-uas-quirk-v3` successor. Version 3 reuses the retained,
-   hash-verified rollback backup and the observation-first acceptance path
-   reviewed after the terminal version 2 rollback.
-3. Prove the running kernel command line contains the quirk exactly once, the
+1. Retain the operator-applied `usb-storage.quirks=152d:0583:u` setting while
+   the storage observation window runs; do not perform another transport
+   mutation or reboot merely to reproduce the retired orchestration path.
+2. Prove the running kernel command line contains the quirk exactly once, the
    root source remains `/dev/sda2`, and JMicron `152d:0583` binds to
    `usb-storage` rather than `uas`.
-4. Run the corrected read-only diagnostic and observe at least 24 hours with
-   no I/O error, USB reset, UAS reset, ext4 error, or SMART degradation.
-5. If instability recurs, roll back the boot file and reboot when the host is
-   reachable; use the confirmed local-console recovery path if it is not.
-6. After storage is stable, separately resume and authorize the pre-v3 host-baseline
-   rollback or approve a new host-baseline convergence operation.
+3. Run the corrected read-only diagnostic and observe at least 24 hours with
+   no new I/O, device-reset, UAS error-handler, ext4, or SMART degradation.
+   Generic USB initialization or reset text is not independently a failure.
+4. If actual storage instability recurs, use the retained exact boot-file
+   backup and confirmed local-console recovery path under a separately
+   authorized rollback.
+5. After storage is stable, separately resume and authorize the pre-v3
+   host-baseline rollback or approve a new host-baseline convergence operation.
 
 Do not combine physical changes, UAS changes, filesystem repair, package
 rollback, or Nautobot deployment in one authorization.
@@ -116,7 +124,8 @@ rollback, or Nautobot deployment in one authorization.
 - SMART health passes with zero media and error-log entries;
 - the expected USB driver and negotiated link are recorded;
 - no power or throttling fault is recorded;
-- no new storage, USB, UAS, or ext4 error occurs across reboot and a minimum
-  24-hour observation window; and
+- no new I/O error, buffer I/O error, device reset, UAS error-handler event,
+  ext4 error, or SMART degradation occurs during a minimum 24-hour observation
+  window; generic USB initialization text alone is not a failure; and
 - an isolated backup restore is completed before Nautobot data is entrusted to
   the device.
