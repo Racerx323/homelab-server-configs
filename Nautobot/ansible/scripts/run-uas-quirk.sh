@@ -49,6 +49,31 @@ print(eval(sys.argv[2], {"__builtins__": {"bool": bool, "str": str}}, {"d": d}))
 PY
 }
 
+preflight_is_fresh() {
+    local comparison_time=${1:-}
+    local completed_override=${2:-}
+
+    python3 - "$operation_file" "$comparison_time" "$completed_override" <<'PY'
+import datetime
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    operation = yaml.safe_load(stream)
+completed_text = sys.argv[3] or operation["preflight"]["completed_at_utc"]
+if completed_text is None:
+    print("false")
+    raise SystemExit
+completed = datetime.datetime.fromisoformat(completed_text.replace("Z", "+00:00"))
+if sys.argv[2]:
+    now = datetime.datetime.fromisoformat(sys.argv[2].replace("Z", "+00:00"))
+else:
+    now = datetime.datetime.now(datetime.timezone.utc)
+maximum_age = datetime.timedelta(minutes=operation["preflight"]["maximum_age_minutes"])
+print(str(completed <= now <= completed + maximum_age).lower())
+PY
+}
+
 write_bundle_file_hashes() {
     local destination_file=$1
     local relative_path absolute_path
@@ -89,6 +114,7 @@ show_bundle() {
     rm -f -- "$bundle_file_list"
     printf 'authorization_ready=%s\n' \
         "$(operation_value 'str(bool(d["operation"]["authorization_ready"])).lower()')"
+    printf 'preflight_fresh=%s\n' "$(preflight_is_fresh)"
     printf 'blockers=%s\n' \
         "$(operation_value '",".join(d["authorization"]["blockers"])')"
 }
@@ -252,6 +278,10 @@ run_operation() {
             printf 'Operation is not authorization-ready: %s\n' "$blockers" >&2
             return 65
         }
+        [[ "$(preflight_is_fresh)" == true ]] || {
+            printf '%s\n' 'Operation preflight is absent or older than its allowed lifetime.' >&2
+            return 65
+        }
         [[ "$actual_hash" == "$expected_hash" ]] || {
             printf 'Bundle mismatch: expected %s, calculated %s\n' "$expected_hash" "$actual_hash" >&2
             return 65
@@ -306,6 +336,8 @@ self_test() {
     validate_operation
     verify_playbook
     verify_evidence_modes
+    [[ "$(preflight_is_fresh 2026-08-25T19:16:00Z 2026-08-25T19:15:48Z)" == true ]]
+    [[ "$(preflight_is_fresh 2026-08-25T19:46:00Z 2026-08-25T19:15:48Z)" == false ]]
     ansible-playbook --syntax-check --inventory "$inventory_file" "$playbook_file" >/dev/null
     calculate_bundle_hash >/dev/null
     printf '%s\n' 'UAS-quirk launcher self-test passed.'
