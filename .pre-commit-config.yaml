@@ -216,7 +216,13 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh)$
+          (?x)^(?:
+          \.pre-commit-config\.yaml
+          |Nautobot/ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh)
+          |Nautobot/manifests/operation\.yaml
+          |Nautobot/schemas/operation\.schema\.json
+          |inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml)
+          )$
 
       - id: nautobot-host-baseline-rollback-launcher
         name: Validate Nautobot standalone host-baseline rollback

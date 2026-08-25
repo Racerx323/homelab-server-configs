@@ -215,28 +215,64 @@ expected_vars_files = [
 ]
 assert play["vars_files"] == expected_vars_files
 
-merged_vars = {}
-vars_file_owners = {}
+def merge_vars_files(ordered_vars_files):
+    merged = {}
+    owners = {}
+    for vars_file_name, vars_data in ordered_vars_files:
+        assert isinstance(vars_data, dict), vars_file_name
+        collisions = sorted(set(merged) & set(vars_data))
+        assert not collisions, {
+            "vars_file": vars_file_name,
+            "collisions": collisions,
+            "previous_owners": {
+                key: owners[key] for key in collisions
+            },
+        }
+        merged.update(vars_data)
+        owners.update({key: vars_file_name for key in vars_data})
+    return merged
+
+
+def assert_operation_storage_shape(operation_vars):
+    operation_state = operation_vars["operation"]["state"]
+    if operation_state == "clean":
+        assert operation_vars["operation"] == {
+            "state": "clean",
+            "authorization_ready": False,
+        }
+        assert "diagnostic_storage" not in operation_vars
+        return
+
+    assert operation_state in {"definition", "pending"}
+    assert operation_vars["diagnostic_storage"]["root_device"] == "/dev/sda"
+
+
+loaded_vars_files = []
 for relative_vars_file in expected_vars_files:
     vars_file_path = (Path(playbook_path).parent / relative_vars_file).resolve()
     with open(vars_file_path, encoding="utf-8") as vars_stream:
-        vars_data = yaml.safe_load(vars_stream)
-    assert isinstance(vars_data, dict), relative_vars_file
-    collisions = sorted(set(merged_vars) & set(vars_data))
-    assert not collisions, {
-        "vars_file": relative_vars_file,
-        "collisions": collisions,
-        "previous_owners": {
-            key: vars_file_owners[key] for key in collisions
-        },
-    }
-    merged_vars.update(vars_data)
-    vars_file_owners.update(
-        {key: relative_vars_file for key in vars_data}
-    )
+        loaded_vars_files.append(
+            (relative_vars_file, yaml.safe_load(vars_stream))
+        )
 
-assert merged_vars["diagnostic_storage"]["root_device"] == "/dev/sda"
+merged_vars = merge_vars_files(loaded_vars_files)
+assert_operation_storage_shape(loaded_vars_files[0][1])
 assert merged_vars["storage"]["root"]["filesystem"] == "ext4"
+
+assert_operation_storage_shape({
+    "operation": {"state": "pending", "authorization_ready": True},
+    "diagnostic_storage": {"root_device": "/dev/sda"},
+})
+
+try:
+    merge_vars_files([
+        ("operation.yaml", {"storage": {"root_device": "/dev/sda"}}),
+        ("host.yaml", {"storage": {"root": {"filesystem": "ext4"}}}),
+    ])
+except AssertionError:
+    pass
+else:
+    raise AssertionError("Top-level vars_files collision was not rejected")
 
 allowed_modules = {
     "ansible.builtin.assert",
