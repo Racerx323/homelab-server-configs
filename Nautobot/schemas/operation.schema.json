@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/nautobot-operation-v1.json",
+  "title": "Nautobot active operation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "operation", "qualification", "inputs", "mutations", "acceptance", "rollback", "evidence", "authorization"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "operation": {
+      "type": "object",
+      "required": ["id", "state", "authorization_ready", "stage", "target", "architecture", "source"],
+      "properties": {
+        "id": { "const": "nautobot-host-baseline-v1" },
+        "state": { "enum": ["definition", "pending"] },
+        "authorization_ready": { "type": "boolean" },
+        "stage": { "const": "host_baseline" },
+        "target": {
+          "type": "object",
+          "required": ["host", "address", "ssh_user"],
+          "properties": {
+            "host": { "const": "j2-svpi4mf" },
+            "address": { "const": "10.1.2.170" },
+            "ssh_user": { "const": "ama" }
+          }
+        },
+        "architecture": { "type": "object" },
+        "source": {
+          "type": "object",
+          "required": ["repository", "base_commit"],
+          "properties": {
+            "repository": { "const": "homelab-server-configs" },
+            "base_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+          }
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "required": ["command", "maximum_age_minutes", "required_assertions"]
+    },
+    "inputs": {
+      "type": "object",
+      "required": ["package_names", "package_specs", "service_account", "required_units", "unwanted_units", "storage"],
+      "properties": {
+        "package_names": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "package_specs": {
+          "type": "array",
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9+.-]*=\\S+$" }
+        },
+        "service_account": { "type": "object" },
+        "required_units": { "type": "array", "minItems": 1, "uniqueItems": true },
+        "unwanted_units": { "type": "array", "minItems": 1, "uniqueItems": true },
+        "storage": { "type": "object" }
+      }
+    },
+    "mutations": { "type": "object", "required": ["ordered"] },
+    "acceptance": { "type": "object" },
+    "rollback": { "type": "object", "required": ["automatic_on_apply_failure", "reverse_order"] },
+    "evidence": { "type": "object", "required": ["local_root_pattern", "directory_mode", "file_mode", "stream_limit_bytes", "phases"] },
+    "authorization": { "type": "object", "required": ["command", "bundle_algorithm", "authorized_stage", "excluded_stages", "blockers"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "properties": { "authorization_ready": { "const": true } },
+            "required": ["authorization_ready"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "operation": { "properties": { "state": { "const": "pending" } } },
+          "inputs": { "properties": { "package_specs": { "minItems": 9, "maxItems": 9 } } },
+          "authorization": { "properties": { "blockers": { "maxItems": 0 } } }
+        }
+      }
+    }
+  ]
+}

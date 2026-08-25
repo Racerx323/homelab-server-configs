@@ -1,0 +1,670 @@
+---
+- name: Apply the Nautobot host baseline
+  hosts: inventory_automation
+  gather_facts: true
+  become: true
+  any_errors_fatal: true
+
+  vars_files:
+    - ../../manifests/operation.yaml
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+
+  pre_tasks:
+    - name: Enforce the operation and target boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == "j2-svpi4mf"
+          - ansible_play_hosts_all | length == 1
+          - operation.id == "nautobot-host-baseline-v1"
+          - operation.stage == "host_baseline"
+          - operation.authorization_ready | bool
+          - authorization.blockers | length == 0
+          - host_baseline_evidence_directory is defined
+          - >-
+            host_baseline_evidence_directory
+            is match('^/tmp/nautobot-host-baseline\.[A-Za-z0-9]+$')
+          - inputs.package_specs | length == inputs.package_names | length
+          - >-
+            inputs.package_names
+            | difference(
+                inputs.package_specs
+                | map('regex_replace', '=.*$', '')
+                | list
+              )
+            | length == 0
+        fail_msg: >-
+          The host-baseline operation is not authorization-ready, its package
+          specifications are incomplete, or the target boundary is invalid.
+
+    - name: Read Keepalived package status
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/dpkg-query
+          - --show
+          - --showformat=${db:Status-Status}
+          - keepalived
+      register: host_baseline_keepalived_package
+      changed_when: false
+      failed_when: host_baseline_keepalived_package.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect Keepalived configuration directory
+      ansible.builtin.stat:
+        path: /etc/keepalived
+      register: host_baseline_keepalived_configuration
+
+    - name: Read Keepalived processes
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/pgrep
+          - --list-full
+          - --exact
+          - keepalived
+      register: host_baseline_keepalived_processes
+      changed_when: false
+      failed_when: host_baseline_keepalived_processes.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read Keepalived unit load state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - show
+          - --property=LoadState
+          - keepalived.service
+      register: host_baseline_keepalived_unit
+      changed_when: false
+      failed_when: host_baseline_keepalived_unit.rc not in [0, 1, 4]
+      check_mode: false
+
+    - name: Enforce the Keepalived ownership boundary before mutation
+      ansible.builtin.assert:
+        that:
+          - host_baseline_keepalived_package.rc == 1
+          - not host_baseline_keepalived_configuration.stat.exists
+          - host_baseline_keepalived_processes.rc == 1
+          - "'LoadState=not-found' in host_baseline_keepalived_unit.stdout_lines"
+        fail_msg: >-
+          Keepalived remains present. This Nautobot operation has no authority
+          to remove it.
+
+    - name: Simulate the exact package installation
+      ansible.builtin.command:
+        argv: >-
+          {{
+            ["/usr/bin/apt-get", "--simulate", "--no-remove", "install"]
+            + inputs.package_specs
+          }}
+      register: host_baseline_apt_simulation
+      changed_when: false
+      check_mode: false
+
+    - name: Reject package removal in the APT simulation
+      ansible.builtin.assert:
+        that:
+          - host_baseline_apt_simulation.rc == 0
+          - "'Remv ' not in host_baseline_apt_simulation.stdout"
+        fail_msg: >-
+          The exact package set is unavailable or APT proposes removing a
+          package. Stop before host mutation.
+
+    - name: Read current package facts
+      ansible.builtin.package_facts:
+        manager: apt
+
+    - name: Record packages absent before mutation
+      ansible.builtin.set_fact:
+        host_baseline_initially_absent_packages: >-
+          {{
+            inputs.package_names
+            | difference(ansible_facts.packages.keys() | list)
+          }}
+
+    - name: Read current Nautobot account
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/getent
+          - passwd
+          - "{{ inputs.service_account.name }}"
+      register: host_baseline_account_before
+      changed_when: false
+      failed_when: host_baseline_account_before.rc not in [0, 2]
+      check_mode: false
+
+    - name: Accept only an absent or exact existing Nautobot account
+      ansible.builtin.assert:
+        that:
+          - >-
+            host_baseline_account_before.rc == 2
+            or (
+              host_baseline_account_before.stdout.split(':')[5]
+              == inputs.service_account.home
+              and host_baseline_account_before.stdout.split(':')[6]
+              == inputs.service_account.shell
+            )
+        fail_msg: >-
+          An existing Nautobot account has an unexpected home or shell. Stop
+          before mutation so an operator can reconcile its ownership.
+
+    - name: Check the requested subordinate UID range
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/awk
+          - -F:
+          - -v
+          - "requested_start={{ inputs.service_account.subordinate_id_start }}"
+          - -v
+          - "requested_count={{ inputs.service_account.subordinate_id_count }}"
+          - >-
+            $1 != "nautobot" && NF >= 3 {
+              entry_start = $2 + 0;
+              entry_count = $3 + 0;
+              if (requested_start < entry_start + entry_count &&
+                  entry_start < requested_start + requested_count) print $0;
+            }
+          - /etc/subuid
+      register: host_baseline_subuid_overlap
+      changed_when: false
+      check_mode: false
+
+    - name: Check the requested subordinate GID range
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/awk
+          - -F:
+          - -v
+          - "requested_start={{ inputs.service_account.subordinate_id_start }}"
+          - -v
+          - "requested_count={{ inputs.service_account.subordinate_id_count }}"
+          - >-
+            $1 != "nautobot" && NF >= 3 {
+              entry_start = $2 + 0;
+              entry_count = $3 + 0;
+              if (requested_start < entry_start + entry_count &&
+                  entry_start < requested_start + requested_count) print $0;
+            }
+          - /etc/subgid
+      register: host_baseline_subgid_overlap
+      changed_when: false
+      check_mode: false
+
+    - name: Enforce subordinate ID availability
+      ansible.builtin.assert:
+        that:
+          - host_baseline_subuid_overlap.stdout_lines | length == 0
+          - host_baseline_subgid_overlap.stdout_lines | length == 0
+        fail_msg: >-
+          The requested Nautobot subordinate ID range overlaps an existing
+          assignment.
+
+    - name: Inspect the current linger marker
+      ansible.builtin.stat:
+        path: "/var/lib/systemd/linger/{{ inputs.service_account.name }}"
+      register: host_baseline_linger_before
+
+    - name: Capture the pre-mutation journal cursor
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - --show-cursor
+          - --lines=0
+          - --no-pager
+      register: host_baseline_journal_cursor
+      changed_when: false
+      check_mode: false
+
+    - name: Record sanitized preflight evidence
+      become: false
+      delegate_to: localhost
+      ansible.builtin.copy:
+        dest: "{{ host_baseline_evidence_directory }}/preflight.yaml"
+        mode: "0600"
+        content: |
+          ---
+          schema_version: 1
+          target: {{ inventory_hostname }}
+          result: passed
+          keepalived_absent: true
+          apt_simulation_rc: {{ host_baseline_apt_simulation.rc }}
+          subordinate_uid_overlap_count: {{ host_baseline_subuid_overlap.stdout_lines | length }}
+          subordinate_gid_overlap_count: {{ host_baseline_subgid_overlap.stdout_lines | length }}
+      changed_when: false
+
+  tasks:
+    - name: Apply and accept the host baseline
+      block:
+        - name: Install the exact host-baseline packages
+          ansible.builtin.apt:
+            name: "{{ inputs.package_specs }}"
+            state: present
+            update_cache: true
+            cache_valid_time: 3600
+            fail_on_autoremove: true
+            force_apt_get: true
+            lock_timeout: 120
+          register: host_baseline_package_install
+
+        - name: Create the Nautobot service account
+          ansible.builtin.user:
+            name: "{{ inputs.service_account.name }}"
+            home: "{{ inputs.service_account.home }}"
+            shell: "{{ inputs.service_account.shell }}"
+            system: true
+            create_home: true
+            state: present
+          register: host_baseline_account_change
+
+        - name: Assign the Nautobot subordinate UID range
+          ansible.builtin.lineinfile:
+            path: /etc/subuid
+            regexp: '^nautobot:'
+            line: >-
+              nautobot:{{ inputs.service_account.subordinate_id_start }}:{{ inputs.service_account.subordinate_id_count }}
+            owner: root
+            group: root
+            mode: "0644"
+          register: host_baseline_subuid_change
+
+        - name: Assign the Nautobot subordinate GID range
+          ansible.builtin.lineinfile:
+            path: /etc/subgid
+            regexp: '^nautobot:'
+            line: >-
+              nautobot:{{ inputs.service_account.subordinate_id_start }}:{{ inputs.service_account.subordinate_id_count }}
+            owner: root
+            group: root
+            mode: "0644"
+          register: host_baseline_subgid_change
+
+        - name: Enable lingering for the Nautobot account
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/loginctl
+              - enable-linger
+              - "{{ inputs.service_account.name }}"
+            creates: "/var/lib/systemd/linger/{{ inputs.service_account.name }}"
+          register: host_baseline_linger_change
+
+        - name: Stop unwanted units
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            state: stopped
+          loop: "{{ inputs.unwanted_units }}"
+          register: host_baseline_stop_changes
+
+        - name: Disable unwanted units
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            enabled: false
+          loop: "{{ inputs.unwanted_units }}"
+          register: host_baseline_disable_changes
+
+        - name: Mask unwanted units
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            masked: true
+          loop: "{{ inputs.unwanted_units }}"
+          register: host_baseline_mask_changes
+
+        - name: Read the Nautobot numeric UID
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/id
+              - --user
+              - "{{ inputs.service_account.name }}"
+          register: host_baseline_nautobot_uid
+          changed_when: false
+          check_mode: false
+
+        - name: Validate the rootless Podman runtime
+          become_user: "{{ inputs.service_account.name }}"
+          environment:
+            HOME: "{{ inputs.service_account.home }}"
+            XDG_RUNTIME_DIR: "/run/user/{{ host_baseline_nautobot_uid.stdout }}"
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/podman
+              - info
+              - --format=json
+          register: host_baseline_podman_info
+          changed_when: false
+          check_mode: false
+
+        - name: Probe SMART health with automatic device detection
+          ansible.builtin.command:
+            argv:
+              - /usr/sbin/smartctl
+              - --health
+              - --attributes
+              - --log=error
+              - "{{ inputs.storage.root_device }}"
+          register: host_baseline_smart_auto
+          changed_when: false
+          failed_when: false
+          check_mode: false
+
+        - name: Probe SMART health through the SAT bridge type
+          ansible.builtin.command:
+            argv:
+              - /usr/sbin/smartctl
+              - --device=sat
+              - --health
+              - --attributes
+              - --log=error
+              - "{{ inputs.storage.root_device }}"
+          register: host_baseline_smart_sat
+          changed_when: false
+          failed_when: false
+          check_mode: false
+          when: (host_baseline_smart_auto.rc | int) % 8 != 0
+
+        - name: Record SMART availability and health
+          ansible.builtin.set_fact:
+            host_baseline_smart_health_available: >-
+              {{
+                (host_baseline_smart_auto.rc | int) % 8 == 0
+                or (
+                  (host_baseline_smart_sat.rc | default(1) | int) % 8 == 0
+                )
+              }}
+            host_baseline_smart_health_passed: >-
+              {{
+                host_baseline_smart_auto.rc == 0
+                or (host_baseline_smart_sat.rc | default(1)) == 0
+              }}
+
+        - name: Enforce the SMART acceptance boundary
+          ansible.builtin.assert:
+            that:
+              - >-
+                (
+                  host_baseline_smart_health_available
+                  and host_baseline_smart_health_passed
+                )
+                or (
+                  not host_baseline_smart_health_available
+                  and inputs.storage.allow_documented_bridge_limitation
+                )
+            fail_msg: >-
+              SMART reports a health or error-log failure, or health is
+              unavailable without permission to document a bridge limitation.
+
+        - name: Validate the installed smartd configuration
+          ansible.builtin.command:
+            argv:
+              - /usr/sbin/smartd
+              - --quit=onecheck
+          register: host_baseline_smartd_onecheck
+          changed_when: false
+          check_mode: false
+          when: host_baseline_smart_health_available
+
+        - name: Enable SMART monitoring when supported
+          ansible.builtin.systemd_service:
+            name: smartmontools.service
+            enabled: true
+          register: host_baseline_smart_enable_change
+          when: host_baseline_smart_health_available
+
+        - name: Start SMART monitoring when supported
+          ansible.builtin.systemd_service:
+            name: smartmontools.service
+            state: started
+          register: host_baseline_smart_start_change
+          when: host_baseline_smart_health_available
+
+        - name: Record whether the operation changed the host
+          ansible.builtin.set_fact:
+            host_baseline_reboot_required: >-
+              {{
+                host_baseline_package_install.changed
+                or host_baseline_account_change.changed
+                or host_baseline_subuid_change.changed
+                or host_baseline_subgid_change.changed
+                or host_baseline_linger_change.changed
+                or (
+                  host_baseline_stop_changes.results
+                  | selectattr('changed') | list | length > 0
+                )
+                or (
+                  host_baseline_disable_changes.results
+                  | selectattr('changed') | list | length > 0
+                )
+                or (
+                  host_baseline_mask_changes.results
+                  | selectattr('changed') | list | length > 0
+                )
+                or (
+                  host_baseline_smart_enable_change.changed
+                  | default(false)
+                )
+                or (
+                  host_baseline_smart_start_change.changed
+                  | default(false)
+                )
+              }}
+
+        - name: Record sanitized mutation evidence
+          become: false
+          delegate_to: localhost
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_evidence_directory }}/mutation.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: converged
+              package_change: {{ host_baseline_package_install.changed | bool | lower }}
+              account_change: {{ host_baseline_account_change.changed | bool | lower }}
+              subordinate_uid_change: {{ host_baseline_subuid_change.changed | bool | lower }}
+              subordinate_gid_change: {{ host_baseline_subgid_change.changed | bool | lower }}
+              linger_change: {{ host_baseline_linger_change.changed | bool | lower }}
+              reboot_required: {{ host_baseline_reboot_required | bool | lower }}
+          changed_when: false
+
+        - name: Reboot after host-baseline changes
+          ansible.builtin.reboot:
+            msg: Rebooting after the authorized Nautobot host-baseline change
+            connect_timeout: 10
+            reboot_timeout: 600
+            post_reboot_delay: 10
+          register: host_baseline_reboot_change
+          when: host_baseline_reboot_required
+
+        - name: Refresh facts after convergence
+          ansible.builtin.setup:
+
+        - name: Read required unit states
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - is-active
+              - "{{ item }}"
+          loop: "{{ inputs.required_units }}"
+          register: host_baseline_required_unit_states
+          changed_when: false
+          check_mode: false
+
+        - name: Read unwanted unit states
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - show
+              - --property=ActiveState,UnitFileState
+              - "{{ item }}"
+          loop: "{{ inputs.unwanted_units }}"
+          register: host_baseline_unwanted_unit_states
+          changed_when: false
+          check_mode: false
+
+        - name: Enforce unwanted unit acceptance
+          ansible.builtin.assert:
+            that:
+              - "'ActiveState=inactive' in item.stdout_lines"
+              - "'UnitFileState=masked' in item.stdout_lines"
+          loop: "{{ host_baseline_unwanted_unit_states.results }}"
+
+        - name: Read failed systemd units
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - list-units
+              - --state=failed
+              - --all
+              - --no-legend
+              - --plain
+          register: host_baseline_failed_units
+          changed_when: false
+          check_mode: false
+
+        - name: Enforce zero failed systemd units
+          ansible.builtin.assert:
+            that:
+              - host_baseline_failed_units.stdout_lines | length == 0
+
+        - name: Read Nautobot lingering state
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/loginctl
+              - show-user
+              - "{{ inputs.service_account.name }}"
+              - --property=Linger,RuntimePath,State
+          register: host_baseline_linger_state
+          changed_when: false
+          check_mode: false
+
+        - name: Enforce lingering after reboot
+          ansible.builtin.assert:
+            that:
+              - "'Linger=yes' in host_baseline_linger_state.stdout_lines"
+
+        - name: Revalidate rootless Podman after reboot
+          become_user: "{{ inputs.service_account.name }}"
+          environment:
+            HOME: "{{ inputs.service_account.home }}"
+            XDG_RUNTIME_DIR: "/run/user/{{ host_baseline_nautobot_uid.stdout }}"
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/podman
+              - info
+              - --format=json
+          register: host_baseline_podman_after_reboot
+          changed_when: false
+          check_mode: false
+
+        - name: Read cursor-bounded storage errors
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/journalctl
+              - "--after-cursor={{ host_baseline_journal_cursor.stdout_lines[-1] | regex_replace('^-- cursor: ', '') }}"
+              - --dmesg
+              - --grep=I/O error|Buffer I/O|EXT4-fs error|uas.*reset|usb.*reset
+              - --lines=200
+              - --no-pager
+          register: host_baseline_storage_errors
+          changed_when: false
+          failed_when: host_baseline_storage_errors.rc not in [0, 1]
+          check_mode: false
+
+        - name: Enforce no new storage errors
+          ansible.builtin.assert:
+            that:
+              - host_baseline_storage_errors.rc == 1
+            fail_msg: New storage or USB errors appeared after mutation.
+
+        - name: Refresh installed package facts
+          ansible.builtin.package_facts:
+            manager: apt
+
+        - name: Enforce exact package installation
+          ansible.builtin.assert:
+            that:
+              - item.split('=', 1)[0] in ansible_facts.packages
+              - >-
+                item.split('=', 1)[1]
+                in (
+                  ansible_facts.packages[item.split('=', 1)[0]]
+                  | map(attribute='version') | list
+                )
+          loop: "{{ inputs.package_specs }}"
+
+        - name: Record sanitized acceptance evidence
+          become: false
+          delegate_to: localhost
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_evidence_directory }}/acceptance.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: accepted
+              zero_failed_units: true
+              rootless_podman: true
+              lingering: true
+              smart_health_available: {{ host_baseline_smart_health_available | bool | lower }}
+              smart_health_passed: {{ host_baseline_smart_health_passed | bool | lower }}
+              documented_smart_limitation: {{ (not host_baseline_smart_health_available) | bool | lower }}
+              new_storage_errors: false
+          changed_when: false
+
+        - name: Emit the host-baseline acceptance report
+          ansible.builtin.debug:
+            msg:
+              schema_version: 1
+              target: "{{ inventory_hostname }}"
+              changed: "{{ host_baseline_reboot_required }}"
+              installed_package_specs: "{{ inputs.package_specs }}"
+              required_units: "{{ host_baseline_required_unit_states.results }}"
+              unwanted_units: "{{ host_baseline_unwanted_unit_states.results }}"
+              rootless_podman: >-
+                {{ host_baseline_podman_after_reboot.stdout | from_json }}
+              smart_health_available: >-
+                {{ host_baseline_smart_health_available }}
+              smart_health_passed: >-
+                {{ host_baseline_smart_health_passed }}
+              smart_auto_rc: "{{ host_baseline_smart_auto.rc }}"
+              smart_sat_rc: "{{ host_baseline_smart_sat.rc | default(none) }}"
+              storage_error_rc: "{{ host_baseline_storage_errors.rc }}"
+              failed_units: "{{ host_baseline_failed_units.stdout_lines }}"
+
+      rescue:
+        - name: Run the bounded host-baseline rollback
+          ansible.builtin.import_tasks: ../tasks/rollback-host-baseline.yaml
+
+        - name: Record sanitized rollback evidence
+          become: false
+          delegate_to: localhost
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_evidence_directory }}/rollback.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              result: rolled_back
+              failed_units_after_rollback: {{ host_baseline_rollback_failed_units.stdout_lines | length }}
+          changed_when: false
+
+        - name: Record sanitized rollback residue
+          become: false
+          delegate_to: localhost
+          ansible.builtin.copy:
+            dest: "{{ host_baseline_evidence_directory }}/residue.yaml"
+            mode: "0600"
+            content: |
+              ---
+              schema_version: 1
+              target: {{ inventory_hostname }}
+              apt_dependency_autoremove_performed: false
+              manual_intervention_required: {{ (host_baseline_rollback_failed_units.stdout_lines | length > 0) | bool | lower }}
+          changed_when: false
+
+        - name: Report rollback after apply failure
+          ansible.builtin.fail:
+            msg: >-
+              Host-baseline application failed at
+              {{ ansible_failed_task.name | default('an unknown task') }}.
+              Review rollback and residue evidence before further action.

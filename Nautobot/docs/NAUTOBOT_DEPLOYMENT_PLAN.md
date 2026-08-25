@@ -96,8 +96,11 @@ Preserve and validate these required host-baseline services:
 - Webmin; and
 - watchdog.
 
-Purge Keepalived and `/etc/keepalived` after an APT dry run proves the exact
-removal set. This host has no VIP or HA ownership role.
+`homelab-dns` owns Keepalived removal. Its separately authorized process must
+purge the package and `/etc/keepalived` after an APT dry run proves the removal
+set. The Nautobot host-baseline operation must fail before mutation unless the
+package, unit, process, and configuration directory are absent. This host has
+no VIP or HA ownership role.
 
 Disable and mask:
 

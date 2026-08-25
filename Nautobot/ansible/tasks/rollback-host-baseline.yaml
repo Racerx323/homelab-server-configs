@@ -1,0 +1,159 @@
+---
+- name: Unmask unwanted units masked by this operation
+  ansible.builtin.systemd_service:
+    name: "{{ item.item }}"
+    masked: false
+  loop: "{{ host_baseline_mask_changes.results | default([]) }}"
+  when: item.changed | default(false)
+
+- name: Enable unwanted units disabled by this operation
+  ansible.builtin.systemd_service:
+    name: "{{ item.item }}"
+    enabled: true
+  loop: "{{ host_baseline_disable_changes.results | default([]) }}"
+  when: item.changed | default(false)
+
+- name: Start unwanted units stopped by this operation
+  ansible.builtin.systemd_service:
+    name: "{{ item.item }}"
+    state: started
+  loop: "{{ host_baseline_stop_changes.results | default([]) }}"
+  when: item.changed | default(false)
+
+- name: Stop SMART monitoring if this operation started it
+  ansible.builtin.systemd_service:
+    name: smartmontools.service
+    state: stopped
+  when: >-
+    (host_baseline_smart_start_change | default({})).changed
+    | default(false)
+
+- name: Disable SMART monitoring if this operation enabled it
+  ansible.builtin.systemd_service:
+    name: smartmontools.service
+    enabled: false
+  when: >-
+    (host_baseline_smart_enable_change | default({})).changed
+    | default(false)
+
+- name: Disable Nautobot lingering if absent before this operation
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/loginctl
+      - disable-linger
+      - "{{ inputs.service_account.name }}"
+  when:
+    - not host_baseline_linger_before.stat.exists
+    - >-
+      (host_baseline_linger_change | default({})).changed
+      | default(false)
+
+- name: Remove the subordinate UID line added by this operation
+  ansible.builtin.lineinfile:
+    path: /etc/subuid
+    regexp: '^nautobot:'
+    state: absent
+  when: >-
+    (host_baseline_subuid_change | default({})).changed
+    | default(false)
+
+- name: Remove the subordinate GID line added by this operation
+  ansible.builtin.lineinfile:
+    path: /etc/subgid
+    regexp: '^nautobot:'
+    state: absent
+  when: >-
+    (host_baseline_subgid_change | default({})).changed
+    | default(false)
+
+- name: Remove the Nautobot account if this operation created it
+  ansible.builtin.user:
+    name: "{{ inputs.service_account.name }}"
+    state: absent
+    remove: true
+  when:
+    - host_baseline_account_before.rc == 2
+    - >-
+      (host_baseline_account_change | default({})).changed
+      | default(false)
+
+- name: Remove requested packages absent before this operation
+  ansible.builtin.apt:
+    name: "{{ host_baseline_initially_absent_packages }}"
+    state: absent
+    purge: true
+    autoremove: false
+    force_apt_get: true
+    lock_timeout: 120
+  when: host_baseline_initially_absent_packages | length > 0
+
+- name: Reboot after rollback when apply rebooted
+  ansible.builtin.reboot:
+    msg: Rebooting after Nautobot host-baseline rollback
+    connect_timeout: 10
+    reboot_timeout: 600
+    post_reboot_delay: 10
+  when: >-
+    (host_baseline_reboot_change | default({})).changed
+    | default(false)
+
+- name: Read failed units after rollback
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - list-units
+      - --state=failed
+      - --all
+      - --no-legend
+      - --plain
+  register: host_baseline_rollback_failed_units
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Refresh package facts after rollback
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Verify requested packages absent before apply remain absent
+  ansible.builtin.assert:
+    that:
+      - item not in ansible_facts.packages
+  loop: "{{ host_baseline_initially_absent_packages }}"
+
+- name: Recheck the Nautobot account after rollback
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/getent
+      - passwd
+      - "{{ inputs.service_account.name }}"
+  register: host_baseline_rollback_account
+  changed_when: false
+  failed_when: host_baseline_rollback_account.rc not in [0, 2]
+  check_mode: false
+
+- name: Verify an account created by apply was removed
+  ansible.builtin.assert:
+    that:
+      - host_baseline_rollback_account.rc == 2
+  when: host_baseline_account_before.rc == 2
+
+- name: Verify rollback restored all changed service dimensions
+  ansible.builtin.assert:
+    that:
+      - host_baseline_rollback_failed_units.stdout_lines | length == 0
+    fail_msg: >-
+      Rollback left failed systemd units and requires manual intervention.
+
+- name: Emit rollback and residue report
+  ansible.builtin.debug:
+    msg:
+      schema_version: 1
+      result: rolled_back
+      removed_requested_packages: >-
+        {{ host_baseline_initially_absent_packages }}
+      dependency_autoremove_performed: false
+      preexisting_account_storage_removed: false
+      failed_units: "{{ host_baseline_rollback_failed_units.stdout_lines }}"
+      manual_intervention_required: >-
+        {{ host_baseline_rollback_failed_units.stdout_lines | length > 0 }}

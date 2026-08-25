@@ -20,8 +20,8 @@ inventory/
     │   ├── all.yaml
     │   ├── dns.yaml
     │   ├── inventory_automation.yaml
-    │   ├── monitoring.yaml
-    │   ├── notification.yaml
+    │   ├── monitoring_hosts.yaml
+    │   ├── notification_hosts.yaml
     │   └── reverse_proxy.yaml
     ├── hosts/
     │   ├── j2-svpi4mf.yaml
@@ -101,8 +101,9 @@ complete service configurations into it.
 
 - Use lowercase host keys containing letters, numbers, and hyphens.
 - Prefer stable hostnames over IP addresses for `management_fqdn`.
-- Use group names that describe a server function, such as `dns`, `monitoring`,
-  or `notification`.
+- Use group names that describe a server function, such as `dns` or
+  `reverse_proxy`. Append `_hosts` when the functional name is also a canonical
+  hostname, so Ansible does not have a host and group with the same name.
 - Use lowercase component identifiers that match their software or
   configuration bundle names.
 - Use the same host key in automation, documentation, and monitoring labels.

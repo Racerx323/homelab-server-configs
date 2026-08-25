@@ -1,0 +1,719 @@
+---
+- name: Qualify j2-svpi4mf for the Nautobot pilot
+  hosts: inventory_automation
+  gather_facts: true
+  become: false
+  any_errors_fatal: true
+
+  vars_files:
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+
+  vars:
+    qualification_max_load_per_core: 1.0
+    qualification_subordinate_id_range:
+      start: 165536
+      count: 65536
+    qualification_install_packages:
+      - podman
+      - uidmap
+      - passt
+      - slirp4netns
+      - fuse-overlayfs
+      - crun
+      - dbus-user-session
+      - smartmontools
+      - restic
+    qualification_packages:
+      - podman
+      - uidmap
+      - passt
+      - slirp4netns
+      - fuse-overlayfs
+      - crun
+      - dbus-user-session
+      - smartmontools
+      - restic
+      - openssh-server
+      - network-manager
+      - systemd-timesyncd
+      - munin-node
+      - webmin
+      - needrestart
+      - watchdog
+      - keepalived
+      - avahi-daemon
+      - bluez
+      - modemmanager
+    qualification_units:
+      - ssh.service
+      - NetworkManager.service
+      - systemd-timesyncd.service
+      - munin-node.service
+      - webmin.service
+      - watchdog.service
+      - keepalived.service
+      - avahi-daemon.service
+      - avahi-daemon.socket
+      - bluetooth.service
+      - ModemManager.service
+
+  pre_tasks:
+    - name: Enforce the qualification target boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == "j2-svpi4mf"
+          - ansible_play_hosts_all | length == 1
+        fail_msg: >-
+          This playbook is restricted to the single inventory host
+          j2-svpi4mf.
+
+  tasks:
+    - name: Read cgroup filesystem type
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/stat
+          - --file-system
+          - --format=%T
+          - /sys/fs/cgroup
+      register: qualification_cgroup_filesystem
+      changed_when: false
+      check_mode: false
+
+    - name: Inspect cgroup-v2 controller file
+      ansible.builtin.stat:
+        path: /sys/fs/cgroup/cgroup.controllers
+      register: qualification_cgroup_controllers
+
+    - name: Read root filesystem identity and capacity
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/findmnt
+          - --json
+          - --bytes
+          - --output=SOURCE,FSTYPE,SIZE,AVAIL,TARGET
+          - /
+      register: qualification_root_filesystem
+      changed_when: false
+      check_mode: false
+
+    - name: Read block-device topology
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/lsblk
+          - --json
+          - --bytes
+          - --output=NAME,TYPE,SIZE,FSTYPE,MOUNTPOINTS,TRAN,MODEL
+      register: qualification_block_devices
+      changed_when: false
+      check_mode: false
+
+    - name: Resolve the root block-device parent
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/lsblk
+          - --noheadings
+          - --output=PKNAME
+          - >-
+            {{
+              (qualification_root_filesystem.stdout | from_json)
+              .filesystems[0].source
+            }}
+      register: qualification_root_parent
+      changed_when: false
+      check_mode: false
+
+    - name: Read root storage udev properties
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/udevadm
+          - info
+          - --query=property
+          - >-
+            --name=/dev/{{ qualification_root_parent.stdout | trim }}
+      register: qualification_root_udev
+      changed_when: false
+      check_mode: false
+
+    - name: Inspect UAS driver bindings
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/find
+          - /sys/bus/usb/drivers/uas
+          - -mindepth
+          - "1"
+          - -maxdepth
+          - "1"
+          - -type
+          - l
+          - -printf
+          - "%f\n"
+      register: qualification_uas_bindings
+      changed_when: false
+      failed_when: qualification_uas_bindings.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read current memory and swap counters
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - /proc/meminfo
+      register: qualification_meminfo
+      changed_when: false
+      check_mode: false
+
+    - name: Read current load averages
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - /proc/loadavg
+      register: qualification_loadavg
+      changed_when: false
+      check_mode: false
+
+    - name: Read active swap devices
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/swapon
+          - --show
+          - --bytes
+          - --output=NAME,TYPE,SIZE,USED,PRIO
+          - --noheadings
+      register: qualification_swap_devices
+      changed_when: false
+      failed_when: qualification_swap_devices.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect Raspberry Pi thermal sensor
+      ansible.builtin.stat:
+        path: /sys/class/thermal/thermal_zone0/temp
+      register: qualification_temperature_sensor
+
+    - name: Read Raspberry Pi temperature
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - /sys/class/thermal/thermal_zone0/temp
+      register: qualification_temperature
+      changed_when: false
+      check_mode: false
+      when: qualification_temperature_sensor.stat.exists
+
+    - name: Inspect Raspberry Pi firmware-status command
+      ansible.builtin.stat:
+        path: /usr/bin/vcgencmd
+      register: qualification_vcgencmd
+
+    - name: Read Raspberry Pi throttling state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/vcgencmd
+          - get_throttled
+      register: qualification_throttling
+      changed_when: false
+      failed_when: qualification_throttling.rc != 0
+      check_mode: false
+      when: qualification_vcgencmd.stat.exists
+
+    - name: Read selected package states
+      ansible.builtin.command:
+        argv: >-
+          {{
+            [
+              "/usr/bin/dpkg-query",
+              "--show",
+              "--showformat=${binary:Package}\\t${Status}\\t${Version}\\n"
+            ] + qualification_packages
+          }}
+      register: qualification_package_states
+      changed_when: false
+      failed_when: qualification_package_states.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read host-baseline package candidates
+      ansible.builtin.command:
+        argv: >-
+          {{
+            ["/usr/bin/apt-cache", "policy"]
+            + qualification_install_packages
+          }}
+      register: qualification_package_candidates
+      changed_when: false
+      check_mode: false
+
+    - name: Read Keepalived package status
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/dpkg-query
+          - --show
+          - --showformat=${db:Status-Status}
+          - keepalived
+      register: qualification_keepalived_package
+      changed_when: false
+      failed_when: qualification_keepalived_package.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect Keepalived configuration directory
+      ansible.builtin.stat:
+        path: /etc/keepalived
+      register: qualification_keepalived_configuration
+
+    - name: Read Keepalived processes
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/pgrep
+          - --list-full
+          - --exact
+          - keepalived
+      register: qualification_keepalived_processes
+      changed_when: false
+      failed_when: qualification_keepalived_processes.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read Keepalived unit load state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - show
+          - --property=LoadState
+          - keepalived.service
+      register: qualification_keepalived_unit
+      changed_when: false
+      failed_when: qualification_keepalived_unit.rc not in [0, 1, 4]
+      check_mode: false
+
+    - name: Read required and unwanted unit states
+      ansible.builtin.command:
+        argv: >-
+          {{
+            [
+              "/usr/bin/systemctl",
+              "show",
+              "--property=Id,LoadState,ActiveState,SubState,UnitFileState"
+            ] + qualification_units
+          }}
+      register: qualification_unit_states
+      changed_when: false
+      failed_when: qualification_unit_states.rc not in [0, 1, 4]
+      check_mode: false
+
+    - name: Read failed systemd units
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - list-units
+          - --state=failed
+          - --all
+          - --no-legend
+          - --plain
+      register: qualification_failed_units
+      changed_when: false
+      check_mode: false
+
+    - name: Read running systemd services
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - list-units
+          - --type=service
+          - --state=running
+          - --all
+          - --no-legend
+          - --plain
+      register: qualification_running_services
+      changed_when: false
+      check_mode: false
+
+    - name: Read installed systemd service files
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemctl
+          - list-unit-files
+          - --type=service
+          - --no-legend
+          - --plain
+      register: qualification_service_files
+      changed_when: false
+      check_mode: false
+
+    - name: Read host identity
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/hostnamectl
+          - status
+      register: qualification_host_identity
+      changed_when: false
+      check_mode: false
+
+    - name: Read network addresses
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/ip
+          - --json
+          - address
+          - show
+      register: qualification_network_addresses
+      changed_when: false
+      check_mode: false
+
+    - name: Read network routes
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/ip
+          - --json
+          - route
+          - show
+          - table
+          - all
+      register: qualification_network_routes
+      changed_when: false
+      check_mode: false
+
+    - name: Inspect NetworkManager command
+      ansible.builtin.stat:
+        path: /usr/bin/nmcli
+      register: qualification_nmcli
+
+    - name: Read active NetworkManager connections
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/nmcli
+          - --terse
+          - --fields=NAME,UUID,TYPE,DEVICE
+          - connection
+          - show
+          - --active
+      register: qualification_networkmanager
+      changed_when: false
+      check_mode: false
+      when: qualification_nmcli.stat.exists
+
+    - name: Read nautobot account state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/getent
+          - passwd
+          - nautobot
+      register: qualification_nautobot_account
+      changed_when: false
+      failed_when: qualification_nautobot_account.rc not in [0, 2]
+      check_mode: false
+
+    - name: Read unprivileged user-namespace policy
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sysctl
+          - --values
+          - kernel.unprivileged_userns_clone
+      register: qualification_unprivileged_userns
+      changed_when: false
+      failed_when: qualification_unprivileged_userns.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read maximum user-namespace count
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sysctl
+          - --values
+          - user.max_user_namespaces
+      register: qualification_max_user_namespaces
+      changed_when: false
+      failed_when: qualification_max_user_namespaces.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read nautobot user-manager state
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/loginctl
+          - show-user
+          - nautobot
+          - --property=Linger,RuntimePath,State
+      register: qualification_nautobot_user_manager
+      changed_when: false
+      failed_when: qualification_nautobot_user_manager.rc not in [0, 1]
+      check_mode: false
+      when: qualification_nautobot_account.rc == 0
+
+    - name: Read subordinate UID assignments
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - /etc/subuid
+      register: qualification_subuid
+      changed_when: false
+      failed_when: qualification_subuid.rc not in [0, 1]
+      check_mode: false
+
+    - name: Read subordinate GID assignments
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/cat
+          - /etc/subgid
+      register: qualification_subgid
+      changed_when: false
+      failed_when: qualification_subgid.rc not in [0, 1]
+      check_mode: false
+
+    - name: Inspect SMART command
+      ansible.builtin.stat:
+        path: /usr/sbin/smartctl
+      register: qualification_smartctl
+
+    - name: Probe SMART-capable devices without changing them
+      become: true
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/smartctl
+          - --scan-open
+      register: qualification_smart_scan
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: qualification_smartctl.stat.exists
+
+    - name: Read bounded current-boot kernel warnings
+      become: true
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/journalctl
+          - --dmesg
+          - --boot
+          - --priority=warning
+          - --lines=200
+          - --no-pager
+          - --output=short-iso
+      register: qualification_kernel_warnings
+      changed_when: false
+      failed_when: qualification_kernel_warnings.rc not in [0, 1]
+      check_mode: false
+
+    - name: Emit the bounded qualification report
+      ansible.builtin.debug:
+        msg:
+          schema_version: 1
+          target:
+            inventory_hostname: "{{ inventory_hostname }}"
+            management_fqdn: "{{ management_fqdn }}"
+            collected_at_utc: "{{ ansible_facts['date_time']['iso8601'] }}"
+          expected:
+            hardware: "{{ hardware }}"
+            storage: "{{ storage }}"
+            management: "{{ management }}"
+            high_availability: "{{ high_availability }}"
+            functions: "{{ functions }}"
+            components: "{{ components }}"
+          observed:
+            operating_system:
+              distribution: "{{ ansible_facts.distribution }}"
+              version: "{{ ansible_facts.distribution_version }}"
+              architecture: "{{ ansible_facts.architecture }}"
+              kernel: "{{ ansible_facts.kernel }}"
+              virtualization_type: >-
+                {{ ansible_facts.virtualization_type | default("unknown") }}
+              virtualization_role: >-
+                {{ ansible_facts.virtualization_role | default("unknown") }}
+            compute:
+              processor_vcpus: "{{ ansible_facts.processor_vcpus }}"
+              memory_total_mib: "{{ ansible_facts.memtotal_mb }}"
+              swap_total_mib: "{{ ansible_facts.swaptotal_mb }}"
+              loadavg: "{{ qualification_loadavg.stdout }}"
+              meminfo: "{{ qualification_meminfo.stdout_lines }}"
+              swap_devices: "{{ qualification_swap_devices.stdout_lines }}"
+              temperature_millicelsius: >-
+                {{
+                  qualification_temperature.stdout
+                  if not (qualification_temperature.skipped | default(false))
+                  else none
+                }}
+              throttling: >-
+                {{
+                  qualification_throttling.stdout
+                  if not (qualification_throttling.skipped | default(false))
+                  else none
+                }}
+            cgroups:
+              filesystem: "{{ qualification_cgroup_filesystem.stdout }}"
+              v2_controllers_present: >-
+                {{ qualification_cgroup_controllers.stat.exists }}
+            storage:
+              root_filesystem: >-
+                {{ qualification_root_filesystem.stdout | from_json }}
+              block_devices: >-
+                {{ qualification_block_devices.stdout | from_json }}
+              root_parent: "{{ qualification_root_parent.stdout | trim }}"
+              root_udev_properties: "{{ qualification_root_udev.stdout_lines }}"
+              uas_bindings: "{{ qualification_uas_bindings.stdout_lines }}"
+              smartctl_present: "{{ qualification_smartctl.stat.exists }}"
+              smart_scan_stdout: >-
+                {{
+                  qualification_smart_scan.stdout_lines
+                  if not (qualification_smart_scan.skipped | default(false))
+                  else []
+                }}
+              smart_scan_stderr: >-
+                {{
+                  qualification_smart_scan.stderr_lines
+                  if not (qualification_smart_scan.skipped | default(false))
+                  else []
+                }}
+            selected_packages: >-
+              {{ qualification_package_states.stdout_lines }}
+            package_candidates: >-
+              {{ qualification_package_candidates.stdout_lines }}
+            keepalived:
+              package_status: "{{ qualification_keepalived_package.stdout }}"
+              configuration_present: >-
+                {{ qualification_keepalived_configuration.stat.exists }}
+              processes: "{{ qualification_keepalived_processes.stdout_lines }}"
+              unit: "{{ qualification_keepalived_unit.stdout_lines }}"
+            systemd:
+              selected_units: "{{ qualification_unit_states.stdout_lines }}"
+              failed_units: "{{ qualification_failed_units.stdout_lines }}"
+              running_services: "{{ qualification_running_services.stdout_lines }}"
+              service_files: "{{ qualification_service_files.stdout_lines }}"
+            identity: "{{ qualification_host_identity.stdout_lines }}"
+            network:
+              addresses: "{{ qualification_network_addresses.stdout | from_json }}"
+              routes: "{{ qualification_network_routes.stdout | from_json }}"
+              active_networkmanager_connections: >-
+                {{
+                  qualification_networkmanager.stdout_lines
+                  if not (qualification_networkmanager.skipped | default(false))
+                  else []
+                }}
+            rootless_runtime:
+              requested_subordinate_id_range: >-
+                {{ qualification_subordinate_id_range }}
+              nautobot_account: "{{ qualification_nautobot_account.stdout_lines }}"
+              unprivileged_userns: >-
+                {{ qualification_unprivileged_userns.stdout_lines }}
+              max_user_namespaces: >-
+                {{ qualification_max_user_namespaces.stdout_lines }}
+              nautobot_user_manager: >-
+                {{
+                  qualification_nautobot_user_manager.stdout_lines
+                  if not (
+                    qualification_nautobot_user_manager.skipped
+                    | default(false)
+                  )
+                  else []
+                }}
+              subordinate_uids: "{{ qualification_subuid.stdout_lines }}"
+              subordinate_gids: "{{ qualification_subgid.stdout_lines }}"
+            kernel_warnings: "{{ qualification_kernel_warnings.stdout_lines }}"
+          command_status:
+            root_filesystem:
+              rc: "{{ qualification_root_filesystem.rc }}"
+              stderr: "{{ qualification_root_filesystem.stderr_lines }}"
+            block_devices:
+              rc: "{{ qualification_block_devices.rc }}"
+              stderr: "{{ qualification_block_devices.stderr_lines }}"
+            root_udev:
+              rc: "{{ qualification_root_udev.rc }}"
+              stderr: "{{ qualification_root_udev.stderr_lines }}"
+            selected_packages:
+              rc: "{{ qualification_package_states.rc }}"
+              stderr: "{{ qualification_package_states.stderr_lines }}"
+            package_candidates:
+              rc: "{{ qualification_package_candidates.rc }}"
+              stderr: "{{ qualification_package_candidates.stderr_lines }}"
+            keepalived_package:
+              rc: "{{ qualification_keepalived_package.rc }}"
+              stderr: "{{ qualification_keepalived_package.stderr_lines }}"
+            keepalived_processes:
+              rc: "{{ qualification_keepalived_processes.rc }}"
+              stderr: "{{ qualification_keepalived_processes.stderr_lines }}"
+            keepalived_unit:
+              rc: "{{ qualification_keepalived_unit.rc }}"
+              stderr: "{{ qualification_keepalived_unit.stderr_lines }}"
+            selected_units:
+              rc: "{{ qualification_unit_states.rc }}"
+              stderr: "{{ qualification_unit_states.stderr_lines }}"
+            failed_units:
+              rc: "{{ qualification_failed_units.rc }}"
+              stderr: "{{ qualification_failed_units.stderr_lines }}"
+            network_addresses:
+              rc: "{{ qualification_network_addresses.rc }}"
+              stderr: "{{ qualification_network_addresses.stderr_lines }}"
+            network_routes:
+              rc: "{{ qualification_network_routes.rc }}"
+              stderr: "{{ qualification_network_routes.stderr_lines }}"
+            subordinate_uids:
+              rc: "{{ qualification_subuid.rc }}"
+              stderr: "{{ qualification_subuid.stderr_lines }}"
+            subordinate_gids:
+              rc: "{{ qualification_subgid.rc }}"
+              stderr: "{{ qualification_subgid.stderr_lines }}"
+            smart_scan:
+              attempted: >-
+                {{ not (qualification_smart_scan.skipped | default(false)) }}
+              rc: "{{ qualification_smart_scan.rc | default(none) }}"
+              stderr: "{{ qualification_smart_scan.stderr_lines | default([]) }}"
+            kernel_warnings:
+              rc: "{{ qualification_kernel_warnings.rc }}"
+              stderr: "{{ qualification_kernel_warnings.stderr_lines }}"
+
+    - name: Enforce immutable hardware qualification gates
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Debian"
+          - ansible_facts.architecture in ["aarch64", "arm64"]
+          - ansible_facts.hostname == inventory_hostname
+          - ansible_facts.processor_vcpus | int >= hardware.cpu_cores | int
+          - ansible_facts.memtotal_mb | int >= 7168
+          - qualification_cgroup_filesystem.stdout == "cgroup2fs"
+          - qualification_cgroup_controllers.stat.exists
+          - >-
+            (qualification_root_filesystem.stdout | from_json)
+            .filesystems[0].fstype == storage.root.filesystem
+          - >-
+            (qualification_root_filesystem.stdout | from_json)
+            .filesystems[0].size | int >= 900000000000
+          - qualification_root_parent.stdout | trim | length > 0
+          - "'ID_BUS=usb' in qualification_root_udev.stdout_lines"
+          - "'ID_USB_DRIVER=uas' in qualification_root_udev.stdout_lines"
+          - qualification_uas_bindings.stdout_lines | length > 0
+        fail_msg: >-
+          j2-svpi4mf does not satisfy one or more immutable Nautobot pilot
+          hardware or operating-system gates. Review the emitted report before
+          defining any host-baseline mutation.
+
+    - name: Enforce current temperature gate when available
+      ansible.builtin.assert:
+        that:
+          - qualification_temperature.stdout | int < 80000
+        fail_msg: >-
+          The current Raspberry Pi temperature is at or above 80 degrees
+          Celsius. Do not proceed to host-baseline mutation.
+      when: not (qualification_temperature.skipped | default(false))
+
+    - name: Enforce current load and throttling gates
+      ansible.builtin.assert:
+        that:
+          - >-
+            (qualification_loadavg.stdout.split()[0] | float)
+            < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
+          - >-
+            (qualification_loadavg.stdout.split()[1] | float)
+            < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
+          - >-
+            (qualification_loadavg.stdout.split()[2] | float)
+            < ((hardware.cpu_cores | float) * qualification_max_load_per_core)
+          - qualification_vcgencmd.stat.exists
+          - qualification_throttling.stdout == "throttled=0x0"
+        fail_msg: >-
+          Current load exceeds one runnable task per CPU core, Raspberry Pi
+          throttling status is unavailable, or throttling has occurred. Do not
+          proceed to host-baseline mutation.
+
+    - name: Enforce the Keepalived ownership boundary
+      ansible.builtin.assert:
+        that:
+          - qualification_keepalived_package.rc == 1
+          - not qualification_keepalived_configuration.stat.exists
+          - qualification_keepalived_processes.rc == 1
+          - "'LoadState=not-found' in qualification_keepalived_unit.stdout_lines"
+        fail_msg: >-
+          Keepalived remains present. homelab-dns must complete and validate
+          its removal before the Nautobot host-baseline operation can mutate
+          this host.

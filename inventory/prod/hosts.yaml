@@ -13,12 +13,12 @@ all:
         pihole0: {}
         pihole00: {}
 
-    monitoring:
+    monitoring_hosts:
       hosts:
         monitoring:
           management_fqdn: monitoring.local.theama.co
 
-    notification:
+    notification_hosts:
       hosts:
         notification:
           management_fqdn: notification.local.theama.co

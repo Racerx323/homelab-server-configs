@@ -1,0 +1,137 @@
+---
+schema_version: 1
+
+operation:
+  id: nautobot-host-baseline-v1
+  state: definition
+  authorization_ready: false
+  stage: host_baseline
+  target:
+    host: j2-svpi4mf
+    address: 10.1.2.170
+    ssh_user: ama
+  architecture:
+    plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
+    keepalived_owner: homelab-dns
+    network_owner: homelab-network
+  source:
+    repository: homelab-server-configs
+    base_commit: 96e658801ef1f0a628dcdb2a9c89d6a4549edcfd
+
+qualification:
+  command: /bin/bash Nautobot/ansible/scripts/run-qualification.sh execute
+  maximum_age_minutes: 30
+  required_after_keepalived_removal: true
+  required_assertions:
+    - immutable_hardware
+    - temperature
+    - load_and_throttling
+    - keepalived_absent
+    - exact_apt_candidates
+
+inputs:
+  package_names:
+    - podman
+    - uidmap
+    - passt
+    - slirp4netns
+    - fuse-overlayfs
+    - crun
+    - dbus-user-session
+    - smartmontools
+    - restic
+  package_specs: []
+  service_account:
+    name: nautobot
+    home: /var/lib/nautobot
+    shell: /usr/sbin/nologin
+    subordinate_id_start: 165536
+    subordinate_id_count: 65536
+    linger: true
+  required_units:
+    - ssh.service
+    - NetworkManager.service
+    - systemd-timesyncd.service
+    - munin-node.service
+    - webmin.service
+    - watchdog.service
+  unwanted_units:
+    - avahi-daemon.service
+    - avahi-daemon.socket
+    - bluetooth.service
+    - ModemManager.service
+  storage:
+    root_device: /dev/sda
+    smart_device_types:
+      - auto
+      - sat
+    allow_documented_bridge_limitation: true
+
+mutations:
+  ordered:
+    - install_exact_packages
+    - create_service_account
+    - assign_subordinate_ids
+    - enable_lingering
+    - stop_disable_mask_unwanted_units
+    - enable_smart_monitoring_when_supported
+    - initialize_rootless_podman
+    - reboot_if_changed
+
+acceptance:
+  require_zero_failed_units: true
+  require_installed_package_versions: true
+  require_rootless_podman: true
+  require_linger_after_reboot: true
+  require_required_units_active: true
+  require_unwanted_units_inactive_masked: true
+  require_keepalived_absent: true
+  require_smart_health_or_documented_limitation: true
+  require_no_new_storage_io_errors: true
+
+rollback:
+  automatic_on_apply_failure: true
+  reverse_order:
+    - restore_unwanted_unit_dimensions_changed_by_operation
+    - disable_lingering_if_enabled_by_operation
+    - remove_subordinate_ids_added_by_operation
+    - remove_service_account_if_created_by_operation
+    - remove_packages_installed_by_operation
+    - reboot_if_apply_rebooted
+  package_autoremove: false
+  preserve_preexisting_packages: true
+  unreachable_host_result: manual_intervention
+  residue:
+    - dependencies_installed_by_apt_are_reported_and_not_autoremoved
+    - rootless_storage_for_a_preexisting_account_is_preserved
+
+evidence:
+  local_root_pattern: /tmp/nautobot-host-baseline.*
+  directory_mode: "0700"
+  file_mode: "0600"
+  stream_limit_bytes: 8388608
+  phases:
+    - preflight
+    - mutation
+    - acceptance
+    - rollback
+    - residue
+  raw_evidence_in_git: false
+
+authorization:
+  command: >-
+    /bin/bash Nautobot/ansible/scripts/run-host-baseline.sh execute
+    BUNDLE_SHA256
+  bundle_algorithm: sha256
+  authorized_stage: host_baseline
+  excluded_stages:
+    - dual_stack_identity
+    - nautobot_pilot
+    - caddy_onboarding
+    - authority_migration
+    - semaphore
+  blockers:
+    - fresh_post_keepalived_qualification
+    - exact_apt_package_specs
+    - checkpointed_source_revision
+    - reviewed_bundle_sha256

@@ -171,6 +171,35 @@ repos:
         files: >-
           ^Nautobot/(?:manifests/desired-state\.yaml|schemas/desired-state\.schema\.json)$
 
+      - id: nautobot-qualification-evidence-capture
+        name: Validate Nautobot qualification evidence capture
+        entry: >-
+          /bin/bash Nautobot/ansible/scripts/run-qualification.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^Nautobot/ansible/(?:README\.md|playbooks/qualify-host\.yaml|scripts/run-qualification\.sh)$
+
+      - id: nautobot-operation-schema
+        name: Validate Nautobot active operation schema
+        entry: >-
+          check-jsonschema
+          --schemafile Nautobot/schemas/operation.schema.json
+          Nautobot/manifests/operation.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^Nautobot/(?:manifests/operation\.yaml|schemas/operation\.schema\.json)$
+
+      - id: nautobot-host-baseline-launcher
+        name: Validate Nautobot host-baseline operation
+        entry: >-
+          /bin/bash Nautobot/ansible/scripts/run-host-baseline.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:docs/NAUTOBOT_DEPLOYMENT_PLAN\.md|manifests/(?:desired-state|operation)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/host-baseline\.yaml|tasks/rollback-host-baseline\.yaml|scripts/run-host-baseline\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+
       - id: check-json
         name: Validate JSON with jq
         entry: jq empty
