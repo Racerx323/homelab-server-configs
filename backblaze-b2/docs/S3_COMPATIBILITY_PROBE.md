@@ -7,14 +7,31 @@ that the canonical Nautobot Restic credential can use Backblaze's
 S3-compatible interface. The active operation is unready and definition-only.
 It does not authorize provider, Doppler, Restic, or host contact.
 
-The protected SigV4 client and offline failure regressions are implemented but
-unreviewed. Direct client execution fails closed; no hash-bound launcher or
-live authorization exists yet.
+The protected SigV4 client, hash-bound Python launcher, and offline failure
+regressions are implemented but unreviewed. Direct client execution fails
+closed. The launcher remains unready and no live authorization exists yet.
 
 The probe accepts only the seven-capability replacement credential already
 stored under the canonical Doppler names. The original overprivileged key was
 deleted by the operator, so this operation has no old-key fallback. A failed
 probe must not broaden the replacement key or create another key.
+
+## Read-only preflight
+
+Before readiness, the launcher provides a separately authorized `preflight`
+mode. It reads only the two canonical `homelab-dev/prd_b2` values into memory,
+authenticates them with `b2_authorize_account`, and requires the exact seven
+capabilities, bucket identity, null name prefix, no provider expiration, and
+reviewed S3 endpoint. It then lists only a fresh generated probe prefix and
+requires it to be empty.
+
+The preflight cannot put or delete an object, use administrator or candidate
+credentials, fall back to the deleted old key, contact Restic, or contact a
+host. Its command is:
+
+```text
+python3 backblaze-b2/scripts/run_s3_compatibility_probe.py preflight
+```
 
 ## Owned probe object
 
@@ -38,8 +55,8 @@ prefix before the first write.
 
 ## Ordered transaction
 
-The implementation uses the reviewed Backblaze S3 endpoint, exact
-bucket, and canonical Doppler secret references. It must keep both credential
+The implementation uses the reviewed Backblaze S3 endpoint, exact bucket, and
+canonical Doppler secret references. It must keep both credential
 values in memory and outside argv, environment dumps, logs, and evidence.
 
 Perform exactly these provider operations:

@@ -9,6 +9,7 @@ provide the protected evidence directory before live use.
 from __future__ import annotations
 
 import datetime as dt
+import base64
 import hashlib
 import hmac
 import json
@@ -26,11 +27,13 @@ from pathlib import Path
 from typing import Any, Callable
 
 OPERATION_ID = "backblaze-b2-s3-compatibility-v1"
+AUTH_URL = "https://api.backblazeb2.com/b2api/v4/b2_authorize_account"
 ENDPOINT = "https://s3.us-west-002.backblazeb2.com"
 HOST = "s3.us-west-002.backblazeb2.com"
 REGION = "us-west-002"
 SERVICE = "s3"
 BUCKET = "theama-homelab-nautobot-restic-prd"
+BUCKET_ID = "4d1bda761665474eaf030b18"
 KEY_PARENT = "__capability_probe__/homelab-nautobot-restic-prd-v2"
 CONTENT = b"nautobot B2 S3 compatibility probe v1\n"
 CONTENT_SHA256 = "d351ee40d27759daeca28938056b90208e9c5b791d1f9267b2aec8ec1ae13089"
@@ -44,6 +47,15 @@ MAX_RESPONSE_BYTES = 1024 * 1024
 HTTP_TIMEOUT_SECONDS = 20
 DOPPLER_TIMEOUT_SECONDS = 30
 DOPPLER_BASE = ("doppler", "--no-check-version", "--no-read-env", "--silent")
+EXPECTED_CAPABILITIES = {
+    "listAllBucketNames",
+    "listBuckets",
+    "readBuckets",
+    "listFiles",
+    "readFiles",
+    "writeFiles",
+    "deleteFiles",
+}
 
 
 class ProbeBlocked(Exception):
@@ -302,6 +314,90 @@ class S3Transport:
             )
 
 
+def _native_authorization(key_id: bytes, application_key: bytes, opener: Any) -> dict[str, Any]:
+    source = bytearray(key_id)
+    source.extend(b":")
+    source.extend(application_key)
+    encoded = bytearray(base64.b64encode(source))
+    source[:] = b"\0" * len(source)
+    source.clear()
+    try:
+        request = urllib.request.Request(
+            AUTH_URL,
+            data=b"{}",
+            headers={
+                "Authorization": "Basic " + encoded.decode("ascii"),
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            response = opener.open(request, timeout=HTTP_TIMEOUT_SECONDS)
+        except urllib.error.HTTPError as exc:
+            response = exc
+        except (urllib.error.URLError, TimeoutError, ssl.SSLError) as exc:
+            raise ProbeBlocked("provider_transport_error") from exc
+        with response:
+            if response.geturl() != AUTH_URL:
+                raise ProbeBlocked("redirect_rejected")
+            payload = response.read(MAX_RESPONSE_BYTES + 1)
+            if len(payload) > MAX_RESPONSE_BYTES:
+                raise ProbeBlocked("provider_response_too_large")
+            if response.status != 200:
+                raise ProbeBlocked(f"authorize_http_{response.status}")
+    finally:
+        encoded[:] = b"\0" * len(encoded)
+        encoded.clear()
+    try:
+        document = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ProbeBlocked("invalid_authorization_response") from exc
+    if not isinstance(document, dict):
+        raise ProbeBlocked("invalid_authorization_response")
+    return document
+
+
+def perform_read_only_preflight(key_id: bytes, application_key: bytes,
+                                s3_transport: Any, recorder: EvidenceRecorder,
+                                run_id: str, native_opener: Any) -> str:
+    if not re.fullmatch(r"[0-9a-f]{32}", run_id):
+        raise ProbeBlocked("invalid_run_id")
+    run_hash = _sha256(run_id.encode())
+    prefix = f"{KEY_PARENT}/{run_id}/"
+    try:
+        document = _native_authorization(key_id, application_key, native_opener)
+        recorder.observe("preflight", "authorize_canonical_credential", "http_2xx")
+        api_info = document.get("apiInfo")
+        storage = api_info.get("storageApi") if isinstance(api_info, dict) else None
+        if not isinstance(storage, dict):
+            raise ProbeBlocked("invalid_authorization_response")
+        allowed = storage.get("allowed")
+        if not isinstance(allowed, dict):
+            raise ProbeBlocked("invalid_authorization_response")
+        capabilities = allowed.get("capabilities")
+        if not isinstance(capabilities, list) or set(capabilities) != EXPECTED_CAPABILITIES:
+            raise ProbeBlocked("capability_scope_mismatch")
+        if allowed.get("bucketId") != BUCKET_ID or allowed.get("bucketName") != BUCKET:
+            raise ProbeBlocked("bucket_scope_mismatch")
+        if allowed.get("namePrefix") is not None:
+            raise ProbeBlocked("prefix_scope_mismatch")
+        if storage.get("s3ApiUrl") != ENDPOINT:
+            raise ProbeBlocked("s3_endpoint_mismatch")
+        if document.get("applicationKeyExpirationTimestamp") is not None:
+            raise ProbeBlocked("credential_expiration_present")
+
+        response = s3_transport.request("GET", query=_list_query(prefix))
+        recorder.observe("preflight", "list_owned_prefix", f"http_{response.status // 100}xx")
+        _require_empty_list(response)
+        recorder.finish("preflight_passed", None, run_hash, True, False)
+        return "preflight_passed"
+    except Exception as exc:
+        error = exc if isinstance(exc, ProbeBlocked) else ProbeBlocked("internal_error")
+        recorder.finish("preflight_blocked", error.code, run_hash, True, False)
+        return "preflight_blocked"
+
+
 def _list_keys(response: Response) -> list[str]:
     if response.status != 200:
         raise ProbeBlocked(f"list_http_{response.status}")
@@ -377,7 +473,8 @@ def perform_probe(transport: Any, recorder: EvidenceRecorder, run_id: str) -> st
         _require_empty_list(response)
         recorder.finish("passed", None, run_hash, True, False)
         return "passed"
-    except ProbeBlocked as forward_error:
+    except Exception as exc:
+        forward_error = exc if isinstance(exc, ProbeBlocked) else ProbeBlocked("internal_error")
         if not put_attempted:
             recorder.finish("blocked", forward_error.code, run_hash, True, False)
             return "blocked"
@@ -410,8 +507,10 @@ def perform_probe(transport: Any, recorder: EvidenceRecorder, run_id: str) -> st
         return result
 
 
-def execute(evidence_root: Path, bundle_sha256: str, run_id: str,
+def execute(evidence_root: Path, bundle_sha256: str, run_id: str, mode: str,
             transport_factory: Callable[[bytes, bytes], Any] = S3Transport) -> str:
+    if mode not in {"preflight", "execute"}:
+        raise ProbeBlocked("invalid_execution_mode")
     root_fd = validate_evidence_root(evidence_root)
     key_id: bytearray | None = None
     application_key: bytearray | None = None
@@ -420,6 +519,11 @@ def execute(evidence_root: Path, bundle_sha256: str, run_id: str,
         key_id = read_secret(KEY_ID_NAME)
         application_key = read_secret(KEY_VALUE_NAME)
         transport = transport_factory(bytes(key_id), bytes(application_key))
+        if mode == "preflight":
+            return perform_read_only_preflight(
+                bytes(key_id), bytes(application_key), transport, recorder, run_id,
+                transport.opener,
+            )
         return perform_probe(transport, recorder, run_id)
     finally:
         for secret in (key_id, application_key):

@@ -91,6 +91,8 @@ the isolated owned-object transaction required before that acceptance.
   key client with sanitized forward and readback evidence;
 - `scripts/s3_compatibility_probe.py`: fail-closed SigV4 client for the exact
   owned-object compatibility transaction; direct execution remains disabled;
+- `scripts/run_s3_compatibility_probe.py`: unready hash-bound launcher owning
+  the read-only preflight, live gate, evidence, and terminal classification;
 - `scripts/run-replacement-key-creation.sh`: unready hash-bound replacement-key
   launcher and terminal-classification owner;
 - `scripts/run-master-key-rotation.sh`: inactive hash-bound outer launcher for
@@ -111,6 +113,8 @@ the isolated owned-object transaction required before that acceptance.
   candidate transport, no-retry, unready gate, and evidence regressions.
 - `tests/s3-compatibility-probe-regression.py`: offline signing, exact
   transaction, failure cleanup, secret transport, and evidence regressions.
+- `tests/s3-compatibility-launcher-regression.py`: offline readiness, bundle,
+  preflight, terminal-classification, and protected-evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

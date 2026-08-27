@@ -217,11 +217,11 @@ repos:
 
       - id: backblaze-b2-s3-compatibility-probe
         name: Validate Backblaze B2 S3 compatibility probe
-        entry: python3 backblaze-b2/tests/s3-compatibility-probe-regression.py
+        entry: python3 backblaze-b2/scripts/run_s3_compatibility_probe.py self-test
         language: system
         pass_filenames: false
         files: >-
-          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/S3_COMPATIBILITY_PROBE\.md|manifests/operation\.yaml|schemas/(?:operation|s3-compatibility-probe)\.schema\.json|scripts/s3_compatibility_probe\.py|tests/s3-compatibility-probe-regression\.py))$
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/S3_COMPATIBILITY_PROBE\.md|manifests/operation\.yaml|schemas/(?:operation|s3-compatibility-probe)\.schema\.json|scripts/(?:s3_compatibility_probe|run_s3_compatibility_probe)\.py|tests/s3-compatibility-(?:probe|launcher)-regression\.py))$
 
       - id: backblaze-b2-protected-doppler-master-write
         name: Validate Backblaze B2 protected Doppler master write

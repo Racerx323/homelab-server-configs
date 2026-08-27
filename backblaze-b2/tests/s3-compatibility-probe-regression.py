@@ -62,6 +62,54 @@ class FakeTransport:
         return response
 
 
+class FakeNativeResponse:
+    def __init__(self, payload: dict[str, Any], status: int = 200):
+        self.payload = json.dumps(payload).encode()
+        self.status = status
+
+    def __enter__(self) -> "FakeNativeResponse":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        return None
+
+    def geturl(self) -> str:
+        return CLIENT.AUTH_URL
+
+    def read(self, size: int) -> bytes:
+        return self.payload[:size]
+
+
+class FakeNativeOpener:
+    def __init__(self, payload: dict[str, Any]):
+        self.payload = payload
+        self.requests: list[Any] = []
+
+    def open(self, request: Any, timeout: int) -> FakeNativeResponse:
+        self.requests.append(request)
+        return FakeNativeResponse(self.payload)
+
+
+def authorization_response() -> dict[str, Any]:
+    return {
+        "accountId": "account-under-test",
+        "authorizationToken": "token-under-test",
+        "applicationKeyExpirationTimestamp": None,
+        "apiInfo": {
+            "storageApi": {
+                "apiUrl": "https://api123.backblazeb2.com",
+                "s3ApiUrl": CLIENT.ENDPOINT,
+                "allowed": {
+                    "bucketId": CLIENT.BUCKET_ID,
+                    "bucketName": CLIENT.BUCKET,
+                    "capabilities": sorted(CLIENT.EXPECTED_CAPABILITIES),
+                    "namePrefix": None,
+                },
+            }
+        },
+    }
+
+
 class RecorderFixture:
     def __init__(self) -> None:
         self.temp = tempfile.TemporaryDirectory(prefix="backblaze-b2-s3-test.", dir="/tmp")
@@ -250,6 +298,81 @@ class TransactionTests(unittest.TestCase):
         )
 
 
+class ReadOnlyPreflightTests(unittest.TestCase):
+    RUN_ID = "fedcba9876543210fedcba9876543210"
+
+    def setUp(self) -> None:
+        self.fixture = RecorderFixture()
+
+    def tearDown(self) -> None:
+        self.fixture.close()
+
+    def test_exact_scope_authentication_and_empty_s3_list_pass(self) -> None:
+        native = FakeNativeOpener(authorization_response())
+        s3 = FakeTransport([list_response([])])
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", s3, self.fixture.recorder,
+            self.RUN_ID, native,
+        )
+        self.assertEqual(result, "preflight_passed")
+        self.assertEqual(len(native.requests), 1)
+        request = native.requests[0]
+        self.assertEqual(request.full_url, CLIENT.AUTH_URL)
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(request.data, b"{}")
+        self.assertTrue(request.get_header("Authorization").startswith("Basic "))
+        self.assertEqual([call["method"] for call in s3.calls], ["GET"])
+        self.assertEqual(s3.calls[0]["object_key"], None)
+        self.assertEqual(self.fixture.document()["result"], "preflight_passed")
+        self.assertFalse(self.fixture.document()["mutation"]["put_attempted"])
+
+    def test_scope_mismatch_blocks_before_s3_request(self) -> None:
+        payload = authorization_response()
+        payload["apiInfo"]["storageApi"]["allowed"]["capabilities"].append(
+            "writeBuckets"
+        )
+        native = FakeNativeOpener(payload)
+        s3 = FakeTransport([])
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", s3, self.fixture.recorder,
+            self.RUN_ID, native,
+        )
+        self.assertEqual(result, "preflight_blocked")
+        self.assertEqual(s3.calls, [])
+        self.assertEqual(self.fixture.document()["error_class"], "capability_scope_mismatch")
+
+    def test_every_scope_field_is_fail_closed(self) -> None:
+        mutations = (
+            ("bucketId", "wrong"),
+            ("bucketName", "wrong"),
+            ("namePrefix", "restricted/"),
+            ("s3ApiUrl", "https://wrong.invalid"),
+        )
+        for field, value in mutations:
+            with self.subTest(field=field):
+                fixture = RecorderFixture()
+                try:
+                    payload = authorization_response()
+                    payload["apiInfo"]["storageApi"]["allowed"][field] = value
+                    result = CLIENT.perform_read_only_preflight(
+                        b"canonical-id", b"canonical-value", FakeTransport([]),
+                        fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+                    )
+                    self.assertEqual(result, "preflight_blocked")
+                finally:
+                    fixture.close()
+
+    def test_expiration_is_rejected(self) -> None:
+        payload = authorization_response()
+        payload["applicationKeyExpirationTimestamp"] = 123
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", FakeTransport([]),
+            self.fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+        )
+        self.assertEqual(result, "preflight_blocked")
+        self.assertEqual(self.fixture.document()["error_class"], "credential_expiration_present")
+
+
 class ProtectionTests(unittest.TestCase):
     def test_doppler_commands_are_exact_and_secret_free(self) -> None:
         for name in (CLIENT.KEY_ID_NAME, CLIENT.KEY_VALUE_NAME):
@@ -263,6 +386,9 @@ class ProtectionTests(unittest.TestCase):
                 ),
             )
         self.assertNotIn("DOPPLER_TOKEN", CLIENT.minimal_environment())
+        rendered = CLIENT_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("prd_b2_admin", rendered)
+        self.assertNotIn("CANDIDATE", rendered)
 
     def test_secret_reader_uses_no_shell_stdin_or_stderr(self) -> None:
         completed = subprocess.CompletedProcess((), 0, b"fixture-secret\n", b"")

@@ -15,6 +15,7 @@
     "acceptance",
     "failure_and_cleanup",
     "implementation",
+    "preflight",
     "evidence",
     "authorization"
   ],
@@ -152,14 +153,46 @@
     },
     "implementation": {
       "const": {
-        "state": "implemented_unreviewed",
+        "state": "launcher_implemented_unreviewed",
         "executable_paths": [
-          "backblaze-b2/scripts/s3_compatibility_probe.py"
+          "backblaze-b2/scripts/s3_compatibility_probe.py",
+          "backblaze-b2/scripts/run_s3_compatibility_probe.py"
         ],
         "regression_paths": [
-          "backblaze-b2/tests/s3-compatibility-probe-regression.py"
+          "backblaze-b2/tests/s3-compatibility-probe-regression.py",
+          "backblaze-b2/tests/s3-compatibility-launcher-regression.py"
         ],
         "live_execution_enabled": false
+      }
+    },
+    "preflight": {
+      "const": {
+        "state": "unexecuted",
+        "command": "python3 backblaze-b2/scripts/run_s3_compatibility_probe.py preflight",
+        "execution_authorized": false,
+        "mutation_authorized": false,
+        "credential_source": "homelab-dev/prd_b2",
+        "canonical_secret_names": [
+          "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID",
+          "NAUTOBOT_RESTIC_B2_APPLICATION_KEY"
+        ],
+        "require": [
+          "canonical_authentication_succeeds",
+          "exact_seven_capabilities",
+          "exact_bucket_id_and_name",
+          "null_name_prefix",
+          "no_provider_expiration",
+          "exact_s3_endpoint",
+          "fresh_generated_prefix_empty_via_s3"
+        ],
+        "old_key_fallback_available": false,
+        "old_key_fallback_attempt_authorized": false,
+        "prohibited": [
+          "object_put_or_delete",
+          "alternate_or_administrator_credential",
+          "key_or_bucket_mutation",
+          "restic_or_host_contact"
+        ]
       }
     },
     "evidence": {
@@ -193,7 +226,9 @@
           "backblaze-b2/schemas/operation.schema.json",
           "backblaze-b2/schemas/s3-compatibility-probe.schema.json",
           "backblaze-b2/scripts/s3_compatibility_probe.py",
-          "backblaze-b2/tests/s3-compatibility-probe-regression.py"
+          "backblaze-b2/scripts/run_s3_compatibility_probe.py",
+          "backblaze-b2/tests/s3-compatibility-probe-regression.py",
+          "backblaze-b2/tests/s3-compatibility-launcher-regression.py"
         ],
         "mutation_authorized": false,
         "excluded_stages": [
@@ -206,6 +241,7 @@
         "blockers": [
           "operator_contract_review_required",
           "no_old_key_fallback_recovery_boundary_review_required",
+          "launcher_implementation_review_required",
           "fresh_read_only_preflight_required",
           "definition_checkpoint_required",
           "readiness_transition_required",
