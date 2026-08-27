@@ -191,7 +191,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^backblaze-b2/(?:docs/MASTER_KEY_ROTATION(?:_PREFLIGHT)?\.md|manifests/operation\.yaml|schemas/(?:operation|master-key-rotation)\.schema\.json)$
+          ^backblaze-b2/(?:docs/MASTER_KEY_ROTATION(?:_PREFLIGHT)?\.md|manifests/operation\.yaml|schemas/operation\.schema\.json)$
 
       - id: backblaze-b2-capability-remediation-preflight
         name: Validate Backblaze B2 capability-remediation preflight
@@ -210,7 +210,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/(?:operation|master-key-rotation)\.schema\.json|scripts/protected_doppler_master_write\.py|tests/protected-doppler-master-write-regression\.py))$
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/protected_doppler_master_write\.py|tests/protected-doppler-master-write-regression\.py))$
 
       - id: backblaze-b2-master-key-rotation-launcher
         name: Validate Backblaze B2 master-key rotation launcher
@@ -218,7 +218,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/(?:operation|master-key-rotation)\.schema\.json|scripts/(?:protected_doppler_master_write\.py|run-master-key-rotation\.sh)|tests/(?:master-key-rotation-launcher-regression|protected-doppler-master-write-regression)\.py))$
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/(?:protected_doppler_master_write\.py|run-master-key-rotation\.sh)|tests/(?:master-key-rotation-launcher-regression|protected-doppler-master-write-regression)\.py))$
 
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture

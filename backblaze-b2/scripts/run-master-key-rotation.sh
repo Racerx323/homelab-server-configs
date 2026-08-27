@@ -18,7 +18,6 @@ readonly -a bundle_files=(
     backblaze-b2/docs/MASTER_KEY_ROTATION.md
     backblaze-b2/docs/MASTER_KEY_ROTATION_PREFLIGHT.md
     backblaze-b2/manifests/operation.yaml
-    backblaze-b2/schemas/master-key-rotation.schema.json
     backblaze-b2/schemas/operation.schema.json
     backblaze-b2/scripts/protected_doppler_master_write.py
     backblaze-b2/scripts/run-master-key-rotation.sh
@@ -42,13 +41,13 @@ operation_ready() {
 
 operation_blockers() {
     python3 -c \
-        'import sys,yaml; data=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(",".join(data["authorization"]["blockers"]))' \
+        'import sys,yaml; data=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(",".join(data.get("authorization", {}).get("blockers", [])))' \
         "${operation_file}"
 }
 
 live_execution_enabled() {
     python3 -c \
-        'import sys,yaml; data=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(str(bool(data["implementation"]["live_execution_enabled"])).lower())' \
+        'import sys,yaml; data=yaml.safe_load(open(sys.argv[1], encoding="utf-8")); print(str(bool(data.get("implementation", {}).get("live_execution_enabled", False))).lower())' \
         "${operation_file}"
 }
 
@@ -203,9 +202,21 @@ execute_rotation() {
     terminal_phase=doppler_config_created
     terminal_result=incomplete
 
+    printf '%s' \
+        'Existing account-level master application-key ID (shown on the App Keys page): ' \
+        >/dev/tty
+    IFS= read -r -s key_id_value </dev/tty
+    printf '\n' >/dev/tty
+    [[ -n ${key_id_value} ]] || {
+        terminal_result=incomplete
+        terminal_error=master_key_id_not_supplied
+        return 2
+    }
+
     printf '%s\n' \
-        'Generate the new master key in the authenticated Backblaze console.' \
-        'Keep the one-time result open. Type generated only after generation completes.' >/dev/tty
+        'Generate the new master key value in the authenticated Backblaze console.' \
+        'The account-level master application-key ID does not change.' \
+        'Keep the one-time value visible. Type generated only after generation completes.' >/dev/tty
     IFS= read -r acknowledgement </dev/tty
     [[ ${acknowledgement} == generated ]] || {
         terminal_result=incomplete
@@ -214,6 +225,15 @@ execute_rotation() {
     }
     terminal_phase=master_generated
     terminal_result=manual_intervention
+
+    printf '%s' 'New one-time master application-key value: ' >/dev/tty
+    IFS= read -r -s key_value </dev/tty
+    printf '\n' >/dev/tty
+    [[ -n ${key_value} ]] || {
+        terminal_result=manual_intervention
+        terminal_error=master_key_value_not_supplied
+        return 2
+    }
 
     key_id_fifo="${evidence_directory}/master-key-id.fifo"
     key_value_fifo="${evidence_directory}/master-key-value.fifo"
@@ -224,13 +244,9 @@ execute_rotation() {
         --bundle-sha256 "${calculated_hash}" &
     writer_pid=$!
 
-    IFS= read -r -s -p 'New master application-key ID: ' key_id_value </dev/tty
-    printf '\n' >/dev/tty
     (printf '%s' "${key_id_value}" >"${key_id_fifo}") &
     feeder_pids+=("$!")
     unset key_id_value
-    IFS= read -r -s -p 'New master application-key value: ' key_value </dev/tty
-    printf '\n' >/dev/tty
     (printf '%s' "${key_value}" >"${key_value_fifo}") &
     feeder_pids+=("$!")
     unset key_value

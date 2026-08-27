@@ -2,10 +2,11 @@
 
 ## Purpose and authorization boundary
 
-Regenerate the unused Backblaze B2 master application key and store its ID and
-one-time value in a dedicated Doppler administrator config. This operation is
-definition-only and unready until its blockers are cleared and a hash-bound
-live authorization is granted.
+Regenerate an unused Backblaze B2 master application key and store its existing
+account-level ID and newly generated one-time value in a dedicated Doppler
+administrator config. No master-key rotation operation is active. The archived
+v1 execution is indexed in `../HISTORY.md`; future reuse requires a new reviewed
+operation definition and hash-bound live authorization.
 
 Generating the new master key invalidates the previous master and cannot be
 rolled back. Do not execute any step from this document without the active
@@ -27,8 +28,10 @@ the rejected Restic key, initialize Restic, or contact a homelab host.
 | Consumer use | prohibited |
 | Provider expiration | unavailable for a master key |
 
-The master key has no operator-selected key name. Backblaze owns its identity
-and exposes its value only when generated.
+The master key has no operator-selected key name. Its ID is the account-level
+identifier formerly called the account ID and remains visible on the App Keys
+page. Generating a new master changes and displays only the one-time secret
+value; it does not produce a new master key ID.
 
 ## Required preflight
 
@@ -56,15 +59,18 @@ identity, secret-transport, or recovery assertion is false.
 ## Ordered mutation
 
 1. Create only Doppler config `homelab-dev/prd/prd_b2_admin`.
-2. In **B2 Cloud Storage > Application Keys**, select **Generate New Master
+2. Before generation, enter the existing account-level master application-key
+   ID shown on the App Keys page into the protected launcher prompt.
+3. In **B2 Cloud Storage > Application Keys**, select **Generate New Master
    Application Key** and confirm the provider warning that the old master will
    become invalid.
-3. Keep the one-time result visible.
-4. Stream the new master key ID and value directly into the two reviewed
-   Doppler secret names without placing either value in argv, environment,
-   regular files, captured output, or evidence.
-5. Read back only the two Doppler secret names and prove both are present.
-6. Record the provider-confirmed old-master invalidation and close the
+4. Keep the one-time result visible and enter only its newly generated secret
+   value into the separately labelled protected prompt.
+5. Stream the existing ID and new value directly into the two reviewed Doppler
+   secret names without placing either value in argv, environment, regular
+   files, captured output, or evidence.
+6. Read back only the two Doppler secret names and prove both are present.
+7. Record the provider-confirmed old-master invalidation and close the
    one-time result only after name-only readback passes.
 
 No other Doppler config, secret, B2 application key, bucket, object, lifecycle,
@@ -73,10 +79,11 @@ encryption, or account setting may change.
 ## Protected Doppler write implementation
 
 The reviewed helper is
-`backblaze-b2/scripts/protected_doppler_master_write.py`. A future hash-bound
-launcher must create two owned mode-`0600` FIFOs beneath the protected
-operation evidence root and start the helper before accepting either one-time
-value. The helper validates and unlinks each FIFO, sends one value at a time to
+`backblaze-b2/scripts/protected_doppler_master_write.py`. The inactive launcher
+uses explicit, separately labelled terminal prompts for the existing ID and
+new one-time value. It rejects empty input before starting the writer, then
+creates two owned mode-`0600` FIFOs beneath the protected operation evidence
+root. The helper validates and unlinks each FIFO, sends one value at a time to
 the exact Doppler secret name through `doppler secrets set NAME` standard
 input, and clears its mutable buffer after the command returns.
 
@@ -91,12 +98,12 @@ This helper does not create `prd_b2_admin`, select the Backblaze generation
 control, or authorize live execution. Those steps remain the responsibility of
 a separately reviewed, hash-bound operation launcher.
 
-The full outer launcher is
+The inactive outer launcher is
 `backblaze-b2/scripts/run-master-key-rotation.sh`. It validates the exact
-operation schema and authorization hash before any Doppler command, proves the
-administrator config remains absent, creates only that config, and then pauses
-for the operator-controlled Backblaze generation step. It cannot run while the
-active operation is unready or has blockers.
+operation-state schema and authorization hash before any Doppler command. With the
+operation manifest in clean state, it rejects execution before provider or
+Doppler contact. A future definition must explicitly review the expected
+Doppler config state instead of inheriting v1's create-if-absent assumption.
 
 Every exit after evidence-root creation records a mode-`0600`, sanitized
 terminal result with the last crossed boundary: `pre_mutation`,
