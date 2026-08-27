@@ -108,7 +108,7 @@
         "exact_candidate_doppler_names_present_without_value_output",
         "canonical_doppler_names_unchanged",
         "rejected_key_unchanged",
-        "no_object_or_consumer_contact"
+        "no_object_mutation_or_consumer_contact"
       ],
       "candidate_authentication_accepted": false,
       "compatibility_accepted": false,
@@ -124,11 +124,11 @@
       "cleanup_requires_separate_authorization": true
     },
     "implementation": {
-      "state": "not_defined",
-      "launcher": null,
-      "client": null,
-      "protected_candidate_writer": null,
-      "regression": null,
+      "state": "defined_unreviewed",
+      "launcher": "backblaze-b2/scripts/run-replacement-key-creation.sh",
+      "client": "backblaze-b2/scripts/replacement_key_creation.py",
+      "protected_candidate_writer": "backblaze-b2/scripts/protected_doppler_candidate_write.py",
+      "regression": "backblaze-b2/tests/replacement-key-creation-regression.py",
       "live_execution_enabled": false
     },
     "evidence": {
@@ -159,11 +159,7 @@
         "j2_svpi4mf_contact"
       ],
       "blockers": [
-        "implementation_not_defined",
-        "protected_candidate_write_not_defined",
-        "rollback_and_residue_regressions_not_defined",
-        "terminal_evidence_classification_not_defined",
-        "definition_review_pending",
+        "implementation_review_pending",
         "implementation_checkpoint_pending",
         "final_bundle_hash_pending",
         "explicit_live_authorization_required"

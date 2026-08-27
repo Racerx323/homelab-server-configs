@@ -78,6 +78,12 @@ unready and authorizes no provider or Doppler mutation.
   Doppler metadata client;
 - `scripts/protected_doppler_master_write.py`: FIFO- and stdin-based one-time
   master-credential writer with name-only acceptance;
+- `scripts/protected_doppler_candidate_write.py`: FIFO- and stdin-based
+  candidate-credential writer that cannot modify canonical names;
+- `scripts/replacement_key_creation.py`: exact single-request B2 replacement
+  key client with sanitized forward and readback evidence;
+- `scripts/run-replacement-key-creation.sh`: unready hash-bound replacement-key
+  launcher and terminal-classification owner;
 - `scripts/run-master-key-rotation.sh`: inactive hash-bound outer launcher for
   a separately defined console and Doppler operation;
 - `scripts/run-capability-remediation-preflight.sh`: readiness- and hash-gated
@@ -92,6 +98,8 @@ unready and authorizes no provider or Doppler mutation.
   transport, partial-write, name-only readback, and evidence regressions.
 - `tests/master-key-rotation-launcher-regression.py`: offline bundle, readiness,
   mutation-order, cleanup, and terminal-evidence regressions.
+- `tests/replacement-key-creation-regression.py`: offline provider request,
+  candidate transport, no-retry, unready gate, and evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

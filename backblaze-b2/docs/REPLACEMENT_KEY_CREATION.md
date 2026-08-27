@@ -7,10 +7,11 @@ Create the exact least-privilege replacement application key selected in
 the two temporary candidate names in Doppler. This operation is definition-only
 and unready. It does not authorize provider or Doppler mutation.
 
-The future live authorization may cover one exact `b2_create_key` request and
-the protected candidate-secret write. It must not authorize object access,
-canonical-secret promotion, rejected-key revocation, Restic initialization, or
-host contact.
+The future live authorization may cover the bounded read-only preconditions,
+one exact `b2_create_key` request, provider metadata readback, and the protected
+candidate-secret write. It must not authorize object mutation, consumer
+authentication, canonical-secret promotion, rejected-key revocation, Restic
+initialization, or host contact.
 
 ## Required preconditions
 
@@ -19,8 +20,9 @@ host contact.
 - The replacement key and both candidate Doppler names remain absent.
 - The retained administrator credential still has the five reviewed management
   capabilities.
-- The complete implementation, residue handling, terminal evidence, checkpoint,
-  and final bundle receive separate review before readiness.
+- The defined provider client, protected writer, launcher, residue handling,
+  terminal evidence, checkpoint, and final bundle receive separate review
+  before readiness.
 
 ## Exact provider request
 
@@ -80,3 +82,25 @@ deletion is outside this operation.
 Successful creation does not accept the credential for use. Candidate
 authentication, the isolated S3 compatibility probe, canonical promotion, and
 rejected-key revocation remain separate operations.
+
+## Defined implementation
+
+The unready implementation consists of:
+
+- `replacement_key_creation.py`, which repeats the bounded read-only
+  preconditions, sends the exact create request once, records sanitized forward
+  observations before later gates, transfers the one-time response fields to
+  protected FIFOs, and verifies provider metadata;
+- `protected_doppler_candidate_write.py`, which consumes only owned mode-0600
+  FIFOs, writes only the two candidate names through standard input, and uses
+  name-only readback; and
+- `run-replacement-key-creation.sh`, which rejects the wrong or unready
+  operation before creating evidence, binds every executable input into the
+  authorization hash, coordinates the two processes, and records terminal
+  classifications without credential identifiers or values.
+
+The implementation never retries the create request. Any failure after the
+request is attempted is `manual_intervention`; it does not automatically delete
+the provider key or either candidate secret. Its completed result means only
+that the candidate credential was created and stored, not that it is accepted
+for use.
