@@ -1,0 +1,54 @@
+---
+schema_version: 1
+
+operation:
+  id: backblaze-b2-capability-remediation-preflight-v3
+  result: passed
+  definition_commit: a9666394a32a433a108fdbf5077c632cd3b0f7a4
+  bundle_sha256: 720b9155986511add97b8d0fe3fc367c84c7b5977c52ba5004fd1156819e57fa
+  evidence_written_at_utc: "2026-08-27T20:22:43Z"
+  persistent_mutation_performed: false
+
+accepted_observations:
+  administrator_doppler_secret_names_resolve: true
+  authentication_succeeds: true
+  required_key_management_capabilities_present: true
+  returned_api_and_s3_urls_pass_allowlist: true
+  exact_bucket_identity_private_region_and_endpoint: true
+  exact_bucket_current_file_count_zero: true
+  rejected_key_present: true
+  rejected_key_prohibited_capabilities_still_present: true
+  replacement_key_absent: true
+  exact_doppler_config_present: true
+  canonical_secret_names_present_without_values: true
+  candidate_secret_names_absent: true
+  no_mutation_endpoint_attempted: true
+
+evidence_boundary:
+  credential_source: doppler_prd_b2_admin_in_memory
+  credential_values_retained: false
+  raw_provider_or_doppler_responses_retained: false
+  secrets_recorded: false
+  account_or_credential_identifiers_recorded: false
+
+decision:
+  replacement_key_creation_preflight_satisfied: true
+  replacement_key_creation_authorized: false
+  doppler_candidate_write_authorized: false
+  compatibility_probe_authorized: false
+  retry_authorized: false
+  next_action: define_unready_replacement_key_creation_operation
+
+raw_evidence:
+  committed_to_git: false
+  local_directory: /tmp/backblaze-b2-capability-preflight.kzcfyu
+  files:
+    - name: result.json
+      bytes: 1050
+      sha256: 51323d80fa5589d7493f576c0cd708d5c7008c44fc7058e45b82a9ed32e2f076
+    - name: bundle.sha256
+      bytes: 65
+      sha256: 7dbe1b91c3c8bd4b07bba4c1901e2da6db4ace7b9e59ab328ded69bfe6eee62b
+    - name: bundle-files.sha256
+      bytes: 1408
+      sha256: fad1e86112c50ff6a75a270dbce25f6cbe4c7c6dbeba5658c47f537a6762c8bf
