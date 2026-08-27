@@ -9,7 +9,7 @@ operation:
   execution_mode: operator_console_and_protected_doppler_write
   source:
     repository: homelab-server-configs
-    base_commit: e70d1d2102fdf5cc3da5a79d236b9d1f4334519f
+    base_commit: 767ba8c54e65e89c69c9c98cbd2acf642d308f31
   architecture: backblaze-b2/docs/B2_ARCHITECTURE.md
   decision: backblaze-b2/docs/MANAGEMENT_CREDENTIAL_DECISION.md
   procedure: backblaze-b2/docs/MASTER_KEY_ROTATION.md
@@ -37,10 +37,10 @@ targets:
       master_application_key: BACKBLAZE_B2_MASTER_APPLICATION_KEY
 
 preflight:
-  state: unexecuted
+  state: passed
   procedure: backblaze-b2/docs/MASTER_KEY_ROTATION_PREFLIGHT.md
   execution_mode: backblaze_console_and_filtered_doppler_metadata
-  execution_authorized: false
+  execution_authorized: true
   provider_access: authenticated_console_read_only_until_mutation
   doppler_access: project_environment_and_config_metadata_only
   doppler_environment_identity_field: id
@@ -101,7 +101,19 @@ preflight:
     - doppler_secret_name_or_value_read
     - restic_contact
     - host_contact
-  result: null
+  result:
+    observed_at: "2026-08-27T18:41:09Z"
+    decision: passed
+    definition_checkpoint: 767ba8c54e65e89c69c9c98cbd2acf642d308f31
+    backblaze_observations_passed: true
+    doppler_predicates_passed: true
+    one_time_display_confirmed_by_official_documentation: true
+    provider_or_doppler_mutation_performed: false
+    secret_names_or_values_read: false
+    raw_browser_artifacts_retained: false
+    cleanup_passed: true
+    evidence_retained_outside_git: true
+    evidence_sha256: d478e92e956ceb2cf0833d8bc8f58eb1c841dd7bc2e222f97e8c13e065374e55
 
 mutation_contract:
   authorized_when_pending: false
@@ -171,10 +183,6 @@ authorization:
     - restic_initialization
     - j2_svpi4mf_contact
   blockers:
-    - read_only_doppler_and_console_preflight_review_required
-    - read_only_doppler_and_console_preflight_checkpoint_required
-    - read_only_doppler_and_console_preflight_execution_authorization_required
-    - successful_read_only_doppler_and_console_preflight_required
     - protected_one_time_secret_write_implementation_required
     - name_only_readback_regression_required
     - terminal_classification_and_evidence_regression_required
