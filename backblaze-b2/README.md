@@ -38,8 +38,10 @@ authenticated but was blocked by insufficient management authority. The
 [management-credential decision](docs/MANAGEMENT_CREDENTIAL_DECISION.md)
 selects rotation of the confirmed-unused master key. The unready
 [master-key rotation](docs/MASTER_KEY_ROTATION.md) operation stores the new
-master separately as an account-level break-glass credential. Restic
-initialization remains separately blocked.
+master separately as an account-level break-glass credential. Its unexecuted
+[read-only preflight](docs/MASTER_KEY_ROTATION_PREFLIGHT.md) verifies only the
+Backblaze console boundary and Doppler metadata. Restic initialization remains
+separately blocked.
 
 ## Layout
 
@@ -54,6 +56,8 @@ initialization remains separately blocked.
   creating a management credential;
 - `docs/MASTER_KEY_ROTATION.md`: unready master rotation, protected storage,
   acceptance, and recovery contract;
+- `docs/MASTER_KEY_ROTATION_PREFLIGHT.md`: unready metadata-only console and
+  Doppler preflight for master rotation;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;

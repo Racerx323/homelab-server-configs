@@ -32,6 +32,11 @@ and exposes its value only when generated.
 
 ## Required preflight
 
+Follow the separately authorized read-only
+[master-key rotation preflight](MASTER_KEY_ROTATION_PREFLIGHT.md). The
+preflight may inspect the generation control but must not select it or submit
+any provider or Doppler form.
+
 Before the first mutation, require all of the following:
 
 - the operator assertion that the current master key is unused and safe to

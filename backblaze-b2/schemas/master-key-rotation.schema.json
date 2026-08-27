@@ -27,7 +27,7 @@
         "execution_mode": "operator_console_and_protected_doppler_write",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "55f1e6e4ca7b635ee19927b255e08857edcbacc6"
+          "base_commit": "e70d1d2102fdf5cc3da5a79d236b9d1f4334519f"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/MANAGEMENT_CREDENTIAL_DECISION.md",
@@ -66,8 +66,20 @@
     "preflight": {
       "const": {
         "state": "unexecuted",
+        "procedure": "backblaze-b2/docs/MASTER_KEY_ROTATION_PREFLIGHT.md",
+        "execution_mode": "backblaze_console_and_filtered_doppler_metadata",
+        "execution_authorized": false,
         "provider_access": "authenticated_console_read_only_until_mutation",
         "doppler_access": "project_environment_and_config_metadata_only",
+        "doppler_environment_identity_field": "id",
+        "secret_names_or_values_read": false,
+        "master_generation_control_selection_authorized": false,
+        "form_submission_authorized": false,
+        "command_ids": [
+          "doppler_project_exists",
+          "doppler_prd_environment_exists",
+          "doppler_prd_b2_admin_config_absent"
+        ],
         "require": [
           "operator_unused_master_assertion_current",
           "operator_safe_invalidation_assertion_current",
@@ -77,6 +89,53 @@
           "one_time_result_can_remain_open_through_name_only_readback",
           "protected_secret_transport_reviewed",
           "bounded_sanitized_evidence_ready"
+        ],
+        "evidence": {
+          "local_root_pattern": "/tmp/backblaze-b2-master-key-preflight.*",
+          "directory_mode": "0700",
+          "file_mode": "0600",
+          "screenshots_captured": false,
+          "raw_provider_responses_captured": false,
+          "secret_metadata_captured": false,
+          "playwright": {
+            "session": "b2masterpreflight",
+            "working_directory_pattern": "/tmp/backblaze-b2-master-key-preflight.*/playwright-work",
+            "profile_directory_pattern": "/tmp/backblaze-b2-master-key-preflight.*/playwright-profile",
+            "artifacts_outside_evidence_allowed": false,
+            "raw_browser_artifacts_retained": false,
+            "cleanup": {
+              "strategy": "centralized_exit_trap",
+              "exit_paths": [
+                "success",
+                "blocked",
+                "browser_failure",
+                "interruption"
+              ],
+              "close_named_session": true,
+              "delete_named_session_data": true,
+              "verify_paths_beneath_evidence_root": true,
+              "remove_profile_working_and_raw_artifacts": true,
+              "preserve_original_failure_status": true,
+              "cleanup_failure_result": "blocked",
+              "sanitized_evidence_only_after_cleanup": true
+            }
+          },
+          "records": [
+            "provider_observation_booleans",
+            "doppler_metadata_predicate_booleans",
+            "command_statuses",
+            "mutation_absence_confirmation",
+            "browser_cleanup_success",
+            "sanitized_evidence_hashes"
+          ]
+        },
+        "prohibited_during_preflight": [
+          "master_key_generation_control_selection",
+          "provider_form_submission",
+          "doppler_config_creation",
+          "doppler_secret_name_or_value_read",
+          "restic_contact",
+          "host_contact"
         ],
         "result": null
       }
@@ -165,7 +224,10 @@
           "j2_svpi4mf_contact"
         ],
         "blockers": [
-          "read_only_doppler_and_console_preflight_required",
+          "read_only_doppler_and_console_preflight_review_required",
+          "read_only_doppler_and_console_preflight_checkpoint_required",
+          "read_only_doppler_and_console_preflight_execution_authorization_required",
+          "successful_read_only_doppler_and_console_preflight_required",
           "protected_one_time_secret_write_implementation_required",
           "name_only_readback_regression_required",
           "terminal_classification_and_evidence_regression_required",
