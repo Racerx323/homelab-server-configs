@@ -78,7 +78,7 @@ calculate_bundle_hash() {
     write_bundle_file_hashes "$bundle_file_list"
     calculated_hash=$(
         {
-            printf '%s\n' 'nautobot-storage-diagnostic-bundle-v2'
+            printf '%s\n' 'nautobot-storage-soak-verification-bundle-v1'
             cat "$bundle_file_list"
         } | sha256sum | cut -d ' ' -f 1
     )
@@ -147,6 +147,7 @@ write_evidence_manifest() {
         stdout.log
         stderr.log
         status.txt
+        soak.log
         topology.log
         kernel.log
         power.log
@@ -157,7 +158,7 @@ write_evidence_manifest() {
 
     {
         printf '%s\n' '---' 'schema_version: 1'
-        printf '%s\n' 'operation_id: nautobot-storage-diagnostic-v2'
+        printf '%s\n' 'operation_id: nautobot-storage-soak-verification-v1'
         printf 'target: %s\n' "$operation_target"
         printf 'address: %s\n' "$operation_address"
         printf 'bundle_sha256: %s\n' "$bundle_hash"
@@ -244,7 +245,12 @@ def assert_operation_storage_shape(operation_vars):
         return
 
     assert operation_state in {"definition", "pending"}
+    assert operation_vars["operation"]["id"] == \
+        "nautobot-storage-soak-verification-v1"
+    assert operation_vars["operation"]["stage"] == \
+        "storage_soak_verification"
     assert operation_vars["diagnostic_storage"]["root_device"] == "/dev/sda"
+    assert operation_vars["storage_soak"]["minimum_uninterrupted_seconds"] == 86400
 
 
 loaded_vars_files = []
@@ -260,8 +266,14 @@ assert_operation_storage_shape(loaded_vars_files[0][1])
 assert merged_vars["storage"]["root"]["filesystem"] == "ext4"
 
 assert_operation_storage_shape({
-    "operation": {"state": "pending", "authorization_ready": True},
+    "operation": {
+        "id": "nautobot-storage-soak-verification-v1",
+        "state": "pending",
+        "authorization_ready": True,
+        "stage": "storage_soak_verification",
+    },
     "diagnostic_storage": {"root_device": "/dev/sda"},
+    "storage_soak": {"minimum_uninterrupted_seconds": 86400},
 })
 
 try:
@@ -284,6 +296,13 @@ allowed_modules = {
 expected_commands = {
     "Verify noninteractive read-only privilege access": [
         "/usr/bin/sudo", "-n", "/usr/bin/true"
+    ],
+    "Read current boot ID": [
+        "/usr/bin/sudo", "-n", "/usr/bin/cat",
+        "/proc/sys/kernel/random/boot_id",
+    ],
+    "Read current uptime": [
+        "/usr/bin/sudo", "-n", "/usr/bin/cat", "/proc/uptime",
     ],
     "Read current kernel command line": [
         "/usr/bin/sudo", "-n", "/usr/bin/cat", "/proc/cmdline",

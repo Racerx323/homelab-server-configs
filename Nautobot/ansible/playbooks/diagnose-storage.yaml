@@ -1,5 +1,5 @@
 ---
-- name: Collect the Nautobot post-quirk storage diagnostic
+- name: Collect the Nautobot post-quirk storage soak verification
   hosts: inventory_automation
   gather_facts: false
   become: false
@@ -16,8 +16,8 @@
         that:
           - inventory_hostname == "j2-svpi4mf"
           - ansible_play_hosts_all | length == 1
-          - operation.id == "nautobot-storage-diagnostic-v2"
-          - operation.stage == "storage_diagnostic"
+          - operation.id == "nautobot-storage-soak-verification-v1"
+          - operation.stage == "storage_soak_verification"
           - operation.authorization_ready | bool
           - authorization.blockers | length == 0
           - collection.read_only | bool
@@ -40,6 +40,28 @@
       check_mode: false
 
   tasks:
+    - name: Read current boot ID
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/cat
+          - /proc/sys/kernel/random/boot_id
+      register: storage_diagnostic_boot_id
+      changed_when: false
+      check_mode: false
+
+    - name: Read current uptime
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/cat
+          - /proc/uptime
+      register: storage_diagnostic_uptime
+      changed_when: false
+      check_mode: false
+
     - name: Read current kernel command line
       ansible.builtin.command:
         argv:
@@ -276,6 +298,28 @@
 
     - name: Derive sanitized diagnostic decisions
       ansible.builtin.set_fact:
+        storage_diagnostic_uptime_seconds: >-
+          {{
+            (
+              storage_diagnostic_uptime.stdout
+              | trim
+              | split
+              | first
+              | float
+            )
+            | int
+          }}
+        storage_diagnostic_minimum_uptime_met: >-
+          {{
+            (
+              storage_diagnostic_uptime.stdout
+              | trim
+              | split
+              | first
+              | float
+            )
+            >= (storage_soak.minimum_uninterrupted_seconds | int)
+          }}
         storage_diagnostic_smart_passed: >-
           {{
             storage_diagnostic_smart.stdout is search(
@@ -345,6 +389,24 @@
             ('ATTRS{speed}=="' ~ (diagnostic_storage.expected_link_mbps | string) ~ '"')
             in storage_diagnostic_udev.stdout
           }}
+
+    - name: Record protected soak evidence
+      become: false
+      delegate_to: localhost
+      no_log: true
+      ansible.builtin.copy:
+        dest: "{{ storage_diagnostic_evidence_directory }}/soak.log"
+        mode: "0600"
+        content: |
+          [current-boot-id]
+          {{ storage_diagnostic_boot_id.stdout | trim }}
+          [current-uptime]
+          {{ storage_diagnostic_uptime.stdout | trim }}
+          [minimum-uninterrupted-seconds]
+          {{ storage_soak.minimum_uninterrupted_seconds }}
+          [minimum-uninterrupted-uptime-met]
+          {{ storage_diagnostic_minimum_uptime_met | bool | lower }}
+      changed_when: false
 
     - name: Record protected topology evidence
       become: false
@@ -433,6 +495,10 @@
           schema_version: 1
           target: {{ inventory_hostname }}
           result: collected
+          boot_id: {{ storage_diagnostic_boot_id.stdout | trim | to_json }}
+          uptime_seconds: {{ storage_diagnostic_uptime_seconds }}
+          minimum_uninterrupted_seconds: {{ storage_soak.minimum_uninterrupted_seconds }}
+          minimum_uninterrupted_uptime_met: {{ storage_diagnostic_minimum_uptime_met | bool | lower }}
           root_source: {{ storage_diagnostic_root_source | to_json }}
           root_filesystem: {{ storage_diagnostic_root_filesystem | to_json }}
           quirk_token_count: {{ storage_diagnostic_quirk_token_count }}
@@ -449,6 +515,6 @@
           usb_storage_attached: {{ storage_diagnostic_usb_storage_attached | bool | lower }}
           usb_identity_matches: {{ storage_diagnostic_usb_identity_matches | bool | lower }}
           usb_superspeed_link_present: {{ storage_diagnostic_usb_superspeed_link_present | bool | lower }}
-          stability_observation_complete: false
+          minimum_soak_interval_elapsed: {{ storage_diagnostic_minimum_uptime_met | bool | lower }}
           decision: operator_review_required
       changed_when: false
