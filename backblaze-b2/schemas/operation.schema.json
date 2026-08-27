@@ -151,7 +151,8 @@
           }
         }
       ]
-    }
+    },
+    {"$ref": "master-key-rotation.schema.json"}
   ],
   "$defs": {
     "targets": {

@@ -35,9 +35,11 @@ Terminal results are indexed in [HISTORY.md](HISTORY.md). The reviewed
 selects the least-privilege replacement design. Its first read-only
 [API/authentication preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md)
 authenticated but was blocked by insufficient management authority. The
-[management-credential decision](docs/MANAGEMENT_CREDENTIAL_DECISION.md) must
-be resolved before a successor operation is defined. Restic initialization
-remains separately blocked.
+[management-credential decision](docs/MANAGEMENT_CREDENTIAL_DECISION.md)
+selects rotation of the confirmed-unused master key. The unready
+[master-key rotation](docs/MASTER_KEY_ROTATION.md) operation stores the new
+master separately as an account-level break-glass credential. Restic
+initialization remains separately blocked.
 
 ## Layout
 
@@ -50,6 +52,8 @@ remains separately blocked.
   authentication preflight;
 - `docs/MANAGEMENT_CREDENTIAL_DECISION.md`: gate for reusing or separately
   creating a management credential;
+- `docs/MASTER_KEY_ROTATION.md`: unready master rotation, protected storage,
+  acceptance, and recovery contract;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
@@ -60,6 +64,8 @@ remains separately blocked.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
+- `schemas/master-key-rotation.schema.json`: exact master-rotation definition
+  validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.
 

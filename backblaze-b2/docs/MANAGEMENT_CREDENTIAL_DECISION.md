@@ -2,13 +2,15 @@
 
 ## Status and boundary
 
-Operator confirmation is required. Repository evidence proves that the
+The operator selected `management_credential_creation_required` and confirmed
+that the current master application key is unused and safe to invalidate.
+Repository evidence proves that the
 credential supplied to `backblaze-b2-capability-remediation-preflight-v1`
 authenticated but did not provide every required management capability. The
 v1 evidence did not retain the present or missing capability names, so it does
 not support a narrower claim.
 
-This document does not authorize credential discovery, key creation, key
+This reviewed decision does not authorize credential discovery, key creation, key
 replacement, key revocation, secret access, or another preflight execution.
 
 ## Required authority
@@ -38,18 +40,22 @@ values.
 
 ### No suitable credential available
 
-Define a separate Backblaze-owned mutation operation for creating one
-temporary management credential. That operation must specify its exact name,
-capabilities, expiration, protected storage, acceptance, recovery, and later
-revocation. It must not create the Restic replacement key in the same
+Regenerate the confirmed-unused master key through a separate Backblaze-owned
+operation and retain it only as an account-control break-glass credential.
+After that rotation is accepted, define another operation for creating one
+temporary management credential with an exact name, capability set,
+expiration, protected storage, acceptance, recovery, and later revocation.
+Neither operation may create the Restic replacement key under the same
 authorization.
 
-## Unresolved operator decision
+## Reviewed operator decision
 
-Choose exactly one before defining a successor operation:
+The selected path is:
 
-- `existing_management_credential_available`; or
-- `management_credential_creation_required`.
+- `management_credential_creation_required`;
+- current master application key in use: `false`; and
+- current master application key safe to invalidate: `true`.
 
-Until then, `backblaze-b2/manifests/operation.yaml` remains clean and another
-preflight or provider mutation is not authorization-ready.
+The next operation rotates the master key and stores it as a separate
+account-level break-glass credential. Creating an expiring management key and
+rerunning the read-only preflight remain later, separately authorized stages.

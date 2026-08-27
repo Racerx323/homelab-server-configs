@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Backblaze B2 master-key rotation operation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "operator_assertions",
+    "targets",
+    "preflight",
+    "mutation_contract",
+    "secret_contract",
+    "acceptance",
+    "failure_and_recovery",
+    "evidence",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "operation": {
+      "const": {
+        "id": "backblaze-b2-master-key-rotation-v1",
+        "state": "definition",
+        "authorization_ready": false,
+        "stage": "master_key_rotation",
+        "execution_mode": "operator_console_and_protected_doppler_write",
+        "source": {
+          "repository": "homelab-server-configs",
+          "base_commit": "55f1e6e4ca7b635ee19927b255e08857edcbacc6"
+        },
+        "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
+        "decision": "backblaze-b2/docs/MANAGEMENT_CREDENTIAL_DECISION.md",
+        "procedure": "backblaze-b2/docs/MASTER_KEY_ROTATION.md"
+      }
+    },
+    "operator_assertions": {
+      "const": {
+        "recorded_on": "2026-08-27",
+        "current_master_in_use": false,
+        "safe_to_invalidate_current_master": true
+      }
+    },
+    "targets": {
+      "const": {
+        "backblaze_b2": {
+          "action": "generate_new_master_application_key",
+          "current_master_effect": "invalidated",
+          "generated_key_name": "provider_managed_not_configurable",
+          "generated_key_expiration": "none",
+          "credential_role": "account_control_plane_break_glass",
+          "consumer_use_authorized": false
+        },
+        "doppler": {
+          "project": "homelab-dev",
+          "environment": "prd",
+          "config": "prd_b2_admin",
+          "config_expected_initial_state": "absent",
+          "secret_names": {
+            "master_application_key_id": "BACKBLAZE_B2_MASTER_APPLICATION_KEY_ID",
+            "master_application_key": "BACKBLAZE_B2_MASTER_APPLICATION_KEY"
+          }
+        }
+      }
+    },
+    "preflight": {
+      "const": {
+        "state": "unexecuted",
+        "provider_access": "authenticated_console_read_only_until_mutation",
+        "doppler_access": "project_environment_and_config_metadata_only",
+        "require": [
+          "operator_unused_master_assertion_current",
+          "operator_safe_invalidation_assertion_current",
+          "authenticated_account_owner_console_with_mfa",
+          "exact_doppler_project_and_prd_environment_present",
+          "doppler_config_prd_b2_admin_absent",
+          "one_time_result_can_remain_open_through_name_only_readback",
+          "protected_secret_transport_reviewed",
+          "bounded_sanitized_evidence_ready"
+        ],
+        "result": null
+      }
+    },
+    "mutation_contract": {
+      "const": {
+        "authorized_when_pending": false,
+        "ordered_actions": [
+          "create_exact_doppler_admin_config",
+          "generate_new_master_application_key",
+          "retain_one_time_result_panel",
+          "stream_master_key_id_to_reviewed_doppler_name",
+          "stream_master_key_value_to_reviewed_doppler_name",
+          "verify_exact_secret_names_without_values",
+          "record_provider_confirmed_old_master_invalidation",
+          "close_one_time_result_panel"
+        ],
+        "substitutions_allowed": false,
+        "additional_provider_or_doppler_changes_allowed": false
+      }
+    },
+    "secret_contract": {
+      "const": {
+        "values_in_git_argv_environment_regular_files_logs_or_evidence": false,
+        "shell_tracing_allowed": false,
+        "raw_browser_artifacts_allowed": false,
+        "close_provider_result_before_name_only_readback": false,
+        "doppler_value_readback_allowed": false
+      }
+    },
+    "acceptance": {
+      "const": {
+        "require": [
+          "exact_doppler_admin_config_created",
+          "exact_two_secret_names_present",
+          "secret_values_absent_from_captured_output",
+          "old_master_invalidation_reported_by_provider",
+          "one_time_result_retained_until_name_only_readback",
+          "no_unrelated_mutation"
+        ],
+        "does_not_accept": [
+          "temporary_management_key_creation",
+          "restic_key_replacement_or_revocation",
+          "restic_initialization",
+          "host_contact"
+        ]
+      }
+    },
+    "failure_and_recovery": {
+      "const": {
+        "before_doppler_config_creation": "cleanup_local_evidence_only",
+        "after_doppler_config_creation_before_master_generation": "retain_empty_config_and_stop",
+        "after_master_generation_before_secret_storage": "keep_result_open_and_retry_protected_write",
+        "lost_unstored_master_value": "manual_intervention_new_authorization_required",
+        "old_master_restoration_possible": false,
+        "automatic_second_master_generation": false
+      }
+    },
+    "evidence": {
+      "const": {
+        "local_root_pattern": "/tmp/backblaze-b2-master-key-rotation.*",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "raw_evidence_in_git": false,
+        "secret_values_or_identifiers_retained": false,
+        "records": [
+          "operation_bundle_and_input_hashes",
+          "operator_assertions",
+          "doppler_config_and_name_only_acceptance",
+          "provider_rotation_and_old_master_invalidation_booleans",
+          "mutation_boundary_and_recovery_decision"
+        ]
+      }
+    },
+    "authorization": {
+      "const": {
+        "command": null,
+        "bundle_algorithm": "sha256",
+        "mutation_authorized": false,
+        "excluded_stages": [
+          "temporary_management_key_creation",
+          "corrected_api_preflight",
+          "restic_key_replacement_or_revocation",
+          "bucket_or_object_mutation",
+          "restic_initialization",
+          "j2_svpi4mf_contact"
+        ],
+        "blockers": [
+          "read_only_doppler_and_console_preflight_required",
+          "protected_one_time_secret_write_implementation_required",
+          "name_only_readback_regression_required",
+          "terminal_classification_and_evidence_regression_required",
+          "definition_review_required",
+          "definition_checkpoint_required",
+          "final_bundle_hash_required",
+          "explicit_live_execution_authorization_required"
+        ]
+      }
+    }
+  }
+}

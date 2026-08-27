@@ -73,7 +73,14 @@ capabilities after creation instead of relying on the web-console label.
 Use the application key ID as `AWS_ACCESS_KEY_ID` and the application key as
 `AWS_SECRET_ACCESS_KEY`. Backblaze displays the application key value once.
 Store both values in the approved secrets system before closing the result
-panel. Do not use the master application key.
+panel. Do not use the master application key as a Restic or other consumer
+credential.
+
+The master application key is an account-control bootstrap and break-glass
+credential only. Regenerating it is an account-wide rotation that invalidates
+the previous master. Store a retained master separately from consumer secrets,
+never pass it to a workload, and use a separately created, expiring management
+key for ordinary automation that requires `writeKeys`.
 
 ## Mutation boundaries
 
