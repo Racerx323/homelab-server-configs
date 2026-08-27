@@ -105,28 +105,25 @@ class ContractTests(unittest.TestCase):
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
 
-    def test_cli_preflight_rejects_before_evidence_or_external_command(self) -> None:
+    def test_unauthorized_preflight_fixture_rejects_before_evidence_or_client(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
-        with tempfile.TemporaryDirectory() as temporary:
-            marker = Path(temporary) / "external-called"
-            fake = Path(temporary) / "doppler"
-            fake.write_text(f"#!/bin/sh\ntouch '{marker}'\nexit 99\n", encoding="utf-8")
-            fake.chmod(0o700)
-            environment = os.environ.copy()
-            environment["PATH"] = f"{temporary}:{environment['PATH']}"
-            result = subprocess.run(
-                (sys.executable, str(LAUNCHER_PATH), "preflight"),
-                cwd=ROOT,
-                env=environment,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-                timeout=30,
-            )
-            self.assertEqual(result.returncode, 69)
-            self.assertIn("preflight_not_authorized", result.stderr.decode())
-            self.assertFalse(marker.exists())
+        called = False
+        unauthorized = LAUNCHER.load_operation()
+        unauthorized["preflight"]["execution_authorized"] = False
+
+        def client(*_args: Any) -> str:
+            nonlocal called
+            called = True
+            return "preflight_passed"
+
+        with mock.patch.object(
+            LAUNCHER, "validate_operation", return_value=unauthorized
+        ):
+            with self.assertRaisesRegex(
+                LAUNCHER.LauncherBlocked, "preflight_not_authorized"
+            ):
+                LAUNCHER.run("preflight", client=client)
+        self.assertFalse(called)
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
@@ -280,6 +277,7 @@ class GateTests(unittest.TestCase):
 
     def test_preflight_gate_requires_explicit_authorization_and_no_fallback(self) -> None:
         document = LAUNCHER.load_operation()
+        document["preflight"]["execution_authorized"] = False
         with self.assertRaisesRegex(LAUNCHER.LauncherBlocked, "preflight_not_authorized"):
             LAUNCHER.require_preflight_authorized(document)
         document["preflight"]["execution_authorized"] = True

@@ -4,12 +4,14 @@
 
 This definition specifies the isolated object transaction required to prove
 that the canonical Nautobot Restic credential can use Backblaze's
-S3-compatible interface. The active operation is unready and definition-only.
-It does not authorize provider, Doppler, Restic, or host contact.
+S3-compatible interface. The object transaction remains unready. Its reviewed
+read-only preflight may contact only Doppler and Backblaze when separately
+authorized; it does not authorize Restic or host contact.
 
 The protected SigV4 client, hash-bound Python launcher, and offline failure
-regressions are implemented but unreviewed. Direct client execution fails
-closed. The launcher remains unready and no live authorization exists yet.
+regressions were reviewed at checkpoint `eb3f2d4`. Direct client execution
+fails closed. The launcher remains unready for the object transaction and no
+object mutation authorization exists yet.
 
 The probe accepts only the seven-capability replacement credential already
 stored under the canonical Doppler names. The original overprivileged key was

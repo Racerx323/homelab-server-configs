@@ -30,7 +30,7 @@
         "execution_mode": "exact_owned_s3_object_transaction",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "3d4e0fff7fb87a9b0528d479ad4143053b374a37"
+          "base_commit": "eb3f2d4f6454c669e81d9dc9ff798b57fbd7d228"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
@@ -153,7 +153,7 @@
     },
     "implementation": {
       "const": {
-        "state": "launcher_implemented_unreviewed",
+        "state": "reviewed",
         "executable_paths": [
           "backblaze-b2/scripts/s3_compatibility_probe.py",
           "backblaze-b2/scripts/run_s3_compatibility_probe.py"
@@ -167,9 +167,9 @@
     },
     "preflight": {
       "const": {
-        "state": "blocked",
+        "state": "pending",
         "command": "python3 backblaze-b2/scripts/run_s3_compatibility_probe.py preflight",
-        "execution_authorized": false,
+        "execution_authorized": true,
         "mutation_authorized": false,
         "credential_source": "homelab-dev/prd_b2",
         "canonical_secret_names": [
@@ -250,12 +250,7 @@
           "nautobot_deployment"
         ],
         "blockers": [
-          "operator_contract_review_required",
-          "no_old_key_fallback_recovery_boundary_review_required",
-          "launcher_implementation_review_required",
           "fresh_read_only_preflight_required",
-          "definition_checkpoint_required",
-          "readiness_transition_required",
           "final_bundle_hash_required",
           "explicit_live_authorization_required"
         ]
