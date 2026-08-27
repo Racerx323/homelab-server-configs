@@ -52,8 +52,9 @@ initialization remains separately blocked.
 
 The v3 preflight passed and is preserved in the annotated tag indexed by
 [HISTORY.md](HISTORY.md). The active
-[replacement-key creation definition](docs/REPLACEMENT_KEY_CREATION.md) is
-unready and authorizes no provider or Doppler mutation.
+[replacement-key creation operation](docs/REPLACEMENT_KEY_CREATION.md) is
+reviewed and authorization-ready. Provider and Doppler mutation still require
+separate authorization of its exact executable bundle hash.
 
 ## Layout
 
@@ -90,7 +91,7 @@ unready and authorizes no provider or Doppler mutation.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
-- `schemas/replacement-key-creation.schema.json`: exact unready replacement-key
+- `schemas/replacement-key-creation.schema.json`: exact reviewed replacement-key
   operation validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.

@@ -411,7 +411,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_consumed_preflight_is_retired_for_unready_replacement_operation(self) -> None:
+    def test_consumed_preflight_is_retired_for_ready_replacement_operation(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
@@ -421,12 +421,12 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             operation["operation"]["id"],
             "backblaze-b2-replacement-key-creation-v1",
         )
-        self.assertEqual(operation["operation"]["state"], "definition")
-        self.assertFalse(operation["operation"]["authorization_ready"])
-        self.assertFalse(operation["implementation"]["live_execution_enabled"])
-        self.assertIsNone(operation["authorization"]["command"])
+        self.assertEqual(operation["operation"]["state"], "pending")
+        self.assertTrue(operation["operation"]["authorization_ready"])
+        self.assertTrue(operation["implementation"]["live_execution_enabled"])
+        self.assertIsInstance(operation["authorization"]["command"], str)
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
+        self.assertEqual(operation["authorization"]["blockers"], [])
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))

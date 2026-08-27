@@ -4,8 +4,9 @@
 
 Create the exact least-privilege replacement application key selected in
 `CAPABILITY_REMEDIATION_DECISION.md` and store its one-time values only under
-the two temporary candidate names in Doppler. This operation is definition-only
-and unready. It does not authorize provider or Doppler mutation.
+the two temporary candidate names in Doppler. The implementation is reviewed
+and authorization-ready, but no provider or Doppler mutation is authorized
+until the operator approves its exact executable bundle hash.
 
 The future live authorization may cover the bounded read-only preconditions,
 one exact `b2_create_key` request, provider metadata readback, and the protected
@@ -85,7 +86,7 @@ rejected-key revocation remain separate operations.
 
 ## Defined implementation
 
-The unready implementation consists of:
+The reviewed implementation consists of:
 
 - `replacement_key_creation.py`, which repeats the bounded read-only
   preconditions, sends the exact create request once, records sanitized forward

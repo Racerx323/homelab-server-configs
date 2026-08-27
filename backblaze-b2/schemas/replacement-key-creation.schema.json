@@ -6,13 +6,13 @@
     "schema_version": 1,
     "operation": {
       "id": "backblaze-b2-replacement-key-creation-v1",
-      "state": "definition",
-      "authorization_ready": false,
+      "state": "pending",
+      "authorization_ready": true,
       "stage": "replacement_key_creation",
       "execution_mode": "b2_native_api_and_protected_doppler_candidate_write",
       "source": {
         "repository": "homelab-server-configs",
-        "base_commit": "d33173f389a9602a9aeff2d9581a9124ee0dfb8c"
+        "base_commit": "be4afd57931042f89690f7c8b6850ce5111eb1b6"
       },
       "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
       "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
@@ -124,12 +124,12 @@
       "cleanup_requires_separate_authorization": true
     },
     "implementation": {
-      "state": "defined_unreviewed",
+      "state": "reviewed",
       "launcher": "backblaze-b2/scripts/run-replacement-key-creation.sh",
       "client": "backblaze-b2/scripts/replacement_key_creation.py",
       "protected_candidate_writer": "backblaze-b2/scripts/protected_doppler_candidate_write.py",
       "regression": "backblaze-b2/tests/replacement-key-creation-regression.py",
-      "live_execution_enabled": false
+      "live_execution_enabled": true
     },
     "evidence": {
       "local_root_pattern": "/tmp/backblaze-b2-replacement-key-creation.*",
@@ -147,8 +147,25 @@
       ]
     },
     "authorization": {
-      "command": null,
+      "command": "/bin/bash backblaze-b2/scripts/run-replacement-key-creation.sh execute BUNDLE_SHA256",
       "bundle_algorithm": "sha256",
+      "bundle_domain_separator": "backblaze-b2-replacement-key-creation-bundle-v1",
+      "bundle_inputs": [
+        "backblaze-b2/docs/B2_ARCHITECTURE.md",
+        "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
+        "backblaze-b2/docs/REPLACEMENT_KEY_CREATION.md",
+        "backblaze-b2/manifests/desired-state.yaml",
+        "backblaze-b2/manifests/operation.yaml",
+        "backblaze-b2/schemas/desired-state.schema.json",
+        "backblaze-b2/schemas/operation.schema.json",
+        "backblaze-b2/schemas/replacement-key-creation.schema.json",
+        "backblaze-b2/scripts/capability_remediation_preflight.py",
+        "backblaze-b2/scripts/protected_doppler_candidate_write.py",
+        "backblaze-b2/scripts/replacement_key_creation.py",
+        "backblaze-b2/scripts/run-replacement-key-creation.sh",
+        "backblaze-b2/tests/capability-remediation-preflight-regression.py",
+        "backblaze-b2/tests/replacement-key-creation-regression.py"
+      ],
       "mutation_authorized": false,
       "excluded_stages": [
         "compatibility_probe",
@@ -158,12 +175,7 @@
         "restic_repository_initialization",
         "j2_svpi4mf_contact"
       ],
-      "blockers": [
-        "implementation_review_pending",
-        "implementation_checkpoint_pending",
-        "final_bundle_hash_pending",
-        "explicit_live_authorization_required"
-      ]
+      "blockers": []
     }
   }
 }

@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import stat
 import subprocess
 import sys
@@ -428,15 +429,17 @@ class EvidenceTests(unittest.TestCase):
 
 
 class LauncherAndContractTests(unittest.TestCase):
-    def test_active_operation_remains_unready_and_bound_to_implementation(self) -> None:
+    def test_active_operation_is_ready_but_mutation_remains_unauthorized(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
         self.assertEqual(operation["operation"]["id"], CLIENT.OPERATION_ID)
-        self.assertFalse(operation["operation"]["authorization_ready"])
-        self.assertFalse(operation["implementation"]["live_execution_enabled"])
+        self.assertEqual(operation["operation"]["state"], "pending")
+        self.assertTrue(operation["operation"]["authorization_ready"])
+        self.assertEqual(operation["implementation"]["state"], "reviewed")
+        self.assertTrue(operation["implementation"]["live_execution_enabled"])
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
+        self.assertEqual(operation["authorization"]["blockers"], [])
 
-    def test_unready_execution_rejects_before_evidence_or_external_command(self) -> None:
+    def test_invalid_hash_rejects_before_evidence_or_external_command(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-replacement-key-creation.*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "external-command-called"
@@ -454,8 +457,8 @@ class LauncherAndContractTests(unittest.TestCase):
                 timeout=10,
                 check=False,
             )
-            self.assertEqual(result.returncode, 69)
-            self.assertIn("operation is not authorization-ready", result.stderr)
+            self.assertEqual(result.returncode, 66)
+            self.assertIn("bundle hash does not match", result.stderr)
             self.assertFalse(marker.exists())
         after = set(Path("/tmp").glob("backblaze-b2-replacement-key-creation.*"))
         self.assertEqual(after, before)
@@ -480,6 +483,24 @@ class LauncherAndContractTests(unittest.TestCase):
         self.assertNotIn("/dev/tty", source)
         self.assertNotIn("doppler secrets get", source)
         self.assertLess(source.index("validate_operation"), source.index("calculate_bundle_hash"))
+
+    def test_manifest_bundle_contract_matches_launcher_exactly(self) -> None:
+        operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
+        source = LAUNCHER.read_text(encoding="utf-8")
+        match = re.search(
+            r"readonly -a bundle_files=\(\n(?P<body>.*?)\n\)",
+            source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match)
+        assert match is not None
+        launcher_inputs = [line.strip() for line in match.group("body").splitlines()]
+        self.assertEqual(operation["authorization"]["bundle_inputs"], launcher_inputs)
+        self.assertIn(
+            "readonly bundle_domain="
+            + operation["authorization"]["bundle_domain_separator"],
+            source,
+        )
 
     def test_terminal_evidence_contract_is_sanitized_and_nonaccepting(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8")
