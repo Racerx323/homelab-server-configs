@@ -399,7 +399,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_successor_is_unready_and_definition_only(self) -> None:
+    def test_successor_is_pending_and_authorization_ready(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
@@ -409,12 +409,16 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             operation["operation"]["id"],
             "backblaze-b2-capability-remediation-preflight-v3",
         )
-        self.assertEqual(operation["operation"]["state"], "definition")
-        self.assertFalse(operation["operation"]["authorization_ready"])
-        self.assertFalse(operation["implementation"]["live_execution_enabled"])
-        self.assertIsNone(operation["authorization"]["command"])
+        self.assertEqual(operation["operation"]["state"], "pending")
+        self.assertTrue(operation["operation"]["authorization_ready"])
+        self.assertTrue(operation["implementation"]["live_execution_enabled"])
+        self.assertEqual(
+            operation["authorization"]["command"],
+            "/bin/bash backblaze-b2/scripts/"
+            "run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
+        )
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
+        self.assertEqual(operation["authorization"]["blockers"], [])
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
