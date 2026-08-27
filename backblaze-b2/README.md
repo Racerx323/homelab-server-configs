@@ -50,6 +50,11 @@ and recheck the exact provider and Doppler residue using the corrected
 name-only metadata command and progressive sanitized evidence. Restic
 initialization remains separately blocked.
 
+The v3 preflight passed and is preserved in the annotated tag indexed by
+[HISTORY.md](HISTORY.md). The active
+[replacement-key creation definition](docs/REPLACEMENT_KEY_CREATION.md) is
+unready and authorizes no provider or Doppler mutation.
+
 ## Layout
 
 - `AGENTS.md`: component editing and live-operation rules;
@@ -79,8 +84,8 @@ initialization remains separately blocked.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
-- `schemas/capability-remediation-preflight.schema.json`: exact unready v3
-  preflight definition validation;
+- `schemas/replacement-key-creation.schema.json`: exact unready replacement-key
+  operation validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.
 - `tests/protected-doppler-master-write-regression.py`: offline secret

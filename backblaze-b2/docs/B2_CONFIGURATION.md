@@ -26,7 +26,7 @@ console:
 | Server-side encryption | Backblaze-managed encryption enabled |
 | Object Lock | disabled |
 | Lifecycle | Keep only the last version of the file |
-| Application-key name | `homelab-nautobot-restic-prd` |
+| Application-key name | `homelab-nautobot-restic-prd-v2` |
 | Key bucket scope | exact Nautobot bucket |
 | Key prefix scope | empty, matching the repository root |
 | Key access | read and write, with verified list/read/write/delete file capabilities |
@@ -85,21 +85,16 @@ behavior. Restic retains authority over snapshot retention and prune policy.
 
 ## Phase 5: create the application key
 
-1. Open **B2 Cloud Storage > Application Keys** and choose
-   **Add a New Application Key**.
-2. Enter the reviewed key name.
-3. Restrict access to the exact Nautobot bucket.
-4. Select **Read and Write** access.
-5. Enable **Allow List All Bucket Names** for S3 compatibility.
-6. Leave the file-name prefix empty because the dedicated repository uses the
-   bucket root.
-7. Apply the reviewed expiration choice.
-8. Create the key.
-9. Store the resulting key ID and one-time application key value in the
-   approved secrets system. Do not paste either value into Git, shell history,
-   chat, tickets, screenshots, or operation evidence.
-10. Close the result panel only after secret-system readback confirms both
-    values exist.
+The console's **Read and Write** preset is rejected because provider readback
+proved that it grants bucket-administration capabilities outside the reviewed
+consumer boundary. Do not create the replacement through that preset.
+
+Use the separately reviewed and authorized
+[`REPLACEMENT_KEY_CREATION.md`](REPLACEMENT_KEY_CREATION.md) operation. It uses
+the B2 Native API with the exact seven-capability array, exact bucket-ID list,
+empty prefix, and no provider expiration. It stores the one-time values only
+under the temporary Doppler candidate names. Canonical promotion remains a
+separate operation after authentication and compatibility acceptance.
 
 Record the key name, bucket scope, prefix scope, expiration policy, and
 capability names. Reject a key with access to all buckets or with bucket,

@@ -152,7 +152,7 @@
         }
       ]
     },
-    {"$ref": "capability-remediation-preflight.schema.json"}
+    {"$ref": "replacement-key-creation.schema.json"}
   ],
   "$defs": {
     "targets": {

@@ -178,12 +178,24 @@ class ApiTests(unittest.TestCase):
             observations={"administrator_doppler_secret_names_resolve": True},
         )
         self.assertTrue(all(checks.values()))
-        operation = yaml.safe_load(
-            (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
-                encoding="utf-8"
-            )
+        self.assertEqual(
+            set(checks),
+            {
+                "administrator_doppler_secret_names_resolve",
+                "authentication_succeeds",
+                "required_key_management_capabilities_present",
+                "returned_api_and_s3_urls_pass_allowlist",
+                "exact_bucket_identity_private_region_and_endpoint",
+                "exact_bucket_current_file_count_zero",
+                "rejected_key_present",
+                "rejected_key_prohibited_capabilities_still_present",
+                "replacement_key_absent",
+                "exact_doppler_config_present",
+                "canonical_secret_names_present_without_values",
+                "candidate_secret_names_absent",
+                "no_mutation_endpoint_attempted",
+            },
         )
-        self.assertEqual(set(checks), set(operation["assertions"]["require"]))
         self.assertEqual(
             [(item["method"], item["url"]) for item in opener.requests],
             [
@@ -399,7 +411,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_successor_is_pending_and_authorization_ready(self) -> None:
+    def test_consumed_preflight_is_retired_for_unready_replacement_operation(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
@@ -407,18 +419,14 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         )
         self.assertEqual(
             operation["operation"]["id"],
-            "backblaze-b2-capability-remediation-preflight-v3",
+            "backblaze-b2-replacement-key-creation-v1",
         )
-        self.assertEqual(operation["operation"]["state"], "pending")
-        self.assertTrue(operation["operation"]["authorization_ready"])
-        self.assertTrue(operation["implementation"]["live_execution_enabled"])
-        self.assertEqual(
-            operation["authorization"]["command"],
-            "/bin/bash backblaze-b2/scripts/"
-            "run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
-        )
+        self.assertEqual(operation["operation"]["state"], "definition")
+        self.assertFalse(operation["operation"]["authorization_ready"])
+        self.assertFalse(operation["implementation"]["live_execution_enabled"])
+        self.assertIsNone(operation["authorization"]["command"])
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertEqual(operation["authorization"]["blockers"], [])
+        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
@@ -439,7 +447,13 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             and operation["implementation"]["live_execution_enabled"] is True
             and operation["authorization"]["blockers"] == []
         )
-        if is_ready:
+        if operation["operation"].get("id") != CLIENT.OPERATION_ID:
+            self.assertEqual(result.returncode, 69)
+            self.assertIn(
+                "active operation does not belong to this launcher",
+                result.stderr,
+            )
+        elif is_ready:
             self.assertEqual(result.returncode, 66)
             self.assertIn("bundle hash does not match", result.stderr)
         else:

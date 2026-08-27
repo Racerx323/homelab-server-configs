@@ -60,7 +60,7 @@
       ],
       "properties": {
         "name": {
-          "const": "homelab-nautobot-restic-prd",
+          "const": "homelab-nautobot-restic-prd-v2",
           "maxLength": 100,
           "pattern": "^[A-Za-z0-9-]+$"
         },

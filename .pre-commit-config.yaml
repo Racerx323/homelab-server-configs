@@ -191,7 +191,18 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^backblaze-b2/(?:docs/MASTER_KEY_ROTATION(?:_PREFLIGHT)?\.md|manifests/operation\.yaml|schemas/operation\.schema\.json)$
+          ^backblaze-b2/(?:docs/(?:MASTER_KEY_ROTATION(?:_PREFLIGHT)?|REPLACEMENT_KEY_CREATION)\.md|manifests/operation\.yaml|schemas/(?:operation|replacement-key-creation)\.schema\.json)$
+
+      - id: backblaze-b2-replacement-key-creation
+        name: Validate Backblaze B2 replacement-key creation definition
+        entry: >-
+          check-jsonschema
+          --schemafile backblaze-b2/schemas/replacement-key-creation.schema.json
+          backblaze-b2/manifests/operation.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_DECISION|REPLACEMENT_KEY_CREATION)\.md|manifests/(?:desired-state|operation)\.yaml|schemas/(?:desired-state|operation|replacement-key-creation)\.schema\.json)$
 
       - id: backblaze-b2-capability-remediation-preflight
         name: Validate Backblaze B2 capability-remediation preflight
@@ -202,7 +213,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)|MANAGEMENT_CREDENTIAL_DECISION)\.md|manifests/operation\.yaml|schemas/(?:operation|capability-remediation-preflight)\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)|MANAGEMENT_CREDENTIAL_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
 
       - id: backblaze-b2-protected-doppler-master-write
         name: Validate Backblaze B2 protected Doppler master write

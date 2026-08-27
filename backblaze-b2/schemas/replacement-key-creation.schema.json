@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/backblaze-b2-replacement-key-creation-v1.json",
+  "title": "Backblaze B2 replacement-key creation v1 operation",
+  "const": {
+    "schema_version": 1,
+    "operation": {
+      "id": "backblaze-b2-replacement-key-creation-v1",
+      "state": "definition",
+      "authorization_ready": false,
+      "stage": "replacement_key_creation",
+      "execution_mode": "b2_native_api_and_protected_doppler_candidate_write",
+      "source": {
+        "repository": "homelab-server-configs",
+        "base_commit": "d33173f389a9602a9aeff2d9581a9124ee0dfb8c"
+      },
+      "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
+      "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
+      "procedure": "backblaze-b2/docs/REPLACEMENT_KEY_CREATION.md",
+      "desired_state": "backblaze-b2/manifests/desired-state.yaml"
+    },
+    "predecessor": {
+      "operation": "backblaze-b2-capability-remediation-preflight-v3",
+      "terminal_tag": "backblaze-b2-capability-remediation-preflight-v3-passed",
+      "definition_commit": "a9666394a32a433a108fdbf5077c632cd3b0f7a4",
+      "bundle_sha256": "720b9155986511add97b8d0fe3fc367c84c7b5977c52ba5004fd1156819e57fa",
+      "result_evidence_sha256": "51323d80fa5589d7493f576c0cd708d5c7008c44fc7058e45b82a9ed32e2f076"
+    },
+    "targets": {
+      "backblaze_b2": {
+        "bucket_name": "theama-homelab-nautobot-restic-prd",
+        "bucket_id": "4d1bda761665474eaf030b18",
+        "rejected_key_name": "homelab-nautobot-restic-prd",
+        "replacement_key_name": "homelab-nautobot-restic-prd-v2"
+      },
+      "doppler": {
+        "project": "homelab-dev",
+        "administrator_config": "prd_b2_admin",
+        "workload_config": "prd_b2",
+        "candidate_secret_names": [
+          "NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY_ID",
+          "NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY"
+        ],
+        "canonical_secret_names": [
+          "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID",
+          "NAUTOBOT_RESTIC_B2_APPLICATION_KEY"
+        ]
+      },
+      "restic_contact_authorized": false,
+      "host_contact_authorized": false
+    },
+    "provider_request": {
+      "endpoint": "POST RETURNED_API_URL/b2api/v4/b2_create_key",
+      "account_id": "returned_account_id",
+      "key_name": "homelab-nautobot-restic-prd-v2",
+      "bucket_ids": ["4d1bda761665474eaf030b18"],
+      "name_prefix": "",
+      "valid_duration_seconds": "omitted",
+      "expected_response_options": ["s3"],
+      "capabilities": [
+        "listAllBucketNames",
+        "listBuckets",
+        "readBuckets",
+        "listFiles",
+        "readFiles",
+        "writeFiles",
+        "deleteFiles"
+      ],
+      "additional_capabilities_allowed": false
+    },
+    "secret_contract": {
+      "administrator_source": "homelab-dev/prd_b2_admin",
+      "administrator_values_in_memory_only": true,
+      "provider_response_values_in_memory_only": true,
+      "candidate_destination": "homelab-dev/prd_b2",
+      "candidate_values_written_by_stdin_only": true,
+      "candidate_values_in_argv_environment_files_logs_or_evidence": false,
+      "canonical_values_modified": false,
+      "raw_response_persisted": false,
+      "mutable_buffers_cleared": true
+    },
+    "mutation_boundary": {
+      "allowed": [
+        "create_exact_replacement_application_key_once",
+        "write_exact_two_candidate_doppler_secrets"
+      ],
+      "prohibited": [
+        "bucket_mutation",
+        "rejected_key_revocation",
+        "canonical_doppler_secret_change",
+        "candidate_compatibility_probe",
+        "object_write_or_delete",
+        "restic_initialization",
+        "host_contact"
+      ],
+      "automatic_retry_after_create": false
+    },
+    "acceptance": {
+      "require": [
+        "predecessor_preflight_still_matches",
+        "replacement_key_absent_before_create",
+        "exact_create_request_sent_once",
+        "exact_provider_key_metadata_readback",
+        "exact_capability_set_without_extras",
+        "exact_bucket_and_empty_prefix_scope",
+        "provider_expiration_absent",
+        "s3_option_present",
+        "exact_candidate_doppler_names_present_without_value_output",
+        "canonical_doppler_names_unchanged",
+        "rejected_key_unchanged",
+        "no_object_or_consumer_contact"
+      ],
+      "candidate_authentication_accepted": false,
+      "compatibility_accepted": false,
+      "canonical_promotion_accepted": false
+    },
+    "failure_and_residue": {
+      "before_provider_create": "cleanup_local_evidence_only",
+      "after_provider_create": "stop_without_automatic_retry",
+      "after_partial_or_failed_doppler_write": "manual_intervention",
+      "automatic_provider_key_deletion_authorized": false,
+      "automatic_candidate_secret_deletion_authorized": false,
+      "retain_sanitized_residue_evidence": true,
+      "cleanup_requires_separate_authorization": true
+    },
+    "implementation": {
+      "state": "not_defined",
+      "launcher": null,
+      "client": null,
+      "protected_candidate_writer": null,
+      "regression": null,
+      "live_execution_enabled": false
+    },
+    "evidence": {
+      "local_root_pattern": "/tmp/backblaze-b2-replacement-key-creation.*",
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "raw_provider_or_doppler_responses_retained": false,
+      "credential_values_or_identifiers_retained": false,
+      "records": [
+        "bundle_and_input_hashes",
+        "mutation_boundary_and_terminal_phase",
+        "sanitized_provider_request_and_readback",
+        "candidate_name_only_doppler_readback",
+        "canonical_and_rejected_residue_unchanged",
+        "cleanup_or_manual_intervention_decision"
+      ]
+    },
+    "authorization": {
+      "command": null,
+      "bundle_algorithm": "sha256",
+      "mutation_authorized": false,
+      "excluded_stages": [
+        "compatibility_probe",
+        "canonical_doppler_promotion",
+        "rejected_key_revocation",
+        "candidate_secret_cleanup",
+        "restic_repository_initialization",
+        "j2_svpi4mf_contact"
+      ],
+      "blockers": [
+        "implementation_not_defined",
+        "protected_candidate_write_not_defined",
+        "rollback_and_residue_regressions_not_defined",
+        "terminal_evidence_classification_not_defined",
+        "definition_review_pending",
+        "implementation_checkpoint_pending",
+        "final_bundle_hash_pending",
+        "explicit_live_authorization_required"
+      ]
+    }
+  }
+}
