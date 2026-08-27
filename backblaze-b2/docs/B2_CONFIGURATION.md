@@ -105,6 +105,38 @@ The key has no provider-enforced expiration because an expired unattended key
 would stop backups. Replace it every 180 days. Create and verify the replacement
 before revoking the old key; do not overwrite the only working credential.
 
+### API-created key visibility and management
+
+Backblaze Native API v4 calls a key created with the `bucketIds` array a
+Multi-Bucket Application Key, including when that array contains only one
+bucket. These keys require v4 authorization. Backblaze also documents that
+v1-v3 `b2_list_keys` calls omit Multi-Bucket Application Keys, while v4 returns
+them. See the official
+[Native API version history](https://www.backblaze.com/docs/cloud-storage-native-api-versions)
+and [application-key documentation](https://www.backblaze.com/docs/cloud-storage-application-keys).
+
+The operator confirmed that the v4 key created for this component is absent
+from the provider web console but present in `b2 key list -l`. Treat console
+visibility as informational, not as proof that the key exists or has been
+deleted. Backblaze's reviewed documentation does not establish the broader
+claim that every CLI- or API-created key is hidden from the console. Use v4 API
+readback or a current B2 CLI authenticated with an account-level credential as
+the management authority:
+
+```bash
+b2 key list -l
+b2 key delete APPLICATION_KEY_ID
+```
+
+`b2 key list -l` requires `listKeys`; deletion requires `deleteKeys` and is a
+separately authorized, irreversible provider mutation. Never put an application
+key value on either command line, in Git, or in evidence. The CLI command
+contract is documented in Backblaze's
+[`key list`](https://github.com/Backblaze/B2_Command_Line_Tool/blob/master/doc/source/subcommands/key_list.md)
+and
+[`key delete`](https://github.com/Backblaze/B2_Command_Line_Tool/blob/master/doc/source/subcommands/key_delete.md)
+references.
+
 ## Phase 6: provider readback
 
 Use the Backblaze console or a separately defined read-only API preflight to
