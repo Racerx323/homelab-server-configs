@@ -1,0 +1,8 @@
+# Restic runtime state and secrets stay outside Git.
+/cache/
+/runtime/
+/evidence/
+/secrets/
+*.credentials
+*.key
+*.password

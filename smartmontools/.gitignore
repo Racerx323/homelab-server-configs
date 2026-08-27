@@ -1,0 +1,7 @@
+# smartmontools runtime state and device evidence stay outside Git.
+/device-data/
+/evidence/
+/reports/
+/runtime/
+*.serial
+*.wwn

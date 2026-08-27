@@ -27,11 +27,12 @@
         "schema_version",
         "operation",
         "predecessor",
-        "operator_applied_remediation",
-        "diagnostic_storage",
-        "storage_soak",
-        "collection",
-        "decision",
+        "verification",
+        "dataset",
+        "restic_repository",
+        "workflow",
+        "acceptance",
+        "failure_and_cleanup",
         "evidence",
         "authorization"
       ],
@@ -50,27 +51,29 @@
             "source"
           ],
           "properties": {
-            "id": {"const": "nautobot-storage-soak-verification-v1"},
+            "id": {"const": "nautobot-isolated-backup-restore-v1"},
             "state": {"enum": ["definition", "pending"]},
             "authorization_ready": {"type": "boolean"},
-            "stage": {"const": "storage_soak_verification"},
+            "stage": {"const": "backup_restore_verification"},
             "target": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["host", "address", "ssh_user"],
+              "required": ["host", "address", "ssh_user", "execution_user"],
               "properties": {
                 "host": {"const": "j2-svpi4mf"},
                 "address": {"const": "10.1.2.170"},
-                "ssh_user": {"const": "ama"}
+                "ssh_user": {"const": "ama"},
+                "execution_user": {"const": "nautobot"}
               }
             },
             "architecture": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["plan", "decision"],
+              "required": ["plan", "storage_decision", "restic"],
               "properties": {
                 "plan": {"const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"},
-                "decision": {"const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"}
+                "storage_decision": {"const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"},
+                "restic": {"const": "restic/docs/RESTIC_ARCHITECTURE.md"}
               }
             },
             "source": {
@@ -87,135 +90,200 @@
         "predecessor": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "operation",
-            "terminal_tag",
-            "definition_commit",
-            "bundle_sha256",
-            "result"
-          ],
+          "required": ["operation", "terminal_tag", "definition_commit", "bundle_sha256", "result"],
           "properties": {
-            "operation": {"const": "nautobot-storage-diagnostic-v2"},
-            "terminal_tag": {"const": "nautobot-storage-diagnostic-v2-baseline-healthy-soak-pending"},
-            "definition_commit": {"const": "8728fc88b13b46315fffa0a3af64bd767e90b4c7"},
-            "bundle_sha256": {"const": "616772e4ac259cb99bb4e3a27b7b5024ab3c17fdc03eb8ff94a0ff321f49a05a"},
-            "result": {"const": "immediate_baseline_healthy_soak_pending"}
+            "operation": {"const": "nautobot-storage-soak-verification-v1"},
+            "terminal_tag": {"const": "nautobot-storage-soak-verification-v1-passed"},
+            "definition_commit": {"const": "eb38b4923ba6bfbc4f458870b6555a6e39d91f77"},
+            "bundle_sha256": {"const": "e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305"},
+            "result": {"const": "storage_soak_healthy_isolated_restore_pending"}
           }
         },
-        "operator_applied_remediation": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["state", "quirk_token", "immediate_observations"],
-          "properties": {
-            "state": {"const": "immediately_effective_soak_pending"},
-            "quirk_token": {"const": "usb-storage.quirks=152d:0583:u"},
-            "immediate_observations": {"type": "object"}
-          }
-        },
-        "diagnostic_storage": {
+        "verification": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "root_device",
-            "root_source",
-            "root_filesystem",
-            "quirk_token",
-            "usb_vendor_id",
-            "usb_product_id",
-            "expected_driver",
-            "expected_link_mbps"
+            "kind",
+            "purpose",
+            "satisfies_storage_predata_gate_only",
+            "satisfies_full_nautobot_recovery_acceptance",
+            "full_nautobot_restore_test_still_required_during_pilot"
           ],
           "properties": {
-            "root_device": {"const": "/dev/sda"},
-            "root_source": {"const": "/dev/sda2"},
-            "root_filesystem": {"const": "ext4"},
-            "quirk_token": {"const": "usb-storage.quirks=152d:0583:u"},
-            "usb_vendor_id": {"const": "152d"},
-            "usb_product_id": {"const": "0583"},
-            "expected_driver": {"const": "usb-storage"},
-            "expected_link_mbps": {"const": 5000}
+            "kind": {"const": "deterministic_predata_canary"},
+            "purpose": {"const": "verify_off_host_backup_integrity_and_isolated_restore_path"},
+            "satisfies_storage_predata_gate_only": {"const": true},
+            "satisfies_full_nautobot_recovery_acceptance": {"const": false},
+            "full_nautobot_restore_test_still_required_during_pilot": {"const": true}
           }
         },
-        "storage_soak": {
+        "dataset": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "baseline_finished_at_utc",
-            "earliest_verification_at_utc",
-            "minimum_uninterrupted_seconds",
-            "require_current_boot_uptime"
+            "source_root_pattern",
+            "restore_root_pattern",
+            "directory_mode",
+            "file_mode",
+            "require_root_filesystem",
+            "files"
           ],
           "properties": {
-            "baseline_finished_at_utc": {"const": "2026-08-25T21:05:19Z"},
-            "earliest_verification_at_utc": {"const": "2026-08-26T21:05:19Z"},
-            "minimum_uninterrupted_seconds": {"const": 86400},
-            "require_current_boot_uptime": {"const": true}
-          }
-        },
-        "collection": {
-          "type": "object",
-          "required": [
-            "read_only",
-            "privilege_model",
-            "current_boot_only",
-            "journal_line_limit",
-            "focused_storage_event_pattern",
-            "preserve_exact_matched_lines",
-            "stream_limit_bytes",
-            "areas",
-            "prohibited"
-          ],
-          "properties": {
-            "read_only": {"const": true},
-            "privilege_model": {"const": "ansible_unprivileged_explicit_sudo_n"},
-            "current_boot_only": {"const": true},
-            "journal_line_limit": {"type": "integer", "minimum": 1, "maximum": 10000},
-            "focused_storage_event_pattern": {
-              "const": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset"
-            },
-            "preserve_exact_matched_lines": {"const": true},
-            "stream_limit_bytes": {"type": "integer", "minimum": 1048576},
-            "areas": {"type": "array", "minItems": 1, "uniqueItems": true},
-            "prohibited": {
+            "source_root_pattern": {"const": "/var/lib/nautobot/backup-restore-tests/source.*"},
+            "restore_root_pattern": {"const": "/var/lib/nautobot/backup-restore-tests/restore.*"},
+            "directory_mode": {"const": "0700"},
+            "file_mode": {"const": "0600"},
+            "require_root_filesystem": {"const": "/dev/sda2"},
+            "files": {
               "type": "array",
-              "contains": {"const": "reboot"},
-              "uniqueItems": true
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "content_utf8", "sha256"],
+                "properties": {
+                  "path": {"const": "predata/canary.txt"},
+                  "content_utf8": {"const": "nautobot isolated backup restore verification v1\n"},
+                  "sha256": {"const": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2"}
+                }
+              }
             }
           }
         },
-        "decision": {
+        "restic_repository": {
           "type": "object",
+          "additionalProperties": false,
           "required": [
-            "state",
-            "minimum_24_hour_soak_complete",
-            "require_operator_review",
-            "require",
-            "boundaries"
+            "provider",
+            "transport",
+            "dedicated_private_bucket_required",
+            "endpoint",
+            "bucket",
+            "prefix",
+            "repository_id",
+            "initialization_owner",
+            "repository_initialized_state",
+            "credentials",
+            "repository_password_recovery_location_confirmed"
           ],
           "properties": {
-            "state": {"const": "pending_evidence"},
-            "minimum_24_hour_soak_complete": {"const": false},
-            "require_operator_review": {"const": true},
+            "provider": {"const": "backblaze_b2"},
+            "transport": {"const": "s3_compatible"},
+            "dedicated_private_bucket_required": {"const": true},
+            "endpoint": {"$ref": "#/$defs/unresolvedIdentity"},
+            "bucket": {"$ref": "#/$defs/unresolvedIdentity"},
+            "prefix": {"$ref": "#/$defs/unresolvedIdentity"},
+            "repository_id": {"$ref": "#/$defs/preflightIdentity"},
+            "initialization_owner": {"$ref": "#/$defs/unresolvedIdentity"},
+            "repository_initialized_state": {"enum": ["unresolved", "existing", "new"]},
+            "credentials": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "references",
+                "values_allowed_in_git_or_evidence",
+                "bucket_scoped_capabilities_required"
+              ],
+              "properties": {
+                "provider": {"const": "approved_secrets_system"},
+                "references": {
+                  "const": [
+                    "restic_repository_password",
+                    "backblaze_b2_application_key_id",
+                    "backblaze_b2_application_key"
+                  ]
+                },
+                "values_allowed_in_git_or_evidence": {"const": false},
+                "bucket_scoped_capabilities_required": {
+                  "const": ["list", "read", "write", "delete"]
+                }
+              }
+            },
+            "repository_password_recovery_location_confirmed": {"type": "boolean"}
+          }
+        },
+        "workflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_tag",
+            "snapshot_selection",
+            "integrity_check",
+            "restore_selection",
+            "restore_target",
+            "journal_scope",
+            "focused_storage_event_pattern",
+            "retain_remote_snapshot_until_terminal_acceptance",
+            "automatic_remote_snapshot_deletion",
+            "ordered_actions"
+          ],
+          "properties": {
+            "snapshot_tag": {"const": "nautobot-predata-canary-v1"},
+            "snapshot_selection": {"const": "exact_set_difference_from_snapshots_json"},
+            "integrity_check": {"const": "restic_check_read_data"},
+            "restore_selection": {"const": "exact_snapshot_id"},
+            "restore_target": {"const": "isolated_empty_owned_directory"},
+            "journal_scope": {"const": "cursor_bounded"},
+            "focused_storage_event_pattern": {
+              "const": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset"
+            },
+            "retain_remote_snapshot_until_terminal_acceptance": {"const": true},
+            "automatic_remote_snapshot_deletion": {"const": false},
+            "ordered_actions": {"type": "array", "minItems": 1, "uniqueItems": true}
+          }
+        },
+        "acceptance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["require", "boundaries"],
+          "properties": {
             "require": {"type": "array", "minItems": 1, "uniqueItems": true},
             "boundaries": {"type": "array", "minItems": 1, "uniqueItems": true}
           }
         },
+        "failure_and_cleanup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pre_upload_failure",
+            "post_upload_failure",
+            "restore_failure",
+            "automatic_repository_repair",
+            "automatic_snapshot_forget_or_prune",
+            "automatic_live_path_restore",
+            "cleanup_requires_exact_owned_paths_and_preserved_evidence"
+          ],
+          "properties": {
+            "pre_upload_failure": {"const": "remove_only_proven_owned_local_test_directories"},
+            "post_upload_failure": {"const": "retain_remote_snapshot_and_local_evidence_for_review"},
+            "restore_failure": {"const": "retain_remote_snapshot_and_local_evidence_for_review"},
+            "automatic_repository_repair": {"const": false},
+            "automatic_snapshot_forget_or_prune": {"const": false},
+            "automatic_live_path_restore": {"const": false},
+            "cleanup_requires_exact_owned_paths_and_preserved_evidence": {"const": true}
+          }
+        },
         "evidence": {
           "type": "object",
+          "additionalProperties": false,
           "required": [
             "local_root_pattern",
             "directory_mode",
             "file_mode",
+            "stream_limit_bytes",
             "raw_evidence_in_git",
-            "exact_focused_event_lines_recorded_in",
+            "secret_values_in_evidence",
             "records"
           ],
           "properties": {
-            "local_root_pattern": {"const": "/tmp/nautobot-storage-diagnostic.*"},
+            "local_root_pattern": {"const": "/tmp/nautobot-backup-restore.*"},
             "directory_mode": {"const": "0700"},
             "file_mode": {"const": "0600"},
+            "stream_limit_bytes": {"type": "integer", "minimum": 1048576},
             "raw_evidence_in_git": {"const": false},
-            "exact_focused_event_lines_recorded_in": {"const": "kernel.log"},
+            "secret_values_in_evidence": {"const": false},
             "records": {"type": "array", "minItems": 1, "uniqueItems": true}
           }
         },
@@ -231,10 +299,10 @@
             "blockers"
           ],
           "properties": {
-            "command": {"type": "string"},
+            "command": {"type": ["string", "null"]},
             "bundle_algorithm": {"const": "sha256"},
-            "authorized_stage": {"const": "storage_soak_verification"},
-            "mutation_authorized": {"const": false},
+            "authorized_stage": {"const": "backup_restore_verification"},
+            "mutation_authorized": {"type": "boolean"},
             "excluded_stages": {"type": "array", "minItems": 1, "uniqueItems": true},
             "blockers": {"type": "array", "uniqueItems": true}
           }
@@ -256,7 +324,11 @@
                 "properties": {"authorization_ready": {"const": false}}
               },
               "authorization": {
-                "properties": {"blockers": {"minItems": 1}}
+                "properties": {
+                  "command": {"const": null},
+                  "mutation_authorized": {"const": false},
+                  "blockers": {"minItems": 1}
+                }
               }
             }
           }
@@ -275,13 +347,97 @@
               "operation": {
                 "properties": {"authorization_ready": {"const": true}}
               },
+              "restic_repository": {
+                "properties": {
+                  "endpoint": {
+                    "properties": {"resolved": {"const": true}},
+                    "required": ["value"]
+                  },
+                  "bucket": {
+                    "properties": {"resolved": {"const": true}},
+                    "required": ["value"]
+                  },
+                  "prefix": {
+                    "properties": {"resolved": {"const": true}},
+                    "required": ["value"]
+                  },
+                  "repository_id": {
+                    "properties": {"resolved": {"const": true}},
+                    "required": ["value"]
+                  },
+                  "initialization_owner": {
+                    "properties": {"resolved": {"const": true}},
+                    "required": ["value"]
+                  },
+                  "repository_initialized_state": {"const": "existing"},
+                  "repository_password_recovery_location_confirmed": {"const": true}
+                }
+              },
               "authorization": {
-                "properties": {"blockers": {"maxItems": 0}}
+                "properties": {
+                  "command": {"type": "string", "minLength": 1},
+                  "mutation_authorized": {"const": true},
+                  "blockers": {"maxItems": 0}
+                }
               }
             }
           }
         }
       ]
     }
-  ]
+  ],
+  "$defs": {
+    "unresolvedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved", "source"],
+      "properties": {
+        "resolved": {"type": "boolean"},
+        "source": {"const": "reviewed_nonsecret_operation_input"},
+        "value": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"resolved": {"const": true}},
+            "required": ["resolved"]
+          },
+          "then": {"required": ["value"]}
+        },
+        {
+          "if": {
+            "properties": {"resolved": {"const": false}},
+            "required": ["resolved"]
+          },
+          "then": {"not": {"required": ["value"]}}
+        }
+      ]
+    },
+    "preflightIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved", "source"],
+      "properties": {
+        "resolved": {"type": "boolean"},
+        "source": {"const": "read_only_restic_repository_id_preflight"},
+        "value": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"resolved": {"const": true}},
+            "required": ["resolved"]
+          },
+          "then": {"required": ["value"]}
+        },
+        {
+          "if": {
+            "properties": {"resolved": {"const": false}},
+            "required": ["resolved"]
+          },
+          "then": {"not": {"required": ["value"]}}
+        }
+      ]
+    }
+  }
 }

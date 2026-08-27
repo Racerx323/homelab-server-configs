@@ -2,5 +2,178 @@
 schema_version: 1
 
 operation:
-  state: clean
+  id: nautobot-isolated-backup-restore-v1
+  state: definition
   authorization_ready: false
+  stage: backup_restore_verification
+  target:
+    host: j2-svpi4mf
+    address: 10.1.2.170
+    ssh_user: ama
+    execution_user: nautobot
+  architecture:
+    plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
+    storage_decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
+    restic: restic/docs/RESTIC_ARCHITECTURE.md
+  source:
+    repository: homelab-server-configs
+    base_commit: f1ddd076dfb925438c25534ffdd561c04ba4ac5f
+
+predecessor:
+  operation: nautobot-storage-soak-verification-v1
+  terminal_tag: nautobot-storage-soak-verification-v1-passed
+  definition_commit: eb38b4923ba6bfbc4f458870b6555a6e39d91f77
+  bundle_sha256: e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305
+  result: storage_soak_healthy_isolated_restore_pending
+
+verification:
+  kind: deterministic_predata_canary
+  purpose: verify_off_host_backup_integrity_and_isolated_restore_path
+  satisfies_storage_predata_gate_only: true
+  satisfies_full_nautobot_recovery_acceptance: false
+  full_nautobot_restore_test_still_required_during_pilot: true
+
+dataset:
+  source_root_pattern: /var/lib/nautobot/backup-restore-tests/source.*
+  restore_root_pattern: /var/lib/nautobot/backup-restore-tests/restore.*
+  directory_mode: "0700"
+  file_mode: "0600"
+  require_root_filesystem: /dev/sda2
+  files:
+    - path: predata/canary.txt
+      content_utf8: |
+        nautobot isolated backup restore verification v1
+      sha256: 0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2
+
+restic_repository:
+  provider: backblaze_b2
+  transport: s3_compatible
+  dedicated_private_bucket_required: true
+  endpoint:
+    resolved: false
+    source: reviewed_nonsecret_operation_input
+  bucket:
+    resolved: false
+    source: reviewed_nonsecret_operation_input
+  prefix:
+    resolved: false
+    source: reviewed_nonsecret_operation_input
+  repository_id:
+    resolved: false
+    source: read_only_restic_repository_id_preflight
+  initialization_owner:
+    resolved: false
+    source: reviewed_nonsecret_operation_input
+  repository_initialized_state: unresolved
+  credentials:
+    provider: approved_secrets_system
+    references:
+      - restic_repository_password
+      - backblaze_b2_application_key_id
+      - backblaze_b2_application_key
+    values_allowed_in_git_or_evidence: false
+    bucket_scoped_capabilities_required:
+      - list
+      - read
+      - write
+      - delete
+  repository_password_recovery_location_confirmed: false
+
+workflow:
+  snapshot_tag: nautobot-predata-canary-v1
+  snapshot_selection: exact_set_difference_from_snapshots_json
+  integrity_check: restic_check_read_data
+  restore_selection: exact_snapshot_id
+  restore_target: isolated_empty_owned_directory
+  journal_scope: cursor_bounded
+  focused_storage_event_pattern: I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset
+  retain_remote_snapshot_until_terminal_acceptance: true
+  automatic_remote_snapshot_deletion: false
+  ordered_actions:
+    - prove_exact_repository_and_restic_identity
+    - prove_secret_references_resolve_without_capture
+    - create_protected_deterministic_source
+    - record_source_tree_hashes
+    - capture_pre_backup_snapshot_ids_as_json
+    - upload_tagged_snapshot
+    - capture_post_backup_snapshot_ids_as_json
+    - require_exactly_one_new_matching_snapshot_id
+    - run_full_repository_data_check
+    - restore_exact_snapshot_to_isolated_empty_directory
+    - compare_restored_tree_with_independent_expected_hashes
+    - inspect_cursor_bounded_storage_events
+    - preserve_bounded_sanitized_evidence
+
+acceptance:
+  require:
+    - exact_endpoint_and_bucket_identity_recorded
+    - bucket_scoped_credentials_without_secret_capture
+    - repository_password_recovery_location_confirmed
+    - deterministic_source_hash_matches_definition
+    - tagged_backup_completed
+    - exact_snapshot_id_recorded
+    - restic_check_read_data_passed
+    - exact_snapshot_restored_to_isolated_directory
+    - restored_tree_matches_independent_expected_hashes
+    - zero_cursor_bounded_focused_storage_events
+    - no_live_nautobot_or_system_path_modified
+    - raw_evidence_bounded_and_secret_free
+  boundaries:
+    - does_not_initialize_or_repair_repository
+    - does_not_restore_over_source_or_live_paths
+    - does_not_use_or_create_nautobot_application_data
+    - does_not_accept_full_nautobot_recovery
+    - does_not_update_accepted_live_state
+    - does_not_authorize_nautobot_deployment_or_authority_migration
+
+failure_and_cleanup:
+  pre_upload_failure: remove_only_proven_owned_local_test_directories
+  post_upload_failure: retain_remote_snapshot_and_local_evidence_for_review
+  restore_failure: retain_remote_snapshot_and_local_evidence_for_review
+  automatic_repository_repair: false
+  automatic_snapshot_forget_or_prune: false
+  automatic_live_path_restore: false
+  cleanup_requires_exact_owned_paths_and_preserved_evidence: true
+
+evidence:
+  local_root_pattern: /tmp/nautobot-backup-restore.*
+  directory_mode: "0700"
+  file_mode: "0600"
+  stream_limit_bytes: 8388608
+  raw_evidence_in_git: false
+  secret_values_in_evidence: false
+  records:
+    - bundle_inputs_and_hashes
+    - repository_identity_without_credentials
+    - source_tree_hashes
+    - backup_result_and_exact_snapshot_id
+    - integrity_check_result
+    - restored_tree_hashes
+    - cursor_bounded_storage_events
+    - mutation_and_cleanup_status
+    - sanitized_decision_summary
+
+authorization:
+  command: null
+  bundle_algorithm: sha256
+  authorized_stage: backup_restore_verification
+  mutation_authorized: false
+  excluded_stages:
+    - repository_initialization
+    - snapshot_forget_or_prune
+    - repository_repair
+    - live_path_restore
+    - nautobot_pilot
+    - caddy_onboarding
+    - authority_migration
+    - semaphore
+  blockers:
+    - exact_b2_endpoint_bucket_and_prefix_identity_required
+    - repository_id_and_initialization_owner_required
+    - bucket_scoped_application_key_review_required
+    - repository_password_recovery_location_confirmation_required
+    - repository_initialization_state_required
+    - restic_version_and_execution_identity_preflight_required
+    - reviewed_execution_implementation_required
+    - definition_checkpoint_required
+    - explicit_live_authorization_required

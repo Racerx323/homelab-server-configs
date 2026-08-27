@@ -245,6 +245,12 @@ def assert_operation_storage_shape(operation_vars):
         return
 
     assert operation_state in {"definition", "pending"}
+    if operation_vars["operation"].get("id") != \
+            "nautobot-storage-soak-verification-v1":
+        assert "diagnostic_storage" not in operation_vars
+        assert "storage_soak" not in operation_vars
+        return
+
     assert operation_vars["operation"]["id"] == \
         "nautobot-storage-soak-verification-v1"
     assert operation_vars["operation"]["stage"] == \
