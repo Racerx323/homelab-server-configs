@@ -28,6 +28,8 @@ ownership, evidence, and safety boundaries below.
 - Keepalived, Pi-hole, Unbound, and authoritative DNS sources belong to
   `homelab-dns`. Network-controller sources belong to `homelab-network`.
   Caddy configuration and its release lifecycle belong to `Caddy/`.
+  Backblaze B2 bucket, application-key policy, and cloud lifecycle sources
+  belong to `backblaze-b2/`.
 - Cross-owner changes use the owning project's validation, authorization,
   execution, acceptance, rollback, and history process.
 - Do not make inventory events, webhooks, schedules, or generic installers

@@ -30,6 +30,7 @@
         "verification",
         "dataset",
         "restic_repository",
+        "repository_preflight",
         "workflow",
         "acceptance",
         "failure_and_cleanup",
@@ -69,10 +70,11 @@
             "architecture": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["plan", "storage_decision", "restic"],
+              "required": ["plan", "storage_decision", "backblaze_b2", "restic"],
               "properties": {
                 "plan": {"const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"},
                 "storage_decision": {"const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"},
+                "backblaze_b2": {"const": "backblaze-b2/docs/B2_ARCHITECTURE.md"},
                 "restic": {"const": "restic/docs/RESTIC_ARCHITECTURE.md"}
               }
             },
@@ -173,7 +175,7 @@
             "dedicated_private_bucket_required": {"const": true},
             "endpoint": {"$ref": "#/$defs/unresolvedIdentity"},
             "bucket": {"$ref": "#/$defs/unresolvedIdentity"},
-            "prefix": {"$ref": "#/$defs/unresolvedIdentity"},
+            "prefix": {"$ref": "#/$defs/prefixIdentity"},
             "repository_id": {"$ref": "#/$defs/preflightIdentity"},
             "initialization_owner": {"$ref": "#/$defs/unresolvedIdentity"},
             "repository_initialized_state": {"enum": ["unresolved", "existing", "new"]},
@@ -202,6 +204,58 @@
               }
             },
             "repository_password_recovery_location_confirmed": {"type": "boolean"}
+          }
+        },
+        "repository_preflight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "state",
+            "procedure",
+            "execution_user",
+            "repository_access",
+            "cache_mode",
+            "lock_mode",
+            "commands",
+            "resolves",
+            "requires_reviewed_inputs",
+            "failure_boundary",
+            "evidence_secret_values_allowed",
+            "separate_live_authorization_required"
+          ],
+          "properties": {
+            "id": {"const": "nautobot-restic-read-only-preflight-v1"},
+            "state": {"enum": ["defined_unexecuted", "passed"]},
+            "procedure": {"const": "restic/docs/READ_ONLY_PREFLIGHT.md"},
+            "execution_user": {"const": "nautobot"},
+            "repository_access": {"const": "read_only"},
+            "cache_mode": {"const": "disabled"},
+            "lock_mode": {"const": "disabled"},
+            "commands": {
+              "const": ["restic_version", "restic_no_cache_no_lock_cat_config"]
+            },
+            "resolves": {
+              "const": [
+                "repository_initialized_state",
+                "repository_id",
+                "repository_format_version",
+                "installed_restic_version",
+                "execution_identity"
+              ]
+            },
+            "requires_reviewed_inputs": {
+              "const": [
+                "endpoint",
+                "bucket",
+                "prefix",
+                "initialization_owner",
+                "credential_references"
+              ]
+            },
+            "failure_boundary": {"const": "stop_without_initialization_or_repository_write"},
+            "evidence_secret_values_allowed": {"const": false},
+            "separate_live_authorization_required": {"const": true}
           }
         },
         "workflow": {
@@ -373,6 +427,11 @@
                   "repository_password_recovery_location_confirmed": {"const": true}
                 }
               },
+              "repository_preflight": {
+                "properties": {
+                  "state": {"const": "passed"}
+                }
+              },
               "authorization": {
                 "properties": {
                   "command": {"type": "string", "minLength": 1},
@@ -395,6 +454,32 @@
         "resolved": {"type": "boolean"},
         "source": {"const": "reviewed_nonsecret_operation_input"},
         "value": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"resolved": {"const": true}},
+            "required": ["resolved"]
+          },
+          "then": {"required": ["value"]}
+        },
+        {
+          "if": {
+            "properties": {"resolved": {"const": false}},
+            "required": ["resolved"]
+          },
+          "then": {"not": {"required": ["value"]}}
+        }
+      ]
+    },
+    "prefixIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved", "source"],
+      "properties": {
+        "resolved": {"type": "boolean"},
+        "source": {"const": "reviewed_nonsecret_operation_input"},
+        "value": {"type": "string"}
       },
       "allOf": [
         {

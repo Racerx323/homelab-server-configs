@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/backblaze-b2-operation.json",
+  "title": "Backblaze B2 operation state",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "operation"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "authorization_ready"],
+          "properties": {
+            "state": {"const": "clean"},
+            "authorization_ready": {"const": false}
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation",
+        "targets",
+        "preflight",
+        "mutation_contract",
+        "bucket_contract",
+        "application_key_contract",
+        "secret_contract",
+        "acceptance",
+        "failure_and_cleanup",
+        "evidence",
+        "authorization"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "state",
+            "authorization_ready",
+            "stage",
+            "execution_mode",
+            "source",
+            "architecture",
+            "procedure",
+            "desired_state"
+          ],
+          "properties": {
+            "id": {"const": "backblaze-b2-nautobot-bootstrap-v1"},
+            "state": {"enum": ["definition", "pending"]},
+            "authorization_ready": {"type": "boolean"},
+            "stage": {"const": "provider_bootstrap"},
+            "execution_mode": {"const": "operator_console_and_doppler_cli"},
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["repository", "base_commit"],
+              "properties": {
+                "repository": {"const": "homelab-server-configs"},
+                "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+              }
+            },
+            "architecture": {"const": "backblaze-b2/docs/B2_ARCHITECTURE.md"},
+            "procedure": {"const": "backblaze-b2/docs/B2_CONFIGURATION.md"},
+            "desired_state": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["manifest", "sha256", "state"],
+              "properties": {
+                "manifest": {"const": "backblaze-b2/manifests/desired-state.yaml"},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "state": {"const": "reviewed"}
+              }
+            }
+          }
+        },
+        "targets": {"$ref": "#/$defs/targets"},
+        "preflight": {"$ref": "#/$defs/preflight"},
+        "mutation_contract": {"$ref": "#/$defs/mutationContract"},
+        "bucket_contract": {"$ref": "#/$defs/bucketContract"},
+        "application_key_contract": {"$ref": "#/$defs/applicationKeyContract"},
+        "secret_contract": {"$ref": "#/$defs/secretContract"},
+        "acceptance": {"$ref": "#/$defs/acceptance"},
+        "failure_and_cleanup": {"$ref": "#/$defs/failureAndCleanup"},
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "authorization": {"$ref": "#/$defs/authorization"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "properties": {"state": {"const": "definition"}},
+                "required": ["state"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "properties": {"authorization_ready": {"const": false}}
+              },
+              "preflight": {
+                "properties": {"state": {"const": "unexecuted"}}
+              },
+              "authorization": {
+                "properties": {
+                  "command": {"const": null},
+                  "mutation_authorized": {"const": false},
+                  "blockers": {"minItems": 1}
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "properties": {"state": {"const": "pending"}},
+                "required": ["state"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "properties": {"authorization_ready": {"const": true}}
+              },
+              "preflight": {
+                "properties": {"state": {"const": "passed"}}
+              },
+              "authorization": {
+                "properties": {
+                  "command": {"type": "string", "minLength": 1},
+                  "mutation_authorized": {"const": true},
+                  "blockers": {"maxItems": 0}
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "$defs": {
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backblaze_b2", "doppler", "consumer", "host_contact_authorized"],
+      "properties": {
+        "backblaze_b2": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["account", "bucket"],
+          "properties": {
+            "account": {"const": "governed_administrator_account"},
+            "bucket": {"const": "theama-homelab-nautobot-restic-prd"}
+          }
+        },
+        "doppler": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["project", "environment", "config"],
+          "properties": {
+            "project": {"const": "homelab-dev"},
+            "environment": {"const": "prd"},
+            "config": {"const": "prd_b2"}
+          }
+        },
+        "consumer": {"const": "nautobot"},
+        "host_contact_authorized": {"const": false}
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "require", "prohibited_during_preflight"],
+      "properties": {
+        "state": {"enum": ["unexecuted", "passed"]},
+        "require": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "prohibited_during_preflight": {"type": "array", "minItems": 1, "uniqueItems": true}
+      }
+    },
+    "mutationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorized_classes_when_pending",
+        "ordered_actions",
+        "substitutions_allowed",
+        "object_upload_authorized",
+        "restic_initialization_authorized"
+      ],
+      "properties": {
+        "authorized_classes_when_pending": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "ordered_actions": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "substitutions_allowed": {"const": false},
+        "object_upload_authorized": {"const": false},
+        "restic_initialization_authorized": {"const": false}
+      }
+    },
+    "bucketContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "repository_prefix",
+        "access",
+        "server_side_encryption",
+        "object_lock",
+        "lifecycle",
+        "accepted_object_count"
+      ],
+      "properties": {
+        "name": {"const": "theama-homelab-nautobot-restic-prd"},
+        "repository_prefix": {"const": ""},
+        "access": {"const": "private"},
+        "server_side_encryption": {"const": "backblaze_managed"},
+        "object_lock": {"const": "disabled"},
+        "lifecycle": {"const": "keep_only_last_version"},
+        "accepted_object_count": {"const": 0}
+      }
+    },
+    "applicationKeyContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "bucket_scope",
+        "prefix_scope",
+        "list_all_bucket_names",
+        "required_file_capabilities",
+        "prohibited_capability_classes",
+        "provider_expiration",
+        "rotation_interval_days"
+      ],
+      "properties": {
+        "name": {"const": "homelab-nautobot-restic-prd"},
+        "bucket_scope": {"const": "exact_bucket"},
+        "prefix_scope": {"const": "exact_empty_prefix"},
+        "list_all_bucket_names": {"const": true},
+        "required_file_capabilities": {"const": ["list", "read", "write", "delete"]},
+        "prohibited_capability_classes": {
+          "const": [
+            "bucket_administration",
+            "retention_and_legal_hold_administration",
+            "replication_administration",
+            "governance_bypass"
+          ]
+        },
+        "provider_expiration": {"const": "disabled"},
+        "rotation_interval_days": {"const": 180}
+      }
+    },
+    "secretContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "project",
+        "environment",
+        "config",
+        "keys",
+        "values_allowed_in_git_arguments_logs_or_evidence",
+        "shell_tracing_allowed_during_resolution",
+        "close_provider_result_before_secret_readback"
+      ],
+      "properties": {
+        "provider": {"const": "doppler"},
+        "project": {"const": "homelab-dev"},
+        "environment": {"const": "prd"},
+        "config": {"const": "prd_b2"},
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["application_key_id", "application_key"],
+          "properties": {
+            "application_key_id": {"const": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID"},
+            "application_key": {"const": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY"}
+          }
+        },
+        "values_allowed_in_git_arguments_logs_or_evidence": {"const": false},
+        "shell_tracing_allowed_during_resolution": {"const": false},
+        "close_provider_result_before_secret_readback": {"const": false}
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require", "does_not_accept"],
+      "properties": {
+        "require": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "does_not_accept": {"type": "array", "minItems": 1, "uniqueItems": true}
+      }
+    },
+    "failureAndCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before_first_mutation",
+        "after_doppler_config_creation",
+        "after_bucket_creation",
+        "after_key_creation_before_secret_readback",
+        "lost_unstored_application_key",
+        "automatic_bucket_deletion",
+        "automatic_application_key_revocation",
+        "automatic_doppler_config_deletion",
+        "automatic_secret_overwrite"
+      ],
+      "properties": {
+        "before_first_mutation": {"const": "cleanup_local_evidence_only"},
+        "after_doppler_config_creation": {"const": "retain_config_and_stop_for_review"},
+        "after_bucket_creation": {"const": "retain_empty_bucket_and_stop_for_review"},
+        "after_key_creation_before_secret_readback": {"const": "keep_result_open_and_retry_protected_write"},
+        "lost_unstored_application_key": {"const": "stop_and_require_separate_key_revocation_operation"},
+        "automatic_bucket_deletion": {"const": false},
+        "automatic_application_key_revocation": {"const": false},
+        "automatic_doppler_config_deletion": {"const": false},
+        "automatic_secret_overwrite": {"const": false}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_root_pattern",
+        "directory_mode",
+        "file_mode",
+        "raw_evidence_in_git",
+        "secret_values_in_evidence",
+        "records"
+      ],
+      "properties": {
+        "local_root_pattern": {"const": "/tmp/backblaze-b2-nautobot-bootstrap.*"},
+        "directory_mode": {"const": "0700"},
+        "file_mode": {"const": "0600"},
+        "raw_evidence_in_git": {"const": false},
+        "secret_values_in_evidence": {"const": false},
+        "records": {"type": "array", "minItems": 1, "uniqueItems": true}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "bundle_algorithm", "mutation_authorized", "excluded_stages", "blockers"],
+      "properties": {
+        "command": {"type": ["string", "null"]},
+        "bundle_algorithm": {"const": "sha256"},
+        "mutation_authorized": {"type": "boolean"},
+        "excluded_stages": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "blockers": {"type": "array", "uniqueItems": true}
+      }
+    }
+  }
+}

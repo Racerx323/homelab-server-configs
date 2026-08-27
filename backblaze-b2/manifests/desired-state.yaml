@@ -1,0 +1,60 @@
+---
+schema_version: 1
+
+component:
+  id: backblaze-b2
+  state: reviewed
+  consumer: nautobot
+  purpose: off_host_encrypted_restic_repository
+  live_changes_authorized: false
+
+bucket:
+  name: theama-homelab-nautobot-restic-prd
+  global_availability: pending_provider_creation_confirmation
+  repository_prefix: ""
+  access: private
+  server_side_encryption: backblaze_managed
+  object_lock: disabled
+  lifecycle: keep_only_last_version
+
+application_key:
+  name: homelab-nautobot-restic-prd
+  bucket_scope: exact_bucket
+  prefix_scope: exact_empty_prefix
+  list_all_bucket_names: true
+  file_capabilities:
+    - list
+    - read
+    - write
+    - delete
+  excluded_capability_classes:
+    - bucket_administration
+    - retention_and_legal_hold_administration
+    - replication_administration
+    - governance_bypass
+  expiration:
+    provider_expiration: disabled
+    rotation_interval_days: 180
+    replacement_must_pass_preflight_before_revocation: true
+
+secrets:
+  provider: doppler
+  project: homelab-dev
+  config: prd_b2
+  config_creation_required: true
+  keys:
+    application_key_id: NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
+    application_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY
+  values_allowed_in_git_logs_or_evidence: false
+
+review:
+  required_before_operation_definition:
+    - bucket_name
+    - application_key_name
+    - expiration_and_rotation_policy
+    - doppler_project_config_and_key_names
+  provider_verified_identity_required_before_acceptance:
+    - bucket_id
+    - bucket_region
+    - s3_endpoint
+    - bucket_name_global_availability

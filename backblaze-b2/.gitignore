@@ -1,0 +1,12 @@
+# Credentials and secret exports
+credentials/
+secrets/
+*.env
+*.key
+
+# Runtime state and raw evidence
+evidence/
+runtime/
+*.out
+*.err
+*.jsonl

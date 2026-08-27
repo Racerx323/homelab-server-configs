@@ -22,14 +22,17 @@ The `restic/` component owns:
 
 Each consumer owns its source paths, database export method, exclusions,
 schedule, retention values, operation state, accepted-live state, and terminal
-history. The approved secrets system owns credential values and repository
-password recovery material. Backblaze owns the remote encrypted objects.
+history. The `backblaze-b2/` component owns buckets, application-key policy,
+provider lifecycle, and cloud-side acceptance. The approved secrets system
+owns credential values and repository password recovery material. Backblaze
+stores the remote encrypted objects.
 
 ## Repository model
 
-Use one dedicated private Backblaze B2 bucket per approved trust and retention
-boundary. Access it through Backblaze's S3-compatible endpoint with Restic's S3
-backend:
+Consume one accepted private Backblaze B2 bucket per approved trust and
+provider-lifecycle boundary. The `backblaze-b2/` component creates and accepts
+that bucket before Restic repository work begins. Access it through
+Backblaze's S3-compatible endpoint with Restic's S3 backend:
 
 ```text
 s3:https://ENDPOINT/BUCKET/PREFIX
@@ -37,9 +40,8 @@ s3:https://ENDPOINT/BUCKET/PREFIX
 
 Record the exact endpoint, bucket, optional prefix, Restic repository ID, and
 initialization owner before a backup operation becomes authorization-ready.
-Keep the bucket private. Use a bucket-scoped application key with the minimum
-list, read, write, and delete capabilities required by the consumer's approved
-retention policy.
+Reject an unaccepted B2 identity. Use the B2-owned, bucket-scoped application
+key and its reviewed list, read, write, and delete capabilities.
 
 Repository initialization requires its own operation. A backup or restore
 verification must reject an unknown or uninitialized repository and must not

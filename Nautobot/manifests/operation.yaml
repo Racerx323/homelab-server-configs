@@ -14,6 +14,7 @@ operation:
   architecture:
     plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
     storage_decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
+    backblaze_b2: backblaze-b2/docs/B2_ARCHITECTURE.md
     restic: restic/docs/RESTIC_ARCHITECTURE.md
   source:
     repository: homelab-server-configs
@@ -78,6 +79,33 @@ restic_repository:
       - write
       - delete
   repository_password_recovery_location_confirmed: false
+
+repository_preflight:
+  id: nautobot-restic-read-only-preflight-v1
+  state: defined_unexecuted
+  procedure: restic/docs/READ_ONLY_PREFLIGHT.md
+  execution_user: nautobot
+  repository_access: read_only
+  cache_mode: disabled
+  lock_mode: disabled
+  commands:
+    - restic_version
+    - restic_no_cache_no_lock_cat_config
+  resolves:
+    - repository_initialized_state
+    - repository_id
+    - repository_format_version
+    - installed_restic_version
+    - execution_identity
+  requires_reviewed_inputs:
+    - endpoint
+    - bucket
+    - prefix
+    - initialization_owner
+    - credential_references
+  failure_boundary: stop_without_initialization_or_repository_write
+  evidence_secret_values_allowed: false
+  separate_live_authorization_required: true
 
 workflow:
   snapshot_tag: nautobot-predata-canary-v1
@@ -168,12 +196,14 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
+    - backblaze_b2_bucket_and_application_key_acceptance_required
     - exact_b2_endpoint_bucket_and_prefix_identity_required
     - repository_id_and_initialization_owner_required
     - bucket_scoped_application_key_review_required
     - repository_password_recovery_location_confirmation_required
     - repository_initialization_state_required
     - restic_version_and_execution_identity_preflight_required
+    - read_only_restic_preflight_execution_requires_separate_authorization
     - reviewed_execution_implementation_required
     - definition_checkpoint_required
     - explicit_live_authorization_required

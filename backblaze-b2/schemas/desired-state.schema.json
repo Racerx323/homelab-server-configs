@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/backblaze-b2-desired-state.json",
+  "title": "Backblaze B2 desired state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "component", "bucket", "application_key", "secrets", "review"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "consumer", "purpose", "live_changes_authorized"],
+      "properties": {
+        "id": {"const": "backblaze-b2"},
+        "state": {"const": "reviewed"},
+        "consumer": {"const": "nautobot"},
+        "purpose": {"const": "off_host_encrypted_restic_repository"},
+        "live_changes_authorized": {"const": false}
+      }
+    },
+    "bucket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "global_availability",
+        "repository_prefix",
+        "access",
+        "server_side_encryption",
+        "object_lock",
+        "lifecycle"
+      ],
+      "properties": {
+        "name": {
+          "const": "theama-homelab-nautobot-restic-prd",
+          "minLength": 6,
+          "maxLength": 63,
+          "pattern": "^(?!b2-)(?!xn--)(?!sthree-)(?!amzn-s3-demo-)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+        },
+        "global_availability": {"const": "pending_provider_creation_confirmation"},
+        "repository_prefix": {"const": ""},
+        "access": {"const": "private"},
+        "server_side_encryption": {"const": "backblaze_managed"},
+        "object_lock": {"const": "disabled"},
+        "lifecycle": {"const": "keep_only_last_version"}
+      }
+    },
+    "application_key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "bucket_scope",
+        "prefix_scope",
+        "list_all_bucket_names",
+        "file_capabilities",
+        "excluded_capability_classes",
+        "expiration"
+      ],
+      "properties": {
+        "name": {
+          "const": "homelab-nautobot-restic-prd",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9-]+$"
+        },
+        "bucket_scope": {"const": "exact_bucket"},
+        "prefix_scope": {"const": "exact_empty_prefix"},
+        "list_all_bucket_names": {"const": true},
+        "file_capabilities": {"const": ["list", "read", "write", "delete"]},
+        "excluded_capability_classes": {
+          "const": [
+            "bucket_administration",
+            "retention_and_legal_hold_administration",
+            "replication_administration",
+            "governance_bypass"
+          ]
+        },
+        "expiration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider_expiration",
+            "rotation_interval_days",
+            "replacement_must_pass_preflight_before_revocation"
+          ],
+          "properties": {
+            "provider_expiration": {"const": "disabled"},
+            "rotation_interval_days": {"const": 180},
+            "replacement_must_pass_preflight_before_revocation": {"const": true}
+          }
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "project",
+        "config",
+        "config_creation_required",
+        "keys",
+        "values_allowed_in_git_logs_or_evidence"
+      ],
+      "properties": {
+        "provider": {"const": "doppler"},
+        "project": {"const": "homelab-dev"},
+        "config": {"const": "prd_b2"},
+        "config_creation_required": {"const": true},
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["application_key_id", "application_key"],
+          "properties": {
+            "application_key_id": {"const": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID"},
+            "application_key": {"const": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY"}
+          }
+        },
+        "values_allowed_in_git_logs_or_evidence": {"const": false}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_before_operation_definition", "provider_verified_identity_required_before_acceptance"],
+      "properties": {
+        "required_before_operation_definition": {
+          "const": [
+            "bucket_name",
+            "application_key_name",
+            "expiration_and_rotation_policy",
+            "doppler_project_config_and_key_names"
+          ]
+        },
+        "provider_verified_identity_required_before_acceptance": {
+          "const": [
+            "bucket_id",
+            "bucket_region",
+            "s3_endpoint",
+            "bucket_name_global_availability"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -171,6 +171,28 @@ repos:
         files: >-
           ^Nautobot/(?:manifests/desired-state\.yaml|schemas/desired-state\.schema\.json)$
 
+      - id: backblaze-b2-desired-state-schema
+        name: Validate Backblaze B2 desired state
+        entry: >-
+          check-jsonschema
+          --schemafile backblaze-b2/schemas/desired-state.schema.json
+          backblaze-b2/manifests/desired-state.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^backblaze-b2/(?:manifests/desired-state\.yaml|schemas/desired-state\.schema\.json)$
+
+      - id: backblaze-b2-operation-schema
+        name: Validate Backblaze B2 operation state
+        entry: >-
+          check-jsonschema
+          --schemafile backblaze-b2/schemas/operation.schema.json
+          backblaze-b2/manifests/operation.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^backblaze-b2/(?:manifests/operation\.yaml|schemas/operation\.schema\.json)$
+
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture
         entry: >-

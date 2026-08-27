@@ -1,0 +1,180 @@
+---
+schema_version: 1
+
+operation:
+  id: backblaze-b2-nautobot-bootstrap-v1
+  state: definition
+  authorization_ready: false
+  stage: provider_bootstrap
+  execution_mode: operator_console_and_doppler_cli
+  source:
+    repository: homelab-server-configs
+    base_commit: 3d3e83163f3df5b2a8c2a374ef9034e52c448e1c
+  architecture: backblaze-b2/docs/B2_ARCHITECTURE.md
+  procedure: backblaze-b2/docs/B2_CONFIGURATION.md
+  desired_state:
+    manifest: backblaze-b2/manifests/desired-state.yaml
+    sha256: a6c02739d1ab11ce989c2a94b33140a468ad63fab7ab9af1999ea3fd326114e7
+    state: reviewed
+
+targets:
+  backblaze_b2:
+    account: governed_administrator_account
+    bucket: theama-homelab-nautobot-restic-prd
+  doppler:
+    project: homelab-dev
+    environment: prd
+    config: prd_b2
+  consumer: nautobot
+  host_contact_authorized: false
+
+preflight:
+  state: unexecuted
+  require:
+    - operator_identity_and_backblaze_account_ownership_confirmed
+    - backblaze_b2_enabled_and_private_bucket_creation_available
+    - bucket_name_available_without_substitution
+    - billing_caps_and_alert_contacts_reviewed
+    - doppler_project_and_production_environment_access_confirmed
+    - doppler_config_prd_b2_absent
+    - protected_secret_write_and_name_only_readback_method_reviewed
+    - application_key_result_panel_can_remain_open_until_secret_readback
+  prohibited_during_preflight:
+    - bucket_creation
+    - bucket_setting_change
+    - application_key_creation_or_revocation
+    - doppler_config_or_secret_change
+    - restic_repository_access_or_initialization
+    - consumer_host_contact
+
+mutation_contract:
+  authorized_classes_when_pending:
+    - doppler_config_creation
+    - private_bucket_creation
+    - backblaze_managed_encryption_configuration
+    - bucket_lifecycle_configuration
+    - scoped_application_key_creation
+    - protected_doppler_secret_write
+  ordered_actions:
+    - prove_preflight_gates
+    - create_doppler_config_prd_b2_in_prd_environment
+    - create_exact_private_bucket_without_object_lock
+    - record_provider_bucket_id_region_and_s3_endpoint
+    - configure_keep_only_last_version_lifecycle
+    - read_back_bucket_access_encryption_object_lock_and_lifecycle
+    - create_exact_bucket_scoped_application_key
+    - keep_one_time_key_result_open
+    - write_key_id_and_application_key_to_exact_doppler_names
+    - verify_both_doppler_names_exist_without_value_output
+    - read_back_application_key_scope_capabilities_and_expiration
+    - prove_bucket_contains_no_restic_or_other_objects
+    - preserve_bounded_sanitized_evidence
+  substitutions_allowed: false
+  object_upload_authorized: false
+  restic_initialization_authorized: false
+
+bucket_contract:
+  name: theama-homelab-nautobot-restic-prd
+  repository_prefix: ""
+  access: private
+  server_side_encryption: backblaze_managed
+  object_lock: disabled
+  lifecycle: keep_only_last_version
+  accepted_object_count: 0
+
+application_key_contract:
+  name: homelab-nautobot-restic-prd
+  bucket_scope: exact_bucket
+  prefix_scope: exact_empty_prefix
+  list_all_bucket_names: true
+  required_file_capabilities:
+    - list
+    - read
+    - write
+    - delete
+  prohibited_capability_classes:
+    - bucket_administration
+    - retention_and_legal_hold_administration
+    - replication_administration
+    - governance_bypass
+  provider_expiration: disabled
+  rotation_interval_days: 180
+
+secret_contract:
+  provider: doppler
+  project: homelab-dev
+  environment: prd
+  config: prd_b2
+  keys:
+    application_key_id: NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
+    application_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY
+  values_allowed_in_git_arguments_logs_or_evidence: false
+  shell_tracing_allowed_during_resolution: false
+  close_provider_result_before_secret_readback: false
+
+acceptance:
+  require:
+    - exact_bucket_name_globally_accepted_by_provider
+    - provider_bucket_id_region_and_s3_endpoint_recorded
+    - bucket_private_with_backblaze_managed_encryption
+    - object_lock_disabled
+    - keep_only_last_version_lifecycle_confirmed
+    - exact_application_key_name_bucket_scope_and_empty_prefix
+    - required_file_capabilities_present
+    - prohibited_capability_classes_absent
+    - no_provider_expiration_and_180_day_rotation_recorded
+    - exact_doppler_config_and_two_secret_names_exist
+    - secret_values_absent_from_all_captured_output
+    - bucket_empty_and_no_restic_repository_initialized
+  does_not_accept:
+    - restic_repository_initialization
+    - backup_or_restore_path
+    - nautobot_recovery
+    - nautobot_deployment
+    - accepted_live_nautobot_state
+
+failure_and_cleanup:
+  before_first_mutation: cleanup_local_evidence_only
+  after_doppler_config_creation: retain_config_and_stop_for_review
+  after_bucket_creation: retain_empty_bucket_and_stop_for_review
+  after_key_creation_before_secret_readback: keep_result_open_and_retry_protected_write
+  lost_unstored_application_key: stop_and_require_separate_key_revocation_operation
+  automatic_bucket_deletion: false
+  automatic_application_key_revocation: false
+  automatic_doppler_config_deletion: false
+  automatic_secret_overwrite: false
+
+evidence:
+  local_root_pattern: /tmp/backblaze-b2-nautobot-bootstrap.*
+  directory_mode: "0700"
+  file_mode: "0600"
+  raw_evidence_in_git: false
+  secret_values_in_evidence: false
+  records:
+    - operation_bundle_and_input_hashes
+    - bucket_identity_and_settings_without_account_identifiers
+    - application_key_policy_without_key_identifiers_or_values
+    - doppler_project_config_and_secret_names_without_values
+    - mutation_acceptance_and_residue_status
+    - sanitized_decision_summary
+
+authorization:
+  command: null
+  bundle_algorithm: sha256
+  mutation_authorized: false
+  excluded_stages:
+    - restic_repository_preflight
+    - restic_repository_initialization
+    - restic_backup_check_or_restore
+    - object_or_bucket_deletion
+    - application_key_revocation
+    - j2_svpi4mf_contact
+    - nautobot_deployment
+  blockers:
+    - definition_review_required
+    - definition_checkpoint_required
+    - read_only_provider_and_doppler_preflight_required
+    - operator_identity_and_account_ownership_confirmation_required
+    - exact_manual_execution_and_evidence_method_required
+    - final_bundle_hash_required
+    - explicit_live_authorization_required
