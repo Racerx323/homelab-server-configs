@@ -1,0 +1,72 @@
+---
+schema_version: 1
+
+operation:
+  id: nautobot-storage-soak-verification-v1
+  result: storage_soak_healthy_isolated_restore_pending
+  definition_commit: eb38b4923ba6bfbc4f458870b6555a6e39d91f77
+  bundle_sha256: e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305
+  target: j2-svpi4mf
+  address: 10.1.2.170
+  started_at_utc: "2026-08-27T14:14:49Z"
+  finished_at_utc: "2026-08-27T14:15:11Z"
+  ansible_exit_status: 0
+  mutation_authorized: false
+  persistent_mutation_performed: false
+  stdout_truncated: false
+  stderr_truncated: false
+
+observations:
+  boot_id: af1ed3ab-0bdc-422a-b893-bc3ccd924fde
+  uptime_seconds: 149683
+  minimum_uninterrupted_seconds: 86400
+  minimum_uninterrupted_uptime_met: true
+  root_source: /dev/sda2
+  root_filesystem: ext4
+  quirk_token_count: 1
+  usb_bridge:
+    vendor_id: "152d"
+    product_id: "0583"
+    driver: usb-storage
+    negotiated_link_mbps: 5000
+  focused_storage_events_current_boot: 0
+  power_kernel_events_current_boot: 0
+  throttling_history_clear: true
+  raspberry_pi_temperature_celsius: 51.1
+  smart:
+    command_status: 0
+    health_passed: true
+    critical_warning: "0x00"
+    temperature_celsius: 44
+    percentage_used: 0
+    media_and_data_integrity_errors: 0
+    error_information_log_entries: 0
+  filesystem:
+    metadata_command_status: 0
+    state: clean
+    live_error_count: 0
+
+decision:
+  minimum_24_hour_soak_passed: true
+  storage_soak_verification_passed: true
+  storage_remediation_accepted: false
+  accepted_live_state_updated: false
+  isolated_backup_restore_required_before_nautobot_data: true
+  host_baseline_and_nautobot_deployment_remain_separately_authorized: true
+
+raw_evidence:
+  committed_to_git: false
+  local_directory: /tmp/nautobot-storage-diagnostic.eBeA4G
+  manifest_sha256: 05e5eebb83e16415b8d1c31106d2c5ca46e7a96e44d7da608ee227868c9c53e0
+  files:
+    - {name: bundle-files.sha256, bytes: 966, sha256: fbc9a508327c2e93ed67490f1c32d4ee7917c7612b3158b7b37838bb99f79bff}
+    - {name: stdout.log, bytes: 3507, sha256: 13e228868503ec0c09fe90bfcc1dbc6bb8ff94fbbf5c3d60fe82c0c024b322b0}
+    - {name: stderr.log, bytes: 0, sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855}
+    - {name: status.txt, bytes: 31, sha256: 0200a83a60f4d8b308bcfaf5813dfcec982b06cd598c70d1d6922f3f81acf666}
+    - {name: soak.log, bytes: 170, sha256: 90a6374d07602e4b2445455fad9b940d0c91340f278688067b9ef60162b63b90}
+    - {name: topology.log, bytes: 16790, sha256: cb90478cfe10b3a9eadf3098610fe3b8d0aae550c7120e3c3ef54d41f534b06f}
+    - {name: kernel.log, bytes: 84537, sha256: 4182f80c52735de03c645cfd0635cb68ffe47ec873acf07a5d104288d709688d}
+    - {name: power.log, bytes: 104, sha256: 4956910ad391608c69e17909d5aa5bc7538366966008cdc1c7f5e30412b04998}
+    - {name: smart.log, bytes: 3111, sha256: 72a7c98ecec9ee23c4967e3851f25a1abc8c69731b4d64b892ef5c1a19393243}
+    - {name: filesystem.log, bytes: 1994, sha256: 22fd2f54279b78a5981e741bd1736fe3ff2b0cf2a76688232f29fd712dafe3ef}
+    - {name: diagnostic.yaml, bytes: 715, sha256: 628f4fb9cba18c69f30c4d2efeeeef7ff77a43bd4f5b51625e54c3829baf0dfe}
