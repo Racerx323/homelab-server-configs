@@ -215,6 +215,14 @@ repos:
         files: >-
           ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)|MANAGEMENT_CREDENTIAL_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
 
+      - id: backblaze-b2-s3-compatibility-probe
+        name: Validate Backblaze B2 S3 compatibility probe
+        entry: python3 backblaze-b2/tests/s3-compatibility-probe-regression.py
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/S3_COMPATIBILITY_PROBE\.md|manifests/operation\.yaml|schemas/(?:operation|s3-compatibility-probe)\.schema\.json|scripts/s3_compatibility_probe\.py|tests/s3-compatibility-probe-regression\.py))$
+
       - id: backblaze-b2-protected-doppler-master-write
         name: Validate Backblaze B2 protected Doppler master write
         entry: python3 backblaze-b2/tests/protected-doppler-master-write-regression.py

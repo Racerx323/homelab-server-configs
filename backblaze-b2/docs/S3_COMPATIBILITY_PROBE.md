@@ -7,6 +7,10 @@ that the canonical Nautobot Restic credential can use Backblaze's
 S3-compatible interface. The active operation is unready and definition-only.
 It does not authorize provider, Doppler, Restic, or host contact.
 
+The protected SigV4 client and offline failure regressions are implemented but
+unreviewed. Direct client execution fails closed; no hash-bound launcher or
+live authorization exists yet.
+
 The probe accepts only the seven-capability replacement credential already
 stored under the canonical Doppler names. The original overprivileged key was
 deleted by the operator, so this operation has no old-key fallback. A failed
@@ -34,7 +38,7 @@ prefix before the first write.
 
 ## Ordered transaction
 
-The future implementation must use the reviewed Backblaze S3 endpoint, exact
+The implementation uses the reviewed Backblaze S3 endpoint, exact
 bucket, and canonical Doppler secret references. It must keep both credential
 values in memory and outside argv, environment dumps, logs, and evidence.
 

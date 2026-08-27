@@ -152,9 +152,13 @@
     },
     "implementation": {
       "const": {
-        "state": "not_defined",
-        "executable_paths": [],
-        "regression_paths": [],
+        "state": "implemented_unreviewed",
+        "executable_paths": [
+          "backblaze-b2/scripts/s3_compatibility_probe.py"
+        ],
+        "regression_paths": [
+          "backblaze-b2/tests/s3-compatibility-probe-regression.py"
+        ],
         "live_execution_enabled": false
       }
     },
@@ -187,7 +191,9 @@
           "backblaze-b2/manifests/operation.yaml",
           "backblaze-b2/schemas/desired-state.schema.json",
           "backblaze-b2/schemas/operation.schema.json",
-          "backblaze-b2/schemas/s3-compatibility-probe.schema.json"
+          "backblaze-b2/schemas/s3-compatibility-probe.schema.json",
+          "backblaze-b2/scripts/s3_compatibility_probe.py",
+          "backblaze-b2/tests/s3-compatibility-probe-regression.py"
         ],
         "mutation_authorized": false,
         "excluded_stages": [
@@ -200,8 +206,6 @@
         "blockers": [
           "operator_contract_review_required",
           "no_old_key_fallback_recovery_boundary_review_required",
-          "execution_implementation_required",
-          "offline_transaction_and_failure_regressions_required",
           "fresh_read_only_preflight_required",
           "definition_checkpoint_required",
           "readiness_transition_required",

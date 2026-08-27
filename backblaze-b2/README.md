@@ -89,6 +89,8 @@ the isolated owned-object transaction required before that acceptance.
   candidate-credential writer that cannot modify canonical names;
 - `scripts/replacement_key_creation.py`: exact single-request B2 replacement
   key client with sanitized forward and readback evidence;
+- `scripts/s3_compatibility_probe.py`: fail-closed SigV4 client for the exact
+  owned-object compatibility transaction; direct execution remains disabled;
 - `scripts/run-replacement-key-creation.sh`: unready hash-bound replacement-key
   launcher and terminal-classification owner;
 - `scripts/run-master-key-rotation.sh`: inactive hash-bound outer launcher for
@@ -107,6 +109,8 @@ the isolated owned-object transaction required before that acceptance.
   mutation-order, cleanup, and terminal-evidence regressions.
 - `tests/replacement-key-creation-regression.py`: offline provider request,
   candidate transport, no-retry, unready gate, and evidence regressions.
+- `tests/s3-compatibility-probe-regression.py`: offline signing, exact
+  transaction, failure cleanup, secret transport, and evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.
