@@ -35,8 +35,11 @@ preflight:
   execution_authorized: false
   provider_access: read_only_console
   doppler_access: project_environment_and_config_metadata_only
+  doppler_environment_identity_field: id
   secret_names_or_values_read: false
   global_bucket_availability_claimed: false
+  draft_forms_may_be_opened: true
+  draft_form_submission_authorized: false
   command_ids:
     - doppler_project_exists
     - doppler_prd_environment_exists
@@ -57,15 +60,26 @@ preflight:
     raw_provider_responses_captured: false
     screenshots_captured: false
     secret_metadata_captured: false
+    playwright:
+      session: b2preflight
+      working_directory_pattern: /tmp/backblaze-b2-preflight.*/playwright-work
+      profile_directory_pattern: /tmp/backblaze-b2-preflight.*/playwright-profile
+      directory_mode: "0700"
+      working_directory_within_evidence: true
+      profile_directory_within_evidence: true
+      artifacts_outside_evidence_allowed: false
+      raw_browser_artifacts_retained: false
     records:
       - backblaze_account_readiness_booleans_and_region
       - filtered_doppler_assertion_booleans_and_status
+      - browser_artifact_cleanup_confirmation
       - mutation_absence_confirmation
       - bounded_sanitized_stderr_and_evidence_hashes
   prohibited_during_preflight:
     - bucket_creation
     - bucket_setting_change
     - application_key_creation_or_revocation
+    - draft_form_submission
     - doppler_config_or_secret_change
     - restic_repository_access_or_initialization
     - consumer_host_contact

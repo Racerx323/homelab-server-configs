@@ -190,8 +190,11 @@
         "execution_authorized",
         "provider_access",
         "doppler_access",
+        "doppler_environment_identity_field",
         "secret_names_or_values_read",
         "global_bucket_availability_claimed",
+        "draft_forms_may_be_opened",
+        "draft_form_submission_authorized",
         "command_ids",
         "require",
         "evidence",
@@ -204,8 +207,11 @@
         "execution_authorized": {"const": false},
         "provider_access": {"const": "read_only_console"},
         "doppler_access": {"const": "project_environment_and_config_metadata_only"},
+        "doppler_environment_identity_field": {"const": "id"},
         "secret_names_or_values_read": {"const": false},
         "global_bucket_availability_claimed": {"const": false},
+        "draft_forms_may_be_opened": {"const": true},
+        "draft_form_submission_authorized": {"const": false},
         "command_ids": {
           "const": [
             "doppler_project_exists",
@@ -224,6 +230,7 @@
             "raw_provider_responses_captured",
             "screenshots_captured",
             "secret_metadata_captured",
+            "playwright",
             "records"
           ],
           "properties": {
@@ -233,6 +240,34 @@
             "raw_provider_responses_captured": {"const": false},
             "screenshots_captured": {"const": false},
             "secret_metadata_captured": {"const": false},
+            "playwright": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "session",
+                "working_directory_pattern",
+                "profile_directory_pattern",
+                "directory_mode",
+                "working_directory_within_evidence",
+                "profile_directory_within_evidence",
+                "artifacts_outside_evidence_allowed",
+                "raw_browser_artifacts_retained"
+              ],
+              "properties": {
+                "session": {"const": "b2preflight"},
+                "working_directory_pattern": {
+                  "const": "/tmp/backblaze-b2-preflight.*/playwright-work"
+                },
+                "profile_directory_pattern": {
+                  "const": "/tmp/backblaze-b2-preflight.*/playwright-profile"
+                },
+                "directory_mode": {"const": "0700"},
+                "working_directory_within_evidence": {"const": true},
+                "profile_directory_within_evidence": {"const": true},
+                "artifacts_outside_evidence_allowed": {"const": false},
+                "raw_browser_artifacts_retained": {"const": false}
+              }
+            },
             "records": {"type": "array", "minItems": 1, "uniqueItems": true}
           }
         },
