@@ -19,7 +19,7 @@ OPERATION = ROOT / "backblaze-b2/manifests/operation.yaml"
 
 
 class LauncherTests(unittest.TestCase):
-    def test_unready_operation_rejects_before_doppler_or_evidence(self) -> None:
+    def test_wrong_hash_rejects_before_doppler_or_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "doppler-called"
             fake = Path(temporary) / "doppler"
@@ -36,7 +36,7 @@ class LauncherTests(unittest.TestCase):
                 stderr=subprocess.PIPE,
                 check=False,
             )
-            self.assertEqual(result.returncode, 69)
+            self.assertEqual(result.returncode, 66)
             self.assertFalse(marker.exists())
 
     def test_show_bundle_is_deterministic_and_complete(self) -> None:
@@ -51,7 +51,7 @@ class LauncherTests(unittest.TestCase):
         first_hash = next(line for line in first.splitlines() if line.startswith("bundle_sha256="))
         second_hash = next(line for line in second.splitlines() if line.startswith("bundle_sha256="))
         self.assertEqual(first_hash, second_hash)
-        self.assertIn("authorization_ready=false", first)
+        self.assertIn("authorization_ready=true", first)
         for path in (
             "backblaze-b2/manifests/operation.yaml",
             "backblaze-b2/scripts/protected_doppler_master_write.py",
@@ -60,12 +60,16 @@ class LauncherTests(unittest.TestCase):
         ):
             self.assertIn(path, first)
 
-    def test_operation_keeps_live_execution_disabled(self) -> None:
+    def test_operation_is_hash_ready_but_not_live_authorized(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
-        self.assertFalse(operation["operation"]["authorization_ready"])
-        self.assertFalse(operation["implementation"]["live_execution_enabled"])
-        self.assertIsNone(operation["authorization"]["command"])
-        self.assertTrue(operation["authorization"]["blockers"])
+        self.assertTrue(operation["operation"]["authorization_ready"])
+        self.assertTrue(operation["implementation"]["live_execution_enabled"])
+        self.assertEqual(
+            operation["authorization"]["command"],
+            "/bin/bash backblaze-b2/scripts/run-master-key-rotation.sh execute",
+        )
+        self.assertFalse(operation["authorization"]["mutation_authorized"])
+        self.assertFalse(operation["authorization"]["blockers"])
 
     def test_launcher_has_bounded_terminal_classifications_and_cleanup(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8")

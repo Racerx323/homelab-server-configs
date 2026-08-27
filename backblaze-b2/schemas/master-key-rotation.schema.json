@@ -22,13 +22,13 @@
     "operation": {
       "const": {
         "id": "backblaze-b2-master-key-rotation-v1",
-        "state": "definition",
-        "authorization_ready": false,
+        "state": "pending",
+        "authorization_ready": true,
         "stage": "master_key_rotation",
         "execution_mode": "operator_console_and_protected_doppler_write",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "767ba8c54e65e89c69c9c98cbd2acf642d308f31"
+          "base_commit": "bd76c795769c72cfaff44009fff5fde2e96f14cb"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/MANAGEMENT_CREDENTIAL_DECISION.md",
@@ -173,12 +173,12 @@
     },
     "implementation": {
       "const": {
-        "state": "defined_unreviewed",
+        "state": "reviewed",
         "protected_writer": "backblaze-b2/scripts/protected_doppler_master_write.py",
         "regression": "backblaze-b2/tests/protected-doppler-master-write-regression.py",
         "launcher": "backblaze-b2/scripts/run-master-key-rotation.sh",
         "launcher_regression": "backblaze-b2/tests/master-key-rotation-launcher-regression.py",
-        "live_execution_enabled": false,
+        "live_execution_enabled": true,
         "secret_input": "owned_mode_0600_fifos",
         "doppler_value_transport": "stdin_only",
         "value_readback_allowed": false,
@@ -250,7 +250,7 @@
     },
     "authorization": {
       "const": {
-        "command": null,
+        "command": "/bin/bash backblaze-b2/scripts/run-master-key-rotation.sh execute",
         "bundle_algorithm": "sha256",
         "mutation_authorized": false,
         "excluded_stages": [
@@ -261,15 +261,7 @@
           "restic_initialization",
           "j2_svpi4mf_contact"
         ],
-        "blockers": [
-          "full_hash_bound_operation_launcher_review_required",
-          "full_hash_bound_operation_launcher_checkpoint_required",
-          "terminal_classification_and_evidence_regression_review_required",
-          "definition_review_required",
-          "definition_checkpoint_required",
-          "final_bundle_hash_required",
-          "explicit_live_execution_authorization_required"
-        ]
+        "blockers": []
       }
     }
   }
