@@ -1,0 +1,55 @@
+---
+schema_version: 1
+
+operation:
+  id: backblaze-b2-capability-remediation-preflight-v1
+  result: blocked_insufficient_management_authority
+  definition_commit: a1eb21b458528b024488ee0b5091e09af1ca43f7
+  bundle_sha256: 5c18337c188f70dc4078c84653b6750335155fe4bc548a086b57ef2c9fcaade9
+  evidence_written_at_utc: "2026-08-27T17:41:38Z"
+  persistent_mutation_performed: false
+
+authentication:
+  account_authorization_succeeded: true
+  required_management_authority_present: false
+  required_capabilities:
+    - listKeys
+    - writeKeys
+    - listBuckets
+    - readBuckets
+    - listFiles
+  present_capabilities: not_captured_by_v1
+  missing_capabilities: not_captured_by_v1
+  credential_identity_recorded: false
+  credential_values_recorded: false
+
+execution_boundary:
+  account_authorization_attempted: true
+  key_listing_attempted: false
+  bucket_listing_attempted: false
+  file_listing_attempted: false
+  doppler_metadata_attempted: false
+  mutation_endpoint_attempted: false
+  raw_responses_recorded: false
+
+decision:
+  supplied_credential_suitable: false
+  alternate_management_credential_availability: unconfirmed
+  replacement_key_creation_authorized: false
+  credential_creation_authorized: false
+  retry_authorized: false
+  next_action: determine_management_credential_availability_after_client_correction
+
+raw_evidence:
+  committed_to_git: false
+  local_directory: /tmp/backblaze-b2-capability-preflight.hU0zE8
+  files:
+    - name: result.json
+      bytes: 368
+      sha256: dfa726c5b10604d39755276aecc473eb497fdc90cdfccfc57fad3edd08cd9677
+    - name: bundle.sha256
+      bytes: 65
+      sha256: 7422ce76cd1bbba860c57938694c607c9e4b2a69a87ff644f4952fb0706addce
+    - name: bundle-files.sha256
+      bytes: 1290
+      sha256: a870a858b8e8f382ddf8c4a6ad17fcee53fe9e882ce015746f8a1a2f6b4d9f9e
