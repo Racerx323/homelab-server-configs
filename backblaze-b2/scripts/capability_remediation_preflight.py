@@ -20,7 +20,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-OPERATION_ID = "backblaze-b2-capability-remediation-preflight-v1"
+OPERATION_ID = "backblaze-b2-capability-remediation-preflight-v2"
 AUTH_URL = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
 EXPECTED_S3_URL = "https://s3.us-west-002.backblazeb2.com"
 EXPECTED_BUCKET_NAME = "theama-homelab-nautobot-restic-prd"
@@ -65,8 +65,17 @@ MAX_DOPPLER_OUTPUT_BYTES = 1024 * 1024
 HTTP_TIMEOUT_SECONDS = 20
 DOPPLER_TIMEOUT_SECONDS = 30
 API_HOST_RE = re.compile(r"api(?:[0-9]+)?\.backblazeb2\.com", re.ASCII)
-DOPPLER_ARGV = (
+DOPPLER_BASE = (
     "doppler",
+    "--no-check-version",
+    "--no-read-env",
+    "--silent",
+)
+ADMIN_DOPPLER_PROJECT = "homelab-dev"
+ADMIN_DOPPLER_CONFIG = "prd_b2_admin"
+ADMIN_KEY_ID_NAME = "BACKBLAZE_B2_MASTER_APPLICATION_KEY_ID"
+ADMIN_KEY_VALUE_NAME = "BACKBLAZE_B2_MASTER_APPLICATION_KEY"
+DOPPLER_NAMES_ARGV = DOPPLER_BASE + (
     "secrets",
     "get",
     "--project",
@@ -119,48 +128,24 @@ def validate_evidence_root(path: Path) -> int:
         raise PreflightBlocked("invalid_evidence_root") from exc
 
 
-def read_owned_fifo(root_fd: int, name: str) -> str:
-    if "/" in name or name in {"", ".", ".."}:
-        raise PreflightBlocked("invalid_fifo_name")
-    try:
-        before = os.stat(name, dir_fd=root_fd, follow_symlinks=False)
-    except OSError as exc:
-        raise PreflightBlocked("invalid_credential_fifo") from exc
-    if not stat.S_ISFIFO(before.st_mode):
-        raise PreflightBlocked("invalid_credential_fifo")
-    if before.st_uid != os.getuid() or stat.S_IMODE(before.st_mode) != 0o600:
-        raise PreflightBlocked("unsafe_credential_fifo")
+def minimal_environment() -> dict[str, str]:
+    allowed = ("HOME", "PATH", "LANG", "LC_ALL", "XDG_CONFIG_HOME")
+    return {name: os.environ[name] for name in allowed if name in os.environ}
 
-    flags = os.O_RDONLY
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    try:
-        fifo_fd = os.open(name, flags, dir_fd=root_fd)
-    except OSError as exc:
-        raise PreflightBlocked("invalid_credential_fifo") from exc
-    try:
-        opened = os.fstat(fifo_fd)
-        current = os.stat(name, dir_fd=root_fd, follow_symlinks=False)
-        identity = (before.st_dev, before.st_ino)
-        if identity != (opened.st_dev, opened.st_ino):
-            raise PreflightBlocked("credential_fifo_replaced")
-        if identity != (current.st_dev, current.st_ino):
-            raise PreflightBlocked("credential_fifo_replaced")
-        os.unlink(name, dir_fd=root_fd)
-        value = os.read(fifo_fd, MAX_CREDENTIAL_BYTES + 1)
-        if len(value) > MAX_CREDENTIAL_BYTES:
-            raise PreflightBlocked("credential_too_large")
-        if not value or b"\n" in value or b"\r" in value or b"\x00" in value:
-            raise PreflightBlocked("invalid_credential_value")
-        trailing = os.read(fifo_fd, 1)
-        if trailing:
-            raise PreflightBlocked("credential_too_large")
-        try:
-            return value.decode("utf-8", errors="strict")
-        except UnicodeDecodeError as exc:
-            raise PreflightBlocked("invalid_credential_encoding") from exc
-    finally:
-        os.close(fifo_fd)
+
+def doppler_secret_argv(name: str) -> tuple[str, ...]:
+    if name not in {ADMIN_KEY_ID_NAME, ADMIN_KEY_VALUE_NAME}:
+        raise PreflightBlocked("invalid_admin_secret_name")
+    return DOPPLER_BASE + (
+        "secrets",
+        "get",
+        name,
+        "--project",
+        ADMIN_DOPPLER_PROJECT,
+        "--config",
+        ADMIN_DOPPLER_CONFIG,
+        "--plain",
+    )
 
 
 def validate_api_base(url: str) -> str:
@@ -243,14 +228,14 @@ def require_list(mapping: dict[str, Any], key: str) -> list[Any]:
     return value
 
 
-def run_bounded_doppler() -> set[str]:
+def run_bounded_doppler(argv: tuple[str, ...], failure_code: str) -> bytearray:
     try:
         process = subprocess.Popen(
-            DOPPLER_ARGV,
+            argv,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env=os.environ.copy(),
+            env=minimal_environment(),
             start_new_session=True,
         )
     except OSError as exc:
@@ -283,19 +268,61 @@ def run_bounded_doppler() -> set[str]:
     except PreflightBlocked:
         process.kill()
         process.wait()
+        for stream in captured.values():
+            stream[:] = b"\x00" * len(stream)
+            stream.clear()
         raise
     except subprocess.TimeoutExpired as exc:
         process.kill()
         process.wait()
+        for stream in captured.values():
+            stream[:] = b"\x00" * len(stream)
+            stream.clear()
         raise PreflightBlocked("doppler_timeout") from exc
     finally:
         selector.close()
     if status != 0:
-        raise PreflightBlocked("doppler_metadata_failed")
+        for stream in captured.values():
+            stream[:] = b"\x00" * len(stream)
+            stream.clear()
+        raise PreflightBlocked(failure_code)
+    captured["stderr"][:] = b"\x00" * len(captured["stderr"])
+    captured["stderr"].clear()
+    return captured["stdout"]
+
+
+def read_admin_secret(name: str) -> bytearray:
+    value = run_bounded_doppler(
+        doppler_secret_argv(name),
+        "doppler_admin_secret_lookup_failed",
+    )
+    if value.endswith(b"\n"):
+        del value[-1:]
+        if value.endswith(b"\r"):
+            del value[-1:]
+    if (
+        not value
+        or len(value) > MAX_CREDENTIAL_BYTES
+        or any(marker in value for marker in (b"\n", b"\r", b"\x00"))
+    ):
+        value[:] = b"\x00" * len(value)
+        value.clear()
+        raise PreflightBlocked("invalid_admin_secret_value")
+    return value
+
+
+def read_doppler_names() -> set[str]:
+    captured = run_bounded_doppler(
+        DOPPLER_NAMES_ARGV,
+        "doppler_metadata_failed",
+    )
     try:
-        output = json.loads(captured["stdout"])
+        output = json.loads(captured)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise PreflightBlocked("invalid_doppler_output") from exc
+    finally:
+        captured[:] = b"\x00" * len(captured)
+        captured.clear()
     if not isinstance(output, dict):
         raise PreflightBlocked("invalid_doppler_output")
     if any(value != {} for value in output.values()):
@@ -305,14 +332,26 @@ def run_bounded_doppler() -> set[str]:
     return set(output)
 
 
-def perform_preflight(key_id: str, application_key: str,
+def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytearray,
                       opener: Any | None = None,
                       doppler_names: set[str] | None = None) -> dict[str, Any]:
     client = opener if opener is not None else build_opener()
-    basic_value = base64.b64encode(
-        f"{key_id}:{application_key}".encode("utf-8")
-    ).decode("ascii")
-    authorization = request_json(client, "GET", AUTH_URL, f"Basic {basic_value}")
+    basic_source = bytearray(key_id)
+    basic_source.extend(b":")
+    basic_source.extend(application_key)
+    basic_value = bytearray(base64.b64encode(basic_source))
+    basic_source[:] = b"\x00" * len(basic_source)
+    basic_source.clear()
+    try:
+        authorization = request_json(
+            client,
+            "GET",
+            AUTH_URL,
+            "Basic " + basic_value.decode("ascii"),
+        )
+    finally:
+        basic_value[:] = b"\x00" * len(basic_value)
+        basic_value.clear()
     account_id = require_string(authorization, "accountId")
     account_token = require_string(authorization, "authorizationToken")
     api_info = require_dict(authorization, "apiInfo")
@@ -397,20 +436,21 @@ def perform_preflight(key_id: str, application_key: str,
     files = request_json(
         client,
         "POST",
-        f"{api_base}/b2api/v3/b2_list_file_names",
+        f"{api_base}/b2api/v4/b2_list_file_names",
         token_header,
         {"bucketId": EXPECTED_BUCKET_ID, "maxFileCount": 1},
     )
     if require_list(files, "files"):
         raise PreflightBlocked("bucket_not_empty")
 
-    names = doppler_names if doppler_names is not None else run_bounded_doppler()
+    names = doppler_names if doppler_names is not None else read_doppler_names()
     if not CANONICAL_SECRET_NAMES <= names:
         raise PreflightBlocked("canonical_doppler_names_missing")
     if CANDIDATE_SECRET_NAMES & names:
         raise PreflightBlocked("candidate_doppler_name_collision")
 
     return {
+        "administrator_doppler_secret_names_resolve": True,
         "authentication_succeeds": True,
         "required_key_management_capabilities_present": True,
         "returned_api_and_s3_urls_pass_allowlist": True,
@@ -434,6 +474,8 @@ def write_evidence(root_fd: int, bundle_sha256: str, result: str, checks: dict[s
         "bundle_sha256": bundle_sha256,
         "result": result,
         "checks": checks,
+        "credential_source": "doppler_prd_b2_admin_in_memory",
+        "credential_values_retained": False,
         "secrets_recorded": False,
         "raw_responses_recorded": False,
         "mutation_attempted": False,
@@ -455,8 +497,6 @@ def write_evidence(root_fd: int, bundle_sha256: str, result: str, checks: dict[s
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-root", required=True, type=Path)
-    parser.add_argument("--key-id-fifo", required=True)
-    parser.add_argument("--application-key-fifo", required=True)
     parser.add_argument("--bundle-sha256", required=True)
     return parser.parse_args()
 
@@ -472,14 +512,12 @@ def main() -> int:
         print("result=blocked error_class=invalid_evidence_root", file=sys.stderr)
         return 2
     checks: dict[str, Any] = {}
+    key_id: bytearray | None = None
+    application_key: bytearray | None = None
     try:
-        key_id = read_owned_fifo(root_fd, args.key_id_fifo)
-        application_key = read_owned_fifo(root_fd, args.application_key_fifo)
-        try:
-            checks = perform_preflight(key_id, application_key)
-        finally:
-            key_id = ""
-            application_key = ""
+        key_id = read_admin_secret(ADMIN_KEY_ID_NAME)
+        application_key = read_admin_secret(ADMIN_KEY_VALUE_NAME)
+        checks = perform_preflight(key_id, application_key)
         write_evidence(root_fd, args.bundle_sha256, "passed", checks)
         print(f"result=passed evidence_root={args.evidence_root}")
         return 0
@@ -493,6 +531,10 @@ def main() -> int:
         print(f"result=internal_error evidence_root={args.evidence_root}", file=sys.stderr)
         return 1
     finally:
+        for secret in (key_id, application_key):
+            if isinstance(secret, bytearray):
+                secret[:] = b"\x00" * len(secret)
+                secret.clear()
         os.close(root_fd)
 
 

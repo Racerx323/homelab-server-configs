@@ -202,7 +202,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)|MANAGEMENT_CREDENTIAL_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/(?:CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)|MANAGEMENT_CREDENTIAL_DECISION)\.md|manifests/operation\.yaml|schemas/(?:operation|capability-remediation-preflight)\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
 
       - id: backblaze-b2-protected-doppler-master-write
         name: Validate Backblaze B2 protected Doppler master write

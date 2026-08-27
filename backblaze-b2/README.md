@@ -39,11 +39,13 @@ authenticated but was blocked by insufficient management authority. The
 selected rotation of the confirmed-unused master key. That rotation completed
 through operator recovery after the protected writer failed; the retained
 credential then passed a read-only authentication check. The terminal boundary
-is preserved in the annotated tag indexed by [HISTORY.md](HISTORY.md), and the
-active operation state is clean. The reusable launcher now distinguishes the
-existing account-level ID from the newly generated one-time value and remains
-inactive until a future operation is reviewed. Restic initialization remains
-separately blocked.
+is preserved in the annotated tag indexed by [HISTORY.md](HISTORY.md), and its
+consumed operation was retired. The reusable launcher now distinguishes the
+existing account-level ID from the newly generated one-time value. An unready v2
+[capability-remediation preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md)
+will consume the retained administrator values only inside its Python process
+and recheck the exact provider and Doppler residue. Restic initialization
+remains separately blocked.
 
 ## Layout
 
@@ -74,6 +76,8 @@ separately blocked.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
+- `schemas/capability-remediation-preflight.schema.json`: exact unready v2
+  preflight definition validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.
 - `tests/protected-doppler-master-write-regression.py`: offline secret

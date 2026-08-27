@@ -10,11 +10,11 @@ import stat
 import subprocess
 import sys
 import tempfile
-import threading
 import unittest
 import urllib.error
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 import yaml
 
@@ -106,58 +106,64 @@ def provider_responses() -> list[dict[str, Any]]:
     ]
 
 
-class FifoTests(unittest.TestCase):
-    def test_fifo_is_mode_checked_consumed_and_unlinked(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="backblaze-b2-capability-preflight.", dir="/tmp") as temporary:
-            root = Path(temporary)
-            root.chmod(0o700)
-            fifo = root / "credential.fifo"
-            os.mkfifo(fifo, 0o600)
-            root_fd = CLIENT.validate_evidence_root(root)
-            value = "generated-credential-value"
+class DopplerCredentialTests(unittest.TestCase):
+    def test_admin_secret_commands_are_exact_and_value_free(self) -> None:
+        for name in (
+            "BACKBLAZE_B2_MASTER_APPLICATION_KEY_ID",
+            "BACKBLAZE_B2_MASTER_APPLICATION_KEY",
+        ):
+            argv = CLIENT.doppler_secret_argv(name)
+            self.assertEqual(
+                argv,
+                (
+                    "doppler",
+                    "--no-check-version",
+                    "--no-read-env",
+                    "--silent",
+                    "secrets",
+                    "get",
+                    name,
+                    "--project",
+                    "homelab-dev",
+                    "--config",
+                    "prd_b2_admin",
+                    "--plain",
+                ),
+            )
+            self.assertIn("--no-read-env", argv)
+            self.assertIn("--silent", argv)
 
-            def writer() -> None:
-                with fifo.open("w", encoding="utf-8") as stream:
-                    stream.write(value)
+    def test_admin_secret_is_bounded_and_trimmed_in_memory(self) -> None:
+        with mock.patch.object(
+            CLIENT,
+            "run_bounded_doppler",
+            return_value=bytearray(b"fixture-secret\n"),
+        ):
+            value = CLIENT.read_admin_secret(CLIENT.ADMIN_KEY_ID_NAME)
+        self.assertEqual(value, bytearray(b"fixture-secret"))
 
-            thread = threading.Thread(target=writer, daemon=True)
-            thread.start()
-            try:
-                self.assertEqual(CLIENT.read_owned_fifo(root_fd, fifo.name), value)
-            finally:
-                os.close(root_fd)
-            thread.join(timeout=2)
-            self.assertFalse(thread.is_alive())
-            self.assertFalse(fifo.exists())
+    def test_admin_secret_rejects_embedded_newline(self) -> None:
+        with mock.patch.object(
+            CLIENT,
+            "run_bounded_doppler",
+            return_value=bytearray(b"fixture\nsecret"),
+        ):
+            with self.assertRaisesRegex(
+                CLIENT.PreflightBlocked,
+                "invalid_admin_secret_value",
+            ):
+                CLIENT.read_admin_secret(CLIENT.ADMIN_KEY_VALUE_NAME)
 
-    def test_fifo_rejects_wrong_mode_before_open(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="backblaze-b2-capability-preflight.", dir="/tmp") as temporary:
-            root = Path(temporary)
-            root.chmod(0o700)
-            fifo = root / "credential.fifo"
-            os.mkfifo(fifo, 0o644)
-            fifo.chmod(0o644)
-            root_fd = CLIENT.validate_evidence_root(root)
-            try:
-                with self.assertRaisesRegex(CLIENT.PreflightBlocked, "unsafe_credential_fifo"):
-                    CLIENT.read_owned_fifo(root_fd, fifo.name)
-            finally:
-                os.close(root_fd)
-
-    def test_fifo_rejects_symlink(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="backblaze-b2-capability-preflight.", dir="/tmp") as temporary:
-            root = Path(temporary)
-            root.chmod(0o700)
-            target = root / "target"
-            target.write_text("not-a-fifo", encoding="utf-8")
-            link = root / "credential.fifo"
-            link.symlink_to(target.name)
-            root_fd = CLIENT.validate_evidence_root(root)
-            try:
-                with self.assertRaisesRegex(CLIENT.PreflightBlocked, "invalid_credential_fifo"):
-                    CLIENT.read_owned_fifo(root_fd, link.name)
-            finally:
-                os.close(root_fd)
+    def test_minimal_environment_excludes_doppler_token(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {"HOME": "/tmp/home", "PATH": "/bin", "DOPPLER_TOKEN": "fixture"},
+            clear=True,
+        ):
+            self.assertEqual(
+                CLIENT.minimal_environment(),
+                {"HOME": "/tmp/home", "PATH": "/bin"},
+            )
 
 
 class ApiTests(unittest.TestCase):
@@ -165,19 +171,25 @@ class ApiTests(unittest.TestCase):
         opener = FakeOpener(provider_responses())
         names = CLIENT.CANONICAL_SECRET_NAMES | {"UNRELATED_NAME"}
         checks = CLIENT.perform_preflight(
-            "generated-key-id",
-            "generated-application-key",
+            b"generated-key-id",
+            b"generated-application-key",
             opener=opener,
             doppler_names=names,
         )
         self.assertTrue(all(checks.values()))
+        operation = yaml.safe_load(
+            (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(set(checks), set(operation["assertions"]["require"]))
         self.assertEqual(
             [(item["method"], item["url"]) for item in opener.requests],
             [
                 ("GET", CLIENT.AUTH_URL),
                 ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_keys"),
                 ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_buckets"),
-                ("POST", "https://api123.backblazeb2.com/b2api/v3/b2_list_file_names"),
+                ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_file_names"),
             ],
         )
         self.assertEqual(opener.requests[1]["body"], {"accountId": "account-under-test"})
@@ -193,7 +205,7 @@ class ApiTests(unittest.TestCase):
         opener = FakeOpener(provider_responses())
         names = CLIENT.CANONICAL_SECRET_NAMES | {next(iter(CLIENT.CANDIDATE_SECRET_NAMES))}
         with self.assertRaisesRegex(CLIENT.PreflightBlocked, "candidate_doppler_name_collision"):
-            CLIENT.perform_preflight("id", "value", opener=opener, doppler_names=names)
+            CLIENT.perform_preflight(b"id", b"value", opener=opener, doppler_names=names)
 
     def test_missing_list_files_authority_blocks(self) -> None:
         responses = provider_responses()
@@ -201,8 +213,8 @@ class ApiTests(unittest.TestCase):
         responses[0]["apiInfo"]["storageApi"]["capabilities"].append("unrelatedCapability")
         with self.assertRaisesRegex(CLIENT.PreflightBlocked, "insufficient_management_authority") as context:
             CLIENT.perform_preflight(
-                "id",
-                "value",
+                b"id",
+                b"value",
                 opener=FakeOpener(responses),
                 doppler_names=CLIENT.CANONICAL_SECRET_NAMES,
             )
@@ -224,8 +236,8 @@ class ApiTests(unittest.TestCase):
         responses.insert(1, first_key_page)
         opener = FakeOpener(responses)
         checks = CLIENT.perform_preflight(
-            "id",
-            "value",
+            b"id",
+            b"value",
             opener=opener,
             doppler_names=CLIENT.CANONICAL_SECRET_NAMES,
         )
@@ -281,9 +293,12 @@ class ApiTests(unittest.TestCase):
 
     def test_doppler_command_is_name_only_and_explicitly_scoped(self) -> None:
         self.assertEqual(
-            CLIENT.DOPPLER_ARGV,
+            CLIENT.DOPPLER_NAMES_ARGV,
             (
                 "doppler",
+                "--no-check-version",
+                "--no-read-env",
+                "--silent",
                 "secrets",
                 "get",
                 "--project",
@@ -331,20 +346,40 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         required = [
             "set +x",
             "umask 077",
+            "ulimit -c 0",
             "mktemp -d /tmp/backblaze-b2-capability-preflight.XXXXXX",
             "chmod 0700",
-            "mkfifo -m 0600",
-            "[[ -p ${key_id_fifo} && ! -L ${key_id_fifo} ]]",
-            "trap cleanup_writers EXIT",
-            "trap 'cleanup_writers; exit 130' INT",
-            "trap 'cleanup_writers; exit 143' TERM",
-            "unset key_id application_key",
             "return \"${client_status}\"",
         ]
         for fragment in required:
             self.assertIn(fragment, source)
-        self.assertNotIn("--key-id \"${key_id}\"", source)
-        self.assertNotIn("--application-key \"${application_key}\"", source)
+        for prohibited in (
+            "mkfifo",
+            "/dev/tty",
+            "key_id_fifo",
+            "application_key_fifo",
+            "--key-id",
+            "--application-key",
+            "doppler secrets get",
+        ):
+            self.assertNotIn(prohibited, source)
+
+    def test_successor_is_unready_and_definition_only(self) -> None:
+        operation = yaml.safe_load(
+            (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            operation["operation"]["id"],
+            "backblaze-b2-capability-remediation-preflight-v2",
+        )
+        self.assertEqual(operation["operation"]["state"], "definition")
+        self.assertFalse(operation["operation"]["authorization_ready"])
+        self.assertFalse(operation["implementation"]["live_execution_enabled"])
+        self.assertIsNone(operation["authorization"]["command"])
+        self.assertFalse(operation["authorization"]["mutation_authorized"])
+        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))

@@ -62,13 +62,12 @@ class LauncherTests(unittest.TestCase):
 
     def test_consumed_operation_is_retired(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
-        self.assertEqual(
-            operation,
-            {
-                "schema_version": 1,
-                "operation": {"state": "clean", "authorization_ready": False},
-            },
+        self.assertEqual(operation["schema_version"], 1)
+        self.assertNotEqual(
+            operation["operation"].get("id"),
+            "backblaze-b2-master-key-rotation-v1",
         )
+        self.assertFalse(operation["operation"]["authorization_ready"])
 
     def test_existing_id_is_collected_before_generated_value(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8")

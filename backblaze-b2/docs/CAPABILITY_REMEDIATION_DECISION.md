@@ -62,7 +62,7 @@ account endpoint.
 | --- | --- |
 | Replacement-key name | `homelab-nautobot-restic-prd-v2` |
 | Temporary Doppler names | `NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY_ID` and `NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY` in `homelab-dev/prd/prd_b2` |
-| Administrator authentication and transport | An existing operator-provided credential with `listKeys`, `writeKeys`, `listBuckets`, `readBuckets`, and `listFiles`; values enter protected FIFOs, are consumed once by an in-memory Python HTTPS client, and are never placed in argv, environment, files, logs, or evidence |
+| Administrator authentication and transport | The retained master credential in `homelab-dev/prd/prd_b2_admin`, with `listKeys`, `writeKeys`, `listBuckets`, `readBuckets`, and `listFiles`; the Python client retrieves both exact Doppler values into bounded memory and never places them in argv, environment, regular files, logs, or evidence |
 | Capability sufficiency | The seven-capability set is the only candidate; exact API readback and the isolated S3 probe below are mandatory acceptance gates |
 | Isolated probe | One random object beneath `__capability_probe__/homelab-nautobot-restic-prd-v2/`; require list, put, head, get, delete, and absence readback; never initialize Restic |
 | Doppler promotion and rollback | Store the candidate under temporary names first; leave canonical values unchanged until acceptance; retain the rejected key and canonical values as rollback until promotion readback passes |
@@ -79,10 +79,12 @@ the preflight must not call a key-creation, key-deletion, bucket-write, or file-
 write endpoint.
 
 The implementation must use the Python standard library with default TLS
-verification and proxies disabled. It reads the two credential values from
-separate owned FIFOs beneath a mode-`0700` evidence directory, immediately
-unlinks the FIFOs after opening them, builds HTTP Basic authorization and the
-returned account token in memory, and never serializes raw responses.
+verification and proxies disabled. It invokes exact, value-only Doppler
+lookups for the two reviewed `prd_b2_admin` names with `--no-read-env` and
+`--silent`, captures their bounded output only inside the client process,
+builds HTTP Basic authorization and the returned account token in memory, and
+never serializes raw responses. It must exclude `DOPPLER_TOKEN` and unrelated
+environment values from the child process.
 
 ## Replacement and compatibility sequence
 

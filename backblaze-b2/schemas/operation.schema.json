@@ -151,7 +151,8 @@
           }
         }
       ]
-    }
+    },
+    {"$ref": "capability-remediation-preflight.schema.json"}
   ],
   "$defs": {
     "targets": {

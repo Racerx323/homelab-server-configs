@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Prove that the operator can authenticate to the B2 Native API with an existing
-key-management credential and collect the exact non-secret inputs required for
-a future replacement-key operation. This preflight is read-only and requires
-separate execution authorization.
+Prove that the retained master credential can authenticate to the B2 Native API
+and collect the exact non-secret inputs required for a future replacement-key
+operation. This v2 successor is definition-only, unready, and requires separate
+read-only execution authorization.
 
 It must not create, update, or delete a bucket, key, object, Doppler config, or
 secret. It must not contact Restic or any homelab host.
@@ -14,15 +14,15 @@ secret. It must not contact Restic or any homelab host.
 
 Create one owned directory matching
 `/tmp/backblaze-b2-capability-preflight.*` with mode `0700` and `umask 077`.
-Create two mode-`0600` FIFOs beneath it for the operator-supplied key-management
-application-key ID and value. Reject symlinks, non-FIFOs, unexpected owners,
-or paths outside the evidence root.
-
-The launcher starts the in-memory HTTPS client before the operator writes the
-two values. The client opens both FIFOs, unlinks their directory entries, reads
-each value once with a strict size limit, and rejects empty input, newlines,
-NUL bytes, or trailing data. Values must never enter argv, environment
-variables, regular files, shell tracing, logs, exceptions, or evidence.
+The launcher passes no credential argument and requires no interactive input.
+The client retrieves only `BACKBLAZE_B2_MASTER_APPLICATION_KEY_ID` and
+`BACKBLAZE_B2_MASTER_APPLICATION_KEY` from
+`homelab-dev/prd/prd_b2_admin`. Each exact `doppler secrets get NAME --plain`
+lookup uses `--no-read-env`, `--silent`, a minimal environment, bounded output,
+and an explicit timeout. Reject empty input, embedded newlines, NUL bytes, or
+oversized values. Clear mutable buffers after use. Values must never enter
+argv, environment variables, regular files, shell tracing, logs, exceptions,
+or evidence.
 
 Use the Python standard library with default certificate and hostname
 verification, HTTPS-only redirects, proxies disabled, bounded response sizes,
@@ -37,7 +37,7 @@ The exact allowlist is:
    authorization origin;
 2. `POST <storageApi.apiUrl>/b2api/v4/b2_list_keys`;
 3. `POST <storageApi.apiUrl>/b2api/v4/b2_list_buckets`; and
-4. `POST <storageApi.apiUrl>/b2api/v3/b2_list_file_names` for the exact bucket.
+4. `POST <storageApi.apiUrl>/b2api/v4/b2_list_file_names` for the exact bucket.
 
 Reject a returned API URL unless it is HTTPS, has no user information, query,
 or fragment, and its hostname is exactly `api.backblazeb2.com` or a single
@@ -52,6 +52,7 @@ file deletion, and every S3 object request.
 
 Require all of the following:
 
+- both exact `prd_b2_admin` secret references resolve without value output;
 - account authorization succeeds without exposing account identity or token;
 - returned capabilities include `listKeys`, `writeKeys`, `listBuckets`,
   `readBuckets`, and `listFiles`;
