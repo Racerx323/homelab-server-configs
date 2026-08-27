@@ -64,6 +64,8 @@ separately blocked.
 - `manifests/operation.yaml`: the single B2 operation-state manifest;
 - `scripts/capability_remediation_preflight.py`: bounded read-only B2 API and
   Doppler metadata client;
+- `scripts/protected_doppler_master_write.py`: FIFO- and stdin-based one-time
+  master-credential writer with name-only acceptance;
 - `scripts/run-capability-remediation-preflight.sh`: readiness- and hash-gated
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
@@ -72,6 +74,8 @@ separately blocked.
   validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.
+- `tests/protected-doppler-master-write-regression.py`: offline secret
+  transport, partial-write, name-only readback, and evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

@@ -10,6 +10,7 @@
     "targets",
     "preflight",
     "mutation_contract",
+    "implementation",
     "secret_contract",
     "acceptance",
     "failure_and_recovery",
@@ -170,6 +171,19 @@
         "additional_provider_or_doppler_changes_allowed": false
       }
     },
+    "implementation": {
+      "const": {
+        "state": "defined_unreviewed",
+        "protected_writer": "backblaze-b2/scripts/protected_doppler_master_write.py",
+        "regression": "backblaze-b2/tests/protected-doppler-master-write-regression.py",
+        "live_execution_enabled": false,
+        "secret_input": "owned_mode_0600_fifos",
+        "doppler_value_transport": "stdin_only",
+        "value_readback_allowed": false,
+        "partial_write_action": "manual_intervention",
+        "full_operation_launcher_defined": false
+      }
+    },
     "secret_contract": {
       "const": {
         "values_in_git_argv_environment_regular_files_logs_or_evidence": false,
@@ -237,9 +251,10 @@
           "j2_svpi4mf_contact"
         ],
         "blockers": [
-          "protected_one_time_secret_write_implementation_required",
-          "name_only_readback_regression_required",
-          "terminal_classification_and_evidence_regression_required",
+          "protected_one_time_secret_write_implementation_review_required",
+          "protected_one_time_secret_write_checkpoint_required",
+          "terminal_classification_and_evidence_regression_review_required",
+          "full_hash_bound_operation_launcher_required",
           "definition_review_required",
           "definition_checkpoint_required",
           "final_bundle_hash_required",

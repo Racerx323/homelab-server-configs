@@ -70,6 +70,27 @@ identity, secret-transport, or recovery assertion is false.
 No other Doppler config, secret, B2 application key, bucket, object, lifecycle,
 encryption, or account setting may change.
 
+## Protected Doppler write implementation
+
+The reviewed helper is
+`backblaze-b2/scripts/protected_doppler_master_write.py`. A future hash-bound
+launcher must create two owned mode-`0600` FIFOs beneath the protected
+operation evidence root and start the helper before accepting either one-time
+value. The helper validates and unlinks each FIFO, sends one value at a time to
+the exact Doppler secret name through `doppler secrets set NAME` standard
+input, and clears its mutable buffer after the command returns.
+
+The helper uses `--no-read-env` and `--silent`, supplies no secret in argv or a
+regular file, and retains no command output. Acceptance uses only
+`doppler secrets --only-names --json`; any value-bearing response is rejected.
+If the key-ID write succeeds but the key-value write fails, classify the result
+as `partial_secret_write_manual_intervention`. Do not delete, overwrite, or
+retry either secret automatically.
+
+This helper does not create `prd_b2_admin`, select the Backblaze generation
+control, or authorize live execution. Those steps remain the responsibility of
+a separately reviewed, hash-bound operation launcher.
+
 ## Acceptance and recovery
 
 Accept only when the exact administrator config exists, both reviewed secret
