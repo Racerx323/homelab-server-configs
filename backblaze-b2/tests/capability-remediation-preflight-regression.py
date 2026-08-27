@@ -198,13 +198,22 @@ class ApiTests(unittest.TestCase):
     def test_missing_list_files_authority_blocks(self) -> None:
         responses = provider_responses()
         responses[0]["apiInfo"]["storageApi"]["capabilities"].remove("listFiles")
-        with self.assertRaisesRegex(CLIENT.PreflightBlocked, "insufficient_management_authority"):
+        responses[0]["apiInfo"]["storageApi"]["capabilities"].append("unrelatedCapability")
+        with self.assertRaisesRegex(CLIENT.PreflightBlocked, "insufficient_management_authority") as context:
             CLIENT.perform_preflight(
                 "id",
                 "value",
                 opener=FakeOpener(responses),
                 doppler_names=CLIENT.CANONICAL_SECRET_NAMES,
             )
+        self.assertEqual(
+            context.exception.observations["missing_required_management_capabilities"],
+            ["listFiles"],
+        )
+        self.assertNotIn(
+            "unrelatedCapability",
+            context.exception.observations["present_required_management_capabilities"],
+        )
 
     def test_key_listing_pagination_is_bounded_and_filtered(self) -> None:
         responses = provider_responses()

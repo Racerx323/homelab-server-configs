@@ -81,10 +81,11 @@ DOPPLER_ARGV = (
 class PreflightBlocked(Exception):
     """A bounded, sanitized preflight rejection."""
 
-    def __init__(self, code: str):
+    def __init__(self, code: str, observations: dict[str, Any] | None = None):
         if not re.fullmatch(r"[a-z0-9_]+", code):
             code = "invalid_error_class"
         self.code = code
+        self.observations = observations if observations is not None else {}
         super().__init__(code)
 
 
@@ -317,8 +318,18 @@ def perform_preflight(key_id: str, application_key: str,
     api_info = require_dict(authorization, "apiInfo")
     storage_api = require_dict(api_info, "storageApi")
     capabilities = set(require_list(storage_api, "capabilities"))
-    if not REQUIRED_AUTH_CAPABILITIES <= capabilities:
-        raise PreflightBlocked("insufficient_management_authority")
+    present_required_capabilities = sorted(REQUIRED_AUTH_CAPABILITIES & capabilities)
+    missing_required_capabilities = sorted(REQUIRED_AUTH_CAPABILITIES - capabilities)
+    if missing_required_capabilities:
+        raise PreflightBlocked(
+            "insufficient_management_authority",
+            {
+                "authentication_succeeds": True,
+                "required_key_management_capabilities_present": False,
+                "present_required_management_capabilities": present_required_capabilities,
+                "missing_required_management_capabilities": missing_required_capabilities,
+            },
+        )
     api_base = validate_api_base(require_string(storage_api, "apiUrl"))
     validate_s3_url(require_string(storage_api, "s3ApiUrl"))
 
@@ -473,6 +484,7 @@ def main() -> int:
         print(f"result=passed evidence_root={args.evidence_root}")
         return 0
     except PreflightBlocked as exc:
+        checks.update(exc.observations)
         write_evidence(root_fd, args.bundle_sha256, "blocked", checks, exc.code)
         print(f"result=blocked evidence_root={args.evidence_root}", file=sys.stderr)
         return 2

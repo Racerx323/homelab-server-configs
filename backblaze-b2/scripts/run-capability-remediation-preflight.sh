@@ -19,7 +19,6 @@ readonly -a bundle_files=(
     backblaze-b2/manifests/operation.yaml
     backblaze-b2/schemas/desired-state.schema.json
     backblaze-b2/schemas/operation.schema.json
-    backblaze-b2/schemas/capability-remediation-preflight.schema.json
     backblaze-b2/scripts/capability_remediation_preflight.py
     backblaze-b2/scripts/run-capability-remediation-preflight.sh
     backblaze-b2/tests/capability-remediation-preflight-regression.py

@@ -30,12 +30,14 @@ credentials remain as rejected residue because the provider's console preset
 exceeded the reviewed capability scope. The B2 configuration is not accepted
 for Restic use.
 
-The terminal result is indexed in [HISTORY.md](HISTORY.md). The unready
+Terminal results are indexed in [HISTORY.md](HISTORY.md). The reviewed
 [capability-remediation decision](docs/CAPABILITY_REMEDIATION_DECISION.md)
-selects the least-privilege replacement design. Its read-only
-[API/authentication preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md) is
-defined but remains unimplemented and unauthorized. Restic repository
-initialization remains separately blocked.
+selects the least-privilege replacement design. Its first read-only
+[API/authentication preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md)
+authenticated but was blocked by insufficient management authority. The
+[management-credential decision](docs/MANAGEMENT_CREDENTIAL_DECISION.md) must
+be resolved before a successor operation is defined. Restic initialization
+remains separately blocked.
 
 ## Layout
 
@@ -46,6 +48,8 @@ initialization remains separately blocked.
   replacement decision;
 - `docs/CAPABILITY_REMEDIATION_PREFLIGHT.md`: unready read-only API and
   authentication preflight;
+- `docs/MANAGEMENT_CREDENTIAL_DECISION.md`: gate for reusing or separately
+  creating a management credential;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
@@ -56,8 +60,6 @@ initialization remains separately blocked.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
-- `schemas/capability-remediation-preflight.schema.json`: exact preflight
-  definition validation; and
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.
 
