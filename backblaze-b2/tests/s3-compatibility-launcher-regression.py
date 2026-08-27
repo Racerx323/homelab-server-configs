@@ -63,23 +63,30 @@ class ContractTests(unittest.TestCase):
         self.assertNotIn("homelab-nautobot-restic-prd\"", source)
         self.assertIn('"old_key_fallback_attempted": False', source)
 
-    def test_execute_is_unready_and_rejects_before_evidence_or_client(self) -> None:
+    def test_unready_fixture_rejects_before_evidence_or_client(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
         called = False
+        unready = LAUNCHER.load_operation()
+        unready["operation"]["authorization_ready"] = False
 
         def client(*_args: Any) -> str:
             nonlocal called
             called = True
             return "passed"
 
-        with self.assertRaisesRegex(LAUNCHER.LauncherBlocked, "operation_not_ready"):
-            LAUNCHER.run("execute", "a" * 64, client=client)
+        with mock.patch.object(
+            LAUNCHER, "validate_operation", return_value=unready
+        ):
+            with self.assertRaisesRegex(
+                LAUNCHER.LauncherBlocked, "operation_not_ready"
+            ):
+                LAUNCHER.run("execute", "a" * 64, client=client)
         self.assertFalse(called)
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
 
-    def test_cli_execute_rejects_before_doppler_or_network(self) -> None:
+    def test_cli_hash_mismatch_rejects_before_doppler_or_network(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "external-called"
@@ -98,8 +105,8 @@ class ContractTests(unittest.TestCase):
                 check=False,
                 timeout=30,
             )
-            self.assertEqual(result.returncode, 69)
-            self.assertIn("operation_not_ready", result.stderr.decode())
+            self.assertEqual(result.returncode, 66)
+            self.assertIn("bundle_hash_mismatch", result.stderr.decode())
             self.assertFalse(marker.exists())
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
@@ -127,6 +134,14 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
+
+    def test_active_operation_is_hash_ready_and_preflight_is_consumed(self) -> None:
+        document = LAUNCHER.load_operation()
+        self.assertTrue(document["operation"]["authorization_ready"])
+        self.assertTrue(document["implementation"]["live_execution_enabled"])
+        self.assertEqual(document["authorization"]["blockers"], [])
+        self.assertEqual(document["preflight"]["state"], "passed")
+        self.assertFalse(document["preflight"]["execution_authorized"])
 
 
 class ClassificationTests(unittest.TestCase):

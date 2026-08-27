@@ -24,8 +24,8 @@
     "operation": {
       "const": {
         "id": "backblaze-b2-s3-compatibility-v1",
-        "state": "definition",
-        "authorization_ready": false,
+        "state": "pending",
+        "authorization_ready": true,
         "stage": "s3_compatibility_probe",
         "execution_mode": "exact_owned_s3_object_transaction",
         "source": {
@@ -162,14 +162,14 @@
           "backblaze-b2/tests/s3-compatibility-probe-regression.py",
           "backblaze-b2/tests/s3-compatibility-launcher-regression.py"
         ],
-        "live_execution_enabled": false
+        "live_execution_enabled": true
       }
     },
     "preflight": {
       "const": {
-        "state": "pending",
+        "state": "passed",
         "command": "python3 backblaze-b2/scripts/run_s3_compatibility_probe.py preflight",
-        "execution_authorized": true,
+        "execution_authorized": false,
         "mutation_authorized": false,
         "credential_source": "homelab-dev/prd_b2",
         "canonical_secret_names": [
@@ -194,12 +194,18 @@
           "restic_or_host_contact"
         ],
         "last_result": {
-          "result": "blocked",
-          "error_class": "bucket_scope_mismatch",
-          "bundle_sha256": "ba2fa576fdb30531428d97b9843154bd8c029860e9aa6e229fcf5bb07ff81540",
-          "probe_evidence_sha256": "46fface67d411e6b44e2c6a52bb65ef2b7bf297b8dc945538248857e16fd760a",
-          "terminal_evidence_sha256": "00a7b498ff96df1f6cd8dcbbeafac58ad4e3663ffafcfd7dec073285143d4885",
-          "scope_shape": "not_retained_by_consumed_parser",
+          "result": "passed",
+          "error_class": null,
+          "bundle_sha256": "f0d39b7a69dcd4ff4fb74783824f2fb31a127b02a57459a317881e7f7b9c20a7",
+          "probe_evidence_sha256": "710e95da3796a8ae8e9c40a5753fed1c18463a8b48295a7d2042f93c3d63ad09",
+          "terminal_evidence_sha256": "7b76146bd17611647648927f9d7408fe3e2118c9edcb751427271f4c3020240b",
+          "scope_shape": "allowed_buckets_array",
+          "bucket_count": 1,
+          "exact_bucket_match": true,
+          "exact_capabilities": true,
+          "null_name_prefix": true,
+          "no_provider_expiration": true,
+          "exact_s3_endpoint": true,
           "mutation_attempted": false,
           "residue_possible": false
         }
@@ -224,7 +230,7 @@
     },
     "authorization": {
       "const": {
-        "command": null,
+        "command": "python3 backblaze-b2/scripts/run_s3_compatibility_probe.py execute BUNDLE_SHA256",
         "bundle_algorithm": "sha256",
         "bundle_domain_separator": "backblaze-b2-s3-compatibility-bundle-v1",
         "bundle_inputs": [
@@ -249,11 +255,7 @@
           "j2_svpi4mf_contact",
           "nautobot_deployment"
         ],
-        "blockers": [
-          "fresh_read_only_preflight_required",
-          "final_bundle_hash_required",
-          "explicit_live_authorization_required"
-        ]
+        "blockers": []
       }
     }
   }
