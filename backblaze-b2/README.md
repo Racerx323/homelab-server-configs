@@ -66,6 +66,8 @@ separately blocked.
   Doppler metadata client;
 - `scripts/protected_doppler_master_write.py`: FIFO- and stdin-based one-time
   master-credential writer with name-only acceptance;
+- `scripts/run-master-key-rotation.sh`: unready hash-bound outer launcher for
+  the complete console and Doppler operation;
 - `scripts/run-capability-remediation-preflight.sh`: readiness- and hash-gated
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
@@ -76,6 +78,8 @@ separately blocked.
   endpoint, classification, and evidence regressions.
 - `tests/protected-doppler-master-write-regression.py`: offline secret
   transport, partial-write, name-only readback, and evidence regressions.
+- `tests/master-key-rotation-launcher-regression.py`: offline bundle, readiness,
+  mutation-order, cleanup, and terminal-evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

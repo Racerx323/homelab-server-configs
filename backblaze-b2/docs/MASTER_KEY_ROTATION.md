@@ -91,6 +91,21 @@ This helper does not create `prd_b2_admin`, select the Backblaze generation
 control, or authorize live execution. Those steps remain the responsibility of
 a separately reviewed, hash-bound operation launcher.
 
+The full outer launcher is
+`backblaze-b2/scripts/run-master-key-rotation.sh`. It validates the exact
+operation schema and authorization hash before any Doppler command, proves the
+administrator config remains absent, creates only that config, and then pauses
+for the operator-controlled Backblaze generation step. It cannot run while the
+active operation is unready or has blockers.
+
+Every exit after evidence-root creation records a mode-`0600`, sanitized
+terminal result with the last crossed boundary: `pre_mutation`,
+`doppler_config_creation_attempted`, `doppler_config_created`,
+`master_generated`, `credentials_stored`, or `accepted`. An indeterminate
+config-creation response and every interruption or failure after master
+generation require manual intervention. Terminal evidence contains hashes,
+booleans, and bounded error classes only—never key IDs or values.
+
 ## Acceptance and recovery
 
 Accept only when the exact administrator config exists, both reviewed secret

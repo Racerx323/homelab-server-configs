@@ -212,6 +212,14 @@ repos:
         files: >-
           ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/(?:operation|master-key-rotation)\.schema\.json|scripts/protected_doppler_master_write\.py|tests/protected-doppler-master-write-regression\.py))$
 
+      - id: backblaze-b2-master-key-rotation-launcher
+        name: Validate Backblaze B2 master-key rotation launcher
+        entry: /bin/bash backblaze-b2/scripts/run-master-key-rotation.sh self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/(?:operation|master-key-rotation)\.schema\.json|scripts/(?:protected_doppler_master_write\.py|run-master-key-rotation\.sh)|tests/(?:master-key-rotation-launcher-regression|protected-doppler-master-write-regression)\.py))$
+
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture
         entry: >-

@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Offline regressions for the hash-bound master-key rotation launcher."""
+
+from __future__ import annotations
+
+import json
+import os
+import stat
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[2]
+LAUNCHER = ROOT / "backblaze-b2/scripts/run-master-key-rotation.sh"
+OPERATION = ROOT / "backblaze-b2/manifests/operation.yaml"
+
+
+class LauncherTests(unittest.TestCase):
+    def test_unready_operation_rejects_before_doppler_or_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "doppler-called"
+            fake = Path(temporary) / "doppler"
+            fake.write_text(f"#!/bin/sh\ntouch '{marker}'\nexit 99\n", encoding="utf-8")
+            fake.chmod(0o700)
+            environment = os.environ.copy()
+            environment["PATH"] = f"{temporary}:{environment['PATH']}"
+            result = subprocess.run(
+                [str(LAUNCHER), "execute", "0" * 64],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 69)
+            self.assertFalse(marker.exists())
+
+    def test_show_bundle_is_deterministic_and_complete(self) -> None:
+        first = subprocess.run(
+            [str(LAUNCHER), "show-bundle"], cwd=ROOT, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
+        ).stdout
+        second = subprocess.run(
+            [str(LAUNCHER), "show-bundle"], cwd=ROOT, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
+        ).stdout
+        first_hash = next(line for line in first.splitlines() if line.startswith("bundle_sha256="))
+        second_hash = next(line for line in second.splitlines() if line.startswith("bundle_sha256="))
+        self.assertEqual(first_hash, second_hash)
+        self.assertIn("authorization_ready=false", first)
+        for path in (
+            "backblaze-b2/manifests/operation.yaml",
+            "backblaze-b2/scripts/protected_doppler_master_write.py",
+            "backblaze-b2/scripts/run-master-key-rotation.sh",
+            "backblaze-b2/tests/master-key-rotation-launcher-regression.py",
+        ):
+            self.assertIn(path, first)
+
+    def test_operation_keeps_live_execution_disabled(self) -> None:
+        operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
+        self.assertFalse(operation["operation"]["authorization_ready"])
+        self.assertFalse(operation["implementation"]["live_execution_enabled"])
+        self.assertIsNone(operation["authorization"]["command"])
+        self.assertTrue(operation["authorization"]["blockers"])
+
+    def test_launcher_has_bounded_terminal_classifications_and_cleanup(self) -> None:
+        source = LAUNCHER.read_text(encoding="utf-8")
+        for required in (
+            "pre_mutation",
+            "doppler_config_creation_attempted",
+            "doppler_config_created",
+            "master_generated",
+            "credentials_stored",
+            "accepted",
+            "manual_intervention",
+            "terminal-result.json",
+            "trap cleanup_rotation EXIT",
+        ):
+            self.assertIn(required, source)
+        self.assertNotIn("set -x", source)
+        self.assertNotIn("doppler secrets get", source)
+
+    def test_terminal_evidence_shape_is_secret_free_and_mode_0600(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as temporary:
+            path = Path(temporary) / "terminal-result.json"
+            document = {
+                "schema_version": 1,
+                "operation": "backblaze-b2-master-key-rotation-v1",
+                "bundle_sha256": "a" * 64,
+                "terminal_phase": "master_generated",
+                "result": "manual_intervention",
+                "error_class": "protected_doppler_write_failed",
+                "doppler_writer_evidence_sha256": None,
+                "credential_values_or_identifiers_retained": False,
+            }
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(document, stream)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+            rendered = path.read_text(encoding="utf-8")
+            self.assertNotIn("applicationKey", rendered)
+            self.assertNotIn("keyID", rendered)
+            self.assertFalse(json.loads(rendered)["credential_values_or_identifiers_retained"])
+
+
+if __name__ == "__main__":
+    unittest.main()
