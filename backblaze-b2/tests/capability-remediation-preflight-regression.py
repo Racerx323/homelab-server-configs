@@ -347,6 +347,9 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             "set +x",
             "umask 077",
             "ulimit -c 0",
+            "expected_operation_id=backblaze-b2-capability-remediation-preflight-v2",
+            '$(operation_id) != "${expected_operation_id}"',
+            "active operation does not belong to this launcher",
             "mktemp -d /tmp/backblaze-b2-capability-preflight.XXXXXX",
             "chmod 0700",
             "return \"${client_status}\"",
@@ -364,7 +367,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_successor_is_unready_and_definition_only(self) -> None:
+    def test_successor_is_pending_and_authorization_ready(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
@@ -374,12 +377,16 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             operation["operation"]["id"],
             "backblaze-b2-capability-remediation-preflight-v2",
         )
-        self.assertEqual(operation["operation"]["state"], "definition")
-        self.assertFalse(operation["operation"]["authorization_ready"])
-        self.assertFalse(operation["implementation"]["live_execution_enabled"])
-        self.assertIsNone(operation["authorization"]["command"])
+        self.assertEqual(operation["operation"]["state"], "pending")
+        self.assertTrue(operation["operation"]["authorization_ready"])
+        self.assertTrue(operation["implementation"]["live_execution_enabled"])
+        self.assertEqual(
+            operation["authorization"]["command"],
+            "/bin/bash backblaze-b2/scripts/"
+            "run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
+        )
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
+        self.assertEqual(operation["authorization"]["blockers"], [])
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
@@ -408,6 +415,23 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             self.assertIn("operation is not authorization-ready", result.stderr)
         evidence_after = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
         self.assertEqual(evidence_after, evidence_before)
+
+    def test_both_launchers_have_distinct_fail_closed_operation_id_gates(self) -> None:
+        launchers = {
+            ROOT / "backblaze-b2/scripts/run-capability-remediation-preflight.sh":
+                "backblaze-b2-capability-remediation-preflight-v2",
+            ROOT / "backblaze-b2/scripts/run-master-key-rotation.sh":
+                "backblaze-b2-master-key-rotation-v1",
+        }
+        for path, expected_id in launchers.items():
+            with self.subTest(path=path):
+                source = path.read_text(encoding="utf-8")
+                self.assertIn(f"expected_operation_id={expected_id}", source)
+                self.assertIn('$(operation_id) != "${expected_operation_id}"', source)
+                self.assertLess(
+                    source.index("validate_operation"),
+                    source.index("calculate_bundle_hash"),
+                )
 
 
 if __name__ == "__main__":

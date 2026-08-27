@@ -22,13 +22,13 @@
     "operation": {
       "const": {
         "id": "backblaze-b2-capability-remediation-preflight-v2",
-        "state": "definition",
-        "authorization_ready": false,
+        "state": "pending",
+        "authorization_ready": true,
         "stage": "capability_remediation_preflight",
         "execution_mode": "python_https_read_only_with_doppler_in_memory_credentials",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "bd55edbc079881d3bac321dd047bcf4ddb5589dd"
+          "base_commit": "c5e4d07f6f2b14e9b459777c958783853a6d58d2"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
@@ -40,7 +40,7 @@
         "launcher": "backblaze-b2/scripts/run-capability-remediation-preflight.sh",
         "client": "backblaze-b2/scripts/capability_remediation_preflight.py",
         "regression": "backblaze-b2/tests/capability-remediation-preflight-regression.py",
-        "live_execution_enabled": false
+        "live_execution_enabled": true
       }
     },
     "predecessors": {
@@ -196,7 +196,7 @@
     },
     "authorization": {
       "const": {
-        "command": null,
+        "command": "/bin/bash backblaze-b2/scripts/run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
         "bundle_algorithm": "sha256",
         "bundle_domain_separator": "backblaze-b2-capability-remediation-preflight-bundle-v2",
         "bundle_inputs": [
@@ -224,11 +224,7 @@
           "restic_repository_initialization",
           "j2_svpi4mf_contact"
         ],
-        "blockers": [
-          "definition_review_pending",
-          "read_only_execution_not_authorized",
-          "fresh_provider_and_doppler_evidence_not_collected"
-        ]
+        "blockers": []
       }
     }
   }

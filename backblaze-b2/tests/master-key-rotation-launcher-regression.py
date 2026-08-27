@@ -19,7 +19,7 @@ OPERATION = ROOT / "backblaze-b2/manifests/operation.yaml"
 
 
 class LauncherTests(unittest.TestCase):
-    def test_clean_operation_rejects_before_doppler_or_evidence(self) -> None:
+    def test_active_successor_rejects_before_doppler_or_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "doppler-called"
             fake = Path(temporary) / "doppler"
@@ -37,28 +37,22 @@ class LauncherTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 69)
+            self.assertIn(
+                "active operation does not belong to this launcher",
+                result.stderr,
+            )
             self.assertFalse(marker.exists())
 
-    def test_show_bundle_is_deterministic_and_complete(self) -> None:
-        first = subprocess.run(
+    def test_show_bundle_rejects_active_successor(self) -> None:
+        result = subprocess.run(
             [str(LAUNCHER), "show-bundle"], cwd=ROOT, text=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
-        ).stdout
-        second = subprocess.run(
-            [str(LAUNCHER), "show-bundle"], cwd=ROOT, text=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
-        ).stdout
-        first_hash = next(line for line in first.splitlines() if line.startswith("bundle_sha256="))
-        second_hash = next(line for line in second.splitlines() if line.startswith("bundle_sha256="))
-        self.assertEqual(first_hash, second_hash)
-        self.assertIn("authorization_ready=false", first)
-        for path in (
-            "backblaze-b2/manifests/operation.yaml",
-            "backblaze-b2/scripts/protected_doppler_master_write.py",
-            "backblaze-b2/scripts/run-master-key-rotation.sh",
-            "backblaze-b2/tests/master-key-rotation-launcher-regression.py",
-        ):
-            self.assertIn(path, first)
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        )
+        self.assertEqual(result.returncode, 69)
+        self.assertIn(
+            "active operation does not belong to this launcher",
+            result.stderr,
+        )
 
     def test_consumed_operation_is_retired(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
@@ -67,7 +61,18 @@ class LauncherTests(unittest.TestCase):
             operation["operation"].get("id"),
             "backblaze-b2-master-key-rotation-v1",
         )
-        self.assertFalse(operation["operation"]["authorization_ready"])
+        self.assertEqual(
+            operation["operation"].get("id"),
+            "backblaze-b2-capability-remediation-preflight-v2",
+        )
+
+    def test_launcher_has_exact_operation_id_gate(self) -> None:
+        source = LAUNCHER.read_text(encoding="utf-8")
+        self.assertIn(
+            "expected_operation_id=backblaze-b2-master-key-rotation-v1",
+            source,
+        )
+        self.assertIn('$(operation_id) != "${expected_operation_id}"', source)
 
     def test_existing_id_is_collected_before_generated_value(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8")

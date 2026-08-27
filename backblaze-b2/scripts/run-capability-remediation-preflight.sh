@@ -11,6 +11,7 @@ readonly client="${script_dir}/capability_remediation_preflight.py"
 readonly regression="${repository_root}/backblaze-b2/tests/capability-remediation-preflight-regression.py"
 readonly operation_file="${repository_root}/backblaze-b2/manifests/operation.yaml"
 readonly operation_schema="${repository_root}/backblaze-b2/schemas/operation.schema.json"
+readonly expected_operation_id=backblaze-b2-capability-remediation-preflight-v2
 readonly bundle_domain="backblaze-b2-capability-remediation-preflight-bundle-v2"
 readonly -a bundle_files=(
     backblaze-b2/docs/B2_ARCHITECTURE.md
@@ -37,6 +38,16 @@ usage() {
 
 validate_operation() {
     check-jsonschema --schemafile "${operation_schema}" "${operation_file}"
+    if [[ $(operation_id) != "${expected_operation_id}" ]]; then
+        printf 'error: active operation does not belong to this launcher\n' >&2
+        return 69
+    fi
+}
+
+operation_id() {
+    python3 -c \
+        'import sys,yaml; print(yaml.safe_load(open(sys.argv[1], encoding="utf-8")).get("operation", {}).get("id", ""))' \
+        "${operation_file}"
 }
 
 operation_ready() {
