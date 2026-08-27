@@ -74,7 +74,8 @@ update, delete, enable, save, or confirmation control.
 5. Confirm the account exposes usage caps and alert contacts for operator
    review. Record no values.
 6. Confirm the application-key form supports exact-bucket scope, Read and
-   Write access, List All Bucket Names, empty prefix, and no expiration.
+   Write access, List All Bucket Names, an unrestricted prefix represented as
+   `null`, and no expiration.
 7. Confirm the bucket form supports private access, Backblaze-managed
    encryption, disabled Object Lock, and lifecycle configuration.
 

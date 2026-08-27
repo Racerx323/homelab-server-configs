@@ -80,7 +80,9 @@ def provider_responses() -> list[dict[str, Any]]:
                 "storageApi": {
                     "apiUrl": "https://api123.backblazeb2.com",
                     "s3ApiUrl": CLIENT.EXPECTED_S3_URL,
-                    "capabilities": sorted(CLIENT.REQUIRED_AUTH_CAPABILITIES),
+                    "allowed": {
+                        "capabilities": sorted(CLIENT.REQUIRED_AUTH_CAPABILITIES),
+                    },
                 }
             },
         },
@@ -199,12 +201,13 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(
             [(item["method"], item["url"]) for item in opener.requests],
             [
-                ("GET", CLIENT.AUTH_URL),
+                ("POST", CLIENT.AUTH_URL),
                 ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_keys"),
                 ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_buckets"),
                 ("POST", "https://api123.backblazeb2.com/b2api/v4/b2_list_file_names"),
             ],
         )
+        self.assertEqual(opener.requests[0]["body"], {})
         self.assertEqual(opener.requests[1]["body"], {"accountId": "account-under-test"})
         self.assertEqual(
             opener.requests[3]["body"],
@@ -222,8 +225,9 @@ class ApiTests(unittest.TestCase):
 
     def test_missing_list_files_authority_blocks(self) -> None:
         responses = provider_responses()
-        responses[0]["apiInfo"]["storageApi"]["capabilities"].remove("listFiles")
-        responses[0]["apiInfo"]["storageApi"]["capabilities"].append("unrelatedCapability")
+        capabilities = responses[0]["apiInfo"]["storageApi"]["allowed"]["capabilities"]
+        capabilities.remove("listFiles")
+        capabilities.append("unrelatedCapability")
         with self.assertRaisesRegex(CLIENT.PreflightBlocked, "insufficient_management_authority") as context:
             CLIENT.perform_preflight(
                 b"id",
@@ -411,22 +415,16 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_consumed_preflight_is_retired_for_ready_replacement_operation(self) -> None:
+    def test_consumed_operations_are_retired(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
             )
         )
         self.assertEqual(
-            operation["operation"]["id"],
-            "backblaze-b2-replacement-key-creation-v1",
+            operation,
+            {"schema_version": 1, "operation": {"state": "clean", "authorization_ready": False}},
         )
-        self.assertEqual(operation["operation"]["state"], "pending")
-        self.assertTrue(operation["operation"]["authorization_ready"])
-        self.assertTrue(operation["implementation"]["live_execution_enabled"])
-        self.assertIsInstance(operation["authorization"]["command"], str)
-        self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertEqual(operation["authorization"]["blockers"], [])
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))

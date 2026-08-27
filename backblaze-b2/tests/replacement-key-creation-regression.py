@@ -91,7 +91,9 @@ def authorization_response() -> dict[str, Any]:
             "storageApi": {
                 "apiUrl": "https://api123.backblazeb2.com",
                 "s3ApiUrl": PREFLIGHT.EXPECTED_S3_URL,
-                "capabilities": sorted(PREFLIGHT.REQUIRED_AUTH_CAPABILITIES),
+                "allowed": {
+                    "capabilities": sorted(PREFLIGHT.REQUIRED_AUTH_CAPABILITIES),
+                },
             }
         },
     }
@@ -116,7 +118,7 @@ def replacement_metadata() -> dict[str, Any]:
         "capabilities": sorted(CLIENT.EXPECTED_CAPABILITIES),
         "expirationTimestamp": None,
         "keyName": CLIENT.REPLACEMENT_KEY_NAME,
-        "namePrefix": "",
+        "namePrefix": None,
         "options": ["s3"],
     }
 
@@ -173,7 +175,6 @@ class ProviderClientTests(unittest.TestCase):
                 "capabilities": sorted(CLIENT.EXPECTED_CAPABILITIES),
                 "keyName": CLIENT.REPLACEMENT_KEY_NAME,
                 "bucketIds": [CLIENT.EXPECTED_BUCKET_ID],
-                "namePrefix": "",
             },
         )
         self.assertNotIn("validDurationInSeconds", create_requests[0]["body"])
@@ -429,15 +430,12 @@ class EvidenceTests(unittest.TestCase):
 
 
 class LauncherAndContractTests(unittest.TestCase):
-    def test_active_operation_is_ready_but_mutation_remains_unauthorized(self) -> None:
+    def test_consumed_operation_is_retired(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
-        self.assertEqual(operation["operation"]["id"], CLIENT.OPERATION_ID)
-        self.assertEqual(operation["operation"]["state"], "pending")
-        self.assertTrue(operation["operation"]["authorization_ready"])
-        self.assertEqual(operation["implementation"]["state"], "reviewed")
-        self.assertTrue(operation["implementation"]["live_execution_enabled"])
-        self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertEqual(operation["authorization"]["blockers"], [])
+        self.assertEqual(
+            operation,
+            {"schema_version": 1, "operation": {"state": "clean", "authorization_ready": False}},
+        )
 
     def test_invalid_hash_rejects_before_evidence_or_external_command(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-replacement-key-creation.*"))
@@ -457,8 +455,8 @@ class LauncherAndContractTests(unittest.TestCase):
                 timeout=10,
                 check=False,
             )
-            self.assertEqual(result.returncode, 66)
-            self.assertIn("bundle hash does not match", result.stderr)
+            self.assertEqual(result.returncode, 69)
+            self.assertIn("active operation does not belong", result.stderr)
             self.assertFalse(marker.exists())
         after = set(Path("/tmp").glob("backblaze-b2-replacement-key-creation.*"))
         self.assertEqual(after, before)
@@ -474,6 +472,9 @@ class LauncherAndContractTests(unittest.TestCase):
             "mktemp -d /tmp/backblaze-b2-replacement-key-creation.XXXXXX",
             "mkfifo -m 0600",
             "trap cleanup_creation EXIT",
+            'exit "${client_status}"',
+            "exit 2",
+            "exit 0",
             "manual_intervention",
             "provider_create_attempted",
             "credential_accepted_for_use",
@@ -485,7 +486,11 @@ class LauncherAndContractTests(unittest.TestCase):
         self.assertLess(source.index("validate_operation"), source.index("calculate_bundle_hash"))
 
     def test_manifest_bundle_contract_matches_launcher_exactly(self) -> None:
-        operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
+        exact_schema = json.loads(
+            (ROOT / "backblaze-b2/schemas/replacement-key-creation.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )["const"]
         source = LAUNCHER.read_text(encoding="utf-8")
         match = re.search(
             r"readonly -a bundle_files=\(\n(?P<body>.*?)\n\)",
@@ -495,10 +500,10 @@ class LauncherAndContractTests(unittest.TestCase):
         self.assertIsNotNone(match)
         assert match is not None
         launcher_inputs = [line.strip() for line in match.group("body").splitlines()]
-        self.assertEqual(operation["authorization"]["bundle_inputs"], launcher_inputs)
+        self.assertEqual(exact_schema["authorization"]["bundle_inputs"], launcher_inputs)
         self.assertIn(
             "readonly bundle_domain="
-            + operation["authorization"]["bundle_domain_separator"],
+            + exact_schema["authorization"]["bundle_domain_separator"],
             source,
         )
 

@@ -22,9 +22,10 @@ make those additional administration capabilities acceptable.
 
 ## Decision
 
-Create the replacement with `POST /b2api/v4/b2_create_key` in a future,
-separately authorized operation. The API accepts an explicit capability array
-and exact bucket-ID restriction. Do not recreate or accept the console preset.
+Use `POST /b2api/v4/b2_create_key` with an explicit capability array and exact
+bucket-ID restriction. The API contract must omit `namePrefix` to request an
+unrestricted prefix. Terminal operation outcomes and later operator actions
+are recorded in `backblaze-b2/HISTORY.md`, not in this decision.
 
 The reviewed non-secret candidate contract is:
 
@@ -32,7 +33,7 @@ The reviewed non-secret candidate contract is:
 key_name: homelab-nautobot-restic-prd-v2
 bucket_ids:
   - 4d1bda761665474eaf030b18
-name_prefix: ""
+name_prefix: null
 valid_duration: omitted
 capabilities:
   - listAllBucketNames
@@ -43,6 +44,10 @@ capabilities:
   - writeFiles
   - deleteFiles
 ```
+
+Omit `namePrefix` from the create request. Backblaze represents an unrestricted
+key prefix as `null` in application-key metadata; an empty-string request field
+is not the same contract.
 
 The candidate excludes bucket creation, deletion, and settings writes; key
 administration; lifecycle, encryption, logging, notifications, and

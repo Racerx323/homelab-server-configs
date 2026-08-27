@@ -92,9 +92,10 @@ def authorize_account(
     try:
         response = preflight.request_json(
             opener,
-            "GET",
+            "POST",
             preflight.AUTH_URL,
             "Basic " + basic.decode("ascii"),
+            {},
         )
     except preflight.PreflightBlocked as exc:
         raise CreationBlocked(exc.code) from exc
@@ -104,7 +105,8 @@ def authorize_account(
     account_id = preflight.require_string(response, "accountId")
     token = preflight.require_string(response, "authorizationToken")
     storage_api = preflight.require_dict(preflight.require_dict(response, "apiInfo"), "storageApi")
-    capabilities = set(preflight.require_list(storage_api, "capabilities"))
+    allowed = preflight.require_dict(storage_api, "allowed")
+    capabilities = set(preflight.require_list(allowed, "capabilities"))
     if not preflight.REQUIRED_AUTH_CAPABILITIES <= capabilities:
         raise CreationBlocked("insufficient_management_authority")
     api_base = preflight.validate_api_base(preflight.require_string(storage_api, "apiUrl"))
@@ -118,7 +120,6 @@ def exact_create_body(account_id: str) -> dict[str, Any]:
         "capabilities": sorted(EXPECTED_CAPABILITIES),
         "keyName": REPLACEMENT_KEY_NAME,
         "bucketIds": [EXPECTED_BUCKET_ID],
-        "namePrefix": "",
     }
 
 
@@ -129,7 +130,7 @@ def validate_replacement_metadata(item: dict[str, Any]) -> None:
         raise CreationBlocked("replacement_name_mismatch", mutation_attempted=True)
     if item.get("bucketIds") != [EXPECTED_BUCKET_ID]:
         raise CreationBlocked("replacement_bucket_scope_mismatch", mutation_attempted=True)
-    if item.get("namePrefix") != "":
+    if item.get("namePrefix") is not None:
         raise CreationBlocked("replacement_prefix_scope_mismatch", mutation_attempted=True)
     capabilities = item.get("capabilities")
     if not isinstance(capabilities, list) or set(capabilities) != EXPECTED_CAPABILITIES:

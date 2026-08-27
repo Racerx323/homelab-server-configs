@@ -39,8 +39,8 @@ account authorization token only in memory. Do not capture raw JSON responses.
 
 The exact allowlist is:
 
-1. `GET /b2api/v3/b2_authorize_account` on the documented Backblaze account
-   authorization origin;
+1. `POST /b2api/v4/b2_authorize_account` with an empty JSON body on the
+   documented Backblaze account authorization origin;
 2. `POST <storageApi.apiUrl>/b2api/v4/b2_list_keys`;
 3. `POST <storageApi.apiUrl>/b2api/v4/b2_list_buckets`; and
 4. `POST <storageApi.apiUrl>/b2api/v4/b2_list_file_names` for the exact bucket.

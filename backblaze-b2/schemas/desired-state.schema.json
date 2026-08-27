@@ -65,7 +65,7 @@
           "pattern": "^[A-Za-z0-9-]+$"
         },
         "bucket_scope": {"const": "exact_bucket"},
-        "prefix_scope": {"const": "exact_empty_prefix"},
+        "prefix_scope": {"const": "unrestricted_null"},
         "list_all_bucket_names": {"const": true},
         "file_capabilities": {"const": ["list", "read", "write", "delete"]},
         "excluded_capability_classes": {

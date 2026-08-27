@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 OPERATION_ID = "backblaze-b2-capability-remediation-preflight-v3"
-AUTH_URL = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
+AUTH_URL = "https://api.backblazeb2.com/b2api/v4/b2_authorize_account"
 EXPECTED_S3_URL = "https://s3.us-west-002.backblazeb2.com"
 EXPECTED_BUCKET_NAME = "theama-homelab-nautobot-restic-prd"
 EXPECTED_BUCKET_ID = "4d1bda761665474eaf030b18"
@@ -347,9 +347,10 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
     try:
         authorization = request_json(
             client,
-            "GET",
+            "POST",
             AUTH_URL,
             "Basic " + basic_value.decode("ascii"),
+            {},
         )
     finally:
         basic_value[:] = b"\x00" * len(basic_value)
@@ -359,7 +360,8 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
     checks["authentication_succeeds"] = True
     api_info = require_dict(authorization, "apiInfo")
     storage_api = require_dict(api_info, "storageApi")
-    capabilities = set(require_list(storage_api, "capabilities"))
+    allowed = require_dict(storage_api, "allowed")
+    capabilities = set(require_list(allowed, "capabilities"))
     present_required_capabilities = sorted(REQUIRED_AUTH_CAPABILITIES & capabilities)
     missing_required_capabilities = sorted(REQUIRED_AUTH_CAPABILITIES - capabilities)
     if missing_required_capabilities:

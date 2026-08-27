@@ -66,11 +66,11 @@ live_execution_enabled() {
 
 validate_operation() {
     check-jsonschema --schemafile "${operation_schema}" "${operation_file}"
-    check-jsonschema --schemafile "${exact_schema}" "${operation_file}"
     if [[ $(operation_id) != "${expected_operation_id}" ]]; then
         printf 'error: active operation does not belong to this launcher\n' >&2
         return 69
     fi
+    check-jsonschema --schemafile "${exact_schema}" "${operation_file}"
 }
 
 write_bundle_file_hashes() {
@@ -210,6 +210,8 @@ execute_creation() {
     key_value_fifo="${evidence_directory}/candidate-key-value.fifo"
     mkfifo -m 0600 "${key_id_fifo}" "${key_value_fifo}"
 
+    # Invoked indirectly by the EXIT and signal traps below.
+    # shellcheck disable=SC2317
     cleanup_creation() {
         local cleanup_status=$?
         trap - EXIT HUP INT TERM
@@ -256,7 +258,7 @@ execute_creation() {
             terminal_result=blocked
         fi
         terminal_error=provider_client_failed
-        return "${client_status}"
+        exit "${client_status}"
     fi
     terminal_phase=provider_created_and_values_delivered
 
@@ -268,7 +270,7 @@ execute_creation() {
     candidate_result=$(evidence_result "${evidence_directory}/candidate-write-result.json")
     if ((writer_status != 0)) || [[ ${candidate_result} != stored ]]; then
         terminal_error=protected_candidate_write_failed
-        return 2
+        exit 2
     fi
 
     terminal_phase=candidate_credentials_stored
@@ -276,6 +278,7 @@ execute_creation() {
     terminal_error=none
     write_terminal_evidence "${evidence_directory}" "${calculated_hash}" \
         "${terminal_phase}" "${terminal_result}" "${terminal_error}"
+    exit 0
 }
 
 case ${1:-} in

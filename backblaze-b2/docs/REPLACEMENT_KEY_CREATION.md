@@ -2,13 +2,13 @@
 
 ## Purpose and authorization boundary
 
-Create the exact least-privilege replacement application key selected in
-`CAPABILITY_REMEDIATION_DECISION.md` and store its one-time values only under
-the two temporary candidate names in Doppler. The implementation is reviewed
-and authorization-ready, but no provider or Doppler mutation is authorized
-until the operator approves its exact executable bundle hash.
+This is the corrected reusable contract for the exact least-privilege
+replacement application key selected in `CAPABILITY_REMEDIATION_DECISION.md`.
+The consumed v1 operation is preserved by its terminal tag and is no longer
+active. A future use requires a new operation definition, review, checkpoint,
+and explicit hash-bound authorization.
 
-The future live authorization may cover the bounded read-only preconditions,
+Such an authorization may cover the bounded read-only preconditions,
 one exact `b2_create_key` request, provider metadata readback, and the protected
 candidate-secret write. It must not authorize object mutation, consumer
 authentication, canonical-secret promotion, rejected-key revocation, Restic
@@ -35,7 +35,6 @@ accountId: RETURNED_ACCOUNT_ID
 keyName: homelab-nautobot-restic-prd-v2
 bucketIds:
   - 4d1bda761665474eaf030b18
-namePrefix: ""
 capabilities:
   - listAllBucketNames
   - listBuckets
@@ -46,7 +45,8 @@ capabilities:
   - deleteFiles
 ```
 
-Omit `validDurationInSeconds`. Require the response `options` array to equal
+Omit `namePrefix` and `validDurationInSeconds`. Require metadata readback of
+`namePrefix` to be `null`, and require the response `options` array to equal
 `["s3"]`. Reject an implementation that adds a request field or capability,
 changes the bucket or prefix, uses a console preset, or retries creation after
 a response may have been accepted.
@@ -70,7 +70,8 @@ canonical names.
 ## Acceptance and residue
 
 Read back the replacement key through the administrator API and require exact
-name, bucket-ID list, empty prefix, omitted provider expiration, `s3` option,
+name, bucket-ID list, unrestricted null prefix, omitted provider expiration,
+`s3` option,
 and capability set. Confirm candidate-name presence, canonical-name stability,
 rejected-key stability, and absence of object or consumer contact.
 

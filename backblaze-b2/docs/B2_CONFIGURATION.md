@@ -28,7 +28,7 @@ console:
 | Lifecycle | Keep only the last version of the file |
 | Application-key name | `homelab-nautobot-restic-prd-v2` |
 | Key bucket scope | exact Nautobot bucket |
-| Key prefix scope | empty, matching the repository root |
+| Key prefix scope | unrestricted; omit `namePrefix` and require `null` readback |
 | Key access | read and write, with verified list/read/write/delete file capabilities |
 | List all bucket names | enabled for S3 compatibility |
 | Key expiration | no provider expiration; replace every 180 days |
@@ -92,7 +92,8 @@ consumer boundary. Do not create the replacement through that preset.
 Use the separately reviewed and authorized
 [`REPLACEMENT_KEY_CREATION.md`](REPLACEMENT_KEY_CREATION.md) operation. It uses
 the B2 Native API with the exact seven-capability array, exact bucket-ID list,
-empty prefix, and no provider expiration. It stores the one-time values only
+an unrestricted prefix represented as `null`, and no provider expiration. It
+stores the one-time values only
 under the temporary Doppler candidate names. Canonical promotion remains a
 separate operation after authentication and compatibility acceptance.
 
@@ -112,7 +113,8 @@ confirm:
 - the bucket identity, region, and S3 endpoint;
 - private access and the expected encryption setting;
 - Object Lock disabled and the required lifecycle selected;
-- the application key restricted to the exact bucket and empty prefix;
+- the application key restricted to the exact bucket with an unrestricted
+  prefix represented as `null`;
 - the expected capability set and expiration policy; and
 - both credential values present in the approved secrets system without value
   output.
@@ -130,7 +132,8 @@ After all readback gates pass:
 2. preserve the live operation and sanitized evidence manifest in an annotated
    tag and component history;
 3. retire the active B2 operation from the main branch; and
-4. hand the endpoint, bucket, empty prefix, and secret reference names to the
+4. hand the endpoint, bucket, unrestricted-prefix policy, and secret reference
+   names to the
    Restic component.
 
 The handoff does not authorize `restic init`. Define repository initialization

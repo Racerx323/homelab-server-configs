@@ -51,10 +51,12 @@ name-only metadata command and progressive sanitized evidence. Restic
 initialization remains separately blocked.
 
 The v3 preflight passed and is preserved in the annotated tag indexed by
-[HISTORY.md](HISTORY.md). The active
-[replacement-key creation operation](docs/REPLACEMENT_KEY_CREATION.md) is
-reviewed and authorization-ready. Provider and Doppler mutation still require
-separate authorization of its exact executable bundle hash.
+[HISTORY.md](HISTORY.md). The replacement key was created by the operator after
+the automated API request failed, and its canonical Doppler credential passed
+read-only v4 authentication and exact provider-scope validation. The operator
+then deleted the original overprivileged key, so no old-key fallback remains
+during the isolated Restic compatibility and restore test. The consumed
+operation is retired; the B2 credential is not yet accepted for Restic use.
 
 ## Layout
 

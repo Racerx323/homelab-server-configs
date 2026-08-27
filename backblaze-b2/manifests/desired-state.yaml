@@ -20,7 +20,7 @@ bucket:
 application_key:
   name: homelab-nautobot-restic-prd-v2
   bucket_scope: exact_bucket
-  prefix_scope: exact_empty_prefix
+  prefix_scope: unrestricted_null
   list_all_bucket_names: true
   file_capabilities:
     - list

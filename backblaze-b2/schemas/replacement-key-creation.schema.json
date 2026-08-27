@@ -54,7 +54,7 @@
       "account_id": "returned_account_id",
       "key_name": "homelab-nautobot-restic-prd-v2",
       "bucket_ids": ["4d1bda761665474eaf030b18"],
-      "name_prefix": "",
+      "name_prefix": null,
       "valid_duration_seconds": "omitted",
       "expected_response_options": ["s3"],
       "capabilities": [
@@ -102,7 +102,7 @@
         "exact_create_request_sent_once",
         "exact_provider_key_metadata_readback",
         "exact_capability_set_without_extras",
-        "exact_bucket_and_empty_prefix_scope",
+        "exact_bucket_and_unrestricted_prefix_scope",
         "provider_expiration_absent",
         "s3_option_present",
         "exact_candidate_doppler_names_present_without_value_output",
