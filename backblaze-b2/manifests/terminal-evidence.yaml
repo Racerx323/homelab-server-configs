@@ -1,0 +1,47 @@
+---
+schema_version: 1
+
+operation:
+  id: backblaze-b2-capability-remediation-preflight-v2
+  result: blocked_doppler_metadata_command
+  definition_commit: 3e9754765365b5cf804743359128ac3c147c351f
+  bundle_sha256: 402010b2bda16dea599e755eac449931367ae0461dc3585e01f75e6d73b1c4ef
+  evidence_written_at_utc: "2026-08-27T20:13:01Z"
+  persistent_mutation_performed: false
+
+terminal_result:
+  error_class: doppler_metadata_failed
+  credential_source: doppler_prd_b2_admin_in_memory
+  credential_values_retained: false
+  raw_provider_or_doppler_responses_retained: false
+  committed_checks: {}
+
+execution_boundary:
+  administrator_secret_lookups_completed: true
+  provider_read_sequence_reached_completion: true
+  provider_observations_retained_before_later_gate: false
+  workload_doppler_metadata_attempted: true
+  workload_doppler_metadata_completed: false
+  mutation_endpoint_attempted: false
+  control_flow_inference_recorded: true
+
+diagnosis:
+  doppler_cli_version: 3.76.5
+  invalid_command_shape: doppler_secrets_get_with_only_names
+  corrected_command_shape: doppler_secrets_with_only_names
+  retry_authorized: false
+  next_action: define_unready_v3_with_corrected_command_and_forward_observations
+
+raw_evidence:
+  committed_to_git: false
+  local_directory: /tmp/backblaze-b2-capability-preflight.b0T6vB
+  files:
+    - name: result.json
+      bytes: 454
+      sha256: 1d6f3a3765fbdfafac77949bcd9482c474bae9bf7b0f74da7b1af76df5822d69
+    - name: bundle.sha256
+      bytes: 65
+      sha256: 22c30ba1509970c2d328fcf965d85638156ab5bacd1d987e64a369b0a822cef9
+    - name: bundle-files.sha256
+      bytes: 1408
+      sha256: 96e7bea353f0d76981a449332842850afe2c362a821482471d8a958ea2107a1d
