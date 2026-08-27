@@ -6,8 +6,10 @@ application-key policy, cloud lifecycle settings, and sanitized identities for
 
 Read [docs/B2_ARCHITECTURE.md](docs/B2_ARCHITECTURE.md) before defining a
 bucket or key. Use [docs/B2_CONFIGURATION.md](docs/B2_CONFIGURATION.md) for the
-first configuration walkthrough. Read [AGENTS.md](AGENTS.md) before changing
-this component.
+first configuration walkthrough. Use
+[docs/READ_ONLY_PREFLIGHT.md](docs/READ_ONLY_PREFLIGHT.md) before requesting
+bootstrap authorization. Read [AGENTS.md](AGENTS.md) before changing this
+component.
 
 ## Ownership
 
@@ -32,6 +34,7 @@ accepted B2 configuration as a separate operation.
 - `AGENTS.md`: component editing and live-operation rules;
 - `docs/B2_ARCHITECTURE.md`: governing architecture; and
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
+- `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy; and
 - `manifests/operation.yaml`: the single active B2 live-operation definition;
 - `schemas/desired-state.schema.json`: desired-state validation; and

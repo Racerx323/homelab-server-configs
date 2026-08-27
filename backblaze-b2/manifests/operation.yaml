@@ -9,7 +9,7 @@ operation:
   execution_mode: operator_console_and_doppler_cli
   source:
     repository: homelab-server-configs
-    base_commit: 3d3e83163f3df5b2a8c2a374ef9034e52c448e1c
+    base_commit: 75e1f6d3a45aafd7f7b28f9ee7746fc0ee687a2a
   architecture: backblaze-b2/docs/B2_ARCHITECTURE.md
   procedure: backblaze-b2/docs/B2_CONFIGURATION.md
   desired_state:
@@ -30,6 +30,17 @@ targets:
 
 preflight:
   state: unexecuted
+  procedure: backblaze-b2/docs/READ_ONLY_PREFLIGHT.md
+  execution_mode: backblaze_console_and_filtered_doppler_metadata
+  execution_authorized: false
+  provider_access: read_only_console
+  doppler_access: project_environment_and_config_metadata_only
+  secret_names_or_values_read: false
+  global_bucket_availability_claimed: false
+  command_ids:
+    - doppler_project_exists
+    - doppler_prd_environment_exists
+    - doppler_prd_b2_config_absent
   require:
     - operator_identity_and_backblaze_account_ownership_confirmed
     - backblaze_b2_enabled_and_private_bucket_creation_available
@@ -39,6 +50,18 @@ preflight:
     - doppler_config_prd_b2_absent
     - protected_secret_write_and_name_only_readback_method_reviewed
     - application_key_result_panel_can_remain_open_until_secret_readback
+  evidence:
+    local_root_pattern: /tmp/backblaze-b2-preflight.*
+    directory_mode: "0700"
+    file_mode: "0600"
+    raw_provider_responses_captured: false
+    screenshots_captured: false
+    secret_metadata_captured: false
+    records:
+      - backblaze_account_readiness_booleans_and_region
+      - filtered_doppler_assertion_booleans_and_status
+      - mutation_absence_confirmation
+      - bounded_sanitized_stderr_and_evidence_hashes
   prohibited_during_preflight:
     - bucket_creation
     - bucket_setting_change

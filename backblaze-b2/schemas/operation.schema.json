@@ -183,10 +183,59 @@
     "preflight": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "require", "prohibited_during_preflight"],
+      "required": [
+        "state",
+        "procedure",
+        "execution_mode",
+        "execution_authorized",
+        "provider_access",
+        "doppler_access",
+        "secret_names_or_values_read",
+        "global_bucket_availability_claimed",
+        "command_ids",
+        "require",
+        "evidence",
+        "prohibited_during_preflight"
+      ],
       "properties": {
         "state": {"enum": ["unexecuted", "passed"]},
+        "procedure": {"const": "backblaze-b2/docs/READ_ONLY_PREFLIGHT.md"},
+        "execution_mode": {"const": "backblaze_console_and_filtered_doppler_metadata"},
+        "execution_authorized": {"const": false},
+        "provider_access": {"const": "read_only_console"},
+        "doppler_access": {"const": "project_environment_and_config_metadata_only"},
+        "secret_names_or_values_read": {"const": false},
+        "global_bucket_availability_claimed": {"const": false},
+        "command_ids": {
+          "const": [
+            "doppler_project_exists",
+            "doppler_prd_environment_exists",
+            "doppler_prd_b2_config_absent"
+          ]
+        },
         "require": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "local_root_pattern",
+            "directory_mode",
+            "file_mode",
+            "raw_provider_responses_captured",
+            "screenshots_captured",
+            "secret_metadata_captured",
+            "records"
+          ],
+          "properties": {
+            "local_root_pattern": {"const": "/tmp/backblaze-b2-preflight.*"},
+            "directory_mode": {"const": "0700"},
+            "file_mode": {"const": "0600"},
+            "raw_provider_responses_captured": {"const": false},
+            "screenshots_captured": {"const": false},
+            "secret_metadata_captured": {"const": false},
+            "records": {"type": "array", "minItems": 1, "uniqueItems": true}
+          }
+        },
         "prohibited_during_preflight": {"type": "array", "minItems": 1, "uniqueItems": true}
       }
     },
