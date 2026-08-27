@@ -4,7 +4,7 @@
 
 Prove that the retained master credential can authenticate to the B2 Native API
 and collect the exact non-secret inputs required for a future replacement-key
-operation. This v2 successor is definition-only, unready, and requires separate
+operation. This v3 successor is definition-only, unready, and requires separate
 read-only execution authorization.
 
 It must not create, update, or delete a bucket, key, object, Doppler config, or
@@ -22,7 +22,13 @@ lookup uses `--no-read-env`, `--silent`, a minimal environment, bounded output,
 and an explicit timeout. Reject empty input, embedded newlines, NUL bytes, or
 oversized values. Clear mutable buffers after use. Values must never enter
 argv, environment variables, regular files, shell tracing, logs, exceptions,
-or evidence.
+or evidence. Workload metadata uses `doppler secrets --only-names --json`;
+`--only-names` must not be placed on the `secrets get` subcommand.
+
+Record each sanitized forward observation as soon as its gate passes. A later
+blocker must retain earlier authentication, endpoint, bucket, key, file, and
+no-mutation observations without retaining identifiers, tokens, or raw
+responses.
 
 Use the Python standard library with default certificate and hostname
 verification, HTTPS-only redirects, proxies disabled, bounded response sizes,

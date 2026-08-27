@@ -175,6 +175,7 @@ class ApiTests(unittest.TestCase):
             b"generated-application-key",
             opener=opener,
             doppler_names=names,
+            observations={"administrator_doppler_secret_names_resolve": True},
         )
         self.assertTrue(all(checks.values()))
         operation = yaml.safe_load(
@@ -300,7 +301,6 @@ class ApiTests(unittest.TestCase):
                 "--no-read-env",
                 "--silent",
                 "secrets",
-                "get",
                 "--project",
                 "homelab-dev",
                 "--config",
@@ -309,6 +309,38 @@ class ApiTests(unittest.TestCase):
                 "--json",
             ),
         )
+
+    def test_late_doppler_blocker_preserves_forward_observations(self) -> None:
+        observations = {"administrator_doppler_secret_names_resolve": True}
+        with mock.patch.object(
+            CLIENT,
+            "read_doppler_names",
+            side_effect=CLIENT.PreflightBlocked("doppler_metadata_failed"),
+        ):
+            with self.assertRaisesRegex(
+                CLIENT.PreflightBlocked,
+                "doppler_metadata_failed",
+            ):
+                CLIENT.perform_preflight(
+                    b"generated-key-id",
+                    b"generated-application-key",
+                    opener=FakeOpener(provider_responses()),
+                    observations=observations,
+                )
+        for name in (
+            "administrator_doppler_secret_names_resolve",
+            "authentication_succeeds",
+            "required_key_management_capabilities_present",
+            "returned_api_and_s3_urls_pass_allowlist",
+            "exact_bucket_identity_private_region_and_endpoint",
+            "exact_bucket_current_file_count_zero",
+            "rejected_key_present",
+            "rejected_key_prohibited_capabilities_still_present",
+            "replacement_key_absent",
+            "no_mutation_endpoint_attempted",
+        ):
+            self.assertTrue(observations[name])
+        self.assertNotIn("exact_doppler_config_present", observations)
 
 
 class EvidenceAndLauncherTests(unittest.TestCase):
@@ -347,7 +379,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             "set +x",
             "umask 077",
             "ulimit -c 0",
-            "expected_operation_id=backblaze-b2-capability-remediation-preflight-v2",
+            "expected_operation_id=backblaze-b2-capability-remediation-preflight-v3",
             '$(operation_id) != "${expected_operation_id}"',
             "active operation does not belong to this launcher",
             "mktemp -d /tmp/backblaze-b2-capability-preflight.XXXXXX",
@@ -367,7 +399,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         ):
             self.assertNotIn(prohibited, source)
 
-    def test_successor_is_pending_and_authorization_ready(self) -> None:
+    def test_successor_is_unready_and_definition_only(self) -> None:
         operation = yaml.safe_load(
             (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(
                 encoding="utf-8"
@@ -375,18 +407,14 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         )
         self.assertEqual(
             operation["operation"]["id"],
-            "backblaze-b2-capability-remediation-preflight-v2",
+            "backblaze-b2-capability-remediation-preflight-v3",
         )
-        self.assertEqual(operation["operation"]["state"], "pending")
-        self.assertTrue(operation["operation"]["authorization_ready"])
-        self.assertTrue(operation["implementation"]["live_execution_enabled"])
-        self.assertEqual(
-            operation["authorization"]["command"],
-            "/bin/bash backblaze-b2/scripts/"
-            "run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
-        )
+        self.assertEqual(operation["operation"]["state"], "definition")
+        self.assertFalse(operation["operation"]["authorization_ready"])
+        self.assertFalse(operation["implementation"]["live_execution_enabled"])
+        self.assertIsNone(operation["authorization"]["command"])
         self.assertFalse(operation["authorization"]["mutation_authorized"])
-        self.assertEqual(operation["authorization"]["blockers"], [])
+        self.assertGreater(len(operation["authorization"]["blockers"]), 0)
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
@@ -419,7 +447,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
     def test_both_launchers_have_distinct_fail_closed_operation_id_gates(self) -> None:
         launchers = {
             ROOT / "backblaze-b2/scripts/run-capability-remediation-preflight.sh":
-                "backblaze-b2-capability-remediation-preflight-v2",
+                "backblaze-b2-capability-remediation-preflight-v3",
             ROOT / "backblaze-b2/scripts/run-master-key-rotation.sh":
                 "backblaze-b2-master-key-rotation-v1",
         }

@@ -63,7 +63,7 @@ class LauncherTests(unittest.TestCase):
         )
         self.assertEqual(
             operation["operation"].get("id"),
-            "backblaze-b2-capability-remediation-preflight-v2",
+            "backblaze-b2-capability-remediation-preflight-v3",
         )
 
     def test_launcher_has_exact_operation_id_gate(self) -> None:

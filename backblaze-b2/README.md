@@ -41,11 +41,14 @@ through operator recovery after the protected writer failed; the retained
 credential then passed a read-only authentication check. The terminal boundary
 is preserved in the annotated tag indexed by [HISTORY.md](HISTORY.md), and its
 consumed operation was retired. The reusable launcher now distinguishes the
-existing account-level ID from the newly generated one-time value. An unready v2
+existing account-level ID from the newly generated one-time value. The blocked
+v2 read-only preflight is preserved in the annotated tag indexed by
+[HISTORY.md](HISTORY.md). An unready v3
 [capability-remediation preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md)
 will consume the retained administrator values only inside its Python process
-and recheck the exact provider and Doppler residue. Restic initialization
-remains separately blocked.
+and recheck the exact provider and Doppler residue using the corrected
+name-only metadata command and progressive sanitized evidence. Restic
+initialization remains separately blocked.
 
 ## Layout
 
@@ -76,7 +79,7 @@ remains separately blocked.
   protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
-- `schemas/capability-remediation-preflight.schema.json`: exact unready v2
+- `schemas/capability-remediation-preflight.schema.json`: exact unready v3
   preflight definition validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
   endpoint, classification, and evidence regressions.

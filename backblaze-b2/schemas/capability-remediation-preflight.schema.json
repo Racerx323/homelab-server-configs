@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/backblaze-b2-capability-remediation-preflight-v2.json",
-  "title": "Backblaze B2 capability-remediation preflight v2 operation",
+  "$id": "https://local.theama.co/schemas/backblaze-b2-capability-remediation-preflight-v3.json",
+  "title": "Backblaze B2 capability-remediation preflight v3 operation",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -21,14 +21,14 @@
     "schema_version": {"const": 1},
     "operation": {
       "const": {
-        "id": "backblaze-b2-capability-remediation-preflight-v2",
-        "state": "pending",
-        "authorization_ready": true,
+        "id": "backblaze-b2-capability-remediation-preflight-v3",
+        "state": "definition",
+        "authorization_ready": false,
         "stage": "capability_remediation_preflight",
         "execution_mode": "python_https_read_only_with_doppler_in_memory_credentials",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "c5e4d07f6f2b14e9b459777c958783853a6d58d2"
+          "base_commit": "2eaf89bf8afa6d7f30bb51d42f01fd07edec2f70"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
@@ -40,7 +40,7 @@
         "launcher": "backblaze-b2/scripts/run-capability-remediation-preflight.sh",
         "client": "backblaze-b2/scripts/capability_remediation_preflight.py",
         "regression": "backblaze-b2/tests/capability-remediation-preflight-regression.py",
-        "live_execution_enabled": true
+        "live_execution_enabled": false
       }
     },
     "predecessors": {
@@ -54,6 +54,11 @@
           "operation": "backblaze-b2-capability-remediation-preflight-v1",
           "terminal_tag": "backblaze-b2-capability-remediation-preflight-v1-blocked-insufficient-authority",
           "bundle_sha256": "5c18337c188f70dc4078c84653b6750335155fe4bc548a086b57ef2c9fcaade9"
+        },
+        "blocked_preflight_v2": {
+          "operation": "backblaze-b2-capability-remediation-preflight-v2",
+          "terminal_tag": "backblaze-b2-capability-remediation-preflight-v2-blocked-doppler-metadata-command",
+          "bundle_sha256": "402010b2bda16dea599e755eac449931367ae0461dc3585e01f75e6d73b1c4ef"
         },
         "master_rotation": {
           "operation": "backblaze-b2-master-key-rotation-v1",
@@ -196,9 +201,9 @@
     },
     "authorization": {
       "const": {
-        "command": "/bin/bash backblaze-b2/scripts/run-capability-remediation-preflight.sh execute BUNDLE_SHA256",
+        "command": null,
         "bundle_algorithm": "sha256",
-        "bundle_domain_separator": "backblaze-b2-capability-remediation-preflight-bundle-v2",
+        "bundle_domain_separator": "backblaze-b2-capability-remediation-preflight-bundle-v3",
         "bundle_inputs": [
           "backblaze-b2/docs/B2_ARCHITECTURE.md",
           "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
@@ -224,7 +229,11 @@
           "restic_repository_initialization",
           "j2_svpi4mf_contact"
         ],
-        "blockers": []
+        "blockers": [
+          "definition_review_pending",
+          "read_only_execution_not_authorized",
+          "fresh_provider_and_doppler_evidence_not_collected"
+        ]
       }
     }
   }

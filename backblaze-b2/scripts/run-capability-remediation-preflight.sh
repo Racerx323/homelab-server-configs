@@ -11,8 +11,8 @@ readonly client="${script_dir}/capability_remediation_preflight.py"
 readonly regression="${repository_root}/backblaze-b2/tests/capability-remediation-preflight-regression.py"
 readonly operation_file="${repository_root}/backblaze-b2/manifests/operation.yaml"
 readonly operation_schema="${repository_root}/backblaze-b2/schemas/operation.schema.json"
-readonly expected_operation_id=backblaze-b2-capability-remediation-preflight-v2
-readonly bundle_domain="backblaze-b2-capability-remediation-preflight-bundle-v2"
+readonly expected_operation_id=backblaze-b2-capability-remediation-preflight-v3
+readonly bundle_domain="backblaze-b2-capability-remediation-preflight-bundle-v3"
 readonly -a bundle_files=(
     backblaze-b2/docs/B2_ARCHITECTURE.md
     backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md

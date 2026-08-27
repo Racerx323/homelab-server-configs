@@ -20,7 +20,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-OPERATION_ID = "backblaze-b2-capability-remediation-preflight-v2"
+OPERATION_ID = "backblaze-b2-capability-remediation-preflight-v3"
 AUTH_URL = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
 EXPECTED_S3_URL = "https://s3.us-west-002.backblazeb2.com"
 EXPECTED_BUCKET_NAME = "theama-homelab-nautobot-restic-prd"
@@ -77,7 +77,6 @@ ADMIN_KEY_ID_NAME = "BACKBLAZE_B2_MASTER_APPLICATION_KEY_ID"
 ADMIN_KEY_VALUE_NAME = "BACKBLAZE_B2_MASTER_APPLICATION_KEY"
 DOPPLER_NAMES_ARGV = DOPPLER_BASE + (
     "secrets",
-    "get",
     "--project",
     "homelab-dev",
     "--config",
@@ -334,8 +333,11 @@ def read_doppler_names() -> set[str]:
 
 def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytearray,
                       opener: Any | None = None,
-                      doppler_names: set[str] | None = None) -> dict[str, Any]:
+                      doppler_names: set[str] | None = None,
+                      observations: dict[str, Any] | None = None) -> dict[str, Any]:
     client = opener if opener is not None else build_opener()
+    checks = observations if observations is not None else {}
+    checks["no_mutation_endpoint_attempted"] = True
     basic_source = bytearray(key_id)
     basic_source.extend(b":")
     basic_source.extend(application_key)
@@ -354,6 +356,7 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
         basic_value.clear()
     account_id = require_string(authorization, "accountId")
     account_token = require_string(authorization, "authorizationToken")
+    checks["authentication_succeeds"] = True
     api_info = require_dict(authorization, "apiInfo")
     storage_api = require_dict(api_info, "storageApi")
     capabilities = set(require_list(storage_api, "capabilities"))
@@ -369,8 +372,10 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
                 "missing_required_management_capabilities": missing_required_capabilities,
             },
         )
+    checks["required_key_management_capabilities_present"] = True
     api_base = validate_api_base(require_string(storage_api, "apiUrl"))
     validate_s3_url(require_string(storage_api, "s3ApiUrl"))
+    checks["returned_api_and_s3_urls_pass_allowlist"] = True
 
     token_header = account_token
     rejected: list[dict[str, Any]] = []
@@ -410,13 +415,16 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
         raise PreflightBlocked("key_listing_page_limit")
     if len(rejected) != 1:
         raise PreflightBlocked("rejected_key_identity_mismatch")
+    checks["rejected_key_present"] = True
     if replacement:
         raise PreflightBlocked("replacement_key_already_exists")
+    checks["replacement_key_absent"] = True
     rejected_caps = set(require_list(rejected[0], "capabilities"))
     if not REQUIRED_FILE_CAPABILITIES <= rejected_caps:
         raise PreflightBlocked("rejected_key_file_capabilities_changed")
     if not PROHIBITED_RESIDUE_CAPABILITIES <= rejected_caps:
         raise PreflightBlocked("rejected_key_residue_changed")
+    checks["rejected_key_prohibited_capabilities_still_present"] = True
 
     buckets = request_json(
         client,
@@ -432,6 +440,7 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
     bucket = exact_buckets[0]
     if bucket.get("bucketId") != EXPECTED_BUCKET_ID or bucket.get("bucketType") != "allPrivate":
         raise PreflightBlocked("bucket_policy_mismatch")
+    checks["exact_bucket_identity_private_region_and_endpoint"] = True
 
     files = request_json(
         client,
@@ -442,28 +451,18 @@ def perform_preflight(key_id: bytes | bytearray, application_key: bytes | bytear
     )
     if require_list(files, "files"):
         raise PreflightBlocked("bucket_not_empty")
+    checks["exact_bucket_current_file_count_zero"] = True
 
     names = doppler_names if doppler_names is not None else read_doppler_names()
+    checks["exact_doppler_config_present"] = True
     if not CANONICAL_SECRET_NAMES <= names:
         raise PreflightBlocked("canonical_doppler_names_missing")
+    checks["canonical_secret_names_present_without_values"] = True
     if CANDIDATE_SECRET_NAMES & names:
         raise PreflightBlocked("candidate_doppler_name_collision")
+    checks["candidate_secret_names_absent"] = True
 
-    return {
-        "administrator_doppler_secret_names_resolve": True,
-        "authentication_succeeds": True,
-        "required_key_management_capabilities_present": True,
-        "returned_api_and_s3_urls_pass_allowlist": True,
-        "exact_bucket_identity_private_region_and_endpoint": True,
-        "exact_bucket_current_file_count_zero": True,
-        "rejected_key_present": True,
-        "rejected_key_prohibited_capabilities_still_present": True,
-        "replacement_key_absent": True,
-        "exact_doppler_config_present": True,
-        "canonical_secret_names_present_without_values": True,
-        "candidate_secret_names_absent": True,
-        "no_mutation_endpoint_attempted": True,
-    }
+    return checks
 
 
 def write_evidence(root_fd: int, bundle_sha256: str, result: str, checks: dict[str, Any],
@@ -517,7 +516,12 @@ def main() -> int:
     try:
         key_id = read_admin_secret(ADMIN_KEY_ID_NAME)
         application_key = read_admin_secret(ADMIN_KEY_VALUE_NAME)
-        checks = perform_preflight(key_id, application_key)
+        checks["administrator_doppler_secret_names_resolve"] = True
+        checks = perform_preflight(
+            key_id,
+            application_key,
+            observations=checks,
+        )
         write_evidence(root_fd, args.bundle_sha256, "passed", checks)
         print(f"result=passed evidence_root={args.evidence_root}")
         return 0
