@@ -24,19 +24,28 @@ capability names, and secret references after an operator verifies them.
 
 ## Current state
 
-No Backblaze B2 bucket or application key has been configured for Restic in
-this homelab. The first live action must follow the configuration walkthrough
-and receive separate authorization. Restic repository initialization follows
-accepted B2 configuration as a separate operation.
+The dedicated private bucket exists, is empty, and has the reviewed encryption,
+Object Lock, and lifecycle settings. The first application key and its Doppler
+credentials remain as rejected residue because the provider's console preset
+exceeded the reviewed capability scope. The B2 configuration is not accepted
+for Restic use.
+
+The terminal result is indexed in [HISTORY.md](HISTORY.md). The unready
+[capability-remediation decision](docs/CAPABILITY_REMEDIATION_DECISION.md)
+defines the review required before a replacement-key operation. Restic
+repository initialization remains separately blocked.
 
 ## Layout
 
 - `AGENTS.md`: component editing and live-operation rules;
-- `docs/B2_ARCHITECTURE.md`: governing architecture; and
+- `HISTORY.md`: concise terminal-operation index;
+- `docs/B2_ARCHITECTURE.md`: governing architecture;
+- `docs/CAPABILITY_REMEDIATION_DECISION.md`: unready least-privilege key
+  replacement decision;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
-- `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy; and
-- `manifests/operation.yaml`: the single active B2 live-operation definition;
+- `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
+- `manifests/operation.yaml`: the single B2 operation-state manifest;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation.
 
