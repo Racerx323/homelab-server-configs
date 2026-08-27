@@ -193,6 +193,17 @@ repos:
         files: >-
           ^backblaze-b2/(?:manifests/operation\.yaml|schemas/(?:operation|capability-remediation-preflight)\.schema\.json)$
 
+      - id: backblaze-b2-capability-remediation-preflight
+        name: Validate Backblaze B2 capability-remediation preflight
+        entry: >-
+          /bin/bash
+          backblaze-b2/scripts/run-capability-remediation-preflight.sh
+          self-test
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/CAPABILITY_REMEDIATION_(?:DECISION|PREFLIGHT)\.md|manifests/operation\.yaml|schemas/(?:operation|capability-remediation-preflight)\.schema\.json|scripts/(?:capability_remediation_preflight\.py|run-capability-remediation-preflight\.sh)|tests/capability-remediation-preflight-regression\.py))$
+
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture
         entry: >-

@@ -50,10 +50,16 @@ initialization remains separately blocked.
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
 - `manifests/operation.yaml`: the single B2 operation-state manifest;
+- `scripts/capability_remediation_preflight.py`: bounded read-only B2 API and
+  Doppler metadata client;
+- `scripts/run-capability-remediation-preflight.sh`: readiness- and hash-gated
+  protected credential launcher;
 - `schemas/desired-state.schema.json`: desired-state validation; and
 - `schemas/operation.schema.json`: operation-state validation;
 - `schemas/capability-remediation-preflight.schema.json`: exact preflight
-  definition validation.
+  definition validation; and
+- `tests/capability-remediation-preflight-regression.py`: offline transport,
+  endpoint, classification, and evidence regressions.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

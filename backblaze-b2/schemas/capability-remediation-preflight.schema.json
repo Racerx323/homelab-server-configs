@@ -7,6 +7,7 @@
   "required": [
     "schema_version",
     "operation",
+    "implementation",
     "predecessor",
     "targets",
     "authentication",
@@ -27,11 +28,19 @@
         "execution_mode": "python_https_read_only",
         "source": {
           "repository": "homelab-server-configs",
-          "base_commit": "2489d2f6e7aa6147341fc7704f384764ab93c07c"
+          "base_commit": "f76d7e82a27261742296721de477a6f48e058b75"
         },
         "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
         "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
         "procedure": "backblaze-b2/docs/CAPABILITY_REMEDIATION_PREFLIGHT.md"
+      }
+    },
+    "implementation": {
+      "const": {
+        "launcher": "backblaze-b2/scripts/run-capability-remediation-preflight.sh",
+        "client": "backblaze-b2/scripts/capability_remediation_preflight.py",
+        "regression": "backblaze-b2/tests/capability-remediation-preflight-regression.py",
+        "live_execution_enabled": false
       }
     },
     "predecessor": {
@@ -172,6 +181,20 @@
       "const": {
         "command": null,
         "bundle_algorithm": "sha256",
+        "bundle_domain_separator": "backblaze-b2-capability-remediation-preflight-bundle-v1",
+        "bundle_inputs": [
+          "backblaze-b2/docs/B2_ARCHITECTURE.md",
+          "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
+          "backblaze-b2/docs/CAPABILITY_REMEDIATION_PREFLIGHT.md",
+          "backblaze-b2/manifests/desired-state.yaml",
+          "backblaze-b2/manifests/operation.yaml",
+          "backblaze-b2/schemas/desired-state.schema.json",
+          "backblaze-b2/schemas/operation.schema.json",
+          "backblaze-b2/schemas/capability-remediation-preflight.schema.json",
+          "backblaze-b2/scripts/capability_remediation_preflight.py",
+          "backblaze-b2/scripts/run-capability-remediation-preflight.sh",
+          "backblaze-b2/tests/capability-remediation-preflight-regression.py"
+        ],
         "mutation_authorized": false,
         "excluded_stages": [
           "replacement_key_creation",
@@ -184,13 +207,8 @@
           "j2_svpi4mf_contact"
         ],
         "blockers": [
-          "python_https_preflight_implementation_required",
-          "protected_fifo_secret_transport_regression_required",
-          "url_allowlist_and_redirect_regression_required",
-          "exact_api_call_allowlist_regression_required",
-          "response_filtering_and_size_bound_regression_required",
-          "definition_review_required",
-          "definition_checkpoint_required",
+          "implementation_review_required",
+          "implementation_checkpoint_required",
           "final_bundle_hash_required",
           "explicit_read_only_execution_authorization_required"
         ]
