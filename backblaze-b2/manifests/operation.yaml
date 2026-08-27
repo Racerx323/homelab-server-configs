@@ -3,13 +3,13 @@ schema_version: 1
 
 operation:
   id: backblaze-b2-capability-remediation-preflight-v1
-  state: definition
-  authorization_ready: false
+  state: pending
+  authorization_ready: true
   stage: capability_remediation_preflight
   execution_mode: python_https_read_only
   source:
     repository: homelab-server-configs
-    base_commit: f76d7e82a27261742296721de477a6f48e058b75
+    base_commit: 829b164aa42dc4f358fe9c1546f3799cfeda0106
   architecture: backblaze-b2/docs/B2_ARCHITECTURE.md
   decision: backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md
   procedure: backblaze-b2/docs/CAPABILITY_REMEDIATION_PREFLIGHT.md
@@ -18,7 +18,7 @@ implementation:
   launcher: backblaze-b2/scripts/run-capability-remediation-preflight.sh
   client: backblaze-b2/scripts/capability_remediation_preflight.py
   regression: backblaze-b2/tests/capability-remediation-preflight-regression.py
-  live_execution_enabled: false
+  live_execution_enabled: true
 
 predecessor:
   operation: backblaze-b2-nautobot-bootstrap-v1
@@ -137,7 +137,9 @@ evidence:
     - sanitized_decision_summary
 
 authorization:
-  command: null
+  command: >-
+    /bin/bash backblaze-b2/scripts/run-capability-remediation-preflight.sh
+    execute BUNDLE_SHA256
   bundle_algorithm: sha256
   bundle_domain_separator: backblaze-b2-capability-remediation-preflight-bundle-v1
   bundle_inputs:
@@ -162,8 +164,4 @@ authorization:
     - bucket_or_object_mutation
     - restic_repository_initialization
     - j2_svpi4mf_contact
-  blockers:
-    - implementation_review_required
-    - implementation_checkpoint_required
-    - final_bundle_hash_required
-    - explicit_read_only_execution_authorization_required
+  blockers: []

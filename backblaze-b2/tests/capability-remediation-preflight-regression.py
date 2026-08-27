@@ -16,6 +16,8 @@ import urllib.error
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -335,7 +337,8 @@ class EvidenceAndLauncherTests(unittest.TestCase):
         self.assertNotIn("--key-id \"${key_id}\"", source)
         self.assertNotIn("--application-key \"${application_key}\"", source)
 
-    def test_launcher_rejects_live_execution_while_unready(self) -> None:
+    def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
+        evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
         result = subprocess.run(
             ["/bin/bash", str(LAUNCHER_PATH), "execute", "a" * 64],
             cwd=ROOT,
@@ -345,8 +348,22 @@ class EvidenceAndLauncherTests(unittest.TestCase):
             timeout=10,
             check=False,
         )
-        self.assertEqual(result.returncode, 69)
-        self.assertIn("operation is not authorization-ready", result.stderr)
+        operation = yaml.safe_load(
+            (ROOT / "backblaze-b2/manifests/operation.yaml").read_text(encoding="utf-8")
+        )
+        is_ready = (
+            operation["operation"]["authorization_ready"] is True
+            and operation["implementation"]["live_execution_enabled"] is True
+            and operation["authorization"]["blockers"] == []
+        )
+        if is_ready:
+            self.assertEqual(result.returncode, 66)
+            self.assertIn("bundle hash does not match", result.stderr)
+        else:
+            self.assertEqual(result.returncode, 69)
+            self.assertIn("operation is not authorization-ready", result.stderr)
+        evidence_after = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
+        self.assertEqual(evidence_after, evidence_before)
 
 
 if __name__ == "__main__":
