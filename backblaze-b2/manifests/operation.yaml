@@ -3,13 +3,13 @@ schema_version: 1
 
 operation:
   id: backblaze-b2-nautobot-bootstrap-v1
-  state: definition
-  authorization_ready: false
+  state: pending
+  authorization_ready: true
   stage: provider_bootstrap
   execution_mode: operator_console_and_doppler_cli
   source:
     repository: homelab-server-configs
-    base_commit: 75e1f6d3a45aafd7f7b28f9ee7746fc0ee687a2a
+    base_commit: ffdfedb4022defbf24f6ae65e401a56a11ca93c5
   architecture: backblaze-b2/docs/B2_ARCHITECTURE.md
   procedure: backblaze-b2/docs/B2_CONFIGURATION.md
   desired_state:
@@ -29,7 +29,7 @@ targets:
   host_contact_authorized: false
 
 preflight:
-  state: unexecuted
+  state: passed
   procedure: backblaze-b2/docs/READ_ONLY_PREFLIGHT.md
   execution_mode: backblaze_console_and_filtered_doppler_metadata
   execution_authorized: false
@@ -83,6 +83,19 @@ preflight:
     - doppler_config_or_secret_change
     - restic_repository_access_or_initialization
     - consumer_host_contact
+  result:
+    observed_at: "2026-08-27T16:25:53Z"
+    decision: passed
+    observed_region: us-west-002
+    backblaze_observations_passed: true
+    doppler_predicates_passed: true
+    provider_or_doppler_mutation_performed: false
+    secret_names_or_values_read: false
+    raw_browser_artifacts_retained: false
+    evidence_sha256:
+      backblaze_console_observations: 259470eab559695d56cc80621a4088ff9b6d53cae9f3a86decdfe6194f314fa5
+      doppler_metadata_observations: 1a86bb5de01102d3dab48819c4148bd5550d5bc9b9bb6bbcbeff56d9f54df6f4
+      manifest: f6e658a602aa3e699249dba4733af7c613bd905e29f5bee56ecf52303d6c05a0
 
 mutation_contract:
   authorized_classes_when_pending:
@@ -196,8 +209,17 @@ evidence:
     - sanitized_decision_summary
 
 authorization:
-  command: null
+  command: backblaze-b2-nautobot-bootstrap-v1 execute BUNDLE_SHA256
   bundle_algorithm: sha256
+  bundle_domain_separator: backblaze-b2-nautobot-bootstrap-bundle-v1
+  bundle_inputs:
+    - backblaze-b2/docs/B2_ARCHITECTURE.md
+    - backblaze-b2/docs/B2_CONFIGURATION.md
+    - backblaze-b2/docs/READ_ONLY_PREFLIGHT.md
+    - backblaze-b2/manifests/desired-state.yaml
+    - backblaze-b2/manifests/operation.yaml
+    - backblaze-b2/schemas/desired-state.schema.json
+    - backblaze-b2/schemas/operation.schema.json
   mutation_authorized: false
   excluded_stages:
     - restic_repository_preflight
@@ -207,11 +229,4 @@ authorization:
     - application_key_revocation
     - j2_svpi4mf_contact
     - nautobot_deployment
-  blockers:
-    - definition_review_required
-    - definition_checkpoint_required
-    - read_only_provider_and_doppler_preflight_required
-    - operator_identity_and_account_ownership_confirmation_required
-    - exact_manual_execution_and_evidence_method_required
-    - final_bundle_hash_required
-    - explicit_live_authorization_required
+  blockers: []
