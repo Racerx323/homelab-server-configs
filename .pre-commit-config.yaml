@@ -191,7 +191,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^backblaze-b2/(?:docs/(?:MASTER_KEY_ROTATION(?:_PREFLIGHT)?|REPLACEMENT_KEY_CREATION)\.md|manifests/operation\.yaml|schemas/(?:operation|replacement-key-creation)\.schema\.json)$
+          ^backblaze-b2/(?:docs/(?:MASTER_KEY_ROTATION(?:_PREFLIGHT)?|REPLACEMENT_KEY_CREATION|S3_COMPATIBILITY_PROBE)\.md|manifests/operation\.yaml|schemas/(?:operation|replacement-key-creation|s3-compatibility-probe)\.schema\.json)$
 
       - id: backblaze-b2-replacement-key-creation
         name: Validate Backblaze B2 replacement-key creation

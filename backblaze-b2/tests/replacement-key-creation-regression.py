@@ -432,12 +432,9 @@ class EvidenceTests(unittest.TestCase):
 class LauncherAndContractTests(unittest.TestCase):
     def test_consumed_operation_is_retired(self) -> None:
         operation = yaml.safe_load(OPERATION.read_text(encoding="utf-8"))
-        self.assertEqual(
-            operation,
-            {"schema_version": 1, "operation": {"state": "clean", "authorization_ready": False}},
-        )
+        self.assertNotEqual(operation["operation"].get("id"), CLIENT.OPERATION_ID)
 
-    def test_invalid_hash_rejects_before_evidence_or_external_command(self) -> None:
+    def test_inactive_launcher_rejects_before_evidence_or_external_command(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-replacement-key-creation.*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "external-command-called"

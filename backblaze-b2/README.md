@@ -25,10 +25,10 @@ capability names, and secret references after an operator verifies them.
 ## Current state
 
 The dedicated private bucket exists, is empty, and has the reviewed encryption,
-Object Lock, and lifecycle settings. The first application key and its Doppler
-credentials remain as rejected residue because the provider's console preset
-exceeded the reviewed capability scope. The B2 configuration is not accepted
-for Restic use.
+Object Lock, and lifecycle settings. The canonical replacement credential
+passed authentication and exact-scope validation. The operator deleted the
+original overprivileged key. The B2 configuration is not accepted for Restic
+use until the isolated S3 compatibility probe passes.
 
 Terminal results are indexed in [HISTORY.md](HISTORY.md). The reviewed
 [capability-remediation decision](docs/CAPABILITY_REMEDIATION_DECISION.md)
@@ -57,6 +57,8 @@ read-only v4 authentication and exact provider-scope validation. The operator
 then deleted the original overprivileged key, so no old-key fallback remains
 during the isolated Restic compatibility and restore test. The consumed
 operation is retired; the B2 credential is not yet accepted for Restic use.
+An unready [S3 compatibility probe](docs/S3_COMPATIBILITY_PROBE.md) now defines
+the isolated owned-object transaction required before that acceptance.
 
 ## Layout
 
@@ -75,6 +77,8 @@ operation is retired; the B2 credential is not yet accepted for Restic use.
   Doppler preflight contract for master rotation;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
+- `docs/S3_COMPATIBILITY_PROBE.md`: unready isolated S3 object-transaction
+  contract for the canonical consumer credential;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
 - `manifests/operation.yaml`: the single B2 operation-state manifest;
 - `scripts/capability_remediation_preflight.py`: bounded read-only B2 API and

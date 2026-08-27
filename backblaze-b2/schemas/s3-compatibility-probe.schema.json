@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.theama.co/schemas/backblaze-b2-s3-compatibility-v1.json",
+  "title": "Backblaze B2 S3 compatibility v1 operation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "predecessor",
+    "targets",
+    "probe",
+    "secret_contract",
+    "mutation_boundary",
+    "acceptance",
+    "failure_and_cleanup",
+    "implementation",
+    "evidence",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "operation": {
+      "const": {
+        "id": "backblaze-b2-s3-compatibility-v1",
+        "state": "definition",
+        "authorization_ready": false,
+        "stage": "s3_compatibility_probe",
+        "execution_mode": "exact_owned_s3_object_transaction",
+        "source": {
+          "repository": "homelab-server-configs",
+          "base_commit": "3d4e0fff7fb87a9b0528d479ad4143053b374a37"
+        },
+        "architecture": "backblaze-b2/docs/B2_ARCHITECTURE.md",
+        "decision": "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
+        "procedure": "backblaze-b2/docs/S3_COMPATIBILITY_PROBE.md",
+        "desired_state": "backblaze-b2/manifests/desired-state.yaml"
+      }
+    },
+    "predecessor": {
+      "const": {
+        "operation": "backblaze-b2-replacement-key-creation-v1",
+        "terminal_tag": "backblaze-b2-replacement-key-creation-v1-completed-operator-recovery",
+        "definition_commit": "4dcc376bf24e9e343718c26596b6c9beac055429",
+        "bundle_sha256": "049e7292b429d03cf79ef9e24c1e24533d033c4eb64e88b2aec5864a732b0bbd",
+        "result": "canonical_v4_authentication_and_exact_scope_passed"
+      }
+    },
+    "targets": {
+      "const": {
+        "backblaze_b2": {
+          "endpoint": "https://s3.us-west-002.backblazeb2.com",
+          "bucket_name": "theama-homelab-nautobot-restic-prd",
+          "application_key_name": "homelab-nautobot-restic-prd-v2"
+        },
+        "doppler": {
+          "project": "homelab-dev",
+          "config": "prd_b2",
+          "canonical_secret_names": [
+            "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID",
+            "NAUTOBOT_RESTIC_B2_APPLICATION_KEY"
+          ]
+        },
+        "consumer": "nautobot",
+        "restic_contact_authorized": false,
+        "host_contact_authorized": false
+      }
+    },
+    "probe": {
+      "const": {
+        "run_id": {
+          "source": "operating_system_cryptographic_random",
+          "bits": 128,
+          "encoding": "lowercase_hex"
+        },
+        "object_key_pattern": "__capability_probe__/homelab-nautobot-restic-prd-v2/RUN_ID/probe.txt",
+        "owned_prefix_pattern": "__capability_probe__/homelab-nautobot-restic-prd-v2/RUN_ID/",
+        "content_utf8": "nautobot B2 S3 compatibility probe v1\n",
+        "content_sha256": "d351ee40d27759daeca28938056b90208e9c5b791d1f9267b2aec8ec1ae13089",
+        "content_type": "text/plain",
+        "maximum_owned_object_count": 1,
+        "ordered_operations": [
+          "require_owned_prefix_empty",
+          "put_exact_owned_object_once",
+          "head_exact_owned_object",
+          "list_owned_prefix_and_require_exact_object",
+          "get_exact_owned_object_and_verify_bytes_and_sha256",
+          "delete_exact_owned_object_once",
+          "require_exact_object_not_found_and_owned_prefix_empty"
+        ]
+      }
+    },
+    "secret_contract": {
+      "const": {
+        "source": "homelab-dev/prd_b2",
+        "values_in_memory_only": true,
+        "values_in_argv_environment_files_logs_or_evidence": false,
+        "canonical_names_modified": false,
+        "provider_response_bodies_retained": false
+      }
+    },
+    "mutation_boundary": {
+      "const": {
+        "allowed": [
+          "put_exact_generated_probe_object_once",
+          "delete_exact_generated_probe_object_once"
+        ],
+        "prohibited": [
+          "application_key_creation_or_deletion",
+          "bucket_or_lifecycle_mutation",
+          "unrelated_object_listing_or_mutation",
+          "prefix_wide_delete",
+          "restic_repository_initialization",
+          "restic_contact",
+          "host_contact"
+        ],
+        "automatic_put_retry": false,
+        "maximum_created_objects": 1
+      }
+    },
+    "acceptance": {
+      "const": {
+        "require": [
+          "fresh_canonical_authentication_and_exact_scope_preflight",
+          "generated_prefix_initially_empty",
+          "exact_probe_put_succeeds",
+          "head_matches_exact_key_and_content_length",
+          "list_returns_only_exact_probe_object",
+          "downloaded_bytes_and_sha256_match_definition",
+          "exact_probe_delete_succeeds",
+          "exact_object_not_found_after_delete",
+          "generated_prefix_empty_after_delete",
+          "no_unrelated_provider_or_consumer_mutation",
+          "sanitized_evidence_contains_no_secrets_or_identifiers"
+        ],
+        "accepts_b2_s3_credential_compatibility_only": true,
+        "accepts_restic_repository": false,
+        "accepts_nautobot_backup_or_restore": false
+      }
+    },
+    "failure_and_cleanup": {
+      "const": {
+        "before_put": "cleanup_proven_owned_local_evidence_only",
+        "after_put_may_have_succeeded": "attempt_exact_owned_object_delete_once",
+        "cleanup_acceptance": "exact_object_not_found_and_owned_prefix_empty",
+        "cleanup_failure": "manual_intervention_with_probe_residue",
+        "automatic_prefix_delete": false,
+        "automatic_permission_expansion": false,
+        "automatic_key_replacement": false,
+        "automatic_operation_retry": false
+      }
+    },
+    "implementation": {
+      "const": {
+        "state": "not_defined",
+        "executable_paths": [],
+        "regression_paths": [],
+        "live_execution_enabled": false
+      }
+    },
+    "evidence": {
+      "const": {
+        "local_root_pattern": "/tmp/backblaze-b2-s3-compatibility.*",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "raw_evidence_in_git": false,
+        "secret_or_credential_identifiers_in_evidence": false,
+        "records": [
+          "bundle_and_input_hashes",
+          "phase_and_request_classifications",
+          "content_sha256_and_size",
+          "mutation_and_cleanup_status",
+          "final_absence_or_residue_decision"
+        ]
+      }
+    },
+    "authorization": {
+      "const": {
+        "command": null,
+        "bundle_algorithm": "sha256",
+        "bundle_domain_separator": "backblaze-b2-s3-compatibility-bundle-v1",
+        "bundle_inputs": [
+          "backblaze-b2/docs/B2_ARCHITECTURE.md",
+          "backblaze-b2/docs/CAPABILITY_REMEDIATION_DECISION.md",
+          "backblaze-b2/docs/S3_COMPATIBILITY_PROBE.md",
+          "backblaze-b2/manifests/desired-state.yaml",
+          "backblaze-b2/manifests/operation.yaml",
+          "backblaze-b2/schemas/desired-state.schema.json",
+          "backblaze-b2/schemas/operation.schema.json",
+          "backblaze-b2/schemas/s3-compatibility-probe.schema.json"
+        ],
+        "mutation_authorized": false,
+        "excluded_stages": [
+          "application_key_or_bucket_change",
+          "restic_repository_initialization",
+          "restic_backup_check_or_restore",
+          "j2_svpi4mf_contact",
+          "nautobot_deployment"
+        ],
+        "blockers": [
+          "operator_contract_review_required",
+          "no_old_key_fallback_recovery_boundary_review_required",
+          "execution_implementation_required",
+          "offline_transaction_and_failure_regressions_required",
+          "fresh_read_only_preflight_required",
+          "definition_checkpoint_required",
+          "readiness_transition_required",
+          "final_bundle_hash_required",
+          "explicit_live_authorization_required"
+        ]
+      }
+    }
+  }
+}

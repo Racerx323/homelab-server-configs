@@ -152,7 +152,8 @@
         }
       ]
     },
-    {"$ref": "replacement-key-creation.schema.json"}
+    {"$ref": "replacement-key-creation.schema.json"},
+    {"$ref": "s3-compatibility-probe.schema.json"}
   ],
   "$defs": {
     "targets": {

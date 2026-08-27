@@ -10,7 +10,7 @@ component:
 
 bucket:
   name: theama-homelab-nautobot-restic-prd
-  global_availability: pending_provider_creation_confirmation
+  global_availability: confirmed_existing
   repository_prefix: ""
   access: private
   server_side_encryption: backblaze_managed
@@ -41,7 +41,7 @@ secrets:
   provider: doppler
   project: homelab-dev
   config: prd_b2
-  config_creation_required: true
+  config_creation_required: false
   keys:
     application_key_id: NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
     application_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY

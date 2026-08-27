@@ -38,7 +38,7 @@
           "maxLength": 63,
           "pattern": "^(?!b2-)(?!xn--)(?!sthree-)(?!amzn-s3-demo-)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
         },
-        "global_availability": {"const": "pending_provider_creation_confirmation"},
+        "global_availability": {"const": "confirmed_existing"},
         "repository_prefix": {"const": ""},
         "access": {"const": "private"},
         "server_side_encryption": {"const": "backblaze_managed"},
@@ -107,7 +107,7 @@
         "provider": {"const": "doppler"},
         "project": {"const": "homelab-dev"},
         "config": {"const": "prd_b2"},
-        "config_creation_required": {"const": true},
+        "config_creation_required": {"const": false},
         "keys": {
           "type": "object",
           "additionalProperties": false,

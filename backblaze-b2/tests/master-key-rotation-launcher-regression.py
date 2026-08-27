@@ -61,10 +61,6 @@ class LauncherTests(unittest.TestCase):
             operation["operation"].get("id"),
             "backblaze-b2-master-key-rotation-v1",
         )
-        self.assertEqual(
-            operation["operation"],
-            {"state": "clean", "authorization_ready": False},
-        )
 
     def test_launcher_has_exact_operation_id_gate(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8")

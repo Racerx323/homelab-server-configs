@@ -421,10 +421,7 @@ class EvidenceAndLauncherTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(
-            operation,
-            {"schema_version": 1, "operation": {"state": "clean", "authorization_ready": False}},
-        )
+        self.assertNotEqual(operation["operation"].get("id"), CLIENT.OPERATION_ID)
 
     def test_launcher_rejects_unready_or_invalid_hash_execution(self) -> None:
         evidence_before = set(Path("/tmp").glob("backblaze-b2-capability-preflight.*"))
