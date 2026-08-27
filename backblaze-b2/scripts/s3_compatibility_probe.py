@@ -181,6 +181,46 @@ class EvidenceRecorder:
             self.document["mutation"]["delete_attempted"] = delete_attempted
         self._write()
 
+    def scope(
+        self,
+        response_shape: str,
+        bucket_count: int,
+        exact_bucket_match: bool,
+        exact_capabilities: bool,
+        null_name_prefix: bool,
+        no_provider_expiration: bool,
+        exact_s3_endpoint: bool,
+    ) -> None:
+        if response_shape not in {
+            "allowed_buckets_array",
+            "allowed_buckets_invalid",
+            "allowed_invalid",
+            "legacy_scalar",
+            "allowed_missing",
+        }:
+            raise ProbeBlocked("invalid_scope_observation")
+        if not isinstance(bucket_count, int) or not 0 <= bucket_count <= 101:
+            raise ProbeBlocked("invalid_scope_observation")
+        values = (
+            exact_bucket_match,
+            exact_capabilities,
+            null_name_prefix,
+            no_provider_expiration,
+            exact_s3_endpoint,
+        )
+        if not all(isinstance(value, bool) for value in values):
+            raise ProbeBlocked("invalid_scope_observation")
+        self.document["scope"] = {
+            "response_shape": response_shape,
+            "bucket_count": bucket_count,
+            "exact_bucket_match": exact_bucket_match,
+            "exact_capabilities": exact_capabilities,
+            "null_name_prefix": null_name_prefix,
+            "no_provider_expiration": no_provider_expiration,
+            "exact_s3_endpoint": exact_s3_endpoint,
+        }
+        self._write()
+
     def finish(self, result: str, error_class: str | None, run_id_sha256: str,
                absence_proven: bool, residue_possible: bool) -> None:
         self.document["result"] = result
@@ -373,18 +413,65 @@ def perform_read_only_preflight(key_id: bytes, application_key: bytes,
         if not isinstance(storage, dict):
             raise ProbeBlocked("invalid_authorization_response")
         allowed = storage.get("allowed")
-        if not isinstance(allowed, dict):
-            raise ProbeBlocked("invalid_authorization_response")
-        capabilities = allowed.get("capabilities")
-        if not isinstance(capabilities, list) or set(capabilities) != EXPECTED_CAPABILITIES:
-            raise ProbeBlocked("capability_scope_mismatch")
-        if allowed.get("bucketId") != BUCKET_ID or allowed.get("bucketName") != BUCKET:
+        allowed_mapping = allowed if isinstance(allowed, dict) else {}
+        buckets = allowed_mapping.get("buckets")
+        if isinstance(buckets, list):
+            response_shape = "allowed_buckets_array"
+            bucket_count = min(len(buckets), 101)
+            exact_bucket_match = (
+                len(buckets) == 1
+                and isinstance(buckets[0], dict)
+                and buckets[0].get("id") == BUCKET_ID
+                and buckets[0].get("name") == BUCKET
+            )
+        elif "buckets" in allowed_mapping:
+            response_shape = "allowed_buckets_invalid"
+            bucket_count = 0
+            exact_bucket_match = False
+        elif any(
+            name in allowed_mapping for name in ("bucketId", "bucketName")
+        ):
+            response_shape = "legacy_scalar"
+            bucket_count = 1
+            exact_bucket_match = False
+        elif isinstance(allowed, dict):
+            response_shape = "allowed_missing"
+            bucket_count = 0
+            exact_bucket_match = False
+        else:
+            response_shape = "allowed_invalid"
+            bucket_count = 0
+            exact_bucket_match = False
+        capabilities = allowed_mapping.get("capabilities")
+        exact_capabilities = (
+            isinstance(capabilities, list)
+            and len(capabilities) == len(EXPECTED_CAPABILITIES)
+            and all(isinstance(capability, str) for capability in capabilities)
+            and set(capabilities) == EXPECTED_CAPABILITIES
+        )
+        null_name_prefix = allowed_mapping.get("namePrefix") is None
+        no_provider_expiration = (
+            document.get("applicationKeyExpirationTimestamp") is None
+        )
+        exact_s3_endpoint = storage.get("s3ApiUrl") == ENDPOINT
+        recorder.scope(
+            response_shape,
+            bucket_count,
+            exact_bucket_match,
+            exact_capabilities,
+            null_name_prefix,
+            no_provider_expiration,
+            exact_s3_endpoint,
+        )
+        if response_shape != "allowed_buckets_array" or not exact_bucket_match:
             raise ProbeBlocked("bucket_scope_mismatch")
-        if allowed.get("namePrefix") is not None:
+        if not exact_capabilities:
+            raise ProbeBlocked("capability_scope_mismatch")
+        if not null_name_prefix:
             raise ProbeBlocked("prefix_scope_mismatch")
-        if storage.get("s3ApiUrl") != ENDPOINT:
+        if not exact_s3_endpoint:
             raise ProbeBlocked("s3_endpoint_mismatch")
-        if document.get("applicationKeyExpirationTimestamp") is not None:
+        if not no_provider_expiration:
             raise ProbeBlocked("credential_expiration_present")
 
         response = s3_transport.request("GET", query=_list_query(prefix))

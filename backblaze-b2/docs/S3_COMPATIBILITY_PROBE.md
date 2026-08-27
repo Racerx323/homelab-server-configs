@@ -21,9 +21,17 @@ probe must not broaden the replacement key or create another key.
 Before readiness, the launcher provides a separately authorized `preflight`
 mode. It reads only the two canonical `homelab-dev/prd_b2` values into memory,
 authenticates them with `b2_authorize_account`, and requires the exact seven
-capabilities, bucket identity, null name prefix, no provider expiration, and
-reviewed S3 endpoint. It then lists only a fresh generated probe prefix and
-requires it to be empty.
+capabilities, exactly one entry in the v4 `storageApi.allowed.buckets` array,
+the reviewed bucket ID and name in that entry, null name prefix, no provider
+expiration, and the reviewed S3 endpoint. It then lists only a fresh generated
+probe prefix and requires it to be empty.
+
+Before evaluating any scope gate, the client writes a sanitized observation
+containing only the response-shape classification, bounded bucket count, and
+booleans for the exact bucket, capability, prefix, expiration, and endpoint
+checks. It never retains bucket IDs, bucket names, credential identifiers, or
+the raw authorization response. Legacy scalar scope fields and zero-entry or
+multi-entry bucket arrays fail closed.
 
 The preflight cannot put or delete an object, use administrator or candidate
 credentials, fall back to the deleted old key, contact Restic, or contact a

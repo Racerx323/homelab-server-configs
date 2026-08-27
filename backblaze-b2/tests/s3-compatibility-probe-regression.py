@@ -100,8 +100,9 @@ def authorization_response() -> dict[str, Any]:
                 "apiUrl": "https://api123.backblazeb2.com",
                 "s3ApiUrl": CLIENT.ENDPOINT,
                 "allowed": {
-                    "bucketId": CLIENT.BUCKET_ID,
-                    "bucketName": CLIENT.BUCKET,
+                    "buckets": [
+                        {"id": CLIENT.BUCKET_ID, "name": CLIENT.BUCKET}
+                    ],
                     "capabilities": sorted(CLIENT.EXPECTED_CAPABILITIES),
                     "namePrefix": None,
                 },
@@ -325,6 +326,18 @@ class ReadOnlyPreflightTests(unittest.TestCase):
         self.assertEqual(s3.calls[0]["object_key"], None)
         self.assertEqual(self.fixture.document()["result"], "preflight_passed")
         self.assertFalse(self.fixture.document()["mutation"]["put_attempted"])
+        self.assertEqual(
+            self.fixture.document()["scope"],
+            {
+                "response_shape": "allowed_buckets_array",
+                "bucket_count": 1,
+                "exact_bucket_match": True,
+                "exact_capabilities": True,
+                "null_name_prefix": True,
+                "no_provider_expiration": True,
+                "exact_s3_endpoint": True,
+            },
+        )
 
     def test_scope_mismatch_blocks_before_s3_request(self) -> None:
         payload = authorization_response()
@@ -343,17 +356,15 @@ class ReadOnlyPreflightTests(unittest.TestCase):
 
     def test_every_scope_field_is_fail_closed(self) -> None:
         mutations = (
-            ("bucketId", "wrong"),
-            ("bucketName", "wrong"),
-            ("namePrefix", "restricted/"),
-            ("s3ApiUrl", "https://wrong.invalid"),
+            ("id", "wrong"),
+            ("name", "wrong"),
         )
         for field, value in mutations:
             with self.subTest(field=field):
                 fixture = RecorderFixture()
                 try:
                     payload = authorization_response()
-                    payload["apiInfo"]["storageApi"]["allowed"][field] = value
+                    payload["apiInfo"]["storageApi"]["allowed"]["buckets"][0][field] = value
                     result = CLIENT.perform_read_only_preflight(
                         b"canonical-id", b"canonical-value", FakeTransport([]),
                         fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
@@ -361,6 +372,125 @@ class ReadOnlyPreflightTests(unittest.TestCase):
                     self.assertEqual(result, "preflight_blocked")
                 finally:
                     fixture.close()
+
+    def test_non_bucket_scope_fields_are_fail_closed_after_observation(self) -> None:
+        def add_capability(payload: dict[str, Any]) -> None:
+            payload["apiInfo"]["storageApi"]["allowed"]["capabilities"].append(
+                "writeBuckets"
+            )
+
+        def set_name_prefix(payload: dict[str, Any]) -> None:
+            payload["apiInfo"]["storageApi"]["allowed"]["namePrefix"] = (
+                "restricted/"
+            )
+
+        def set_s3_endpoint(payload: dict[str, Any]) -> None:
+            payload["apiInfo"]["storageApi"]["s3ApiUrl"] = (
+                "https://wrong.invalid"
+            )
+
+        def set_expiration(payload: dict[str, Any]) -> None:
+            payload["applicationKeyExpirationTimestamp"] = 123
+
+        cases = (
+            ("capabilities", add_capability, "capability_scope_mismatch"),
+            ("name_prefix", set_name_prefix, "prefix_scope_mismatch"),
+            ("s3_endpoint", set_s3_endpoint, "s3_endpoint_mismatch"),
+            ("expiration", set_expiration, "credential_expiration_present"),
+        )
+        for name, mutate, expected_error in cases:
+            with self.subTest(name=name):
+                fixture = RecorderFixture()
+                try:
+                    payload = authorization_response()
+                    mutate(payload)
+                    result = CLIENT.perform_read_only_preflight(
+                        b"canonical-id", b"canonical-value", FakeTransport([]),
+                        fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+                    )
+                    self.assertEqual(result, "preflight_blocked")
+                    evidence = fixture.document()
+                    self.assertEqual(evidence["error_class"], expected_error)
+                    self.assertIn("scope", evidence)
+                finally:
+                    fixture.close()
+
+    def test_scope_shape_is_recorded_before_legacy_scalar_rejection(self) -> None:
+        payload = authorization_response()
+        allowed = payload["apiInfo"]["storageApi"]["allowed"]
+        allowed.pop("buckets")
+        allowed["bucketId"] = CLIENT.BUCKET_ID
+        allowed["bucketName"] = CLIENT.BUCKET
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", FakeTransport([]),
+            self.fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+        )
+        self.assertEqual(result, "preflight_blocked")
+        evidence = self.fixture.document()
+        self.assertEqual(evidence["error_class"], "bucket_scope_mismatch")
+        self.assertEqual(evidence["scope"]["response_shape"], "legacy_scalar")
+        self.assertEqual(evidence["scope"]["bucket_count"], 1)
+        self.assertFalse(evidence["scope"]["exact_bucket_match"])
+
+    def test_non_single_allowed_buckets_are_rejected_with_sanitized_count(self) -> None:
+        cases = (
+            ([], 0),
+            (
+                [
+                    {"id": CLIENT.BUCKET_ID, "name": CLIENT.BUCKET},
+                    {"id": "unrelated-id", "name": "unrelated-name"},
+                ],
+                2,
+            ),
+        )
+        for buckets, expected_count in cases:
+            with self.subTest(bucket_count=expected_count):
+                fixture = RecorderFixture()
+                try:
+                    payload = authorization_response()
+                    payload["apiInfo"]["storageApi"]["allowed"]["buckets"] = buckets
+                    result = CLIENT.perform_read_only_preflight(
+                        b"canonical-id", b"canonical-value", FakeTransport([]),
+                        fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+                    )
+                    self.assertEqual(result, "preflight_blocked")
+                    evidence = fixture.document()
+                    self.assertEqual(
+                        evidence["scope"]["bucket_count"], expected_count
+                    )
+                    self.assertFalse(evidence["scope"]["exact_bucket_match"])
+                    self.assertNotIn("unrelated-id", json.dumps(evidence))
+                    self.assertNotIn("unrelated-name", json.dumps(evidence))
+                finally:
+                    fixture.close()
+
+    def test_malformed_allowed_buckets_is_observed_before_rejection(self) -> None:
+        payload = authorization_response()
+        payload["apiInfo"]["storageApi"]["allowed"]["buckets"] = {
+            "id": CLIENT.BUCKET_ID,
+            "name": CLIENT.BUCKET,
+        }
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", FakeTransport([]),
+            self.fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+        )
+        self.assertEqual(result, "preflight_blocked")
+        evidence = self.fixture.document()
+        self.assertEqual(evidence["error_class"], "bucket_scope_mismatch")
+        self.assertEqual(evidence["scope"]["response_shape"], "allowed_buckets_invalid")
+
+    def test_duplicate_capability_is_not_exact(self) -> None:
+        payload = authorization_response()
+        capabilities = payload["apiInfo"]["storageApi"]["allowed"]["capabilities"]
+        capabilities.append(capabilities[0])
+        result = CLIENT.perform_read_only_preflight(
+            b"canonical-id", b"canonical-value", FakeTransport([]),
+            self.fixture.recorder, self.RUN_ID, FakeNativeOpener(payload),
+        )
+        self.assertEqual(result, "preflight_blocked")
+        evidence = self.fixture.document()
+        self.assertEqual(evidence["error_class"], "capability_scope_mismatch")
+        self.assertFalse(evidence["scope"]["exact_capabilities"])
 
     def test_expiration_is_rejected(self) -> None:
         payload = authorization_response()
