@@ -99,6 +99,10 @@ ownership, evidence, and safety boundaries below.
 - Run the smallest test set that covers the changed behavior and its safety
   boundaries. Documentation and manifest metadata normally need structural
   checks rather than new behavioral suites.
+- Run repository validation commands that invoke Ansible through
+  `tests/repository/run-with-ansible-local-temp.sh`. The helper owns only a
+  unique, protected controller-side temporary directory; it must not add
+  inventory, transport, privilege, orchestration, or deployment behavior.
 - Add a neutral regression when executable behavior or a durable safety
   boundary changes. Current tests must exercise current entrypoints, not
   archived operation implementations.

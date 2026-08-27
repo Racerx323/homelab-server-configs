@@ -13,5 +13,6 @@ readonly test_directory
 /bin/bash "$test_directory/multifile-grep-count-policy.sh" --self-test
 /bin/bash "$test_directory/portable-awk-policy.sh" --self-test
 /bin/bash "$test_directory/remote-streamed-bash-policy.sh" --self-test
+/bin/bash "$test_directory/run-with-ansible-local-temp-regression.sh"
 
 printf 'repository_shell_policy_self_tests_complete=true\n'

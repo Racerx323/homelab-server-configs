@@ -196,6 +196,7 @@ repos:
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture
         entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
           /bin/bash Nautobot/ansible/scripts/run-qualification.sh self-test
         language: system
         pass_filenames: false
@@ -225,6 +226,7 @@ repos:
       - id: nautobot-host-baseline-launcher
         name: Validate Nautobot host-baseline operation
         entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
           /bin/bash Nautobot/ansible/scripts/run-host-baseline.sh self-test
         language: system
         pass_filenames: false
@@ -234,6 +236,7 @@ repos:
       - id: nautobot-storage-diagnostic-launcher
         name: Validate Nautobot read-only storage diagnostic
         entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
           /bin/bash Nautobot/ansible/scripts/run-storage-diagnostic.sh self-test
         language: system
         pass_filenames: false
@@ -249,6 +252,7 @@ repos:
       - id: nautobot-host-baseline-rollback-launcher
         name: Validate Nautobot standalone host-baseline rollback
         entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
           /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh self-test
         language: system
         pass_filenames: false
@@ -258,6 +262,7 @@ repos:
       - id: nautobot-uas-quirk-launcher
         name: Validate Nautobot JMicron UAS-quirk operation
         entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
           /bin/bash Nautobot/ansible/scripts/run-uas-quirk.sh self-test
         language: system
         pass_filenames: false
