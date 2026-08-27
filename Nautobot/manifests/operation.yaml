@@ -3,8 +3,8 @@ schema_version: 1
 
 operation:
   id: nautobot-storage-soak-verification-v1
-  state: definition
-  authorization_ready: false
+  state: pending
+  authorization_ready: true
   stage: storage_soak_verification
   target:
     host: j2-svpi4mf
@@ -15,7 +15,7 @@ operation:
     decision: Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
   source:
     repository: homelab-server-configs
-    base_commit: a65d1f5a862641a0f21fe5dbaaef8e28fed4f8b7
+    base_commit: 2a16521b4d2804628b21ab92b214b4da5a48b872
 
 predecessor:
   operation: nautobot-storage-diagnostic-v2
@@ -135,6 +135,4 @@ authorization:
     - caddy_onboarding
     - authority_migration
     - semaphore
-  blockers:
-    - definition_checkpoint_required
-    - explicit_read_only_authorization_required
+  blockers: []
