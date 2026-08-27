@@ -1,0 +1,66 @@
+---
+schema_version: 1
+
+operation:
+  id: backblaze-b2-replacement-key-creation-v1
+  result: completed_by_operator_after_automated_failure
+  definition_commit: 4dcc376bf24e9e343718c26596b6c9beac055429
+  bundle_sha256: 049e7292b429d03cf79ef9e24c1e24533d033c4eb64e88b2aec5864a732b0bbd
+  evidence_written_at_utc: "2026-08-27T21:32:38Z"
+  provider_mutation_performed_by_automation: false
+  provider_and_doppler_mutations_performed_by_operator: true
+
+automated_attempt:
+  result: manual_intervention
+  provider_create_attempted: true
+  provider_create_response_received: false
+  error_class: provider_http_500
+  credential_values_or_identifiers_retained: false
+  automatic_retry_performed: false
+  automatic_cleanup_performed: false
+  protected_fifo_residue_observed: true
+
+operator_recovery:
+  exact_replacement_key_created: true
+  canonical_doppler_secret_names_updated: true
+  canonical_authentication_succeeds: true
+  authentication_api_version: v4
+  exact_capability_set: true
+  exact_bucket_scope: true
+  unrestricted_prefix_is_null: true
+  provider_expiration_absent: true
+  s3_option_present: true
+  original_overprivileged_key_retained: true
+
+acceptance:
+  canonical_credential_read_only_validation_passed: true
+  restic_compatibility_test_passed: false
+  isolated_restore_test_passed: false
+  original_overprivileged_key_revocation_authorized: false
+  credential_accepted_for_restic_use: false
+
+evidence_boundary:
+  credential_values_retained: false
+  account_bucket_or_credential_identifiers_recorded: false
+  raw_provider_or_doppler_responses_retained: false
+  secrets_recorded: false
+
+decision:
+  replacement_key_creation_complete: true
+  canonical_promotion_performed_by_operator: true
+  original_key_must_be_retained: true
+  next_action: define_isolated_restic_compatibility_and_restore_verification
+
+raw_automated_evidence:
+  committed_to_git: false
+  local_directory: /tmp/backblaze-b2-replacement-key-creation.2kv1G7
+  files:
+    - name: provider-result.json
+      bytes: 1207
+      sha256: 9993e80209f965f7198a81cc004d8d7c038ecfac2f8ecd06ef1bd40d0bfef995
+    - name: bundle.sha256
+      bytes: 65
+      sha256: 87122d82c1f8160fe336daa4187b2ec2d8668900a8497510e2af155ae02f9554
+    - name: bundle-files.sha256
+      bytes: 1629
+      sha256: b91b9cf5431a060daee7d7e6ee7f80acb9355dd90ef02bbe1360055f7c749b8e
