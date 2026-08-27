@@ -32,22 +32,28 @@ for Restic use.
 
 The terminal result is indexed in [HISTORY.md](HISTORY.md). The unready
 [capability-remediation decision](docs/CAPABILITY_REMEDIATION_DECISION.md)
-defines the review required before a replacement-key operation. Restic
-repository initialization remains separately blocked.
+selects the least-privilege replacement design. Its read-only
+[API/authentication preflight](docs/CAPABILITY_REMEDIATION_PREFLIGHT.md) is
+defined but remains unimplemented and unauthorized. Restic repository
+initialization remains separately blocked.
 
 ## Layout
 
 - `AGENTS.md`: component editing and live-operation rules;
 - `HISTORY.md`: concise terminal-operation index;
 - `docs/B2_ARCHITECTURE.md`: governing architecture;
-- `docs/CAPABILITY_REMEDIATION_DECISION.md`: unready least-privilege key
+- `docs/CAPABILITY_REMEDIATION_DECISION.md`: reviewed least-privilege key
   replacement decision;
+- `docs/CAPABILITY_REMEDIATION_PREFLIGHT.md`: unready read-only API and
+  authentication preflight;
 - `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
 - `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
 - `manifests/operation.yaml`: the single B2 operation-state manifest;
 - `schemas/desired-state.schema.json`: desired-state validation; and
-- `schemas/operation.schema.json`: operation-state validation.
+- `schemas/operation.schema.json`: operation-state validation;
+- `schemas/capability-remediation-preflight.schema.json`: exact preflight
+  definition validation.
 
 Add scripts or consumer-specific paths after they contain reviewed
 configuration or executable behavior.

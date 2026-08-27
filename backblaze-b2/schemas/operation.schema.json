@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/backblaze-b2-operation.json",
   "title": "Backblaze B2 operation state",
   "oneOf": [
     {
@@ -152,7 +151,8 @@
           }
         }
       ]
-    }
+    },
+    {"$ref": "capability-remediation-preflight.schema.json"}
   ],
   "$defs": {
     "targets": {

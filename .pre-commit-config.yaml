@@ -191,7 +191,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^backblaze-b2/(?:manifests/operation\.yaml|schemas/operation\.schema\.json)$
+          ^backblaze-b2/(?:manifests/operation\.yaml|schemas/(?:operation|capability-remediation-preflight)\.schema\.json)$
 
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture

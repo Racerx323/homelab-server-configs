@@ -2,49 +2,34 @@
 
 ## Status and scope
 
-This is an unready, definition-only decision. It does not authorize provider,
-Doppler, Restic, or host contact. The rejected bootstrap is preserved by tag
-`backblaze-b2-nautobot-bootstrap-v1-rejected-capability-scope`.
+This decision is reviewed. It selects the least-privilege replacement design
+and resolves the seven definition blockers identified after the rejected
+bootstrap. It does not authorize provider, Doppler, Restic, or host contact.
 
-The created bucket, rejected application key, Doppler config, and stored
-credentials remain live residue. The bucket is empty and no Restic repository
-has been initialized. Do not revoke the only stored key, overwrite its Doppler
-values, or delete the bucket without a separately reviewed operation.
+The rejected bootstrap is preserved by tag
+`backblaze-b2-nautobot-bootstrap-v1-rejected-capability-scope`. The created
+bucket, rejected application key, Doppler config, and stored credentials remain
+live residue. The bucket is empty and no Restic repository has been
+initialized.
 
 ## Observed conflict
 
 The Backblaze console's **Read and Write** preset created a key restricted to
-the exact Nautobot bucket, but the provider readback included settings-changing
+the exact Nautobot bucket, but provider readback included settings-changing
 capabilities such as `writeBuckets`, `writeBucketLifecycleRules`,
-`writeBucketEncryption`, and `writeBucketReplications`. Those capabilities
-conflict with the reviewed boundary that B2 configuration remains owned by a
-separate provider operation.
+`writeBucketEncryption`, and `writeBucketReplications`. Bucket scope does not
+make those additional administration capabilities acceptable.
 
-The rejected key also has the required file list, read, write, and delete
-capabilities. Bucket scope alone does not make its additional administration
-capabilities acceptable.
+## Decision
 
-## Options evaluated
+Create the replacement with `POST /b2api/v4/b2_create_key` in a future,
+separately authorized operation. The API accepts an explicit capability array
+and exact bucket-ID restriction. Do not recreate or accept the console preset.
 
-| Option | Evaluation |
-| --- | --- |
-| Accept the console-created key | Rejected. It violates the reviewed least-privilege contract. |
-| Recreate the key through the same console preset | Rejected. It would reproduce the observed capability set. |
-| Create a replacement with the B2 Native API | Preferred, pending the blockers and validation below. The API accepts an explicit capability list and exact bucket restriction. |
-| Revoke or delete current residue now | Rejected. No cleanup mutation is authorized, and replacement access is not yet proven. |
-
-## Proposed API contract
-
-Use `POST /b2api/v4/b2_create_key` only in a future hash-bound operation. Build
-the request from independently verified provider metadata and protected
-administrator authentication. Never put the account ID, authorization token,
-application-key ID, or application-key value in Git, arguments, logs, or
-evidence.
-
-The proposed non-secret request policy is:
+The reviewed non-secret candidate contract is:
 
 ```yaml
-key_name: unresolved_pending_review
+key_name: homelab-nautobot-restic-prd-v2
 bucket_ids:
   - 4d1bda761665474eaf030b18
 name_prefix: ""
@@ -59,48 +44,66 @@ capabilities:
   - deleteFiles
 ```
 
-The candidate deliberately excludes bucket creation, deletion, settings
-writes, lifecycle, encryption, logging, notifications, replication, key
-administration, retention, legal hold, and governance bypass. `shareFiles` is
-also excluded unless an isolated compatibility test proves it is required.
+The candidate excludes bucket creation, deletion, and settings writes; key
+administration; lifecycle, encryption, logging, notifications, and
+replication writes; retention and legal-hold administration; governance
+bypass; and `shareFiles`. Add no capability during execution. A missing
+capability is a failed compatibility test and requires a new reviewed
+decision—not an in-place expansion.
 
 Backblaze documents the request fields in
-[b2_create_key](https://www.backblaze.com/apidocs/b2-create-key). The future
-operation must use the API URL returned by protected account authorization,
-not a hard-coded account endpoint.
+[b2_create_key](https://www.backblaze.com/apidocs/b2-create-key). Use the API
+URL returned by protected account authorization rather than a hard-coded
+account endpoint.
 
-## Required sequence for a future operation
+## Resolved blockers
 
-1. Read back the exact bucket ID, empty state, endpoint, and rejected-key
-   residue without exposing unrelated provider data.
-2. Resolve and review a distinct replacement-key name and temporary Doppler
-   candidate-key names.
-3. Prove a protected administrator authentication method that has key-creation
-   authority without exposing the master credential.
-4. Create one exact-bucket replacement key with the explicit capability list.
-5. Keep the one-time result open while streaming both values directly to the
-   temporary Doppler names.
-6. Read back the exact key name, bucket IDs, prefix, expiration, S3 option, and
-   capability set. Reject any extra capability.
-7. Run a separately authorized isolated S3 compatibility check. It must not
-   initialize Restic; any write/delete probe requires an explicit object
-   mutation and cleanup contract.
-8. Promote the candidate credentials to the canonical Doppler names only
-   after candidate acceptance.
-9. Treat revocation of the rejected key as a later, separately authorized
-   mutation after all consumers are proven to use the replacement.
+| Blocker | Reviewed resolution |
+| --- | --- |
+| Replacement-key name | `homelab-nautobot-restic-prd-v2` |
+| Temporary Doppler names | `NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY_ID` and `NAUTOBOT_RESTIC_B2_CANDIDATE_APPLICATION_KEY` in `homelab-dev/prd/prd_b2` |
+| Administrator authentication and transport | An existing operator-provided credential with `listKeys`, `writeKeys`, `listBuckets`, `readBuckets`, and `listFiles`; values enter protected FIFOs, are consumed once by an in-memory Python HTTPS client, and are never placed in argv, environment, files, logs, or evidence |
+| Capability sufficiency | The seven-capability set is the only candidate; exact API readback and the isolated S3 probe below are mandatory acceptance gates |
+| Isolated probe | One random object beneath `__capability_probe__/homelab-nautobot-restic-prd-v2/`; require list, put, head, get, delete, and absence readback; never initialize Restic |
+| Doppler promotion and rollback | Store the candidate under temporary names first; leave canonical values unchanged until acceptance; retain the rejected key and canonical values as rollback until promotion readback passes |
+| Rejected-key revocation | A separate operation after candidate acceptance, canonical promotion, and proof that no consumer uses the rejected key |
 
-## Blockers before an operation may be defined
+## Authentication boundary
 
-- replacement application-key name review;
-- temporary Doppler candidate-key name review;
-- protected administrator authentication and API transport design;
-- confirmation that the proposed capability set is sufficient for the
-  intended S3-compatible Restic client;
-- isolated probe scope, cleanup, and evidence design;
-- canonical Doppler promotion and rollback design; and
-- rejected-key revocation timing and recovery boundary.
+The read-only preflight may call `b2_authorize_account`, `b2_list_keys`,
+`b2_list_buckets`, and `b2_list_file_names`. The supplied credential must
+authorize successfully and expose `listKeys`, `writeKeys`, `listBuckets`,
+`readBuckets`, and `listFiles`. `writeKeys` is observed only to prove future
+creation authority;
+the preflight must not call a key-creation, key-deletion, bucket-write, or file-
+write endpoint.
 
-No Backblaze B2 configuration is accepted until a replacement passes every
-policy and compatibility gate. Restic initialization remains a separate later
-operation.
+The implementation must use the Python standard library with default TLS
+verification and proxies disabled. It reads the two credential values from
+separate owned FIFOs beneath a mode-`0700` evidence directory, immediately
+unlinks the FIFOs after opening them, builds HTTP Basic authorization and the
+returned account token in memory, and never serializes raw responses.
+
+## Replacement and compatibility sequence
+
+1. Complete and accept the separately authorized read-only authentication and
+   residue preflight.
+2. Define a hash-bound replacement-key creation operation using the exact
+   reviewed request policy.
+3. Stream the one-time replacement values directly into the two temporary
+   Doppler candidate names.
+4. Require exact API readback of key name, bucket IDs, prefix, expiration,
+   `s3` option, and capability set; reject any difference or extra capability.
+5. In a separately authorized compatibility stage, create one random probe
+   object beneath the reviewed prefix, prove list/head/get behavior and exact
+   content, delete it, and prove absence. Retain residue and stop if cleanup
+   cannot be proven.
+6. Promote candidate values to the canonical Doppler names through a separate
+   operation. Keep the rejected key valid until promotion readback succeeds.
+7. Revoke the rejected key only through a later operation after proving no
+   consumer uses it. Remove temporary Doppler names only after canonical
+   authentication succeeds.
+
+No Backblaze B2 configuration is accepted until the replacement passes policy,
+authentication, compatibility, promotion, and cleanup gates. Restic
+initialization remains a separate later operation.
