@@ -1,0 +1,12 @@
+[Unit]
+Description=Monthly ReconYa IEEE OUI database refresh
+
+[Timer]
+OnCalendar=monthly
+Persistent=true
+RandomizedDelaySec=6h
+AccuracySec=1min
+Unit=reconya-oui-update.service
+
+[Install]
+WantedBy=timers.target

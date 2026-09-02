@@ -1,0 +1,5 @@
+# Publisher checksum from the SHA256SUMS asset attached to the v0.26.0 release.
+31e6ee19536e90c24d676446a950feee3d5e8e53fb6ef429e50568eb916be812  reconya-linux-arm64.tar.gz
+
+# Independently recorded checksum of reconya-linux-arm64 after extraction.
+0f5bdd5c2198f190316595b235f7c2c2fe828632baf320f773bcb5c2f990c4c3  reconya-linux-arm64

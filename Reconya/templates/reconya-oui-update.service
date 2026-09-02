@@ -1,0 +1,22 @@
+[Unit]
+Description=Refresh ReconYa IEEE OUI database
+Wants=network-online.target
+After=network-online.target reconya.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /usr/local/sbin/update-reconya-oui
+User=root
+Group=root
+UMask=0022
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectHome=read-only
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/reconya/data/oui
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true

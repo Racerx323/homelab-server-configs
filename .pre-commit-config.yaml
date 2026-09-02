@@ -18,6 +18,45 @@ repos:
         language: system
         types: [shell]
 
+      - id: reconya-service-policy
+        name: Validate ReconYa shutdown bound
+        entry: /bin/bash Reconya/scripts/check-reconya-service.sh
+        language: system
+        pass_filenames: false
+        files: ^Reconya/(?:reconya-installation\.md|scripts/check-reconya-service\.sh|templates/reconya\.service)$
+
+      - id: reconya-binary-update-policy
+        name: Validate ReconYa binary update transaction
+        entry: /bin/bash Reconya/tests/reconya-binary-update-policy.sh
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|Reconya/(?:manifests/reconya-v0\.26\.0\.sha256|operations/update-v0\.26\.0\.md|reconya-installation\.md|scripts/(?:deploy|prepare)-reconya-update\.sh|tests/reconya-binary-update-policy\.sh))$
+
+      - id: reconya-oui-update-policy
+        name: Validate ReconYa OUI update lifecycle
+        entry: /bin/bash Reconya/tests/reconya-oui-update-policy.sh
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|Reconya/(?:HISTORY\.md|operations/install-oui-updater\.md|reconya-installation\.md|scripts/(?:deploy-reconya-oui-updater|prepare-reconya-oui-deployment|update-reconya-oui)\.sh|templates/reconya-oui-update\.(?:service|timer)|tests/reconya-oui-update-policy\.sh))$
+
+      - id: reconya-environment-config-policy
+        name: Validate ReconYa environment configuration
+        entry: /bin/bash Reconya/tests/reconya-environment-config-policy.sh
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.gitignore|\.pre-commit-config\.yaml|Reconya/(?:configs/(?:README\.md|svmf\.env\.example)|operations/reconcile-environment-config\.md|reconya-installation\.md|scripts/(?:deploy-reconya-environment-config|prepare-reconya-environment-config-deployment)\.sh|tests/reconya-environment-config-policy\.sh))$
+
+      - id: reconya-sigint-workaround-policy
+        name: Validate ReconYa SIGINT workaround
+        entry: /bin/bash Reconya/tests/reconya-sigint-workaround-policy.sh
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:\.pre-commit-config\.yaml|Reconya/(?:HISTORY\.md|operations/(?:install-sigint-workaround|upstream-sigterm-(?:issue-body|proposal)|update-v0\.26\.0)\.md|reconya-installation\.md|scripts/(?:check-reconya-service|deploy-reconya-sigint-workaround|prepare-reconya-sigint-workaround)\.sh|templates/reconya\.service|tests/(?:reconya-binary-update-policy|reconya-sigint-workaround-policy)\.sh))$
+
       - id: multifile-grep-count-policy
         name: Reject multi-file grep scalar counts
         entry: tests/repository/multifile-grep-count-policy.sh --check

@@ -6,6 +6,10 @@
 *.err
 *.pid
 
+# ReconYa target credentials
+/Reconya/.env
+/Reconya/configs/*.env
+
 # General ignores
 .DS_Store
 Thumbs.db
