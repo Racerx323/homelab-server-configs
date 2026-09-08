@@ -18,7 +18,8 @@ storage:
   root:
     capacity_tb: 1
     interface: usb_3
-    transport: uas
+    transport: usb_storage
+    uas_disabled: true
     filesystem: ext4
     adapter:
       manufacturer: geekworm

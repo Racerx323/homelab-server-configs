@@ -2,10 +2,12 @@
 
 ## Purpose
 
-Use this preflight to verify an existing Restic repository before a consumer
-defines a backup, check, or restore operation. The preflight reads the remote
-repository config object. It does not initialize the repository, create a lock,
-populate a local cache, enumerate snapshots, or write backup data.
+Use this preflight to inspect the exact Restic repository location before a
+consumer defines initialization, backup, check, or restore. The preflight reads
+the remote repository config object and can distinguish an existing repository
+from Restic's exact config-absent exit status. It does not initialize the
+repository, create a lock, populate a local cache, enumerate snapshots, or write
+backup data.
 
 The consumer must supply the reviewed non-secret endpoint, bucket, optional
 prefix, and initialization owner before execution. The preflight confirms the

@@ -1,11 +1,15 @@
 # Backblaze B2 capability-remediation read-only preflight
 
+> [!IMPORTANT]
+> This is the retired v3 preflight contract. Its terminal result is indexed in
+> `../HISTORY.md`. It must not be executed or used to infer current key residue;
+> a future remediation requires a new operation and fresh observations.
+
 ## Purpose
 
-Prove that the retained master credential can authenticate to the B2 Native API
-and collect the exact non-secret inputs required for a future replacement-key
-operation. This v3 successor is definition-only, unready, and requires separate
-read-only execution authorization.
+The v3 operation used this contract to prove that the retained master credential
+could authenticate to the B2 Native API and collect the exact non-secret inputs
+required for its replacement-key operation.
 
 It must not create, update, or delete a bucket, key, object, Doppler config, or
 secret. It must not contact Restic or any homelab host.
@@ -54,7 +58,7 @@ No other endpoint is permitted. In particular, prohibit `b2_create_key`,
 `b2_delete_key`, bucket writes, lifecycle or encryption writes, file upload,
 file deletion, and every S3 object request.
 
-## Assertions
+## Historical v3 assertions
 
 Require all of the following:
 

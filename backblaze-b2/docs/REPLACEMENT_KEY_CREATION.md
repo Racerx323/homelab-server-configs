@@ -1,20 +1,28 @@
 # Backblaze B2 replacement-key creation
 
+> [!IMPORTANT]
+> This document preserves the consumed v1 contract. Its terminal result is
+> indexed in `../HISTORY.md`. The residue assertions and names below are
+> historical and must not be reused as current preconditions. A future rotation
+> requires a new operation definition with independently observed inputs.
+
 ## Purpose and authorization boundary
 
-This is the corrected reusable contract for the exact least-privilege
-replacement application key selected in `CAPABILITY_REMEDIATION_DECISION.md`.
-The consumed v1 operation is preserved by its terminal tag and is no longer
-active. A future use requires a new operation definition, review, checkpoint,
-and explicit hash-bound authorization.
+This is the corrected contract used for the exact least-privilege replacement
+application key selected in `CAPABILITY_REMEDIATION_DECISION.md`. The consumed
+v1 operation is preserved by its terminal tag and is no longer active.
 
-Such an authorization may cover the bounded read-only preconditions,
+Do not reactivate this contract in place. A future key rotation must define its
+own names, observed residue, acceptance path, checkpoint, and authorization
+bundle.
+
+The consumed v1 authorization could cover the bounded read-only preconditions,
 one exact `b2_create_key` request, provider metadata readback, and the protected
-candidate-secret write. It must not authorize object mutation, consumer
+candidate-secret write. It did not authorize object mutation, consumer
 authentication, canonical-secret promotion, rejected-key revocation, Restic
 initialization, or host contact.
 
-## Required preconditions
+## Consumed v1 preconditions
 
 - The passed v3 preflight tag and evidence hashes match the operation manifest.
 - The exact bucket and rejected-key residue remain unchanged.

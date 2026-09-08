@@ -16,6 +16,10 @@ These rules apply beneath `backblaze-b2/` and refine the repository rules in
 
 - Keep reviewed non-secret bucket definitions, schemas, sanitized identities,
   operation specifications, and operator documentation under `backblaze-b2/`.
+- `manifests/desired-state.yaml` owns intended non-secret provider policy.
+  `manifests/accepted-live-state.yaml` owns the latest accepted non-secret
+  bucket, endpoint, application-key policy, and terminal provenance identity.
+  `manifests/operation.yaml` owns at most one active B2 operation.
 - Add a manifest or implementation path only when it contains reviewed values
   or executable behavior. Do not create placeholder trees.
 - Keep application keys, key IDs, account identifiers, credential files, raw

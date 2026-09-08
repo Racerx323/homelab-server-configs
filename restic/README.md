@@ -15,9 +15,11 @@ provider bucket, application-key scope, and S3 object transaction for Restic
 transport. Repository initialization remains a separate, unimplemented
 operation. The reviewed initialization boundary is documented in
 [docs/REPOSITORY_INITIALIZATION.md](docs/REPOSITORY_INITIALIZATION.md). Its
-active consumer definition remains unready until the password secret and an
-independent recovery location are confirmed and the implementation is
-reviewed.
+active consumer definition records the confirmed password and independent
+recovery references plus a passed repository-absence preflight. It remains
+unready until the host baseline is accepted, the initialization implementation
+is reviewed and checkpointed, a final bundle is calculated, and explicit live
+authorization is granted.
 
 ## Ownership
 

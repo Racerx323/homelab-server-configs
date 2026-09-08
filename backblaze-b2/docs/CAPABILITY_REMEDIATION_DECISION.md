@@ -2,15 +2,20 @@
 
 ## Status and scope
 
-This decision is reviewed. It selects the least-privilege replacement design
-and resolves the seven definition blockers identified after the rejected
-bootstrap. It does not authorize provider, Doppler, Restic, or host contact.
+> [!NOTE]
+> This is the historical reviewed decision that selected the least-privilege
+> replacement design after the rejected bootstrap. Its operations are terminal
+> and indexed in `../HISTORY.md`; this document is not active operation state.
 
-The rejected bootstrap is preserved by tag
+The decision resolved the seven definition blockers identified after the
+rejected bootstrap. It does not authorize provider, Doppler, Restic, or host
+contact.
+
+At the time of this decision, the rejected bootstrap was preserved by tag
 `backblaze-b2-nautobot-bootstrap-v1-rejected-capability-scope`. The created
-bucket, rejected application key, Doppler config, and stored credentials remain
-live residue. The bucket is empty and no Restic repository has been
-initialized.
+bucket, rejected application key, Doppler config, and stored credentials were
+live residue. Subsequent residue and acceptance state are intentionally not
+represented here; consult `../HISTORY.md` and the accepted-live-state manifest.
 
 ## Observed conflict
 
@@ -91,7 +96,10 @@ builds HTTP Basic authorization and the returned account token in memory, and
 never serializes raw responses. It must exclude `DOPPLER_TOKEN` and unrelated
 environment values from the child process.
 
-## Replacement and compatibility sequence
+## Selected replacement and compatibility sequence
+
+The following sequence records the reviewed historical decision. It is not a
+current checklist and does not prove that any listed residue still exists.
 
 1. Complete and accept the separately authorized read-only authentication and
    residue preflight.

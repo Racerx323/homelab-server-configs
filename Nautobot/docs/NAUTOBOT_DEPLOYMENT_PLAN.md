@@ -25,7 +25,7 @@ live stage requires separately reviewed inputs and scoped authorization.
 | Platform | Raspberry Pi 4B, four ARM64 cores, 8 GB RAM |
 | Power | PoE Texas `GAT-PiHAT`, IEEE 802.3at, rated up to 20 W |
 | Storage adapter | Geekworm `X872 V2.0`, USB 3.0 to M.2 NVMe, up to 5 Gbps |
-| Storage | 1 TB NVMe over USB 3 UAS, ext4 root filesystem |
+| Storage | 1 TB NVMe over USB 3 through JMicron `152d:0583`, `usb-storage` driver, ext4 root filesystem |
 | Container runtime | Rootless Podman with user Quadlets |
 
 Before defining the host-baseline operation, a fresh read-only qualification
@@ -36,12 +36,15 @@ architecture plan and bind its sanitized evidence manifest to the operation.
 ARM64 remains a pilot risk because Nautobot publishes ARM64 images but does not
 cover that architecture in its automated tests.
 
-The storage diagnostic must treat both the power and transport paths as
-possible contributors to a USB/UAS reset. Verify the negotiated PoE supply,
-Raspberry Pi throttling history, USB link speed, bridge identity, UAS driver,
-and NVMe health from the live host rather than inferring them from product
-names. Manufacturer references: [PoE Texas GAT-PiHAT][gat-pihat] and
-[Geekworm X872 V2.0][x872-v2].
+The storage design disables UAS for JMicron `152d:0583` with the exact kernel
+token `usb-storage.quirks=152d:0583:u`. The active root device must bind to
+`usb-storage`; loading the kernel UAS module does not violate this requirement.
+Storage validation must treat both power and transport as possible fault paths.
+Verify the negotiated PoE supply, Raspberry Pi throttling history, USB link
+speed, bridge identity, active device driver, kernel command line, and NVMe
+health from the live host rather than inferring them from product names.
+Manufacturer references: [PoE Texas GAT-PiHAT][gat-pihat] and [Geekworm X872
+V2.0][x872-v2].
 
 Pin these initial application versions:
 
@@ -92,10 +95,10 @@ publish a release, reload DNS, contact an HA node, or initiate a live change.
 
 Install the reviewed Debian packages for `podman`, `uidmap`, `passt`,
 `slirp4netns`, `fuse-overlayfs`, `crun`, `dbus-user-session`, `smartmontools`,
-`restic`, `msmtp`, and `msmtp-mta`. Record exact installed versions. The two
-MSMTP packages provide a sendmail-compatible outbound transport for host
-software; relay configuration and credentials require separate review and
-must remain outside Git.
+`restic`, `msmtp`, `msmtp-mta`, and `needrestart`. Record exact installed
+versions. The two MSMTP packages provide a sendmail-compatible outbound
+transport for host software; relay configuration and credentials require
+separate review and must remain outside Git.
 
 ### Required and unwanted services
 
@@ -129,9 +132,9 @@ UniFi firewall policy. A wildcard listener must not become reachable through
 the host's ISP-delegated global IPv6 address.
 
 Install SMART monitoring and test the JMicron USB bridge with the applicable
-SAT/UAS device type. If the bridge cannot pass SMART commands, record the
-limitation and compensate with kernel I/O monitoring and verified off-host
-backups.
+SAT device type while the root device uses `usb-storage`. If the bridge cannot
+pass SMART commands, record the limitation and compensate with kernel I/O
+monitoring and verified off-host backups.
 
 ## Dual-stack network and DNS
 
@@ -148,11 +151,9 @@ Preserve the existing NetworkManager profile behavior:
 Do not publish the temporary SLAAC ULA or ISP-delegated global address as the
 host's stable identity.
 
-Define `homelab-network/Ubiquiti/j2-svpi4mf-ip-configuration.md` in the
-separately authorized network stage. It must include pre-change evidence, a
-non-autoconnecting cloned NetworkManager rollback profile, exact change and
-recovery commands, address and route validation, and the UniFi fixed-lease
-boundary.
+Use `homelab-network/Ubiquiti/j2-svpi4mf-ula-operation.md` for the separately
+authorized network stage. It must retain the NetworkManager rollback,
+address-and-route validation, and UniFi fixed-lease ownership boundaries.
 
 The separately authorized DNS stage adds:
 
@@ -269,8 +270,9 @@ During the separately authorized repository implementation stage:
 - add `j2-svpi4mf` to `inventory/prod/hosts.yaml`;
 - add an `inventory_automation` group with functions `inventory` and
   `automation`;
-- record `podman`, `nautobot`, `postgresql`, `redis`, `restic`, `munin-node`,
-  `webmin`, and `watchdog` as components;
+- record `podman`, `nautobot`, `postgresql`, `redis`, `restic`, `msmtp`,
+  `msmtp-mta`, `munin-node`, `webmin`, `needrestart`, and `watchdog` as
+  components;
 - add `semaphore` only after its deployment is accepted; and
 - record the Raspberry Pi hardware, SSD storage, management FQDN, permanent
   ULA, and absence of an HA role.
@@ -302,9 +304,18 @@ webhook, or schedule into a live Caddy, DNS, network, or HA-node change.
 ## Backups and recovery
 
 Use Restic with a dedicated private Backblaze B2 bucket through its
-S3-compatible endpoint. Use a bucket-scoped application key with only the
-list, read, write, and delete capabilities required by Restic. Do not use the
+S3-compatible endpoint. Use a bucket-scoped application key with exactly
+`listAllBucketNames`, `listBuckets`, `readBuckets`, `listFiles`, `readFiles`,
+`writeFiles`, and `deleteFiles`. An empty repository root is represented by an
+omitted Backblaze `namePrefix` and `null` provider readback. Do not use the
 Backblaze master key.
+
+Repository initialization must remain blocked until a terminal host-baseline
+record establishes an accepted non-secret host identity. Storage qualification
+or a successful Restic read-only preflight does not substitute for host-baseline
+acceptance. If the retained post-baseline host state is selected instead of the
+defined rollback, accept that state through a separately reviewed convergence
+operation before authorizing `restic init`.
 
 Each backup contains:
 
@@ -315,7 +326,10 @@ Each backup contains:
 - installed Nautobot/App versions and migration state.
 
 Run nightly backups and retain 7 daily, 5 weekly, and 12 monthly snapshots.
-Run `restic check` weekly and perform a monthly isolated restore test.
+Define the weekly check as either a full `restic check --read-data` or an
+explicit reviewed subset policy. A subset check is routine monitoring only and
+cannot satisfy the full integrity acceptance gate. Perform a monthly isolated
+restore test.
 
 Nautobot must not become authoritative until the exact B2 bucket, endpoint,
 scoped application key, repository-password recovery location, successful
@@ -329,6 +343,8 @@ Host acceptance requires:
 - required baseline services active and unwanted services absent;
 - rootless services surviving logout and reboot;
 - no host-published PostgreSQL or Redis ports;
+- the running command line containing `usb-storage.quirks=152d:0583:u` exactly
+  once and JMicron `152d:0583` binding to `usb-storage`, not UAS;
 - SMART health recorded or an explicit USB-bridge limitation documented;
 - no firmware throttling, OOM events, persistent swap growth, or sustained
   temperature above 80 degrees Celsius; and
@@ -350,8 +366,8 @@ Data and recovery acceptance requires:
 
 - deterministic inventory and DNS exports with no unexplained drift;
 - all secrets absent from Git and bounded evidence;
-- successful Backblaze upload, Restic integrity check, and isolated full
-  restore; and
+- successful Backblaze upload, full `restic check --read-data`, and isolated
+  full restore; and
 - seven days of stable pilot operation before authority migration or Semaphore
   installation.
 
@@ -382,6 +398,7 @@ rollback boundary, and obtain scoped authorization.
 - `Caddy/docs/APPLICATION_ONBOARDING.md`
 - `Caddy/docs/caddy_plan-v1.1.md`
 - `Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md`
+- `../../../homelab-network/Ubiquiti/j2-svpi4mf-ula-operation.md`
 - `../../../homelab-network/Ubiquiti/udm-se-ipv6-ula-configuration.md`
 - `../../../homelab-network/Ubiquiti/pihole0-ip-configuration.md`
 - <https://docs.nautobot.com/projects/core/en/stable/>

@@ -79,6 +79,15 @@ class ContractTests(unittest.TestCase):
             "restic_version_and_execution_identity_preflight_required",
             document["authorization"]["blockers"],
         )
+        self.assertIn(
+            "accepted_host_baseline_identity_required",
+            document["authorization"]["blockers"],
+        )
+        self.assertEqual(document["repository"]["initialized_state"], "absent_verified")
+        self.assertEqual(
+            document["provider_acceptance"]["accepted_live_state"],
+            "backblaze-b2/manifests/accepted-live-state.yaml",
+        )
         self.assertEqual(document["preflight"]["last_result"]["config_exit_status"], 10)
         self.assertEqual(document["preflight"]["last_result"]["execution_user"], "nautobot")
         self.assertEqual(document["preflight"]["last_result"]["restic_version_number"], "0.18.0")

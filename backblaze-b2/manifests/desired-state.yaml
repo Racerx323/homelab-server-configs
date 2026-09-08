@@ -21,12 +21,14 @@ application_key:
   name: homelab-nautobot-restic-prd-v2
   bucket_scope: exact_bucket
   prefix_scope: unrestricted_null
-  list_all_bucket_names: true
-  file_capabilities:
-    - list
-    - read
-    - write
-    - delete
+  capabilities:
+    - listAllBucketNames
+    - listBuckets
+    - readBuckets
+    - listFiles
+    - readFiles
+    - writeFiles
+    - deleteFiles
   excluded_capability_classes:
     - bucket_administration
     - retention_and_legal_hold_administration

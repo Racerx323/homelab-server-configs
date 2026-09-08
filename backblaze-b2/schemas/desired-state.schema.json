@@ -53,8 +53,7 @@
         "name",
         "bucket_scope",
         "prefix_scope",
-        "list_all_bucket_names",
-        "file_capabilities",
+        "capabilities",
         "excluded_capability_classes",
         "expiration"
       ],
@@ -66,8 +65,17 @@
         },
         "bucket_scope": {"const": "exact_bucket"},
         "prefix_scope": {"const": "unrestricted_null"},
-        "list_all_bucket_names": {"const": true},
-        "file_capabilities": {"const": ["list", "read", "write", "delete"]},
+        "capabilities": {
+          "const": [
+            "listAllBucketNames",
+            "listBuckets",
+            "readBuckets",
+            "listFiles",
+            "readFiles",
+            "writeFiles",
+            "deleteFiles"
+          ]
+        },
         "excluded_capability_classes": {
           "const": [
             "bucket_administration",

@@ -18,9 +18,10 @@ operation:
   procedure: restic/docs/REPOSITORY_INITIALIZATION.md
   source:
     repository: homelab-server-configs
-    base_commit: fefd1289bc4c4690de5c2836d0ee020a549872df
+    base_commit: c3a7aef18556dfe603317de05b2f85711f79e13c
 
 provider_acceptance:
+  accepted_live_state: backblaze-b2/manifests/accepted-live-state.yaml
   operation: backblaze-b2-s3-compatibility-v1
   terminal_tag: backblaze-b2-s3-compatibility-v1-completed
   archive_commit: 40b2b74b23f4f7b1a0bc212d9daaeb0949531769
@@ -37,7 +38,7 @@ repository:
   url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
   expected_format_version: 2
   initialization_owner: nautobot-restic-repository-initialization-v1
-  initialized_state: absent_unverified
+  initialized_state: absent_verified
   repository_id: null
 
 secret_contract:
@@ -146,6 +147,7 @@ initialization:
 acceptance:
   require:
     - exact_accepted_provider_identity
+    - accepted_host_baseline_identity
     - exact_repository_url
     - execution_user_nautobot
     - reviewed_restic_version
@@ -211,6 +213,7 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
+    - accepted_host_baseline_identity_required
     - reviewed_execution_implementation_required
     - definition_checkpoint_required
     - final_bundle_hash_required

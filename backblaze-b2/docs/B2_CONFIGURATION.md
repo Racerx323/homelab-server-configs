@@ -1,5 +1,11 @@
 # Backblaze B2 configuration walkthrough
 
+> [!NOTE]
+> This is the reusable operator procedure. The completed initial bootstrap,
+> credential remediation, and transport acceptance are recorded in
+> `../HISTORY.md`, terminal tags, and `../manifests/accepted-live-state.yaml`.
+> Do not infer current provider state from a phase description below.
+
 ## Authorization boundary
 
 This procedure defines the first B2 configuration. Completing console steps
@@ -40,10 +46,10 @@ The proposed bucket name follows Backblaze and S3-compatible naming rules.
 Backblaze confirms global availability only during bucket creation. Stop if
 the provider rejects it; do not select a substitute during execution.
 
-`prd_b2` does not exist yet. Its creation and both secret writes require the
-same live operation that creates the application key. Do not commit account
-identifiers or credentials. Create a sanitized accepted-state manifest after
-provider readback supplies verified values.
+If `prd_b2` does not exist, its creation and both secret writes require the same
+live operation that creates the application key. If it exists, verify the
+reviewed names and stop on conflicting residue; do not overwrite it as a
+bootstrap side effect. Do not commit account identifiers or credentials.
 
 ## Phase 2: prepare the account
 
@@ -89,13 +95,14 @@ The console's **Read and Write** preset is rejected because provider readback
 proved that it grants bucket-administration capabilities outside the reviewed
 consumer boundary. Do not create the replacement through that preset.
 
-Use the separately reviewed and authorized
-[`REPLACEMENT_KEY_CREATION.md`](REPLACEMENT_KEY_CREATION.md) operation. It uses
+Define a new separately reviewed and authorized key-creation operation using
 the B2 Native API with the exact seven-capability array, exact bucket-ID list,
-an unrestricted prefix represented as `null`, and no provider expiration. It
-stores the one-time values only
-under the temporary Doppler candidate names. Canonical promotion remains a
-separate operation after authentication and compatibility acceptance.
+an unrestricted prefix represented as `null`, and no provider expiration. The
+consumed v1 contract in
+[`REPLACEMENT_KEY_CREATION.md`](REPLACEMENT_KEY_CREATION.md) is historical input,
+not an active operation. Store one-time values under temporary Doppler candidate
+names; canonical promotion remains a separate operation after authentication
+and compatibility acceptance.
 
 Record the key name, bucket scope, prefix scope, expiration policy, and
 capability names. Reject a key with access to all buckets or with bucket,
@@ -115,13 +122,11 @@ them. See the official
 [Native API version history](https://www.backblaze.com/docs/cloud-storage-native-api-versions)
 and [application-key documentation](https://www.backblaze.com/docs/cloud-storage-application-keys).
 
-The operator confirmed that the v4 key created for this component is absent
-from the provider web console but present in `b2 key list -l`. Treat console
-visibility as informational, not as proof that the key exists or has been
-deleted. Backblaze's reviewed documentation does not establish the broader
-claim that every CLI- or API-created key is hidden from the console. Use v4 API
-readback or a current B2 CLI authenticated with an account-level credential as
-the management authority:
+Treat console visibility as informational, not as proof that a key exists or
+has been deleted. Backblaze's reviewed documentation does not establish the
+broad claim that every CLI- or API-created key is hidden from the console. Use
+v4 API readback or a current B2 CLI authenticated with an account-level
+credential as the management authority:
 
 ```bash
 b2 key list -l
@@ -159,8 +164,8 @@ listings.
 
 After all readback gates pass:
 
-1. create a non-secret B2 manifest with the accepted bucket identity and key
-   policy;
+1. create or update `../manifests/accepted-live-state.yaml` with the accepted
+   non-secret bucket identity and key policy;
 2. preserve the live operation and sanitized evidence manifest in an annotated
    tag and component history;
 3. retire the active B2 operation from the main branch; and

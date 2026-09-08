@@ -60,10 +60,13 @@ created by S3-compatible deletes.
 ## Application-key model
 
 Create a dedicated application key for the Nautobot Restic bucket. Restrict it
-to the exact bucket and repository prefix. Grant only the capabilities needed
-to list, read, write, and delete repository objects. Exclude bucket creation,
-bucket deletion, lifecycle administration, replication, Object Lock changes,
-legal-hold changes, and governance bypass.
+to the exact bucket. When the repository uses the root of that dedicated
+bucket, omit `namePrefix` and require `null` provider readback; a non-empty
+repository prefix must instead use an exact prefix restriction. Grant exactly
+`listAllBucketNames`, `listBuckets`, `readBuckets`, `listFiles`, `readFiles`,
+`writeFiles`, and `deleteFiles`. Exclude bucket creation, bucket deletion,
+lifecycle administration, replication, Object Lock changes, legal-hold
+changes, and governance bypass.
 
 Backblaze requires `listAllBucketNames` for S3 `List Buckets` compatibility
 with a bucket-restricted key. Enable it for this integration and record that it
@@ -105,6 +108,11 @@ Keep raw provider output outside Git. A sanitized B2 manifest may record:
   expiration policy;
 - secret reference names and confirmation that values were stored; and
 - readback status, evidence hashes, and the acceptance decision.
+
+Store the latest accepted non-secret identity in
+`manifests/accepted-live-state.yaml`. Keep terminal outcomes in `HISTORY.md` and
+annotated tags; the accepted-live manifest is a current semantic identity, not
+an operation transcript.
 
 Do not record account IDs, application-key IDs or values, object listings,
 billing details, or unrelated bucket names.

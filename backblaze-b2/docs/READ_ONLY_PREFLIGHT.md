@@ -1,10 +1,15 @@
 # Backblaze B2 and Doppler read-only preflight
 
+> [!IMPORTANT]
+> This is the retired initial-bootstrap preflight contract. It grants no current
+> authorization and must not be used to infer present provider or Doppler state.
+> Terminal bootstrap results are indexed in `../HISTORY.md`.
+
 ## Purpose
 
-Run this preflight before the B2 bootstrap operation becomes authorization
-ready. It checks account readiness and confirms that the proposed Doppler
-configuration does not exist. It creates no bucket, key, config, or secret.
+The initial bootstrap used this preflight to check account readiness and confirm
+that the proposed Doppler configuration did not exist. It created no bucket,
+key, config, or secret.
 
 The preflight cannot prove global availability of
 `theama-homelab-nautobot-restic-prd`. Backblaze makes that decision during

@@ -29,7 +29,9 @@ lifecycle settings. The canonical replacement credential passed exact-scope
 authentication and the isolated S3 put, readback, delete, and final-absence
 transaction. The B2 transport and credential are accepted for the separately
 governed Restic repository work. This does not initialize or accept a Restic
-repository, backup, or restore.
+repository, backup, or restore. The accepted non-secret provider identity is
+recorded in
+[manifests/accepted-live-state.yaml](manifests/accepted-live-state.yaml).
 
 Terminal results are indexed in [HISTORY.md](HISTORY.md) and preserved by the
 annotated tags listed there. The B2 operation stream is clean. Restic
@@ -41,21 +43,27 @@ remain separate operations.
 - `AGENTS.md`: component editing and live-operation rules;
 - `HISTORY.md`: concise terminal-operation index;
 - `docs/B2_ARCHITECTURE.md`: governing architecture;
-- `docs/CAPABILITY_REMEDIATION_DECISION.md`: reviewed least-privilege key
-  replacement decision;
-- `docs/CAPABILITY_REMEDIATION_PREFLIGHT.md`: unready read-only API and
-  authentication preflight;
-- `docs/MANAGEMENT_CREDENTIAL_DECISION.md`: gate for reusing or separately
-  creating a management credential;
+- `docs/CAPABILITY_REMEDIATION_DECISION.md`: historical least-privilege key
+  replacement decision preserved for rationale;
+- `docs/CAPABILITY_REMEDIATION_PREFLIGHT.md`: retired v3 read-only API and
+  authentication preflight contract;
+- `docs/REPLACEMENT_KEY_CREATION.md`: historical consumed-v1 key-creation and
+  protected candidate-write contract;
+- `docs/MANAGEMENT_CREDENTIAL_DECISION.md`: historical management-credential
+  selection rationale;
 - `docs/MASTER_KEY_ROTATION.md`: inactive reusable master-rotation, protected
   storage, acceptance, and recovery contract;
 - `docs/MASTER_KEY_ROTATION_PREFLIGHT.md`: archived metadata-only console and
   Doppler preflight contract for master rotation;
-- `docs/B2_CONFIGURATION.md`: operator decisions and console procedure;
-- `docs/READ_ONLY_PREFLIGHT.md`: metadata-only provider and Doppler preflight;
+- `docs/B2_CONFIGURATION.md`: reusable operator decisions and console
+  procedure; terminal state remains in history and manifests;
+- `docs/READ_ONLY_PREFLIGHT.md`: retired initial-bootstrap provider and Doppler
+  preflight contract;
 - `docs/S3_COMPATIBILITY_PROBE.md`: reusable isolated S3 object-transaction
   contract for the canonical consumer credential;
 - `manifests/desired-state.yaml`: reviewed Phase 1 identifiers and policy;
+- `manifests/accepted-live-state.yaml`: accepted non-secret bucket, key-policy,
+  endpoint, and provenance identity;
 - `manifests/operation.yaml`: the single B2 operation-state manifest;
 - `scripts/capability_remediation_preflight.py`: bounded read-only B2 API and
   Doppler metadata client;
@@ -69,26 +77,27 @@ remain separate operations.
   owned-object compatibility transaction; direct execution remains disabled;
 - `scripts/run_s3_compatibility_probe.py`: inactive hash-bound launcher owning
   the read-only preflight, live gate, evidence, and terminal classification;
-- `scripts/run-replacement-key-creation.sh`: unready hash-bound replacement-key
-  launcher and terminal-classification owner;
+- `scripts/run-replacement-key-creation.sh`: inactive consumed-v1 hash-bound
+  replacement-key launcher and terminal-classification owner;
 - `scripts/run-master-key-rotation.sh`: inactive hash-bound outer launcher for
   a separately defined console and Doppler operation;
-- `scripts/run-capability-remediation-preflight.sh`: readiness- and hash-gated
-  protected credential launcher;
-- `schemas/desired-state.schema.json`: desired-state validation; and
+- `scripts/run-capability-remediation-preflight.sh`: inactive v3 readiness- and
+  hash-gated protected credential launcher;
+- `schemas/desired-state.schema.json`: desired-state validation;
+- `schemas/accepted-live-state.schema.json`: accepted-live-state validation;
 - `schemas/operation.schema.json`: operation-state validation;
 - `schemas/replacement-key-creation.schema.json`: exact reviewed replacement-key
   operation validation;
 - `tests/capability-remediation-preflight-regression.py`: offline transport,
-  endpoint, classification, and evidence regressions.
+  endpoint, classification, and evidence regressions;
 - `tests/protected-doppler-master-write-regression.py`: offline secret
-  transport, partial-write, name-only readback, and evidence regressions.
+  transport, partial-write, name-only readback, and evidence regressions;
 - `tests/master-key-rotation-launcher-regression.py`: offline bundle, readiness,
-  mutation-order, cleanup, and terminal-evidence regressions.
+  mutation-order, cleanup, and terminal-evidence regressions;
 - `tests/replacement-key-creation-regression.py`: offline provider request,
-  candidate transport, no-retry, unready gate, and evidence regressions.
+  candidate transport, no-retry, unready gate, and evidence regressions;
 - `tests/s3-compatibility-probe-regression.py`: offline signing, exact
-  transaction, failure cleanup, secret transport, and evidence regressions.
+  transaction, failure cleanup, secret transport, and evidence regressions;
 - `tests/s3-compatibility-launcher-regression.py`: offline readiness, bundle,
   preflight, terminal-classification, and protected-evidence regressions.
 

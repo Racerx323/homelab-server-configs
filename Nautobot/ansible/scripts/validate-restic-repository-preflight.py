@@ -273,6 +273,15 @@ def main() -> None:
         fail("satisfied identity/version blocker remains present")
     if "doppler_prd_restic_config_and_password_key_required" in blockers:
         fail("satisfied Doppler password blocker remains present")
+    if "accepted_host_baseline_identity_required" not in blockers:
+        fail("unresolved host-baseline acceptance blocker is missing")
+    if operation.get("repository", {}).get("initialized_state") != "absent_verified":
+        fail("passed absence evidence is not reflected in repository state")
+    if (
+        operation.get("provider_acceptance", {}).get("accepted_live_state")
+        != "backblaze-b2/manifests/accepted-live-state.yaml"
+    ):
+        fail("accepted Backblaze live-state reference is missing")
     last_result = preflight.get("last_result", {})
     if (
         preflight.get("state") != "passed"

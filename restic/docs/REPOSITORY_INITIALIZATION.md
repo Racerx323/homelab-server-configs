@@ -24,6 +24,11 @@ Before readiness, the consumer operation must record:
 - evidence that a separately authorized read-only preflight classified the
   exact repository config as absent.
 
+For a host-executed consumer operation, also require a terminal accepted-live
+host-baseline identity. Hardware qualification, storage soak, package presence,
+and repository-absence evidence are independent gates and do not by themselves
+accept the host baseline.
+
 The recovery locator identifies an existing protected recovery record. It must
 not contain the password and must not claim that the primary Doppler secret is
 its own recovery copy.

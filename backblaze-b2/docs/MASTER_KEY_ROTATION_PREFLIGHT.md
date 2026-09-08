@@ -1,11 +1,15 @@
 # Backblaze B2 master-key rotation read-only preflight
 
+> [!IMPORTANT]
+> This is the archived v1 metadata preflight contract. The related rotation is
+> terminal and indexed in `../HISTORY.md`; future rotation requires a new
+> operation and fresh preflight state.
+
 ## Purpose
 
-Confirm that the reviewed Backblaze account and Doppler metadata are ready for
-the master-key rotation operation. This preflight is definition-only until it
-receives separate execution authorization. It creates no key, config, secret,
-or other provider resource.
+The v1 operation used this contract to confirm that the reviewed Backblaze
+account and Doppler metadata were ready for master-key rotation. It created no
+key, config, secret, or other provider resource.
 
 Passing this preflight does not make the rotation authorization-ready. The
 protected one-time secret-write path, name-only readback, terminal-result

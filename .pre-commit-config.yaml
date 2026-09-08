@@ -221,6 +221,17 @@ repos:
         files: >-
           ^backblaze-b2/(?:manifests/desired-state\.yaml|schemas/desired-state\.schema\.json)$
 
+      - id: backblaze-b2-accepted-live-state-schema
+        name: Validate Backblaze B2 accepted live state
+        entry: >-
+          check-jsonschema
+          --schemafile backblaze-b2/schemas/accepted-live-state.schema.json
+          backblaze-b2/manifests/accepted-live-state.yaml
+        language: system
+        pass_filenames: false
+        files: >-
+          ^backblaze-b2/(?:manifests/accepted-live-state\.yaml|schemas/accepted-live-state\.schema\.json)$
+
       - id: backblaze-b2-operation-schema
         name: Validate Backblaze B2 operation state
         entry: >-

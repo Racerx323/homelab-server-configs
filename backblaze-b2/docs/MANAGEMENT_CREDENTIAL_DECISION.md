@@ -1,5 +1,10 @@
 # Backblaze B2 management-credential decision
 
+> [!NOTE]
+> This historical decision explains why the retained account-level credential
+> was selected for the completed remediation sequence. It is not current
+> operation state and grants no credential or provider access.
+
 ## Status and boundary
 
 The operator initially selected `management_credential_creation_required` and

@@ -41,7 +41,9 @@ s3:https://ENDPOINT/BUCKET/PREFIX
 Record the exact endpoint, bucket, optional prefix, Restic repository ID, and
 initialization owner before a backup operation becomes authorization-ready.
 Reject an unaccepted B2 identity. Use the B2-owned, bucket-scoped application
-key and its reviewed list, read, write, and delete capabilities.
+key and its exact reviewed provider capabilities. For the dedicated Nautobot
+bucket, the empty repository root is represented by an omitted Backblaze
+`namePrefix`, `null` provider readback, and an empty Restic URL suffix.
 
 Repository initialization requires its own operation. A backup or restore
 verification must reject an unknown or uninitialized repository and must not
