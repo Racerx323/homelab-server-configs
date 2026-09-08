@@ -24,6 +24,7 @@ SCRIPT_DIR = ROOT / "backblaze-b2/scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 LAUNCHER_PATH = SCRIPT_DIR / "run_s3_compatibility_probe.py"
 OPERATION_PATH = ROOT / "backblaze-b2/manifests/operation.yaml"
+EXACT_SCHEMA_PATH = ROOT / "backblaze-b2/schemas/s3-compatibility-probe.schema.json"
 
 SPEC = importlib.util.spec_from_file_location("s3_launcher", LAUNCHER_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -33,9 +34,17 @@ SPEC.loader.exec_module(LAUNCHER)
 PROBE = LAUNCHER.probe
 
 
+def archived_operation_definition() -> dict[str, Any]:
+    schema = json.loads(EXACT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    return {
+        name: definition["const"]
+        for name, definition in schema["properties"].items()
+    }
+
+
 class ContractTests(unittest.TestCase):
-    def test_manifest_bundle_and_launcher_inputs_match_exactly(self) -> None:
-        operation = yaml.safe_load(OPERATION_PATH.read_text(encoding="utf-8"))
+    def test_archived_bundle_and_launcher_inputs_match_exactly(self) -> None:
+        operation = archived_operation_definition()
         self.assertEqual(
             tuple(operation["authorization"]["bundle_inputs"]),
             LAUNCHER.BUNDLE_FILES,
@@ -66,7 +75,7 @@ class ContractTests(unittest.TestCase):
     def test_unready_fixture_rejects_before_evidence_or_client(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
         called = False
-        unready = LAUNCHER.load_operation()
+        unready = archived_operation_definition()
         unready["operation"]["authorization_ready"] = False
 
         def client(*_args: Any) -> str:
@@ -86,7 +95,7 @@ class ContractTests(unittest.TestCase):
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
 
-    def test_cli_hash_mismatch_rejects_before_doppler_or_network(self) -> None:
+    def test_cli_execute_rejects_retired_operation_before_external_access(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "external-called"
@@ -105,43 +114,48 @@ class ContractTests(unittest.TestCase):
                 check=False,
                 timeout=30,
             )
-            self.assertEqual(result.returncode, 66)
-            self.assertIn("bundle_hash_mismatch", result.stderr.decode())
+            self.assertEqual(result.returncode, 69)
+            self.assertIn("active_operation_mismatch", result.stderr.decode())
             self.assertFalse(marker.exists())
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
 
-    def test_unauthorized_preflight_fixture_rejects_before_evidence_or_client(self) -> None:
+    def test_cli_preflight_rejects_retired_operation_before_external_access(self) -> None:
         before = set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*"))
-        called = False
-        unauthorized = LAUNCHER.load_operation()
-        unauthorized["preflight"]["execution_authorized"] = False
-
-        def client(*_args: Any) -> str:
-            nonlocal called
-            called = True
-            return "preflight_passed"
-
-        with mock.patch.object(
-            LAUNCHER, "validate_operation", return_value=unauthorized
-        ):
-            with self.assertRaisesRegex(
-                LAUNCHER.LauncherBlocked, "preflight_not_authorized"
-            ):
-                LAUNCHER.run("preflight", client=client)
-        self.assertFalse(called)
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "external-called"
+            fake = Path(temporary) / "doppler"
+            fake.write_text(f"#!/bin/sh\ntouch '{marker}'\nexit 99\n", encoding="utf-8")
+            fake.chmod(0o700)
+            environment = os.environ.copy()
+            environment["PATH"] = f"{temporary}:{environment['PATH']}"
+            result = subprocess.run(
+                (sys.executable, str(LAUNCHER_PATH), "preflight"),
+                cwd=ROOT,
+                env=environment,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+                timeout=30,
+            )
+            self.assertEqual(result.returncode, 69)
+            self.assertIn("active_operation_mismatch", result.stderr.decode())
+            self.assertFalse(marker.exists())
         self.assertEqual(
             set(Path("/tmp").glob("backblaze-b2-s3-compatibility.*")), before
         )
 
-    def test_active_operation_is_hash_ready_and_preflight_is_consumed(self) -> None:
+    def test_consumed_operation_is_retired(self) -> None:
         document = LAUNCHER.load_operation()
-        self.assertTrue(document["operation"]["authorization_ready"])
-        self.assertTrue(document["implementation"]["live_execution_enabled"])
-        self.assertEqual(document["authorization"]["blockers"], [])
-        self.assertEqual(document["preflight"]["state"], "passed")
-        self.assertFalse(document["preflight"]["execution_authorized"])
+        self.assertEqual(
+            document,
+            {
+                "schema_version": 1,
+                "operation": {"state": "clean", "authorization_ready": False},
+            },
+        )
 
 
 class ClassificationTests(unittest.TestCase):
@@ -178,7 +192,7 @@ class ClassificationTests(unittest.TestCase):
                 os.close(root_fd)
             return "preflight_passed"
 
-        authorized = LAUNCHER.load_operation()
+        authorized = archived_operation_definition()
         authorized["preflight"]["execution_authorized"] = True
         with mock.patch.object(LAUNCHER, "validate_operation", return_value=authorized):
             status, root = LAUNCHER.run("preflight", client=client)
@@ -247,7 +261,7 @@ class ClassificationTests(unittest.TestCase):
                 os.close(root_fd)
             raise KeyboardInterrupt()
 
-        authorized = LAUNCHER.load_operation()
+        authorized = archived_operation_definition()
         authorized["preflight"]["execution_authorized"] = True
         with mock.patch.object(LAUNCHER, "validate_operation", return_value=authorized):
             status, root = LAUNCHER.run("preflight", client=client)
@@ -291,7 +305,7 @@ class GateTests(unittest.TestCase):
             LAUNCHER.require_execute_ready(self.ready_document(), "b" * 64, "a" * 64)
 
     def test_preflight_gate_requires_explicit_authorization_and_no_fallback(self) -> None:
-        document = LAUNCHER.load_operation()
+        document = archived_operation_definition()
         document["preflight"]["execution_authorized"] = False
         with self.assertRaisesRegex(LAUNCHER.LauncherBlocked, "preflight_not_authorized"):
             LAUNCHER.require_preflight_authorized(document)
