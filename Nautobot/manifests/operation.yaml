@@ -18,7 +18,7 @@ operation:
   procedure: restic/docs/REPOSITORY_INITIALIZATION.md
   source:
     repository: homelab-server-configs
-    base_commit: 853246f402555119489f4e53e0739e56d1ca650e
+    base_commit: 4ee42b611cd007632d0a9d370ea73a196d129bfa
 
 provider_acceptance:
   operation: backblaze-b2-s3-compatibility-v1
@@ -62,8 +62,8 @@ secret_contract:
     values_allowed_in_git_or_evidence: false
 
 preflight:
-  state: pending
-  implementation_state: reviewed
+  state: passed_evidence_incomplete
+  implementation_state: definition_unreviewed
   procedure: restic/docs/READ_ONLY_PREFLIGHT.md
   playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
   launcher: Nautobot/ansible/scripts/run-restic-repository-preflight.py
@@ -71,6 +71,7 @@ preflight:
   cache_mode: disabled
   lock_mode: disabled
   require_restic_version: true
+  minimum_restic_version: 0.17.0
   require_execution_user: nautobot
   require_repository_absent_result: true
   repository_absent_exit_code: 10
@@ -93,9 +94,21 @@ preflight:
     - inventory/prod/groups/inventory_automation.yaml
     - inventory/prod/hosts/j2-svpi4mf.yaml
     - restic/docs/READ_ONLY_PREFLIGHT.md
-  authorization_ready: true
-  execution_authorized: true
+  authorization_ready: false
+  execution_authorized: false
   separate_live_authorization_required: true
+  last_result:
+    bundle_sha256: a22464c584d9d180bd28fe937f2be36b751611811dbe8b5a0537012814c734db
+    result: repository_absent
+    config_exit_status: 10
+    execution_user_matches: true
+    version_command_succeeded: true
+    exact_version_retained: false
+    repository_mutation_attempted: false
+    transient_cleanup_passed: true
+    terminal_evidence_sha256: 3e57cad5ef3af009bc5f3bd904ba3e2bd6e3fce500ddb1c650bcffde9132f6e2
+    ansible_stdout_sha256: a895a898ccfe6d2c8413bd263f0582f578a9b41f4f20c69d70113a53c9dbe619
+    ansible_stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 
 initialization:
   implementation_state: unimplemented
@@ -188,6 +201,7 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
+    - read_only_repository_absence_preflight_review_required
     - restic_version_and_execution_identity_preflight_required
     - reviewed_execution_implementation_required
     - definition_checkpoint_required

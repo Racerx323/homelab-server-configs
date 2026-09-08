@@ -38,6 +38,15 @@ def operation_definition() -> dict[str, Any]:
 
 def ready_definition(bundle: str) -> dict[str, Any]:
     document = operation_definition()
+    document["preflight"]["state"] = "pending"
+    document["preflight"]["implementation_state"] = "reviewed"
+    document["preflight"]["authorization_ready"] = True
+    document["preflight"]["execution_authorized"] = True
+    document["authorization"]["blockers"] = [
+        blocker
+        for blocker in document["authorization"]["blockers"]
+        if blocker != "read_only_repository_absence_preflight_review_required"
+    ]
     return document
 
 
@@ -47,25 +56,29 @@ def remove_evidence(root: Path) -> None:
 
 
 class ContractTests(unittest.TestCase):
-    def test_current_definition_is_ready_only_for_read_only_preflight(self) -> None:
+    def test_corrected_definition_is_unready_for_read_only_preflight(self) -> None:
         document = operation_definition()
         self.assertEqual(document["operation"]["state"], "definition")
         self.assertFalse(document["operation"]["authorization_ready"])
         self.assertTrue(document["secret_contract"]["repository_password"]["config_exists"])
         self.assertTrue(document["secret_contract"]["repository_password"]["key_exists"])
-        self.assertEqual(document["preflight"]["state"], "pending")
-        self.assertEqual(document["preflight"]["implementation_state"], "reviewed")
-        self.assertTrue(document["preflight"]["authorization_ready"])
-        self.assertTrue(document["preflight"]["execution_authorized"])
+        self.assertEqual(document["preflight"]["state"], "passed_evidence_incomplete")
+        self.assertEqual(
+            document["preflight"]["implementation_state"], "definition_unreviewed"
+        )
+        self.assertFalse(document["preflight"]["authorization_ready"])
+        self.assertFalse(document["preflight"]["execution_authorized"])
         self.assertFalse(document["authorization"]["mutation_authorized"])
         self.assertNotIn(
             "doppler_prd_restic_config_and_password_key_required",
             document["authorization"]["blockers"],
         )
-        self.assertNotIn(
+        self.assertIn(
             "read_only_repository_absence_preflight_review_required",
             document["authorization"]["blockers"],
         )
+        self.assertEqual(document["preflight"]["last_result"]["config_exit_status"], 10)
+        self.assertFalse(document["preflight"]["last_result"]["exact_version_retained"])
 
     def test_manifest_and_launcher_bundle_contract_match(self) -> None:
         preflight = operation_definition()["preflight"]
@@ -253,7 +266,7 @@ class ExecutionTests(unittest.TestCase):
 
 
 class CliTests(unittest.TestCase):
-    def test_current_cli_rejects_wrong_hash_before_external_access(self) -> None:
+    def test_current_cli_rejects_unready_before_external_access(self) -> None:
         before = set(Path("/tmp").glob(f"{LAUNCHER.EVIDENCE_PREFIX}*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "doppler-called"
@@ -272,8 +285,8 @@ class CliTests(unittest.TestCase):
                 check=False,
                 timeout=30,
             )
-            self.assertEqual(result.returncode, 66)
-            self.assertIn("bundle_hash_mismatch", result.stderr.decode())
+            self.assertEqual(result.returncode, 69)
+            self.assertIn("preflight_not_ready", result.stderr.decode())
             self.assertFalse(marker.exists())
         self.assertEqual(set(Path("/tmp").glob(f"{LAUNCHER.EVIDENCE_PREFIX}*")), before)
 

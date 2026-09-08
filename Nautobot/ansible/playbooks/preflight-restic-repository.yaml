@@ -13,6 +13,7 @@
     restic_preflight_repository_url: >-
       s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
     restic_preflight_expected_user: nautobot
+    restic_preflight_minimum_version: 0.17.0
     restic_preflight_absent_exit_code: 10
     restic_preflight_remote_pattern: /tmp/nautobot-restic-preflight.XXXXXX
 
@@ -201,11 +202,23 @@
         - name: Record sanitized forward observations
           ansible.builtin.set_fact:
             restic_preflight_observation:
+              execution_user: "{{ restic_preflight_identity.stdout | trim }}"
               execution_user_matches: >-
                 {{ restic_preflight_identity.stdout | trim ==
                 restic_preflight_expected_user }}
+              restic_version_output: >-
+                {{ restic_preflight_version.stdout | trim }}
+              restic_version_number: >-
+                {{ restic_preflight_version.stdout |
+                regex_search('[0-9]+[.][0-9]+[.][0-9]+') |
+                default('0.0.0', true) }}
               version_command_succeeded: >-
                 {{ restic_preflight_version.rc == 0 }}
+              version_supported: >-
+                {{ (restic_preflight_version.stdout |
+                regex_search('[0-9]+[.][0-9]+[.][0-9]+') |
+                default('0.0.0', true)) is
+                version(restic_preflight_minimum_version, '>=') }}
               config_exit_status: "{{ restic_preflight_config.rc }}"
               repository_absent: >-
                 {{ restic_preflight_config.rc ==
@@ -225,6 +238,10 @@
             that:
               - restic_preflight_observation.execution_user_matches | bool
               - restic_preflight_observation.version_command_succeeded | bool
+              - >-
+                restic_preflight_observation.restic_version_output is
+                match('^restic [0-9]+[.][0-9]+[.][0-9]+(?: |$)')
+              - restic_preflight_observation.version_supported | bool
               - restic_preflight_observation.repository_absent | bool
               - not restic_preflight_observation.repository_exists | bool
               - not restic_preflight_observation.repository_locked | bool

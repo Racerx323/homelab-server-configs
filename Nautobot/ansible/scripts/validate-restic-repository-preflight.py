@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,13 @@ def protected_metadata_is_safe(return_code: int, output: str) -> bool:
     return return_code == 0 and output == "nautobot:600:regular file"
 
 
+def restic_version_is_supported(output: str) -> bool:
+    match = re.fullmatch(r"restic ([0-9]+)[.]([0-9]+)[.]([0-9]+)(?: .*)?", output)
+    if match is None:
+        return False
+    return tuple(int(value) for value in match.groups()) >= (0, 17, 0)
+
+
 def require_exact_command(task: dict[str, Any], expected: list[str]) -> None:
     command = task.get("ansible.builtin.command")
     if not isinstance(command, dict) or command.get("argv") != expected:
@@ -66,6 +74,8 @@ def main() -> None:
         fail("unexpected inventory group")
     if play.get("gather_facts") is not False or play.get("become") is not False:
         fail("facts and Ansible become must remain disabled")
+    if play.get("vars", {}).get("restic_preflight_minimum_version") != "0.17.0":
+        fail("minimum Restic version must remain 0.17.0")
 
     tasks = flatten(play.get("pre_tasks", []) + play.get("tasks", []))
     by_name = {task.get("name"): task for task in tasks}
@@ -211,14 +221,43 @@ def main() -> None:
         if classify(status) != expected:
             fail(f"incorrect representative classification for exit {status}")
 
+    version_cases = {
+        "restic 0.16.5 compiled with go1.22.0 on linux/arm64": False,
+        "restic 0.17.0 compiled with go1.23.0 on linux/arm64": True,
+        "restic 0.18.1": True,
+        "restic 1.0.0 compiled with go1.24.0 on linux/arm64": True,
+        "0.17.0": False,
+        "restic development": False,
+        "": False,
+    }
+    for output, expected in version_cases.items():
+        if restic_version_is_supported(output) is not expected:
+            fail(f"incorrect supported-version classification for {output!r}")
+
+    observations = by_name["Record sanitized forward observations"].get(
+        "ansible.builtin.set_fact", {}
+    ).get("restic_preflight_observation", {})
+    required_observations = {
+        "execution_user",
+        "execution_user_matches",
+        "restic_version_output",
+        "restic_version_number",
+        "version_command_succeeded",
+        "version_supported",
+        "config_exit_status",
+        "repository_absent",
+    }
+    if not required_observations.issubset(observations):
+        fail("sanitized identity/version observations are incomplete")
+
     operation = load_yaml(OPERATION)
     preflight = operation.get("preflight", {})
     if operation.get("operation", {}).get("id") != "nautobot-restic-repository-initialization-v1":
         fail("unexpected active operation")
-    if preflight.get("execution_authorized") is not True:
-        fail("read-only preflight execution must be enabled")
-    if preflight.get("authorization_ready") is not True:
-        fail("read-only preflight must be authorization-ready")
+    if preflight.get("execution_authorized") is not False:
+        fail("corrected preflight execution must remain unauthorized")
+    if preflight.get("authorization_ready") is not False:
+        fail("corrected preflight must remain authorization-unready")
     if operation.get("operation", {}).get("authorization_ready") is not False:
         fail("repository initialization must remain authorization-unready")
     if operation.get("authorization", {}).get("mutation_authorized") is not False:
@@ -228,8 +267,8 @@ def main() -> None:
     if preflight.get("repository_absent_exit_code") != 10:
         fail("absence exit status must be 10")
     blockers = operation.get("authorization", {}).get("blockers", [])
-    if "read_only_repository_absence_preflight_review_required" in blockers:
-        fail("satisfied preflight review blocker remains present")
+    if "read_only_repository_absence_preflight_review_required" not in blockers:
+        fail("corrected preflight review blocker is missing")
     if "doppler_prd_restic_config_and_password_key_required" in blockers:
         fail("satisfied Doppler password blocker remains present")
 
