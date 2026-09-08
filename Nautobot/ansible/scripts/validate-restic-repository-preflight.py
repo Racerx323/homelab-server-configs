@@ -257,7 +257,7 @@ def main() -> None:
     if preflight.get("execution_authorized") is not False:
         fail("corrected preflight execution must remain unauthorized")
     if preflight.get("authorization_ready") is not False:
-        fail("corrected preflight must remain authorization-unready")
+        fail("completed preflight must remain authorization-unready")
     if operation.get("operation", {}).get("authorization_ready") is not False:
         fail("repository initialization must remain authorization-unready")
     if operation.get("authorization", {}).get("mutation_authorized") is not False:
@@ -267,10 +267,23 @@ def main() -> None:
     if preflight.get("repository_absent_exit_code") != 10:
         fail("absence exit status must be 10")
     blockers = operation.get("authorization", {}).get("blockers", [])
-    if "read_only_repository_absence_preflight_review_required" not in blockers:
-        fail("corrected preflight review blocker is missing")
+    if "read_only_repository_absence_preflight_review_required" in blockers:
+        fail("satisfied preflight review blocker remains present")
+    if "restic_version_and_execution_identity_preflight_required" in blockers:
+        fail("satisfied identity/version blocker remains present")
     if "doppler_prd_restic_config_and_password_key_required" in blockers:
         fail("satisfied Doppler password blocker remains present")
+    last_result = preflight.get("last_result", {})
+    if (
+        preflight.get("state") != "passed"
+        or preflight.get("implementation_state") != "reviewed"
+        or last_result.get("execution_user") != "nautobot"
+        or last_result.get("restic_version_number") != "0.18.0"
+        or last_result.get("version_supported") is not True
+        or last_result.get("exact_version_retained") is not True
+        or last_result.get("config_exit_status") != 10
+    ):
+        fail("combined preflight evidence is incomplete")
 
     print("Nautobot Restic repository-absence preflight regression passed.")
 

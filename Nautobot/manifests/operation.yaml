@@ -18,7 +18,7 @@ operation:
   procedure: restic/docs/REPOSITORY_INITIALIZATION.md
   source:
     repository: homelab-server-configs
-    base_commit: 4ee42b611cd007632d0a9d370ea73a196d129bfa
+    base_commit: fefd1289bc4c4690de5c2836d0ee020a549872df
 
 provider_acceptance:
   operation: backblaze-b2-s3-compatibility-v1
@@ -62,8 +62,8 @@ secret_contract:
     values_allowed_in_git_or_evidence: false
 
 preflight:
-  state: passed_evidence_incomplete
-  implementation_state: definition_unreviewed
+  state: passed
+  implementation_state: reviewed
   procedure: restic/docs/READ_ONLY_PREFLIGHT.md
   playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
   launcher: Nautobot/ansible/scripts/run-restic-repository-preflight.py
@@ -99,16 +99,26 @@ preflight:
   separate_live_authorization_required: true
   last_result:
     bundle_sha256: a22464c584d9d180bd28fe937f2be36b751611811dbe8b5a0537012814c734db
-    result: repository_absent
+    result: repository_absent_and_identity_version_accepted
     config_exit_status: 10
+    execution_user: nautobot
     execution_user_matches: true
+    restic_version: restic 0.18.0 compiled with go1.24.4 on linux/arm64
+    restic_version_number: 0.18.0
     version_command_succeeded: true
-    exact_version_retained: false
+    version_supported: true
+    exact_version_retained: true
     repository_mutation_attempted: false
     transient_cleanup_passed: true
     terminal_evidence_sha256: 3e57cad5ef3af009bc5f3bd904ba3e2bd6e3fce500ddb1c650bcffde9132f6e2
     ansible_stdout_sha256: a895a898ccfe6d2c8413bd263f0582f578a9b41f4f20c69d70113a53c9dbe619
     ansible_stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    identity_stdout_sha256: 1ceb0a85c30498c5a3428928d32cebaa5b5a7518a72522b3101458788e37444a
+    identity_stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    identity_status_sha256: 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+    version_stdout_sha256: 39c600b0372dbdbbfe94070eba83848dc30a57cc40db7e18916f516f061fc62d
+    version_stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    version_status_sha256: 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
 
 initialization:
   implementation_state: unimplemented
@@ -201,8 +211,6 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
-    - read_only_repository_absence_preflight_review_required
-    - restic_version_and_execution_identity_preflight_required
     - reviewed_execution_implementation_required
     - definition_checkpoint_required
     - final_bundle_hash_required

@@ -56,16 +56,14 @@ def remove_evidence(root: Path) -> None:
 
 
 class ContractTests(unittest.TestCase):
-    def test_corrected_definition_is_unready_for_read_only_preflight(self) -> None:
+    def test_completed_preflight_is_not_executable(self) -> None:
         document = operation_definition()
         self.assertEqual(document["operation"]["state"], "definition")
         self.assertFalse(document["operation"]["authorization_ready"])
         self.assertTrue(document["secret_contract"]["repository_password"]["config_exists"])
         self.assertTrue(document["secret_contract"]["repository_password"]["key_exists"])
-        self.assertEqual(document["preflight"]["state"], "passed_evidence_incomplete")
-        self.assertEqual(
-            document["preflight"]["implementation_state"], "definition_unreviewed"
-        )
+        self.assertEqual(document["preflight"]["state"], "passed")
+        self.assertEqual(document["preflight"]["implementation_state"], "reviewed")
         self.assertFalse(document["preflight"]["authorization_ready"])
         self.assertFalse(document["preflight"]["execution_authorized"])
         self.assertFalse(document["authorization"]["mutation_authorized"])
@@ -73,12 +71,19 @@ class ContractTests(unittest.TestCase):
             "doppler_prd_restic_config_and_password_key_required",
             document["authorization"]["blockers"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "read_only_repository_absence_preflight_review_required",
             document["authorization"]["blockers"],
         )
+        self.assertNotIn(
+            "restic_version_and_execution_identity_preflight_required",
+            document["authorization"]["blockers"],
+        )
         self.assertEqual(document["preflight"]["last_result"]["config_exit_status"], 10)
-        self.assertFalse(document["preflight"]["last_result"]["exact_version_retained"])
+        self.assertEqual(document["preflight"]["last_result"]["execution_user"], "nautobot")
+        self.assertEqual(document["preflight"]["last_result"]["restic_version_number"], "0.18.0")
+        self.assertTrue(document["preflight"]["last_result"]["version_supported"])
+        self.assertTrue(document["preflight"]["last_result"]["exact_version_retained"])
 
     def test_manifest_and_launcher_bundle_contract_match(self) -> None:
         preflight = operation_definition()["preflight"]
