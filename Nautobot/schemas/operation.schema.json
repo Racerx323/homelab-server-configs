@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.theama.co/schemas/nautobot-operation.json",
   "title": "Nautobot operation state",
   "oneOf": [
     {
@@ -469,6 +468,9 @@
           }
         }
       ]
+    },
+    {
+      "$ref": "repository-initialization.schema.json"
     }
   ],
   "$defs": {

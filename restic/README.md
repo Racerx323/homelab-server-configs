@@ -13,8 +13,11 @@ an existing repository without creating cache or lock objects. Read
 The [Backblaze B2 component](../backblaze-b2/README.md) has accepted the
 provider bucket, application-key scope, and S3 object transaction for Restic
 transport. Repository initialization remains a separate, unimplemented
-operation. Its password reference, recovery location, initialization owner,
-and exact initialization boundary must be reviewed first.
+operation. The reviewed initialization boundary is documented in
+[docs/REPOSITORY_INITIALIZATION.md](docs/REPOSITORY_INITIALIZATION.md). Its
+active consumer definition remains unready until the password secret and an
+independent recovery location are confirmed and the implementation is
+reviewed.
 
 ## Ownership
 
@@ -34,8 +37,10 @@ manifests.
 The current files establish policy and the first repository-access contract:
 
 - `AGENTS.md`: scoped editing and execution rules;
-- `docs/RESTIC_ARCHITECTURE.md`: shared architecture authority; and
+- `docs/RESTIC_ARCHITECTURE.md`: shared architecture authority;
 - `docs/READ_ONLY_PREFLIGHT.md`: lock-free, cache-free repository inspection;
+- `docs/REPOSITORY_INITIALIZATION.md`: one-time initialization and failure
+  boundaries; and
 - `.gitignore`: local cache, credential, runtime-data, and evidence exclusions.
 
 Add `configs/`, `scripts/`, `schemas/`, `manifests/`, or consumer-specific
