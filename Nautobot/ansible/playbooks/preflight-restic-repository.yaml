@@ -140,23 +140,32 @@
           no_log: true
 
         - name: Inspect protected preflight input metadata
-          ansible.builtin.stat:
-            path: >-
-              {{ restic_preflight_remote_directory.stdout }}/{{ item }}
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/stat
+              - --printf=%U:%a:%F
+              - >-
+                {{ restic_preflight_remote_directory.stdout }}/{{ item }}
           loop:
             - repository
             - password
             - aws-credentials
           register: restic_preflight_input_metadata
+          changed_when: false
+          failed_when: false
           no_log: true
 
         - name: Require protected preflight input ownership and modes
           ansible.builtin.assert:
             that:
-              - item.stat.exists
-              - item.stat.isreg
-              - item.stat.pw_name == restic_preflight_expected_user
-              - item.stat.mode == "0600"
+              - item.rc == 0
+              - item.stdout == "nautobot:600:regular file"
             fail_msg: Protected Restic input metadata is unsafe.
           loop: "{{ restic_preflight_input_metadata.results }}"
           no_log: true

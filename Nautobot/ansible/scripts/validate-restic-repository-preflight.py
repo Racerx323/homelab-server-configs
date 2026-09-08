@@ -47,6 +47,10 @@ def classify(return_code: int) -> str:
     }.get(return_code, "ambiguous_failure")
 
 
+def protected_metadata_is_safe(return_code: int, output: str) -> bool:
+    return return_code == 0 and output == "nautobot:600:regular file"
+
+
 def require_exact_command(task: dict[str, Any], expected: list[str]) -> None:
     command = task.get("ansible.builtin.command")
     if not isinstance(command, dict) or command.get("argv") != expected:
@@ -121,6 +125,60 @@ def main() -> None:
     if config_task.get("changed_when") is not False or config_task.get("failed_when") is not False:
         fail("config read must capture status without mutation or early failure")
 
+    metadata_task = by_name["Inspect protected preflight input metadata"]
+    require_exact_command(
+        metadata_task,
+        [
+            "/usr/bin/sudo", "-n", "/usr/sbin/runuser", "--user",
+            "nautobot", "--", "/usr/bin/stat", "--printf=%U:%a:%F",
+            f"{remote}/{{{{ item }}}}",
+        ],
+    )
+    if (
+        metadata_task.get("changed_when") is not False
+        or metadata_task.get("failed_when") is not False
+    ):
+        fail("metadata inspection must capture status without mutation or early failure")
+
+    metadata_gate = by_name["Require protected preflight input ownership and modes"]
+    metadata_assertions = metadata_gate.get("ansible.builtin.assert", {}).get("that", [])
+    if metadata_assertions != [
+        "item.rc == 0",
+        'item.stdout == "nautobot:600:regular file"',
+    ]:
+        fail("protected metadata assertion is not exact")
+
+    metadata_cases = {
+        (0, "nautobot:600:regular file"): True,
+        (1, ""): False,
+        (0, "ama:600:regular file"): False,
+        (0, "nautobot:644:regular file"): False,
+        (0, "nautobot:600:symbolic link"): False,
+        (0, "nautobot:600:directory"): False,
+    }
+    for (status, output), expected in metadata_cases.items():
+        if protected_metadata_is_safe(status, output) is not expected:
+            fail(f"incorrect protected metadata classification for {status}:{output}")
+
+    runuser_prefix = [
+        "/usr/bin/sudo", "-n", "/usr/sbin/runuser", "--user",
+        "nautobot", "--",
+    ]
+    protected_content_tasks = (
+        "Create empty protected credential files",
+        "Write protected preflight inputs",
+        "Inspect protected preflight input metadata",
+        "Read Restic repository config",
+    )
+    for name in protected_content_tasks:
+        argv = by_name[name].get("ansible.builtin.command", {}).get("argv", [])
+        if argv[: len(runuser_prefix)] != runuser_prefix:
+            fail(f"protected-path task does not execute as nautobot: {name}")
+
+    cleanup_probe = by_name["Verify protected remote preflight cleanup"]
+    if cleanup_probe.get("ansible.builtin.stat", {}).get("path") != remote:
+        fail("cleanup probe must inspect only the removed directory entry")
+
     ordered_names = [task.get("name") for task in tasks]
     if not (
         ordered_names.index("Record sanitized forward observations")
@@ -157,10 +215,10 @@ def main() -> None:
     preflight = operation.get("preflight", {})
     if operation.get("operation", {}).get("id") != "nautobot-restic-repository-initialization-v1":
         fail("unexpected active operation")
-    if preflight.get("execution_authorized") is not True:
-        fail("read-only preflight execution must be enabled")
-    if preflight.get("authorization_ready") is not True:
-        fail("read-only preflight must be authorization-ready")
+    if preflight.get("execution_authorized") is not False:
+        fail("corrected preflight execution must remain unauthorized")
+    if preflight.get("authorization_ready") is not False:
+        fail("corrected preflight must remain authorization-unready")
     if operation.get("operation", {}).get("authorization_ready") is not False:
         fail("repository initialization must remain authorization-unready")
     if operation.get("authorization", {}).get("mutation_authorized") is not False:
@@ -170,8 +228,8 @@ def main() -> None:
     if preflight.get("repository_absent_exit_code") != 10:
         fail("absence exit status must be 10")
     blockers = operation.get("authorization", {}).get("blockers", [])
-    if "read_only_repository_absence_preflight_review_required" in blockers:
-        fail("satisfied preflight review blocker remains present")
+    if "read_only_repository_absence_preflight_review_required" not in blockers:
+        fail("corrected preflight review blocker is missing")
     if "doppler_prd_restic_config_and_password_key_required" in blockers:
         fail("satisfied Doppler password blocker remains present")
 
