@@ -28,6 +28,7 @@ OPERATION_PATH = ROOT / "Nautobot/manifests/operation.yaml"
 OPERATION_SCHEMA = ROOT / "Nautobot/schemas/operation.schema.json"
 EXPECTED_OPERATION_ID = "nautobot-restic-repository-initialization-v1"
 EXPECTED_TARGET = "j2-svpi4mf"
+EXPECTED_ADDRESS = "10.1.2.170"
 BUNDLE_DOMAIN = "nautobot-restic-repository-preflight-bundle-v1"
 BUNDLE_FILES = (
     "Nautobot/ansible/playbooks/preflight-restic-repository.yaml",
@@ -331,7 +332,8 @@ def drain_process(argv: tuple[str, ...], environment: dict[str, str]) -> tuple[i
 def ansible_argv(extra_vars_path: Path) -> tuple[str, ...]:
     return (
         "ansible-playbook", "--inventory", str(INVENTORY_PATH), "--limit",
-        EXPECTED_TARGET, "--user", "ama", "--extra-vars", f"@{extra_vars_path}",
+        EXPECTED_TARGET, "--user", "ama", "--extra-vars",
+        f"ansible_host={EXPECTED_ADDRESS}", "--extra-vars", f"@{extra_vars_path}",
         str(PLAYBOOK_PATH),
     )
 
@@ -424,6 +426,8 @@ def execute(authorized_hash: str) -> tuple[int, Path]:
     try:
         try:
             status = run_preflight(root, root_fd)
+            if status != 0:
+                error = "ansible_exit_nonzero"
         except PreflightBlocked as exc:
             error = exc.code
         except KeyboardInterrupt:
