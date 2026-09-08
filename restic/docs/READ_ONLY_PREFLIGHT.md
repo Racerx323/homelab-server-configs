@@ -94,6 +94,19 @@ The transient protected files are execution mechanics, not persistent host
 configuration. Their creation requires separate preflight authorization and
 their absence after both success and failure is mandatory.
 
+The Nautobot controller is
+`Nautobot/ansible/scripts/run-restic-repository-preflight.py`. It validates the
+active operation and bundle before evidence creation or credential access. An
+execution requires the exact calculated SHA-256 bundle and an operation state
+that explicitly enables the preflight. The unready definition rejects first.
+
+The controller retrieves only the canonical `prd_restic` password and `prd_b2`
+application-key references. It must not fall back to an administrator, master,
+candidate, rejected, or historical key. It bounds Ansible output, rejects any
+captured credential value, removes controller-side secret and Ansible temporary
+files, and retains only mode-`0600` sanitized evidence beneath a unique
+mode-`0700` `/tmp/nautobot-restic-preflight.*` directory.
+
 ## Evidence
 
 Capture only:

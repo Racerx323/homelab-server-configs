@@ -317,6 +317,15 @@ repos:
         files: >-
           ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
+      - id: nautobot-restic-repository-preflight-launcher
+        name: Validate Nautobot Restic preflight launcher
+        entry: >-
+          python3 Nautobot/ansible/scripts/validate-restic-repository-preflight-launcher.py
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/(?:run|validate)-restic-repository-preflight(?:-launcher)?\.py)|manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)|restic/docs/READ_ONLY_PREFLIGHT\.md|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+
       - id: nautobot-host-baseline-launcher
         name: Validate Nautobot host-baseline operation
         entry: >-

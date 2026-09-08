@@ -159,8 +159,10 @@ def main() -> None:
         fail("unexpected active operation")
     if preflight.get("execution_authorized") is not False:
         fail("preflight execution must remain unauthorized")
-    if preflight.get("authorization_hash") is not None:
-        fail("unreviewed preflight must not have an authorization hash")
+    if preflight.get("authorization_ready") is not False:
+        fail("preflight authorization must remain unready")
+    if "authorization_hash" in preflight:
+        fail("operation must not embed its self-referential bundle hash")
     if preflight.get("repository_absent_exit_code") != 10:
         fail("absence exit status must be 10")
     blockers = operation.get("authorization", {}).get("blockers", [])

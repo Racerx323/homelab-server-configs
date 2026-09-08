@@ -66,6 +66,7 @@ preflight:
   implementation_state: definition_unreviewed
   procedure: restic/docs/READ_ONLY_PREFLIGHT.md
   playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
+  launcher: Nautobot/ansible/scripts/run-restic-repository-preflight.py
   repository_access: read_only
   cache_mode: disabled
   lock_mode: disabled
@@ -77,8 +78,23 @@ preflight:
   secret_delivery: protected_controller_extra_vars_file
   remote_secret_files: transient_mode_0600_owned_by_nautobot
   remote_secret_cleanup: required_on_success_and_failure
+  credential_fallback_allowed: false
+  evidence_local_root_pattern: /tmp/nautobot-restic-preflight.*
+  bundle_domain_separator: nautobot-restic-repository-preflight-bundle-v1
+  bundle_inputs:
+    - Nautobot/ansible/playbooks/preflight-restic-repository.yaml
+    - Nautobot/ansible/scripts/run-restic-repository-preflight.py
+    - Nautobot/ansible/scripts/validate-restic-repository-preflight.py
+    - Nautobot/ansible/scripts/validate-restic-repository-preflight-launcher.py
+    - Nautobot/manifests/operation.yaml
+    - Nautobot/schemas/operation.schema.json
+    - Nautobot/schemas/repository-initialization.schema.json
+    - inventory/prod/hosts.yaml
+    - inventory/prod/groups/inventory_automation.yaml
+    - inventory/prod/hosts/j2-svpi4mf.yaml
+    - restic/docs/READ_ONLY_PREFLIGHT.md
+  authorization_ready: false
   execution_authorized: false
-  authorization_hash: null
   separate_live_authorization_required: true
 
 initialization:
