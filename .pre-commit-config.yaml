@@ -306,7 +306,16 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/operation\.yaml|schemas/operation\.schema\.json)$
+          ^Nautobot/(?:manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)$
+
+      - id: nautobot-restic-repository-preflight
+        name: Validate Nautobot Restic repository-absence preflight
+        entry: >-
+          python3 Nautobot/ansible/scripts/validate-restic-repository-preflight.py
+        language: system
+        pass_filenames: false
+        files: >-
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-host-baseline-launcher
         name: Validate Nautobot host-baseline operation

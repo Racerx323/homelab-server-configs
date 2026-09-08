@@ -62,7 +62,10 @@ secret_contract:
     values_allowed_in_git_or_evidence: false
 
 preflight:
-  state: required_unexecuted
+  state: defined_unexecuted
+  implementation_state: definition_unreviewed
+  procedure: restic/docs/READ_ONLY_PREFLIGHT.md
+  playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
   repository_access: read_only
   cache_mode: disabled
   lock_mode: disabled
@@ -71,6 +74,11 @@ preflight:
   require_repository_absent_result: true
   repository_absent_exit_code: 10
   ambiguous_failure_action: stop_without_initialization
+  secret_delivery: protected_controller_extra_vars_file
+  remote_secret_files: transient_mode_0600_owned_by_nautobot
+  remote_secret_cleanup: required_on_success_and_failure
+  execution_authorized: false
+  authorization_hash: null
   separate_live_authorization_required: true
 
 initialization:
@@ -165,7 +173,7 @@ authorization:
     - semaphore
   blockers:
     - doppler_prd_restic_config_and_password_key_required
-    - read_only_repository_absence_preflight_definition_required
+    - read_only_repository_absence_preflight_review_required
     - restic_version_and_execution_identity_preflight_required
     - reviewed_execution_implementation_required
     - definition_checkpoint_required

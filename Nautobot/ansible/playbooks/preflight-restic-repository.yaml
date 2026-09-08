@@ -1,0 +1,256 @@
+---
+- name: Verify the Nautobot Restic repository is absent
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+
+  vars_files:
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+
+  vars:
+    restic_preflight_repository_url: >-
+      s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
+    restic_preflight_expected_user: nautobot
+    restic_preflight_absent_exit_code: 10
+    restic_preflight_remote_pattern: /tmp/nautobot-restic-preflight.XXXXXX
+
+  pre_tasks:
+    - name: Enforce the Restic preflight target boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == "j2-svpi4mf"
+          - ansible_play_hosts_all | length == 1
+        fail_msg: This preflight is restricted to j2-svpi4mf.
+
+    - name: Require protected controller-supplied credentials
+      ansible.builtin.assert:
+        that:
+          - restic_repository_password is string
+          - restic_repository_password | length > 0
+          - restic_b2_application_key_id is string
+          - restic_b2_application_key_id | length > 0
+          - restic_b2_application_key is string
+          - restic_b2_application_key | length > 0
+        fail_msg: Required protected Restic credentials were not supplied.
+      no_log: true
+
+  tasks:
+    - name: Read the effective Restic execution identity
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/id
+          - --user
+          - --name
+      register: restic_preflight_identity
+      changed_when: false
+
+    - name: Read the installed Restic version
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/restic
+          - version
+      register: restic_preflight_version
+      changed_when: false
+
+    - name: Create the protected remote preflight directory
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/mktemp
+          - --directory
+          - "{{ restic_preflight_remote_pattern }}"
+      register: restic_preflight_remote_directory
+      changed_when: true
+
+    - name: Validate the protected remote directory identity
+      ansible.builtin.assert:
+        that:
+          - >-
+            restic_preflight_remote_directory.stdout is
+            match('^/tmp/nautobot-restic-preflight\\.[A-Za-z0-9]+$')
+        fail_msg: Refusing an unsafe Restic preflight directory.
+
+    - name: Run the protected repository absence transaction
+      block:
+        - name: Create empty protected credential files
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - >-
+                {{ restic_preflight_remote_directory.stdout }}/{{ item }}
+          loop:
+            - repository
+            - password
+            - aws-credentials
+          changed_when: true
+          no_log: true
+
+        - name: Write protected preflight inputs
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - >-
+                {{ restic_preflight_remote_directory.stdout }}/{{ item.name }}
+            stdin: "{{ item.content }}"
+            stdin_add_newline: false
+          loop:
+            - name: repository
+              content: "{{ restic_preflight_repository_url }}"
+            - name: password
+              content: "{{ restic_repository_password }}"
+            - name: aws-credentials
+              content: |-
+                [default]
+                aws_access_key_id={{ restic_b2_application_key_id }}
+                aws_secret_access_key={{ restic_b2_application_key }}
+          changed_when: true
+          no_log: true
+
+        - name: Inspect protected preflight input metadata
+          ansible.builtin.stat:
+            path: >-
+              {{ restic_preflight_remote_directory.stdout }}/{{ item }}
+          loop:
+            - repository
+            - password
+            - aws-credentials
+          register: restic_preflight_input_metadata
+          no_log: true
+
+        - name: Require protected preflight input ownership and modes
+          ansible.builtin.assert:
+            that:
+              - item.stat.exists
+              - item.stat.isreg
+              - item.stat.pw_name == restic_preflight_expected_user
+              - item.stat.mode == "0600"
+            fail_msg: Protected Restic input metadata is unsafe.
+          loop: "{{ restic_preflight_input_metadata.results }}"
+          no_log: true
+
+        - name: Read Restic repository config
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/env
+              - >-
+                AWS_SHARED_CREDENTIALS_FILE={{
+                restic_preflight_remote_directory.stdout }}/aws-credentials
+              - AWS_PROFILE=default
+              - /usr/bin/restic
+              - --no-cache
+              - --no-lock
+              - --repository-file
+              - "{{ restic_preflight_remote_directory.stdout }}/repository"
+              - --password-file
+              - "{{ restic_preflight_remote_directory.stdout }}/password"
+              - cat
+              - config
+          register: restic_preflight_config
+          changed_when: false
+          failed_when: false
+          no_log: true
+
+        - name: Record sanitized forward observations
+          ansible.builtin.set_fact:
+            restic_preflight_observation:
+              execution_user_matches: >-
+                {{ restic_preflight_identity.stdout | trim ==
+                restic_preflight_expected_user }}
+              version_command_succeeded: >-
+                {{ restic_preflight_version.rc == 0 }}
+              config_exit_status: "{{ restic_preflight_config.rc }}"
+              repository_absent: >-
+                {{ restic_preflight_config.rc ==
+                restic_preflight_absent_exit_code }}
+              repository_exists: "{{ restic_preflight_config.rc == 0 }}"
+              repository_locked: "{{ restic_preflight_config.rc == 11 }}"
+              incorrect_password: "{{ restic_preflight_config.rc == 12 }}"
+              ambiguous_failure: >-
+                {{ restic_preflight_config.rc not in [0, 10, 11, 12] }}
+
+        - name: Emit sanitized forward observations
+          ansible.builtin.debug:
+            var: restic_preflight_observation
+
+        - name: Require the exact repository absence result
+          ansible.builtin.assert:
+            that:
+              - restic_preflight_observation.execution_user_matches | bool
+              - restic_preflight_observation.version_command_succeeded | bool
+              - restic_preflight_observation.repository_absent | bool
+              - not restic_preflight_observation.repository_exists | bool
+              - not restic_preflight_observation.repository_locked | bool
+              - not restic_preflight_observation.incorrect_password | bool
+              - not restic_preflight_observation.ambiguous_failure | bool
+            fail_msg: >-
+              The exact repository was not proven absent; initialization
+              remains blocked.
+      always:
+        - name: Remove only the protected remote preflight directory
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/rm
+              - --recursive
+              - --force
+              - --
+              - "{{ restic_preflight_remote_directory.stdout }}"
+          changed_when: true
+          when:
+            - restic_preflight_remote_directory.stdout is defined
+            - >-
+              restic_preflight_remote_directory.stdout is
+              match('^/tmp/nautobot-restic-preflight\\.[A-Za-z0-9]+$')
+
+        - name: Verify protected remote preflight cleanup
+          ansible.builtin.stat:
+            path: "{{ restic_preflight_remote_directory.stdout }}"
+          register: restic_preflight_cleanup
+          when: restic_preflight_remote_directory.stdout is defined
+
+        - name: Require protected remote preflight cleanup
+          ansible.builtin.assert:
+            that:
+              - not restic_preflight_cleanup.stat.exists
+            fail_msg: Protected Restic preflight residue requires review.
+          when: restic_preflight_cleanup.stat is defined

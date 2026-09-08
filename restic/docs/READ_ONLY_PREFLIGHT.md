@@ -71,6 +71,29 @@ config object, authentication failure, or network failure does not prove that
 the location is safe to initialize. Stop and classify the cause before any
 repository mutation.
 
+## Initialization absence classification
+
+For a separately governed initialization operation using Restic 0.17 or newer,
+exit status 10 from this exact `cat config` command classifies the repository
+config as absent. Exit status 0 means the repository already exists. Exit
+status 11 means locked, exit status 12 means the password is incorrect, and
+every other status is ambiguous. None of those other results authorizes
+initialization.
+
+For the Nautobot consumer, retrieve the three credential values from their
+reviewed Doppler references on the controller. Write them only to a unique
+mode-`0700` protected controller directory and pass the resulting mode-`0600`
+Ansible extra-vars file by path, never by value on the command line. The
+playbook creates a unique mode-`0700` directory owned by `nautobot` on the
+target, writes the repository, password, and AWS credential files with mode
+`0600`, invokes Restic as `nautobot`, records sanitized status observations
+before its absence assertion, and removes that exact directory in an `always`
+block. Raw Ansible output remains protected and outside Git.
+
+The transient protected files are execution mechanics, not persistent host
+configuration. Their creation requires separate preflight authorization and
+their absence after both success and failure is mandatory.
+
 ## Evidence
 
 Capture only:
