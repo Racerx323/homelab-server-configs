@@ -10,9 +10,11 @@ consumer or live operation. Use
 an existing repository without creating cache or lock objects. Read
 [AGENTS.md](AGENTS.md) before changing files in this directory.
 
-Configure and accept the provider bucket and application-key policy through
-the [Backblaze B2 component](../backblaze-b2/README.md) before defining Restic
-repository initialization.
+The [Backblaze B2 component](../backblaze-b2/README.md) has accepted the
+provider bucket, application-key scope, and S3 object transaction for Restic
+transport. Repository initialization remains a separate, unimplemented
+operation. Its password reference, recovery location, initialization owner,
+and exact initialization boundary must be reviewed first.
 
 ## Ownership
 
