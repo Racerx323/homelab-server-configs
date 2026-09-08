@@ -1,0 +1,594 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unready host convergence definition",
+  "const": {
+    "schema_version": 1,
+    "operation": {
+      "id": "nautobot-host-baseline-convergence-v1",
+      "state": "definition",
+      "authorization_ready": false,
+      "stage": "host_baseline_convergence",
+      "target": {
+        "host": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "ssh_user": "ama"
+      },
+      "architecture": {
+        "plan": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"
+      },
+      "source": {
+        "repository": "homelab-server-configs",
+        "base_commit": "c7bff00f5af7bb4c42a8d20dbf1d1152047d4a55"
+      }
+    },
+    "predecessor": {
+      "terminal_tag": "nautobot-host-baseline-v3-manual-intervention",
+      "result": "manual_intervention",
+      "mutation_converged": true,
+      "accepted": false,
+      "rolled_back": false,
+      "retry_allowed": false
+    },
+    "storage_evidence": {
+      "immediate_tag": "nautobot-storage-diagnostic-v2-baseline-healthy-soak-pending",
+      "soak_tag": "nautobot-storage-soak-verification-v1-passed",
+      "soak_boot_id": "af1ed3ab-0bdc-422a-b893-bc3ccd924fde",
+      "storage_remediation_accepted": false,
+      "operator_report": {
+        "reboot_since_last_storage_validation": true,
+        "source": "operator_statement",
+        "live_verified": false
+      },
+      "current_boot_validation": {
+        "state": "required",
+        "boot_id": null,
+        "evidence_reference": null
+      }
+    },
+    "deferred_contract": {
+      "path": "Nautobot/manifests/deferred-restic-initialization.yaml",
+      "active": false,
+      "activation_requires": "terminal_accepted_host_baseline_and_separate_definition_review"
+    },
+    "expected": {
+      "packages": {
+        "podman": "5.4.2+ds1-2+b2",
+        "uidmap": "1:4.17.4-2",
+        "passt": "0.0~git20250503.587980c-2+deb13u1",
+        "slirp4netns": "1.2.1-1.1",
+        "fuse-overlayfs": "1.14-1+b1",
+        "crun": "1.21-1",
+        "dbus-user-session": "1.16.2-2",
+        "smartmontools": "7.4-3",
+        "restic": "0.18.0-1+b4",
+        "msmtp": "1.8.28-3",
+        "msmtp-mta": "1.8.28-3",
+        "needrestart": null
+      },
+      "uid": null,
+      "gid": null,
+      "home": "/var/lib/nautobot",
+      "shell": "/usr/sbin/nologin",
+      "subordinate_start": 165536,
+      "subordinate_count": 65536,
+      "required_units": [
+        "ssh.service",
+        "NetworkManager.service",
+        "systemd-timesyncd.service",
+        "munin-node.service",
+        "webmin.service",
+        "watchdog.service"
+      ],
+      "unwanted_units": [
+        "avahi-daemon.service",
+        "avahi-daemon.socket",
+        "bluetooth.service",
+        "ModemManager.service"
+      ],
+      "listeners": null,
+      "root_source": "/dev/sda2",
+      "root_fstype": "ext4",
+      "permanent_ula": "fd36:5aa8:6971:1::170",
+      "quirk_token": "usb-storage.quirks=152d:0583:u",
+      "maximum_temperature_celsius": 80
+    },
+    "preflight": {
+      "read_only": true,
+      "execution_authorized": false,
+      "playbook": "Nautobot/ansible/playbooks/preflight-host-convergence.yaml",
+      "evaluator": "Nautobot/ansible/scripts/evaluate-host-convergence.py",
+      "probe_timeout_seconds": 30,
+      "stream_limit_bytes": 4194304,
+      "probes": [
+        {
+          "id": "privilege",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/true"
+          ]
+        },
+        {
+          "id": "boot_start",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/proc/sys/kernel/random/boot_id"
+          ]
+        },
+        {
+          "id": "packages",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/dpkg-query",
+            "--show",
+            "--showformat=${binary:Package}\t${Version}\t${db:Status-Status}\n"
+          ]
+        },
+        {
+          "id": "passwd",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/getent",
+            "passwd",
+            "nautobot"
+          ]
+        },
+        {
+          "id": "identity",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/id",
+            "nautobot"
+          ]
+        },
+        {
+          "id": "home",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/stat",
+            "--format=%u:%g:%a:%F",
+            "/var/lib/nautobot"
+          ]
+        },
+        {
+          "id": "subuid",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/etc/subuid"
+          ]
+        },
+        {
+          "id": "subgid",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/etc/subgid"
+          ]
+        },
+        {
+          "id": "linger",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/loginctl",
+            "show-user",
+            "nautobot",
+            "--property=UID",
+            "--property=Linger",
+            "--property=State"
+          ]
+        },
+        {
+          "id": "podman",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/sbin/runuser",
+            "--user",
+            "nautobot",
+            "--",
+            "/usr/bin/env",
+            "--chdir=/var/lib/nautobot",
+            "/usr/bin/podman",
+            "info",
+            "--format=json"
+          ]
+        },
+        {
+          "id": "units",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/systemctl",
+            "show",
+            "--property=Id,LoadState,ActiveState,UnitFileState",
+            "ssh.service",
+            "NetworkManager.service",
+            "systemd-timesyncd.service",
+            "munin-node.service",
+            "webmin.service",
+            "watchdog.service",
+            "avahi-daemon.service",
+            "avahi-daemon.socket",
+            "bluetooth.service",
+            "ModemManager.service",
+            "keepalived.service"
+          ]
+        },
+        {
+          "id": "failed_units",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/systemctl",
+            "--failed",
+            "--no-legend",
+            "--no-pager",
+            "--plain"
+          ]
+        },
+        {
+          "id": "keepalived_unit_files",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/systemctl",
+            "list-unit-files",
+            "--no-legend",
+            "--no-pager",
+            "keepalived*"
+          ]
+        },
+        {
+          "id": "keepalived_units",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/systemctl",
+            "list-units",
+            "--all",
+            "--no-legend",
+            "--no-pager",
+            "--plain",
+            "keepalived*"
+          ]
+        },
+        {
+          "id": "keepalived_process",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/pgrep",
+            "--exact",
+            "keepalived"
+          ]
+        },
+        {
+          "id": "keepalived_config",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/test",
+            "-e",
+            "/etc/keepalived"
+          ]
+        },
+        {
+          "id": "keepalived_config_symlink",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/test",
+            "-L",
+            "/etc/keepalived"
+          ]
+        },
+        {
+          "id": "addresses",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/sbin/ip",
+            "-json",
+            "address",
+            "show",
+            "dev",
+            "eth0"
+          ]
+        },
+        {
+          "id": "root",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/findmnt",
+            "--json",
+            "--output=SOURCE,FSTYPE,TARGET",
+            "/"
+          ]
+        },
+        {
+          "id": "cmdline",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/proc/cmdline"
+          ]
+        },
+        {
+          "id": "usb",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/udevadm",
+            "info",
+            "--attribute-walk",
+            "/dev/sda"
+          ]
+        },
+        {
+          "id": "storage_events",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/journalctl",
+            "--boot=0",
+            "--dmesg",
+            "--grep=I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|Out of memory|oom-kill|under-voltage|over-current",
+            "--output=short-iso",
+            "--no-pager",
+            "--quiet"
+          ]
+        },
+        {
+          "id": "smart",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/sbin/smartctl",
+            "--json",
+            "--xall",
+            "/dev/sda"
+          ]
+        },
+        {
+          "id": "ext4_errors",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/sys/fs/ext4/sda2/errors_count"
+          ]
+        },
+        {
+          "id": "ext4_metadata",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/sbin/tune2fs",
+            "-l",
+            "/dev/sda2"
+          ]
+        },
+        {
+          "id": "temperature",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/vcgencmd",
+            "measure_temp"
+          ]
+        },
+        {
+          "id": "throttling",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/vcgencmd",
+            "get_throttled"
+          ]
+        },
+        {
+          "id": "listeners",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/ss",
+            "--listening",
+            "--tcp",
+            "--udp",
+            "--numeric",
+            "--no-header"
+          ]
+        },
+        {
+          "id": "residue",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/apt-get",
+            "--simulate",
+            "autoremove"
+          ]
+        },
+        {
+          "id": "boot_end",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/proc/sys/kernel/random/boot_id"
+          ]
+        }
+      ]
+    },
+    "mutations": {
+      "ordered": [],
+      "automatic_correction": false,
+      "automatic_baseline_replay": false,
+      "automatic_rollback": false
+    },
+    "acceptance": {
+      "state": "not_accepted",
+      "accepted_live_path": "Nautobot/manifests/accepted-live-state.yaml",
+      "contract": "Nautobot/docs/HOST_BASELINE_CONVERGENCE.md",
+      "require_independent_review": true,
+      "require_all_preflight_checks": true,
+      "drift_action": "stop_and_define_only_exact_required_correction",
+      "runtime_acceptance": false,
+      "restic_initialization_authorized": false
+    },
+    "authorization": {
+      "command": null,
+      "mutation_authorized": false,
+      "blockers": [
+        "fresh_current_boot_storage_validation_and_continuity_review_required",
+        "review_needrestart_exact_version",
+        "review_numeric_account_identity",
+        "review_exact_listener_allowlist",
+        "review_complete_read_only_execution_bundle",
+        "definition_checkpoint_required",
+        "separate_read_only_authorization_required"
+      ]
+    },
+    "component_ownership": {
+      "needrestart": {
+        "owner": "Needrestart/",
+        "procedure": "Needrestart/README.md",
+        "scope": "package_and_notification_integration",
+        "nautobot_scope": "observe_required_package_version_only",
+        "changes_require_owner_review": true
+      }
+    }
+  }
+}

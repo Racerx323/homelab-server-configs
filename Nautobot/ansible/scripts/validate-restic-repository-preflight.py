@@ -14,7 +14,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[3]
 PLAYBOOK = ROOT / "Nautobot/ansible/playbooks/preflight-restic-repository.yaml"
-OPERATION = ROOT / "Nautobot/manifests/operation.yaml"
+OPERATION = ROOT / "Nautobot/manifests/deferred-restic-initialization.yaml"
 
 
 def fail(message: str) -> None:

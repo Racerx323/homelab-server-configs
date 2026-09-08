@@ -1,0 +1,76 @@
+---
+- name: Observe retained Nautobot host baseline without correction
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+  vars_files:
+    - ../../manifests/operation.yaml
+  pre_tasks:
+    - name: Require separately reviewed read-only execution
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - operation.id == 'nautobot-host-baseline-convergence-v1'
+          - operation.stage == 'host_baseline_convergence'
+          - preflight.execution_authorized | bool
+          - preflight.read_only | bool
+          - not authorization.mutation_authorized | bool
+          - mutations.ordered | length == 0
+          - convergence_evidence_directory is defined
+          - convergence_evidence_directory is match('^/tmp/nautobot-host-convergence\.[A-Za-z0-9_]+$')
+  tasks:
+    - name: Collect exact bounded read-only command vectors
+      ansible.builtin.command:
+        argv: "{{ item.argv }}"
+        expand_argument_vars: false
+      environment:
+        LC_ALL: C
+      loop: "{{ preflight.probes }}"
+      loop_control:
+        label: "{{ item.id }}"
+      register: convergence_observations
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      no_log: true
+
+    - name: Write forward command observations before evaluation
+      ansible.builtin.copy:
+        dest: "{{ convergence_evidence_directory }}/observations.json"
+        content: "{{ convergence_observations.results | to_json }}\n"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+      changed_when: false
+      no_log: true
+
+    - name: Evaluate recorded observations on the controller
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/python3
+          - "{{ playbook_dir }}/../scripts/evaluate-host-convergence.py"
+          - "{{ convergence_evidence_directory }}/observations.json"
+      delegate_to: localhost
+      become: false
+      register: convergence_decision
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Preserve evaluation before enforcing its decision
+      ansible.builtin.copy:
+        dest: "{{ convergence_evidence_directory }}/decision.json"
+        content: "{{ convergence_decision | to_json }}\n"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+      changed_when: false
+      no_log: true
+
+    - name: Require all read-only checks without accepting live state
+      ansible.builtin.assert:
+        that:
+          - convergence_decision.rc == 0
+        fail_msg: Retain evidence and define only the exact correction or missing expectation; never replay v3.

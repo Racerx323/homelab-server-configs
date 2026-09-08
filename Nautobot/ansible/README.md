@@ -29,45 +29,31 @@ The launcher makes no host changes. Its Ansible command uses check mode, but
 the read-only command tasks still execute. Obtain separate read-only
 authorization before running `execute`.
 
-## Host-baseline operation
+## Active convergence operation
 
-`../../manifests/operation.yaml` defines the active host-baseline operation.
-The definition remains unable to execute while `authorization_ready` is
-`false`. Review its blockers and candidate bundle without contacting the host:
-
-```bash
-/bin/bash Nautobot/ansible/scripts/run-host-baseline.sh show-bundle
-```
-
-The operation requires a fresh qualification after the `homelab-dns`-owned
-Keepalived removal. That qualification must also supply exact APT candidate
-versions. Update the operation with those `name=version` specifications,
-checkpoint the source, clear the reviewed blockers, and calculate the final
-bundle before requesting live authorization.
-
-Rootless Podman checks run through `/usr/sbin/runuser` from the privileged
-play context. After switching identity, `/usr/bin/env --chdir` enters
-`/var/lib/nautobot` before invoking Podman, so the service account never
-inherits the SSH user's inaccessible working directory. The resulting Podman
-process runs as the `nautobot` account without requiring Ansible to stage a
-module as an unprivileged user. Rollback evidence distinguishes pre-existing,
-remaining, and newly introduced automatically removable package residue;
-rollback never performs autoremove.
-
-The live command has this form:
+[The active manifest](../manifests/operation.yaml) defines the unready
+host-baseline convergence operation. See
+[the convergence procedure](../docs/HOST_BASELINE_CONVERGENCE.md) for retained
+evidence, unresolved expectations, read-only collection and terminal acceptance.
+It does not rerun host-baseline v3 or install anything.
 
 ```bash
-/bin/bash Nautobot/ansible/scripts/run-host-baseline.sh execute BUNDLE_SHA256
+python3 Nautobot/ansible/scripts/run-host-convergence.py show-command
 ```
 
-The launcher refuses a dirty worktree, an unready operation, or a bundle hash
-mismatch. The playbook applies only the host-baseline stage. It runs rollback
-after a task or acceptance failure and reports manual intervention
-when an unreachable host prevents rollback proof. A failure before the
-preflight evidence boundary is reported as `preflight_failed`, because no
-mutation has begun. The launcher keeps bounded raw output and separate
-preflight, mutation, acceptance, rollback, and residue records under a
-mode-0700 directory in `/tmp`.
+The reviewed Restic initialization definition is preserved unchanged in
+[the inactive contract](../manifests/deferred-restic-initialization.yaml).
+The Restic launcher still loads only the active manifest and therefore rejects
+execution while convergence occupies the stream. A passed historical absence
+check is retained evidence, not permission to initialize or replay it.
+
+## Historical host-baseline implementation
+
+`playbooks/host-baseline.yaml` and `scripts/run-host-baseline.sh` remain reusable
+historical implementation paths. They do not match the current operation and
+must not be used to retry v3. A drift finding requires a reviewed definition of
+only the exact correction. The convergence path has no mutation or rollback
+sequence.
 
 ## Storage diagnostic operation
 
@@ -128,7 +114,7 @@ Before mutation it requires a quiet storage window, exact root source, exact
 APT simulation, the expected account state, and local-recovery confirmation in
 the reviewed operation.
 
-Review the unready definition without contacting the host:
+Historical launcher inspection (requires its matching operation definition):
 
 ```bash
 /bin/bash Nautobot/ansible/scripts/run-host-baseline-rollback.sh show-bundle

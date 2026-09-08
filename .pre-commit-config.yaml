@@ -317,7 +317,25 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)$
+
+      - id: nautobot-host-convergence
+        name: Validate Nautobot host convergence definition and offline regressions
+        entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
+          python3 Nautobot/ansible/scripts/validate-host-convergence.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/
+
+      - id: nautobot-deferred-restic-schema
+        name: Validate inactive Nautobot Restic initialization contract
+        entry: >-
+          check-jsonschema --schemafile Nautobot/schemas/repository-initialization.schema.json
+          Nautobot/manifests/deferred-restic-initialization.yaml
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(?:manifests/deferred-restic-initialization\.yaml|schemas/repository-initialization\.schema\.json)$
 
       - id: nautobot-restic-repository-preflight
         name: Validate Nautobot Restic repository-absence preflight
@@ -326,7 +344,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-restic-repository-preflight-launcher
         name: Validate Nautobot Restic preflight launcher
@@ -335,7 +353,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/(?:run|validate)-restic-repository-preflight(?:-launcher)?\.py)|manifests/operation\.yaml|schemas/(?:operation|repository-initialization)\.schema\.json)|restic/docs/READ_ONLY_PREFLIGHT\.md|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/(?:run|validate)-restic-repository-preflight(?:-launcher)?\.py)|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/READ_ONLY_PREFLIGHT\.md|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-host-baseline-launcher
         name: Validate Nautobot host-baseline operation
@@ -358,7 +376,7 @@ repos:
           (?x)^(?:
           \.pre-commit-config\.yaml
           |Nautobot/ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh)
-          |Nautobot/manifests/operation\.yaml
+          |Nautobot/manifests/(?:operation|deferred-restic-initialization)\.yaml
           |Nautobot/schemas/operation\.schema\.json
           |inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml)
           )$
@@ -371,7 +389,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|STORAGE_REMEDIATION_DECISION)\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|STORAGE_REMEDIATION_DECISION)\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-uas-quirk-launcher
         name: Validate Nautobot JMicron UAS-quirk operation
@@ -381,7 +399,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/STORAGE_REMEDIATION_DECISION\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/STORAGE_REMEDIATION_DECISION\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: check-json
         name: Validate JSON with jq

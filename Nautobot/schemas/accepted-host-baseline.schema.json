@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Terminal accepted host baseline identity (not runtime acceptance)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "host_baseline",
+    "provenance",
+    "boundaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "host_baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "host",
+        "address",
+        "service_account",
+        "semantic_sha256",
+        "observations_sha256",
+        "boot_id"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "host": {
+          "const": "j2-svpi4mf"
+        },
+        "address": {
+          "const": "10.1.2.170"
+        },
+        "service_account": {
+          "const": "nautobot"
+        },
+        "semantic_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observations_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "terminal_tag",
+        "definition_commit",
+        "bundle_sha256",
+        "terminal_evidence_sha256",
+        "all_preflight_checks_passed",
+        "cleanup_passed",
+        "operator_review_accepted"
+      ],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "definition_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "terminal_evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "all_preflight_checks_passed": {
+          "const": true
+        },
+        "cleanup_passed": {
+          "const": true
+        },
+        "operator_review_accepted": {
+          "const": true
+        }
+      }
+    },
+    "boundaries": {
+      "const": {
+        "runtime_accepted": false,
+        "storage_restore_gate_satisfied": false,
+        "restic_initialized": false,
+        "authority_migrated": false
+      }
+    }
+  }
+}

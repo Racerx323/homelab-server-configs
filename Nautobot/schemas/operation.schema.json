@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Nautobot operation state",
   "oneOf": [
+    {"$ref": "host-convergence.schema.json"},
     {
       "type": "object",
       "additionalProperties": false,
@@ -224,7 +225,7 @@
                 },
                 "values_allowed_in_git_or_evidence": {"const": false},
                 "bucket_scoped_capabilities_required": {
-                  "const": ["list", "read", "write", "delete"]
+                  "const": ["listAllBucketNames", "listBuckets", "readBuckets", "listFiles", "readFiles", "writeFiles", "deleteFiles"]
                 }
               }
             },

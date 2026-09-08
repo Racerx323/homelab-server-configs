@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[3]
 LAUNCHER_PATH = ROOT / "Nautobot/ansible/scripts/run-restic-repository-preflight.py"
-OPERATION_PATH = ROOT / "Nautobot/manifests/operation.yaml"
+OPERATION_PATH = ROOT / "Nautobot/manifests/deferred-restic-initialization.yaml"
 SPEC = importlib.util.spec_from_file_location("restic_preflight_launcher", LAUNCHER_PATH)
 assert SPEC is not None and SPEC.loader is not None
 LAUNCHER = importlib.util.module_from_spec(SPEC)
@@ -300,7 +300,7 @@ class CliTests(unittest.TestCase):
                 timeout=30,
             )
             self.assertEqual(result.returncode, 69)
-            self.assertIn("preflight_not_ready", result.stderr.decode())
+            self.assertIn("active_operation_mismatch", result.stderr.decode())
             self.assertFalse(marker.exists())
         self.assertEqual(set(Path("/tmp").glob(f"{LAUNCHER.EVIDENCE_PREFIX}*")), before)
 

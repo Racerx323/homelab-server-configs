@@ -15,7 +15,8 @@ provider bucket, application-key scope, and S3 object transaction for Restic
 transport. Repository initialization remains a separate, unimplemented
 operation. The reviewed initialization boundary is documented in
 [docs/REPOSITORY_INITIALIZATION.md](docs/REPOSITORY_INITIALIZATION.md). Its
-active consumer definition records the confirmed password and independent
+inactive consumer contract at
+`Nautobot/manifests/deferred-restic-initialization.yaml` records the confirmed password and independent
 recovery references plus a passed repository-absence preflight. It remains
 unready until the host baseline is accepted, the initialization implementation
 is reviewed and checkpointed, a final bundle is calculated, and explicit live
