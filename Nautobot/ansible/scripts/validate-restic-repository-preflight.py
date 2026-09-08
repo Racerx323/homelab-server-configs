@@ -157,17 +157,23 @@ def main() -> None:
     preflight = operation.get("preflight", {})
     if operation.get("operation", {}).get("id") != "nautobot-restic-repository-initialization-v1":
         fail("unexpected active operation")
-    if preflight.get("execution_authorized") is not False:
-        fail("preflight execution must remain unauthorized")
-    if preflight.get("authorization_ready") is not False:
-        fail("preflight authorization must remain unready")
+    if preflight.get("execution_authorized") is not True:
+        fail("read-only preflight execution must be enabled")
+    if preflight.get("authorization_ready") is not True:
+        fail("read-only preflight must be authorization-ready")
+    if operation.get("operation", {}).get("authorization_ready") is not False:
+        fail("repository initialization must remain authorization-unready")
+    if operation.get("authorization", {}).get("mutation_authorized") is not False:
+        fail("repository mutation must remain unauthorized")
     if "authorization_hash" in preflight:
         fail("operation must not embed its self-referential bundle hash")
     if preflight.get("repository_absent_exit_code") != 10:
         fail("absence exit status must be 10")
     blockers = operation.get("authorization", {}).get("blockers", [])
-    if "read_only_repository_absence_preflight_review_required" not in blockers:
-        fail("preflight review blocker is missing")
+    if "read_only_repository_absence_preflight_review_required" in blockers:
+        fail("satisfied preflight review blocker remains present")
+    if "doppler_prd_restic_config_and_password_key_required" in blockers:
+        fail("satisfied Doppler password blocker remains present")
 
     print("Nautobot Restic repository-absence preflight regression passed.")
 

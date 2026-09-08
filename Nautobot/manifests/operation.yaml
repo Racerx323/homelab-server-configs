@@ -18,7 +18,7 @@ operation:
   procedure: restic/docs/REPOSITORY_INITIALIZATION.md
   source:
     repository: homelab-server-configs
-    base_commit: a0e03b36028b12346ff34c7598dbe8b14025ce00
+    base_commit: c6cd45bf2e29138e1cd672c52782444249ba97ce
 
 provider_acceptance:
   operation: backblaze-b2-s3-compatibility-v1
@@ -45,8 +45,8 @@ secret_contract:
     doppler_project: homelab-dev
     doppler_config: prd_restic
     doppler_key: NAUTOBOT_RESTIC_REPOSITORY_PASSWORD
-    config_exists: unverified
-    key_exists: unverified
+    config_exists: true
+    key_exists: true
     generation_owner: operator
     generated_value_allowed_in_git_or_evidence: false
   password_recovery:
@@ -62,8 +62,8 @@ secret_contract:
     values_allowed_in_git_or_evidence: false
 
 preflight:
-  state: defined_unexecuted
-  implementation_state: definition_unreviewed
+  state: pending
+  implementation_state: reviewed
   procedure: restic/docs/READ_ONLY_PREFLIGHT.md
   playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
   launcher: Nautobot/ansible/scripts/run-restic-repository-preflight.py
@@ -93,8 +93,8 @@ preflight:
     - inventory/prod/groups/inventory_automation.yaml
     - inventory/prod/hosts/j2-svpi4mf.yaml
     - restic/docs/READ_ONLY_PREFLIGHT.md
-  authorization_ready: false
-  execution_authorized: false
+  authorization_ready: true
+  execution_authorized: true
   separate_live_authorization_required: true
 
 initialization:
@@ -188,8 +188,6 @@ authorization:
     - authority_migration
     - semaphore
   blockers:
-    - doppler_prd_restic_config_and_password_key_required
-    - read_only_repository_absence_preflight_review_required
     - restic_version_and_execution_identity_preflight_required
     - reviewed_execution_implementation_required
     - definition_checkpoint_required
