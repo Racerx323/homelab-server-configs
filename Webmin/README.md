@@ -3,6 +3,8 @@
 The governing document is [WEBMIN_ARCHITECTURE.md](docs/WEBMIN_ARCHITECTURE.md).
 The [drive-polling trial procedure](docs/DRIVE_POLLING_TRIAL.md) describes the
 guarded configuration change, observation, and rollback.
+The [patched-polling procedure](docs/PATCHED_POLLING_TRIAL.md) covers the
+maintainer's reduced-query patch and an observation with temperatures enabled.
 
 > The drive-polling mitigation is a trial. A quiet observation does not accept
 > storage for production use or satisfy Nautobot and Restic acceptance checks.

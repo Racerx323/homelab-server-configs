@@ -44,3 +44,24 @@ Only after the full observation and coverage review should the mitigation be
 recorded as accepted desired configuration in this component. Storage acceptance
 and Restic validation remain separate. Active operation state and raw evidence
 stay outside Git; procedures belong in [DRIVE_POLLING_TRIAL.md](DRIVE_POLLING_TRIAL.md).
+
+## Isolated patched-polling trial
+
+The approved next intervention tests Webmin's upstream reduced-temperature-query
+patch with smartmontools 7.4 unchanged. Remove only the temporary
+`collect_notemp=1` override after the exact patch is installed and the observer's
+execution trace is attached. This restores the default temperature behavior
+without resetting unrelated configuration.
+
+The patched trial uses continuous execution tracing and an automatic temperature
+shutoff on unexpected queries, storage events, or observer failure. It also
+disables temperature collection at the end of the bounded observation pending
+review. Exact source backups support rollback while collection stays disabled.
+
+Munin identity changes are retained for review and do not alone invalidate the
+new trial: its installed daily log rotation intentionally restarts the daemon.
+Service unavailability still fails the trial. Webmin and smartd identities remain
+strict checks. This revised rule does not rewrite earlier checkpoint results.
+
+See [PATCHED_POLLING_TRIAL.md](PATCHED_POLLING_TRIAL.md) for execution and reporting.
+Upgrading smartmontools is a separate intervention after reviewing patch results.
