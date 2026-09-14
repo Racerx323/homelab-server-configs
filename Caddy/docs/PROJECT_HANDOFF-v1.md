@@ -107,7 +107,8 @@ Current project status:
 - Historical chronology belongs in Caddy/HISTORY.md and annotated Git tags.
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
-- Both nodes remain at the restored baseline. One replacement operation is defined.
+- Node B has accepted the fixed release and monitor; Node A still serves baseline.
+- The consumed replacement is terminal-pending; no deployable successor is registered.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -386,20 +387,16 @@ after bounded live acceptance and repository bookkeeping establish it.
 ## Authentication resilience follow-up
 
 Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md)
-for the current repository audit, monitor source divergence from accepted
-production, implemented candidate preparation/integration test and HTTP login
-validator, and pending Node B real-application acceptance. The operator confirms
-that `homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD` is configured;
-retrieval and login acceptance remain unverified. The operator selected keeping
-the fixed release and monitor on Node B after successful acceptance, while Node A
-retains its baseline selection and the candidate publication for its later
-rollout. Failure triggers restoration. Release-phase regressions cover this
-retained state; the minimal payload and pre-mutation cleanup are tested, and the
-`authentication-outer` profile now exercises the complete post-mutation sequence
-in an isolated real-Caddy fixture. The authorized Node B run failed because the workstation lacked an IPv6 route.
-The runner restored the baseline and withdrew publication. The consumed operation is archived. The replacement checks workstation IPv4/IPv6
-HTTPS before mutation; full real login acceptance remains outstanding. Every authenticated
-application must satisfy the rejection/retry acceptance gate in
-[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). Generator definitions
-must preserve that gate; rendering valid syntax does not establish functional
-login acceptance. The registered definition does not itself authorize live execution.
+for the implementation and application onboarding gate. The replacement passed
+real Node B login acceptance over IPv4 and IPv6, using the configured Doppler
+reference. Both fresh and idle connections accepted normal wrong-password
+rejection followed immediately by successful login, dashboard access, and logout.
+The fixed release and monitor remain on Node B. Node A still serves baseline and
+retains the candidate publication. Health observations passed on both nodes with
+no VIP movement. Exact identities and sanitized evidence hashes are recorded in
+[the terminal result](../manifests/serving-health-terminal-result.yaml).
+
+Archive the terminal operation before defining the separately authorized Node A
+activation and shared-VIP functional acceptance. Every authenticated application
+must satisfy [APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md); valid rendered
+configuration alone does not establish functional login acceptance.

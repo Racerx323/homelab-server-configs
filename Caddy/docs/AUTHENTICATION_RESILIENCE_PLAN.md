@@ -9,16 +9,20 @@ Read-only checks subsequently verified Node B HTTPS over both families. The old
 workstation `/tmp` evidence was no longer available after the reported Ubuntu
 stop/start; the archive retains the exact operation and sanitized evidence hashes.
 
-One replacement operation is defined and unexecuted. It runs a credential-free
-workstation HTTPS check before uploads, SSH, Doppler retrieval, or service changes.
-Both numeric-address paths must verify TLS for the Node B hostname and return
-HTTP 200 with the Pi-hole login form. Either failure stops without remote mutation.
-The governing authority remains [caddy_plan-v1.1.md](caddy_plan-v1.1.md).
+The authorized replacement passed real Node B acceptance. Node B retains the
+fixed immutable release and the monitor that reports each address family
+independently. Node A retains its original serving release and the candidate
+publication for a later rollout. Wrong-password rejection, immediate successful
+retry, dashboard access, and logout passed over IPv4 and IPv6 with both fresh
+and idle connections. Health and ownership observations passed without failures
+or VIP movement. Exact identities and evidence hashes are in
+[the terminal result](../manifests/serving-health-terminal-result.yaml).
 
-The web monitor source now classifies both families independently. Its source
-hash advances in `production-artifacts.tsv`; accepted deployed hashes and the
-accepted immutable release remain unchanged. This is planned source divergence,
-not a claim of deployment or production drift.
+The operation is consumed and the stream is terminal-pending until archival.
+Node A activation and shared-VIP login acceptance remain separately authorized
+work. The governing authority remains [caddy_plan-v1.1.md](caddy_plan-v1.1.md).
+The sections below retain the implementation and qualification design; historical
+qualification milestones do not supersede this accepted state.
 
 ## Repository audit
 
@@ -462,8 +466,8 @@ are retained in the protected qualification directory reported by the runner.
 Those qualification tests contacted no production node. The subsequent live run
 failed and restored baseline as recorded in the current status above.
 
-The consumed definition and terminal result are retained in the pushed archive
-tag. Current registries now identify one replacement operation. Its qualification
+The earlier failed definition and terminal result are retained in the pushed
+archive tag. The replacement qualification
 adds five pre-mutation cases to the existing nine deployment/rollback cases:
 missing IPv6 connectivity, untrusted TLS, HTTP 503, an inactive backend service,
 and interruption during remote preflight. The first three require zero SSH,
@@ -474,7 +478,7 @@ by `--connectivity-only`.
 Host-only helper tests continue to cover helper installation, rollback, payload
 identity, and SSH serialization. Full-coordinator preflight cases now run only
 inside the network-disabled HTTPS fixture so host tests never contact live nodes.
-The new bundle needs fresh qualification and exact-hash live authorization.
+Fresh qualification and exact-hash authorization were completed before execution.
 
 The replacement qualification passed all fourteen scenarios with zero observer
 residue. Authorization readiness validated seventeen proportional decision records
@@ -483,5 +487,5 @@ regressions, secret-input tests, helper tests, and repository checks passed.
 A protected evidence copy is retained outside `/tmp` under the workstation's
 `.caddy-evidence` directory; the review document records the exact command and
 restoration procedure if the original `/tmp` evidence is purged. No production
-node or credential was contacted during this qualification. The new bundle is
-ready for exact-hash live authorization.
+node or credential was contacted during this qualification. The authorized run
+subsequently passed Node B acceptance, as recorded above.

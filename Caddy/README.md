@@ -87,4 +87,4 @@ Caddy/tests/deployable-successor-policy.sh --check
 changes require a separately authorized outer-runner SHA-256.
 
 - [Authentication resilience plan](docs/AUTHENTICATION_RESILIENCE_PLAN.md):
-  notification source changes, onboarding audit, and pending Pi-hole validation.
+  notification changes, onboarding audit, and accepted Node B Pi-hole validation.

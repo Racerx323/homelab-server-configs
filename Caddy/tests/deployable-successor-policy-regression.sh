@@ -235,7 +235,7 @@ if [[ -f "$repository_root/Caddy/manifests/serving-health-terminal-result.yaml" 
     mv "$root/altered-terminal" "$root/Caddy/manifests/serving-health-terminal-result.yaml"
     check terminal_identity_drift_rejected fixture_rejected || exit 1
     install -m 0600 "$repository_root/Caddy/manifests/serving-health-terminal-result.yaml" "$root/Caddy/manifests/"
-    jq '.result = "accepted"' "$root/Caddy/manifests/serving-health-terminal-result.yaml" >"$root/altered-terminal"
+    jq '.result = (if .result == "accepted" then "failed-consumed" else "accepted" end)' "$root/Caddy/manifests/serving-health-terminal-result.yaml" >"$root/altered-terminal"
     mv "$root/altered-terminal" "$root/Caddy/manifests/serving-health-terminal-result.yaml"
     check terminal_result_mismatch_rejected fixture_rejected || exit 1
 fi

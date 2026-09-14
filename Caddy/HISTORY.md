@@ -103,3 +103,23 @@ Ubuntu stop/start. The tag does not contain raw evidence. Consumed data is remov
 from the current branch while one replacement operation is registered.
 No candidate is accepted in production, and this consumed bundle must not be rerun.
 A later operation must establish workstation dual-stack reachability before mutation.
+
+## Node B authentication connectivity operation
+
+- Operation: `20260914-pihole-authentication-connectivity`
+- Result: accepted; outer status 0
+- Authorized outer SHA-256: `855f76189cc30b65de1c590b3a8609a3ad2fe430e5b29ef0d381f064fb16f850`
+- Node B retained release: `20260914T210529Z-61747c1a-5eaa-42a9-9ded-70310cd4be2a`
+- Node A retains its baseline serving release and candidate publication.
+- IPv4/IPv6 fresh and idle wrong-password rejection, immediate successful retry,
+  authenticated dashboard, and logout passed. All 1208 node-local continuity
+  requests succeeded; each node recorded four healthy web checks and zero failures.
+  Node A remained MASTER with four VIPs; Node B remained BACKUP with zero.
+- Evidence is preserved outside `/tmp`; the sanitized hashes and exact executed
+  identities are in `manifests/serving-health-terminal-result.yaml`.
+- Tag: `caddy-authentication-connectivity-terminal-2026-09-14` (planned, not yet pushed).
+- Status: terminal-pending
+
+The stream is terminal-pending and the deployable registry is cleared. The exact
+executed operation remains for archival. Node A serving activation and shared-VIP
+login acceptance remain later stages requiring separate authorization.
