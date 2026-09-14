@@ -189,7 +189,12 @@ grep -Fq $'\t\t\thealth_interval 30s' "$proxy_route"
 grep -Fq $'\t\t\thealth_timeout 3s' "$proxy_route"
 grep -Fq $'\t\t\thealth_status 200' "$proxy_route"
 grep -Fq $'\t\t\thealth_follow_redirects' "$proxy_route"
-grep -Fq $'\t\t\tfail_duration 30s' "$proxy_route"
+# The sole backend must remain eligible after an individual request failure.
+if grep -Eq '^[[:space:]]*fail_duration[[:space:]]' "$proxy_route"; then
+    exit 1
+fi
+grep -Fq $'\t\t\ttransport http {' "$proxy_route"
+grep -Fq $'\t\t\t\tkeepalive off' "$proxy_route"
 printf '%s_native_backend_health=true\n' "$prefix"
 
 PIHOLE_WEB_HEALTH_ENVIRONMENT_FILE=$root/environment \
