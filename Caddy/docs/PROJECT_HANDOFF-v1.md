@@ -44,7 +44,7 @@ related_repositories:
     baseline: 8d5b718efe4f73aa7e594f460267c3af70dec8fa
 accepted_production:
   archive_tag: caddy-action35as-terminal-2026-08-24
-  payload_manifest_sha256: 2253a491e048c9d670865e3d39efa3c9e9acd92a31ec33219f97ba91428b0133
+  payload_manifest_sha256: 6a1385491cbc36d4fcb07a794553316d0f4bc8193465e45c5fa42b350ea35f88
   stream_state: clean
   successor_state: none
 current_planned_repository_project:
@@ -107,8 +107,8 @@ Current project status:
 - Historical chronology belongs in Caddy/HISTORY.md and annotated Git tags.
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
-- Node B has accepted the fixed release and monitor; Node A still serves baseline.
-- The accepted Node B operation is archived; the Node A preflight failure is archived and its inventory correction passed nineteen isolated qualification scenarios.
+- Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
+- Prior operations are archived; the accepted Node A rollout awaits terminal archival.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -384,29 +384,21 @@ For a snapshot-only update:
 Do not claim live parity from Git state. A production identity changes only
 after bounded live acceptance and repository bookkeeping establish it.
 
-## Authentication resilience follow-up
+## Authentication resilience acceptance
 
-Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md)
-for accepted Node B behavior and the primary activation sequence. Node B retains
-the fixed release and monitor; Node A still serves baseline and retains the
-candidate publication. The accepted operation’s pushed archive tag is indexed
-in [HISTORY.md](../HISTORY.md). Current manifests record the accepted mixed state.
+Both nodes retain the fixed release and monitor. Node A and the shared URL passed
+incorrect-password rejection followed by immediate successful login, dashboard,
+logout, and denied dashboard checks over IPv4/IPv6 with fresh and idle sessions.
+All 2,224 availability probes passed; web-health failures and VIP movement were
+zero. Node A remained MASTER/four VIPs and Node B BACKUP/zero VIPs. The existing
+Node A publication remains available; Node B was unchanged by primary activation.
 
-A corrected successor must activate that existing publication on Node A through the
-installed finalizer/reconciler, updates its monitor, and validates node and shared
-login over IPv4/IPv6. The operator confirms both nodes share the password in
-`homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD`; values remain external.
-Shared login requires Node A ownership checks and continuous VIP evidence.
-The authorized run stopped in Node A preflight: its eleven-file baseline was
-checked against the eight-file candidate inventory. Read-only checks verified all
-eleven baseline manifest entries. The fixture omitted three baseline TLS files,
-so the sixteen passing scenarios did not cover that production representation.
-The consumed operation is now archived. The replacement uses separate pinned
-eleven-file baseline and eight-file candidate inventories, with a complete
-baseline fixture and changed/missing/extra-file rejection cases. The replacement passed all nineteen full-outer scenarios with zero observer
-residue; exact live authorization remains required. Both upload cleanups
-succeeded; no serving mutation or login attempt occurred.
-Rollback restores only Node A and preserves Node B and the publication.
+Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md) for
+the accepted procedure and [HISTORY.md](../HISTORY.md) for terminal provenance.
+Current manifests and production sources record the accepted fix. The latest
+operation is terminal-pending; archive its exact definition before cleanup and
+maintenance of the consumed baseline-transition tools. Evidence is protected
+outside workstation `/tmp`.
 
 Every authenticated proxy must satisfy the rejection/retry gate in
 [APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). A valid rendered

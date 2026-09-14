@@ -62,7 +62,7 @@ same immutable Caddy release on both nodes. Actions 35ak, 35al, and 35am closed
 the Pi-hole web timer and notification contracts. Action 35as accepted the
 controlled failure exercise and closed Action 35.
 
-The accepted Caddy payload manifest SHA-256 is
+The Action 35 baseline payload manifest SHA-256 was
 `2253a491e048c9d670865e3d39efa3c9e9acd92a31ec33219f97ba91428b0133`.
 Current inventories and `current-live-state.tsv` describe the production
 boundary. Historical quarantine trees, operation specifications, regressions,
@@ -155,3 +155,37 @@ After archive, correct the separately pinned baseline/candidate inventory checks
 model the full baseline in the fixture, and qualify a replacement including
 malformed identity rejection and restoration. Node A and shared login acceptance
 require that replacement’s exact authorization.
+
+## Node A authentication inventory correction and acceptance, 2026-09-14
+
+- Operation: `20260914-pihole-authentication-inventory`
+- Status: terminal-pending
+- Result: accepted; both nodes retain the fixed release and monitor
+- Tag: `caddy-authentication-inventory-terminal-2026-09-14`
+- Authorized outer SHA-256: `c787b411b066eeb9647943cecf0ae2eb4b8cb61edc366630ac382c0b1d705f72`
+- Authorized source commit: `c091a48`
+
+The corrected baseline predicate passed live preflight. Node A installed the
+updated monitor and activated the retained publication through its installed
+finalizer/reconciler. Real Node A and shared-URL login acceptance passed over
+IPv4 and IPv6 with fresh and idle sessions: wrong password rejected, immediate
+correct password accepted, dashboard accessible, logout successful, and dashboard
+access denied after logout. No login POST was replayed.
+
+All 2,224 availability probes passed (Node A 1,128; Node B 1,096). Cursor-bounded
+web-health checks recorded seven healthy results on Node A and eight on Node B,
+with zero failures. Node A remained MASTER with four VIPs; Node B remained BACKUP
+with zero. All execution phases returned 0; rollback was not needed. Node B's
+accepted release and monitor were unchanged.
+
+Both nodes now serve revision `20260914T210529Z-61747c1a-5eaa-42a9-9ded-70310cd4be2a`,
+payload manifest `6a1385491cbc36d4fcb07a794553316d0f4bc8193465e45c5fa42b350ea35f88`.
+Node A retains its existing publication. Accepted identities and production sources
+are updated. Exact executed entrypoints and the operation specification remain
+for terminal archival; the original 34-file graph is recorded in the evidence
+manifest and preserved by source commit `c091a48` and its workstation snapshot.
+
+Protected qualification and live evidence:
+`/home/aaron/code/.caddy-evidence/authentication-primary-c787b411b066`.
+Archive cleanup must reset consumed inputs and align the retained preparation
+and fixture tools with the newly accepted production source before reuse.

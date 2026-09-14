@@ -3,41 +3,32 @@
 ## Scope and accepted state
 
 The governing architecture remains [caddy_plan-v1.1.md](caddy_plan-v1.1.md).
-Node B has passed real Pi-hole login acceptance and retains the fixed release
-and independent IPv4/IPv6 web monitor. Node A still serves the original release
-and retains the same candidate publication. Accepted identities are in
-[the live-state manifest](../manifests/current-live-state.tsv).
+Both nodes now retain the fixed Pi-hole proxy release and independent IPv4/IPv6
+web monitor. Node A and the shared URL passed real incorrect-password rejection,
+immediate successful retry, dashboard access, logout, and denial after logout,
+using fresh and idle sessions over both address families. The runner observed
+2,224 successful availability probes, zero web-health failures, and no VIP movement.
+Node A remained MASTER with four VIPs; Node B remained BACKUP with zero.
+Accepted identities are in [the live-state manifest](../manifests/current-live-state.tsv).
 
-The completed Node B operation and its evidence manifest are archived in the
-pushed tag indexed by [HISTORY.md](../HISTORY.md). Its raw acceptance evidence
-and qualification copy are protected outside workstation `/tmp`. The earlier
-failed attempt’s `/tmp` evidence was purged during the reported WSL restart;
-its archive contains hashes, not reconstructed raw evidence.
+The latest accepted operation is terminal-pending in [HISTORY.md](../HISTORY.md).
+Its exact executed specification and entrypoints are retained for archive; the
+authorized input graph is preserved at source commit `c091a48` and in the protected
+workstation evidence snapshot. Production configuration and deployed-hash registries
+now describe the accepted fix. Qualification and live evidence are protected
+outside `/tmp`. Earlier failed operations remain in their pushed archive tags.
 
-The authorized Node A run stopped during preflight before monitor installation,
-release activation, service transitions, or credential retrieval. Both workstation
-connectivity checks and Node B preflight passed. Both temporary upload cleanups
-returned success. Node A remains on its original release and monitor.
+The baseline inventory defect was corrected by selecting separate eleven-file
+baseline and eight-file candidate allowlists using their pinned manifest identities.
+All nineteen full-outer scenarios and twenty-two decision records passed, including
+changed/missing/extra baseline files, rollback, interruption, and evidence rejection.
+The subsequent authorized live run passed without rollback.
 
-Read-only inspection found a deployment predicate defect: it checks the accepted
-baseline against the candidate’s eight-file inventory. The baseline has eleven
-manifest entries, including `tls/leaf.pem`, `tls/intermediates.pem`, and
-`tls/certificate-manifest.json`. Its pinned manifest and all eleven file digests
-match. The retained candidate matches its eight-file inventory. This is a
-qualification gap, not observed release drift: the sixteen passing scenarios
-used a baseline fixture that omitted those three files.
-
-The consumed operation is archived in its pushed terminal tag. Its exact source
-graph, qualification, and live evidence remain protected outside `/tmp`. The
-replacement definition uses separate inventories selected by the pinned manifest
-identity: eleven baseline files and eight candidate files. The fixture now
-includes the full baseline; additional preflight cases alter certificate metadata,
-remove an intermediate file, and add an unexpected file after identity pinning.
-All nineteen full-outer scenarios passed, including activation, both login
-targets, baseline restoration, and malformed evidence rejection, with zero
-observer residue. Node A and shared-URL
-functional login acceptance still require the qualified replacement's exact live
-authorization.
+Archive the accepted terminal commit before resetting consumed deployment inputs.
+The retained preparation tool and qualification fixtures describe the executed
+baseline-to-candidate transition; do not rerun that consumed operation against the
+new accepted source. Reconcile those neutral tools with current production sources
+during archive cleanup before defining another deployment.
 
 ## Repository audit
 
@@ -47,8 +38,8 @@ authorization.
 | `tests/serving-health-regression.sh` | Generic failure lacked family coverage; isolated mixed-family cases cover, sanitization, deduplication, enqueue retry, and recovery coverage. Validate source separately from accepted deployed identity. |
 | `docs/APPLICATION_ONBOARDING.md` | Authentication ownership existed but rejection/retry acceptance was missing; require it for every authenticated web interface. |
 | `templates/reverse-proxy.caddy.example` | Passive checks and 5xx policy require an application-specific review; document `0s` and the authentication gate without changing the token schema. |
-| `configs/caddy/conf.d/10-pihole-admin.caddy` | Sole local backend has `fail_duration 30s` and default connection reuse; accepted Node A source remains intact while Node B serves the fixed release. |
-| Release and deployment manifests | Retain accepted live identities; archive the consumed operation and prepare Node A activation with workstation connectivity and standby identity gates. |
+| `configs/caddy/conf.d/10-pihole-admin.caddy` | Accepted source removes passive exclusion and disables local upstream reuse; both nodes passed live acceptance. |
+| Release and deployment manifests | Both nodes’ accepted identities are recorded; retain the consumed operation until its terminal archive is pushed. |
 | Operator and project documents | Link this plan and explain notification classifications and authentication acceptance. |
 
 Only Pi-hole administration is an application proxy in the current production
@@ -79,7 +70,7 @@ The web monitor reports both families independently, distinguishing HTTP status,
 TLS, connection, timeout, redirect, and other terminal failures. Web health
 remains notification-only and does not determine VRRP eligibility.
 
-## Primary activation sequence
+## Accepted activation procedure
 
 1. Verify both numeric IPv4/IPv6 HTTPS paths for Node A and the shared hostname,
    retaining SNI and certificate verification. Require HTTP 200 and the login
@@ -176,6 +167,5 @@ CADDY_AUTH_QUALIFICATION_EVIDENCE=/tmp/REPORTED-EVIDENCE-DIRECTORY \
 Complete targeted host tests and repository hooks, preserve qualification outside
 `/tmp`, and prepare the review document containing the exact outer SHA-256,
 execution command, target identities, acceptance, and rollback. Request live
-authorization only after those checks pass. After live acceptance, update both
-nodes’ accepted identities, production source classifications, handoff, and
-terminal history; archive the consumed operation before removing its records.
+authorization only after those checks pass. The accepted live identities, production sources, handoff, and terminal history
+are updated. Archive the consumed operation before removing its records.

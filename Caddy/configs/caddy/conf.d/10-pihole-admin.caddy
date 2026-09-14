@@ -12,7 +12,9 @@
 			health_timeout 3s
 			health_status 200
 			health_follow_redirects
-			fail_duration 30s
+			transport http {
+				keepalive off
+			}
 		}
 	}
 }

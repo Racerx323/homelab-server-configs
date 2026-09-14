@@ -1,2 +1,2 @@
 schema_version	status	action	operation_spec	transaction	outer_runner	state_contract	state_sha256	coverage	regression
-2	defined	20260914-pihole-authentication-inventory	Caddy/manifests/serving-health-operation.yaml	Caddy/scripts/apply-serving-health-deployment.sh	Caddy/scripts/run-serving-health-deployment-outer.sh	Caddy/manifests/current-live-state.tsv	e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476	Caddy/manifests/deployable-successor-coverage.tsv	Caddy/tests/authentication-outer-regression.sh
+2	none	-	-	-	-	Caddy/manifests/current-live-state.tsv	ecf7029709399bc383a3ffef777a55ca69930592ccf19f45da534fcc71b2acce	Caddy/manifests/deployable-successor-coverage.tsv	-
