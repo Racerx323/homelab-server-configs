@@ -286,6 +286,10 @@ operational_contracts_present() {
 }
 
 application_onboarding_contract_present() {
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        '## Authentication rejection and retry gate' || return 1
+    require_text "$docs_root/APPLICATION_ONBOARDING.md" \
+        'Validate incorrect password, immediate retry, successful login' || return 1
     regular_file "$template_readme" || return 1
     regular_file "$reverse_proxy_template" || return 1
     require_text "$template_readme" \
@@ -393,7 +397,9 @@ run_self_test() {
     local operator_documentation_handoff_backup
 
     self_test_root=$(mktemp -d /tmp/caddy-operator-docs.XXXXXX)
-    mkdir -p "$self_test_root/Caddy"
+    mkdir -p "$self_test_root/Caddy/tests"
+    cp "$default_repository_root/Caddy/tests/README.md" \
+        "$self_test_root/Caddy/tests/README.md"
     cp -a "$default_repository_root/Caddy/docs" \
         "$self_test_root/Caddy/"
     cp "$default_repository_root/Caddy/README.md" \
@@ -442,6 +448,15 @@ run_self_test() {
     if /bin/bash "$0" --check --repository-root \
         "$self_test_root" >/dev/null 2>&1; then
         fail self_test_generator_future_link_accepted
+    fi
+    cp "$operator_documentation_generator_backup" \
+        "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"
+
+    sed -i '/^## Authentication rejection and retry gate$/d' \
+        "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"
+    if /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >/dev/null 2>&1; then
+        fail self_test_missing_authentication_gate_accepted
     fi
     cp "$operator_documentation_generator_backup" \
         "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"

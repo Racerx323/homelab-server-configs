@@ -82,6 +82,27 @@ successor_policy_inactive_valid() {
     local successor_policy_outer=$successor_policy_repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh
     local successor_policy_operation_hash successor_policy_transaction_hash
 
+    # A consumed operation retains its exact executed definition for archival.
+    # It is deliberately not converted into an inactive or newly deployable one.
+    if [[ -f "$successor_policy_repository_root/Caddy/manifests/deployment-streams.tsv" ]] &&
+        awk -F '\t' '$2 == "caddy" && $8 == "terminal-pending" {found=1} END {exit !found}' \
+            "$successor_policy_repository_root/Caddy/manifests/deployment-streams.tsv"; then
+        local successor_policy_terminal=$successor_policy_repository_root/Caddy/manifests/serving-health-terminal-result.yaml
+        local successor_policy_terminal_action successor_policy_terminal_result
+        successor_policy_regular_file "$successor_policy_terminal" || return 1
+        successor_policy_terminal_action=$(awk -F '\t' '$2 == "caddy" {print $9}' "$successor_policy_repository_root/Caddy/manifests/deployment-streams.tsv") || return 1
+        successor_policy_terminal_result=$(awk -F '\t' '$2 == "caddy" {print $10}' "$successor_policy_repository_root/Caddy/manifests/deployment-streams.tsv") || return 1
+        jq -e --arg action "$successor_policy_terminal_action" --arg result "$successor_policy_terminal_result" \
+            --arg outer "$(sha256sum "$successor_policy_outer" | awk '{print $1}')" \
+            --arg transaction "$(sha256sum "$successor_policy_transaction" | awk '{print $1}')" \
+            --arg operation "$(sha256sum "$successor_policy_operation" | awk '{print $1}')" \
+            '.schema_version == 1 and .action == $action and .result == $result and
+             .outer_sha256 == $outer and .transaction_sha256 == $transaction and
+             .operation_sha256 == $operation and
+             (.result == "accepted" or .result == "failed-consumed" or .result == "manual-intervention")' \
+            "$successor_policy_terminal" >/dev/null || return 1
+        return 0
+    fi
     successor_policy_regular_file "$successor_policy_operation" || return 1
     successor_policy_executable_file Caddy/scripts/apply-serving-health-deployment.sh || return 1
     successor_policy_executable_file Caddy/scripts/run-serving-health-deployment-outer.sh || return 1
@@ -316,9 +337,16 @@ successor_policy_defined_valid() {
     successor_policy_scope=$(sed -n 's/^scope: //p' \
         "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
     case "$successor_policy_scope" in
-        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
+        pihole-authentication-node-b | pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
         *) return 1 ;;
     esac
+    if [[ "$successor_policy_scope" = pihole-authentication-node-b ]]; then
+        python3 "$successor_policy_repository_root/Caddy/tests/authentication-deployment-policy.py" --graph-check || return 1
+        if [[ "$successor_policy_authorization_requested" = 1 ]]; then
+            python3 "$successor_policy_repository_root/Caddy/tests/authentication-deployment-policy.py" --evidence-check "${CADDY_AUTH_QUALIFICATION_EVIDENCE:-}" || return 1
+        fi
+        return 0
+    fi
     case "$successor_policy_scope" in
         full-serving-health)
             grep -Fxq 'state_equivalence:' \
@@ -493,6 +521,10 @@ successor_policy_registry_valid() {
     esac
     # conditional-validator-explicit-failures-end
 }
+
+successor_policy_authorization_requested=0
+[[ "${1:-}" != --authorization-ready ]] || successor_policy_authorization_requested=1
+readonly successor_policy_authorization_requested
 
 case "${1:-}" in
     --check)

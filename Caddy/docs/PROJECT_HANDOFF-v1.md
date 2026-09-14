@@ -106,9 +106,9 @@ Current project status:
 - Action 35 closed through accepted Action 35as on 2026-08-24.
 - Historical chronology belongs in Caddy/HISTORY.md and annotated Git tags.
 - Do not restore or create action-numbered implementation artifacts.
-- The Caddy deployment stream is clean.
-- No deployment successor is registered.
-- The successor coverage registry is header-only.
+- The Node B authentication operation is failed-consumed and terminal-pending.
+- Both nodes passed baseline restoration; the deployable and coverage registries are cleared.
+- The archive commit and annotated tag remain pending; do not rerun the consumed bundle.
 - The governing plan does not authorize live work.
 
 Verify those statements against:
@@ -382,3 +382,24 @@ For a snapshot-only update:
 
 Do not claim live parity from Git state. A production identity changes only
 after bounded live acceptance and repository bookkeeping establish it.
+
+## Authentication resilience follow-up
+
+Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md)
+for the current repository audit, monitor source divergence from accepted
+production, implemented candidate preparation/integration test and HTTP login
+validator, and pending Node B real-application acceptance. The operator confirms
+that `homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD` is configured;
+retrieval and login acceptance remain unverified. The operator selected keeping
+the fixed release and monitor on Node B after successful acceptance, while Node A
+retains its baseline selection and the candidate publication for its later
+rollout. Failure triggers restoration. Release-phase regressions cover this
+retained state; the minimal payload and pre-mutation cleanup are tested, and the
+`authentication-outer` profile now exercises the complete post-mutation sequence
+in an isolated real-Caddy fixture. The authorized Node B run failed because the workstation lacked an IPv6 route.
+The runner restored the baseline and withdrew publication. The operation is
+terminal-pending; full real login acceptance remains outstanding. Every authenticated
+application must satisfy the rejection/retry acceptance gate in
+[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). Generator definitions
+must preserve that gate; rendering valid syntax does not establish functional
+login acceptance. The registered definition does not itself authorize live execution.

@@ -34,10 +34,29 @@ else
 fi
 readonly host_evidence_root
 
+focused_container_image=$validation_image
+focused_container_auth_outer=false
+
+select_authentication_container() {
+    case ",$1," in
+        *,authentication-outer,* | *,Caddy/tests/authentication-outer-regression.sh,*)
+            focused_container_image=localhost/caddy-auth-validation:latest
+            focused_container_auth_outer=true
+            ;;
+        *,authentication-resilience,* | *,Caddy/tests/authentication-resilience-integration.sh,* | *,Caddy/tests/authentication-release-regression.sh,* | *,Caddy/tests/authentication-secret-regression.sh,*)
+            focused_container_image=localhost/caddy-auth-validation:latest
+            ;;
+    esac
+}
+
 run_container() {
     local focused_container_status=0
+    local -a focused_container_options=()
+    if [[ "$focused_container_auth_outer" = true ]]; then
+        focused_container_options=(--init --cap-add NET_ADMIN --env AUTH_OUTER_EVIDENCE_ROOT=/evidence)
+    fi
 
-    podman run --rm --network none \
+    podman run --rm --network none "${focused_container_options[@]}" \
         --env CADDY_VALIDATION_CONTAINER=1 \
         --env CADDY_FOCUSED_EVIDENCE_ROOT=/evidence \
         --volume "$workspace_root:/workspace:ro" \
@@ -88,10 +107,11 @@ case "${1:-}" in
         ;;
     --profiles)
         [[ $# -eq 2 && "$2" =~ ^[a-z0-9-]+(,[a-z0-9-]+)*$ ]] || exit 64
+        select_authentication_container "$2"
         # The child Bash expands its positional parameter.
         # shellcheck disable=SC2016
         run_container \
-            "$validation_image" -lc \
+            "$focused_container_image" -lc \
             'cd /workspace/homelab-server-configs && exec /bin/bash Caddy/tests/run-focused.sh --profiles "$1" --phase container --container never' \
             _ "$2"
         exit $?
@@ -126,9 +146,10 @@ relative_script=${resolved_script#"$repository_root"/}
 readonly relative_script
 readonly container_script=/workspace/homelab-server-configs/$relative_script
 
+select_authentication_container "$relative_script"
 # The child Bash expands its positional parameter.
 # shellcheck disable=SC2016
 run_container \
-    "$validation_image" -lc \
+    "$focused_container_image" -lc \
     'cd /workspace/homelab-server-configs && exec /bin/bash "$1"' \
     _ "$container_script"

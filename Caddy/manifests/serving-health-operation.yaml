@@ -1,14 +1,61 @@
 schema_version: 2
-action: none
-title: Inactive serving-health deployment operation
-status: inactive
+action: 20260914-pihole-authentication-node-b
+title: Pi-hole authentication resilience on standby Node B
+status: defined-unexecuted
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 89a5c89820e1d8139b915a310fe8073d241dca552dc900ac6a73ec53154fde0f
+transaction_sha256: 1582add56f024d225191ffb419b3e066021a00f10b3f2339267b9cec2e9e163a
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: 2d46a246f7058be53fc72fac82ddf30cd1e80440ff3137d4680001b04dae36ec
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: no-operation-defined
+scope: pihole-authentication-node-b
+live_execution: exact-bundle-authorization-required
+baseline:
+  release: 20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d
+  source_role: node-a
+  contract: Caddy/manifests/current-live-state.tsv
+targets:
+  node_b: pi@10.1.0.54
+  node_a: pi@10.1.0.53
+mutation:
+  node_b: atomic-web-monitor-install-and-protocol-v2-candidate-reconciliation
+  node_a: protocol-v2-publication-only
+  configuration: remove-passive-fail-duration-and-disable-upstream-keepalive
+  active_health_checks: retained
+  post_replay: prohibited
+acceptance:
+  success: retain-node-b-candidate-and-node-a-publication
+  node_a_activation: separately-authorized
+  login: incorrect-password-rejection-immediate-success-dashboard-logout
+  families: ipv4-and-ipv6-fresh-and-idle
+  observation_seconds: 90
+  evidence_span_seconds: 64-600
+  maximum_probe_gap_seconds: 15
+  ownership: node-a-master-four-vips-node-b-backup-zero-vips
+  failures: no-http-502-503-no-web-health-failure-or-recovery
+  services: accepted-service-contract-plus-lighttpd-pihole-ftl-unbound
+rollback:
+  trigger: failed-candidate-acceptance-with-provable-release-identity
+  order: quiesce-node-b-withdraw-node-a-restore-node-b-release-restore-monitor-resume-node-b-then-node-a
+  convergence_seconds: 60
+  ambiguous_mutation_or_unproven_recovery_status: 125
+  pre_mutation_failure: owned-upload-cleanup-only
+  evidence_loss_after_acceptance: preserve-candidate-and-report-125
+secret:
+  provider: doppler
+  project: homelab-dev
+  config: prd_caddy
+  key: PIHOLE_NODE_B_WEB_PASSWORD
+  handling: bounded-inherited-descriptor-no-values-in-argv-environment-or-evidence
+exclusions:
+  - Node A serving release activation
+  - DNS or Keepalived configuration changes and deliberate VIP movement
+  - password reset and notification test delivery
+qualification:
+  command: /bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh --production-path-test
+  evidence_environment: CADDY_AUTH_QUALIFICATION_EVIDENCE
+  policy: Caddy/tests/authentication-deployment-policy.py
+  coverage: Caddy/manifests/deployable-successor-coverage.tsv

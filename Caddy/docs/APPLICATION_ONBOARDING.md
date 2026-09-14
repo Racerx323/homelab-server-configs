@@ -23,9 +23,9 @@ fragment.
 | Backend TLS | Certificate name, SNI, and system or release-local CA source |
 | Health contract | Method, URI, status, interval, timeout, passes, and failures |
 | Passive health | Failure window, failure count, and unhealthy status classes |
-| Transport | Dial and response-header timeouts |
+| Transport | Dial and response-header timeouts; connection reuse and backend keep-alive compatibility |
 | Request headers | Exact backend `Host` value and any approved overrides |
-| Authentication | Application-owned, Caddy-owned, or none |
+| Authentication | Application-owned, Caddy-owned, or none; rejection and retry acceptance cases |
 | Client networks | Exact allowed IPv4 and IPv6 CIDRs |
 | Availability | Single backend or multiple backends with a load-balancing policy |
 | DNS | Application A and AAAA records for the Proxy VIPs; canonical Proxy PTR records remain unchanged |
@@ -137,6 +137,46 @@ requires and approves it.
 The template does not implement authentication. Record whether the application
 or Caddy owns authentication. A Caddy-owned authentication design requires its
 own review and secret boundary.
+
+## Authentication rejection and retry gate
+
+Every proxied web interface with authentication must pass this gate during
+initial onboarding and after changes to authentication, proxy health policy,
+or upstream transport. For an application without login, record why the
+password case is not applicable and test its equivalent access-denial flow.
+
+Record the application's expected rejection status, page, redirects, session
+behavior, and any deliberate rate limit or lockout. An incorrect password must
+produce the application's normal rejection and permit an immediate retry when
+its policy allows. A deliberate lockout may restrict that account; it must not
+make the shared backend unavailable to other users or the health monitor.
+Do not classify expected authentication rejection as backend failure or enable
+automatic replay of login POSTs to hide a transport error.
+
+Validate incorrect password, immediate retry, successful login, authenticated
+page access, and logout over IPv4 and IPv6. Exercise fresh connections and
+connections idle near the backend's documented keep-alive timeout. Use a
+bounded, approved test account and keep credentials, cookies, CSRF tokens, and
+request bodies outside logs and retained evidence. For SSO or other login
+methods, exercise the equivalent rejected-authentication and retry sequence.
+
+Record each request's time, address family, expected and actual status, and
+sanitized application result. Correlate Caddy/backend logs, web-health checks,
+and VIP ownership. Require no proxy-generated 502/503, unintended backend
+exclusion, web-health failure notification, or VIP movement attributable to
+rejected authentication. Observe through at least two complete configured
+active-health and notification-monitor cycles after the sequence. Verify
+another client remains usable. Static configuration validation does not prove
+this functional gate; a controlled staging test and separately authorized live
+acceptance must establish it.
+
+For a single backend, explicitly decide whether passive exclusion offers any
+benefit and record its availability cost. The example's `@@FAIL_DURATION@@`
+may be `0s` to disable passive checks. Review its `unhealthy_status 5xx` against
+the application's actual behavior; expected authentication responses must not
+trip that policy. Connection reuse is an application-specific decision: use a
+reviewed timeout compatible with the backend, or disable it. Do not apply the
+Pi-hole transport proposal to all applications without that review.
 
 ## DNS record gate
 
@@ -332,7 +372,8 @@ curl --fail --silent --show-error --ipv6 \
     "https://${application_fqdn}/APPROVED_PATH"
 ```
 
-Acceptance must also prove backend health behavior, client restrictions,
+Acceptance must pass the authentication rejection and retry gate above and
+prove backend health behavior, client restrictions,
 default deny, continuous DNS and Proxy service, exact VIP ownership, and clean
 protocol-v2 residue.
 

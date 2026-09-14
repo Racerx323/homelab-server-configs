@@ -1,4 +1,7 @@
 # Supported application reverse-proxy example.
+# Follow APPLICATION_ONBOARDING.md authentication rejection/retry acceptance.
+# Review passive failure policy per application; FAIL_DURATION may be 0s.
+# Review upstream keep-alive compatibility before accepting login behavior.
 #
 # This file is documentation input. No production manifest, installer, or
 # renderer consumes it. Copy it to a reviewed 20-<application>.caddy fragment,

@@ -84,7 +84,7 @@ enqueue_transition() {
         --failure-class "$web_health_failure_class" \
         --network-context "IPv4=$NODE_IPV4:443 IPv6=[$NODE_IPV6]:443 endpoint=/admin/login.php" \
         --ha-context 'VIP movement: none; VRRP dependency: no' \
-        --status "caddy=$("$systemctl_command" is-active caddy.service 2>/dev/null || printf unknown) lighttpd=$("$systemctl_command" is-active lighttpd.service 2>/dev/null || printf unknown)" \
+        --status "IPv4=$ipv4_result IPv6=$ipv6_result caddy=$("$systemctl_command" is-active caddy.service 2>/dev/null || printf unknown) lighttpd=$("$systemctl_command" is-active lighttpd.service 2>/dev/null || printf unknown)" \
         --timing "observed: $("$date_command" -u +%Y-%m-%dT%H:%M:%SZ)" \
         --correlation "$episode_id" \
         --evidence 'journalctl -u caddy-pihole-web-health.service' \
@@ -100,7 +100,53 @@ probe_family() {
         --max-time 2 --max-redirs 3 --location --output /dev/null \
         --write-out '%{http_code} %{url_effective}\n' \
         --resolve "$NODE_FQDN:443:$web_health_address" \
-        "https://$NODE_FQDN/admin/login.php" >"$web_health_output" 2>&1
+        "https://$NODE_FQDN/admin/login.php" >"$web_health_output" 2>/dev/null
+}
+
+# Emit only bounded classifications, never curl diagnostics or redirect URLs.
+classify_family() {
+    local web_health_exit=$1
+    local web_health_file=$2
+    local web_health_response
+
+    case "$web_health_exit" in
+        0 | 22) ;;
+        28)
+            printf 'timeout'
+            return
+            ;;
+        35 | 51 | 58 | 59 | 60 | 64 | 66 | 77 | 80 | 82 | 83 | 90 | 91)
+            printf 'tls-error'
+            return
+            ;;
+        5 | 6 | 7)
+            printf 'connection-error'
+            return
+            ;;
+        47)
+            printf 'redirect-error'
+            return
+            ;;
+        *)
+            printf 'curl-error-%s' "$web_health_exit"
+            return
+            ;;
+    esac
+    web_health_response=$(<"$web_health_file")
+    if [[ "$web_health_exit" = 0 &&
+        "$web_health_response" = "200 https://$NODE_FQDN/admin/login.php" ]]; then
+        printf 'healthy'
+    elif [[ "$web_health_response" =~ ^([1-5][0-9][0-9])[[:space:]] ]]; then
+        if [[ "${BASH_REMATCH[1]}" = 200 && "$web_health_exit" = 0 ]]; then
+            printf 'unexpected-terminal'
+        elif [[ "${BASH_REMATCH[1]}" = 200 ]]; then
+            printf 'invalid-result'
+        else
+            printf 'http-%s' "${BASH_REMATCH[1]}"
+        fi
+    else
+        printf 'invalid-result'
+    fi
 }
 
 safe_directory "$state_directory"
@@ -121,6 +167,8 @@ fi
 
 healthy=true
 failure_class=none
+ipv4_result=not-probed
+ipv6_result=not-probed
 if ! "$systemctl_command" is-active --quiet lighttpd.service; then
     healthy=false
     failure_class=service
@@ -129,24 +177,25 @@ else
     ipv4_pid=$!
     probe_family 6 "[$NODE_IPV6]" "$runtime_directory/ipv6" &
     ipv6_pid=$!
-    ipv4_ok=true
-    ipv6_ok=true
-    wait "$ipv4_pid" || ipv4_ok=false
-    wait "$ipv6_pid" || ipv6_ok=false
-    if [[ "$ipv4_ok" != true ]]; then
+    ipv4_exit=0
+    ipv6_exit=0
+    wait "$ipv4_pid" || ipv4_exit=$?
+    wait "$ipv6_pid" || ipv6_exit=$?
+    ipv4_result=$(classify_family "$ipv4_exit" "$runtime_directory/ipv4")
+    ipv6_result=$(classify_family "$ipv6_exit" "$runtime_directory/ipv6")
+    if [[ "$ipv4_result" != healthy && "$ipv6_result" != healthy ]]; then
         healthy=false
-        failure_class=ipv4-path
-    elif [[ "$ipv6_ok" != true ]]; then
+        failure_class=dual-stack
+    elif [[ "$ipv4_result" != healthy ]]; then
         healthy=false
-        failure_class=ipv6-path
-    elif [[ "$(<"$runtime_directory/ipv4")" != "200 https://$NODE_FQDN/admin/login.php" ]]; then
+        failure_class=ipv4
+    elif [[ "$ipv6_result" != healthy ]]; then
         healthy=false
-        failure_class=ipv4-terminal
-    elif [[ "$(<"$runtime_directory/ipv6")" != "200 https://$NODE_FQDN/admin/login.php" ]]; then
-        healthy=false
-        failure_class=ipv6-terminal
+        failure_class=ipv6
     fi
 fi
+
+printf 'pihole_web_health IPv4=%s IPv6=%s failure_class=%s\n' "$ipv4_result" "$ipv6_result" "$failure_class"
 
 if [[ "$healthy" != true ]]; then
     if [[ "$current_state" = healthy ]]; then

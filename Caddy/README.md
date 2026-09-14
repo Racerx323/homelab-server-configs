@@ -85,3 +85,6 @@ Caddy/tests/deployable-successor-policy.sh --check
 
 `--authorization-ready` is valid only while a successor is defined. Live
 changes require a separately authorized outer-runner SHA-256.
+
+- [Authentication resilience plan](docs/AUTHENTICATION_RESILIENCE_PLAN.md):
+  notification source changes, onboarding audit, and pending Pi-hole validation.

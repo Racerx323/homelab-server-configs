@@ -211,6 +211,76 @@ grep -Fxq 'state=failed' "$root/state/state"
 grep -Fq -- '--application Proxy' "$root/enqueue.log"
 printf '%s_web_monitor_entrypoint=true\n' "$prefix"
 
+# Exercise each family independently through the actual monitor entrypoint.
+cat >"$root/bin/curl" <<'EOF'
+#!/usr/bin/env bash
+case "$1" in --ipv4) family=4 ;; --ipv6) family=6 ;; *) exit 64 ;; esac
+IFS=' ' read -r result_code result_status result_url <"$WEB_TEST_ROOT/result-$family"
+printf '%s %s\n' "$result_status" "$result_url"
+printf 'sensitive-diagnostic-must-not-escape\n' >&2
+exit "$result_code"
+EOF
+export WEB_TEST_ROOT=$root
+export PIHOLE_WEB_HEALTH_ENVIRONMENT_FILE=$root/environment
+export PIHOLE_WEB_HEALTH_STATE_DIRECTORY=$root/state
+export PIHOLE_WEB_HEALTH_RUNTIME_DIRECTORY=$root/run
+export PIHOLE_WEB_HEALTH_ENQUEUE_COMMAND=$root/bin/enqueue
+export PIHOLE_WEB_HEALTH_CURL_COMMAND=$root/bin/curl
+export PIHOLE_WEB_HEALTH_SYSTEMCTL_COMMAND=$root/bin/systemctl
+
+while IFS='|' read -r test_v4 test_v6 expected_class expected_results; do
+    rm -f -- "$root/state/state"
+    : >"$root/enqueue.log"
+    printf '%s https://pihole0.local.theama.co/admin/login.php\n' "$test_v4" >"$root/result-4"
+    printf '%s https://pihole0.local.theama.co/admin/login.php\n' "$test_v6" >"$root/result-6"
+    "$web_helper" >"$root/web-output" 2>&1
+    grep -Fq -- "--failure-class $expected_class" "$root/enqueue.log"
+    grep -Fq -- "$expected_results" "$root/enqueue.log"
+    grep -Fq -- "$expected_results" "$root/web-output"
+    "$web_helper" >>"$root/web-output" 2>&1
+    [[ "$(wc -l <"$root/enqueue.log")" -eq 1 ]]
+    printf '0 200 https://pihole0.local.theama.co/admin/login.php\n' >"$root/result-4"
+    cp "$root/result-4" "$root/result-6"
+    "$web_helper" >>"$root/web-output" 2>&1
+    grep -Fxq 'state=healthy' "$root/state/state"
+    grep -Fq -- '--event recovery' "$root/enqueue.log"
+    [[ "$(wc -l <"$root/enqueue.log")" -eq 2 ]]
+    "$web_helper" >>"$root/web-output" 2>&1
+    [[ "$(wc -l <"$root/enqueue.log")" -eq 2 ]]
+    if grep -Fq 'sensitive-diagnostic' "$root/enqueue.log" "$root/web-output"; then
+        exit 1
+    fi
+done <<'EOF'
+22 503|0 200|ipv4|IPv4=http-503 IPv6=healthy
+0 200|22 503|ipv6|IPv4=healthy IPv6=http-503
+22 503|22 503|dual-stack|IPv4=http-503 IPv6=http-503
+7 000|60 000|dual-stack|IPv4=connection-error IPv6=tls-error
+28 200|0 200|ipv4|IPv4=timeout IPv6=healthy
+0 302|47 302|dual-stack|IPv4=http-302 IPv6=redirect-error
+0 broken|56 000|dual-stack|IPv4=invalid-result IPv6=curl-error-56
+EOF
+# A redirect landing on another page must not be mistaken for healthy.
+printf '0 200 https://example.invalid/private\n' >"$root/result-6"
+"$web_helper" >"$root/web-output" 2>&1
+grep -Fq 'IPv4=healthy IPv6=unexpected-terminal' "$root/enqueue.log"
+if grep -Fq 'example.invalid' "$root/enqueue.log" "$root/web-output"; then
+    exit 1
+fi
+# Failed enqueue remains pending; retry and recovery retain one episode.
+printf 'reject\n' >"$root/enqueue-mode"
+rm -f -- "$root/state/state"
+: >"$root/enqueue.log"
+"$web_helper" >/dev/null
+grep -Fxq 'failure_enqueued=false' "$root/state/state"
+health_episode=$(sed -n 's/^episode=//p' "$root/state/state")
+printf 'accept\n' >"$root/enqueue-mode"
+"$web_helper" >/dev/null
+grep -Fq -- "--stable-id $health_episode-failure" "$root/enqueue.log"
+printf '0 200 https://pihole0.local.theama.co/admin/login.php\n' >"$root/result-6"
+"$web_helper" >/dev/null
+grep -Fq -- "--stable-id $health_episode-recovery" "$root/enqueue.log"
+printf '%s_web_family_classification=true\n' "$prefix"
+
 grep -Fxq 'ReadWritePaths=/var/lib/caddy-apprise-queue' "$web_service"
 grep -Fxq 'User=pi' "$web_service"
 grep -Fxq 'Group=pi' "$web_service"
@@ -230,7 +300,15 @@ while IFS=$'\t' read -r health_repository health_source health_target \
     health_root=$server_root
     [[ "$health_repository" = homelab-server-configs ]] || health_root=$dns_root
     [[ -f "$health_root/$health_source" && ! -L "$health_root/$health_source" ]]
-    [[ "$(sha256sum "$health_root/$health_source" | awk '{ print $1 }')" = "$health_hash" ]]
+    if [[ "$health_source" = Caddy/scripts/check-pihole-web-health.sh ]]; then
+        # Source may advance before deployment; accepted identities stay pinned.
+        health_source_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $6 }' "$caddy_root/manifests/production-artifacts.tsv")
+        health_deployed_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $7 }' "$caddy_root/manifests/production-artifacts.tsv")
+        [[ "$health_deployed_hash" = "$health_hash" ]]
+    else
+        health_source_hash=$health_hash
+    fi
+    [[ "$(sha256sum "$health_root/$health_source" | awk '{ print $1 }')" = "$health_source_hash" ]]
 done <"$caddy_root/manifests/serving-health-production.tsv"
 printf '%s_accepted_manifest=true\n' "$prefix"
 printf '%s_complete=true\n' "$prefix"

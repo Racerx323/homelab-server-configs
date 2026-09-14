@@ -147,3 +147,21 @@ Inspect complete incoming, outbound, and quarantine inventories before service
 control. Preserve active releases, their ancestors required by policy, queue
 records, and failure evidence. Remove only exact validated, unreferenced state
 through a reviewed transaction.
+
+## Authentication acceptance after proxy changes
+
+For a new authenticated web interface, or a change to authentication, upstream
+transport, or proxy health policy, include the
+[onboarding authentication gate](APPLICATION_ONBOARDING.md#authentication-rejection-and-retry-gate)
+in the reviewed acceptance sequence. Validate incorrect-password rejection,
+immediate allowed retry, successful login, and continued service to other
+clients over both families. Do not replay login POSTs automatically or treat
+expected authentication rejection as backend unavailability.
+
+The [authentication resilience plan](AUTHENTICATION_RESILIENCE_PLAN.md) tracks
+the pending Pi-hole fix and revised notification source. Accepted production
+configuration and deployed hashes remain authoritative until a separately
+authorized operation passes live acceptance. The planned Node B stage retains
+the fixed release and monitor after success, with Node A still serving its
+baseline and retaining the same published candidate for its later rollout.
+Release restoration is reserved for failed acceptance.

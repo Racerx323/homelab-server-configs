@@ -188,3 +188,14 @@ Stop after producing:
 Do not implement the generator, select an application, create DNS records,
 contact an HA node, register a deployment successor, create an operation
 specification, or mutate production during this planning project.
+
+## Authentication resilience follow-up
+
+Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md)
+for the current repository audit, monitor source divergence from accepted
+production, and planned Pi-hole transport/health fix. Every authenticated
+application must satisfy the rejection/retry acceptance gate in
+[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). Generator definitions
+must preserve that gate; rendering valid syntax does not establish functional
+login acceptance. No new operation or live authorization follows from this
+repository work.

@@ -66,6 +66,485 @@ if [[ -n "${CADDY_SERVING_HEALTH_INCOMING_ROOT:-}${CADDY_SERVING_HEALTH_OUTGOING
     exit 64
 fi
 
+# Authentication changes are deliberately separate from historical migrations.
+authentication_helper_identity() {
+    local auth_path=$1 auth_expected=$2
+    regular_file "$auth_path" || return 1
+    [[ "$(stat -c '%h:%a' "$auth_path")" = 1:755 ]] || return 1
+    [[ "$(sha256sum "$auth_path" | awk '{print $1}')" = "$auth_expected" ]] || return 1
+    if [[ -z "$target_root" ]]; then
+        [[ "$(stat -c '%U:%G' "$auth_path")" = root:root ]] || return 1
+    fi
+}
+
+authentication_helper_context() {
+    [[ "$node_role" = node-b ]] || return 64
+    if [[ -n "$target_root" ]]; then
+        [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 && "$target_root" = /tmp/* ]] || return 64
+    fi
+    [[ "$(realpath -e "$evidence_root")" = "$evidence_root" &&
+    "$(stat -c '%u:%a' "$evidence_root")" = "$(id -u):700" ]] || return 1
+    # Both identities are independently pinned, not learned from the installed file.
+    auth_helper_path=$(effective_path /usr/local/libexec/check-pihole-web-health.sh)
+    auth_helper_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/check-pihole-web-health.sh
+    auth_helper_baseline=803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51
+    auth_helper_candidate=0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab
+    auth_helper_backup=$evidence_root/auth-web-helper.baseline
+    auth_helper_intent=$evidence_root/auth-web-helper.intent
+    auth_helper_stage=${auth_helper_path%/*}/.caddy-auth-web.$(printf '%s' "$evidence_root" | sha256sum | awk '{print $1}')
+    [[ -d "${auth_helper_path%/*}" && ! -L "${auth_helper_path%/*}" &&
+        "$(realpath -e "${auth_helper_path%/*}")" = "${auth_helper_path%/*}" ]] || return 1
+    [[ "$(stat -c '%u' "${auth_helper_path%/*}")" = "$(id -u)" ]] || return 1
+    [[ "$(stat -c '%a' "${auth_helper_path%/*}")" =~ ^(700|750|755)$ ]] || return 1
+    regular_file "$auth_helper_source" || return 1
+    [[ "$(sha256sum "$auth_helper_source" | awk '{print $1}')" = "$auth_helper_candidate" ]] || return 1
+}
+
+authentication_helper_preflight() {
+    authentication_helper_context || return $?
+    authentication_helper_identity "$auth_helper_path" "$auth_helper_baseline" || return 1
+    path_absent "$auth_helper_backup" || return 1
+    path_absent "$auth_helper_intent" || return 1
+    path_absent "$auth_helper_stage" || return 1
+    printf 'authentication_helper_preflight=accepted\n'
+}
+
+authentication_helper_replace() {
+    local auth_replace_source=$1 auth_replace_hash=$2 auth_replace_temp auth_replace_status=0
+    auth_replace_temp=$auth_helper_stage
+    (
+        set -o noclobber
+        : >"$auth_replace_temp"
+    ) || return 1
+    # Rename on the same filesystem publishes the complete executable at once.
+    if install -m 0755 "$auth_replace_source" "$auth_replace_temp" &&
+        authentication_helper_identity "$auth_replace_temp" "$auth_replace_hash" &&
+        mv -Tf -- "$auth_replace_temp" "$auth_helper_path"; then
+        :
+    else
+        auth_replace_status=$?
+    fi
+    if [[ -e "$auth_replace_temp" ]]; then
+        rm -f -- "$auth_replace_temp" || return 125
+    fi
+    [[ "$auth_replace_status" = 0 ]] || return "$auth_replace_status"
+    authentication_helper_identity "$auth_helper_path" "$auth_replace_hash"
+}
+
+authentication_helper_install() {
+    authentication_helper_preflight || return $?
+    cp -p -- "$auth_helper_path" "$auth_helper_backup" || return 1
+    authentication_helper_identity "$auth_helper_backup" "$auth_helper_baseline" || return 1
+    # Persist intent before replacement, including an interrupted rename boundary.
+    printf '%s\n' "$auth_helper_baseline" >"$auth_helper_intent" || return 1
+    chmod 0600 "$auth_helper_intent" || return 1
+    authentication_helper_replace "$auth_helper_source" "$auth_helper_candidate" || return $?
+    printf 'authentication_helper_installed=%s\n' "$auth_helper_candidate"
+}
+
+authentication_helper_rollback() {
+    authentication_helper_context || return 125
+    if path_absent "$auth_helper_intent"; then
+        # Pre-mutation failures never rewrite production, even if a backup exists.
+        authentication_helper_identity "$auth_helper_path" "$auth_helper_baseline" || return 125
+        printf 'authentication_helper_rollback=not-required\n'
+        return 0
+    fi
+    regular_file "$auth_helper_intent" || return 125
+    [[ "$(stat -c '%u:%a:%h' "$auth_helper_intent")" = "$(id -u):600:1" &&
+    "$(cat "$auth_helper_intent")" = "$auth_helper_baseline" ]] || return 125
+    authentication_helper_identity "$auth_helper_backup" "$auth_helper_baseline" || return 125
+    if ! path_absent "$auth_helper_stage"; then
+        # Only a complete, identified interrupted staging file is disposable.
+        # Partial or substituted residue requires manual inspection.
+        if authentication_helper_identity "$auth_helper_stage" "$auth_helper_candidate" ||
+            authentication_helper_identity "$auth_helper_stage" "$auth_helper_baseline"; then
+            rm -f -- "$auth_helper_stage" || return 125
+        else
+            return 125
+        fi
+    fi
+    if authentication_helper_identity "$auth_helper_path" "$auth_helper_baseline"; then
+        :
+    elif authentication_helper_identity "$auth_helper_path" "$auth_helper_candidate"; then
+        authentication_helper_replace "$auth_helper_backup" "$auth_helper_baseline" || return 125
+    else
+        # Do not overwrite unrelated drift or a symlink after an interrupted run.
+        return 125
+    fi
+    printf 'authentication_helper_rollback=restored\n'
+}
+
+# Authentication release phases use the accepted state contract, never legacy
+# migration revisions. The outer runner owns cross-node ordering and observers.
+authentication_release_context() {
+    local auth_contract auth_state=$payload_root/manifests/current-live-state.tsv
+    if [[ -n "$target_root" ]]; then
+        [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 && "$target_root" = /tmp/* ]] || return 64
+    fi
+    if [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" != 1 ]]; then
+        [[ "$systemctl_command" = /usr/bin/systemctl &&
+            "$journalctl_command" = /usr/bin/journalctl &&
+            "$publisher_command" = /usr/local/libexec/publish-release-v2.sh ]] || return 64
+    fi
+    [[ "$node_role" =~ ^node-[ab]$ ]] || return 64
+    [[ "$(realpath -e "$evidence_root")" = "$evidence_root" &&
+    "$(stat -c '%u:%a' "$evidence_root")" = "$(id -u):700" ]] || return 1
+    regular_file "$auth_state" || return 1
+    auth_contract=$(awk -F '\t' -v role="$node_role" '$2 == role && $3 == "release" {print $4}' "$auth_state")
+    auth_release_baseline=$(sed -n 's/.*revision=\([^,]*\).*/\1/p' <<<"$auth_contract")
+    auth_release_manifest=$(sed -n 's/.*payload-manifest-sha256=\([^,]*\).*/\1/p' <<<"$auth_contract")
+    release_identifier "$auth_release_baseline" || return 1
+    sha256_value "$auth_release_manifest" || return 1
+    auth_release_original=$releases_root/$auth_release_baseline
+    [[ -d "$auth_release_original" && ! -L "$auth_release_original" ]] || return 1
+    [[ "$(sha256sum "$auth_release_original/manifest.sha256" | awk '{print $1}')" = "$auth_release_manifest" ]] || return 1
+    (cd "$auth_release_original" && sha256sum --strict --check manifest.sha256 >/dev/null) || return 1
+    auth_release_source=$evidence_root/auth-release-source
+    auth_release_preparer=$payload_root/repositories/homelab-server-configs/Caddy/scripts/prepare-pihole-auth-release.sh
+    auth_release_candidate_hash=$(sed '/^[[:space:]]*fail_duration 30s$/c\			transport http {\n\t\t\t\tkeepalive off\n\t\t\t}' \
+        "$auth_release_original/conf.d/10-pihole-admin.caddy" | sha256sum | awk '{print $1}')
+    [[ "$(grep -Fc 'fail_duration 30s' "$auth_release_original/conf.d/10-pihole-admin.caddy")" = 1 ]] || return 1
+}
+
+authentication_release_candidate() {
+    local auth_candidate_path=$1 auth_candidate_revision=$2 auth_candidate_file
+    release_identifier "$auth_candidate_revision" || return 1
+    [[ "$auth_candidate_revision" != "$auth_release_baseline" ]] || return 1
+    [[ -d "$auth_candidate_path" && ! -L "$auth_candidate_path" ]] || return 1
+    [[ -z "$(find "$auth_candidate_path" \( ! -type d ! -type f \) -o -type f -links +1)" ]] || return 1
+    [[ "$(jq -r '.revision' "$auth_candidate_path/release-manifest.json")" = "$auth_candidate_revision" &&
+    "$(jq -r '.parent_revision' "$auth_candidate_path/release-manifest.json")" = "$auth_release_baseline" &&
+    "$(jq -r '.source_node' "$auth_candidate_path/release-manifest.json")" = node-a ]] || return 1
+    [[ "$(sha256sum "$auth_candidate_path/conf.d/10-pihole-admin.caddy" | awk '{print $1}')" = "$auth_release_candidate_hash" ]] || return 1
+    # The only permitted payload delta is the Pi-hole transport/health change.
+    for auth_candidate_file in Caddyfile conf.d/00-health.caddy conf.d/90-default-deny.caddy \
+        conf.d/91-exact-listener-default-deny.caddy tls/fullchain.pem tls/privkey.pem; do
+        cmp -s "$auth_candidate_path/$auth_candidate_file" "$auth_release_original/$auth_candidate_file" || return 1
+    done
+    [[ "$(find "$auth_candidate_path" -type f -printf '%P\n' | LC_ALL=C sort |
+        sed '/^\.complete$/d; /^\.finalize-request$/d; /^manifest.sha256$/d')" = $'Caddyfile\nconf.d/00-health.caddy\nconf.d/10-pihole-admin.caddy\nconf.d/90-default-deny.caddy\nconf.d/91-exact-listener-default-deny.caddy\nrelease-manifest.json\ntls/fullchain.pem\ntls/privkey.pem' ]] || return 1
+    # Check only the known payload paths, rather than trusting arbitrary manifest paths.
+    (cd "$auth_candidate_path" && sha256sum ./Caddyfile ./conf.d/*.caddy \
+        ./release-manifest.json ./tls/fullchain.pem ./tls/privkey.pem) |
+        cmp -s - "$auth_candidate_path/manifest.sha256"
+}
+
+authentication_release_prepare() {
+    authentication_release_context || return 1
+    [[ "$node_role" = node-a && "$(current_revision)" = "$auth_release_baseline" ]] || return 1
+    regular_file "$auth_release_preparer" || return 1
+    [[ "$(sha256sum "$auth_release_preparer" | awk '{print $1}')" = bc84aabf0bfac193eb500a1da21691bb24f8a71bcd0d88c5108371d58df10e95 ]] || return 1
+    path_absent "$auth_release_source" || return 1
+    install -d -m 0700 "$auth_release_source" || return 1
+    capture_command auth_prepare /usr/bin/timeout 45 /bin/bash "$auth_release_preparer" \
+        "$auth_release_source" "$auth_release_original/tls"
+}
+
+authentication_release_publish() {
+    authentication_release_context || return 1
+    [[ "$node_role" = node-a && "$(current_revision)" = "$auth_release_baseline" ]] || return 1
+    require_empty_or_absent_sync_directory auth_outbound "$outgoing_root" || return 1
+    [[ -d "$auth_release_source" && ! -L "$auth_release_source" &&
+        "$(stat -c '%u:%a' "$auth_release_source")" = "$(id -u):700" ]] || return 1
+    [[ "$(find "$auth_release_source" -type f -printf '%P\n' | LC_ALL=C sort)" = $'Caddyfile\nconf.d/00-health.caddy\nconf.d/10-pihole-admin.caddy\nconf.d/90-default-deny.caddy\nconf.d/91-exact-listener-default-deny.caddy\ntls/fullchain.pem\ntls/privkey.pem' ]] || return 1
+    [[ -z "$(find "$auth_release_source" \( ! -type d ! -type f \) -o -type f -links +1)" ]] || return 1
+    [[ "$(sha256sum "$auth_release_source/conf.d/10-pihole-admin.caddy" | awk '{print $1}')" = "$auth_release_candidate_hash" ]] || return 1
+    local auth_publish_file auth_publish_status=0
+    for auth_publish_file in Caddyfile conf.d/00-health.caddy conf.d/90-default-deny.caddy \
+        conf.d/91-exact-listener-default-deny.caddy tls/fullchain.pem tls/privkey.pem; do
+        cmp -s "$auth_release_source/$auth_publish_file" "$auth_release_original/$auth_publish_file" || return 1
+    done
+    path_absent "$evidence_root/auth-publish.intent" || return 1
+    printf '%s\n' "$auth_release_baseline" >"$evidence_root/auth-publish.intent" || return 1
+    capture_command auth_publish "$publisher_command" --source "$auth_release_source" --node-role node-a || auth_publish_status=$?
+    rm -rf -- "$auth_release_source" || return 125
+    [[ "$auth_publish_status" = 0 ]] || return "$auth_publish_status"
+    authentication_release_discover
+}
+
+authentication_release_discover() {
+    local auth_discovered
+    authentication_release_context || return 125
+    [[ "$node_role" = node-a ]] || return 125
+    regular_file "$evidence_root/auth-publish.intent" || return 125
+    [[ "$(cat "$evidence_root/auth-publish.intent")" = "$auth_release_baseline" ]] || return 125
+    if path_absent "$outgoing_root"; then
+        auth_discovered=
+    else
+        [[ -d "$outgoing_root" && ! -L "$outgoing_root" &&
+            "$(stat -c '%U:%G:%a' "$outgoing_root")" = caddy-sync:caddy-sync:750 ]] || return 125
+        auth_discovered=$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n') || return 125
+    fi
+    if [[ -z "$auth_discovered" && "$(current_revision)" = "$auth_release_baseline" ]]; then
+        printf 'authentication_release_publication=absent\n'
+        return 0
+    fi
+    release_identifier "$auth_discovered" || return 125
+    authentication_release_candidate "$outgoing_root/$auth_discovered" "$auth_discovered" || return 125
+    if regular_file "$evidence_root/target-revision"; then
+        [[ "$(cat "$evidence_root/target-revision")" = "$auth_discovered" ]] || return 125
+    else
+        printf '%s\n' "$auth_discovered" >"$evidence_root/target-revision" || return 125
+    fi
+    printf 'authentication_release_revision=%s\n' "$auth_discovered"
+}
+
+authentication_release_wait() {
+    local auth_wait_revision auth_wait_attempt
+    authentication_release_context || return 1
+    [[ "$node_role" = node-b ]] || return 64
+    auth_wait_revision=$(target_revision) || return 1
+    for ((auth_wait_attempt = 0; auth_wait_attempt < 60; auth_wait_attempt++)); do
+        if [[ "$(current_revision)" = "$auth_wait_revision" ]]; then
+            authentication_release_candidate "$releases_root/$auth_wait_revision" "$auth_wait_revision" || return 1
+            [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$auth_wait_revision" ]] || return 1
+            "$systemctl_command" is-active --quiet caddy.service || return 1
+            printf 'authentication_release_reconciled=%s\n' "$auth_wait_revision"
+            return 0
+        fi
+        "$sleep_command" 1 || return 1
+    done
+    return 1
+}
+
+authentication_release_withdraw() {
+    local auth_withdraw_revision
+    authentication_release_context || return 125
+    [[ "$node_role" = node-a && "$(current_revision)" = "$auth_release_baseline" ]] || return 125
+    auth_withdraw_revision=$(target_revision) || return 125
+    authentication_release_candidate "$outgoing_root/$auth_withdraw_revision" "$auth_withdraw_revision" || return 125
+    [[ "$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$auth_withdraw_revision" ]] || return 125
+    # Receiver reconciliation must be stopped first by the outer coordinator.
+    capture_command auth_sender_stop "$systemctl_command" stop caddy-lsyncd.service || return 125
+    rm -rf -- "${outgoing_root:?}/${auth_withdraw_revision:?}" || return 125
+    require_empty_or_absent_sync_directory auth_outbound_withdrawn "$outgoing_root" || return 125
+}
+
+authentication_release_rollback() {
+    local auth_rollback_revision auth_selected auth_current
+    authentication_release_context || return 125
+    [[ "$node_role" = node-b ]] || return 125
+    auth_rollback_revision=$(target_revision) || return 125
+    auth_selected=$(current_revision) || return 125
+    [[ "$auth_selected" = "$auth_release_baseline" || "$auth_selected" = "$auth_rollback_revision" ]] || return 125
+    # The outer coordinator withdraws the sender before requesting restoration.
+    [[ "$($systemctl_command is-active caddy-sync-reconcile.path)" = inactive ]] || return 125
+    [[ "$($systemctl_command is-active caddy-sync-reconcile.service)" = inactive ]] || return 125
+    if [[ -e "$incoming_root/node-a/$auth_rollback_revision" ]]; then
+        [[ "$(find "$incoming_root/node-a" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$auth_rollback_revision" ]] || return 125
+        authentication_release_candidate "$incoming_root/node-a/$auth_rollback_revision" "$auth_rollback_revision" || return 125
+        rm -rf -- "$incoming_root/node-a/$auth_rollback_revision" || return 125
+    fi
+    require_empty_or_absent_sync_directory auth_incoming_drained "$incoming_root/node-a" || return 125
+    if [[ "$auth_selected" = "$auth_rollback_revision" ]]; then
+        authentication_release_candidate "$releases_root/$auth_rollback_revision" "$auth_rollback_revision" || return 125
+        auth_current=$(effective_path /etc/caddy/current)
+        path_absent "$auth_current.auth-rollback" || return 125
+        ln -s -- "$auth_release_original" "$auth_current.auth-rollback" || return 125
+        mv -Tf -- "$auth_current.auth-rollback" "$auth_current" || return 125
+    fi
+    # A previous failed reload may have changed only the symlink. Prove that
+    # Caddy accepted the baseline on every restoration attempt.
+    capture_command auth_release_restore "$systemctl_command" reload caddy.service || return 125
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_release_original" ]] || return 125
+    "$systemctl_command" is-active --quiet caddy.service || return 125
+    if [[ -e "$releases_root/$auth_rollback_revision" ]]; then
+        authentication_release_candidate "$releases_root/$auth_rollback_revision" "$auth_rollback_revision" || return 125
+        rm -rf -- "${releases_root:?}/${auth_rollback_revision:?}" || return 125
+    fi
+    printf 'authentication_release_rollback=restored\n'
+}
+
+authentication_release_accept() {
+    local auth_accept_revision auth_accept_unit
+    authentication_release_context || return 1
+    authentication_release_runtime_identity || return 1
+    auth_accept_revision=$(target_revision) || return 1
+    validate_services || return 1
+    for auth_accept_unit in lighttpd.service pihole-FTL.service unbound.service caddy-pihole-web-health.timer; do
+        "$systemctl_command" is-active --quiet "$auth_accept_unit" || return 1
+    done
+    "$systemctl_command" is-enabled --quiet caddy-pihole-web-health.timer || return 1
+    require_empty_or_absent_sync_directory auth_accept_incoming "$incoming_root/node-a" || return 1
+    require_empty_or_absent_sync_directory auth_accept_peer_incoming "$incoming_root/node-b" || return 1
+    require_empty_or_absent_sync_directory auth_accept_quarantine "$quarantine_root" || return 1
+    if [[ "$node_role" = node-b ]]; then
+        [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$auth_accept_revision" ]] || return 1
+        authentication_release_candidate "$releases_root/$auth_accept_revision" "$auth_accept_revision" || return 1
+        authentication_helper_context || return 1
+        authentication_helper_identity "$auth_helper_path" "$auth_helper_candidate" || return 1
+        authentication_helper_identity "$auth_helper_backup" "$auth_helper_baseline" || return 1
+        require_empty_or_absent_sync_directory auth_accept_outbound "$outgoing_root" || return 1
+    else
+        [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_release_original" ]] || return 1
+        [[ "$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$auth_accept_revision" ]] || return 1
+        authentication_release_candidate "$outgoing_root/$auth_accept_revision" "$auth_accept_revision" || return 1
+    fi
+    ownership_sample
+}
+
+authentication_rollback_observer_prepare() {
+    [[ "$(realpath -e "$evidence_root")" = "$evidence_root" &&
+    "$(stat -c '%u:%a' "$evidence_root")" = "$(id -u):700" ]] || return 125
+    path_absent "$evidence_root/auth-rollback-observation" || return 125
+    install -d -m 0700 "$evidence_root/auth-rollback-observation"
+}
+
+authentication_release_runtime_identity() {
+    local auth_runtime_hash auth_runtime_path auth_runtime_file
+    while read -r auth_runtime_hash auth_runtime_path; do
+        auth_runtime_file=$(effective_path "$auth_runtime_path")
+        regular_file "$auth_runtime_file" || return 1
+        [[ "$(stat -c '%U:%G:%h:%a' "$auth_runtime_file")" = root:root:1:755 &&
+        "$(sha256sum "$auth_runtime_file" | awk '{print $1}')" = "$auth_runtime_hash" ]] || return 1
+    done <<'RUNTIME'
+4a1cbeca92babe731528e4901e7164a876ab7d52a668390d311bedc11238b513 /usr/local/libexec/publish-release-v2.sh
+fcff15db5b4ea971846a798028f40d2dce86db9cc331825d046dd5321d5f33bd /usr/local/libexec/finalize-incoming-release-v2.sh
+e777c2fe6932090d717b5ac9e50ef706d6b90c753293ad7eec4e396f2f6ea073 /usr/local/libexec/reconcile-release.sh
+RUNTIME
+}
+
+authentication_release_preflight() {
+    local auth_preflight_unit
+    authentication_release_context || return 1
+    authentication_release_runtime_identity || return 1
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_release_original" ]] || return 1
+    for auth_preflight_unit in caddy.service lighttpd.service pihole-FTL.service unbound.service \
+        keepalived.service caddy-lsyncd.service caddy-sync-reconcile.path caddy-pihole-web-health.timer; do
+        "$systemctl_command" is-active --quiet "$auth_preflight_unit" || return 1
+    done
+    validate_services || return 1
+    "$systemctl_command" is-enabled --quiet caddy-pihole-web-health.timer || return 1
+    require_empty_or_absent_sync_directory auth_outbound "$outgoing_root" || return 1
+    require_empty_or_absent_sync_directory auth_incoming_a "$incoming_root/node-a" || return 1
+    require_empty_or_absent_sync_directory auth_incoming_b "$incoming_root/node-b" || return 1
+    require_empty_or_absent_sync_directory auth_quarantine "$quarantine_root" || return 1
+    if [[ "$node_role" = node-b ]]; then
+        authentication_helper_context || return 1
+        authentication_helper_identity "$auth_helper_path" "$auth_helper_baseline" || return 1
+    fi
+    ownership_sample
+}
+
+authentication_release_quiesce() {
+    [[ "$node_role" = node-b ]] || return 64
+    capture_command auth_receiver_path_stop "$systemctl_command" stop caddy-sync-reconcile.path || return 125
+    capture_command auth_receiver_stop "$systemctl_command" stop caddy-sync-reconcile.service || return 125
+}
+
+authentication_release_resume() {
+    authentication_release_context || return 125
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_release_original" ]] || return 125
+    require_empty_or_absent_sync_directory auth_outbound_final "$outgoing_root" || return 125
+    require_empty_or_absent_sync_directory auth_incoming_final "$incoming_root/node-a" || return 125
+    if [[ "$node_role" = node-a ]]; then
+        capture_command auth_sender_resume "$systemctl_command" start caddy-lsyncd.service || return 125
+    else
+        capture_command auth_receiver_resume "$systemctl_command" start caddy-sync-reconcile.path || return 125
+    fi
+    authentication_release_preflight || return 125
+}
+
+authentication_restoration_accept() {
+    local auth_restore_state=Backup auth_restore_vips=0
+    authentication_release_preflight || return 125
+    [[ "$node_role" = node-b ]] || {
+        auth_restore_state=Master
+        auth_restore_vips=4
+    }
+    awk -F '\t' -v role="$node_role" -v state="$auth_restore_state" -v vips="$auth_restore_vips" '
+        $2 == "final" {
+            if (NF != 23 || $1 != role || $8 != "primary" || $11 != 0 || $12 != "success" ||
+                $21 != state || $22 != state || $23 != vips) bad=1
+            probes[$4 FS $5]=1
+        }
+        END {for (p in probes) count++; if (bad || count != 8) exit 1}
+    ' "$evidence_root/availability.tsv" || return 125
+    printf 'authentication_restoration=accepted\n'
+}
+
+authentication_observation_accept() {
+    local auth_journal auth_expected_state=Backup auth_expected_vips=0
+    [[ "$node_role" = node-b ]] || {
+        auth_expected_state=Master
+        auth_expected_vips=4
+    }
+    local auth_observed_file auth_observed_start auth_observed_end auth_observed_span
+    for auth_observed_file in availability.tsv vip-address-monitor.tsv; do
+        regular_file "$evidence_root/$auth_observed_file" || return 1
+        [[ "$(stat -c '%h:%a' "$evidence_root/$auth_observed_file")" = 1:600 &&
+        "$(stat -c '%s' "$evidence_root/$auth_observed_file")" -le 1048576 ]] || return 1
+    done
+    awk -F '\t' -v role="$node_role" -v state="$auth_expected_state" -v vips="$auth_expected_vips" '
+        function stamp(value, parts, n) {
+            n=split(value, parts, /[-T:.Z]/)
+            return length(value)==30 && n==8 && parts[1] ~ /^[0-9]+$/ &&
+                parts[2]>=1 && parts[2]<=12 && parts[3]>=1 && parts[3]<=31 &&
+                parts[4]>=0 && parts[4]<24 && parts[5]>=0 && parts[5]<60 &&
+                parts[6]>=0 && parts[6]<60 && length(parts[7])==9 && parts[7] ~ /^[0-9]+$/ && parts[8]==""
+        }
+        function seconds(value, parts) {
+            split(value, parts, /[-T:.Z]/)
+            return parts[4]*3600+parts[5]*60+parts[6]+parts[7]/1000000000
+        }
+        NR == 1 {
+            if ($0 != "role\tscenario\tsequence\tprobe\tfamily\tendpoint\tport\tattempt\tstart\tend\texit_status\tresult\tvalue\tstderr_class\tconnect\ttls\tfirst_byte\ttotal\tremote\tlocal\tstate4\tstate6\tvip_count") bad=1
+            next
+        }
+        {
+            offset=(NR-2)%8; family=(offset<4 ? "4" : "6")
+            probe=(offset%4==0 ? "dns" : offset%4==1 ? "proxy_https" : offset%4==2 ? "node_ui" : "shared_ui")
+            if (probe=="dns") endpoint=(family==4 ? "10.1.0.55" : "fd36:5aa8:6971:1::55")
+            else if (probe=="proxy_https") endpoint="proxy.local.theama.co"
+            else if (probe=="shared_ui") endpoint="pihole-admin.local.theama.co"
+            else endpoint=(role=="node-a" ? "pihole0.local.theama.co" : "pihole00.local.theama.co")
+            expected=(probe=="dns" ? endpoint : probe=="proxy_https" ? "204" : "200")
+            if (NF!=23 || $1!=role || $2 !~ /^(baseline|final)$/ || $3!=int((NR-2)/8)+1 || $4!=probe || $5!=family ||
+                $6!=endpoint || $7!=(probe=="dns" ? 53 : 443) || $8!="primary" || !stamp($9) || !stamp($10) ||
+                $9>$10 || (previous_end!="" && $9<previous_end) || $11!="0" || $12!="success" || $13!=expected ||
+                $14!="none" || $21!=state || $22!=state || $23!=vips || (final && $2!="final")) {bad=1; exit}
+            gap=seconds($9)-seconds(previous_end)
+            if (previous_end!="" && substr($9,1,10)!=substr(previous_end,1,10)) gap+=86400
+            if (previous_end!="" && gap>15) {bad=1; exit}
+            previous_end=$10
+            if ($2=="final") final++; else baseline++
+        }
+        END {if (bad || !final || !baseline || NR<17 || (NR-1)%8!=0) exit 1}
+    ' "$evidence_root/availability.tsv" || return 1
+    auth_observed_start=$(awk -F '\t' 'NR==2 {print $9}' "$evidence_root/availability.tsv") || return 1
+    auth_observed_end=$(awk -F '\t' 'END {print $10}' "$evidence_root/availability.tsv") || return 1
+    auth_observed_span=$(($(date -u -d "$auth_observed_end" +%s) - $(date -u -d "$auth_observed_start" +%s)))
+    [[ "$auth_observed_span" -ge 64 && "$auth_observed_span" -le 600 ]] || return 1
+    awk -F '\t' -v start="$auth_observed_start" -v end="$auth_observed_end" '
+        NR==1 {if ($1!="observer-start" || NF!=4 || $2>start) bad=1; next}
+        $1=="address-event" {
+            if (NF!=3 || ended || /10\.1\.0\.5[56]|fd36:5aa8:6971:1::5[56]/) bad=1
+            next
+        }
+        $1=="observer-end" {if (NF!=3 || ended || $2<end || $3 !~ /^status=(0|143)$/) bad=1; ended++; next}
+        {bad=1}
+        END {if (bad || ended!=1) exit 1}
+    ' "$evidence_root/vip-address-monitor.tsv" || return 1
+    regular_file "$evidence_root/journal.cursor" || return 1
+    # Raw journal records may contain login/session data. Keep them bounded in
+    # memory and retain only counts; never send them through generic readback.
+    auth_journal=$("$journalctl_command" --quiet --no-pager -o json --after-cursor \
+        "$(cat "$evidence_root/journal.cursor")" -u caddy.service \
+        -u caddy-pihole-web-health.service -u caddy-lsyncd.service |
+        head -c 1048577) || return 1
+    [[ ${#auth_journal} -le 1048576 ]] || return 1
+    printf '%s\n' "$auth_journal" | jq -sc '
+        {healthy: ([.[] | select(._SYSTEMD_UNIT == "caddy-pihole-web-health.service") |
+            select((.MESSAGE // "") | contains("pihole_web_health event=healthy"))] | length),
+         failures: ([.[] | select(
+            ((.PRIORITY // "6") | tonumber) <= 3 or
+            ((.MESSAGE // "") | test("event=(failure|recovery|caddy-unavailable)|no upstreams available")))] | length)}
+    ' >"$evidence_root/auth-health-counts.json" || return 1
+    jq -e '.healthy >= 2 and .failures == 0' "$evidence_root/auth-health-counts.json" >/dev/null || return 1
+    printf 'authentication_observation=accepted\n'
+}
+
 usage() {
     printf 'Usage: %s --production-path-test | MODE node-a|node-b|external-apprise PAYLOAD_ROOT EVIDENCE_ROOT\n' "${0##*/}" >&2
 }
@@ -118,19 +597,19 @@ capture_command() {
     local serving_health_status=$evidence_root/$serving_health_label.status
     local serving_health_rc=0
 
-    : >"$serving_health_stdout"
-    : >"$serving_health_stderr"
+    : >"$serving_health_stdout" || return 1
+    : >"$serving_health_stderr" || return 1
     if "$@" >"$serving_health_stdout" 2>"$serving_health_stderr"; then
         serving_health_rc=0
     else
         serving_health_rc=$?
     fi
-    printf '%s\n' "$serving_health_rc" >"$serving_health_status"
-    chmod 0600 "$serving_health_stdout" "$serving_health_stderr" "$serving_health_status"
-    [[ "$(stat -c '%s' "$serving_health_stdout")" -le 1048576 ]]
-    [[ "$(stat -c '%s' "$serving_health_stderr")" -le 1048576 ]]
-    iconv -f UTF-8 -t UTF-8 "$serving_health_stdout" >/dev/null
-    iconv -f UTF-8 -t UTF-8 "$serving_health_stderr" >/dev/null
+    printf '%s\n' "$serving_health_rc" >"$serving_health_status" || return 1
+    chmod 0600 "$serving_health_stdout" "$serving_health_stderr" "$serving_health_status" || return 1
+    [[ "$(stat -c '%s' "$serving_health_stdout")" -le 1048576 ]] || return 1
+    [[ "$(stat -c '%s' "$serving_health_stderr")" -le 1048576 ]] || return 1
+    iconv -f UTF-8 -t UTF-8 "$serving_health_stdout" >/dev/null || return 1
+    iconv -f UTF-8 -t UTF-8 "$serving_health_stderr" >/dev/null || return 1
     return "$serving_health_rc"
 }
 
@@ -897,16 +1376,16 @@ validate_services() {
         caddy-sync-health.timer caddy-apprise-worker.path \
         caddy-apprise-worker.timer keepalived.service; do
         require "${serving_health_unit//[.@-]/_}_active" \
-            "$systemctl_command" is-active --quiet "$serving_health_unit"
+            "$systemctl_command" is-active --quiet "$serving_health_unit" || return 1
     done
     for serving_health_unit in caddy.service caddy-lsyncd.service \
         caddy-sync-reconcile.path caddy-cert-expiry.timer \
         caddy-sync-health.timer caddy-apprise-worker.path \
         caddy-apprise-worker.timer keepalived.service; do
         require "${serving_health_unit//[.@-]/_}_enabled" \
-            "$systemctl_command" is-enabled --quiet "$serving_health_unit"
+            "$systemctl_command" is-enabled --quiet "$serving_health_unit" || return 1
     done
-    require caddy_api_masked test "$($systemctl_command is-enabled caddy-api.service)" = masked
+    require caddy_api_masked test "$($systemctl_command is-enabled caddy-api.service)" = masked || return 1
     require distribution_lsyncd_masked test "$($systemctl_command is-enabled lsyncd.service)" = masked
 }
 
@@ -2259,7 +2738,7 @@ record_dns() {
     class=$(stderr_class "$status" "$stderr")
     [[ "$status" -eq 0 && "$answer" = "$expected" ]] && result=success
     [[ "$status" -ne 0 || "$answer" = "$expected" ]] || class=dns-answer-mismatch
-    ownership_fields=$(ownership); scenario=$(<"$scenario_file")
+    ownership_fields=$(ownership); scenario=$probe_scenario
     printf '%s\t%s\t%s\tdns\t%s\t%s\t53\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t-\t-\t-\t-\t-\t-\t%s\n' \
         "$role" "$scenario" "$sequence" "$family" "$endpoint" "$attempt" "$start" "$end" \
         "$status" "$result" "$answer" "$class" "$ownership_fields" >>"$records"
@@ -2289,7 +2768,7 @@ record_curl() {
     class=$(stderr_class "$status" "$stderr")
     if [[ "$status" -eq 0 && "$http" = "$expected" ]]; then result=success
     elif [[ "$status" -eq 0 ]]; then class=http-status; fi
-    ownership_fields=$(ownership); scenario=$(<"$scenario_file")
+    ownership_fields=$(ownership); scenario=$probe_scenario
     printf '%s\t%s\t%s\t%s\t%s\t%s\t443\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$role" "$scenario" "$sequence" "$probe" "$family" "$endpoint" "$attempt" \
         "$start" "$end" "$status" "$result" "${http:--}" "$class" "${connect:--}" \
@@ -2299,8 +2778,18 @@ record_curl() {
     [[ "$result" = success ]]
 }
 
-retry_dns() { record_dns primary "$@" || { record_dns retry "$@" || :; return 1; }; }
-retry_curl() { record_curl primary "$@" || { record_curl retry "$@" || :; return 1; }; }
+# Keep a primary and its retry in the same observation scenario even when the
+# controller advances the scenario while the external command is running.
+retry_dns() {
+    local probe_scenario
+    probe_scenario=$(<"$scenario_file")
+    record_dns primary "$@" || { record_dns retry "$@" || :; return 1; }
+}
+retry_curl() {
+    local probe_scenario
+    probe_scenario=$(<"$scenario_file")
+    record_curl primary "$@" || { record_curl retry "$@" || :; return 1; }
+}
 
 sequence=0
 while [[ ! -e "$root/availability.stop" && "$sequence" -lt "$max_cycles" ]]; do
@@ -5311,6 +5800,10 @@ SLEEP
 
 if [[ "${1:-}" = --production-path-test ]]; then
     [[ $# -eq 1 ]]
+    auth_test_repository=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+    if grep -Fxq 'scope: pihole-authentication-node-b' "$auth_test_repository/Caddy/manifests/serving-health-operation.yaml"; then
+        exec /bin/bash "$auth_test_repository/Caddy/scripts/run-serving-health-deployment-outer.sh" --production-path-test
+    fi
     production_path_test
     exit 0
 fi
@@ -5330,7 +5823,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
+[[ "$mode" =~ ^(auth-release-accept|auth-rollback-observer-prepare|auth-restoration-accept|auth-release-preflight|auth-release-quiesce|auth-release-resume|auth-observation-accept|auth-release-prepare|auth-release-publish|auth-release-discover|auth-release-wait|auth-release-withdraw|auth-release-rollback|auth-helper-preflight|auth-helper-install|auth-helper-rollback|preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5340,9 +5833,28 @@ if [[ "$requested_mode" = external-attribution-capture ]]; then
     exit
 fi
 [[ "$node_role" =~ ^node-[ab]$ ]]
+if [[ "$mode" = auth-helper-rollback ]]; then
+    authentication_helper_rollback
+    exit
+fi
 validate_payload
 
 case "$mode" in
+    auth-release-accept) authentication_release_accept ;;
+    auth-rollback-observer-prepare) authentication_rollback_observer_prepare ;;
+    auth-restoration-accept) authentication_restoration_accept ;;
+    auth-release-preflight) authentication_release_preflight ;;
+    auth-release-quiesce) authentication_release_quiesce ;;
+    auth-release-resume) authentication_release_resume ;;
+    auth-observation-accept) authentication_observation_accept ;;
+    auth-release-prepare) authentication_release_prepare ;;
+    auth-release-publish) authentication_release_publish ;;
+    auth-release-discover) authentication_release_discover ;;
+    auth-release-wait) authentication_release_wait ;;
+    auth-release-withdraw) authentication_release_withdraw ;;
+    auth-release-rollback) authentication_release_rollback ;;
+    auth-helper-preflight) authentication_helper_preflight ;;
+    auth-helper-install) authentication_helper_install ;;
     preflight) validate_split_baseline ;;
     candidate-check) parser_and_identity_checks ;;
     quarantine-check) validate_quarantine_inventory "$quarantine_root" quarantine ;;

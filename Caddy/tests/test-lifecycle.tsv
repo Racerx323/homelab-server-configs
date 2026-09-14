@@ -35,3 +35,14 @@ Caddy/tests/systemd-boot-persistence-policy.sh	production-current	current-focuse
 Caddy/tests/template-lifecycle-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle-policy.sh	production-current	current-focused	current-production-validation
 Caddy/tests/test-lifecycle.tsv	production-current	support	current-production-validation
+Caddy/tests/Containerfile.authentication	production-current	support	current-production-validation
+Caddy/tests/authentication-resilience-integration.py	production-current	support	current-production-validation
+Caddy/tests/authentication-resilience-integration.sh	production-current	current-focused	current-production-validation
+Caddy/tests/authentication-secret-regression.py	production-current	support	current-production-validation
+Caddy/tests/authentication-secret-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/authentication-deployment-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/authentication-release-regression.py	production-current	support	current-production-validation
+Caddy/tests/authentication-release-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/authentication-outer-regression.py	production-current	support	current-production-validation
+Caddy/tests/authentication-outer-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/authentication-deployment-policy.py	production-current	support	Validate pinned authentication operation and causal evidence

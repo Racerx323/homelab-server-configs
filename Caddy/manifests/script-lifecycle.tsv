@@ -18,3 +18,5 @@ Caddy/scripts/validate-caddy-ha.sh	production-current	no	-	-	Caddy/scripts/READM
 Caddy/scripts/validate-sync-health.sh	production-current	yes	/usr/local/libexec/validate-sync-health.sh	0755	Caddy/manifests/production-artifacts.tsv
 Caddy/scripts/apply-serving-health-deployment.sh	production-current	no	-	-	Caddy/manifests/serving-health-operation.yaml
 Caddy/scripts/run-serving-health-deployment-outer.sh	production-current	no	-	-	Caddy/manifests/serving-health-operation.yaml
+Caddy/scripts/prepare-pihole-auth-release.sh	production-current	no	-	-	Caddy/docs/AUTHENTICATION_RESILIENCE_PLAN.md
+Caddy/scripts/validate-pihole-authentication.py	production-current	no	-	-	Caddy/docs/AUTHENTICATION_RESILIENCE_PLAN.md

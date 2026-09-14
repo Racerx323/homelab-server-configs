@@ -2,9 +2,9 @@
 
 ## Current status
 
-The dual-node Caddy service is accepted in production. Action 35 closed through
-Action 35as on 2026-08-24. The Caddy deployment stream is clean and has no
-registered successor.
+The dual-node Caddy service is accepted in production. Deployment-window state
+and any defined operation are recorded in `deployment-streams.tsv` and
+`deployable-successor.tsv`; terminal history belongs in `HISTORY.md` and tags.
 
 Node A is the preferred owner. Node B is standby. Both nodes run the same
 accepted immutable Caddy release and the same serving-health policy. The
@@ -189,8 +189,8 @@ oversized streams, malformed identities, and ambiguous state.
 ## Deployment transaction rules
 
 The repository keeps one neutral transaction and one neutral outer runner. A
-small operation specification supplies the versioned intent. The current
-operation is inactive.
+small operation specification supplies the versioned intent. The deployment
+stream registry identifies whether that specification is inactive or defined.
 
 Future live work follows this order:
 
@@ -291,6 +291,20 @@ restored services, release state, ownership, queues, and temporary paths.
 `Caddy/HISTORY.md` records each terminal result and annotated tag. Git history
 holds the full executed definitions. Consumed Action 35 operations must not be
 restored or rerun. Action 35 has no pending deployment successor.
+
+## Authentication availability contract
+
+Expected authentication rejection must preserve application availability and
+permit retry according to the application's policy. Every authenticated web
+interface must pass the rejection/retry gate in
+[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md) during onboarding and
+relevant transport, health, or authentication changes. Login POSTs must not be
+automatically replayed to mask transport errors. Web-monitor family results
+remain notification-only and cannot change VRRP eligibility.
+
+The [authentication resilience plan](AUTHENTICATION_RESILIENCE_PLAN.md) records
+the repository audit, pending Pi-hole fix, and validation/deployment sequence.
+It does not authorize a production change or register a successor.
 
 ## Next work
 

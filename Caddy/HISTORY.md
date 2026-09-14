@@ -75,3 +75,29 @@ The annotated pre-cleanup tag recorded by the earlier repository consolidation
 preserves the full historical tree that preceded the clean-as-you-go lifecycle.
 The governing rule in `AGENTS.md` requires a terminal tag before current-branch
 cleanup.
+
+## Node B authentication acceptance, 2026-09-14
+
+- Operation: `20260914-pihole-authentication-node-b`
+- Status: terminal-pending
+- Result: failed-consumed; baseline restoration accepted on both nodes
+- Tag: `caddy-authentication-node-b-terminal-2026-09-14`
+- Archive: pending commit and pushed annotated tag; no archive tag is claimed
+- Authorized outer SHA-256: `8a62176be84b6693eef5aec0705ea96a2334b6ffac96e34039b6c74c1b6c25da`
+
+Normal Node A publication and Node B reconciliation completed. The real IPv4
+login rejected an incorrect password with HTTP 200 and accepted the configured
+password with HTTP 302. The concurrent IPv6 connection failed before HTTP: the
+workstation has no IPv6 route to Node B (errno 101, Network is unreachable).
+Full login acceptance therefore failed. The runner restored Node B's baseline
+release and monitor, withdrew Node A's publication, and proved both nodes'
+restoration. Across 320 node-local probes, both families remained healthy;
+Node A remained Master with four VIPs and Node B Backup with zero VIPs.
+The early failure shortened observation below the full acceptance minimum.
+
+The exact executed specification remains unchanged. The deployable registry and
+coverage are cleared. `manifests/serving-health-terminal-result.yaml` retains the
+sanitized outcome, source hashes, and bounded external-evidence hashes. An exact
+non-secret source snapshot is preserved beside the external execution evidence.
+No candidate is accepted in production, and this consumed bundle must not be rerun.
+A later operation must establish workstation dual-stack reachability before mutation.

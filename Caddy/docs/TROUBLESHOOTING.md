@@ -148,3 +148,23 @@ Retain only bounded, relevant output:
 
 Exclude secrets, environment dumps, private keys, binary data, complete HTTP
 responses, and unbounded journals.
+
+## Web monitor family results
+
+The revised repository monitor reports `ipv4`, `ipv6`, or `dual-stack` failure
+scope and includes both results in notification status and the journal, for
+example `IPv4=http-503 IPv6=http-503`. Results distinguish `healthy`,
+`http-NNN`, `connection-error`, `tls-error`, `timeout`, `redirect-error`,
+`unexpected-terminal`, `invalid-result`, and other bounded `curl-error-N`
+values. Service failure uses `not-probed`; Caddy inactivity still defers to
+serving-health monitoring. No raw curl error or redirect URL is sent.
+
+One failure and one recovery remain correlated per episode; changing family
+results during an episode are visible in the journal without duplicate
+failure alerts. Results in a retried enqueue describe that attempt, not a
+persisted original probe snapshot. The installed older monitor can still say
+`ipv4-path` when both families fail. Check the installed identity before
+interpreting either format. This remains notification-only.
+
+[Authentication resilience plan](AUTHENTICATION_RESILIENCE_PLAN.md) records
+source/deployment status, the Pi-hole proposal, and required validation.
