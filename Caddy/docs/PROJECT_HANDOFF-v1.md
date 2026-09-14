@@ -109,7 +109,7 @@ Current project status:
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
 - All authentication operations are archived; the deployment stream is clean.
-- The replacement checks workstation dual-stack HTTPS before upload or mutation.
+- Future live procedures must check workstation dual-stack HTTPS before mutation.
 - The governing plan does not authorize live work.
 
 Verify those statements against:
@@ -386,15 +386,19 @@ after bounded live acceptance and repository bookkeeping establish it.
 
 ## Authentication resilience acceptance
 
-Both nodes retain the fixed release and monitor. Node A and the shared URL passed
+Both nodes retain the fixed release and monitor: active backend health checks,
+no passive exclusion interval, local upstream `keepalive off`, and independent
+IPv4/IPv6 failure classification. Node A and the shared URL passed
 incorrect-password rejection followed by immediate successful login, dashboard,
 logout, and denied dashboard checks over IPv4/IPv6 with fresh and idle sessions.
 All 2,224 availability probes passed; web-health failures and VIP movement were
 zero. Node A remained MASTER/four VIPs and Node B BACKUP/zero VIPs. The existing
 Node A publication remains available; Node B was unchanged by primary activation.
 
-Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md) for
-the accepted procedure and [HISTORY.md](../HISTORY.md) for terminal provenance.
+Read [the governing authentication contract](caddy_plan-v1.1.md#authentication-availability-contract)
+for the accepted transport and health policy,
+[Pi-hole login validation](APPLICATION_ONBOARDING.md#pi-hole-login-validation)
+for the current procedure, and [HISTORY.md](../HISTORY.md) for terminal provenance.
 Current manifests and production sources record the accepted fix. The operation
 is archived, its consumed inputs are removed, and the neutral specification is
 inactive. Completed migration scripts and qualification fixtures were removed after archival.

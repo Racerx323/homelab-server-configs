@@ -401,7 +401,7 @@
       "path_patterns": [
         "Caddy/tests/authentication-resilience-integration.*",
         "Caddy/tests/Containerfile.authentication",
-        "Caddy/docs/AUTHENTICATION_RESILIENCE_PLAN.md",
+        "Caddy/docs/APPLICATION_ONBOARDING.md",
         "Caddy/scripts/validate-pihole-authentication.py",
         "Caddy/tests/authentication-secret-regression.*"
       ],

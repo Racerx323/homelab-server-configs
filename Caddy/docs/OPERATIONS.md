@@ -158,10 +158,9 @@ immediate allowed retry, successful login, and continued service to other
 clients over both families. Do not replay login POSTs automatically or treat
 expected authentication rejection as backend unavailability.
 
-The [authentication resilience plan](AUTHENTICATION_RESILIENCE_PLAN.md) tracks
-the pending Pi-hole fix and revised notification source. Accepted production
-configuration and deployed hashes remain authoritative until a separately
-authorized operation passes live acceptance. The planned Node B stage retains
-the fixed release and monitor after success, with Node A still serving its
-baseline and retaining the same published candidate for its later rollout.
-Release restoration is reserved for failed acceptance.
+Both nodes retain the accepted Pi-hole transport and health fix. Use
+[the governing authentication contract](caddy_plan-v1.1.md#authentication-availability-contract)
+and [Pi-hole login validation](APPLICATION_ONBOARDING.md#pi-hole-login-validation)
+for current policy and validation. Current manifests record deployed identities;
+[HISTORY.md](../HISTORY.md) indexes the accepted rollout and its archive. The
+completed migration has no pending deployment or rollback operation.

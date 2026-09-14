@@ -176,7 +176,45 @@ may be `0s` to disable passive checks. Review its `unhealthy_status 5xx` against
 the application's actual behavior; expected authentication responses must not
 trip that policy. Connection reuse is an application-specific decision: use a
 reviewed timeout compatible with the backend, or disable it. Do not apply the
-Pi-hole transport proposal to all applications without that review.
+accepted Pi-hole transport policy to all applications without that review.
+
+### Pi-hole login validation
+
+Use `scripts/validate-pihole-authentication.py` for Pi-hole Web v5.21 HTTP
+acceptance. It supports node-specific targets and the shared URL, fresh and idle
+sessions over IPv4/IPv6, rejection/retry, dashboard access, logout, and denial
+after logout. `--connectivity-only` checks verified HTTPS and the login form
+without retrieving a password or issuing a POST.
+
+For authenticated validation, provide `--password-fd` or `--password-doppler`.
+The operator confirmed that both nodes use the password at this reference:
+
+```text
+homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD
+```
+
+Keep that value external. The validator reads it through a bounded pipe, requires
+a successful provider exit, and cleans up provider descendants. Passwords and
+session cookies stay in memory; values must not enter argv, environment variables,
+files, or retained evidence. Do not substitute a stored Pi-hole password hash or
+reset the password for a test.
+
+Shared-route validation requires `--shared-owner node-a`. This flag asserts an
+ownership check by the caller; the validator does not verify HA ownership. The
+reviewed live procedure must check ownership before and after login and observe
+VIP continuity, health events, and availability on both nodes throughout. The
+completed migration's outer runner is archived and must not be used as a current
+collector. Define any required collection in the next reviewed procedure.
+
+For isolated validation of accepted production behavior and the secret boundary:
+
+```bash
+/bin/bash Caddy/tests/run-focused-container.sh --profiles authentication-resilience
+```
+
+See [the governing authentication contract](caddy_plan-v1.1.md#authentication-availability-contract)
+for transport and health policy and [HISTORY.md](../HISTORY.md) for accepted live
+results. Repository tests do not authorize new live login tests or deployment.
 
 ## DNS record gate
 

@@ -74,8 +74,9 @@ The Pi-hole/lighttpd monitor runs from a systemd timer. It checks both node
 families through Caddy and reports Proxy backend failure and recovery. It never
 changes VRRP eligibility.
 
-Caddy uses active and passive reverse-proxy health checks for the Pi-hole web
-backend. The backend check and the node `/healthz` endpoint serve different
+Caddy uses active reverse-proxy health checks for the sole local Pi-hole web
+backend. Passive exclusion is disabled, and the upstream HTTP transport uses
+`keepalive off`. The backend check and the node `/healthz` endpoint serve different
 purposes: Caddy selects a backend with the first; Keepalived tests the public
 node serving path with the second.
 
@@ -302,9 +303,21 @@ relevant transport, health, or authentication changes. Login POSTs must not be
 automatically replayed to mask transport errors. Web-monitor family results
 remain notification-only and cannot change VRRP eligibility.
 
-The [authentication resilience plan](AUTHENTICATION_RESILIENCE_PLAN.md) records
-the repository audit, pending Pi-hole fix, and validation/deployment sequence.
-It does not authorize a production change or register a successor.
+For the sole local Pi-hole backend, retain active health checks without a passive
+exclusion interval and use `transport http { keepalive off }`. A failed request
+must not impose a passive outage on subsequent login attempts. Review transport
+and health policy for each new application; this Pi-hole choice is not a global
+connection-reuse policy.
+
+The web monitor reports IPv4 and IPv6 independently, including when both fail,
+and distinguishes HTTP status, TLS, connection, timeout, redirect, and other
+terminal failures. Keep one correlated failure/recovery episode without changing
+VRRP eligibility.
+
+[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md#pi-hole-login-validation)
+owns the Pi-hole validation procedure and secret-reference contract. Current
+accepted identities belong in the manifests; acceptance results and archive tags
+belong in [HISTORY.md](../HISTORY.md).
 
 ## Next work
 
