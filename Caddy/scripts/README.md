@@ -44,24 +44,27 @@ for inspection; no candidate is accepted unless the command exits zero.
 
 `validate-pihole-authentication.py` is the workstation-side Pi-hole Web v5.21
 HTTP acceptance workflow. It accepts a protected password descriptor or
-`--password-doppler` for the fixed Node B reference, requiring bounded input and
+`--password-doppler` for the fixed reference shared by both nodes (operator
+confirmed), requiring bounded input and
 a successful provider exit before HTTP. It keeps sessions in memory, records
 sanitized per-request outcomes, and never retries login POSTs. Its real-node execution belongs to the reviewed deployment operation;
 it does not install or mutate Caddy configuration. See the authentication
 resilience plan for secret input, health/ownership correlation, and limits.
 
-The neutral transaction's `auth-helper-*` modes implement the Node B monitor
-replacement and its exact rollback. The outer runner's
-`--authentication-helper-test` uses local fixtures and simulated SSH to exercise
-these modes, upload, evidence readback, and cleanup. It never contacts a node.
-The authentication coordinator source also connects normal Node A publication,
-Node B reconciliation, login acceptance, and failure rollback. Success retains
-the fixed release and monitor on Node B and the publication on Node A for its
-later rollout. The minimal payload and dedicated dispatch are implemented; dispatch requires
-an authorization-ready operation. The registered `--production-path-test` entrypoint
-runs the complete isolated container qualification. The consumed Node B operation is archived; its replacement performs
-`--connectivity-only` before any upload or mutation. The check verifies both
-HTTPS paths and the login form without retrieving credentials. Execution requires
-current qualification evidence through
-`CADDY_AUTH_QUALIFICATION_EVIDENCE` and exact outer-runner authorization.
-See `AUTHENTICATION_RESILIENCE_PLAN.md`.
+The neutral transaction’s `auth-helper-*` modes implement monitor replacement
+and exact rollback on either node. The outer runner’s `--authentication-helper-test`
+uses local fixtures and simulated SSH to exercise installation, rollback, upload,
+evidence readback, and cleanup without contacting a node.
+
+The accepted standby stage is archived. The current `auth-primary-*` path checks
+Node B’s accepted identity and Node A’s retained publication, activates that
+publication locally through the installed finalizer/reconciler, and validates
+Node A and shared-URL login. Only Node A is mutated; rollback preserves Node B
+and the publication. Shared login requires `--shared-owner node-a`, supplied by
+the outer after ownership checks and backed by continuous address observations.
+
+`--connectivity-only` checks Node A and shared HTTPS paths before upload or secret
+retrieval. `--production-path-test` runs the isolated full-stage qualification.
+Execution requires current evidence through `CADDY_AUTH_QUALIFICATION_EVIDENCE`
+and exact outer-runner authorization. See
+[the authentication plan](../docs/AUTHENTICATION_RESILIENCE_PLAN.md).

@@ -96,12 +96,26 @@ class SecretBoundary(unittest.TestCase):
                     except ProcessLookupError:
                         pass
 
-    def test_doppler_reference_cannot_be_used_for_other_routes(self):
-        for target in ("node-a", "shared"):
-            with self.subTest(target=target), patch.object(AUTH.subprocess, "Popen") as producer:
-                with self.assertRaisesRegex(AUTH.AcceptanceFailure, "doppler-reference-is-node-b-only"):
-                    self.invoke("raise SystemExit('must not execute')", target)
-                producer.assert_not_called()
+    def test_node_a_uses_operator_confirmed_shared_reference(self):
+        result = self.invoke(f"print({CANARY!r})", "node-a")
+        self.assertEqual(result.args[:2], (AUTH.TARGETS["node-a"], CANARY))
+
+    def test_shared_route_requires_explicit_owner_before_secret_retrieval(self):
+        with patch.object(AUTH.subprocess, "Popen") as producer:
+            with self.assertRaisesRegex(AUTH.AcceptanceFailure, "shared-owner-required"):
+                self.invoke("raise SystemExit('must not execute')", "shared")
+            producer.assert_not_called()
+
+    def test_shared_owner_cannot_be_applied_to_node_route(self):
+        with patch.object(sys, "argv", [str(SCRIPT), "--target", "node-a", "--password-doppler", "--shared-owner", "node-a"]), patch.object(AUTH, "doppler_password") as provider:
+            with self.assertRaisesRegex(AUTH.AcceptanceFailure, "shared-owner-only-for-shared-target"):
+                AUTH.main()
+            provider.assert_not_called()
+
+    def test_shared_route_uses_confirmed_reference_after_owner_gate(self):
+        with patch.object(sys, "argv", [str(SCRIPT), "--target", "shared", "--password-doppler", "--shared-owner", "node-a"]), patch.object(AUTH, "doppler_password", return_value=CANARY), patch.object(AUTH, "validate") as validate:
+            AUTH.main()
+            self.assertEqual(validate.call_args.args[:2], (AUTH.TARGETS["shared"], CANARY))
 
     def test_regular_file_input_is_consumed_and_closed(self):
         with tempfile.TemporaryFile() as source:

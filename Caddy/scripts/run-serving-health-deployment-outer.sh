@@ -9,9 +9,9 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=1582add56f024d225191ffb419b3e066021a00f10b3f2339267b9cec2e9e163a
-readonly authentication_policy_inputs_sha256=dedf54b4cebfecc69c8870555f0fec6a226fd677222d334270d1254b5baf359d
-readonly operation_sha256=604e00ca19013b316c1c4eb23c99b8474b1d145d14f614d6904fa93a9c560998
+readonly transaction_sha256=82abeae99eaa3bcc213feab290e5309f262b9ee8d0c04e08c538dfb546870ba6
+readonly authentication_policy_inputs_sha256=b77ee6982b71c0ddb369b7ef3077390b0471c8f779ee1a708847dd0328f04174
+readonly operation_sha256=892a53eae98a662a29c2680a198e33913eeae292a9a6eabf056f269de3f90170
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -61,12 +61,12 @@ capture() {
 # The login validator remains on the workstation but is bound to the same graph.
 authentication_input_catalog() {
     cat <<'INPUTS'
-2d46a246f7058be53fc72fac82ddf30cd1e80440ff3137d4680001b04dae36ec  Caddy/manifests/current-live-state.tsv
+e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476  Caddy/manifests/current-live-state.tsv
 325271f1aacb7e6d2e88ada14d664900eea3687477d15844ae111f7936363a35  Caddy/manifests/serving-health-quarantine-baseline.tsv
 470beb63cdbc440cd8da110362761e5a05c8c399aeea78407e92535616322d23  Caddy/manifests/caddy-release-source.tsv
 bc84aabf0bfac193eb500a1da21691bb24f8a71bcd0d88c5108371d58df10e95  Caddy/scripts/prepare-pihole-auth-release.sh
 0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab  Caddy/scripts/check-pihole-web-health.sh
-1edb761b620148ebb3989865ec1353eee9b740bb2b30d5c77181de7119a58282  Caddy/scripts/validate-pihole-authentication.py
+2f3f69c912b4fbe86cd249a482c0e29fe8ff7031ec32a7a4edf22ee5a5d1bc3b  Caddy/scripts/validate-pihole-authentication.py
 a41c7816e927c16278fab018675a3f2db5b2aae89dd5b181f1ecb06ec9beb86e  Caddy/configs/caddy/Caddyfile
 05fa1d2875ee0639601447ccd31284d3df55fc8d5e8cedef4a291c61d44f4b27  Caddy/configs/caddy/conf.d/00-health.caddy
 8e1b07f254c8dee21b9671de02993484c87b1838189341f605acb6581f7f49d8  Caddy/configs/caddy/conf.d/10-pihole-admin.caddy
@@ -118,7 +118,7 @@ build_payload() {
     local serving_health_repository serving_health_source serving_health_target serving_health_mode
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
 
-    if [[ "$operation_scope" = pihole-authentication-node-b ]]; then
+    if [[ "$operation_scope" = pihole-authentication-node-* ]]; then
         build_authentication_payload
         return
     fi
@@ -907,7 +907,8 @@ run_controlled_failure_exercise_live() {
 # This coordinator is not dispatched by an inactive operation. It performs a
 # serving-release stage on Node B; only failure restores the accepted baseline.
 authentication_candidate_acceptance() {
-    local auth_accept_role auth_accept_host auth_accept_payload auth_accept_evidence auth_accept_status=0
+    local auth_accept_role auth_accept_host auth_accept_payload auth_accept_evidence auth_accept_status=0 auth_accept_mode=auth-release-accept
+    if [[ "$operation_scope" = pihole-authentication-node-a ]]; then auth_accept_mode=auth-primary-accept; fi
     for auth_accept_role in node-b node-a; do
         if [[ "$auth_accept_role" = node-b ]]; then
             auth_accept_host=$node_b_host
@@ -937,7 +938,7 @@ authentication_candidate_acceptance() {
         if [[ "$auth_accept_role" = node-b ]]; then auth_trial_b_observer=false; else auth_trial_a_observer=false; fi
         remote_transaction "auth-candidate-observe-$auth_accept_role" "$auth_accept_host" auth-observation-accept \
             "$auth_accept_role" "$auth_accept_payload" "$auth_accept_evidence" || auth_accept_status=1
-        remote_transaction "auth-candidate-accept-$auth_accept_role" "$auth_accept_host" auth-release-accept \
+        remote_transaction "auth-candidate-accept-$auth_accept_role" "$auth_accept_host" "$auth_accept_mode" \
             "$auth_accept_role" "$auth_accept_payload" "$auth_accept_evidence" || auth_accept_status=1
         readback "$auth_accept_role-candidate" "$auth_accept_host" "$auth_accept_evidence" || return 125
     done
@@ -1025,7 +1026,11 @@ run_authentication_node_b_stage() (
     # An interrupted remote mutation is ambiguous. Preserve recovery inputs and
     # stop observers; do not guess that a failed SSH reply means no mutation.
     trap 'trap "" HUP INT TERM; authentication_stage_finish 125 || :; exit 125' HUP INT TERM
-    authentication_node_b_trial_body || auth_coordinator_status=$?
+    if [[ "$operation_scope" = pihole-authentication-node-a ]]; then
+        authentication_primary_trial_body || auth_coordinator_status=$?
+    else
+        authentication_node_b_trial_body || auth_coordinator_status=$?
+    fi
     authentication_stage_finish "$auth_coordinator_status"
 )
 
@@ -1156,6 +1161,106 @@ authentication_node_b_trial_body() {
     done
     printf 'authentication_trial_http_status=%s\nbaseline_restoration=complete\n' "$auth_trial_status"
     return "$auth_trial_status"
+}
+
+# The standby has already accepted the exact retained publication. This stage
+# mutates only Node A, with continuous ownership evidence on both nodes.
+# Called in the coordinator subshell that owns the observation paths.
+# shellcheck disable=SC2031
+authentication_primary_trial_body() {
+    local auth_primary_status=0 auth_primary_role auth_primary_host auth_primary_payload auth_primary_evidence
+    capture auth-connectivity /usr/bin/python3 "$repository_root/Caddy/scripts/validate-pihole-authentication.py" \
+        --target node-a --connectivity-only || return 1
+    capture auth-connectivity-shared /usr/bin/python3 "$repository_root/Caddy/scripts/validate-pihole-authentication.py" \
+        --target shared --connectivity-only || return 1
+    upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
+    upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
+    remote_transaction auth-preflight-b "$node_b_host" auth-primary-preflight node-b "$node_b_payload" "$node_b_evidence" || return 1
+    remote_transaction auth-preflight-a "$node_a_host" auth-primary-preflight node-a "$node_a_payload" "$node_a_evidence" || return 1
+    for auth_primary_role in node-b node-a; do
+        if [[ "$auth_primary_role" = node-b ]]; then
+            auth_primary_host=$node_b_host
+            auth_primary_payload=$node_b_payload
+            auth_primary_evidence=$node_b_evidence
+            auth_trial_b_observer=true
+        else
+            auth_primary_host=$node_a_host
+            auth_primary_payload=$node_a_payload
+            auth_primary_evidence=$node_a_evidence
+            auth_trial_a_observer=true
+        fi
+        remote_transaction "auth-cursor-$auth_primary_role" "$auth_primary_host" journal-cursor \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" || return 1
+        remote_transaction "auth-sampler-$auth_primary_role" "$auth_primary_host" sampler-start \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" || return 125
+    done
+    remote_transaction auth-helper-preflight "$node_a_host" auth-helper-preflight node-a "$node_a_payload" "$node_a_evidence" || return 1
+    authentication_helper_mutation_started=true
+    remote_transaction auth-helper-install "$node_a_host" auth-helper-install node-a "$node_a_payload" "$node_a_evidence" || auth_primary_status=$?
+    if [[ "$auth_primary_status" = 0 ]]; then
+        remote_transaction auth-activate "$node_a_host" auth-primary-activate node-a "$node_a_payload" "$node_a_evidence" || auth_primary_status=$?
+    fi
+    if [[ "$auth_primary_status" = 0 ]]; then
+        capture auth-login /usr/bin/python3 "$repository_root/Caddy/scripts/validate-pihole-authentication.py" \
+            --target node-a --password-doppler --idle-seconds 5 --observation-seconds 90 || auth_primary_status=$?
+    fi
+    if [[ "$auth_primary_status" = 0 ]]; then
+        remote_transaction auth-shared-owner-before "$node_a_host" ownership node-a "$node_a_payload" "$node_a_evidence" || auth_primary_status=$?
+    fi
+    if [[ "$auth_primary_status" = 0 ]]; then
+        capture auth-login-shared /usr/bin/python3 "$repository_root/Caddy/scripts/validate-pihole-authentication.py" \
+            --target shared --shared-owner node-a --password-doppler --idle-seconds 5 --observation-seconds 90 || auth_primary_status=$?
+    fi
+    if [[ "$auth_primary_status" = 0 ]]; then
+        remote_transaction auth-shared-owner-after "$node_a_host" ownership node-a "$node_a_payload" "$node_a_evidence" || auth_primary_status=$?
+    fi
+    if [[ "$auth_primary_status" = 0 ]]; then
+        authentication_candidate_acceptance || auth_primary_status=$?
+        [[ "$auth_primary_status" != 125 ]] || return 125
+        if [[ "$auth_primary_status" = 0 ]]; then
+            printf 'authentication_node_a_and_shared_accepted=true\nnode_b=unchanged\n'
+            return 0
+        fi
+    fi
+    authentication_ensure_rollback_observers || return 125
+    remote_transaction auth-restore-release "$node_a_host" auth-primary-rollback node-a "$node_a_payload" "$node_a_evidence" || return 125
+    remote_transaction auth-helper-rollback "$node_a_host" auth-helper-rollback node-a "$node_a_payload" "$node_a_evidence" || return 125
+    for auth_primary_role in node-b node-a; do
+        if [[ "$auth_primary_role" = node-b ]]; then
+            auth_primary_host=$node_b_host
+            auth_primary_payload=$node_b_payload
+            auth_primary_evidence=$auth_trial_b_observation
+        else
+            auth_primary_host=$node_a_host
+            auth_primary_payload=$node_a_payload
+            auth_primary_evidence=$auth_trial_a_observation
+        fi
+        remote_transaction "auth-final-$auth_primary_role" "$auth_primary_host" sampler-scenario \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" final || return 125
+    done
+    /usr/bin/sleep 5
+    for auth_primary_role in node-b node-a; do
+        if [[ "$auth_primary_role" = node-b ]]; then
+            auth_primary_host=$node_b_host
+            auth_primary_payload=$node_b_payload
+            auth_primary_evidence=$auth_trial_b_observation
+        else
+            auth_primary_host=$node_a_host
+            auth_primary_payload=$node_a_payload
+            auth_primary_evidence=$auth_trial_a_observation
+        fi
+        remote_transaction "auth-stop-$auth_primary_role" "$auth_primary_host" sampler-stop \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" || return 125
+        if [[ "$auth_primary_role" = node-b ]]; then auth_trial_b_observer=false; else auth_trial_a_observer=false; fi
+        remote_transaction "auth-restoration-$auth_primary_role" "$auth_primary_host" auth-primary-restoration \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" || return 125
+        remote_transaction "auth-observe-$auth_primary_role" "$auth_primary_host" auth-observation-accept \
+            "$auth_primary_role" "$auth_primary_payload" "$auth_primary_evidence" || auth_primary_status=1
+        readback "$auth_primary_role-rollback" "$auth_primary_host" "$auth_primary_evidence" || return 125
+    done
+    printf 'authentication_trial_http_status=%s\nbaseline_restoration=complete\n' "$auth_primary_status"
+    # A failed activation may return 125 before successful, proven restoration.
+    return 1
 }
 
 run_authentication_helper_stage() {
@@ -1312,7 +1417,7 @@ SSH
         authentication_helper_mutation_started=false
         auth_test_status=0
         if [[ "$auth_test_case" = wrong-role ]]; then
-            auth_test_role=node-a
+            auth_test_role=node-invalid
             remote_transaction auth-wrong-role "$node_b_host" auth-helper-install \
                 "$auth_test_role" "$node_b_payload" "$node_b_evidence" || auth_test_status=$?
         else
@@ -1377,7 +1482,7 @@ run_live() {
     local serving_health_phase_status=0
     local serving_health_target_revision=
 
-    if [[ "$operation_scope" = pihole-authentication-node-b ]]; then
+    if [[ "$operation_scope" = pihole-authentication-node-* ]]; then
         /bin/bash "$repository_root/Caddy/tests/deployable-successor-policy.sh" --authorization-ready || return 1
         run_authentication_node_b_stage
         return
@@ -3264,10 +3369,10 @@ else
     operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
 fi
 readonly operation_scope
-[[ "$operation_scope" =~ ^(pihole-authentication-node-b|authentication-helper-test|pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health)$ ]]
+[[ "$operation_scope" =~ ^(pihole-authentication-node-a|pihole-authentication-node-b|authentication-helper-test|pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health)$ ]]
 [[ "$operation_scope" != authentication-helper-test || "$invocation_mode" = --authentication-helper-test || "$invocation_mode" = --authentication-stage-test ]]
 
-if [[ "$operation_scope" = pihole-authentication-node-b ]]; then
+if [[ "$operation_scope" = pihole-authentication-node-* ]]; then
     [[ "$(sha256sum "$repository_root/Caddy/manifests/authentication-deployment-inputs.tsv" | awk '{print $1}')" = "$authentication_policy_inputs_sha256" ]]
     (cd "$repository_root" && tail -n +2 Caddy/manifests/authentication-deployment-inputs.tsv | sha256sum --check --status)
     python3 "$repository_root/Caddy/tests/authentication-deployment-policy.py" --graph-check
@@ -3305,7 +3410,7 @@ node_b_evidence=$node_b_payload/evidence
 ssh_command=/usr/bin/ssh
 scp_command=/usr/bin/scp
 
-if [[ "$invocation_mode" = --authentication-stage-test || ("$invocation_mode" = --production-path-test && "$operation_scope" = pihole-authentication-node-b) ]]; then
+if [[ "$invocation_mode" = --authentication-stage-test || ("$invocation_mode" = --production-path-test && "$operation_scope" = pihole-authentication-node-*) ]]; then
     authentication_stage_outer_test
     exit $?
 fi

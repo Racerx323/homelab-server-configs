@@ -216,7 +216,8 @@ def main():
     password_source = parser.add_mutually_exclusive_group()
     password_source.add_argument("--password-fd", type=int, help="inherited descriptor >=3; never put the password in argv")
     password_source.add_argument("--password-doppler", action="store_true",
-                                 help="retrieve the fixed Node B Doppler reference using local CLI authentication")
+                                 help="retrieve the operator-confirmed shared Pi-hole password reference using local CLI authentication")
+    parser.add_argument("--shared-owner", choices=("node-a",), help="assert the outer runner has verified Node A owns both shared VIP families")
     parser.add_argument("--connectivity-only", action="store_true", help="verified IPv4/IPv6 login-page GETs; no credentials or POSTs")
     parser.add_argument("--idle-seconds", type=float, default=5)
     parser.add_argument("--observation-seconds", type=float, default=64)
@@ -227,8 +228,9 @@ def main():
         return
     require(args.password_fd is not None or args.password_doppler, "password-source-required")
     require(0 <= args.idle_seconds <= 60 and 64 <= args.observation_seconds <= 600, "invalid-observation-bound")
+    require(args.target == "shared" or args.shared_owner is None, "shared-owner-only-for-shared-target")
+    require(args.target != "shared" or args.shared_owner == "node-a", "shared-owner-required")
     if args.password_doppler:
-        require(args.target == "node-b", "doppler-reference-is-node-b-only")
         password = doppler_password()
     else:
         require(args.password_fd >= 3, "invalid-password-descriptor")

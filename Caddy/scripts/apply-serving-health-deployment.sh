@@ -78,7 +78,7 @@ authentication_helper_identity() {
 }
 
 authentication_helper_context() {
-    [[ "$node_role" = node-b ]] || return 64
+    [[ "$node_role" =~ ^node-[ab]$ ]] || return 64
     if [[ -n "$target_root" ]]; then
         [[ "${CADDY_SERVING_HEALTH_PRODUCTION_PATH_TEST:-0}" = 1 && "$target_root" = /tmp/* ]] || return 64
     fi
@@ -173,6 +173,170 @@ authentication_helper_rollback() {
         return 125
     fi
     printf 'authentication_helper_rollback=restored\n'
+}
+
+# Primary activation starts from the accepted mixed-release state. The retained
+# publication is an input; neither publication nor the standby is mutated.
+authentication_primary_context() {
+    local auth_primary_state=$payload_root/manifests/current-live-state.tsv auth_primary_contract auth_primary_role
+    regular_file "$auth_primary_state" || return 1
+    for auth_primary_role in node-a node-b; do
+        auth_primary_contract=$(awk -F '\t' -v role="$auth_primary_role" '$2 == role && $3 == "release" {print $4}' "$auth_primary_state")
+        local auth_primary_revision auth_primary_hash
+        auth_primary_revision=$(sed -n 's/.*revision=\([^,]*\).*/\1/p' <<<"$auth_primary_contract")
+        auth_primary_hash=$(sed -n 's/.*payload-manifest-sha256=\([^,]*\).*/\1/p' <<<"$auth_primary_contract")
+        release_identifier "$auth_primary_revision" || return 1
+        sha256_value "$auth_primary_hash" || return 1
+        if [[ "$auth_primary_role" = node-a ]]; then
+            auth_primary_baseline=$auth_primary_revision
+            auth_primary_baseline_hash=$auth_primary_hash
+        else
+            auth_primary_candidate=$auth_primary_revision
+            auth_primary_candidate_manifest=$auth_primary_hash
+        fi
+    done
+    [[ "$auth_primary_baseline" != "$auth_primary_candidate" ]] || return 1
+    auth_primary_original=$releases_root/$auth_primary_baseline
+    auth_primary_intent=$evidence_root/auth-primary.intent
+    [[ "$(realpath -e "$evidence_root")" = "$evidence_root" &&
+    "$(stat -c '%u:%a' "$evidence_root")" = "$(id -u):700" ]] || return 1
+}
+
+authentication_primary_release_identity() {
+    local auth_primary_path=$1 auth_primary_expected=$2
+    [[ -d "$auth_primary_path" && ! -L "$auth_primary_path" &&
+        "$(realpath -e "$auth_primary_path")" = "$auth_primary_path" ]] || return 1
+    [[ -z "$(find "$auth_primary_path" \( ! -type d ! -type f \) -o -type f -links +1)" ]] || return 1
+    [[ "$(sha256sum "$auth_primary_path/manifest.sha256" | awk '{print $1}')" = "$auth_primary_expected" ]] || return 1
+    # Recompute from the fixed payload list rather than executing manifest paths.
+    (cd "$auth_primary_path" && sha256sum ./Caddyfile ./conf.d/*.caddy \
+        ./release-manifest.json ./tls/fullchain.pem ./tls/privkey.pem) |
+        cmp -s - "$auth_primary_path/manifest.sha256" || return 1
+    [[ "$(find "$auth_primary_path" -type f -printf '%P\n' | LC_ALL=C sort |
+        sed '/^\.complete$/d; /^\.finalize-request$/d; /^manifest.sha256$/d')" = $'Caddyfile\nconf.d/00-health.caddy\nconf.d/10-pihole-admin.caddy\nconf.d/90-default-deny.caddy\nconf.d/91-exact-listener-default-deny.caddy\nrelease-manifest.json\ntls/fullchain.pem\ntls/privkey.pem' ]]
+}
+
+authentication_primary_publication() {
+    [[ "$node_role" = node-a ]] || return 1
+    [[ -d "$outgoing_root" && ! -L "$outgoing_root" &&
+        "$(stat -c '%U:%G:%a' "$outgoing_root")" = caddy-sync:caddy-sync:750 ]] || return 1
+    [[ "$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$auth_primary_candidate" ]] || return 1
+    authentication_primary_release_identity "$outgoing_root/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 1
+    [[ "$(jq -r '.revision' "$outgoing_root/$auth_primary_candidate/release-manifest.json")" = "$auth_primary_candidate" &&
+    "$(jq -r '.parent_revision' "$outgoing_root/$auth_primary_candidate/release-manifest.json")" = "$auth_primary_baseline" &&
+    "$(jq -r '.source_node' "$outgoing_root/$auth_primary_candidate/release-manifest.json")" = node-a ]]
+}
+
+authentication_primary_services() {
+    local auth_primary_unit
+    authentication_release_runtime_identity || return 1
+    validate_services || return 1
+    for auth_primary_unit in lighttpd.service pihole-FTL.service unbound.service caddy-pihole-web-health.timer; do
+        "$systemctl_command" is-active --quiet "$auth_primary_unit" || return 1
+    done
+    "$systemctl_command" is-enabled --quiet caddy-pihole-web-health.timer || return 1
+    require_empty_or_absent_sync_directory auth_primary_incoming_a "$incoming_root/node-a" || return 1
+    require_empty_or_absent_sync_directory auth_primary_incoming_b "$incoming_root/node-b" || return 1
+    require_empty_or_absent_sync_directory auth_primary_quarantine "$quarantine_root" || return 1
+    ownership_sample
+}
+
+authentication_primary_preflight() {
+    authentication_primary_context || return 1
+    authentication_primary_services || return 1
+    if [[ "$node_role" = node-b ]]; then
+        [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$auth_primary_candidate" ]] || return 1
+        authentication_primary_release_identity "$releases_root/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 1
+        authentication_helper_identity "$(effective_path /usr/local/libexec/check-pihole-web-health.sh)" 0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab || return 1
+        require_empty_or_absent_sync_directory auth_primary_standby_outbound "$outgoing_root" || return 1
+    else
+        [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_primary_original" ]] || return 1
+        authentication_primary_release_identity "$auth_primary_original" "$auth_primary_baseline_hash" || return 1
+        authentication_primary_publication || return 1
+        authentication_helper_identity "$(effective_path /usr/local/libexec/check-pihole-web-health.sh)" 803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51 || return 1
+        path_absent "$releases_root/$auth_primary_candidate" || return 1
+    fi
+}
+
+authentication_primary_activate() {
+    authentication_primary_context || return 1
+    [[ "$node_role" = node-a ]] || return 64
+    authentication_primary_publication || return 1
+    authentication_primary_release_identity "$auth_primary_original" "$auth_primary_baseline_hash" || return 1
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_primary_original" ]] || return 1
+    path_absent "$releases_root/$auth_primary_candidate" || return 1
+    require_empty_or_absent_sync_directory auth_primary_activate_incoming "$incoming_root/node-a" || return 1
+    path_absent "$auth_primary_intent" || return 1
+    printf '%s\n' "$auth_primary_candidate" >"$auth_primary_intent" || return 1
+    chmod 0600 "$auth_primary_intent" || return 125
+    capture_command auth_primary_sender_stop "$systemctl_command" stop caddy-lsyncd.service || return 125
+    capture_command auth_primary_path_stop "$systemctl_command" stop caddy-sync-reconcile.path || return 125
+    capture_command auth_primary_worker_stop "$systemctl_command" stop caddy-sync-reconcile.service || return 125
+    install -d -o "$sync_user" -g "$sync_group" -m 0750 "$incoming_root/node-a" || return 125
+    cp -a -- "$outgoing_root/$auth_primary_candidate" "$incoming_root/node-a/$auth_primary_candidate" || return 125
+    chown -R "$sync_user:$sync_group" "$incoming_root/node-a/$auth_primary_candidate" || return 125
+    capture_command auth_primary_finalize "$runuser_command" -u "$sync_user" -- /bin/bash \
+        "$finalizer_command" --source-role node-a || return 1
+    capture_command auth_primary_reconcile "$systemctl_command" start caddy-sync-reconcile.service || return 1
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$auth_primary_candidate" ]] || return 1
+    authentication_primary_release_identity "$releases_root/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 1
+    capture_command auth_primary_path_resume "$systemctl_command" start caddy-sync-reconcile.path || return 125
+    capture_command auth_primary_sender_resume "$systemctl_command" start caddy-lsyncd.service || return 125
+}
+
+authentication_primary_accept() {
+    authentication_primary_context || return 1
+    if [[ "$node_role" = node-b ]]; then
+        authentication_primary_preflight
+        return $?
+    fi
+    authentication_primary_services || return 1
+    authentication_primary_publication || return 1
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$auth_primary_candidate" ]] || return 1
+    authentication_primary_release_identity "$releases_root/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 1
+    authentication_helper_context || return 1
+    authentication_helper_identity "$auth_helper_path" "$auth_helper_candidate" || return 1
+    authentication_helper_identity "$auth_helper_backup" "$auth_helper_baseline"
+}
+
+authentication_primary_rollback() {
+    local auth_primary_selected auth_primary_link
+    authentication_primary_context || return 125
+    [[ "$node_role" = node-a ]] || return 125
+    authentication_primary_publication || return 125
+    authentication_primary_release_identity "$auth_primary_original" "$auth_primary_baseline_hash" || return 125
+    if path_absent "$auth_primary_intent"; then
+        [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$auth_primary_original" ]] || return 125
+        return 0
+    fi
+    regular_file "$auth_primary_intent" || return 125
+    [[ "$(stat -c '%u:%a:%h' "$auth_primary_intent")" = "$(id -u):600:1" &&
+    "$(cat "$auth_primary_intent")" = "$auth_primary_candidate" ]] || return 125
+    capture_command auth_primary_rollback_path_stop "$systemctl_command" stop caddy-sync-reconcile.path || return 125
+    capture_command auth_primary_rollback_worker_stop "$systemctl_command" stop caddy-sync-reconcile.service || return 125
+    auth_primary_link=$(effective_path /etc/caddy/current)
+    auth_primary_selected=$(readlink -f "$auth_primary_link") || return 125
+    [[ "$auth_primary_selected" = "$auth_primary_original" || "$auth_primary_selected" = "$releases_root/$auth_primary_candidate" ]] || return 125
+    if [[ "$auth_primary_selected" != "$auth_primary_original" ]]; then
+        authentication_primary_release_identity "$auth_primary_selected" "$auth_primary_candidate_manifest" || return 125
+        path_absent "$auth_primary_link.auth-rollback" || return 125
+        ln -s -- "$auth_primary_original" "$auth_primary_link.auth-rollback" || return 125
+        mv -Tf -- "$auth_primary_link.auth-rollback" "$auth_primary_link" || return 125
+    fi
+    capture_command auth_primary_restore_reload "$systemctl_command" reload caddy.service || return 125
+    "$systemctl_command" is-active --quiet caddy.service || return 125
+    if [[ -e "$incoming_root/node-a/$auth_primary_candidate" ]]; then
+        [[ "$(find "$incoming_root/node-a" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$auth_primary_candidate" ]] || return 125
+        authentication_primary_release_identity "$incoming_root/node-a/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 125
+        rm -rf -- "$incoming_root/node-a/$auth_primary_candidate" || return 125
+    fi
+    if [[ -e "$releases_root/$auth_primary_candidate" ]]; then
+        authentication_primary_release_identity "$releases_root/$auth_primary_candidate" "$auth_primary_candidate_manifest" || return 125
+        rm -rf -- "${releases_root:?}/${auth_primary_candidate:?}" || return 125
+    fi
+    require_empty_or_absent_sync_directory auth_primary_rollback_incoming "$incoming_root/node-a" || return 125
+    capture_command auth_primary_rollback_path_resume "$systemctl_command" start caddy-sync-reconcile.path || return 125
+    capture_command auth_primary_rollback_sender_resume "$systemctl_command" start caddy-lsyncd.service || return 125
 }
 
 # Authentication release phases use the accepted state contract, never legacy
@@ -447,8 +611,17 @@ authentication_release_resume() {
 }
 
 authentication_restoration_accept() {
-    local auth_restore_state=Backup auth_restore_vips=0
     authentication_release_preflight || return 125
+    authentication_restoration_samples
+}
+
+authentication_primary_restoration() {
+    authentication_primary_preflight || return 125
+    authentication_restoration_samples
+}
+
+authentication_restoration_samples() {
+    local auth_restore_state=Backup auth_restore_vips=0
     [[ "$node_role" = node-b ]] || {
         auth_restore_state=Master
         auth_restore_vips=4
@@ -5823,7 +5996,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(auth-release-accept|auth-rollback-observer-prepare|auth-restoration-accept|auth-release-preflight|auth-release-quiesce|auth-release-resume|auth-observation-accept|auth-release-prepare|auth-release-publish|auth-release-discover|auth-release-wait|auth-release-withdraw|auth-release-rollback|auth-helper-preflight|auth-helper-install|auth-helper-rollback|preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
+[[ "$mode" =~ ^(auth-primary-restoration|auth-primary-preflight|auth-primary-activate|auth-primary-accept|auth-primary-rollback|auth-release-accept|auth-rollback-observer-prepare|auth-restoration-accept|auth-release-preflight|auth-release-quiesce|auth-release-resume|auth-observation-accept|auth-release-prepare|auth-release-publish|auth-release-discover|auth-release-wait|auth-release-withdraw|auth-release-rollback|auth-helper-preflight|auth-helper-install|auth-helper-rollback|preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5840,6 +6013,11 @@ fi
 validate_payload
 
 case "$mode" in
+    auth-primary-restoration) authentication_primary_restoration ;;
+    auth-primary-preflight) authentication_primary_preflight ;;
+    auth-primary-activate) authentication_primary_activate ;;
+    auth-primary-accept) authentication_primary_accept ;;
+    auth-primary-rollback) authentication_primary_rollback ;;
     auth-release-accept) authentication_release_accept ;;
     auth-rollback-observer-prepare) authentication_rollback_observer_prepare ;;
     auth-restoration-accept) authentication_restoration_accept ;;

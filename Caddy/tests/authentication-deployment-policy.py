@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind the Node B operation to current sources and causal container evidence."""
+"""Bind the primary activation operation to current sources and causal container evidence."""
 import csv
 import hashlib
 import importlib.util
@@ -18,15 +18,15 @@ OPERATION = 'Caddy/manifests/serving-health-operation.yaml'
 TRANSACTION = 'Caddy/scripts/apply-serving-health-deployment.sh'
 COVERAGE = 'Caddy/manifests/deployable-successor-coverage.tsv'
 CASES = {'preflight-ipv6': 1, 'preflight-tls': 1, 'preflight-http': 1,
-         'preflight-service': 1, 'preflight-interrupt': 125, 'success': 0, 'login-failure': 1, 'restore-failure': 125,
+         'preflight-service': 1, 'preflight-publication': 1, 'preflight-interrupt': 125, 'success': 0, 'login-failure': 1, 'shared-login-failure': 1, 'restore-failure': 125,
          'interrupt-helper': 125, 'evidence-failure': 125, 'dns-failure': 1,
-         'publish-reply-failure': 1, 'reconcile-failure': 1, 'reordered-evidence': 1}
+         'activate-reply-failure': 1, 'reconcile-failure': 1, 'reordered-evidence': 1}
 BASELINE_MONITOR = '803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51'
 CANDIDATE_MONITOR = '0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab'
 HEADER = ['scenario', 'phase', 'entrypoint', 'expectation', 'decision-evidence', 'raw-evidence']
 # Distinct transaction decisions retain the real phase status and streams.
 PHASES = {'authentication-mutation': ('success', 'auth-helper-install', 0),
-          'authentication-acceptance': ('success', 'auth-candidate-accept-node-b', 0),
+          'authentication-acceptance': ('success', 'auth-candidate-accept-node-a', 0),
           'authentication-rollback-failure': ('restore-failure', 'auth-restore-release', 125)}
 
 
@@ -87,10 +87,10 @@ def coverage_rows():
 def definition():
     result = graph()
     operation = read(ROOT / OPERATION).decode()
-    for text in ('scope: pihole-authentication-node-b', 'status: defined-unexecuted',
-                 '  success: retain-node-b-candidate-and-node-a-publication',
-                 '  node_a_activation: separately-authorized',
-                 '  workstation_connectivity: verified-ipv4-ipv6-login-page-before-upload',
+    for text in ('scope: pihole-authentication-node-a', 'status: defined-unexecuted',
+                 '  success: both-nodes-fixed-node-a-and-shared-login-accepted',
+                 '  standby: preserve-accepted-release-and-monitor',
+                 '  workstation_connectivity: verified-node-a-and-shared-ipv4-ipv6-before-upload',
                  '  project: homelab-dev', '  config: prd_caddy', '  key: PIHOLE_NODE_B_WEB_PASSWORD'):
         assert text + '\n' in operation, text
     assert list(csv.reader(read(ROOT / COVERAGE).decode().splitlines(), delimiter='\t')) == [HEADER, *coverage_rows()]
@@ -156,15 +156,14 @@ def evidence(directory):
         expected_status = CASES[scenario]
         assert state['expected_status'] == state['observed_status'] == expected_status
         assert int(read(case_root / 'outer.status', 0o600)) == expected_status
-        assert state['observer_residue'] == 0 and state['node_a_revision'] == 'fixture-baseline'
+        assert state['observer_residue'] == 0
+        assert re.fullmatch(r'[0-9]{8}T[0-9]{6}Z-[0-9a-f-]{36}', state['node_b_revision'])
+        assert state['publications'] == [state['node_b_revision']]
+        assert state['node_b_monitor_sha256'] == CANDIDATE_MONITOR
         retained = scenario in ('success', 'evidence-failure')
         restored = expected_status == 1 or scenario == 'preflight-interrupt'
-        assert state['node_b_monitor_sha256'] == (BASELINE_MONITOR if restored else CANDIDATE_MONITOR)
-        if retained:
-            assert re.fullmatch(r'[0-9]{8}T[0-9]{6}Z-[0-9a-f-]{36}', state['node_b_revision'])
-            assert state['publications'] == [state['node_b_revision']]
-        else:
-            assert state['node_b_revision'] == 'fixture-baseline' and state['publications'] == []
+        assert state['node_a_revision'] == (state['node_b_revision'] if retained else 'fixture-baseline')
+        assert state['node_a_monitor_sha256'] == (BASELINE_MONITOR if restored else CANDIDATE_MONITOR)
         assert digest(read(case_root / 'external-calls.jsonl', 0o600)) == state['external_calls_sha256']
         fixture.verify_calls(case_root / 'external-calls.jsonl', case_root, scenario)
         phase_status = expected_status if entrypoint == 'outer' else int(read(case_root / (PHASES[name][1] + '.status'), 0o600))

@@ -53,7 +53,7 @@ run_container() {
     local focused_container_status=0
     local -a focused_container_options=()
     if [[ "$focused_container_auth_outer" = true ]]; then
-        focused_container_options=(--init --cap-add NET_ADMIN --env AUTH_OUTER_EVIDENCE_ROOT=/evidence)
+        focused_container_options=(--init --cap-add NET_ADMIN --cap-add SYS_ADMIN --env AUTH_OUTER_EVIDENCE_ROOT=/evidence)
     fi
 
     podman run --rm --network none "${focused_container_options[@]}" \

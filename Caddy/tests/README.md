@@ -70,16 +70,16 @@ Doppler secret or contacts a node. The dedicated container phase runs this
 boundary regression before the real-Caddy fixture.
 
 The `authentication-deployment` profile exercises the actual neutral transaction
-and outer runner for atomic Node B monitor replacement and rollback. It tests
+and outer runner for atomic web-monitor replacement and rollback. It tests
 fourteen filesystem state variants over an isolated SSH transport that preserves
 remote-shell parsing. Run the host profile with `--phase host --container never`
 and the Debian batch with `run-focused-container.sh --profiles authentication-deployment`.
 The same regression now constructs and transfers the real minimal payload,
 checks deterministic output, and rejects altered validator, missing config,
-symlink, and hardlink inputs before archive creation. It also executes the real
-coordinator through pre-mutation failure and interruption, proving upload cleanup
-and zero target mutation. This remains partial coordinator coverage, not a
-registered live operation or full release acceptance. No real node or secret provider is contacted.
+symlink, and hardlink inputs before archive creation. Coordinator preflight and interruption coverage belongs to the full container
+profile below; host helper tests never invoke its network-dependent path. Helper
+coverage alone is not full release or login acceptance. No real node or secret
+provider is contacted.
 
 The dedicated `authentication-resilience` container profile also runs
 `authentication-release-regression.sh`. Its seven scenarios execute the real
@@ -106,15 +106,18 @@ After building the authentication image above, run the complete isolated stage:
 ```
 
 The wrapper selects `localhost/caddy-auth-validation:latest`, retains
-`--network none`, and adds `--init` and `--cap-add NET_ADMIN` so fixture addresses
-exist only in the container namespace and observer children are reaped. It
+`--network none`, and adds `--init`, `--cap-add NET_ADMIN`, and `--cap-add SYS_ADMIN`.
+Fixture addresses exist only in the container; private mount namespaces give Node A
+a separate filesystem for the unmodified finalizer/reconciler and Caddy process.
+The init process reaps observer children. It
 retains bounded evidence in the directory printed at completion. The test must
 not be run directly on a workstation or production host.
 
-`authentication-outer-regression.sh` runs fourteen scenarios through the real neutral
+`authentication-outer-regression.sh` runs sixteen scenarios through the real neutral
 outer entrypoint: missing IPv6 connectivity, untrusted TLS, HTTP 503, inactive
-backend preflight, interrupted preflight, success, login failure, restoration failure, interruption after
-monitor installation, evidence-readback failure, DNS degradation, lost publication
+backend preflight, retained-publication drift, interrupted preflight, success,
+node login failure, shared login failure, restoration failure, interruption after
+monitor installation, evidence-readback failure, DNS degradation, lost activation
 reply, failed reconciliation reload, and reordered evidence. It executes actual
 Caddy reloads, publisher/finalizer/reconciler programs, HTTP login validation,
 web-monitor checks, samplers, and release/helper restoration. The fixture models
@@ -127,8 +130,8 @@ address-monitor processes after the stage. The DNS-failure case covers scenario
 changes during retries; a primary and its retry retain the same scenario label.
 
 These are full-stage fixture results, not real Pi-hole or production acceptance.
-The preceding Node B operation is archived. Its replacement is defined and
-requires fresh qualification. `authentication-deployment-policy.py` checks
+The accepted Node B operation is archived. Its primary-activation replacement
+starts from an independently produced standby candidate and retained publication. `authentication-deployment-policy.py` checks
 the pinned source graph and validates the retained per-scenario decisions against
 actual producer streams, statuses, command order, and independent state. Run the
 registered outer runner with `--production-path-test`, then pass its reported
@@ -142,8 +145,8 @@ missing files, unsafe modes, symlinks, changed streams, stale source graphs, and
 rehashed duplicate commands. It modifies only temporary copies of the evidence.
 
 The workstation connectivity checks use real HTTPS through the same validator
-client as login acceptance. Negative fixtures remove Node B's IPv6 address,
+client as login acceptance. Negative fixtures remove Node A's IPv6 address,
 select an untrusted CA store, or return HTTP 503. Each must reject before any
-SSH/SCP or Doppler invocation and preserve the baseline release and monitor.
+SSH/SCP or Doppler invocation and preserve the original Node A and accepted Node B release/monitor identities.
 The full fixture also covers pre-mutation service rejection and interruption;
 host helper tests do not invoke the network-dependent coordinator.

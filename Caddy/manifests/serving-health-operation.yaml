@@ -1,62 +1,49 @@
 schema_version: 2
-action: 20260914-pihole-authentication-connectivity
-title: Pi-hole authentication resilience with workstation connectivity preflight
+action: 20260914-pihole-authentication-primary
+title: Activate accepted authentication release on Node A and validate shared login
 status: defined-unexecuted
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 1582add56f024d225191ffb419b3e066021a00f10b3f2339267b9cec2e9e163a
+transaction_sha256: 82abeae99eaa3bcc213feab290e5309f262b9ee8d0c04e08c538dfb546870ba6
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: 2d46a246f7058be53fc72fac82ddf30cd1e80440ff3137d4680001b04dae36ec
+state_sha256: e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476
 production_contract: Caddy/manifests/serving-health-production.tsv
-scope: pihole-authentication-node-b
+scope: pihole-authentication-node-a
 live_execution: exact-bundle-authorization-required
-baseline:
-  release: 20260818T221516Z-f8a87266-2c11-475e-af1e-dd026d44ee8d
-  source_role: node-a
-  contract: Caddy/manifests/current-live-state.tsv
-targets:
-  node_b: pi@10.1.0.54
-  node_a: pi@10.1.0.53
 preflight:
-  workstation_connectivity: verified-ipv4-ipv6-login-page-before-upload
-  credentials: not-retrieved
+  workstation_connectivity: verified-node-a-and-shared-ipv4-ipv6-before-upload
+  standby: accepted-release-and-monitor-unchanged
+  publication: exact-retained-node-b-accepted-manifest
 mutation:
-  node_b: atomic-web-monitor-install-and-protocol-v2-candidate-reconciliation
-  node_a: protocol-v2-publication-only
-  configuration: remove-passive-fail-duration-and-disable-upstream-keepalive
-  active_health_checks: retained
-  post_replay: prohibited
+  node_a: atomic-web-monitor-install-and-local-protocol-v2-reconciliation
+  node_b: none
+  publication: retain-existing-no-republish-or-withdrawal
 acceptance:
-  success: retain-node-b-candidate-and-node-a-publication
-  node_a_activation: separately-authorized
+  success: both-nodes-fixed-node-a-and-shared-login-accepted
   login: incorrect-password-rejection-immediate-success-dashboard-logout
   families: ipv4-and-ipv6-fresh-and-idle
-  observation_seconds: 90
-  evidence_span_seconds: 64-600
-  maximum_probe_gap_seconds: 15
+  observation_seconds: 90-per-target
   ownership: node-a-master-four-vips-node-b-backup-zero-vips
-  failures: no-http-502-503-no-web-health-failure-or-recovery
-  services: accepted-service-contract-plus-lighttpd-pihole-ftl-unbound
+  shared_owner: verify-before-and-after-with-continuous-observation
 rollback:
-  trigger: failed-candidate-acceptance-with-provable-release-identity
-  order: quiesce-node-b-withdraw-node-a-restore-node-b-release-restore-monitor-resume-node-b-then-node-a
-  convergence_seconds: 60
+  order: stop-primary-reconciliation-restore-primary-release-and-monitor-resume-primary
+  standby: preserve-accepted-release-and-monitor
+  publication: preserve-retained-candidate
   ambiguous_mutation_or_unproven_recovery_status: 125
-  pre_mutation_failure: owned-upload-cleanup-only
   evidence_loss_after_acceptance: preserve-candidate-and-report-125
 secret:
   provider: doppler
   project: homelab-dev
   config: prd_caddy
   key: PIHOLE_NODE_B_WEB_PASSWORD
-  handling: bounded-inherited-descriptor-no-values-in-argv-environment-or-evidence
+  sharing: operator-confirms-node-a-and-node-b-passwords-match
+  handling: bounded-pipe-no-values-in-argv-environment-or-evidence
 exclusions:
-  - Node A serving release activation
-  - DNS or Keepalived configuration changes and deliberate VIP movement
-  - password reset and notification test delivery
+  - standby mutation and deliberate VIP movement
+  - DNS or Keepalived changes and password reset
 qualification:
   command: /bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh --production-path-test
   evidence_environment: CADDY_AUTH_QUALIFICATION_EVIDENCE

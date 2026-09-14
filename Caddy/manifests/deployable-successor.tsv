@@ -1,2 +1,2 @@
 schema_version	status	action	operation_spec	transaction	outer_runner	state_contract	state_sha256	coverage	regression
-2	none	-	-	-	-	Caddy/manifests/current-live-state.tsv	aaf5f4a99cf68f08ebc2f82de450a3d5e1a1f6cedeaddd658faf3cbb02a75d97	Caddy/manifests/deployable-successor-coverage.tsv	-
+2	defined	20260914-pihole-authentication-primary	Caddy/manifests/serving-health-operation.yaml	Caddy/scripts/apply-serving-health-deployment.sh	Caddy/scripts/run-serving-health-deployment-outer.sh	Caddy/manifests/current-live-state.tsv	e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476	Caddy/manifests/deployable-successor-coverage.tsv	Caddy/tests/authentication-outer-regression.sh

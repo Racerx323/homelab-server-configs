@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Full neutral outer stage with real Caddy/HTTP and causal external-system models."""
 import hashlib
+import base64
 import http.server
 import importlib.util
 import json
@@ -48,6 +49,18 @@ def projection(work, role):
     return path, port
 
 
+def primary_command(work, command):
+    program = 'set -eu\nmount --make-rprivate /\n'
+    for path in ('/etc/caddy', '/var/lib/caddy-sync', '/usr/local/libexec'):
+        program += 'mount --bind ' + shlex.quote(str(work / 'node-a' / path.lstrip('/'))) + ' ' + path + '\n'
+    program += 'exec ' + shlex.join(command) + '\n'
+    return ['/usr/bin/unshare', '--mount', '/bin/bash', '-c', program]
+
+
+def primary_revision(work):
+    return Path(os.readlink(work / 'node-a/etc/caddy/current')).name
+
+
 def command():
     """Only model external commands; never implement a transaction mode."""
     work = Path(os.environ['CADDY_AUTH_STAGE_FIXTURE'])
@@ -55,6 +68,9 @@ def command():
     role = os.environ.get('AUTH_RELEASE_ROLE', 'node-b')
     with (work / 'external-calls.jsonl').open('a') as stream:
         stream.write(json.dumps({'role': role, 'command': name, 'args': args}) + '\n')
+    if name == 'runuser':
+        assert role == 'node-a' and args[:3] == ['-u', 'caddy-sync', '--']
+        return subprocess.run(['/usr/sbin/runuser', *args[:3], 'env', 'XDG_DATA_HOME=/var/lib/caddy-sync/validation-data', 'XDG_CONFIG_HOME=/var/lib/caddy-sync/validation-config', *args[3:]]).returncode
     if name == 'sudo':
         assert args.pop(0) == '-n'
         os.execvp(args[0], args)
@@ -66,12 +82,19 @@ def command():
         assert args[0] in ('fixture-node-a', 'fixture-node-b') and len(args) == 2
         role = args[0].removeprefix('fixture-')
         env = dict(os.environ, AUTH_RELEASE_ROLE=role, PATH=f'{work / "bin"}:/usr/sbin:/usr/bin:/sbin:/bin',
-                   CADDY_SERVING_HEALTH_TARGET_ROOT=str(work / 'node-a') if role == 'node-a' else '',
-                   CADDY_SERVING_HEALTH_OUTGOING_ROOT='/var/lib/caddy-sync/outbound' if role == 'node-a' else '/var/lib/caddy-sync/node-b-outbound')
+                   CADDY_SERVING_HEALTH_TARGET_ROOT='',
+                   CADDY_SERVING_HEALTH_OUTGOING_ROOT='/var/lib/caddy-sync/outbound' if role == 'node-a' else '/var/lib/caddy-sync/node-b-outbound',
+                   CADDY_SERVING_HEALTH_RELEASES_ROOT='/etc/caddy/releases',
+                   CADDY_SERVING_HEALTH_INCOMING_ROOT='/var/lib/caddy-sync/incoming',
+                   CADDY_SERVING_HEALTH_QUARANTINE_ROOT='/var/lib/caddy-sync/quarantine',
+                   CADDY_SERVING_HEALTH_RUNUSER_COMMAND=str(work / 'bin/runuser') if role == 'node-a' else '/usr/sbin/runuser')
+        remote = ['/bin/bash', '-c', args[1]]
+        if role == 'node-a':
+            remote = primary_command(work, remote)
         scenario = os.environ.get('AUTH_OUTER_SCENARIO', 'success')
-        if (scenario == 'preflight-interrupt' and ' auth-release-preflight node-b ' in args[1]) or (scenario == 'interrupt-helper' and ' auth-helper-install ' in args[1]) or scenario == 'evidence-failure' or (scenario == 'publish-reply-failure' and ' auth-release-publish ' in args[1]) or (scenario == 'reordered-evidence' and ' sampler-stop ' in args[1] and role == 'node-b'):
+        if (scenario == 'preflight-interrupt' and ' auth-primary-preflight node-b ' in args[1]) or (scenario == 'interrupt-helper' and ' auth-helper-install ' in args[1]) or scenario == 'evidence-failure' or (scenario == 'activate-reply-failure' and ' auth-primary-activate ' in args[1]) or (scenario == 'reordered-evidence' and ' sampler-stop ' in args[1] and role == 'node-b'):
             program = sys.stdin.buffer.read()
-            result = subprocess.run(['/bin/bash', '-c', args[1]], input=program, env=env)
+            result = subprocess.run(remote, input=program, env=env)
             if result.returncode == 0 and scenario == 'reordered-evidence' and not (work / 'reordered-injected').exists():
                 evidence = Path(shlex.split(args[1])[-1])
                 records = evidence / 'availability.tsv'
@@ -80,21 +103,21 @@ def command():
                 rows[1], rows[2] = rows[2], rows[1]
                 records.write_text(''.join(rows))  # Corrupt actual producer output, never fabricate successful observations.
                 (work / 'reordered-injected').touch()
-            if result.returncode == 0 and scenario == 'publish-reply-failure':
-                deadline = time.monotonic() + 45
-                while not (work / 'reconcile.status').exists() and time.monotonic() < deadline:
-                    time.sleep(0.2)
+            if result.returncode == 0 and scenario == 'activate-reply-failure':
                 return 7
             if result.returncode == 0 and scenario in ('interrupt-helper', 'preflight-interrupt'):
                 os.kill(os.getppid(), signal.SIGTERM)
             if result.returncode == 0 and scenario == 'evidence-failure' and len(shlex.split(args[1])) == 9 and b'base64 -w 0' in program:
                 return 7  # Lost readback reply, after executing the real producer.
             return result.returncode
-        os.execve('/bin/bash', ['/bin/bash', '-c', args[1]], env)
+        os.execve(remote[0], remote, env)
     if name == 'doppler':
         validator = module('login', '../scripts/validate-pihole-authentication.py')
         assert tuple(args) == validator.DOPPLER_COMMAND[1:]
-        print('fixture-wrong' if os.environ.get('AUTH_OUTER_SCENARIO') in ('login-failure', 'restore-failure') else 'fixture-correct', end='')
+        scenario = os.environ.get('AUTH_OUTER_SCENARIO')
+        calls = [json.loads(line) for line in (work / 'external-calls.jsonl').read_text().splitlines()]
+        shared_failure = scenario == 'shared-login-failure' and sum(c['command'] == 'doppler' for c in calls) == 2
+        print('fixture-wrong' if scenario in ('login-failure', 'restore-failure') or shared_failure else 'fixture-correct', end='')
         return 0
     if name == 'systemctl':
         action, unit = args[0], args[-1]
@@ -108,14 +131,18 @@ def command():
             if '--quiet' not in args:
                 print(current)
             return 0 if current == 'active' else 3
+        if action == 'start' and unit == 'caddy-sync-reconcile.service' and role == 'node-a':
+            result = subprocess.run(['/bin/bash', '/usr/local/libexec/reconcile-release.sh']).returncode
+            state.write_text('inactive')
+            return result
         if action in ('start', 'stop'):
             state.write_text('active' if action == 'start' else 'inactive')
             return 0
         if action == 'reload':
             assert unit == 'caddy.service'
-            if os.environ.get('AUTH_OUTER_SCENARIO') == 'reconcile-failure' and Path('/etc/caddy/current').resolve().name != 'fixture-baseline':
+            if os.environ.get('AUTH_OUTER_SCENARIO') == 'reconcile-failure' and role == 'node-a' and primary_revision(work) != 'fixture-baseline':
                 return 1
-            if os.environ.get('AUTH_OUTER_SCENARIO') == 'restore-failure' and Path('/etc/caddy/current').resolve().name == 'fixture-baseline':
+            if os.environ.get('AUTH_OUTER_SCENARIO') == 'restore-failure' and role == 'node-a' and primary_revision(work) == 'fixture-baseline':
                 return 1  # Caddy rejects the requested rollback reload; running config remains candidate.
             path, port = projection(work, role)
             result = subprocess.run(['caddy', 'reload', '--address', f'127.0.0.1:{port}', '--adapter', 'caddyfile', '--config', str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -137,7 +164,7 @@ def command():
         return 0
     if name == 'dig':
         assert args[1:4] == ['-p', '53', 'pihole.local.theama.co']
-        if os.environ.get('AUTH_OUTER_SCENARIO') == 'dns-failure' and Path('/etc/caddy/current').resolve().name != 'fixture-baseline':
+        if os.environ.get('AUTH_OUTER_SCENARIO') == 'dns-failure' and role == 'node-a' and primary_revision(work) != 'fixture-baseline':
             return 1
         # DNS is an unavailable external system; queries depend on modeled service state.
         for service in ('pihole-FTL.service', 'unbound.service'):
@@ -186,45 +213,52 @@ def verify_calls(call_path, evidence, scenario):
         positions = [i for m, r, i in phases if (m, r) == (mode, role)]
         assert len(positions) == 1, (scenario, mode, role, positions)
         return positions[0]
-    if scenario in ('preflight-service', 'preflight-interrupt'):
-        position('auth-release-preflight', 'node-b')
-        assert not any(mode in ('auth-helper-install', 'auth-release-publish', 'sampler-start') for mode, _, _ in phases)
+    if scenario in ('preflight-service', 'preflight-interrupt', 'preflight-publication'):
+        position('auth-primary-preflight', 'node-b')
+        assert not any(mode in ('auth-helper-install', 'auth-primary-activate', 'sampler-start') for mode, _, _ in phases)
         assert not any(call['command'] == 'doppler' for call in calls)
         assert not (evidence / 'auth-login.stdout').exists()
         return
-    assert position('auth-release-preflight', 'node-b') < position('auth-release-preflight', 'node-a')
-    assert position('auth-release-prepare', 'node-a') < position('auth-helper-install', 'node-b')
+    assert position('auth-primary-preflight', 'node-b') < position('auth-primary-preflight', 'node-a')
+    install = position('auth-helper-install', 'node-a')
+    assert not any(r == 'node-b' and m in ('auth-helper-install', 'auth-primary-activate', 'auth-primary-rollback', 'auth-helper-rollback') for m, r, _ in phases)
     if scenario == 'interrupt-helper':
-        assert not any(mode == 'auth-release-publish' for mode, _, _ in phases)
+        assert not any(mode == 'auth-primary-activate' for mode, _, _ in phases)
         assert not (evidence / 'auth-login.stdout').exists()
         return
-    assert position('auth-helper-install', 'node-b') < position('auth-release-publish', 'node-a')
-    assert position('auth-release-publish', 'node-a') < position('auth-release-discover', 'node-a')
-    if scenario != 'publish-reply-failure':
-        position('auth-release-wait', 'node-b')
-    login = evidence / 'auth-login.stdout'
-    if scenario in ('publish-reply-failure', 'reconcile-failure'):
-        assert not login.exists()
+    activation = position('auth-primary-activate', 'node-a')
+    assert install < activation
+    provider_calls = [i for i, c in enumerate(calls) if c['command'] == 'doppler']
+    if scenario in ('activate-reply-failure', 'reconcile-failure'):
+        assert not provider_calls and not (evidence / 'auth-login.stdout').exists()
     else:
-        provider_calls = [i for i, c in enumerate(calls) if c['command'] == 'doppler']
-        assert len(provider_calls) == 1 and provider_calls[0] > position('auth-release-wait', 'node-b')
-        rows = [json.loads(line) for line in login.read_text().splitlines() if line.startswith('{')]
-        posts = [(r['family'], r['status']) for r in rows if r['method'] == 'POST']
-        if scenario in ('login-failure', 'restore-failure'):
-            assert posts == [(4, 200), (4, 200)], posts
-        else:
-            assert posts == [(4, 200), (4, 302), (4, 200), (4, 302), (6, 200), (6, 302), (6, 200), (6, 302)], posts
-            assert 'pihole_authentication_http_acceptance=true' in login.read_text()
-            position('auth-release-accept', 'node-b')
+        assert provider_calls[0] > activation
+        for label in ('auth-login', 'auth-login-shared'):
+            login = evidence / (label + '.stdout')
+            if scenario in ('login-failure', 'restore-failure') and label == 'auth-login-shared':
+                assert not login.exists()
+                continue
+            rows = [json.loads(line) for line in login.read_text().splitlines() if line.startswith('{')]
+            posts = [(r['family'], r['status']) for r in rows if r['method'] == 'POST']
+            if scenario in ('login-failure', 'restore-failure') or (scenario == 'shared-login-failure' and label == 'auth-login-shared'):
+                assert posts == [(4, 200), (4, 200)], posts
+                assert len(provider_calls) == (2 if scenario == 'shared-login-failure' else 1)
+            else:
+                assert posts == [(4, 200), (4, 302), (4, 200), (4, 302), (6, 200), (6, 302), (6, 200), (6, 302)], posts
+                assert 'pihole_authentication_http_acceptance=true' in login.read_text()
+                assert len(provider_calls) == 2
+                ownership = [i for m, r, i in phases if m == 'ownership' and r == 'node-a']
+                assert len(ownership) == (1 if scenario == 'shared-login-failure' else 2)
+                assert provider_calls[0] < ownership[0] < provider_calls[1]
+                if scenario != 'shared-login-failure':
+                    assert provider_calls[1] < ownership[1]
     if scenario in ('success', 'evidence-failure'):
-        assert not any(mode in ('auth-release-withdraw', 'auth-release-rollback', 'auth-helper-rollback') for mode, _, _ in phases)
+        assert not any(mode in ('auth-primary-rollback', 'auth-helper-rollback') for mode, _, _ in phases)
     else:
-        quiesce = position('auth-release-quiesce', 'node-b')
-        withdraw = position('auth-release-withdraw', 'node-a')
-        restore = position('auth-release-rollback', 'node-b')
-        assert quiesce < withdraw < restore
+        restore = position('auth-primary-rollback', 'node-a')
+        assert activation < restore
         if scenario != 'restore-failure':
-            assert restore < position('auth-helper-rollback', 'node-b') < position('auth-release-resume', 'node-b') < position('auth-release-resume', 'node-a')
+            assert restore < position('auth-helper-rollback', 'node-a')
 
 
 def stage(work, baseline, node_a, environment):
@@ -239,7 +273,7 @@ def stage(work, baseline, node_a, environment):
         run('/usr/sbin/ip', '-6', 'address', 'add', f'fd36:5aa8:6971:1::{suffix}/128', 'dev', 'lo')
     bins = work / 'bin'
     bins.mkdir()
-    for name in ('ssh', 'scp', 'sudo', 'systemctl', 'busctl', 'ip', 'dig', 'journalctl'):
+    for name in ('ssh', 'scp', 'sudo', 'systemctl', 'busctl', 'ip', 'dig', 'journalctl', 'runuser'):
         (bins / name).symlink_to(Path(__file__).resolve())
     Path('/usr/bin/systemctl').unlink()
     Path('/usr/bin/systemctl').symlink_to(Path(__file__).resolve())
@@ -282,6 +316,47 @@ def stage(work, baseline, node_a, environment):
             output.close()
         time.sleep(2)
         assert all(p.poll() is None for p in processes)
+        seed_env = dict(env, AUTH_OUTER_SCENARIO='seed')
+        seed_evidence = work / 'seed-evidence'
+        seed_evidence.mkdir(mode=0o700)
+        tx = ROOT / 'scripts/apply-serving-health-deployment.sh'
+        for mode, role in [('auth-release-prepare', 'node-a'), ('auth-release-publish', 'node-a')]:
+            run('/bin/bash', str(tx), mode, role, str(work / 'payload'), str(seed_evidence), env=dict(seed_env, AUTH_RELEASE_ROLE=role, CADDY_SERVING_HEALTH_TARGET_ROOT=str(node_a)))
+        publication = next(Path('/var/lib/caddy-sync/outbound').iterdir())
+        incoming = Path('/var/lib/caddy-sync/incoming/node-a') / publication.name
+        shutil.copytree(publication, incoming)
+        run('chown', '-R', 'caddy-sync:caddy-sync', str(incoming))
+        run('/usr/sbin/runuser', '-u', 'caddy-sync', '--', 'env', 'XDG_DATA_HOME=/var/lib/caddy-sync/validation-data', 'XDG_CONFIG_HOME=/var/lib/caddy-sync/validation-config', '/bin/bash', '/usr/local/libexec/finalize-incoming-release-v2.sh', '--source-role', 'node-a', env=seed_env)
+        run('/bin/bash', '/usr/local/libexec/reconcile-release.sh', env=seed_env)
+        run('/bin/bash', str(tx), 'auth-helper-install', 'node-b', str(work / 'payload'), str(seed_evidence), env=seed_env)
+        standby = Path('/etc/caddy/current').resolve()
+        assert standby.name == publication.name
+        # Separate primary filesystem for the later real local reconciliation.
+        (node_a / 'etc/caddy/releases').mkdir()
+        shutil.copytree(baseline, node_a / 'etc/caddy/releases/fixture-baseline')
+        (node_a / 'etc/caddy/current').unlink()
+        (node_a / 'etc/caddy/current').symlink_to('releases/fixture-baseline')
+        primary_sync = node_a / 'var/lib/caddy-sync'
+        for name in ('outbound', 'incoming', 'incoming/node-a', 'quarantine', 'validation-data', 'validation-config'):
+            run('install', '-d', '-o', 'caddy-sync', '-g', 'caddy-sync', '-m', '0750', str(primary_sync / name))
+        shutil.move(str(publication), primary_sync / 'outbound' / publication.name)
+        primary_monitor = node_a / 'usr/local/libexec/check-pihole-web-health.sh'
+        primary_monitor.write_bytes(run('git', '-c', f'safe.directory={ROOT.parent}', '-C', str(ROOT.parent), 'cat-file', 'blob', 'aec92d5c0a99d7ee8154f32193a3e3d321af616c').stdout)
+        primary_monitor.chmod(0o755)
+        primary_monitor.parent.chmod(0o755)
+        (node_a / 'etc/caddy').chmod(0o755)
+        run('chown', 'caddy-sync:caddy-sync', str(primary_sync))
+        primary_sync.chmod(0o750)
+        state = work / 'payload/manifests/current-live-state.tsv'
+        state.write_text(''.join(f'1\t{role}\trelease\tfixture,revision={path.name},parent=fixture-parent,source=node-a,payload-manifest-sha256={hashlib.sha256((path / "manifest.sha256").read_bytes()).hexdigest()}\tfixture\n' for role, path in [('node-a', baseline), ('node-b', standby)]))
+        processes[0].terminate()
+        processes[0].wait(timeout=10)
+        path, _ = projection(work, 'node-a')
+        with (work / 'node-a-caddy.log').open('ab') as output:
+            processes[0] = subprocess.Popen(primary_command(work, ['caddy', 'run', '--adapter', 'caddyfile', '--config', str(path)]), env=dict(env, AUTH_RELEASE_ROLE='node-a'), stdout=output, stderr=output)
+        time.sleep(2)
+        assert processes[0].poll() is None
+        (work / 'external-calls.jsonl').write_text('')
         def monitor():
             try:
                 while not stop.is_set():
@@ -294,7 +369,7 @@ def stage(work, baseline, node_a, environment):
                                            PIHOLE_WEB_HEALTH_ENVIRONMENT_FILE=str(node_env),
                                            PIHOLE_WEB_HEALTH_STATE_DIRECTORY=str(work / f'{role}-state'),
                                            PIHOLE_WEB_HEALTH_RUNTIME_DIRECTORY=str(work / f'{role}-runtime'))
-                        helper = Path('/usr/local/libexec/check-pihole-web-health.sh') if role == 'node-b' else work / 'baseline-monitor'
+                        helper = Path('/usr/local/libexec/check-pihole-web-health.sh') if role == 'node-b' else primary_monitor
                         result = subprocess.run(['/bin/bash', str(helper)], env=monitor_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15)
                         with (work / f'{role}.journal').open('a') as log:
                             for line in result.stdout.decode().splitlines():
@@ -303,47 +378,21 @@ def stage(work, baseline, node_a, environment):
             except Exception as error:
                 errors.append(str(error))
         shutil.copyfile('/usr/local/libexec/check-pihole-web-health.sh', work / 'baseline-monitor')
-        def transfer():
-            handled = set()
-            # Model the accepted lsyncd delay: publication renames staging into
-            # the immutable revision before the next settled transfer batch.
-            assert 'delay = 5,' in (ROOT / 'configs/lsyncd/caddy-node-a.lua').read_text()
-            inventory, changed_at = (), time.monotonic()
-            try:
-                while not stop.is_set():
-                    children = tuple(sorted(Path('/var/lib/caddy-sync/outbound').iterdir()))
-                    if children != inventory:
-                        inventory, changed_at = children, time.monotonic()
-                    if time.monotonic() - changed_at < 5:
-                        stop.wait(0.2)
-                        continue
-                    for child in children:
-                        if child.name in handled or not (child / '.finalize-request').exists():
-                            continue
-                        handled.add(child.name)
-                        incoming = Path('/var/lib/caddy-sync/incoming/node-a') / child.name
-                        shutil.copytree(child, incoming)
-                        run('chown', '-R', 'caddy-sync:caddy-sync', str(incoming))
-                        run('runuser', '-u', 'caddy-sync', '--', 'env', 'XDG_DATA_HOME=/var/lib/caddy-sync/validation-data', 'XDG_CONFIG_HOME=/var/lib/caddy-sync/validation-config', '/bin/bash', '/usr/local/libexec/finalize-incoming-release-v2.sh', '--source-role', 'node-a', env=env)
-                        reconciled = subprocess.run(['/bin/bash', '/usr/local/libexec/reconcile-release.sh'], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                        (work / 'reconcile.status').write_text(str(reconciled.returncode) + '\n')
-                        if reconciled.returncode != (1 if scenario == 'reconcile-failure' else 0):
-                            raise RuntimeError('unexpected reconciler status')
-                    stop.wait(0.2)
-            except Exception as error:
-                errors.append(str(error))
-        for fn in (monitor, transfer):
+        for fn in (monitor,):
             thread = threading.Thread(target=fn, daemon=True)
             thread.start()
             threads.append(thread)
         if scenario == 'preflight-ipv6':
-            run('/usr/sbin/ip', '-6', 'address', 'del', 'fd36:5aa8:6971:1::54/128', 'dev', 'lo')
+            run('/usr/sbin/ip', '-6', 'address', 'del', 'fd36:5aa8:6971:1::53/128', 'dev', 'lo')
             removed_ipv6 = True
         elif scenario == 'preflight-tls':
             env['SSL_CERT_FILE'] = '/etc/ssl/certs/ca-certificates.crt'
+        elif scenario == 'preflight-publication':
+            with (primary_sync / 'outbound' / standby.name / 'conf.d/10-pihole-admin.caddy').open('a') as changed:
+                changed.write('\n# unexpected drift\n')
         elif scenario == 'preflight-service':
             (work / 'node-b-lighttpd.service.state').write_text('inactive')
-        result = subprocess.run(['/bin/bash', str(ROOT / 'scripts/run-serving-health-deployment-outer.sh'), '--production-path-test'], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
+        result = subprocess.run(['/bin/bash', str(ROOT / 'scripts/run-serving-health-deployment-outer.sh'), '--production-path-test'], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=360)
         # Freeze background producers before hashing and copying their evidence.
         stop.set()
         for thread in threads:
@@ -365,6 +414,13 @@ def stage(work, baseline, node_a, environment):
                                 output = status.with_suffix(suffix)
                                 if output.exists():
                                     print(output.read_text()[-2000:], file=sys.stderr)
+            for root_line in result.stdout.decode().splitlines():
+                if root_line.startswith('evidence_directory='):
+                    for readback in Path(root_line.split('=', 1)[1]).glob('*readback.stdout'):
+                        lines = readback.read_text().splitlines()
+                        for index in range(0, len(lines) - 1, 2):
+                            if lines[index].startswith('file=auth_primary_') and '.stderr ' in lines[index]:
+                                print(lines[index], base64.b64decode(lines[index + 1]).decode()[-2000:], file=sys.stderr)
             raise AssertionError(f'outer status={result.returncode}; external errors={errors}; fixture={work}')
         root_line = next(line for line in result.stdout.decode().splitlines() if line.startswith('evidence_directory='))
         producer_root = Path(root_line.split('=', 1)[1])
@@ -387,26 +443,31 @@ def stage(work, baseline, node_a, environment):
                     continue
                 assert b'/usr/sbin/ip -o monitor address dev lo' not in command_line, 'kernel monitor residue'
 
-        assert (node_a / 'etc/caddy/current').resolve() == baseline
         selected = Path('/etc/caddy/current').resolve()
-        publications = list(Path('/var/lib/caddy-sync/outbound').iterdir())
+        assert selected == standby
+        primary_selected = Path(primary_revision(work))
+        publications = list((primary_sync / 'outbound').iterdir())
+        assert [p.name for p in publications] == [standby.name]
         monitor_hash = hashlib.sha256(Path('/usr/local/libexec/check-pihole-web-health.sh').read_bytes()).hexdigest()
+        primary_monitor_hash = hashlib.sha256(primary_monitor.read_bytes()).hexdigest()
+        assert monitor_hash == policy.CANDIDATE_MONITOR
         if scenario in ('success', 'evidence-failure'):
-            assert selected != baseline and [p.name for p in publications] == [selected.name]
-            assert monitor_hash == '0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab'
+            assert primary_selected.name == standby.name
+            assert primary_monitor_hash == policy.CANDIDATE_MONITOR
         elif expected_status == 1 or scenario == 'preflight-interrupt':
-            assert selected == baseline and not publications
-            assert monitor_hash == '803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51'
+            assert primary_selected.name == baseline.name
+            assert primary_monitor_hash == policy.BASELINE_MONITOR
         else:
-            assert selected == baseline and not publications
-            assert monitor_hash == '0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab'
+            assert primary_selected.name == baseline.name
+            assert primary_monitor_hash == policy.CANDIDATE_MONITOR
         if expected_status == 125:
-            assert b'authentication_node_b_accepted=' not in result.stdout
+            assert b'authentication_node_a_and_shared_accepted=' not in result.stdout
             assert b'baseline_restoration=complete' not in result.stdout
         # Keep independently observed state and actual producer status together.
         decision = {'scenario': scenario, 'expected_status': expected_status, 'observed_status': result.returncode,
-                    'node_a_revision': (node_a / 'etc/caddy/current').resolve().name,
+                    'node_a_revision': primary_revision(work),
                     'node_b_revision': selected.name, 'node_b_monitor_sha256': monitor_hash,
+                    'node_a_monitor_sha256': primary_monitor_hash,
                     'publications': [p.name for p in publications],
                     'observer_residue': 0,
                     'graph': qualified_graph,
@@ -446,7 +507,7 @@ def stage(work, baseline, node_a, environment):
         provider.unlink(missing_ok=True)
         for suffix in ('53', '54', '55', '56'):
             run('/usr/sbin/ip', 'address', 'del', f'10.1.0.{suffix}/32', 'dev', 'lo')
-            if suffix != '54' or not removed_ipv6:
+            if suffix != '53' or not removed_ipv6:
                 run('/usr/sbin/ip', '-6', 'address', 'del', f'fd36:5aa8:6971:1::{suffix}/128', 'dev', 'lo')
         # Retain bounded fixture diagnostics in the disposable container output.
         if errors:
@@ -454,7 +515,7 @@ def stage(work, baseline, node_a, environment):
 
 
 if __name__ == '__main__':
-    if Path(sys.argv[0]).name in ('ssh', 'scp', 'sudo', 'systemctl', 'busctl', 'ip', 'dig', 'journalctl', 'doppler'):
+    if Path(sys.argv[0]).name in ('ssh', 'scp', 'sudo', 'systemctl', 'busctl', 'ip', 'dig', 'journalctl', 'doppler', 'runuser'):
         sys.exit(command())
     assert Path('/run/.containerenv').exists() and os.geteuid() == 0 and os.environ.get('CADDY_VALIDATION_CONTAINER') == '1'
     module('release', 'authentication-release-regression.py').main(stage)

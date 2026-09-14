@@ -101,7 +101,7 @@ evidence hashes. The original workstation `/tmp` evidence and source snapshot
 were no longer available at archival, likely following the operator-reported WSL
 Ubuntu stop/start. The tag does not contain raw evidence. Consumed data is removed
 from the current branch while one replacement operation is registered.
-No candidate is accepted in production, and this consumed bundle must not be rerun.
+At that operation’s conclusion no candidate was accepted; that consumed bundle must not be rerun.
 A later operation must establish workstation dual-stack reachability before mutation.
 
 ## Node B authentication connectivity operation
@@ -116,10 +116,11 @@ A later operation must establish workstation dual-stack reachability before muta
   requests succeeded; each node recorded four healthy web checks and zero failures.
   Node A remained MASTER with four VIPs; Node B remained BACKUP with zero.
 - Evidence is preserved outside `/tmp`; the sanitized hashes and exact executed
-  identities are in `manifests/serving-health-terminal-result.yaml`.
-- Tag: `caddy-authentication-connectivity-terminal-2026-09-14` (planned, not yet pushed).
-- Status: terminal-pending
+  identities are in `manifests/serving-health-terminal-result.yaml` at the tag below.
+- Tag: `caddy-authentication-connectivity-terminal-2026-09-14` (pushed; commit `f32c4b4`).
+- Status: archived
 
-The stream is terminal-pending and the deployable registry is cleared. The exact
-executed operation remains for archival. Node A serving activation and shared-VIP
-login acceptance remain later stages requiring separate authorization.
+The pushed tag retains the exact executed operation and sanitized terminal
+manifest. Consumed data is removed from the current branch while Node A activation
+and shared-VIP login acceptance are prepared as one replacement operation.
+Live execution requires its own exact-bundle authorization.

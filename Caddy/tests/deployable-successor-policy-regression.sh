@@ -115,7 +115,7 @@ check mode_dispatch_policy \
 
 # Exercise the authentication graph checker against actual copied input bytes.
 if awk -F '\t' 'NR==2 {exit($2 != "defined")}' "$repository_root/Caddy/manifests/deployable-successor.tsv" &&
-    grep -Fxq 'scope: pihole-authentication-node-b' "$repository_root/Caddy/manifests/serving-health-operation.yaml"; then
+    grep -Exq 'scope: pihole-authentication-node-[ab]' "$repository_root/Caddy/manifests/serving-health-operation.yaml"; then
     python3 - "$repository_root" "$root" <<'PYTEST'
 import importlib.util
 import os
@@ -200,7 +200,7 @@ for case in ('unchanged', 'missing', 'unsafe-mode', 'symlink', 'changed-stream',
             calls = fixture / 'success/external-calls.jsonl'
             rows = calls.read_text().splitlines()
             duplicate = next(row for row in rows if json.loads(row)['command'] == 'ssh'
-                             and shlex.split(json.loads(row)['args'][1])[8:10] == ['auth-release-accept', 'node-b'])
+                             and shlex.split(json.loads(row)['args'][1])[8:10] in (['auth-primary-activate', 'node-a'], ['auth-release-publish', 'node-a']))
             calls.write_text('\n'.join([*rows, duplicate]) + '\n')
             state['external_calls_sha256'] = hashlib.sha256(calls.read_bytes()).hexdigest()
         state_path.write_text(json.dumps(state, sort_keys=True) + '\n')

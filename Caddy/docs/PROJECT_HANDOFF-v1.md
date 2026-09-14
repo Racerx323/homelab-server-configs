@@ -108,7 +108,7 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Node B has accepted the fixed release and monitor; Node A still serves baseline.
-- The consumed replacement is terminal-pending; no deployable successor is registered.
+- The accepted Node B operation is archived; Node A activation is qualified and awaits exact-bundle authorization.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -387,16 +387,20 @@ after bounded live acceptance and repository bookkeeping establish it.
 ## Authentication resilience follow-up
 
 Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md)
-for the implementation and application onboarding gate. The replacement passed
-real Node B login acceptance over IPv4 and IPv6, using the configured Doppler
-reference. Both fresh and idle connections accepted normal wrong-password
-rejection followed immediately by successful login, dashboard access, and logout.
-The fixed release and monitor remain on Node B. Node A still serves baseline and
-retains the candidate publication. Health observations passed on both nodes with
-no VIP movement. Exact identities and sanitized evidence hashes are recorded in
-[the terminal result](../manifests/serving-health-terminal-result.yaml).
+for accepted Node B behavior and the primary activation sequence. Node B retains
+the fixed release and monitor; Node A still serves baseline and retains the
+candidate publication. The accepted operation’s pushed archive tag is indexed
+in [HISTORY.md](../HISTORY.md). Current manifests record the accepted mixed state.
 
-Archive the terminal operation before defining the separately authorized Node A
-activation and shared-VIP functional acceptance. Every authenticated application
-must satisfy [APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md); valid rendered
-configuration alone does not establish functional login acceptance.
+The next operation activates that existing publication on Node A through the
+installed finalizer/reconciler, updates its monitor, and validates node and shared
+login over IPv4/IPv6. The operator confirms both nodes share the password in
+`homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD`; values remain external.
+Shared login requires Node A ownership checks and continuous VIP evidence.
+All sixteen qualification scenarios and nineteen decision records passed with
+zero observer residue. Exact-bundle live authorization must precede execution.
+Rollback restores only Node A and preserves Node B and the publication.
+
+Every authenticated proxy must satisfy the rejection/retry gate in
+[APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). A valid rendered
+configuration does not establish functional login acceptance.
