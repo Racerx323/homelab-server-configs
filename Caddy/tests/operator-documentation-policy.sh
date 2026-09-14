@@ -40,6 +40,7 @@ required_documents=(
     ARCHITECTURE.md
     INSTALLATION.md
     OPERATIONS.md
+    PROJECT_HANDOFF-v1.md
     PROTOCOL_V2_RELEASE_LIFECYCLE.md
     QUICK_START.md
     TROUBLESHOOTING.md
@@ -190,6 +191,22 @@ future_prompt_registered() {
         '(FUTURE_COMPLETE_INSTALLATION_PROMPT.md)' || return 1
     require_text "$docs_root/caddy_plan-v1.1.md" \
         '(FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md)'
+}
+
+project_handoff_versioned() {
+    local handoff=$docs_root/PROJECT_HANDOFF-v1.md
+
+    regular_file "$handoff" || return 1
+    require_text "$handoff" 'schema: caddy-project-handoff/v1' || return 1
+    require_text "$handoff" 'document_version:' || return 1
+    require_text "$handoff" 'snapshot_date:' || return 1
+    require_text "$handoff" 'source_baseline:' || return 1
+    require_text "$handoff" 'payload_manifest_sha256:' || return 1
+    require_text "$handoff" '(caddy_plan-v1.1.md)' || return 1
+    require_text "$handoff" 'Caddy/manifests/deployment-streams.tsv' ||
+        return 1
+    require_text "$handoff" \
+        'Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md'
 }
 
 historical_commands_absent() {
@@ -359,6 +376,7 @@ check_repository() {
     relative_links_resolve || fail relative_link_broken
     future_prompt_isolated || fail future_prompt_not_isolated
     future_prompt_registered || fail future_prompt_not_registered
+    project_handoff_versioned || fail project_handoff_invalid
     historical_commands_absent || fail historical_command_present
     entrypoints_current || fail current_entrypoint_invalid
     installed_boundary_explicit || fail installed_boundary_missing
@@ -372,6 +390,7 @@ check_repository() {
 run_self_test() {
     local operator_documentation_backup
     local operator_documentation_generator_backup
+    local operator_documentation_handoff_backup
 
     self_test_root=$(mktemp -d /tmp/caddy-operator-docs.XXXXXX)
     mkdir -p "$self_test_root/Caddy"
@@ -426,6 +445,18 @@ run_self_test() {
     fi
     cp "$operator_documentation_generator_backup" \
         "$self_test_root/Caddy/docs/APPLICATION_ONBOARDING.md"
+
+    operator_documentation_handoff_backup=$self_test_root/PROJECT_HANDOFF-v1.backup
+    cp "$self_test_root/Caddy/docs/PROJECT_HANDOFF-v1.md" \
+        "$operator_documentation_handoff_backup"
+    sed -i '/schema: caddy-project-handoff\/v1/d' \
+        "$self_test_root/Caddy/docs/PROJECT_HANDOFF-v1.md"
+    if /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >/dev/null 2>&1; then
+        fail self_test_unversioned_handoff_accepted
+    fi
+    cp "$operator_documentation_handoff_backup" \
+        "$self_test_root/Caddy/docs/PROJECT_HANDOFF-v1.md"
 
     printf '%s_self_test=true\n' "$prefix"
 }
