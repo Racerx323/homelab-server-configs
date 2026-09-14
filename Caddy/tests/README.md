@@ -113,9 +113,10 @@ The init process reaps observer children. It
 retains bounded evidence in the directory printed at completion. The test must
 not be run directly on a workstation or production host.
 
-`authentication-outer-regression.sh` runs sixteen scenarios through the real neutral
+`authentication-outer-regression.sh` runs nineteen scenarios through the real neutral
 outer entrypoint: missing IPv6 connectivity, untrusted TLS, HTTP 503, inactive
-backend preflight, retained-publication drift, interrupted preflight, success,
+backend preflight, changed/missing/extra baseline files, retained-publication
+drift, interrupted preflight, success,
 node login failure, shared login failure, restoration failure, interruption after
 monitor installation, evidence-readback failure, DNS degradation, lost activation
 reply, failed reconciliation reload, and reordered evidence. It executes actual
@@ -150,3 +151,11 @@ select an untrusted CA store, or return HTTP 503. Each must reject before any
 SSH/SCP or Doppler invocation and preserve the original Node A and accepted Node B release/monitor identities.
 The full fixture also covers pre-mutation service rejection and interruption;
 host helper tests do not invoke the network-dependent coordinator.
+
+The primary baseline fixture retains all eleven accepted payload paths, including
+`tls/leaf.pem`, `tls/intermediates.pem`, and `tls/certificate-manifest.json`.
+Synthetic certificate contents stay inside the container. Candidate publication
+still produces eight files. Baseline metadata alteration, missing intermediate,
+and extra-file cases modify the primary filesystem after state pinning and must
+stop before helper installation, activation, observers, or credential retrieval.
+The same complete baseline participates in normal activation and rollback cases.

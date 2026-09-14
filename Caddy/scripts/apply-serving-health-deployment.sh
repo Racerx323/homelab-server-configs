@@ -208,12 +208,25 @@ authentication_primary_release_identity() {
         "$(realpath -e "$auth_primary_path")" = "$auth_primary_path" ]] || return 1
     [[ -z "$(find "$auth_primary_path" \( ! -type d ! -type f \) -o -type f -links +1)" ]] || return 1
     [[ "$(sha256sum "$auth_primary_path/manifest.sha256" | awk '{print $1}')" = "$auth_primary_expected" ]] || return 1
-    # Recompute from the fixed payload list rather than executing manifest paths.
-    (cd "$auth_primary_path" && sha256sum ./Caddyfile ./conf.d/*.caddy \
-        ./release-manifest.json ./tls/fullchain.pem ./tls/privkey.pem) |
+    # The accepted baseline retains certificate decomposition/metadata files;
+    # the published candidate contains only its serving certificate and key.
+    # Select the allowlist by the separately pinned manifest identity.
+    local -a auth_primary_files=(./Caddyfile ./conf.d/00-health.caddy
+        ./conf.d/10-pihole-admin.caddy ./conf.d/90-default-deny.caddy
+        ./conf.d/91-exact-listener-default-deny.caddy ./release-manifest.json)
+    if [[ "$auth_primary_expected" = "$auth_primary_baseline_hash" ]]; then
+        auth_primary_files+=(./tls/certificate-manifest.json ./tls/fullchain.pem
+            ./tls/intermediates.pem ./tls/leaf.pem ./tls/privkey.pem)
+    elif [[ "$auth_primary_expected" = "$auth_primary_candidate_manifest" ]]; then
+        auth_primary_files+=(./tls/fullchain.pem ./tls/privkey.pem)
+    else
+        return 1
+    fi
+    # Never execute paths supplied by a manifest, or print certificate/key hashes.
+    (cd "$auth_primary_path" && sha256sum "${auth_primary_files[@]}") |
         cmp -s - "$auth_primary_path/manifest.sha256" || return 1
     [[ "$(find "$auth_primary_path" -type f -printf '%P\n' | LC_ALL=C sort |
-        sed '/^\.complete$/d; /^\.finalize-request$/d; /^manifest.sha256$/d')" = $'Caddyfile\nconf.d/00-health.caddy\nconf.d/10-pihole-admin.caddy\nconf.d/90-default-deny.caddy\nconf.d/91-exact-listener-default-deny.caddy\nrelease-manifest.json\ntls/fullchain.pem\ntls/privkey.pem' ]]
+        sed '/^\.complete$/d; /^\.finalize-request$/d; /^manifest.sha256$/d')" = "$(printf '%s\n' "${auth_primary_files[@]#./}")" ]]
 }
 
 authentication_primary_publication() {

@@ -1,12 +1,12 @@
 schema_version: 2
-action: 20260914-pihole-authentication-primary
+action: 20260914-pihole-authentication-inventory
 title: Activate accepted authentication release on Node A and validate shared login
 status: defined-unexecuted
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 82abeae99eaa3bcc213feab290e5309f262b9ee8d0c04e08c538dfb546870ba6
+transaction_sha256: 484dc648ea077029625a1888a73c49a59715a95bb42f758e611bff65deb8c6a5
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_sha256: e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476

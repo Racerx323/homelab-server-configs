@@ -110,6 +110,10 @@ if [[ "$AUTH_RELEASE_ROLE" = node-a ]]; then echo 's "Master"'; else echo 's "Ba
             (baseline / 'tls').mkdir()
             run('openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
                 '-subj', '/CN=*.local.theama.co', '-addext', 'subjectAltName=DNS:pihole0.local.theama.co,DNS:pihole00.local.theama.co,DNS:pihole-admin.local.theama.co,DNS:proxy.local.theama.co', '-keyout', str(baseline / 'tls/privkey.pem'), '-out', str(baseline / 'tls/fullchain.pem'))
+            # Model the accepted baseline's complete eleven-file inventory.
+            shutil.copyfile(baseline / 'tls/fullchain.pem', baseline / 'tls/leaf.pem')
+            (baseline / 'tls/intermediates.pem').write_text('')
+            (baseline / 'tls/certificate-manifest.json').write_text(json.dumps({'fixture': True}))
             (baseline / 'release-manifest.json').write_text(json.dumps({'revision': baseline.name, 'parent_revision': 'fixture-parent', 'source_node': 'node-a'}))
             files = sorted(p for p in baseline.rglob('*') if p.is_file())
             (baseline / 'manifest.sha256').write_text(''.join(f'{digest(p)}  ./{p.relative_to(baseline)}\n' for p in files))

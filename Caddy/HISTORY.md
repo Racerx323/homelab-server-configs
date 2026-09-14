@@ -128,7 +128,8 @@ Live execution requires its own exact-bundle authorization.
 ## Node A authentication activation, 2026-09-14
 
 - Operation: `20260914-pihole-authentication-primary`
-- Status: terminal-pending
+- Status: archived
+- Archive: annotated tag pushed for terminal commit `f3cafcb`
 - Result: failed-consumed; preflight stopped before serving mutation
 - Tag: `caddy-authentication-primary-terminal-2026-09-14`
 - Authorized outer SHA-256: `0a8f1e4295f1fa38bc4f9316ec6328afba89acd0eaedfdd9d0c73b008ea1a9f8`

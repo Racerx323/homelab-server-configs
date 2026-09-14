@@ -27,13 +27,17 @@ match. The retained candidate matches its eight-file inventory. This is a
 qualification gap, not observed release drift: the sixteen passing scenarios
 used a baseline fixture that omitted those three files.
 
-The consumed operation is terminal-pending; its exact source graph, qualification,
-and live evidence are preserved outside `/tmp`. Archive it before changing the
-executed implementation. The next definition must validate the separately pinned
-baseline and candidate inventories, model the complete baseline in the fixture,
-and cover altered/missing/extra files plus rollback. Then qualify a replacement
-bundle and obtain its exact live authorization. Node A and shared-URL functional
-login acceptance remain outstanding.
+The consumed operation is archived in its pushed terminal tag. Its exact source
+graph, qualification, and live evidence remain protected outside `/tmp`. The
+replacement definition uses separate inventories selected by the pinned manifest
+identity: eleven baseline files and eight candidate files. The fixture now
+includes the full baseline; additional preflight cases alter certificate metadata,
+remove an intermediate file, and add an unexpected file after identity pinning.
+All nineteen full-outer scenarios passed, including activation, both login
+targets, baseline restoration, and malformed evidence rejection, with zero
+observer residue. Node A and shared-URL
+functional login acceptance still require the qualified replacement's exact live
+authorization.
 
 ## Repository audit
 
@@ -83,6 +87,8 @@ remains notification-only and does not determine VRRP eligibility.
 2. Upload the minimal pinned payload, check Node B’s accepted release and monitor,
    then check Node A’s baseline and exact retained publication. Reject incoming
    or quarantine residue, extra publication entries, service or ownership drift.
+   Validate the complete eleven-file baseline separately from the eight-file
+   candidate, including certificate metadata and decomposed certificates.
 3. Start cursor-bounded health evidence and continuity/address observers on both
    nodes. Require Node A MASTER with four VIPs and Node B BACKUP with zero.
 4. Atomically replace Node A’s monitor with a protected baseline backup. Stop

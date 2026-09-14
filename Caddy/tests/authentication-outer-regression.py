@@ -213,7 +213,7 @@ def verify_calls(call_path, evidence, scenario):
         positions = [i for m, r, i in phases if (m, r) == (mode, role)]
         assert len(positions) == 1, (scenario, mode, role, positions)
         return positions[0]
-    if scenario in ('preflight-service', 'preflight-interrupt', 'preflight-publication'):
+    if scenario in ('preflight-service', 'preflight-interrupt', 'preflight-publication', 'preflight-baseline-changed', 'preflight-baseline-missing', 'preflight-baseline-extra'):
         position('auth-primary-preflight', 'node-b')
         assert not any(mode in ('auth-helper-install', 'auth-primary-activate', 'sampler-start') for mode, _, _ in phases)
         assert not any(call['command'] == 'doppler' for call in calls)
@@ -387,6 +387,14 @@ def stage(work, baseline, node_a, environment):
             removed_ipv6 = True
         elif scenario == 'preflight-tls':
             env['SSL_CERT_FILE'] = '/etc/ssl/certs/ca-certificates.crt'
+        elif scenario.startswith('preflight-baseline-'):
+            # Inject drift after the state contract has pinned the intact baseline.
+            if scenario == 'preflight-baseline-changed':
+                (node_a / 'etc/caddy/releases/fixture-baseline/tls/certificate-manifest.json').write_text('{}')
+            elif scenario == 'preflight-baseline-missing':
+                (node_a / 'etc/caddy/releases/fixture-baseline/tls/intermediates.pem').unlink()
+            else:
+                (node_a / 'etc/caddy/releases/fixture-baseline/tls/unexpected.pem').write_text('unexpected')
         elif scenario == 'preflight-publication':
             with (primary_sync / 'outbound' / standby.name / 'conf.d/10-pihole-admin.caddy').open('a') as changed:
                 changed.write('\n# unexpected drift\n')

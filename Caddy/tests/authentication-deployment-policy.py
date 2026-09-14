@@ -18,6 +18,7 @@ OPERATION = 'Caddy/manifests/serving-health-operation.yaml'
 TRANSACTION = 'Caddy/scripts/apply-serving-health-deployment.sh'
 COVERAGE = 'Caddy/manifests/deployable-successor-coverage.tsv'
 CASES = {'preflight-ipv6': 1, 'preflight-tls': 1, 'preflight-http': 1,
+         'preflight-baseline-changed': 1, 'preflight-baseline-missing': 1, 'preflight-baseline-extra': 1,
          'preflight-service': 1, 'preflight-publication': 1, 'preflight-interrupt': 125, 'success': 0, 'login-failure': 1, 'shared-login-failure': 1, 'restore-failure': 125,
          'interrupt-helper': 125, 'evidence-failure': 125, 'dns-failure': 1,
          'activate-reply-failure': 1, 'reconcile-failure': 1, 'reordered-evidence': 1}

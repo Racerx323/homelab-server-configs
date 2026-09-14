@@ -108,7 +108,7 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Node B has accepted the fixed release and monitor; Node A still serves baseline.
-- The accepted Node B operation is archived; the Node A run stopped before serving mutation and awaits terminal archival.
+- The accepted Node B operation is archived; the Node A preflight failure is archived and its inventory correction passed nineteen isolated qualification scenarios.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -401,8 +401,10 @@ The authorized run stopped in Node A preflight: its eleven-file baseline was
 checked against the eight-file candidate inventory. Read-only checks verified all
 eleven baseline manifest entries. The fixture omitted three baseline TLS files,
 so the sixteen passing scenarios did not cover that production representation.
-Archive the consumed operation, correct the predicate and fixture, then qualify
-a new bundle before requesting exact live authorization. Both upload cleanups
+The consumed operation is now archived. The replacement uses separate pinned
+eleven-file baseline and eight-file candidate inventories, with a complete
+baseline fixture and changed/missing/extra-file rejection cases. The replacement passed all nineteen full-outer scenarios with zero observer
+residue; exact live authorization remains required. Both upload cleanups
 succeeded; no serving mutation or login attempt occurred.
 Rollback restores only Node A and preserves Node B and the publication.
 
