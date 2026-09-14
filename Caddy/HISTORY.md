@@ -124,3 +124,33 @@ The pushed tag retains the exact executed operation and sanitized terminal
 manifest. Consumed data is removed from the current branch while Node A activation
 and shared-VIP login acceptance are prepared as one replacement operation.
 Live execution requires its own exact-bundle authorization.
+
+## Node A authentication activation, 2026-09-14
+
+- Operation: `20260914-pihole-authentication-primary`
+- Status: terminal-pending
+- Result: failed-consumed; preflight stopped before serving mutation
+- Tag: `caddy-authentication-primary-terminal-2026-09-14`
+- Authorized outer SHA-256: `0a8f1e4295f1fa38bc4f9316ec6328afba89acd0eaedfdd9d0c73b008ea1a9f8`
+
+Node A and shared-hostname IPv4/IPv6 HTTPS checks passed with verified TLS,
+HTTP 200, and the login form. Node B preflight passed. Node A service, residue,
+and ownership checks passed, but its release identity predicate rejected the
+baseline’s eleven-file inventory because it expected the candidate’s eight files.
+Read-only inspection verified the pinned baseline manifest and all eleven file
+digests; the three additional files are `tls/leaf.pem`, `tls/intermediates.pem`,
+and `tls/certificate-manifest.json`. The retained publication passed the complete
+eight-file identity check. The qualification fixture omitted the three baseline
+files, explaining why the local scenarios did not expose the predicate defect.
+
+The runner exited 1. It did not install the monitor, activate a release, transition
+services, retrieve a password, or attempt login. Both temporary upload dispositions
+returned 0. Node A remains on baseline and Node B retains its accepted fix. No new
+live acceptance is claimed. The evidence manifest records exact executed hashes;
+qualification, source snapshot, and live evidence are protected under
+`/home/aaron/code/.caddy-evidence/authentication-primary-0a8f1e4295f1`.
+
+After archive, correct the separately pinned baseline/candidate inventory checks,
+model the full baseline in the fixture, and qualify a replacement including
+malformed identity rejection and restoration. Node A and shared login acceptance
+require that replacement’s exact authorization.

@@ -109,4 +109,10 @@ regexes = [
   '''cf5967382c7397aa0e6d8296a2fb4216f0855b36d87482b9b09abf44215651a4''',
   '''d4b42e4901e7f7cac8be25721cde4f706391b42f3ab0cd96cd131221643644d6''',
   '''f3e68cbd267d6414a1ba12c3ddf284b21b25bff353a822d67f71d0ddd825e51f''',
+  # Verified public hashes of the Node A bundle and sanitized preflight evidence.
+  '''0a8f1e4295f1fa38bc4f9316ec6328afba89acd0eaedfdd9d0c73b008ea1a9f8''',
+  '''2f3f69c912b4fbe86cd249a482c0e29fe8ff7031ec32a7a4edf22ee5a5d1bc3b''',
+  '''a1d493b0bda2787a2a2d92552e758462c7548bf0994af97f6cf8c102a108a97a''',
+  '''b94343ba9faf2142bb1c7475c795c867004092fb7f7c79e1dd3c6de5019a3ca4''',
+  '''cd090c1083bb870cbfad1ae814ffe7f623936a92f17249ba3daef1c43f8c2081''',
 ]

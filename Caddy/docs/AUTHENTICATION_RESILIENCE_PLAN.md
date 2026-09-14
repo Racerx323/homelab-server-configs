@@ -14,14 +14,26 @@ and qualification copy are protected outside workstation `/tmp`. The earlier
 failed attempt’s `/tmp` evidence was purged during the reported WSL restart;
 its archive contains hashes, not reconstructed raw evidence.
 
-Node A activation and shared-URL acceptance are defined and qualified but
-unexecuted. All sixteen production-path scenarios and nineteen decision records
-passed, with zero observer residue. Authorization readiness, source-drift and
-evidence-tampering checks, secret-input tests, helper tests, and repository checks
-passed. Qualification and the review bundle are protected outside `/tmp`.
-Preparation does not authorize live execution. The operation
-specification, transaction, outer runner, payload, state, and qualification inputs
-must form one pinned graph before an authorization identity is presented.
+The authorized Node A run stopped during preflight before monitor installation,
+release activation, service transitions, or credential retrieval. Both workstation
+connectivity checks and Node B preflight passed. Both temporary upload cleanups
+returned success. Node A remains on its original release and monitor.
+
+Read-only inspection found a deployment predicate defect: it checks the accepted
+baseline against the candidate’s eight-file inventory. The baseline has eleven
+manifest entries, including `tls/leaf.pem`, `tls/intermediates.pem`, and
+`tls/certificate-manifest.json`. Its pinned manifest and all eleven file digests
+match. The retained candidate matches its eight-file inventory. This is a
+qualification gap, not observed release drift: the sixteen passing scenarios
+used a baseline fixture that omitted those three files.
+
+The consumed operation is terminal-pending; its exact source graph, qualification,
+and live evidence are preserved outside `/tmp`. Archive it before changing the
+executed implementation. The next definition must validate the separately pinned
+baseline and candidate inventories, model the complete baseline in the fixture,
+and cover altered/missing/extra files plus rollback. Then qualify a replacement
+bundle and obtain its exact live authorization. Node A and shared-URL functional
+login acceptance remain outstanding.
 
 ## Repository audit
 

@@ -88,4 +88,4 @@ changes require a separately authorized outer-runner SHA-256.
 
 - [Authentication resilience plan](docs/AUTHENTICATION_RESILIENCE_PLAN.md):
   notification changes, onboarding audit, accepted Node B validation, and
-  qualification of Node A activation and shared-URL login.
+  the Node A preflight failure and remaining shared-URL login acceptance.

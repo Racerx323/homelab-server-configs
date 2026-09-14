@@ -108,7 +108,7 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Node B has accepted the fixed release and monitor; Node A still serves baseline.
-- The accepted Node B operation is archived; Node A activation is qualified and awaits exact-bundle authorization.
+- The accepted Node B operation is archived; the Node A run stopped before serving mutation and awaits terminal archival.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -392,13 +392,18 @@ the fixed release and monitor; Node A still serves baseline and retains the
 candidate publication. The accepted operation’s pushed archive tag is indexed
 in [HISTORY.md](../HISTORY.md). Current manifests record the accepted mixed state.
 
-The next operation activates that existing publication on Node A through the
+A corrected successor must activate that existing publication on Node A through the
 installed finalizer/reconciler, updates its monitor, and validates node and shared
 login over IPv4/IPv6. The operator confirms both nodes share the password in
 `homelab-dev / prd_caddy / PIHOLE_NODE_B_WEB_PASSWORD`; values remain external.
 Shared login requires Node A ownership checks and continuous VIP evidence.
-All sixteen qualification scenarios and nineteen decision records passed with
-zero observer residue. Exact-bundle live authorization must precede execution.
+The authorized run stopped in Node A preflight: its eleven-file baseline was
+checked against the eight-file candidate inventory. Read-only checks verified all
+eleven baseline manifest entries. The fixture omitted three baseline TLS files,
+so the sixteen passing scenarios did not cover that production representation.
+Archive the consumed operation, correct the predicate and fixture, then qualify
+a new bundle before requesting exact live authorization. Both upload cleanups
+succeeded; no serving mutation or login attempt occurred.
 Rollback restores only Node A and preserves Node B and the publication.
 
 Every authenticated proxy must satisfy the rejection/retry gate in
