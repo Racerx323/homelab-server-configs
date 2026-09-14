@@ -10,8 +10,8 @@ readonly PATH
 
 readonly prefix=serving_health_deployment_outer
 readonly transaction_sha256=1582add56f024d225191ffb419b3e066021a00f10b3f2339267b9cec2e9e163a
-readonly authentication_policy_inputs_sha256=df828f416c4f14d971650a28e9b5e919a0189a473160391c5b686a9ea11f86f2
-readonly operation_sha256=79be7caa3b280d6a51970c4ad872b27c98c6938ae7825f4179f91888133f05a7
+readonly authentication_policy_inputs_sha256=dedf54b4cebfecc69c8870555f0fec6a226fd677222d334270d1254b5baf359d
+readonly operation_sha256=604e00ca19013b316c1c4eb23c99b8474b1d145d14f614d6904fa93a9c560998
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -66,7 +66,7 @@ authentication_input_catalog() {
 470beb63cdbc440cd8da110362761e5a05c8c399aeea78407e92535616322d23  Caddy/manifests/caddy-release-source.tsv
 bc84aabf0bfac193eb500a1da21691bb24f8a71bcd0d88c5108371d58df10e95  Caddy/scripts/prepare-pihole-auth-release.sh
 0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab  Caddy/scripts/check-pihole-web-health.sh
-922244e4212cdfd503fe1d6a5787fb41b0c722812968dcbbdc4d103e6e73c32b  Caddy/scripts/validate-pihole-authentication.py
+1edb761b620148ebb3989865ec1353eee9b740bb2b30d5c77181de7119a58282  Caddy/scripts/validate-pihole-authentication.py
 a41c7816e927c16278fab018675a3f2db5b2aae89dd5b181f1ecb06ec9beb86e  Caddy/configs/caddy/Caddyfile
 05fa1d2875ee0639601447ccd31284d3df55fc8d5e8cedef4a291c61d44f4b27  Caddy/configs/caddy/conf.d/00-health.caddy
 8e1b07f254c8dee21b9671de02993484c87b1838189341f605acb6581f7f49d8  Caddy/configs/caddy/conf.d/10-pihole-admin.caddy
@@ -1035,6 +1035,10 @@ authentication_node_b_trial_body() {
     local auth_trial_status=0 auth_trial_revision='' auth_trial_published=false
     local auth_trial_helper=false
     local auth_trial_role auth_trial_host auth_trial_payload auth_trial_evidence
+    # Fail before upload, remote commands, secret retrieval, or service mutation.
+    capture auth-connectivity /usr/bin/python3 \
+        "$repository_root/Caddy/scripts/validate-pihole-authentication.py" \
+        --target node-b --connectivity-only || return 1
     upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
     upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
     remote_transaction auth-preflight-b "$node_b_host" auth-release-preflight \
@@ -1359,32 +1363,7 @@ SSH
             "$(sha256sum "$auth_test_installed" | awk '{print $1}')" >>"$workstation_evidence/auth-helper-results.tsv"
         cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive"
     done
-    # The real coordinator fails its release preflight before mutation, then
-    # removes both successfully prepared uploads through the real disposition.
-    node_a_host=fixture-node-b
-    node_a_payload=$auth_test_root-coordinator-node-a
-    node_b_payload=$auth_test_root-coordinator-node-b
-    node_a_archive=$node_a_payload.tar
-    node_b_archive=$node_b_payload.tar
-    node_a_evidence=$node_a_payload/evidence
-    node_b_evidence=$node_b_payload/evidence
-    export CADDY_SERVING_HEALTH_TARGET_ROOT=$auth_test_root/coordinator-empty-node
-    install -d -m 0700 "$CADDY_SERVING_HEALTH_TARGET_ROOT"
-    auth_test_status=0
-    run_authentication_node_b_stage || auth_test_status=$?
-    [[ "$auth_test_status" = 1 ]]
-    [[ ! -e "$node_a_payload" && ! -e "$node_b_payload" && ! -e "$node_a_archive" && ! -e "$node_b_archive" ]]
-    [[ -z "$(find "$CADDY_SERVING_HEALTH_TARGET_ROOT" -mindepth 1 -print -quit)" ]]
-    printf 'authentication_coordinator_premutation_cleanup=true\n'
-    export CADDY_AUTH_TEST_INTERRUPT=1
-    auth_test_status=0
-    run_authentication_node_b_stage || auth_test_status=$?
-    unset CADDY_AUTH_TEST_INTERRUPT
-    [[ "$auth_test_status" = 125 ]]
-    [[ ! -e "$node_a_payload" && ! -e "$node_b_payload" && ! -e "$node_a_archive" && ! -e "$node_b_archive" ]]
-    [[ -z "$(find "$CADDY_SERVING_HEALTH_TARGET_ROOT" -mindepth 1 -print -quit)" ]]
-    printf 'authentication_coordinator_interruption_cleanup=true\n'
-
+    # Full coordinator preflight/interrupt coverage uses the isolated HTTPS fixture.
     [[ -s "$CADDY_AUTH_TEST_CALLS" ]]
     cp "$CADDY_AUTH_TEST_CALLS" "$workstation_evidence/auth-helper-transport.tsv"
     rm -rf -- "$auth_test_root"

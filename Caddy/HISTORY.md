@@ -79,10 +79,10 @@ cleanup.
 ## Node B authentication acceptance, 2026-09-14
 
 - Operation: `20260914-pihole-authentication-node-b`
-- Status: terminal-pending
+- Status: archived
 - Result: failed-consumed; baseline restoration accepted on both nodes
 - Tag: `caddy-authentication-node-b-terminal-2026-09-14`
-- Archive: pending commit and pushed annotated tag; no archive tag is claimed
+- Archive: annotated tag pushed for terminal commit `cc2b0db`
 - Authorized outer SHA-256: `8a62176be84b6693eef5aec0705ea96a2334b6ffac96e34039b6c74c1b6c25da`
 
 Normal Node A publication and Node B reconciliation completed. The real IPv4
@@ -95,9 +95,11 @@ restoration. Across 320 node-local probes, both families remained healthy;
 Node A remained Master with four VIPs and Node B Backup with zero VIPs.
 The early failure shortened observation below the full acceptance minimum.
 
-The exact executed specification remains unchanged. The deployable registry and
-coverage are cleared. `manifests/serving-health-terminal-result.yaml` retains the
-sanitized outcome, source hashes, and bounded external-evidence hashes. An exact
-non-secret source snapshot is preserved beside the external execution evidence.
+The terminal tag retains the exact executed specification and sanitized
+`manifests/serving-health-terminal-result.yaml`, including source and external
+evidence hashes. The original workstation `/tmp` evidence and source snapshot
+were no longer available at archival, likely following the operator-reported WSL
+Ubuntu stop/start. The tag does not contain raw evidence. Consumed data is removed
+from the current branch while one replacement operation is registered.
 No candidate is accepted in production, and this consumed bundle must not be rerun.
 A later operation must establish workstation dual-stack reachability before mutation.

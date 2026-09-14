@@ -69,7 +69,7 @@ def command():
                    CADDY_SERVING_HEALTH_TARGET_ROOT=str(work / 'node-a') if role == 'node-a' else '',
                    CADDY_SERVING_HEALTH_OUTGOING_ROOT='/var/lib/caddy-sync/outbound' if role == 'node-a' else '/var/lib/caddy-sync/node-b-outbound')
         scenario = os.environ.get('AUTH_OUTER_SCENARIO', 'success')
-        if (scenario == 'interrupt-helper' and ' auth-helper-install ' in args[1]) or scenario == 'evidence-failure' or (scenario == 'publish-reply-failure' and ' auth-release-publish ' in args[1]) or (scenario == 'reordered-evidence' and ' sampler-stop ' in args[1] and role == 'node-b'):
+        if (scenario == 'preflight-interrupt' and ' auth-release-preflight node-b ' in args[1]) or (scenario == 'interrupt-helper' and ' auth-helper-install ' in args[1]) or scenario == 'evidence-failure' or (scenario == 'publish-reply-failure' and ' auth-release-publish ' in args[1]) or (scenario == 'reordered-evidence' and ' sampler-stop ' in args[1] and role == 'node-b'):
             program = sys.stdin.buffer.read()
             result = subprocess.run(['/bin/bash', '-c', args[1]], input=program, env=env)
             if result.returncode == 0 and scenario == 'reordered-evidence' and not (work / 'reordered-injected').exists():
@@ -85,7 +85,7 @@ def command():
                 while not (work / 'reconcile.status').exists() and time.monotonic() < deadline:
                     time.sleep(0.2)
                 return 7
-            if result.returncode == 0 and scenario == 'interrupt-helper':
+            if result.returncode == 0 and scenario in ('interrupt-helper', 'preflight-interrupt'):
                 os.kill(os.getppid(), signal.SIGTERM)
             if result.returncode == 0 and scenario == 'evidence-failure' and len(shlex.split(args[1])) == 9 and b'base64 -w 0' in program:
                 return 7  # Lost readback reply, after executing the real producer.
@@ -162,6 +162,19 @@ def command():
 
 def verify_calls(call_path, evidence, scenario):
     calls = [json.loads(line) for line in call_path.read_text().splitlines()]
+    connectivity = [json.loads(line) for line in (evidence / 'auth-connectivity.stdout').read_text().splitlines()]
+    requests = [row for row in connectivity if 'method' in row]
+    checks = [row for row in connectivity if row.get('check') == 'workstation-connectivity']
+    assert [row['family'] for row in requests] == [4, 6]
+    assert all(row['method'] == 'GET' and row['path'] == '/admin/login.php' for row in requests)
+    assert [row['family'] for row in checks] == [4, 6]
+    if scenario in ('preflight-ipv6', 'preflight-tls', 'preflight-http'):
+        expected = {'preflight-ipv6': ['healthy', 'connection'], 'preflight-tls': ['tls', 'tls'], 'preflight-http': ['http-status', 'http-status']}[scenario]
+        assert [row['result'] for row in checks] == expected
+        assert not any(call['command'] in ('ssh', 'scp', 'doppler') for call in calls)
+        assert not (evidence / 'auth-login.stdout').exists()
+        return
+    assert [row['result'] for row in checks] == ['healthy', 'healthy']
     phases = []
     for index, call in enumerate(calls):
         if call['command'] == 'ssh':
@@ -173,6 +186,12 @@ def verify_calls(call_path, evidence, scenario):
         positions = [i for m, r, i in phases if (m, r) == (mode, role)]
         assert len(positions) == 1, (scenario, mode, role, positions)
         return positions[0]
+    if scenario in ('preflight-service', 'preflight-interrupt'):
+        position('auth-release-preflight', 'node-b')
+        assert not any(mode in ('auth-helper-install', 'auth-release-publish', 'sampler-start') for mode, _, _ in phases)
+        assert not any(call['command'] == 'doppler' for call in calls)
+        assert not (evidence / 'auth-login.stdout').exists()
+        return
     assert position('auth-release-preflight', 'node-b') < position('auth-release-preflight', 'node-a')
     assert position('auth-release-prepare', 'node-a') < position('auth-helper-install', 'node-b')
     if scenario == 'interrupt-helper':
@@ -212,8 +231,9 @@ def stage(work, baseline, node_a, environment):
     policy = module('auth_policy', 'authentication-deployment-policy.py')
     qualified_graph = policy.graph()
     scenario = os.environ.get('AUTH_OUTER_SCENARIO', 'success')
-    assert scenario in ('success', 'login-failure', 'restore-failure', 'interrupt-helper', 'evidence-failure', 'dns-failure', 'publish-reply-failure', 'reconcile-failure', 'reordered-evidence')
+    assert scenario in policy.CASES
     print(f'outer_fixture_begin={scenario}', flush=True)
+    (work / 'external-calls.jsonl').touch(mode=0o600)
     for suffix in ('53', '54', '55', '56'):
         run('/usr/sbin/ip', 'address', 'add', f'10.1.0.{suffix}/32', 'dev', 'lo')
         run('/usr/sbin/ip', '-6', 'address', 'add', f'fd36:5aa8:6971:1::{suffix}/128', 'dev', 'lo')
@@ -240,11 +260,20 @@ def stage(work, baseline, node_a, environment):
             if isinstance(sys.exc_info()[1], (BrokenPipeError, ConnectionResetError)):
                 return  # A Caddy health-check client may close before the empty redirect body.
             super().handle_error(request, client_address)
-    backend = Server(('127.0.0.1', 8080), fixture.Backend)
+    class Backend(fixture.Backend):
+        def do_GET(self):
+            if scenario == 'preflight-http':
+                self.send_response(503)
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
+            super().do_GET()
+    backend = Server(('127.0.0.1', 8080), Backend)
     backend.daemon_threads = True
     threading.Thread(target=backend.serve_forever, daemon=True).start()
     processes, threads, errors = [], [], []
     stop = threading.Event()
+    removed_ipv6 = False
     try:
         for role in ('node-a', 'node-b'):
             path, _ = projection(work, role)
@@ -307,6 +336,13 @@ def stage(work, baseline, node_a, environment):
             thread = threading.Thread(target=fn, daemon=True)
             thread.start()
             threads.append(thread)
+        if scenario == 'preflight-ipv6':
+            run('/usr/sbin/ip', '-6', 'address', 'del', 'fd36:5aa8:6971:1::54/128', 'dev', 'lo')
+            removed_ipv6 = True
+        elif scenario == 'preflight-tls':
+            env['SSL_CERT_FILE'] = '/etc/ssl/certs/ca-certificates.crt'
+        elif scenario == 'preflight-service':
+            (work / 'node-b-lighttpd.service.state').write_text('inactive')
         result = subprocess.run(['/bin/bash', str(ROOT / 'scripts/run-serving-health-deployment-outer.sh'), '--production-path-test'], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
         # Freeze background producers before hashing and copying their evidence.
         stop.set()
@@ -316,7 +352,7 @@ def stage(work, baseline, node_a, environment):
         (work / 'outer.stdout').write_bytes(result.stdout)
         (work / 'outer.stderr').write_bytes(result.stderr)
         print(result.stdout.decode(), end='', flush=True)
-        expected_status = 0 if scenario == 'success' else 1 if scenario in ('login-failure', 'dns-failure', 'publish-reply-failure', 'reconcile-failure', 'reordered-evidence') else 125
+        expected_status = policy.CASES[scenario]
         if result.returncode != expected_status or errors:
             print(result.stderr.decode()[-4000:], file=sys.stderr)
             for root_line in result.stdout.decode().splitlines():
@@ -358,7 +394,7 @@ def stage(work, baseline, node_a, environment):
         if scenario in ('success', 'evidence-failure'):
             assert selected != baseline and [p.name for p in publications] == [selected.name]
             assert monitor_hash == '0aa489aaaeee7e32635a63e99bbfb5750dd591f5142969c5cdc0274613b985ab'
-        elif scenario in ('login-failure', 'dns-failure', 'publish-reply-failure', 'reconcile-failure', 'reordered-evidence'):
+        elif expected_status == 1 or scenario == 'preflight-interrupt':
             assert selected == baseline and not publications
             assert monitor_hash == '803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51'
         else:
@@ -410,7 +446,8 @@ def stage(work, baseline, node_a, environment):
         provider.unlink(missing_ok=True)
         for suffix in ('53', '54', '55', '56'):
             run('/usr/sbin/ip', 'address', 'del', f'10.1.0.{suffix}/32', 'dev', 'lo')
-            run('/usr/sbin/ip', '-6', 'address', 'del', f'fd36:5aa8:6971:1::{suffix}/128', 'dev', 'lo')
+            if suffix != '54' or not removed_ipv6:
+                run('/usr/sbin/ip', '-6', 'address', 'del', f'fd36:5aa8:6971:1::{suffix}/128', 'dev', 'lo')
         # Retain bounded fixture diagnostics in the disposable container output.
         if errors:
             print('fixture_errors=' + repr(errors), file=sys.stderr)

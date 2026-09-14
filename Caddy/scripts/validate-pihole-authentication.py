@@ -185,16 +185,47 @@ def validate(target, password, context, port=443, idle_seconds=5, observation_se
     print("pihole_authentication_http_acceptance=true", flush=True)
 
 
+def connectivity_check(target, context, port=443):
+    """Check both numeric-address paths with verified SNI, without credentials."""
+    host, ipv4, ipv6 = target
+    failures = []
+    for family, address in ((4, ipv4), (6, ipv6)):
+        failure = None
+        try:
+            status, body, _ = Client(host, address, family, context, port).request("GET", "/admin/login.php")
+            if status != 200:
+                failure = "http-status"
+            elif b'id="loginform"' not in body:
+                failure = "login-form-missing"
+        except ssl.SSLError:
+            failure = "tls"
+        except OSError:
+            failure = "connection"
+        except (http.client.HTTPException, AcceptanceFailure):
+            failure = "http-response"
+        print(json.dumps({"check": "workstation-connectivity", "family": family,
+                          "result": failure or "healthy"}), flush=True)
+        if failure:
+            failures.append(family)
+    require(not failures, "workstation-connectivity-failed")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", required=True, choices=TARGETS)
-    password_source = parser.add_mutually_exclusive_group(required=True)
+    password_source = parser.add_mutually_exclusive_group()
     password_source.add_argument("--password-fd", type=int, help="inherited descriptor >=3; never put the password in argv")
     password_source.add_argument("--password-doppler", action="store_true",
                                  help="retrieve the fixed Node B Doppler reference using local CLI authentication")
+    parser.add_argument("--connectivity-only", action="store_true", help="verified IPv4/IPv6 login-page GETs; no credentials or POSTs")
     parser.add_argument("--idle-seconds", type=float, default=5)
     parser.add_argument("--observation-seconds", type=float, default=64)
     args = parser.parse_args()
+    if args.connectivity_only:
+        require(args.password_fd is None and not args.password_doppler, "connectivity-check-takes-no-secret")
+        connectivity_check(TARGETS[args.target], ssl.create_default_context())
+        return
+    require(args.password_fd is not None or args.password_doppler, "password-source-required")
     require(0 <= args.idle_seconds <= 60 and 64 <= args.observation_seconds <= 600, "invalid-observation-bound")
     if args.password_doppler:
         require(args.target == "node-b", "doppler-reference-is-node-b-only")

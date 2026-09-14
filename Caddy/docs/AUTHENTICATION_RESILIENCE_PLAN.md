@@ -2,15 +2,17 @@
 
 ## Scope and status
 
-The authorized Node B stage ran and failed full login acceptance because the
-workstation had no IPv6 route to Node B. IPv4 incorrect-password rejection and
-the correct-password redirect worked. The runner restored Node B's baseline
-release and monitor, withdrew Node A's publication, and accepted restoration on
-both nodes. Node-local probes remained healthy on both families with no VIP
-movement. The operation is consumed and the deployment stream is terminal-pending;
-its archive commit and annotated tag remain outstanding. See
-[HISTORY.md](../HISTORY.md) and the sanitized terminal-result manifest. A later
-operation must check workstation dual-stack reachability before mutation.
+The earlier Node B operation is archived in its pushed terminal tag; its failed
+acceptance and successful baseline restoration are recorded in [HISTORY.md](../HISTORY.md).
+The operator reports fixing workstation IPv6 by updating to WSL prerelease 2.9.11.
+Read-only checks subsequently verified Node B HTTPS over both families. The old
+workstation `/tmp` evidence was no longer available after the reported Ubuntu
+stop/start; the archive retains the exact operation and sanitized evidence hashes.
+
+One replacement operation is defined and unexecuted. It runs a credential-free
+workstation HTTPS check before uploads, SSH, Doppler retrieval, or service changes.
+Both numeric-address paths must verify TLS for the Node B hostname and return
+HTTP 200 with the Pi-hole login form. Either failure stops without remote mutation.
 The governing authority remains [caddy_plan-v1.1.md](caddy_plan-v1.1.md).
 
 The web monitor source now classifies both families independently. Its source
@@ -27,7 +29,7 @@ not a claim of deployment or production drift.
 | `docs/APPLICATION_ONBOARDING.md` | Authentication ownership existed but rejection/retry acceptance was missing; require it for every authenticated web interface. |
 | `templates/reverse-proxy.caddy.example` | Passive checks and 5xx policy require an application-specific review; document `0s` and the authentication gate without changing the token schema. |
 | `configs/caddy/conf.d/10-pihole-admin.caddy` | Sole local backend has `fail_duration 30s` and default connection reuse; leave accepted source intact until the production change is defined. |
-| Release and deployment manifests | Retain accepted identities, inactive operation, clean stream, and no successor; update only the monitor source hashes. |
+| Release and deployment manifests | Retain accepted live identities; archive the consumed operation and register one replacement with a workstation connectivity gate. |
 | Operator and project documents | Link this plan and explain notification classifications and authentication acceptance. |
 
 Only Pi-hole administration is an application proxy in the current production
@@ -312,7 +314,7 @@ missing evidence, and complete versus partial staging residue. These are
 filesystem/transport tests; they do not prove service or release acceptance.
 
 The `authentication-deployment` focused profile runs this regression on the
-host and in the network-disabled Debian image. The inactive operation and
+host and in the network-disabled Debian image. The then-inactive operation and
 outer-runner pins were refreshed to the changed neutral transaction; accepted
 live hashes and the clean deployment stream remain unchanged. Test fixtures
 read the accepted monitor's content-addressed Git blob and check its independent
@@ -410,7 +412,7 @@ and `NET_ADMIN` only for this isolated full-stage fixture, always with
 independent decision JSON under its reported evidence directory. The address
 capability is confined to the container namespace and is not a live permission.
 
-The complete `authentication-outer` container profile passed all nine scenarios.
+The preceding bundle's `authentication-outer` profile passed its nine scenarios before live execution.
 Retained raw-command hashes and command/HTTP assertions were independently
 rechecked for every scenario, and every scenario recorded zero observer residue.
 The host helper/payload profile, shell collision policy, documentation checks,
@@ -450,9 +452,9 @@ configured Doppler reference. Node A serving activation and shared-VIP functiona
 acceptance remain later, separately authorized stages. Repository qualification
 does not establish successful login against the installed Pi-hole application.
 
-The registered qualification now passes all nine scenarios against the current
-34-file source graph, with zero observer residue. Authorization readiness passed
-with the retained evidence. The policy regressions reject seven adjacent source
+The preceding registered qualification passed nine scenarios against its
+34-file source graph, with zero observer residue. Its authorization readiness
+passed with evidence that is no longer available. The policy regressions reject seven adjacent source
 changes and six evidence changes, including stale graph identities and a duplicate
 command whose evidence hashes were recomputed. Full repository checks passed.
 The exact review command, outer-runner identity, source hashes, and evidence hashes
@@ -460,9 +462,26 @@ are retained in the protected qualification directory reported by the runner.
 Those qualification tests contacted no production node. The subsequent live run
 failed and restored baseline as recorded in the current status above.
 
-The deployable and coverage registries are now cleared. The exact executed
-operation, transaction, and outer runner remain unchanged for archival; the
-terminal-result manifest records their identities. The policy accepts this
-terminal state for repository validation and rejects further authorization
-readiness. Do not use the consumed bundle or its old qualification command to
-repeat live mutation.
+The consumed definition and terminal result are retained in the pushed archive
+tag. Current registries now identify one replacement operation. Its qualification
+adds five pre-mutation cases to the existing nine deployment/rollback cases:
+missing IPv6 connectivity, untrusted TLS, HTTP 503, an inactive backend service,
+and interruption during remote preflight. The first three require zero SSH,
+SCP, and Doppler calls; the latter two require unchanged installed state and
+cleanup through the actual coordinator. No production credential is retrieved
+by `--connectivity-only`.
+
+Host-only helper tests continue to cover helper installation, rollback, payload
+identity, and SSH serialization. Full-coordinator preflight cases now run only
+inside the network-disabled HTTPS fixture so host tests never contact live nodes.
+The new bundle needs fresh qualification and exact-hash live authorization.
+
+The replacement qualification passed all fourteen scenarios with zero observer
+residue. Authorization readiness validated seventeen proportional decision records
+against the unchanged 34-file source graph. Source-drift and evidence-tampering
+regressions, secret-input tests, helper tests, and repository checks passed.
+A protected evidence copy is retained outside `/tmp` under the workstation's
+`.caddy-evidence` directory; the review document records the exact command and
+restoration procedure if the original `/tmp` evidence is purged. No production
+node or credential was contacted during this qualification. The new bundle is
+ready for exact-hash live authorization.

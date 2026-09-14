@@ -1,6 +1,6 @@
 schema_version: 2
-action: 20260914-pihole-authentication-node-b
-title: Pi-hole authentication resilience on standby Node B
+action: 20260914-pihole-authentication-connectivity
+title: Pi-hole authentication resilience with workstation connectivity preflight
 status: defined-unexecuted
 implementation:
   lifecycle: neutral-reusable
@@ -20,6 +20,9 @@ baseline:
 targets:
   node_b: pi@10.1.0.54
   node_a: pi@10.1.0.53
+preflight:
+  workstation_connectivity: verified-ipv4-ipv6-login-page-before-upload
+  credentials: not-retrieved
 mutation:
   node_b: atomic-web-monitor-install-and-protocol-v2-candidate-reconciliation
   node_a: protocol-v2-publication-only

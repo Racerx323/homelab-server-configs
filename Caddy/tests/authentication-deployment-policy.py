@@ -17,7 +17,8 @@ OUTER = 'Caddy/scripts/run-serving-health-deployment-outer.sh'
 OPERATION = 'Caddy/manifests/serving-health-operation.yaml'
 TRANSACTION = 'Caddy/scripts/apply-serving-health-deployment.sh'
 COVERAGE = 'Caddy/manifests/deployable-successor-coverage.tsv'
-CASES = {'success': 0, 'login-failure': 1, 'restore-failure': 125,
+CASES = {'preflight-ipv6': 1, 'preflight-tls': 1, 'preflight-http': 1,
+         'preflight-service': 1, 'preflight-interrupt': 125, 'success': 0, 'login-failure': 1, 'restore-failure': 125,
          'interrupt-helper': 125, 'evidence-failure': 125, 'dns-failure': 1,
          'publish-reply-failure': 1, 'reconcile-failure': 1, 'reordered-evidence': 1}
 BASELINE_MONITOR = '803f6d510302fe5ad3ee7b59eeff1f719a4b2ea091c6c908054b0eecffce5d51'
@@ -75,7 +76,7 @@ def coverage_rows():
     rows = []
     for scenario, status in CASES.items():
         name = 'authentication-' + scenario
-        rows.append([name, 'accepted-path', 'outer', 'accept' if status == 0 else 'reject',
+        rows.append([name, 'pre-mutation' if scenario.startswith('preflight-') else 'accepted-path', 'outer', 'accept' if status == 0 else 'reject',
                      f'decisions/{name}.tsv', f'raw/{name}.json'])
     for name, (_, _, status) in PHASES.items():
         rows.append([name, 'accepted-path', 'transaction', 'accept' if status == 0 else 'reject',
@@ -89,6 +90,7 @@ def definition():
     for text in ('scope: pihole-authentication-node-b', 'status: defined-unexecuted',
                  '  success: retain-node-b-candidate-and-node-a-publication',
                  '  node_a_activation: separately-authorized',
+                 '  workstation_connectivity: verified-ipv4-ipv6-login-page-before-upload',
                  '  project: homelab-dev', '  config: prd_caddy', '  key: PIHOLE_NODE_B_WEB_PASSWORD'):
         assert text + '\n' in operation, text
     assert list(csv.reader(read(ROOT / COVERAGE).decode().splitlines(), delimiter='\t')) == [HEADER, *coverage_rows()]
@@ -156,7 +158,7 @@ def evidence(directory):
         assert int(read(case_root / 'outer.status', 0o600)) == expected_status
         assert state['observer_residue'] == 0 and state['node_a_revision'] == 'fixture-baseline'
         retained = scenario in ('success', 'evidence-failure')
-        restored = expected_status == 1
+        restored = expected_status == 1 or scenario == 'preflight-interrupt'
         assert state['node_b_monitor_sha256'] == (BASELINE_MONITOR if restored else CANDIDATE_MONITOR)
         if retained:
             assert re.fullmatch(r'[0-9]{8}T[0-9]{6}Z-[0-9a-f-]{36}', state['node_b_revision'])

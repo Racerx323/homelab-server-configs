@@ -106,9 +106,9 @@ Current project status:
 - Action 35 closed through accepted Action 35as on 2026-08-24.
 - Historical chronology belongs in Caddy/HISTORY.md and annotated Git tags.
 - Do not restore or create action-numbered implementation artifacts.
-- The Node B authentication operation is failed-consumed and terminal-pending.
-- Both nodes passed baseline restoration; the deployable and coverage registries are cleared.
-- The archive commit and annotated tag remain pending; do not rerun the consumed bundle.
+- The failed Node B authentication operation is archived in its pushed terminal tag.
+- Both nodes remain at the restored baseline. One replacement operation is defined.
+- The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
 Verify those statements against:
@@ -397,8 +397,8 @@ rollout. Failure triggers restoration. Release-phase regressions cover this
 retained state; the minimal payload and pre-mutation cleanup are tested, and the
 `authentication-outer` profile now exercises the complete post-mutation sequence
 in an isolated real-Caddy fixture. The authorized Node B run failed because the workstation lacked an IPv6 route.
-The runner restored the baseline and withdrew publication. The operation is
-terminal-pending; full real login acceptance remains outstanding. Every authenticated
+The runner restored the baseline and withdrew publication. The consumed operation is archived. The replacement checks workstation IPv4/IPv6
+HTTPS before mutation; full real login acceptance remains outstanding. Every authenticated
 application must satisfy the rejection/retry acceptance gate in
 [APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). Generator definitions
 must preserve that gate; rendering valid syntax does not establish functional

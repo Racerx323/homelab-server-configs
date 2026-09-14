@@ -59,7 +59,9 @@ Node B reconciliation, login acceptance, and failure rollback. Success retains
 the fixed release and monitor on Node B and the publication on Node A for its
 later rollout. The minimal payload and dedicated dispatch are implemented; dispatch requires
 an authorization-ready operation. The registered `--production-path-test` entrypoint
-runs the complete isolated container qualification. The Node B operation is now consumed after failed live acceptance and successful
-baseline restoration. A future operation requires current qualification evidence through
+runs the complete isolated container qualification. The consumed Node B operation is archived; its replacement performs
+`--connectivity-only` before any upload or mutation. The check verifies both
+HTTPS paths and the login form without retrieving credentials. Execution requires
+current qualification evidence through
 `CADDY_AUTH_QUALIFICATION_EVIDENCE` and exact outer-runner authorization.
 See `AUTHENTICATION_RESILIENCE_PLAN.md`.

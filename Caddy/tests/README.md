@@ -111,8 +111,9 @@ exist only in the container namespace and observer children are reaped. It
 retains bounded evidence in the directory printed at completion. The test must
 not be run directly on a workstation or production host.
 
-`authentication-outer-regression.sh` runs nine scenarios through the real neutral
-outer entrypoint: success, login failure, restoration failure, interruption after
+`authentication-outer-regression.sh` runs fourteen scenarios through the real neutral
+outer entrypoint: missing IPv6 connectivity, untrusted TLS, HTTP 503, inactive
+backend preflight, interrupted preflight, success, login failure, restoration failure, interruption after
 monitor installation, evidence-readback failure, DNS degradation, lost publication
 reply, failed reconciliation reload, and reordered evidence. It executes actual
 Caddy reloads, publisher/finalizer/reconciler programs, HTTP login validation,
@@ -126,7 +127,8 @@ address-monitor processes after the stage. The DNS-failure case covers scenario
 changes during retries; a primary and its retry retain the same scenario label.
 
 These are full-stage fixture results, not real Pi-hole or production acceptance.
-The Node B operation was qualified before execution and is now consumed. `authentication-deployment-policy.py` checks
+The preceding Node B operation is archived. Its replacement is defined and
+requires fresh qualification. `authentication-deployment-policy.py` checks
 the pinned source graph and validates the retained per-scenario decisions against
 actual producer streams, statuses, command order, and independent state. Run the
 registered outer runner with `--production-path-test`, then pass its reported
@@ -138,3 +140,10 @@ With `CADDY_AUTH_QUALIFICATION_EVIDENCE` set to a completed qualification direct
 `deployable-successor-policy-regression.sh` also verifies evidence rejection for
 missing files, unsafe modes, symlinks, changed streams, stale source graphs, and
 rehashed duplicate commands. It modifies only temporary copies of the evidence.
+
+The workstation connectivity checks use real HTTPS through the same validator
+client as login acceptance. Negative fixtures remove Node B's IPv6 address,
+select an untrusted CA store, or return HTTP 503. Each must reject before any
+SSH/SCP or Doppler invocation and preserve the baseline release and monitor.
+The full fixture also covers pre-mutation service rejection and interruption;
+host helper tests do not invoke the network-dependent coordinator.
