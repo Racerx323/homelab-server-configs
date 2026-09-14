@@ -19,6 +19,11 @@ The accepted-live manifests identify installed production. Repository source
 can move ahead of an accepted installed hash; only a reviewed deployment
 operation changes that boundary.
 
+Use [current-live-state.tsv](../manifests/current-live-state.tsv) for accepted
+release selection, ownership, and retained publications, and
+[HISTORY.md](../HISTORY.md) for acceptance evidence. This is an account of recorded
+acceptance, not a claim that documentation detects subsequent live drift.
+
 ## Steady state
 
 ```mermaid
@@ -32,11 +37,11 @@ flowchart LR
     A --> FTL_A[Pi-hole FTL]
     A --> Unbound_A[Unbound]
     A --> Caddy_A[Caddy]
-    Caddy_A --> Lighttpd_A[lighttpd 127.0.0.1:8080]
+    Caddy_A -->|HTTP keepalive off| Lighttpd_A[lighttpd 127.0.0.1:8080]
     B --> FTL_B[Pi-hole FTL]
     B --> Unbound_B[Unbound]
     B --> Caddy_B[Caddy]
-    Caddy_B --> Lighttpd_B[lighttpd 127.0.0.1:8080]
+    Caddy_B -->|HTTP keepalive off| Lighttpd_B[lighttpd 127.0.0.1:8080]
 ```
 
 One Keepalived sync group owns both DNS VIPs and both Proxy VIPs. The Proxy VIPs
@@ -45,11 +50,16 @@ not local ownership. Node A normally owns all four addresses. Node B owns none.
 
 Keepalived tracks node-local DNS and trusted Caddy HTTPS serving health.
 Pi-hole/lighttpd backend monitoring reports through notifications and does not
-change VRRP eligibility.
+change VRRP eligibility. The monitor reports IPv4 and IPv6 independently and
+distinguishes HTTP, TLS, connection, timeout, redirect, and other terminal failures.
 
 ## Proxy DNS identity
 
-Every reverse-proxied application has an A record for `10.1.0.56` and an AAAA
+Pi-hole administration is the current application proxy. Its shared hostname is
+`pihole-admin.local.theama.co`; node-specific administration uses each node’s
+management hostname and addresses.
+
+The onboarding contract gives each shared reverse-proxied application an A record for `10.1.0.56` and an AAAA
 record for `fd36:5aa8:6971:1::56`. Those names are Caddy virtual hosts, not
 separate network interfaces or separate reverse-DNS identities. Caddy selects
 the application using TLS SNI and the HTTP `Host` header.
@@ -88,7 +98,17 @@ sequenceDiagram
 
 Node A publishes normally. Node B requires emergency mode plus MASTER state for
 both families and ownership of all four VIPs. The receiver, finalizer, and
-reconciler fail closed on malformed, partial, replayed, or ambiguous state.
+reconciler fail closed on malformed, partial, changed, or ambiguous state. An
+exact repeat of the active release is validated against the installed payload
+and removed from incoming without a Caddy reload. A changed payload under the
+same revision is rejected.
+
+This diagram shows peer delivery and activation on Node B. Publication does not
+activate the release on Node A. A reviewed operation accepts the standby before
+activating the primary through its own finalizer/reconciler. Both nodes now
+select the same accepted release. Node A retains its publication; incoming and
+quarantine namespaces are empty, and Node B’s outbound namespace is empty.
+Consult the live-state manifest for the exact retained revision.
 
 ## Coupled failover
 
@@ -134,9 +154,19 @@ cannot affect DNS, Caddy, VRRP, synchronization, or health decisions. See
 
 Caddy reads `/etc/caddy/current/Caddyfile`, where `current` selects one
 immutable release. Managed lsyncd and reconciliation form the release
-control-plane. They do not affect VIP eligibility. Caddy active and passive
-backend checks protect Pi-hole web routing; `/healthz` separately proves the
-node's Caddy serving path to Keepalived.
+control path. They do not affect VIP eligibility. For the sole local Pi-hole
+backend, Caddy uses active checks against `/admin/` every 30 seconds with a
+3-second timeout, redirect following, and expected HTTP 200. Passive exclusion
+is disabled, and `transport http { keepalive off }` opens a fresh upstream
+connection for each request. `/healthz` returns 204 without consulting lighttpd
+and separately proves the node’s Caddy serving path to Keepalived.
+
+An incorrect password produces Pi-hole’s normal rejection and permits an
+immediate allowed retry. Caddy must not replay login POSTs or exclude the sole
+backend because authentication was rejected. Active checks can still exclude
+an unavailable backend. See
+[the authentication contract](caddy_plan-v1.1.md#authentication-availability-contract)
+and [Pi-hole login validation](APPLICATION_ONBOARDING.md#pi-hole-login-validation).
 
 The protected node environment supplies only `NODE_FQDN`, `NODE_IPV4`, and
 `NODE_IPV6`. Node-specific generated configuration must not cross between

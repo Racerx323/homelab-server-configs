@@ -90,14 +90,11 @@ TLS material. Caddy starts with:
 /usr/bin/caddy run --environ --config /etc/caddy/current/Caddyfile --adapter caddyfile
 ```
 
-The accepted payload manifest SHA-256 is:
-
-```text
-2253a491e048c9d670865e3d39efa3c9e9acd92a31ec33219f97ba91428b0133
-```
-
+The accepted payload manifest hashes and selected revisions belong in
+[`accepted-live-artifacts.tsv`](../manifests/accepted-live-artifacts.tsv) and
+[`current-live-state.tsv`](../manifests/current-live-state.tsv).
 `caddy-release-source.tsv` pins the five non-secret repository sources that
-belong to that release. TLS files remain outside Git.
+belong to the accepted release. TLS files remain outside Git.
 
 The repository Caddy source set contains:
 
@@ -110,23 +107,31 @@ The repository Caddy source set contains:
 ## Publication and synchronization
 
 Node A performs normal publication. The publisher creates an immutable
-revision, validates it, records the target, and exposes the outbound state to
+revision, records its parent and source role, validates it, and exposes outbound state to
 managed lsyncd. Node B receives the candidate under its incoming namespace.
 The finalizer validates manifest contents, ownership, modes, marker state, and
-release identity. The reconciler chooses one valid target and activates it.
+release identity. The reconciler chooses one valid target and activates it. Publication itself
+does not activate the publisher’s serving release; the reviewed operation owns
+standby acceptance and later primary activation.
 
 Node B can publish with `--emergency` while it owns IPv4 and IPv6 and all four
-VIPs. Emergency publication freezes normal transport and retains the same
-manifest, validation, and reconciliation rules.
+VIPs. The reviewed emergency procedure must control normal transport and retain
+the same manifest, validation, and reconciliation rules. The publisher checks
+ownership; it does not stop or restart transport services.
 
 The receiver rejects unsafe paths, symlinks, hard links, special files,
 malformed manifests, incomplete markers, wrong source identities, and changed
 payloads. The reconciler fails closed on same-parent conflicts and multiple
-eligible targets.
+eligible targets. An exact replay of the active revision is validated against
+the installed payload and consumed without reloading Caddy. A changed payload
+under the same revision is rejected.
 
-Accepted steady state has empty incoming, outbound, and quarantine namespaces.
-A permitted namespace may be absent or may exist as a protected empty
-directory. Tests execute both accepted forms and reject adjacent unsafe forms.
+Accepted inventory is role-specific and recorded in `current-live-state.tsv`.
+Incoming and quarantine namespaces must match their accepted empty state;
+outbound may retain the exact accepted publication. Do not remove an accepted
+publication merely to make outbound empty. Where the contract permits an empty
+namespace, it may be absent or a protected empty directory; validation must
+reject adjacent unsafe forms.
 
 ## Protocol-v2 services
 
@@ -197,14 +202,15 @@ Future live work follows this order:
 
 1. Verify repositories and the deployment stream.
 2. Validate the accepted current-production baseline.
-3. Mutate and accept Node B.
-4. Mutate and accept Node A.
+3. Validate Node B first; mutate and accept it if the operation changes it.
+4. After standby acceptance, mutate and accept Node A if in scope.
 5. Prove stable preferred ownership and continuous service.
 6. Read back bounded evidence and remove exact temporary programs.
 
-Rollback restores Node A and then Node B in reverse mutation order. The
-transaction returns 125 only when mutation occurred and exact recovery cannot
-be proven.
+Rollback restores only nodes changed by the operation, in reverse mutation
+order, preserving a previously accepted standby when it is outside scope.
+Status 125 means mutation or recovery is ambiguous, or required evidence cannot
+prove the final outcome. It must not be reported as successful acceptance.
 
 Production-path tests execute the same outer and transaction state machines.
 They may substitute bounded external commands, but those substitutes must
@@ -278,8 +284,8 @@ The clean stream must reject `--authorization-ready`.
 
 Action 35 accepted coupled DNS and Caddy health, immutable publication,
 standby-first installation, durable notifications, and controlled failure
-behavior. It closed through accepted Action 35as on 2026-08-24. The final
-accepted checkpoint is preserved by annotated tag
+behavior. It closed through accepted Action 35as on 2026-08-24. The Action 35
+checkpoint is preserved by annotated tag
 `caddy-action35as-terminal-2026-08-24`.
 
 The controlled failure exercise proved that owner-node Caddy, Pi-hole FTL,
@@ -319,19 +325,14 @@ owns the Pi-hole validation procedure and secret-reference contract. Current
 accepted identities belong in the manifests; acceptance results and archive tags
 belong in [HISTORY.md](../HISTORY.md).
 
-## Next work
+## Repository checkpoints and future work
 
-No deployment action is pending. The next work consists of three
-repository-only checkpoints. None contacts a node, changes production,
-registers a successor, creates an operation specification, or adds an
-action-numbered implementation artifact. The Caddy deployment stream remains
-`clean`; `deployable-successor.tsv` remains `none`; and
-`deployable-successor-coverage.tsv` remains header-only.
-
-Complete and commit each checkpoint independently. Run the complete
-pre-commit suite in every changed repository. Caddy checkpoints must also pass
-the current repository-policy host profile. Define a deployment successor only
-after the operator approves a specific live change.
+No deployment action is pending. The three repository checkpoints below are
+complete; their completion records describe documentation, architecture modeling,
+and onboarding work, not pending deployment steps. The deployment stream remains
+`clean`, the operation specification is inactive, and the successor registry is
+`none`. Future projects listed afterward remain definition-only until their
+scope and authorization requirements are met.
 
 ### Checkpoint 1: Caddy operator documentation
 
