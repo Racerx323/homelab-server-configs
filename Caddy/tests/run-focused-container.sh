@@ -35,15 +35,10 @@ fi
 readonly host_evidence_root
 
 focused_container_image=$validation_image
-focused_container_auth_outer=false
 
 select_authentication_container() {
     case ",$1," in
-        *,authentication-outer,* | *,Caddy/tests/authentication-outer-regression.sh,*)
-            focused_container_image=localhost/caddy-auth-validation:latest
-            focused_container_auth_outer=true
-            ;;
-        *,authentication-resilience,* | *,Caddy/tests/authentication-resilience-integration.sh,* | *,Caddy/tests/authentication-release-regression.sh,* | *,Caddy/tests/authentication-secret-regression.sh,*)
+        *,authentication-resilience,* | *,Caddy/tests/authentication-resilience-integration.sh,* | *,Caddy/tests/authentication-secret-regression.sh,*)
             focused_container_image=localhost/caddy-auth-validation:latest
             ;;
     esac
@@ -51,12 +46,7 @@ select_authentication_container() {
 
 run_container() {
     local focused_container_status=0
-    local -a focused_container_options=()
-    if [[ "$focused_container_auth_outer" = true ]]; then
-        focused_container_options=(--init --cap-add NET_ADMIN --cap-add SYS_ADMIN --env AUTH_OUTER_EVIDENCE_ROOT=/evidence)
-    fi
-
-    podman run --rm --network none "${focused_container_options[@]}" \
+    podman run --rm --network none \
         --env CADDY_VALIDATION_CONTAINER=1 \
         --env CADDY_FOCUSED_EVIDENCE_ROOT=/evidence \
         --volume "$workspace_root:/workspace:ro" \

@@ -108,7 +108,7 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
-- Prior operations are archived; the accepted Node A rollout awaits terminal archival.
+- All authentication operations are archived; the deployment stream is clean.
 - The replacement checks workstation dual-stack HTTPS before upload or mutation.
 - The governing plan does not authorize live work.
 
@@ -395,10 +395,11 @@ Node A publication remains available; Node B was unchanged by primary activation
 
 Read [AUTHENTICATION_RESILIENCE_PLAN.md](AUTHENTICATION_RESILIENCE_PLAN.md) for
 the accepted procedure and [HISTORY.md](../HISTORY.md) for terminal provenance.
-Current manifests and production sources record the accepted fix. The latest
-operation is terminal-pending; archive its exact definition before cleanup and
-maintenance of the consumed baseline-transition tools. Evidence is protected
-outside workstation `/tmp`.
+Current manifests and production sources record the accepted fix. The operation
+is archived, its consumed inputs are removed, and the neutral specification is
+inactive. Completed migration scripts and qualification fixtures were removed after archival.
+Retained tests validate accepted production source and authentication behavior. Evidence
+is protected outside workstation `/tmp`.
 
 Every authenticated proxy must satisfy the rejection/retry gate in
 [APPLICATION_ONBOARDING.md](APPLICATION_ONBOARDING.md). A valid rendered

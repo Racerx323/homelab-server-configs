@@ -21,7 +21,6 @@ clean; no successor is registered.
 | `deployable-successor.tsv` | Single live successor registry |
 | `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
 | `serving-health-operation.yaml` | Single operation specification; currently the unexecuted Node B replacement with workstation connectivity preflight |
-| `authentication-deployment-inputs.tsv` | Hashes of authentication policy, qualification sources, and registry inputs; pinned by the outer runner |
 | `serving-health-quarantine-baseline.tsv` | Canonical empty quarantine inventory; historical trees are retained only in tagged history |
 | `dependencies.yaml` | Package, command, cross-repository, external-input, and rebuild-gap contract |
 

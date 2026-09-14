@@ -397,109 +397,30 @@
       ]
     },
     "authentication-resilience": {
-      "description": "Pi-hole secret-input boundary, unpublished candidate preparation, and causal real-Caddy authentication regression.",
+      "description": "Accepted-production Caddy authentication behavior and secret-input boundary.",
       "path_patterns": [
-        "Caddy/scripts/prepare-pihole-auth-release.sh",
         "Caddy/tests/authentication-resilience-integration.*",
         "Caddy/tests/Containerfile.authentication",
         "Caddy/docs/AUTHENTICATION_RESILIENCE_PLAN.md",
         "Caddy/scripts/validate-pihole-authentication.py",
-        "Caddy/tests/authentication-secret-regression.*",
-        "Caddy/tests/authentication-release-regression.*"
+        "Caddy/tests/authentication-secret-regression.*"
       ],
       "debian_path_patterns": [
-        "Caddy/scripts/prepare-pihole-auth-release.sh",
         "Caddy/tests/authentication-resilience-integration.*",
         "Caddy/tests/Containerfile.authentication",
         "Caddy/scripts/validate-pihole-authentication.py",
-        "Caddy/tests/authentication-secret-regression.*",
-        "Caddy/tests/authentication-release-regression.*"
+        "Caddy/tests/authentication-secret-regression.*"
       ],
       "shell_files": [
-        "Caddy/scripts/prepare-pihole-auth-release.sh",
         "Caddy/tests/authentication-resilience-integration.sh",
-        "Caddy/tests/authentication-secret-regression.sh",
-        "Caddy/tests/authentication-release-regression.sh"
+        "Caddy/tests/authentication-secret-regression.sh"
       ],
       "host_tests": [
         "Caddy/tests/authentication-secret-regression.sh"
       ],
       "debian_tests": [
         "Caddy/tests/authentication-secret-regression.sh",
-        "Caddy/tests/authentication-resilience-integration.sh",
-        "Caddy/tests/authentication-release-regression.sh"
-      ],
-      "policies": [
-        "selected-shell",
-        "executable-modes",
-        "deployment-lifecycle",
-        "test-lifecycle"
-      ]
-    },
-    "authentication-deployment": {
-      "description": "Node B atomic web-monitor installation and rollback through the real transaction and simulated SSH transport; no live operation.",
-      "path_patterns": [
-        "Caddy/scripts/apply-serving-health-deployment.sh",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/tests/authentication-deployment-regression.sh"
-      ],
-      "debian_path_patterns": [
-        "Caddy/scripts/apply-serving-health-deployment.sh",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/tests/authentication-deployment-regression.sh"
-      ],
-      "shell_files": [
-        "Caddy/scripts/apply-serving-health-deployment.sh",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/tests/authentication-deployment-regression.sh"
-      ],
-      "host_tests": [
-        "Caddy/tests/authentication-deployment-regression.sh"
-      ],
-      "debian_tests": [
-        "Caddy/tests/authentication-deployment-regression.sh"
-      ],
-      "policies": [
-        "selected-shell",
-        "executable-modes",
-        "deployment-lifecycle",
-        "deployment-window",
-        "deployable-successor",
-        "test-lifecycle"
-      ]
-    },
-    "authentication-outer": {
-      "description": "Complete authentication outer-stage execution with real Caddy and HTTP; requires the dedicated network-none NET_ADMIN container.",
-      "path_patterns": [
-        "Caddy/tests/authentication-outer-regression.*",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/scripts/apply-serving-health-deployment.sh",
-        "Caddy/tests/authentication-release-regression.py",
-        "Caddy/tests/authentication-resilience-integration.py",
-        "Caddy/tests/run-focused-container.sh",
-        "Caddy/scripts/validate-pihole-authentication.py",
-        "Caddy/scripts/check-pihole-web-health.sh",
-        "Caddy/scripts/prepare-pihole-auth-release.sh"
-      ],
-      "debian_path_patterns": [
-        "Caddy/tests/authentication-outer-regression.*",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/scripts/apply-serving-health-deployment.sh",
-        "Caddy/tests/authentication-release-regression.py",
-        "Caddy/tests/authentication-resilience-integration.py",
-        "Caddy/tests/run-focused-container.sh",
-        "Caddy/scripts/validate-pihole-authentication.py",
-        "Caddy/scripts/check-pihole-web-health.sh",
-        "Caddy/scripts/prepare-pihole-auth-release.sh"
-      ],
-      "shell_files": [
-        "Caddy/tests/authentication-outer-regression.sh",
-        "Caddy/scripts/run-serving-health-deployment-outer.sh",
-        "Caddy/scripts/apply-serving-health-deployment.sh"
-      ],
-      "host_tests": [],
-      "debian_tests": [
-        "Caddy/tests/authentication-outer-regression.sh"
+        "Caddy/tests/authentication-resilience-integration.sh"
       ],
       "policies": [
         "selected-shell",

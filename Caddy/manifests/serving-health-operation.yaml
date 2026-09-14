@@ -1,51 +1,12 @@
 schema_version: 2
-action: 20260914-pihole-authentication-inventory
-title: Activate accepted authentication release on Node A and validate shared login
-status: defined-unexecuted
+action: none
+status: inactive
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 484dc648ea077029625a1888a73c49a59715a95bb42f758e611bff65deb8c6a5
+transaction_sha256: 8ab670ab9875ab54b295d7b3581ac634db33a7d3c00d446d6599b90cef53adaa
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_sha256: e9c3ffd5bf50c1c09575ae659bfabc97b494a7597dc05857544a2fe0f66d1476
 production_contract: Caddy/manifests/serving-health-production.tsv
-scope: pihole-authentication-node-a
-live_execution: exact-bundle-authorization-required
-preflight:
-  workstation_connectivity: verified-node-a-and-shared-ipv4-ipv6-before-upload
-  standby: accepted-release-and-monitor-unchanged
-  publication: exact-retained-node-b-accepted-manifest
-mutation:
-  node_a: atomic-web-monitor-install-and-local-protocol-v2-reconciliation
-  node_b: none
-  publication: retain-existing-no-republish-or-withdrawal
-acceptance:
-  success: both-nodes-fixed-node-a-and-shared-login-accepted
-  login: incorrect-password-rejection-immediate-success-dashboard-logout
-  families: ipv4-and-ipv6-fresh-and-idle
-  observation_seconds: 90-per-target
-  ownership: node-a-master-four-vips-node-b-backup-zero-vips
-  shared_owner: verify-before-and-after-with-continuous-observation
-rollback:
-  order: stop-primary-reconciliation-restore-primary-release-and-monitor-resume-primary
-  standby: preserve-accepted-release-and-monitor
-  publication: preserve-retained-candidate
-  ambiguous_mutation_or_unproven_recovery_status: 125
-  evidence_loss_after_acceptance: preserve-candidate-and-report-125
-secret:
-  provider: doppler
-  project: homelab-dev
-  config: prd_caddy
-  key: PIHOLE_NODE_B_WEB_PASSWORD
-  sharing: operator-confirms-node-a-and-node-b-passwords-match
-  handling: bounded-pipe-no-values-in-argv-environment-or-evidence
-exclusions:
-  - standby mutation and deliberate VIP movement
-  - DNS or Keepalived changes and password reset
-qualification:
-  command: /bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh --production-path-test
-  evidence_environment: CADDY_AUTH_QUALIFICATION_EVIDENCE
-  policy: Caddy/tests/authentication-deployment-policy.py
-  coverage: Caddy/manifests/deployable-successor-coverage.tsv
+live_execution: no-operation-defined

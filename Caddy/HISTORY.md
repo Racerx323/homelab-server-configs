@@ -159,7 +159,8 @@ require that replacement’s exact authorization.
 ## Node A authentication inventory correction and acceptance, 2026-09-14
 
 - Operation: `20260914-pihole-authentication-inventory`
-- Status: terminal-pending
+- Status: archived
+- Archive: annotated tag pushed for terminal commit `6a3e9b3`
 - Result: accepted; both nodes retain the fixed release and monitor
 - Tag: `caddy-authentication-inventory-terminal-2026-09-14`
 - Authorized outer SHA-256: `c787b411b066eeb9647943cecf0ae2eb4b8cb61edc366630ac382c0b1d705f72`
@@ -187,5 +188,6 @@ manifest and preserved by source commit `c091a48` and its workstation snapshot.
 
 Protected qualification and live evidence:
 `/home/aaron/code/.caddy-evidence/authentication-primary-c787b411b066`.
-Archive cleanup must reset consumed inputs and align the retained preparation
-and fixture tools with the newly accepted production source before reuse.
+Archive cleanup removed consumed inputs and authentication migration tools/tests.
+Current tests cover accepted production behavior only. The stream is clean; no
+deployment operation is registered.

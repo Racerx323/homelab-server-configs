@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import socket
 import ssl
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -84,13 +85,16 @@ def main():
             "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost,DNS:pihole0.local.theama.co,DNS:pihole00.local.theama.co,DNS:pihole-admin.local.theama.co",
             "-keyout", str(tls / "privkey.pem"), "-out", str(tls / "fullchain.pem"))
         prepared = work / "release"
-        prepared.mkdir(mode=0o700)
-        run("/bin/bash", str(ROOT / "scripts/prepare-pihole-auth-release.sh"), str(prepared), str(tls))
-        print("full_candidate_adapt_validate=both-nodes", flush=True)
-        # The runtime projection changes only listeners/TLS for isolated testing.
-        # The exact candidate snippet and backend address remain unchanged.
+        shutil.copytree(ROOT / "configs/caddy", prepared)
+        shutil.copytree(tls, prepared / "tls")
+        for host, suffix in (("pihole0", "53"), ("pihole00", "54")):
+            env = dict(os.environ, CADDY_CONFIG_ROOT=str(prepared),
+                       NODE_FQDN=host + ".local.theama.co", NODE_IPV4="10.1.0." + suffix,
+                       NODE_IPV6="fd36:5aa8:6971:1::" + suffix)
+            run("caddy", "adapt", "--validate", "--adapter", "caddyfile", "--config", str(prepared / "Caddyfile"), env=env)
+            run("caddy", "validate", "--adapter", "caddyfile", "--config", str(prepared / "Caddyfile"), env=env)
+        print("production_adapt_validate=both-nodes", flush=True)
         candidate = (prepared / "conf.d/10-pihole-admin.caddy").read_text().split("\npihole-admin.local.theama.co {")[0]
-        baseline = (ROOT / "configs/caddy/conf.d/10-pihole-admin.caddy").read_text().split("\npihole-admin.local.theama.co {")[0]
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 8080), Backend)
         server.daemon_threads = True
         threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -127,7 +131,7 @@ def main():
             raise AssertionError(f"status {expected} not observed")
 
         try:
-            for name, snippet in (("baseline", baseline), ("candidate", candidate)):
+            for name, snippet in (("production", candidate),):
                 config = work / "Caddyfile"
                 config.write_text("{\n admin off\n auto_https disable_redirects\n skip_install_trust\n}\n"
                                   + f"(local_tls) {{\n tls {tls}/fullchain.pem {tls}/privkey.pem\n}}\n"
@@ -139,12 +143,10 @@ def main():
                         before = Backend.dropped
                         assert request(4, "POST", "/admin/connection-fault", b"fault=1")[0] == 502
                         assert Backend.dropped == before + 1, "POST was replayed"
-                        expected = 503 if name == "baseline" else 200
+                        expected = 200
                         assert request(4)[0] == expected
                         assert request(6)[0] == expected
                         print(f"{name}_transport_failure_next_request={expected}", flush=True)
-                        if name == "baseline":
-                            continue
                         for idle in (0, 5):
                             for family in (4, 6):
                                 time.sleep(idle)

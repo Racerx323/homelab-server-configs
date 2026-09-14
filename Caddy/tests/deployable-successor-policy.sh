@@ -337,16 +337,9 @@ successor_policy_defined_valid() {
     successor_policy_scope=$(sed -n 's/^scope: //p' \
         "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
     case "$successor_policy_scope" in
-        pihole-authentication-node-a | pihole-authentication-node-b | pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
+        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
         *) return 1 ;;
     esac
-    if [[ "$successor_policy_scope" = pihole-authentication-node-* ]]; then
-        python3 "$successor_policy_repository_root/Caddy/tests/authentication-deployment-policy.py" --graph-check || return 1
-        if [[ "$successor_policy_authorization_requested" = 1 ]]; then
-            python3 "$successor_policy_repository_root/Caddy/tests/authentication-deployment-policy.py" --evidence-check "${CADDY_AUTH_QUALIFICATION_EVIDENCE:-}" || return 1
-        fi
-        return 0
-    fi
     case "$successor_policy_scope" in
         full-serving-health)
             grep -Fxq 'state_equivalence:' \
@@ -521,10 +514,6 @@ successor_policy_registry_valid() {
     esac
     # conditional-validator-explicit-failures-end
 }
-
-successor_policy_authorization_requested=0
-[[ "${1:-}" != --authorization-ready ]] || successor_policy_authorization_requested=1
-readonly successor_policy_authorization_requested
 
 case "${1:-}" in
     --check)

@@ -35,13 +35,6 @@ Caddy/tests/deployment-lifecycle-policy.sh --check
 Caddy/tests/deployment-lifecycle-regression.sh
 ```
 
-`prepare-pihole-auth-release.sh` prepares the authentication-resilience
-candidate in an empty protected `/tmp` directory using caller-supplied TLS
-material. It checks accepted source hashes and validates the full candidate
-with Caddy 2.11.4 for both node identities. It never publishes, installs,
-reloads, or contacts a node. Failure leaves the caller-owned temporary output
-for inspection; no candidate is accepted unless the command exits zero.
-
 `validate-pihole-authentication.py` is the workstation-side Pi-hole Web v5.21
 HTTP acceptance workflow. It accepts a protected password descriptor or
 `--password-doppler` for the fixed reference shared by both nodes (operator
@@ -51,20 +44,8 @@ sanitized per-request outcomes, and never retries login POSTs. Its real-node exe
 it does not install or mutate Caddy configuration. See the authentication
 resilience plan for secret input, health/ownership correlation, and limits.
 
-The neutral transaction’s `auth-helper-*` modes implement monitor replacement
-and exact rollback on either node. The outer runner’s `--authentication-helper-test`
-uses local fixtures and simulated SSH to exercise installation, rollback, upload,
-evidence readback, and cleanup without contacting a node.
-
-The accepted standby stage is archived. The current `auth-primary-*` path checks
-Node B’s accepted identity and Node A’s retained publication, activates that
-publication locally through the installed finalizer/reconciler, and validates
-Node A and shared-URL login. Only Node A is mutated; rollback preserves Node B
-and the publication. Shared login requires `--shared-owner node-a`, supplied by
-the outer after ownership checks and backed by continuous address observations.
-
-`--connectivity-only` checks Node A and shared HTTPS paths before upload or secret
-retrieval. `--production-path-test` runs the isolated full-stage qualification.
-Execution requires current evidence through `CADDY_AUTH_QUALIFICATION_EVIDENCE`
-and exact outer-runner authorization. See
-[the authentication plan](../docs/AUTHENTICATION_RESILIENCE_PLAN.md).
+The completed authentication migration scripts, transaction modes, and deployment
+qualification fixtures are archived in the pushed tags in [HISTORY.md](../HISTORY.md).
+The current deployment stream is clean. The login validator remains available for
+accepted-production validation under the authentication and ownership procedure;
+no archived deployment is registered or executable through the outer runner.
