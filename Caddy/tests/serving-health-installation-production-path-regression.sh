@@ -28,6 +28,13 @@ readonly outer=$repository_root/$outer_relative
 operation_scope=$(sed -n 's/^scope: //p' \
     "$repository_root/Caddy/manifests/serving-health-operation.yaml")
 readonly operation_scope
+if [[ "$operation_scope" = certificate-release-repair ]]; then
+    /bin/bash "$repository_root/Caddy/tests/deployable-successor-policy.sh" --check
+    # Certificate qualification has a dedicated Python-enabled Debian profile.
+    # This host installation regression does not stand in for that evidence.
+    printf '%s_certificate_profile_required=true\n' "$prefix"
+    exit 0
+fi
 root=$(mktemp -d /tmp/caddy-serving-health-installation-regression.XXXXXX)
 readonly root
 cleanup() {

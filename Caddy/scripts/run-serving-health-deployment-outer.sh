@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=8ab670ab9875ab54b295d7b3581ac634db33a7d3c00d446d6599b90cef53adaa
-readonly operation_sha256=3ebcf5a444de8e9aea25952e52da7ba65fb31f7ec6e3cb703c7ba60a8e434216
+readonly transaction_sha256=43665a5b12a71593c89c62a2ffc4cce4c71fb65ba5e24dd37dfbd31054f6f680
+readonly operation_sha256=1bc4069e408db388a8fb3884dc9724daac4557aa7e9eadb12897b88c46e62cda
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -61,6 +61,18 @@ build_payload() {
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
 
     install -d -m 0700 "$payload_stage/manifests" "$payload_stage/repositories"
+    if [[ "$operation_scope" = certificate-release-repair ]]; then
+        install -m 0600 "${CADDY_CERTIFICATE_TEST_INPUTS:-$repository_root/Caddy/manifests/certificate-release-inputs.tsv}" \
+            "$payload_stage/manifests/certificate-release-inputs.tsv"
+        install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
+            "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh"
+        tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C "$payload_stage" -cf "$payload_archive" .
+        chmod 0600 "$payload_archive"
+        sha256sum "$payload_archive" >"$workstation_evidence/payload.sha256"
+        chmod 0600 "$workstation_evidence/payload.sha256"
+        return
+    fi
     if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
         printf 'read-only external attribution; no production payload\n' \
             >"$payload_stage/manifests/README"
@@ -254,8 +266,14 @@ ssh_stream() {
     local serving_health_host=$1
     local serving_health_program=$2
     shift 2
-    "$ssh_command" "$serving_health_host" \
-        "cd / && sudo -n /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
+    if [[ "$operation_scope" = certificate-release-repair ]]; then
+        "$ssh_command" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o ServerAliveInterval=5 -o ServerAliveCountMax=3 "$serving_health_host" \
+            "cd / && sudo -n /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
+    else
+        "$ssh_command" "$serving_health_host" \
+            "cd / && sudo -n /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
+    fi
 }
 
 upload_payload() {
@@ -268,8 +286,14 @@ upload_payload() {
     serving_health_hash=$(awk '{ print $1 }' "$workstation_evidence/payload.sha256")
     capture "$serving_health_role-upload-prepare" ssh_stream "$serving_health_host" \
         "$prepare_program" "$serving_health_remote_root" "$serving_health_remote_archive" || return 1
-    capture "$serving_health_role-upload-copy" "$scp_command" -p -- \
-        "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
+    if [[ "$operation_scope" = certificate-release-repair ]]; then
+        capture "$serving_health_role-upload-copy" "$scp_command" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p -- \
+            "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
+    else
+        capture "$serving_health_role-upload-copy" "$scp_command" -p -- \
+            "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
+    fi
     capture "$serving_health_role-upload-accept" ssh_stream "$serving_health_host" \
         "$accept_program" "$serving_health_remote_root" "$serving_health_remote_archive" \
         "$serving_health_hash"
@@ -841,6 +865,207 @@ run_controlled_failure_exercise_live() {
     return "$serving_health_failure"
 }
 
+certificate_readback_acceptance() {
+    local cert_role=$1 cert_stream=$2 cert_target=$3 cert_file cert_dir cert_state cert_vips
+    cert_dir=${4:-$workstation_evidence/$cert_role-accepted}
+    install -d -m 0700 "$cert_dir"
+    for cert_file in certificate-checker-start.status certificate-checker-result.status \
+        certificate-checker-result.stdout certificate-checker-journal.status certificate-checker-journal.stdout \
+        certificate-serving-ipv4.status certificate-serving-ipv4.stdout \
+        certificate-serving-ipv6.status certificate-serving-ipv6.stdout ownership-samples.tsv certificate-manifest.tsv \
+        certificate-ownership-journal.stdout certificate-ownership-journal.status; do
+        extract_readback_file "$cert_stream" "$cert_file" "$cert_dir/$cert_file" || return 1
+    done
+    for cert_file in "$cert_dir"/*.status; do
+        [[ "$(<"$cert_file")" = 0 ]] || return 1
+    done
+    [[ "$(<"$cert_dir/certificate-serving-ipv4.stdout")" = 200 &&
+    "$(<"$cert_dir/certificate-serving-ipv6.stdout")" = 200 ]] || return 1
+    grep -Fxq Result=success "$cert_dir/certificate-checker-result.stdout" || return 1
+    grep -Fxq ExecMainStatus=0 "$cert_dir/certificate-checker-result.stdout" || return 1
+    [[ -s "$cert_dir/certificate-checker-journal.stdout" ]] || return 1
+    [[ "$(wc -l <"$cert_dir/certificate-ownership-journal.stdout")" -lt 100 ]] || return 1
+    ! grep -Eiq '(Entering|Transition.*to).*(MASTER|BACKUP|FAULT|STOP)' "$cert_dir/certificate-ownership-journal.stdout" || return 1
+    cert_state=Backup cert_vips=0
+    [[ "$cert_role" != node-a ]] || { cert_state=Master cert_vips=4; }
+    awk -F '\t' -v state="$cert_state" -v vips="$cert_vips" '
+        NF != 5 || $1 != NR || $3 != state || $4 != state || $5 != vips { bad=1 }
+        END { exit bad || NR < 3 }
+    ' "$cert_dir/ownership-samples.tsv" || return 1
+    awk -v path="/etc/caddy/releases/$cert_target/manifest.sha256" '
+        NF != 2 || length($1) != 64 || $1 !~ /^[0-9a-f]+$/ || $2 != path { bad=1 }
+        END { exit bad || NR != 1 }
+    ' "$cert_dir/certificate-manifest.tsv" || return 1
+}
+
+certificate_readback_rollback() {
+    local cert_role=$1 cert_stream=$2 cert_dir cert_file cert_baseline cert_hash
+    cert_dir=$workstation_evidence/$cert_role-restored
+    install -d -m 0700 "$cert_dir"
+    for cert_file in certificate-rollback-selection.stdout certificate-rollback-selection.status \
+        certificate-rollback-publisher.stdout certificate-rollback-publisher.status; do
+        extract_readback_file "$cert_stream" "$cert_file" "$cert_dir/$cert_file" || return 1
+    done
+    [[ "$(<"$cert_dir/certificate-rollback-selection.status")" = 0 &&
+    "$(<"$cert_dir/certificate-rollback-publisher.status")" = 0 ]] || return 1
+    cert_baseline=$(awk -F '\t' '$1 == "baseline_revision" { print $2 }' "$payload_stage/manifests/certificate-release-inputs.tsv")
+    cert_hash=$(awk -F '\t' '$1 == "publisher_baseline_sha256" { print $2 }' "$payload_stage/manifests/certificate-release-inputs.tsv")
+    [[ "$(<"$cert_dir/certificate-rollback-selection.stdout")" = "/etc/caddy/releases/$cert_baseline" ]] || return 1
+    [[ "$(<"$cert_dir/certificate-rollback-publisher.stdout")" = "$cert_hash  /usr/local/libexec/publish-release-v2.sh" ]]
+}
+
+certificate_workstation_preflight() {
+    local cert_role cert_family cert_fqdn cert_address cert_suffix cert_ip cert_curl=/usr/bin/curl
+    if [[ "$invocation_mode" = --production-path-test && "${CADDY_CERTIFICATE_FIXTURE_EXECUTE:-0}" = 1 ]]; then
+        cert_curl=$CADDY_SERVING_HEALTH_CURL_COMMAND
+    fi
+    for cert_role in a b; do
+        cert_suffix=0 cert_ip=53
+        [[ "$cert_role" != b ]] || { cert_suffix=00 cert_ip=54; }
+        cert_fqdn=pihole$cert_suffix.local.theama.co
+        for cert_family in 4 6; do
+            cert_address=10.1.0.$cert_ip
+            [[ "$cert_family" != 6 ]] || cert_address="[fd36:5aa8:6971:1::$cert_ip]"
+            capture "certificate-workstation-$cert_role-ipv$cert_family" "$cert_curl" \
+                --noproxy '*' "-$cert_family" --silent --show-error --fail \
+                --connect-timeout 3 --max-time 5 --resolve "$cert_fqdn:443:$cert_address" \
+                -o /dev/null -w '%{http_code}\n' "https://$cert_fqdn/healthz" || return 1
+            [[ "$(<"$workstation_evidence/certificate-workstation-$cert_role-ipv$cert_family.stdout")" = 200 ]] || return 1
+        done
+    done
+}
+
+certificate_collect_manual_evidence() {
+    readback certificate-manual-a "$node_a_host" "$node_a_evidence" || :
+    readback certificate-manual-b "$node_b_host" "$node_b_evidence" || :
+    printf 'Certificate repair requires manual intervention; evidence_directory=%s\n' "$workstation_evidence" >&2
+}
+
+run_certificate_release_live() {
+    local cert_status=0 cert_target=- cert_published=false cert_contained=false
+    local cert_target_file=$workstation_evidence/certificate-target.tsv
+
+    certificate_workstation_preflight || return 1
+    if upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" &&
+        upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" &&
+        remote_transaction certificate-preflight-b "$node_b_host" certificate-preflight node-b "$node_b_payload" "$node_b_evidence" &&
+        remote_transaction certificate-preflight-a "$node_a_host" certificate-preflight node-a "$node_a_payload" "$node_a_evidence"; then
+        :
+    else
+        cert_status=$?
+        readback certificate-preflight-a "$node_a_host" "$node_a_evidence" || :
+        readback certificate-preflight-b "$node_b_host" "$node_b_evidence" || :
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || :
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || :
+        return "$cert_status"
+    fi
+
+    remote_transaction certificate-publisher-b "$node_b_host" certificate-install-publisher node-b "$node_b_payload" "$node_b_evidence" || cert_status=$?
+    if [[ "$cert_status" = 0 ]]; then
+        cert_published=true
+        remote_transaction certificate-publish-a "$node_a_host" certificate-publish node-a "$node_a_payload" "$node_a_evidence" || cert_status=$?
+        # A lost SSH response is not evidence that publication did not occur.
+        # Discover the exact child through an independent read-only invocation.
+        remote_transaction certificate-target-a "$node_a_host" certificate-discover-target node-a "$node_a_payload" "$node_a_evidence" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        readback certificate-target-a "$node_a_host" "$node_a_evidence" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        extract_readback_file "$workstation_evidence/certificate-target-a-readback.stdout" certificate-target.tsv "$cert_target_file" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        cert_target=$(<"$cert_target_file")
+        [[ "$cert_target" = - || "$cert_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        if [[ "$cert_target" = - ]]; then
+            cert_published=false
+            [[ "$cert_status" != 0 ]] || cert_status=1
+        fi
+    fi
+    if [[ "$cert_status" = 0 ]]; then
+        remote_transaction certificate-accept-b "$node_b_host" certificate-accept node-b "$node_b_payload" "$node_b_evidence" "$cert_target" || cert_status=$?
+    fi
+    if [[ "$cert_status" = 0 ]]; then
+        readback certificate-standby-b "$node_b_host" "$node_b_evidence" || cert_status=1
+        certificate_readback_acceptance node-b "$workstation_evidence/certificate-standby-b-readback.stdout" \
+            "$cert_target" "$workstation_evidence/node-b-standby" || cert_status=1
+    fi
+    if [[ "$cert_status" = 0 ]]; then
+        remote_transaction certificate-publisher-a "$node_a_host" certificate-install-publisher node-a "$node_a_payload" "$node_a_evidence" || cert_status=$?
+    fi
+    if [[ "$cert_status" = 0 ]]; then
+        remote_transaction certificate-promote-a "$node_a_host" certificate-promote node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || cert_status=$?
+    fi
+    if [[ "$cert_status" = 0 ]]; then
+        remote_transaction certificate-accept-a "$node_a_host" certificate-accept node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || cert_status=$?
+    fi
+    readback certificate-result-a "$node_a_host" "$node_a_evidence" || cert_status=1
+    readback certificate-result-b "$node_b_host" "$node_b_evidence" || cert_status=1
+    if [[ "$cert_status" = 0 ]]; then
+        certificate_readback_acceptance node-a "$workstation_evidence/certificate-result-a-readback.stdout" "$cert_target" || cert_status=1
+        certificate_readback_acceptance node-b "$workstation_evidence/certificate-result-b-readback.stdout" "$cert_target" || cert_status=1
+        if [[ "$cert_status" = 0 ]]; then
+            cmp -s "$workstation_evidence/node-a-accepted/certificate-manifest.tsv" \
+                "$workstation_evidence/node-b-accepted/certificate-manifest.tsv" || cert_status=1
+        fi
+    fi
+
+    if [[ "$cert_status" != 0 ]]; then
+        if [[ "$cert_published" = true ]]; then
+            remote_transaction certificate-contain-a "$node_a_host" certificate-contain-publication node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || {
+                certificate_collect_manual_evidence
+                return 125
+            }
+            cert_contained=true
+        fi
+        remote_transaction certificate-rollback-a "$node_a_host" certificate-rollback node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        remote_transaction certificate-rollback-b "$node_b_host" certificate-rollback node-b "$node_b_payload" "$node_b_evidence" "$cert_target" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        if [[ "$cert_contained" = true ]]; then
+            remote_transaction certificate-resume-a "$node_a_host" certificate-resume-publication node-a "$node_a_payload" "$node_a_evidence" || {
+                certificate_collect_manual_evidence
+                return 125
+            }
+        fi
+        readback certificate-rollback-a "$node_a_host" "$node_a_evidence" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        readback certificate-rollback-b "$node_b_host" "$node_b_evidence" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        certificate_readback_rollback node-a "$workstation_evidence/certificate-rollback-a-readback.stdout" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+        certificate_readback_rollback node-b "$workstation_evidence/certificate-rollback-b-readback.stdout" || {
+            certificate_collect_manual_evidence
+            return 125
+        }
+    fi
+    cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || {
+        certificate_collect_manual_evidence
+        return 125
+    }
+    cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || {
+        certificate_collect_manual_evidence
+        return 125
+    }
+    return "$cert_status"
+}
+
 run_live() {
     local serving_health_node_b_mutated=false
     local serving_health_node_a_mutated=false
@@ -848,6 +1073,10 @@ run_live() {
     local serving_health_phase_status=0
     local serving_health_target_revision=
 
+    if [[ "$operation_scope" = certificate-release-repair ]]; then
+        run_certificate_release_live
+        return
+    fi
     if [[ "$operation_scope" = pihole-web-health-unit-only ]]; then
         run_web_health_unit_live
         return
@@ -2722,13 +2951,19 @@ regular_file "$transaction"
 regular_file "$operation_spec"
 [[ "$(sha256sum "$transaction" | awk '{ print $1 }')" = "$transaction_sha256" ]]
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
-if [[ "${CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY:-0}" = 1 ]]; then
+if [[ "${CADDY_CERTIFICATE_TEST_SCOPE:-0}" = 1 ]]; then
+    [[ "$invocation_mode" = --production-path-test && "${CADDY_VALIDATION_CONTAINER:-}" = 1 && -f /run/.containerenv ]]
+    operation_scope=certificate-release-repair
+elif [[ "${CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY:-0}" = 1 ]]; then
     operation_scope=controlled-serving-failure-exercise
 else
     operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
 fi
 readonly operation_scope
-[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health)$ ]]
+if [[ "$operation_scope" = certificate-release-repair && "$invocation_mode" = live ]]; then
+    grep -Fxq 'status: defined-unexecuted' "$operation_spec"
+fi
+[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health|certificate-release-repair)$ ]]
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)
@@ -2759,9 +2994,21 @@ node_b_evidence=$node_b_payload/evidence
 ssh_command=/usr/bin/ssh
 scp_command=/usr/bin/scp
 
+if [[ -n "${CADDY_CERTIFICATE_TEST_INPUTS:-}${CADDY_CERTIFICATE_TEST_SSH:-}${CADDY_CERTIFICATE_TEST_SCP:-}" ]]; then
+    [[ "$invocation_mode" = --production-path-test && "${CADDY_VALIDATION_CONTAINER:-}" = 1 && -f /run/.containerenv ]]
+    [[ "${CADDY_CERTIFICATE_FIXTURE_EXECUTE:-0}" = 1 ]]
+    ssh_command=$CADDY_CERTIFICATE_TEST_SSH
+    scp_command=$CADDY_CERTIFICATE_TEST_SCP
+fi
 build_payload
 write_remote_programs
-if [[ "$invocation_mode" = --production-path-test ]]; then
+if [[ "$invocation_mode" = --production-path-test && "$operation_scope" = certificate-release-repair ]]; then
+    if [[ "${CADDY_CERTIFICATE_FIXTURE_EXECUTE:-0}" = 1 ]]; then
+        run_certificate_release_live
+    else
+        exec python3 "$repository_root/Caddy/tests/certificate-release-regression.py" --entrypoint outer
+    fi
+elif [[ "$invocation_mode" = --production-path-test ]]; then
     production_path_test
 else
     run_live

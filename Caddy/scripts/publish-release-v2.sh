@@ -103,9 +103,16 @@ if [[ "$node_role" == node-b ]]; then
     fi
 fi
 
-for required_path in Caddyfile conf.d tls/fullchain.pem tls/privkey.pem; do
-    if [[ ! -e "$source_dir/$required_path" ]]; then
+for required_path in Caddyfile conf.d tls/leaf.pem tls/intermediates.pem \
+    tls/fullchain.pem tls/privkey.pem tls/certificate-manifest.json; do
+    if [[ ! -e "$source_dir/$required_path" || -L "$source_dir/$required_path" ]]; then
         printf 'Incomplete release: missing %s\n' "$required_path" >&2
+        exit 1
+    fi
+done
+for required_path in leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
+    if [[ ! -s "$source_dir/tls/$required_path" || ! -f "$source_dir/tls/$required_path" ]]; then
+        printf 'Incomplete release: invalid tls/%s\n' "$required_path" >&2
         exit 1
     fi
 done
@@ -126,6 +133,11 @@ require_check source_caddy_configuration_valid \
     --adapter caddyfile >/dev/null
 require_check source_certificate_parse \
     openssl x509 -in "$source_dir/tls/fullchain.pem" -noout
+require_check source_monitored_certificate_matches \
+    cmp -s <(openssl x509 -in "$source_dir/tls/leaf.pem" -outform DER) \
+    <(openssl x509 -in "$source_dir/tls/fullchain.pem" -outform DER)
+require_check source_monitored_certificate_lifetime \
+    openssl x509 -in "$source_dir/tls/leaf.pem" -checkend 2592000 -noout
 require_check source_private_key_parse \
     openssl pkey -in "$source_dir/tls/privkey.pem" -noout
 

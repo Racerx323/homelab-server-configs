@@ -49,9 +49,21 @@ install -m 0700 \
     "$repository_root/Caddy/scripts/apply-serving-health-deployment.sh" \
     "$repository_root/Caddy/scripts/run-serving-health-deployment-outer.sh" \
     "$root/Caddy/scripts/"
-awk '/^scope:/ { exit } { print }' "$repository_root/Caddy/manifests/serving-health-operation.yaml" |
-    sed -e 's/^action:.*/action: none/' -e 's/^status:.*/status: inactive/' >"$root/inactive-operation.yaml"
-printf 'live_execution: no-operation-defined\n' >>"$root/inactive-operation.yaml"
+inactive_transaction_hash=$(sha256sum "$root/Caddy/scripts/apply-serving-health-deployment.sh" | awk '{print $1}')
+cat >"$root/inactive-operation.yaml" <<EOF
+schema_version: 2
+action: none
+status: inactive
+implementation:
+  lifecycle: neutral-reusable
+  copy_per_action: prohibited
+transaction: Caddy/scripts/apply-serving-health-deployment.sh
+transaction_sha256: $inactive_transaction_hash
+outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
+state_contract: Caddy/manifests/current-live-state.tsv
+production_contract: Caddy/manifests/serving-health-production.tsv
+live_execution: no-operation-defined
+EOF
 install -m 0600 "$root/inactive-operation.yaml" "$root/Caddy/manifests/serving-health-operation.yaml"
 inactive_hash=$(sha256sum "$root/inactive-operation.yaml" | awk '{print $1}')
 sed -i "s/^readonly operation_sha256=.*/readonly operation_sha256=$inactive_hash/" "$root/Caddy/scripts/run-serving-health-deployment-outer.sh"

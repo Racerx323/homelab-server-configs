@@ -130,6 +130,14 @@ fi
 readonly current_link current_release
 [[ -f "$current_release/Caddyfile" && ! -L "$current_release/Caddyfile" ]] || exit 1
 [[ -d "$current_release/conf.d" && ! -L "$current_release/conf.d" ]] || exit 1
+for validation_tls_file in leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
+    if [[ ! -f "$current_release/tls/$validation_tls_file" ||
+        -L "$current_release/tls/$validation_tls_file" ||
+        ! -s "$current_release/tls/$validation_tls_file" ]]; then
+        printf 'Missing or invalid installed TLS file: %s\n' "$validation_tls_file" >&2
+        exit 1
+    fi
+done
 
 expected_environment=$(mktemp /tmp/caddy-ha-environment-v2.XXXXXX)
 readonly expected_environment

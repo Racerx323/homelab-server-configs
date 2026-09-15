@@ -18,13 +18,13 @@ to create this document. A Git commit cannot include its own final identity.
 
 ```yaml
 schema: caddy-project-handoff/v1
-document_version: 1.0.0
-snapshot_date: "2026-09-14"
+document_version: 1.0.1
+snapshot_date: "2026-09-15"
 primary_repository:
   path: /home/aaron/code/homelab-server-configs
   remote: https://github.com/Racerx323/homelab-server-configs.git
   branch: main
-  source_baseline: e99c1dd0c3398e01e3c99ed4d3650f8b912ad73d
+  source_baseline: cfd292e89f9315f6fa88f617d5ce8c99dcaa39a8
 related_repositories:
   homelab_dns:
     path: /home/aaron/code/homelab-dns
@@ -43,9 +43,9 @@ related_repositories:
     remote: https://github.com/Racerx323/homelab-notification.git
     baseline: 8d5b718efe4f73aa7e594f460267c3af70dec8fa
 accepted_production:
-  archive_tag: caddy-action35as-terminal-2026-08-24
+  archive_tag: caddy-authentication-inventory-terminal-2026-09-14
   payload_manifest_sha256: 6a1385491cbc36d4fcb07a794553316d0f4bc8193465e45c5fa42b350ea35f88
-  stream_state: clean
+  stream_state: terminal-pending
   successor_state: none
 current_planned_repository_project:
   prompt: Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md
@@ -108,9 +108,16 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
-- All authentication operations are archived; the deployment stream is clean.
+- All authentication operations are archived. The certificate-inventory repair failed workstation preflight before mutation and awaits archival.
 - Future live procedures must check workstation dual-stack HTTPS before mutation.
 - The governing plan does not authorize live work.
+
+On 2026-09-15 both certificate-expiry services failed because the selected
+release lacks `tls/leaf.pem`. The serving certificate remains valid through
+2027-01-19. The pending operation restores the complete TLS inventory and runs
+the real certificate service on Node B before Node A. Its repository definition
+and qualification are not live recovery; check the stream registry and retained
+evidence before executing it.
 
 Verify those statements against:
 
@@ -400,8 +407,8 @@ for the accepted transport and health policy,
 [Pi-hole login validation](APPLICATION_ONBOARDING.md#pi-hole-login-validation)
 for the current procedure, and [HISTORY.md](../HISTORY.md) for terminal provenance.
 Current manifests and production sources record the accepted fix. The operation
-is archived, its consumed inputs are removed, and the neutral specification is
-inactive. Completed migration scripts and qualification fixtures were removed after archival.
+is archived and its consumed inputs are removed. The current specification now
+retains the consumed certificate-inventory repair pending archival. Completed migration scripts and qualification fixtures were removed after archival.
 Retained tests validate accepted production source and authentication behavior. Evidence
 is protected outside workstation `/tmp`.
 

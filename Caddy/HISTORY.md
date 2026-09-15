@@ -191,3 +191,29 @@ Protected qualification and live evidence:
 Archive cleanup removed consumed inputs and authentication migration tools/tests.
 Current tests cover accepted production behavior only. The stream is clean; no
 deployment operation is registered.
+
+## Certificate inventory repair preflight, 2026-09-15
+
+- Operation: `20260915-certificates`
+- Status: terminal-pending
+- Result: failed-consumed; workstation preflight stopped before any upload or mutation
+- Tag: `caddy-certificate-preflight-terminal-2026-09-15`
+- Authorized outer SHA-256:
+  `9fa87ce665be57789686e18ae4149cfd2ee719ce2307be2768163dc8f79d1319` <!-- gitleaks:allow public deployment SHA-256 -->
+
+Node A IPv4 HTTPS `/healthz` returned HTTP 204 with curl status 0. The
+runner incorrectly required 200, although accepted production configuration
+explicitly responds 204. The node transaction and qualification substitute
+repeat this incorrect expectation. All 16 local scenarios passed against that
+inaccurate substitute; they did not establish compatibility with this endpoint.
+
+Execution returned 1 before SSH upload, publication, installation, reload, or
+certificate-service invocation. No rollback was needed. The certificate inventory
+defect remains unresolved. Exact executed sources are retained unchanged for
+archive, with sanitized result hashes in `manifests/serving-health-terminal-result.yaml`.
+Protected source, qualification and live evidence are under
+`/home/aaron/code/.caddy-evidence/certificate-repair-9fa87ce665be`.
+
+After archival, correct the expected HTTP status in both entrypoints and derive
+the fixture response from the accepted production endpoint contract, then
+qualify a replacement bundle before requesting its exact live authorization.

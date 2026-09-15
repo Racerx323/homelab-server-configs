@@ -90,6 +90,13 @@ TLS material. Caddy starts with:
 /usr/bin/caddy run --environ --config /etc/caddy/current/Caddyfile --adapter caddyfile
 ```
 
+The TLS inventory includes `leaf.pem`, `intermediates.pem`, `fullchain.pem`,
+`privkey.pem`, and `certificate-manifest.json`. Configuration-only releases
+preserve that inventory. The monitored leaf and the first certificate in the
+serving full chain must match. Release acceptance runs the certificate-expiry
+service on the selected release, standby first; timer activation alone is
+insufficient.
+
 The accepted payload manifest hashes and selected revisions belong in
 [`accepted-live-artifacts.tsv`](../manifests/accepted-live-artifacts.tsv) and
 [`current-live-state.tsv`](../manifests/current-live-state.tsv).

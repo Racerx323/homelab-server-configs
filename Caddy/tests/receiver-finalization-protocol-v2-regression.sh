@@ -130,6 +130,54 @@ fi
 
 negative_dir=$(mktemp -d /tmp/caddy-receiver-v2-negative.XXXXXX)
 trap 'rm -rf -- "$negative_dir"' EXIT
+# A serving certificate/key pair alone cannot satisfy the scheduled checker.
+# Exercise the publisher itself; rejection must precede publication or Caddy.
+mkdir -p "$negative_dir/source/conf.d" "$negative_dir/source/tls"
+printf 'fixture\n' >"$negative_dir/source/Caddyfile"
+for tls_name in leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
+    printf 'fixture\n' >"$negative_dir/source/tls/$tls_name"
+done
+for tls_name in leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
+    mv "$negative_dir/source/tls/$tls_name" "$negative_dir/held"
+    if /bin/bash "$publisher" --source "$negative_dir/source" --node-role node-a \
+        >"$negative_dir/tls-out" 2>"$negative_dir/tls-err"; then
+        printf 'Publisher accepted missing tls/%s\n' "$tls_name" >&2
+        exit 1
+    fi
+    grep -Fxq "Incomplete release: missing tls/$tls_name" "$negative_dir/tls-err"
+    [[ ! -s "$negative_dir/tls-out" ]]
+    mv "$negative_dir/held" "$negative_dir/source/tls/$tls_name"
+done
+if [[ "${CADDY_VALIDATION_CONTAINER:-}" = 1 ]]; then
+    [[ "$(id -u)" = 0 && ! -e /etc/caddy/current && ! -L /etc/caddy/current ]]
+    getent group caddy-sync >/dev/null || groupadd --system caddy-sync
+    id caddy-sync >/dev/null 2>&1 || useradd --system --gid caddy-sync caddy-sync
+    printf ':18080 {\n respond "fixture"\n}\n' >"$negative_dir/source/Caddyfile"
+    openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+        -subj '/CN=fixture.local' -keyout "$negative_dir/source/tls/privkey.pem" \
+        -out "$negative_dir/source/tls/fullchain.pem" >/dev/null 2>&1
+    cp "$negative_dir/source/tls/fullchain.pem" "$negative_dir/source/tls/leaf.pem"
+    cp "$negative_dir/source/tls/fullchain.pem" "$negative_dir/source/tls/intermediates.pem"
+    printf '{}\n' >"$negative_dir/source/tls/certificate-manifest.json"
+    /bin/bash "$publisher" --source "$negative_dir/source" --node-role node-a \
+        >"$negative_dir/published" 2>"$negative_dir/published-err"
+    published_revision=$(sed -n 's/^Published protocol-v2 release \([^ ]*\) for receiver validation\.$/\1/p' "$negative_dir/published")
+    [[ "$published_revision" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+    mkdir -p /etc/caddy
+    ln -s "/var/lib/caddy-sync/outbound/$published_revision" /etc/caddy/current
+    /bin/bash "$caddy_root/scripts/check-certificate-expiry.sh" >"$negative_dir/checker-out"
+    mv "/var/lib/caddy-sync/outbound/$published_revision/tls/leaf.pem" "$negative_dir/held-leaf"
+    if /bin/bash "$caddy_root/scripts/check-certificate-expiry.sh" \
+        >"$negative_dir/missing-out" 2>"$negative_dir/missing-err"; then
+        printf 'Expiry checker accepted an absent leaf.\n' >&2
+        exit 1
+    fi
+    grep -Fxq 'Caddy certificate is unavailable: /etc/caddy/current/tls/leaf.pem' "$negative_dir/missing-err"
+    mv "$negative_dir/held-leaf" "/var/lib/caddy-sync/outbound/$published_revision/tls/leaf.pem"
+    /bin/bash "$caddy_root/scripts/check-certificate-expiry.sh" >"$negative_dir/restored-out"
+    rm /etc/caddy/current
+    rm -rf -- "/var/lib/caddy-sync/outbound/$published_revision"
+fi
 negative_status=0
 SSH_ORIGINAL_COMMAND=caddy-sync-finalize \
     "$receiver" --source-role node-a \

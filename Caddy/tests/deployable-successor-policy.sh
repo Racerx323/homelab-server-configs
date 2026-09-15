@@ -200,6 +200,9 @@ successor_policy_coverage_valid() {
         END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
     ' "$successor_policy_coverage" || return 1
     case "$successor_policy_scope" in
+        certificate-release-repair)
+            successor_policy_required_scenarios='certificate-preflight certificate-success certificate-namespace-absent certificate-worker-failure certificate-primary-worker-failure certificate-readback-failure certificate-standby-readback-failure certificate-reload-failure certificate-rollback-failure certificate-ownership-transition certificate-stale-baseline certificate-baseline-extra certificate-namespace-symlink certificate-namespace-mode certificate-namespace-owner certificate-namespace-nonempty certificate-namespace-file'
+            ;;
         pihole-web-health-unit-only)
             successor_policy_required_scenarios='outer-preflight web-unit-service-identity web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
             ;;
@@ -337,10 +340,13 @@ successor_policy_defined_valid() {
     successor_policy_scope=$(sed -n 's/^scope: //p' \
         "$successor_policy_repository_root/$successor_policy_operation_spec") || return 1
     case "$successor_policy_scope" in
-        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health) : ;;
+        pihole-web-health-unit-only | notification-standardization-only | external-notification-attribution-read-only | controlled-serving-failure-exercise | full-serving-health | certificate-release-repair) : ;;
         *) return 1 ;;
     esac
     case "$successor_policy_scope" in
+        certificate-release-repair)
+            python3 "$successor_policy_repository_root/Caddy/tests/certificate-release-regression.py" --definition-check || return 1
+            ;;
         full-serving-health)
             grep -Fxq 'state_equivalence:' \
                 "$successor_policy_repository_root/$successor_policy_operation_spec" || return 1
@@ -396,6 +402,20 @@ successor_policy_defined_valid() {
     ' "$successor_policy_repository_root/Caddy/manifests/manifest-lifecycle.tsv" || return 1
     grep -Fq -- '--production-path-test' "$successor_policy_repository_root/$successor_policy_transaction" || return 1
     grep -Fq -- '--production-path-test' "$successor_policy_repository_root/$successor_policy_outer" || return 1
+    if [[ "$successor_policy_scope" = certificate-release-repair ]]; then
+        # Definition checks stay usable without Podman. Authorization separately
+        # verifies retained causal evidence against the complete current graph.
+        if [[ "${successor_policy_require_defined:-0}" = 1 ]]; then
+            [[ -n "${CADDY_CERTIFICATE_QUALIFICATION_ROOT:-}" ]] || return 1
+            python3 "$successor_policy_repository_root/Caddy/tests/certificate-release-regression.py" \
+                --verify-evidence "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" || return 1
+            successor_policy_evidence_valid "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" \
+                "$successor_policy_repository_root/$successor_policy_coverage" outer || return 1
+            successor_policy_evidence_valid "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" \
+                "$successor_policy_repository_root/$successor_policy_coverage" transaction || return 1
+        fi
+        return 0
+    fi
     successor_policy_transaction_output=$(mktemp /tmp/caddy-successor-transaction-output.XXXXXX) || return 1
     successor_policy_transaction_error=$(mktemp /tmp/caddy-successor-transaction-error.XXXXXX) || {
         rm -f -- "$successor_policy_transaction_output"

@@ -1,12 +1,42 @@
 schema_version: 2
-action: none
-status: inactive
+action: 20260915-certificates
+status: defined-unexecuted
+scope: certificate-release-repair
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 8ab670ab9875ab54b295d7b3581ac634db33a7d3c00d446d6599b90cef53adaa
+transaction_sha256: 43665a5b12a71593c89c62a2ffc4cce4c71fb65ba5e24dd37dfbd31054f6f680
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
+state_contract_sha256: ecf7029709399bc383a3ffef777a55ca69930592ccf19f45da534fcc71b2acce
 production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: no-operation-defined
+production_contract_sha256: 240fa27811c6383f1b1548aa462f9a37a13b2ad3bfd4a755f7d793ca2a6c3532
+certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
+certificate_inputs_sha256: 65fe1c0e375e06f522b7469a9886c096eb093b84d3d6f1288e922baf465eb258
+coverage_sha256: 64d98ada2120d4e5a7a0f2bbfcbea55865cb01bb26468666e2780120955f6357
+regression_sha256: 53a7e4566c04287ca69dca1c4b76ea05413b6ab72ccfb9024840aa7f7fc4dfb3
+fixture_sha256: a805eb67539087b2d4316ac1a122cc5e18e66f27d9ab6783dec0ffdb534a6019
+live_execution: exact-outer-sha256-authorization-required
+sequence:
+  - Upload only the pinned publisher and non-secret recipe; verify both baselines and namespaces.
+  - Install the publisher guard on Node B.
+  - Publish from Node A using the uploaded candidate publisher without changing Node A serving state or installed publisher.
+  - Accept Node B through the real certificate service, IPv4 and IPv6 serving probes, ownership samples, and cursor-bounded journals.
+  - Verify Node B evidence on the workstation before changing Node A.
+  - Install the publisher guard on Node A and activate the same release through finalization and reconciliation.
+  - Accept Node A, compare selected manifest hashes, read back evidence, and remove temporary payloads.
+rollback:
+  - Before publication, restore only any changed publisher scripts and prove the serving baseline is unchanged.
+  - After publication, stop the Node A sender and verify its process group is stopped before removing the exact new outbound entry.
+  - Restore Node A then Node B; remove only the target incoming candidate and staging path.
+  - Reload Caddy only where selection changed; restore the prior publisher bytes and verify serving and ownership.
+  - Resume the Node A sender only after both restorations are proven.
+  - Unknown publication state or unproven restoration returns 125 and retains evidence for manual intervention.
+  - The rollback baseline retains its known missing-leaf monitoring defect; rollback is not certificate recovery.
+boundaries:
+  - Preserve current Caddy configuration, fullchain and private key byte-for-byte.
+  - Restore leaf.pem, intermediates.pem and certificate-manifest.json from the verified prior immutable release.
+  - No DNS, Keepalived, Pi-hole, lighttpd, passwords, VIP manipulation, certificate renewal or key transfer to the workstation.
+  - No Caddy restart; configuration activation and rollback use reload.
+  - Successful publication remains retained on Node A; completed releases remain immutable.

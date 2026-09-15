@@ -211,6 +211,17 @@ grep -Fxq externally-owned "$root/etc/keepalived/conf.d/caddy-ha.conf"
 /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
     --node node-a --root "$root" >/dev/null
 
+for certificate_file in leaf.pem intermediates.pem fullchain.pem privkey.pem certificate-manifest.json; do
+    mv "$root$bootstrap_selection/tls/$certificate_file" "$work_directory/held-tls"
+    if /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
+        --node node-a --root "$root" >"$work_directory/tls-out" 2>"$work_directory/tls-err"; then
+        printf 'Validator accepted missing TLS file: %s\n' "$certificate_file" >&2
+        exit 1
+    fi
+    grep -Fxq "Missing or invalid installed TLS file: $certificate_file" "$work_directory/tls-err"
+    mv "$work_directory/held-tls" "$root$bootstrap_selection/tls/$certificate_file"
+done
+
 printf 'drift\n' >>"$root/usr/local/libexec/caddy-sync-release-receiver-v2"
 if /bin/bash "$caddy_root/scripts/validate-caddy-ha.sh" \
     --node node-a --root "$root" >/dev/null 2>&1; then

@@ -428,6 +428,32 @@
         "deployment-lifecycle",
         "test-lifecycle"
       ]
+    },
+    "certificate-release": {
+      "description": "Certificate inventory repair, real publication and standby-first deployment with rollback.",
+      "path_patterns": [
+        "Caddy/manifests/certificate-release-inputs.tsv",
+        "Caddy/tests/certificate-release-regression.*"
+      ],
+      "debian_path_patterns": [
+        "Caddy/tests/certificate-release-regression.*"
+      ],
+      "shell_files": [
+        "Caddy/scripts/apply-serving-health-deployment.sh",
+        "Caddy/scripts/run-serving-health-deployment-outer.sh",
+        "Caddy/tests/certificate-release-regression.sh"
+      ],
+      "host_tests": [
+        "Caddy/tests/certificate-release-regression.sh"
+      ],
+      "debian_tests": [
+        "Caddy/tests/certificate-release-regression.sh"
+      ],
+      "policies": [
+        "selected-shell",
+        "accepted-live-hashes",
+        "test-lifecycle"
+      ]
     }
   }
 }

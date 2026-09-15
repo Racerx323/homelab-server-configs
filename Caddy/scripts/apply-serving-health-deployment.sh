@@ -8,6 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
+readonly certificate_inputs_sha256=65fe1c0e375e06f522b7469a9886c096eb093b84d3d6f1288e922baf465eb258
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -938,6 +939,336 @@ validate_split_baseline() {
         require outbound_inventory_empty require_exact_directory_inventory outbound "$outgoing_root" ''
         validate_installed_release
     fi
+}
+
+# Certificate repair uses the existing publication/finalization/reconciliation
+# protocol. TLS secrets stay on the nodes and never enter the uploaded payload.
+certificate_setting() {
+    local cert_key=$1 cert_value
+    cert_value=$(awk -F '\t' -v key="$cert_key" '$1 == key { print $2; found++ } END { if (found != 1) exit 1 }' \
+        "$payload_root/manifests/certificate-release-inputs.tsv") || return 1
+    [[ "$cert_value" =~ ^[A-Za-z0-9._-]+$ ]] || return 1
+    printf '%s\n' "$cert_value"
+}
+
+certificate_hash() {
+    local cert_file=$1 cert_expected=$2
+    regular_file "$cert_file" || return 1
+    [[ "$(sha256sum "$cert_file" | awk '{print $1}')" = "$cert_expected" ]]
+}
+
+certificate_release_integrity() {
+    local cert_release=$1 cert_expected_paths cert_actual_paths cert_marker
+    [[ -d "$cert_release" && ! -L "$cert_release" ]] || return 1
+    [[ -z "$(find "$cert_release" -type l -print -quit)" ]] || return 1
+    [[ -z "$(find "$cert_release" -type f -links +1 -print -quit)" ]] || return 1
+    [[ -z "$(find "$cert_release" ! -type d ! -type f -print -quit)" ]] || return 1
+    path_absent "$cert_release/.complete.pending" || return 1
+    for cert_marker in .complete .finalize-request; do
+        if [[ -e "$cert_release/$cert_marker" ]]; then
+            regular_file "$cert_release/$cert_marker" || return 1
+            [[ ! -s "$cert_release/$cert_marker" ]] || return 1
+        fi
+    done
+    cert_expected_paths=$(awk '{ print substr($0, 67) }' "$cert_release/manifest.sha256" | LC_ALL=C sort) || return 1
+    cert_actual_paths=$(cd "$cert_release" && find . -type f ! -path ./manifest.sha256 \
+        ! -path ./.complete ! -path ./.finalize-request -print | LC_ALL=C sort) || return 1
+    [[ -n "$cert_expected_paths" && "$cert_expected_paths" = "$cert_actual_paths" ]] || return 1
+    (cd "$cert_release" && sha256sum --strict --check manifest.sha256 >/dev/null)
+}
+
+certificate_payload() {
+    local cert_contract=$payload_root/manifests/certificate-release-inputs.tsv
+    local cert_contract_hash=${CADDY_CERTIFICATE_TEST_INPUTS_SHA256:-$certificate_inputs_sha256}
+    if [[ -n "${CADDY_CERTIFICATE_TEST_INPUTS_SHA256:-}" ]]; then
+        [[ "${CADDY_VALIDATION_CONTAINER:-}" = 1 && -f /run/.containerenv ]] || return 1
+    fi
+    certificate_hash "$cert_contract" "$cert_contract_hash" || return 1
+    local cert_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh
+    certificate_hash "$cert_source" "$(certificate_setting publisher_candidate_sha256)"
+}
+
+certificate_baseline() {
+    local cert_base cert_old cert_name
+    cert_base=$releases_root/$(certificate_setting baseline_revision)
+    cert_old=$releases_root/$(certificate_setting tls_source_revision)
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$cert_base" ]]
+    certificate_hash "$cert_base/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)"
+    certificate_hash "$cert_old/manifest.sha256" "$(certificate_setting tls_source_manifest_sha256)"
+    certificate_release_integrity "$cert_base"
+    certificate_release_integrity "$cert_old"
+    for cert_name in fullchain.pem privkey.pem; do
+        cmp -s "$cert_base/tls/$cert_name" "$cert_old/tls/$cert_name"
+    done
+    for cert_name in leaf.pem intermediates.pem certificate-manifest.json; do
+        regular_file "$cert_old/tls/$cert_name"
+        [[ -s "$cert_old/tls/$cert_name" ]]
+    done
+    cmp -s <(openssl x509 -in "$cert_old/tls/leaf.pem" -outform DER) \
+        <(openssl x509 -in "$cert_base/tls/fullchain.pem" -outform DER)
+    openssl x509 -in "$cert_old/tls/leaf.pem" -checkend 2592000 -noout
+    certificate_hash "$(effective_path /usr/local/libexec/check-certificate-expiry.sh)" \
+        "$(certificate_setting checker_sha256)"
+    certificate_hash "$(effective_path /usr/local/libexec/finalize-incoming-release-v2.sh)" \
+        "$(certificate_setting finalizer_sha256)"
+    certificate_hash "$(effective_path /usr/local/libexec/reconcile-release.sh)" \
+        "$(certificate_setting reconciler_sha256)"
+    certificate_hash "$(effective_path /etc/systemd/system/caddy-cert-expiry.service)" \
+        "$(certificate_setting checker_unit_sha256)"
+    certificate_hash "$(effective_path /etc/systemd/system/caddy-sync-reconcile.service)" \
+        "$(certificate_setting reconcile_unit_sha256)"
+}
+
+certificate_serving_check() {
+    local cert_fqdn cert_v4 cert_v6 cert_family cert_address
+    if [[ "$node_role" = node-a ]]; then
+        cert_fqdn=pihole0.local.theama.co cert_v4=10.1.0.53 cert_v6=fd36:5aa8:6971:1::53
+    else
+        cert_fqdn=pihole00.local.theama.co cert_v4=10.1.0.54 cert_v6=fd36:5aa8:6971:1::54
+    fi
+    for cert_family in 4 6; do
+        cert_address=$cert_v4
+        [[ "$cert_family" != 6 ]] || cert_address="[$cert_v6]"
+        capture_command "certificate-serving-ipv$cert_family" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
+            --noproxy '*' "-$cert_family" --silent --show-error --fail \
+            --connect-timeout 3 --max-time 5 --resolve "$cert_fqdn:443:$cert_address" \
+            -o /dev/null -w '%{http_code}\n' "https://$cert_fqdn/healthz"
+        grep -Fxq 200 "$evidence_root/certificate-serving-ipv$cert_family.stdout"
+    done
+}
+
+certificate_preflight() {
+    certificate_payload
+    certificate_baseline
+    certificate_serving_check
+    certificate_hash "$(effective_path /usr/local/libexec/publish-release-v2.sh)" \
+        "$(certificate_setting publisher_baseline_sha256)"
+    ownership_sample
+    "$systemctl_command" is-active --quiet caddy.service caddy-lsyncd.service caddy-sync-reconcile.path
+    # Reuse the production absent/protected-empty namespace predicate.
+    local cert_entry cert_namespace
+    [[ -d "$incoming_root" && ! -L "$incoming_root" ]]
+    [[ "$(stat -c '%U:%G:%a' "$incoming_root")" = caddy-sync:caddy-sync:750 ]]
+    require_empty_or_absent_sync_directory certificate_quarantine "$quarantine_root"
+    for cert_namespace in node-a node-b; do
+        require_empty_or_absent_sync_directory "certificate_incoming_${cert_namespace//-/_}" "$incoming_root/$cert_namespace"
+    done
+    while IFS= read -r -d '' cert_entry; do
+        case "${cert_entry##*/}" in
+            node-a | node-b) ;;
+            .reconcile-trigger)
+                regular_file "$cert_entry"
+                [[ "$(stat -c '%U:%G:%a' "$cert_entry")" = caddy-sync:caddy-sync:640 ]]
+                ;;
+            *) return 1 ;;
+        esac
+    done < <(find "$incoming_root" -mindepth 1 -maxdepth 1 -print0)
+    if [[ "$node_role" = node-b ]]; then
+        require_empty_or_absent_sync_directory certificate_outbound "$outgoing_root"
+    else
+        [[ -d "$outgoing_root" && ! -L "$outgoing_root" ]]
+        [[ "$(stat -c '%U:%G:%a' "$outgoing_root")" = caddy-sync:caddy-sync:750 ]]
+        [[ "$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$(certificate_setting baseline_revision)" ]]
+        certificate_hash "$outgoing_root/$(certificate_setting baseline_revision)/manifest.sha256" \
+            "$(certificate_setting baseline_manifest_sha256)"
+        certificate_release_integrity "$outgoing_root/$(certificate_setting baseline_revision)"
+    fi
+    [[ "$("$systemctl_command" show caddy-lsyncd.service -p KillMode --value)" = control-group ]]
+    capture_command certificate-preflight-service "$systemctl_command" show caddy-cert-expiry.service \
+        -p Result -p ExecMainStatus
+    "$journalctl_command" -n 0 --show-cursor --no-pager | sed -n 's/^-- cursor: //p' \
+        >"$evidence_root/certificate-baseline-cursor.tsv"
+    [[ -s "$evidence_root/certificate-baseline-cursor.tsv" ]]
+}
+
+certificate_install_publisher() {
+    local cert_publisher cert_backup cert_source
+    certificate_payload
+    cert_publisher=$(effective_path /usr/local/libexec/publish-release-v2.sh)
+    cert_backup=$payload_root/publisher.before
+    cert_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh
+    certificate_hash "$cert_publisher" "$(certificate_setting publisher_baseline_sha256)"
+    path_absent "$cert_backup"
+    cp -p -- "$cert_publisher" "$cert_backup"
+    path_absent "$cert_publisher.certificate-new"
+    install -o root -g root -m 0755 "$cert_source" "$cert_publisher.certificate-new"
+    mv -T -- "$cert_publisher.certificate-new" "$cert_publisher"
+    certificate_hash "$cert_publisher" "$(certificate_setting publisher_candidate_sha256)"
+}
+
+certificate_publish() {
+    local cert_stage cert_base cert_old cert_name
+    [[ "$node_role" = node-a ]]
+    certificate_baseline
+    cert_base=$releases_root/$(certificate_setting baseline_revision)
+    cert_old=$releases_root/$(certificate_setting tls_source_revision)
+    cert_stage=$payload_root/certificate-source
+    path_absent "$cert_stage"
+    install -d -m 0700 "$cert_stage"
+    cp -a -- "$cert_base/." "$cert_stage/"
+    chmod -R u+rwX "$cert_stage"
+    for cert_name in leaf.pem intermediates.pem certificate-manifest.json; do
+        install -m 0600 "$cert_old/tls/$cert_name" "$cert_stage/tls/$cert_name"
+    done
+    certificate_hash "$(effective_path /usr/local/libexec/publish-release-v2.sh)" \
+        "$(certificate_setting publisher_baseline_sha256)"
+    capture_command certificate-publish /bin/bash \
+        "$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh" \
+        --source "$cert_stage" --node-role node-a
+    certificate_discover_target
+}
+
+certificate_discover_target() {
+    local cert_base cert_target cert_candidate
+    [[ "$node_role" = node-a ]]
+    cert_base=$(certificate_setting baseline_revision)
+    cert_target=$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -type d ! -name "$cert_base" -printf '%f\n')
+    if [[ -z "$cert_target" ]]; then
+        [[ "$(find "$outgoing_root" -mindepth 1 -maxdepth 1 -printf '%f\n')" = "$cert_base" ]]
+        printf '%s\n' - >"$evidence_root/certificate-target.tsv"
+        return
+    fi
+    release_identifier "$cert_target"
+    cert_candidate=$outgoing_root/$cert_target
+    [[ "$(jq -r .parent_revision "$cert_candidate/release-manifest.json")" = "$cert_base" ]]
+    [[ "$(jq -r .revision "$cert_candidate/release-manifest.json")" = "$cert_target" ]]
+    [[ "$(jq -r .source_node "$cert_candidate/release-manifest.json")" = node-a ]]
+    certificate_verify_candidate "$cert_candidate"
+    printf '%s\n' "$cert_target" >"$evidence_root/certificate-target.tsv"
+}
+
+certificate_verify_candidate() {
+    local cert_candidate=$1 cert_base cert_old cert_name
+    cert_base=$releases_root/$(certificate_setting baseline_revision)
+    cert_old=$releases_root/$(certificate_setting tls_source_revision)
+    certificate_release_integrity "$cert_candidate"
+    cmp -s "$cert_base/Caddyfile" "$cert_candidate/Caddyfile"
+    diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
+    for cert_name in fullchain.pem privkey.pem; do
+        cmp -s "$cert_base/tls/$cert_name" "$cert_candidate/tls/$cert_name"
+    done
+    for cert_name in leaf.pem intermediates.pem certificate-manifest.json; do
+        cmp -s "$cert_old/tls/$cert_name" "$cert_candidate/tls/$cert_name"
+    done
+    [[ "$(find "$cert_candidate/tls" -mindepth 1 -maxdepth 1 -type f | wc -l)" = 5 ]]
+}
+
+certificate_promote() {
+    local cert_incoming cert_stage
+    [[ "$node_role" = node-a ]]
+    release_identifier "$target_revision_argument"
+    certificate_baseline
+    certificate_verify_candidate "$outgoing_root/$target_revision_argument"
+    cert_incoming=$incoming_root/node-a/$target_revision_argument
+    cert_stage=$incoming_root/node-a/.certificate-$target_revision_argument
+    path_absent "$cert_incoming"
+    path_absent "$cert_stage"
+    install -d -o "$sync_user" -g "$sync_group" -m 0750 "$incoming_root/node-a"
+    cp -a "$outgoing_root/$target_revision_argument" "$cert_stage"
+    chown -R "$sync_user:$sync_group" "$cert_stage"
+    mv -T "$cert_stage" "$cert_incoming"
+    capture_command certificate-finalize "$runuser_command" -u "$sync_user" -- \
+        "$finalizer_command" --source-role node-a
+    capture_command certificate-reconcile "$systemctl_command" start caddy-sync-reconcile.service
+}
+
+certificate_accept() {
+    local cert_attempt cert_current cert_cursor
+    release_identifier "$target_revision_argument"
+    cert_current=$(effective_path /etc/caddy/current)
+    for ((cert_attempt = 0; cert_attempt < 60; cert_attempt++)); do
+        [[ "$(readlink -f "$cert_current")" != "$releases_root/$target_revision_argument" ]] || break
+        "$sleep_command" 1
+    done
+    [[ "$(readlink -f "$cert_current")" = "$releases_root/$target_revision_argument" ]]
+    certificate_verify_candidate "$releases_root/$target_revision_argument"
+    cert_cursor=$("$journalctl_command" -n 0 --show-cursor --no-pager | sed -n 's/^-- cursor: //p')
+    [[ -n "$cert_cursor" ]]
+    capture_command certificate-checker-start "$systemctl_command" start caddy-cert-expiry.service
+    capture_command certificate-checker-result "$systemctl_command" show caddy-cert-expiry.service \
+        -p Result -p ExecMainStatus
+    grep -Fxq Result=success "$evidence_root/certificate-checker-result.stdout"
+    grep -Fxq ExecMainStatus=0 "$evidence_root/certificate-checker-result.stdout"
+    capture_command certificate-checker-journal "$journalctl_command" --after-cursor "$cert_cursor" \
+        -u caddy-cert-expiry.service --no-pager -n 100
+    "$systemctl_command" is-active --quiet caddy.service caddy-lsyncd.service caddy-sync-reconcile.path
+    ownership_sample
+    certificate_serving_check
+    capture_command certificate-ownership-journal "$journalctl_command" \
+        --after-cursor "$(<"$evidence_root/certificate-baseline-cursor.tsv")" \
+        -u keepalived.service --no-pager -n 100
+    [[ "$(wc -l <"$evidence_root/certificate-ownership-journal.stdout")" -lt 100 ]]
+    if grep -Eiq '(Entering|Transition.*to).*(MASTER|BACKUP|FAULT|STOP)' "$evidence_root/certificate-ownership-journal.stdout"; then
+        return 1
+    fi
+    sha256sum "$releases_root/$target_revision_argument/manifest.sha256" >"$evidence_root/certificate-manifest.tsv"
+}
+
+certificate_contain_publication() {
+    [[ "$node_role" = node-a ]]
+    release_identifier "$target_revision_argument"
+    # Stop the sender before disposing its exact publication and rolling back B.
+    "$systemctl_command" stop caddy-lsyncd.service
+    [[ "$("$systemctl_command" show caddy-lsyncd.service -p MainPID --value)" = 0 ]]
+    certificate_verify_candidate "$outgoing_root/$target_revision_argument"
+    rm -rf -- "${outgoing_root:?}/${target_revision_argument:?}"
+}
+
+certificate_rollback() {
+    local cert_current cert_base cert_selected cert_publisher cert_backup cert_incoming
+    cert_current=$(effective_path /etc/caddy/current)
+    cert_base=$releases_root/$(certificate_setting baseline_revision)
+    cert_selected=$(readlink -f "$cert_current")
+    if [[ "$target_revision_argument" != - ]]; then
+        release_identifier "$target_revision_argument"
+        [[ "$cert_selected" = "$cert_base" || "$cert_selected" = "$releases_root/$target_revision_argument" ]]
+        # Reconciliation is serialized by systemd; wait for any active invocation
+        # before inspecting/discarding this operation's pending candidate.
+        "$systemctl_command" stop caddy-sync-reconcile.service
+        cert_incoming=$incoming_root/node-a/$target_revision_argument
+        if [[ -e "$cert_incoming" || -L "$cert_incoming" ]]; then
+            [[ -d "$cert_incoming" && ! -L "$cert_incoming" ]]
+            rm -rf -- "$cert_incoming"
+        fi
+        cert_incoming=$incoming_root/node-a/.certificate-$target_revision_argument
+        if [[ -e "$cert_incoming" || -L "$cert_incoming" ]]; then
+            [[ -d "$cert_incoming" && ! -L "$cert_incoming" ]]
+            rm -rf -- "$cert_incoming"
+        fi
+        if [[ "$cert_selected" != "$cert_base" ]]; then
+            certificate_hash "$cert_base/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)"
+            certificate_release_integrity "$cert_base"
+            path_absent "$cert_current.certificate-rollback"
+            ln -s "$cert_base" "$cert_current.certificate-rollback"
+            mv -Tf "$cert_current.certificate-rollback" "$cert_current"
+            capture_command certificate-rollback-reload "$systemctl_command" reload caddy.service
+        fi
+    else
+        [[ "$cert_selected" = "$cert_base" ]]
+    fi
+    cert_publisher=$(effective_path /usr/local/libexec/publish-release-v2.sh)
+    cert_backup=$payload_root/publisher.before
+    if [[ -e "$cert_backup" || -L "$cert_backup" ]]; then
+        certificate_hash "$cert_backup" "$(certificate_setting publisher_baseline_sha256)"
+        if ! certificate_hash "$cert_publisher" "$(certificate_setting publisher_baseline_sha256)"; then
+            certificate_hash "$cert_publisher" "$(certificate_setting publisher_candidate_sha256)"
+        fi
+        if [[ -e "$cert_publisher.certificate-new" || -L "$cert_publisher.certificate-new" ]]; then
+            certificate_hash "$cert_publisher.certificate-new" "$(certificate_setting publisher_candidate_sha256)"
+            rm -- "$cert_publisher.certificate-new"
+        fi
+        path_absent "$cert_publisher.certificate-restore"
+        install -o root -g root -m 0755 "$cert_backup" "$cert_publisher.certificate-restore"
+        mv -T "$cert_publisher.certificate-restore" "$cert_publisher"
+    fi
+    certificate_baseline
+    "$systemctl_command" is-active --quiet caddy.service
+    ownership_sample
+    certificate_serving_check
+    capture_command certificate-rollback-selection readlink -f "$cert_current"
+    capture_command certificate-rollback-publisher sha256sum "$cert_publisher"
+    # The rollback baseline has the known missing-leaf defect. Do not claim
+    # certificate-monitor recovery or start that failing worker on rollback.
 }
 
 validate_payload() {
@@ -3250,6 +3581,12 @@ production_path_test_namespace_case() {
 }
 
 web_health_unit_production_path_test() {
+    local cert_test_repository
+    cert_test_repository=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+    if grep -Fxq 'scope: certificate-release-repair' "$cert_test_repository/Caddy/manifests/serving-health-operation.yaml"; then
+        [[ "${CADDY_VALIDATION_CONTAINER:-}" = 1 && -f /run/.containerenv ]] || return 64
+        exec python3 "$cert_test_repository/Caddy/tests/certificate-release-regression.py" --entrypoint transaction
+    fi
     local serving_health_test_root=${CADDY_PRODUCTION_PATH_EVIDENCE_ROOT:?missing evidence root}
     local serving_health_repo_root=$1
     local serving_health_payload=$serving_health_test_root/payload
@@ -5340,7 +5677,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5350,6 +5687,26 @@ if [[ "$requested_mode" = external-attribution-capture ]]; then
     exit
 fi
 [[ "$node_role" =~ ^node-[ab]$ ]]
+if [[ "$mode" = certificate-* ]]; then
+    certificate_payload
+    case "$mode" in
+        certificate-preflight) certificate_preflight ;;
+        certificate-install-publisher) certificate_install_publisher ;;
+        certificate-publish) certificate_publish ;;
+        certificate-discover-target) certificate_discover_target ;;
+        certificate-promote) certificate_promote ;;
+        certificate-accept) certificate_accept ;;
+        certificate-contain-publication) certificate_contain_publication ;;
+        certificate-rollback) certificate_rollback ;;
+        certificate-resume-publication)
+            [[ "$node_role" = node-a ]]
+            "$systemctl_command" start caddy-lsyncd.service
+            "$systemctl_command" is-active --quiet caddy-lsyncd.service
+            ;;
+        *) exit 64 ;;
+    esac
+    exit
+fi
 validate_payload
 
 case "$mode" in

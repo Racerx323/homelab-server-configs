@@ -46,6 +46,16 @@ resilience plan for secret input, health/ownership correlation, and limits.
 
 The completed authentication migration scripts, transaction modes, and deployment
 qualification fixtures are archived in the pushed tags in [HISTORY.md](../HISTORY.md).
-The current deployment stream is clean. The login validator remains available for
+The current deployment stream is terminal-pending after the certificate repair preflight rejected HTTP 204 before mutation.
+The login validator remains available for
 accepted-production validation under the authentication and ownership procedure;
 no archived deployment is registered or executable through the outer runner.
+
+The certificate repair uses the same neutral transaction and outer runner. Its
+payload contains only the publisher and `certificate-release-inputs.tsv`; TLS
+material stays on the nodes. Node A publishes using the uploaded publisher,
+Node B is accepted first, and only then are Node A's installed publisher and
+serving selection changed. Rollback contains publication before restoring
+selections and publishers in reverse order. Status 125 preserves evidence when
+restoration cannot be proven. See `manifests/serving-health-operation.yaml` for
+the exact scope and `docs/OPERATIONS.md` for qualification.

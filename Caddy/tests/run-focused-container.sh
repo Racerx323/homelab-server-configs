@@ -38,7 +38,7 @@ focused_container_image=$validation_image
 
 select_authentication_container() {
     case ",$1," in
-        *,authentication-resilience,* | *,Caddy/tests/authentication-resilience-integration.sh,* | *,Caddy/tests/authentication-secret-regression.sh,*)
+        *,certificate-release,* | *,Caddy/tests/certificate-release-regression.sh,* | *,authentication-resilience,* | *,Caddy/tests/authentication-resilience-integration.sh,* | *,Caddy/tests/authentication-secret-regression.sh,*)
             focused_container_image=localhost/caddy-auth-validation:latest
             ;;
     esac

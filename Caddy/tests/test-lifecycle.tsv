@@ -40,3 +40,5 @@ Caddy/tests/authentication-resilience-integration.py	production-current	support	
 Caddy/tests/authentication-resilience-integration.sh	production-current	current-focused	current-production-validation
 Caddy/tests/authentication-secret-regression.py	production-current	support	current-production-validation
 Caddy/tests/authentication-secret-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/certificate-release-regression.sh	production-current	current-focused	current-production-validation
+Caddy/tests/certificate-release-regression.py	production-current	support	current-production-validation

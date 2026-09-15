@@ -133,6 +133,45 @@ openssl x509 -in /etc/caddy/current/tls/leaf.pem \
 Certificate replacement is a new immutable release. Do not overwrite TLS files
 inside the active release.
 
+Every prepared release must retain `tls/leaf.pem`, `tls/intermediates.pem`,
+`tls/fullchain.pem`, `tls/privkey.pem`, and `tls/certificate-manifest.json`,
+including configuration-only releases. The monitored leaf must match the first
+certificate in the serving full chain. Keeping only the full chain and private
+key leaves Caddy serving but breaks the scheduled expiry check.
+
+Release acceptance must run `caddy-cert-expiry.service` on the selected release
+and verify its exit status and cursor-bounded journal on Node B before proceeding
+to Node A. An enabled, active timer does not prove its checker succeeds. Include
+this service invocation in the reviewed deployment operation; do not use a
+diagnostic instruction as authorization for a service transition.
+
+### Certificate-inventory repair qualification
+
+The pending operation is defined in
+[`serving-health-operation.yaml`](../manifests/serving-health-operation.yaml).
+The release recipe pins the current and retained TLS-source manifests and checks
+that the serving full chain and private key are unchanged before copying the
+three missing files. It does not retrieve TLS secrets to the workstation.
+
+Run the `certificate-release` container profile, retain its evidence outside
+workstation `/tmp`, then set `CADDY_CERTIFICATE_QUALIFICATION_ROOT` to the retained
+`certificate-release` directory when running
+`tests/deployable-successor-policy.sh --authorization-ready`. Qualification
+checks the current source graph and raw results; definition checks alone do not
+permit deployment. The live command, from the repository root, is:
+
+```bash
+/bin/bash Caddy/scripts/run-serving-health-deployment-outer.sh
+```
+
+Bind live authorization to that runner's exact SHA-256 after qualification.
+The operation verifies workstation IPv4/IPv6 connectivity before remote changes,
+accepts Node B before changing Node A's installed publisher or serving release,
+and checks for ownership transitions in cursor-bounded journals. A rollback
+restores the previous serving release and publisher scripts, but the old release
+still has the known missing-leaf defect. Status 125 means recovery was not proven;
+retain the evidence and do not repeat the mutation command.
+
 ## Synchronization and release retention
 
 ```bash

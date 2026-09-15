@@ -61,4 +61,19 @@ and certificates are synthetic and remain inside the fixture.
 Completed migration publication, activation, rollback, outer-runner qualification,
 and evidence-policy tests are available only through the pushed archive tags.
 Current tests do not replay those operations. The neutral deployment policy checks
-that the current stream is clean and the operation specification is inactive.
+that the registered stream and operation specification agree.
+
+`certificate-release` runs in the Python-enabled Debian validation image. It
+executes the real outer runner, payload upload/readback helpers, transaction,
+publisher, finalizer, reconciler and expiry checker against synthetic node
+filesystems. Transport switches node filesystems; service-manager responses and
+journals follow the commands that change their state. The suite checks normal
+acceptance, preflight rejection, failed worker/reload paths, evidence corruption,
+ownership transitions and unproven rollback. It retains command streams and node
+snapshots for independent qualification verification.
+
+For this scope, `deployable-successor-policy.sh --check` checks the definition.
+`--authorization-ready` additionally requires `CADDY_CERTIFICATE_QUALIFICATION_ROOT`
+to identify the retained `certificate-release` evidence directory. It verifies
+that evidence against the current source graph, node snapshots, readback hashes
+and coverage decisions. A host-only deferral is not qualification.
