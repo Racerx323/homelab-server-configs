@@ -225,7 +225,8 @@ serving checks. Its live execution requires its own exact bundle authorization.
 ## Certificate inventory restoration, 2026-09-15
 
 - Operation: `20260915-certificate-health-contract`
-- Status: terminal-pending
+- Status: archived
+- Archive: annotated tag pushed for terminal commit `43d61b4`
 - Result: accepted; standby Node B before primary Node A
 - Tag: `caddy-certificate-repair-terminal-2026-09-15`
 - Authorized outer SHA-256:
@@ -247,3 +248,7 @@ and temporary payload disposition returned 0. Rollback was not needed.
 Protected source, qualification and live evidence: `/home/aaron/code/.caddy-evidence/certificate-repair-b8b7ef083dfb`.
 The exact executed operation remains unchanged for archival; accepted identities
 and current release records reflect the successful repair.
+
+Archive cleanup removed the terminal result and consumed recipe values, reset
+the operation to inactive, and returned the deployment stream to clean. Neutral
+repair tools and qualification tests remain; there is no deployable operation.

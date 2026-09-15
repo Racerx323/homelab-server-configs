@@ -1,8 +1,8 @@
 # Caddy production manifests
 
-This directory contains current production contracts and one accepted
-certificate-inventory repair awaiting archival. Accepted identities record
-live acceptance.
+This directory contains current production contracts and an inactive operation
+specification. The deployment stream is clean; accepted identities reference
+the pushed certificate-repair archive.
 
 | File | Purpose |
 | --- | --- |
@@ -21,8 +21,8 @@ live acceptance.
 | `serving-health-production.tsv` | Current accepted serving-health artifacts |
 | `deployable-successor.tsv` | Single live successor registry |
 | `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
-| `serving-health-operation.yaml` | Single operation specification; currently the standby-first certificate-inventory repair |
-| `certificate-release-inputs.tsv` | Pinned release baselines, retained TLS source, publisher identities and checker identity for the replacement repair |
+| `serving-health-operation.yaml` | Inactive operation specification; no live operation is defined |
+| `certificate-release-inputs.tsv` | Empty recipe schema; a future repair must define and qualify fresh input identities |
 | `serving-health-quarantine-baseline.tsv` | Canonical empty quarantine inventory; historical trees are retained only in tagged history |
 | `dependencies.yaml` | Package, command, cross-repository, external-input, and rebuild-gap contract |
 

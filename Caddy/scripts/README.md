@@ -46,12 +46,12 @@ resilience plan for secret input, health/ownership correlation, and limits.
 
 The completed authentication migration scripts, transaction modes, and deployment
 qualification fixtures are archived in the pushed tags in [HISTORY.md](../HISTORY.md).
-The current deployment stream is terminal-pending after successful certificate-inventory repair on both nodes.
+The current deployment stream is clean after archival of the accepted certificate repair.
 The login validator remains available for
 accepted-production validation under the authentication and ownership procedure;
 no archived deployment is registered or executable through the outer runner.
 
-The certificate repair uses the same neutral transaction and outer runner. Its
+A future certificate repair uses the same neutral transaction and outer runner. Its
 payload contains only the publisher and `certificate-release-inputs.tsv`; TLS
 material stays on the nodes. Node A publishes using the uploaded publisher,
 Node B is accepted first, and only then are Node A's installed publisher and

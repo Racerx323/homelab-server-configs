@@ -22,6 +22,5 @@ Caddy/manifests/systemd-lifecycle.tsv	production-current	yes	Caddy/manifests/REA
 Caddy/manifests/template-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/manifest-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/serving-health-quarantine-baseline.tsv	production-current	yes	Caddy/manifests/current-live-state.tsv
-Caddy/manifests/serving-health-operation.yaml	accepted-executed-definition	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
+Caddy/manifests/serving-health-operation.yaml	production-current	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
 Caddy/manifests/certificate-release-inputs.tsv	production-current	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
-Caddy/manifests/serving-health-terminal-result.yaml	accepted-executed-definition	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md

@@ -314,6 +314,7 @@ def setup(root):
 
 
 def suite():
+    definition_check()
     require_container()
     os.environ["PATH"] = "/usr/sbin:/usr/bin:/sbin:/bin"
     evidence = Path(os.environ.get('CADDY_PRODUCTION_PATH_EVIDENCE_ROOT', str(Path(os.environ.get('CADDY_FOCUSED_EVIDENCE_ROOT', '/evidence')) / 'certificate-release')))
@@ -448,7 +449,7 @@ def definition_check():
     import re
     operation_text = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation_text, re.M))
-    assert fields['scope'] == 'certificate-release-repair'
+    assert fields.get('scope') == 'certificate-release-repair', 'A defined certificate-repair operation is required'
     assert fields['state_contract_sha256'] == digest(REPO/fields['state_contract'])
     assert fields['production_contract_sha256'] == digest(REPO/fields['production_contract'])
     assert fields['status'] == 'defined-unexecuted'

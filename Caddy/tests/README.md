@@ -63,7 +63,9 @@ and evidence-policy tests are available only through the pushed archive tags.
 Current tests do not replay those operations. The neutral deployment policy checks
 that the registered stream and operation specification agree.
 
-`certificate-release` runs in the Python-enabled Debian validation image. It
+`certificate-release` requires a defined certificate-repair operation with pinned
+inputs. It is unavailable while the stream is clean. When defined, it runs in
+the Python-enabled Debian validation image and
 executes the real outer runner, payload upload/readback helpers, transaction,
 publisher, finalizer, reconciler and expiry checker against synthetic node
 filesystems. Transport switches node filesystems; service-manager responses and

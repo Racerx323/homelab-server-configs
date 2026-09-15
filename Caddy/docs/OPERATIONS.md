@@ -147,9 +147,10 @@ diagnostic instruction as authorization for a service transition.
 
 ### Certificate-inventory repair qualification
 
-The pending operation is defined in
+No certificate repair is currently defined. For a future repair, define and
+qualify one operation in
 [`serving-health-operation.yaml`](../manifests/serving-health-operation.yaml).
-The release recipe pins the current and retained TLS-source manifests and checks
+Populate the empty release recipe with freshly verified identities. The recipe pins the current and retained TLS-source manifests and checks
 that the serving full chain and private key are unchanged before copying the
 three missing files. It does not retrieve TLS secrets to the workstation.
 
