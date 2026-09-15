@@ -46,7 +46,7 @@ resilience plan for secret input, health/ownership correlation, and limits.
 
 The completed authentication migration scripts, transaction modes, and deployment
 qualification fixtures are archived in the pushed tags in [HISTORY.md](../HISTORY.md).
-The current deployment stream contains the defined replacement certificate-inventory repair.
+The current deployment stream is terminal-pending after successful certificate-inventory repair on both nodes.
 The login validator remains available for
 accepted-production validation under the authentication and ownership procedure;
 no archived deployment is registered or executable through the outer runner.

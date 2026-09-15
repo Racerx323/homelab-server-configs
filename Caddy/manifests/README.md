@@ -1,7 +1,7 @@
 # Caddy production manifests
 
-This directory contains current production contracts and one defined, unexecuted
-certificate-inventory repair. Accepted deployed identities remain unchanged until
+This directory contains current production contracts and one accepted
+certificate-inventory repair awaiting archival. Accepted identities record
 live acceptance.
 
 | File | Purpose |

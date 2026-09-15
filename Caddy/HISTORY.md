@@ -221,3 +221,29 @@ qualify a replacement bundle before requesting its exact live authorization.
 
 Archive cleanup registers one replacement operation with corrected HTTP 204
 serving checks. Its live execution requires its own exact bundle authorization.
+
+## Certificate inventory restoration, 2026-09-15
+
+- Operation: `20260915-certificate-health-contract`
+- Status: terminal-pending
+- Result: accepted; standby Node B before primary Node A
+- Tag: `caddy-certificate-repair-terminal-2026-09-15`
+- Authorized outer SHA-256:
+  `b8b7ef083dfbddfb8519705b7a40d4f0765043f11a1391575ad0ee168c6d025f` <!-- gitleaks:allow public deployment SHA-256 -->
+- Authorized source commit: `1b7d92e`
+
+Both nodes now select `20260915T145938Z-ac83de9a-42dd-4c8f-8d87-582ce52c7c85`,
+payload manifest `8bf60cce81615c254262611ad7dde80cf5719e0b30f7679aade2f2556a11d22d`.
+The release restores leaf.pem, intermediates.pem and certificate-manifest.json
+from the verified prior release. Current configuration, fullchain and private
+key bytes were preserved. Both publishers now enforce complete TLS inventory.
+
+The actual certificate service passed on both nodes with Result=success and
+ExecMainStatus=0. IPv4 and IPv6 HTTPS /healthz returned 204 on both nodes.
+Node A remained master with all four VIPs; Node B remained backup with zero.
+Cursor-bounded journals recorded no ownership transition. Every outer phase
+and temporary payload disposition returned 0. Rollback was not needed.
+
+Protected source, qualification and live evidence: `/home/aaron/code/.caddy-evidence/certificate-repair-b8b7ef083dfb`.
+The exact executed operation remains unchanged for archival; accepted identities
+and current release records reflect the successful repair.

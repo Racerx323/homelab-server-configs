@@ -43,10 +43,11 @@ related_repositories:
     remote: https://github.com/Racerx323/homelab-notification.git
     baseline: 8d5b718efe4f73aa7e594f460267c3af70dec8fa
 accepted_production:
-  archive_tag: caddy-authentication-inventory-terminal-2026-09-14
-  payload_manifest_sha256: 6a1385491cbc36d4fcb07a794553316d0f4bc8193465e45c5fa42b350ea35f88
-  stream_state: defined
-  successor_state: defined-unexecuted
+  last_pushed_archive_tag: caddy-certificate-preflight-terminal-2026-09-15
+  acceptance_record: Caddy/manifests/serving-health-terminal-result.yaml
+  payload_manifest_sha256: 8bf60cce81615c254262611ad7dde80cf5719e0b30f7679aade2f2556a11d22d
+  stream_state: terminal-pending
+  successor_state: none
 current_planned_repository_project:
   prompt: Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md
   authorization: definition-only
@@ -108,16 +109,15 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
-- All authentication operations are archived. The failed certificate preflight is archived; the replacement repair is defined but unexecuted.
+- All authentication operations are archived. The certificate inventory repair passed on both nodes and awaits terminal archival.
 - Future live procedures must check workstation dual-stack HTTPS before mutation.
 - The governing plan does not authorize live work.
 
-On 2026-09-15 both certificate-expiry services failed because the selected
-release lacks `tls/leaf.pem`. The serving certificate remains valid through
-2027-01-19. The pending operation restores the complete TLS inventory and runs
-the real certificate service on Node B before Node A. Its repository definition
-and qualification are not live recovery; check the stream registry and retained
-evidence before executing it.
+On 2026-09-15 the complete TLS inventory was restored on both nodes, standby
+first. The actual certificate services passed and dual-stack /healthz returned
+204. Configuration, fullchain and private key bytes were preserved; ownership
+remained Node A master and Node B backup. See current-live-state.tsv and the
+terminal result for accepted identities and evidence.
 
 Verify those statements against:
 
@@ -408,7 +408,7 @@ for the accepted transport and health policy,
 for the current procedure, and [HISTORY.md](../HISTORY.md) for terminal provenance.
 Current manifests and production sources record the accepted fix. The operation
 is archived and its consumed inputs are removed. The current specification now
-defines the replacement certificate-inventory repair. Completed migration scripts and qualification fixtures were removed after archival.
+retains the accepted certificate repair pending terminal archival. Completed migration scripts and qualification fixtures were removed after archival.
 Retained tests validate accepted production source and authentication behavior. Evidence
 is protected outside workstation `/tmp`.
 
