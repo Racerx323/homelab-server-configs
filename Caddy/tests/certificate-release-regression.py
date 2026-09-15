@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import shlex
+import re
 
 REPO = Path(__file__).resolve().parents[2]
 SCENARIOS = ['success', 'namespace-absent', 'worker-failure', 'primary-worker-failure',
@@ -43,6 +44,14 @@ def digest(path):
 
 def run(args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
+
+
+def health_response(release):
+    """Read the response from the selected production fragment, not the probe."""
+    text = (release/'conf.d/10-pihole-admin.caddy').read_text()
+    matches = re.findall(r'@caddy_health\s+path\s+/healthz\s+handle\s+@caddy_health\s*\{\s*respond\s+(\d{3})\s*\}', text)
+    assert len(matches) == 1, 'Ambiguous or unsupported health endpoint contract'
+    return matches[0]
 
 
 def require_container():
@@ -161,7 +170,8 @@ def adapter(name, args):
         selected = Path(os.readlink(view/'current')).name
         assert (view/'releases'/selected/'Caddyfile').is_file()
         assert (view/'releases'/selected/'tls/fullchain.pem').is_file()
-        print('200')
+        assert args[-1].endswith('/healthz')
+        print(health_response(view/'releases'/selected))
         return 0
     value = state()
     role = active_role()
@@ -434,6 +444,7 @@ def suite():
 
 
 def definition_check():
+    assert health_response(REPO/'Caddy/configs/caddy') == '204'
     import re
     operation_text = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation_text, re.M))
@@ -513,7 +524,7 @@ def verify_evidence(evidence):
                 assert set(records['certificate-checker-result.stdout'].splitlines()) == {'Result=success', 'ExecMainStatus=0'}
                 assert records['certificate-checker-journal.stdout'].strip()
                 for family in [4, 6]:
-                    assert records[f'certificate-serving-ipv{family}.stdout'] == '200\n'
+                    assert records[f'certificate-serving-ipv{family}.stdout'] == health_response(candidate) + '\n'
                     assert records[f'certificate-serving-ipv{family}.status'] == '0\n'
             else:
                 assert selected == '/etc/caddy/releases/baseline'

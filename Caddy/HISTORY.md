@@ -195,7 +195,8 @@ deployment operation is registered.
 ## Certificate inventory repair preflight, 2026-09-15
 
 - Operation: `20260915-certificates`
-- Status: terminal-pending
+- Status: archived
+- Archive: annotated tag pushed for terminal commit `0613b89`
 - Result: failed-consumed; workstation preflight stopped before any upload or mutation
 - Tag: `caddy-certificate-preflight-terminal-2026-09-15`
 - Authorized outer SHA-256:
@@ -217,3 +218,6 @@ Protected source, qualification and live evidence are under
 After archival, correct the expected HTTP status in both entrypoints and derive
 the fixture response from the accepted production endpoint contract, then
 qualify a replacement bundle before requesting its exact live authorization.
+
+Archive cleanup registers one replacement operation with corrected HTTP 204
+serving checks. Its live execution requires its own exact bundle authorization.

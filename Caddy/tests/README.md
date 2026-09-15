@@ -70,7 +70,9 @@ filesystems. Transport switches node filesystems; service-manager responses and
 journals follow the commands that change their state. The suite checks normal
 acceptance, preflight rejection, failed worker/reload paths, evidence corruption,
 ownership transitions and unproven rollback. It retains command streams and node
-snapshots for independent qualification verification.
+snapshots for independent qualification verification. The HTTPS substitute reads
+the `/healthz` response from each selected production fragment; workstation,
+node and readback acceptance require HTTP 204.
 
 For this scope, `deployable-successor-policy.sh --check` checks the definition.
 `--authorization-ready` additionally requires `CADDY_CERTIFICATE_QUALIFICATION_ROOT`

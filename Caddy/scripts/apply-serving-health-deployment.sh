@@ -1033,7 +1033,7 @@ certificate_serving_check() {
             --noproxy '*' "-$cert_family" --silent --show-error --fail \
             --connect-timeout 3 --max-time 5 --resolve "$cert_fqdn:443:$cert_address" \
             -o /dev/null -w '%{http_code}\n' "https://$cert_fqdn/healthz"
-        grep -Fxq 200 "$evidence_root/certificate-serving-ipv$cert_family.stdout"
+        grep -Fxq 204 "$evidence_root/certificate-serving-ipv$cert_family.stdout"
     done
 }
 

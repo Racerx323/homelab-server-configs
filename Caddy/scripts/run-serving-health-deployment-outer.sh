@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=43665a5b12a71593c89c62a2ffc4cce4c71fb65ba5e24dd37dfbd31054f6f680
-readonly operation_sha256=1bc4069e408db388a8fb3884dc9724daac4557aa7e9eadb12897b88c46e62cda
+readonly transaction_sha256=b0f5838eda773b35bedd9896487afc4bbb8c356444a05fbb31e711502339bfb3
+readonly operation_sha256=0b1d5b14809d38bb040cf200e47747bf910b96b2e61dd09646fea6222e54de02
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -879,8 +879,8 @@ certificate_readback_acceptance() {
     for cert_file in "$cert_dir"/*.status; do
         [[ "$(<"$cert_file")" = 0 ]] || return 1
     done
-    [[ "$(<"$cert_dir/certificate-serving-ipv4.stdout")" = 200 &&
-    "$(<"$cert_dir/certificate-serving-ipv6.stdout")" = 200 ]] || return 1
+    [[ "$(<"$cert_dir/certificate-serving-ipv4.stdout")" = 204 &&
+    "$(<"$cert_dir/certificate-serving-ipv6.stdout")" = 204 ]] || return 1
     grep -Fxq Result=success "$cert_dir/certificate-checker-result.stdout" || return 1
     grep -Fxq ExecMainStatus=0 "$cert_dir/certificate-checker-result.stdout" || return 1
     [[ -s "$cert_dir/certificate-checker-journal.stdout" ]] || return 1
@@ -930,7 +930,7 @@ certificate_workstation_preflight() {
                 --noproxy '*' "-$cert_family" --silent --show-error --fail \
                 --connect-timeout 3 --max-time 5 --resolve "$cert_fqdn:443:$cert_address" \
                 -o /dev/null -w '%{http_code}\n' "https://$cert_fqdn/healthz" || return 1
-            [[ "$(<"$workstation_evidence/certificate-workstation-$cert_role-ipv$cert_family.stdout")" = 200 ]] || return 1
+            [[ "$(<"$workstation_evidence/certificate-workstation-$cert_role-ipv$cert_family.stdout")" = 204 ]] || return 1
         done
     done
 }

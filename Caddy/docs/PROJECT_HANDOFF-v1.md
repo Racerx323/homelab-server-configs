@@ -45,8 +45,8 @@ related_repositories:
 accepted_production:
   archive_tag: caddy-authentication-inventory-terminal-2026-09-14
   payload_manifest_sha256: 6a1385491cbc36d4fcb07a794553316d0f4bc8193465e45c5fa42b350ea35f88
-  stream_state: terminal-pending
-  successor_state: none
+  stream_state: defined
+  successor_state: defined-unexecuted
 current_planned_repository_project:
   prompt: Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md
   authorization: definition-only
@@ -108,7 +108,7 @@ Current project status:
 - Do not restore or create action-numbered implementation artifacts.
 - The failed Node B authentication operation is archived in its pushed terminal tag.
 - Both nodes retain the fixed release and monitor; Node A and shared-URL login acceptance passed.
-- All authentication operations are archived. The certificate-inventory repair failed workstation preflight before mutation and awaits archival.
+- All authentication operations are archived. The failed certificate preflight is archived; the replacement repair is defined but unexecuted.
 - Future live procedures must check workstation dual-stack HTTPS before mutation.
 - The governing plan does not authorize live work.
 
@@ -408,7 +408,7 @@ for the accepted transport and health policy,
 for the current procedure, and [HISTORY.md](../HISTORY.md) for terminal provenance.
 Current manifests and production sources record the accepted fix. The operation
 is archived and its consumed inputs are removed. The current specification now
-retains the consumed certificate-inventory repair pending archival. Completed migration scripts and qualification fixtures were removed after archival.
+defines the replacement certificate-inventory repair. Completed migration scripts and qualification fixtures were removed after archival.
 Retained tests validate accepted production source and authentication behavior. Evidence
 is protected outside workstation `/tmp`.
 
