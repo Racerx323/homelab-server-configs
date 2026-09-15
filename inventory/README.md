@@ -133,3 +133,14 @@ Run the repository checks from the repository root:
 yamllint --strict inventory
 pre-commit run --all-files
 ```
+
+## Storage transport profiles
+
+`storage.root.transport_profile` in an explicit host file selects a shared
+[host-storage profile](../host-storage/README.md). Profiles own the kernel token
+and boot strategy; inventory owns host selection and stable hardware facts.
+The host-storage runner explicitly loads this inventory layout; it does not rely
+on automatic Ansible `host_vars` discovery. Selection enables classification
+by storage type and does not trigger deployment. Unknown hosts remain unselected
+until their hardware is verified. Runtime hashes, backups and boot IDs belong
+in private operation records, not inventory.

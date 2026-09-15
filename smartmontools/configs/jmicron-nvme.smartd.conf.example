@@ -1,0 +1,5 @@
+# TEMPLATE: replace with a verified whole-disk by-id selector, never -partN.
+# Requires a build containing the JMS583 self-test-log workaround.
+# Verify the consumer's approved root mail route and Debian smartd-runner hook.
+# No self-test schedule or device-setting writes are configured here.
+/dev/disk/by-id/REPLACE_WITH_VERIFIED_WHOLE_DISK_ID -d auto -a -m root -M exec /usr/share/smartmontools/smartd-runner

@@ -1,0 +1,12 @@
+---
+id: rpi4-x872-usb-storage
+platform: raspberry_pi_4b
+model_prefix: Raspberry Pi 4 Model B
+architecture: aarch64
+adapter_manufacturer: geekworm
+adapter_model: X872_V2.0
+bridge: '152d:0583'
+boot_file: /boot/firmware/cmdline.txt
+quirk_flag: u
+expected_driver: usb-storage
+filesystem: ext4

@@ -1,0 +1,69 @@
+---
+- name: Preserve and converge the selected boot configuration
+  when: storage_observed.changed
+  block:
+    - name: Check operation backup is unused
+      ansible.builtin.stat:
+        path: "{{ storage_operation.backup_path }}"
+      register: storage_backup
+    - name: Refuse reuse of backup paths
+      ansible.builtin.assert:
+        that: not storage_backup.stat.exists
+    - name: Inspect original metadata before backup
+      ansible.builtin.stat:
+        path: "{{ storage_profile.boot_file }}"
+        checksum_algorithm: sha256
+      register: storage_original_stat
+      become: "{{ storage_privileged | default(true) }}"
+    - name: Refuse stale or symlink backup source
+      ansible.builtin.assert:
+        that:
+          - storage_original_stat.stat.isreg
+          - not storage_original_stat.stat.islnk
+          - storage_original_stat.stat.checksum == storage_operation.expected_boot_sha256
+    - name: Preserve exact original file and metadata
+      ansible.builtin.copy:
+        src: "{{ storage_profile.boot_file }}"
+        dest: "{{ storage_operation.backup_path }}"
+        remote_src: true
+        mode: "{{ storage_original_stat.stat.mode }}"
+        owner: "{{ storage_original_stat.stat.uid }}"
+        group: "{{ storage_original_stat.stat.gid }}"
+      become: "{{ storage_privileged | default(true) }}"
+    - name: Verify preserved backup before mutation
+      ansible.builtin.stat:
+        path: "{{ storage_operation.backup_path }}"
+        checksum_algorithm: sha256
+      register: storage_backup_bytes
+      become: "{{ storage_privileged | default(true) }}"
+    - name: Refuse changed backup source
+      ansible.builtin.assert:
+        that: storage_backup_bytes.stat.checksum == storage_operation.expected_boot_sha256
+    - name: Recheck current file before replacement
+      ansible.builtin.stat:
+        path: "{{ storage_profile.boot_file }}"
+        checksum_algorithm: sha256
+      register: storage_current
+      become: "{{ storage_privileged | default(true) }}"
+    - name: Reject intervening drift or symlink replacement
+      ansible.builtin.assert:
+        that:
+          - storage_current.stat.isreg
+          - not storage_current.stat.islnk
+          - storage_current.stat.checksum == storage_operation.expected_boot_sha256
+    - name: Write only the reviewed quirk change
+      ansible.builtin.copy:
+        content: "{{ storage_observed.proposed_b64 | b64decode }}"
+        dest: "{{ storage_profile.boot_file }}"
+        mode: "{{ storage_backup_bytes.stat.mode }}"
+        owner: "{{ storage_backup_bytes.stat.uid }}"
+        group: "{{ storage_backup_bytes.stat.gid }}"
+      become: "{{ storage_privileged | default(true) }}"
+    - name: Record completed boot mutation separately from convergence
+      ansible.builtin.copy:
+        content: "{{ {'boot_file_written': true, 'expected_sha256': storage_operation.proposed_boot_sha256, 'convergence': 'pending'} | to_nice_json }}"
+        dest: "{{ storage_evidence }}/mutation.json"
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+      no_log: true

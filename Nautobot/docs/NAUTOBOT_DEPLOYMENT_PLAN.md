@@ -408,3 +408,14 @@ rollback boundary, and obtain scoped authorization.
 
 [gat-pihat]: https://shop.poetexas.com/products/gat-pihat
 [x872-v2]: https://geekworm.com/products/x872-v2
+
+## Host transport ownership
+
+[Host storage](../../host-storage/docs/HOST_STORAGE_ARCHITECTURE.md) owns
+root transport, boot configuration, reboot and recovery. Host inventory selects
+the shared hardware/transport profile. `smartmontools/` owns the package workaround,
+SMART collection and smartd policy; `Webmin/` owns temperature polling behavior.
+Nautobot and other Restic consumers retain workload/storage acceptance and
+backup/restore criteria. Transport convergence does not clear those gates.
+Historical Nautobot remediation definitions and evidence remain retained; future
+transport operations use the shared component without modifying active observers.

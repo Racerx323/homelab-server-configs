@@ -1,0 +1,33 @@
+---
+- name: Require reviewed bytes, boot identity, recovery and mutation authority
+  ansible.builtin.assert:
+    that:
+      - storage_operation.authorize_apply | bool
+      - storage_operation.recovery_confirmed | bool
+      - storage_observed.boot_sha256 == storage_operation.expected_boot_sha256
+      - storage_observed.boot_id == storage_operation.expected_boot_id
+      - storage_observed.root_uuid == storage_operation.expected_root_uuid
+      - not storage_observed.reboot_required or storage_operation.authorize_reboot | bool
+
+- name: Require proposed hash and reboot expectation to match this preflight
+  ansible.builtin.assert:
+    that:
+      - storage_observed.proposed_sha256 == storage_operation.proposed_boot_sha256
+      - storage_observed.reboot_required == storage_operation.expect_new_boot
+
+- name: Preserve and write boot bytes
+  ansible.builtin.include_tasks: write.yaml
+
+- name: Reboot only when convergence requires it
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+  become: "{{ storage_privileged | default(true) }}"
+  when: storage_observed.reboot_required
+
+- name: Collect post-apply state
+  ansible.builtin.include_tasks: collect.yaml
+  vars:
+    storage_phase: post-apply
+
+- name: Validate postconditions
+  ansible.builtin.include_tasks: validate.yaml

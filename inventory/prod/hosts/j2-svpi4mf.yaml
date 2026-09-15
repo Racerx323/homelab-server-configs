@@ -16,6 +16,7 @@ hardware:
 
 storage:
   root:
+    transport_profile: rpi4-x872-usb-storage
     capacity_tb: 1
     interface: usb_3
     transport: usb_storage

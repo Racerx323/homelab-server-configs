@@ -195,3 +195,10 @@ The restored hash must be
 After reboot, `/proc/cmdline` must omit the quirk, `/` must remain on
 `/dev/sda2`, and udev must again report `ID_USB_DRIVER=uas`. Retain the backup
 until terminal storage acceptance; do not delete it during immediate cleanup.
+
+## Shared host transport successor
+
+Future boot/USB transport operations use [host-storage](../../host-storage/README.md),
+selected explicitly in host inventory. The original UAS remediation playbook and
+runner remain historical artifacts with their original guards; do not rerun them
+as a fleet installer. Nautobot retains host-baseline and workload acceptance.

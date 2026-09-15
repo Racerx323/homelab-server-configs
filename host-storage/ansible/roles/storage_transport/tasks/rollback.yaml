@@ -1,0 +1,57 @@
+---
+- name: Require explicit recovery authorization and unchanged operation identity
+  ansible.builtin.assert:
+    that:
+      - storage_operation.authorize_rollback | bool
+      - storage_observed.root_uuid == storage_operation.expected_root_uuid
+      - storage_observed.boot_sha256 == storage_operation.proposed_boot_sha256
+
+- name: Inspect retained backup
+  ansible.builtin.stat:
+    path: "{{ storage_operation.backup_path }}"
+    checksum_algorithm: sha256
+  register: storage_backup
+  become: "{{ storage_privileged | default(true) }}"
+
+- name: Verify exact recovery bytes
+  ansible.builtin.assert:
+    that:
+      - storage_backup.stat.isreg
+      - not storage_backup.stat.islnk
+      - storage_backup.stat.checksum == storage_operation.expected_boot_sha256
+
+- name: Restore retained configuration
+  ansible.builtin.copy:
+    src: "{{ storage_operation.backup_path }}"
+    dest: "{{ storage_profile.boot_file }}"
+    remote_src: true
+    mode: "{{ storage_backup.stat.mode }}"
+    owner: "{{ storage_backup.stat.uid }}"
+    group: "{{ storage_backup.stat.gid }}"
+  become: "{{ storage_privileged | default(true) }}"
+
+- name: Verify restored bytes before any separately authorized reboot
+  ansible.builtin.stat:
+    path: "{{ storage_profile.boot_file }}"
+    checksum_algorithm: sha256
+  register: storage_restored
+  become: "{{ storage_privileged | default(true) }}"
+
+- name: Require exact rollback
+  ansible.builtin.assert:
+    that: storage_restored.stat.checksum == storage_operation.expected_boot_sha256
+
+- name: Reboot into restored configuration when authorized
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+  become: "{{ storage_privileged | default(true) }}"
+  when: storage_operation.authorize_reboot | bool
+
+- name: Record exact file recovery and remaining runtime review
+  ansible.builtin.copy:
+    content: "{{ {'file_restored': true, 'sha256': storage_restored.stat.checksum, 'reboot_requested': storage_operation.authorize_reboot, 'runtime_recovery': 'operator_review_required'} | to_nice_json }}"
+    dest: "{{ storage_evidence }}/recovery.json"
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+  no_log: true

@@ -1,0 +1,21 @@
+---
+argument_specs:
+  main:
+    short_description: Explicit single-host storage transport stage
+    options:
+      storage_stage:
+        type: str
+        required: true
+        choices: [preflight, apply, validate, rollback]
+      storage_profile:
+        type: dict
+        required: true
+      storage_host:
+        type: dict
+        required: true
+      storage_operation:
+        type: dict
+        required: true
+      storage_evidence:
+        type: path
+        required: true

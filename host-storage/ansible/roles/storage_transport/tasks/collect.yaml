@@ -1,0 +1,30 @@
+---
+- name: Collect root topology and exact boot bytes without SMART requests
+  ansible.builtin.raw: >-
+    /usr/bin/python3 -c {{ ('import base64; exec(base64.b64decode(' ~
+    (lookup('ansible.builtin.file', role_path ~ '/../../../scripts/transport.py') | b64encode | to_json) ~ '))') | quote }}
+    {{ storage_profile | to_json | b64encode | quote }}
+  register: storage_raw
+  changed_when: false
+  check_mode: false
+
+- name: Decode independently observed storage state
+  ansible.builtin.set_fact:
+    storage_observed: "{{ storage_raw.stdout | trim | from_json }}"
+
+- name: Enforce single host identity
+  ansible.builtin.assert:
+    that:
+      - ansible_play_hosts_all | length == 1
+      - storage_observed.hostname == inventory_hostname
+      - storage_profile.id == storage_host.storage.root.transport_profile
+      - storage_profile.platform == storage_host.hardware.platform
+
+- name: Retain private preflight evidence on the controller
+  ansible.builtin.copy:
+    content: "{{ storage_observed | to_nice_json }}"
+    dest: "{{ storage_evidence }}/{{ storage_phase | default(storage_stage) }}-observed.json"
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+  no_log: true

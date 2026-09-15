@@ -21,11 +21,13 @@ reports and device identifiers remain outside Git.
 
 ## Layout
 
-The current files establish policy before implementation:
+The component contains:
 
 - `AGENTS.md`: scoped editing and execution rules;
 - `docs/SMARTMONTOOLS_ARCHITECTURE.md`: shared architecture authority; and
-- `.gitignore`: runtime report, evidence, and local-state exclusions.
+- `.gitignore`: runtime report, evidence, and local-state exclusions;
+- `configs/`: reviewed APT source and explicit-device monitoring template; and
+- `docs/JMICRON_NVME_PROFILE.md`: qualification, configuration, and rollout procedure.
 
 Add `configs/`, `scripts/`, `schemas/`, `manifests/`, or consumer-specific
 paths only when reviewed content exists.
@@ -36,4 +38,9 @@ Nautobot's storage diagnostic already uses smartctl for read-only health
 collection on `j2-svpi4mf`. That operation remains Nautobot-owned. Future
 shared collection and smartd configuration will use this component's rules.
 
-No live smartd configuration or self-test operation exists in this directory.
+The [JMicron NVMe profile](docs/JMICRON_NVME_PROFILE.md) documents the bridge
+workaround, retained pilot configuration, and upgrade/validation procedure.
+It includes an [explicit-device template](configs/jmicron-nvme.smartd.conf.example)
+and [Debian 13 backports source](configs/trixie-backports.sources).
+Render and qualify them for each host; they are not a fleet deployment manifest.
+No self-test schedule is configured by this profile.

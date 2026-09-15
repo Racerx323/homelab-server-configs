@@ -1,0 +1,84 @@
+---
+- name: Exercise real write and rollback tasks on disposable local files
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    storage_privileged: false
+    storage_evidence: "{{ fixture_dir }}"
+    storage_profile:
+      boot_file: "{{ fixture_dir }}/cmdline.txt"
+    storage_operation:
+      backup_path: "{{ fixture_dir }}/backup"
+      expected_boot_sha256: "{{ original | hash('sha256') }}"
+      proposed_boot_sha256: "{{ proposed | hash('sha256') }}"
+      expected_root_uuid: fixture-root
+      authorize_rollback: true
+      authorize_reboot: false
+    original: "console=tty1  root=UUID=fixture rootwait\n"
+    proposed: "console=tty1  root=UUID=fixture rootwait usb-storage.quirks=152d:0583:u\n"
+    storage_observed:
+      changed: true
+      proposed_b64: "{{ proposed | b64encode }}"
+      root_uuid: fixture-root
+      boot_sha256: "{{ proposed | hash('sha256') }}"
+  tasks:
+    - name: Create original fixture
+      ansible.builtin.copy:
+        content: "{{ original }}"
+        dest: "{{ storage_profile.boot_file }}"
+        mode: '0640'
+    - name: Run production boot-write tasks
+      ansible.builtin.include_tasks: ../ansible/roles/storage_transport/tasks/write.yaml
+    - name: Inspect changed bytes
+      ansible.builtin.stat:
+        path: "{{ storage_profile.boot_file }}"
+        checksum_algorithm: sha256
+      register: changed_file
+    - name: Prove exact write and metadata preservation
+      ansible.builtin.assert:
+        that:
+          - changed_file.stat.checksum == storage_operation.proposed_boot_sha256
+          - changed_file.stat.mode == '0640'
+    - name: Prove no-op does not reuse backup or rewrite
+      ansible.builtin.include_tasks: ../ansible/roles/storage_transport/tasks/write.yaml
+      vars:
+        storage_observed:
+          changed: false
+    - name: Run production rollback tasks without reboot
+      ansible.builtin.include_tasks: ../ansible/roles/storage_transport/tasks/rollback.yaml
+    - name: Inspect restored fixture metadata
+      ansible.builtin.stat:
+        path: "{{ storage_profile.boot_file }}"
+        checksum_algorithm: sha256
+      register: restored_file
+    - name: Prove exact rollback bytes and mode
+      ansible.builtin.assert:
+        that:
+          - restored_file.stat.checksum == storage_operation.expected_boot_sha256
+          - restored_file.stat.mode == '0640'
+
+    - name: Verify a reused backup fails without changing restored bytes
+      block:
+        - name: Attempt production write with existing backup
+          ansible.builtin.include_tasks: ../ansible/roles/storage_transport/tasks/write.yaml
+        - name: Record unexpected write success
+          ansible.builtin.set_fact:
+            unexpected_write_success: true
+      rescue:
+        - name: Record expected backup conflict
+          ansible.builtin.set_fact:
+            rejected_backup_reuse: true
+    - name: Require rejection from production guard
+      ansible.builtin.assert:
+        that:
+          - rejected_backup_reuse | default(false)
+          - not unexpected_write_success | default(false)
+    - name: Read fixture after rejected operation
+      ansible.builtin.stat:
+        path: "{{ storage_profile.boot_file }}"
+        checksum_algorithm: sha256
+      register: rejected_file
+    - name: Prove failure left boot bytes unchanged
+      ansible.builtin.assert:
+        that: rejected_file.stat.checksum == storage_operation.expected_boot_sha256

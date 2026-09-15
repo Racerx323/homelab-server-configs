@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "host",
+    "address",
+    "user",
+    "backup_path",
+    "expected_boot_id",
+    "expected_root_uuid",
+    "authorize_apply",
+    "authorize_reboot",
+    "authorize_rollback",
+    "recovery_confirmed",
+    "expect_new_boot",
+    "expected_boot_sha256",
+    "proposed_boot_sha256"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+    },
+    "host": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9.:-]*$"
+    },
+    "user": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_-]*$"
+    },
+    "backup_path": {
+      "type": "string",
+      "pattern": "^/boot/firmware/cmdline[.]txt[.]host-storage-[a-z0-9-]+[.]bak$"
+    },
+    "expected_boot_id": {
+      "type": "string"
+    },
+    "expected_root_uuid": {
+      "type": "string"
+    },
+    "authorize_apply": {
+      "type": "boolean"
+    },
+    "authorize_reboot": {
+      "type": "boolean"
+    },
+    "authorize_rollback": {
+      "type": "boolean"
+    },
+    "recovery_confirmed": {
+      "type": "boolean"
+    },
+    "expect_new_boot": {
+      "type": "boolean"
+    },
+    "expected_boot_sha256": {
+      "type": "string",
+      "pattern": "^([a-f0-9]{64}|)$"
+    },
+    "proposed_boot_sha256": {
+      "type": "string",
+      "pattern": "^([a-f0-9]{64}|)$"
+    }
+  }
+}

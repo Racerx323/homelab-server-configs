@@ -1,0 +1,7 @@
+---
+- name: Collect and check selected host facts
+  ansible.builtin.include_tasks: collect.yaml
+
+- name: Execute the explicitly selected stage
+  ansible.builtin.include_tasks: "{{ storage_stage }}.yaml"
+  when: storage_stage != 'preflight'

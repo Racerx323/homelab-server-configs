@@ -1,0 +1,40 @@
+---
+- name: Verify persistent and active transport with root continuity
+  ansible.builtin.assert:
+    that:
+      - not storage_observed.changed
+      - not storage_observed.reboot_required
+      - storage_observed.root_uuid == storage_operation.expected_root_uuid
+      - storage_observed.boot_sha256 == storage_operation.proposed_boot_sha256
+      - not storage_operation.expect_new_boot or storage_observed.boot_id != storage_operation.expected_boot_id
+
+- name: Read complete current boot kernel context
+  ansible.builtin.command:
+    argv: [journalctl, --boot, --dmesg, --no-pager, --output=short-monotonic]
+  become: "{{ storage_privileged | default(true) }}"
+  changed_when: false
+  register: storage_kernel
+
+- name: Retain bounded kernel context for operator review
+  ansible.builtin.copy:
+    content: "{{ storage_kernel.stdout[:262144] }}"
+    dest: "{{ storage_evidence }}/kernel-review.txt"
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+  no_log: true
+
+- name: Reject truncated evidence or storage warning signatures
+  ansible.builtin.assert:
+    that:
+      - storage_kernel.stdout | length < 262144
+      - storage_kernel.stdout is not regex('(?i)(reset .*USB|I/O error|Buffer I/O|EXT4-fs error|uas_eh|device offline|rejecting I/O)')
+
+- name: Record transport checks separately from storage acceptance
+  ansible.builtin.copy:
+    content: "{{ {'transport_checks': 'passed', 'kernel_review': 'operator_required', 'storage_accepted': false} | to_nice_json }}"
+    dest: "{{ storage_evidence }}/validation.json"
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+  no_log: true

@@ -65,3 +65,14 @@ strict checks. This revised rule does not rewrite earlier checkpoint results.
 
 See [PATCHED_POLLING_TRIAL.md](PATCHED_POLLING_TRIAL.md) for execution and reporting.
 Upgrading smartmontools is a separate intervention after reviewing patch results.
+
+## Host transport ownership
+
+[Host storage](../../host-storage/docs/HOST_STORAGE_ARCHITECTURE.md) owns
+root transport, boot configuration, reboot and recovery. Host inventory selects
+the shared hardware/transport profile. `smartmontools/` owns the package workaround,
+SMART collection and smartd policy; `Webmin/` owns temperature polling behavior.
+Nautobot and other Restic consumers retain workload/storage acceptance and
+backup/restore criteria. Transport convergence does not clear those gates.
+Historical Nautobot remediation definitions and evidence remain retained; future
+transport operations use the shared component without modifying active observers.

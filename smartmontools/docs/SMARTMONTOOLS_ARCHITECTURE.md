@@ -8,8 +8,8 @@ membership, workload limits, alert routing, collection intervals, self-test
 schedules, and health acceptance.
 
 The first consumer is Nautobot on `j2-svpi4mf`. Its deployment plan remains the
-authority for the JMicron USB-to-NVMe storage path and Nautobot host
-acceptance.
+authority for Nautobot host and workload acceptance. `host-storage/` owns
+implementation of the selected USB transport profile.
 
 ## Ownership
 
@@ -109,8 +109,30 @@ kernel or service errors for the operation window.
 
 ## References
 
+The approved [JMicron NVMe profile](JMICRON_NVME_PROFILE.md) standardizes
+qualification and monitoring for the pilot's USB/NVMe path. It preserves working
+`sntjmicron` autodetection, requires the compiled self-test-log workaround for
+full log reads, and keeps the Webmin reduced-query patch as a complementary
+change. Device membership and accepted live state remain consumer-owned.
+
+Its explicit-device template is a definition for per-host review, not evidence
+that every similar server has been deployed or qualified. The pilot's retained
+DEVICESCAN configuration is documented separately to preserve attribution during
+the package upgrade.
+
 - [smartctl manual](https://www.smartmontools.org/browser/src/smartctl.8.in)
 - [smartd manual](https://www.smartmontools.org/browser/src/smartd.8.in)
 - [smartd configuration manual](https://www.smartmontools.org/browser/src/smartd.conf.5.in)
 - [SAT with UAS on Linux](https://www.smartmontools.org/wiki/SAT-with-UAS-Linux)
 - [Supported USB devices](https://www.smartmontools.org/wiki/Supported_USB-Devices)
+
+## Host transport ownership
+
+[Host storage](../../host-storage/docs/HOST_STORAGE_ARCHITECTURE.md) owns
+root transport, boot configuration, reboot and recovery. Host inventory selects
+the shared hardware/transport profile. `smartmontools/` owns the package workaround,
+SMART collection and smartd policy; `Webmin/` owns temperature polling behavior.
+Nautobot and other Restic consumers retain workload/storage acceptance and
+backup/restore criteria. Transport convergence does not clear those gates.
+Historical Nautobot remediation definitions and evidence remain retained; future
+transport operations use the shared component without modifying active observers.
