@@ -197,6 +197,8 @@
               - --force
               - --
               - '{{ restic_init_directory.stdout }}/repository'
+          register: cleanup_repository
+          failed_when: false
           changed_when: true
           no_log: true
         - name: Remove transient password
@@ -212,6 +214,8 @@
               - --force
               - --
               - '{{ restic_init_directory.stdout }}/password'
+          register: cleanup_password
+          failed_when: false
           changed_when: true
           no_log: true
         - name: Remove transient credentials.json
@@ -227,6 +231,8 @@
               - --force
               - --
               - '{{ restic_init_directory.stdout }}/credentials.json'
+          register: cleanup_credentials
+          failed_when: false
           changed_when: true
           no_log: true
         - name: Verify credential removal
@@ -242,6 +248,8 @@
               - -c
               - import os,sys; sys.exit(any(os.path.lexists(sys.argv[1]+'/'+n) for n in ('repository','password','credentials.json')))
               - '{{ restic_init_directory.stdout }}'
+          register: cleanup_verification
+          failed_when: false
           changed_when: false
         - name: Read bounded sanitized node evidence
           ansible.builtin.command:
@@ -266,6 +274,14 @@
             dest: '{{ restic_init_evidence_root }}/node-records.json'
             mode: '0600'
           delegate_to: localhost
+        - name: Require all cleanup attempts and absence verification to succeed
+          ansible.builtin.assert:
+            that:
+              - cleanup_repository.rc == 0
+              - cleanup_password.rc == 0
+              - cleanup_credentials.rc == 0
+              - cleanup_verification.rc == 0
+            fail_msg: Credential cleanup failed; retained node evidence requires manual intervention.
     - name: Require successful initialization and evidence
       ansible.builtin.assert:
         that:

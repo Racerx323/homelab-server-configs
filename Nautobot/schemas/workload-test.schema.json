@@ -1,0 +1,319 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "execution_authorized",
+    "plan_stage",
+    "fixture",
+    "jobs",
+    "sampling",
+    "phases",
+    "stop_criteria",
+    "swap_acceptance",
+    "limits",
+    "cleanup",
+    "acceptance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "const": "inactive_workload_contract"
+    },
+    "execution_authorized": {
+      "const": false
+    },
+    "plan_stage": {
+      "const": 5
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator",
+        "namespace",
+        "locations",
+        "devices",
+        "interfaces_per_device",
+        "ip_assignments",
+        "addresses",
+        "import_adapter",
+        "real_inventory_comparison"
+      ],
+      "properties": {
+        "generator": {
+          "const": "Nautobot/ansible/scripts/make-workload-fixture.py"
+        },
+        "namespace": {
+          "const": "pilot-synthetic"
+        },
+        "locations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65000
+        },
+        "devices": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65000
+        },
+        "interfaces_per_device": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65000
+        },
+        "ip_assignments": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65000
+        },
+        "addresses": {
+          "const": "synthetic_benchmark_range_never_configured_on_network"
+        },
+        "import_adapter": {
+          "const": "review_required_for_pinned_nautobot_api_and_required_model_references"
+        },
+        "real_inventory_comparison": {
+          "const": "required_before_claiming_representativeness"
+        }
+      }
+    },
+    "jobs": {
+      "const": [
+        {
+          "id": "pilot-import",
+          "behavior": "upsert_only_fixture_namespace_and_reject_existing_unowned_objects",
+          "repetitions": 2,
+          "second_run": "no_duplicate_objects_or_unexplained_changes"
+        },
+        {
+          "id": "pilot-export",
+          "behavior": "export_fixture_objects_sorted_by_natural_keys_excluding_ids_and_timestamps",
+          "repetitions": 3,
+          "acceptance": "identical_normalized_content_hashes_and_expected_counts"
+        },
+        {
+          "id": "pilot-audit",
+          "behavior": "read_only_validate_fixture_counts_interface_ownership_and_ip_assignments",
+          "repetitions": 10,
+          "concurrency": 2,
+          "external_network_access": false,
+          "writes": false
+        }
+      ]
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_seconds",
+        "maximum_gap_seconds",
+        "metrics",
+        "secret_or_command_environment_capture"
+      ],
+      "properties": {
+        "interval_seconds": {
+          "const": 5
+        },
+        "maximum_gap_seconds": {
+          "const": 15
+        },
+        "metrics": {
+          "const": [
+            "boot_id",
+            "mem_available_bytes",
+            "swap_used_bytes",
+            "swap_in_out_counters",
+            "cpu_temperature_celsius",
+            "throttling_flags",
+            "memory_events_per_service",
+            "memory_current_and_max_per_service",
+            "systemd_unit_state",
+            "diskstats",
+            "ext4_error_count",
+            "kernel_storage_errors_since_cursor"
+          ]
+        },
+        "secret_or_command_environment_capture": {
+          "const": false
+        }
+      }
+    },
+    "phases": {
+      "const": [
+        {
+          "id": "idle_before",
+          "minimum_seconds": 900
+        },
+        {
+          "id": "import_and_export",
+          "minimum_seconds": 900,
+          "require_all_jobs_complete": true
+        },
+        {
+          "id": "jobs_and_backup_overlap",
+          "minimum_seconds": 1800,
+          "require_real_application_backup": true,
+          "backup_requires_separate_authorization": true
+        },
+        {
+          "id": "idle_recovery",
+          "minimum_seconds": 900
+        },
+        {
+          "id": "final_delayed_error_window",
+          "minimum_seconds": 75
+        }
+      ]
+    },
+    "stop_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mem_available_below_bytes",
+        "any_oom_or_oom_kill_increment",
+        "any_throttling_flag",
+        "any_new_usb_reset_storage_error_or_ext4_increment",
+        "temperature_above_celsius",
+        "temperature_policy",
+        "unexpected_service_failure",
+        "job_error_or_timeout",
+        "unexpected_boot_change",
+        "missing_sample_coverage"
+      ],
+      "properties": {
+        "mem_available_below_bytes": {
+          "const": 1610612736
+        },
+        "any_oom_or_oom_kill_increment": {
+          "const": true
+        },
+        "any_throttling_flag": {
+          "const": true
+        },
+        "any_new_usb_reset_storage_error_or_ext4_increment": {
+          "const": true
+        },
+        "temperature_above_celsius": {
+          "const": 80
+        },
+        "temperature_policy": {
+          "const": "stop_on_first_sample_stricter_than_sustained_architecture_limit"
+        },
+        "unexpected_service_failure": {
+          "const": true
+        },
+        "job_error_or_timeout": {
+          "const": true
+        },
+        "unexpected_boot_change": {
+          "const": true
+        },
+        "missing_sample_coverage": {
+          "const": "incomplete_stop_test_load"
+        }
+      }
+    },
+    "swap_acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline",
+        "tolerance_bytes",
+        "growth_rule",
+        "recovery_rule",
+        "interpretation"
+      ],
+      "properties": {
+        "baseline": {
+          "const": "median_swap_used_in_final_300_seconds_of_idle_before"
+        },
+        "tolerance_bytes": {
+          "const": 67108864
+        },
+        "growth_rule": {
+          "const": "three_consecutive_60_second_medians_increase_and_total_exceeds_tolerance"
+        },
+        "recovery_rule": {
+          "const": "final_300_second_median_not_above_baseline_plus_tolerance"
+        },
+        "interpretation": {
+          "const": "test_threshold_not_architecture_waiver"
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "single_job_timeout_seconds",
+        "whole_workload_timeout_seconds",
+        "collection_stream_bytes"
+      ],
+      "properties": {
+        "single_job_timeout_seconds": {
+          "const": 900
+        },
+        "whole_workload_timeout_seconds": {
+          "const": 10800
+        },
+        "collection_stream_bytes": {
+          "const": 4194304
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automatic_delete",
+        "preserve_on_failure",
+        "follow_up_requires_owned_object_manifest"
+      ],
+      "properties": {
+        "automatic_delete": {
+          "const": false
+        },
+        "preserve_on_failure": {
+          "const": true
+        },
+        "follow_up_requires_owned_object_manifest": {
+          "const": true
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "full_application_restore_required_separately",
+        "logout_and_reboot_survival_required_separately",
+        "dual_stack_and_exposure_required_separately",
+        "seven_day_stable_pilot_required_before_authority_or_semaphore"
+      ],
+      "properties": {
+        "scope": {
+          "const": "synthetic_pilot_workload_only"
+        },
+        "full_application_restore_required_separately": {
+          "const": true
+        },
+        "logout_and_reboot_survival_required_separately": {
+          "const": true
+        },
+        "dual_stack_and_exposure_required_separately": {
+          "const": true
+        },
+        "seven_day_stable_pilot_required_before_authority_or_semaphore": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Inactive reviewed workload contract"
+}

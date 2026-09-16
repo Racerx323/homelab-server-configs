@@ -413,3 +413,22 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: nautobot-candidate-contracts
+        name: Validate Nautobot runtime and Restic candidate contracts
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime.py
+        language: system
+        pass_filenames: false
+        files: ^(?:Nautobot/|restic/)
+      - id: restic-initialization-contracts
+        name: Validate Restic initialization and cleanup failures
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_initialization.py
+        language: system
+        pass_filenames: false
+        files: ^(?:Nautobot/|restic/)
+      - id: nautobot-operation-contract-regressions
+        name: Validate inactive operation prerequisites and status provenance
+        entry: python3 Nautobot/tests/test_operation_contracts.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(?:schemas/|manifests/|tests/test_operation_contracts\.py)

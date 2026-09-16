@@ -1,4 +1,158 @@
 {
+  "allOf": [
+    {
+      "properties": {
+        "services": {
+          "properties": {
+            "postgresql": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "postgresql_password"
+                  ]
+                }
+              }
+            },
+            "redis": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "redis_password"
+                  ]
+                }
+              }
+            },
+            "migration": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "django_secret_key",
+                    "postgresql_password",
+                    "redis_password"
+                  ]
+                }
+              }
+            },
+            "web": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "django_secret_key",
+                    "postgresql_password",
+                    "redis_password"
+                  ]
+                }
+              }
+            },
+            "worker": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "django_secret_key",
+                    "postgresql_password",
+                    "redis_password"
+                  ]
+                }
+              }
+            },
+            "scheduler": {
+              "properties": {
+                "secret_references": {
+                  "const": [
+                    "django_secret_key",
+                    "postgresql_password",
+                    "redis_password"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "secrets": {
+          "properties": {
+            "references": {
+              "properties": {
+                "django_secret_key": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "migration",
+                        "web",
+                        "worker",
+                        "scheduler"
+                      ]
+                    }
+                  }
+                },
+                "postgresql_password": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "postgresql",
+                        "migration",
+                        "web",
+                        "worker",
+                        "scheduler"
+                      ]
+                    }
+                  }
+                },
+                "redis_password": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "redis",
+                        "migration",
+                        "web",
+                        "worker",
+                        "scheduler"
+                      ]
+                    }
+                  }
+                },
+                "initial_administrator_credential": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "bootstrap"
+                      ]
+                    }
+                  }
+                },
+                "restic_repository_password": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "backup"
+                      ]
+                    }
+                  }
+                },
+                "backblaze_b2_application_key_id": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "backup"
+                      ]
+                    }
+                  }
+                },
+                "backblaze_b2_application_key": {
+                  "properties": {
+                    "consumers": {
+                      "const": [
+                        "backup"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://local.theama.co/schemas/nautobot-desired-state-v1.json",
   "title": "Nautobot desired state",

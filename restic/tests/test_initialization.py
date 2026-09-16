@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Offline failure injection into the real initialization boundary and launcher."""
+import sys
+sys.dont_write_bytecode = True
 import importlib.util
 import json
 import os
@@ -80,18 +82,23 @@ class Tests(unittest.TestCase):
             if 'ansible.builtin.command' in task:
                 # Only transport/identity adapter: production cleanup commands unchanged.
                 task['ansible.builtin.command']['argv']=task['ansible.builtin.command']['argv'][6:]
-        for failed in (False,True):
-            with self.subTest(failed=failed), tempfile.TemporaryDirectory() as directory:
+        for failed, cleanup_failure in ((False,False),(True,False),(False,True)):
+            with self.subTest(failed=failed, cleanup_failure=cleanup_failure), tempfile.TemporaryDirectory() as directory:
                 root=Path(directory)
                 for name in ('repository','password','credentials.json'):
                     (root/name).write_text('offline-secret')
+                attempt=copy.deepcopy(cleanup)
+                if cleanup_failure:
+                    # Reachable-target failure in the first real cleanup task.
+                    attempt[0]['ansible.builtin.command']['argv']=['/bin/false']
                 fixture=[{'hosts':'localhost','gather_facts':False,
                     'vars':{'restic_init_directory':{'stdout':str(root)},'restic_init_evidence_root':str(root)},
-                    'tasks':[{'block':[{'ansible.builtin.command':{'argv':['/bin/false' if failed else '/bin/true']}}], 'always':cleanup}]}]
+                    'tasks':[{'block':[{'ansible.builtin.command':{'argv':['/bin/false' if failed else '/bin/true']}}], 'always':attempt}]}]
                 path=root/'fixture.yaml';path.write_text(yaml.safe_dump(fixture))
                 result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(path)],capture_output=True,timeout=60)
-                self.assertEqual(result.returncode,2 if failed else 0,result.stdout.decode()+result.stderr.decode())
-                for name in ('repository','password','credentials.json'):self.assertFalse((root/name).exists())
+                self.assertEqual(result.returncode,2 if failed or cleanup_failure else 0,result.stdout.decode()+result.stderr.decode())
+                for name in ('password','credentials.json'):self.assertFalse((root/name).exists())
+                self.assertEqual((root/'repository').exists(),cleanup_failure)
                 self.assertTrue((root/'node-records.json').exists())
                 self.assertNotIn(b'offline-secret',result.stdout+result.stderr)
 

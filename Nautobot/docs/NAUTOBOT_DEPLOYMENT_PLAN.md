@@ -345,7 +345,18 @@ upload, integrity check, and clean isolated restore are recorded.
 
 ## Validation and acceptance
 
-Host acceptance requires:
+Acceptance has two explicit levels. Stage 3 host-baseline acceptance establishes
+host identity, baseline services, storage transport and health, current-boot
+resource health, and the ability to run the rootless runtime. It is the prerequisite
+for repository initialization; it does not certify an application workload.
+Stage 5 full host and workload acceptance additionally proves application service
+logout/reboot persistence, private database exposure, and resource headroom during
+representative imports, exports, backups and Jobs. Those checks depend on the
+runtime and separately authorized backup stages and must remain outstanding until
+measured. This separation avoids a circular initialization dependency without
+waiving any acceptance criterion. Authority migration requires both levels.
+
+The combined baseline and workload requirements are:
 
 - zero failed systemd units;
 - required baseline services active and unwanted services absent;

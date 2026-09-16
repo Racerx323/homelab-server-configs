@@ -112,8 +112,8 @@ generator rejects the newer `NetworkAlias` key and is insufficient. An official
 engine or pulling images. Set its path explicitly:
 
 ```bash
-NAUTOBOT_QUADLET_GENERATOR=/PATH/TO/5.4.2/quadlet \
-  PYTHONDONTWRITEBYTECODE=1 python3 Nautobot/tests/test_runtime.py
+python3 Nautobot/tests/quadlet_tool.py --prepare
+PYTHONDONTWRITEBYTECODE=1 python3 Nautobot/tests/test_runtime.py
 /bin/bash tests/repository/run-with-ansible-local-temp.sh \
   ansible-playbook --syntax-check --inventory inventory/prod/hosts.yaml \
   Nautobot/ansible/playbooks/deploy-runtime.yaml
@@ -177,3 +177,62 @@ persistence and seven stable pilot days remain separate acceptance evidence.
 
 The Nautobot reference is current upstream documentation, not execution evidence
 for the pinned image; verify the image-specific contract before deployment.
+
+### Candidate contract validation
+
+Run `python3 Nautobot/tests/run-validation.py` from the repository root. This runs
+all Nautobot schema/launcher hooks, cross-artifact checks, boot/package regressions,
+runtime rendering and localhost assertions, and Restic failure-injection tests.
+Prepare it once per checkout with `python3 Nautobot/tests/quadlet_tool.py --prepare`
+(Python 3.12+, Go and network access required). This verifies the pinned Podman 5.4.2
+archive checksum and builds only the parser using vendored dependencies. The parser
+and its integrity receipt live under `.git/nautobot-tools/`, outside tracked files.
+An existing archive can be supplied with `--archive`; the same checksum is required.
+Hooks and CI use this same helper and verify the cached binary before execution.
+Hooks never download tools, fall back to the workstation parser, or skip validation.
+Missing or modified caches produce the exact preparation command. No environment
+variable override is required; CI prepares a fresh cache before validation.
+
+The renderer rejects mismatched manifest/image digests, secret mappings, and build
+inputs. The workload manifest is schema-validated and drives fixture cardinality;
+this does not implement Jobs, sampling or live workload acceptance. Any contract
+change must keep the manifest, schema, implementation and negative tests aligned.
+
+Runtime first-install preflight rejects existing Nautobot container, network or
+volume metadata, including residue left after unit removal. It never deletes those
+objects; recovery or reuse requires a separately reviewed operation. Redis secret
+metadata uses JSON, not nested template expansion. Secret contents are not read.
+
+The historical backup/restore branch is now schema-enforced definition-only.
+Its terminal prerequisites are defined below; they are not yet live accepted records.
+Runtime activation still requires a reviewed stage schema; initialization still
+requires reactivation of its frozen definition. Do not relax either gate merely to
+make a launcher run. Future activation must encode terminal accepted host-baseline
+and repository identities, exact ordered actions, acceptance criteria, rollback,
+and all execution inputs in the bundle. No live authority is granted by these fixes.
+
+### Definition prerequisites and status provenance
+
+The inactive backup/restore schema requires two independent terminal proofs:
+accepted host baseline and accepted repository initialization. Each proof is either
+explicitly unverified with no evidence, or carries a terminal tag, archive commit,
+bundle hash, evidence-record hash, accepted-identity hash, target and acceptance
+timestamp. A syntactically valid proof is not verified evidence: future executable
+preflight must read the archived records and match the target, repository ID,
+endpoint, bucket and prefix against current read-only observations. Storage-soak
+success cannot substitute for either terminal proof.
+
+Ordered workflow, acceptance requirements, boundaries and evidence records are exact
+schema contracts. Upload/integrity and isolated restore retain separate authorization
+boundaries. Definition state, null command and false mutation authorization remain
+mandatory. The obsolete pending transition was removed; no executable operation is
+created by this schema correction.
+
+`preparation_review` is a retained evidence snapshot, not a live status API. It names
+plan stage 3. Historical authorizations have explicit historical names and are not
+reusable. Known observation timestamps carry a source reference; unknown timestamps
+are null with an explicit reason. The date of documenting a record is not its event
+time. Do not infer missing times from file modification times, current time or due
+checkpoints. The Webmin launch time and retained readback time are distinct; neither
+proves the later observation completed. Preserve source evidence unchanged and update
+current observations only after separately authorized collection and review.

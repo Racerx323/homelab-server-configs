@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Local rendering and installed Quadlet-generator tests; no container execution."""
 import copy
+import sys
+sys.dont_write_bytecode = True
 import importlib.util
 import os
+from quadlet_tool import resolve
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
 import yaml
+from jsonschema.exceptions import ValidationError
 
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('render',ROOT/'Nautobot/ansible/scripts/render-runtime.py')
@@ -44,7 +48,7 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaises(ValueError):renderer.render(self.desired,{**self.inputs,'custom_image':value})
         with self.assertRaises(ValueError):renderer.render(self.desired,{**self.inputs,'recovery_host':'a\nb'})
         bad=copy.deepcopy(self.desired);bad['services']['postgresql']['published_endpoints']=[{'address':'0.0.0.0'}]
-        with self.assertRaises(ValueError):renderer.render(bad,self.inputs)
+        with self.assertRaises((ValueError, ValidationError)):renderer.render(bad,self.inputs)
     def test_fixture_counts_and_determinism(self):
         fixture_spec=importlib.util.spec_from_file_location('fixture',ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
         fixture=importlib.util.module_from_spec(fixture_spec);fixture_spec.loader.exec_module(fixture)
@@ -83,8 +87,78 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('migration',starts[2]['name'])
         self.assertIn('web',starts[3]['name'])
 
+    def test_cross_artifact_mismatches(self):
+        for mutate in (
+            lambda d: d['images']['postgresql'].update(manifest_digest='sha256:'+'0'*64),
+            lambda d: d['services']['web'].update(secret_references=[]),
+            lambda d: d['secrets']['references']['django_secret_key'].update(consumers=['backup']),
+            lambda d: d['custom_image']['python_artifacts'][0].update(sha256='0'*64),
+        ):
+            bad=copy.deepcopy(self.desired);mutate(bad)
+            with self.assertRaises((ValueError, ValidationError)):renderer.render(bad,self.inputs)
+
+    def test_runtime_metadata_and_residue_tasks(self):
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
+        tasks=play['pre_tasks']
+        secret=next(t for t in tasks if t['name']=='Verify provisioned Redis configuration secret metadata only')
+        from jinja2 import Environment
+        argv=Environment().compile_expression(secret['ansible.builtin.command']['argv'][3:-3])(runtime_user_command=[])
+        self.assertEqual(argv, ['/usr/bin/podman','secret','inspect','nautobot-redis-config'])
+        assertion=next(t for t in tasks if t['name']=='Require Redis secret')
+        residue=next(t for t in tasks if t['name'].startswith('Refuse existing Nautobot objects'))
+        for names,fail in [([],False),([{'Name':'nautobot-postgresql_data'}],True),([{'Names':['nautobot-web']}],True)]:
+            import json
+            with tempfile.TemporaryDirectory() as tmp:
+                p=Path(tmp)/'probe.yaml'
+                p.write_text(yaml.safe_dump([{'hosts':'localhost','gather_facts':False,
+                    'vars':{'runtime_secret':{'stdout':json.dumps([{'Spec':{'Name':'nautobot-redis-config'}}])},
+                            'runtime_objects':{'results':[{'stdout':json.dumps(names)}]}},
+                    'tasks':[assertion,residue]}]))
+                result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(p)],capture_output=True,timeout=30)
+                self.assertEqual(result.returncode,2 if fail else 0,result.stdout.decode()+result.stderr.decode())
+
+    def test_workload_contract_drives_fixture(self):
+        fixture_spec=importlib.util.spec_from_file_location('fixture_contract',ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
+        fixture=importlib.util.module_from_spec(fixture_spec);fixture_spec.loader.exec_module(fixture)
+        contract=yaml.safe_load((ROOT/'Nautobot/manifests/workload-test.yaml').read_text())
+        contract['fixture'].update(locations=2,devices=7,interfaces_per_device=3,ip_assignments=5)
+        data=fixture.dataset(contract)
+        self.assertEqual([len(data[k]) for k in ('locations','devices','ip_assignments')],[2,7,5])
+        self.assertTrue(all(len(d['interfaces'])==3 for d in data['devices']))
+        contract['execution_authorized']=True
+        with self.assertRaises(ValidationError):fixture.dataset(contract)
+
+    def test_legacy_backup_gate_and_reset_matcher(self):
+        import json,re
+        from jsonschema import Draft202012Validator
+        schema=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
+        legacy=schema['oneOf'][2]['properties']
+        # This historical contract must not validate a pending executable operation.
+        for field,value in [('state','pending'),('authorization_ready',True)]:
+            with self.assertRaises(ValidationError):
+                Draft202012Validator(legacy['operation']['properties'][field]).validate(value)
+        with self.assertRaises(ValidationError):
+            Draft202012Validator(legacy['authorization']['properties']['mutation_authorized']).validate(True)
+        pattern=legacy['workflow']['properties']['focused_storage_event_pattern']['const']
+        self.assertIsNotNone(re.search(pattern,'usb 2-1: reset SuperSpeed USB device number 2 using xhci_hcd'))
+
+    def test_parser_cache_is_required_and_integrity_checked(self):
+        import json
+        from quadlet_tool import SOURCE_SHA256, digest
+        with tempfile.TemporaryDirectory() as tmp:
+            directory=Path(tmp)
+            with self.assertRaisesRegex(RuntimeError, '--prepare'):resolve(directory)
+            binary=directory/'quadlet';binary.write_bytes(b'local fixture');binary.chmod(0o700)
+            receipt=directory/'receipt.json'
+            receipt.write_text(json.dumps({'source_sha256':SOURCE_SHA256,'binary_sha256':digest(binary)}))
+            self.assertEqual(resolve(directory),binary)
+            binary.write_bytes(b'changed')
+            with self.assertRaises(RuntimeError):resolve(directory)
+            receipt.write_text('{}')
+            with self.assertRaises(RuntimeError):resolve(directory)
+
     def test_generator(self):
-        generator=Path(os.environ.get('NAUTOBOT_QUADLET_GENERATOR', '/usr/lib/systemd/system-generators/podman-system-generator'))
+        generator=resolve()
         self.assertTrue(generator.is_file(),'Quadlet generator required for this test')
         with tempfile.TemporaryDirectory(prefix='nautobot-runtime-test.') as tmp:
             root=Path(tmp);units=root/'units';output=root/'generated';units.mkdir();output.mkdir()

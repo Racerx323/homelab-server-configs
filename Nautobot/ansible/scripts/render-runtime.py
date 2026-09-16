@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic local Quadlet renderer; never contacts Podman or a host."""
 import argparse
+import importlib.util
 import hashlib
 import json
 from pathlib import Path
@@ -18,6 +19,10 @@ DESTINATIONS = {'postgresql_data': '/var/lib/postgresql/data', 'redis_data': '/d
 
 
 def render(desired, inputs):
+    spec = importlib.util.spec_from_file_location('contracts', Path(__file__).with_name('validate-contracts.py'))
+    contracts = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(contracts)
+    contracts.validate(desired)
     if set(inputs) != {'custom_image', 'recovery_host'}:
         raise ValueError('require only custom_image and approved recovery_host')
     if not re.fullmatch(r'[a-z0-9][a-z0-9./:_-]*@sha256:[a-f0-9]{64}', inputs['custom_image']):

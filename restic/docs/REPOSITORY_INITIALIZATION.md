@@ -157,3 +157,13 @@ without fresh state classification and authorization.
 CLI contract references: [Restic scripting](https://github.com/restic/restic/blob/master/doc/075_scripting.rst),
 [repository formats](https://github.com/restic/restic/blob/master/doc/030_preparing_a_new_repo.rst),
 and [object listing](https://github.com/restic/restic/blob/master/doc/100_references.rst).
+
+### Cleanup failure handling
+
+The consumer playbook attempts removal of all three transient files independently
+and retains bounded node records before asserting aggregate cleanup success.
+A failed early removal does not skip later credential removal. Failure of removal
+or absence verification is a manual-intervention result, never successful cleanup.
+The offline suite injects failure in the first removal and checks that password and
+credential removal and controller evidence preservation still occur. An unreachable
+host remains an unknown cleanup result requiring recovery access.

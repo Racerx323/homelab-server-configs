@@ -1,21 +1,36 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Nautobot operation state",
+  "$comment": "Backup/restore is definition-only with explicit terminal prerequisites. Separate executable stage contracts and exact authorization remain required.",
   "oneOf": [
-    {"$ref": "host-convergence.schema.json"},
+    {
+      "$ref": "host-convergence.schema.json"
+    },
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema_version", "operation"],
+      "required": [
+        "schema_version",
+        "operation"
+      ],
       "properties": {
-        "schema_version": {"const": 1},
+        "schema_version": {
+          "const": 1
+        },
         "operation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["state", "authorization_ready"],
+          "required": [
+            "state",
+            "authorization_ready"
+          ],
           "properties": {
-            "state": {"const": "clean"},
-            "authorization_ready": {"const": false}
+            "state": {
+              "const": "clean"
+            },
+            "authorization_ready": {
+              "const": false
+            }
           }
         }
       }
@@ -26,7 +41,7 @@
       "required": [
         "schema_version",
         "operation",
-        "predecessor",
+        "prerequisites",
         "verification",
         "dataset",
         "restic_repository",
@@ -38,7 +53,9 @@
         "authorization"
       ],
       "properties": {
-        "schema_version": {"const": 1},
+        "schema_version": {
+          "const": 1
+        },
         "operation": {
           "type": "object",
           "additionalProperties": false,
@@ -52,53 +69,83 @@
             "source"
           ],
           "properties": {
-            "id": {"const": "nautobot-isolated-backup-restore-v1"},
-            "state": {"enum": ["definition", "pending"]},
-            "authorization_ready": {"type": "boolean"},
-            "stage": {"const": "backup_restore_verification"},
+            "id": {
+              "const": "nautobot-isolated-backup-restore-v1"
+            },
+            "state": {
+              "const": "definition"
+            },
+            "authorization_ready": {
+              "const": false
+            },
+            "stage": {
+              "const": "backup_restore_verification"
+            },
             "target": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["host", "address", "ssh_user", "execution_user"],
+              "required": [
+                "host",
+                "address",
+                "ssh_user",
+                "execution_user"
+              ],
               "properties": {
-                "host": {"const": "j2-svpi4mf"},
-                "address": {"const": "10.1.2.170"},
-                "ssh_user": {"const": "ama"},
-                "execution_user": {"const": "nautobot"}
+                "host": {
+                  "const": "j2-svpi4mf"
+                },
+                "address": {
+                  "const": "10.1.2.170"
+                },
+                "ssh_user": {
+                  "const": "ama"
+                },
+                "execution_user": {
+                  "const": "nautobot"
+                }
               }
             },
             "architecture": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["plan", "storage_decision", "backblaze_b2", "restic"],
+              "required": [
+                "plan",
+                "storage_decision",
+                "backblaze_b2",
+                "restic"
+              ],
               "properties": {
-                "plan": {"const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"},
-                "storage_decision": {"const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"},
-                "backblaze_b2": {"const": "backblaze-b2/docs/B2_ARCHITECTURE.md"},
-                "restic": {"const": "restic/docs/RESTIC_ARCHITECTURE.md"}
+                "plan": {
+                  "const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"
+                },
+                "storage_decision": {
+                  "const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"
+                },
+                "backblaze_b2": {
+                  "const": "backblaze-b2/docs/B2_ARCHITECTURE.md"
+                },
+                "restic": {
+                  "const": "restic/docs/RESTIC_ARCHITECTURE.md"
+                }
               }
             },
             "source": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["repository", "base_commit"],
+              "required": [
+                "repository",
+                "base_commit"
+              ],
               "properties": {
-                "repository": {"const": "homelab-server-configs"},
-                "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+                "repository": {
+                  "const": "homelab-server-configs"
+                },
+                "base_commit": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{40}$"
+                }
               }
             }
-          }
-        },
-        "predecessor": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["operation", "terminal_tag", "definition_commit", "bundle_sha256", "result"],
-          "properties": {
-            "operation": {"const": "nautobot-storage-soak-verification-v1"},
-            "terminal_tag": {"const": "nautobot-storage-soak-verification-v1-passed"},
-            "definition_commit": {"const": "eb38b4923ba6bfbc4f458870b6555a6e39d91f77"},
-            "bundle_sha256": {"const": "e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305"},
-            "result": {"const": "storage_soak_healthy_isolated_restore_pending"}
           }
         },
         "verification": {
@@ -112,11 +159,21 @@
             "full_nautobot_restore_test_still_required_during_pilot"
           ],
           "properties": {
-            "kind": {"const": "deterministic_predata_canary"},
-            "purpose": {"const": "verify_off_host_backup_integrity_and_isolated_restore_path"},
-            "satisfies_storage_predata_gate_only": {"const": true},
-            "satisfies_full_nautobot_recovery_acceptance": {"const": false},
-            "full_nautobot_restore_test_still_required_during_pilot": {"const": true}
+            "kind": {
+              "const": "deterministic_predata_canary"
+            },
+            "purpose": {
+              "const": "verify_off_host_backup_integrity_and_isolated_restore_path"
+            },
+            "satisfies_storage_predata_gate_only": {
+              "const": true
+            },
+            "satisfies_full_nautobot_recovery_acceptance": {
+              "const": false
+            },
+            "full_nautobot_restore_test_still_required_during_pilot": {
+              "const": true
+            }
           }
         },
         "dataset": {
@@ -131,11 +188,21 @@
             "files"
           ],
           "properties": {
-            "source_root_pattern": {"const": "/var/lib/nautobot/backup-restore-tests/source.*"},
-            "restore_root_pattern": {"const": "/var/lib/nautobot/backup-restore-tests/restore.*"},
-            "directory_mode": {"const": "0700"},
-            "file_mode": {"const": "0600"},
-            "require_root_filesystem": {"const": "/dev/sda2"},
+            "source_root_pattern": {
+              "const": "/var/lib/nautobot/backup-restore-tests/source.*"
+            },
+            "restore_root_pattern": {
+              "const": "/var/lib/nautobot/backup-restore-tests/restore.*"
+            },
+            "directory_mode": {
+              "const": "0700"
+            },
+            "file_mode": {
+              "const": "0600"
+            },
+            "require_root_filesystem": {
+              "const": "/dev/sda2"
+            },
             "files": {
               "type": "array",
               "minItems": 1,
@@ -143,11 +210,21 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["path", "content_utf8", "sha256"],
+                "required": [
+                  "path",
+                  "content_utf8",
+                  "sha256"
+                ],
                 "properties": {
-                  "path": {"const": "predata/canary.txt"},
-                  "content_utf8": {"const": "nautobot isolated backup restore verification v1\n"},
-                  "sha256": {"const": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2"}
+                  "path": {
+                    "const": "predata/canary.txt"
+                  },
+                  "content_utf8": {
+                    "const": "nautobot isolated backup restore verification v1\n"
+                  },
+                  "sha256": {
+                    "const": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2"
+                  }
                 }
               }
             }
@@ -171,9 +248,15 @@
             "repository_password_recovery_location_confirmed"
           ],
           "properties": {
-            "provider": {"const": "backblaze_b2"},
-            "transport": {"const": "s3_compatible"},
-            "dedicated_private_bucket_required": {"const": true},
+            "provider": {
+              "const": "backblaze_b2"
+            },
+            "transport": {
+              "const": "s3_compatible"
+            },
+            "dedicated_private_bucket_required": {
+              "const": true
+            },
             "provider_acceptance": {
               "const": {
                 "operation": "backblaze-b2-s3-compatibility-v1",
@@ -187,24 +270,40 @@
             "endpoint": {
               "$ref": "#/$defs/unresolvedIdentity",
               "properties": {
-                "value": {"const": "s3.us-west-002.backblazeb2.com"}
+                "value": {
+                  "const": "s3.us-west-002.backblazeb2.com"
+                }
               }
             },
             "bucket": {
               "$ref": "#/$defs/unresolvedIdentity",
               "properties": {
-                "value": {"const": "theama-homelab-nautobot-restic-prd"}
+                "value": {
+                  "const": "theama-homelab-nautobot-restic-prd"
+                }
               }
             },
             "prefix": {
               "$ref": "#/$defs/prefixIdentity",
               "properties": {
-                "value": {"const": ""}
+                "value": {
+                  "const": ""
+                }
               }
             },
-            "repository_id": {"$ref": "#/$defs/preflightIdentity"},
-            "initialization_owner": {"$ref": "#/$defs/unresolvedIdentity"},
-            "repository_initialized_state": {"enum": ["unresolved", "existing", "new"]},
+            "repository_id": {
+              "$ref": "#/$defs/preflightIdentity"
+            },
+            "initialization_owner": {
+              "$ref": "#/$defs/unresolvedIdentity"
+            },
+            "repository_initialized_state": {
+              "enum": [
+                "unresolved",
+                "existing",
+                "new"
+              ]
+            },
             "credentials": {
               "type": "object",
               "additionalProperties": false,
@@ -215,7 +314,9 @@
                 "bucket_scoped_capabilities_required"
               ],
               "properties": {
-                "provider": {"const": "approved_secrets_system"},
+                "provider": {
+                  "const": "approved_secrets_system"
+                },
                 "references": {
                   "const": [
                     "restic_repository_password",
@@ -223,13 +324,25 @@
                     "backblaze_b2_application_key"
                   ]
                 },
-                "values_allowed_in_git_or_evidence": {"const": false},
+                "values_allowed_in_git_or_evidence": {
+                  "const": false
+                },
                 "bucket_scoped_capabilities_required": {
-                  "const": ["listAllBucketNames", "listBuckets", "readBuckets", "listFiles", "readFiles", "writeFiles", "deleteFiles"]
+                  "const": [
+                    "listAllBucketNames",
+                    "listBuckets",
+                    "readBuckets",
+                    "listFiles",
+                    "readFiles",
+                    "writeFiles",
+                    "deleteFiles"
+                  ]
                 }
               }
             },
-            "repository_password_recovery_location_confirmed": {"type": "boolean"}
+            "repository_password_recovery_location_confirmed": {
+              "type": "boolean"
+            }
           }
         },
         "repository_preflight": {
@@ -251,15 +364,35 @@
             "separate_live_authorization_required"
           ],
           "properties": {
-            "id": {"const": "nautobot-restic-read-only-preflight-v1"},
-            "state": {"enum": ["defined_unexecuted", "passed"]},
-            "procedure": {"const": "restic/docs/READ_ONLY_PREFLIGHT.md"},
-            "execution_user": {"const": "nautobot"},
-            "repository_access": {"const": "read_only"},
-            "cache_mode": {"const": "disabled"},
-            "lock_mode": {"const": "disabled"},
+            "id": {
+              "const": "nautobot-restic-read-only-preflight-v1"
+            },
+            "state": {
+              "enum": [
+                "defined_unexecuted",
+                "passed"
+              ]
+            },
+            "procedure": {
+              "const": "restic/docs/READ_ONLY_PREFLIGHT.md"
+            },
+            "execution_user": {
+              "const": "nautobot"
+            },
+            "repository_access": {
+              "const": "read_only"
+            },
+            "cache_mode": {
+              "const": "disabled"
+            },
+            "lock_mode": {
+              "const": "disabled"
+            },
             "commands": {
-              "const": ["restic_version", "restic_no_cache_no_lock_cat_config"]
+              "const": [
+                "restic_version",
+                "restic_no_cache_no_lock_cat_config"
+              ]
             },
             "resolves": {
               "const": [
@@ -279,9 +412,15 @@
                 "credential_references"
               ]
             },
-            "failure_boundary": {"const": "stop_without_initialization_or_repository_write"},
-            "evidence_secret_values_allowed": {"const": false},
-            "separate_live_authorization_required": {"const": true}
+            "failure_boundary": {
+              "const": "stop_without_initialization_or_repository_write"
+            },
+            "evidence_secret_values_allowed": {
+              "const": false
+            },
+            "separate_live_authorization_required": {
+              "const": true
+            }
           }
         },
         "workflow": {
@@ -300,27 +439,87 @@
             "ordered_actions"
           ],
           "properties": {
-            "snapshot_tag": {"const": "nautobot-predata-canary-v1"},
-            "snapshot_selection": {"const": "exact_set_difference_from_snapshots_json"},
-            "integrity_check": {"const": "restic_check_read_data"},
-            "restore_selection": {"const": "exact_snapshot_id"},
-            "restore_target": {"const": "isolated_empty_owned_directory"},
-            "journal_scope": {"const": "cursor_bounded"},
-            "focused_storage_event_pattern": {
-              "const": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset"
+            "snapshot_tag": {
+              "const": "nautobot-predata-canary-v1"
             },
-            "retain_remote_snapshot_until_terminal_acceptance": {"const": true},
-            "automatic_remote_snapshot_deletion": {"const": false},
-            "ordered_actions": {"type": "array", "minItems": 1, "uniqueItems": true}
+            "snapshot_selection": {
+              "const": "exact_set_difference_from_snapshots_json"
+            },
+            "integrity_check": {
+              "const": "restic_check_read_data"
+            },
+            "restore_selection": {
+              "const": "exact_snapshot_id"
+            },
+            "restore_target": {
+              "const": "isolated_empty_owned_directory"
+            },
+            "journal_scope": {
+              "const": "cursor_bounded"
+            },
+            "focused_storage_event_pattern": {
+              "const": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset"
+            },
+            "retain_remote_snapshot_until_terminal_acceptance": {
+              "const": true
+            },
+            "automatic_remote_snapshot_deletion": {
+              "const": false
+            },
+            "ordered_actions": {
+              "const": [
+                "verify_exact_bundle_and_separate_stage_authorization",
+                "verify_terminal_host_and_initialization_records",
+                "run_current_read_only_repository_and_host_preflight",
+                "resolve_protected_secrets_and_confirm_recovery_reference",
+                "capture_journal_cursor_and_baseline_snapshot_ids",
+                "create_owned_deterministic_canary_and_record_hashes",
+                "upload_canary_and_record_exact_new_snapshot_id",
+                "preserve_upload_result_before_later_checks",
+                "run_full_repository_read_data_check",
+                "stop_for_separate_isolated_restore_authorization",
+                "verify_exact_retained_snapshot_id_and_empty_owned_restore_target",
+                "restore_only_into_isolated_target",
+                "compare_restored_paths_content_hashes_and_modes",
+                "review_cursor_bounded_storage_events_and_delayed_window",
+                "preserve_sanitized_evidence_and_verify_credential_cleanup",
+                "request_independent_terminal_acceptance"
+              ]
+            }
           }
         },
         "acceptance": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["require", "boundaries"],
+          "required": [
+            "require",
+            "boundaries"
+          ],
           "properties": {
-            "require": {"type": "array", "minItems": 1, "uniqueItems": true},
-            "boundaries": {"type": "array", "minItems": 1, "uniqueItems": true}
+            "require": {
+              "const": [
+                "accepted_host_baseline_identity",
+                "accepted_repository_initialization_identity",
+                "fresh_read_only_preflight_passed",
+                "exact_one_new_snapshot_identified",
+                "full_read_data_integrity_check_passed",
+                "isolated_restore_separately_authorized",
+                "restored_paths_hashes_and_modes_match",
+                "no_new_storage_errors_including_delayed_usb_resets",
+                "protected_credentials_removed_and_absence_verified",
+                "bounded_secret_free_evidence_preserved",
+                "independent_terminal_review"
+              ]
+            },
+            "boundaries": {
+              "const": [
+                "predata_canary_only_not_application_recovery_acceptance",
+                "no_runtime_deployment_or_authority_migration",
+                "no_repository_initialization_repair_forget_prune_or_delete",
+                "no_restore_to_live_paths",
+                "no_remote_snapshot_deletion_without_separate_authorization"
+              ]
+            }
           }
         },
         "failure_and_cleanup": {
@@ -336,13 +535,27 @@
             "cleanup_requires_exact_owned_paths_and_preserved_evidence"
           ],
           "properties": {
-            "pre_upload_failure": {"const": "remove_only_proven_owned_local_test_directories"},
-            "post_upload_failure": {"const": "retain_remote_snapshot_and_local_evidence_for_review"},
-            "restore_failure": {"const": "retain_remote_snapshot_and_local_evidence_for_review"},
-            "automatic_repository_repair": {"const": false},
-            "automatic_snapshot_forget_or_prune": {"const": false},
-            "automatic_live_path_restore": {"const": false},
-            "cleanup_requires_exact_owned_paths_and_preserved_evidence": {"const": true}
+            "pre_upload_failure": {
+              "const": "remove_only_proven_owned_local_test_directories"
+            },
+            "post_upload_failure": {
+              "const": "retain_remote_snapshot_and_local_evidence_for_review"
+            },
+            "restore_failure": {
+              "const": "retain_remote_snapshot_and_local_evidence_for_review"
+            },
+            "automatic_repository_repair": {
+              "const": false
+            },
+            "automatic_snapshot_forget_or_prune": {
+              "const": false
+            },
+            "automatic_live_path_restore": {
+              "const": false
+            },
+            "cleanup_requires_exact_owned_paths_and_preserved_evidence": {
+              "const": true
+            }
           }
         },
         "evidence": {
@@ -358,13 +571,43 @@
             "records"
           ],
           "properties": {
-            "local_root_pattern": {"const": "/tmp/nautobot-backup-restore.*"},
-            "directory_mode": {"const": "0700"},
-            "file_mode": {"const": "0600"},
-            "stream_limit_bytes": {"type": "integer", "minimum": 1048576},
-            "raw_evidence_in_git": {"const": false},
-            "secret_values_in_evidence": {"const": false},
-            "records": {"type": "array", "minItems": 1, "uniqueItems": true}
+            "local_root_pattern": {
+              "const": "/tmp/nautobot-backup-restore.*"
+            },
+            "directory_mode": {
+              "const": "0700"
+            },
+            "file_mode": {
+              "const": "0600"
+            },
+            "stream_limit_bytes": {
+              "type": "integer",
+              "minimum": 1048576
+            },
+            "raw_evidence_in_git": {
+              "const": false
+            },
+            "secret_values_in_evidence": {
+              "const": false
+            },
+            "records": {
+              "const": [
+                "prerequisite_terminal_record_hashes",
+                "current_preflight",
+                "journal_cursor",
+                "source_manifest",
+                "snapshot_ids_before",
+                "upload_result",
+                "exact_snapshot_id",
+                "integrity_result",
+                "restore_authorization_bundle",
+                "restore_target_identity",
+                "restored_manifest",
+                "storage_event_review",
+                "credential_cleanup",
+                "independent_acceptance"
+              ]
+            }
           }
         },
         "authorization": {
@@ -379,12 +622,244 @@
             "blockers"
           ],
           "properties": {
-            "command": {"type": ["string", "null"]},
-            "bundle_algorithm": {"const": "sha256"},
-            "authorized_stage": {"const": "backup_restore_verification"},
-            "mutation_authorized": {"type": "boolean"},
-            "excluded_stages": {"type": "array", "minItems": 1, "uniqueItems": true},
-            "blockers": {"type": "array", "uniqueItems": true}
+            "command": {
+              "const": null
+            },
+            "bundle_algorithm": {
+              "const": "sha256"
+            },
+            "authorized_stage": {
+              "const": "backup_restore_verification"
+            },
+            "mutation_authorized": {
+              "const": false
+            },
+            "excluded_stages": {
+              "const": [
+                "repository_initialization",
+                "snapshot_forget_or_prune",
+                "repository_repair_or_deletion",
+                "live_path_restore",
+                "nautobot_pilot",
+                "authority_migration"
+              ]
+            },
+            "blockers": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "prerequisites": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "host_baseline",
+            "repository_initialization",
+            "binding_checks"
+          ],
+          "properties": {
+            "host_baseline": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "required_result",
+                    "evidence",
+                    "reason"
+                  ],
+                  "properties": {
+                    "state": {
+                      "const": "unverified"
+                    },
+                    "required_result": {
+                      "const": "host_baseline_accepted"
+                    },
+                    "evidence": {
+                      "const": null
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "required_result",
+                    "evidence"
+                  ],
+                  "properties": {
+                    "state": {
+                      "const": "accepted"
+                    },
+                    "required_result": {
+                      "const": "host_baseline_accepted"
+                    },
+                    "evidence": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "operation_id",
+                        "terminal_tag",
+                        "archive_commit",
+                        "bundle_sha256",
+                        "record_sha256",
+                        "accepted_identity_sha256",
+                        "accepted_at",
+                        "target"
+                      ],
+                      "properties": {
+                        "operation_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "terminal_tag": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "archive_commit": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{40}$"
+                        },
+                        "bundle_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "record_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "accepted_identity_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "accepted_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+                        },
+                        "target": {
+                          "const": "j2-svpi4mf"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "repository_initialization": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "required_result",
+                    "evidence",
+                    "reason"
+                  ],
+                  "properties": {
+                    "state": {
+                      "const": "unverified"
+                    },
+                    "required_result": {
+                      "const": "repository_initialization_accepted"
+                    },
+                    "evidence": {
+                      "const": null
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "required_result",
+                    "evidence"
+                  ],
+                  "properties": {
+                    "state": {
+                      "const": "accepted"
+                    },
+                    "required_result": {
+                      "const": "repository_initialization_accepted"
+                    },
+                    "evidence": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "operation_id",
+                        "terminal_tag",
+                        "archive_commit",
+                        "bundle_sha256",
+                        "record_sha256",
+                        "accepted_identity_sha256",
+                        "accepted_at",
+                        "target"
+                      ],
+                      "properties": {
+                        "operation_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "terminal_tag": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "archive_commit": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{40}$"
+                        },
+                        "bundle_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "record_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "accepted_identity_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "accepted_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+                        },
+                        "target": {
+                          "const": "j2-svpi4mf"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "binding_checks": {
+              "const": [
+                "terminal_records_verified_against_archived_source",
+                "target_matches_accepted_host_identity",
+                "repository_id_endpoint_bucket_prefix_match_initialization",
+                "current_read_only_preflight_matches_both_terminal_records"
+              ]
+            }
           }
         }
       },
@@ -393,76 +868,37 @@
           "if": {
             "properties": {
               "operation": {
-                "properties": {"state": {"const": "definition"}},
-                "required": ["state"]
+                "properties": {
+                  "state": {
+                    "const": "definition"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
               }
             }
           },
           "then": {
             "properties": {
               "operation": {
-                "properties": {"authorization_ready": {"const": false}}
-              },
-              "authorization": {
                 "properties": {
-                  "command": {"const": null},
-                  "mutation_authorized": {"const": false},
-                  "blockers": {"minItems": 1}
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "operation": {
-                "properties": {"state": {"const": "pending"}},
-                "required": ["state"]
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "operation": {
-                "properties": {"authorization_ready": {"const": true}}
-              },
-              "restic_repository": {
-                "properties": {
-                  "endpoint": {
-                    "properties": {"resolved": {"const": true}},
-                    "required": ["value"]
-                  },
-                  "bucket": {
-                    "properties": {"resolved": {"const": true}},
-                    "required": ["value"]
-                  },
-                  "prefix": {
-                    "properties": {"resolved": {"const": true}},
-                    "required": ["value"]
-                  },
-                  "repository_id": {
-                    "properties": {"resolved": {"const": true}},
-                    "required": ["value"]
-                  },
-                  "initialization_owner": {
-                    "properties": {"resolved": {"const": true}},
-                    "required": ["value"]
-                  },
-                  "repository_initialized_state": {"const": "existing"},
-                  "repository_password_recovery_location_confirmed": {"const": true}
-                }
-              },
-              "repository_preflight": {
-                "properties": {
-                  "state": {"const": "passed"}
+                  "authorization_ready": {
+                    "const": false
+                  }
                 }
               },
               "authorization": {
                 "properties": {
-                  "command": {"type": "string", "minLength": 1},
-                  "mutation_authorized": {"const": true},
-                  "blockers": {"maxItems": 0}
+                  "command": {
+                    "const": null
+                  },
+                  "mutation_authorized": {
+                    "const": false
+                  },
+                  "blockers": {
+                    "minItems": 1
+                  }
                 }
               }
             }
@@ -478,78 +914,173 @@
     "unresolvedIdentity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resolved", "source"],
+      "required": [
+        "resolved",
+        "source"
+      ],
       "properties": {
-        "resolved": {"type": "boolean"},
-        "source": {"const": "reviewed_nonsecret_operation_input"},
-        "value": {"type": "string", "minLength": 1}
+        "resolved": {
+          "type": "boolean"
+        },
+        "source": {
+          "const": "reviewed_nonsecret_operation_input"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "allOf": [
         {
           "if": {
-            "properties": {"resolved": {"const": true}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": true
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"required": ["value"]}
+          "then": {
+            "required": [
+              "value"
+            ]
+          }
         },
         {
           "if": {
-            "properties": {"resolved": {"const": false}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": false
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"not": {"required": ["value"]}}
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
         }
       ]
     },
     "prefixIdentity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resolved", "source"],
+      "required": [
+        "resolved",
+        "source"
+      ],
       "properties": {
-        "resolved": {"type": "boolean"},
-        "source": {"const": "reviewed_nonsecret_operation_input"},
-        "value": {"type": "string"}
+        "resolved": {
+          "type": "boolean"
+        },
+        "source": {
+          "const": "reviewed_nonsecret_operation_input"
+        },
+        "value": {
+          "type": "string"
+        }
       },
       "allOf": [
         {
           "if": {
-            "properties": {"resolved": {"const": true}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": true
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"required": ["value"]}
+          "then": {
+            "required": [
+              "value"
+            ]
+          }
         },
         {
           "if": {
-            "properties": {"resolved": {"const": false}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": false
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"not": {"required": ["value"]}}
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
         }
       ]
     },
     "preflightIdentity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resolved", "source"],
+      "required": [
+        "resolved",
+        "source"
+      ],
       "properties": {
-        "resolved": {"type": "boolean"},
-        "source": {"const": "read_only_restic_repository_id_preflight"},
-        "value": {"type": "string", "minLength": 1}
+        "resolved": {
+          "type": "boolean"
+        },
+        "source": {
+          "const": "read_only_restic_repository_id_preflight"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "allOf": [
         {
           "if": {
-            "properties": {"resolved": {"const": true}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": true
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"required": ["value"]}
+          "then": {
+            "required": [
+              "value"
+            ]
+          }
         },
         {
           "if": {
-            "properties": {"resolved": {"const": false}},
-            "required": ["resolved"]
+            "properties": {
+              "resolved": {
+                "const": false
+              }
+            },
+            "required": [
+              "resolved"
+            ]
           },
-          "then": {"not": {"required": ["value"]}}
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
         }
       ]
     }

@@ -89,8 +89,8 @@ Then prepare the independent stage-3 terminal review under
 [HOST_BASELINE_CONVERGENCE.md](HOST_BASELINE_CONVERGENCE.md). Explicitly carry
 application-dependent host criteria forward to stage 5; baseline acceptance
 must not claim full workload acceptance. Do not waive any requirement to break a
-dependency cycle. If the terminal reviewer cannot accept that existing scoped
-baseline contract, resolve the architecture interpretation before initialization.
+dependency cycle. The governing plan now explicitly distinguishes stage-3 baseline acceptance from
+stage-5 full workload acceptance; neither record substitutes for the other.
 The next-stage preparation below records concrete inactive
 operation drafts and the remaining readiness inputs.
 
@@ -240,3 +240,26 @@ and recovery execution separately authorized, with no live promotion or deletion
 Nightly schedule and 7-daily/5-weekly/12-monthly retention are desired policy in
 the deployment plan. Creating schedules and destructive retention execution require
 their own reviewed scope; they are not side effects of initialization or a test.
+
+## Repository audit remediation
+
+Candidate code now checks Redis metadata as JSON, rejects existing Nautobot runtime
+objects, and attempts all Restic credential removals before failing cleanup. Desired
+state is checked against image references, secret consumers and build inputs. The
+workload contract has a schema and drives fixture cardinality. CI includes the
+Nautobot hooks and runtime/Restic failure tests with a pinned Quadlet parser.
+These are local implementation changes, not live acceptance or checkpoint results.
+
+The historical backup/restore schema is definition-only. The retained initialization
+record still describes its original unimplemented review; candidate implementation
+exists but activation remains unqualified. Runtime stage-schema activation, workload
+Jobs/import adapters/sampling, actual backup and isolated restore remain outstanding.
+Stage-3 baseline and stage-5 workload acceptance are explicitly separate in the plan.
+
+The backup/restore definition now replaces the old soak predecessor with explicit
+host-baseline and repository-initialization terminal proofs. Exact ordered actions,
+acceptance, boundaries and evidence lists replace permissive arrays. Execution is
+still blocked, and future executable stages must independently verify those proofs.
+Historical authorization labels and structured status provenance now distinguish
+retained observations from current authority. Missing event times remain explicitly
+unknown; no live status refresh was performed for this repository correction.

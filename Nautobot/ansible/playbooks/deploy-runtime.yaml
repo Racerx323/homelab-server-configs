@@ -84,6 +84,21 @@
       ansible.builtin.assert:
         that: not item.stat.exists
       loop: '{{ runtime_existing.results }}'
+    - name: Inspect existing runtime objects before first installation
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + ["/usr/bin/podman"] + item }}'
+      loop:
+        - [ps, --all, --format, json]
+        - [volume, ls, --format, json]
+        - [network, ls, --format, json]
+      changed_when: false
+      register: runtime_objects
+    - name: Refuse existing Nautobot objects including partial installation residue
+      ansible.builtin.assert:
+        that: "'nautobot' not in (item.stdout | lower)"
+        fail_msg: Existing Nautobot runtime objects require a separate ownership and recovery review.
+      loop: '{{ runtime_objects.results }}'
+      no_log: true
     - name: Inspect protected service environment files
       ansible.builtin.stat:
         path: '{{ runtime_home }}/runtime/{{ item }}.env'
@@ -122,13 +137,12 @@
           - runtime_config.stat.checksum == runtime_operation.runtime.configuration_sha256
     - name: Verify provisioned Redis configuration secret metadata only
       ansible.builtin.command:
-        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''--format'',
-          ''{% raw %}{{.Spec.Name}}{% endraw %}'', ''nautobot-redis-config''] }}'
+        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''nautobot-redis-config''] }}'
       changed_when: false
       register: runtime_secret
     - name: Require Redis secret
       ansible.builtin.assert:
-        that: runtime_secret.stdout == 'nautobot-redis-config'
+        that: (runtime_secret.stdout | from_json)[0].Spec.Name == 'nautobot-redis-config'
     - name: Capture journal cursor before mutation
       ansible.builtin.command:
         argv:
