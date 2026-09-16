@@ -1,0 +1,54 @@
+---
+- name: Preserve the reviewed package cleanup recovery inputs
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  vars_files:
+    - "{{ cleanup_plan }}"
+  tasks:
+    - name: Require the reviewed single host and protected path
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - cleanup.directory is match('^/var/lib/homelab-nautobot/package-cleanup-[A-Za-z0-9_-]+$')
+    - name: Inspect backup path before creation
+      ansible.builtin.stat:
+        path: "{{ cleanup.directory }}"
+      register: backup_path
+    - name: Require a new evidence directory
+      ansible.builtin.assert:
+        that: not backup_path.stat.exists
+    - name: Create protected evidence directory
+      ansible.builtin.file:
+        path: "{{ cleanup.directory }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+    - name: Stage exact plan
+      ansible.builtin.copy:
+        src: "{{ cleanup_plan }}"
+        dest: "{{ cleanup.directory }}/plan.json"
+        owner: root
+        group: root
+        mode: '0600'
+    - name: Stage recovery collector
+      ansible.builtin.copy:
+        src: ../scripts/prepare-package-cleanup.py
+        dest: "{{ cleanup.directory }}/prepare.py"
+        owner: root
+        group: root
+        mode: '0600'
+    - name: Preserve packages and configuration without purging
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, "{{ cleanup.directory }}/prepare.py", "{{ cleanup.directory }}/plan.json"]
+      environment:
+        LC_ALL: C
+      register: recovery
+    - name: Preserve recovery index on controller
+      ansible.builtin.fetch:
+        src: "{{ cleanup.directory }}/recovery.json"
+        dest: "{{ cleanup_evidence }}/recovery.json"
+        flat: true

@@ -1,0 +1,62 @@
+[Unit]
+Description=Nautobot {{ name }}
+{% if service.depends_on is defined %}
+Requires={{ dependencies | join(" ") }}
+After={{ dependencies | join(" ") }}
+{% endif %}
+
+[Container]
+Image={{ image }}
+Pull=never
+ContainerName=nautobot-{{ name }}
+Network=nautobot-private.network
+NetworkAlias={{ name }}
+EnvironmentFile=/var/lib/nautobot/runtime/{{ name }}.env
+{% if name in ['migration', 'web', 'worker', 'scheduler'] %}
+Entrypoint=nautobot-server
+Environment=NAUTOBOT_CONFIG=/opt/nautobot/nautobot_config.py
+Volume=/var/lib/nautobot/runtime/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro
+{% endif %}
+{% for volume in volumes %}
+Volume=nautobot-{{ volume.name }}.volume:{{ volume.destination }}
+{% endfor %}
+{% for endpoint in service.published_endpoints | default([]) %}
+PublishPort={{ '[' + endpoint.address + ']' if endpoint.family == 'ipv6' else endpoint.address }}:{{ endpoint.port }}:8080
+{% endfor %}
+{% if service.memory_limit_mib is defined %}
+PodmanArgs=--memory={{ service.memory_limit_mib }}m
+{% endif %}
+{% if name == 'postgresql' %}
+Environment=POSTGRES_USER=nautobot
+Environment=POSTGRES_DB=nautobot
+HealthCmd=pg_isready -U nautobot -d nautobot
+Notify=healthy
+HealthInterval=10s
+HealthRetries=6
+{% elif name == 'redis' %}
+Secret=nautobot-redis-config,type=mount,target=redis.conf,uid=999,gid=999,mode=0400
+Exec=redis-server /run/secrets/redis.conf
+HealthCmd=/bin/sh -c 'test "$(redis-cli --raw ping)" = PONG'
+Notify=healthy
+HealthInterval=10s
+HealthRetries=6
+{% else %}
+Exec={{ command }}
+{% endif %}
+
+[Service]
+{% if name == 'migration' %}
+Type=oneshot
+RemainAfterExit=yes
+Restart=no
+{% else %}
+Restart=on-failure
+RestartSec=10
+{% endif %}
+TimeoutStartSec=300
+TimeoutStopSec=90
+
+{% if name != 'migration' %}
+[Install]
+WantedBy=default.target
+{% endif %}

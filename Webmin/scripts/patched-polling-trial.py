@@ -35,7 +35,16 @@ def disable(root):
     guard.write_json(root / 'disabled.json', {'epoch': time.time(), 'sha256': guard.sha(before)})
 
 
-def apply(payload_path):
+def retained_profile(op, package, kernel):
+    if not op.get('package_version') or package != op['package_version']:
+        raise RuntimeError('package_changed')
+    if not op.get('kernel') or kernel != op['kernel']:
+        raise RuntimeError('kernel_changed')
+    if any(source['before'] != source['after'] for source in op['sources']):
+        raise RuntimeError('retained_source_mutation_forbidden')
+
+
+def apply(payload_path, retain_sources=False):
     op = read(payload_path.parent, payload_path.name)
     if os.uname().nodename != op['host'] or guard.BOOT.read_text().strip() != op['boot_id']:
         raise RuntimeError('target_or_boot_mismatch')
@@ -43,7 +52,11 @@ def apply(payload_path):
         raise RuntimeError('invalid_id')
     if guard.CONFIG.read_bytes() != op['disabled_config'].encode():
         raise RuntimeError('configuration_conflict')
-    if guard.run(['dpkg-query', '-W', '-f=${Version}', 'smartmontools']) != '7.4-3':
+    package = guard.run(['dpkg-query', '-W', '-f=${Version}', 'smartmontools'])
+    if retain_sources:
+        retained_profile(op, package, os.uname().release)
+        op['sources_retained'] = True
+    elif package != '7.4-3':
         raise RuntimeError('package_changed')
     expected_paths = {'/usr/share/webmin/smart-status/smart-status-lib.pl',
                       '/usr/share/webmin/system-status/system-status-lib.pl'}
@@ -85,10 +98,13 @@ def apply(payload_path):
     changed = []
     try:
         for source in op['sources']:
+            if retain_sources:
+                continue
             guard.guarded_replace(Path(source['path']), base64.b64decode(source['before']),
                                   base64.b64decode(source['after']), source['metadata'])
             changed.append(source)
-        guard.write_json(root / 'patch-applied.json', {'epoch': time.time(), 'unit': unit})
+        guard.write_json(root / 'patch-applied.json', {'epoch': time.time(), 'unit': unit,
+                         'retained_existing_patch': retain_sources})
         script = str(root / 'patched-polling-trial.py')
         result = subprocess.run(['systemd-run', '--quiet', '--unit=' + unit,
                                  '--property=RuntimeMaxSec=90000', '--property=UMask=0077',
@@ -119,6 +135,10 @@ def rollback(root):
     disable(root)
     unit = read(root, 'patch-applied.json')['unit']
     guard.run(['systemctl', 'stop', unit])
+    if read(root, 'operation.json').get('sources_retained'):
+        guard.write_json(root / 'rollback.json', {'epoch': time.time(), 'polling_disabled': True,
+                         'existing_sources_preserved': True})
+        return
     for source in reversed(read(root, 'operation.json')['sources']):
         guard.guarded_replace(Path(source['path']), base64.b64decode(source['after']),
                               base64.b64decode(source['before']), source['metadata'], restore=True)
@@ -188,6 +208,8 @@ def sample(root, op, start, previous, baseline):
         raise RuntimeError('observation_gap')
     if guard.BOOT.read_text().strip() != op['boot_id']:
         raise RuntimeError('boot_changed')
+    if op.get('kernel') and os.uname().release != op['kernel']:
+        raise RuntimeError('kernel_changed')
     if guard.CONFIG.read_bytes() != op['enabled_config'].encode():
         raise RuntimeError('configuration_drift')
     for source in op['sources']:
@@ -205,7 +227,7 @@ def sample(root, op, start, previous, baseline):
     if mount != baseline['root_mount']:
         raise RuntimeError('root_mount_changed')
     log = guard.run(['journalctl', '-b', '-k', '--since=@' + str(int(start)),
-                     '--grep=reset .*USB device|I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset',
+                     '--grep=reset.*USB|USB.*reset|I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|Out of memory|oom-kill|under-voltage|over-current',
                      '--output=json', '--no-pager', '--quiet'], allowed=(0, 1))
     events = [json.loads(line) for line in log.splitlines()]
     if events:
@@ -223,6 +245,8 @@ def sample(root, op, start, previous, baseline):
             if len(fields) != 2 or not re.fullmatch(r'-?[0-9]+(?:\.[0-9]+)?', fields[1]):
                 raise RuntimeError('invalid_temperature_record')
             temperatures.append({'epoch': int(fields[0]), 'celsius': float(fields[1])})
+            if not 0 < temperatures[-1]['celsius'] < 80:
+                raise RuntimeError('temperature_out_of_range')
     return {'epoch': now, 'elapsed_seconds': now - start, 'services': svc,
             'service_events': restarts, 'ext4_errors': errors, 'root_mount': mount,
             'diskstats': guard.diskstats(), 'latest_history': latest,
@@ -323,8 +347,8 @@ def main():
     root = Path(state)
     if os.geteuid() != 0:
         raise RuntimeError('root_required')
-    if action == 'apply':
-        apply(root)
+    if action in {'apply', 'start-existing'}:
+        apply(root, retain_sources=action == 'start-existing')
         return
     if action == 'rollback':
         rollback(root)

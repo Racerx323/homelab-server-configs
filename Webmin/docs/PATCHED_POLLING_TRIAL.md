@@ -10,7 +10,9 @@ It changes `smart-status/smart-status-lib.pl` and
 collection uses `-A -l error` instead of `-a`; separate `-i` and `-H` calls remain.
 Manual full SMART queries and independent callers are unaffected.
 
-Keep smartmontools 7.4 unchanged for this trial. The target profile and helper
+Keep smartmontools 7.4 unchanged for the original patch-isolation trial only.
+For a repeat observation of an already installed patch on a later package or
+kernel, use the `start-existing` procedure below with exact retained identities. The target profile and helper
 requirements from [DRIVE_POLLING_TRIAL.md](DRIVE_POLLING_TRIAL.md) apply. This is
 not a generic installer. It is a guarded two-file patch with a bounded polling
 experiment and a configuration shutoff owned by its observer.
@@ -40,6 +42,27 @@ trace before removing the override. No disabled-polling functional trial is run.
 The first actual scheduled command sequence verifies loaded behavior.
 
 ## Observation and automatic shutoff
+
+### Retaining an already verified patch
+
+For a separately authorized repeat observation after a package/kernel change,
+prepare a fresh operation and use `start-existing` instead of `apply`. Set exact
+`package_version` and `kernel` values, bind the current boot and reviewed hashes,
+and set each source's `before` and `after` to identical installed patched bytes.
+The runner refuses source replacement in this mode. Preserve prior evidence and
+use a new, unique observation directory; do not restart a consumed observer.
+
+```sh
+sudo python3 /protected/path/patched-polling-trial.py start-existing /protected/path/operation.json
+```
+
+The trace attaches before enablement. Verify actual scheduled health/attribute
+queries, temperature history and at least 70 seconds of quiet evidence following
+their completion before reporting preliminary success. Rollback in this mode
+disables polling and stops the observer while retaining the existing source patch.
+Neither checkpoint deadlines nor an inactive observer alone prove completion.
+
+### Coverage
 
 The observer samples every 15 seconds. It checks the boot, patched source hashes,
 monitoring binaries/configurations, root mount, ext4 errors, service availability,

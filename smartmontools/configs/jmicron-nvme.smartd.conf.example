@@ -1,5 +1,9 @@
 # TEMPLATE: replace with a verified whole-disk by-id selector, never -partN.
 # Requires a build containing the JMS583 self-test-log workaround.
-# Verify the consumer's approved root mail route and Debian smartd-runner hook.
+# Replace the recipient with the consumer's verified mail route.
+# root requires a verified alias; notify@mailrise.xyz requires the Mailrise
+# notify route AND an effective msmtp account that submits to that relay.
+# Verify /usr/bin/mail, the sendmail provider and Debian smartd-runner hook.
+# See ../docs/ALERT_DELIVERY.md for packages and end-to-end qualification.
 # No self-test schedule or device-setting writes are configured here.
-/dev/disk/by-id/REPLACE_WITH_VERIFIED_WHOLE_DISK_ID -d auto -a -m root -M exec /usr/share/smartmontools/smartd-runner
+/dev/disk/by-id/REPLACE_WITH_VERIFIED_WHOLE_DISK_ID -d auto -a -m REPLACE_WITH_VERIFIED_RECIPIENT -M exec /usr/share/smartmontools/smartd-runner

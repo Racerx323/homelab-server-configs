@@ -11,6 +11,14 @@ network or DNS changes, UniFi changes, Caddy publication, container startup,
 secrets creation, source-of-truth migration, or production acceptance. Each
 live stage requires separately reviewed inputs and scoped authorization.
 
+## Navigation
+
+Use the [roadmap](ROADMAP.md) for current progress, acceptance gaps and next-stage
+preparation. Detailed procedures remain in
+[host convergence](HOST_BASELINE_CONVERGENCE.md),
+[operator procedures](OPERATIONS.md) and the owning component guides.
+These supporting records do not change the architecture or grant live authorization.
+
 ## Accepted target
 
 | Property | Accepted value |

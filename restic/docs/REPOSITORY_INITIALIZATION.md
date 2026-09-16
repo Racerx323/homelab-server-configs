@@ -100,3 +100,60 @@ new authorization for any follow-up.
 
 This procedure never authorizes repository or bucket deletion, object cleanup,
 password rotation, repository repair, backup upload, or Restic deployment.
+
+## Local implementation and readiness boundary
+
+The Nautobot consumer now provides:
+
+- `Nautobot/ansible/scripts/run-restic-initialization.py`: active-operation,
+  accepted-host/provider, clean-source and bundle gates; uses the existing
+  bounded credential-delivery utilities and repository Ansible wrapper;
+- `Nautobot/ansible/playbooks/initialize-restic-repository.yaml`: unique protected
+  staging, target/user boundary, invocation and unconditional secret cleanup;
+- `restic/scripts/initialize-repository.py`: single-use command boundary with
+  node-local durable attempt/result records and bounded output; and
+- `restic/tests/test_initialization.py`: offline failure injection.
+
+The small node helper owns the interruption-sensitive record boundary around
+`init`; it does not replace Ansible deployment orchestration. It records intent
+before mutation, the command result before readback, and only allowlisted status
+fields. It discards raw command output. Exact version comparison precedes fresh
+absence detection. It verifies format/ID and lists repository locks read-only
+before returning `initialized_review_required`. Neither that result nor the
+launcher exit code grants acceptance.
+
+The active convergence operation is rejected before credentials are resolved.
+The unchanged historical deferred initialization contract and schema still mark
+initialization unimplemented/unready. That record describes its original review;
+these new files are locally tested candidates, not permission to reactivate it.
+Activation must review/update the schema and contract, bind terminal accepted
+host/provider identities, review fresh read-only absence evidence and exact
+version, produce the final bundle and obtain scoped live authorization. Do not
+bypass those gates with direct playbook invocation or extra-variable overrides.
+
+Local checks (from repository root):
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 restic/tests/test_initialization.py
+/bin/bash tests/repository/run-with-ansible-local-temp.sh \
+  ansible-playbook --syntax-check --inventory inventory/prod/hosts.yaml \
+  Nautobot/ansible/playbooks/initialize-restic-repository.yaml
+python3 Nautobot/ansible/scripts/run-restic-initialization.py show-command
+```
+
+No live initialization has been exercised. Before readiness, qualify target
+privilege/ownership, exact installed Restic behavior, protected staging and
+remote cleanup through the reviewed deployment path. If SSH becomes unreachable,
+remote credential cleanup is unknown: preserve controller evidence, recover access
+and inspect the retained directory before further work. Missing node records
+mean unknown mutation state, never proof that initialization was not attempted.
+
+The retained remote `/tmp/nautobot-restic-init.*` directory contains the helper
+and sanitized records after credential removal; it is intentional evidence, not
+secret residue. Do not delete it until terminal evidence is safely retained.
+Do not retry after an attempted initialization, including a new staging directory,
+without fresh state classification and authorization.
+
+CLI contract references: [Restic scripting](https://github.com/restic/restic/blob/master/doc/075_scripting.rst),
+[repository formats](https://github.com/restic/restic/blob/master/doc/030_preparing_a_new_repo.rst),
+and [object listing](https://github.com/restic/restic/blob/master/doc/100_references.rst).

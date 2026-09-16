@@ -44,3 +44,9 @@ It includes an [explicit-device template](configs/jmicron-nvme.smartd.conf.examp
 and [Debian 13 backports source](configs/trixie-backports.sources).
 Render and qualify them for each host; they are not a fleet deployment manifest.
 No self-test schedule is configured by this profile.
+
+The [alert delivery procedure](docs/ALERT_DELIVERY.md) records the tested package
+additions and versions, Debian's mail frontend requirement, recipient/account
+qualification, rollback and end-to-end verification. Fleet msmtp configuration
+is owned by `homelab-dns/msmtp`; the pilot's older mail configuration is not the
+fleet standard.

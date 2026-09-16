@@ -12,6 +12,17 @@ spec.loader.exec_module(trial)
 
 
 class PatchedTrialTests(unittest.TestCase):
+    def test_retained_profile_requires_exact_version_kernel_and_unchanged_source(self):
+        op = {'package_version': '7.5-test', 'kernel': 'test-kernel',
+              'sources': [{'before': 'bytes', 'after': 'bytes'}]}
+        trial.retained_profile(op, '7.5-test', 'test-kernel')
+        for package, kernel in [('7.4-test', 'test-kernel'), ('7.5-test', 'other-kernel')]:
+            with self.assertRaises(RuntimeError):
+                trial.retained_profile(op, package, kernel)
+        op['sources'][0]['after'] = 'changed'
+        with self.assertRaisesRegex(RuntimeError, 'retained_source_mutation_forbidden'):
+            trial.retained_profile(op, '7.5-test', 'test-kernel')
+
     def test_only_reviewed_smart_queries_allowed(self):
         self.assertEqual(trial.classify(['-A', '-l', 'error', '/dev/sda']), 'attributes')
         for argv in [['-a', '/dev/sda'], ['-x', '/dev/sda'],

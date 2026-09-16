@@ -1,0 +1,150 @@
+---
+- name: Stage the reviewed Raspberry Pi memory controller boot override
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  vars_files:
+    - "{{ memory_controller_plan }}"
+  tasks:
+    - name: Require the exact host and boot-only scope
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - memory_correction.stage == 'boot_file_only'
+          - memory_correction.reboot_authorized == false
+          - memory_correction.boot_path == '/boot/firmware/cmdline.txt'
+          - memory_correction.backup_directory is match('^/var/lib/homelab-nautobot/memory-controller-[A-Za-z0-9_-]+$')
+          - memory_correction.before_sha256 is match('^[0-9a-f]{64}$')
+          - memory_correction.after_sha256 is match('^[0-9a-f]{64}$')
+          - memory_correction.before_sha256 != memory_correction.after_sha256
+          - memory_correction.content | hash('sha256') == memory_correction.after_sha256
+
+    - name: Read current boot identity
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      register: memory_boot
+      changed_when: false
+
+    - name: Inspect the boot file without following symlinks
+      ansible.builtin.stat:
+        path: "{{ memory_correction.boot_path }}"
+        checksum_algorithm: sha256
+      register: memory_file
+
+    - name: Refuse a different boot, file identity or unreviewed content
+      ansible.builtin.assert:
+        that:
+          - memory_boot.stdout == memory_correction.boot_id
+          - memory_file.stat.isreg | default(false)
+          - not (memory_file.stat.islnk | default(false))
+          - memory_file.stat.uid == 0
+          - memory_file.stat.gid == 0
+          - memory_file.stat.mode == '0755'
+          - memory_file.stat.checksum in [memory_correction.before_sha256, memory_correction.after_sha256]
+
+    - name: Inspect backup directory before using it
+      ansible.builtin.stat:
+        path: "{{ memory_correction.backup_directory }}"
+      register: memory_backup_directory
+
+    - name: Refuse an unsafe preexisting backup directory
+      ansible.builtin.assert:
+        that:
+          - >-
+            not memory_backup_directory.stat.exists or
+            (memory_backup_directory.stat.isdir | default(false) and
+             not (memory_backup_directory.stat.islnk | default(false)) and
+             memory_backup_directory.stat.uid == 0 and
+             memory_backup_directory.stat.mode == '0700')
+
+    - name: Create protected correction evidence directory
+      ansible.builtin.file:
+        path: "{{ memory_correction.backup_directory }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Inspect original-byte backup
+      ansible.builtin.stat:
+        path: "{{ memory_correction.backup_directory }}/cmdline.before"
+        checksum_algorithm: sha256
+      register: memory_backup
+
+    - name: Require valid existing backup or unchanged original boot file
+      ansible.builtin.assert:
+        that:
+          - >-
+            (not memory_backup.stat.exists and memory_file.stat.checksum == memory_correction.before_sha256) or
+            (memory_backup.stat.isreg | default(false) and
+             not (memory_backup.stat.islnk | default(false)) and
+             memory_backup.stat.uid == 0 and memory_backup.stat.mode == '0600' and
+             memory_backup.stat.checksum == memory_correction.before_sha256)
+
+    - name: Preserve original boot bytes before mutation
+      ansible.builtin.copy:
+        src: "{{ memory_correction.boot_path }}"
+        dest: "{{ memory_correction.backup_directory }}/cmdline.before"
+        remote_src: true
+        owner: root
+        group: root
+        mode: '0600'
+        force: false
+      when: not memory_backup.stat.exists
+
+    - name: Verify preserved backup before mutation
+      ansible.builtin.stat:
+        path: "{{ memory_correction.backup_directory }}/cmdline.before"
+        checksum_algorithm: sha256
+      register: memory_saved
+
+    - name: Require exact original-byte backup
+      ansible.builtin.assert:
+        that:
+          - memory_saved.stat.checksum == memory_correction.before_sha256
+
+    - name: Recheck boot-file content immediately before mutation
+      ansible.builtin.stat:
+        path: "{{ memory_correction.boot_path }}"
+        checksum_algorithm: sha256
+      register: memory_before_write
+
+    - name: Refuse intervening boot-file drift
+      ansible.builtin.assert:
+        that:
+          - memory_before_write.stat.isreg | default(false)
+          - not (memory_before_write.stat.islnk | default(false))
+          - memory_before_write.stat.checksum == memory_file.stat.checksum
+          - memory_before_write.stat.mode == '0755'
+          - memory_before_write.stat.uid == 0
+          - memory_before_write.stat.gid == 0
+
+    - name: Stage only the reviewed boot file
+      ansible.builtin.copy:
+        content: "{{ memory_correction.content }}"
+        dest: "{{ memory_correction.boot_path }}"
+        owner: root
+        group: root
+        mode: '0755'
+      when: memory_file.stat.checksum == memory_correction.before_sha256
+
+    - name: Verify staged bytes
+      ansible.builtin.stat:
+        path: "{{ memory_correction.boot_path }}"
+        checksum_algorithm: sha256
+      register: memory_staged
+
+    - name: Verify no reboot occurred
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      changed_when: false
+      register: memory_boot_after
+
+    - name: Require exact staged content and unchanged runtime boot
+      ansible.builtin.assert:
+        that:
+          - memory_staged.stat.checksum == memory_correction.after_sha256
+          - memory_staged.stat.mode == '0755'
+          - memory_boot_after.stdout == memory_correction.boot_id

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Unready host convergence definition",
+  "title": "Reviewed read-only host convergence definition",
   "const": {
     "schema_version": 1,
     "operation": {
@@ -37,12 +37,12 @@
       "operator_report": {
         "reboot_since_last_storage_validation": true,
         "source": "operator_statement",
-        "live_verified": false
+        "live_verified": true
       },
       "current_boot_validation": {
-        "state": "required",
-        "boot_id": null,
-        "evidence_reference": null
+        "state": "passed",
+        "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+        "evidence_reference": "private_nautobot_current_boot_preflight_20260916_storage_review"
       }
     },
     "deferred_contract": {
@@ -59,14 +59,17 @@
         "fuse-overlayfs": "1.14-1+b1",
         "crun": "1.21-1",
         "dbus-user-session": "1.16.2-2",
-        "smartmontools": "7.4-3",
+        "smartmontools": "7.5-2~bpo13+1",
         "restic": "0.18.0-1+b4",
         "msmtp": "1.8.28-3",
         "msmtp-mta": "1.8.28-3",
-        "needrestart": null
+        "bsd-mailx": "8.1.2-0.20220412cvs-1.1",
+        "liblockfile-bin": "1.17-2",
+        "liblockfile1:arm64": "1.17-2",
+        "needrestart": "3.11-1"
       },
-      "uid": null,
-      "gid": null,
+      "uid": 999,
+      "gid": 985,
       "home": "/var/lib/nautobot",
       "shell": "/usr/sbin/nologin",
       "subordinate_start": 165536,
@@ -85,7 +88,17 @@
         "bluetooth.service",
         "ModemManager.service"
       ],
-      "listeners": null,
+      "listeners": [
+        "tcp LISTEN 0.0.0.0:22 0.0.0.0:*",
+        "tcp LISTEN [::]:22 [::]:*",
+        "tcp LISTEN 0.0.0.0:10000 0.0.0.0:*",
+        "tcp LISTEN [::]:10000 [::]:*",
+        "tcp LISTEN *:4949 *:*",
+        "udp UNCONN 0.0.0.0:10000 0.0.0.0:*"
+      ],
+      "optional_listeners": [
+        "tcp LISTEN 127.0.0.1:555 0.0.0.0:*"
+      ],
       "root_source": "/dev/sda2",
       "root_fstype": "ext4",
       "permanent_ula": "fd36:5aa8:6971:1::170",
@@ -241,6 +254,19 @@
             "/usr/bin/podman",
             "info",
             "--format=json"
+          ]
+        },
+        {
+          "id": "cgroup_controllers",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/cat",
+            "/sys/fs/cgroup/cgroup.controllers"
           ]
         },
         {
@@ -432,7 +458,7 @@
             "/usr/bin/journalctl",
             "--boot=0",
             "--dmesg",
-            "--grep=I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|Out of memory|oom-kill|under-voltage|over-current",
+            "--grep=reset.*USB|USB.*reset|I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|Out of memory|oom-kill|under-voltage|over-current",
             "--output=short-iso",
             "--no-pager",
             "--quiet"
@@ -449,8 +475,45 @@
             "30s",
             "/usr/sbin/smartctl",
             "--json",
-            "--xall",
+            "-q",
+            "noserial",
+            "-H",
+            "-i",
+            "-A",
+            "-l",
+            "error",
             "/dev/sda"
+          ]
+        },
+        {
+          "id": "smart_settle",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "90s",
+            "/usr/bin/sleep",
+            "75"
+          ]
+        },
+        {
+          "id": "post_smart_storage_events",
+          "argv": [
+            "/usr/bin/sudo",
+            "-n",
+            "/usr/bin/timeout",
+            "--signal=TERM",
+            "--kill-after=5s",
+            "30s",
+            "/usr/bin/journalctl",
+            "--boot=0",
+            "--dmesg",
+            "--grep=reset.*USB|USB.*reset|I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|Out of memory|oom-kill|under-voltage|over-current",
+            "--output=short-iso",
+            "--no-pager",
+            "--quiet"
           ]
         },
         {
@@ -569,17 +632,135 @@
       "restic_initialization_authorized": false
     },
     "authorization": {
-      "command": null,
+      "command": "run-host-convergence.py_execute-snapshot_AUTHORIZED_SHA256",
       "mutation_authorized": false,
       "blockers": [
-        "fresh_current_boot_storage_validation_and_continuity_review_required",
-        "review_needrestart_exact_version",
-        "review_numeric_account_identity",
-        "review_exact_listener_allowlist",
-        "review_complete_read_only_execution_bundle",
-        "definition_checkpoint_required",
-        "separate_read_only_authorization_required"
+        "guarded_webmin_observation_checkpoints_pending",
+        "terminal_acceptance_and_archival_not_authorized"
       ]
+    },
+    "preparation_review": {
+      "scope": "gate_2_definition_preparation_with_gate_1_evidence_review",
+      "gates_accepted": [],
+      "local_preparation": {
+        "roadmap": "Nautobot/docs/ROADMAP.md",
+        "activates_successor": false,
+        "live_authorization": false
+      },
+      "package_cleanup": {
+        "state": "purged_and_independently_verified",
+        "evidence_reference": "private_nautobot_cleanup_polling_20260916",
+        "package_entries_purged": 11,
+        "running_and_fallback_kernels_retained": true,
+        "protected_firmware_hashes_unchanged": true,
+        "reboot_performed": false,
+        "bundle_sha256": "3e5517aa2c19f420a63499dc5d9997d2de2ce034d639d84497f62eadc60b01dd"
+      },
+      "post_cleanup_preflight": {
+        "result": "preflight_passed_review_required",
+        "passed_checks": 59,
+        "evidence_reference": "private_nautobot_cleanup_polling_20260916",
+        "bundle_sha256": "dd94e06d18d670338a909890bfea13d32f46d20e693de5aaaa6c272447b16838",
+        "accepted_live_state_written": false
+      },
+      "webmin_followup_observation": {
+        "state": "running_checkpoints_pending",
+        "owner": "Webmin/",
+        "evidence_reference": "private_nautobot_cleanup_polling_20260916",
+        "operation_id": "j2-svpi4mf-20260916-kernel",
+        "bundle_sha256": "a917fb43b458bf165ae9ed1c8a3881df2de51c8762fa45cb2f8ccec065d29913"
+      },
+      "completed_preflight": {
+        "result": "blocked_on_package_residue",
+        "evidence_reference": "private_nautobot_current_boot_preflight_20260916",
+        "collection_bundle_sha256": "9eed5619e206378561f1744de0963b7836a8440d8c267755af149ca00f6c9ee0",
+        "reviewed_offline_with_corrected_no_match_and_optional_listener_rules": true,
+        "required_package_versions": "matched",
+        "residual_config_records": 5,
+        "autoremove_kernel_candidates": 6,
+        "cleanup_simulated_only": true,
+        "live_mutation_performed": false
+      },
+      "live_contact_performed": true,
+      "package_basis": {
+        "smartmontools": "authorized_official_backports_upgrade_verified_in_retained_evidence",
+        "mail_frontend": "authorized_three_package_repair_verified_in_retained_evidence",
+        "remaining_packages": "matched_in_post_cleanup_59_check_preflight"
+      },
+      "storage_disposition": {
+        "combined_webmin_transport_observation": "passed_bounded_checks",
+        "expanded_health_review": "failed_acceptance_not_superseded",
+        "smartd_alert_delivery": "repaired_and_user_receipt_confirmed",
+        "smartd_self_test_log": "unreliable_not_used_as_media_failure_or_health_clearance",
+        "bridge_limitation_accepted": false,
+        "current_boot_acceptance": "bounded_health_passed_terminal_acceptance_pending"
+      },
+      "missing_expectations": [],
+      "expectation_review": {
+        "evidence_reference": "private_nautobot_acceptance_review_20260916",
+        "decision": "preserve_existing_baseline_services_and_canonical_service_account",
+        "validation_boundary": "new_collection_precedes_separate_full_convergence_preflight",
+        "needrestart_basis": "installed_3.11-1_matches_cached_official_trixie_candidate",
+        "account_basis": "named_nologin_account_matches_home_ownership_and_subordinate_ranges",
+        "listener_owners": {
+          "ssh": "tcp_22_ipv4_ipv6",
+          "webmin": "tcp_10000_ipv4_ipv6_and_udp_10000_ipv4",
+          "webmin_stats": "optional_tcp_555_loopback_on_demand_authentic_theme_websocket",
+          "munin": "tcp_4949_wildcard_with_configured_client_allowlist"
+        },
+        "network_exposure_accepted": false,
+        "notification_scope": "smartd_delivery_only_not_needrestart_notifications"
+      },
+      "probe_review": {
+        "smart_query": "health_identity_attributes_and_error_log_only",
+        "decision": "qualify_working_health_telemetry_separately_from_unreliable_self_test_log",
+        "health_basis": "zero_critical_warning_media_errors_and_error_log_entries",
+        "post_query_observation_seconds": 75,
+        "storage_window_start_utc": "2026-09-16T17:23:19+00:00",
+        "storage_window_boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+        "historical_resets": "preserved_september_7_and_8_before_mitigation",
+        "self_test_log_upstream": "https://github.com/smartmontools/smartmontools/issues/648",
+        "smartd_monitoring_changed": false,
+        "backup_restore_waived": false
+      },
+      "evidence_index": "Nautobot/docs/HOST_BASELINE_CONVERGENCE.md",
+      "readiness_review": {
+        "current_boot_continuity": "post_cleanup_preflight_continuity_passed_observation_review_pending",
+        "root_binding_ext4_health": "verified_in_retained_read_only_evidence",
+        "throttling": "zero_current_and_latched_flags",
+        "negotiated_poe_supply": "verified_unifi_class_4_poe_good",
+        "unifi_credential_reference": "homelab-dev/prd_unifi/AUDIT_LOCAL",
+        "unifi_local_connection": "canonical_udmbt_local_theama_co_with_normal_tls_verification",
+        "poe_switch": "J2-SW48POE",
+        "poe_port": 3,
+        "poe_observed_watts": 5.9,
+        "poe_observed_volts": 53.64,
+        "poe_allocated_watts": null,
+        "poe_allocation_note": "explicit_per_port_allocation_not_exposed_by_readback",
+        "poe_evidence_reference": "private_unifi_poe_review_20260916",
+        "power_supply_sysfs": "no_exposed_supply_nodes",
+        "memory_cgroup_controller": "available_at_root_and_delegated_user_manager",
+        "kernel_argument": "cgroup_enable=memory_overrides_earlier_disable_default",
+        "runtime_impact": "controller_available_per_service_limit_enforcement_pending",
+        "correction_authorized": true,
+        "memory_correction": {
+          "state": "rebooted_controller_available_bounded_validation_passed",
+          "scope": "append_only_cgroup_enable_memory",
+          "reboot_authorized": true,
+          "recovery_access_confirmed": true,
+          "runtime_controller": "memory_available",
+          "kernel_before": "6.18.39+rpt-rpi-v8",
+          "kernel_after": "6.18.50+rpt-rpi-v8",
+          "boot_id_after": "70c9f650-a6a2-4583-84a9-f96462bef393",
+          "reboot_bundle_sha256": "d9aeaf3e10d60559c536e5ff0e4550a22c558623a70a2911154cd6d21dec05a3",
+          "mmc_warning": "isolated_boot_sdio_wifi_error_no_recurrence_usb_root_unaffected",
+          "storage_acceptance": "not_granted",
+          "independent_readback": "passed",
+          "evidence_reference": "private_nautobot_memory_controller_20260916",
+          "bundle_sha256": "a6b3ceaf458eedacbd5f0da5ecc51aa775a9b8992a678a4b834b944ee876d004"
+        },
+        "evidence_reference": "private_nautobot_preflight_bundle_20260916"
+      }
     },
     "component_ownership": {
       "needrestart": {

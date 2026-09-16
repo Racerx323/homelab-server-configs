@@ -30,11 +30,15 @@ BUNDLE_FILES = (
     'inventory/prod/hosts.yaml',
     'inventory/prod/groups/inventory_automation.yaml',
     'inventory/prod/hosts/j2-svpi4mf.yaml',
+    'tests/repository/run-with-ansible-local-temp.sh',
+    'Nautobot/schemas/repository-initialization.schema.json',
+    'Nautobot/ansible/ansible.cfg',
 )
 
 
 def command(root):
-    return ('ansible-playbook', '--inventory', str(ROOT/'inventory/prod/hosts.yaml'),
+    return ('/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
+            'ansible-playbook', '--inventory', str(ROOT/'inventory/prod/hosts.yaml'),
             '--limit', 'j2-svpi4mf', '--user', 'ama', '--extra-vars', 'ansible_host=10.1.2.170',
             '--extra-vars', f'convergence_evidence_directory={root}',
             str(ROOT/'Nautobot/ansible/playbooks/preflight-host-convergence.yaml'))
@@ -122,7 +126,30 @@ def capture(argv, root, environment, timeout=1200, limit=4 * 1024 * 1024):
     return status, error
 
 
-def execute(authorized_hash):
+def verify_snapshot(root):
+    """Accept only a protected, exact-file source snapshot; never relax Git checks in place."""
+    info = root.lstat()
+    if (root.parent != Path('/tmp') or not root.name.startswith('nautobot-convergence-source.')
+            or not stat.S_ISDIR(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o500
+            or info.st_uid != os.getuid()):
+        raise ValueError('unsafe_source_snapshot')
+    files = set()
+    for path in root.rglob('*'):
+        info = path.lstat()
+        if info.st_uid != os.getuid() or path.is_symlink():
+            raise ValueError('unsafe_source_snapshot_entry')
+        if path.is_dir():
+            if stat.S_IMODE(info.st_mode) != 0o500:
+                raise ValueError('writable_source_snapshot_directory')
+        elif path.is_file() and stat.S_IMODE(info.st_mode) == 0o400:
+            files.add(str(path.relative_to(root)))
+        else:
+            raise ValueError('unsafe_source_snapshot_file')
+    if files != set(BUNDLE_FILES):
+        raise ValueError('source_snapshot_input_set_mismatch')
+
+
+def execute(authorized_hash, snapshot=False):
     document = yaml.safe_load((ROOT/BUNDLE_FILES[0]).read_text())
     # Readiness rejection precedes hashes, local evidence creation and transport.
     if (document['operation']['id'] != 'nautobot-host-baseline-convergence-v1'
@@ -133,7 +160,9 @@ def execute(authorized_hash):
         raise ValueError('unready_read_only_preflight')
     subprocess.run(['check-jsonschema','--schemafile',str(ROOT/BUNDLE_FILES[1]),str(ROOT/BUNDLE_FILES[0])],
                    check=True, timeout=30, stdout=subprocess.DEVNULL)
-    if subprocess.check_output(['git','status','--porcelain'], cwd=ROOT, timeout=30):
+    if snapshot:
+        verify_snapshot(ROOT)
+    elif subprocess.check_output(['git','status','--porcelain'], cwd=ROOT, timeout=30):
         raise ValueError('dirty_worktree')
     rows = []
     for relative in BUNDLE_FILES:
@@ -150,7 +179,9 @@ def execute(authorized_hash):
     write(root, 'bundle-inputs.txt', payload)
     (root/'ansible-local').mkdir(mode=0o700)
     environment = {k:os.environ[k] for k in ['HOME','PATH','SSH_AUTH_SOCK'] if k in os.environ}
-    environment.update(LC_ALL='C', ANSIBLE_LOCAL_TEMP=str(root/'ansible-local'))
+    environment.update(LC_ALL='C.UTF-8', ANSIBLE_LOCAL_TEMP=str(root/'ansible-local'),
+                       ANSIBLE_CONFIG=str(ROOT/'Nautobot/ansible/ansible.cfg'),
+                       PYTHONDONTWRITEBYTECODE='1')
     status, error = None, 'incomplete'
     clean = False
     try:
@@ -168,14 +199,14 @@ def execute(authorized_hash):
 def main():
     os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=['show-command','execute'])
+    parser.add_argument('mode', choices=['show-command','execute','execute-snapshot'])
     parser.add_argument('authorized_hash', nargs='?')
     args = parser.parse_args()
     if args.mode == 'show-command':
         print(json.dumps(command('REVIEWED_PROTECTED_DIRECTORY')))
         return 0
     try:
-        return execute(args.authorized_hash)
+        return execute(args.authorized_hash, snapshot=args.mode == 'execute-snapshot')
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         print(f'blocked: {type(exc).__name__}')
         return 69

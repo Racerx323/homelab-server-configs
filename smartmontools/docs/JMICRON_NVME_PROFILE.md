@@ -72,14 +72,15 @@ unnecessary request; smartmontools handles it when another caller requests it.
 
 ## Configuration
 
-The pilot retains this existing active smartd line during the package test:
+During the isolated package test and combined observation, the pilot retained
+this smartd line (historical trial configuration):
 
 ```text
 DEVICESCAN -d removable -n standby -m root -M exec /usr/share/smartmontools/smartd-runner
 ```
 
 There is no explicit interval override. This records the pilot's retained
-configuration; it is not the fleet template. The inherited `-n standby` is not
+configuration; it is not the fleet template or an accepted alert route. The inherited `-n standby` is not
 evidence of NVMe power-state protection.
 
 Use the [explicit-device template](../configs/jmicron-nvme.smartd.conf.example)
@@ -93,6 +94,30 @@ Verify that `root` routes through the approved mail transport and that the
 Debian smartd-runner hook exists. Validate delivery under the consumer's
 notification authorization before accepting alert coverage. No relay secrets
 belong here. Active smartd alone is not proof of delivery.
+
+For Debian's `10mail` hook, verify `/usr/bin/mail` as well as the sendmail
+interface. See [alert delivery qualification](ALERT_DELIVERY.md) for the frontend,
+dependency review, synthetic hook test and rollback procedure.
+Use an explicitly verified recipient: `root` requires working alias routing.
+For a confirmed Mailrise `notify` configuration, `-m notify@mailrise.xyz` routes
+smartd directly without changing other senders' aliases.
+
+### Self-test-log interpretation on affected bridges
+
+The 7.5 workaround limits the NVMe request to 19 records, but the data-transfer
+buffer and smartd's parser still accommodate 20. Do not assume every displayed
+record is trustworthy merely because the command succeeded. Review unexplained
+error-count oscillation, unsupported test types or implausible power-on hours
+against preserved raw data and the installed implementation. Keep raw transfers
+private: suspect trailing bytes may contain unrelated data.
+
+A malformed trailing record can resemble a failed test. This is a diagnostic
+hypothesis to verify, not permission to dismiss health warnings or disable log
+monitoring. Preserve health monitoring and distinguish log interpretation from
+USB transport stability. No self-test is needed to read the log.
+
+The relevant implementation is the [7.5 JMicron transport](https://github.com/smartmontools/smartmontools/blob/RELEASE_7_5/smartmontools/scsinvme.cpp)
+and [smartd NVMe log parser](https://github.com/smartmontools/smartmontools/blob/RELEASE_7_5/smartmontools/smartd.cpp).
 
 Validate rendered configuration with the installed manual and a controlled
 start/reload, inspecting monitored-device records and kernel messages. smartd

@@ -1,0 +1,96 @@
+---
+- name: Activate the reviewed memory-controller correction
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  vars_files:
+    - "{{ memory_reboot_plan }}"
+  tasks:
+    - name: Require the authorized single-host reboot and confirmed recovery
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - memory_reboot.authorized | bool
+          - memory_reboot.recovery_confirmed | bool
+          - memory_reboot.stage == 'reboot_and_validate'
+          - memory_reboot.expected_hashes | length >= 3
+
+    - name: Capture the current boot identity
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      changed_when: false
+      register: boot_before
+
+    - name: Refuse an already changed boot
+      ansible.builtin.assert:
+        that:
+          - boot_before.stdout == memory_reboot.old_boot_id
+
+    - name: Inspect the reviewed files and recovery backup
+      ansible.builtin.stat:
+        path: "{{ item.key }}"
+        checksum_algorithm: sha256
+      loop: "{{ memory_reboot.expected_hashes | dict2items }}"
+      register: files_before
+
+    - name: Refuse file drift before reboot
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg | default(false)
+          - not (item.stat.islnk | default(false))
+          - item.stat.checksum == item.item.value
+      loop: "{{ files_before.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+
+    - name: Capture journal cursor before reboot
+      ansible.builtin.command:
+        argv: [/usr/bin/journalctl, --show-cursor, --no-pager, -n, '0']
+      changed_when: false
+      register: journal_cursor
+
+    - name: Retain the journal boundary in captured execution output
+      ansible.builtin.debug:
+        var: journal_cursor.stdout
+
+    - name: Reboot once and wait for reconnection
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+        connect_timeout: 10
+        post_reboot_delay: 15
+        test_command: /usr/bin/true
+
+    - name: Read the new boot identity
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      changed_when: false
+      register: boot_after
+
+    - name: Read available controllers
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /sys/fs/cgroup/cgroup.controllers]
+      changed_when: false
+      register: controllers_after
+
+    - name: Require a new boot and an available memory controller
+      ansible.builtin.assert:
+        that:
+          - boot_after.stdout != memory_reboot.old_boot_id
+          - "'memory' in (controllers_after.stdout | split)"
+
+    - name: Inspect protected inputs after reboot
+      ansible.builtin.stat:
+        path: "{{ item.key }}"
+        checksum_algorithm: sha256
+      loop: "{{ memory_reboot.expected_hashes | dict2items }}"
+      register: files_after
+
+    - name: Require unchanged boot and monitoring inputs
+      ansible.builtin.assert:
+        that:
+          - item.stat.checksum == item.item.value
+      loop: "{{ files_after.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"

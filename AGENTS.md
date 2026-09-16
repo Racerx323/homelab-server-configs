@@ -23,6 +23,11 @@ ownership, evidence, and safety boundaries below.
 
 ## Ownership boundaries
 
+- For UniFi controller access, follow the repository-wide
+  [UniFi access procedure](../homelab-network/Ubiquiti/UNIFI_ACCESS.md). The canonical local endpoint is
+  `https://udmbt.local.theama.co` (`10.1.0.1`); retain normal TLS verification.
+  This connection reference does not itself authorize controller access or changes.
+
 - A component may propose changes owned by another repository or component,
   but it must not silently assume authority over them.
 - Keepalived, Pi-hole, Unbound, and authoritative DNS sources belong to

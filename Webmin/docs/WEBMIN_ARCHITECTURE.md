@@ -66,6 +66,17 @@ strict checks. This revised rule does not rewrite earlier checkpoint results.
 See [PATCHED_POLLING_TRIAL.md](PATCHED_POLLING_TRIAL.md) for execution and reporting.
 Upgrading smartmontools is a separate intervention after reviewing patch results.
 
+## Repeated observation with the existing patch
+
+After separately reviewed package or kernel changes, a new bounded observation
+may retain the installed patch. The `start-existing` entrypoint binds the exact
+reviewed smartmontools version, running kernel, boot identity, source bytes and
+monitoring inputs. It changes only the temperature override; replacing sources
+is prohibited in this mode. The original patch-install entrypoint remains scoped
+to its 7.4 comparison. Repeated observations retain the same continuous query
+trace, two-hour/24-hour evidence requirements and automatic shutoff, and neither
+supersede historical results nor grant storage or workload acceptance.
+
 ## Host transport ownership
 
 [Host storage](../../host-storage/docs/HOST_STORAGE_ARCHITECTURE.md) owns

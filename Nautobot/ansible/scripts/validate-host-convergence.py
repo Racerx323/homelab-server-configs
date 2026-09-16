@@ -35,6 +35,7 @@ def passing_fixture():
     # Synthetic expectations are deliberately distinct from unresolved live identity.
     doc['expected'].update(uid=999, gid=999, listeners=['tcp LISTEN 0.0.0.0:22 0.0.0.0:*'])
     doc['expected']['packages']['needrestart'] = 'fixture-version'
+    doc['preparation_review']['probe_review']['storage_window_boot_id'] = 'af1ed3ab-0bdc-422a-b893-bc3ccd924fde'
     units = []
     for name in doc['expected']['required_units']:
         units.append(f'Id={name}\nLoadState=loaded\nActiveState=active\nUnitFileState=enabled')
@@ -50,6 +51,7 @@ def passing_fixture():
         'home': '999:999:750:directory', 'subuid': 'nautobot:165536:65536',
         'subgid': 'nautobot:165536:65536', 'linger': 'UID=999\nLinger=yes\nState=lingering',
         'podman': json.dumps({'host': {'security': {'rootless': True}}, 'store': {'graphRoot': '/var/lib/nautobot/.local/share/containers/storage'}}),
+        'cgroup_controllers': 'cpuset cpu io memory pids',
         'units': '\n\n'.join(units), 'failed_units': '', 'keepalived_process': '',
         'keepalived_config': '', 'keepalived_config_symlink': '',
         'keepalived_unit_files': '', 'keepalived_units': '',
@@ -58,6 +60,7 @@ def passing_fixture():
         'cmdline': 'root=/dev/sda2 usb-storage.quirks=152d:0583:u',
         'usb': 'DRIVERS=="usb-storage"\n\nATTRS{idVendor}=="152d"\nATTRS{idProduct}=="0583"\nATTRS{speed}=="5000"',
         'storage_events': '', 'smart': json.dumps({'smartctl':{'exit_status':0},'smart_status':{'passed':True},'nvme_smart_health_information_log':{'critical_warning':0,'media_errors':0,'num_err_log_entries':0},'temperature':{'current':44}}),
+        'smart_settle': '', 'post_smart_storage_events': '',
         'ext4_errors': '0', 'ext4_metadata': 'Filesystem state:         clean',
         'temperature': "temp=51.1'C", 'throttling': 'throttled=0x0',
         'listeners': 'tcp LISTEN 0 128 0.0.0.0:22 0.0.0.0:*',
@@ -70,6 +73,30 @@ def passing_fixture():
 
 
 class Contract(unittest.TestCase):
+    def test_optional_ui_listener_does_not_relax_required_or_exposure_checks(self):
+        doc, results = passing_fixture()
+        doc['expected']['optional_listeners'] = ['tcp LISTEN 127.0.0.1:555 0.0.0.0:*']
+        row = next(r for r in results if r['item']['id'] == 'listeners')
+        required = row['stdout']
+        for extra in ['', '\ntcp LISTEN 0 5 127.0.0.1:555 0.0.0.0:*']:
+            row['stdout'] = required + extra
+            self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
+        for invalid in ['', 'tcp LISTEN 0 5 127.0.0.1:555 0.0.0.0:*',
+                        required + '\ntcp LISTEN 0 5 0.0.0.0:555 0.0.0.0:*',
+                        required + '\n' + required]:
+            row['stdout'] = invalid
+            self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
+
+    def test_unit_file_no_matches_exit_one_requires_empty_clean_output(self):
+        doc, results = passing_fixture()
+        result = next(r for r in results if r['item']['id'] == 'keepalived_unit_files')
+        result['rc'] = 1
+        self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
+        for patch in [{'stdout': 'keepalived.service enabled'}, {'stderr': 'permission denied'}, {'rc': 2}]:
+            changed = copy.deepcopy(results)
+            next(r for r in changed if r['item']['id'] == 'keepalived_unit_files').update(patch)
+            self.assertEqual(MODULE.evaluate(doc, changed)['result'], 'blocked')
+
     def test_pass_and_unresolved_live_identity(self):
         doc, results = passing_fixture()
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
@@ -86,7 +113,7 @@ class Contract(unittest.TestCase):
 
     def test_reported_reboot_requires_new_reviewed_storage_evidence(self):
         self.assertTrue(DOC['storage_evidence']['operator_report']['reboot_since_last_storage_validation'])
-        self.assertFalse(DOC['storage_evidence']['operator_report']['live_verified'])
+        self.assertTrue(DOC['storage_evidence']['operator_report']['live_verified'])
         self.assertEqual(DOC['component_ownership']['needrestart']['owner'], 'Needrestart/')
         for state in ['required', 'failed']:
             doc, results = passing_fixture()
@@ -102,6 +129,8 @@ class Contract(unittest.TestCase):
                 result['stdout'] = new_boot
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
         doc['storage_evidence']['current_boot_validation']['boot_id'] = new_boot
+        self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
+        doc['preparation_review']['probe_review']['storage_window_boot_id'] = new_boot
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
 
     def test_drift(self):
@@ -111,6 +140,8 @@ class Contract(unittest.TestCase):
             'units':'', 'failed_units':'broken.service loaded failed failed', 'addresses':'[]',
             'root':'{}', 'cmdline':'usb-storage.quirks=152d:0583:u usb-storage.quirks=152d:0583:u',
             'usb':'DRIVERS=="uas"', 'storage_events':'I/O error, dev sda', 'smart':'{}',
+            'post_smart_storage_events':'usb 2-2: reset SuperSpeed USB device',
+            'cgroup_controllers':'cpuset cpu io pids',
             'ext4_errors':'garbage', 'temperature':"temp=80.1'C", 'throttling':'throttled=0x50000',
             'listeners':'tcp LISTEN 0 128 0.0.0.0:5432 0.0.0.0:*', 'residue':'Remv fixture [1]',
             'boot_end':'a-different-boot', 'home':'999:999:777:directory'
@@ -120,13 +151,46 @@ class Contract(unittest.TestCase):
                 next(r for r in results if r['item']['id'] == name)['stdout'] = value
                 self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
 
+    def test_retained_package_changes_reject_old_version_missing_frontend_and_wrong_arch(self):
+        for old, new in [
+            ('smartmontools\t7.5-2~bpo13+1\tinstalled', 'smartmontools\t7.4-3\tinstalled'),
+            ('bsd-mailx\t8.1.2-0.20220412cvs-1.1\tinstalled', 'bsd-mailx\t8.1.2-0.20220412cvs-1.1\tconfig-files'),
+            ('liblockfile1:arm64\t1.17-2\tinstalled', 'liblockfile1:amd64\t1.17-2\tinstalled'),
+        ]:
+            with self.subTest(package=old.split('\t')[0]):
+                doc, results = passing_fixture()
+                packages = next(r for r in results if r['item']['id'] == 'packages')
+                self.assertIn(old, packages['stdout'])
+                packages['stdout'] = packages['stdout'].replace(old, new)
+                result = MODULE.evaluate(doc, results)
+                self.assertEqual(result['result'], 'blocked')
+                self.assertFalse(result['checks']['exact_packages_and_no_config_residue'])
+
+    def test_empty_journal_status_is_not_confused_with_failed_collection(self):
+        doc, results = passing_fixture()
+        for row in results:
+            if row['item']['id'] in ['storage_events', 'post_smart_storage_events']:
+                row['rc'] = 1
+        self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
+        after = next(r for r in results if r['item']['id'] == 'post_smart_storage_events')
+        after['stderr'] = 'journal read failed'
+        self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
+
     def test_exact_vectors_and_playbook_boundary(self):
         prefix = ['/usr/bin/sudo','-n','/usr/bin/timeout','--signal=TERM','--kill-after=5s','30s']
         probes = {p['id']:p['argv'] for p in DOC['preflight']['probes']}
         self.assertEqual(probes['podman'], prefix + ['/usr/sbin/runuser','--user','nautobot','--','/usr/bin/env','--chdir=/var/lib/nautobot','/usr/bin/podman','info','--format=json'])
         self.assertEqual(probes['packages'], prefix + ['/usr/bin/dpkg-query','--show','--showformat=${binary:Package}\t${Version}\t${db:Status-Status}\n'])
         self.assertEqual(probes['residue'], prefix + ['/usr/bin/apt-get','--simulate','autoremove'])
-        self.assertEqual(probes['smart'], prefix + ['/usr/sbin/smartctl','--json','--xall','/dev/sda'])
+        self.assertEqual(probes['smart'], prefix + ['/usr/sbin/smartctl','--json','-q','noserial','-H','-i','-A','-l','error','/dev/sda'])
+        self.assertEqual(probes['smart_settle'], prefix[:-1] + ['90s','/usr/bin/sleep','75'])
+        names = list(probes)
+        self.assertEqual(names[names.index('smart'):names.index('smart')+3],
+                         ['smart', 'smart_settle', 'post_smart_storage_events'])
+        for name in ['storage_events', 'post_smart_storage_events']:
+            self.assertIn('--boot=0', probes[name])
+            self.assertFalse(any(arg.startswith('--since=') for arg in probes[name]))
+            self.assertIn('reset.*USB|USB.*reset', next(x for x in probes[name] if x.startswith('--grep=')))
         # Frozen reviewed schema binds the complete ordered argv catalog, including all other probes.
         schema = json.loads((ROOT/'Nautobot/schemas/host-convergence.schema.json').read_text())
         self.assertEqual(schema['const'], DOC)
@@ -152,7 +216,54 @@ class Contract(unittest.TestCase):
         result = subprocess.run([sys.executable, str(SCRIPTS/'run-host-convergence.py'), 'execute'], capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 69)
         self.assertIn('blocked:', result.stdout)
-        self.assertFalse(DOC['preflight']['execution_authorized'])
+
+    def test_source_snapshot_rejects_extras_symlinks_and_writable_inputs(self):
+        root = Path(tempfile.mkdtemp(prefix='nautobot-convergence-source.', dir='/tmp'))
+        try:
+            for name in LAUNCHER.BUNDLE_FILES:
+                p = root/name
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes((ROOT/name).read_bytes())
+                p.chmod(0o400)
+            for p in [x for x in root.rglob('*') if x.is_dir()]:
+                p.chmod(0o500)
+            root.chmod(0o500)
+            LAUNCHER.verify_snapshot(root)
+            subprocess.run(['check-jsonschema', '--schemafile',
+                            str(root/'Nautobot/schemas/operation.schema.json'),
+                            str(root/'Nautobot/manifests/operation.yaml')],
+                           check=True, capture_output=True, timeout=30)
+            subprocess.run(['/bin/bash', str(root/'tests/repository/run-with-ansible-local-temp.sh'),
+                            'ansible-playbook', '--syntax-check', '--inventory',
+                            str(root/'inventory/prod/hosts.yaml'),
+                            str(root/'Nautobot/ansible/playbooks/preflight-host-convergence.yaml')],
+                           env={**os.environ, 'LC_ALL': 'C.UTF-8',
+                                'ANSIBLE_CONFIG': str(root/'Nautobot/ansible/ansible.cfg')},
+                           check=True, capture_output=True, timeout=30)
+            candidate = root/LAUNCHER.BUNDLE_FILES[0]
+            candidate.chmod(0o600)
+            with self.assertRaises(ValueError):
+                LAUNCHER.verify_snapshot(root)
+            candidate.chmod(0o400)
+            root.chmod(0o700)
+            extra = root/'unexpected.cfg'
+            extra.write_text('unreviewed')
+            extra.chmod(0o400)
+            root.chmod(0o500)
+            with self.assertRaises(ValueError):
+                LAUNCHER.verify_snapshot(root)
+            root.chmod(0o700)
+            extra.unlink()
+            extra.symlink_to('/tmp')
+            root.chmod(0o500)
+            with self.assertRaises(ValueError):
+                LAUNCHER.verify_snapshot(root)
+        finally:
+            root.chmod(0o700)
+            for p in root.rglob('*'):
+                if p.is_dir() and not p.is_symlink():
+                    p.chmod(0o700)
+            shutil.rmtree(root)
 
     def test_capture_and_cleanup(self):
         for program, timeout, limit, expected_error in [
@@ -181,8 +292,8 @@ class Contract(unittest.TestCase):
         import jsonschema
         schema = json.loads((ROOT/'Nautobot/schemas/host-convergence.schema.json').read_text())
         jsonschema.validate(DOC, schema)
-        for section, key, value in [('operation','authorization_ready',True),
-                                    ('preflight','execution_authorized',True),
+        for section, key, value in [('operation','authorization_ready',not DOC['operation']['authorization_ready']),
+                                    ('preflight','execution_authorized',not DOC['preflight']['execution_authorized']),
                                     ('mutations','ordered',['install']),
                                     ('acceptance','state','accepted')]:
             changed = copy.deepcopy(DOC)

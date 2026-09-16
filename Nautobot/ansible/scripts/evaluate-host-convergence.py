@@ -37,10 +37,10 @@ def evaluate(document, results):
                      and not result['stderr']
                      and not re.search(r'[\x00-\x08\x0b-\x1f\x7f]', result['stdout']))
         absence = name in {'keepalived_process', 'keepalived_config', 'keepalived_config_symlink'}
-        journal = name == 'storage_events'
+        empty_one = name in {'storage_events', 'post_smart_storage_events', 'keepalived_unit_files'}
         if valid:
             valid = (result['rc'] == (1 if absence else 0)
-                     or (journal and result['rc'] == 1 and not result['stdout']))
+                     or (empty_one and result['rc'] == 1 and not result['stdout']))
         checks[name + '_command'] = valid
         if valid:
             outputs[name] = result['stdout'].strip()
@@ -141,8 +141,12 @@ def evaluate(document, results):
         if any(len(row) != 6 or row[0] not in {'tcp', 'udp'} for row in rows):
             return False
         observed = sorted(' '.join([row[0], row[1], row[4], row[5]]) for row in rows)
-        return (isinstance(expected['listeners'], list) and bool(expected['listeners'])
-                and len(set(observed)) == len(observed) and observed == sorted(expected['listeners'])
+        required = expected['listeners']
+        optional = expected.get('optional_listeners', [])
+        return (isinstance(required, list) and bool(required) and isinstance(optional, list)
+                and len(set(required + optional)) == len(required + optional)
+                and len(set(observed)) == len(observed)
+                and set(required) <= set(observed) <= set(required + optional)
                 and not any(re.search(r':(?:5432|6379|8080)$', row[4]) for row in rows))
 
     check('exact_packages_and_no_config_residue', packages)
@@ -153,6 +157,7 @@ def evaluate(document, results):
           == {'UID': str(expected['uid']), 'Linger': 'yes', 'State': 'lingering'})
     check('rootless_podman', lambda: json.loads(outputs['podman'])['host']['security']['rootless'] is True
           and json.loads(outputs['podman'])['store']['graphRoot'] == '/var/lib/nautobot/.local/share/containers/storage')
+    check('memory_cgroup_available', lambda: 'memory' in outputs['cgroup_controllers'].split())
     check('unit_states', units)
     check('zero_failed_units', lambda: outputs['failed_units'] == '')
     check('keepalived_absent', lambda: all(outputs[n] == '' for n in
@@ -164,6 +169,8 @@ def evaluate(document, results):
           == [expected['quirk_token']])
     check('root_usb_binding', usb)
     check('current_boot_storage_clear', lambda: outputs['storage_events'] == '')
+    check('smart_settle_completed', lambda: outputs['smart_settle'] == '')
+    check('post_smart_storage_clear', lambda: outputs['post_smart_storage_events'] == '')
     check('smart_health', smart)
     check('ext4_errors_zero', lambda: outputs['ext4_errors'] == '0')
     check('ext4_metadata_clean', lambda: re.search(r'^Filesystem state:\s+clean$', outputs['ext4_metadata'], re.M) is not None)
@@ -177,6 +184,8 @@ def evaluate(document, results):
     check('reviewed_current_boot_storage', lambda: validation['state'] == 'passed'
           and isinstance(validation['evidence_reference'], str) and bool(validation['evidence_reference'])
           and outputs['boot_start'] == outputs['boot_end'] == validation['boot_id'])
+    check('reviewed_storage_window_boot', lambda: outputs['boot_start']
+          == document['preparation_review']['probe_review']['storage_window_boot_id'])
     return {'result': 'preflight_passed_review_required' if all(checks.values()) else 'blocked',
             'checks': checks, 'accepted_live_state_written': False, 'mutation_attempted': False}
 

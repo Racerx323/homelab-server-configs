@@ -34,7 +34,9 @@ authorization before running `execute`.
 [The active manifest](../manifests/operation.yaml) defines the unready
 host-baseline convergence operation. See
 [the convergence procedure](../docs/HOST_BASELINE_CONVERGENCE.md) for retained
-evidence, unresolved expectations, read-only collection and terminal acceptance.
+evidence, the completed 59/59 preflight, pending polling review and terminal
+acceptance. [The acceptance map](../docs/ROADMAP.md) separates
+those results from later workload and recovery gates.
 It does not rerun host-baseline v3 or install anything.
 
 ```bash
@@ -202,3 +204,11 @@ Future boot/USB transport operations use [host-storage](../../host-storage/READM
 selected explicitly in host inventory. The original UAS remediation playbook and
 runner remain historical artifacts with their original guards; do not rerun them
 as a fleet installer. Nautobot retains host-baseline and workload acceptance.
+
+## Inactive runtime preparation
+
+`render-runtime.py` renders the desired-state Quadlets locally; see
+[operator procedures](../docs/OPERATIONS.md) for reviewed inputs, configuration
+and workload contracts. `run-runtime.py` and `playbooks/deploy-runtime.yaml`
+reject the current convergence operation. Local generation grants no deployment
+authorization and does not change the active operation.

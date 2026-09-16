@@ -1,0 +1,226 @@
+---
+- name: Install the first reviewed Nautobot rootless runtime
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+  vars:
+    runtime_operation: '{{ lookup(''ansible.builtin.file'', ''../../manifests/operation.yaml'') | from_yaml
+      }}'
+    runtime_home: /var/lib/nautobot
+    runtime_units:
+      - nautobot-private.network
+      - nautobot-postgresql_data.volume
+      - nautobot-redis_data.volume
+      - nautobot-nautobot_media.volume
+      - nautobot-postgresql.container
+      - nautobot-redis.container
+      - nautobot-migration.container
+      - nautobot-web.container
+      - nautobot-worker.container
+      - nautobot-scheduler.container
+    runtime_user_command:
+      - /usr/bin/sudo
+      - -n
+      - /usr/sbin/runuser
+      - --user
+      - nautobot
+      - --
+      - /usr/bin/env
+      - XDG_RUNTIME_DIR=/run/user/999
+      - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+  pre_tasks:
+    - name: Block unreviewed execution before any host command
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - runtime_operation.operation.stage == 'nautobot_pilot'
+          - runtime_operation.operation.authorization_ready | bool
+          - runtime_operation.authorization.mutation_authorized | bool
+          - runtime_operation.authorization.blockers | length == 0
+          - runtime_bundle_verified | default(false) | bool
+          - runtime_operation.runtime.first_install_only | bool
+          - runtime_operation.runtime.firewall_accepted | bool
+          - runtime_operation.runtime.configuration_accepted | bool
+          - runtime_operation.runtime.image_identity_accepted | bool
+          - runtime_operation.runtime.host_baseline_accepted | bool
+          - runtime_operation.runtime.recovery_access_confirmed | bool
+        fail_msg: Runtime definition is inactive; reviewed operation and bundle required.
+    - name: Verify all local rendered files against the reviewed bundle
+      ansible.builtin.stat:
+        path: '{{ runtime_rendered_directory }}/{{ item }}'
+        checksum_algorithm: sha256
+      delegate_to: localhost
+      loop: '{{ runtime_units }}'
+      register: runtime_local_files
+    - name: Require exact regular-file identities
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.checksum == runtime_operation.runtime.artifact_sha256[item.item]
+      loop: '{{ runtime_local_files.results }}'
+    - name: Verify canonical account
+      ansible.builtin.command:
+        argv:
+          - getent
+          - passwd
+          - nautobot
+      changed_when: false
+      register: runtime_account
+    - name: Require reviewed account identity
+      ansible.builtin.assert:
+        that:
+          - (runtime_account.stdout | split(':'))[2:4] == ['999', '985']
+          - (runtime_account.stdout | split(':'))[5] == runtime_home
+    - name: Inspect existing unit paths without replacing a deployment
+      ansible.builtin.stat:
+        path: '{{ runtime_home }}/.config/containers/systemd/{{ item }}'
+      become: true
+      loop: '{{ runtime_units }}'
+      register: runtime_existing
+    - name: Require a first installation
+      ansible.builtin.assert:
+        that: not item.stat.exists
+      loop: '{{ runtime_existing.results }}'
+    - name: Inspect protected service environment files
+      ansible.builtin.stat:
+        path: '{{ runtime_home }}/runtime/{{ item }}.env'
+      become: true
+      loop:
+        - postgresql
+        - redis
+        - migration
+        - web
+        - worker
+        - scheduler
+      register: runtime_environments
+      no_log: true
+    - name: Require canonical ownership and protected environment files
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.uid == 999
+          - item.stat.mode == '0600'
+      loop: '{{ runtime_environments.results }}'
+      no_log: true
+    - name: Inspect non-secret application configuration
+      ansible.builtin.stat:
+        path: '{{ runtime_home }}/runtime/nautobot_config.py'
+        checksum_algorithm: sha256
+      become: true
+      register: runtime_config
+    - name: Require reviewed application configuration readable inside container
+      ansible.builtin.assert:
+        that:
+          - runtime_config.stat.isreg
+          - not runtime_config.stat.islnk
+          - runtime_config.stat.uid == 999
+          - runtime_config.stat.mode == '0644'
+          - runtime_config.stat.checksum == runtime_operation.runtime.configuration_sha256
+    - name: Verify provisioned Redis configuration secret metadata only
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''--format'',
+          ''{% raw %}{{.Spec.Name}}{% endraw %}'', ''nautobot-redis-config''] }}'
+      changed_when: false
+      register: runtime_secret
+    - name: Require Redis secret
+      ansible.builtin.assert:
+        that: runtime_secret.stdout == 'nautobot-redis-config'
+    - name: Capture journal cursor before mutation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/journalctl
+          - --lines=0
+          - --show-cursor
+          - --no-pager
+      changed_when: false
+      register: runtime_cursor
+  tasks:
+    - name: Apply once and preserve stage results on failure
+      block:
+        - name: Create owned user Quadlet directory
+          ansible.builtin.file:
+            path: '{{ runtime_home }}/.config/containers/systemd'
+            state: directory
+            owner: nautobot
+            group: nautobot
+            mode: '0700'
+          become: true
+        - name: Install exact reviewed Quadlets
+          ansible.builtin.copy:
+            src: '{{ runtime_rendered_directory }}/{{ item }}'
+            dest: '{{ runtime_home }}/.config/containers/systemd/{{ item }}'
+            owner: nautobot
+            group: nautobot
+            mode: '0600'
+            force: false
+          become: true
+          loop: '{{ runtime_units }}'
+        - name: Generate user units
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''daemon-reload''] }}'
+          changed_when: true
+        - name: Start postgresql and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-postgresql.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_postgresql
+        - name: Start redis and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-redis.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_redis
+        - name: Start migration and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-migration.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_migration
+        - name: Start web and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-web.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_web
+        - name: Start worker and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-worker.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_worker
+        - name: Start scheduler and stop sequence on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-scheduler.service'']
+              }}'
+          changed_when: true
+          register: runtime_start_scheduler
+        - name: Require independent live acceptance after startup
+          ansible.builtin.debug:
+            msg: Startup is not acceptance. Preserve cursor-bounded journal and unit evidence; run the
+              separately reviewed workload, exposure and recovery checks. No automatic migration rollback
+              or volume deletion is authorized.
+      always:
+        - name: Preserve sanitized stage evidence
+          ansible.builtin.copy:
+            dest: '{{ runtime_evidence_root }}/runtime-stages.json'
+            content: '{{ runtime_stage_record | to_json }}'
+            mode: '0600'
+          delegate_to: localhost
+          vars:
+            runtime_stage_record:
+              journal_cursor: '{{ runtime_cursor.stdout }}'
+              acceptance: false
+              rollback_attempted: false
+              postgresql_exit_status: '{{ runtime_start_postgresql.rc | default("not_observed") }}'
+              redis_exit_status: '{{ runtime_start_redis.rc | default("not_observed") }}'
+              migration_exit_status: '{{ runtime_start_migration.rc | default("not_observed") }}'
+              web_exit_status: '{{ runtime_start_web.rc | default("not_observed") }}'
+              worker_exit_status: '{{ runtime_start_worker.rc | default("not_observed") }}'
+              scheduler_exit_status: '{{ runtime_start_scheduler.rc | default("not_observed") }}'

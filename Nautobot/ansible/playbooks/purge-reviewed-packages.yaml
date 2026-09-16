@@ -1,0 +1,116 @@
+---
+- name: Purge only the reviewed obsolete packages and residual configurations
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  vars_files:
+    - "{{ cleanup_plan }}"
+    - "{{ cleanup_evidence }}/recovery.json"
+  tasks:
+    - name: Require the reviewed single host and complete recovery set
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - cleanup.packages | length == 11
+          - packages | list | sort == cleanup.packages | list | sort
+          - cleanup.directory is match('^/var/lib/homelab-nautobot/package-cleanup-[A-Za-z0-9_-]+$')
+    - name: Verify current boot identity
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      changed_when: false
+      register: boot
+    - name: Inspect package database identity
+      ansible.builtin.stat:
+        path: /var/lib/dpkg/status
+        checksum_algorithm: sha256
+      register: status
+    - name: Require unchanged boot and package database
+      ansible.builtin.assert:
+        that:
+          - boot.stdout == cleanup.boot_id
+          - status.stat.checksum == status_sha256
+    - name: Verify recovery archive
+      ansible.builtin.stat:
+        path: "{{ cleanup.directory }}/recovery.tar.gz"
+        checksum_algorithm: sha256
+      register: archive
+    - name: Require exact recovery archive
+      ansible.builtin.assert:
+        that: archive.stat.checksum == archive_sha256
+    - name: Verify preserved recovery packages
+      ansible.builtin.stat:
+        path: "{{ cleanup.directory }}/debs/{{ item.value.file }}"
+        checksum_algorithm: sha256
+      loop: "{{ packages | dict2items }}"
+      register: deb_files
+    - name: Require each recovery package hash
+      ansible.builtin.assert:
+        that: item.stat.checksum == item.item.value.sha256
+      loop: "{{ deb_files.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+    - name: Verify firmware files before purge
+      ansible.builtin.stat:
+        path: "{{ item.key }}"
+        checksum_algorithm: sha256
+      loop: "{{ protected_hashes | dict2items }}"
+      register: firmware_before
+    - name: Reject boot-file drift before purge
+      ansible.builtin.assert:
+        that: item.stat.checksum == item.item.value
+      loop: "{{ firmware_before.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+    - name: Simulate the exact named transaction again
+      ansible.builtin.command:
+        argv: "{{ ['/usr/bin/apt-get', '--simulate', 'purge'] + (cleanup.packages.keys() | list) }}"
+      environment:
+        LC_ALL: C
+      changed_when: false
+      register: simulation
+    - name: Refuse extra removals installations or upgrades
+      ansible.builtin.assert:
+        that:
+          - simulation.stdout | regex_findall('(?m)^(?:Purg|Remv) ([a-z0-9.+:~_-]+)') | sort == cleanup.packages | list | sort
+          - simulation.stdout | regex_findall('(?m)^(?:Inst|Conf) ') | length == 0
+    - name: Purge only the eleven reviewed names without autoremove
+      ansible.builtin.command:
+        argv: "{{ ['/usr/bin/apt-get', '--assume-yes', 'purge'] + (cleanup.packages.keys() | list) }}"
+      environment:
+        LC_ALL: C
+        DEBIAN_FRONTEND: noninteractive
+        NEEDRESTART_MODE: l
+      register: purge_result
+      failed_when: false
+    - name: Preserve command result before asserting success
+      ansible.builtin.copy:
+        dest: "{{ cleanup_evidence }}/purge-result.json"
+        content: "{{ purge_result | to_json }}\n"
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+    - name: Require successful package transaction
+      ansible.builtin.assert:
+        that: purge_result.rc == 0
+    - name: Verify firmware files after purge
+      ansible.builtin.stat:
+        path: "{{ item.key }}"
+        checksum_algorithm: sha256
+      loop: "{{ protected_hashes | dict2items }}"
+      register: firmware_after
+    - name: Require retained firmware bytes
+      ansible.builtin.assert:
+        that: item.stat.checksum == item.item.value
+      loop: "{{ firmware_after.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+    - name: Read final boot identity
+      ansible.builtin.command:
+        argv: [/usr/bin/cat, /proc/sys/kernel/random/boot_id]
+      changed_when: false
+      register: boot_after
+    - name: Require no reboot
+      ansible.builtin.assert:
+        that: boot_after.stdout == cleanup.boot_id
