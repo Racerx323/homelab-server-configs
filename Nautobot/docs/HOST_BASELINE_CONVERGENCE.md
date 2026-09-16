@@ -253,8 +253,11 @@ intervention result or claim that it was retroactively accepted.
 
 The accepted identity covers host baseline only. Isolated backup/restore,
 Nautobot runtime, application logout/reboot survival, representative memory,
-swap and workload temperature, network/firewall acceptance, Caddy onboarding,
-authority migration and Semaphore remain separately gated. The plan is unchanged.
+swap and workload temperature, application-backend firewall acceptance, stage-4
+DNS/routing acceptance, Caddy onboarding,
+authority migration and Semaphore remain separately gated. Baseline management
+and monitoring firewall evidence is required before this host identity is accepted,
+as specified below; it is not deferred with the application tests.
 
 If drift appears, preserve evidence, stop, and define only the exact required
 correction under separate authorization. No automatic full baseline replay,
@@ -424,3 +427,61 @@ owns enablement, continuous tracing, two-hour/24-hour checkpoints and automatic
 disable on failure or completion. Review its actual records before judging the
 observation complete. Passing preflight is not terminal host/storage acceptance;
 Restic and later application/backup/restore gates remain pending.
+
+## Baseline firewall evidence required for terminal acceptance
+
+The existing 59-check preflight establishes listener identity, not access-control
+acceptance. Stage 3 additionally requires a network-owner-reviewed evidence matrix.
+Follow the [UniFi access procedure](../../../homelab-network/Ubiquiti/UNIFI_ACCESS.md)
+for separately authorized controller reads. Any correction follows homelab-network's
+own operation, rollback and authorization process. This checklist authorizes no
+controller access, remote probe or policy change.
+
+### Define expected access before probing
+
+| Service | Destination and protocol | Expected permitted source | Required denied coverage |
+| --- | --- | --- | --- |
+| SSH | TCP 22 on observed IPv4/IPv6 addresses | Explicit approved administration addresses or policy groups | Unapproved routed client and external IPv6 source |
+| Webmin | TCP 10000; separately account for observed UDP 10000 | Explicit approved administration sources; decide UDP discovery necessity separately | Unapproved routed client and external IPv6 source |
+| Munin | TCP 4949 on observed IPv4/IPv6 addresses | Exact monitoring poller identities from owning configuration | Non-poller client and external IPv6 source |
+| Webmin stats | Optional TCP 555 | Host loopback only | Confirm no non-loopback binding; absence is allowed |
+| Other listeners | Every additional observed endpoint | No implicit permission | Resolve unexpected endpoints before acceptance |
+
+Source identities, membership of policy groups, destination addresses and rule IDs
+must be resolved from owning inventory/configuration and current readback. They
+are currently missing acceptance inputs, not assumed trusted subnets. Do not
+invent a permit policy from existing connectivity. Record both permitted and denied
+cases for each applicable address family. A missing vantage point or absent service
+means incomplete coverage, not a successful firewall denial.
+
+### Retain independent policy and path evidence
+
+- Timestamped host identity, boot ID, interfaces, IPv4, permanent/SLAAC ULA and
+  current global IPv6 addresses, routes and listening sockets. Do not publish
+  temporary global addresses as stable DNS identities.
+- Sanitized controller readback identifying the applicable policy revision,
+  rule IDs/order, enabled state, source/destination groups and their resolved
+  membership, protocol/ports, direction/zones and default treatment. Include
+  relevant IPv4 NAT/port-forward exposure. Determine whether traffic crosses
+  the gateway; same-segment traffic can bypass a routed firewall policy.
+- For each approved probe, timestamp, actual source address/interface and zone,
+  destination address/family/port, expected result, observed result and bounded
+  evidence reference/hash. Demonstrate source routing works and the destination
+  service is listening during negative tests. A timeout by itself cannot
+  distinguish firewall denial from a broken route or stopped service.
+- Correlate denied tests with the applicable policy and available counters/logs.
+  If that correlation is unavailable, record the uncertainty and obtain a
+  network-owner disposition; do not silently classify a timeout as proof.
+  A successful TCP connection verifies reachability only, not authentication.
+- Record the network owner's review, exceptions and unresolved rows. Keep raw
+  controller data, addresses and probe logs private; retain sanitized decisions
+  and evidence hashes in the terminal acceptance record. Never include credentials.
+
+Terminal baseline acceptance requires all required rows resolved, management and
+monitoring restricted to approved sources, and no unintended global-IPv6 access.
+If a source group, rule scope or vantage point is unavailable, keep the gate open.
+No exposure test may widen rules or stop services to manufacture a passing result.
+The Webmin observation and SMART limitation review remain independent prerequisites.
+Application TCP 8080, unpublished PostgreSQL/Redis, Caddy publication and full
+application dual-stack health remain stage-5/6 checks. Later address, firewall or
+runtime changes require reassessing the affected baseline evidence.

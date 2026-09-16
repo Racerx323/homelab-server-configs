@@ -23,7 +23,7 @@ numbered execution stages. Use the plan's stage numbers below going forward.
 | --- | --- |
 | 1 — Repository plan | Governing definition exists; no architecture change needed for this review. |
 | 2 — Repository implementation | Host/preflight and Restic preflight paths exist; runtime rendering/deployment candidates and initialization code exist but are inactive and not live-qualified. Definition work may continue locally. |
-| 3 — Host baseline | Cleanup verified; all 59 preflight checks passed. Polling checkpoint review and independent terminal baseline decision remain pending. |
+| 3 — Host baseline | Cleanup verified; all 59 preflight checks passed. Polling checkpoint review, baseline firewall evidence and independent terminal baseline decision remain pending. |
 | 4 — Dual-stack identity | Permanent ULA present in preflight. Full forward/reverse DNS, dual-stack reachability, route preservation and exposure acceptance remain to be proved through the owning components. |
 | 5 — Nautobot pilot | Not accepted. Requires immutable custom image, reviewed runtime implementation, secrets, data services, migrations, workload and recovery evidence. |
 | 6 — Caddy onboarding | Separate Caddy lifecycle after backend readiness; no publication authorized here. |
@@ -54,10 +54,10 @@ architecture acceptance criteria.
 | Thermal and power | Preflight temperature/throttling checks passed; prior retained UniFi Class 4/PoE-good evidence exists. | Explicit port allocation unavailable; workload headroom not established by idle power or temperature. |
 | Polling | Initial patched scheduled sequence returned health/44 C; 113.9 seconds of quiet follow-up retained. | Review actual two-hour/24-hour records, complete/failure/disable state, coverage, traces, journal and integrity. |
 | Alerts | Earlier smartd corrected-recipient test B was received by the user. | Daemon activity alone does not prove delivery; this review sends no new test and does not qualify Needrestart alerts. |
-| Listeners and identity | Required baseline endpoints, optional loopback stats endpoint and permanent ULA passed. | Firewall/reachability, DNS/PTR and global-IPv6 exposure are separate checks. |
+| Listeners and identity | Required baseline endpoints, optional loopback stats endpoint and permanent ULA passed. | Baseline management firewall/reachability and global-IPv6 denial are required before stage-3 acceptance; DNS/PTR and application exposure follow in later stages. |
 | Memory and workload | Controller available; no application workload acceptance evidence. | At least 1.5 GiB available during imports, exports, backups and Jobs; no OOM, persistent swap growth, throttling or sustained over-80 C. |
 | Backup and recovery | Provider acceptance and old repository-absence result retained in inactive contract. | Fresh absence review, initialization, canary upload/full check/isolated restore, then real application recovery. |
-| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review, residue review, explicit scoped acceptance, accepted identity and authorized terminal archival. |
+| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review, baseline firewall evidence, residue review, explicit scoped acceptance, accepted identity and authorized terminal archival. |
 
 The isolated boot-time MMC/SDIO warning is documented in the private current-boot
 review as the onboard Wi-Fi path, without demonstrated USB-root impact. Preserve
@@ -127,7 +127,7 @@ Owner: Nautobot coordinates; homelab-network owns controller/NetworkManager
 changes, homelab-dns owns DNS, and Caddy owns publication.
 
 Prepare an explicit test matrix for host A/AAAA/PTR, SSH over IPv4/permanent ULA,
-preservation of SLAAC/global IPv6/default route, and baseline Webmin/Munin access
+preservation of SLAAC/global IPv6/default route, and preservation of the stage-3 baseline SSH/Webmin/Munin access
 restrictions. Resolve exact Caddy node source addresses from owning inventory;
 do not infer an entire trusted subnet. Record allowed and denied vantage points
 and expected outcomes before live probes. Missing vantage points mean incomplete
@@ -263,3 +263,14 @@ still blocked, and future executable stages must independently verify those proo
 Historical authorization labels and structured status provenance now distinguish
 retained observations from current authority. Missing event times remain explicitly
 unknown; no live status refresh was performed for this repository correction.
+
+## Baseline evidence still to collect
+
+The master plan now references the qualified `sntjmicron` NVMe profile rather than
+SAT, and explicitly requires management/monitoring firewall evidence at stage 3.
+Use the [baseline firewall matrix](HOST_BASELINE_CONVERGENCE.md#baseline-firewall-evidence-required-for-terminal-acceptance)
+to prepare the separately authorized read-only network review. Approved admin and
+Munin source identities, applicable controller policy and group membership, denied
+client vantage points, and actual IPv4/IPv6 results remain unverified acceptance
+inputs. No firewall evidence was collected by this documentation reconciliation.
+A passing polling checkpoint or listener inventory cannot close those rows.

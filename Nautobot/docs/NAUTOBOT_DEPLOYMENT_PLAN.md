@@ -136,13 +136,25 @@ run proves NetworkManager, Raspberry Pi, and USB-gadget dependencies remain
 intact.
 
 Restrict Webmin, Munin, SSH, and the Nautobot backend through authoritative
-UniFi firewall policy. A wildcard listener must not become reachable through
-the host's ISP-delegated global IPv6 address.
+UniFi firewall policy. Stage-3 baseline acceptance requires evidence that existing
+management and monitoring services permit only approved sources over IPv4 and
+IPv6, including denial of unintended access through the ISP-delegated global
+IPv6 address. Listener inventory alone is insufficient. Stage 4 proves stable
+host identity and dual-stack routing/DNS; stage 5 separately proves application
+backend access from the exact Caddy nodes and absence of published database and
+Redis ports. Recheck baseline restrictions after relevant network/runtime changes.
+The network owner retains responsibility for firewall policy and any correction.
 
-Install SMART monitoring and test the JMicron USB bridge with the applicable
-SAT device type while the root device uses `usb-storage`. If the bridge cannot
-pass SMART commands, record the limitation and compensate with kernel I/O
-monitoring and verified off-host backups.
+Install and qualify SMART monitoring using the owning
+[JMicron USB/NVMe profile](../../smartmontools/docs/JMICRON_NVME_PROFILE.md).
+For this NVMe bridge, preserve qualified autodetection selecting `sntjmicron`;
+do not force the ATA-oriented `sat` or `usbjmicron` types. The root device uses
+the separately owned `host-storage` transport profile. Record command-specific
+bridge limitations and the health telemetry that remains trustworthy; neither
+command success nor a self-test-log anomaly alone establishes media health.
+Maintain kernel I/O monitoring and qualify off-host backup/restore separately.
+Baseline acceptance of a documented limitation does not waive later recovery
+acceptance or authorize new SMART commands or self-tests.
 
 ## Dual-stack network and DNS
 
