@@ -16,8 +16,15 @@ operation definition and its sanitized evidence manifest.
 | `nautobot-storage-diagnostic-v2` | Immediate post-quirk baseline healthy; soak pending | `nautobot-storage-diagnostic-v2-baseline-healthy-soak-pending` | `8728fc88b13b46315fffa0a3af64bd767e90b4c7` | `616772e4ac259cb99bb4e3a27b7b5024ab3c17fdc03eb8ff94a0ff321f49a05a` |
 | `nautobot-storage-soak-verification-v1` | 24-hour storage soak healthy; isolated restore pending | `nautobot-storage-soak-verification-v1-passed` | `eb38b4923ba6bfbc4f458870b6555a6e39d91f77` | `e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305` |
 | `nautobot-host-baseline-convergence-v1` | Stage-3 host baseline accepted with retained limitations | `nautobot-host-baseline-convergence-v1-accepted` | `e55ac4d5922a347bd2502271e1b850b700cf8bb4` | `dd94e06d18d670338a909890bfea13d32f46d20e693de5aaaa6c272447b16838` |
+| `nautobot-dual-stack-identity-v1` | Stage-4 identity accepted with retained limitations | `nautobot-dual-stack-identity-v1-accepted` | `0930dc431d73362bff8ffcd87e010c6a29e40d22` | DNS owner bundle `39b472e210a9ff7e95c027e8fdf683b018921e0520a72d517eb6331fe2b9c50c` |
 
 Accepted baseline identity: [accepted-live-state.yaml](manifests/accepted-live-state.yaml),
 semantic SHA-256 `7b54a7f61a174368ebfd2b57d9ddd7033ff6010338866d81541586f4d891b820`.
 The terminal tag preserves the exact operation and terminal evidence. The active
 slot is clean; runtime, Restic and full workload acceptance remain outstanding.
+
+Accepted dual-stack identity is recorded alongside the unchanged stage-3 baseline
+in `manifests/accepted-live-state.yaml`. The stage-4 tag retains
+`terminal-identity-definition.json` and `terminal-identity-evidence.json`.
+The definition references the DNS owner terminal archive and its additional
+restart authorizations. No runtime, Restic or Caddy acceptance is implied.

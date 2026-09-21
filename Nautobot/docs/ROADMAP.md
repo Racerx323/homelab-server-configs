@@ -25,7 +25,7 @@ numbered execution stages. Use the plan's stage numbers below going forward.
 | 1 — Repository plan | Governing definition exists; no architecture change needed for this review. |
 | 2 — Repository implementation | Host/preflight and Restic preflight paths exist; runtime rendering/deployment candidates and initialization code exist but are inactive and not live-qualified. Definition work may continue locally. |
 | 3 — Host baseline | Accepted baseline only on September 21; terminal evidence recorded. Git archival and terminal accepted-identity reconciliation are complete. No runtime or Restic acceptance. |
-| 4 — Dual-stack identity | Permanent ULA and literal dual-stack identity passed. Authorized DNS correction now passes all 24 node/VIP checks and dual-stack FQDN SSH. Stage-4 technical acceptance review passed; terminal records and archival remain pending. |
+| 4 — Dual-stack identity | Permanent ULA and literal dual-stack identity passed. Authorized DNS correction now passes all 24 node/VIP checks and dual-stack FQDN SSH. Stage-4 identity accepted and archived; runtime, Restic and Caddy remain pending. |
 | 5 — Nautobot pilot | Not accepted. Requires immutable custom image, reviewed runtime implementation, secrets, data services, migrations, workload and recovery evidence. |
 | 6 — Caddy onboarding | Separate Caddy lifecycle after backend readiness; no publication authorized here. |
 | 7 — Authority migration | Blocked on reconciliation, full application recovery and seven stable pilot days. |
@@ -312,11 +312,12 @@ Private result:
 The subsequent stage-4 technical acceptance review passed, with fresh per-query
 DNS evidence, FQDN peer/key identity and post-DNS profile/route continuity.
 Private review: `/home/aaron/code/.local-evidence/nautobot-stage4-acceptance-20260921/REVIEW.md`.
-Next prepare terminal acceptance/evidence and schema-compatible identity records,
-then obtain Git publication authorization for archival. The accepted-state
-manifest still records stage 3 only;
-no further ULA addition is indicated. Restic, runtime and Caddy remain separately
-gated. Git commit/push and backup cleanup were not performed.
+Stage-4 identity is now accepted and archived in annotated tag
+`nautobot-dual-stack-identity-v1-accepted`; see [history](../HISTORY.md).
+The accepted-state manifest retains stage-3 provenance and adds independent
+stage-4 identity/provenance. The operation slot remains clean. Remote rollback
+backups remain retained; no further ULA addition is needed. Next is stage-5 pilot
+readiness, with image/configuration/runtime and Restic stages separately reviewed.
 
 ## Stage 5 — runtime and workload draft
 

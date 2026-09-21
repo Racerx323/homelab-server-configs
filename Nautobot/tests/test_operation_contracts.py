@@ -61,6 +61,23 @@ class Contracts(unittest.TestCase):
         validate(json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text()), accepted)
         self.assertFalse(any(accepted['boundaries'].values()))
 
+    def test_dual_stack_acceptance_requires_complete_provenance(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(schema, accepted)
+        for field in accepted['dual_stack_identity']:
+            bad = copy.deepcopy(accepted)
+            del bad['dual_stack_identity'][field]
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        for field, value in [('ipv6', '::1'), ('definition_commit', 'unarchived'),
+                             ('terminal_evidence_sha256', ''), ('limitations', [])]:
+            bad = copy.deepcopy(accepted)
+            bad['dual_stack_identity'][field] = value
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        baseline_only = copy.deepcopy(accepted)
+        del baseline_only['dual_stack_identity']
+        validate(schema, baseline_only)
+
     def test_status_provenance_matches_frozen_definition(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())
         operation = copy.deepcopy(schema['const'])

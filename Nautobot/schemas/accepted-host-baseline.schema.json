@@ -104,6 +104,83 @@
         "restic_initialized": false,
         "authority_migrated": false
       }
+    },
+    "dual_stack_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "stage",
+        "host",
+        "fqdn",
+        "ipv4",
+        "ipv6",
+        "operation",
+        "terminal_tag",
+        "definition_commit",
+        "definition_sha256",
+        "terminal_evidence_sha256",
+        "dns_terminal_tag",
+        "dns_definition_commit",
+        "dns_bundle_sha256",
+        "limitations"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "stage": {
+          "const": 4
+        },
+        "host": {
+          "const": "j2-svpi4mf"
+        },
+        "fqdn": {
+          "const": "j2-svpi4mf.local.theama.co"
+        },
+        "ipv4": {
+          "const": "10.1.2.170"
+        },
+        "ipv6": {
+          "const": "fd36:5aa8:6971:1::170"
+        },
+        "operation": {
+          "const": "nautobot-dual-stack-identity-v1"
+        },
+        "terminal_tag": {
+          "const": "nautobot-dual-stack-identity-v1-accepted"
+        },
+        "definition_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "definition_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "terminal_evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "dns_terminal_tag": {
+          "const": "nautobot-host-dns-20260921-accepted"
+        },
+        "dns_definition_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "dns_bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "limitations": {
+          "const": [
+            "external_ipv6_denial_not_tested_approved_gateway_rule_alternative",
+            "dormant_duplicate_ula_not_exhaustively_excluded",
+            "primary_retry_rollback_not_live_exercised"
+          ]
+        }
+      }
     }
   }
 }
