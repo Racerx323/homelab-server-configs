@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "operation": "nautobot-predata-canary-restore-v1",
+  "stage": "isolated_canary_restore",
+  "result": "isolated_canary_restore_accepted",
+  "accepted": true,
+  "reviewed_at": "2026-09-21T23:55:19.486505+00:00",
+  "definition_commit": "6aea6cbd0ccbeaf478806e495da46a788792df34",
+  "bundle_sha256": "0260d585cdcd54e90f96e6a6a0b0de6c4f884c1eef25fcd662aa0fdcc402d606",
+  "repository": {
+    "url": "s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/",
+    "prefix": "",
+    "id": "536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9",
+    "format_version": 2
+  },
+  "restic_version": "restic 0.18.0 compiled with go1.24.4 on linux/arm64",
+  "execution_user": "nautobot",
+  "snapshot_id": "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+  "snapshot_metadata": {
+    "hostname": "j2-svpi4mf",
+    "paths": [
+      "/var/lib/nautobot/backup-restore-tests/source.4cp8z75y"
+    ],
+    "tags": [
+      "nautobot-predata-canary-v1"
+    ]
+  },
+  "source": {
+    "file": {
+      "mode": "0600",
+      "path": "predata/canary.txt",
+      "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2",
+      "size": 49
+    },
+    "root": "/var/lib/nautobot/backup-restore-tests/source.4cp8z75y"
+  },
+  "destination": {
+    "empty": true,
+    "filesystem": "/dev/sda2",
+    "mode": "0700",
+    "owner_uid": 999,
+    "root": "/var/lib/nautobot/backup-restore-tests/restore.x7uq_01f"
+  },
+  "comparison": {
+    "exact_tree": true,
+    "expected": {
+      "comparison_source": "independent_manifest_fixture",
+      "extra_paths_allowed": false,
+      "file_mode": "0600",
+      "files": [
+        {
+          "content_utf8": "nautobot isolated backup restore verification v1\n",
+          "path": "predata/canary.txt",
+          "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2",
+          "size_bytes": 49
+        }
+      ],
+      "owner": "nautobot",
+      "relative_directories": [
+        {
+          "mode": "0700",
+          "path": "predata"
+        }
+      ],
+      "require_original_source_unchanged": true,
+      "special_files_allowed": false,
+      "symlinks_allowed": false
+    },
+    "restored_file": {
+      "mode": "0600",
+      "path": "predata/canary.txt",
+      "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2",
+      "size": 49
+    },
+    "source_after": {
+      "mode": "0600",
+      "path": "predata/canary.txt",
+      "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2",
+      "size": 49
+    },
+    "source_before": {
+      "mode": "0600",
+      "path": "predata/canary.txt",
+      "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2",
+      "size": 49
+    }
+  },
+  "restore_attempted": true,
+  "restore_exit_status": 0,
+  "source_unchanged": true,
+  "locks_empty": true,
+  "cache_absent": true,
+  "storage_observation": {
+    "boot_unchanged": true,
+    "cursor_verified": true,
+    "entries_reviewed": 0,
+    "storage_event_count": 0,
+    "delayed_seconds": 75.00010609696619,
+    "passed": true
+  },
+  "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+  "remote_credentials_absent": true,
+  "controller_credentials_absent": true,
+  "controller_temp_absent": true,
+  "ansible_exit_status": 0,
+  "retained": {
+    "source": true,
+    "snapshot": true,
+    "restore": true,
+    "sanitized_node_records": true
+  },
+  "evidence_sha256": {
+    "node-records.json": "b2f2fe05e034626dd3ca8ab2f57dba2c34d68abaaa7701e12374bb83cbe9c897",
+    "storage-review.json": "8d5e0343ae9a5fd8ee52fcf35e940a702401497b7c911c93cf7369c97b33dd5b",
+    "terminal-result.json": "edbe102725ff186be9b18f43b0782ed8e39c34d0e8021937a4e7fa29b632bce1",
+    "ansible.stdout": "11f8510fac6992e2e099d1ffd260d3ed7e081853defd593a7ff79076f81d8833",
+    "ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ansible.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "bundle.sha256": "ce83b571953ec3ae54efe57b798ca0d54a6442d949446e5d4c5ba3ba6ab3ec77",
+    "bundle-files.sha256": "37123b570163f8d27defc24520ccfcf08872db3951f854fefe5b0b21a74f51cd"
+  },
+  "git_archival": "pending",
+  "rerun_allowed": false,
+  "boundaries": {
+    "predata_canary_gate_satisfied": true,
+    "application_recovery_accepted": false,
+    "production_runtime_accepted": false
+  }
+}
