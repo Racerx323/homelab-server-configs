@@ -4,18 +4,19 @@
 
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
 Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
-The earlier isolated trials are archived in `nautobot-configuration-auth-v1-failed`
-and `nautobot-configuration-auth-v2-failed`. The approved canonical-path v3 trial
-has now run: running-container validation, including PostgreSQL tmpfs, passed.
-Django shell execution then returned code 1 without a valid probe result; the
-underlying exception was not retained. Cleanup and continuity passed with 77.7
-seconds of quiet post-cleanup observation. The result is in
-`manifests/authentication-trial-canonical-result.json`; the consumed active
-definition remains pending archival. Pinned-source review found required startup directories missing beneath the
-read-only application root. Safe startup exception/frame diagnostics are now
-implemented. Next: prepare and locally validate narrowly bounded disposable
-storage for those directories, archive v3, and freeze a separately approved
-successor. Authentication remains unverified.
+V1 through v3 are archived. The approved startup-directory v4 trial has now run:
+container validation passed and the command reached the qualification probe.
+The probe rejected its settings phase before recording any completed check; its
+exact failing assertion was not retained. Cleanup and continuity passed, with
+77.8 seconds of quiet post-cleanup observation. The result is in
+`manifests/authentication-trial-startup-result.json`; the consumed v4 definition
+is preserved by `nautobot-configuration-auth-v4-failed`. Local reproduction against the pinned settings found
+that the probe rejected an empty database port even though it selects the default.
+The reusable probe now accepts that default, verifies the connected server port,
+and retains allowlisted assertion identifiers through the node diagnostic record.
+This establishes a probe defect, not the lost first assertion from the live run.
+Next: freeze the corrected successor for separate trial approval.
+Settings and authentication remain unaccepted.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
 Credential provisioning was previously archived at

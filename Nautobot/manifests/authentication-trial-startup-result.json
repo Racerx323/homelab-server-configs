@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-configuration-auth-v4",
+  "bundle_sha256": "55c31c6b7531bbc66d9aa5a8961c3ff9238124433218f37aa45075e9186329cd",
+  "reviewed_at": "2026-09-21T21:30:58.084195+00:00",
+  "accepted": false,
+  "outcome": "probe_settings_phase_rejected",
+  "diagnostic": {
+    "action": "probe",
+    "phase": "django_shell",
+    "status": "failed",
+    "role": "probe",
+    "command_rc": 69,
+    "output_category": "probe_rejected",
+    "startup_diagnostic": {
+      "exception_categories": [],
+      "frames": [],
+      "filesystem_category": null
+    },
+    "probe_phase": "settings",
+    "completed_checks": [],
+    "category": "command_nonzero"
+  },
+  "application_probe_reached": true,
+  "settings_accepted": false,
+  "authentication_accepted": false,
+  "production_runtime_started": false,
+  "cleanup_passed": true,
+  "continuity_passed": true,
+  "post_cleanup_seconds": 77.76912413298851,
+  "watchdog_terminal_state": "inactive",
+  "sample_count": 30,
+  "maximum_sample_gap_seconds": 10.914147183997557,
+  "evidence_sha256": {
+    "spec.json": "8a8cbc242a56a792299f7106204eb906a712fd6864fc9cd769637825f4ef2e3d",
+    "watchdog-ready.json": "a6245f51364658bccc0154ddd7e87c8cadcad65cfb7d36908a0a707d408f87f0",
+    "cleanup.json": "c0f613d6c8dc0324ee4bd7164cde62c7982ef1a6a06334f5f25acf77c2b330d8",
+    "result.json": "1dfcd8eafd336d7bb8a464a486c9f7f995c37ee31da8a60cd118b0aa1ae8a502",
+    "node-location.json": "ebdea23a3ee768cff823ec4b16c0f5b2bd6579f56f0f084eb88143aa95e7789d",
+    "controller-result.json": "27389ba694cad36cfb343d6dcc77051b41f2e3b98e92764a6b0f4dd01f6db730",
+    "execution-trace.jsonl": "5d28883259672f8fde911e9b244cc1c7fe3a08e7b037d171f7a368a626c532fe",
+    "diagnostic.json": "bc20dccf204d31a28d673e319bb1a52c9ab4d3fbc3268171d28fede1bcaa91d1",
+    "probe.json": "1598401b46ba95c68b06f74b17b9b01d4fde163a5cb9ef95b23e31265aa1875d",
+    "postgresql.json": "6fa00f1620425aafd5ad31b4e2ca92859e39b0eeef59dba08a6f2c5da50e7ab2",
+    "redis.json": "39c406b72dbd3266e384fe30eff62463f5810b2e5195ae34304a89bc42e47033",
+    "emergency.json": "ef5a3cadc32687fa9310a70a94892002e95e5ae51fe83f2524e3d3266a87a0a5",
+    "network.json": "8820ffc6928e0bc7d9a0c4e8076ec36d1bb0768fa7498c93f56182f5a336277d",
+    "before.json": "caf4b79ef794286d1b1785adedc5f8d7667fcd55652c73d6b0cb961534df7571"
+  },
+  "git_archival": "pending"
+}

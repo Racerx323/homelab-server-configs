@@ -79,6 +79,28 @@ class Trial(unittest.TestCase):
                 with patch.object(c.subprocess,'check_output',side_effect=bad):
                     with self.assertRaises(ValueError):c.archival_gate(root)
 
+    def test_startup_trace_redacts_messages_paths_and_source_lines(self):
+        raw=b'  File "/usr/local/lib/python3.12/site-packages/nautobot/core/cli/__init__.py", line 78, in _preprocess_settings\n    password="DO_NOT_RECORD"\n  File "/private/DO_NOT_RECORD.py", line 9, in private\nOSError: [Errno 30] Read-only file system: /private/DO_NOT_RECORD\n'
+        result=n.startup_diagnostic(raw)
+        self.assertEqual(result['filesystem_category'],'read_only_filesystem')
+        self.assertEqual(result['exception_categories'],['OSError'])
+        self.assertEqual(result['frames'],[{'source':'nautobot_cli','line':78}])
+        self.assertNotIn('DO_NOT_RECORD',json.dumps(result))
+        for raw,expected in [(b'PermissionError: [Errno 13] private','permission_denied'),(b'FileNotFoundError: [Errno 2] private','path_missing')]:
+            self.assertEqual(n.startup_diagnostic(raw)['filesystem_category'],expected)
+        self.assertEqual(n.startup_diagnostic(b'UnknownSecretError: private')['exception_categories'],[])
+
+    def test_real_startup_failure_retains_safe_trace_on_nonzero_exit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);n.save(root,'diagnostic',{'phase':'django_shell'})
+            code='raise OSError(30,"DO_NOT_RECORD")'
+            with self.assertRaises(RuntimeError):
+                n.n.bounded.capture([sys.executable,'-c',code],observer=n.observed_probe(root))
+            record=n.read(root,'diagnostic')
+            self.assertEqual(record['command_rc'],1)
+            self.assertEqual(record['startup_diagnostic']['filesystem_category'],'read_only_filesystem')
+            self.assertNotIn('DO_NOT_RECORD',(root/'diagnostic.json').read_text())
+
     def test_clean_slot_refuses_activation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);p=root/'clean';p.write_text('schema_version: 1\noperation: {state: clean}\n')
@@ -144,6 +166,25 @@ class Trial(unittest.TestCase):
             elif mutate=='extra':bad['HostConfig']['Tmpfs']['/unexpected']='rw,size=16m'
             else:bad['HostConfig']['Tmpfs']['/run/postgresql']='rw,size=32m'
             with self.assertRaises(RuntimeError):n.validate_container(root,spec,'postgresql',bad)
+
+    def test_startup_tmpfs_is_bounded_and_does_not_shadow_settings_or_packages(self):
+        root=Path('/var/tmp/nautobot-auth-fixture');spec={'images':{'custom':{'reference':'fixture','image_id':'a'*64}}}
+        args=n.create_args(root,spec,'probe');mounts=[args[i+1] for i,x in enumerate(args) if x=='--tmpfs']
+        for name in ('git','jobs','media','static'):
+            self.assertIn('/opt/nautobot/'+name+':rw,size=16m,mode=1777',mounts)
+        self.assertNotIn('/opt/nautobot',[x.split(':')[0] for x in mounts])
+        self.assertNotIn('/opt/nautobot/.local',[x.split(':')[0] for x in mounts])
+        v={'Image':'a'*64,'HostConfig':{'ReadonlyRootfs':True,'Privileged':False,'PortBindings':{},'Memory':1536*1024**2,'MemorySwap':1536*1024**2,'Tmpfs':dict(x.split(':',1) for x in mounts)},'NetworkSettings':{'Ports':{},'Networks':{root.name:{}}},'Mounts':[]}
+        for i,arg in enumerate(args):
+            if arg=='--volume':
+                source,destination,mode=args[i+1].split(':')
+                v['Mounts'].append({'Source':source,'Destination':destination,'Type':'bind','RW':mode!='ro'})
+        n.validate_container(root,spec,'probe',v)
+        for options in ('rw,size=32m,mode=1777','ro,size=16m,mode=1777','rw,size=16m,mode=0755'):
+            bad=copy.deepcopy(v);bad['HostConfig']['Tmpfs']['/opt/nautobot/media']=options
+            with self.assertRaises(RuntimeError):n.validate_container(root,spec,'probe',bad)
+        bad=copy.deepcopy(v);bad['Mounts'][0]['RW']=True
+        with self.assertRaises(RuntimeError):n.validate_container(root,spec,'probe',bad)
 
     def test_ownership_cannot_be_inferred_from_name_alone(self):
         root=Path('/var/tmp/nautobot-auth-fixture');v={'Id':'a'*64,'Name':root.name+'-redis','Config':{'Labels':{}}}

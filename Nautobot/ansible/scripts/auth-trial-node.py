@@ -18,6 +18,7 @@ require=n.require
 LABEL='io.homelab.nautobot.auth-trial'
 ROLES=('postgresql','redis','probe')
 MEMORY={'postgresql':768,'redis':512,'probe':1536}
+STARTUP_TMPFS={f'/opt/nautobot/{name}':16 for name in ('git','jobs','media','static')}
 CHECKS=['settings_and_plugin_registration','postgresql_positive_and_wrong_password',
         'redis_cache_positive_missing_wrong_password','redis_broker_positive_missing_wrong_password']
 
@@ -39,7 +40,7 @@ DIAGNOSTIC_CODES=frozenset(('watchdog_not_live','resource_guard','kernel_storage
     'container_inspection','container_identity','container_ownership','container_image',
     'container_exposure','published_ports','configured_memory','container_network',
     'configuration_bind','secret_mount','unreviewed_data_mount','tmpfs_set','tmpfs_size',
-    'missing_bind','container_cgroup','effective_limits','container_not_running',
+    'missing_bind','startup_tmpfs_mode','container_cgroup','effective_limits','container_not_running',
     'probe_failed_or_unexpected_output','command_timeout','output_limit'))
 
 
@@ -51,12 +52,49 @@ def diagnostic_error(error):
     return 'unclassified_failure'
 
 
+# Trusted source identifiers only: never retain arbitrary paths, messages or code.
+STARTUP_FRAMES = {
+    '/usr/local/lib/python3.12/site-packages/nautobot/core/cli/__init__.py':'nautobot_cli',
+    '/usr/local/lib/python3.12/site-packages/nautobot/core/settings.py':'nautobot_defaults',
+    '/usr/local/lib/python3.12/site-packages/django/core/management/__init__.py':'django_management',
+    '/usr/local/lib/python3.12/site-packages/django/core/management/commands/shell.py':'django_shell',
+    '/usr/local/lib/python3.12/site-packages/django/__init__.py':'django_setup',
+    '/usr/local/lib/python3.12/site-packages/django/apps/registry.py':'django_registry',
+    '/usr/local/lib/python3.12/site-packages/django/utils/log.py':'django_logging',
+    '/opt/nautobot/nautobot_config.py':'mounted_settings',
+    '/run/nautobot-qualification/probe.py':'qualification_probe',
+    '<frozen os>':'python_os',
+}
+STARTUP_EXCEPTIONS = frozenset(('OSError','PermissionError','FileNotFoundError',
+    'ModuleNotFoundError','ImportError','ImproperlyConfigured','AppRegistryNotReady',
+    'OperationalError','ProgrammingError','CommandError','SyntaxError','KeyError',
+    'ValueError','TypeError','AttributeError'))
+
+
+def startup_diagnostic(raw):
+    """Extract a small fixed vocabulary from bounded stderr; no free-form content."""
+    result={'exception_categories':[],'frames':[],'filesystem_category':None}
+    for line in raw.decode('utf-8',errors='replace').splitlines():
+        frame=re.fullmatch(r'  File "([^"\n]+)", line ([0-9]{1,6}), in [^\n]+',line)
+        if frame and frame[1] in STARTUP_FRAMES:
+            result['frames'].append({'source':STARTUP_FRAMES[frame[1]],'line':int(frame[2])})
+        error=re.match(r'(?:(?:django\.core\.exceptions|django\.db\.utils|psycopg|psycopg2)\.)?([A-Za-z]+):',line)
+        if error and error[1] in STARTUP_EXCEPTIONS:
+            result['exception_categories'].append(error[1])
+            errno=re.match(r'(?:OSError|PermissionError|FileNotFoundError): \[Errno (30|13|2)\]',line)
+            if errno:result['filesystem_category']={'30':'read_only_filesystem','13':'permission_denied','2':'path_missing'}[errno[1]]
+    result['frames']=result['frames'][-8:]
+    result['exception_categories']=result['exception_categories'][-4:]
+    return result
+
+
 def observed_probe(root):
     def observe(rc,out,err):
         record=read(root,'diagnostic')
         for key in ('probe_phase','completed_checks'):record.pop(key,None)
         record['command_rc']=rc
         record['output_category']='no_valid_probe_result'
+        record['startup_diagnostic']=startup_diagnostic(err)
         try:
             value=json.loads(out.decode('utf-8').strip().splitlines()[-1])
             phases={'isolation','settings','postgresql','redis_cache','redis_broker'}
@@ -138,6 +176,8 @@ def create_args(root,spec,role):
         args += ['--env-file',home+'/redis.env','--secret','nautobot-redis-config,type=mount,target=redis.conf,uid=999,gid=999,mode=0400',
                  '--tmpfs','/data:rw,size=128m,mode=0755',ref,'redis-server','/run/secrets/redis.conf']
     else:
+        for destination,size in STARTUP_TMPFS.items():
+            args += ['--tmpfs',f'{destination}:rw,size={size}m,mode=1777']
         args += ['--env-file',home+'/migration.env','--env','NAUTOBOT_CONFIG=/opt/nautobot/nautobot_config.py',
                  '--env','PYTHONDONTWRITEBYTECODE=1','--tmpfs','/prom_cache:rw,size=8m,mode=1777',
                  '--volume',home+'/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro',
@@ -168,6 +208,7 @@ def validate_container(root,spec,role,v):
         '/run/nautobot-qualification/isolated-trial':str(root/'isolated-trial')}
     sizes={'/tmp':64,'/run':16}
     sizes.update({'/var/lib/postgresql/data':512,'/run/postgresql':16} if role=='postgresql' else {'/data':128} if role=='redis' else {'/prom_cache':8})
+    if role=='probe':sizes.update(STARTUP_TMPFS)
     tmp=set(sizes)
     for mount in v.get('Mounts',[]):
         dest=mount['Destination']
@@ -177,6 +218,8 @@ def validate_container(root,spec,role,v):
     require(set(h.get('Tmpfs',{}))==tmp,'tmpfs_set')
     for destination,megabytes in sizes.items():
         options=h['Tmpfs'][destination].split(',')
+        if destination in STARTUP_TMPFS:
+            require('rw' in options and 'ro' not in options and [x for x in options if x.startswith('mode=')]==['mode=1777'],'startup_tmpfs_mode')
         size=[x.removeprefix('size=') for x in options if x.startswith('size=')]
         require(len(size)==1 and size[0].lower() in {str(megabytes)+'m',str(megabytes*1024**2)},'tmpfs_size')
     require({m['Destination'] for m in v.get('Mounts',[]) if m['Destination'] in binds}==set(binds),'missing_bind')

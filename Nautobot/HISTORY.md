@@ -131,3 +131,18 @@ tag: `nautobot-configuration-auth-v3-failed`; its peeled commit retains the exac
 consumed inputs and `manifests/authentication-trial-canonical-result.json`. Bundle:
 `98f25b29939fa8a2282374429986f1150ff7039fc8a9f8f46f9b3a87298e22e0`.
 Authentication remains unaccepted; baseline and image-store identities unchanged.
+
+Canonical trial archival reconciliation: `nautobot-configuration-auth-v3-failed`
+peels to `951fb7edefbc2ef65f48b051124386d324d68601`. All consumed source inputs match
+the published tag; all archive hooks passed. The successor is definition-only,
+with bounded disposable startup-directory mounts and sanitized startup diagnostics.
+
+## Startup-directory authentication trial
+
+`nautobot-configuration-auth-v4`: container checks passed; the probe rejected its
+settings phase without retaining the specific assertion. Cleanup and continuity
+passed with 77.769 seconds of quiet delayed observation. Terminal tag:
+`nautobot-configuration-auth-v4-failed`; its peeled commit preserves all consumed
+source inputs and `manifests/authentication-trial-startup-result.json`. Bundle:
+`55c31c6b7531bbc66d9aa5a8961c3ff9238124433218f37aa45075e9186329cd`.
+Authentication remains unaccepted; accepted host/image-store identities unchanged.

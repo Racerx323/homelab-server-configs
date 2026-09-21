@@ -4,10 +4,10 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot defines the canonical-path successor awaiting exact-bundle approval.
-Both earlier failures are archived. The new definition uses `/run/postgresql` and
-retains all resource/isolation checks; it has not run on the target. Authentication
-remains unverified.
+operation slot defines the bounded startup-directory successor awaiting bundle
+approval. V3 is archived after its Django-shell failure; v4 adds four narrowly
+scoped tmpfs mounts and safe startup diagnostics. No successor host execution or
+authentication acceptance is claimed.
 
 ## Prepared checks and provenance
 
@@ -230,3 +230,42 @@ regressions for missing, extra and oversized tmpfs mounts. The failed host trial
 individual mount keys were not captured; corrected target acceptance remains a
 separate live stage. Do not accept arbitrary additional or missing mounts as a
 compatibility workaround.
+
+## Initialization prerequisites and safe startup diagnostics
+
+The pinned Nautobot CLI calls `_preprocess_settings()` before handing off to
+Django. This creates GIT_ROOT, JOBS_ROOT, MEDIA_ROOT (and two subdirectories),
+and STATIC_ROOT. Those default directories under `/opt/nautobot` are absent from
+the pinned image. The current trial's read-only root does not provide writable
+storage there. A successor needs a reviewed, bounded disposable directory policy;
+do not introduce production volumes or cover the entire application home, including
+its user-installed dependencies, with an empty mount.
+
+This is a source-established prerequisite, not recovery of the discarded v3
+exception. [Django initialization](https://docs.djangoproject.com/en/5.2/ref/applications/#initialization-process)
+then loads settings/logging and populates the application registry before shell
+execution. Successful container readiness does not prove those stages completed.
+
+The stderr observer retains only allowlisted exception classes, fixed traceback
+source labels with line numbers, and fixed filesystem errno categories. Unknown
+paths, source lines and exception messages are discarded. Output remains bounded;
+no traceback locals, credentials, connection URLs or arbitrary exception text
+are saved. The diagnostics distinguish framework startup from structured probe
+rejection but never substitute for authentication or cleanup acceptance.
+
+## Bounded startup-directory mounts
+
+The successor mounts `/opt/nautobot/git`, `/opt/nautobot/jobs`,
+`/opt/nautobot/media` and `/opt/nautobot/static` as four separate 16 MiB tmpfs
+filesystems. Mode 1777 permits the non-root application user to create the required
+subdirectories without a privileged initialization command. These directories are
+private to the disposable container and disappear at teardown. Its 1536 MiB
+memory and zero-swap limits still bound aggregate usage. No Jobs, media imports or
+static collection are performed by this authentication trial.
+
+The application home and `.local` dependencies remain visible; settings retain
+their existing read-only bind. Exact destination, size and writable sticky-mode
+checks fail closed. Local rootless tests exercise the same generated mount options
+with a non-root UID, directory creation, read-only settings and dependency visibility.
+Target ARM64 framework initialization and authentication remain live acceptance
+checks, not outcomes of that local filesystem fixture.

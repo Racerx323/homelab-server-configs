@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 operation:
-  id: nautobot-configuration-auth-v3
+  id: nautobot-configuration-auth-v4
   stage: configuration_authentication
   state: definition
   authorization_ready: true
@@ -9,12 +9,13 @@ authorization:
   mutation_authorized: false
   method: separate_explicit_approval_of_frozen_bundle_sha256
 target: j2-svpi4mf
-source_base_commit: 2ac53754aabb3a0d15b44656ef3b9a366ac11c2a
+source_base_commit: 951fb7edefbc2ef65f48b051124386d324d68601
 plan_sha256: 7abdab7432a9ba6557ea6e24c4c89344b7c878c23b2985a4aa844e80d94eec0d
 scope:
   - private_internal_network
   - three_disposable_containers
   - tmpfs_database_and_cache
+  - tmpfs_application_startup_directories
   - settings_plugin_authentication_checks
   - owned_object_teardown
   - post_cleanup_observation
@@ -28,6 +29,11 @@ limits:
     redis: 512
     probe: 1536
   swap_bytes: 0
+  application_startup_tmpfs_mib:
+    git: 16
+    jobs: 16
+    media: 16
+    static: 16
 boundaries:
   production_runtime: false
   administrator_creation: false
@@ -37,6 +43,6 @@ boundaries:
   published_ports: false
   image_pulls: false
 predecessor:
-  terminal_tag: nautobot-configuration-auth-v2-failed
-  result_sha256: 6b46f1d90ef16d619c0d278a9d65f64b76bc339c6ab8bdd98116973bafcfec54
+  terminal_tag: nautobot-configuration-auth-v3-failed
+  result_sha256: 9414d11586f9d77639140428d778b912071cc3134c514859d4fac2b21f207fcf
   must_be_archived_before_execution: true
