@@ -675,3 +675,44 @@ bootstrap email remains in private evidence. See
 [CREDENTIAL_PREPARATION.md](CREDENTIAL_PREPARATION.md) for provisioning, injection,
 validation and recovery boundaries. Runtime executable contracts, actual settings,
 image-store load, firewall and pre-data Restic checks remain pending.
+
+### Credential operation prepared
+
+The single active slot now defines `nautobot-credentials-v1`: create the selected
+Doppler config and four application secrets, then inject protected environment
+files, non-secret settings and the Redis Podman secret. No administrator password
+is injected and no containers or application services are started. The controller
+bounds private output and deletes temporary secret payloads; Ansible owns host
+preflight, injection and private readback. Existing configs/paths/objects and
+ambiguous failures stop without overwrite, rotation or automatic cleanup.
+
+Implementation and tests are linked from [CREDENTIAL_PROVISIONING.md](CREDENTIAL_PROVISIONING.md).
+Settings names were verified against the qualified image's source. No Doppler or
+host mutation has occurred in this preparation; exact-bundle execution approval
+remains required. Application configuration/runtime acceptance remains separate.
+
+### Credential preflight correction
+
+The first authorized credential bundle stopped before cloud or host injection:
+rootless metadata commands inherited /home/ama and could not traverse it. The
+corrected commands explicitly use / and handle Podman's empty successful secret
+list. Eight tests and the corrected read-only host preflight passed (changed=0).
+No credentials were created, injected or rotated. The same unmutated operation
+remains active; corrected-bundle approval is required before execution.
+Private review: `/home/aaron/code/.local-evidence/nautobot-credential-preflight-20260921/REVIEW.md`.
+
+### Credential provisioning completed
+
+The corrected authorized credential bundle completed successfully on September 21.
+Doppler config and four credentials were created and privately verified. Six
+protected environments, non-secret settings and the Redis Podman secret were
+injected and verified; independent metadata checks passed. No containers started,
+no administrator was created, and controller temporary-payload cleanup passed.
+Result: [credential-result.json](../manifests/credential-result.json).
+Private review: `/home/aaron/code/.local-evidence/nautobot-credentials-execution-20260921/REVIEW.md`.
+
+The active operation retains its consumed definition pending terminal archival;
+do not rerun its create-only bundle. Credential policy and preparation observations
+above are historical inputs, not current absence claims. Next is credential
+archival followed by reviewed image-store load and configuration/authentication
+qualification. Runtime activation, firewall and pre-data Restic gates remain open.

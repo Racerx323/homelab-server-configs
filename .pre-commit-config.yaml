@@ -439,3 +439,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/(?:test_image_build\.py|fixtures/image-build-operation\.yaml)|docs/IMAGE_BUILD\.md)
+
+      - id: nautobot-credential-contracts
+        name: Validate private credential provisioning and failure handling
+        entry: python3 Nautobot/tests/test_credentials.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/

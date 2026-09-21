@@ -51,3 +51,14 @@ the terminal definition commit. Bundle SHA-256:
 `09b71931b20200846384fbc3e1217187adcc600fd481674a63d8f928f2a03224`.
 The verified image remains an isolated artifact; application runtime, production
 store load, credentials, Restic and pilot workload acceptance remain outstanding.
+
+## Credential provisioning and injection
+
+`nautobot-credentials-v1`: Doppler creation and protected host injection verified;
+controller temporary payloads cleaned. Terminal tag:
+`nautobot-credentials-v1-provisioned`. Its peeled commit preserves the exact
+consumed definition and `manifests/credential-result.json`. Bundle SHA-256:
+`4097b449a3722e6e7b65f0da9a28a6e066796e13dc2a4b8571a8e226aec10273`.
+Bootstrap password remains only in Doppler; no administrator or runtime was
+started. Host baseline and image qualification identities remain unchanged;
+application configuration/authentication and runtime acceptance remain open.

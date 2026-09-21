@@ -59,7 +59,8 @@ class Contracts(unittest.TestCase):
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
         else:
-            validate(json.loads((ROOT / 'Nautobot/schemas/image-build.schema.json').read_text()), operation)
+            schema_name = 'credential-operation.schema.json' if operation['operation'].get('stage') == 'credential_provisioning' else 'image-build.schema.json'
+            validate(json.loads((ROOT / 'Nautobot/schemas' / schema_name).read_text()), operation)
             self.assertFalse(operation['authorization']['mutation_authorized'])
             self.assertFalse(any(operation['boundaries'].values()))
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())

@@ -2,7 +2,8 @@
 
 The selected references are recorded in
 [credential-preparation.json](../manifests/credential-preparation.json).
-This is preparation, not proof of provisioning. Use Doppler project `homelab-dev`,
+This document records the preparation contract. The completed provisioning
+outcome is recorded separately in [credential-result.json](../manifests/credential-result.json). Use Doppler project `homelab-dev`,
 environment `prd`, config `prd_nautobot`; use administrator `admin`. The approved
 email is retained in private bootstrap inputs. Do not copy the email or passwords
 into public execution evidence. No production values are present in this repo.
@@ -35,8 +36,8 @@ into public execution evidence. No production values are present in this repo.
    A separately reviewed rollback may delete only newly created keys/config after
    establishing no consumer uses them. Never delete the shared environment.
 
-A concrete, hash-bound provisioning implementation and its failure/secret-cleanup
-tests must be reviewed before execution. This preparation does not include that
+The [provisioning implementation](CREDENTIAL_PROVISIONING.md) and its
+failure/secret-cleanup tests are now prepared for exact-bundle review. This preparation does not include that
 live action or a host-injection action. The repository AGENTS.md requires scoped
 exact-bundle authorization for live mutation.
 
