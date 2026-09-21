@@ -163,3 +163,19 @@ tag: `nautobot-configuration-auth-v5-failed`; its peeled commit retains all cons
 source inputs and `manifests/authentication-trial-settings-result.json`. Bundle:
 `a3abb94558e035ae7c6cd1cd56a053e5e8e3c0a05239a8f8378651293acbd808`.
 Authentication remains unaccepted; accepted host/image-store identities unchanged.
+
+Settings trial archival reconciliation: `nautobot-configuration-auth-v5-failed`
+peels to `6e4f6ca6eb943d584986e5ee7b3aa878c3568c48`. All consumed source inputs match
+the published tag; all archive hooks passed. The diagnostic successor is prepared
+for separate execution approval. Authentication remains unaccepted.
+
+## PostgreSQL diagnostic authentication trial
+
+`nautobot-configuration-auth-v6`: settings/plugin and positive PostgreSQL checks
+passed; the wrong-password attempt raised OperationalError without SQLSTATE.
+The negative criterion failed and Redis checks were not reached. All disposable
+objects were removed; continuity and 77.804 seconds of delayed observation passed.
+Terminal tag: `nautobot-configuration-auth-v6-failed`; its peeled commit retains
+all consumed source inputs and `manifests/authentication-trial-postgresql-result.json`.
+Bundle: `b2b00f10eea4a7accb65bcd905f5e429467a668303967ab2a3a3aa512ba98cd1`.
+No full authentication or production-runtime acceptance is claimed.

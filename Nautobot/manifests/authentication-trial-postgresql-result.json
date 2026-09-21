@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-configuration-auth-v6",
+  "bundle_sha256": "b2b00f10eea4a7accb65bcd905f5e429467a668303967ab2a3a3aa512ba98cd1",
+  "reviewed_at": "2026-09-21T22:14:59.406790+00:00",
+  "accepted": false,
+  "outcome": "postgresql_negative_missing_sqlstate",
+  "diagnostic": {
+    "action": "probe",
+    "phase": "django_shell",
+    "status": "failed",
+    "role": "probe",
+    "command_rc": 69,
+    "output_category": "probe_rejected",
+    "startup_diagnostic": {
+      "exception_categories": [],
+      "frames": [],
+      "filesystem_category": null
+    },
+    "probe_phase": "postgresql",
+    "completed_checks": [
+      "settings_and_plugin_registration"
+    ],
+    "failure_code": "postgres_negative_missing_sqlstate",
+    "exception_category": "CheckFailed",
+    "postgres_diagnostic": {
+      "attempt": "negative",
+      "step": "cursor",
+      "exception_category": "OperationalError",
+      "sqlstate": "absent"
+    },
+    "category": "command_nonzero"
+  },
+  "settings_accepted": true,
+  "postgresql_positive_passed": true,
+  "positive_evidence_basis": "negative_attempt_reached_after_positive_identity_port_and_cleanup_checks",
+  "negative_password_rejection_proven": false,
+  "redis_checks_reached": false,
+  "authentication_accepted": false,
+  "production_runtime_started": false,
+  "cleanup_passed": true,
+  "continuity_passed": true,
+  "post_cleanup_seconds": 77.80413601000328,
+  "watchdog_terminal_state": "inactive",
+  "sample_count": 30,
+  "maximum_sample_gap_seconds": 10.900678240985144,
+  "evidence_sha256": {
+    "spec.json": "8a8cbc242a56a792299f7106204eb906a712fd6864fc9cd769637825f4ef2e3d",
+    "watchdog-ready.json": "ca23f95fc62c7b56c805ac1c726dc72a8dc401d6a98c149c7d7d3bd43094a6cb",
+    "cleanup.json": "c0f613d6c8dc0324ee4bd7164cde62c7982ef1a6a06334f5f25acf77c2b330d8",
+    "watchdog-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "SHA256SUMS.json": "cbc034f83bb5bb4610ac694fcb0db3cb93f5660d9a7a0157bc7b801e59db7691",
+    "result.json": "363b7bcd3518c0e0b502dbe38ce8fff252fc1e3aa64ddab859d24fe4a97f4fcb",
+    "node-location.json": "2e2e843b3fa33f3f9ba8dffee51dd4bb58282e9d23a2e38cda72e9ad00f31173",
+    "controller-result.json": "abfe5b93cee23029231ddc8b74d64088b549c958172edb42822bedb10c7ba6b8",
+    "execution-trace.jsonl": "a159b6c19cd7106eea9d91b5fafac8c511b8e5e6b29f40750a325184e7ce023a",
+    "diagnostic.json": "0189ef7068d109a7fab073f5411587282dae8bd72cd1fb30e175fe1a155d39c7",
+    "probe.json": "9fc321bdb2a1266b9fa448c1a250b32d0df7e3a5f3472eeda52c5c29a9a2a80f",
+    "watchdog-final-status.json": "df4d721d233a2334088d2d2e0110346ae9e509ff46bf0b379fbcfa85c715af4d",
+    "watchdog-final.stdout": "648ab61bbf7bdc355a69b8f69fc703641f120cc97ebdead603ec39bb621190a9",
+    "postgresql.json": "ca1c1b8005c965d6d32acf2324d9ac1ba4fce002590d8dab3619c87304b790dd",
+    "redis.json": "091544276295055b91dd0a36af1e8f0eecd897a02a8febd564dcd5310d472a55",
+    "emergency.json": "ef5a3cadc32687fa9310a70a94892002e95e5ae51fe83f2524e3d3266a87a0a5",
+    "network.json": "5bb9274630ef97913383ef443ea5fe91b85dd9aa8357dd1d7d1d4ad45c4bb725",
+    "before.json": "c25df03fb1e7480c67454211436ac35275f551855faabd38de117f68949991e3"
+  },
+  "git_archival": "pending"
+}

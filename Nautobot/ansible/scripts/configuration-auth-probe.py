@@ -12,8 +12,12 @@ import secrets
 from urllib.parse import urlsplit, unquote
 
 
-FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
 EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
+
+PG_ATTEMPTS = frozenset(('positive', 'negative'))
+PG_STEPS = frozenset(('construct', 'cursor', 'query', 'fetch', 'close'))
+PG_SQLSTATES = frozenset(('absent', '28P01', '28000', '08001', '08006', '3D000', '42501', 'other'))
 
 
 class CheckFailed(Exception):
@@ -67,29 +71,57 @@ def sqlstate(error):
     return None
 
 
+def postgres_failure(code, attempt, step, error):
+    failure = CheckFailed(code)
+    state = sqlstate(error)
+    state = 'absent' if state is None else state if isinstance(state, str) and state in PG_SQLSTATES - {'absent', 'other'} else 'other'
+    category = type(error).__name__
+    failure.postgres_diagnostic = {
+        'attempt': attempt, 'step': step,
+        'exception_category': category if category in EXCEPTION_CATEGORIES else 'unclassified',
+        'sqlstate': state,
+    }
+    return failure
+
+
 def postgres_check(factory, configuration):
     for negative in (False, True):
+        attempt = 'negative' if negative else 'positive'
         config = copy.deepcopy(configuration)
         config['OPTIONS'] = {**config.get('OPTIONS', {}), 'connect_timeout': 5,
                              'options': '-c statement_timeout=5000'}
         config['CONN_MAX_AGE'] = 0
         if negative:
             config['PASSWORD'] = 'invalid-' + secrets.token_hex(32)
-        connection = factory(config, alias='qualification_negative' if negative else 'qualification_positive')
+        connection = None
+        step = 'construct'
         try:
             try:
+                connection = factory(config, alias='qualification_' + attempt)
+                step = 'cursor'
                 with connection.cursor() as cursor:
+                    step = 'query'
                     cursor.execute('SELECT current_user, current_database(), inet_server_port()')
+                    step = 'fetch'
                     row = cursor.fetchone()
             except Exception as error:
-                require(negative and sqlstate(error) == '28P01',
-                        'postgres_unexpected_failure')
+                state = sqlstate(error)
+                if not negative or state != '28P01':
+                    code = ('postgres_positive_failure' if not negative else
+                            'postgres_negative_missing_sqlstate' if state is None else
+                            'postgres_negative_unexpected_sqlstate')
+                    raise postgres_failure(code, attempt, step, error) from None
             else:
                 require(not negative, 'postgres_wrong_password_accepted')
                 require(row[:2] == ('nautobot', 'nautobot'), 'postgres_identity')
                 require(len(row) == 3 and row[2] == 5432, 'postgres_server_port')
         finally:
-            connection.close()
+            if connection is not None:
+                try:
+                    connection.close()
+                except Exception as error:
+                    raise postgres_failure('postgres_' + attempt + '_cleanup_failure',
+                                           attempt, 'close', error) from None
 
 
 def redis_check(factory, kwargs, authentication_error):
@@ -170,6 +202,8 @@ def main():
         category=type(error).__name__ if type(error).__name__ in EXCEPTION_CATEGORIES else 'unclassified'
         result.update(failed_phase=phase, error='check_or_connection_cleanup_failed',
                       failure_code=code, exception_category=category)
+        if type(error) is CheckFailed and hasattr(error, 'postgres_diagnostic'):
+            result['postgres_diagnostic'] = error.postgres_diagnostic
     print(json.dumps(result))
     return 0 if result['accepted'] else 69
 

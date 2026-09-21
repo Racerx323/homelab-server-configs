@@ -4,12 +4,12 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot defines the corrected settings/diagnostics successor awaiting bundle
-approval. V4 is archived after its settings-phase rejection with verified cleanup.
-The successor accepts Django's implicit default database port and verifies the
-connected port, retaining allowlisted assertion codes. The existing startup tmpfs
-mounts and all isolation/resource/cleanup requirements remain in effect. No
-successor execution or authentication acceptance is claimed.
+operation slot defines the PostgreSQL diagnostic successor for separate execution
+approval. V5 is archived with passing settings/plugin checks and an aggregate
+PostgreSQL rejection whose underlying cause remains unproven. The successor
+retains safe attempt, substep, exception and SQLSTATE categories; acceptance,
+isolation, resource limits and cleanup criteria remain unchanged. No successor
+execution or authentication acceptance is claimed.
 
 ## Prepared checks and provenance
 
@@ -282,3 +282,19 @@ checks fail closed. Local rootless tests exercise the same generated mount optio
 with a non-root UID, directory creation, read-only settings and dependency visibility.
 Target ARM64 framework initialization and authentication remain live acceptance
 checks, not outcomes of that local filesystem fixture.
+
+## PostgreSQL attempt diagnostics
+
+A PostgreSQL rejection includes a strictly validated `postgres_diagnostic` with
+`attempt` (positive/negative), `step` (construct/cursor/query/fetch/close),
+allowlisted `exception_category` and `sqlstate`. Absent SQLSTATE is `absent`;
+unknown values become `other`. Raw messages and connection values are excluded.
+Distinct assertion codes identify positive failures, negative missing/unexpected
+SQLSTATE and cleanup failures. A cleanup failure is fatal even after otherwise
+successful authentication. Tests exercise producer JSON and node readback.
+
+Django's cursor acquisition includes driver connection and backend initialization;
+a cursor-stage error does not by itself establish password rejection. Retain the
+existing strict negative criterion, SQLSTATE `28P01`, until any alternative evidence
+contract is separately reviewed. Current diagnostics do not establish the cause
+of a previously recorded aggregate rejection.

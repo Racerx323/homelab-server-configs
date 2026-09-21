@@ -88,19 +88,33 @@ def startup_diagnostic(raw):
     return result
 
 
-FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
 EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
+
+PG_ATTEMPTS = frozenset(('positive', 'negative'))
+PG_STEPS = frozenset(('construct', 'cursor', 'query', 'fetch', 'close'))
+PG_SQLSTATES = frozenset(('absent', '28P01', '28000', '08001', '08006', '3D000', '42501', 'other'))
+
+def valid_postgres_diagnostic(value):
+    return (isinstance(value, dict) and set(value) == {'attempt','step','exception_category','sqlstate'}
+            and value['attempt'] in PG_ATTEMPTS and value['step'] in PG_STEPS
+            and value['exception_category'] in EXCEPTION_CATEGORIES | {'unclassified'}
+            and value['sqlstate'] in PG_SQLSTATES)
+
 
 def observed_probe(root):
     def observe(rc,out,err):
         record=read(root,'diagnostic')
-        for key in ('probe_phase','completed_checks','failure_code','exception_category'):record.pop(key,None)
+        for key in ('probe_phase','completed_checks','failure_code','exception_category','postgres_diagnostic'):record.pop(key,None)
         record['command_rc']=rc
         record['output_category']='no_valid_probe_result'
         record['startup_diagnostic']=startup_diagnostic(err)
         try:
             value=json.loads(out.decode('utf-8').strip().splitlines()[-1])
             phases={'isolation','settings','postgresql','redis_cache','redis_broker'}
+            pg = value.pop('postgres_diagnostic', None)
+            if pg is not None and not valid_postgres_diagnostic(pg):
+                raise ValueError('invalid_postgres_diagnostic')
             if (set(value) in ({'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error'},
                               {'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error','failure_code','exception_category'})
                     and value.get('failure_code','unclassified_failure') in FAILURE_CODES
@@ -112,6 +126,7 @@ def observed_probe(root):
                 record.update(output_category='probe_rejected',probe_phase=value['failed_phase'],completed_checks=value['checks'],
                               failure_code=value.get('failure_code','unclassified_failure'),
                               exception_category=value.get('exception_category','unclassified'))
+                if pg is not None: record['postgres_diagnostic']=pg
             elif value=={'accepted':True,'checks':CHECKS,'production_runtime_accepted':False,'administrator_created':False}:
                 record['output_category']='probe_reported_success'
         except (ValueError,UnicodeError,IndexError,TypeError):pass

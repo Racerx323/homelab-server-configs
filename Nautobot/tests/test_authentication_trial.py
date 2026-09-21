@@ -60,6 +60,21 @@ class Trial(unittest.TestCase):
             n.observed_probe(root)(69,json.dumps(rejection).encode(),b'private')
             self.assertNotIn('DO_NOT_RECORD',(root/'diagnostic.json').read_text())
 
+    def test_postgres_diagnostic_vocabulary_and_redaction(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);n.save(root,'diagnostic',{'phase':'django_shell'})
+            value={'accepted':False,'checks':n.CHECKS[:1],'production_runtime_accepted':False,
+                   'administrator_created':False,'failed_phase':'postgresql','error':'check_or_connection_cleanup_failed',
+                   'failure_code':'postgres_negative_missing_sqlstate','exception_category':'CheckFailed',
+                   'postgres_diagnostic':{'attempt':'negative','step':'cursor','exception_category':'OperationalError','sqlstate':'absent'}}
+            n.observed_probe(root)(69,json.dumps(value).encode(),b'')
+            self.assertEqual(n.read(root,'diagnostic')['postgres_diagnostic'],value['postgres_diagnostic'])
+            for key in value['postgres_diagnostic']:
+                bad=copy.deepcopy(value);bad['postgres_diagnostic'][key]='PRIVATE_SECRET'
+                n.observed_probe(root)(69,json.dumps(bad).encode(),b'')
+                self.assertEqual(n.read(root,'diagnostic')['output_category'],'no_valid_probe_result')
+                self.assertNotIn('PRIVATE_SECRET',(root/'diagnostic.json').read_text())
+
     def test_real_capture_timeout_and_output_limit_stay_fail_closed(self):
         for code,timeout,limit in [('import time;time.sleep(2)',.05,1024),('print("x"*4096)',2,64)]:
             with tempfile.TemporaryDirectory() as tmp:

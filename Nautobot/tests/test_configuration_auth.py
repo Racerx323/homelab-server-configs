@@ -103,6 +103,66 @@ class Probe(unittest.TestCase):
         self.assertIn('SELECT current_user, current_database(), inet_server_port()',calls)
         for mode in ['accept_wrong','network','positive_failure','close_failure','wrong_port']:self.postgres(mode)
 
+    def test_postgres_failure_branches_and_cleanup(self):
+        for attempt, step, state, code in [
+            ('positive','cursor',None,'postgres_positive_failure'),
+            ('positive','query','42501','postgres_positive_failure'),
+            ('positive','fetch',None,'postgres_positive_failure'),
+            ('positive','construct',None,'postgres_positive_failure'),
+            ('negative','cursor',None,'postgres_negative_missing_sqlstate'),
+            ('negative','cursor','08001','postgres_negative_unexpected_sqlstate'),
+            ('negative','cursor','PRIVATE_SECRET','postgres_negative_unexpected_sqlstate'),
+            ('positive','close',None,'postgres_positive_cleanup_failure'),
+            ('negative','close',None,'postgres_negative_cleanup_failure'),
+        ]:
+            closed=[]
+            class OperationalError(Exception): pass
+            def fail():
+                error=OperationalError('PRIVATE_SECRET');error.sqlstate=state;raise error
+            class Connection:
+                def __init__(self,config,alias):
+                    self.attempt=alias.removeprefix('qualification_')
+                    if self.attempt==attempt and step=='construct':fail()
+                def cursor(self):
+                    if self.attempt==attempt and step=='cursor':fail()
+                    if self.attempt=='negative':
+                        error=OperationalError('PRIVATE_SECRET');error.sqlstate='28P01';raise error
+                    return self
+                def __enter__(self):return self
+                def __exit__(self,*args):pass
+                def execute(self,query):
+                    if self.attempt==attempt and step=='query':fail()
+                def fetchone(self):
+                    if self.attempt==attempt and step=='fetch':fail()
+                    return ('nautobot','nautobot',5432)
+                def close(self):
+                    closed.append(self.attempt)
+                    if self.attempt==attempt and step=='close':fail()
+            with self.assertRaises(p.CheckFailed) as caught:p.postgres_check(Connection,{'PASSWORD':'PRIVATE_SECRET','OPTIONS':{}})
+            self.assertEqual(str(caught.exception),code)
+            detail=caught.exception.postgres_diagnostic
+            self.assertEqual(detail['attempt'],attempt);self.assertEqual(detail['step'],step)
+            self.assertEqual(detail['exception_category'],'OperationalError')
+            self.assertNotIn('PRIVATE_SECRET',json.dumps(detail))
+            if step!='construct':self.assertIn(attempt,closed)
+
+    def test_postgres_diagnostics_survive_main_without_messages(self):
+        settings,env,versions=self.settings_fixture()
+        error=Exception('PRIVATE_SECRET');error.sqlstate='PRIVATE_SECRET'
+        failure=p.postgres_failure('postgres_negative_unexpected_sqlstate','negative','cursor',error)
+        modules={'django.apps':SimpleNamespace(apps=SimpleNamespace(ready=True,get_app_configs=lambda:[SimpleNamespace(name='nautobot_dns_models')])),
+                 'django.conf':SimpleNamespace(settings=settings),
+                 'django.db':SimpleNamespace(connections={'default':SimpleNamespace(settings_dict={})}),
+                 'django_redis':SimpleNamespace(),'redis':SimpleNamespace()}
+        modules['django_redis'].get_redis_connection=lambda *a:None
+        out=io.StringIO()
+        with patch.dict(sys.modules,modules),patch.dict(p.os.environ,env,clear=True),patch('importlib.metadata.version',side_effect=lambda name:versions[name]),patch.object(p.Path,'read_text',return_value='disposable-configuration-authentication'),patch.object(p,'postgres_check',side_effect=failure),contextlib.redirect_stdout(out):
+            self.assertEqual(p.main(),69)
+        result=json.loads(out.getvalue());self.assertEqual(result['postgres_diagnostic']['sqlstate'],'other')
+        self.assertEqual(result['postgres_diagnostic']['attempt'],'negative')
+        self.assertEqual(result['checks'],['settings_and_plugin_registration'])
+        self.assertNotIn('PRIVATE_SECRET',out.getvalue())
+
     def test_wrapped_sqlstate_without_message_matching(self):
         underlying=Exception('private');underlying.pgcode='28P01';outer=Exception('private');outer.__cause__=underlying
         self.assertEqual(p.sqlstate(outer),'28P01');self.assertIsNone(p.sqlstate(Exception('password authentication failed')))
