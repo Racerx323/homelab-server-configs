@@ -12,6 +12,43 @@ spec.loader.exec_module(trial)
 
 
 class PatchedTrialTests(unittest.TestCase):
+    def test_restoration_requires_all_cycles_and_settle(self):
+        counts = dict.fromkeys(['version', 'identify', 'health', 'attributes'], 2)
+        value = {'collection_count': 2, 'temperature_count': 2}
+        self.assertTrue(trial.restoration_ready(value, counts, {}, 75))
+        self.assertFalse(trial.restoration_ready(value, counts, {}, 74))
+        self.assertFalse(trial.restoration_ready(value, counts, {'1': {}}, 80))
+        for key in counts:
+            self.assertFalse(trial.restoration_ready(value, dict(counts, **{key: 1}), {}, 80))
+        self.assertFalse(trial.restoration_ready(dict(value, temperature_count=1), counts, {}, 80))
+
+    def test_finish_only_retains_verified_restoration(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            config = root / 'config'
+            config.write_text('enabled')
+            (root / 'operation.json').write_text(json.dumps({'restore_polling': True, 'enabled_config': 'enabled'}))
+            with patch.object(trial.guard, 'CONFIG', config), patch.object(trial, 'disable') as disable:
+                trial.finish(root)
+                disable.assert_called_once_with(root)
+                disable.reset_mock()
+                (root / 'complete.json').write_text(json.dumps({'result': 'polling_restored'}))
+                trial.finish(root)
+                disable.assert_not_called()
+                (root / 'failed.json').write_text('{}')
+                trial.finish(root)
+                disable.assert_called_once_with(root)
+                (root / 'failed.json').unlink()
+                disable.reset_mock()
+                (root / 'operation.json').write_text(json.dumps({'restore_polling': False, 'enabled_config': 'enabled'}))
+                trial.finish(root)
+                disable.assert_called_once_with(root)
+                disable.reset_mock()
+                (root / 'operation.json').write_text(json.dumps({'restore_polling': True, 'enabled_config': 'enabled'}))
+                config.write_text('unexpected')
+                trial.finish(root)
+                disable.assert_called_once_with(root)
+
     def test_retained_profile_requires_exact_version_kernel_and_unchanged_source(self):
         op = {'package_version': '7.5-test', 'kernel': 'test-kernel',
               'sources': [{'before': 'bytes', 'after': 'bytes'}]}

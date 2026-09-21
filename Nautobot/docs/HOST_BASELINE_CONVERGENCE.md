@@ -1,10 +1,10 @@
 # Retained host-baseline convergence and acceptance
 
-> **Post-cleanup read-only preflight passed all 59 checks.** Host acceptance remains pending. Separate authorized
-> preparation observations and a separately authorized boot-file correction exist.
-> The authorized corrective reboot passed bounded checks; host acceptance,
-> Restic initialization and terminal reconciliation remain pending. The deployment plan remains the sole
-> architecture authority.
+> **Stage-3 host baseline accepted, terminal archival pending.** The final
+> decision and retained limitations are recorded in
+> [terminal evidence](../manifests/terminal-evidence.yaml). Historical results below
+> retain their original scope. Runtime, Restic and full workload acceptance remain
+> separate stages; no successor execution is authorized.
 
 See [the roadmap](ROADMAP.md) for the current acceptance map and inactive
 workload and Restic drafts. Current status belongs here and in the operation

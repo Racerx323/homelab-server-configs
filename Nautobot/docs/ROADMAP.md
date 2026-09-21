@@ -1,17 +1,18 @@
 # Nautobot roadmap and acceptance status
 
-## Review boundary
+## Historical checkpoint-review boundary
 
-This September 16, 2026 local review uses retained evidence only. No live host,
-observer, provider or secrets-system contact was performed. The last retained
-observation says the Webmin trial is running; this review does not establish its
-present state or classify either checkpoint.
+The September 21, 2026 read-only review confirms both new-kernel Webmin
+checkpoints passed the bounded polling criteria. The observer completed normally
+September 17 and disabled temperature polling as designed. No manual SMART query,
+service change, controller mutation or active firewall probe was performed.
+Private report: `/home/aaron/code/.local-evidence/webmin-kernel-checkpoint-review-20260921/CHECKPOINT_REVIEW.md`.
 
 The [deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md) remains the architecture
-authority. The [active operation](../manifests/operation.yaml) remains host-baseline
-convergence, unready for execution and not accepted. The frozen convergence
-schema matches that definition. The inactive Restic contract remains unchanged.
-No accepted-live identity or terminal history is created by this review.
+authority. At that checkpoint review, the [active operation](../manifests/operation.yaml)
+remained unaccepted host-baseline convergence. The subsequent stage-3 decision
+below accepted the baseline; terminal Git archival and accepted-live identity
+reconciliation remain pending. The inactive Restic contract remains unchanged.
 
 ## Numbering and project position
 
@@ -23,7 +24,7 @@ numbered execution stages. Use the plan's stage numbers below going forward.
 | --- | --- |
 | 1 — Repository plan | Governing definition exists; no architecture change needed for this review. |
 | 2 — Repository implementation | Host/preflight and Restic preflight paths exist; runtime rendering/deployment candidates and initialization code exist but are inactive and not live-qualified. Definition work may continue locally. |
-| 3 — Host baseline | Cleanup verified; all 59 preflight checks passed. Polling checkpoint review, baseline firewall evidence and independent terminal baseline decision remain pending. |
+| 3 — Host baseline | Accepted baseline only on September 21; terminal evidence recorded. Git archival and terminal accepted-identity reconciliation remain pending. No runtime or Restic acceptance. |
 | 4 — Dual-stack identity | Permanent ULA present in preflight. Full forward/reverse DNS, dual-stack reachability, route preservation and exposure acceptance remain to be proved through the owning components. |
 | 5 — Nautobot pilot | Not accepted. Requires immutable custom image, reviewed runtime implementation, secrets, data services, migrations, workload and recovery evidence. |
 | 6 — Caddy onboarding | Separate Caddy lifecycle after backend readiness; no publication authorized here. |
@@ -49,15 +50,15 @@ architecture acceptance criteria.
 | Packages and residue | Exact required versions; eleven named entries purged; independent audit/residue checks clear. Recovery inputs retained. | No further cleanup indicated by this snapshot; later drift requires review. |
 | Services and account | `unit_states`, `zero_failed_units`, `account_identity`, subordinate-range checks and `lingering` passed. | Application services do not exist merely because the user manager works. |
 | Rootless capability and memory | `rootless_podman`, `memory_cgroup_available` passed after corrective reboot. | Per-service limits and application logout/reboot survival require pilot tests. |
-| Transport and filesystem | Exact quirk, USB root ancestry, driver binding, clean ext4, zero errors and boot continuity passed. | Checkpoint coverage and independent storage disposition remain pending. |
+| Transport and filesystem | Exact quirk, USB root ancestry, driver binding, clean ext4, zero errors and boot continuity passed. | Both checkpoints passed; stage-3 disposition is accepted with the command-counter and SMART limitations recorded below. |
 | SMART health | Reduced query health passed and 75-second delayed-error check passed. | Self-test-log data remains unreliable (#648); no self-test or blanket health exception. |
 | Thermal and power | Preflight temperature/throttling checks passed; prior retained UniFi Class 4/PoE-good evidence exists. | Explicit port allocation unavailable; workload headroom not established by idle power or temperature. |
-| Polling | Initial patched scheduled sequence returned health/44 C; 113.9 seconds of quiet follow-up retained. | Review actual two-hour/24-hour records, complete/failure/disable state, coverage, traces, journal and integrity. |
+| Polling | Initial patched scheduled sequence returned health/44 C; 113.9 seconds of quiet follow-up retained. | September 21 review passed both checkpoints: 5,689 samples, 287 cycles, 1,148 zero-status commands, maximum gap 16 seconds; polling was disabled at completion as designed. See the separate restoration record below for current status. |
 | Alerts | Earlier smartd corrected-recipient test B was received by the user. | Daemon activity alone does not prove delivery; this review sends no new test and does not qualify Needrestart alerts. |
-| Listeners and identity | Required baseline endpoints, optional loopback stats endpoint and permanent ULA passed. | Baseline management firewall/reachability and global-IPv6 denial are required before stage-3 acceptance; DNS/PTR and application exposure follow in later stages. |
+| Listeners and identity | Required baseline endpoints, optional loopback stats endpoint and permanent ULA passed. | Baseline reachability and approved deployed-rule evidence passed; external IPv6 testing remains unavailable. DNS/PTR and application exposure follow in later stages. |
 | Memory and workload | Controller available; no application workload acceptance evidence. | At least 1.5 GiB available during imports, exports, backups and Jobs; no OOM, persistent swap growth, throttling or sustained over-80 C. |
 | Backup and recovery | Provider acceptance and old repository-absence result retained in inactive contract. | Fresh absence review, initialization, canary upload/full check/isolated restore, then real application recovery. |
-| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review, baseline firewall evidence, residue review, explicit scoped acceptance, accepted identity and authorized terminal archival. |
+| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review and scoped baseline acceptance completed; terminal archival and accepted identity reconciliation remain pending. |
 
 The isolated boot-time MMC/SDIO warning is documented in the private current-boot
 review as the onboard Wi-Fi path, without demonstrated USB-root impact. Preserve
@@ -79,13 +80,37 @@ executions against their retained source snapshots, not today's working tree.
 
 ## Next decision
 
-Review the Webmin checkpoints using the private `FOLLOW_UP_PROMPT.md`. Expected
-completion disables temperature polling; that is not a failure or permission
-to re-enable it. An incomplete/invalid/failed observation blocks progression
-pending read-only investigation. A passed trial supplies one dependency, not
-terminal storage or host acceptance.
+Both Webmin checkpoints passed. The authorized September 21 final stage-3 decision
+accepts the host baseline, with the limitations below:
+internal IPv4 SSH/Webmin reachability and Munin polling passed, and controller
+rules match the intended IPv4/IPv6 policy, but external IPv6 denial remains untested.
+The user has no external IPv6 vantage. The approved deployed-gateway inspection
+now corroborates the controller policy: the target IPv6 prefixes map to the LAN
+bridge and WAN forwarding permits established/related traffic, drops invalid
+traffic, then drops remaining traffic. The external test remains unperformed;
+rule readback is the approved alternative evidence, not an end-to-end test.
+Private evidence: `/home/aaron/code/.local-evidence/nautobot-gateway-review-20260921/REVIEW.md`.
+Terminal baseline drift/provenance review is complete. Required packages, account,
+services, rootless capabilities and boot continuity match the retained baseline.
+The subsequent authorized attribution reproduced one SCSI command-counter
+increment during Webmin's `parted` disk-discovery listing; direct identity, health
+and attributes/error-log SMART reads produced none. All four had quiet 75-second
+follow-ups. The historical one-per-cycle explanation is supported, not proven
+for every event; the exact SCSI opcode remains uncaptured. The attribution blocker
+is resolved and baseline acceptance records that limitation.
+Private attribution: `/home/aaron/code/.local-evidence/scsi-counter-attribution-20260921/RESULT.md`.
+Earlier decision:
+`/home/aaron/code/.local-evidence/nautobot-terminal-review-20260921/ACCEPTANCE_DECISION.md`.
 
-Then prepare the independent stage-3 terminal review under
+The self-test-log limitation is command-specific; retained reduced health evidence
+can satisfy baseline health recording without a new patch. Webmin certificate trust
+is unresolved but is a separate component follow-up, not a new stage-3 requirement.
+Private decision: `/home/aaron/code/.local-evidence/nautobot-stage3-review-20260921/ACCEPTANCE_REVIEW.md`.
+
+The decision is in [terminal evidence](../manifests/terminal-evidence.yaml).
+The active operation is terminal-pending. No Git archive or accepted-live identity
+with invented tag/commit provenance was created. Next is separately authorized
+terminal archival and identity reconciliation under
 [HOST_BASELINE_CONVERGENCE.md](HOST_BASELINE_CONVERGENCE.md). Explicitly carry
 application-dependent host criteria forward to stage 5; baseline acceptance
 must not claim full workload acceptance. Do not waive any requirement to break a
@@ -93,6 +118,17 @@ dependency cycle. The governing plan now explicitly distinguishes stage-3 baseli
 stage-5 full workload acceptance; neither record substitutes for the other.
 The next-stage preparation below records concrete inactive
 operation drafts and the remaining readiness inputs.
+
+## Webmin polling restoration
+
+On September 21, separately authorized restoration removed only `collect_notemp=1`.
+Two scheduled patched cycles returned 44 C; eight expected commands succeeded,
+with more than 75 seconds of quiet follow-up after the final command. Independent
+readback verified configuration, source/binary integrity and tracer detachment.
+Polling remains enabled; the verification observer completed. The earlier accepted
+baseline snapshot retains its historical disabled-polling state. The documented
+SCSI command-counter and self-test-log limitations remain unresolved.
+Private evidence: `/home/aaron/code/.local-evidence/webmin-polling-restoration-20260921/RESULT.md`.
 
 ## Next-stage preparation after host convergence
 
@@ -105,11 +141,12 @@ host-baseline terminal acceptance and authorized archival are complete. No host
 contact, image pull/build, secret resolution, load test or service transition is
 part of this preparation.
 
-The immediate next operation is the existing stage-3 convergence review, not a
-runtime deployment. Review Webmin checkpoints first, then assemble the terminal
-baseline evidence and accepted identity under the existing convergence procedure.
+The immediate next action is terminal archival of the accepted stage-3
+convergence decision, followed by accepted identity reconciliation. Terminal
+evidence is assembled; the accepted identity remains unwritten until real Git
+provenance is available. Then prepare stage 4 under its owning components.
 Do not retry historical baseline v3. Commit/tag/push, future live collection and
-mutations remain separately scoped. The running trial is untouched.
+mutations remain separately scoped. The completed observer is untouched.
 
 ## Readiness package for each later operation
 
@@ -274,3 +311,8 @@ Munin source identities, applicable controller policy and group membership, deni
 client vantage points, and actual IPv4/IPv6 results remain unverified acceptance
 inputs. No firewall evidence was collected by this documentation reconciliation.
 A passing polling checkpoint or listener inventory cannot close those rows.
+
+Future Webmin HTTPS access is intended through Caddy under its separate onboarding
+lifecycle; direct Webmin certificate replacement is not the selected follow-up.
+The SMART upstream issue remains awaiting maintainer response per the user. No
+background issue-monitoring task or upstream publication is created by this record.

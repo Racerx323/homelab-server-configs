@@ -138,3 +138,36 @@ Exclude host identities, addresses, serials, credentials, and raw journals.
 
 Review and report the patch trial before changing smartmontools. Storage and
 Restic acceptance and restoration of indefinite polling remain separate decisions.
+
+## Restore polling after a qualified trial
+
+After a reviewed successful trial and explicit restoration authorization, use
+`restore-existing` with freshly verified disabled configuration/metadata, retained
+patched source bytes and exact package/kernel/binary identities. Confirm no prior
+observer is active and no existing tracer is attached. Preserve prior operation
+records and use a new operation ID.
+
+```sh
+sudo python3 /protected/path/patched-polling-trial.py restore-existing /protected/path/operation.json
+```
+
+This mode preserves source files, backs up the disabled configuration and attaches
+its trace before enabling polling. It requires at least two successful scheduled
+version/identity/health/attribute sequences, two temperature/history cycles and
+75 quiet seconds after the last observed command-count change. It checks SCSI
+timeouts as well as existing kernel, filesystem, service and integrity guards.
+Missing coverage after 780 seconds fails; the transient unit has a 900-second
+outer bound. It does not invoke SMART manually or alter the polling interval.
+
+On verified success it records `result: polling_restored`, detaches the trace and
+leaves polling enabled. Failure/interruption restores the exact disabled bytes;
+configuration conflicts stop automatic replacement rather than overwrite an
+unrelated change. `finish` is the stop hook and only retains enablement when the
+restoration success record, configuration and absence of failure agree. The
+ordinary two-hour/24-hour modes continue to disable on completion.
+
+Explicit rollback uses `disable STATE_DIRECTORY` to restore the retained disabled
+configuration. Stop the specific observer first if it is still active; its failure
+path also restores the backup. Do not replay an old operation or reset unrelated
+Webmin settings. A successful restoration does not change storage or workload
+acceptance.

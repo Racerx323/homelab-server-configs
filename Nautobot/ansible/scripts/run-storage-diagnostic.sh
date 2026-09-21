@@ -244,7 +244,9 @@ def assert_operation_storage_shape(operation_vars):
         assert "diagnostic_storage" not in operation_vars
         return
 
-    assert operation_state in {"definition", "pending"}
+    assert operation_state in {"definition", "pending", "terminal-pending"}
+    if operation_state == "terminal-pending":
+        assert operation_vars["operation"]["authorization_ready"] is False
     if operation_vars["operation"].get("id") != \
             "nautobot-storage-soak-verification-v1":
         assert "diagnostic_storage" not in operation_vars
@@ -258,6 +260,11 @@ def assert_operation_storage_shape(operation_vars):
     assert operation_vars["diagnostic_storage"]["root_device"] == "/dev/sda"
     assert operation_vars["storage_soak"]["minimum_uninterrupted_seconds"] == 86400
 
+
+assert_operation_storage_shape({
+    "operation": {"id": "offline-terminal", "state": "terminal-pending",
+                  "authorization_ready": False},
+})
 
 loaded_vars_files = []
 for relative_vars_file in expected_vars_files:

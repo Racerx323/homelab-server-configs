@@ -5,7 +5,7 @@
     "schema_version": 1,
     "operation": {
       "id": "nautobot-host-baseline-convergence-v1",
-      "state": "definition",
+      "state": "terminal-pending",
       "authorization_ready": false,
       "stage": "host_baseline_convergence",
       "target": {
@@ -622,7 +622,7 @@
       "automatic_rollback": false
     },
     "acceptance": {
-      "state": "not_accepted",
+      "state": "accepted_pending_archival",
       "accepted_live_path": "Nautobot/manifests/accepted-live-state.yaml",
       "contract": "Nautobot/docs/HOST_BASELINE_CONVERGENCE.md",
       "require_independent_review": true,
@@ -635,13 +635,14 @@
       "command": "run-host-convergence.py_execute-snapshot_AUTHORIZED_SHA256",
       "mutation_authorized": false,
       "blockers": [
-        "guarded_webmin_observation_checkpoints_pending",
-        "terminal_acceptance_and_archival_not_authorized"
+        "terminal_git_archival_authorized_pending_publication"
       ]
     },
     "preparation_review": {
       "scope": "stage_3_host_baseline_definition_and_historical_evidence_review",
-      "gates_accepted": [],
+      "gates_accepted": [
+        "stage_3_host_baseline"
+      ],
       "local_preparation": {
         "roadmap": "Nautobot/docs/ROADMAP.md",
         "activates_successor": false,
@@ -681,7 +682,8 @@
         "enabled_at": "2026-09-16T13:01:23-05:00",
         "timestamp_source": "private_nautobot_cleanup_polling_20260916/STATUS.md:Polling observation",
         "state_scope": "retained_launch_observation_not_current_status",
-        "observation_timestamp_source": "private_nautobot_cleanup_polling_20260916/trial-status-1789581896.json:epoch"
+        "observation_timestamp_source": "private_nautobot_cleanup_polling_20260916/trial-status-1789581896.json:epoch",
+        "superseded_for_checkpoint_status_by": "preparation_review.checkpoint_review"
       },
       "completed_preflight": {
         "result": "blocked_on_package_residue",
@@ -790,6 +792,58 @@
         "live_refresh_performed": false,
         "current_live_state": "not_revalidated",
         "historical_authorizations_are_reusable": false
+      },
+      "checkpoint_review": {
+        "reviewed_date": "2026-09-21",
+        "evidence_reference": "private_webmin_kernel_checkpoint_review_20260921",
+        "two_hour_result": "passed_bounded_polling_observation",
+        "twenty_four_hour_result": "passed_bounded_polling_observation",
+        "samples": 5689,
+        "maximum_sample_gap_seconds": 16.0004,
+        "completed_collections": 287,
+        "successful_smart_commands": 1148,
+        "polling_state_at_readback": "disabled_as_designed",
+        "storage_accepted": false,
+        "baseline_accepted": false,
+        "smartd_self_test_log_limitation": "recurrence_recorded_terminal_disposition_pending",
+        "munin_master_ipv4": "10.1.3.83",
+        "munin_master_basis": "user_confirmation_2026_09_21",
+        "firewall_review": "prepared_not_executed"
+      },
+      "stage3_acceptance_review": {
+        "reviewed_date": "2026-09-21",
+        "evidence_reference": "private_nautobot_stage3_review_20260921",
+        "decision": "accepted_baseline_only_pending_archival",
+        "smart_self_test_log": "documented_command_specific_limitation_no_patch_prerequisite",
+        "webmin_certificate": "self_signed_trust_not_established_separate_component_followup",
+        "internal_ipv4_access": "passed_bounded_checks",
+        "munin_master_polling": "verified_logs_and_sampled_rrd_freshness",
+        "external_ipv6_test": "unavailable_not_passed",
+        "upnp_disabled_basis": "user_confirmation_only",
+        "alternative_evidence_standard": "user_approved_gateway_readback_completed_external_test_unperformed",
+        "accepted_live_state_written": false,
+        "gateway_evidence_reference": "private_nautobot_gateway_review_20260921",
+        "gateway_result": "deployed_ipv6_forwarding_policy_matches_intent",
+        "gateway_access": "root_ssh_doppler_reference_verified_read_only",
+        "smart_upstream_status": "awaiting_maintainer_response_per_user",
+        "webmin_future_access": "https_via_caddy_separately_scoped_future_action"
+      },
+      "terminal_drift_review": {
+        "reviewed_date": "2026-09-21",
+        "evidence_reference": "private_nautobot_terminal_review_20260921",
+        "state": "completed_attribution_resolved_acceptance_pending",
+        "historical_preflight_reproduced": "59_of_59",
+        "required_package_drift": "none",
+        "scsi_command_error_counter_delta": 287,
+        "scsi_timeout_counter": 0,
+        "kernel_storage_events": "none_matched",
+        "next_action": "terminal_git_archival_and_accepted_identity_reconciliation",
+        "counter_attribution": "parted_disk_discovery_reproduces_increment",
+        "attribution_evidence_reference": "private_scsi_counter_attribution_20260921",
+        "direct_smart_query_deltas": "zero",
+        "delayed_faults_after_attribution": "none_observed",
+        "exact_scsi_opcode": "not_captured",
+        "accepted_live_state_written": false
       }
     },
     "component_ownership": {

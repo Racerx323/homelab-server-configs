@@ -35,6 +35,23 @@ def disable(root):
     guard.write_json(root / 'disabled.json', {'epoch': time.time(), 'sha256': guard.sha(before)})
 
 
+def restoration_ready(value, counts, pending, quiet_seconds):
+    return (not pending and quiet_seconds >= 75
+            and min(counts.values()) >= 2
+            and min(value['collection_count'], value['temperature_count']) >= 2)
+
+
+def finish(root):
+    op = read(root, 'operation.json')
+    complete = root / 'complete.json'
+    if (op.get('restore_polling') and complete.exists()
+            and not (root / 'failed.json').exists()
+            and read(root, 'complete.json').get('result') == 'polling_restored'
+            and guard.CONFIG.read_bytes() == op['enabled_config'].encode()):
+        return
+    disable(root)
+
+
 def retained_profile(op, package, kernel):
     if not op.get('package_version') or package != op['package_version']:
         raise RuntimeError('package_changed')
@@ -44,8 +61,9 @@ def retained_profile(op, package, kernel):
         raise RuntimeError('retained_source_mutation_forbidden')
 
 
-def apply(payload_path, retain_sources=False):
+def apply(payload_path, retain_sources=False, restore_polling=False):
     op = read(payload_path.parent, payload_path.name)
+    op['restore_polling'] = restore_polling
     if os.uname().nodename != op['host'] or guard.BOOT.read_text().strip() != op['boot_id']:
         raise RuntimeError('target_or_boot_mismatch')
     if not re.fullmatch(r'[a-z0-9-]{1,60}', op['id']):
@@ -107,9 +125,9 @@ def apply(payload_path, retain_sources=False):
                          'retained_existing_patch': retain_sources})
         script = str(root / 'patched-polling-trial.py')
         result = subprocess.run(['systemd-run', '--quiet', '--unit=' + unit,
-                                 '--property=RuntimeMaxSec=90000', '--property=UMask=0077',
+                                 '--property=RuntimeMaxSec=' + ('900' if restore_polling else '90000'), '--property=UMask=0077',
                                  '--property=KillMode=mixed',
-                                 '--property=ExecStopPost=/usr/bin/python3 ' + script + ' disable ' + str(root),
+                                 '--property=ExecStopPost=/usr/bin/python3 ' + script + ' finish ' + str(root),
                                  '/usr/bin/python3', script, 'observe', str(root)],
                                 capture_output=True, text=True, timeout=30)
         if result.returncode:
@@ -220,6 +238,8 @@ def sample(root, op, start, previous, baseline):
             raise RuntimeError('monitoring_input_drift')
     svc = parse_services(guard.services())
     restarts = service_check(svc, baseline['services'])
+    if op.get('restore_polling') and int(Path('/sys/block/sda/device/iotmo_cnt').read_text(), 16):
+        raise RuntimeError('scsi_timeout_counter_nonzero')
     errors = guard.ext4_errors()
     if errors != baseline['ext4_errors']:
         raise RuntimeError('filesystem_error_counter_changed')
@@ -272,6 +292,8 @@ def observe(root):
     deadline, attached, start = time.monotonic() + 30, False, None
     previous = next_sample = time.time()
     checkpoints = [7200, 86400]
+    restoring = op.get('restore_polling', False)
+    last_counts, last_command = counts.copy(), time.time()
     try:
         while True:
             if proc.poll() is not None:
@@ -314,6 +336,16 @@ def observe(root):
                 guard.write_json(root / 'latest.json', value)
                 previous, next_sample = now, now + 15
                 elapsed = now - start
+                if counts != last_counts:
+                    last_counts, last_command = counts.copy(), now
+                if restoring:
+                    if restoration_ready(value, counts, pending, now - last_command):
+                        guard.write_json(root / 'complete.json', dict(value,
+                                         result='polling_restored', storage_accepted=False))
+                        break
+                    if elapsed > 780:
+                        raise RuntimeError('restoration_cycles_missing')
+                    continue
                 if checkpoints and elapsed >= checkpoints[0]:
                     checkpoint = checkpoints.pop(0)
                     required = int(elapsed / 300) - 2
@@ -328,7 +360,7 @@ def observe(root):
                     break
     finally:
         try:
-            disable(root)
+            finish(root)
         finally:
             if proc.poll() is None:
                 proc.send_signal(signal.SIGINT)
@@ -347,11 +379,15 @@ def main():
     root = Path(state)
     if os.geteuid() != 0:
         raise RuntimeError('root_required')
-    if action in {'apply', 'start-existing'}:
-        apply(root, retain_sources=action == 'start-existing')
+    if action in {'apply', 'start-existing', 'restore-existing'}:
+        apply(root, retain_sources=action != 'apply',
+              restore_polling=action == 'restore-existing')
         return
     if action == 'rollback':
         rollback(root)
+        return
+    if action == 'finish':
+        finish(root)
         return
     if action == 'disable':
         disable(root)

@@ -200,3 +200,21 @@ Restic initialization or establish accepted host state.
 - [7.5 implementation](https://github.com/smartmontools/smartmontools/blob/RELEASE_7_5/smartmontools/scsinvme.cpp)
 - [Debian backports](https://backports.debian.org/Instructions/)
 - [Webmin patch](https://github.com/webmin/webmin/issues/2838)
+
+## Interpreting SCSI command counters
+
+Do not equate `/sys/block/DEVICE/device/ioerr_cnt` with failed filesystem I/O,
+or automatically attribute its increases to the self-test-log issue. A monitoring
+cycle includes discovery commands as well as SMART queries. On the qualified
+pilot, isolated identity, health and attributes/error-log reads left this counter
+unchanged, while Webmin's `parted DEVICE unit cyl print` discovery command
+reproduced one increment with exit zero and no delayed reset, timeout or ext4
+error. This does not establish the exact failing SCSI opcode or qualify other
+hosts, and it does not resolve smartmontools issue #648.
+
+For attribution, preserve per-command counters and statuses, inspect discovery
+callers, and allow the documented delayed-reset interval after each authorized
+query. Treat timeout, kernel/filesystem events and SMART health failures
+independently. Do not suppress monitoring or change policy solely to zero a
+cumulative command counter. Raw debug and ioctl traces can contain identifiers
+or unrelated data; retain them privately and publish only reviewed summaries.
