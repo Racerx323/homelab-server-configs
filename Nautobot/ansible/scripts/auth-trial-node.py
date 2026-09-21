@@ -19,8 +19,8 @@ LABEL='io.homelab.nautobot.auth-trial'
 ROLES=('postgresql','redis','probe')
 MEMORY={'postgresql':768,'redis':512,'probe':1536}
 STARTUP_TMPFS={f'/opt/nautobot/{name}':16 for name in ('git','jobs','media','static')}
-CHECKS=['settings_and_plugin_registration','postgresql_positive_and_wrong_password',
-        'redis_cache_positive_missing_wrong_password','redis_broker_positive_missing_wrong_password']
+CHECKS=['settings_and_plugin_registration','native_configuration_check','postgresql_positive_identity_port',
+        'redis_cache_positive','redis_broker_positive']
 
 
 def save(root,name,data):
@@ -88,7 +88,7 @@ def startup_diagnostic(raw):
     return result
 
 
-FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+FAILURE_CODES = frozenset(('native_configuration_check', 'allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
 EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
 
 PG_ATTEMPTS = frozenset(('positive', 'negative'))
@@ -111,7 +111,7 @@ def observed_probe(root):
         record['startup_diagnostic']=startup_diagnostic(err)
         try:
             value=json.loads(out.decode('utf-8').strip().splitlines()[-1])
-            phases={'isolation','settings','postgresql','redis_cache','redis_broker'}
+            phases={'isolation','settings','native_check','postgresql','redis_cache','redis_broker'}
             pg = value.pop('postgres_diagnostic', None)
             if pg is not None and not valid_postgres_diagnostic(pg):
                 raise ValueError('invalid_postgres_diagnostic')
@@ -122,7 +122,7 @@ def observed_probe(root):
                     and value['accepted'] is False and value['production_runtime_accepted'] is False
                     and value['administrator_created'] is False and value['failed_phase'] in phases
                     and value['error']=='check_or_connection_cleanup_failed'
-                    and value['checks'] in [CHECKS[:i] for i in range(5)]):
+                    and value['checks'] in [CHECKS[:i] for i in range(len(CHECKS)+1)]):
                 record.update(output_category='probe_rejected',probe_phase=value['failed_phase'],completed_checks=value['checks'],
                               failure_code=value.get('failure_code','unclassified_failure'),
                               exception_category=value.get('exception_category','unclassified'))

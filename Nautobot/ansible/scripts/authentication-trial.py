@@ -14,7 +14,7 @@ import tempfile
 sys.dont_write_bytecode = True
 ROOT = next((p for p in Path(__file__).resolve().parents if (p/'Nautobot/manifests').is_dir()), None)
 FILES = {
-    'predecessor-result.json':'Nautobot/manifests/authentication-trial-settings-result.json',
+    'predecessor-result.json':'Nautobot/manifests/authentication-trial-postgresql-result.json',
     'PLAN.md':'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
     'launcher.py':'Nautobot/ansible/scripts/authentication-trial.py',
     'node.py':'Nautobot/ansible/scripts/auth-trial-node.py',
@@ -59,7 +59,7 @@ def spec_from(root):
     op=yaml.safe_load((root/'operation.yaml').read_text())
     Draft202012Validator(json.loads((root/'schema.json').read_text())).validate(op)
     require(op['plan_sha256']==sha(root/'PLAN.md'),'plan_identity')
-    require(op['operation']['id']=='nautobot-configuration-auth-v6','retry_definition_required')
+    require(op['operation']['id']=='nautobot-configuration-auth-v7','retry_definition_required')
     require(op['predecessor']['result_sha256']==sha(root/'predecessor-result.json'),'predecessor_result')
     desired=yaml.safe_load((root/'desired.yaml').read_text())
     Draft202012Validator(json.loads((root/'desired-schema.json').read_text())).validate(desired)
@@ -156,7 +156,7 @@ def evaluate(root,rc,spec):
     cleanup=json.loads((root/'cleanup.json').read_text())
     require(set(cleanup)=={'probe','redis','postgresql','network'} and all(cleanup.values()),'cleanup_incomplete')
     probe=json.loads((root/'probe-result.json').read_text())
-    require(probe=={'accepted':True,'checks':['settings_and_plugin_registration','postgresql_positive_and_wrong_password','redis_cache_positive_missing_wrong_password','redis_broker_positive_missing_wrong_password'],'production_runtime_accepted':False,'administrator_created':False},'probe_contract')
+    require(probe=={'accepted':True,'checks':['settings_and_plugin_registration','native_configuration_check','postgresql_positive_identity_port','redis_cache_positive','redis_broker_positive'],'production_runtime_accepted':False,'administrator_created':False},'probe_contract')
     for role,memory in [('postgresql',768),('redis',512),('probe',1536)]:
         record=json.loads((root/(role+'.json')).read_text());limits=record['limits']
         require(record['started'] and 0<limits['memory_max']<=memory*1024**2 and limits['swap_max']==0 and 0<limits['cpus']<=2,'limits_evidence')
@@ -169,7 +169,7 @@ def archival_gate(bundle):
     repo=ROOT or Path.cwd()
     def read_git(*args):return subprocess.check_output(['git','-C',str(repo),*args],timeout=20)
     require(read_git('cat-file','-t',tag).strip()==b'tag','predecessor_not_archived')
-    archived=read_git('show',tag+':Nautobot/manifests/authentication-trial-settings-result.json')
+    archived=read_git('show',tag+':Nautobot/manifests/authentication-trial-postgresql-result.json')
     require(archived==(bundle/'predecessor-result.json').read_bytes(),'predecessor_archive_mismatch')
     tag_object=read_git('rev-parse',tag).decode().strip()
     remote=read_git('ls-remote','--tags','origin','refs/tags/'+tag).decode().split()

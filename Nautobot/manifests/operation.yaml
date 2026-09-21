@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 operation:
-  id: nautobot-configuration-auth-v6
+  id: nautobot-configuration-auth-v7
   stage: configuration_authentication
   state: definition
   authorization_ready: true
@@ -9,7 +9,7 @@ authorization:
   mutation_authorized: false
   method: separate_explicit_approval_of_frozen_bundle_sha256
 target: j2-svpi4mf
-source_base_commit: 6e4f6ca6eb943d584986e5ee7b3aa878c3568c48
+source_base_commit: f55d3a2a77b3a163a23dbe1f7e95786c7c7441e1
 plan_sha256: 7abdab7432a9ba6557ea6e24c4c89344b7c878c23b2985a4aa844e80d94eec0d
 scope:
   - private_internal_network
@@ -43,6 +43,6 @@ boundaries:
   published_ports: false
   image_pulls: false
 predecessor:
-  terminal_tag: nautobot-configuration-auth-v5-failed
-  result_sha256: 7781a8a3604ccc3ddeea3707caa640ebc106afc9efa7c60a1c77bb06d6f8cff0
+  terminal_tag: nautobot-configuration-auth-v6-failed
+  result_sha256: 72c72e2b3b4b6e56c1ec48f4b3d49f1f09b9b1cdee400dcb804b712173342414
   must_be_archived_before_execution: true

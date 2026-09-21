@@ -4,6 +4,7 @@
 Run inside Nautobot's initialized Django shell. Never print settings, passwords,
 connection URLs, query results, or raw exception messages.
 """
+import contextlib
 import copy
 import json
 import os
@@ -12,7 +13,7 @@ import secrets
 from urllib.parse import urlsplit, unquote
 
 
-FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+FAILURE_CODES = frozenset(('native_configuration_check', 'allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_positive_failure', 'postgres_negative_missing_sqlstate', 'postgres_negative_unexpected_sqlstate', 'postgres_positive_cleanup_failure', 'postgres_negative_cleanup_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
 EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
 
 PG_ATTEMPTS = frozenset(('positive', 'negative'))
@@ -84,8 +85,8 @@ def postgres_failure(code, attempt, step, error):
     return failure
 
 
-def postgres_check(factory, configuration):
-    for negative in (False, True):
+def postgres_check(factory, configuration, *, include_negative=False):
+    for negative in ((False, True) if include_negative else (False,)):
         attempt = 'negative' if negative else 'positive'
         config = copy.deepcopy(configuration)
         config['OPTIONS'] = {**config.get('OPTIONS', {}), 'connect_timeout': 5,
@@ -124,8 +125,8 @@ def postgres_check(factory, configuration):
                                            attempt, 'close', error) from None
 
 
-def redis_check(factory, kwargs, authentication_error):
-    for mode in ('correct', 'missing', 'wrong'):
+def redis_check(factory, kwargs, authentication_error, *, include_negative=False):
+    for mode in (('correct', 'missing', 'wrong') if include_negative else ('correct',)):
         options = {**kwargs, 'socket_connect_timeout': 5, 'socket_timeout': 5}
         if mode != 'correct':
             options['password'] = None if mode == 'missing' else 'invalid-' + secrets.token_hex(32)
@@ -147,6 +148,16 @@ def redis_check(factory, kwargs, authentication_error):
                 client.connection_pool.disconnect()
 
 
+def native_configuration_check():
+    from django.core.management import call_command
+    # Discard command text; only a fixed outcome code reaches evidence.
+    with open(os.devnull, 'w') as sink, contextlib.redirect_stdout(sink), contextlib.redirect_stderr(sink):
+        try:
+            call_command('check', verbosity=0, stdout=sink, stderr=sink)
+        except Exception:
+            raise CheckFailed('native_configuration_check') from None
+
+
 def main():
     # The future launcher mounts this non-secret marker only for the isolated trial.
     result = {'accepted': False, 'checks': [], 'production_runtime_accepted': False,
@@ -166,10 +177,13 @@ def main():
         settings_check(settings, os.environ, [a.name for a in apps.get_app_configs()],
                        {name: version(name) for name in ('nautobot', 'nautobot-dns-models')})
         result['checks'].append('settings_and_plugin_registration')
+        phase = 'native_check'
+        native_configuration_check()
+        result['checks'].append('native_configuration_check')
         phase = 'postgresql'
         default = connections['default']
         postgres_check(type(default), default.settings_dict)
-        result['checks'].append('postgresql_positive_and_wrong_password')
+        result['checks'].append('postgresql_positive_identity_port')
         phase = 'redis_cache'
         cache = get_redis_connection('default')
         try:
@@ -181,7 +195,7 @@ def main():
                 cache.close()
             finally:
                 cache.connection_pool.disconnect()
-        result['checks'].append('redis_cache_positive_missing_wrong_password')
+        result['checks'].append('redis_cache_positive')
         phase = 'redis_broker'
         broker = redis.Redis.from_url(settings.CELERY_BROKER_URL)
         try:
@@ -193,7 +207,7 @@ def main():
                 broker.close()
             finally:
                 broker.connection_pool.disconnect()
-        result['checks'].append('redis_broker_positive_missing_wrong_password')
+        result['checks'].append('redis_broker_positive')
         result['accepted'] = True
     except Exception as error:
         # Preserve known assertion identifiers, never arbitrary exception messages.

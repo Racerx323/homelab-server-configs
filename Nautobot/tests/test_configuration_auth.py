@@ -90,9 +90,9 @@ class Probe(unittest.TestCase):
                 closed.append(self.bad)
                 if mode=='close_failure':raise Exception('secret cleanup error')
         config={'PASSWORD':'original','OPTIONS':{}}
-        if mode=='ok':p.postgres_check(Connection,config)
+        if mode=='ok':p.postgres_check(Connection,config,include_negative=True)
         else:
-            with self.assertRaises(Exception):p.postgres_check(Connection,config)
+            with self.assertRaises(Exception):p.postgres_check(Connection,config,include_negative=True)
         self.assertEqual(config,{'PASSWORD':'original','OPTIONS':{}})
         self.assertTrue(closed)
         return calls,closed
@@ -138,7 +138,7 @@ class Probe(unittest.TestCase):
                 def close(self):
                     closed.append(self.attempt)
                     if self.attempt==attempt and step=='close':fail()
-            with self.assertRaises(p.CheckFailed) as caught:p.postgres_check(Connection,{'PASSWORD':'PRIVATE_SECRET','OPTIONS':{}})
+            with self.assertRaises(p.CheckFailed) as caught:p.postgres_check(Connection,{'PASSWORD':'PRIVATE_SECRET','OPTIONS':{}},include_negative=True)
             self.assertEqual(str(caught.exception),code)
             detail=caught.exception.postgres_diagnostic
             self.assertEqual(detail['attempt'],attempt);self.assertEqual(detail['step'],step)
@@ -156,12 +156,67 @@ class Probe(unittest.TestCase):
                  'django_redis':SimpleNamespace(),'redis':SimpleNamespace()}
         modules['django_redis'].get_redis_connection=lambda *a:None
         out=io.StringIO()
-        with patch.dict(sys.modules,modules),patch.dict(p.os.environ,env,clear=True),patch('importlib.metadata.version',side_effect=lambda name:versions[name]),patch.object(p.Path,'read_text',return_value='disposable-configuration-authentication'),patch.object(p,'postgres_check',side_effect=failure),contextlib.redirect_stdout(out):
+        with patch.dict(sys.modules,modules),patch.dict(p.os.environ,env,clear=True),patch('importlib.metadata.version',side_effect=lambda name:versions[name]),patch.object(p.Path,'read_text',return_value='disposable-configuration-authentication'),patch.object(p,'native_configuration_check'),patch.object(p,'postgres_check',side_effect=failure),contextlib.redirect_stdout(out):
             self.assertEqual(p.main(),69)
         result=json.loads(out.getvalue());self.assertEqual(result['postgres_diagnostic']['sqlstate'],'other')
         self.assertEqual(result['postgres_diagnostic']['attempt'],'negative')
-        self.assertEqual(result['checks'],['settings_and_plugin_registration'])
+        self.assertEqual(result['checks'],['settings_and_plugin_registration','native_configuration_check'])
         self.assertNotIn('PRIVATE_SECRET',out.getvalue())
+
+    def test_readiness_only_attempts_positive_connections(self):
+        attempts=[]
+        class Connection:
+            def __init__(self,config,alias):attempts.append(alias)
+            def cursor(self):return self
+            def __enter__(self):return self
+            def __exit__(self,*args):pass
+            def execute(self,query):pass
+            def fetchone(self):return ('nautobot','nautobot',5432)
+            def close(self):pass
+        p.postgres_check(Connection,{'PASSWORD':'original'})
+        self.assertEqual(attempts,['qualification_positive'])
+        passwords=[]
+        class Client:
+            def __init__(self,**kwargs):passwords.append(kwargs['password']);self.connection_pool=self
+            def ping(self):return True
+            def close(self):pass
+            def disconnect(self):pass
+        p.redis_check(Client,{'password':'original'},ValueError)
+        self.assertEqual(passwords,['original'])
+
+    def test_native_command_is_invoked_and_failure_is_sanitized(self):
+        from unittest.mock import Mock
+        for failure in (None,RuntimeError('PRIVATE_SECRET')):
+            call=Mock(side_effect=failure)
+            with patch.dict(sys.modules,{'django.core.management':SimpleNamespace(call_command=call)}):
+                if failure:
+                    with self.assertRaisesRegex(p.CheckFailed,'^native_configuration_check$'):p.native_configuration_check()
+                else:p.native_configuration_check()
+            self.assertEqual(call.call_args.args,('check',));self.assertEqual(call.call_args.kwargs['verbosity'],0)
+
+    def test_readiness_main_completes_five_checks_without_negative_opt_in(self):
+        from unittest.mock import Mock
+        settings,env,versions=self.settings_fixture()
+        cache=Mock();cache.connection_pool.connection_kwargs={'password':'original'}
+        broker=Mock();broker.connection_pool.connection_kwargs={'password':'original'}
+        command=Mock()
+        modules={'django.apps':SimpleNamespace(apps=SimpleNamespace(ready=True,get_app_configs=lambda:[SimpleNamespace(name='nautobot_dns_models')])),
+                 'django.conf':SimpleNamespace(settings=settings),
+                 'django.db':SimpleNamespace(connections={'default':SimpleNamespace(settings_dict={})}),
+                 'django.core.management':SimpleNamespace(call_command=command),
+                 'django_redis':SimpleNamespace(get_redis_connection=lambda *a:cache),
+                 'redis':SimpleNamespace(Redis=SimpleNamespace(from_url=lambda *a:broker),exceptions=SimpleNamespace(AuthenticationError=ValueError))}
+        out=io.StringIO()
+        with patch.dict(sys.modules,modules),patch.dict(p.os.environ,env,clear=True),patch('importlib.metadata.version',side_effect=lambda name:versions[name]),patch.object(p.Path,'read_text',return_value='disposable-configuration-authentication'),patch.object(p,'postgres_check') as pg,patch.object(p,'redis_check') as redis,contextlib.redirect_stdout(out):
+            self.assertEqual(p.main(),0)
+        result=json.loads(out.getvalue())
+        self.assertEqual(result['checks'],['settings_and_plugin_registration','native_configuration_check','postgresql_positive_identity_port','redis_cache_positive','redis_broker_positive'])
+        self.assertTrue(result['accepted']);self.assertFalse(result['production_runtime_accepted'])
+        self.assertEqual(command.call_args.args,('check',));self.assertEqual(pg.call_count,1);self.assertEqual(redis.call_count,2)
+        self.assertNotIn('include_negative',pg.call_args.kwargs)
+        for call in redis.call_args_list:self.assertNotIn('include_negative',call.kwargs)
+        cache.close.assert_called_once();cache.connection_pool.disconnect.assert_called_once()
+        broker.close.assert_called_once();broker.connection_pool.disconnect.assert_called_once()
 
     def test_wrapped_sqlstate_without_message_matching(self):
         underlying=Exception('private');underlying.pgcode='28P01';outer=Exception('private');outer.__cause__=underlying
@@ -181,9 +236,9 @@ class Probe(unittest.TestCase):
                 if mode=='close_failure':raise Exception('sensitive')
             def disconnect(self):events.append('disconnect')
         config={'host':'redis','password':'real','db':1}
-        if mode=='ok':p.redis_check(Client,config,AuthenticationError)
+        if mode=='ok':p.redis_check(Client,config,AuthenticationError,include_negative=True)
         else:
-            with self.assertRaises(Exception):p.redis_check(Client,config,AuthenticationError)
+            with self.assertRaises(Exception):p.redis_check(Client,config,AuthenticationError,include_negative=True)
         self.assertEqual(config['password'],'real');self.assertIn('disconnect',events)
         return events
 

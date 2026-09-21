@@ -4,19 +4,16 @@
 
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
 Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
-V1 through v5 are archived. The approved v6 diagnostic trial ran:
-settings/plugin and positive PostgreSQL identity/port checks passed. The negative
-attempt raised `OperationalError` at cursor acquisition without SQLSTATE, producing
-`postgres_negative_missing_sqlstate`. Password rejection remains unproven; Redis
-checks were not reached. Cleanup and continuity passed, with 77.8 seconds of quiet
-post-cleanup observation and an inactive/dead guard. Result:
-`manifests/authentication-trial-postgresql-result.json`. The consumed v6 definition
-remains pending archival. The user approved a revised readiness contract: native
-Nautobot configuration check and positive PostgreSQL/Redis application connections.
-Reusable code and tests now implement it; negative testing remains separately
-unresolved. Next: archive v6 and freeze the revised readiness bundle. After it
-passes, prepare initialization/runtime under the existing Restic pre-data gates.
-No live readiness or runtime acceptance is claimed by the local revision.
+V1 through v6 are archived. The approved v7 readiness trial passed all five checks:
+settings/plugin registration, native configuration, positive PostgreSQL identity/port,
+Redis cache and Redis broker access. All disposable objects were removed. Boot and
+configuration continuity passed with 77.8 seconds of quiet delayed observation,
+31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
+Result: `manifests/configuration-readiness-result.json`. The consumed operation
+remains pending archival. Negative security tests were not run and remain unresolved.
+This accepts disposable readiness only, not production runtime or administrator login.
+Next: archive readiness, then prepare initialization/runtime under the existing
+Restic pre-data gates. Historical failed trial records remain unchanged.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
 Credential provisioning was previously archived at

@@ -4,12 +4,11 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot defines the PostgreSQL diagnostic successor for separate execution
-approval. V5 is archived with passing settings/plugin checks and an aggregate
-PostgreSQL rejection whose underlying cause remains unproven. The successor
-retains safe attempt, substep, exception and SQLSTATE categories; acceptance,
-isolation, resource limits and cleanup criteria remain unchanged. No successor
-execution or authentication acceptance is claimed.
+operation slot defines the revised readiness successor. V6 is archived; its historical
+SQLSTATE-based qualification failed; that result remains unchanged. The user-approved
+successor contract below uses native configuration checks and positive application
+connections. Negative security tests are separate and unresolved. Reusable code is
+updated and prepared for separate exact-bundle execution approval.
 
 ## Prepared checks and provenance
 
@@ -103,10 +102,11 @@ remain live qualification checks. See
 | Check | Required result |
 | --- | --- |
 | Configuration | Exact mounted settings path, DEBUG/installation metrics off, approved hosts/CSRF/proxy header, injected secret matches in memory only, no bootstrap credential. |
+| Native configuration | Nautobot-initialized Django management `check` completes without an error; invoked through `call_command`. This is the same command as `nautobot-server check`, not a migration or deployment-security audit. |
 | Plugin | DNS Models registered in Django; actual installed Nautobot and plugin versions match the pinned inputs. |
-| PostgreSQL | Explicit TCP connection using the application backend/settings succeeds; `SELECT current_user, current_database(), inet_server_port()` matches intended identities and port 5432. Wrong password returns SQLSTATE `28P01`. Timeout, refusal or another SQLSTATE fails qualification. |
-| Redis cache | Clone the actual Django cache connection parameters with five-second socket/connect timeouts. Correct credentials return PONG on database 1; missing and wrong credentials raise authentication errors. |
-| Redis broker | Apply the same tests to the actual Celery broker connection on database 0. A network failure never counts as password rejection. |
+| PostgreSQL | Explicit TCP connection using the application backend/settings succeeds; `SELECT current_user, current_database(), inet_server_port()` matches intended identities and port 5432. Connection or query failure prevents readiness acceptance. Negative password testing is separate. |
+| Redis cache | Clone the actual Django cache connection parameters with five-second socket/connect timeouts. Correct application credentials return PONG on database 1; connection, authentication or cleanup failures prevent acceptance. |
+| Redis broker | The actual Celery broker connection returns PONG using its configured credentials on database 0. Failures prevent acceptance. |
 | Cleanup | Close/disconnect every probe connection. Stop and remove only operation-owned container IDs and network; attempt remaining cleanup after any failure. No persistent trial volume or worker may remain. |
 | Host continuity | Accepted boot, effective limits, unchanged credential metadata/settings and no kernel/storage/OOM event; at least 75 seconds of sampled observation after teardown. |
 
@@ -120,26 +120,30 @@ phase, allowlisted `failure_code` and `exception_category`. Exception messages,
 settings, environment dumps, connection URLs and passwords must
 remain out of reports. Capture all container/CLI streams privately with output and
 time limits: framework startup itself can emit errors before the probe runs.
-Parse the final JSON result strictly; require successful exit status, all four
+Parse the final JSON result strictly; require successful exit status, all five
 check names and no missing phase. Probe acceptance alone cannot override failed
 or missing cleanup, host observation or isolation evidence.
 
-PostgreSQL clients may omit SQLSTATE on connection-establishment failures. That
-case deliberately fails this probe. The node retains only categorical probe
-acceptance, not raw exceptions or server logs. A failure requires a separately
-reviewed diagnostic approach; neither a generic connection exception nor a matching
-message substring proves authentication rejection.
+PostgreSQL clients may omit SQLSTATE on connection-establishment failures. The
+previous wrong-password contract required `28P01`; v6 could not establish it. That
+negative-test result stays inconclusive. Readiness now verifies the actual positive
+application connection independently; it does not claim password rejection is
+proven. Effective authentication policy and private network requirements remain.
 
-The offline tests cover configuration mismatch, password rejection versus network
-failure, PostgreSQL identity, missing/wrong Redis credentials, connection cleanup
-failure and missing marker. They do not execute the installed framework or prove
-live authentication. `tests/test_authentication_trial.py` additionally exercises
-the real frozen producer and actual Ansible partial-startup/always path, simulated
-controller loss, deadlines, guard failure, cleanup failure, ownership checks,
-mount/port rejection and effective cgroup limits. Local unstarted PostgreSQL and Redis
-container inspections confirm the Podman metadata shape; it does not qualify ARM64
-startup or the target Podman version. The exact CLI source was inspected in the
-pinned image during preparation.
+Negative PostgreSQL and Redis tests are retained only behind explicit
+`include_negative=True` helper calls for separately reviewed testing. The live
+readiness entrypoint never enables them. No server-log correlation is a prerequisite
+for the positive readiness stage. The native `check` uses its default error threshold;
+passing it is not a claim that deployment warnings or all production checks are clear.
+Raw command output is discarded to avoid exposing configuration values; a fixed
+native-check failure code identifies that step. Review failures before proceeding.
+
+Tests cover native-command invocation/failure, the five-check readiness entrypoint,
+positive-only connection selection, positive errors, cleanup failures, diagnostic
+redaction and retained separately invoked negative semantics. Offline mocks establish
+orchestration contracts, not actual driver/server behavior. The isolated Ansible
+suite exercises partial startup, always-cleanup, ownership, guard and limit failures.
+Authoritative ARM64 application behavior is verified only in the approved live stage.
 
 ## Completion and recovery boundary
 
@@ -179,7 +183,7 @@ sources and sanitized evidence remain in an owned `/var/tmp/nautobot-auth-*`
 directory for recovery. Do not remove that directory while the guard or any
 trial object exists. It contains no staged credential values.
 
-Review `controller-result.json`, node `result.json`, `cleanup.json`, the four probe
+Review `controller-result.json`, node `result.json`, `cleanup.json`, the five probe
 checks, per-container limits, sample history, execution trace and retained node
 location. Ansible failure, missing records, a coverage gap, cleanup residue or
 configuration drift prevents acceptance. Inspect the recorded systemd unit and
@@ -295,6 +299,23 @@ successful authentication. Tests exercise producer JSON and node readback.
 
 Django's cursor acquisition includes driver connection and backend initialization;
 a cursor-stage error does not by itself establish password rejection. Retain the
-existing strict negative criterion, SQLSTATE `28P01`, until any alternative evidence
-contract is separately reviewed. Current diagnostics do not establish the cause
-of a previously recorded aggregate rejection.
+strict SQLSTATE `28P01` criterion only within separately invoked negative tests.
+It no longer gates positive readiness. Current diagnostics do not establish the
+cause of a previously recorded aggregate rejection.
+
+## Requirement provenance and approved revision
+
+Commit `0317261804d153ddf0b54f3ae5a6eca9af74d23d` on September 21, 2026 at
+14:57:11 CDT introduced the exact SQLSTATE negative requirement in this procedure,
+the probe and tests. It was an assistant-authored qualification requirement, not an
+explicit master-plan or upstream installation requirement. The master plan was not
+modified by that commit. The user subsequently approved replacing that readiness
+gate with native configuration and positive PostgreSQL/Redis verification. Historical
+failed contracts and their archives remain intact.
+
+After the revised qualification passes, prepare the planned initialization/runtime
+operation: satisfy the Restic pre-data prerequisite before durable application data,
+then use the migration unit's `post_upgrade`, administrator bootstrap and application
+health/login validation. Preserve the rootless Quadlet model, private services,
+resource limits, controlled exposure and recovery requirements. These are future
+scoped operations, not commands authorized by this procedure or readiness success.

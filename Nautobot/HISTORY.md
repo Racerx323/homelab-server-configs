@@ -179,3 +179,18 @@ Terminal tag: `nautobot-configuration-auth-v6-failed`; its peeled commit retains
 all consumed source inputs and `manifests/authentication-trial-postgresql-result.json`.
 Bundle: `b2b00f10eea4a7accb65bcd905f5e429467a668303967ab2a3a3aa512ba98cd1`.
 No full authentication or production-runtime acceptance is claimed.
+
+PostgreSQL trial archival reconciliation: `nautobot-configuration-auth-v6-failed`
+peels to `f55d3a2a77b3a163a23dbe1f7e95786c7c7441e1`. All consumed source inputs match
+the published tag; all archive hooks passed. The revised readiness successor uses
+native checks and positive connections. Negative security testing remains unresolved.
+
+## Successful disposable readiness qualification
+
+`nautobot-configuration-auth-v7`: all five checks passed: settings/plugin, native
+configuration, positive PostgreSQL identity/port, Redis cache and Redis broker.
+All disposable objects were removed; continuity and 77.795 seconds of delayed
+observation passed. Terminal tag: `nautobot-configuration-auth-v7-ready`; its peeled
+commit retains all consumed source inputs and `manifests/configuration-readiness-result.json`.
+Bundle: `53bd35086e31f99a414e09a24373eb0a74fd3e3ec52b8fe7126a755c6576b54f`.
+Negative security tests remain unresolved; production runtime is not accepted.
