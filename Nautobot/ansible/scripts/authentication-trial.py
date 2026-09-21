@@ -14,7 +14,7 @@ import tempfile
 sys.dont_write_bytecode = True
 ROOT = next((p for p in Path(__file__).resolve().parents if (p/'Nautobot/manifests').is_dir()), None)
 FILES = {
-    'predecessor-result.json':'Nautobot/manifests/authentication-trial-canonical-result.json',
+    'predecessor-result.json':'Nautobot/manifests/authentication-trial-startup-result.json',
     'PLAN.md':'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
     'launcher.py':'Nautobot/ansible/scripts/authentication-trial.py',
     'node.py':'Nautobot/ansible/scripts/auth-trial-node.py',
@@ -59,7 +59,7 @@ def spec_from(root):
     op=yaml.safe_load((root/'operation.yaml').read_text())
     Draft202012Validator(json.loads((root/'schema.json').read_text())).validate(op)
     require(op['plan_sha256']==sha(root/'PLAN.md'),'plan_identity')
-    require(op['operation']['id']=='nautobot-configuration-auth-v4','retry_definition_required')
+    require(op['operation']['id']=='nautobot-configuration-auth-v5','retry_definition_required')
     require(op['predecessor']['result_sha256']==sha(root/'predecessor-result.json'),'predecessor_result')
     desired=yaml.safe_load((root/'desired.yaml').read_text())
     Draft202012Validator(json.loads((root/'desired-schema.json').read_text())).validate(desired)
@@ -169,7 +169,7 @@ def archival_gate(bundle):
     repo=ROOT or Path.cwd()
     def read_git(*args):return subprocess.check_output(['git','-C',str(repo),*args],timeout=20)
     require(read_git('cat-file','-t',tag).strip()==b'tag','predecessor_not_archived')
-    archived=read_git('show',tag+':Nautobot/manifests/authentication-trial-canonical-result.json')
+    archived=read_git('show',tag+':Nautobot/manifests/authentication-trial-startup-result.json')
     require(archived==(bundle/'predecessor-result.json').read_bytes(),'predecessor_archive_mismatch')
     tag_object=read_git('rev-parse',tag).decode().strip()
     remote=read_git('ls-remote','--tags','origin','refs/tags/'+tag).decode().split()

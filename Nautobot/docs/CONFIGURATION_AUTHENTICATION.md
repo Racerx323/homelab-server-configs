@@ -4,10 +4,12 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot defines the bounded startup-directory successor awaiting bundle
-approval. V3 is archived after its Django-shell failure; v4 adds four narrowly
-scoped tmpfs mounts and safe startup diagnostics. No successor host execution or
-authentication acceptance is claimed.
+operation slot defines the corrected settings/diagnostics successor awaiting bundle
+approval. V4 is archived after its settings-phase rejection with verified cleanup.
+The successor accepts Django's implicit default database port and verifies the
+connected port, retaining allowlisted assertion codes. The existing startup tmpfs
+mounts and all isolation/resource/cleanup requirements remain in effect. No
+successor execution or authentication acceptance is claimed.
 
 ## Prepared checks and provenance
 
@@ -102,14 +104,20 @@ remain live qualification checks. See
 | --- | --- |
 | Configuration | Exact mounted settings path, DEBUG/installation metrics off, approved hosts/CSRF/proxy header, injected secret matches in memory only, no bootstrap credential. |
 | Plugin | DNS Models registered in Django; actual installed Nautobot and plugin versions match the pinned inputs. |
-| PostgreSQL | Explicit TCP connection using the application backend/settings succeeds; `SELECT current_user, current_database()` matches intended identities. Wrong password returns SQLSTATE `28P01`. Timeout, refusal or another SQLSTATE fails qualification. |
+| PostgreSQL | Explicit TCP connection using the application backend/settings succeeds; `SELECT current_user, current_database(), inet_server_port()` matches intended identities and port 5432. Wrong password returns SQLSTATE `28P01`. Timeout, refusal or another SQLSTATE fails qualification. |
 | Redis cache | Clone the actual Django cache connection parameters with five-second socket/connect timeouts. Correct credentials return PONG on database 1; missing and wrong credentials raise authentication errors. |
 | Redis broker | Apply the same tests to the actual Celery broker connection on database 0. A network failure never counts as password rejection. |
 | Cleanup | Close/disconnect every probe connection. Stop and remove only operation-owned container IDs and network; attempt remaining cleanup after any failure. No persistent trial volume or worker may remain. |
 | Host continuity | Accepted boot, effective limits, unchanged credential metadata/settings and no kernel/storage/OOM event; at least 75 seconds of sampled observation after teardown. |
 
-Probe output contains only acceptance, fixed check names and categorical failed
-phase. Exceptions, settings, environment dumps, connection URLs and passwords must
+The pinned settings default the database port to an empty string, which Django
+omits from its connection parameters. Accept that default or explicit 5432, reject
+conflicting `PGPORT`, and independently verify the connected server port. An empty
+setting alone is not evidence of the endpoint actually reached.
+
+Probe output contains only acceptance, fixed check names, categorical failed
+phase, allowlisted `failure_code` and `exception_category`. Exception messages,
+settings, environment dumps, connection URLs and passwords must
 remain out of reports. Capture all container/CLI streams privately with output and
 time limits: framework startup itself can emit errors before the probe runs.
 Parse the final JSON result strictly; require successful exit status, all four
@@ -195,7 +203,12 @@ and completed fixed check names are persisted. Raw streams and exception message
 are discarded. A diagnostic report never substitutes for acceptance evidence.
 
 A failure before the probe starts therefore retains its validation stage; a
-structured probe rejection retains its settings/PostgreSQL/Redis phase. An
+structured probe rejection retains its settings/PostgreSQL/Redis phase and exact
+allowlisted assertion code. Database engine, host, name, user, password and port
+checks have separate codes without exposing their values. Unknown errors use
+`unclassified_failure`; the node rejects codes outside the shared vocabulary.
+Tests exercise the actual probe entrypoint and node parser, including secret
+suppression and vocabulary parity. An
 unstructured framework error retains the Django-shell stage and command status,
 not an inferred cause. Credentials remain absent from diagnostics and tests include
 secret-bearing synthetic output to enforce that boundary.

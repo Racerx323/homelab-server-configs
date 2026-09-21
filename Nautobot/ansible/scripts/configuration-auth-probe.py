@@ -12,6 +12,10 @@ import secrets
 from urllib.parse import urlsplit, unquote
 
 
+FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
+
+
 class CheckFailed(Exception):
     pass
 
@@ -41,10 +45,13 @@ def settings_check(settings, environ, app_names, versions):
     require(list(settings.PLUGINS) == ['nautobot_dns_models'] and 'nautobot_dns_models' in app_names, 'plugin_registration')
     require(versions == {'nautobot': '3.2.3', 'nautobot-dns-models': '2.3.0'}, 'package_versions')
     database = settings.DATABASES['default']
-    require(database['ENGINE'] == 'django.db.backends.postgresql' and
-            database['HOST'] == 'postgresql' and str(database.get('PORT',5432)) == '5432' and
-            database['NAME'] == database['USER'] == 'nautobot' and
-            database['PASSWORD'] == environ['NAUTOBOT_DB_PASSWORD'] and bool(database['PASSWORD']), 'database_configuration')
+    require(database['ENGINE'] == 'django.db.backends.postgresql', 'database_engine')
+    require(database['HOST'] == 'postgresql', 'database_host')
+    require(database['NAME'] == 'nautobot', 'database_name')
+    require(database['USER'] == 'nautobot', 'database_user')
+    require(database['PASSWORD'] == environ['NAUTOBOT_DB_PASSWORD'] and bool(database['PASSWORD']), 'database_password')
+    require(str(database.get('PORT','')) in ('','5432') and
+            environ.get('PGPORT','5432') == '5432', 'database_port')
     redis_location(settings.CACHES['default']['LOCATION'], 1, environ['NAUTOBOT_REDIS_PASSWORD'])
     redis_location(settings.CELERY_BROKER_URL, 0, environ['NAUTOBOT_REDIS_PASSWORD'])
 
@@ -72,14 +79,15 @@ def postgres_check(factory, configuration):
         try:
             try:
                 with connection.cursor() as cursor:
-                    cursor.execute('SELECT current_user, current_database()')
+                    cursor.execute('SELECT current_user, current_database(), inet_server_port()')
                     row = cursor.fetchone()
             except Exception as error:
                 require(negative and sqlstate(error) == '28P01',
                         'postgres_unexpected_failure')
             else:
                 require(not negative, 'postgres_wrong_password_accepted')
-                require(row == ('nautobot', 'nautobot'), 'postgres_identity')
+                require(row[:2] == ('nautobot', 'nautobot'), 'postgres_identity')
+                require(len(row) == 3 and row[2] == 5432, 'postgres_server_port')
         finally:
             connection.close()
 
@@ -155,9 +163,13 @@ def main():
                 broker.connection_pool.disconnect()
         result['checks'].append('redis_broker_positive_missing_wrong_password')
         result['accepted'] = True
-    except Exception:
-        # Log categorical phase only, including for close/disconnect failures.
-        result.update(failed_phase=phase, error='check_or_connection_cleanup_failed')
+    except Exception as error:
+        # Preserve known assertion identifiers, never arbitrary exception messages.
+        code=error.args[0] if type(error) is CheckFailed and len(error.args)==1 else None
+        code=code if isinstance(code,str) and code in FAILURE_CODES else 'unclassified_failure'
+        category=type(error).__name__ if type(error).__name__ in EXCEPTION_CATEGORIES else 'unclassified'
+        result.update(failed_phase=phase, error='check_or_connection_cleanup_failed',
+                      failure_code=code, exception_category=category)
     print(json.dumps(result))
     return 0 if result['accepted'] else 69
 

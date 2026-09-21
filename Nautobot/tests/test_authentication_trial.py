@@ -101,6 +101,24 @@ class Trial(unittest.TestCase):
             self.assertEqual(record['startup_diagnostic']['filesystem_category'],'read_only_filesystem')
             self.assertNotIn('DO_NOT_RECORD',(root/'diagnostic.json').read_text())
 
+    def test_assertion_codes_survive_node_observer_and_reject_private_values(self):
+        probe=module('diagnostic_probe','Nautobot/ansible/scripts/configuration-auth-probe.py')
+        self.assertEqual(n.FAILURE_CODES,probe.FAILURE_CODES)
+        self.assertEqual(n.EXCEPTION_CATEGORIES,probe.EXCEPTION_CATEGORIES)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for code in probe.FAILURE_CODES:
+                n.save(root,'diagnostic',{'phase':'django_shell'})
+                value={'accepted':False,'checks':[],'production_runtime_accepted':False,'administrator_created':False,
+                       'failed_phase':'settings','error':'check_or_connection_cleanup_failed','failure_code':code,'exception_category':'CheckFailed'}
+                n.observed_probe(root)(69,json.dumps(value).encode(),b'')
+                self.assertEqual(n.read(root,'diagnostic')['failure_code'],code)
+            for field in ('failure_code','exception_category'):
+                value[field]='PRIVATE_SECRET'
+                n.observed_probe(root)(69,json.dumps(value).encode(),b'')
+                self.assertEqual(n.read(root,'diagnostic')['output_category'],'no_valid_probe_result')
+                self.assertNotIn('PRIVATE_SECRET',(root/'diagnostic.json').read_text())
+
     def test_clean_slot_refuses_activation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);p=root/'clean';p.write_text('schema_version: 1\noperation: {state: clean}\n')

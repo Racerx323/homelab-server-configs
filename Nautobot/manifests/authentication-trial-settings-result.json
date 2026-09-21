@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-configuration-auth-v5",
+  "bundle_sha256": "a3abb94558e035ae7c6cd1cd56a053e5e8e3c0a05239a8f8378651293acbd808",
+  "reviewed_at": "2026-09-21T21:57:35.629610+00:00",
+  "accepted": false,
+  "outcome": "postgresql_probe_rejected",
+  "diagnostic": {
+    "action": "probe",
+    "phase": "django_shell",
+    "status": "failed",
+    "role": "probe",
+    "command_rc": 69,
+    "output_category": "probe_rejected",
+    "startup_diagnostic": {
+      "exception_categories": [],
+      "frames": [],
+      "filesystem_category": null
+    },
+    "probe_phase": "postgresql",
+    "completed_checks": [
+      "settings_and_plugin_registration"
+    ],
+    "failure_code": "postgres_unexpected_failure",
+    "exception_category": "CheckFailed",
+    "category": "command_nonzero"
+  },
+  "settings_accepted": true,
+  "authentication_accepted": false,
+  "production_runtime_started": false,
+  "cleanup_passed": true,
+  "continuity_passed": true,
+  "post_cleanup_seconds": 77.77425252401736,
+  "watchdog_terminal_state": "inactive",
+  "sample_count": 30,
+  "maximum_sample_gap_seconds": 10.891189988004044,
+  "evidence_sha256": {
+    "spec.json": "8a8cbc242a56a792299f7106204eb906a712fd6864fc9cd769637825f4ef2e3d",
+    "watchdog-ready.json": "1d39454a5c32f898cd6322e2b19b3735c337d37ba43e8a3fa412e657f3cabff6",
+    "cleanup.json": "c0f613d6c8dc0324ee4bd7164cde62c7982ef1a6a06334f5f25acf77c2b330d8",
+    "watchdog-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "SHA256SUMS.json": "45dcd13b64fa9309ca51b699bcfdd981b344a8137a6e176a421d62b5ad933f37",
+    "result.json": "74acc5bd274deee6c80d66ded18dde1ee67332dca3e2710fd6ef1a3a3d4d2037",
+    "node-location.json": "0dc7b6f445d0e876e9fe76e78da9d6c42d062a2ee6afbfa3c5a8bb7b38dfc1d7",
+    "controller-result.json": "bbb70a484936502a4967d328fb7d6ffc14e8fb6503500b8f4d996264bbd2918f",
+    "execution-trace.jsonl": "d0d0fb13aa766027d561569b8a37a659a6566e7ba661459b35cbc6f7cf3a9301",
+    "diagnostic.json": "73acf61e0eeb7a26667e591c2efd1d9abc22d84647e7387d02d287b7a9fdc728",
+    "probe.json": "b44dd5c02a85436fe5f01d5e45f88a7d4b0af46c4eda22d7a6ab9063ba728111",
+    "watchdog-final-status.json": "df4d721d233a2334088d2d2e0110346ae9e509ff46bf0b379fbcfa85c715af4d",
+    "watchdog-final.stdout": "648ab61bbf7bdc355a69b8f69fc703641f120cc97ebdead603ec39bb621190a9",
+    "postgresql.json": "dfcd4f92d6eb2c38bde595fd8f0b5390e2303511f7f2a8f938d89d1bcbd1b2c1",
+    "redis.json": "fb3d0d207792b0bec51d760bca4bff89dbd8e8bc275b975868ec26a880a9c0b4",
+    "emergency.json": "ef5a3cadc32687fa9310a70a94892002e95e5ae51fe83f2524e3d3266a87a0a5",
+    "network.json": "a7fde7b92b683d565a38fa892b2736597ee604a3c2374062fff1bf072f2261ab",
+    "before.json": "e807c10bd4e859ad94be4c9d387470b66f63a1db8a2129015fad553a41cc74e5"
+  },
+  "git_archival": "pending"
+}

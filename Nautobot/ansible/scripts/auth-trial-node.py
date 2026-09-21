@@ -88,22 +88,30 @@ def startup_diagnostic(raw):
     return result
 
 
+FAILURE_CODES = frozenset(('allowed_hosts', 'bootstrap_credential_present', 'csrf_origin', 'database_engine', 'database_host', 'database_name', 'database_password', 'database_port', 'database_user', 'django_secret', 'django_setup_incomplete', 'isolation_marker', 'package_versions', 'plugin_registration', 'postgres_identity', 'postgres_server_port', 'postgres_unexpected_failure', 'postgres_wrong_password_accepted', 'production_flags', 'proxy_header', 'redis_configuration', 'redis_invalid_credentials_accepted', 'redis_ping_result', 'redis_unexpected_failure', 'redis_valid_credentials_rejected', 'settings_path', 'unclassified_failure'))
+EXCEPTION_CATEGORIES = frozenset(('CheckFailed', 'ImportError', 'ModuleNotFoundError', 'AttributeError', 'KeyError', 'TypeError', 'ValueError', 'OSError', 'PermissionError', 'FileNotFoundError', 'OperationalError', 'ProgrammingError', 'ImproperlyConfigured', 'AppRegistryNotReady'))
+
 def observed_probe(root):
     def observe(rc,out,err):
         record=read(root,'diagnostic')
-        for key in ('probe_phase','completed_checks'):record.pop(key,None)
+        for key in ('probe_phase','completed_checks','failure_code','exception_category'):record.pop(key,None)
         record['command_rc']=rc
         record['output_category']='no_valid_probe_result'
         record['startup_diagnostic']=startup_diagnostic(err)
         try:
             value=json.loads(out.decode('utf-8').strip().splitlines()[-1])
             phases={'isolation','settings','postgresql','redis_cache','redis_broker'}
-            if (set(value)=={'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error'}
+            if (set(value) in ({'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error'},
+                              {'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error','failure_code','exception_category'})
+                    and value.get('failure_code','unclassified_failure') in FAILURE_CODES
+                    and value.get('exception_category','unclassified') in EXCEPTION_CATEGORIES | {'unclassified'}
                     and value['accepted'] is False and value['production_runtime_accepted'] is False
                     and value['administrator_created'] is False and value['failed_phase'] in phases
                     and value['error']=='check_or_connection_cleanup_failed'
                     and value['checks'] in [CHECKS[:i] for i in range(5)]):
-                record.update(output_category='probe_rejected',probe_phase=value['failed_phase'],completed_checks=value['checks'])
+                record.update(output_category='probe_rejected',probe_phase=value['failed_phase'],completed_checks=value['checks'],
+                              failure_code=value.get('failure_code','unclassified_failure'),
+                              exception_category=value.get('exception_category','unclassified'))
             elif value=={'accepted':True,'checks':CHECKS,'production_runtime_accepted':False,'administrator_created':False}:
                 record['output_category']='probe_reported_success'
         except (ValueError,UnicodeError,IndexError,TypeError):pass

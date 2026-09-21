@@ -146,3 +146,20 @@ passed with 77.769 seconds of quiet delayed observation. Terminal tag:
 source inputs and `manifests/authentication-trial-startup-result.json`. Bundle:
 `55c31c6b7531bbc66d9aa5a8961c3ff9238124433218f37aa45075e9186329cd`.
 Authentication remains unaccepted; accepted host/image-store identities unchanged.
+
+Startup trial archival reconciliation: `nautobot-configuration-auth-v4-failed`
+peels to `3b8e9a73ac5c2386f2eea1970a2adc0aaf290186`. Every consumed source input matches
+the published tag; all commit hooks passed. The successor corrects database-port
+assumptions and preserves categorical assertion diagnostics. Live authentication
+remains unaccepted.
+
+## Settings-qualified authentication trial
+
+`nautobot-configuration-auth-v5`: settings/plugin checks passed; PostgreSQL rejected
+with `postgres_unexpected_failure`. The failed attempt and underlying cause remain
+unproven; Redis checks were not reached. All disposable objects were removed,
+continuity passed and 77.774 seconds of delayed observation were quiet. Terminal
+tag: `nautobot-configuration-auth-v5-failed`; its peeled commit retains all consumed
+source inputs and `manifests/authentication-trial-settings-result.json`. Bundle:
+`a3abb94558e035ae7c6cd1cd56a053e5e8e3c0a05239a8f8378651293acbd808`.
+Authentication remains unaccepted; accepted host/image-store identities unchanged.

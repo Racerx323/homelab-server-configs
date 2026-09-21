@@ -17,7 +17,7 @@ p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
 
 
 class Probe(unittest.TestCase):
-    def test_settings_and_sensitive_inputs_are_not_mutated(self):
+    def settings_fixture(self):
         env={'NAUTOBOT_SECRET_KEY':'a'*128,'NAUTOBOT_DB_PASSWORD':'b'*64,'NAUTOBOT_REDIS_PASSWORD':'c'*64}
         settings=SimpleNamespace(SETTINGS_PATH='/opt/nautobot/nautobot_config.py',DEBUG=False,INSTALLATION_METRICS_ENABLED=False,
             ALLOWED_HOSTS=['nautobot.local.theama.co','j2-svpi4mf.local.theama.co'],CSRF_TRUSTED_ORIGINS=['https://nautobot.local.theama.co'],
@@ -25,11 +25,51 @@ class Probe(unittest.TestCase):
             DATABASES={'default':{'ENGINE':'django.db.backends.postgresql','HOST':'postgresql','PORT':5432,'NAME':'nautobot','USER':'nautobot','PASSWORD':env['NAUTOBOT_DB_PASSWORD']}},
             CACHES={'default':{'LOCATION':'redis://:'+env['NAUTOBOT_REDIS_PASSWORD']+'@redis:6379/1'}},CELERY_BROKER_URL='redis://:'+env['NAUTOBOT_REDIS_PASSWORD']+'@redis:6379/0')
         versions={'nautobot':'3.2.3','nautobot-dns-models':'2.3.0'}
+        return settings,env,versions
+
+    def test_settings_and_sensitive_inputs_are_not_mutated(self):
+        settings,env,versions=self.settings_fixture()
         p.settings_check(settings,env,['nautobot_dns_models'],versions)
         for field,value in [('DEBUG',True),('PLUGINS',[]),('ALLOWED_HOSTS',['*']),('SETTINGS_PATH','/wrong')]:
             bad=copy.deepcopy(settings);setattr(bad,field,value)
             with self.assertRaises(p.CheckFailed):p.settings_check(bad,env,['nautobot_dns_models'],versions)
         with self.assertRaises(p.CheckFailed):p.settings_check(settings,{**env,'NAUTOBOT_INITIAL_ADMIN_PASSWORD':'sensitive'},['nautobot_dns_models'],versions)
+
+    def test_default_database_port_matches_pinned_defaults(self):
+        settings,env,versions=self.settings_fixture()
+        for port in ('',5432,'5432'):
+            settings.DATABASES['default']['PORT']=port
+            p.settings_check(settings,env,['nautobot_dns_models'],versions)
+        for port in ('6432',None):
+            settings.DATABASES['default']['PORT']=port
+            with self.assertRaisesRegex(p.CheckFailed,'^database_port$'):
+                p.settings_check(settings,env,['nautobot_dns_models'],versions)
+        settings.DATABASES['default']['PORT']=''
+        with self.assertRaisesRegex(p.CheckFailed,'^database_port$'):
+            p.settings_check(settings,{**env,'PGPORT':'6432'},['nautobot_dns_models'],versions)
+
+    def test_main_preserves_each_settings_assertion_without_values(self):
+        settings,env,versions=self.settings_fixture()
+        mutations=[('SETTINGS_PATH','private','settings_path'),('DEBUG',True,'production_flags'),
+            ('ALLOWED_HOSTS',['private'],'allowed_hosts'),('CSRF_TRUSTED_ORIGINS',[],'csrf_origin'),
+            ('SECURE_PROXY_SSL_HEADER',('private','private'),'proxy_header'),('SECRET_KEY','PRIVATE_SECRET','django_secret'),
+            ('PLUGINS',[],'plugin_registration')]
+        scenarios=[]
+        for field,value,code in mutations:
+            bad=copy.deepcopy(settings);setattr(bad,field,value);scenarios.append((bad,env,versions,code))
+        for field,code in [('ENGINE','database_engine'),('HOST','database_host'),('NAME','database_name'),('USER','database_user'),('PASSWORD','database_password'),('PORT','database_port')]:
+            bad=copy.deepcopy(settings);bad.DATABASES['default'][field]='PRIVATE_SECRET';scenarios.append((bad,env,versions,code))
+        scenarios.append((settings,{**env,'NAUTOBOT_INITIAL_ADMIN_PASSWORD':'PRIVATE_SECRET'},versions,'bootstrap_credential_present'))
+        scenarios.append((settings,env,{'nautobot':'private','nautobot-dns-models':'private'},'package_versions'))
+        for bad,environ,version_map,code in scenarios:
+            modules={'django.apps':SimpleNamespace(apps=SimpleNamespace(ready=True,get_app_configs=lambda:[SimpleNamespace(name='nautobot_dns_models')])),
+                     'django.conf':SimpleNamespace(settings=bad),'django.db':SimpleNamespace(connections={}),
+                     'django_redis':SimpleNamespace(get_redis_connection=lambda *a:None),'redis':SimpleNamespace()}
+            out=io.StringIO()
+            with patch.dict(sys.modules,modules),patch.dict(p.os.environ,environ,clear=True),patch('importlib.metadata.version',side_effect=lambda name:version_map[name]),patch.object(p.Path,'read_text',return_value='disposable-configuration-authentication'),contextlib.redirect_stdout(out):
+                self.assertEqual(p.main(),69)
+            result=json.loads(out.getvalue());self.assertEqual(result['failure_code'],code)
+            self.assertEqual(result['exception_category'],'CheckFailed');self.assertNotIn('PRIVATE_SECRET',out.getvalue())
 
     def postgres(self,mode):
         calls=[];closed=[]
@@ -37,7 +77,7 @@ class Probe(unittest.TestCase):
             def __enter__(self):return self
             def __exit__(self,*args):pass
             def execute(self,query):calls.append(query)
-            def fetchone(self):return ('nautobot','nautobot')
+            def fetchone(self):return ('nautobot','nautobot',6432 if mode=='wrong_port' else 5432)
         class Connection:
             def __init__(self,config,alias):self.bad=alias.endswith('negative');calls.append(copy.deepcopy(config))
             def cursor(self):
@@ -60,8 +100,8 @@ class Probe(unittest.TestCase):
     def test_postgres_real_identity_and_password_rejection_semantics(self):
         calls,closed=self.postgres('ok');self.assertEqual(closed,[False,True])
         self.assertEqual(calls[0]['OPTIONS']['connect_timeout'],5)
-        self.assertIn('SELECT current_user, current_database()',calls)
-        for mode in ['accept_wrong','network','positive_failure','close_failure']:self.postgres(mode)
+        self.assertIn('SELECT current_user, current_database(), inet_server_port()',calls)
+        for mode in ['accept_wrong','network','positive_failure','close_failure','wrong_port']:self.postgres(mode)
 
     def test_wrapped_sqlstate_without_message_matching(self):
         underlying=Exception('private');underlying.pgcode='28P01';outer=Exception('private');outer.__cause__=underlying
