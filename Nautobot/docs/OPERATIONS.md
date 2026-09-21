@@ -74,8 +74,8 @@ prove that an injected settings file is correct.
 ## Runtime deployment boundary
 
 `ansible/playbooks/deploy-runtime.yaml` and `ansible/scripts/run-runtime.py` are
-inactive first-install candidates. The current host-convergence operation is
-rejected before any target command. No second active operation is created.
+inactive first-install candidates. The current image-qualification definition is
+rejected by the runtime launcher before any target command. No second active operation is created.
 
 Before activation, review the runtime operation/schema, terminal baseline,
 identity and firewall evidence, external secret/configuration validation,
@@ -236,3 +236,13 @@ time. Do not infer missing times from file modification times, current time or d
 checkpoints. The Webmin launch time and retained readback time are distinct; neither
 proves the later observation completed. Preserve source evidence unchanged and update
 current observations only after separately authorized collection and review.
+
+## Image qualification before runtime activation
+
+Use [the bounded image-build procedure](IMAGE_BUILD.md) and its exact bundle
+launcher. It stages one rootless build in an isolated store, under a delegated
+limited service and independent watchdog. It does not activate runtime deployment
+or production credential delivery. The single operation slot holds its definition;
+external exact-hash approval is still required to execute. Keep the resulting OCI
+manifest digest, archive checksum and image ID distinct. Loading into the runtime
+store, settings/database qualification and runtime startup require later review.

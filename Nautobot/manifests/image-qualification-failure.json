@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-image-qualification-v1",
+  "outcome": "failed",
+  "bundle_sha256": "21c15632af42c3e7d1aeb689889a0538a58e58a6b00b2a2f5024ca243f7c06a4",
+  "failure": "OCI process placement attempted in controller-distributing parent; EBUSY",
+  "worker_stopped": true,
+  "runtime_accepted": false,
+  "artifacts_retained": true,
+  "delayed_kernel_review_seconds": 105.467,
+  "new_kernel_events": false,
+  "raw_evidence_manifest_sha256": "312ec9a2eb59d7e316bdc2b9ef6d11a39fa04e7de602dba3837c7d44af4587f0"
+}

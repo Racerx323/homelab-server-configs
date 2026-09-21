@@ -432,3 +432,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(?:schemas/|manifests/|tests/test_operation_contracts\.py)
+
+      - id: nautobot-image-build-contracts
+        name: Validate bounded image qualification
+        entry: python3 Nautobot/tests/test_image_build.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/test_image_build\.py|docs/IMAGE_BUILD\.md)

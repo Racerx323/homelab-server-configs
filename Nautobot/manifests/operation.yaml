@@ -1,5 +1,25 @@
 ---
 schema_version: 1
 operation:
-  state: clean
-  authorization_ready: false
+  id: nautobot-image-qualification-v1
+  stage: image_qualification
+  state: definition
+  authorization_ready: true
+authorization:
+  mutation_authorized: false
+  method: separate_explicit_approval_of_frozen_bundle_sha256
+  preparation_only: true
+build:
+  id: fc72db68162a
+  host: j2-svpi4mf
+  boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
+  base_image: docker.io/networktocode/nautobot@sha256:5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7
+  input_sha256:
+    Containerfile: 21c023dfbaac1a8f7afc4227ddbf625d52edea29633a1eb39c06d1ffef9a76cf
+    requirements.lock: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+boundaries:
+  runtime_deployment: false
+  production_credentials: false
+  production_store_load: false
+  public_registry_push: false
+  cleanup_or_prune: false

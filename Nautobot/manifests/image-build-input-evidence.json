@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-09-21T17:54:37.775321+00:00",
+  "source": "public anonymous registry metadata only; no layer pull",
+  "base_manifest_sha256": "5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7",
+  "base_config_sha256": "8532e5d4fd343d2a95ca3d2a7044ea3f10badbf6a321cfad77ba48374fdee343",
+  "platform": {
+    "os": "linux",
+    "architecture": "arm64"
+  },
+  "compressed_layer_bytes": 335683561,
+  "preflight_review_sha256": "11e1753f8194f0ccced6880d692caede40e2e655ace14f2d1f6d4c6c702c3e07",
+  "validation_test_sha256": "690431ec4f6cb81aedd8c218dee7ad407fdffb149a9af1d2a2f42dfaa8d3e2dd",
+  "live_build_performed": false
+}

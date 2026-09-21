@@ -1,0 +1,29 @@
+[Unit]
+Description=Bounded Nautobot ARM64 image qualification
+BindsTo=nautobot-image-watch-{{ build_spec.id }}.service
+After=nautobot-image-watch-{{ build_spec.id }}.service
+
+[Service]
+Type=exec
+User=nautobot
+Group=nautobot
+WorkingDirectory={{ build_root }}
+Environment=HOME=/var/lib/nautobot
+Environment=XDG_RUNTIME_DIR=/run/user/999
+Environment=TMPDIR={{ build_root }}/work/tmp
+ExecStart=/usr/bin/python3 {{ build_root }}/image-build-node.py worker {{ build_root }}
+Delegate=yes
+CPUQuota=200%
+MemoryHigh=2684354560
+MemoryMax=3221225472
+MemorySwapMax=0
+TasksMax=512
+RuntimeMaxSec=2700
+TimeoutStopSec=10
+KillMode=control-group
+SendSIGKILL=yes
+OOMPolicy=stop
+Restart=no
+UMask=0077
+StandardOutput=null
+StandardError=journal

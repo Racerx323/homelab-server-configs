@@ -20,11 +20,23 @@ operation definition and its sanitized evidence manifest.
 
 Accepted baseline identity: [accepted-live-state.yaml](manifests/accepted-live-state.yaml),
 semantic SHA-256 `7b54a7f61a174368ebfd2b57d9ddd7033ff6010338866d81541586f4d891b820`.
-The terminal tag preserves the exact operation and terminal evidence. The active
-slot is clean; runtime, Restic and full workload acceptance remain outstanding.
+The terminal tag preserves the exact operation and terminal evidence. At the stage-3 archival boundary the active
+slot was clean; runtime, Restic and full workload acceptance remain outstanding.
 
 Accepted dual-stack identity is recorded alongside the unchanged stage-3 baseline
 in `manifests/accepted-live-state.yaml`. The stage-4 tag retains
 `terminal-identity-definition.json` and `terminal-identity-evidence.json`.
 The definition references the DNS owner terminal archive and its additional
 restart authorizations. No runtime, Restic or Caddy acceptance is implied.
+
+## Image qualification failure
+
+`nautobot-image-qualification-v1`: failed at OCI cgroup process placement; worker
+stopped, partial isolated artifacts retained. Terminal tag:
+`nautobot-image-qualification-v1-failed`. The tag preserves the exact consumed
+operation and `manifests/image-qualification-failure.json`; its peeled commit is
+the terminal definition commit. Bundle SHA-256:
+`21c15632af42c3e7d1aeb689889a0538a58e58a6b00b2a2f5024ca243f7c06a4`.
+Accepted stage-3/stage-4 identities remain unchanged. The reusable build helper in
+this archival commit includes the separately tested retry correction; the failed
+execution used the frozen bundle identified above, not that corrected helper.

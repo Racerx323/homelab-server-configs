@@ -1,0 +1,189 @@
+---
+- name: Qualify one bounded ARM64 image without deploying the application
+  hosts: build_target
+  gather_facts: false
+  become: true
+  vars:
+    build_spec: "{{ lookup('ansible.builtin.file', bundle_root + '/spec.json') | from_json }}"
+    build_root: "/var/tmp/nautobot-image-{{ build_spec.id }}"
+    build_unit: "nautobot-image-{{ build_spec.id }}.service"
+    watch_unit: "nautobot-image-watch-{{ build_spec.id }}.service"
+  tasks:
+    - name: Require verified controller bundle before any host commands
+      ansible.builtin.assert:
+        that:
+          - image_bundle_verified | default(false) | bool
+          - inventory_hostname == 'build_target'
+          - ansible_play_hosts_all | length == 1
+          - build_spec.host == 'j2-svpi4mf'
+          - build_spec.id is match('^[0-9a-f]{12}$')
+    - name: Read host identity
+      ansible.builtin.command:
+        argv: "{{ item }}"
+      loop:
+        - [hostnamectl, --static]
+        - [cat, /proc/sys/kernel/random/boot_id]
+        - [uname, -m]
+        - [getent, passwd, nautobot]
+        - [/usr/bin/podman, --version]
+        - [systemctl, is-active, user@999.service]
+      register: build_identity
+      changed_when: false
+    - name: Require accepted native host and existing rootless context
+      ansible.builtin.assert:
+        that:
+          - build_identity.results[0].stdout == build_spec.host
+          - build_identity.results[1].stdout == build_spec.boot_id
+          - build_identity.results[2].stdout == 'aarch64'
+          - "(build_identity.results[3].stdout | split(':'))[2:4] == ['999', '985']"
+          - "(build_identity.results[3].stdout | split(':'))[5] == '/var/lib/nautobot'"
+          - build_identity.results[4].stdout == 'podman version 5.4.2'
+          - build_identity.results[5].stdout == 'active'
+    - name: Verify disk-backed operation parent
+      ansible.builtin.command:
+        argv: [findmnt, --noheadings, --output, 'SOURCE,FSTYPE', --target, /var/tmp]
+      changed_when: false
+      register: build_filesystem
+    - name: Require accepted root filesystem for build storage
+      ansible.builtin.assert:
+        that: (build_filesystem.stdout | split()) == ['/dev/sda2', 'ext4']
+    - name: Refuse any existing operation paths or units
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ build_root }}"
+        - "/run/systemd/system/{{ build_unit }}"
+        - "/run/systemd/system/{{ watch_unit }}"
+        - "/etc/systemd/system/{{ build_unit }}"
+        - "/etc/systemd/system/{{ watch_unit }}"
+      register: build_paths
+    - name: Require exclusive fresh paths
+      ansible.builtin.assert:
+        that: not item.stat.exists
+      loop: "{{ build_paths.results }}"
+    - name: Refuse already loaded unit names
+      ansible.builtin.command:
+        argv: [systemctl, show, "{{ item }}", --property=LoadState, --value]
+      loop: ["{{ build_unit }}", "{{ watch_unit }}"]
+      register: build_loaded
+      changed_when: false
+    - name: Require unused unit names
+      ansible.builtin.assert:
+        that: item.stdout == 'not-found'
+      loop: "{{ build_loaded.results }}"
+    - name: Verify retained predecessor before any retry mutation
+      when: build_spec.predecessor is defined
+      block:
+        - name: Read predecessor terminal result
+          ansible.builtin.slurp:
+            src: "/var/tmp/nautobot-image-{{ build_spec.predecessor.id }}/evidence/result.json"
+          register: previous_result
+        - name: Require exact preserved stopped-failure result
+          ansible.builtin.assert:
+            that:
+              - (previous_result.content | b64decode | hash('sha256')) == build_spec.predecessor.result_sha256
+        - name: Inspect retained predecessor units
+          ansible.builtin.command:
+            argv: [systemctl, show, "{{ item }}", '--property=ActiveState,MainPID,ExecMainStatus', --value]
+          loop:
+            - "nautobot-image-{{ build_spec.predecessor.id }}.service"
+            - "nautobot-image-watch-{{ build_spec.predecessor.id }}.service"
+          register: previous_units
+          changed_when: false
+        - name: Require failed stopped units with no main process
+          ansible.builtin.assert:
+            that: (item.stdout_lines | sort) == ['0', '1', 'failed']
+          loop: "{{ previous_units.results }}"
+        - name: Inspect predecessor control groups
+          ansible.builtin.stat:
+            path: "/sys/fs/cgroup/system.slice/{{ item }}"
+          loop:
+            - "nautobot-image-{{ build_spec.predecessor.id }}.service"
+            - "nautobot-image-watch-{{ build_spec.predecessor.id }}.service"
+          register: previous_cgroups
+        - name: Require no predecessor control group remains
+          ansible.builtin.assert:
+            that: not item.stat.exists
+          loop: "{{ previous_cgroups.results }}"
+    - name: Create protected operation root
+      ansible.builtin.command:
+        argv: [mkdir, --mode=0750, "{{ build_root }}"]
+      changed_when: true
+    - name: Set root ownership and group traversal
+      ansible.builtin.file:
+        path: "{{ build_root }}"
+        owner: root
+        group: nautobot
+        mode: '0750'
+    - name: Create root-owned inputs and evidence
+      ansible.builtin.file:
+        path: "{{ build_root }}/{{ item }}"
+        state: directory
+        owner: root
+        group: nautobot
+        mode: '0750'
+      loop: [input, evidence]
+    - name: Create separate worker output directory
+      ansible.builtin.file:
+        path: "{{ build_root }}/work"
+        state: directory
+        owner: nautobot
+        group: nautobot
+        mode: '0700'
+    - name: Stage immutable reviewed inputs
+      ansible.builtin.copy:
+        src: "{{ bundle_root }}/{{ item }}"
+        dest: "{{ build_root }}/{{ item }}"
+        owner: root
+        group: nautobot
+        mode: '0440'
+      loop: [spec.json, image-build-node.py, input/Containerfile, input/requirements.lock]
+    - name: Install bounded worker and independent watchdog runtime units
+      ansible.builtin.template:
+        src: "{{ bundle_root }}/{{ item.source }}"
+        dest: "/run/systemd/system/{{ item.unit }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - {source: build.service.j2, unit: "{{ build_unit }}"}
+        - {source: watch.service.j2, unit: "{{ watch_unit }}"}
+    - name: Clear only verified predecessor failed-state markers
+      when: build_spec.predecessor is defined
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - reset-failed
+          - "nautobot-image-{{ build_spec.predecessor.id }}.service"
+          - "nautobot-image-watch-{{ build_spec.predecessor.id }}.service"
+      changed_when: true
+    - name: Load and start only the watchdog
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: "{{ watch_unit }}"
+        state: started
+    - name: Await bounded node-local result without cancelling on controller loss
+      ansible.builtin.command:
+        argv: [systemctl, show, "{{ watch_unit }}", --property=ActiveState, --value]
+      changed_when: false
+      register: build_watch_state
+      until: build_watch_state.stdout in ['inactive', 'failed']
+      retries: 570
+      delay: 5
+    - name: Read bounded terminal result
+      ansible.builtin.slurp:
+        src: "{{ build_root }}/evidence/result.json"
+      register: build_result
+    - name: Preserve controller result
+      ansible.builtin.copy:
+        content: "{{ build_result.content | b64decode }}"
+        dest: "{{ evidence_root }}/result.json"
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+    - name: Require completed monitored qualification
+      ansible.builtin.assert:
+        that:
+          - build_watch_state.stdout == 'inactive'
+          - (build_result.content | b64decode | from_json).passed | bool
+          - (build_result.content | b64decode | from_json).stop_confirmed | bool

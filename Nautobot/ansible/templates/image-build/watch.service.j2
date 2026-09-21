@@ -1,0 +1,15 @@
+[Unit]
+Description=Independent Nautobot build watchdog
+
+[Service]
+Type=exec
+WorkingDirectory={{ build_root }}
+ExecStart=/usr/bin/python3 {{ build_root }}/image-build-node.py watch {{ build_root }}
+ExecStopPost=/usr/bin/systemctl stop nautobot-image-{{ build_spec.id }}.service
+RuntimeMaxSec=2800
+TimeoutStopSec=30
+KillMode=control-group
+Restart=no
+UMask=0077
+StandardOutput=null
+StandardError=journal

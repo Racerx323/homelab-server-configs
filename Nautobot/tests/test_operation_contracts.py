@@ -55,8 +55,13 @@ class Contracts(unittest.TestCase):
 
     def test_clean_slot_and_accepted_identity(self):
         operation = yaml.safe_load((ROOT / 'Nautobot/manifests/operation.yaml').read_text())
-        self.assertEqual(operation, {'schema_version': 1, 'operation': {
-            'state': 'clean', 'authorization_ready': False}})
+        if operation['operation']['state'] == 'clean':
+            self.assertEqual(operation, {'schema_version': 1, 'operation': {
+                'state': 'clean', 'authorization_ready': False}})
+        else:
+            validate(json.loads((ROOT / 'Nautobot/schemas/image-build.schema.json').read_text()), operation)
+            self.assertFalse(operation['authorization']['mutation_authorized'])
+            self.assertFalse(any(operation['boundaries'].values()))
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         validate(json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text()), accepted)
         self.assertFalse(any(accepted['boundaries'].values()))

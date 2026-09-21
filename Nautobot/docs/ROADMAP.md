@@ -328,6 +328,173 @@ references, approved recovery identity and application configuration. The existi
 a finished custom-image deployment digest. Verify those inputs when defining the
 pilot rather than silently updating versions in this planning task.
 
+### Readiness review — September 21, 2026
+
+Readiness preparation is authorized; runtime deployment is not. Stage-3 and
+stage-4 terminal tag/commit identities were reverified, and the stage-4 evidence
+hash matches its archive. The operation slot remains clean. Local desired-state,
+build-input and workload consistency validation passed. The preceding archival
+commit hooks also passed runtime/Restic tests; that is local contract evidence,
+not live ARM64 qualification. No images, credentials or host state were changed
+in this review.
+
+| Prerequisite | Verified status | Required completion |
+| --- | --- | --- |
+| Host baseline and dual-stack identity | Accepted terminal records present; provenance reverified | Fresh bounded drift check before a live pilot |
+| Custom image | Pinned base and DNS Models wheel hash exist; finished custom-image digest absent | Qualify the exact ARM64 build and resulting image |
+| Build location | User selected `j2-svpi4mf` for native ARM64 qualification | Build-host preflight before the exact build bundle |
+| Application credentials | Doppler selected; user reports entities not yet created | Review references, then separately provision and verify them |
+| Recovery identity | `j2-svpi4mf.local.theama.co` approved | Use in renderer and actual ALLOWED_HOSTS |
+| Application configuration | Renderer emits a non-secret contract only | Prepare actual protected settings and verify against the built image |
+| Runtime activation | Launcher expects `nautobot_pilot`; schema has no executable runtime branch | Review schema, launcher and playbook together, binding stage-3 and stage-4 archive evidence rather than relying only on booleans |
+| Backend firewall | Stage-3 management policy accepted; application 8080 policy not accepted | Owner-reviewed exact Caddy-node IPv4/IPv6 sources, allowed/denied tests and rollback |
+| Data recovery | B2 provider acceptance exists; Restic initialization/canary/application recovery remain separate | Revalidate absence and secret availability, then separately review initialization, upload and isolated restore |
+| Workload | Synthetic fixture contract exists | Implement/qualify imports, Jobs, sampler, application backup and recovery before workload acceptance |
+
+### Recovery and credential decisions
+
+The user approved `j2-svpi4mf.local.theama.co` as the recovery identity.
+This does not widen port-8080 access: application host-header acceptance and
+firewall access are separate. Review an SSH tunnel if administration recovery
+needs access while retaining the Caddy-only backend policy.
+
+The user selected Doppler for all application credentials and confirmed that the
+entities have not been created. Proposed project/config is `homelab-dev` /
+`prd_nautobot`, following existing repository naming. This mapping remains a
+proposal, not approved or verified state.
+
+| Logical reference | Proposed key | Consumers |
+| --- | --- | --- |
+| `django_secret_key` | `NAUTOBOT_DJANGO_SECRET_KEY` | Migration, web, worker, scheduler |
+| `postgresql_password` | `NAUTOBOT_POSTGRESQL_PASSWORD` | PostgreSQL and application services |
+| `redis_password` | `NAUTOBOT_REDIS_PASSWORD` | Redis and application services |
+| `initial_administrator_credential` | `NAUTOBOT_INITIAL_ADMIN_PASSWORD` | One-time bootstrap only |
+
+Administrator username/email remain separate non-secret inputs to select.
+Keep existing Restic/B2 references under their owning configurations; do not copy
+or rotate them during application setup. Review generation ownership, access,
+recovery and protected injection before creating entities. Never put values in
+Git, command arguments, build layers or evidence. Do not distribute bootstrap
+credentials to persistent application services.
+
+Missing production credentials do not block image qualification. Static checks
+need none; any isolated application checks requiring credentials must use
+operation-owned disposable values and explicitly scoped cleanup. Such checks
+do not establish production credential delivery readiness.
+
+### Prepared build-host preflight
+
+Target `ama@j2-svpi4mf.local.theama.co`; future build context is rootless
+`nautobot`. Before host contact, authorize bounded read-only collection of:
+
+- Hostname, boot ID, architecture, CPU/load, memory/swap, free space/inodes and
+  mount options for `/var/lib/nautobot`.
+- Account UID/GID/home, linger and user-manager state, and effective memory/CPU
+  cgroup delegation, compared with accepted baseline evidence.
+- Podman version and selected rootless storage/configuration metadata. Do not
+  initialize a new store or start an inactive user manager to satisfy a check.
+- Existing image/container/network/volume metadata without credentials or full
+  environment/inspect dumps. Identify shared objects before proposing cleanup.
+- Failed units, temperature/throttling and bounded current-boot kernel/storage
+  errors. No SMART queries, self-tests, package changes or restarts.
+
+Retain timestamps, statuses, bounded streams and source identities in a new
+protected evidence directory. No pull, build, container creation, credential
+change or monitoring interruption belongs to this preflight. Unavailable
+inspection is a readiness gap, not proof that a store is empty.
+
+Require accepted identity/boot continuity or explain drift before progressing.
+Select explicit CPU/memory/disk/time bounds using measured headroom, preserving
+the plan's host-resource margin. Do not infer disk requirements from compressed
+image size. Insufficient resources require another build location, not weaker
+production safeguards. Prepare the exact hashed build/qualification bundle only
+after reviewing these observations; execution requires separate authorization.
+
+### Authorized build-host preflight result — September 21, 2026
+
+Read-only collection passed for preparing the bounded build operation. Accepted
+boot/ARM64 identity and account 999:985 match; the lingering user manager has CPU,
+memory and pids delegation. Podman 5.4.2 uses an existing rootless overlay store
+with zero images/containers/volumes and only the default bridge. Available memory
+was 7.34 GiB, disk space about 874 GiB, swap use zero, temperature 49.2 C and
+throttled status zero. No failed units; ext4 error count zero. The bounded kernel
+error-pattern query found no matches; this is not a full journal or soak acceptance.
+
+An inherited inaccessible working directory caused the first metadata inspection
+to fail; repeating from `/` succeeded. Original failures remain preserved.
+Private result: `/home/aaron/code/.local-evidence/nautobot-build-preflight-20260921/REVIEW.md`.
+
+The resource-limited image qualification was authorized and executed on September
+21, 2026. It failed at the first containerized RUN step: crun could not write to
+the selected service parent's cgroup.procs (`Device or resource busy`). The base
+image was pulled into the isolated store; no qualified image was produced.
+
+The watchdog stopped the worker and retained a failed terminal result. Independent
+readback confirmed no remaining worker cgroup, unchanged boot, zero ext4 errors
+and no cursor-bounded kernel events beyond the delayed-error interval. Both owned
+units remain failed/stopped and partial artifacts remain for review. This is not
+runtime acceptance or a completed build-resource qualification.
+
+Private execution review and frozen approved inputs:
+`/home/aaron/code/.local-evidence/nautobot-image-build-20260921/REVIEW.md`.
+The operation manifest retains the exact consumed definition; its preparation-time
+false authorization fields do not describe the later external hash approval.
+Do not rerun it or treat it as a fresh executable definition. Terminal archival is
+pending; accepted-live state remains unchanged.
+
+### Next concrete operation: correct image qualification cgroup placement
+
+Diagnose and locally test the cgroup placement failure without weakening the
+2-CPU/3-GiB/no-swap envelope. Preserve the failed operation and its residue before
+preparing separately authorized retry and cleanup behavior. The procedure and
+remaining image qualification requirements are in [IMAGE_BUILD.md](IMAGE_BUILD.md).
+The cgroup correction is now locally tested: the OCI build path names a leaf
+below the limited service parent. A private retry candidate uses fresh paths and
+retains the failed operation in the active slot pending archival. Its launcher
+requires the annotated published failure tag and exact sanitized terminal evidence
+before host staging. Its playbook verifies stopped predecessor state before
+clearing only the two retained failed-unit markers. No live retry, marker reset,
+cleanup or Git publication has occurred during correction/preparation.
+
+The user authorized correction, offline testing and preparation of the retry
+bundle, not execution. The candidate review is retained under
+`/tmp/nautobot-image-retry-validation/REVIEW.md`. Failure archival/publication and
+exact-hash retry authorization remain next. The original qualification checklist
+remains below.
+
+1. Bind the existing Containerfile, requirements lock and desired-state hashes.
+   Preserve the accepted versions; confirm registry/platform manifests and wheel
+   integrity without silently selecting newer releases.
+2. Read-only preflight the selected build host's architecture, Podman ownership,
+   storage headroom, available resources and isolation. If using the production
+   host, explicitly review build resource limits and impact on monitoring.
+3. Define Podman image pull/build scope and an isolated validation environment.
+   No production credentials, production volumes, service installation, migration
+   or public backend listener belongs to this operation. Any disposable database
+   needed for application checks must have explicit names, limits and cleanup.
+4. Verify image architecture, installed Nautobot/DNS Models versions, dependency
+   consistency, executable resolution and settings/plugin loading. Distinguish
+   checks that need an isolated database from static import/metadata checks.
+   Validate the service command forms against this exact image before deployment.
+5. Record the resulting immutable OCI manifest digest and a reproducible transfer
+   method. The local `localhost/nautobot-homelab` repository is not a remotely
+   pullable registry; do not confuse a local image ID with a deployable manifest
+   digest. Define save/load digest verification or a separately authorized registry
+   publication path before host provisioning.
+6. Retain sanitized build/qualification evidence and exact created-object ownership.
+   On failure, stop; remove only proven operation-owned disposable resources under
+   the reviewed cleanup scope. Do not broadly prune Podman or remove shared bases.
+7. Bind the reviewed inputs and commands into an exact authorization bundle before
+   build execution. Once qualified, use the real digest and approved recovery
+   identity to render and validate the actual runtime artifacts.
+
+After image qualification, finish secret/configuration provisioning and firewall
+readiness, then prepare the executable first-install contract. Prove first-install
+absence, effective memory limits and startup ordering in the live pilot; keep
+logout/reboot, representative workload, full recovery and seven-day soak as
+subsequent acceptance checks. Restic initialization may be prepared independently
+now that baseline acceptance exists; it is not automatically authorized here.
+
 | Check | Exact acceptance basis | Stop/recovery boundary |
 | --- | --- | --- |
 | Memory ceilings | Effective service/container cgroups match web 1536, worker 1536, scheduler 384, PostgreSQL 1536 and Redis 512 MiB; trace each cgroup to its expected rootless process. | A missing/unlimited/wrong limit blocks workload. Correct only reviewed units; preserve service data. |
