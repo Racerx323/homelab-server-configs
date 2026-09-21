@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Inactive initialization launcher; current convergence/schema gates reject execution."""
+"""Hash-bound single-use Restic initialization launcher."""
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -13,6 +14,7 @@ spec = importlib.util.spec_from_file_location('preflight', Path(__file__).with_n
 common = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(common)
 ROOT = common.ROOT
+common.EXPECTED_STAGE = 'restic_repository_initialization'
 common.BUNDLE_DOMAIN = 'nautobot-restic-initialization-bundle-v1'
 common.EVIDENCE_PREFIX = 'nautobot-restic-initialization.'
 common.PLAYBOOK_PATH = ROOT / 'Nautobot/ansible/playbooks/initialize-restic-repository.yaml'
@@ -27,7 +29,31 @@ common.BUNDLE_FILES = tuple(dict.fromkeys(common.BUNDLE_FILES + (
     'Nautobot/ansible/ansible.cfg',
     'tests/repository/run-with-ansible-local-temp.sh',
     'restic/docs/REPOSITORY_INITIALIZATION.md',
+    'Nautobot/manifests/restic-preflight-result.json',
 )))
+
+
+def require_preflight(document):
+    proof = document['preflight']['terminal_proof']
+    path = ROOT / 'Nautobot/manifests/restic-preflight-result.json'
+    raw = path.read_bytes()
+    result = json.loads(raw)
+    if (hashlib.sha256(raw).hexdigest() != proof['result_sha256']
+        or result['bundle_sha256'] != proof['bundle_sha256']
+        or result['result'] != 'passed'
+        or result['observations']['config_exit_status'] != 10
+        or result['observations']['restic_version_output'] != document['preflight']['last_result']['restic_version']
+        or not result['remote_secret_cleanup_passed']
+        or not result['controller_secret_file_absent']
+        or not result['ansible_local_temp_absent']
+        or result['repository_initialization_attempted']):
+        raise common.PreflightBlocked('fresh_absence_proof_invalid')
+    def git(*args):
+        return subprocess.check_output(['git', '-C', str(ROOT), *args], timeout=30)
+    if (git('cat-file', '-t', proof['terminal_tag']).strip() != b'tag'
+        or git('rev-parse', proof['terminal_tag'] + '^{}').decode().strip() != proof['archive_commit']
+        or git('show', proof['terminal_tag'] + ':Nautobot/manifests/restic-preflight-result.json') != raw):
+        raise common.PreflightBlocked('absence_archive_mismatch')
 
 
 def require_ready(document):
@@ -49,7 +75,7 @@ def require_ready(document):
         or policy['name_prefix_readback'] is not None
         or set(policy['capabilities']) != {'listAllBucketNames', 'listBuckets', 'readBuckets', 'listFiles', 'readFiles', 'writeFiles', 'deleteFiles'}):
         raise common.PreflightBlocked('accepted_provider_mismatch')
-    # Readiness needs a later reviewed schema/operation transition, never implicit.
+    require_preflight(document)
     result = subprocess.run(['check-jsonschema', '--schemafile',
         str(ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json'),
         str(ROOT / 'Nautobot/manifests/accepted-live-state.yaml')],
@@ -86,7 +112,7 @@ common.minimal_environment = environment
 
 
 def execute(authorized_hash):
-    document = common.validate_operation()  # Reject current active convergence before credentials.
+    document = common.validate_operation()
     require_ready(document)
     rows = common.bundle_file_hashes()
     digest = common.bundle_hash(rows)
@@ -117,13 +143,21 @@ def execute(authorized_hash):
 def main():
     os.umask(0o077)
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['execute', 'show-command'])
+    parser.add_argument('mode', choices=['execute', 'show-command', 'show-hash'])
     parser.add_argument('authorized_hash', nargs='?')
     args = parser.parse_args()
     if args.mode == 'show-command':
         print('python3 Nautobot/ansible/scripts/run-restic-initialization.py execute AUTHORIZED_SHA256')
-        print('Inactive: requires accepted baseline, reviewed schema/operation and exact bundle.')
+        print('Requires accepted baseline, archived absence proof, clean source and exact bundle.')
         return 0
+    if args.mode == 'show-hash':
+        try:
+            require_ready(common.validate_operation())
+            print(common.bundle_hash())
+            return 0
+        except common.PreflightBlocked as exc:
+            print('result=blocked error=' + exc.code)
+            return 69
     if not args.authorized_hash:
         parser.error('execute requires AUTHORIZED_SHA256')
     try:

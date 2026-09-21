@@ -72,6 +72,35 @@ class Tests(unittest.TestCase):
     def test_inactive_gate_precedes_secret_access(self):
         with patch.object(launcher.common,'read_secret',side_effect=AssertionError('must not resolve')):
             with self.assertRaises(launcher.common.PreflightBlocked):launcher.execute('0'*64)
+    def test_archived_absence_binding(self):
+        import copy
+        import yaml
+        schema=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
+        branch=next(b for b in schema['oneOf'] if b.get('title')=='Reviewed standalone Restic initialization')
+        document={key:copy.deepcopy(value['const']) for key,value in branch['properties'].items()}
+        proof=document['preflight']['terminal_proof']
+        raw=(ROOT/'Nautobot/manifests/restic-preflight-result.json').read_bytes()
+        with patch.object(launcher.subprocess,'check_output',side_effect=[
+            b'tag\n', (proof['archive_commit']+'\n').encode(), raw]):
+            launcher.require_preflight(document)
+        document['preflight']['terminal_proof']['result_sha256']='0'*64
+        with self.assertRaisesRegex(launcher.common.PreflightBlocked,'fresh_absence_proof_invalid'):
+            launcher.require_preflight(document)
+
+    def test_initialization_contract_scope(self):
+        import copy
+        from jsonschema import Draft202012Validator
+        schema=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
+        branch=next(b for b in schema['oneOf'] if b.get('title')=='Reviewed standalone Restic initialization')
+        document={key:copy.deepcopy(value['const']) for key,value in branch['properties'].items()}
+        validator=Draft202012Validator(branch)
+        validator.validate(document)
+        for section,key,value in [('repository','bucket','other'),
+                                  ('preflight','state','pending'),
+                                  ('failure_and_recovery','automatic_init_retry',True)]:
+            changed=copy.deepcopy(document);changed[section][key]=value
+            self.assertFalse(validator.is_valid(changed))
+
     def test_production_always_cleanup_with_local_ansible(self):
         import copy
         import subprocess

@@ -122,14 +122,25 @@ absence detection. It verifies format/ID and lists repository locks read-only
 before returning `initialized_review_required`. Neither that result nor the
 launcher exit code grants acceptance.
 
-The active convergence operation is rejected before credentials are resolved.
-The unchanged historical deferred initialization contract and schema still mark
-initialization unimplemented/unready. That record describes its original review;
-these new files are locally tested candidates, not permission to reactivate it.
-Activation must review/update the schema and contract, bind terminal accepted
-host/provider identities, review fresh read-only absence evidence and exact
-version, produce the final bundle and obtain scoped live authorization. Do not
-bypass those gates with direct playbook invocation or extra-variable overrides.
+The historical deferred initialization definition remains unimplemented/unready;
+its original absence evidence is not current authority. A separate reviewed
+initialization branch now binds the fresh preflight's annotated archive, exact
+result bytes and Restic version, plus accepted baseline/provider identities.
+The launcher verifies those bindings before credentials and requires clean source.
+
+Readiness booleans in the candidate definition describe permitted scope *after*
+exact-hash approval. `approval_record: not_yet_granted` records preparation state;
+the `execute APPROVED_SHA256` argument supplies the separate live authorization.
+Do not edit the consumed definition to record approval: that changes the bundle.
+Do not invoke the playbook directly or use extra-variable overrides.
+
+Prepare and commit reviewed non-secret inputs, then use the initialization
+launcher's `show-hash` mode to freeze the exact bundle. Preserve every input by
+hash. Review target, existing credential references, fresh absence, one `init`,
+config readback and read-only lock listing. Approval excludes backup, restore,
+retention, secret changes and application deployment. Record the actual decision
+separately from the immutable operation. A successful launcher exit only requests
+review of node records and controller/remote cleanup; it does not grant acceptance.
 
 Local checks (from repository root):
 

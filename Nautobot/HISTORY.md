@@ -200,3 +200,10 @@ Readiness archival reconciliation: `nautobot-configuration-auth-v7-ready` peels 
 published tag; all hooks passed. Durable readiness identity is recorded in
 `manifests/configuration-readiness.json`. The active slot is clean; Restic pre-data
 and production runtime acceptance remain outstanding.
+
+## Fresh Restic absence preflight
+
+Passed; repository config absent and credential cleanup verified. Terminal tag
+`nautobot-restic-absence-20260921-passed`, commit `2d96737d863cea67cc7222e439e0a293db2f0131`.
+Approved bundle: `928e084f6a0bdbcd4a713b8bc74e97de08f4048293a52b4b2b25a04dceb0ad79`.
+No initialization attempted. Consumed inputs and sanitized result are archived.

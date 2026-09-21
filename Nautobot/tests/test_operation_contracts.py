@@ -58,6 +58,11 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'restic_repository_initialization':
+            branch = next(item for item in SCHEMA['oneOf']
+                          if item.get('title') == 'Reviewed standalone Restic initialization')
+            validate(branch, operation)
+            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted')
         elif operation['operation'].get('stage') == 'repository_absence_preflight':
             branch = next(item for item in SCHEMA['oneOf']
                           if item.get('title') == 'Fresh read-only repository absence preflight')

@@ -3,8 +3,8 @@ schema_version: 1
 operation:
   id: nautobot-restic-repository-initialization-v1
   state: definition
-  authorization_ready: false
-  stage: repository_absence_preflight
+  authorization_ready: true
+  stage: restic_repository_initialization
   target:
     host: j2-svpi4mf
     address: 10.1.2.170
@@ -14,10 +14,10 @@ operation:
     plan: Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
     backblaze_b2: backblaze-b2/docs/B2_ARCHITECTURE.md
     restic: restic/docs/RESTIC_ARCHITECTURE.md
-  procedure: restic/docs/READ_ONLY_PREFLIGHT.md
+  procedure: restic/docs/REPOSITORY_INITIALIZATION.md
   source:
     repository: homelab-server-configs
-    base_commit: cd15ca72e440654012e34593e049b20e9e125d43
+    base_commit: 2d96737d863cea67cc7222e439e0a293db2f0131
 provider_acceptance:
   accepted_live_state: backblaze-b2/manifests/accepted-live-state.yaml
   operation: backblaze-b2-s3-compatibility-v1
@@ -35,7 +35,7 @@ repository:
   url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
   expected_format_version: 2
   initialization_owner: nautobot-restic-repository-initialization-v1
-  initialized_state: unknown
+  initialized_state: absent_verified
   repository_id: null
 secret_contract:
   repository_password:
@@ -58,7 +58,7 @@ secret_contract:
     application_key_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY
     values_allowed_in_git_or_evidence: false
 preflight:
-  state: pending
+  state: passed
   implementation_state: reviewed
   procedure: restic/docs/READ_ONLY_PREFLIGHT.md
   playbook: Nautobot/ansible/playbooks/preflight-restic-repository.yaml
@@ -94,28 +94,110 @@ preflight:
     - inventory/prod/groups/inventory_automation.yaml
     - inventory/prod/hosts/j2-svpi4mf.yaml
     - restic/docs/READ_ONLY_PREFLIGHT.md
-  authorization_ready: true
-  execution_authorized: true
+  authorization_ready: false
+  execution_authorized: false
   separate_live_authorization_required: true
+  last_result:
+    restic_version: restic 0.18.0 compiled with go1.24.4 on linux/arm64
+    config_exit_status: 10
+    execution_user: nautobot
+  terminal_proof:
+    terminal_tag: nautobot-restic-absence-20260921-passed
+    archive_commit: 2d96737d863cea67cc7222e439e0a293db2f0131
+    result_sha256: 2a15843ae665a78651f5d8fc8fa405ab89315b8fb47facb414c070ffe2c6e364
+    bundle_sha256: 928e084f6a0bdbcd4a713b8bc74e97de08f4048293a52b4b2b25a04dceb0ad79
+initialization:
+  implementation_state: reviewed
+  repository_version_argument: stable
+  expected_repository_format_version: 2
+  protected_directory_mode: '0700'
+  protected_file_mode: '0600'
+  cache_mode: disabled
+  command_contract:
+    - restic_no_cache_repository_file_password_file_init_repository_version_stable
+    - restic_no_cache_no_lock_repository_file_password_file_cat_config
+  ordered_actions:
+    - verify_exact_operation_and_bundle
+    - create_bounded_protected_evidence_directory
+    - verify_execution_identity_and_restic_version
+    - resolve_secrets_without_output
+    - verify_protected_file_modes
+    - prove_exact_repository_config_is_absent
+    - initialize_repository_once
+    - record_mutation_result_before_later_gates
+    - read_back_repository_config_without_cache_or_lock
+    - verify_format_version_and_repository_id
+    - preserve_sanitized_evidence
+acceptance:
+  require:
+    - exact_accepted_provider_identity
+    - accepted_host_baseline_identity
+    - exact_repository_url
+    - execution_user_nautobot
+    - reviewed_restic_version
+    - repository_password_reference_resolves_without_capture
+    - independent_password_recovery_location_confirmed
+    - preflight_proves_repository_config_absent
+    - initialization_succeeds_exactly_once
+    - repository_format_version_2
+    - repository_id_is_64_lowercase_hex_characters
+    - no_cache_or_lock_created
+    - evidence_contains_no_secret_values
+  boundaries:
+    - initializes_only_the_exact_empty_repository
+    - does_not_upload_backup_data
+    - does_not_create_or_delete_backblaze_resources
+    - does_not_change_doppler_except_separately_authorized_password_provisioning
+    - does_not_repair_delete_or_reinitialize_a_repository
+    - does_not_authorize_nautobot_deployment
+failure_and_recovery:
+  before_init: remove_only_proven_owned_local_protected_files
+  after_init_attempt: stop_and_retain_evidence_for_manual_classification
+  automatic_init_retry: false
+  automatic_repository_delete: false
+  automatic_bucket_cleanup: false
+  automatic_password_rotation: false
+evidence:
+  local_root_pattern: /tmp/nautobot-restic-initialization.*
+  directory_mode: '0700'
+  file_mode: '0600'
+  raw_evidence_in_git: false
+  secret_values_in_evidence: false
+  records:
+    - bundle_inputs_and_hashes
+    - execution_identity_and_restic_version
+    - secret_reference_resolution_booleans
+    - exact_repository_identity
+    - preflight_classification
+    - mutation_attempted_and_result
+    - repository_format_version_and_id
+    - cache_and_lock_absence
+    - protected_path_modes
+    - sanitized_decision_summary
+successor:
+  stage: backup_restore_verification
+  contract: Nautobot/docs/ISOLATED_BACKUP_RESTORE.md
+  activation_requires_separate_definition_and_authorization: true
+authorization:
+  command: python3 Nautobot/ansible/scripts/run-restic-initialization.py execute APPROVED_SHA256
+  bundle_algorithm: sha256
+  authorized_stage: restic_repository_initialization
+  mutation_authorized: true
+  excluded_stages:
+    - backup_restore_verification
+    - snapshot_forget_or_prune
+    - repository_repair
+    - repository_deletion
+    - nautobot_pilot
+    - caddy_onboarding
+    - authority_migration
+    - semaphore
+    - secret_provisioning
+  blockers: []
+  method: separate_explicit_approval_of_exact_bundle_sha256
+  approval_record: not_yet_granted
 prerequisites:
   Nautobot/manifests/accepted-live-state.yaml: c82c69ab1da6484c2e6c9acc901ad8ac37d553b3e984381deb8cbc6411dc7905
   Nautobot/manifests/configuration-readiness.json: f7a7d04d04a335b582c43ccb1fc6002723bec8634810646c2ee813716f051dfe
   backblaze-b2/manifests/accepted-live-state.yaml: 30693f50b6abc80e2a21cca64dc86c0f7b1fe4d8d40dd6c3dbf81338aafe462b
-historical_preflight:
-  definition: Nautobot/manifests/deferred-restic-initialization.yaml
-  bundle_sha256: a22464c584d9d180bd28fe937f2be36b751611811dbe8b5a0537012814c734db
-  classification: historical_only_requires_fresh_collection
-authorization:
-  command: python3 Nautobot/ansible/scripts/run-restic-repository-preflight.py execute APPROVED_SHA256
-  bundle_algorithm: sha256
-  authorized_stage: repository_absence_preflight
-  mutation_authorized: false
-  protected_temporary_files_only: true
-  hash_approval_required: true
-  excluded_stages:
-    - restic_repository_initialization
-    - backup_restore_verification
-    - nautobot_pilot
-    - secret_provisioning
-  blockers:
-    - explicit_exact_bundle_execution_approval_required
+  Nautobot/manifests/restic-preflight-result.json: 2a15843ae665a78651f5d8fc8fa405ab89315b8fb47facb414c070ffe2c6e364

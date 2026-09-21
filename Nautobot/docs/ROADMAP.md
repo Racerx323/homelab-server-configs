@@ -11,13 +11,14 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains the consumed read-only Restic preflight pending terminal archival. Negative security tests were not run and remain unresolved.
+now defines standalone Restic initialization, awaiting exact-bundle approval. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
 config-absent status 10, and controller/remote credential cleanup verified.
 Result: [restic-preflight-result.json](../manifests/restic-preflight-result.json).
-Next is terminal preflight archival, then a separate initialization bundle.
+The preflight is archived as `nautobot-restic-absence-20260921-passed`
+at `2d96737`. Next is approval of the separate initialization bundle.
 Do not rerun the consumed preflight definition. Historical failed
 trial records remain unchanged.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
@@ -42,7 +43,7 @@ evidence directory. These are candidate files, not installed units or a live bun
 
 | Next operation | Concrete work and acceptance | Recovery boundary |
 | --- | --- | --- |
-| Restic read-only preflight | Completed; terminal archival pending. Bind accepted host/provider identities; preserve endpoint, bucket, empty prefix and existing Doppler/recovery references. Refresh execution user, installed Restic version and exact repository absence; only documented exit 10 establishes absence. Verify all transient secrets removed. | No repository mutation. Ambiguous access, existing repository or missing cleanup evidence stops progression. |
+| Restic read-only preflight | Completed and archived. Bind accepted host/provider identities; preserve endpoint, bucket, empty prefix and existing Doppler/recovery references. Refresh execution user, installed Restic version and exact repository absence; only documented exit 10 establishes absence. Verify all transient secrets removed. | No repository mutation. Ambiguous access, existing repository or missing cleanup evidence stops progression. |
 | Restic initialization | After fresh absence acceptance, review the executable schema transition and freeze the existing initialization playbook/helper. Initialize once; read back exact repository ID and format, record attempted mutation and prove credential cleanup. | After an attempt, retain evidence and classify state read-only; no automatic retry, remote deletion, unlock or repair. |
 | Canary backup and integrity | After terminal repository identity, create the existing deterministic canary, upload one snapshot and identify its full ID; run full data checking. | Retain snapshot and evidence on failure; no implicit deletion. |
 | Isolated canary restore | Restore that exact full snapshot ID to a new empty owned directory; independently compare paths, modes and content hashes. | Never overwrite source or live data; retain failed restore for review. |
