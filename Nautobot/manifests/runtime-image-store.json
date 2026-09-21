@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "state": "image_store_readiness_passed",
+  "target": "j2-svpi4mf",
+  "terminal_tag": "nautobot-image-load-v1-ready",
+  "terminal_commit": "0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b",
+  "terminal_result_sha256": "8282cb7584d286df5c33cf05aaf1caa6ce6808b5c149fc7cf9ff78982bfa111c",
+  "runtime_store_loaded": true,
+  "configuration_authentication_tested": false,
+  "runtime_accepted": false
+}

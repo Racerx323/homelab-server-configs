@@ -260,3 +260,7 @@ Use [image loading and configuration qualification](IMAGE_LOADING_AND_CONFIGURAT
 for the next bounded stages. Published credential provenance is in
 `manifests/provisioned-credentials.json`. Image loading, disposable authentication
 checks, production deployment and administrator bootstrap are distinct results.
+
+The archived image-store identity is in `manifests/runtime-image-store.json`.
+Use [configuration and authentication qualification](CONFIGURATION_AUTHENTICATION.md)
+for the inactive probe and separate disposable-trial execution prerequisites.

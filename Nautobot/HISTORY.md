@@ -82,3 +82,8 @@ All four bounded steps passed at least 75 seconds of delayed observation; host,
 credential metadata and network configuration continuity passed. No application
 containers, administrator, database initialization or Restic stage ran. The earlier
 preflight failure is retained in `manifests/image-load-preflight-result.json`.
+
+Image-store archival reconciliation: published tag `nautobot-image-load-v1-ready`
+peels to `0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b`. Durable store provenance is
+`manifests/runtime-image-store.json`. The active slot is clean; configuration and
+authentication qualification remains a separate, inactive preparation.

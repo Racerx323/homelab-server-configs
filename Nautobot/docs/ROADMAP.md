@@ -2,17 +2,17 @@
 
 ## Current next action
 
-The corrected image-load operation passed on September 21. All three immutable
-ARM64 images resolve in the default rootless runtime store. Each command passed
-at least 75 seconds of delayed storage observation; credential/configuration and
-boot continuity passed. See [image-load-result.json](../manifests/image-load-result.json).
-The active slot retains the consumed definition pending terminal archival; do not
-rerun the bundle. Next: archive the image-store result, then prepare the separate
-[application configuration/authentication checks](IMAGE_LOADING_AND_CONFIGURATION.md).
-No application container, administrator, production database or Restic stage ran.
-Stage 5 remains unaccepted.
+Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
+The single operation slot is clean; durable provenance is in
+[runtime-image-store.json](../manifests/runtime-image-store.json).
+The [configuration/authentication preparation](CONFIGURATION_AUTHENTICATION.md)
+provides an inactive in-container probe, offline regression tests and a concrete
+disposable-trial design. Next is implementing and freezing its Ansible trial
+launcher, including isolation, resource enforcement and cleanup failure handling.
+No trial containers or live authentication checks ran during preparation.
+Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
-Credential provisioning and protected injection were previously archived at
+Credential provisioning was previously archived at
 `nautobot-credentials-v1-provisioned` (`451b82d`). The historical sections below
 retain preparation/observation context; older absence and pending-archive claims
 are not current-state statements.

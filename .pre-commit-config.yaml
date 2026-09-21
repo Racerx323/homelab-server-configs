@@ -453,3 +453,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/
+
+      - id: nautobot-configuration-auth-contracts
+        name: Validate inactive application authentication probe
+        entry: python3 Nautobot/tests/test_configuration_auth.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/

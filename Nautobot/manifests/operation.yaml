@@ -1,39 +1,5 @@
 ---
 schema_version: 1
 operation:
-  id: nautobot-image-load-v1
-  stage: image_loading
-  state: definition
-  authorization_ready: true
-authorization:
-  mutation_authorized: false
-  method: separate_explicit_approval_of_frozen_bundle_sha256
-target: j2-svpi4mf
-archive: /var/tmp/nautobot-image-fac478c529ba/work/image.oci.tar
-ordered_actions:
-  - preflight
-  - load_custom
-  - verify_loaded
-  - assign_local_alias
-  - verify_custom_reference
-  - pull_verify_postgresql
-  - pull_verify_redis
-  - postflight
-limits:
-  cpu_quota_percent: 200
-  memory_max_bytes: 3221225472
-  swap_max_bytes: 0
-  command_timeout_seconds: 900
-  post_exit_seconds: 75
-  sample_interval_seconds: 5
-  max_sample_gap_seconds: 15
-  minimum_free_bytes: 21474836480
-  minimum_available_bytes: 1610612736
-boundaries:
-  runtime_deployment: false
-  administrator_creation: false
-  restic_changes: false
-  credential_changes: false
-  automatic_image_removal: false
-source_base_commit: de2535f0b94e7e712021b03326f742e86d975adb
-plan_sha256: 7abdab7432a9ba6557ea6e24c4c89344b7c878c23b2985a4aa844e80d94eec0d
+  state: clean
+  authorization_ready: false

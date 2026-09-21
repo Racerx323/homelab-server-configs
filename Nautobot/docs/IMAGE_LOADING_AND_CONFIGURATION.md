@@ -2,7 +2,7 @@
 
 This is preparation for stage 5, governed by
 [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md). It grants no live execution.
-The active operation defines image loading only. Prepare one executable operation at a time:
+Image loading is archived and the active operation slot is clean. Prepare one executable operation at a time:
 image loading first, then configuration/authentication qualification. Production
 runtime, administrator bootstrap and Restic remain separate stages.
 
@@ -107,7 +107,8 @@ image-store readiness only, followed by terminal archival before the next stage.
 
 ## Second operation: configuration and authentication checks
 
-Prepare this only after image-load acceptance. Use the real loaded ARM64 images
+Image-load acceptance and archival are complete. The detailed candidate probe and
+isolated-trial contract are in [configuration/authentication preparation](CONFIGURATION_AUTHENTICATION.md). Use the real loaded ARM64 images
 and production settings template. General `start --help` output from the image
 build is not proof that settings, plugins, commands or authentication work.
 
