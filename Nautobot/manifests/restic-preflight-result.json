@@ -1,0 +1,43 @@
+{
+  "ansible_exit_status": 0,
+  "ansible_local_temp_absent": true,
+  "bundle_sha256": "928e084f6a0bdbcd4a713b8bc74e97de08f4048293a52b4b2b25a04dceb0ad79",
+  "controller_secret_file_absent": true,
+  "credential_values_retained": false,
+  "error_class": null,
+  "operation": "nautobot-restic-repository-initialization-v1",
+  "repository_initialization_attempted": false,
+  "repository_mutation_authorized": false,
+  "result": "passed",
+  "schema_version": 1,
+  "stage": "repository_absence_preflight",
+  "reviewed_at": "2026-09-21T22:59:56.033961+00:00",
+  "observations": {
+    "ambiguous_failure": false,
+    "config_exit_status": 10,
+    "execution_user": "nautobot",
+    "execution_user_matches": true,
+    "incorrect_password": false,
+    "repository_absent": true,
+    "repository_exists": false,
+    "repository_locked": false,
+    "restic_version_number": "0.18.0",
+    "restic_version_output": "restic 0.18.0 compiled with go1.24.4 on linux/arm64",
+    "version_command_succeeded": true,
+    "version_supported": true
+  },
+  "remote_secret_cleanup_passed": true,
+  "consumed_input_count": 15,
+  "git_archival": "pending",
+  "rerun_allowed": false,
+  "raw_evidence_in_git": false,
+  "evidence_sha256": {
+    "bundle.sha256": "59f77ff2257e5acddc0e9c0b54ac70ec1b51635db18d3fc72cd566850b215e8d",
+    "ansible.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ansible.stdout": "0e72f8bc9377689629f0e3c1926be444b8b779f105782a9436ca0436f976e989",
+    "bundle-files.sha256": "57b8ab3b821670139d1ede9001da54638dc5e0b515cdd0703a1909b800ec003c",
+    "terminal-result.json": "30303e4c2e6624555958a0a3134205f66bcf541b2f2ba71c22e61db8aafabbda"
+  },
+  "next_stage": "terminal_preflight_archival_then_separate_initialization_bundle"
+}

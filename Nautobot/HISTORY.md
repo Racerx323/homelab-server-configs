@@ -194,3 +194,9 @@ observation passed. Terminal tag: `nautobot-configuration-auth-v7-ready`; its pe
 commit retains all consumed source inputs and `manifests/configuration-readiness-result.json`.
 Bundle: `53bd35086e31f99a414e09a24373eb0a74fd3e3ec52b8fe7126a755c6576b54f`.
 Negative security tests remain unresolved; production runtime is not accepted.
+
+Readiness archival reconciliation: `nautobot-configuration-auth-v7-ready` peels to
+`cd15ca72e440654012e34593e049b20e9e125d43`. All consumed source inputs match the
+published tag; all hooks passed. Durable readiness identity is recorded in
+`manifests/configuration-readiness.json`. The active slot is clean; Restic pre-data
+and production runtime acceptance remain outstanding.

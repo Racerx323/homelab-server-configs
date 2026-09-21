@@ -4,11 +4,12 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot defines the revised readiness successor. V6 is archived; its historical
-SQLSTATE-based qualification failed; that result remains unchanged. The user-approved
-successor contract below uses native configuration checks and positive application
-connections. Negative security tests are separate and unresolved. Reusable code is
-updated and prepared for separate exact-bundle execution approval.
+operation slot is clean after readiness archival. All five
+readiness checks passed, including native configuration and positive PostgreSQL/Redis
+connections. Cleanup and delayed health observation passed. The terminal result is
+`manifests/configuration-readiness-result.json`; its published identity is in
+`manifests/configuration-readiness.json`. Negative security tests remain
+unresolved; production runtime and administrator login are not accepted by this trial.
 
 ## Prepared checks and provenance
 

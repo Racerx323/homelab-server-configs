@@ -128,3 +128,33 @@ This preflight does not authorize `init`, `backup`, `restore`, `check`,
 `snapshots`, `stats`, `unlock`, `forget`, `prune`, `repair`, repository or
 snapshot deletion, retention changes, or secret-system changes. It does not
 contact a consumer host until the user authorizes the exact read-only command.
+
+## Preparing a fresh Nautobot preflight
+
+Retain completed absence evidence in its historical definition. A fresh active
+operation uses stage `repository_absence_preflight`, repository state `unknown`,
+and preflight state `pending`; it must not reuse a historical pass as current
+absence. Bind the accepted host, provider and disposable application-readiness
+records by file digest. The launcher checks these identities before secrets.
+
+`preflight.execution_authorized: true` is the legacy launcher's eligibility flag,
+not evidence of operator approval. Execution still requires the separately
+approved exact hash. The outer `operation.authorization_ready: false` and
+`authorization.mutation_authorized: false` keep initialization unauthorized.
+
+Prepare locally:
+
+```sh
+python3 Nautobot/ansible/scripts/run-restic-repository-preflight.py show-hash
+```
+
+After approval, use the same entrypoint with
+`execute APPROVED_SHA256`. Its bundle covers the playbook, launcher, validators,
+operation/schema, inventory inputs, predecessor records and this procedure.
+Changed inputs require a new hash. Never invoke the playbook directly to bypass
+the gate. Preserve an exact private input copy before execution.
+
+The live request covers one host, three existing Doppler references, the exact
+S3 repository config read, and protected temporary files with cleanup. It does
+not provision secrets or initialize a repository. Existing-repository, credential,
+transport or cleanup failures stop this absence operation for review.

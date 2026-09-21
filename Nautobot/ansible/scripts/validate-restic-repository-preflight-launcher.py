@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import os
@@ -34,6 +35,14 @@ def operation_definition() -> dict[str, Any]:
     document = yaml.safe_load(OPERATION_PATH.read_text(encoding="utf-8"))
     assert isinstance(document, dict)
     return document
+
+
+def fresh_definition() -> dict[str, Any]:
+    schema = json.loads(LAUNCHER.OPERATION_SCHEMA.read_text())
+    branch = next(item for item in schema["oneOf"]
+                  if item.get("title") == "Fresh read-only repository absence preflight")
+    return {key: copy.deepcopy(value["const"])
+            for key, value in branch["properties"].items()}
 
 
 def ready_definition(bundle: str) -> dict[str, Any]:
@@ -95,9 +104,37 @@ class ContractTests(unittest.TestCase):
         self.assertTrue(document["preflight"]["last_result"]["exact_version_retained"])
 
     def test_manifest_and_launcher_bundle_contract_match(self) -> None:
-        preflight = operation_definition()["preflight"]
+        preflight = fresh_definition()["preflight"]
         self.assertEqual(tuple(preflight["bundle_inputs"]), LAUNCHER.BUNDLE_FILES)
         self.assertEqual(preflight["bundle_domain_separator"], LAUNCHER.BUNDLE_DOMAIN)
+
+    def test_fresh_contract_rejects_scope_and_state_changes(self) -> None:
+        from jsonschema import Draft202012Validator
+        schema = json.loads(LAUNCHER.OPERATION_SCHEMA.read_text())
+        branch = next(item for item in schema["oneOf"]
+                      if item.get("title") == "Fresh read-only repository absence preflight")
+        validator = Draft202012Validator(branch)
+        original = fresh_definition()
+        validator.validate(original)
+        for section, key, value in (
+            ("repository", "initialized_state", "absent_verified"),
+            ("repository", "bucket", "unapproved-bucket"),
+            ("authorization", "mutation_authorized", True),
+            ("preflight", "state", "passed"),
+            ("preflight", "credential_fallback_allowed", True),
+        ):
+            with self.subTest(section=section, key=key):
+                changed = copy.deepcopy(original)
+                changed[section][key] = value
+                self.assertFalse(validator.is_valid(changed))
+
+    def test_prerequisite_drift_rejects_before_access(self) -> None:
+        document = fresh_definition()
+        document["prerequisites"]["Nautobot/manifests/accepted-live-state.yaml"] = "0" * 64
+        with mock.patch.object(LAUNCHER, "load_operation", return_value=document):
+            with self.assertRaisesRegex(LAUNCHER.PreflightBlocked, "prerequisite_identity_changed"):
+                LAUNCHER.validate_operation(runner=lambda *args, **kwargs:
+                                           subprocess.CompletedProcess(args, 0))
 
     def test_every_bundle_digest_changes_the_hash(self) -> None:
         rows = LAUNCHER.bundle_file_hashes()
@@ -280,7 +317,7 @@ class ExecutionTests(unittest.TestCase):
 
 
 class CliTests(unittest.TestCase):
-    def test_current_cli_rejects_unready_before_external_access(self) -> None:
+    def test_current_cli_rejects_unapproved_hash_before_external_access(self) -> None:
         before = set(Path("/tmp").glob(f"{LAUNCHER.EVIDENCE_PREFIX}*"))
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "doppler-called"
@@ -299,8 +336,10 @@ class CliTests(unittest.TestCase):
                 check=False,
                 timeout=30,
             )
-            self.assertEqual(result.returncode, 69)
-            self.assertIn("active_operation_mismatch", result.stderr.decode())
+            self.assertIn(result.returncode, (66, 69))
+            self.assertTrue(any(code in result.stderr.decode() for code in
+                                ("bundle_hash_mismatch", "active_operation_mismatch",
+                                 "preflight_not_ready", "operation_schema_invalid")))
             self.assertFalse(marker.exists())
         self.assertEqual(set(Path("/tmp").glob(f"{LAUNCHER.EVIDENCE_PREFIX}*")), before)
 

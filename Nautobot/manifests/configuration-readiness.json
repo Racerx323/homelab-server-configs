@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "target": "j2-svpi4mf",
+  "state": "disposable_readiness_accepted",
+  "terminal_tag": "nautobot-configuration-auth-v7-ready",
+  "terminal_commit": "cd15ca72e440654012e34593e049b20e9e125d43",
+  "terminal_result_path": "Nautobot/manifests/configuration-readiness-result.json",
+  "terminal_result_sha256": "9fc45b117f64678bf4ffb6f51488380ef7ef2103c2a3da3c4d19586ae71c2bf4",
+  "bundle_sha256": "53bd35086e31f99a414e09a24373eb0a74fd3e3ec52b8fe7126a755c6576b54f",
+  "negative_security_testing": "unresolved",
+  "production_runtime_accepted": false,
+  "administrator_created": false
+}

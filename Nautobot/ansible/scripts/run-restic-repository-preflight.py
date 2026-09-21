@@ -38,6 +38,10 @@ BUNDLE_FILES = (
     "Nautobot/manifests/operation.yaml",
     "Nautobot/schemas/operation.schema.json",
     "Nautobot/schemas/repository-initialization.schema.json",
+    "Nautobot/schemas/host-convergence.schema.json",
+    "Nautobot/manifests/accepted-live-state.yaml",
+    "Nautobot/manifests/configuration-readiness.json",
+    "backblaze-b2/manifests/accepted-live-state.yaml",
     "inventory/prod/hosts.yaml",
     "inventory/prod/groups/inventory_automation.yaml",
     "inventory/prod/hosts/j2-svpi4mf.yaml",
@@ -101,6 +105,14 @@ def validate_operation(
     document = load_operation()
     if document.get("operation", {}).get("id") != EXPECTED_OPERATION_ID:
         raise PreflightBlocked("active_operation_mismatch")
+    for relative, expected in document.get("prerequisites", {}).items():
+        if relative not in BUNDLE_FILES:
+            raise PreflightBlocked("invalid_prerequisite_path")
+        path = ROOT / relative
+        if path.is_symlink() or not path.is_file():
+            raise PreflightBlocked("invalid_prerequisite_file")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise PreflightBlocked("prerequisite_identity_changed")
     return document
 
 

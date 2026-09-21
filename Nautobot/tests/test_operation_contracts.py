@@ -58,6 +58,12 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'repository_absence_preflight':
+            branch = next(item for item in SCHEMA['oneOf']
+                          if item.get('title') == 'Fresh read-only repository absence preflight')
+            validate(branch, operation)
+            self.assertFalse(operation['authorization']['mutation_authorized'])
+            self.assertEqual(operation['repository']['initialized_state'], 'unknown')
         else:
             schema_name = {'credential_provisioning': 'credential-operation.schema.json',
                            'image_loading': 'image-load.schema.json',
