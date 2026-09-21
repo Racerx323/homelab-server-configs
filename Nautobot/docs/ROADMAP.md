@@ -631,3 +631,28 @@ Future Webmin HTTPS access is intended through Caddy under its separate onboardi
 lifecycle; direct Webmin certificate replacement is not the selected follow-up.
 The SMART upstream issue remains awaiting maintainer response per the user. No
 background issue-monitoring task or upstream publication is created by this record.
+
+### Authorized image retry
+
+The failed v1 definition and sanitized evidence are archived in annotated,
+published tag `nautobot-image-qualification-v1-failed` at commit `64c5c13`.
+The active slot now contains the exact authorized v2 retry definition from bundle
+`09b71931b20200846384fbc3e1217187adcc600fd481674a63d8f928f2a03224`.
+Execution approval covers the frozen bundle; preparation-time false authorization
+fields remain part of that exact definition. No runtime acceptance is implied.
+
+### Bounded image retry result
+
+The authorized retry passed its defined static image checks and delayed-error
+observation on September 21, 2026. Image ID, OCI manifest digest and archive hash
+are retained in [image-qualification-result.json](../manifests/image-qualification-result.json).
+Independent controller verification matched all archive/blob digests and ARM64
+identity. Forty-one samples, maximum gap 5.39 seconds, no storage/OOM errors and
+confirmed stopped workers support this bounded result. Production runtime is not
+accepted; start/celery help returned general help, not operational service proof.
+
+Private review: `/home/aaron/code/.local-evidence/nautobot-image-retry-20260921/REVIEW.md`.
+Successful-operation archival remains pending; the active slot retains the exact
+executed v2 definition. No new build or cleanup should run from it. Next preparation
+is artifact-identity reconciliation and application credential/runtime readiness;
+Doppler entity creation, deployment and Restic stages remain separately scoped.

@@ -40,3 +40,14 @@ the terminal definition commit. Bundle SHA-256:
 Accepted stage-3/stage-4 identities remain unchanged. The reusable build helper in
 this archival commit includes the separately tested retry correction; the failed
 execution used the frozen bundle identified above, not that corrected helper.
+
+## Successful bounded image qualification
+
+`nautobot-image-qualification-v2`: passed bounded ARM64 build, static package/CLI
+checks, OCI integrity verification and delayed storage observation. Terminal tag:
+`nautobot-image-qualification-v2-qualified`. The tag preserves the exact executed
+operation and `manifests/image-qualification-result.json`; its peeled commit is
+the terminal definition commit. Bundle SHA-256:
+`09b71931b20200846384fbc3e1217187adcc600fd481674a63d8f928f2a03224`.
+The verified image remains an isolated artifact; application runtime, production
+store load, credentials, Restic and pilot workload acceptance remain outstanding.

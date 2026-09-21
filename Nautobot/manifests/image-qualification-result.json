@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-image-qualification-v2",
+  "outcome": "bounded_static_image_qualification_passed",
+  "bundle_sha256": "09b71931b20200846384fbc3e1217187adcc600fd481674a63d8f928f2a03224",
+  "result": "static_image_checks_passed",
+  "image_id": "sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+  "oci_manifest_digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+  "archive_sha256": "a76ef26dd4b3fd1c4d76320f3721fbe5b596ca3e7aac1791b92721fa105b0c83",
+  "versions": {
+    "nautobot": "3.2.3",
+    "nautobot-dns-models": "2.3.0"
+  },
+  "runtime_accepted": false,
+  "production_store_loaded": false,
+  "coverage": {
+    "samples": 41,
+    "seconds": 205.14,
+    "max_gap_seconds": 5.39,
+    "delayed_samples": 15
+  },
+  "worker_stopped": true,
+  "archive_verified_independently": true,
+  "raw_evidence_manifest_sha256": "b7318ddb406256b338bcd8ee71ff82f9b3091ddcd9091909148c805ea460bf06"
+}
