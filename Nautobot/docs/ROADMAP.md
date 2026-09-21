@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-now contains the reviewed canary backup and integrity operation. Negative security tests were not run and remain unresolved.
+retains the consumed canary backup and integrity operation pending terminal archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -24,14 +24,18 @@ verified. [Initialization acceptance](../manifests/restic-initialization-result.
 owns this result; baseline-era `restic_initialized: false` is historical.
 Initialization is archived as `nautobot-restic-initialization-v1-accepted`
 at `08a7e62`. The [canary backup/integrity definition](CANARY_BACKUP_INTEGRITY.md)
-is implemented with the accepted repository ID and terminal proof. Offline
-workflow, failure/cleanup tests and Ansible syntax are validated. Next is exact
-bundle approval for canary upload and full-data checking. No live backup is authorized. Isolated restore remains separate.
+passed under its approved bundle: one new matching full snapshot ID, successful
+backup and full-data check, unchanged source, 75-second quiet kernel review, and
+credential cleanup. [Canary acceptance](../manifests/canary-backup-result.json)
+records the snapshot identity. Next is terminal canary archival and preparation
+of a separately authorized isolated restore. Do not rerun the consumed backup.
+Isolated restore remains unperformed.
 Do not rerun initialization.
 Do not rerun the consumed preflight definition. Historical failed
 trial records remain unchanged.
-Stage 5, administrator bootstrap, production deployment and Restic backup/restore
-remain open; repository initialization alone is accepted.
+Stage 5, administrator bootstrap, production deployment, isolated canary restore
+and application backup/recovery remain open. Repository initialization and
+canary upload/integrity are accepted.
 
 Credential provisioning was previously archived at
 `nautobot-credentials-v1-provisioned` (`451b82d`). The historical sections below
