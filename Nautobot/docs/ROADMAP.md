@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains the consumed standalone Restic initialization pending terminal archival. Negative security tests were not run and remain unresolved.
+now contains the reviewed canary backup and integrity operation. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -22,8 +22,12 @@ at `2d96737`. Initialization subsequently passed under its approved bundle:
 format 2, full repository ID, empty lock listing, no cache and credential cleanup
 verified. [Initialization acceptance](../manifests/restic-initialization-result.json)
 owns this result; baseline-era `restic_initialized: false` is historical.
-Next is terminal initialization archival, then canary backup and integrity
-preparation; isolated restore remains separate. Do not rerun initialization.
+Initialization is archived as `nautobot-restic-initialization-v1-accepted`
+at `08a7e62`. The [canary backup/integrity definition](CANARY_BACKUP_INTEGRITY.md)
+is implemented with the accepted repository ID and terminal proof. Offline
+workflow, failure/cleanup tests and Ansible syntax are validated. Next is exact
+bundle approval for canary upload and full-data checking. No live backup is authorized. Isolated restore remains separate.
+Do not rerun initialization.
 Do not rerun the consumed preflight definition. Historical failed
 trial records remain unchanged.
 Stage 5, administrator bootstrap, production deployment and Restic backup/restore

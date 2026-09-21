@@ -58,6 +58,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'canary_backup_integrity':
+            validate(json.loads((ROOT / 'Nautobot/schemas/canary-backup.schema.json').read_text()), operation)
+            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted')
+            self.assertEqual(operation['implementation']['state'], 'reviewed')
         elif operation['operation'].get('stage') == 'restic_repository_initialization':
             branch = next(item for item in SCHEMA['oneOf']
                           if item.get('title') == 'Reviewed standalone Restic initialization')
@@ -80,6 +84,22 @@ class Contracts(unittest.TestCase):
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         validate(json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text()), accepted)
         self.assertFalse(any(accepted['boundaries'].values()))
+
+    def test_canary_definition_boundaries(self):
+        import hashlib
+        schema=json.loads((ROOT/'Nautobot/schemas/canary-backup.schema.json').read_text())
+        document={key:copy.deepcopy(value['const']) for key,value in schema['properties'].items()}
+        validate(schema,document)
+        file=document['dataset']['files'][0]
+        self.assertEqual(len(file['content_utf8'].encode()),file['size_bytes'])
+        self.assertEqual(hashlib.sha256(file['content_utf8'].encode()).hexdigest(),file['sha256'])
+        for section,key,value in [('authorization','approval_record','implicitly_granted'),
+                                  ('snapshot_identity','selection','latest'),
+                                  ('commands','integrity',['check']),
+                                  ('failure_and_recovery','automatic_delete',True),
+                                  ('acceptance','restore_accepted',True)]:
+            bad=copy.deepcopy(document);bad[section][key]=value
+            with self.assertRaises(ValidationError):validate(schema,bad)
 
     def test_dual_stack_acceptance_requires_complete_provenance(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())

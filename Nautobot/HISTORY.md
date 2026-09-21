@@ -207,3 +207,12 @@ Passed; repository config absent and credential cleanup verified. Terminal tag
 `nautobot-restic-absence-20260921-passed`, commit `2d96737d863cea67cc7222e439e0a293db2f0131`.
 Approved bundle: `928e084f6a0bdbcd4a713b8bc74e97de08f4048293a52b4b2b25a04dceb0ad79`.
 No initialization attempted. Consumed inputs and sanitized result are archived.
+
+## Restic initialization
+
+Accepted repository format 2 and identity, no locks/cache and credential cleanup.
+Terminal tag: `nautobot-restic-initialization-v1-accepted`; archive commit:
+`08a7e622aa2e15650d8ba1beb0695b10e06cb134`. Bundle:
+`faf95642acbcc2c3c370a4e63c91419cda0988489ecaa568cf852cfe4adbb4c4`.
+Repository ID: `536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9`.
+No backup or restore performed. Exact 24 consumed inputs verified in the archive.
