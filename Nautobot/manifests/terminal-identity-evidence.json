@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "operation": "nautobot-dual-stack-identity-v1",
+  "review_result": "passed",
+  "acceptance_decision": "accepted",
+  "recorded_at": "2026-09-21T17:04:48.503158+00:00",
+  "definition_sha256": "26c3f0954e94a9b8ae1db422981fa1034caaa983e38c3804136e4523b3ca4db9",
+  "evidence_sha256": {
+    "REVIEW.md": "5716b1ca9570a846d8f77cf71c76eddb58e7844cfdc3b152cafba5fe54c02a00",
+    "SHA256SUMS": "1cc71ea894a91fada6a9ed97bc191c69ba67e45d74c24b3bcbec86c292fd3a73"
+  },
+  "checks": {
+    "baseline_provenance": true,
+    "persistent_ula": true,
+    "ipv4_lease_mapping": true,
+    "profile_route_continuity": true,
+    "exact_dns_answers": 24,
+    "dns_endpoints": 6,
+    "fqdn_peer_and_key_match": true,
+    "boot_continuity": true,
+    "rollback_proof_reviewed": true
+  },
+  "limitations": [
+    "external_ipv6_denial_not_tested_approved_gateway_rule_alternative",
+    "dormant_duplicate_ula_not_exhaustively_excluded",
+    "primary_retry_rollback_not_live_exercised"
+  ],
+  "boundaries": {
+    "runtime_accepted": false,
+    "restic_initialized": false,
+    "caddy_published": false,
+    "authority_migrated": false
+  },
+  "rollback": "Earlier secondary exact restoration verified; current per-node original backups verified and retained. Future rollback requires Pi-hole restart per owner policy."
+}

@@ -25,7 +25,7 @@ numbered execution stages. Use the plan's stage numbers below going forward.
 | 1 — Repository plan | Governing definition exists; no architecture change needed for this review. |
 | 2 — Repository implementation | Host/preflight and Restic preflight paths exist; runtime rendering/deployment candidates and initialization code exist but are inactive and not live-qualified. Definition work may continue locally. |
 | 3 — Host baseline | Accepted baseline only on September 21; terminal evidence recorded. Git archival and terminal accepted-identity reconciliation are complete. No runtime or Restic acceptance. |
-| 4 — Dual-stack identity | Permanent ULA present in preflight. Full forward/reverse DNS, dual-stack reachability, route preservation and exposure acceptance remain to be proved through the owning components. |
+| 4 — Dual-stack identity | Permanent ULA and literal dual-stack identity passed. Authorized DNS correction now passes all 24 node/VIP checks and dual-stack FQDN SSH. Stage-4 technical acceptance review passed; terminal records and archival remain pending. |
 | 5 — Nautobot pilot | Not accepted. Requires immutable custom image, reviewed runtime implementation, secrets, data services, migrations, workload and recovery evidence. |
 | 6 — Caddy onboarding | Separate Caddy lifecycle after backend readiness; no publication authorized here. |
 | 7 — Authority migration | Blocked on reconciliation, full application recovery and seven stable pilot days. |
@@ -163,13 +163,160 @@ are not yet complete. Never reuse a historical bundle for changed files.
 Owner: Nautobot coordinates; homelab-network owns controller/NetworkManager
 changes, homelab-dns owns DNS, and Caddy owns publication.
 
-Prepare an explicit test matrix for host A/AAAA/PTR, SSH over IPv4/permanent ULA,
-preservation of SLAAC/global IPv6/default route, and preservation of the stage-3 baseline SSH/Webmin/Munin access
-restrictions. Resolve exact Caddy node source addresses from owning inventory;
-do not infer an entire trusted subnet. Record allowed and denied vantage points
-and expected outcomes before live probes. Missing vantage points mean incomplete
-coverage, not a pass. A failed observation stops advancement; any correction
-requires its owner's reviewed operation and exact configuration rollback.
+### Initial prepared scope and source findings (historical)
+
+Initial preparation was repository-only. The subsequent authorized read-only
+collection and subsequent DNS deployment are recorded below. This initial
+preparation made no production changes; it is not the current deployment status.
+
+The network owner's [ULA operation](../../../homelab-network/Ubiquiti/j2-svpi4mf-ula-operation.md)
+still describes adding the address, but stage-3 evidence already observed it.
+Verify active and persistent configuration before proposing any correction; do
+not replay the addition or remove the existing ULA as cleanup. Correct existing
+state calls for owner-record reconciliation, not unnecessary mutation.
+
+The DNS owner's [local-zone source](../../../homelab-dns/Unbound/configs/pihole-local-zone.conf)
+initially lacked host A/AAAA/PTR entries. That gap was corrected by the authorized
+deployment recorded below. The governing plan requires the exact host records below.
+
+### DNS acceptance matrix
+
+Endpoint identities are from the DNS owner's
+[dual-stack runbook](../../../homelab-dns/Keepalived/docs/keepalived-dual-stack-runbook.md).
+Reconfirm them during collection; the proxy VIP is not a DNS endpoint.
+
+| Resolver | IPv4 | IPv6 |
+| --- | --- | --- |
+| Pi-hole primary | `10.1.0.53` | `fd36:5aa8:6971:1::53` |
+| Pi-hole secondary | `10.1.0.54` | `fd36:5aa8:6971:1::54` |
+| Shared DNS VIP | `10.1.0.55` | `fd36:5aa8:6971:1::55` |
+
+Run all four queries against each of the six endpoints: **24 results**.
+An AAAA query over IPv4 does not prove IPv6 DNS transport.
+
+| Query | Required answer set |
+| --- | --- |
+| `j2-svpi4mf.local.theama.co.` A | `10.1.2.170` only |
+| `j2-svpi4mf.local.theama.co.` AAAA | `fd36:5aa8:6971:1::170` only |
+| Reverse of `10.1.2.170`, PTR | `j2-svpi4mf.local.theama.co.` only |
+| Reverse of `fd36:5aa8:6971:1::170`, PTR | `j2-svpi4mf.local.theama.co.` only |
+
+Retain response status, answering endpoint, transport, question, answer records,
+TTL, time, process status and stderr. Require NOERROR and exact answer sets,
+normalizing only DNS name case/trailing dots and equivalent IPv6 spellings.
+Empty answers, extra addresses, CNAME substitutions, different PTR targets,
+SERVFAIL, NXDOMAIN and truncation do not pass. Limit each query to one attempt,
+a three-second DNS timeout and ten-second outer limit. Record a TCP retry after
+truncation separately; do not replace the original failed observation.
+
+### Ordered read-only host and network review
+
+1. Validate the accepted-state schema, terminal tag/commit, semantic hash and
+   evidence hashes. Record source revisions and dirty state for the three owner
+   repositories; uncommitted intent is not deployed evidence.
+2. Record the administration vantage's source addresses and routes. It must reach
+   both IPv4 and ULA endpoints. If the controller lacks IPv6 routing, identify an
+   approved internal dual-stack vantage before running that subset. No route is
+   an incomplete test, not proof of target failure. Approved administration scope
+   is `10.1.0.0/22`; Munin master is `10.1.3.83`, with SSH user `pi`.
+3. Connect as `ama` to `10.1.2.170`, using existing credentials and strict host-key
+   verification. Capture hostname, boot ID, `eth0` MAC, active profile UUID, IPv4
+   and IPv6 addresses and routes. Reuse the read-only selected-property commands
+   from the network-owner preflight, including autoconnect and address lifetimes.
+   Do not collect secrets or full connection files; do not modify, clone, reapply
+   or checkpoint NetworkManager profiles.
+4. Require `Wired connection 1` bound to `eth0`, autoconnect enabled, IPv4 and IPv6
+   methods `auto`, IPv4 `10.1.2.170/22`, gateway `10.1.0.1`, and persistent plus
+   active `fd36:5aa8:6971:1::170/64`. The permanent ULA must have permanent
+   preferred/valid lifetimes with no tentative or DAD-failed flags. Preserve the
+   additional SLAAC ULA, delegated global IPv6 and RA-supplied IPv6 default route.
+   Record dynamic prefixes/lifetimes as observations rather than fixed expectations.
+5. Verify the fixed IPv4 assignment to MAC `dc:a6:32:eb:49:69` and relevant ULA
+   allocation/neighbor evidence using the [UniFi access procedure](../../../homelab-network/Ubiquiti/UNIFI_ACCESS.md).
+   Use its TLS-verified canonical hostname and Doppler references. Limit readback
+   to relevant mappings; an empty neighbor table alone cannot prove no duplicate.
+6. Collect the DNS matrix. If source and answers differ, inspect only relevant
+   deployed local-zone/forwarding entries on both DNS nodes under owner read-only
+   authorization. Preserve differences; do not export full resolver configuration.
+7. Independently connect by SSH to the IPv4 literal, permanent ULA, and FQDN forced
+   separately over IPv4 and IPv6. Each must return the same hostname and boot ID.
+   Retain resolved peer addresses and authenticated host-key fingerprints. Use
+   strict host-key verification, batch authentication and bounded timeouts. Missing
+   trusted alias keys require identity verification, never disabled checking or
+   blind trust in a key scan.
+8. Repeat address/route/profile readback and compare with step 3. Boot, stable
+   address, profile or default-route loss blocks advancement. Explain dynamic
+   prefix changes. Carry forward baseline firewall evidence and investigate any
+   relevant drift; listener presence alone is not policy verification.
+
+The missing external IPv6 packet test remains a documented limitation, with the
+stage-3 approved deployed-rule alternative. Do not claim end-to-end denial.
+Exact Caddy node sources and port 8080 enforcement belong to stage 5. Keep Webmin
+polling, SMART policy, packages, boot settings and firewall configuration unchanged.
+
+### Evidence and next authorization
+
+Preserve per-probe stdout/stderr/status and start/end timestamps privately in a
+protected directory. Bound each stream to 1 MiB and the collection to 16 MiB;
+truncation, interrupted SSH and timeouts are incomplete evidence. Hash the files
+and index. Record expected/observed values with passed, failed, incomplete or
+invalid dispositions. Every required criterion must pass before a separate
+stage-4 acceptance decision; this preparation creates no accepted identity.
+
+If records are missing, prepare the four host records in the DNS owner's source,
+review both reverse-zone forwarding paths using its
+[Pi-hole/Unbound guide](../../../homelab-dns/Unbound/docs/Pi-hole-with-Unbound-local-zone-guide.md),
+and prepare an HA-aware deployment. Any mutation requires an exact diff/bundle,
+per-node backup, syntax checks, scoped reload, independent DNS checks and exact
+rollback. Do not change VIP ownership or introduce failover here. A network
+correction similarly requires its owner's recovery and rollback procedure; the
+old ULA operation explicitly stops if the permanent address already exists.
+
+### Authorized collection result
+
+The September 21 read-only review verified accepted-baseline provenance, unchanged
+boot/profile/address/route state, permanent ULA persistence and the UniFi fixed
+IPv4/MAC mapping. Literal IPv4 and ULA SSH returned the same host/boot. ULA SSH
+used strict checking against the already trusted IPv4 host identity via an
+explicit host-key alias; no known-hosts entries were changed.
+
+All **24 DNS queries returned NXDOMAIN**, so stage 4 failed its DNS criteria.
+Both nodes' deployed local-zone fragments lack the host records; relevant
+forward and reverse forwarding entries are present. Both FQDN SSH attempts failed
+name resolution. These failures are preserved separately from the successful
+literal-address tests. The observed ULA neighbor matches the target MAC, but this
+does not establish absence of every dormant duplicate allocation. External IPv6
+packet denial remains the previously documented limitation.
+
+Private report: `/home/aaron/code/.local-evidence/nautobot-stage4-review-20260921/REVIEW.md`.
+The private index retains command results, timestamps, source revisions and hashes.
+No production state changed; polling and the accepted stage-3 snapshot remain intact.
+
+**DNS correction deployed and verified (September 21):** the four host records
+are installed on both nodes through the DNS owner's
+[deployment procedure](../../../homelab-dns/Unbound/docs/host-record-deployment.md).
+The initial attempt and verified rollback remain historical evidence. The
+corrected reload-settlement gate passed 14 offline tests and the authorized live
+retry on each node. Both reloads recorded the transient state and settled.
+
+Pi-hole initially retained negative PTR answers despite correct Unbound data.
+The user separately authorized a Pi-hole DNS restart on each node. Secondary
+restart and its complete gate preceded primary deployment. All **24 DNS checks
+now pass**, including both PTR records through both nodes and both DNS VIPs.
+FQDN SSH over IPv4 and IPv6 authenticated the expected host and unchanged boot.
+Services and existing local/public DNS controls passed; primary retained both
+DNS VIPs in readbacks. Original backups and failed-query evidence are preserved.
+
+Private result:
+`/home/aaron/code/.local-evidence/nautobot-dns-readiness-20260921/RETRY_EXECUTION_RESULT.md`.
+The subsequent stage-4 technical acceptance review passed, with fresh per-query
+DNS evidence, FQDN peer/key identity and post-DNS profile/route continuity.
+Private review: `/home/aaron/code/.local-evidence/nautobot-stage4-acceptance-20260921/REVIEW.md`.
+Next prepare terminal acceptance/evidence and schema-compatible identity records,
+then obtain Git publication authorization for archival. The accepted-state
+manifest still records stage 3 only;
+no further ULA addition is indicated. Restic, runtime and Caddy remain separately
+gated. Git commit/push and backup cleanup were not performed.
 
 ## Stage 5 — runtime and workload draft
 
