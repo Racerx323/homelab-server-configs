@@ -15,6 +15,13 @@ schema-validated desired state and requires a JSON file containing only:
   its SHA-256 digest; and
 - `recovery_host`: the approved recovery DNS name or IPv4 address.
 
+Use `manifests/runtime-inputs.json` for the prepared qualified image and recovery
+identity. The CLI verifies these against `manifests/qualified-image.json`, its
+annotated terminal archive and accepted host identity. Local rendering does not
+prove that the archive has been loaded into the runtime account's default store.
+See [credential preparation](CREDENTIAL_PREPARATION.md) for the selected Doppler
+references and protected bootstrap boundary.
+
 Do not invent a production digest or treat a test fixture as a deployable image.
 Rendering creates a new output directory and refuses an existing destination:
 

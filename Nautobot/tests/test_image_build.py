@@ -30,6 +30,13 @@ launcher = module('build_launcher', 'prepare-image-build.py')
 
 
 class ImageBuildTests(unittest.TestCase):
+    def setUp(self):
+        # Bundle tests use a definition fixture, independent of the live slot.
+        files={**launcher.FILES, 'operation.yaml':'Nautobot/tests/fixtures/image-build-operation.yaml'}
+        self.mapping=patch.object(launcher,'FILES',files)
+        self.mapping.start()
+        self.addCleanup(self.mapping.stop)
+
     def test_actual_bundle_producer_and_tamper_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)/'bundle'
@@ -44,7 +51,7 @@ class ImageBuildTests(unittest.TestCase):
             with self.assertRaises(ValueError): launcher.verify(root, digest)
 
     def test_retry_candidate_preserves_consumed_definition_and_blocks_unarchived_execution(self):
-        original=(ROOT/'Nautobot/manifests/operation.yaml').read_bytes()
+        original=(ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_bytes()
         with tempfile.TemporaryDirectory() as tmp:
             bundle=Path(tmp)/'candidate'
             previous=Path(tmp)/'previous'; (previous/'approved-bundle').mkdir(parents=True)
@@ -56,7 +63,7 @@ class ImageBuildTests(unittest.TestCase):
             with patch.object(launcher,'PREVIOUS_EVIDENCE',previous),patch.object(launcher,'PREVIOUS_BUNDLE_SHA256',priorhash):
                 digest=launcher.prepare(bundle,retry=True)
             launcher.verify(bundle,digest)
-            self.assertEqual(original,(ROOT/'Nautobot/manifests/operation.yaml').read_bytes())
+            self.assertEqual(original,(ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_bytes())
             candidate=yaml.safe_load((bundle/'operation.yaml').read_text())
             old=yaml.safe_load(original)
             self.assertNotEqual(candidate['build']['id'],old['build']['id'])
@@ -93,7 +100,7 @@ class ImageBuildTests(unittest.TestCase):
 
     def test_schema_rejects_weakening_and_runtime_authority(self):
         schema = json.loads((ROOT/'Nautobot/schemas/image-build.schema.json').read_text())
-        op = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+        op = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_text())
         Draft202012Validator(schema).validate(op)
         outer=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
         self.assertEqual(outer['oneOf'][-1]['const'],schema['const'])

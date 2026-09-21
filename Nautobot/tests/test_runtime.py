@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Local rendering and installed Quadlet-generator tests; no container execution."""
 import copy
+import json
 import sys
 sys.dont_write_bytecode = True
 import importlib.util
@@ -22,6 +23,16 @@ class RuntimeTests(unittest.TestCase):
         self.desired=yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
         # Offline-only synthetic digest; never a deployable image.
         self.inputs={'custom_image':'localhost/offline-fixture@sha256:'+'a'*64,'recovery_host':'recovery.example.invalid'}
+    def test_real_runtime_inputs_require_archived_image_and_recovery_identity(self):
+        inputs=json.loads((ROOT/'Nautobot/manifests/runtime-inputs.json').read_text())
+        qualified=json.loads((ROOT/'Nautobot/manifests/qualified-image.json').read_text())
+        accepted=yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        renderer.verify_qualified_inputs(inputs,qualified,accepted)
+        for key,value in [('custom_image','localhost/other@sha256:'+'a'*64),('recovery_host','wrong.invalid')]:
+            with self.assertRaises(ValueError):renderer.verify_qualified_inputs({**inputs,key:value},qualified,accepted)
+        for key,value in [('image_id','sha256:'+'b'*64),('archive_sha256','c'*64),('terminal_evidence_sha256','d'*64)]:
+            with self.assertRaises(ValueError):renderer.verify_qualified_inputs(inputs,{**qualified,key:value},accepted)
+
     def test_deterministic_and_private(self):
         files=renderer.render(self.desired,self.inputs)
         self.assertEqual(files,renderer.render(self.desired,self.inputs))

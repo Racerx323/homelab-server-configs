@@ -70,6 +70,31 @@ def render(desired, inputs):
     return artifacts
 
 
+
+def verify_qualified_inputs(inputs, qualified, accepted):
+    """Bind operator rendering to archived image evidence, not a plausible digest."""
+    if inputs['custom_image'] != qualified['reference']:
+        raise ValueError('runtime_image_not_qualified')
+    if qualified['reference'] != 'localhost/nautobot-homelab@'+qualified['manifest_digest']:
+        raise ValueError('qualified_reference_mismatch')
+    if inputs['recovery_host'] != accepted['dual_stack_identity']['fqdn']:
+        raise ValueError('recovery_identity_mismatch')
+    if qualified['runtime_accepted'] or qualified['runtime_store_loaded']:
+        raise ValueError('unexpected_runtime_acceptance')
+    git=lambda *args: subprocess.check_output(['git','-C',str(ROOT),*args],timeout=15)
+    tag=qualified['terminal_tag']
+    if git('cat-file','-t',tag).strip()!=b'tag' or git('rev-parse',tag+'^{}').decode().strip()!=qualified['terminal_commit']:
+        raise ValueError('image_archive_identity')
+    raw=git('show',tag+':Nautobot/manifests/image-qualification-result.json')
+    if hashlib.sha256(raw).hexdigest()!=qualified['terminal_evidence_sha256']:
+        raise ValueError('image_archive_hash')
+    result=json.loads(raw)
+    for key in ['image_id','archive_sha256']:
+        if result[key]!=qualified[key]:raise ValueError('image_artifact_mismatch')
+    if result['oci_manifest_digest']!=qualified['manifest_digest'] or result['outcome']!='bounded_static_image_qualification_passed':
+        raise ValueError('image_not_qualified')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--inputs', required=True, type=Path)
@@ -77,7 +102,10 @@ def main():
     args = parser.parse_args()
     desired = ROOT / 'Nautobot/manifests/desired-state.yaml'
     subprocess.run(['check-jsonschema', '--schemafile', str(ROOT / 'Nautobot/schemas/desired-state.schema.json'), str(desired)], check=True)
-    files = render(yaml.safe_load(desired.read_text()), json.loads(args.inputs.read_text()))
+    inputs=json.loads(args.inputs.read_text())
+    verify_qualified_inputs(inputs, json.loads((ROOT/'Nautobot/manifests/qualified-image.json').read_text()),
+                            yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text()))
+    files = render(yaml.safe_load(desired.read_text()), inputs)
     args.output.mkdir(mode=0o700)  # Refuse existing destination and never overwrite evidence.
     for name, content in files.items():
         path = args.output / name

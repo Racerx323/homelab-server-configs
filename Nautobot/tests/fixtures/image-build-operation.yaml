@@ -1,0 +1,32 @@
+schema_version: 1
+operation:
+  id: nautobot-image-qualification-v2
+  stage: image_qualification
+  state: definition
+  authorization_ready: true
+authorization:
+  mutation_authorized: false
+  method: separate_explicit_approval_of_frozen_bundle_sha256
+  preparation_only: true
+build:
+  id: fac478c529ba
+  host: j2-svpi4mf
+  boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
+  base_image: docker.io/networktocode/nautobot@sha256:5273234a7589f92084d159711feb48ac69da027de9854426857ae3afc88a5aa7
+  input_sha256:
+    Containerfile: 21c023dfbaac1a8f7afc4227ddbf625d52edea29633a1eb39c06d1ffef9a76cf
+    requirements.lock: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+  predecessor:
+    repository: /home/aaron/code/homelab-server-configs
+    tag: nautobot-image-qualification-v1-failed
+    operation_sha256: 262caadbc9e53e4db9217931f23276b71992b3e15d8fda5901daf7e3dfac4c1e
+    bundle_sha256: 21c15632af42c3e7d1aeb689889a0538a58e58a6b00b2a2f5024ca243f7c06a4
+    id: fc72db68162a
+    result_sha256: 7e9d9f63643d1603ee98f87d6ef1ef223772f70f222c43312f77098b3ea4fbe3
+    terminal_evidence_sha256: 2b3e50d7b39b66fd9f0b12731540fd862e642027ddab8bf681b240008c37f98b
+boundaries:
+  runtime_deployment: false
+  production_credentials: false
+  production_store_load: false
+  public_registry_push: false
+  cleanup_or_prune: false

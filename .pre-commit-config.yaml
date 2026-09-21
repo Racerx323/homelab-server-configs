@@ -438,4 +438,4 @@ repos:
         entry: python3 Nautobot/tests/test_image_build.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/test_image_build\.py|docs/IMAGE_BUILD\.md)
+        files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/(?:test_image_build\.py|fixtures/image-build-operation\.yaml)|docs/IMAGE_BUILD\.md)

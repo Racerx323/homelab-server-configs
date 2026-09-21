@@ -341,9 +341,9 @@ in this review.
 | Prerequisite | Verified status | Required completion |
 | --- | --- | --- |
 | Host baseline and dual-stack identity | Accepted terminal records present; provenance reverified | Fresh bounded drift check before a live pilot |
-| Custom image | Pinned base and DNS Models wheel hash exist; finished custom-image digest absent | Qualify the exact ARM64 build and resulting image |
+| Custom image | Bounded ARM64 qualification passed and is archived; immutable identity recorded in qualified-image.json | Verify archive load into the runtime store and full application configuration under a separate operation |
 | Build location | User selected `j2-svpi4mf` for native ARM64 qualification | Build-host preflight before the exact build bundle |
-| Application credentials | Doppler selected; user reports entities not yet created | Review references, then separately provision and verify them |
+| Application credentials | homelab-dev/prd_nautobot and admin identity approved; config absent at preparation | Execute separately reviewed creation and protected injection; mappings prepared |
 | Recovery identity | `j2-svpi4mf.local.theama.co` approved | Use in renderer and actual ALLOWED_HOSTS |
 | Application configuration | Renderer emits a non-secret contract only | Prepare actual protected settings and verify against the built image |
 | Runtime activation | Launcher expects `nautobot_pilot`; schema has no executable runtime branch | Review schema, launcher and playbook together, binding stage-3 and stage-4 archive evidence rather than relying only on booleans |
@@ -360,8 +360,8 @@ needs access while retaining the Caddy-only backend policy.
 
 The user selected Doppler for all application credentials and confirmed that the
 entities have not been created. Proposed project/config is `homelab-dev` /
-`prd_nautobot`, following existing repository naming. This mapping remains a
-proposal, not approved or verified state.
+`prd_nautobot`, following existing repository naming. The user approved this mapping on September 21; names-only inspection confirmed
+the config is absent. Credential creation and injection have not occurred.
 
 | Logical reference | Proposed key | Consumers |
 | --- | --- | --- |
@@ -370,7 +370,8 @@ proposal, not approved or verified state.
 | `redis_password` | `NAUTOBOT_REDIS_PASSWORD` | Redis and application services |
 | `initial_administrator_credential` | `NAUTOBOT_INITIAL_ADMIN_PASSWORD` | One-time bootstrap only |
 
-Administrator username/email remain separate non-secret inputs to select.
+Administrator username `admin` is approved. The approved email is retained in
+private bootstrap inputs rather than copied into the public repository.
 Keep existing Restic/B2 references under their owning configurations; do not copy
 or rotate them during application setup. Review generation ownership, access,
 recovery and protected injection before creating entities. Never put values in
@@ -656,3 +657,21 @@ Successful-operation archival remains pending; the active slot retains the exact
 executed v2 definition. No new build or cleanup should run from it. Next preparation
 is artifact-identity reconciliation and application credential/runtime readiness;
 Doppler entity creation, deployment and Restic stages remain separately scoped.
+
+### Qualification archival and runtime preparation
+
+The successful v2 qualification is published at tag
+`nautobot-image-qualification-v2-qualified`, commit `77ab94a`. The active operation
+slot is clean. Qualified artifact provenance is retained in `qualified-image.json`;
+host/runtime acceptance boundaries remain unchanged. Eleven runtime artifacts
+were rendered with the real OCI manifest digest and approved recovery identity.
+The renderer verifies archived evidence before rendering operator inputs.
+
+Doppler preparation confirmed project `homelab-dev`, environment `prd`, target
+config `prd_nautobot` absent, and parent `prd` exposing only the three Doppler
+metadata names. No secret values were retrieved or created. Four mappings and
+generation requirements are in `credential-preparation.json`; the approved
+bootstrap email remains in private evidence. See
+[CREDENTIAL_PREPARATION.md](CREDENTIAL_PREPARATION.md) for provisioning, injection,
+validation and recovery boundaries. Runtime executable contracts, actual settings,
+image-store load, firewall and pre-data Restic checks remain pending.
