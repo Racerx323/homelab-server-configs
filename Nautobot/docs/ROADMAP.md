@@ -11,17 +11,23 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-now defines standalone Restic initialization, awaiting exact-bundle approval. Negative security tests were not run and remain unresolved.
+retains the consumed standalone Restic initialization pending terminal archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
 config-absent status 10, and controller/remote credential cleanup verified.
 Result: [restic-preflight-result.json](../manifests/restic-preflight-result.json).
 The preflight is archived as `nautobot-restic-absence-20260921-passed`
-at `2d96737`. Next is approval of the separate initialization bundle.
+at `2d96737`. Initialization subsequently passed under its approved bundle:
+format 2, full repository ID, empty lock listing, no cache and credential cleanup
+verified. [Initialization acceptance](../manifests/restic-initialization-result.json)
+owns this result; baseline-era `restic_initialized: false` is historical.
+Next is terminal initialization archival, then canary backup and integrity
+preparation; isolated restore remains separate. Do not rerun initialization.
 Do not rerun the consumed preflight definition. Historical failed
 trial records remain unchanged.
-Stage 5, administrator bootstrap, production deployment and Restic remain open.
+Stage 5, administrator bootstrap, production deployment and Restic backup/restore
+remain open; repository initialization alone is accepted.
 
 Credential provisioning was previously archived at
 `nautobot-credentials-v1-provisioned` (`451b82d`). The historical sections below
