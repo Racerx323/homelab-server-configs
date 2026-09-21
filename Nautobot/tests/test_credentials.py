@@ -14,6 +14,12 @@ c=importlib.util.module_from_spec(spec);spec.loader.exec_module(c)
 
 
 class Credentials(unittest.TestCase):
+    def setUp(self):
+        fixture = patch.dict(c.FILES, {
+            "active.yaml": "Nautobot/tests/fixtures/credential-operation.yaml"})
+        fixture.start()
+        self.addCleanup(fixture.stop)
+
     def test_payload_consumers_and_injection_rejection(self):
         values={k:('ab'*64 if i==0 else ('%02x'%(i+1))*32) for i,k in enumerate(c.KEYS)}
         payload=c.payloads(values)
@@ -116,6 +122,16 @@ class Credentials(unittest.TestCase):
             with patch.object(c,'transact') as contact:
                 with self.assertRaises(c.Blocked):c.execute(bundle,digest)
                 contact.assert_not_called()
+
+    def test_clean_slot_refuses_credential_reactivation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            active = root / 'clean.yaml'
+            active.write_text('schema_version: 1\noperation:\n  state: clean\n  authorization_ready: false\n')
+            with patch.dict(c.FILES, {'active.yaml': str(active)}):
+                with self.assertRaisesRegex(c.Blocked, 'active_operation_mismatch'):
+                    c.prepare(root / 'bundle')
+            self.assertFalse((root / 'bundle').exists())
 
 
 if __name__=='__main__':unittest.main()

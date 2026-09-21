@@ -62,3 +62,11 @@ consumed definition and `manifests/credential-result.json`. Bundle SHA-256:
 Bootstrap password remains only in Doppler; no administrator or runtime was
 started. Host baseline and image qualification identities remain unchanged;
 application configuration/authentication and runtime acceptance remain open.
+
+Credential archival reconciliation: published tag
+`nautobot-credentials-v1-provisioned` peels to
+`451b82d38906b7b5ca6770010fe924a0a9ce3ca1`. The consumed files retain their original
+formatting; the archive commit skipped only Markdown/YAML formatting hooks for
+one bare URL and one sequence-indentation finding. Other hooks passed. Current
+files correct those findings and return the operation slot to clean. Durable
+credential provenance is in `manifests/provisioned-credentials.json`.

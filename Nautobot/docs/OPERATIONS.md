@@ -253,3 +253,10 @@ or production credential delivery. The single operation slot holds its definitio
 external exact-hash approval is still required to execute. Keep the resulting OCI
 manifest digest, archive checksum and image ID distinct. Loading into the runtime
 store, settings/database qualification and runtime startup require later review.
+
+## After credential injection
+
+Use [image loading and configuration qualification](IMAGE_LOADING_AND_CONFIGURATION.md)
+for the next bounded stages. Published credential provenance is in
+`manifests/provisioned-credentials.json`. Image loading, disposable authentication
+checks, production deployment and administrator bootstrap are distinct results.

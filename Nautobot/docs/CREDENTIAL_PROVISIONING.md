@@ -5,6 +5,10 @@ injects protected inputs on j2-svpi4mf. It does not start containers, load image
 initialize databases, create the administrator or change Restic/network/Caddy.
 The bootstrap password stays only in Doppler until its separate one-time operation.
 
+The completed pilot is archived at `nautobot-credentials-v1-provisioned`.
+Do not rerun its create-only bundle. The following procedure applies only after
+reviewing a new operation and its prerequisites.
+
 ## Bundle and execution
 
 ```text
@@ -34,7 +38,7 @@ the newly created config must remain exclusively owned by this operation until
 verification. Concurrent writers are outside its contract.
 
 Doppler uses the existing controller authentication context and explicit
-https://api.doppler.com with TLS verification. Do not supply tokens on the command
+`https://api.doppler.com` with TLS verification. Do not supply tokens on the command
 line. Private command stdout/stderr live in anonymous descriptors with 1 MiB output
 and bounded execution time; they are never copied into evidence. API write retries
 are disabled. Secret-bearing uploads and injection payloads use an exclusive

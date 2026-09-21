@@ -1,5 +1,18 @@
 # Nautobot roadmap and acceptance status
 
+## Current next action
+
+Credential provisioning and protected injection are archived at
+`nautobot-credentials-v1-provisioned` (`451b82d`). The operation slot is clean.
+Stage 5 remains unaccepted. [Image loading and application checks](IMAGE_LOADING_AND_CONFIGURATION.md)
+define the next two bounded stages and their acceptance/cleanup requirements.
+The first next execution is image-store loading; its Ansible path, failure tests
+and frozen bundle must be completed before live approval. No application
+configuration/authentication test or administrator creation has run.
+
+The dated sections below retain historical preparation and observation context;
+their absent-config and pending-archive statements are not current-state claims.
+
 ## Historical checkpoint-review boundary
 
 The September 21, 2026 read-only review confirms both new-kernel Webmin
