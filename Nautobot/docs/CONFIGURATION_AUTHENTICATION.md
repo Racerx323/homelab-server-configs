@@ -4,7 +4,11 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot holds the definition; no live trial has run.
+operation slot retains the executed definition pending archival. The first trial
+failed at the application-probe step and cleaned up successfully; the terminal
+outcome is in `../manifests/authentication-trial-result.json`. The diagnostic retry is prepared as an external candidate while this terminal
+definition remains intact; execution requires its annotated published failure tag
+and a new exact-bundle approval.
 
 ## Prepared checks and provenance
 
@@ -179,3 +183,32 @@ Podman options and inspection expectations follow the official
 [create reference](https://docs.podman.io/en/latest/markdown/podman-create.1.html).
 The bundle includes the exact code, schema, plan, provenance and non-secret inputs;
 changes require a new bundle identity before execution.
+
+## Failure diagnostics and retry preparation
+
+The node writes `diagnostic.json` before each probe substep: guard, inspect,
+validate, effective limits, probe identity resolution, Django shell, result parsing
+and final guard. It records the container role and only exact allowlisted assertion
+categories; unknown exceptions become `unclassified_failure`. The bounded capture
+helper can deliver exit status and streams to an in-memory observer even on a
+nonzero exit, timeout or output-limit failure. Only strict probe JSON categories
+and completed fixed check names are persisted. Raw streams and exception messages
+are discarded. A diagnostic report never substitutes for acceptance evidence.
+
+A failure before the probe starts therefore retains its validation stage; a
+structured probe rejection retains its settings/PostgreSQL/Redis phase. An
+unstructured framework error retains the Django-shell stage and command status,
+not an inferred cause. Credentials remain absent from diagnostics and tests include
+secret-bearing synthetic output to enforce that boundary.
+
+Prepare a retry candidate outside the active manifest with:
+
+```bash
+python3 Nautobot/ansible/scripts/authentication-trial.py prepare /tmp/RETRY_BUNDLE --operation /absolute/private/operation.yaml
+```
+
+The retry binds the prior failed result hash. Before any host contact, execution
+requires that exact result in an annotated Git tag and verifies the same tag object
+on origin. Until terminal archival is authorized and completed, the candidate is
+reviewable but blocked from execution. Preserve the active executed definition;
+do not replace it with the candidate merely to prepare a bundle.

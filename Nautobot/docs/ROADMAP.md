@@ -4,17 +4,16 @@
 
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
 Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
-The isolated [configuration/authentication trial](CONFIGURATION_AUTHENTICATION.md)
-executed on September 21, 2026 and failed at the application-probe step.
-All three disposable containers and the private network were removed; 77.7 seconds
-of post-cleanup storage observation and configuration continuity passed.
-`manifests/authentication-trial-result.json` records the terminal outcome. The
-operation slot retains its executed definition pending archival; it is not an
-unused execution authorization. The cause is unproven because the helper did not
-retain a sanitized diagnostic category. Sanitized phase/status diagnostics and their regressions are now implemented.
-A separately frozen retry candidate retains the original limits and acceptance
-checks and requires the prior failed result in a published annotated tag before
-host contact. Next: authorize terminal archival and the reviewed retry bundle.
+The first isolated authentication trial is archived in
+`nautobot-configuration-auth-v1-failed` (`18d5bf8`). All consumed source inputs
+match the published tag. The approved diagnostic retry ran once and failed during
+running PostgreSQL `tmpfs_set` validation, before application authentication.
+`manifests/authentication-trial-retry-result.json` records the result. Cleanup and
+continuity passed, with 77.8 seconds of quiet post-cleanup observation.
+The active slot retains the consumed v2 definition pending archival. Local testing reproduced the symlink-path mismatch; the source now creates and
+validates canonical `/run/postgresql` without relaxing mount checks. Regression
+fixtures retain both observed metadata forms. Next: archive v2 and prepare a
+separately approved successor bundle. Authentication remains open.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
 Credential provisioning was previously archived at

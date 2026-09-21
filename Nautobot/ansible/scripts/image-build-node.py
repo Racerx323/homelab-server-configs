@@ -16,7 +16,7 @@ AUDIT = None
 ERRORS = re.compile(r'reset.*USB|USB.*reset|I/O error|EXT4-fs error|Buffer I/O|uas.*(?:abort|error)|under.voltage|out of memory|oom-kill', re.I)
 
 
-def capture(argv, timeout=10, limit=262144, env=None):
+def capture(argv, timeout=10, limit=262144, env=None, observer=None):
     """Bound both streams while draining; kill process group on any failure."""
     p = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True, env=env)
     sel = selectors.DefaultSelector()
@@ -58,6 +58,8 @@ def capture(argv, timeout=10, limit=262144, env=None):
         sel.close()
         p.stdout.close()
         p.stderr.close()
+        if observer is not None:
+            observer(p.returncode, bytes(data['out']), bytes(data['err']))
 
 
 def save(path, value):

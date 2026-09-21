@@ -36,6 +36,49 @@ class Trial(unittest.TestCase):
                 with self.assertRaises(ValueError):c.execute(b,digest)
                 contact.assert_not_called()
 
+    def test_probe_diagnostics_preserve_validation_category_without_secret(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            with patch.object(n,'guard'),patch.object(n,'container',return_value={}),patch.object(n,'validate_container',side_effect=RuntimeError('secret_mount')):
+                with self.assertRaises(RuntimeError):n.probe_action(root,{})
+            record=n.read(root,'diagnostic')
+            self.assertEqual((record['phase'],record['role'],record['category']),('validate','postgresql','secret_mount'))
+            self.assertEqual(n.diagnostic_error(RuntimeError('password=DO_NOT_RECORD')), 'unclassified_failure')
+
+    def test_real_nonzero_capture_preserves_only_allowlisted_probe_diagnostics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);n.save(root,'diagnostic',{'phase':'django_shell'})
+            rejection={'accepted':False,'checks':n.CHECKS[:1],'production_runtime_accepted':False,
+                       'administrator_created':False,'failed_phase':'postgresql','error':'check_or_connection_cleanup_failed'}
+            code='import sys;print("private=DO_NOT_RECORD");print('+repr(json.dumps(rejection))+');print("password=DO_NOT_RECORD",file=sys.stderr);sys.exit(69)'
+            with self.assertRaises(RuntimeError):
+                n.n.bounded.capture([sys.executable,'-c',code],observer=n.observed_probe(root))
+            record=n.read(root,'diagnostic');self.assertEqual(record['command_rc'],69)
+            self.assertEqual(record['probe_phase'],'postgresql')
+            self.assertNotIn('DO_NOT_RECORD',(root/'diagnostic.json').read_text())
+            rejection['failed_phase']='secret=DO_NOT_RECORD'
+            n.observed_probe(root)(69,json.dumps(rejection).encode(),b'private')
+            self.assertNotIn('DO_NOT_RECORD',(root/'diagnostic.json').read_text())
+
+    def test_real_capture_timeout_and_output_limit_stay_fail_closed(self):
+        for code,timeout,limit in [('import time;time.sleep(2)',.05,1024),('print("x"*4096)',2,64)]:
+            with tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);n.save(root,'diagnostic',{'phase':'django_shell'})
+                with self.assertRaises(RuntimeError):n.n.bounded.capture([sys.executable,'-c',code],timeout=timeout,limit=limit,observer=n.observed_probe(root))
+                self.assertNotEqual(n.read(root,'diagnostic')['output_category'],'probe_reported_success')
+
+    def test_archival_gate_rejects_missing_changed_or_unpublished_predecessor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);tag='nautobot-configuration-auth-v1-failed'
+            (root/'operation.yaml').write_text(yaml.safe_dump({'predecessor':{'terminal_tag':tag}}))
+            (root/'predecessor-result.json').write_bytes(b'fixed failed result')
+            good=[b'tag',b'fixed failed result',b'a'*40,b'a'*40+b'\trefs/tags/'+tag.encode()+b'\n']
+            with patch.object(c.subprocess,'check_output',side_effect=good):c.archival_gate(root)
+            for index,replacement in [(0,b'commit'),(1,b'changed'),(3,b'')]:
+                bad=good.copy();bad[index]=replacement
+                with patch.object(c.subprocess,'check_output',side_effect=bad):
+                    with self.assertRaises(ValueError):c.archival_gate(root)
+
     def test_clean_slot_refuses_activation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);p=root/'clean';p.write_text('schema_version: 1\noperation: {state: clean}\n')

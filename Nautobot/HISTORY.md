@@ -98,3 +98,19 @@ the consumed definition, executable inputs and `manifests/authentication-trial-r
 Bundle: `fda654ad9614e022ecbe9c5f27e7930a9cae21c8ec33fefd44f3680ac5028f04`.
 Authentication and production runtime remain unaccepted; baseline and image-store
 identities are unchanged.
+
+Failure archive reconciliation: `nautobot-configuration-auth-v1-failed` peels to
+`18d5bf8442bbc410272917544d69ae4ac6172ffd`. All frozen source inputs match the tag.
+The single active slot now holds the separately approved diagnostic retry v2;
+accepted host and runtime identities remain unchanged.
+
+## Diagnostic authentication retry
+
+`nautobot-configuration-auth-v2`: running PostgreSQL tmpfs-set validation failed
+before application authentication. All trial containers and the private network
+were removed; continuity and 77.778 seconds of delayed observation passed.
+Terminal tag: `nautobot-configuration-auth-v2-failed`; its peeled commit retains
+the exact consumed inputs and `manifests/authentication-trial-retry-result.json`.
+Bundle: `ab01aacd5616c0c13a98766d0feb16b9dbc5c34a92e639c9a9bed41dd5abb426`.
+Host baseline and image-store identities remain unchanged; authentication remains
+unaccepted.

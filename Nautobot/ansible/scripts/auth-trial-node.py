@@ -30,9 +30,71 @@ def save(root,name,data):
 def read(root,name):return json.loads((root/(name+'.json')).read_text())
 
 
-def pod(args,timeout=30):
+def pod(args,timeout=30,observer=None):
     # Never persist raw stdout/stderr: inspect contains environment credentials.
-    return n.bounded.capture(n.USER+args,timeout=timeout,limit=1024*1024,env=n.ENV)
+    return n.bounded.capture(n.USER+args,timeout=timeout,limit=1024*1024,env=n.ENV,observer=observer)
+
+
+DIAGNOSTIC_CODES=frozenset(('watchdog_not_live','resource_guard','kernel_storage_or_health_event',
+    'container_inspection','container_identity','container_ownership','container_image',
+    'container_exposure','published_ports','configured_memory','container_network',
+    'configuration_bind','secret_mount','unreviewed_data_mount','tmpfs_set','tmpfs_size',
+    'missing_bind','container_cgroup','effective_limits','container_not_running',
+    'probe_failed_or_unexpected_output','command_timeout','output_limit'))
+
+
+def diagnostic_error(error):
+    # Exact controlled identifiers only. Never persist arbitrary exception text.
+    message=str(error)
+    if type(error) is RuntimeError and message in DIAGNOSTIC_CODES:return message
+    if type(error) is RuntimeError and re.fullmatch(r'command_failed:runuser:-?[0-9]+',message):return 'command_nonzero'
+    return 'unclassified_failure'
+
+
+def observed_probe(root):
+    def observe(rc,out,err):
+        record=read(root,'diagnostic')
+        for key in ('probe_phase','completed_checks'):record.pop(key,None)
+        record['command_rc']=rc
+        record['output_category']='no_valid_probe_result'
+        try:
+            value=json.loads(out.decode('utf-8').strip().splitlines()[-1])
+            phases={'isolation','settings','postgresql','redis_cache','redis_broker'}
+            if (set(value)=={'accepted','checks','production_runtime_accepted','administrator_created','failed_phase','error'}
+                    and value['accepted'] is False and value['production_runtime_accepted'] is False
+                    and value['administrator_created'] is False and value['failed_phase'] in phases
+                    and value['error']=='check_or_connection_cleanup_failed'
+                    and value['checks'] in [CHECKS[:i] for i in range(5)]):
+                record.update(output_category='probe_rejected',probe_phase=value['failed_phase'],completed_checks=value['checks'])
+            elif value=={'accepted':True,'checks':CHECKS,'production_runtime_accepted':False,'administrator_created':False}:
+                record['output_category']='probe_reported_success'
+        except (ValueError,UnicodeError,IndexError,TypeError):pass
+        save(root,'diagnostic',record)
+    return observe
+
+
+def probe_action(root,spec):
+    record={'action':'probe','phase':'guard','status':'running'}
+    def phase(name,role=None):
+        record.update(phase=name,role=role);save(root,'diagnostic',record)
+    try:
+        phase('guard');guard(root)
+        for selected in ROLES:
+            phase('inspect',selected);v=container(root,selected)
+            phase('validate',selected);validate_container(root,spec,selected,v)
+            require(v['State']['Running'],'container_not_running')
+            phase('effective_limits',selected);effective_limits(v['State']['Pid'],v['Id'],selected)
+        phase('resolve_probe','probe');cid=container(root,'probe')['Id']
+        phase('django_shell','probe')
+        code="exec(compile(open('/run/nautobot-qualification/probe.py').read(), '/run/nautobot-qualification/probe.py', 'exec'), {'__name__':'__main__'})"
+        out=pod(['exec',cid,'nautobot-server','shell','--interface','python','--command',code],timeout=120,observer=observed_probe(root))
+        record=read(root,'diagnostic');phase('parse_probe','probe')
+        save(root,'probe-result',probe_result(out))
+        phase('post_guard');guard(root)
+        record.update(status='passed');save(root,'diagnostic',record)
+    except Exception as error:
+        record=read(root,'diagnostic');record.update(status='failed',category=diagnostic_error(error))
+        save(root,'diagnostic',record);raise
 
 
 def identity(root):
@@ -157,6 +219,8 @@ def preflight(root):
 def action(root,mode,role):
     spec=read(root,'spec')
     with locked(root):
+        if mode=='probe':
+            probe_action(root,spec);return
         guard(root)
         if mode=='network':
             pod(['network','create','--internal','--label',LABEL+'='+identity(root),identity(root)])
@@ -175,13 +239,6 @@ def action(root,mode,role):
             args=['pg_isready','-U','nautobot','-d','nautobot'] if role=='postgresql' else ['redis-cli','--raw','ping']
             output=pod(['exec',v['Id'],*args],timeout=10)
             if role=='redis':require(output.strip()=='PONG','redis_not_ready')
-        elif mode=='probe':
-            for selected in ROLES:
-                v=container(root,selected);validate_container(root,spec,selected,v)
-                require(v['State']['Running'],'container_not_running');effective_limits(v['State']['Pid'],v['Id'],selected)
-            code="exec(compile(open('/run/nautobot-qualification/probe.py').read(), '/run/nautobot-qualification/probe.py', 'exec'), {'__name__':'__main__'})"
-            out=pod(['exec',container(root,'probe')['Id'],'nautobot-server','shell','--interface','python','--command',code],timeout=120)
-            save(root,'probe-result',probe_result(out))
         else:raise RuntimeError('unknown_action')
         guard(root)
 

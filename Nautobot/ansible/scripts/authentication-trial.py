@@ -14,6 +14,7 @@ import tempfile
 sys.dont_write_bytecode = True
 ROOT = next((p for p in Path(__file__).resolve().parents if (p/'Nautobot/manifests').is_dir()), None)
 FILES = {
+    'predecessor-result.json':'Nautobot/manifests/authentication-trial-result.json',
     'PLAN.md':'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
     'launcher.py':'Nautobot/ansible/scripts/authentication-trial.py',
     'node.py':'Nautobot/ansible/scripts/auth-trial-node.py',
@@ -56,6 +57,8 @@ def spec_from(root):
     op=yaml.safe_load((root/'operation.yaml').read_text())
     Draft202012Validator(json.loads((root/'schema.json').read_text())).validate(op)
     require(op['plan_sha256']==sha(root/'PLAN.md'),'plan_identity')
+    require(op['operation']['id']=='nautobot-configuration-auth-v2','retry_definition_required')
+    require(op['predecessor']['result_sha256']==sha(root/'predecessor-result.json'),'predecessor_result')
     desired=yaml.safe_load((root/'desired.yaml').read_text())
     Draft202012Validator(json.loads((root/'desired-schema.json').read_text())).validate(desired)
     qualified=json.loads((root/'qualified.json').read_text())
@@ -157,9 +160,24 @@ def evaluate(root,rc,spec):
         require(record['started'] and 0<limits['memory_max']<=memory*1024**2 and limits['swap_max']==0 and 0<limits['cpus']<=2,'limits_evidence')
 
 
+def archival_gate(bundle):
+    """No mutation: require the prior terminal result in an annotated published tag."""
+    import yaml
+    op=yaml.safe_load((bundle/'operation.yaml').read_text());tag=op['predecessor']['terminal_tag']
+    repo=ROOT or Path.cwd()
+    def read_git(*args):return subprocess.check_output(['git','-C',str(repo),*args],timeout=20)
+    require(read_git('cat-file','-t',tag).strip()==b'tag','predecessor_not_archived')
+    archived=read_git('show',tag+':Nautobot/manifests/authentication-trial-result.json')
+    require(archived==(bundle/'predecessor-result.json').read_bytes(),'predecessor_archive_mismatch')
+    tag_object=read_git('rev-parse',tag).decode().strip()
+    remote=read_git('ls-remote','--tags','origin','refs/tags/'+tag).decode().split()
+    require(remote==[tag_object,'refs/tags/'+tag],'predecessor_tag_not_published')
+
+
 def execute(bundle,digest):
     verify(bundle,digest)
     require(sha(Path(__file__))==sha(bundle/'launcher.py'),'execute_frozen_launcher')
+    archival_gate(bundle)
     evidence=Path(tempfile.mkdtemp(prefix='nautobot-auth-trial-evidence.'));print('evidence='+str(evidence),flush=True)
     result={'accepted':False,'bundle_sha256':digest,'production_runtime_started':False,'mutation_status':'unknown_until_node_records_reviewed','rollback':'remove_only_owned_disposable_objects'}
     try:
@@ -185,7 +203,10 @@ def execute(bundle,digest):
 
 def main():
     os.umask(0o077)
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['prepare','verify','execute']);p.add_argument('bundle',type=Path);p.add_argument('digest',nargs='?');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['prepare','verify','execute']);p.add_argument('bundle',type=Path);p.add_argument('digest',nargs='?');p.add_argument('--operation',type=Path);a=p.parse_args()
+    if a.operation is not None:
+        require(a.mode=='prepare','operation_override_prepare_only')
+        FILES['operation.yaml']=str(a.operation.resolve())
     if a.mode=='prepare':prepare(a.bundle.resolve());return 0
     require(a.digest is not None,'exact_bundle_approval_required')
     if a.mode=='verify':verify(a.bundle.resolve(),a.digest);return 0

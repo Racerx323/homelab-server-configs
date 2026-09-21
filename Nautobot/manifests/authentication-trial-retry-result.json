@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-configuration-auth-v2",
+  "bundle_sha256": "ab01aacd5616c0c13a98766d0feb16b9dbc5c34a92e639c9a9bed41dd5abb426",
+  "reviewed_at": "2026-09-21T20:43:47.481839+00:00",
+  "accepted": false,
+  "outcome": "running_postgresql_tmpfs_validation_failed",
+  "diagnostic": {
+    "action": "probe",
+    "phase": "validate",
+    "status": "failed",
+    "role": "postgresql",
+    "category": "tmpfs_set"
+  },
+  "authentication_probe_invoked": false,
+  "production_runtime_started": false,
+  "cleanup_passed": true,
+  "continuity_passed": true,
+  "watchdog_terminal_state": "inactive",
+  "post_cleanup_seconds": 77.77756195899565,
+  "sample_count": 25,
+  "maximum_sample_gap_seconds": 10.912116310035344,
+  "evidence_sha256": {
+    "spec.json": "8a8cbc242a56a792299f7106204eb906a712fd6864fc9cd769637825f4ef2e3d",
+    "watchdog-ready.json": "f79d63c984320b1d53ed9826f4bd14534f99df2d2545582540c54c9a89cd5911",
+    "cleanup.json": "c0f613d6c8dc0324ee4bd7164cde62c7982ef1a6a06334f5f25acf77c2b330d8",
+    "result.json": "2ff19ed98fd2b65c2cb811c2b9dc1f9727866d9c3a2bf71ef35d42b45ba9255d",
+    "node-location.json": "97ceef14a1be22d336ee540d2683cefe7c28d07dffb991495bd5aeaf342eb718",
+    "controller-result.json": "2f2abf80672fc5bbafaf23f9e1e46b06bdd152ae7aea821a2e057d43722e6bc6",
+    "execution-trace.jsonl": "479d28410c6b4a653b0b58e235bfd742ce9ad949de0362386e81c35c6df3f6cb",
+    "diagnostic.json": "dd460b466cca25e02fe2ffc83a28504219d7877a917b8290510494679b7a26f5",
+    "probe.json": "95cea92e297faea6b02d6e783dfcea2769daec2b97194097af3e0c893541de74",
+    "postgresql.json": "a1be0971cf06aa2f06906a86ae5ccc5039c3e413c11a94fe78b9043297a996f7",
+    "redis.json": "d144e44bd91a538fde59d22e65303118fc169698cc38b4e335a080a62dcb17ce",
+    "emergency.json": "ef5a3cadc32687fa9310a70a94892002e95e5ae51fe83f2524e3d3266a87a0a5",
+    "network.json": "1c66954fbd30c9c2a3998a2439dbc20b7cc5e66b5ccfece7579c0b6f6ed06137",
+    "before.json": "67c90921de901bd802beb732e285e737eb652227746af93bec034f947216c318"
+  },
+  "git_archival": "pending"
+}
