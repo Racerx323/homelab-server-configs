@@ -460,3 +460,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/
+
+      - id: nautobot-authentication-trial-contracts
+        name: Validate isolated authentication trial and teardown
+        entry: python3 Nautobot/tests/test_authentication_trial.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/

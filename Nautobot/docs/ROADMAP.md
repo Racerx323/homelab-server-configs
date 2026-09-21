@@ -3,13 +3,18 @@
 ## Current next action
 
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
-The single operation slot is clean; durable provenance is in
-[runtime-image-store.json](../manifests/runtime-image-store.json).
-The [configuration/authentication preparation](CONFIGURATION_AUTHENTICATION.md)
-provides an inactive in-container probe, offline regression tests and a concrete
-disposable-trial design. Next is implementing and freezing its Ansible trial
-launcher, including isolation, resource enforcement and cleanup failure handling.
-No trial containers or live authentication checks ran during preparation.
+Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
+The isolated [configuration/authentication trial](CONFIGURATION_AUTHENTICATION.md)
+executed on September 21, 2026 and failed at the application-probe step.
+All three disposable containers and the private network were removed; 77.7 seconds
+of post-cleanup storage observation and configuration continuity passed.
+`manifests/authentication-trial-result.json` records the terminal outcome. The
+operation slot retains its executed definition pending archival; it is not an
+unused execution authorization. The cause is unproven because the helper did not
+retain a sanitized diagnostic category. Sanitized phase/status diagnostics and their regressions are now implemented.
+A separately frozen retry candidate retains the original limits and acceptance
+checks and requires the prior failed result in a published annotated tag before
+host contact. Next: authorize terminal archival and the reviewed retry bundle.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
 Credential provisioning was previously archived at

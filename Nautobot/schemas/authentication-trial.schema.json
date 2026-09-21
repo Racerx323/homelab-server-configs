@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounded disposable configuration authentication trial",
+  "const": {
+    "schema_version": 1,
+    "operation": {
+      "id": "nautobot-configuration-auth-v1",
+      "stage": "configuration_authentication",
+      "state": "definition",
+      "authorization_ready": true
+    },
+    "authorization": {
+      "mutation_authorized": false,
+      "method": "separate_explicit_approval_of_frozen_bundle_sha256"
+    },
+    "target": "j2-svpi4mf",
+    "source_base_commit": "0317261804d153ddf0b54f3ae5a6eca9af74d23d",
+    "plan_sha256": "7abdab7432a9ba6557ea6e24c4c89344b7c878c23b2985a4aa844e80d94eec0d",
+    "scope": [
+      "private_internal_network",
+      "three_disposable_containers",
+      "tmpfs_database_and_cache",
+      "settings_plugin_authentication_checks",
+      "owned_object_teardown",
+      "post_cleanup_observation"
+    ],
+    "limits": {
+      "active_seconds": 900,
+      "post_cleanup_seconds": 75,
+      "watchdog_max_seconds": 1500,
+      "cpu_per_container": 2,
+      "memory_mib": {
+        "postgresql": 768,
+        "redis": 512,
+        "probe": 1536
+      },
+      "swap_bytes": 0
+    },
+    "boundaries": {
+      "production_runtime": false,
+      "administrator_creation": false,
+      "credential_changes": false,
+      "production_volumes": false,
+      "restic_changes": false,
+      "published_ports": false,
+      "image_pulls": false
+    }
+  }
+}

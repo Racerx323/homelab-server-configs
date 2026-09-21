@@ -60,7 +60,8 @@ class Contracts(unittest.TestCase):
                 'state': 'clean', 'authorization_ready': False}})
         else:
             schema_name = {'credential_provisioning': 'credential-operation.schema.json',
-                           'image_loading': 'image-load.schema.json'}.get(
+                           'image_loading': 'image-load.schema.json',
+                           'configuration_authentication': 'authentication-trial.schema.json'}.get(
                                operation['operation'].get('stage'), 'image-build.schema.json')
             validate(json.loads((ROOT / 'Nautobot/schemas' / schema_name).read_text()), operation)
             self.assertFalse(operation['authorization']['mutation_authorized'])

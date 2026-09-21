@@ -263,4 +263,5 @@ checks, production deployment and administrator bootstrap are distinct results.
 
 The archived image-store identity is in `manifests/runtime-image-store.json`.
 Use [configuration and authentication qualification](CONFIGURATION_AUTHENTICATION.md)
-for the inactive probe and separate disposable-trial execution prerequisites.
+for the frozen Ansible disposable-trial procedure, exact-hash approval, independent
+guard, cleanup and acceptance requirements.

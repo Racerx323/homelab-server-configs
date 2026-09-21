@@ -1,0 +1,9 @@
+---
+- name: Create and inspect the isolated container before startup
+  ansible.builtin.command:
+    argv: [python3, '{{ node.path }}/node.py', create, '{{ node.path }}', '{{ trial_role }}']
+  changed_when: true
+- name: Start and verify effective container limits
+  ansible.builtin.command:
+    argv: [python3, '{{ node.path }}/node.py', start, '{{ node.path }}', '{{ trial_role }}']
+  changed_when: true

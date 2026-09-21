@@ -1,0 +1,144 @@
+---
+- name: Qualify application settings and authentication in disposable containers
+  hosts: authentication_target
+  become: true
+  gather_facts: false
+  module_defaults:
+    ansible.builtin.command:
+      chdir: /
+  tasks:
+    - name: Require exact verified single-host scope
+      ansible.builtin.assert:
+        that:
+          - authentication_bundle_verified | default(false) | bool
+          - inventory_hostname == 'authentication_target'
+          - ansible_play_hosts_all | length == 1
+    - name: Allocate owned non-secret node sources and evidence
+      ansible.builtin.tempfile:
+        path: /var/tmp
+        prefix: nautobot-auth-
+        state: directory
+      register: node
+    - name: Permit runtime account to read only trial sources
+      ansible.builtin.file:
+        path: '{{ node.path }}'
+        owner: root
+        group: nautobot
+        mode: '0750'
+    - name: Stage frozen checks and non-secret specification
+      ansible.builtin.copy:
+        src: '{{ bundle_root }}/{{ item }}'
+        dest: '{{ node.path }}/{{ item }}'
+        owner: root
+        group: nautobot
+        mode: '0644'
+      loop: [node.py, load-node.py, bounded.py, probe.py, spec.json]
+    - name: Stage read-only trial marker
+      ansible.builtin.copy:
+        content: 'disposable-configuration-authentication'
+        dest: '{{ node.path }}/isolated-trial'
+        owner: root
+        group: nautobot
+        mode: '0644'
+    - name: Verify host, injected configuration and loaded image prerequisites
+      ansible.builtin.command:
+        argv: [python3, '{{ node.path }}/node.py', preflight, '{{ node.path }}']
+      changed_when: false
+    - name: Start controller-independent guard before creating runtime objects
+      ansible.builtin.command:
+        argv:
+          - systemd-run
+          - '--unit={{ node.path | basename }}'
+          - --property=Type=exec
+          - --property=RuntimeMaxSec=1500
+          - --property=TimeoutStopSec=360
+          - '--property=ExecStopPost=/usr/bin/python3 {{ node.path }}/node.py emergency {{ node.path }}'
+          - /usr/bin/python3
+          - '{{ node.path }}/node.py'
+          - watchdog
+          - '{{ node.path }}'
+      changed_when: true
+    - name: Run the isolated trial and always signal teardown
+      block:
+        - name: Wait for independent guard readiness
+          ansible.builtin.wait_for:
+            path: '{{ node.path }}/watchdog-ready.json'
+            timeout: 30
+        - name: Create internal operation-owned network
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', network, '{{ node.path }}']
+          changed_when: true
+        - name: Create, inspect and start each limited disposable container
+          ansible.builtin.include_tasks: '{{ bundle_root }}/trial-container.yaml'
+          loop: [postgresql, redis, probe]
+          loop_control:
+            loop_var: trial_role
+        - name: Wait for disposable PostgreSQL and Redis readiness
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', ready, '{{ node.path }}', '{{ item }}']
+          changed_when: false
+          register: ready
+          until: ready.rc == 0
+          retries: 24
+          delay: 5
+          loop: [postgresql, redis]
+        - name: Run settings and positive and negative authentication probes privately
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', probe, '{{ node.path }}']
+          changed_when: false
+      always:
+        - name: Signal independent guard to finish and clean up
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', finish, '{{ node.path }}']
+          changed_when: true
+          register: finish_signal
+          failed_when: false
+        - name: Wait for terminal cleanup and delayed observation evidence
+          ansible.builtin.wait_for:
+            path: '{{ node.path }}/result.json'
+            timeout: 1500
+          register: observation
+          failed_when: false
+        - name: Record retained node evidence location
+          ansible.builtin.copy:
+            content: '{{ {"node_evidence": node.path} | to_nice_json }}'
+            dest: '{{ evidence_root }}/node-location.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+        - name: Find bounded sanitized decision records
+          ansible.builtin.find:
+            paths: '{{ node.path }}'
+            patterns: '*.json'
+            file_type: file
+            recurse: false
+          register: records
+        - name: Bound each record before transfer
+          ansible.builtin.assert:
+            that:
+              - records.files | length <= 14
+              - item.size <= 1048576
+          loop: '{{ records.files }}'
+          loop_control:
+            label: '{{ item.path | basename }}'
+        - name: Preserve sanitized evidence without raw inspect data or logs
+          ansible.builtin.fetch:
+            src: '{{ item.path }}'
+            dest: '{{ evidence_root }}/{{ item.path | basename }}'
+            flat: true
+            validate_checksum: true
+          loop: '{{ records.files }}'
+          loop_control:
+            label: '{{ item.path | basename }}'
+    - name: Require successful cleanup, observation and probe acceptance
+      ansible.builtin.command:
+        argv: [python3, '{{ node.path }}/node.py', status, '{{ node.path }}']
+      changed_when: false
+    - name: Verify watchdog and stop handler have finished
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ node.path | basename }}.service', --property=ActiveState, --value]
+      changed_when: false
+      register: watchdog_state
+      until: watchdog_state.stdout == 'inactive'
+      retries: 12
+      delay: 2

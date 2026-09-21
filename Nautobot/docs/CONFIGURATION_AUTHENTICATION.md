@@ -1,9 +1,10 @@
 # Disposable configuration and authentication qualification
 
-This stage follows archived image-store readiness and remains inactive. It is
+This stage follows archived image-store readiness. Its implementation is prepared for
+separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot is clean.
+operation slot holds the definition; no live trial has run.
 
 ## Prepared checks and provenance
 
@@ -33,8 +34,11 @@ application settings, authentication or successful startup.
 
 ## Isolated execution design
 
-Implement the next operation with Ansible plus the existing frozen-bundle and
-bounded-watchdog conventions. No executable trial launcher/bundle is prepared yet.
+The implementation uses `ansible/playbooks/authentication-trial.yaml`, the frozen
+launcher `ansible/scripts/authentication-trial.py`, and private node adapters in
+`ansible/scripts/auth-trial-node.py`. Ansible sequences creation, readiness and the
+probe. The node helper suppresses secret-bearing Podman output and independently
+guards health, deadline and cleanup.
 Use a unique operation-owned private network and three disposable containers.
 Require absence of all selected names before creation and record exact object IDs.
 Never attach to `nautobot-private` or use production container/volume names.
@@ -49,19 +53,28 @@ PostgreSQL initializes a disposable database with the intended user/database and
 password; this is an authorized-test prerequisite only after bundle approval,
 not production database initialization or a Nautobot schema migration.
 
-Proposed ceilings: PostgreSQL 768 MiB, Redis 512 MiB, probe 1536 MiB, two CPUs per
-container, no swap, maximum 15 minutes for the whole trial. The orchestrator must
+Enforced ceilings: PostgreSQL 768 MiB, Redis 512 MiB, probe 1536 MiB, two CPUs per
+container, no swap, a 15-minute active-trial deadline, followed by bounded teardown and observation. The orchestrator must
 prove effective per-container cgroup limits before tests, guard host memory at
 1.5 GiB available, temperature below 80 C, zero throttling and quiet storage.
-Prove all trial workers stop at the deadline even if the controller disconnects.
-Cgroup placement and timeout teardown require implementation and failure tests;
-reuse qualified mechanisms without assuming image-transfer units alone contain
-container payloads.
+A node-local systemd watchdog starts before runtime objects exist and performs
+cleanup on deadline or health failure without the controller. Its 1500-second
+RuntimeMaxSec and 360-second stop-handler timeout bound the watchdog; ExecStopPost
+attempts cleanup after a killed watchdog. Each container also has a 900-second
+Podman timeout. Live deadline enforcement remains a target qualification concern;
+a failed teardown requires explicit residue review, never an acceptance claim.
+
+The watchdog samples every five seconds and rejects gaps over 15 seconds, including
+teardown. Limits are read from each running container's actual cgroup and ancestors;
+missing/unlimited controls fail. No fallback silently removes resource limits.
 
 Mount existing scoped environment files privately: PostgreSQL gets only its own
 file plus non-secret user/database settings; Redis gets its existing configuration
 secret and health environment; the probe gets one existing application environment
-and read-only `nautobot_config.py`. Do not distribute the initial-admin credential.
+and read-only `nautobot_config.py`. Redis mounts its configuration secret as
+container UID/GID 999, mode 0400. The idle probe overrides the image entrypoint with
+`/bin/sleep infinity`; only the explicit Django shell probe may execute application
+code. Do not distribute the initial-admin credential.
 Start no application web, worker, scheduler, Job or production migration.
 
 Use the installed Nautobot command path to initialize settings and Django, then
@@ -101,17 +114,21 @@ check names and no missing phase. Probe acceptance alone cannot override failed
 or missing cleanup, host observation or isolation evidence.
 
 PostgreSQL clients may omit SQLSTATE on connection-establishment failures. That
-case deliberately fails this probe; the execution design must preserve private
-disposable-server evidence for review rather than treating a generic connection
-exception or a matching message substring as proven authentication rejection.
+case deliberately fails this probe. The node retains only categorical probe
+acceptance, not raw exceptions or server logs. A failure requires a separately
+reviewed diagnostic approach; neither a generic connection exception nor a matching
+message substring proves authentication rejection.
 
 The offline tests cover configuration mismatch, password rejection versus network
 failure, PostgreSQL identity, missing/wrong Redis credentials, connection cleanup
 failure and missing marker. They do not execute the installed framework or prove
-live authentication. Before freezing a live bundle, add actual Ansible sequence,
-partial-startup, timeout/controller-loss, cleanup-failure and mount/port rejection
-fixtures. Verify the exact CLI path against the pinned image; general help output
-is insufficient.
+live authentication. `tests/test_authentication_trial.py` additionally exercises
+the real frozen producer and actual Ansible partial-startup/always path, simulated
+controller loss, deadlines, guard failure, cleanup failure, ownership checks,
+mount/port rejection and effective cgroup limits. Local unstarted PostgreSQL and Redis
+container inspections confirm the Podman metadata shape; it does not qualify ARM64
+startup or the target Podman version. The exact CLI source was inspected in the
+pinned image during preparation.
 
 ## Completion and recovery boundary
 
@@ -128,3 +145,37 @@ command startup, migrations, administrator bootstrap, firewall/backend exposure,
 Restic pre-data gates, deployment persistence, workload, application recovery and
 pilot soak remain separate. This check does not bypass the Restic gate before
 entrusting production application data to storage.
+
+## Freeze, review and execute
+
+Prepare and verify locally (no target contact):
+
+```bash
+python3 Nautobot/ansible/scripts/authentication-trial.py prepare /tmp/nautobot-authentication-trial-bundle-YYYYMMDD
+python3 /tmp/nautobot-authentication-trial-bundle-YYYYMMDD/launcher.py verify /tmp/nautobot-authentication-trial-bundle-YYYYMMDD SHA256
+```
+
+After explicit approval of the emitted SHA-256, execute only that frozen launcher:
+
+```bash
+python3 /tmp/nautobot-authentication-trial-bundle-YYYYMMDD/launcher.py execute /tmp/nautobot-authentication-trial-bundle-YYYYMMDD SHA256
+```
+
+Target: `ama@j2-svpi4mf.local.theama.co`, strict host-key alias `10.1.2.170`.
+The rootless account is `nautobot`; systemd hosts only the privileged health and
+teardown guard. The controller records private evidence beneath `/tmp`; node
+sources and sanitized evidence remain in an owned `/var/tmp/nautobot-auth-*`
+directory for recovery. Do not remove that directory while the guard or any
+trial object exists. It contains no staged credential values.
+
+Review `controller-result.json`, node `result.json`, `cleanup.json`, the four probe
+checks, per-container limits, sample history, execution trace and retained node
+location. Ansible failure, missing records, a coverage gap, cleanup residue or
+configuration drift prevents acceptance. Inspect the recorded systemd unit and
+owned IDs when recovery is needed; reuse the frozen node helper's `emergency`
+action only within the authorized trial scope. No broad prune is permitted.
+
+Podman options and inspection expectations follow the official
+[create reference](https://docs.podman.io/en/latest/markdown/podman-create.1.html).
+The bundle includes the exact code, schema, plan, provenance and non-secret inputs;
+changes require a new bundle identity before execution.

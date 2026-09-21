@@ -87,3 +87,14 @@ Image-store archival reconciliation: published tag `nautobot-image-load-v1-ready
 peels to `0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b`. Durable store provenance is
 `manifests/runtime-image-store.json`. The active slot is clean; configuration and
 authentication qualification remains a separate, inactive preparation.
+
+## Disposable authentication trial
+
+`nautobot-configuration-auth-v1`: failed at the application-probe step; cause not
+retained. All three disposable containers and the private network were removed.
+Configuration continuity and 77.733 seconds of delayed observation passed.
+Terminal tag: `nautobot-configuration-auth-v1-failed`; its peeled commit preserves
+the consumed definition, executable inputs and `manifests/authentication-trial-result.json`.
+Bundle: `fda654ad9614e022ecbe9c5f27e7930a9cae21c8ec33fefd44f3680ac5028f04`.
+Authentication and production runtime remain unaccepted; baseline and image-store
+identities are unchanged.
