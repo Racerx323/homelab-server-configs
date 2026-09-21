@@ -35,7 +35,7 @@
         that:
           - inventory_hostname == 'j2-svpi4mf'
           - ansible_play_hosts_all | length == 1
-          - runtime_operation.operation.stage == 'nautobot_pilot'
+          - runtime_operation.operation.stage | default('') == 'nautobot_pilot'
           - runtime_operation.operation.authorization_ready | bool
           - runtime_operation.authorization.mutation_authorized | bool
           - runtime_operation.authorization.blockers | length == 0

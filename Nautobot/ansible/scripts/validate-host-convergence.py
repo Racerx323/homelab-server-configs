@@ -19,7 +19,9 @@ SCRIPTS = ROOT / 'Nautobot/ansible/scripts'
 SPEC = importlib.util.spec_from_file_location('convergence', SCRIPTS / 'evaluate-host-convergence.py')
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
-DOC = yaml.safe_load((ROOT / 'Nautobot/manifests/operation.yaml').read_text())
+# The frozen contract remains the offline probe/expectation fixture after archival.
+# Live execution still reads only manifests/operation.yaml.
+DOC = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())['const']
 
 LAUNCHER_SPEC = importlib.util.spec_from_file_location('launcher', SCRIPTS / 'run-host-convergence.py')
 LAUNCHER = importlib.util.module_from_spec(LAUNCHER_SPEC)

@@ -12,7 +12,7 @@ The [deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md) remains the architecture
 authority. At that checkpoint review, the [active operation](../manifests/operation.yaml)
 remained unaccepted host-baseline convergence. The subsequent stage-3 decision
 below accepted the baseline; terminal Git archival and accepted-live identity
-reconciliation remain pending. The inactive Restic contract remains unchanged.
+reconciliation are now complete; see [history](../HISTORY.md). The inactive Restic contract remains unchanged.
 
 ## Numbering and project position
 
@@ -24,7 +24,7 @@ numbered execution stages. Use the plan's stage numbers below going forward.
 | --- | --- |
 | 1 — Repository plan | Governing definition exists; no architecture change needed for this review. |
 | 2 — Repository implementation | Host/preflight and Restic preflight paths exist; runtime rendering/deployment candidates and initialization code exist but are inactive and not live-qualified. Definition work may continue locally. |
-| 3 — Host baseline | Accepted baseline only on September 21; terminal evidence recorded. Git archival and terminal accepted-identity reconciliation remain pending. No runtime or Restic acceptance. |
+| 3 — Host baseline | Accepted baseline only on September 21; terminal evidence recorded. Git archival and terminal accepted-identity reconciliation are complete. No runtime or Restic acceptance. |
 | 4 — Dual-stack identity | Permanent ULA present in preflight. Full forward/reverse DNS, dual-stack reachability, route preservation and exposure acceptance remain to be proved through the owning components. |
 | 5 — Nautobot pilot | Not accepted. Requires immutable custom image, reviewed runtime implementation, secrets, data services, migrations, workload and recovery evidence. |
 | 6 — Caddy onboarding | Separate Caddy lifecycle after backend readiness; no publication authorized here. |
@@ -58,7 +58,7 @@ architecture acceptance criteria.
 | Listeners and identity | Required baseline endpoints, optional loopback stats endpoint and permanent ULA passed. | Baseline reachability and approved deployed-rule evidence passed; external IPv6 testing remains unavailable. DNS/PTR and application exposure follow in later stages. |
 | Memory and workload | Controller available; no application workload acceptance evidence. | At least 1.5 GiB available during imports, exports, backups and Jobs; no OOM, persistent swap growth, throttling or sustained over-80 C. |
 | Backup and recovery | Provider acceptance and old repository-absence result retained in inactive contract. | Fresh absence review, initialization, canary upload/full check/isolated restore, then real application recovery. |
-| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review and scoped baseline acceptance completed; terminal archival and accepted identity reconciliation remain pending. |
+| Terminal baseline | Preflight passed, mutation not attempted by that preflight. | Independent review and scoped baseline acceptance completed; Terminal archival and accepted identity reconciliation are complete. |
 
 The isolated boot-time MMC/SDIO warning is documented in the private current-boot
 review as the onboard Wi-Fi path, without demonstrated USB-root impact. Preserve
@@ -107,11 +107,11 @@ can satisfy baseline health recording without a new patch. Webmin certificate tr
 is unresolved but is a separate component follow-up, not a new stage-3 requirement.
 Private decision: `/home/aaron/code/.local-evidence/nautobot-stage3-review-20260921/ACCEPTANCE_REVIEW.md`.
 
-The decision is in [terminal evidence](../manifests/terminal-evidence.yaml).
-The active operation is terminal-pending. No Git archive or accepted-live identity
-with invented tag/commit provenance was created. Next is separately authorized
-terminal archival and identity reconciliation under
-[HOST_BASELINE_CONVERGENCE.md](HOST_BASELINE_CONVERGENCE.md). Explicitly carry
+The decision is archived under the annotated tag recorded in [history](../HISTORY.md).
+The [accepted identity](../manifests/accepted-live-state.yaml) records the real
+terminal commit/tag and evidence hashes. The active slot is clean. Next prepare
+stage 4 under the owning DNS/network procedures.
+Explicitly carry
 application-dependent host criteria forward to stage 5; baseline acceptance
 must not claim full workload acceptance. Do not waive any requirement to break a
 dependency cycle. The governing plan now explicitly distinguishes stage-3 baseline acceptance from
@@ -141,10 +141,10 @@ host-baseline terminal acceptance and authorized archival are complete. No host
 contact, image pull/build, secret resolution, load test or service transition is
 part of this preparation.
 
-The immediate next action is terminal archival of the accepted stage-3
-convergence decision, followed by accepted identity reconciliation. Terminal
-evidence is assembled; the accepted identity remains unwritten until real Git
-provenance is available. Then prepare stage 4 under its owning components.
+The immediate next action is stage-4 identity preparation using the accepted
+host-baseline identity. Archival and identity reconciliation are complete. The
+inactive Restic initialization contract still requires separate review and fresh
+repository-absence evidence before activation.
 Do not retry historical baseline v3. Commit/tag/push, future live collection and
 mutations remain separately scoped. The completed observer is untouched.
 

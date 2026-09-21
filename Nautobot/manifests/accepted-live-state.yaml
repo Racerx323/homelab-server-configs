@@ -1,0 +1,24 @@
+---
+schema_version: 1
+host_baseline:
+  state: accepted
+  host: j2-svpi4mf
+  address: 10.1.2.170
+  service_account: nautobot
+  semantic_sha256: 7b54a7f61a174368ebfd2b57d9ddd7033ff6010338866d81541586f4d891b820
+  observations_sha256: b6185d58ab6dbc29718ce774206deda02d1fcc8a48815ef285a008a768200989
+  boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
+provenance:
+  operation: nautobot-host-baseline-convergence-v1
+  terminal_tag: nautobot-host-baseline-convergence-v1-accepted
+  definition_commit: e55ac4d5922a347bd2502271e1b850b700cf8bb4
+  bundle_sha256: dd94e06d18d670338a909890bfea13d32f46d20e693de5aaaa6c272447b16838
+  terminal_evidence_sha256: 53e70ce86ba9644b03e31809a8f657c4755f51822cc53828c470fb38b274ac66
+  all_preflight_checks_passed: true
+  cleanup_passed: true
+  operator_review_accepted: true
+boundaries:
+  runtime_accepted: false
+  storage_restore_gate_satisfied: false
+  restic_initialized: false
+  authority_migrated: false

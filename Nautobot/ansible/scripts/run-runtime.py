@@ -20,7 +20,7 @@ def execute(authorized_hash):
                     str(ROOT/'Nautobot/manifests/operation.yaml')], check=True, timeout=30,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     operation = bounded.yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-    if (operation['operation']['stage'] != 'nautobot_pilot'
+    if (operation['operation'].get('stage') != 'nautobot_pilot'
         or operation['operation']['authorization_ready'] is not True
         or operation['authorization']['mutation_authorized'] is not True
         or operation['authorization']['blockers']):

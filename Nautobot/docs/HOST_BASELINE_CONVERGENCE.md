@@ -1,8 +1,8 @@
 # Retained host-baseline convergence and acceptance
 
-> **Stage-3 host baseline accepted, terminal archival pending.** The final
+> **Stage-3 host baseline accepted and archived.** The final
 > decision and retained limitations are recorded in
-> [terminal evidence](../manifests/terminal-evidence.yaml). Historical results below
+> [deployment history](../HISTORY.md). Historical results below
 > retain their original scope. Runtime, Restic and full workload acceptance remain
 > separate stages; no successor execution is authorized.
 
@@ -33,7 +33,7 @@ The preflight must start and end on that newly validated boot. Review whether
 the reboot circumstances or fresh findings require another observation window;
 do not silently reuse the old soak or automatically prescribe another reboot.
 
-The active manifest retains the v3 expectations except for the separately
+The archived terminal manifest retains the v3 expectations except for the separately
 authorized smartmontools upgrade to `7.5-2~bpo13+1` and mail frontend additions:
 `bsd-mailx` `8.1.2-0.20220412cvs-1.1`, `liblockfile-bin` `1.17-2`, and
 `liblockfile1:arm64` `1.17-2`. These reconcile approved changes, not a new package
@@ -134,7 +134,7 @@ Earlier discussion used local gate shorthand, not the deployment plan stage numb
 That preparation covered Gate 2 (host-baseline convergence definition), with
 review of its Gate 1 (storage qualification) dependency. It accepts neither gate
 and does not activate Gates 3–6, Restic, application deployment, Caddy or fleet work.
-The active manifest's `preparation_review` records the dispositions. The frozen
+The archived terminal manifest's `preparation_review` records the dispositions. The frozen
 schema binds the reviewed definition; readiness and execution were explicitly
 transitioned for the authorized preflight, then closed after its blocked result.
 Acceptance remains false.

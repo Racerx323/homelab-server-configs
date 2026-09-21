@@ -53,9 +53,17 @@ class Contracts(unittest.TestCase):
             for bad in ([], value[:-1], list(reversed(value)), ['anything']):
                 with self.assertRaises(ValidationError): validate(schema, bad)
 
-    def test_status_provenance_matches_frozen_definition(self):
+    def test_clean_slot_and_accepted_identity(self):
         operation = yaml.safe_load((ROOT / 'Nautobot/manifests/operation.yaml').read_text())
+        self.assertEqual(operation, {'schema_version': 1, 'operation': {
+            'state': 'clean', 'authorization_ready': False}})
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text()), accepted)
+        self.assertFalse(any(accepted['boundaries'].values()))
+
+    def test_status_provenance_matches_frozen_definition(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())
+        operation = copy.deepcopy(schema['const'])
         validate(schema, operation)
         p = operation['preparation_review']
         self.assertFalse(p['status_provenance']['live_refresh_performed'])

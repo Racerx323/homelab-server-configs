@@ -152,7 +152,7 @@ def verify_snapshot(root):
 def execute(authorized_hash, snapshot=False):
     document = yaml.safe_load((ROOT/BUNDLE_FILES[0]).read_text())
     # Readiness rejection precedes hashes, local evidence creation and transport.
-    if (document['operation']['id'] != 'nautobot-host-baseline-convergence-v1'
+    if (document['operation'].get('id') != 'nautobot-host-baseline-convergence-v1'
             or document['operation']['authorization_ready'] is not True
             or document['preflight']['execution_authorized'] is not True
             or document['authorization']['mutation_authorized'] is not False

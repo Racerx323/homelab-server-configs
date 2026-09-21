@@ -15,3 +15,9 @@ operation definition and its sanitized evidence manifest.
 | `nautobot-uas-quirk-v3` | Rolled back after ambiguous broad gate; operator remediation immediately effective, soak pending | `nautobot-uas-quirk-v3-rolled-back-operator-applied` | `f5ce8344ab6f4c2035a617cad4684603586b8c9f` | `0899f68448ca28696044174c7a55fe68621ffdcc29c274f6782aa15875322336` |
 | `nautobot-storage-diagnostic-v2` | Immediate post-quirk baseline healthy; soak pending | `nautobot-storage-diagnostic-v2-baseline-healthy-soak-pending` | `8728fc88b13b46315fffa0a3af64bd767e90b4c7` | `616772e4ac259cb99bb4e3a27b7b5024ab3c17fdc03eb8ff94a0ff321f49a05a` |
 | `nautobot-storage-soak-verification-v1` | 24-hour storage soak healthy; isolated restore pending | `nautobot-storage-soak-verification-v1-passed` | `eb38b4923ba6bfbc4f458870b6555a6e39d91f77` | `e3a94ecd20ee5070b86e92f6cf4e16faa56762cca3cfec4dc4e31492dc538305` |
+| `nautobot-host-baseline-convergence-v1` | Stage-3 host baseline accepted with retained limitations | `nautobot-host-baseline-convergence-v1-accepted` | `e55ac4d5922a347bd2502271e1b850b700cf8bb4` | `dd94e06d18d670338a909890bfea13d32f46d20e693de5aaaa6c272447b16838` |
+
+Accepted baseline identity: [accepted-live-state.yaml](manifests/accepted-live-state.yaml),
+semantic SHA-256 `7b54a7f61a174368ebfd2b57d9ddd7033ff6010338866d81541586f4d891b820`.
+The terminal tag preserves the exact operation and terminal evidence. The active
+slot is clean; runtime, Restic and full workload acceptance remain outstanding.
