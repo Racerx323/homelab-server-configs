@@ -6,9 +6,9 @@ This is the reviewed successor contract after the Nautobot Restic repository
 has been initialized and accepted. It is not an active operation and grants no
 authorization. See [next-stage preparation](ROADMAP.md) for
 separately reviewed upload/integrity and isolated-restore execution stages;
-the current [upload/integrity definition](CANARY_BACKUP_INTEGRITY.md) is implemented and awaits
-exact-bundle authorization. Both stages
-retain this contract and do not create competing active operations.
+the [upload/integrity procedure](CANARY_BACKUP_INTEGRITY.md) and
+[isolated-restore preparation](CANARY_ISOLATED_RESTORE.md) retain this contract.
+Current acceptance and the sole active operation are indexed in the roadmap.
 
 The verification uses a deterministic canary beneath an operation-owned source
 directory on `j2-svpi4mf`. It proves upload, full repository data checking,

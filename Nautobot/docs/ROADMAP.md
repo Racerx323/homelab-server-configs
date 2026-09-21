@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains the consumed canary backup and integrity operation pending terminal archival. Negative security tests were not run and remain unresolved.
+now defines isolated canary restore, with execution awaiting exact-bundle approval. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -27,8 +27,13 @@ at `08a7e62`. The [canary backup/integrity definition](CANARY_BACKUP_INTEGRITY.m
 passed under its approved bundle: one new matching full snapshot ID, successful
 backup and full-data check, unchanged source, 75-second quiet kernel review, and
 credential cleanup. [Canary acceptance](../manifests/canary-backup-result.json)
-records the snapshot identity. Next is terminal canary archival and preparation
-of a separately authorized isolated restore. Do not rerun the consumed backup.
+records the snapshot identity. The canary is archived as
+`nautobot-canary-backup-v1-accepted` at `7521e02`.
+The [isolated restore definition](CANARY_ISOLATED_RESTORE.md) binds that full ID
+and an independently defined expected tree. The Ansible implementation is locally qualified;
+next is exact-bundle execution approval. Preparation includes
+containment/failure/cleanup tests and a separately approved execution bundle.
+Do not rerun the consumed backup.
 Isolated restore remains unperformed.
 Do not rerun initialization.
 Do not rerun the consumed preflight definition. Historical failed

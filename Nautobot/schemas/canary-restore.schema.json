@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Definition-only isolated canary restore",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "implementation",
+    "prerequisites",
+    "repository",
+    "restic_version",
+    "secret_contract",
+    "snapshot",
+    "destination",
+    "expected_tree",
+    "commands",
+    "workflow",
+    "observation",
+    "bounds",
+    "acceptance",
+    "failure_and_recovery",
+    "evidence",
+    "successor",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "const": {
+        "id": "nautobot-predata-canary-restore-v1",
+        "stage": "isolated_canary_restore",
+        "state": "definition",
+        "authorization_ready": true,
+        "target": {
+          "host": "j2-svpi4mf",
+          "address": "10.1.2.170",
+          "ssh_user": "ama",
+          "execution_user": "nautobot"
+        },
+        "source_commit": "7521e023a19c874fd276f36ccbba71840fbf9a3a",
+        "procedure": "Nautobot/docs/CANARY_ISOLATED_RESTORE.md"
+      }
+    },
+    "implementation": {
+      "const": {
+        "state": "reviewed",
+        "engine": "ansible",
+        "launcher": "Nautobot/ansible/scripts/run-canary-restore.py",
+        "playbook": "Nautobot/ansible/playbooks/restore-canary.yaml"
+      }
+    },
+    "prerequisites": {
+      "const": {
+        "backup_integrity": {
+          "terminal_tag": "nautobot-canary-backup-v1-accepted",
+          "archive_commit": "7521e023a19c874fd276f36ccbba71840fbf9a3a",
+          "record": "Nautobot/manifests/canary-backup-result.json",
+          "record_sha256": "86796f9ff1dba4290e426b4a48c82cc6a9008e7b905bdfd9af2b8aab3bb140e8",
+          "bundle_sha256": "e8170dbb0f4ebe60c5ace3dccc1b51767bfda453878a57b5806347548117ee98",
+          "result": "canary_backup_integrity_accepted"
+        },
+        "initialization": {
+          "terminal_tag": "nautobot-restic-initialization-v1-accepted",
+          "archive_commit": "08a7e622aa2e15650d8ba1beb0695b10e06cb134",
+          "record": "Nautobot/manifests/restic-initialization-result.json",
+          "record_sha256": "3cb3c1c599dcbdbc258431c61f68c98fde59e2faf228737b29d0db032c8ab9cd",
+          "bundle_sha256": "faf95642acbcc2c3c370a4e63c91419cda0988489ecaa568cf852cfe4adbb4c4",
+          "result": "repository_initialization_accepted"
+        },
+        "accepted_host": "Nautobot/manifests/accepted-live-state.yaml",
+        "accepted_host_sha256": "c82c69ab1da6484c2e6c9acc901ad8ac37d553b3e984381deb8cbc6411dc7905",
+        "provider": {
+          "accepted_live_state": "backblaze-b2/manifests/accepted-live-state.yaml",
+          "operation": "backblaze-b2-s3-compatibility-v1",
+          "terminal_tag": "backblaze-b2-s3-compatibility-v1-completed",
+          "archive_commit": "40b2b74b23f4f7b1a0bc212d9daaeb0949531769",
+          "definition_commit": "c5935852e1a5089fddd6b23eda5ab8e44d2e4422",
+          "bundle_sha256": "20f1b43840e877c60248fc7dc06525d29124cc78ebcbd8ac8af3648340e39588",
+          "result": "s3_credential_compatibility_and_probe_cleanup_accepted"
+        },
+        "provider_sha256": "30693f50b6abc80e2a21cca64dc86c0f7b1fe4d8d40dd6c3dbf81338aafe462b",
+        "current_host_and_repository_preflight": "required_at_execution_not_collected"
+      }
+    },
+    "repository": {
+      "const": {
+        "url": "s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/",
+        "prefix": "",
+        "id": "536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9",
+        "format_version": 2
+      }
+    },
+    "restic_version": {
+      "const": "restic 0.18.0 compiled with go1.24.4 on linux/arm64"
+    },
+    "secret_contract": {
+      "const": {
+        "repository_password": {
+          "doppler_project": "homelab-dev",
+          "doppler_config": "prd_restic",
+          "doppler_key": "NAUTOBOT_RESTIC_REPOSITORY_PASSWORD",
+          "config_exists": true,
+          "key_exists": true,
+          "generation_owner": "operator",
+          "generated_value_allowed_in_git_or_evidence": false
+        },
+        "password_recovery": {
+          "independent_from_doppler": true,
+          "location_confirmed": true,
+          "locator": "Dashlane secure note: Homelab",
+          "value_allowed_in_git_or_evidence": false
+        },
+        "backblaze_credentials": {
+          "doppler_project": "homelab-dev",
+          "doppler_config": "prd_b2",
+          "application_key_id_key": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID",
+          "application_key_key": "NAUTOBOT_RESTIC_B2_APPLICATION_KEY",
+          "values_allowed_in_git_or_evidence": false
+        }
+      }
+    },
+    "snapshot": {
+      "const": {
+        "id": "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+        "source_root": "/var/lib/nautobot/backup-restore-tests/source.4cp8z75y",
+        "metadata": {
+          "hostname": "j2-svpi4mf",
+          "id": "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+          "paths": [
+            "/var/lib/nautobot/backup-restore-tests/source.4cp8z75y"
+          ],
+          "tags": [
+            "nautobot-predata-canary-v1"
+          ]
+        },
+        "selection": "exact_full_id_and_exact_archived_subdirectory",
+        "restore_selector": "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3:/var/lib/nautobot/backup-restore-tests/source.4cp8z75y"
+      }
+    },
+    "destination": {
+      "const": {
+        "root_pattern": "/var/lib/nautobot/backup-restore-tests/restore.*",
+        "parent_must_exist": true,
+        "new_empty_directory_required": true,
+        "owner": "nautobot",
+        "directory_mode": "0700",
+        "required_filesystem": "/dev/sda2",
+        "symlink_ancestors_allowed": false,
+        "source_overlap_allowed": false,
+        "existing_destination_reuse_allowed": false,
+        "retain_after_success_and_failure": true
+      }
+    },
+    "expected_tree": {
+      "const": {
+        "relative_directories": [
+          {
+            "path": "predata",
+            "mode": "0700"
+          }
+        ],
+        "files": [
+          {
+            "path": "predata/canary.txt",
+            "content_utf8": "nautobot isolated backup restore verification v1\n",
+            "size_bytes": 49,
+            "sha256": "0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2"
+          }
+        ],
+        "file_mode": "0600",
+        "owner": "nautobot",
+        "extra_paths_allowed": false,
+        "symlinks_allowed": false,
+        "special_files_allowed": false,
+        "comparison_source": "independent_manifest_fixture",
+        "require_original_source_unchanged": true
+      }
+    },
+    "commands": {
+      "const": {
+        "common": [
+          "restic",
+          "--no-cache",
+          "--repository-file",
+          "PROTECTED_REPOSITORY_FILE",
+          "--password-file",
+          "PROTECTED_PASSWORD_FILE"
+        ],
+        "config": [
+          "--no-lock",
+          "cat",
+          "config"
+        ],
+        "snapshot_metadata": [
+          "--no-lock",
+          "cat",
+          "snapshot",
+          "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3"
+        ],
+        "restore": [
+          "restore",
+          "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3:/var/lib/nautobot/backup-restore-tests/source.4cp8z75y",
+          "--target",
+          "NEW_EMPTY_RESTORE_ROOT"
+        ],
+        "locks_after": [
+          "--no-lock",
+          "list",
+          "locks"
+        ]
+      }
+    },
+    "workflow": {
+      "const": [
+        "verify_exact_bundle_and_terminal_backup_integrity_proof",
+        "verify_user_version_repository_id_format_snapshot_host_paths_and_tag",
+        "capture_boot_id_and_kernel_journal_cursor",
+        "verify_retained_source_tree_against_independent_fixture",
+        "create_new_empty_owned_restore_root_on_required_filesystem",
+        "verify_resolved_source_and_destination_do_not_overlap",
+        "record_restore_attempt_before_one_restore_command",
+        "record_restore_status_before_comparison",
+        "compare_exact_restored_paths_types_owners_modes_sizes_and_hashes_to_fixture",
+        "verify_original_source_unchanged",
+        "observe_75_seconds_and_review_cursor_bounded_kernel_storage_events",
+        "verify_boot_continuity_empty_locks_no_cache_and_all_credential_cleanup",
+        "retain_snapshot_source_restore_and_evidence_for_independent_acceptance"
+      ]
+    },
+    "observation": {
+      "const": {
+        "journal_scope": "cursor_bounded_kernel",
+        "delayed_seconds": 75,
+        "storage_event_pattern": "I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset|timed out|timeout",
+        "on_missing_or_truncated_evidence": "not_accepted"
+      }
+    },
+    "bounds": {
+      "const": {
+        "command_timeout_seconds": 600,
+        "overall_timeout_seconds": 1800,
+        "stream_limit_bytes": 4194304,
+        "automatic_restore_retry": false
+      }
+    },
+    "acceptance": {
+      "const": {
+        "restore_exit_status": 0,
+        "exact_tree_comparison_required": true,
+        "source_unchanged": true,
+        "boot_unchanged": true,
+        "storage_events_absent": true,
+        "credential_cleanup_required": true,
+        "predata_backup_integrity_and_restore_gate_only": true,
+        "application_recovery_accepted": false
+      }
+    },
+    "failure_and_recovery": {
+      "const": {
+        "before_restore": "stop_without_live_data_changes_remove_only_proven_owned_credentials",
+        "after_attempt": "retain_partial_restore_and_records_no_automatic_retry_or_cleanup",
+        "cleanup": "independent_credential_removals_and_absence_verification",
+        "unknown_mutation_or_cleanup": "manual_review_required",
+        "automatic_snapshot_delete": false,
+        "automatic_unlock": false,
+        "automatic_repair": false
+      }
+    },
+    "evidence": {
+      "const": [
+        "exact_bundle_predecessors_repository_and_full_snapshot_identity",
+        "source_and_empty_destination_realpaths_mounts_modes_owners",
+        "restore_attempt_and_exit_status",
+        "independent_expected_and_observed_tree_comparison",
+        "original_source_before_after_hashes",
+        "boot_ids_journal_cursor_and_delayed_storage_review",
+        "lock_cache_and_credential_cleanup",
+        "separate_acceptance_review"
+      ]
+    },
+    "successor": {
+      "const": {
+        "stage": "nautobot_runtime_initialization_preparation",
+        "requires_separate_definition_and_authorization": true,
+        "application_backup_restore_still_required": true
+      }
+    },
+    "authorization": {
+      "const": {
+        "mutation_authorized": true,
+        "command": "python3 Nautobot/ansible/scripts/run-canary-restore.py execute APPROVED_SHA256",
+        "blockers": [],
+        "excluded": [
+          "backup",
+          "repository_init",
+          "full_repository_recheck",
+          "restore_over_live_data",
+          "forget",
+          "prune",
+          "unlock",
+          "repair",
+          "secret_changes",
+          "application_deployment"
+        ],
+        "approval_record": "not_yet_granted_exact_bundle_required"
+      }
+    }
+  }
+}

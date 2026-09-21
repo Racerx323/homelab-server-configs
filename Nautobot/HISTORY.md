@@ -216,3 +216,12 @@ Terminal tag: `nautobot-restic-initialization-v1-accepted`; archive commit:
 `faf95642acbcc2c3c370a4e63c91419cda0988489ecaa568cf852cfe4adbb4c4`.
 Repository ID: `536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9`.
 No backup or restore performed. Exact 24 consumed inputs verified in the archive.
+
+## Canary upload and full integrity
+
+Accepted one matching snapshot, full read-data check, unchanged source, 75-second
+quiet storage review and credential cleanup. Terminal tag
+`nautobot-canary-backup-v1-accepted`, archive commit `7521e023a19c874fd276f36ccbba71840fbf9a3a`.
+Bundle: `e8170dbb0f4ebe60c5ace3dccc1b51767bfda453878a57b5806347548117ee98`.
+Snapshot: `7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3`. Isolated restore remains separate.
+All 32 consumed input hashes verified against the terminal archive.

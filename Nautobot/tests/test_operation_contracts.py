@@ -58,6 +58,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'isolated_canary_restore':
+            validate(json.loads((ROOT / 'Nautobot/schemas/canary-restore.schema.json').read_text()), operation)
+            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')
+            self.assertEqual(operation['implementation']['state'], 'reviewed')
         elif operation['operation'].get('stage') == 'canary_backup_integrity':
             validate(json.loads((ROOT / 'Nautobot/schemas/canary-backup.schema.json').read_text()), operation)
             self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted')
@@ -98,6 +102,23 @@ class Contracts(unittest.TestCase):
                                   ('commands','integrity',['check']),
                                   ('failure_and_recovery','automatic_delete',True),
                                   ('acceptance','restore_accepted',True)]:
+            bad=copy.deepcopy(document);bad[section][key]=value
+            with self.assertRaises(ValidationError):validate(schema,bad)
+
+    def test_restore_definition_pins_identity_and_isolation(self):
+        schema=json.loads((ROOT/'Nautobot/schemas/canary-restore.schema.json').read_text())
+        document={key:copy.deepcopy(value['const']) for key,value in schema['properties'].items()}
+        validate(schema,document)
+        accepted=json.loads((ROOT/'Nautobot/manifests/canary-backup-result.json').read_text())
+        self.assertEqual(document['snapshot']['id'], accepted['snapshot_id'])
+        self.assertEqual(document['snapshot']['restore_selector'], accepted['snapshot_id']+':'+accepted['source']['root'])
+        self.assertEqual(document['expected_tree']['files'][0]['sha256'], accepted['source']['file']['sha256'])
+        for section,key,value in [('authorization','approval_record','implicitly_granted'),
+                                  ('snapshot','id','latest'),
+                                  ('destination','new_empty_directory_required',False),
+                                  ('destination','source_overlap_allowed',True),
+                                  ('expected_tree','extra_paths_allowed',True),
+                                  ('acceptance','application_recovery_accepted',True)]:
             bad=copy.deepcopy(document);bad[section][key]=value
             with self.assertRaises(ValidationError):validate(schema,bad)
 

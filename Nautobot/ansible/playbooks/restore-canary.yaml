@@ -1,0 +1,411 @@
+---
+- name: Restore and compare only the accepted pre-data canary
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+  vars_files:
+    - ../../../inventory/prod/groups/inventory_automation.yaml
+    - ../../../inventory/prod/hosts/j2-svpi4mf.yaml
+  vars:
+    restore_operation: '{{ lookup(''ansible.builtin.file'', ''../../manifests/operation.yaml'') | from_yaml
+      }}'
+  pre_tasks:
+    - name: Reject direct or unready execution before target commands
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - restore_authorized | default(false) | bool
+          - restore_operation.operation.stage == 'isolated_canary_restore'
+          - restore_operation.operation.authorization_ready | bool
+          - restore_operation.authorization.mutation_authorized | bool
+          - restore_operation.authorization.blockers | length == 0
+          - restore_evidence_root is match('^/tmp/nautobot-restore[.][A-Za-z0-9_]+$')
+  tasks:
+    - name: Create unique protected canary restore directory
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/mktemp
+          - --directory
+          - /tmp/nautobot-restore.XXXXXXXX
+      changed_when: true
+      register: restore_directory
+    - name: Validate unique directory boundary
+      ansible.builtin.assert:
+        that:
+          - restore_directory.stdout is match('^/tmp/nautobot-restore[.][A-Za-z0-9_]+$')
+    - name: Protected canary restore with unconditional credential cleanup
+      block:
+        - name: Create protected repository
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/repository'
+          changed_when: true
+          no_log: true
+        - name: Write protected repository
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/repository'
+            stdin: '{{ restore_operation.repository.url }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Create protected password
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/password'
+          changed_when: true
+          no_log: true
+        - name: Write protected password
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/password'
+            stdin: '{{ restic_repository_password }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Create protected credentials.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/credentials.json'
+          changed_when: true
+          no_log: true
+        - name: Write protected credentials.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/credentials.json'
+            stdin: '{{ {''id'': restic_b2_application_key_id, ''key'': restic_b2_application_key} | to_json
+              }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Create protected restore.py
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/restore.py'
+          changed_when: true
+          no_log: true
+        - name: Write protected restore.py
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/restore.py'
+            stdin: '{{ lookup(''ansible.builtin.file'', ''../../../restic/scripts/restore-canary.py'',
+              rstrip=false) }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Create protected canary-backup.py
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/canary-backup.py'
+          changed_when: true
+          no_log: true
+        - name: Write protected canary-backup.py
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/canary-backup.py'
+            stdin: '{{ lookup(''ansible.builtin.file'', ''../../../restic/scripts/canary-backup.py'',
+              rstrip=false) }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Create protected operation.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/operation.json'
+          changed_when: true
+          no_log: true
+        - name: Write protected operation.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/operation.json'
+            stdin: '{{ restore_operation | to_json }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Capture boot and kernel journal cursor before workload
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ restore_directory.stdout }}/restore.py'
+              - journal-baseline
+              - '{{ restore_directory.stdout }}'
+          register: restore_journal_baseline
+          changed_when: false
+        - name: Create protected journal-baseline.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/install
+              - --mode=0600
+              - /dev/null
+              - '{{ restore_directory.stdout }}/journal-baseline.json'
+          changed_when: true
+          no_log: true
+        - name: Write protected journal-baseline.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/tee
+              - '{{ restore_directory.stdout }}/journal-baseline.json'
+            stdin: '{{ restore_journal_baseline.stdout }}'
+            stdin_add_newline: false
+          changed_when: true
+          no_log: true
+        - name: Run single-use canary restore and comparison boundary
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/python3
+              - '{{ restore_directory.stdout }}/restore.py'
+              - restore
+              - '{{ restore_directory.stdout }}'
+          changed_when: true
+          register: restore_result
+          failed_when: false
+          no_log: true
+      always:
+        - name: Remove transient repository
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/rm
+              - --force
+              - --
+              - '{{ restore_directory.stdout }}/repository'
+          register: cleanup_repository
+          failed_when: false
+          changed_when: true
+          no_log: true
+        - name: Remove transient password
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/rm
+              - --force
+              - --
+              - '{{ restore_directory.stdout }}/password'
+          register: cleanup_password
+          failed_when: false
+          changed_when: true
+          no_log: true
+        - name: Remove transient credentials.json
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/rm
+              - --force
+              - --
+              - '{{ restore_directory.stdout }}/credentials.json'
+          register: cleanup_credentials
+          failed_when: false
+          changed_when: true
+          no_log: true
+        - name: Verify credential removal
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/python3
+              - -c
+              - import os,sys; sys.exit(any(os.path.lexists(sys.argv[1]+'/'+n) for n in ('repository','password','credentials.json')))
+              - '{{ restore_directory.stdout }}'
+          register: cleanup_verification
+          failed_when: false
+          changed_when: false
+        - name: Read bounded sanitized node evidence
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/python3
+              - -c
+              - "import json,pathlib,sys; p=pathlib.Path(sys.argv[1]); names=('started.json','source.json','destination.json','restore-attempt.json','restore-result.json','snapshot.json','comparison.json','result.json','journal-baseline.json');\
+                \ data={}; total=0\nfor n in names:\n f=p/n\n if f.is_file():\n  total+=f.stat().st_size\n\
+                \  if total>4194304: raise SystemExit(69)\n  data[n]=json.loads(f.read_text())\nprint(json.dumps(data))"
+              - '{{ restore_directory.stdout }}'
+          changed_when: false
+          register: restore_evidence
+        - name: Preserve controller copy of node records
+          ansible.builtin.copy:
+            content: '{{ restore_evidence.stdout }}'
+            dest: '{{ restore_evidence_root }}/node-records.json'
+            mode: '0600'
+          delegate_to: localhost
+        - name: Require all cleanup attempts and absence verification to succeed
+          ansible.builtin.assert:
+            that:
+              - cleanup_repository.rc == 0
+              - cleanup_password.rc == 0
+              - cleanup_credentials.rc == 0
+              - cleanup_verification.rc == 0
+            fail_msg: Credential cleanup failed; retained node evidence requires manual intervention.
+    - name: Review delayed kernel storage evidence
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ restore_directory.stdout }}/restore.py'
+          - journal-review
+          - '{{ restore_directory.stdout }}'
+      register: restore_journal_review
+      changed_when: false
+      failed_when: false
+    - name: Preserve bounded storage review
+      ansible.builtin.copy:
+        content: '{{ {"status": restore_journal_review.rc, "output": restore_journal_review.stdout} |
+          to_json }}'
+        dest: '{{ restore_evidence_root }}/storage-review.json'
+        mode: '0600'
+      delegate_to: localhost
+    - name: Require successful restore comparison cleanup and storage observation
+      ansible.builtin.assert:
+        that:
+          - restore_result.rc == 0
+          - (restore_evidence.stdout | from_json)['result.json'].result == 'isolated_restore_review_required'
+          - restore_journal_review.rc == 0
+          - (restore_journal_review.stdout | from_json).passed | bool

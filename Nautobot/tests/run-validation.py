@@ -21,5 +21,6 @@ if __name__ == '__main__':
     for script in ('Nautobot/ansible/scripts/validate-contracts.py',
                    'Nautobot/ansible/scripts/validate-memory-controller.py',
                    'Nautobot/ansible/scripts/validate-package-cleanup.py',
-                   'Nautobot/tests/test_runtime.py', 'restic/tests/test_initialization.py', 'restic/tests/test_canary_backup.py'):
+                   'Nautobot/tests/test_runtime.py', 'restic/tests/test_initialization.py', 'restic/tests/test_canary_backup.py',
+                   'restic/tests/test_canary_restore.py'):
         run(['/bin/bash', 'tests/repository/run-with-ansible-local-temp.sh', sys.executable, script])

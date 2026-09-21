@@ -33,6 +33,7 @@ BUNDLE_FILES = (
     'tests/repository/run-with-ansible-local-temp.sh',
     'Nautobot/schemas/repository-initialization.schema.json',
     'Nautobot/schemas/canary-backup.schema.json',
+    'Nautobot/schemas/canary-restore.schema.json',
     'Nautobot/ansible/ansible.cfg',
 )
 

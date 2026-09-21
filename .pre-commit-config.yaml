@@ -317,7 +317,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -429,6 +429,12 @@ repos:
       - id: restic-canary-contracts
         name: Validate canary upload integrity and cleanup failures
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_canary_backup.py
+        language: system
+        pass_filenames: false
+        files: ^(?:Nautobot/|restic/)
+      - id: restic-restore-contracts
+        name: Validate isolated canary restore containment and cleanup
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_canary_restore.py
         language: system
         pass_filenames: false
         files: ^(?:Nautobot/|restic/)
