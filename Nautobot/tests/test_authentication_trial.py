@@ -98,7 +98,7 @@ class Trial(unittest.TestCase):
 
     def fixture(self):
         root=Path('/var/tmp/nautobot-auth-fixture');spec={'images':{'postgresql':{'image_id':'a'*64}}}
-        v={'Image':'a'*64,'HostConfig':{'ReadonlyRootfs':True,'Privileged':False,'PortBindings':{},'Memory':768*1024**2,'MemorySwap':768*1024**2,'Tmpfs':{path:'rw,size='+str(size)+'m' for path,size in {'/tmp':64,'/run':16,'/var/lib/postgresql/data':512,'/var/run/postgresql':16}.items()}},'NetworkSettings':{'Ports':{},'Networks':{root.name:{}}},'Mounts':[]}
+        v={'Image':'a'*64,'HostConfig':{'ReadonlyRootfs':True,'Privileged':False,'PortBindings':{},'Memory':768*1024**2,'MemorySwap':768*1024**2,'Tmpfs':{path:'rw,size='+str(size)+'m' for path,size in {'/tmp':64,'/run':16,'/var/lib/postgresql/data':512,'/run/postgresql':16}.items()}},'NetworkSettings':{'Ports':{},'Networks':{root.name:{}}},'Mounts':[]}
         return root,spec,v
 
     def test_mount_port_network_and_memory_rejection(self):
@@ -125,6 +125,25 @@ class Trial(unittest.TestCase):
                 with self.assertRaises(RuntimeError):n.effective_limits(123,cid,'postgresql')
         with patch.object(n.Path,'read_text',return_value='0::/unrelated'):
             with self.assertRaises(RuntimeError):n.effective_limits(123,cid,'postgresql')
+
+    def test_real_tmpfs_metadata_before_and_after_start(self):
+        root,spec,v=self.fixture()
+        for kind in ('symlink','canonical'):
+            capture=json.loads((ROOT/('Nautobot/tests/fixtures/tmpfs-'+kind+'.json')).read_text())
+            for state in ('before','after'):
+                v['HostConfig']['Tmpfs']=capture[state]
+                if kind=='canonical':n.validate_container(root,spec,'postgresql',v)
+                else:
+                    with self.assertRaises(RuntimeError):n.validate_container(root,spec,'postgresql',v)
+        args=n.create_args(root,{'images':{'postgresql':{'reference':'fixture'}}},'postgresql')
+        self.assertIn('/run/postgresql:rw,size=16m,mode=3775',args)
+        self.assertFalse(any('/var/run/postgresql' in value for value in args))
+        for mutate in ('missing','extra','oversized'):
+            bad=copy.deepcopy(v)
+            if mutate=='missing':del bad['HostConfig']['Tmpfs']['/run/postgresql']
+            elif mutate=='extra':bad['HostConfig']['Tmpfs']['/unexpected']='rw,size=16m'
+            else:bad['HostConfig']['Tmpfs']['/run/postgresql']='rw,size=32m'
+            with self.assertRaises(RuntimeError):n.validate_container(root,spec,'postgresql',bad)
 
     def test_ownership_cannot_be_inferred_from_name_alone(self):
         root=Path('/var/tmp/nautobot-auth-fixture');v={'Id':'a'*64,'Name':root.name+'-redis','Config':{'Labels':{}}}

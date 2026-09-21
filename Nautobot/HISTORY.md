@@ -114,3 +114,20 @@ the exact consumed inputs and `manifests/authentication-trial-retry-result.json`
 Bundle: `ab01aacd5616c0c13a98766d0feb16b9dbc5c34a92e639c9a9bed41dd5abb426`.
 Host baseline and image-store identities remain unchanged; authentication remains
 unaccepted.
+
+Diagnostic retry archival reconciliation: `nautobot-configuration-auth-v2-failed`
+peels to `2ac53754aabb3a0d15b44656ef3b9a366ac11c2a`. All consumed source inputs match the
+published tag. Only YAML indentation lint was skipped to preserve executed bytes;
+behavioral, schema and secret checks passed. The successor definition uses canonical
+formatting and the corrected socket tmpfs path. No authentication acceptance is
+claimed.
+
+## Canonical-path authentication trial
+
+`nautobot-configuration-auth-v3`: all running-container checks passed; Django
+shell exited 1 without a valid probe result. All disposable objects were removed,
+continuity passed and 77.743 seconds of delayed observation were quiet. Terminal
+tag: `nautobot-configuration-auth-v3-failed`; its peeled commit retains the exact
+consumed inputs and `manifests/authentication-trial-canonical-result.json`. Bundle:
+`98f25b29939fa8a2282374429986f1150ff7039fc8a9f8f46f9b3a87298e22e0`.
+Authentication remains unaccepted; baseline and image-store identities unchanged.

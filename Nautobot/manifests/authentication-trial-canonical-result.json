@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-configuration-auth-v3",
+  "bundle_sha256": "98f25b29939fa8a2282374429986f1150ff7039fc8a9f8f46f9b3a87298e22e0",
+  "reviewed_at": "2026-09-21T21:03:37.182738+00:00",
+  "accepted": false,
+  "outcome": "django_shell_nonzero_without_valid_probe_result",
+  "diagnostic": {
+    "action": "probe",
+    "phase": "django_shell",
+    "status": "failed",
+    "role": "probe",
+    "command_rc": 1,
+    "output_category": "no_valid_probe_result",
+    "category": "command_nonzero"
+  },
+  "running_container_validation_passed": true,
+  "authentication_accepted": false,
+  "production_runtime_started": false,
+  "cleanup_passed": true,
+  "continuity_passed": true,
+  "post_cleanup_seconds": 77.74262496898882,
+  "watchdog_terminal_state": "inactive",
+  "sample_count": 26,
+  "maximum_sample_gap_seconds": 10.946140391984954,
+  "evidence_sha256": {
+    "spec.json": "8a8cbc242a56a792299f7106204eb906a712fd6864fc9cd769637825f4ef2e3d",
+    "watchdog-ready.json": "d30d54c3888c8a784b825c3a377ec523c5c4e46ed126e70cb55ae1e82b9a74e9",
+    "cleanup.json": "c0f613d6c8dc0324ee4bd7164cde62c7982ef1a6a06334f5f25acf77c2b330d8",
+    "result.json": "58b546594db69355967144a0ae79f39ec6ee6965aa437b71bab33f9bb593e4c5",
+    "node-location.json": "868e05c5ed4e1ff0888167e0b72f9d294512325af6abb1f6801cb3b70f74f189",
+    "controller-result.json": "fdd6f12e242438b5e0a6ac6d4e93d311cfe48afe39e6b1c98ac1e429b64089a6",
+    "execution-trace.jsonl": "02a5e5a1bd4c925cad33dc09f7cb2cb8e5ed5cca48928e34e7b9d2b2ee5f0909",
+    "diagnostic.json": "24868fa5d4a8d90bce31bcaa809c72420a53d111f113e766cc455be645bb6592",
+    "probe.json": "8d6c2110f78806d766b99460500e50d7f1952b15307d4dc1216e6f05cb7fd73e",
+    "postgresql.json": "0686e02cabd3c8b0dbf196c13274ff7467b3efff320f8c60fa05099d6ce12835",
+    "redis.json": "7895de12d6a3464c86657d5db0cb4bce1bce70fbedcc65526f941658768b3d82",
+    "emergency.json": "ef5a3cadc32687fa9310a70a94892002e95e5ae51fe83f2524e3d3266a87a0a5",
+    "network.json": "77f7f4e4cd4d544d854dd511d879a4f22e65ad982393bcffed80ab1c42afebdc",
+    "before.json": "af2276088a4b0626918fc2863095e2d0d323efe7f07eb797b9dbc43464d103f4"
+  },
+  "git_archival": "pending"
+}

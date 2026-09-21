@@ -4,11 +4,10 @@ This stage follows archived image-store readiness. Its implementation is prepare
 separate exact-bundle approval. It is
 preparation under stage 5 of [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md),
 not production deployment or permission to execute containers. The single active
-operation slot retains the executed definition pending archival. The first trial
-failed at the application-probe step and cleaned up successfully; the terminal
-outcome is in `../manifests/authentication-trial-result.json`. The diagnostic retry is prepared as an external candidate while this terminal
-definition remains intact; execution requires its annotated published failure tag
-and a new exact-bundle approval.
+operation slot defines the canonical-path successor awaiting exact-bundle approval.
+Both earlier failures are archived. The new definition uses `/run/postgresql` and
+retains all resource/isolation checks; it has not run on the target. Authentication
+remains unverified.
 
 ## Prepared checks and provenance
 
@@ -212,3 +211,22 @@ requires that exact result in an annotated Git tag and verifies the same tag obj
 on origin. Until terminal archival is authorized and completed, the candidate is
 reviewable but blocked from execution. Preserve the active executed definition;
 do not replace it with the candidate merely to prepare a bundle.
+
+## PostgreSQL socket mount and Podman inspect
+
+Use the canonical `/run/postgresql` destination for the 16 MiB socket tmpfs,
+mode 3775. The pinned PostgreSQL filesystem links `/var/run` to `/run`.
+Requesting `/var/run/postgresql` can produce an inspect key before startup that
+is absent afterward: Podman matches configured user-volume paths to runtime
+specification destinations by exact spelling. See the version-specific
+[volume selection source](https://github.com/containers/podman/blob/v5.4.2/libpod/container_internal.go#L2566)
+and [inspect source](https://github.com/containers/podman/blob/v5.4.2/libpod/container_inspect.go#L605).
+
+Local bounded rootless tests reproduced the disappearance and confirmed stable
+metadata with the canonical path. Captured before/after metadata is retained in
+`tests/fixtures/tmpfs-symlink.json` and `tmpfs-canonical.json`; the authentication
+trial suite consumes both. Exact mount-set and size checks remain enforced, with
+regressions for missing, extra and oversized tmpfs mounts. The failed host trial's
+individual mount keys were not captured; corrected target acceptance remains a
+separate live stage. Do not accept arbitrary additional or missing mounts as a
+compatibility workaround.

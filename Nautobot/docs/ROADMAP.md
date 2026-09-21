@@ -4,16 +4,18 @@
 
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
 Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
-The first isolated authentication trial is archived in
-`nautobot-configuration-auth-v1-failed` (`18d5bf8`). All consumed source inputs
-match the published tag. The approved diagnostic retry ran once and failed during
-running PostgreSQL `tmpfs_set` validation, before application authentication.
-`manifests/authentication-trial-retry-result.json` records the result. Cleanup and
-continuity passed, with 77.8 seconds of quiet post-cleanup observation.
-The active slot retains the consumed v2 definition pending archival. Local testing reproduced the symlink-path mismatch; the source now creates and
-validates canonical `/run/postgresql` without relaxing mount checks. Regression
-fixtures retain both observed metadata forms. Next: archive v2 and prepare a
-separately approved successor bundle. Authentication remains open.
+The earlier isolated trials are archived in `nautobot-configuration-auth-v1-failed`
+and `nautobot-configuration-auth-v2-failed`. The approved canonical-path v3 trial
+has now run: running-container validation, including PostgreSQL tmpfs, passed.
+Django shell execution then returned code 1 without a valid probe result; the
+underlying exception was not retained. Cleanup and continuity passed with 77.7
+seconds of quiet post-cleanup observation. The result is in
+`manifests/authentication-trial-canonical-result.json`; the consumed active
+definition remains pending archival. Pinned-source review found required startup directories missing beneath the
+read-only application root. Safe startup exception/frame diagnostics are now
+implemented. Next: prepare and locally validate narrowly bounded disposable
+storage for those directories, archive v3, and freeze a separately approved
+successor. Authentication remains unverified.
 Stage 5, administrator bootstrap, production deployment and Restic remain open.
 
 Credential provisioning was previously archived at

@@ -133,7 +133,7 @@ def create_args(root,spec,role):
     if role=='postgresql':
         args += ['--env-file',home+'/postgresql.env','--env','POSTGRES_USER=nautobot','--env','POSTGRES_DB=nautobot',
                  '--tmpfs','/var/lib/postgresql/data:rw,size=512m,mode=0700',
-                 '--tmpfs','/var/run/postgresql:rw,size=16m,mode=3775',ref]
+                 '--tmpfs','/run/postgresql:rw,size=16m,mode=3775',ref]
     elif role=='redis':
         args += ['--env-file',home+'/redis.env','--secret','nautobot-redis-config,type=mount,target=redis.conf,uid=999,gid=999,mode=0400',
                  '--tmpfs','/data:rw,size=128m,mode=0755',ref,'redis-server','/run/secrets/redis.conf']
@@ -167,7 +167,7 @@ def validate_container(root,spec,role,v):
         '/run/nautobot-qualification/probe.py':str(root/'probe.py'),
         '/run/nautobot-qualification/isolated-trial':str(root/'isolated-trial')}
     sizes={'/tmp':64,'/run':16}
-    sizes.update({'/var/lib/postgresql/data':512,'/var/run/postgresql':16} if role=='postgresql' else {'/data':128} if role=='redis' else {'/prom_cache':8})
+    sizes.update({'/var/lib/postgresql/data':512,'/run/postgresql':16} if role=='postgresql' else {'/data':128} if role=='redis' else {'/prom_cache':8})
     tmp=set(sizes)
     for mount in v.get('Mounts',[]):
         dest=mount['Destination']

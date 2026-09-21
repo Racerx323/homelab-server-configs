@@ -1,0 +1,15 @@
+{
+  "before": {
+    "/run": "rw,size=16m,mode=0755,rprivate,nosuid,nodev,tmpcopyup",
+    "/run/postgresql": "rw,size=16m,mode=3775,rprivate,nosuid,nodev,tmpcopyup",
+    "/tmp": "rw,size=64m,mode=1777,rprivate,nosuid,nodev,tmpcopyup",
+    "/var/lib/postgresql/data": "rw,size=512m,mode=0700,rprivate,nosuid,nodev,tmpcopyup"
+  },
+  "after": {
+    "/run": "rw,size=16m,mode=0755,rprivate,nosuid,nodev,tmpcopyup",
+    "/run/postgresql": "rw,size=16m,mode=3775,rprivate,nosuid,nodev,tmpcopyup",
+    "/tmp": "rw,size=64m,mode=1777,rprivate,nosuid,nodev,tmpcopyup",
+    "/var/lib/postgresql/data": "rw,size=512m,mode=0700,rprivate,nosuid,nodev,tmpcopyup"
+  },
+  "running": true
+}
