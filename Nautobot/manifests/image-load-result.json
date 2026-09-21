@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-image-load-v1",
+  "bundle_sha256": "f2228436dc8cf2e6f0b9b0714928f94363f7aa0f7a450af9319778f0e3552cde",
+  "reviewed_at": "2026-09-21T19:48:24.884503+00:00",
+  "outcome": "image_store_readiness_passed",
+  "accepted": true,
+  "images": {
+    "custom": {
+      "Id": "808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+      "Digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+      "RepoDigests": [
+        "localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+        "localhost/sha256@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf"
+      ],
+      "Architecture": "arm64",
+      "Os": "linux",
+      "Size": 932916896
+    },
+    "postgresql": {
+      "Id": "46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf",
+      "Digest": "sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296",
+      "RepoDigests": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Architecture": "arm64",
+      "Os": "linux",
+      "Size": 483627015
+    },
+    "redis": {
+      "Id": "82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93",
+      "Digest": "sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323",
+      "RepoDigests": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Architecture": "arm64",
+      "Os": "linux",
+      "Size": 138656332
+    }
+  },
+  "steps": {
+    "custom": {
+      "samples": 24,
+      "max_gap_seconds": 5.035818525997456,
+      "post_exit_seconds": 75.50682494597277,
+      "peak_celsius": 57.452,
+      "minimum_available_bytes": 7679193088,
+      "worker_stopped": true
+    },
+    "alias": {
+      "samples": 17,
+      "max_gap_seconds": 5.0368089050170965,
+      "post_exit_seconds": 75.49820543901296,
+      "peak_celsius": 51.121,
+      "minimum_available_bytes": 7765737472,
+      "worker_stopped": true
+    },
+    "postgresql": {
+      "samples": 20,
+      "max_gap_seconds": 5.0381826349766925,
+      "post_exit_seconds": 75.46967514703283,
+      "peak_celsius": 55.017,
+      "minimum_available_bytes": 7666212864,
+      "worker_stopped": true
+    },
+    "redis": {
+      "samples": 18,
+      "max_gap_seconds": 5.036095465009566,
+      "post_exit_seconds": 75.48613040597411,
+      "peak_celsius": 54.043,
+      "minimum_available_bytes": 7682252800,
+      "worker_stopped": true
+    }
+  },
+  "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+  "credential_metadata_and_settings_continuity": true,
+  "network_configuration_continuity": true,
+  "runtime_started": false,
+  "configuration_authentication_tested": false,
+  "administrator_created": false,
+  "runtime_accepted": false,
+  "automatic_image_removal_performed": false,
+  "terminal_archival_pending": true,
+  "controller_evidence_manifest_sha256": "b8ba5084e7688fd5591edebf41ea072931735bf7a70f144c3175870fe1bf91f0"
+}

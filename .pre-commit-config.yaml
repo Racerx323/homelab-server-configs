@@ -446,3 +446,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/
+
+      - id: nautobot-image-load-contracts
+        name: Validate image loading and guarded failure handling
+        entry: python3 Nautobot/tests/test_image_load.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/

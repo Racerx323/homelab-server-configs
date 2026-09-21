@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-image-load-v1",
+  "approved_bundle_sha256": "b3468c071ace307336cc8c0226c29db49b06400242397f4bcd0218738190c111",
+  "reviewed_at": "2026-09-21T19:38:23.416114+00:00",
+  "accepted": false,
+  "phase": "preflight",
+  "cause": "secret_ls_format_json_emits_literal_template",
+  "image_mutation_attempted": false,
+  "images_present_after_failure": 0,
+  "containers_present_after_failure": 0,
+  "runtime_started": false,
+  "nonsecret_node_staging_retained": true,
+  "corrected_readonly_inventory_passed": true,
+  "retry_executed": false
+}

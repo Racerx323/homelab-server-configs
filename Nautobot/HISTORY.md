@@ -70,3 +70,15 @@ formatting; the archive commit skipped only Markdown/YAML formatting hooks for
 one bare URL and one sequence-indentation finding. Other hooks passed. Current
 files correct those findings and return the operation slot to clean. Durable
 credential provenance is in `manifests/provisioned-credentials.json`.
+
+## Runtime image-store readiness
+
+`nautobot-image-load-v1`: all three immutable ARM64 images loaded and verified in
+nautobot's default rootless store. Terminal tag: `nautobot-image-load-v1-ready`.
+Its peeled commit preserves the consumed definition and sanitized
+`manifests/image-load-result.json`. Approved bundle:
+`f2228436dc8cf2e6f0b9b0714928f94363f7aa0f7a450af9319778f0e3552cde`.
+All four bounded steps passed at least 75 seconds of delayed observation; host,
+credential metadata and network configuration continuity passed. No application
+containers, administrator, database initialization or Restic stage ran. The earlier
+preflight failure is retained in `manifests/image-load-preflight-result.json`.

@@ -2,7 +2,7 @@
 
 This is preparation for stage 5, governed by
 [the deployment plan](NAUTOBOT_DEPLOYMENT_PLAN.md). It grants no live execution.
-The active operation remains clean. Prepare one executable operation at a time:
+The active operation defines image loading only. Prepare one executable operation at a time:
 image loading first, then configuration/authentication qualification. Production
 runtime, administrator bootstrap and Restic remain separate stages.
 
@@ -29,11 +29,19 @@ Neither archive presence nor the isolated build store proves runtime-store loadi
 
 ## First operation: load and verify runtime images
 
-Implement an Ansible playbook with a thin frozen-bundle launcher. The bundle must
+The implementation is `ansible/playbooks/load-images.yaml`, with the thin
+`ansible/scripts/load-images.py` frozen-bundle launcher and node watchdog. The bundle must
 include the operation/schema, desired state, qualified image and credential
 provenance, accepted host identity, playbook, validators, tests and this procedure.
-Bind the exact command and SHA-256 before live approval. No executable load bundle
-exists yet; the existing runtime deployment launcher must not be used as a shortcut.
+Bind the exact command and SHA-256 before live approval. The runtime deployment
+launcher is not part of this image-only operation. Preparation and verification
+are local; only execute contacts the target.
+
+```text
+python3 Nautobot/ansible/scripts/load-images.py prepare /tmp/NEW_BUNDLE
+python3 /tmp/NEW_BUNDLE/launcher.py verify /tmp/NEW_BUNDLE EXACT_SHA256
+python3 /tmp/NEW_BUNDLE/launcher.py execute /tmp/NEW_BUNDLE EXACT_SHA256
+```
 
 1. Verify Git provenance and render the current runtime inputs locally. Recheck
    target boot, account, home, user manager, storage health, free space and absence
@@ -45,7 +53,11 @@ exists yet; the existing runtime deployment launcher must not be used as a short
    SHA-256. Stop on changed boot, identity, conflicting objects or integrity drift.
    Run rootless commands from `/`, with the approved account HOME and runtime
    directory. Do not inherit the SSH user's private working directory.
-3. Load the custom OCI archive into the account's default store. Pull only the
+3. Load the custom OCI archive into the account's default store. Independently
+   verify its config ID, manifest digest and ARM64 platform, then assign
+   `localhost/nautobot-homelab:qualified` as the local repository alias. The alias
+   enables lookup by the existing immutable Quadlet reference; deployment never
+   uses the tag. Pull only the
    two immutable PostgreSQL and Redis references selected by desired state.
    No container, database, migration or application service starts in this stage.
 4. Independently inspect all three images: Linux/ARM64, expected image/config
@@ -58,18 +70,39 @@ exists yet; the existing runtime deployment launcher must not be used as a short
    at least 75 seconds after the final image operation. Command success alone
    does not pass storage stability. Preserve stage outcomes and evidence hashes.
 
-Before freezing the bundle, measure archive/pull storage requirements and select
-finite per-command timeouts and resource guards using the accepted host headroom.
-Reuse the qualified delegated cgroup placement where a scoped service is needed;
-do not change the user slice or silently allow unlimited fallback. Test timeout,
-wrong architecture, digest mismatch, absent local reference, partial pulls,
-existing-object conflict, storage errors and evidence/cleanup failure offline.
+Each image command runs as UID 999/GID 985 in its own system service, with
+2 CPUs, 3 GiB memory, no swap and a 900-second maximum runtime. Before Podman
+executes, the child verifies its actual cgroup limits. Image transfer starts no
+container and needs no Buildah child-cgroup layout. The root watchdog samples
+every five seconds; a gap over 15 seconds, temperature at 80 C, nonzero throttling,
+less than 1.5 GiB available memory, less than 20 GiB free storage, changed boot
+or a new storage/OOM event stops the unit and fails the stage. Every command,
+including alias assignment, has at least 75 seconds of post-exit observation.
+There are no automatic pull retries; the target must still report Podman 5.4.2.
+See the [version-specific pull options](https://docs.podman.io/en/v5.4.2/markdown/podman-pull.1.html).
+
+Local qualification loaded the actual ARM64 OCI archive into an isolated VFS
+store and verified the alias plus exact digest lookup without running containers.
+The measured image sizes are 932916896 bytes (custom), 483627015 bytes
+(PostgreSQL) and 138656332 bytes (Redis), about 1.45 GiB combined before
+layer sharing.
+The archive has 932898304 bytes of uncompressed layer tar data. Local dependency
+pulls measure the selected immutable images; the 20 GiB floor deliberately
+reserves ample room for extraction and partial-transfer residue. The workstation
+Podman is older and lacks the retry option: its local qualification omits that
+flag, while target execution explicitly disables retries. This local test does
+not qualify target overlay storage, user/systemd behavior or current host health.
+Those are fail-closed live preconditions/postconditions.
 
 On a pre-mutation failure, stop. After a partial load/pull, inventory and retain
 images for review; do not retry automatically or prune shared storage. An exact
 removal rollback is possible only for newly introduced, unreferenced image IDs
 whose before/after ownership is proven and whose removal was included in scope.
-Do not delete the qualified archive, build stores or credentials. Acceptance is
+The implementation performs no image removal. Retain the operation-owned source
+and evidence directory and inactive/failed transient units for review; this
+explicit residue is not claimed as cleanup. The private controller snapshot is
+removed after collection, and cleanup failure prevents acceptance. Do not delete
+the qualified archive, build stores or credentials. Acceptance is
 image-store readiness only, followed by terminal archival before the next stage.
 
 ## Second operation: configuration and authentication checks
@@ -117,3 +150,15 @@ evidence, migration/startup validation, one-time administrator bootstrap, dual-s
 health, effective limits, logout/reboot persistence, workload headroom, full
 application recovery and the required stable pilot period. Caddy onboarding is
 owned separately. See [the roadmap](ROADMAP.md) for plan-stage numbering.
+
+## Metadata compatibility
+
+The existing secret is enumerated by the explicit Go name template, then inspected
+as JSON without secret contents. `secret ls --format json` is not a JSON shortcut
+on the target: it emits the literal template text for each existing secret.
+Malformed results and extra/missing secret names stop the operation.
+
+The unused default Podman network reports a newly synthesized `created` timestamp
+on repeated read-only queries. Continuity compares every returned configuration
+field except that timestamp. Subnets, IDs, interfaces and flags remain checked.
+Preflight failures retain a bounded error-code record without raw private output.

@@ -1,0 +1,98 @@
+---
+- name: Load only qualified images into the Nautobot rootless store
+  hosts: image_target
+  become: true
+  gather_facts: false
+  module_defaults:
+    ansible.builtin.command:
+      chdir: /
+  tasks:
+    - name: Require the verified single-host operation
+      ansible.builtin.assert:
+        that:
+          - image_load_bundle_verified | default(false) | bool
+          - inventory_hostname == 'image_target'
+          - ansible_play_hosts_all | length == 1
+    - name: Allocate operation-owned node evidence
+      ansible.builtin.tempfile:
+        state: directory
+        path: /var/tmp
+        prefix: nautobot-load-
+      register: node
+    - name: Keep source readable to the resource-limited account
+      ansible.builtin.file:
+        path: '{{ node.path }}'
+        owner: root
+        group: nautobot
+        mode: '0750'
+    - name: Stage frozen non-secret checks and specification
+      ansible.builtin.copy:
+        src: '{{ bundle_root }}/{{ item }}'
+        dest: '{{ node.path }}/{{ item }}'
+        owner: root
+        group: nautobot
+        mode: '0640'
+      loop: [node.py, bounded.py, spec.json]
+    - name: Run reviewed image sequence and retain all terminal evidence
+      block:
+        - name: Verify preconditions and archive before image mutation
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', before, '{{ node.path }}']
+          changed_when: false
+        - name: Load the qualified archive under effective limits
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', guarded, '{{ node.path }}', custom]
+          changed_when: true
+        - name: Verify the loaded image before assigning its repository alias
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', verify-loaded, '{{ node.path }}']
+          changed_when: false
+        - name: Assign the reviewed local repository alias under effective limits
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', guarded, '{{ node.path }}', alias]
+          changed_when: true
+        - name: Prove exact custom-image digest reference resolves locally
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', verify-image, '{{ node.path }}', custom]
+          changed_when: false
+        - name: Pull and verify immutable database and cache images serially
+          ansible.builtin.include_tasks: '{{ bundle_root }}/pull-image.yaml'
+          loop: [postgresql, redis]
+          loop_control:
+            loop_var: selected_image
+        - name: Verify final store, host and configuration continuity
+          ansible.builtin.command:
+            argv: [python3, '{{ node.path }}/node.py', after, '{{ node.path }}']
+          changed_when: false
+      always:
+        - name: Record retained node evidence location
+          ansible.builtin.copy:
+            content: '{{ {"node_evidence": node.path} | to_nice_json }}'
+            dest: '{{ evidence_root }}/node-location.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+        - name: Find bounded non-secret decision records
+          ansible.builtin.find:
+            paths: '{{ node.path }}'
+            patterns: '*.json'
+            file_type: file
+            recurse: false
+          register: records
+        - name: Bound record sizes before collection
+          ansible.builtin.assert:
+            that:
+              - records.files | length <= 12
+              - item.size <= 1048576
+          loop: '{{ records.files }}'
+          loop_control:
+            label: '{{ item.path | basename }}'
+        - name: Preserve records without removing node evidence or image residue
+          ansible.builtin.fetch:
+            src: '{{ item.path }}'
+            dest: '{{ evidence_root }}/{{ item.path | basename }}'
+            flat: true
+            validate_checksum: true
+          loop: '{{ records.files }}'
+          loop_control:
+            label: '{{ item.path | basename }}'

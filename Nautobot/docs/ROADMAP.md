@@ -2,16 +2,20 @@
 
 ## Current next action
 
-Credential provisioning and protected injection are archived at
-`nautobot-credentials-v1-provisioned` (`451b82d`). The operation slot is clean.
-Stage 5 remains unaccepted. [Image loading and application checks](IMAGE_LOADING_AND_CONFIGURATION.md)
-define the next two bounded stages and their acceptance/cleanup requirements.
-The first next execution is image-store loading; its Ansible path, failure tests
-and frozen bundle must be completed before live approval. No application
-configuration/authentication test or administrator creation has run.
+The corrected image-load operation passed on September 21. All three immutable
+ARM64 images resolve in the default rootless runtime store. Each command passed
+at least 75 seconds of delayed storage observation; credential/configuration and
+boot continuity passed. See [image-load-result.json](../manifests/image-load-result.json).
+The active slot retains the consumed definition pending terminal archival; do not
+rerun the bundle. Next: archive the image-store result, then prepare the separate
+[application configuration/authentication checks](IMAGE_LOADING_AND_CONFIGURATION.md).
+No application container, administrator, production database or Restic stage ran.
+Stage 5 remains unaccepted.
 
-The dated sections below retain historical preparation and observation context;
-their absent-config and pending-archive statements are not current-state claims.
+Credential provisioning and protected injection were previously archived at
+`nautobot-credentials-v1-provisioned` (`451b82d`). The historical sections below
+retain preparation/observation context; older absence and pending-archive claims
+are not current-state statements.
 
 ## Historical checkpoint-review boundary
 
@@ -729,3 +733,15 @@ do not rerun its create-only bundle. Credential policy and preparation observati
 above are historical inputs, not current absence claims. Next is credential
 archival followed by reviewed image-store load and configuration/authentication
 qualification. Runtime activation, firewall and pre-data Restic gates remain open.
+
+### Image-load preflight correction
+
+The approved image-load bundle stopped before loading or pulling images on
+September 21. Its secret-list command interpreted literal template output as
+JSON. Read-only diagnosis confirmed an empty image/container store, the expected
+Podman version/store and existing Redis secret; corrected inventory checks passed.
+Only non-secret operation staging/evidence was created. The reviewed correction
+uses a name template plus metadata-only inspection and ignores only the default
+network's synthesized creation timestamp. The failed bundle is preserved in
+private execution evidence. Replacement-bundle authorization is required;
+application runtime and image-store acceptance remain unperformed.

@@ -1,0 +1,9 @@
+---
+- name: Pull the exact image under the bounded node watchdog
+  ansible.builtin.command:
+    argv: [python3, '{{ node.path }}/node.py', guarded, '{{ node.path }}', '{{ selected_image }}']
+  changed_when: true
+- name: Verify the exact immutable reference independently
+  ansible.builtin.command:
+    argv: [python3, '{{ node.path }}/node.py', verify-image, '{{ node.path }}', '{{ selected_image }}']
+  changed_when: false
