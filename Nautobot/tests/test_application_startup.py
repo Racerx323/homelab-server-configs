@@ -159,7 +159,11 @@ class Startup(unittest.TestCase):
                     for node in source['nodes'].values()}
         self.assertEqual(handoff['allowed_sources'], expected)
         self.assertFalse(handoff['execution_authorized'])
-        self.assertEqual(handoff['state'], 'standby_route_accepted_remaining_scopes_pending')
+        self.assertEqual(handoff['state'], 'proxy_routes_accepted_backend_guard_pending')
+        self.assertTrue(handoff['accepted_primary_route']['accepted'])
+        self.assertFalse(handoff['primary_preparation']['execution_ready'])
+        self.assertFalse(handoff['backend_guard_preparation']['execution_ready'])
+        self.assertFalse(handoff['backend_guard_preparation']['fresh_preflight_performed'])
         self.assertEqual(handoff['accepted_standby_route']['scope'], 'standby_preferred_source_route_only')
         self.assertNotIn('10.1.0.56', str(handoff['allowed_sources']))
 

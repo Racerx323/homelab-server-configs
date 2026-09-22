@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 owner: homelab-network
-state: standby_route_accepted_remaining_scopes_pending
+state: proxy_routes_accepted_backend_guard_pending
 execution_authorized: false
 source_reference: Caddy/manifests/deployment.yaml
 target_reference: inventory/prod/hosts/j2-svpi4mf.yaml
@@ -22,7 +22,6 @@ required_evidence:
   - exact_policy_rollback
 unresolved:
   - proposed_design_implementation_and_qualification
-  - primary_proxy_ipv6_source_differs_from_permanent_allowlist
   - same_subnet_backend_enforcement
   - reviewed_live_network_operation
 excluded: [DNS_publication, Caddy_route, VIP_changes, gateway_reboot]
@@ -46,7 +45,7 @@ proposed_design:
   persistence: owned_guard_with_verified_rootless_startup_dependency
   execution_bundle_ready: false
   implementation: ../../../homelab-network/host-network/nautobot/README.md
-  next_scope: primary_read_only_preflight
+  next_scope: backend_guard_read_only_preflight
 latest_route_attempt:
   outcome: failed_rolled_back
   result: ../../../homelab-network/host-network/nautobot/operation-result.json
@@ -58,7 +57,17 @@ accepted_standby_route:
   accepted: true
   scope: standby_preferred_source_route_only
   git_archival: published_tag_verified
+accepted_primary_route:
+  result: ../../../homelab-network/host-network/nautobot/primary-result.json
+  accepted: true
+  scope: primary_preferred_source_route_with_handoff_and_failback
+  git_archival: published_tag_verified
 primary_preparation:
   reference: ../../../homelab-network/host-network/nautobot/PRIMARY_PREPARATION.md
   execution_ready: false
-  host_contact_performed: false
+  host_contact_performed: true
+  operation: ../../../homelab-network/host-network/nautobot/PRIMARY_OPERATION.md
+backend_guard_preparation:
+  reference: ../../../homelab-network/host-network/nautobot/BACKEND_GUARD_PREPARATION.md
+  execution_ready: false
+  fresh_preflight_performed: false

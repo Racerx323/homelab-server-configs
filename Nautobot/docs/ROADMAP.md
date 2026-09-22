@@ -21,7 +21,7 @@ Browser login, application startup, workload acceptance and application-aware
 backup/restore remain pending.
 
 Startup network preflight (September 22) found no target filter rules and direct
-same-subnet paths. The primary proxy selects floating IPv6 ::56 instead of the
+same-subnet paths. The historical preflight found the primary selecting floating IPv6 ::56 instead of the
 permitted permanent ::53; active Caddy transports have no explicit source binding.
 Munin 10.1.3.83 is selected as the non-proxy test vantage. No backend connection
 acceptance was tested. See the [network-owner review](../../../homelab-network/Ubiquiti/nautobot-startup-network-preflight.md)
@@ -44,9 +44,15 @@ recovered without a recorded FAULT transition. See the
 The standby archive is published and its remote tag verified.
 [Primary preparation](../../../homelab-network/host-network/nautobot/PRIMARY_PREPARATION.md)
 now defines the proposed handoff, route change, failback and rollback scope.
-Fresh read-only primary preflight and exact-bundle execution approval remain.
-Active service checks alone did not establish historical cluster continuity. [Retry preparation](../../../homelab-network/host-network/nautobot/RETRY_PREPARATION.md). The target guard, primary route, live packet
-acceptance and boot/HA validation remain separate gates. The candidate web unit
+The approved primary handoff/route/failback operation has now passed. Both proxy
+preferred sources are verified, original VIP ownership is restored, and both
+60-second stability windows passed. Brief transition failures and the existing
+dispatcher warning are retained in the [primary result](../../../homelab-network/host-network/nautobot/primary-result.json).
+The primary archive tag `nautobot-primary-route-accepted` is published and verified.
+Next is the bounded read-only target preflight in [backend guard preparation](../../../homelab-network/host-network/nautobot/BACKEND_GUARD_PREPARATION.md),
+followed by completion and approval of the separate installation bundle.
+Active service checks alone did not establish historical cluster continuity. [Retry preparation](../../../homelab-network/host-network/nautobot/RETRY_PREPARATION.md). The target guard, live packet
+acceptance and reboot persistence remain separate gates. The candidate web unit
 now requires the root-owned effective-rule verifier before starting.
 
 Runtime initialization is accepted as of September 22, 2026. The authorized
