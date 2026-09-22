@@ -25,7 +25,8 @@ n=module('node','Nautobot/ansible/scripts/auth-trial-node.py')
 
 class Trial(unittest.TestCase):
     def setUp(self):
-        p=patch.dict(c.FILES,{'operation.yaml':'Nautobot/tests/fixtures/authentication-trial-operation.yaml'});p.start();self.addCleanup(p.stop)
+        p=patch.dict(c.FILES,{'operation.yaml':'Nautobot/tests/fixtures/authentication-trial-operation.yaml',
+            'PLAN.md':'Nautobot/tests/fixtures/historical-plan.md'});p.start();self.addCleanup(p.stop)
 
     def test_frozen_producer_tamper_and_no_contact(self):
         with tempfile.TemporaryDirectory() as tmp:

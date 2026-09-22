@@ -17,4 +17,4 @@ scope:
   automatic_restore: false
   reboot: false
   caddy_publication: false
-plan_sha256: 7abdab7432a9ba6557ea6e24c4c89344b7c878c23b2985a4aa844e80d94eec0d
+plan_sha256: c73c79aeb594c27873d57752577909f2b6bd5d9e6d2faa4474f97d6491dc7bd7

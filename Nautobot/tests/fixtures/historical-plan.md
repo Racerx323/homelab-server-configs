@@ -205,35 +205,6 @@ Create one private Podman network and these Quadlet-managed services:
 - a one-shot migration unit that runs `nautobot-server post_upgrade` before
   web, worker, or scheduler startup.
 
-### Internal metrics runtime requirement
-
-Nautobot includes Prometheus client instrumentation used by its health-check
-code during application initialization, including `nautobot-server check`.
-The pinned image selects `/prom_cache` through `prometheus_multiproc_dir`.
-This is an internal application dependency: it does not add a Prometheus server,
-a metrics scraper, or replace the required Munin monitoring. Enabling metrics
-exposition or deploying a collector requires separate monitoring review.
-
-For migration, web, worker and scheduler containers:
-
-- Keep the root filesystem read-only.
-- Mount `/prom_cache` as a separate per-container tmpfs capped at 16 MiB, using
-  `mode=1777,noexec,nosuid,nodev` so application UID 999 can write there.
-- Set both `PROMETHEUS_MULTIPROC_DIR` and `prometheus_multiproc_dir` to
-  `/prom_cache`, keeping current and legacy client spelling consistent.
-- Give each newly created container an empty cache. Processes within that
-  container share its cache; do not share it between services or retain it as
-  durable application data or backup content.
-- Keep existing service memory ceilings. Validate writable metrics files,
-  read-only root protection, the tmpfs cap and clean container recreation,
-  followed by native configuration validation on the qualified ARM64 image.
-
-The tmpfs cap is a maximum, not preallocated memory. PostgreSQL and Redis do not
-receive this mount. A fresh cache on container recreation implements the
-[Prometheus client's multiprocess-directory lifecycle requirement](https://github.com/prometheus/client_python/blob/master/docs/content/multiprocess/_index.md).
-
-### Runtime memory and exposure
-
 Use these initial memory ceilings:
 
 | Service | Limit |

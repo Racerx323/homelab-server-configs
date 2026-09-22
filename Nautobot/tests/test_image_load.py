@@ -27,7 +27,8 @@ n=module('node','Nautobot/ansible/scripts/image-load-node.py')
 
 class ImageLoad(unittest.TestCase):
     def setUp(self):
-        self.p=patch.dict(c.FILES,{'operation.yaml':'Nautobot/tests/fixtures/image-load-operation.yaml'})
+        self.p=patch.dict(c.FILES,{'operation.yaml':'Nautobot/tests/fixtures/image-load-operation.yaml',
+            'PLAN.md':'Nautobot/tests/fixtures/historical-plan.md'})
         self.p.start();self.addCleanup(self.p.stop)
 
     def test_prepare_verify_tamper_and_no_host_contact(self):
