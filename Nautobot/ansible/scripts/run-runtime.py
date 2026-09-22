@@ -56,6 +56,7 @@ def bundle_rows(operation):
         'Nautobot/container/requirements.lock', 'Nautobot/ansible/scripts/render-runtime.py',
         'Nautobot/ansible/scripts/run-restic-repository-preflight.py',
         'Nautobot/ansible/playbooks/deploy-runtime.yaml', 'Nautobot/ansible/scripts/initialize-application.py',
+        'Nautobot/ansible/callback_plugins/runtime_progress.py',
         'Nautobot/ansible/scripts/runtime-initialization-node.py', 'restic/scripts/canary-backup.py',
         'Nautobot/tests/test_runtime_initialization.py', 'Nautobot/docs/RUNTIME_INITIALIZATION.md', 'Nautobot/ansible/ansible.cfg',
         'Nautobot/ansible/templates/runtime/container.j2', 'Nautobot/ansible/templates/runtime/network.j2',
@@ -89,8 +90,12 @@ def execute(authorized_hash):
     rendered=Path(operation['runtime']['rendered_directory'])
     bounded.EVIDENCE_PREFIX='nautobot-runtime.'
     root,fd=bounded.prepare_evidence(rows,digest)
+    bounded.write_exclusive(fd,'ansible-progress.jsonl',b'')
     environment=bounded.minimal_environment()
     environment.update(ANSIBLE_CONFIG=str(ROOT/'Nautobot/ansible/ansible.cfg'),LC_ALL='C.UTF-8')
+    environment.update(ANSIBLE_CALLBACK_PLUGINS=str(ROOT/'Nautobot/ansible/callback_plugins'),
+                       ANSIBLE_CALLBACKS_ENABLED='runtime_progress',
+                       NAUTOBOT_PROGRESS_FILE=str(root/'ansible-progress.jsonl'))
     argv=('/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
           'ansible-playbook','--inventory',str(ROOT/'inventory/prod/hosts.yaml'),
           '--limit','j2-svpi4mf','--user','ama','--extra-vars',
@@ -107,10 +112,17 @@ def execute(authorized_hash):
     except BaseException:
         result['error_class']='execution_interrupted_or_failed'
     finally:
+        try:
+            events=[json.loads(line) for line in (root/'ansible-progress.jsonl').read_text().splitlines()]
+            result['task_diagnostics_complete']=bool(events) and events[-1].get('event')=='playbook_complete'
+            result['task_failures']=[e for e in events if e.get('event') in ('task_failed','unreachable')]
+        except (OSError,ValueError):
+            result['task_diagnostics_complete']=False
         bounded.write_exclusive(fd,'result.json',json.dumps(result).encode())
         os.close(fd)
     print('Review required; evidence_root='+str(root))
-    return 0 if result.get('ansible_exit_status')==0 and not result.get('output_truncated') else 69
+    return 0 if (result.get('ansible_exit_status')==0 and not result.get('output_truncated')
+                 and result.get('task_diagnostics_complete')) else 69
 
 
 def main():

@@ -168,6 +168,9 @@ def postflight(root, op):
 
 def main():
     os.umask(0o077)
+    # runuser changes identity and HOME, but inherits cwd. All child commands
+    # must start somewhere the rootless service account can traverse.
+    os.chdir('/')
     mode, directory=sys.argv[1:];root=Path(directory)
     require(root.parent==Path('/tmp') and re.fullmatch(r'nautobot-runtime\.[A-Za-z0-9_]+',root.name),'root_boundary')
     op=json.loads((root/'operation.json').read_text())

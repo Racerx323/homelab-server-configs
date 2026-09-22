@@ -26,7 +26,10 @@ configuration ownership/mode/hash, environment consistency, exact local ARM64
 image IDs, root filesystem `/dev/sda2`, at least 4 GiB available RAM and 4 GiB
 free storage. Existing objects or partial initialization require review rather
 than replacement. The evidence helper stages only non-secret files in a new
-protected `/tmp/nautobot-runtime.*` directory.
+protected `/tmp/nautobot-runtime.*` directory. All host command modules explicitly
+start in `/`; the node helper also changes to `/` before spawning children.
+Changing identity with `runuser` alone does not change the inherited working
+directory and can fail when the service account cannot traverse the SSH home.
 
 ## Native initialization and resource bounds
 
@@ -77,6 +80,16 @@ status. If transport/controller timeout interrupts execution, remote state is
 unknown: inspect it read-only before proposing recovery. The outer controller
 is bounded to 1800 seconds and never marks the runtime accepted automatically.
 
+The controller retains `ansible-progress.jsonl` even before the first remote
+evidence record. A bundle-bound aggregate callback records only approved static
+task names, start/failure/unreachable/completion events and integer return codes
+when `no_log` permits them. It never serializes result text, arguments, loop items,
+host identities or exception messages. Unknown task names are replaced with a
+fixed label. Capture is capped at 512 events and 128 KiB in a protected file.
+The launcher reports incomplete diagnostics explicitly; a missing completion
+event cannot produce a successful launcher result. Task failures may include
+handled rescue events and must be interpreted alongside stage evidence.
+
 Initialization success is not administrator login, application runtime,
 reboot/logout persistence, full application restore or seven-day pilot acceptance.
 No statement here authorizes those later stages.
@@ -85,7 +98,9 @@ No statement here authorizes those later stages.
 
 The test suite exercises the actual native-command helper, selected Quadlets with
 the installed generator, strict receipt parser, private-service assertions,
-wrong-hash/prerequisite rejection and real Ansible failure/independent-stop tasks.
+wrong-hash/prerequisite rejection, real Ansible failure/independent-stop tasks,
+command working-directory defaults, nested execution from an inaccessible
+inherited directory, and secret-safe task diagnostics including `no_log` failures.
 Target ARM64 execution, rootless user-systemd behavior, first database creation,
 actual migration duration and storage health remain live acceptance checks.
 

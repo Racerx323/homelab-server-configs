@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains a failed initialization-only attempt after published canary restore archival. Negative security tests were not run and remain unresolved.
+contains a corrected initialization-only candidate after terminal failure archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -34,9 +34,9 @@ bundle: exact full snapshot/subtree, independent tree/content comparison,
 unchanged source, 75-second quiet cursor-bounded kernel review and credential
 cleanup. [Restore acceptance](../manifests/canary-restore-result.json) records the
 result. Its published terminal tag is `nautobot-canary-restore-v1-accepted`
-at `01bb966`. Initialization stopped before installation; next is correcting the working-directory boundary and preparing a separately approved retry.
+at `01bb966`. Initialization stopped before installation and is archived in `nautobot-runtime-initialization-v1-blocked` at `c5040e3`. The corrected retry awaits exact-bundle execution approval.
 Do not rerun either the consumed backup or restore.
-Do not rerun initialization.
+Do not rerun the consumed initialization bundle.
 Do not rerun the consumed preflight definition. Historical failed
 trial records remain unchanged.
 Stage 5, administrator bootstrap, production deployment and application
@@ -53,8 +53,10 @@ are not current-state statements.
 The approved attempt stopped before runtime installation. Read-only reproduction
 identified Podman inheriting inaccessible `/home/ama`; the metadata queries pass
 from `/`. No Nautobot units, helper, containers or volumes were created.
-[Execution review](../manifests/runtime-initialization-result.json) records the
-result and diagnostic limitation. Do not rerun the consumed definition.
+The terminal archive in [history](../HISTORY.md) records the result and diagnostic
+limitation. Do not rerun the consumed definition. The corrected candidate uses
+`/` for host commands and nested helper subprocesses, with bounded sanitized task
+progress retained even for preflight failures. No live retry has run.
 
 The pre-data prerequisite is complete: repository initialization, canary backup
 with full integrity checking, and isolated restore are accepted and archived.

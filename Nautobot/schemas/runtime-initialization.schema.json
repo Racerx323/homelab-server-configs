@@ -20,7 +20,7 @@
     },
     "operation": {
       "const": {
-        "id": "nautobot-runtime-initialization-v1",
+        "id": "nautobot-runtime-initialization-v2",
         "stage": "runtime_initialization",
         "state": "definition",
         "authorization_ready": true,
@@ -30,7 +30,7 @@
           "ssh_user": "ama",
           "execution_user": "nautobot"
         },
-        "source_commit": "01bb9660fb4f30dcd275fe6301e0a06a92dc6f75"
+        "source_commit": "c5040e37dc5b79e16c004f5f8e78904db1318a78"
       }
     },
     "prerequisites": {
@@ -93,7 +93,7 @@
     "runtime": {
       "const": {
         "first_install_only": true,
-        "rendered_directory": "/home/aaron/code/.local-evidence/nautobot-runtime-initialization-bundle-20260921/rendered",
+        "rendered_directory": "/home/aaron/code/.local-evidence/nautobot-runtime-initialization-retry-bundle-20260921/rendered",
         "artifact_sha256": {
           "nautobot-private.network": "0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63",
           "nautobot-postgresql_data.volume": "0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a",

@@ -4,6 +4,9 @@
   gather_facts: false
   become: false
   any_errors_fatal: true
+  module_defaults:
+    ansible.builtin.command:
+      chdir: /
   vars:
     runtime_operation: '{{ lookup(''ansible.builtin.file'', ''../../manifests/operation.yaml'') | from_yaml
       }}'

@@ -156,6 +156,50 @@ class Initialization(unittest.TestCase):
                 result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(f)],capture_output=True,timeout=60)
                 self.assertEqual(result.returncode,0,result.stdout.decode()+result.stderr.decode())
 
+    def test_command_defaults_and_real_failure_diagnostics(self):
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
+        name='Inspect existing runtime objects before first installation'
+        for hidden in (False,True):
+            with self.subTest(no_log=hidden),tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);progress=path/'progress.jsonl';progress.touch(mode=0o600)
+                task={'name':name,'ansible.builtin.command':{'argv':[sys.executable,'-c',
+                      'import os,sys; assert os.getcwd()=="/"; print("private-sentinel"); sys.exit(7)']},
+                      'no_log':hidden}
+                fixture=[{'hosts':'localhost','gather_facts':False,
+                          'module_defaults':play['module_defaults'],'tasks':[task]}]
+                f=path/'play.yaml';f.write_text(yaml.safe_dump(fixture))
+                env={**os.environ,'ANSIBLE_CONFIG':str(ROOT/'Nautobot/ansible/ansible.cfg'),
+                     'ANSIBLE_CALLBACK_PLUGINS':str(ROOT/'Nautobot/ansible/callback_plugins'),
+                     'ANSIBLE_CALLBACKS_ENABLED':'runtime_progress','NAUTOBOT_PROGRESS_FILE':str(progress)}
+                result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
+                    'ansible-playbook','-i','localhost,','-c','local',str(f)],env=env,cwd=tmp,capture_output=True,timeout=60)
+                self.assertEqual(result.returncode,2,result.stdout.decode()+result.stderr.decode())
+                raw=progress.read_text();rows=[json.loads(line) for line in raw.splitlines()]
+                failure=next(r for r in rows if r['event']=='task_failed')
+                self.assertEqual(failure['task'],name)
+                self.assertEqual(failure.get('exit_status'),None if hidden else 7)
+                self.assertEqual(rows[-1]['event'],'playbook_complete')
+                self.assertNotIn('private-sentinel',raw)
+                self.assertNotIn(str(path),raw)
+
+    def test_node_main_recovers_inaccessible_inherited_directory(self):
+        original=os.getcwd()
+        with tempfile.TemporaryDirectory(prefix='nautobot-runtime.') as tmp:
+            root=Path(tmp);(root/'operation.json').write_text('{}')
+            private=root/'private';private.mkdir();os.chdir(private);private.chmod(0)
+            try:
+                def probe(*_):
+                    # Exercise the real nested subprocess runner after main's
+                    # directory boundary, without sudo or contacting a host.
+                    observed=node.call([sys.executable,'-c','import os;print(os.getcwd())']).strip()
+                    self.assertEqual(observed,'/')
+                    return {'passed':True}
+                with patch.object(sys,'argv',['helper','preflight',tmp]), \
+                     patch.object(node,'preflight',side_effect=probe),patch('builtins.print'):
+                    self.assertEqual(node.main(),0)
+            finally:
+                private.chmod(0o700);os.chdir(original)
+
     def test_playbook_syntax(self):
         result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','--syntax-check','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml')],capture_output=True,timeout=60)
         self.assertEqual(result.returncode,0,result.stdout.decode()+result.stderr.decode())

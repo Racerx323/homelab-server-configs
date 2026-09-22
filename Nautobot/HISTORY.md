@@ -238,3 +238,17 @@ The tag preserves the exact consumed definition and
 pre-archive review. Source, snapshot and restored tree remain retained. The
 pre-data canary gate is satisfied; application recovery and runtime remain
 unaccepted. The active operation slot was cleared after remote tag verification.
+
+## Initialization blocked before installation
+
+`nautobot-runtime-initialization-v1` stopped before units, containers, volumes or
+migrations were created. Read-only comparison established an inaccessible
+inherited working directory; original Ansible task details were not retained.
+Terminal tag: `nautobot-runtime-initialization-v1-blocked`; archive commit
+`c5040e37dc5b79e16c004f5f8e78904db1318a78` (published and read back).
+Bundle: `3f8e0dfcc957d9e5001b6e843c703ada9fd660ef316613dac4d644d293ee3afb`.
+All 47 consumed input identities were verified. The exact definition and
+`manifests/runtime-initialization-result.json` remain in the tag; its pending
+archival field is historical. Accepted live state did not advance. The successor
+corrects command working directories and retains sanitized Ansible task events;
+its execution requires a new exact-bundle approval.
