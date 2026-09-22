@@ -2,25 +2,21 @@
 
 ## Current next action
 
-The latest application-startup attempt failed at web readiness. Migration passed;
-web native configuration, pending-migration and static collection checks passed
-in container logs, but server startup raised: "you have to enable the uWSGI master
-process to use this module." Separately, the gate queried systemd journal while
-web used the k8s-file container log driver, so it never received the native receipt.
-Worker and scheduler did not start; the full acceptance collector was not reached.
+The latest trial passed all six startup gates with current-invocation journald
+receipts and working web health/static HTTP. The native acceptance group also
+confirmed healthy services without restarts. Administrator login/logout then
+failed with exit 69; its generic result does not identify the failing branch.
+Remaining acceptance groups were not run. This does not establish a bad password.
 
-All six services are processless, containers absent and the stop timer inactive.
-No matching storage/OOM kernel events were found. Data and recovery copies remain;
-no automatic restore occurred. The failed operation is preserved in published tag
-`nautobot-application-startup-v3-failed` at `332c3dc`; see [history](../HISTORY.md).
-The successor definition explicitly selects journald for every container variant,
-binds application receipts to the current invocation and enables uWSGI master mode.
-Pinned-generator rendering and application regressions passed locally. The fresh
-read-only baseline confirms stopped services, installed consumed identities, guard
-integrity and unchanged recovery-copy hashes. Full ARM64 acceptance remains pending.
-Next: publish the corrected preparation, verify CI and authorize the exact bundle.
-Earlier startup failures remain in published v1/v2 terminal tags. Startup and
-workload acceptance remain incomplete.
+Independent cleanup verified all services inactive/dead with exit zero, no
+processes or containers, inactive guard timer, unchanged boot and no matching
+kernel storage/OOM events. Data and recovery copies remain. No retry or restore
+was performed. See [current result](../manifests/application-startup-result.json).
+The active operation is terminal-pending; exact consumed inputs remain in private
+evidence and its definition/bundle index in `terminal/application-startup/`.
+Next: diagnose the session probe failure before a separately reviewed retry.
+Prior logging/server failures remain archived in published v1/v2/v3 tags.
+Application startup acceptance and workload acceptance remain incomplete.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native
 checks passed: configuration, no pending migrations, account absence, creation
