@@ -225,3 +225,16 @@ quiet storage review and credential cleanup. Terminal tag
 Bundle: `e8170dbb0f4ebe60c5ace3dccc1b51767bfda453878a57b5806347548117ee98`.
 Snapshot: `7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3`. Isolated restore remains separate.
 All 32 consumed input hashes verified against the terminal archive.
+
+## Accepted isolated canary restore
+
+`nautobot-predata-canary-restore-v1`: accepted exact snapshot/subtree restore,
+independent tree comparison, unchanged source, delayed storage review and
+credential cleanup. Terminal tag: `nautobot-canary-restore-v1-accepted`, archive
+commit `01bb9660fb4f30dcd275fe6301e0a06a92dc6f75` (published and read back).
+Bundle: `0260d585cdcd54e90f96e6a6a0b0de6c4f884c1eef25fcd662aa0fdcc402d606`.
+The tag preserves the exact consumed definition and
+`manifests/canary-restore-result.json`; its archival-pending field describes the
+pre-archive review. Source, snapshot and restored tree remain retained. The
+pre-data canary gate is satisfied; application recovery and runtime remain
+unaccepted. The active operation slot was cleared after remote tag verification.

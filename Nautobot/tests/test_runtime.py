@@ -93,10 +93,10 @@ class RuntimeTests(unittest.TestCase):
     def test_migration_failure_cannot_continue_loop(self):
         play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
         starts=[t for t in play['tasks'][0]['block'] if t['name'].startswith('Start ')]
-        self.assertEqual(len(starts),6)
+        self.assertEqual(len(starts),3)
         self.assertTrue(all('loop' not in t and not t.get('ignore_errors') for t in starts))
         self.assertIn('migration',starts[2]['name'])
-        self.assertIn('web',starts[3]['name'])
+        self.assertFalse(any('web' in t['name'] for t in starts))
 
     def test_cross_artifact_mismatches(self):
         for mutate in (

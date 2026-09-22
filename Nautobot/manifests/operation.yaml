@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 operation:
-  id: nautobot-predata-canary-restore-v1
-  stage: isolated_canary_restore
+  id: nautobot-runtime-initialization-v1
+  stage: runtime_initialization
   state: definition
   authorization_ready: true
   target:
@@ -10,201 +10,117 @@ operation:
     address: 10.1.2.170
     ssh_user: ama
     execution_user: nautobot
-  source_commit: 7521e023a19c874fd276f36ccbba71840fbf9a3a
-  procedure: Nautobot/docs/CANARY_ISOLATED_RESTORE.md
-implementation:
-  state: reviewed
-  engine: ansible
-  launcher: Nautobot/ansible/scripts/run-canary-restore.py
-  playbook: Nautobot/ansible/playbooks/restore-canary.yaml
+  source_commit: 01bb9660fb4f30dcd275fe6301e0a06a92dc6f75
 prerequisites:
-  backup_integrity:
-    terminal_tag: nautobot-canary-backup-v1-accepted
-    archive_commit: 7521e023a19c874fd276f36ccbba71840fbf9a3a
-    record: Nautobot/manifests/canary-backup-result.json
-    record_sha256: 86796f9ff1dba4290e426b4a48c82cc6a9008e7b905bdfd9af2b8aab3bb140e8
-    bundle_sha256: e8170dbb0f4ebe60c5ace3dccc1b51767bfda453878a57b5806347548117ee98
-    result: canary_backup_integrity_accepted
-  initialization:
-    terminal_tag: nautobot-restic-initialization-v1-accepted
-    archive_commit: 08a7e622aa2e15650d8ba1beb0695b10e06cb134
-    record: Nautobot/manifests/restic-initialization-result.json
-    record_sha256: 3cb3c1c599dcbdbc258431c61f68c98fde59e2faf228737b29d0db032c8ab9cd
-    bundle_sha256: faf95642acbcc2c3c370a4e63c91419cda0988489ecaa568cf852cfe4adbb4c4
-    result: repository_initialization_accepted
-  accepted_host: Nautobot/manifests/accepted-live-state.yaml
-  accepted_host_sha256: c82c69ab1da6484c2e6c9acc901ad8ac37d553b3e984381deb8cbc6411dc7905
-  provider:
-    accepted_live_state: backblaze-b2/manifests/accepted-live-state.yaml
-    operation: backblaze-b2-s3-compatibility-v1
-    terminal_tag: backblaze-b2-s3-compatibility-v1-completed
-    archive_commit: 40b2b74b23f4f7b1a0bc212d9daaeb0949531769
-    definition_commit: c5935852e1a5089fddd6b23eda5ab8e44d2e4422
-    bundle_sha256: 20f1b43840e877c60248fc7dc06525d29124cc78ebcbd8ac8af3648340e39588
-    result: s3_credential_compatibility_and_probe_cleanup_accepted
-  provider_sha256: 30693f50b6abc80e2a21cca64dc86c0f7b1fe4d8d40dd6c3dbf81338aafe462b
-  current_host_and_repository_preflight: required_at_execution_not_collected
-repository:
-  url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
-  prefix: ''
-  id: 536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9
-  format_version: 2
-restic_version: restic 0.18.0 compiled with go1.24.4 on linux/arm64
-secret_contract:
-  repository_password:
-    doppler_project: homelab-dev
-    doppler_config: prd_restic
-    doppler_key: NAUTOBOT_RESTIC_REPOSITORY_PASSWORD
-    config_exists: true
-    key_exists: true
-    generation_owner: operator
-    generated_value_allowed_in_git_or_evidence: false
-  password_recovery:
-    independent_from_doppler: true
-    location_confirmed: true
-    locator: 'Dashlane secure note: Homelab'
-    value_allowed_in_git_or_evidence: false
-  backblaze_credentials:
-    doppler_project: homelab-dev
-    doppler_config: prd_b2
-    application_key_id_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
-    application_key_key: NAUTOBOT_RESTIC_B2_APPLICATION_KEY
-    values_allowed_in_git_or_evidence: false
-snapshot:
-  id: 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3
-  source_root: /var/lib/nautobot/backup-restore-tests/source.4cp8z75y
-  metadata:
-    hostname: j2-svpi4mf
-    id: 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3
-    paths:
-      - /var/lib/nautobot/backup-restore-tests/source.4cp8z75y
-    tags:
-      - nautobot-predata-canary-v1
-  selection: exact_full_id_and_exact_archived_subdirectory
-  restore_selector: 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3:/var/lib/nautobot/backup-restore-tests/source.4cp8z75y
-destination:
-  root_pattern: /var/lib/nautobot/backup-restore-tests/restore.*
-  parent_must_exist: true
-  new_empty_directory_required: true
-  owner: nautobot
-  directory_mode: '0700'
-  required_filesystem: /dev/sda2
-  symlink_ancestors_allowed: false
-  source_overlap_allowed: false
-  existing_destination_reuse_allowed: false
-  retain_after_success_and_failure: true
-expected_tree:
-  relative_directories:
-    - path: predata
-      mode: '0700'
-  files:
-    - path: predata/canary.txt
-      content_utf8: 'nautobot isolated backup restore verification v1
-
-        '
-      size_bytes: 49
-      sha256: 0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2
-  file_mode: '0600'
-  owner: nautobot
-  extra_paths_allowed: false
-  symlinks_allowed: false
-  special_files_allowed: false
-  comparison_source: independent_manifest_fixture
-  require_original_source_unchanged: true
-commands:
-  common:
-    - restic
-    - --no-cache
-    - --repository-file
-    - PROTECTED_REPOSITORY_FILE
-    - --password-file
-    - PROTECTED_PASSWORD_FILE
-  config:
-    - --no-lock
-    - cat
-    - config
-  snapshot_metadata:
-    - --no-lock
-    - cat
-    - snapshot
-    - 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3
-  restore:
-    - restore
-    - 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3:/var/lib/nautobot/backup-restore-tests/source.4cp8z75y
-    - --target
-    - NEW_EMPTY_RESTORE_ROOT
-  locks_after:
-    - --no-lock
-    - list
-    - locks
-workflow:
-  - verify_exact_bundle_and_terminal_backup_integrity_proof
-  - verify_user_version_repository_id_format_snapshot_host_paths_and_tag
-  - capture_boot_id_and_kernel_journal_cursor
-  - verify_retained_source_tree_against_independent_fixture
-  - create_new_empty_owned_restore_root_on_required_filesystem
-  - verify_resolved_source_and_destination_do_not_overlap
-  - record_restore_attempt_before_one_restore_command
-  - record_restore_status_before_comparison
-  - compare_exact_restored_paths_types_owners_modes_sizes_and_hashes_to_fixture
-  - verify_original_source_unchanged
-  - observe_75_seconds_and_review_cursor_bounded_kernel_storage_events
-  - verify_boot_continuity_empty_locks_no_cache_and_all_credential_cleanup
-  - retain_snapshot_source_restore_and_evidence_for_independent_acceptance
+  - path: Nautobot/manifests/restic-initialization-result.json
+    sha256: 3cb3c1c599dcbdbc258431c61f68c98fde59e2faf228737b29d0db032c8ab9cd
+    tag: nautobot-restic-initialization-v1-accepted
+    commit: 08a7e622aa2e15650d8ba1beb0695b10e06cb134
+    outcome: repository_initialization_accepted
+  - path: Nautobot/manifests/canary-backup-result.json
+    sha256: 86796f9ff1dba4290e426b4a48c82cc6a9008e7b905bdfd9af2b8aab3bb140e8
+    tag: nautobot-canary-backup-v1-accepted
+    commit: 7521e023a19c874fd276f36ccbba71840fbf9a3a
+    outcome: canary_backup_integrity_accepted
+  - path: Nautobot/manifests/canary-restore-result.json
+    sha256: f6815b15d283d52424784612fc5d7fc16b7582992780baea1cc7bbf622453278
+    tag: nautobot-canary-restore-v1-accepted
+    commit: 01bb9660fb4f30dcd275fe6301e0a06a92dc6f75
+    outcome: isolated_canary_restore_accepted
+  - path: Nautobot/manifests/configuration-readiness-result.json
+    sha256: 9fc45b117f64678bf4ffb6f51488380ef7ef2103c2a3da3c4d19586ae71c2bf4
+    tag: nautobot-configuration-auth-v7-ready
+    commit: cd15ca72e440654012e34593e049b20e9e125d43
+    outcome: disposable_configuration_and_positive_connection_readiness_passed
+  - path: Nautobot/manifests/image-load-result.json
+    sha256: 8282cb7584d286df5c33cf05aaf1caa6ce6808b5c149fc7cf9ff78982bfa111c
+    tag: nautobot-image-load-v1-ready
+    commit: 0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b
+    outcome: image_store_readiness_passed
+  - path: Nautobot/manifests/credential-result.json
+    sha256: 51a304aa10be937af030fcc092c37ee0ea22be79aa6173267f319067f7818eee
+    tag: nautobot-credentials-v1-provisioned
+    commit: 451b82d38906b7b5ca6770010fe924a0a9ce3ca1
+    outcome: complete
+input_sha256:
+  Nautobot/manifests/accepted-live-state.yaml: c82c69ab1da6484c2e6c9acc901ad8ac37d553b3e984381deb8cbc6411dc7905
+  Nautobot/manifests/desired-state.yaml: edcb4e908a6df9b2934e27bb38707eb1f63b4243ede156bbe0d0fa579761b720
+  Nautobot/manifests/runtime-inputs.json: 70ce43e5ad05345f800593b83dbccd3ce1da29b45e25eef71bb532fbaa97bcdb
+  Nautobot/manifests/qualified-image.json: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+  Nautobot/manifests/provisioned-credentials.json: 59fa64f23cce63214d112c4416516cb1d0f8e771b29ca90fba99258abbbb3fc7
+  Nautobot/manifests/configuration-readiness.json: f7a7d04d04a335b582c43ccb1fc6002723bec8634810646c2ee813716f051dfe
+  Nautobot/manifests/runtime-image-store.json: e7f406775307a4ac260229a6122201b384cb60bf25cd21736d8a210f9066814f
+runtime:
+  first_install_only: true
+  rendered_directory: /home/aaron/code/.local-evidence/nautobot-runtime-initialization-bundle-20260921/rendered
+  artifact_sha256:
+    nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
+    nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
+    nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717
+    nautobot-postgresql.container: 463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905
+    nautobot-redis.container: 906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9
+    nautobot-migration.container: 5e30e123e2027a07957032e2d21b7a9decf9a02b543eecb20a03725df9660ea3
+  configuration_sha256: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+  images:
+    custom:
+      reference: localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf
+      id: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+    postgresql:
+      reference: docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296
+      id: 46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf
+    redis:
+      reference: docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323
+      id: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
+  services:
+    - postgresql
+    - redis
+    - migration
+  migration_memory_mib: 1536
+  migration_timeout_seconds: 900
+  overall_timeout_seconds: 1800
+  native_steps:
+    - check
+    - post_upgrade
+    - check
+    - migrate --check
+  persistent_volumes:
+    - postgresql_data
+    - redis_data
+  static_output: derived_temporary_regenerate_before_web_start
+  secret_source: existing_protected_environment_files_and_redis_config_secret
+  recovery_host: j2-svpi4mf.local.theama.co
+  expected_boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
 observation:
-  journal_scope: cursor_bounded_kernel
   delayed_seconds: 75
   storage_event_pattern: I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset|timed
     out|timeout
-  on_missing_or_truncated_evidence: not_accepted
-bounds:
-  command_timeout_seconds: 600
-  overall_timeout_seconds: 1800
-  stream_limit_bytes: 4194304
-  automatic_restore_retry: false
+failure:
+  stop_only_operation_owned_services: true
+  preserve_volumes: true
+  automatic_retry: false
+  reverse_migration: false
+  delete_data: false
+  controller_interrupt: remote_state_unknown_read_only_review_required
 acceptance:
-  restore_exit_status: 0
-  exact_tree_comparison_required: true
-  source_unchanged: true
-  boot_unchanged: true
-  storage_events_absent: true
-  credential_cleanup_required: true
-  predata_backup_integrity_and_restore_gate_only: true
-  application_recovery_accepted: false
-failure_and_recovery:
-  before_restore: stop_without_live_data_changes_remove_only_proven_owned_credentials
-  after_attempt: retain_partial_restore_and_records_no_automatic_retry_or_cleanup
-  cleanup: independent_credential_removals_and_absence_verification
-  unknown_mutation_or_cleanup: manual_review_required
-  automatic_snapshot_delete: false
-  automatic_unlock: false
-  automatic_repair: false
-evidence:
-  - exact_bundle_predecessors_repository_and_full_snapshot_identity
-  - source_and_empty_destination_realpaths_mounts_modes_owners
-  - restore_attempt_and_exit_status
-  - independent_expected_and_observed_tree_comparison
-  - original_source_before_after_hashes
-  - boot_ids_journal_cursor_and_delayed_storage_review
-  - lock_cache_and_credential_cleanup
-  - separate_acceptance_review
-successor:
-  stage: nautobot_runtime_initialization_preparation
-  requires_separate_definition_and_authorization: true
-  application_backup_restore_still_required: true
+  native_checks_and_migration: true
+  healthy_private_data_services: true
+  effective_memory_limits: true
+  boot_and_storage_continuity: true
+  initialization_only: true
+  runtime_pilot_accepted: false
 authorization:
   mutation_authorized: true
-  command: python3 Nautobot/ansible/scripts/run-canary-restore.py execute APPROVED_SHA256
-  blockers: []
-  excluded:
-    - backup
-    - repository_init
-    - full_repository_recheck
-    - restore_over_live_data
-    - forget
-    - prune
-    - unlock
-    - repair
-    - secret_changes
-    - application_deployment
   approval_record: not_yet_granted_exact_bundle_required
+  blockers: []
+  command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+  excluded:
+    - web
+    - worker
+    - scheduler
+    - administrator_bootstrap
+    - published_ports
+    - Caddy
+    - reboot
+    - Restic
+    - secret_rotation
+    - volume_deletion

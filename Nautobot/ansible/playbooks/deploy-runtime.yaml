@@ -1,5 +1,5 @@
 ---
-- name: Install the first reviewed Nautobot rootless runtime
+- name: Initialize private Nautobot data services and migrations only
   hosts: inventory_automation
   gather_facts: false
   become: false
@@ -12,13 +12,9 @@
       - nautobot-private.network
       - nautobot-postgresql_data.volume
       - nautobot-redis_data.volume
-      - nautobot-nautobot_media.volume
       - nautobot-postgresql.container
       - nautobot-redis.container
       - nautobot-migration.container
-      - nautobot-web.container
-      - nautobot-worker.container
-      - nautobot-scheduler.container
     runtime_user_command:
       - /usr/bin/sudo
       - -n
@@ -35,17 +31,12 @@
         that:
           - inventory_hostname == 'j2-svpi4mf'
           - ansible_play_hosts_all | length == 1
-          - runtime_operation.operation.stage | default('') == 'nautobot_pilot'
+          - runtime_operation.operation.stage | default('') == 'runtime_initialization'
           - runtime_operation.operation.authorization_ready | bool
           - runtime_operation.authorization.mutation_authorized | bool
           - runtime_operation.authorization.blockers | length == 0
           - runtime_bundle_verified | default(false) | bool
           - runtime_operation.runtime.first_install_only | bool
-          - runtime_operation.runtime.firewall_accepted | bool
-          - runtime_operation.runtime.configuration_accepted | bool
-          - runtime_operation.runtime.image_identity_accepted | bool
-          - runtime_operation.runtime.host_baseline_accepted | bool
-          - runtime_operation.runtime.recovery_access_confirmed | bool
         fail_msg: Runtime definition is inactive; reviewed operation and bundle required.
     - name: Verify all local rendered files against the reviewed bundle
       ansible.builtin.stat:
@@ -78,7 +69,17 @@
       ansible.builtin.stat:
         path: '{{ runtime_home }}/.config/containers/systemd/{{ item }}'
       become: true
-      loop: '{{ runtime_units }}'
+      loop:
+        - nautobot-private.network
+        - nautobot-postgresql_data.volume
+        - nautobot-redis_data.volume
+        - nautobot-postgresql.container
+        - nautobot-redis.container
+        - nautobot-migration.container
+        - nautobot-web.container
+        - nautobot-worker.container
+        - nautobot-scheduler.container
+        - nautobot-nautobot_media.volume
       register: runtime_existing
     - name: Require a first installation
       ansible.builtin.assert:
@@ -88,14 +89,23 @@
       ansible.builtin.command:
         argv: '{{ runtime_user_command + ["/usr/bin/podman"] + item }}'
       loop:
-        - [ps, --all, --format, json]
-        - [volume, ls, --format, json]
-        - [network, ls, --format, json]
+        - - ps
+          - --all
+          - --format
+          - json
+        - - volume
+          - ls
+          - --format
+          - json
+        - - network
+          - ls
+          - --format
+          - json
       changed_when: false
       register: runtime_objects
     - name: Refuse existing Nautobot objects including partial installation residue
       ansible.builtin.assert:
-        that: "'nautobot' not in (item.stdout | lower)"
+        that: '''nautobot'' not in (item.stdout | lower)'
         fail_msg: Existing Nautobot runtime objects require a separate ownership and recovery review.
       loop: '{{ runtime_objects.results }}'
       no_log: true
@@ -107,9 +117,6 @@
         - postgresql
         - redis
         - migration
-        - web
-        - worker
-        - scheduler
       register: runtime_environments
       no_log: true
     - name: Require canonical ownership and protected environment files
@@ -137,26 +144,99 @@
           - runtime_config.stat.checksum == runtime_operation.runtime.configuration_sha256
     - name: Verify provisioned Redis configuration secret metadata only
       ansible.builtin.command:
-        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''nautobot-redis-config''] }}'
+        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''nautobot-redis-config'']
+          }}'
       changed_when: false
       register: runtime_secret
     - name: Require Redis secret
       ansible.builtin.assert:
         that: (runtime_secret.stdout | from_json)[0].Spec.Name == 'nautobot-redis-config'
-    - name: Capture journal cursor before mutation
+    - name: Create protected node evidence directory
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
           - -n
-          - /usr/bin/journalctl
-          - --lines=0
-          - --show-cursor
-          - --no-pager
+          - /usr/bin/mktemp
+          - --directory
+          - /tmp/nautobot-runtime.XXXXXXXX
+      register: runtime_node
+      changed_when: true
+    - name: Validate node evidence path
+      ansible.builtin.assert:
+        that: runtime_node.stdout is match('^/tmp/nautobot-runtime[.][A-Za-z0-9_]+$')
+    - name: Stage bounded initialization evidence helpers
+      ansible.builtin.copy:
+        src: '{{ item.src }}'
+        dest: '{{ runtime_node.stdout }}/{{ item.name }}'
+        mode: '0600'
+      become: true
+      loop:
+        - src: '{{ playbook_dir }}/../scripts/runtime-initialization-node.py'
+          name: runtime-initialization-node.py
+        - src: '{{ playbook_dir }}/../../../restic/scripts/canary-backup.py'
+          name: canary-backup.py
+    - name: Stage reviewed non-secret operation
+      ansible.builtin.copy:
+        content: '{{ runtime_operation | to_json }}'
+        dest: '{{ runtime_node.stdout }}/operation.json'
+        mode: '0600'
+      become: true
+    - name: Verify current images configuration and headroom
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/runtime-initialization-node.py'
+          - preflight
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: runtime_preflight
+      failed_when: false
+    - name: Preserve preflight
+      ansible.builtin.copy:
+        content: '{{ {"status": runtime_preflight.rc, "output": runtime_preflight.stdout} | to_json }}'
+        dest: '{{ runtime_evidence_root }}/preflight.json'
+        mode: '0600'
+      delegate_to: localhost
+    - name: Require current preflight
+      ansible.builtin.assert:
+        that:
+          - runtime_preflight.rc == 0
+          - (runtime_preflight.stdout | from_json).passed | bool
+    - name: Capture current boot and kernel cursor
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/runtime-initialization-node.py'
+          - journal-baseline
+          - '{{ runtime_node.stdout }}'
       changed_when: false
       register: runtime_cursor
+      failed_when: false
+    - name: Require journal baseline
+      ansible.builtin.assert:
+        that: runtime_cursor.rc == 0
+    - name: Preserve node journal baseline
+      ansible.builtin.copy:
+        content: '{{ runtime_cursor.stdout }}'
+        dest: '{{ runtime_node.stdout }}/journal-baseline.json'
+        mode: '0600'
+      become: true
   tasks:
     - name: Apply once and preserve stage results on failure
       block:
+        - name: Install bounded native migration entrypoint
+          ansible.builtin.copy:
+            src: '{{ playbook_dir }}/../scripts/initialize-application.py'
+            dest: /var/lib/nautobot/runtime/initialize-application.py
+            owner: nautobot
+            group: nautobot
+            mode: '0644'
+            force: false
+          become: true
         - name: Create owned user Quadlet directory
           ansible.builtin.file:
             path: '{{ runtime_home }}/.config/containers/systemd'
@@ -185,42 +265,88 @@
               }}'
           changed_when: true
           register: runtime_start_postgresql
+          no_log: true
         - name: Start redis and stop sequence on failure
           ansible.builtin.command:
             argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-redis.service'']
               }}'
           changed_when: true
           register: runtime_start_redis
+          no_log: true
         - name: Start migration and stop sequence on failure
           ansible.builtin.command:
             argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-migration.service'']
               }}'
           changed_when: true
           register: runtime_start_migration
-        - name: Start web and stop sequence on failure
+          no_log: true
+        - name: Verify native initialization and private services
           ansible.builtin.command:
-            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-web.service'']
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/runtime-initialization-node.py'
+              - postflight
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: runtime_postflight
+          failed_when: false
+        - name: Preserve postflight
+          ansible.builtin.copy:
+            content: '{{ {"status": runtime_postflight.rc, "output": runtime_postflight.stdout} | to_json
               }}'
-          changed_when: true
-          register: runtime_start_web
-        - name: Start worker and stop sequence on failure
+            dest: '{{ runtime_evidence_root }}/postflight.json'
+            mode: '0600'
+          delegate_to: localhost
+        - name: Require initialization postconditions
+          ansible.builtin.assert:
+            that:
+              - runtime_postflight.rc == 0
+              - (runtime_postflight.stdout | from_json).passed | bool
+        - name: Observe delayed current-boot storage evidence
           ansible.builtin.command:
-            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-worker.service'']
-              }}'
-          changed_when: true
-          register: runtime_start_worker
-        - name: Start scheduler and stop sequence on failure
-          ansible.builtin.command:
-            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''nautobot-scheduler.service'']
-              }}'
-          changed_when: true
-          register: runtime_start_scheduler
-        - name: Require independent live acceptance after startup
-          ansible.builtin.debug:
-            msg: Startup is not acceptance. Preserve cursor-bounded journal and unit evidence; run the
-              separately reviewed workload, exposure and recovery checks. No automatic migration rollback
-              or volume deletion is authorized.
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/runtime-initialization-node.py'
+              - journal-review
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: runtime_storage
+          failed_when: false
+        - name: Preserve storage-review
+          ansible.builtin.copy:
+            content: '{{ {"status": runtime_storage.rc, "output": runtime_storage.stdout} | to_json }}'
+            dest: '{{ runtime_evidence_root }}/storage-review.json'
+            mode: '0600'
+          delegate_to: localhost
+        - name: Require quiet storage observation
+          ansible.builtin.assert:
+            that:
+              - runtime_storage.rc == 0
+              - (runtime_storage.stdout | from_json).passed | bool
       always:
+        - name: Read native migration receipt even after failure
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/runtime-initialization-node.py'
+              - migration-evidence
+              - '{{ runtime_node.stdout }}'
+          register: runtime_native_receipt
+          changed_when: false
+          failed_when: false
+        - name: Preserve sanitized native migration receipt
+          ansible.builtin.copy:
+            content: '{{ {"status": runtime_native_receipt.rc, "output": runtime_native_receipt.stdout}
+              | to_json }}'
+            dest: '{{ runtime_evidence_root }}/native-migration.json'
+            mode: '0600'
+          delegate_to: localhost
         - name: Preserve sanitized stage evidence
           ansible.builtin.copy:
             dest: '{{ runtime_evidence_root }}/runtime-stages.json'
@@ -235,6 +361,26 @@
               postgresql_exit_status: '{{ runtime_start_postgresql.rc | default("not_observed") }}'
               redis_exit_status: '{{ runtime_start_redis.rc | default("not_observed") }}'
               migration_exit_status: '{{ runtime_start_migration.rc | default("not_observed") }}'
-              web_exit_status: '{{ runtime_start_web.rc | default("not_observed") }}'
-              worker_exit_status: '{{ runtime_start_worker.rc | default("not_observed") }}'
-              scheduler_exit_status: '{{ runtime_start_scheduler.rc | default("not_observed") }}'
+              node_evidence: '{{ runtime_node.stdout }}'
+              initialization_postflight_status: '{{ runtime_postflight.rc | default("not_observed") }}'
+              storage_review_status: '{{ runtime_storage.rc | default("not_observed") }}'
+              stop_exit_statuses: '{{ runtime_stop.results | default([]) | map(attribute="rc") | list
+                }}'
+              application_started: false
+              volumes_deleted: false
+      rescue:
+        - name: Stop only operation-owned services and preserve data on failure
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''stop'', item] }}'
+          loop:
+            - nautobot-migration.service
+            - nautobot-redis.service
+            - nautobot-postgresql.service
+          register: runtime_stop
+          failed_when: false
+          changed_when: true
+          no_log: true
+        - name: Require review of failed initialization without automatic retry
+          ansible.builtin.fail:
+            msg: Initialization failed; operation-owned services were asked to stop. Retain volumes and
+              review sanitized records; do not retry or reverse migrations.

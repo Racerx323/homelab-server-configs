@@ -18,7 +18,7 @@ SERVICES = {'postgresql', 'redis', 'migration', 'web', 'worker', 'scheduler'}
 DESTINATIONS = {'postgresql_data': '/var/lib/postgresql/data', 'redis_data': '/data', 'nautobot_media': '/opt/nautobot/media'}
 
 
-def render(desired, inputs):
+def render(desired, inputs, initialization=False):
     spec = importlib.util.spec_from_file_location('contracts', Path(__file__).with_name('validate-contracts.py'))
     contracts = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(contracts)
@@ -33,6 +33,10 @@ def render(desired, inputs):
         raise ValueError('unreviewed service set')
     if desired['runtime']['privilege'] != 'rootless' or desired['runtime']['systemd_scope'] != 'user':
         raise ValueError('rootless user runtime required')
+    import copy
+    desired = copy.deepcopy(desired)
+    if initialization:
+        desired['services']['migration']['memory_limit_mib'] = 1536
     env = Environment(loader=FileSystemLoader(TEMPLATES), undefined=StrictUndefined,
                       trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
     artifacts = {'nautobot-private.network': env.get_template('network.j2').render(network=desired['runtime']['network'])}
@@ -50,12 +54,12 @@ def render(desired, inputs):
             if (endpoint['address'], endpoint['family'], endpoint['port']) not in {
                 ('10.1.2.170', 'ipv4', 8080), ('fd36:5aa8:6971:1::170', 'ipv6', 8080)}:
                 raise ValueError('unreviewed backend binding')
-        commands = {'migration': ' '.join(desired['services']['migration']['command'][1:]),
+        commands = {'migration': '/run/initialize-application.py' if initialization else ' '.join(desired['services']['migration']['command'][1:]),
                     'web': 'start --http 0.0.0.0:8080',
                     'worker': 'celery worker --loglevel INFO --concurrency ' + str(desired['services']['worker']['concurrency']),
                     'scheduler': 'celery beat --loglevel INFO'}
         artifacts[f'nautobot-{name}.container'] = env.get_template('container.j2').render(
-            name=name, service=service, image=image, command=commands.get(name, ''),
+            name=name, service=service, image=image, command=commands.get(name, ''), initialization=initialization,
             dependencies=['nautobot-' + dep + '.service' for dep in service.get('depends_on', [])],
             volumes=[{'name': v, 'destination': DESTINATIONS[v]} for v in service.get('volumes', [])])
     # Non-secret review contract; actual protected configuration is provided separately.
@@ -67,6 +71,10 @@ def render(desired, inputs):
                 'redis_persistence': desired['services']['redis']['persistence'],
                 'execution_authorized': False}
     artifacts['configuration-contract.json'] = json.dumps(contract, sort_keys=True, indent=2) + '\n'
+    if initialization:
+        names = {'nautobot-private.network', 'nautobot-postgresql_data.volume', 'nautobot-redis_data.volume',
+                 'nautobot-postgresql.container', 'nautobot-redis.container', 'nautobot-migration.container'}
+        return {k: v for k, v in artifacts.items() if k in names}
     return artifacts
 
 
@@ -97,6 +105,7 @@ def verify_qualified_inputs(inputs, qualified, accepted):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--initialization-only', action='store_true')
     parser.add_argument('--inputs', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
@@ -105,7 +114,7 @@ def main():
     inputs=json.loads(args.inputs.read_text())
     verify_qualified_inputs(inputs, json.loads((ROOT/'Nautobot/manifests/qualified-image.json').read_text()),
                             yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text()))
-    files = render(yaml.safe_load(desired.read_text()), inputs)
+    files = render(yaml.safe_load(desired.read_text()), inputs, args.initialization_only)
     args.output.mkdir(mode=0o700)  # Refuse existing destination and never overwrite evidence.
     for name, content in files.items():
         path = args.output / name

@@ -167,6 +167,7 @@ class Boundaries(unittest.TestCase):
 
     def test_hash_gate_precedes_secret_resolution(self):
         with patch.object(launcher.transport, 'require_ready'), \
+             patch.object(launcher.common, 'validate_operation', return_value=CONTRACT), \
              patch.object(launcher.common, 'read_secret', side_effect=AssertionError('external access')):
             with self.assertRaisesRegex(launcher.common.PreflightBlocked, 'bundle_hash_mismatch'):
                 launcher.transport.execute('0'*64)

@@ -58,6 +58,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'runtime_initialization':
+            validate(json.loads((ROOT / 'Nautobot/schemas/runtime-initialization.schema.json').read_text()), operation)
+            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')
+            self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis', 'migration'])
         elif operation['operation'].get('stage') == 'isolated_canary_restore':
             validate(json.loads((ROOT / 'Nautobot/schemas/canary-restore.schema.json').read_text()), operation)
             self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')

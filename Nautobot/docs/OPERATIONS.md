@@ -80,36 +80,25 @@ prove that an injected settings file is correct.
 
 ## Runtime deployment boundary
 
-`ansible/playbooks/deploy-runtime.yaml` and `ansible/scripts/run-runtime.py` are
-inactive first-install candidates. The current image-qualification definition is
-rejected by the runtime launcher before any target command. No second active operation is created.
+`ansible/playbooks/deploy-runtime.yaml` and `ansible/scripts/run-runtime.py` now
+implement only the [private initialization stage](RUNTIME_INITIALIZATION.md):
+PostgreSQL, Redis and migration. The active strict contract binds terminal
+prerequisite records and exact rendered artifacts. It requires separate approval
+of the final bundle hash before any target command. Do not bypass that gate with
+manually asserted Ansible variables.
 
-Before activation, review the runtime operation/schema, terminal baseline,
-identity and firewall evidence, external secret/configuration validation,
-image architecture/digests, recovery access and exact rendered hashes. Bind those
-non-secret inputs and execution sources into the runtime bundle. The future
-`runtime` operation mapping must explicitly supply `first_install_only`,
-`firewall_accepted`, `configuration_accepted`, `image_identity_accepted`,
-`host_baseline_accepted`, `recovery_access_confirmed`, `rendered_directory`,
-`artifact_sha256`, and the non-secret `configuration_sha256`. A boolean is a
-readiness gate, not a substitute for the independent evidence it references.
-Do not bypass the launcher with manually asserted extra variables.
+The path verifies current identities and first-install absence, starts only the
+selected services, performs native migration checks and preserves sanitized
+stage and journal evidence. It excludes web, worker, scheduler, administrator
+bootstrap and host-published ports. Full application startup remains a separate
+future operation with its own exposure and recovery criteria.
 
-The playbook verifies the canonical account, first-install paths, environment
-file metadata and application configuration identity. It installs only the named
-Quadlets, reloads the user manager and starts services in dependency order. It
-captures a pre-mutation journal cursor and preserves sanitized per-stage statuses
-on the controller, including failure. Unreachable execution or missing stage
-records leave mutation state unknown. Startup success remains unaccepted until
-independent health, exposure, resource and recovery checks pass.
-
-The first-install path deliberately rejects existing unit files; it is not an
-upgrade or resumable migration procedure. After a partial attempt, inspect state
-and define recovery before retrying. Rollback may stop only operation-owned units
-and restore/remove exact reviewed unit files. Never remove volumes, reverse a
-migration or start an older image automatically. Retain application data and
-failure evidence; data recovery requires an independently verified recovery input
-and explicit authorization. Reboot/logout tests remain separately reviewed.
+The first-install path is not an upgrade or resumable migration procedure.
+After failure it attempts independent stops of operation-owned units and retains
+volumes and evidence. Inspect partial state before another operation; never
+reverse migrations, downgrade images or delete volumes automatically. A missing
+receipt or interrupted transport leaves acceptance unresolved. Reboot/logout
+persistence and application recovery remain separately reviewed.
 
 ## Local validation
 

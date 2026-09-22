@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains the consumed isolated canary restore, with acceptance recorded and terminal archival pending. Negative security tests were not run and remain unresolved.
+defines initialization-only runtime deployment after published canary restore archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -33,7 +33,8 @@ The [isolated restore](CANARY_ISOLATED_RESTORE.md) passed under its approved
 bundle: exact full snapshot/subtree, independent tree/content comparison,
 unchanged source, 75-second quiet cursor-bounded kernel review and credential
 cleanup. [Restore acceptance](../manifests/canary-restore-result.json) records the
-result. Next is terminal archival, then runtime initialization preparation.
+result. Its published terminal tag is `nautobot-canary-restore-v1-accepted`
+at `01bb966`. Next is exact-bundle approval for the scoped runtime initialization contract.
 Do not rerun either the consumed backup or restore.
 Do not rerun initialization.
 Do not rerun the consumed preflight definition. Historical failed
@@ -47,74 +48,42 @@ Credential provisioning was previously archived at
 retain preparation/observation context; older absence and pending-archive claims
 are not current-state statements.
 
-## Initialization and runtime preparation after readiness
+## Runtime initialization candidate
 
-Readiness archive: `nautobot-configuration-auth-v7-ready` at `cd15ca7`.
-The durable [readiness identity](../manifests/configuration-readiness.json) binds
-all five passed checks to the terminal result. Prior failed trials remain archived.
-No further disposable authentication trial is a prerequisite. Negative security
-checks remain separate; do not add a SQLSTATE gate back to this sequence.
+The pre-data prerequisite is complete: repository initialization, canary backup
+with full integrity checking, and isolated restore are accepted and archived.
+The active initialization-only operation binds their exact terminal records,
+positive application readiness, accepted image IDs, credential provenance and
+host identity. Do not rerun consumed prerequisites or add a negative SQLSTATE
+qualification gate.
 
-Local rendering produced 11 artifacts from the current immutable image inputs:
-private network, three volumes, six container Quadlets and configuration contract.
-Artifacts and hashes are retained in the private initialization/runtime preparation
-evidence directory. These are candidate files, not installed units or a live bundle.
+The [initialization procedure](RUNTIME_INITIALIZATION.md) owns the reviewed
+implementation, native commands, bounds, acceptance and recovery details. The
+launcher and Ansible path select only the private network, two durable volumes,
+PostgreSQL, Redis and migration. Six Quadlets are rendered; web, worker and
+scheduler units are excluded. No live execution is authorized by this definition.
 
-| Next operation | Concrete work and acceptance | Recovery boundary |
-| --- | --- | --- |
-| Restic read-only preflight | Completed and archived. Bind accepted host/provider identities; preserve endpoint, bucket, empty prefix and existing Doppler/recovery references. Refresh execution user, installed Restic version and exact repository absence; only documented exit 10 establishes absence. Verify all transient secrets removed. | No repository mutation. Ambiguous access, existing repository or missing cleanup evidence stops progression. |
-| Restic initialization | After fresh absence acceptance, review the executable schema transition and freeze the existing initialization playbook/helper. Initialize once; read back exact repository ID and format, record attempted mutation and prove credential cleanup. | After an attempt, retain evidence and classify state read-only; no automatic retry, remote deletion, unlock or repair. |
-| Canary backup and integrity | After terminal repository identity, create the existing deterministic canary, upload one snapshot and identify its full ID; run full data checking. | Retain snapshot and evidence on failure; no implicit deletion. |
-| Isolated canary restore | Restore that exact full snapshot ID to a new empty owned directory; independently compare paths, modes and content hashes. | Never overwrite source or live data; retain failed restore for review. |
-| Runtime initialization | Only after the pre-data gate, deploy reviewed Quadlets and persistent volumes, start private PostgreSQL/Redis and run the planned one-shot `post_upgrade`. Require native checks, successful migration, dependency readiness and effective resource limits. | Stop only operation-owned services and preserve created data/volumes. Do not reverse migrations or downgrade images automatically. |
-| Bootstrap and application validation | Prepare protected administrator provisioning from existing Doppler references, then validate login, application health, worker/scheduler and restricted dual-stack exposure. | No credentials in argv/logs/evidence; retain data and inspect partial state before recovery. |
+The migration wrapper performs native configuration checking, `post_upgrade`,
+a second configuration check and pending-migration checking. It records safe
+step outcomes, uses a 1536 MiB ceiling and temporary writable startup paths,
+and preserves exact failure evidence. PostgreSQL/Redis keep their existing
+ceilings and require healthy private operation and inspected effective limits.
+A failed stage attempts independent stops while preserving persistent data.
 
-### Existing inputs and specific remaining implementation work
+Local regressions cover the actual selected units and Quadlet parser, native
+command sequence and failures, sanitized receipts, data-service assertions,
+bundle/prerequisite gates and real Ansible stop sequencing. Current target
+identity, first database creation, migrations, health and delayed storage
+observation remain live checks under a separately approved bundle.
 
-- The historical [initialization contract](../manifests/deferred-restic-initialization.yaml)
-  retains `absent_verified` and an old passing preflight record. Those are historical,
-  not proof of present absence. Its schema pins that state and `unimplemented`, so
-  the new preflight-only operation/schema/validators now keep those historical claims separate. Preserve the
-  original evidence rather than converting it into a current pass.
-- Reuse `run-restic-repository-preflight.py`, `preflight-restic-repository.yaml`,
-  `run-restic-initialization.py`, `initialize-restic-repository.yaml` and the owning
-  Restic helper. Their offline checks exist. No duplicate deployment framework is
-  needed. The initialization launcher deliberately requires reviewed clean source.
-- Existing secret references: `homelab-dev/prd_restic` repository password and
-  `homelab-dev/prd_b2` scoped application-key pair, exactly as retained in the
-  inactive contract. Independent recovery locator remains the retained Dashlane
-  record. Do not print secret values or regenerate credentials during preparation.
-- Runtime inputs already select the qualified immutable custom image and accepted
-  recovery FQDN. `run-runtime.py` requires a `nautobot_pilot` contract absent from
-  the current schema. Before activation, add a strict reviewed contract binding
-  readiness, repository/canary results, host/image identities and exact artifacts;
-  booleans alone are not evidence. The current launcher/playbook do not enforce
-  the pre-data terminal evidence and must not be invoked directly to bypass it.
-- The deploy playbook starts data services, migration, web, worker and scheduler;
-  it has no administrator bootstrap implementation. Prepare that as an explicit
-  protected step using the already selected administrator and secret references.
-- Port-8080 policy must permit only the two reviewed Caddy nodes over IPv4/ULA;
-  prior SSH/Webmin baseline reachability is not proof of that application policy.
-  Preserve network/Caddy owner boundaries. Caddy publication, reboot/logout
-  persistence, workload testing, full application backup/restore and soak remain
-  later acceptance work, not implied by initialization.
-
-### Immediate next preparation
-
-Prepare the reviewed **read-only Restic preflight reactivation** in the single
-operation slot, reconcile its schema and tests, and produce the exact bundle hash.
-The commands below identify existing entrypoints; they are not presently executable
-from the clean slot and grant no authorization:
-
-```bash
-python3 Nautobot/ansible/scripts/run-restic-repository-preflight.py show-hash
-python3 Nautobot/ansible/scripts/run-restic-repository-preflight.py execute APPROVED_SHA256
-```
-
-The fresh check reads the repository config with no cache or lock. Protected
-credential staging and host/provider contact require the scoped preflight approval.
-This preparation performed neither. Do not activate initialization or runtime until
-their prerequisite evidence exists and their own exact bundle is approved.
+After initialization is accepted, prepare administrator bootstrap and application
+startup. The temporary migration static cache does not provide the later web
+container's assets: regenerate or supply reviewed static files during that stage.
+Before TCP 8080 is published, prove the plan's exact Caddy-node IPv4/ULA source
+restriction through the owning network workflow; SSH/Webmin baseline access does
+not prove this policy. Login, worker/scheduler health, reboot/logout persistence,
+resource headroom, full application backup/restore and pilot soak remain separate
+acceptance criteria.
 
 ## Historical checkpoint-review boundary
 
@@ -444,7 +413,7 @@ references, approved recovery identity and application configuration. The existi
 a finished custom-image deployment digest. Verify those inputs when defining the
 pilot rather than silently updating versions in this planning task.
 
-### Readiness review — September 21, 2026
+### Historical readiness review — September 21, 2026
 
 Readiness preparation is authorized; runtime deployment is not. Stage-3 and
 stage-4 terminal tag/commit identities were reverified, and the stage-4 evidence

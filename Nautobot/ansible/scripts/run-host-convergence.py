@@ -34,6 +34,7 @@ BUNDLE_FILES = (
     'Nautobot/schemas/repository-initialization.schema.json',
     'Nautobot/schemas/canary-backup.schema.json',
     'Nautobot/schemas/canary-restore.schema.json',
+    'Nautobot/schemas/runtime-initialization.schema.json',
     'Nautobot/ansible/ansible.cfg',
 )
 

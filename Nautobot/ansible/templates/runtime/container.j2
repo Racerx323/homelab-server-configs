@@ -13,7 +13,18 @@ Network=nautobot-private.network
 NetworkAlias={{ name }}
 EnvironmentFile=/var/lib/nautobot/runtime/{{ name }}.env
 {% if name in ['migration', 'web', 'worker', 'scheduler'] %}
+{% if initialization | default(false) and name == "migration" %}
+Entrypoint=python3
+Volume=/var/lib/nautobot/runtime/initialize-application.py:/run/initialize-application.py:ro
+Tmpfs=/opt/nautobot/git:rw,size=16m,mode=1777
+Tmpfs=/opt/nautobot/jobs:rw,size=16m,mode=1777
+Tmpfs=/opt/nautobot/media:rw,size=16m,mode=1777
+Tmpfs=/opt/nautobot/static:rw,size=256m,mode=1777
+Environment=PYTHONDONTWRITEBYTECODE=1
+PodmanArgs=--memory-swap=1536m
+{% else %}
 Entrypoint=nautobot-server
+{% endif %}
 Environment=NAUTOBOT_CONFIG=/opt/nautobot/nautobot_config.py
 Volume=/var/lib/nautobot/runtime/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro
 {% endif %}
@@ -45,6 +56,11 @@ Exec={{ command }}
 {% endif %}
 
 [Service]
+{% if initialization | default(false) and name == "migration" %}
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nautobot-initialization
+{% endif %}
 {% if name == 'migration' %}
 Type=oneshot
 RemainAfterExit=yes
@@ -53,7 +69,7 @@ Restart=no
 Restart=on-failure
 RestartSec=10
 {% endif %}
-TimeoutStartSec=300
+TimeoutStartSec={{ 900 if initialization | default(false) and name == "migration" else 300 }}
 TimeoutStopSec=90
 
 {% if name != 'migration' %}
