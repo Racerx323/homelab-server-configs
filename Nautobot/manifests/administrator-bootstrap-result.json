@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "operation": "nautobot-administrator-bootstrap-v2",
+  "outcome": "administrator_bootstrap_accepted",
+  "accepted": true,
+  "reviewed_at": "2026-09-22T16:36:18.303209+00:00",
+  "definition_commit": "45e10f33eb9deefc2a2f29d68f12d5d7dcc60e08",
+  "bundle_sha256": "370f9ea861b96e0923dc3d886ca16560f2b609beefbcefa1930da3b6e1461f5f",
+  "verified_input_count": 70,
+  "native": {
+    "creation_attempted": true,
+    "passed": true,
+    "steps": {
+      "account_absent": {
+        "exit_status": 0,
+        "output_limited": false
+      },
+      "account_verified": {
+        "exit_status": 0,
+        "output_limited": false
+      },
+      "configuration": {
+        "exit_status": 0,
+        "output_limited": false
+      },
+      "creation": {
+        "exit_status": 0,
+        "output_limited": false
+      },
+      "pending_migrations": {
+        "exit_status": 0,
+        "output_limited": false
+      }
+    }
+  },
+  "account": {
+    "username": "admin",
+    "exact_identity_verified": true,
+    "active_staff_superuser_verified": true,
+    "native_authentication_verified": true
+  },
+  "cleanup": {
+    "passed": true,
+    "cleanup": {
+      "probe": true,
+      "redis": true,
+      "postgresql": true,
+      "input.json": true,
+      "bootstrap-application.py": true,
+      "initialize-application.py": true,
+      "directory": true
+    }
+  },
+  "data_services_stopped": true,
+  "new_data_service_invocations_verified": true,
+  "configuration_units_images_boot_unchanged": true,
+  "cold_copies_verified": true,
+  "controller_secret_cleanup": true,
+  "guard_fired": false,
+  "guard_disarmed": true,
+  "storage": {
+    "boot_unchanged": true,
+    "cursor_verified": true,
+    "entries_reviewed": 30,
+    "storage_event_count": 0,
+    "delayed_seconds": 75.00012628902914,
+    "passed": true
+  },
+  "ansible_exit_status": 0,
+  "task_diagnostics_complete": true,
+  "task_failures": [],
+  "output_truncated": false,
+  "boundaries": {
+    "browser_login_accepted": false,
+    "application_startup_performed": false,
+    "application_accepted": false,
+    "migrations_run": false,
+    "restic_changed": false
+  },
+  "git_archival": "pending",
+  "evidence_sha256": {
+    "preflight.json": "c048def8abdd760b322fcd4d925ca6a7ea1827992c1c5034cf6896a3f8c87bbe",
+    "native.json": "66d9acff6dadecab59707ebdad3f2bf60138693df75deebf3f91b674012cd928",
+    "native-command.json": "dbb479c53036eb227132f766326c00c54e7c140e2d9d89857d903fe32ff6c7ab",
+    "bootstrap-stages.json": "0624c5cbb3e6a5caa903e707e54e7672c99642b616f816eb897dce83c708291c",
+    "storage.json": "1c7d196b2f3b99f921336730b9586376493e9a3acf19f54f72a6c2e58ee96cda",
+    "result.json": "dec9759201b540770415aa6ddf1331eb58734b10ec844968838feade65f46230",
+    "ansible-progress.jsonl": "7c47b7f5f28ec8d525c7792c05c0204f77a2276be80271fd315e6b2cbe8e0392"
+  }
+}

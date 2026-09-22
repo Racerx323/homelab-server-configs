@@ -2,16 +2,18 @@
 
 ## Current next action
 
-Administrator bootstrap retry is prepared for exact-bundle execution review.
-The first attempt failed before creation and is archived in the published tag
-`nautobot-administrator-bootstrap-v1-failed` at `d8336e5`; see [history](../HISTORY.md).
-The pinned CLI consumes `shell -c` as its configuration-path option. Both account
-checks now use `--command`, covered by actual pinned parser excerpts; bootstrap
-task names are now recognized in sanitized progress records. No retry has run.
-The single active operation is `nautobot-administrator-bootstrap-v2`. Review its
-private frozen bundle, commit the definition and verify validation before execution.
-Existing-account refusal, cleanup, resource limits and delayed storage checks
-remain required. Application startup is still a separate operation.
+Administrator bootstrap is accepted as of September 22, 2026. All five native
+checks passed: configuration, no pending migrations, account absence, creation
+and exact administrator identity/flags plus positive authentication.
+[Bootstrap result](../manifests/administrator-bootstrap-result.json) records the
+review. Transient credentials and the disposable container were removed; data
+services are stopped, configuration and cold copies remained verified, the guard
+did not fire, and the 75-second delayed storage review found no errors.
+The consumed operation remains in place pending terminal Git archival. Do not
+rerun it: the administrator now exists. Next archive this accepted result, then
+prepare the separate application startup operation described in
+[bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). Browser login, application
+startup, workload acceptance and application-aware backup/restore remain pending.
 
 Runtime initialization is accepted as of September 22, 2026. The authorized
 continuation passed all five native steps in 285.165 seconds, including
@@ -29,7 +31,7 @@ result's pending Git archival field records its execution-time state.
 [Administrator bootstrap and startup preparation](BOOTSTRAP_AND_STARTUP.md)
 records the next two sequential scopes. The bootstrap-only path is implemented
 with a strict operation contract, local failure/cleanup tests and native Django
-credential-handoff verification. Its first execution failed before creation as recorded above. Web, worker,
+credential-handoff verification. Its first execution failed before creation; the corrected retry is accepted as recorded above. Web, worker,
 scheduler, application backup/restore and workload acceptance remain outstanding.
 
 The prerequisite and failed-attempt history below provides context; it does not
@@ -44,7 +46,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains the unexecuted administrator-bootstrap retry definition. Negative security tests were not run and remain unresolved.
+contains the consumed accepted administrator-bootstrap definition, pending archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
