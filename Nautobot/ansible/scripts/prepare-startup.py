@@ -36,6 +36,8 @@ def prepare(output):
     render.verify_qualified_inputs(inputs, json.loads((ROOT/'Nautobot/manifests/qualified-image.json').read_text()),
                                    yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text()))
     artifacts = render.render(yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text()), inputs)
+    for name in ('startup-application.py', 'initialize-application.py', 'startup-job.py', 'startup-job-probe.py'):
+        artifacts[name] = Path(__file__).with_name(name).read_text()
     # Compare to actual archived installed unit identities, not the new desired state.
     archived_op = yaml.safe_load(git('show', tag + ':Nautobot/manifests/operation.yaml'))
     baseline = archived_op['runtime']['artifact_sha256']

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Offline native startup, actual Quadlet rendering, gates and cleanup tests."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 from unittest.mock import patch
 import yaml
@@ -25,9 +27,230 @@ def load(name, file):
 app = load('startup_app', 'startup-application.py')
 node = load('startup_node', 'startup-node.py')
 preparation = load('startup_preparation', 'prepare-startup.py')
+collector = load('startup_collector', 'collect-startup.py')
+launcher = load('startup_launcher', 'run-startup.py')
+preflight = load('startup_preflight', 'startup-preflight.py')
+browser = load('startup_browser', 'startup-browser-probe.py')
+network = load('startup_network', 'startup-network-probe.py')
+freeze_preservation = load('freeze_preservation', 'freeze-preservation.py')
+preservation_runner = load('preservation_runner', 'run-preservation.py')
 
 
 class Startup(unittest.TestCase):
+    def contract(self):
+        return {'schema_version': 1, 'checks': [
+            {'id': 'check_' + str(index), 'group': group,
+             'argv': ['/usr/bin/python3', '/tmp/frozen-probe.py'],
+             'timeout_seconds': 10, 'expected': {'healthy': True}}
+            for index, group in enumerate(sorted(collector.GROUPS))]}
+
+    def test_job_uses_async_dispatch_and_restores_disabled_flag_on_error(self):
+        module = load('startup_job_probe', 'startup-job-probe.py')
+        changes = []
+        job = types.SimpleNamespace(enabled=False, save=lambda **kw: changes.append(job.enabled))
+        calls = []
+        def enqueue(**kwargs):
+            calls.append(kwargs)
+            raise ValueError('fixture broker failure')
+        def fake(name, **attrs):
+            value = types.ModuleType(name)
+            value.__dict__.update(attrs)
+            return value
+        modules = {name: fake(name) for name in ('django', 'django.contrib', 'nautobot', 'nautobot.core', 'nautobot.extras')}
+        modules.update({
+            'django.contrib.auth': fake('django.contrib.auth', get_user_model=lambda: types.SimpleNamespace(objects=types.SimpleNamespace(get=lambda **kw: 'fixture-user'))),
+            'nautobot.core.celery': fake('nautobot.core.celery', app=types.SimpleNamespace(control=types.SimpleNamespace(inspect=lambda **kw: types.SimpleNamespace(stats=lambda: {'worker': {'pool': {'max-concurrency': 2}}})))),
+            'nautobot.extras.models': fake('nautobot.extras.models', Job=types.SimpleNamespace(objects=types.SimpleNamespace(get=lambda **kw: job)), JobResult=types.SimpleNamespace(enqueue_job=enqueue)),
+            'nautobot.extras.choices': fake('nautobot.extras.choices', JobResultStatusChoices=types.SimpleNamespace(STATUS_SUCCESS='SUCCESS', EXCEPTION_STATES={'FAILURE'})),
+        })
+        with patch.dict(sys.modules, modules):
+            with self.assertRaisesRegex(ValueError, 'fixture broker failure'):
+                module.probe()
+        self.assertEqual(changes, [True, False])
+        self.assertIs(calls[0]['synchronous'], False)
+        self.assertEqual(calls[0]['job_kwargs'], {})
+
+    def test_preservation_bundle_detects_tampering_and_wrong_authorization(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)/'bundle'
+            freeze_preservation.freeze(root)
+            digest = (root/'SHA256').read_text().strip()
+            self.assertEqual(preservation_runner.verify(root, digest)['stage'], 'startup_database_preservation')
+            with self.assertRaisesRegex(ValueError, 'authorization_hash'):
+                preservation_runner.verify(root, '0'*64)
+            (root/'scripts/inspect-retained-database.py').write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'bundle_file'):
+                preservation_runner.verify(root, digest)
+
+    def test_preservation_playbook_has_no_service_start_or_restore(self):
+        path = ROOT/'Nautobot/ansible/playbooks/preserve-startup-database.yaml'
+        play = yaml.safe_load(path.read_text())[0]
+        commands = [task['ansible.builtin.command']['argv'] for task in play['pre_tasks'] + play['tasks'] if 'ansible.builtin.command' in task]
+        self.assertEqual(len(commands), 2)
+        self.assertIn('preserve', commands[-1])
+        self.assertNotIn('systemctl', str(commands))
+        result = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'), 'ansible-playbook', '--syntax-check', '-i', 'j2-svpi4mf,', str(path)], capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+
+    def test_network_denial_requires_timeout_source_and_family_counter(self):
+        before = {'deny-v4': 4, 'deny-v6': 8}
+        value = {'outcome': 'timeout', 'source': '10.1.3.83'}
+        self.assertTrue(network.denied(value, before, {'deny-v4': 5, 'deny-v6': 8}, 0, '10.1.3.83'))
+        self.assertFalse(network.denied({**value, 'outcome': 'error'}, before, {'deny-v4': 5, 'deny-v6': 8}, 0, '10.1.3.83'))
+        self.assertFalse(network.denied(value, before, before, 0, '10.1.3.83'))
+        self.assertFalse(network.denied(value, before, {'deny-v4': 5, 'deny-v6': 9}, 0, '10.1.3.83'))
+        self.assertFalse(network.denied(value, before, {'deny-v4': 5, 'deny-v6': 8}, 0, 'other'))
+
+    def test_browser_redirect_cannot_send_session_to_other_origin(self):
+        import urllib.request
+        handler = browser.LocalRedirect('http://127.0.0.1:8123')
+        request = urllib.request.Request('http://127.0.0.1:8123/login/')
+        with self.assertRaisesRegex(ValueError, 'nonlocal_redirect'):
+            handler.redirect_request(request, None, 302, 'Found', {}, 'http://external.example/')
+
+    def test_browser_real_http_cookie_csrf_login_and_revocation(self):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        from threading import Thread
+        from urllib.parse import parse_qs
+        active = set()
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def reply(self, status, payload=b'', cookie=None):
+                self.send_response(status)
+                if cookie: self.send_header('Set-Cookie', cookie)
+                self.end_headers(); self.wfile.write(payload)
+            def do_GET(self):
+                if self.headers.get('Host') != browser.HOST:
+                    return self.reply(400)
+                if self.path == '/logout/':
+                    active.clear(); return self.reply(200)
+                self.reply(200, b'<input name="csrfmiddlewaretoken" value="fixture-csrf">', 'csrftoken=fixture-csrf; Path=/')
+            def do_POST(self):
+                data = parse_qs(self.rfile.read(int(self.headers['Content-Length'])).decode())
+                if data.get('csrfmiddlewaretoken') != ['fixture-csrf']:
+                    return self.reply(403)
+                if self.path == '/login/':
+                    if data.get('password') != ['fixture-password']: return self.reply(400)
+                    active.add('fixture-session')
+                    return self.reply(200, cookie='sessionid=fixture-session; Path=/')
+                if self.path == '/logout/':
+                    active.clear(); return self.reply(200)
+                self.reply(404)
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            result = browser.flow('http://127.0.0.1:' + str(server.server_port), 'fixture-password', lambda cookie: cookie in active)
+            self.assertTrue(result['administrator_login_logout'])
+            self.assertFalse(active)
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
+    def test_baseline_metadata_never_reads_or_hashes_environment_contents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root/'postgresql.env').write_text('PASSWORD=do-not-retain')
+            (root/'app.py').write_text('pass')
+            (root/'alias.env').symlink_to(root/'postgresql.env')
+            report = preflight.files(root)
+            self.assertNotIn('sha256', report['postgresql.env'])
+            self.assertNotIn('PASSWORD', json.dumps(report))
+            self.assertFalse(report['alias.env']['regular'])
+            self.assertEqual(report['app.py']['sha256'], hashlib.sha256(b'pass').hexdigest())
+
+    def test_collector_executes_all_groups_and_retains_no_payload(self):
+        calls = []
+        def run(argv, timeout):
+            calls.append(argv)
+            return 0, b'{"healthy":true,"sensitive":"not retained"}', b'', False
+        result = collector.collect(self.contract(), run)
+        self.assertTrue(result['accepted'])
+        self.assertEqual(len(calls), 7)
+        self.assertNotIn('sensitive', json.dumps(result))
+        self.assertNotIn('not retained', json.dumps(result))
+
+    def test_collector_rejects_command_errors_truncation_wrong_types_and_bad_json(self):
+        for outcome in [(1, b'{"healthy":true}', b'', False),
+                        (0, b'{"healthy":true}', b'', True),
+                        (0, b'{"healthy":1}', b'', False),
+                        (0, b'{"healthy":true} extra', b'', False),
+                        (0, b'{}', b'', False)]:
+            calls = []
+            def run(argv, timeout):
+                calls.append(argv)
+                return outcome
+            self.assertFalse(collector.collect(self.contract(), run)['accepted'])
+            self.assertEqual(len(calls), 1)
+
+    def test_collector_validates_whole_contract_before_any_probe(self):
+        for mutate in [lambda c: c['checks'].pop(),
+                       lambda c: c['checks'][-1].update(timeout_seconds=301),
+                       lambda c: c['checks'][-1].update(id=c['checks'][0]['id']),
+                       lambda c: c['checks'][-1].update(expected={})]:
+            contract = self.contract(); mutate(contract)
+            with patch.object(collector, 'run') as runner:
+                with self.assertRaises(ValueError):
+                    collector.collect(contract, runner)
+                runner.assert_not_called()
+
+    def test_launcher_hashes_artifacts_probes_and_recovery_and_rejects_drift(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in launcher.FILES:
+                destination = root/name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes((ROOT/name).read_bytes())
+            probe = root/'probe.py'; probe.write_text('print("fixture")')
+            artifact = root/'web.container'; artifact.write_text('fixture')
+            baseline = root/'baseline.json'
+            baseline.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf',
+                'boot_id': '00000000-0000-0000-0000-000000000000',
+                'services': {role: {'ActiveState': 'inactive', 'SubState': 'dead', 'InvocationID': ''}
+                             for role in node.ROLES}}))
+            recovery = root/'recovery.json'
+            recovery.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf'}))
+            digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+            contract = self.contract()
+            for check in contract['checks']:
+                check['argv'] = ['/usr/bin/python3', str(probe)]
+            helpers = {name: digest(root/('restic/scripts/' if name == 'canary-backup.py' else 'Nautobot/ansible/scripts/')/name)
+                       for name in ('startup-node.py', 'runtime-initialization-node.py', 'canary-backup.py')}
+            specification = root/'specification.json'
+            specification.write_text(json.dumps({'schema_version': 1, 'host': 'j2-svpi4mf',
+                'artifacts': [{'source': str(artifact), 'destination': '/var/lib/nautobot/runtime/test.py', 'sha256': digest(artifact)}],
+                'acceptance_contract': contract,
+                'baseline': {'path': str(baseline), 'sha256': digest(baseline)},
+                'recovery': {'path': str(recovery), 'sha256': digest(recovery)},
+                'helper_sha256': helpers, 'probe_files': {str(probe): digest(probe)}}))
+            value, before, rows, identity = launcher.prepare(specification, root)
+            self.assertEqual(len(identity), 64)
+            self.assertIn((digest(probe), 'probe:' + str(probe)), rows)
+            probe.write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'probe_file_hash'):
+                launcher.prepare(specification, root)
+            probe.unlink(); probe.symlink_to(artifact)
+            with self.assertRaisesRegex(ValueError, 'unsafe_input'):
+                launcher.prepare(specification, root)
+
+    def test_launcher_rejects_unapproved_or_inactive_before_ansible(self):
+        with patch.object(launcher, 'prepare', return_value=({}, {}, [], 'expected')):
+            with patch.object(launcher.subprocess, 'check_output') as command:
+                with self.assertRaisesRegex(ValueError, 'authorization_hash'):
+                    launcher.execute(Path('/tmp/spec.json'), 'wrong')
+                with self.assertRaisesRegex(ValueError, 'startup_inactive'):
+                    launcher.execute(Path('/tmp/spec.json'), 'expected')
+                command.assert_not_called()
+
+    def test_playbook_collects_evidence_instead_of_supplied_acceptance_boolean(self):
+        play = yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/start-application.yaml').read_text())[0]
+        self.assertNotIn('startup_live_acceptance_verified', str(play))
+        tasks = play['tasks'][0]['block']
+        names = [task['name'] for task in tasks]
+        self.assertLess(names.index('Collect bounded live acceptance evidence on controller'),
+                        names.index('Disarm guard after all live evidence passes'))
+        self.assertIn('Stage independent stop helpers before arming guard',
+                      [task['name'] for task in play['pre_tasks']])
+
     def test_web_collects_assets_before_exec_without_migrating(self):
         calls = []
         def run(argv, timeout):
@@ -159,11 +382,13 @@ class Startup(unittest.TestCase):
                     for node in source['nodes'].values()}
         self.assertEqual(handoff['allowed_sources'], expected)
         self.assertFalse(handoff['execution_authorized'])
-        self.assertEqual(handoff['state'], 'proxy_routes_accepted_backend_guard_pending')
+        self.assertEqual(handoff['state'], 'packet_qualification_accepted_startup_pending')
+        self.assertTrue(handoff['accepted_backend_guard']['accepted'])
+        self.assertTrue(handoff['accepted_backend_guard']['packet_qualification_accepted'])
         self.assertTrue(handoff['accepted_primary_route']['accepted'])
         self.assertFalse(handoff['primary_preparation']['execution_ready'])
         self.assertFalse(handoff['backend_guard_preparation']['execution_ready'])
-        self.assertFalse(handoff['backend_guard_preparation']['fresh_preflight_performed'])
+        self.assertTrue(handoff['backend_guard_preparation']['fresh_preflight_performed'])
         self.assertEqual(handoff['accepted_standby_route']['scope'], 'standby_preferred_source_route_only')
         self.assertNotIn('10.1.0.56', str(handoff['allowed_sources']))
 

@@ -14,8 +14,12 @@ Published annotated tag `nautobot-administrator-bootstrap-v2-accepted` at
 was verified. The archived result's pending-publication field is historical.
 The active operation is clean. Do not rerun bootstrap: the administrator exists.
 The inactive application-startup candidate is implemented with offline rendering,
-ordered Ansible startup, native entrypoint and failure stops. Next complete the
-network-owner evidence and exact activation/acceptance contract, following the sequence in
+ordered Ansible startup, native entrypoint, hash-bound launcher, bounded collector
+and failure stops. Network packet evidence is accepted and archived. The fresh read-only baseline was collected and reviewed on September 22;
+services remain stopped and installed identities match the bootstrap archive.
+Concrete session/network/Job probes are implemented locally. Next authorize the
+separate stopped-database preservation, then assemble the startup activation contract. See
+[startup baseline and recovery](STARTUP_PREFLIGHT_AND_RECOVERY.md) and the sequence in
 [bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). No startup bundle is frozen.
 Browser login, application startup, workload acceptance and application-aware
 backup/restore remain pending.
@@ -49,8 +53,25 @@ preferred sources are verified, original VIP ownership is restored, and both
 60-second stability windows passed. Brief transition failures and the existing
 dispatcher warning are retained in the [primary result](../../../homelab-network/host-network/nautobot/primary-result.json).
 The primary archive tag `nautobot-primary-route-accepted` is published and verified.
-Next is the bounded read-only target preflight in [backend guard preparation](../../../homelab-network/host-network/nautobot/BACKEND_GUARD_PREPARATION.md),
-followed by completion and approval of the separate installation bundle.
+The [backend guard preflight](../../../homelab-network/host-network/nautobot/BACKEND_GUARD_PREFLIGHT.md)
+passed its first-install baseline, retaining Webmin certificate and existing Munin
+IPv6 ACL limitations. IPv4 monitoring works. The guard installation path and recovery reporting are implemented and locally
+tested. The first installation stopped at the rootless Podman baseline check due to an
+inaccessible inherited working directory. No production guard artifacts/rules
+were installed; protected staging remains. See [guard result](../../../homelab-network/host-network/nautobot/guard-result.json).
+Staging has since been archived and independently verified; the active path is
+absent. The corrected retry guard installation is now accepted: rules and file hashes,
+startup dependency, disarmed watchdog and management checks passed. Application
+units remain stopped. See [guard retry result](../../../homelab-network/host-network/nautobot/guard-retry-result.json).
+The archive commit and annotated tag `nautobot-backend-guard-accepted` are
+published and verified.
+[Live packet qualification preparation](../../../homelab-network/host-network/nautobot/PACKET_QUALIFICATION_PREPARATION.md)
+defines the next bounded listener stage. The live [packet qualification](../../../homelab-network/host-network/nautobot/packet-result.json)
+passed for both proxy families and non-proxy denial under current HA ownership.
+Listener/tunnel cleanup, unchanged guard and stopped application were verified.
+Next archive this result, then prepare the separate startup activation contract.
+Actual Caddy traffic, other-ownership packet testing and reboot remain later checks. Packet
+qualification and application startup remain separate.
 Active service checks alone did not establish historical cluster continuity. [Retry preparation](../../../homelab-network/host-network/nautobot/RETRY_PREPARATION.md). The target guard, live packet
 acceptance and reboot persistence remain separate gates. The candidate web unit
 now requires the root-owned effective-rule verifier before starting.

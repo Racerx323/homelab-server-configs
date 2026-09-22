@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 owner: homelab-network
-state: proxy_routes_accepted_backend_guard_pending
+state: packet_qualification_accepted_startup_pending
 execution_authorized: false
 source_reference: Caddy/manifests/deployment.yaml
 target_reference: inventory/prod/hosts/j2-svpi4mf.yaml
@@ -45,7 +45,7 @@ proposed_design:
   persistence: owned_guard_with_verified_rootless_startup_dependency
   execution_bundle_ready: false
   implementation: ../../../homelab-network/host-network/nautobot/README.md
-  next_scope: backend_guard_read_only_preflight
+  next_scope: prepare_application_startup
 latest_route_attempt:
   outcome: failed_rolled_back
   result: ../../../homelab-network/host-network/nautobot/operation-result.json
@@ -68,6 +68,36 @@ primary_preparation:
   host_contact_performed: true
   operation: ../../../homelab-network/host-network/nautobot/PRIMARY_OPERATION.md
 backend_guard_preparation:
+  operation: ../../../homelab-network/host-network/nautobot/BACKEND_GUARD_OPERATION.md
   reference: ../../../homelab-network/host-network/nautobot/BACKEND_GUARD_PREPARATION.md
   execution_ready: false
-  fresh_preflight_performed: false
+  fresh_preflight_performed: true
+  preflight_result: ../../../homelab-network/host-network/nautobot/backend-preflight.json
+guard_installation_result:
+  reference: ../../../homelab-network/host-network/nautobot/guard-result.json
+  accepted: false
+  production_mutation: false
+  staging_retained: true
+guard_staging_reconciliation:
+  reference: ../../../homelab-network/host-network/nautobot/guard-staging-reconciliation.json
+  active_staging_absent: true
+  retry_execution_authorized: false
+accepted_backend_guard:
+  reference: ../../../homelab-network/host-network/nautobot/guard-retry-result.json
+  scope: installation_only
+  accepted: true
+  packet_qualification_accepted: true
+  git_archival: published_tag_verified
+packet_qualification_preparation:
+  operation: ../../../homelab-network/host-network/nautobot/PACKET_QUALIFICATION_OPERATION.md
+  reference: ../../../homelab-network/host-network/nautobot/PACKET_QUALIFICATION_PREPARATION.md
+  execution_ready: false
+  host_contact_authorized: false
+  predecessor_archive_publication: published_tag_verified
+accepted_packet_qualification:
+  reference: ../../../homelab-network/host-network/nautobot/packet-result.json
+  scope: disposable_listener_current_ha_ownership
+  accepted: true
+  git_archival: published_tag_verified
+  archive_tag: nautobot-packet-qualification-accepted
+  archive_commit: 48954d2f1b359bfa725e0f8fc2ebb3cfae1b71b8

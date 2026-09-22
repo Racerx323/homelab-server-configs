@@ -34,6 +34,8 @@ PodmanArgs=--memory-swap=1536m
 Entrypoint=python3
 Exec=/run/startup-application.py {{ name }}
 Volume=/var/lib/nautobot/runtime/startup-application.py:/run/startup-application.py:ro
+Volume=/var/lib/nautobot/runtime/startup-job.py:/opt/nautobot/jobs/startup_readiness.py:ro
+Volume=/var/lib/nautobot/runtime/startup-job-probe.py:/run/startup-job-probe.py:ro
 Volume=/var/lib/nautobot/runtime/initialize-application.py:/run/initialize-application.py:ro
 User=999
 Group=999

@@ -65,6 +65,14 @@ def main():
             result = stop_all()
             result['no_containers'] = base.podman('ps', '--all', '--format', 'json') == []
             result['passed'] = result['passed'] and result['no_containers']
+        elif len(sys.argv) == 3 and sys.argv[1] == 'baseline':
+            if Path('/proc/sys/kernel/random/boot_id').read_text().strip() != sys.argv[2]:
+                raise ValueError('boot_changed')
+            states = {role: service(role) for role in ROLES}
+            stopped = all(v.get('ActiveState') == 'inactive' and v.get('SubState') == 'dead' for v in states.values())
+            no_containers = base.podman('ps', '--all', '--format', 'json') == []
+            base.call(['/usr/bin/python3', '-I', '/usr/local/lib/nautobot-network/backend_guard.py', 'check'])
+            result = {'passed': stopped and no_containers, 'services': states, 'guard_verified': True}
         elif len(sys.argv) == 3 and sys.argv[1] == 'state':
             role = sys.argv[2]
             value = service(role)
