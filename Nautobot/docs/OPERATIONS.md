@@ -92,6 +92,9 @@ selected services, performs native migration checks and preserves sanitized
 stage and journal evidence. It excludes web, worker, scheduler, administrator
 bootstrap and host-published ports. Full application startup remains a separate
 future operation with its own exposure and recovery criteria.
+[Administrator bootstrap and application startup](BOOTSTRAP_AND_STARTUP.md)
+specifies the native account-creation path, transient credential cleanup, runtime
+filesystem and migration-unit changes, and required backend access controls.
 
 The first-install path is not an upgrade or resumable migration procedure.
 After failure it attempts independent stops of operation-owned units and retains

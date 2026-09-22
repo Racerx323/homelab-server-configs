@@ -10,8 +10,13 @@ Two per-migration completion timings remain unobserved; native completion and
 no-pending checks passed. PostgreSQL, Redis and migration are stopped, cold copies
 remain verified, the guard did not fire, and the 75-second storage review was quiet.
 [Initialization result](../manifests/runtime-initialization-result.json) owns this
-acceptance. Next: archive this consumed operation, then prepare administrator
-bootstrap and application runtime startup under the stage-5 plan. Web, worker,
+acceptance. Terminal commit `6a31396` is preserved by the published annotated tag
+`nautobot-runtime-initialization-v1-accepted`; its remote identity was verified
+on September 22, 2026. The consumed operation slot is now clean. The archived
+result's pending Git archival field records its execution-time state.
+[Administrator bootstrap and startup preparation](BOOTSTRAP_AND_STARTUP.md)
+records the next two sequential scopes. Next, implement and test the
+bootstrap-only path, then freeze its execution bundle. Web, worker,
 scheduler, application backup/restore and workload acceptance remain outstanding.
 
 The prerequisite and failed-attempt history below provides context; it does not
@@ -26,7 +31,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains the consumed successful continuation, awaiting terminal archival. Negative security tests were not run and remain unresolved.
+is clean after the successful continuation was archived. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact

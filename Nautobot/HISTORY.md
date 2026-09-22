@@ -277,3 +277,24 @@ its pending-archival field is historical. Ledger: 423 applied migrations; static
 comparison found 16 core and 10 DNS Models files unrecorded. Initialization and
 runtime acceptance did not advance. Originals and protected host copies remain;
 no restoration or migration retry occurred. The consumed slot is now clean.
+
+## Accepted runtime initialization
+
+`nautobot-runtime-continuation-v1`: initialization accepted. Published annotated
+tag `nautobot-runtime-initialization-v1-accepted` resolves to
+`6a31396b0a54868911c294abc586f0beac06f09b`; remote identity verified on
+September 22, 2026. Definition commit:
+`983cf0b3a09b876dcb3194c045263afd26ef26e3`. Approved bundle:
+`ba3bc760d334955a3d56eb743038471a88df43cdea8c011e8b253745c0910677`.
+All 57 consumed input identities were verified before archival.
+
+The tag preserves the consumed definition and
+`manifests/runtime-initialization-result.json`: five native steps passed, the
+native plan covered 58 migrations, and the final check found no pending
+migrations. The parser recognized 56 individual completion events; two individual
+timings remain unobserved. Data services and migration were stopped, cold copies
+remained verified, and the 75-second storage review was quiet. The archived
+result's pending Git archival field is historical; publication is now verified.
+The operation slot was cleared only after remote verification. Administrator
+bootstrap, application startup and full workload acceptance remain outstanding;
+accepted stage-3/stage-4 identities are unchanged.
