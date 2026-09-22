@@ -173,6 +173,13 @@ class Bootstrap(unittest.TestCase):
         with patch.object(launcher,'validate',return_value=self.operation()),patch.object(launcher,'bundle_rows',return_value=[('a'*64,'fixture')]),patch.object(launcher,'verify_prerequisites',side_effect=AssertionError('must stop first')),patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('no execute')):
             with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bundle_hash_mismatch'):launcher.execute('0'*64)
 
+    def test_checkout_without_private_identity_fails_closed(self):
+        operation=self.operation()
+        with tempfile.TemporaryDirectory() as tmp:
+            operation['bootstrap']['identity_reference']=str(Path(tmp)/'absent.json')
+            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bootstrap_identity_metadata'):
+                launcher.bundle_rows(operation)
+
     def test_interrupted_controller_removes_private_input(self):
         rows=[('a'*64,'fixture')]
         launcher.bounded.BUNDLE_DOMAIN='nautobot-runtime-bundle-v1'

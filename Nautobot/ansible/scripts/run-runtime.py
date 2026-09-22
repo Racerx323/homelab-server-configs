@@ -92,7 +92,10 @@ def bundle_rows(operation):
         rows.append((hashlib.sha256(path.read_bytes()).hexdigest(), name))
     if operation['operation']['stage'] == 'administrator_bootstrap':
         identity = Path(operation['bootstrap']['identity_reference'])
-        info = identity.lstat()
+        try:
+            info = identity.lstat()
+        except OSError as exc:
+            raise bounded.PreflightBlocked('bootstrap_identity_metadata') from exc
         if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
                 or stat.S_IMODE(info.st_mode) != 0o600 or info.st_size > 4096):
             raise bounded.PreflightBlocked('bootstrap_identity_metadata')
