@@ -20,6 +20,35 @@ network-owner evidence and exact activation/acceptance contract, following the s
 Browser login, application startup, workload acceptance and application-aware
 backup/restore remain pending.
 
+Startup network preflight (September 22) found no target filter rules and direct
+same-subnet paths. The primary proxy selects floating IPv6 ::56 instead of the
+permitted permanent ::53; active Caddy transports have no explicit source binding.
+Munin 10.1.3.83 is selected as the non-proxy test vantage. No backend connection
+acceptance was tested. See the [network-owner review](../../../homelab-network/Ubiquiti/nautobot-startup-network-preflight.md)
+and `manifests/startup-network-handoff.yaml`. Resolve source selection and prepare
+same-subnet enforcement before startup activation. The [prepared network design](../../../homelab-network/Ubiquiti/nautobot-backend-network-design.md)
+now defines the proposed route/guard scope, rollback and acceptance matrix; it is
+implemented and locally tested, with a separate standby-route bundle prepared for
+review. That standby attempt failed at the immediate post-reapply route lookup
+and rolled back; profile bytes, addresses, boot, services and dual-stack DNS were
+verified restored. See the [network operation result](../../../homelab-network/host-network/nautobot/operation-result.json).
+The first attempt accepted no preferred-source route. Follow-up found an eight-second standby
+Keepalived FAULT interval after IPv6 Caddy health-check failures, followed by BACKUP
+recovery. The user accepts brief node interruption with cluster continuity and
+node recovery; retain the route approach. Bounded recovery and cluster checks plus retained-state reconciliation are
+implemented and the approved retry is accepted for the standby route only.
+Its route settled in 6.116 seconds; all 16 sampled health checks passed, with
+61.986 seconds after apply completion. A brief node-local IPv6 check failure
+recovered without a recorded FAULT transition. See the
+[retry result](../../../homelab-network/host-network/nautobot/retry-result.json).
+The standby archive is published and its remote tag verified.
+[Primary preparation](../../../homelab-network/host-network/nautobot/PRIMARY_PREPARATION.md)
+now defines the proposed handoff, route change, failback and rollback scope.
+Fresh read-only primary preflight and exact-bundle execution approval remain.
+Active service checks alone did not establish historical cluster continuity. [Retry preparation](../../../homelab-network/host-network/nautobot/RETRY_PREPARATION.md). The target guard, primary route, live packet
+acceptance and boot/HA validation remain separate gates. The candidate web unit
+now requires the root-owned effective-rule verifier before starting.
+
 Runtime initialization is accepted as of September 22, 2026. The authorized
 continuation passed all five native steps in 285.165 seconds, including
 `post_upgrade` and the final no-pending-migrations check. Its native plan covered

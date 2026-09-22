@@ -147,6 +147,10 @@ class Startup(unittest.TestCase):
             self.assertNotIn('CONTINUATION_TOKEN', text)
         self.assertIn('PublishPort=127.0.0.1:8080:8080', files['nautobot-web.container'])
         self.assertIn('User=999', files['nautobot-nautobot_media.volume'])
+        verifier = 'ExecStartPre=/usr/bin/sudo -n /usr/bin/python3 -I /usr/local/lib/nautobot-network/backend_guard.py check'
+        self.assertIn(verifier, files['nautobot-web.container'])
+        for role in ('postgresql', 'redis', 'migration', 'worker', 'scheduler'):
+            self.assertNotIn(verifier, files['nautobot-'+role+'.container'])
 
     def test_network_handoff_matches_owner_source_and_stays_inactive(self):
         handoff = yaml.safe_load((ROOT/'Nautobot/manifests/startup-network-handoff.yaml').read_text())
@@ -155,7 +159,8 @@ class Startup(unittest.TestCase):
                     for node in source['nodes'].values()}
         self.assertEqual(handoff['allowed_sources'], expected)
         self.assertFalse(handoff['execution_authorized'])
-        self.assertEqual(handoff['state'], 'proposed_not_deployed')
+        self.assertEqual(handoff['state'], 'standby_route_accepted_remaining_scopes_pending')
+        self.assertEqual(handoff['accepted_standby_route']['scope'], 'standby_preferred_source_route_only')
         self.assertNotIn('10.1.0.56', str(handoff['allowed_sources']))
 
     def test_playbook_syntax(self):

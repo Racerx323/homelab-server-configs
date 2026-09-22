@@ -280,7 +280,11 @@ reviewed network operation. Destination is Nautobot TCP 8080 at the two approved
 host addresses; local recovery uses `127.0.0.1:8080` through SSH. No wildcard bind,
 new DNS publication or Caddy route is included.
 
-`homelab-network` owns the policy. Ask it to prepare enforcement that covers
+`homelab-network` owns the policy. Its [prepared design](../../../homelab-network/Ubiquiti/nautobot-backend-network-design.md)
+proposes destination-specific permanent-source routes and a target pre-NAT guard.
+The [candidate implementation](../../../homelab-network/host-network/nautobot/README.md)
+provides persistence and rollback. Live qualification remains pending; web startup
+now requires the fixed root-owned rule verifier through ExecStartPre. Require enforcement that covers
 same-subnet traffic as well as routed traffic, with rollback preserving SSH and
 existing monitoring. Do not assume the UniFi gateway sees direct LAN traffic.
 The resulting evidence must show installed rules, interface coverage and both

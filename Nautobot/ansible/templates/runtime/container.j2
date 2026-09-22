@@ -76,6 +76,10 @@ Exec={{ '/run/migration-continuation.py' if continuation | default(none) and nam
 {% endif %}
 
 [Service]
+{% if name == 'web' %}
+# Cross-system/user boundary: root-owned readback, never a user-unit After= alias.
+ExecStartPre=/usr/bin/sudo -n /usr/bin/python3 -I /usr/local/lib/nautobot-network/backend_guard.py check
+{% endif %}
 {% if initialization | default(false) and name == "migration" %}
 StandardOutput=journal
 StandardError=journal
