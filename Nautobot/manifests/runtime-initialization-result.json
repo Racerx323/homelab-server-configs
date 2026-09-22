@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-runtime-initialization-v1",
+  "bundle_sha256": "3f8e0dfcc957d9e5001b6e843c703ada9fd660ef316613dac4d644d293ee3afb",
+  "definition_commit": "ad83d7eda09b6937a45dc651e97dbafee7bb97c8",
+  "reviewed_at": "2026-09-22T00:26:58.871526+00:00",
+  "accepted": false,
+  "outcome": "blocked_before_runtime_installation",
+  "ansible_exit_status": 2,
+  "diagnosis": {
+    "podman_default_cwd_status": 1,
+    "error": "cannot chdir to /home/ama: Permission denied",
+    "podman_accessible_cwd_status": 0,
+    "working_directory": "/",
+    "original_task_output_retained": false,
+    "scope": "same read-only metadata commands reproduced cwd failure and passed from accessible directory; exact original Ansible task output unavailable"
+  },
+  "observed_state": {
+    "initialization_helper_installed": false,
+    "quadlets_installed": false,
+    "containers_present": false,
+    "volumes_present": false,
+    "application_network_present": false,
+    "existing_redis_secret_present": true,
+    "remote_operation_evidence_present": false
+  },
+  "migration_executed": false,
+  "runtime_initialization_accepted": false,
+  "storage_observation": "not_reached",
+  "automatic_retry": false,
+  "git_archival": "pending",
+  "evidence_sha256": {
+    "bundle.sha256": "bc8fb97fcb4f0be18842479866d781bfeff4d6a279e48a8bfe695ca04285695f",
+    "readonly-rootcwd.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "readonly-rootcwd.json": "cba66fc56599b9e90eb3a12a33ea4d3cd2fcdc2881a5538a0ad4271f62174634",
+    "result.json": "1519209d826f111218c81601fa8a9caabb443a9723af2d15a7cd22d01b5ce905",
+    "readonly-review.json": "84d3a7095adc1eb47fe8e039a683b288cf4349d8547bbd8b5082343be77f9fd8",
+    "podman-readonly.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bundle-files.sha256": "d5d93639fd437948d4d21c3b2b30affc523ada045e07b6eed0993fe1c7834592",
+    "podman-readonly.json": "34eb6a29f5a2f6d3ffd8fc916d2e0443ab5ebc6b68860d726f7e7f442bc491ef",
+    "readonly-review.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
