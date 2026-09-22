@@ -122,7 +122,7 @@ class RuntimeTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as tmp:
                 p=Path(tmp)/'probe.yaml'
                 p.write_text(yaml.safe_dump([{'hosts':'localhost','gather_facts':False,
-                    'vars':{'runtime_secret':{'stdout':json.dumps([{'Spec':{'Name':'nautobot-redis-config'}}])},
+                    'vars':{'runtime_operation':{'operation':{'stage':'runtime_initialization'}},'runtime_secret':{'stdout':json.dumps([{'Spec':{'Name':'nautobot-redis-config'}}])},
                             'runtime_objects':{'results':[{'stdout':json.dumps(names)}]}},
                     'tasks':[assertion,residue]}]))
                 result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(p)],capture_output=True,timeout=30)

@@ -62,6 +62,12 @@ class Contracts(unittest.TestCase):
             validate(json.loads((ROOT / 'Nautobot/schemas/database-inspection.schema.json').read_text()), operation)
             self.assertEqual(operation['runtime']['services'], ['postgresql'])
             self.assertFalse(operation['acceptance']['initialization_accepted'])
+        elif operation['operation'].get('stage') == 'runtime_continuation':
+            validate(json.loads((ROOT / 'Nautobot/schemas/runtime-continuation.schema.json').read_text()), operation)
+            self.assertFalse(operation['runtime']['first_install_only'])
+            self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis', 'migration'])
+            self.assertFalse(operation['failure']['automatic_restore'])
+            self.assertFalse(operation['acceptance']['application_accepted'])
         elif operation['operation'].get('stage') == 'runtime_initialization':
             validate(json.loads((ROOT / 'Nautobot/schemas/runtime-initialization.schema.json').read_text()), operation)
             self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')

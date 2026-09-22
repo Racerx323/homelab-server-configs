@@ -15,7 +15,15 @@ EnvironmentFile=/var/lib/nautobot/runtime/{{ name }}.env
 {% if name in ['migration', 'web', 'worker', 'scheduler'] %}
 {% if initialization | default(false) and name == "migration" %}
 Entrypoint=python3
+{% if continuation | default(none) %}
+Volume=/var/lib/nautobot/runtime/migration-continuation.py:/run/migration-continuation.py:ro
+Volume=/var/lib/nautobot/runtime/migration-continuation-inputs.json:/run/migration-continuation-inputs.json:ro
+Volume=/var/lib/nautobot/runtime/continuation-evidence:/run/continuation-evidence:rw
+Environment=CONTINUATION_TOKEN={{ continuation }}
+Environment=PYTHONUNBUFFERED=1
+{% else %}
 Volume=/var/lib/nautobot/runtime/initialize-application.py:/run/initialize-application.py:ro
+{% endif %}
 Tmpfs=/opt/nautobot/git:rw,size=16m,mode=1777
 Tmpfs=/opt/nautobot/jobs:rw,size=16m,mode=1777
 Tmpfs=/opt/nautobot/media:rw,size=16m,mode=1777
@@ -52,7 +60,7 @@ Notify=healthy
 HealthInterval=10s
 HealthRetries=6
 {% else %}
-Exec={{ command }}
+Exec={{ '/run/migration-continuation.py' if continuation | default(none) and name == 'migration' else command }}
 {% endif %}
 
 [Service]
@@ -69,7 +77,7 @@ Restart=no
 Restart=on-failure
 RestartSec=10
 {% endif %}
-TimeoutStartSec={{ 900 if initialization | default(false) and name == "migration" else 300 }}
+TimeoutStartSec={{ 1860 if continuation | default(none) and name == "migration" else (900 if initialization | default(false) and name == "migration" else 300) }}
 TimeoutStopSec=90
 
 {% if name != 'migration' %}

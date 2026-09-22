@@ -36,6 +36,7 @@ BUNDLE_FILES = (
     'Nautobot/schemas/canary-restore.schema.json',
     'Nautobot/schemas/runtime-initialization.schema.json',
     'Nautobot/schemas/database-inspection.schema.json',
+    'Nautobot/schemas/runtime-continuation.schema.json',
     'Nautobot/ansible/ansible.cfg',
 )
 

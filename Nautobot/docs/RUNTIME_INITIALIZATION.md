@@ -232,3 +232,142 @@ successful migration nor application acceptance. Preservation failure cannot
 start PostgreSQL; shutdown failure cannot be reported as successful inspection.
 The filesystem-copy requirements follow
 [PostgreSQL 17 filesystem backup guidance](https://www.postgresql.org/docs/17/backup-file.html).
+
+## Prepared continuation of retained migrations
+
+The continuation is implemented as an explicit branch of `run-runtime.py` and
+`deploy-runtime.yaml`, with `continue-runtime-tasks.yaml` owning orchestration.
+The strict `runtime-continuation.schema.json` binds the active candidate.
+Preparation and tests are local; execution still requires its exact bundle approval.
+Use the accepted inspection in [history](../HISTORY.md) and its tagged result as
+the prerequisite; do not infer initialization acceptance from that result.
+
+### Inputs and preservation
+
+Bind the existing accepted image IDs, configuration, secret references, installed
+unit hashes, named-volume paths and original boot identity. Retain the original
+PostgreSQL and Redis volumes and the independently verified protected cold copies.
+Before any startup, verify both services and migration are stopped, no container
+writers exist, and the cold-copy content/metadata still match the inspection
+record. Original PostgreSQL files can legitimately differ from the pre-start copy
+after the inspection startup; do not require original/copy equality now.
+Unexpected writers, changed identity, a missing copy or a changed copy stop work.
+No fresh database, volume replacement, secret rotation or automatic restore.
+
+### Native sequence and progress
+
+Use the existing Ansible runtime path with an explicit continuation branch;
+retain the first-install guard for first installations. Reuse the inspection's
+bounded node-local stop guard and nonblocking startup/polling pattern. Do not
+create a parallel attempt-numbered orchestration path.
+
+1. Arm and verify an independent stop guard for migration, Redis and PostgreSQL.
+   Start the two existing data services without blocking the controller for their
+   full startup. Require new invocation identities, healthy private networking,
+   accepted images, existing volumes and unchanged resource limits.
+2. In the pinned application container, run native configuration checking and
+   inspect the native forward migration plan before allowing mutation. Bind
+   allowed app/migration names to pinned installed sources. Reject inconsistent
+   history, backwards operations, unknown identifiers or unexpected graph changes.
+   Compare with the recorded ledger; account for third-party and dynamic
+   dependencies omitted by the earlier static file comparison. Review any
+   pending non-atomic migration before freezing the bundle. A graph conflict
+   stops this operation; it does not authorize faking or editing the ledger.
+3. Run native `post_upgrade` with all existing semantics, followed by native
+   configuration and pending-migration checks. Do not replace `post_upgrade`
+   with only `migrate`, skip maintenance phases, or add negative-authentication
+   tests. Preserve the configured installation-metrics behavior.
+4. Stop migration, Redis and PostgreSQL independently, prove no container writers
+   remain, disarm the guard only after stopped-state proof, and review at least
+   75 seconds of cursor-bounded kernel/storage evidence with boot continuity.
+
+The retained 3.2.3 source runs migrations, cache clearing, path tracing, static
+collection, stale-content-type cleanup, session cleanup, configured installation
+metrics, content-type-cache refresh and dynamic-group-cache refresh. Use this
+pinned implementation to build phase identifiers rather than assuming current
+online documentation exactly matches the image. The native entrypoint is also
+documented in the [Nautobot command reference](https://docs.nautobot.com/projects/core/en/stable/user-guide/administration/tools/nautobot-server/).
+
+Replace output-discard-only diagnostics with incremental, flushed, bounded events:
+step start/end, exact known phase, allowlisted migration start/completion, elapsed
+time and exit status. Set unbuffered child output and disable ANSI color. The pinned migrate command
+truncates names to 50 characters; resolve only unique matches against the reviewed
+plan, otherwise retain unknown progress. Preserve incomplete lines across
+reads and test split tokens. Never retain arbitrary stdout/stderr, SQL, connection
+strings, values, tracebacks or model-row details. Unknown output contributes only
+byte counts; lack of a recognized event is explicitly unknown progress. Store
+node-local evidence before fetching it so controller loss cannot erase progress.
+Bind receipts to the new invocation and bundle; a prior receipt cannot pass.
+
+### Bounds, acceptance and recovery
+
+The prior 840-second budget was exhausted while migrations were still being
+recorded. A proposed continuation envelope is 30 minutes for native commands,
+a 35-minute independent stop guard, and a 40-minute controller envelope including
+bounded shutdown and delayed observation. These are proposed ceilings, not a
+prediction or permission to execute. Before freezing, inspect remaining pinned
+migration operations and verify all deadlines fit these nested bounds. Keep the
+1536 MiB migration memory ceiling, zero swap and existing data-service limits;
+do not increase resource limits to hide a stalled operation. Poll in bounded
+intervals and retain latest phase and elapsed time. Do not automatically extend
+the deadline or retry on timeout.
+
+Accept initialization only when all native steps succeed, no migrations remain,
+expected private data-service identity/health and effective limits are proven,
+shutdown and evidence completeness pass, and the delayed storage review is quiet.
+Administrator bootstrap, web/worker/scheduler startup, published ports, Caddy,
+reboot, application backup and workload acceptance remain separate stages.
+
+On error, stop each owned service independently and preserve the progressed
+original database plus unchanged cold copies. Report partial state and the last
+known native progress. This is recovery containment, not transactional rollback
+of already committed migrations. Restoring a copy requires a separate reviewed
+operation and authorization; never delete, overwrite or automatically restore.
+
+### Implementation and validation before approval
+
+The continuation uses `migration-continuation.py` and `continuation-node.py`
+together. The original `initialize-application.py` remains installed unchanged
+for configuration rollback; the continuation replaces only the migration Quadlet
+and adds its helper, source/ledger contract and bounded progress directory.
+Bind the archived inspection result and preserved-copy hashes as prerequisites.
+Exercise the real progress parser and producer with split lines, secret-bearing
+unknown output, output saturation, child timeout and nonzero exit. Test native
+plan conflicts, stale invocation/receipt rejection, changed-copy rejection,
+controller loss, guard expiry, and a failed first stop with later independent
+stops still attempted. Ensure first-install behavior still rejects existing data.
+Render and validate the changed migration unit/helper; record their exact diff
+and retain the old files for configuration rollback. Changing helper diagnostics
+must not imply a new image or package upgrade.
+
+Only after these checks pass, populate one active continuation operation and
+freeze its exact SHA-256 bundle with target, command, timings, stop behavior and
+acceptance boundaries. Execution requires approval of that concrete bundle.
+
+### Candidate execution and residual files
+
+The active candidate uses the 1800-second native, 1860-second migration-unit,
+2100-second guard and 2400-second controller limits. It changes no image, package,
+credential, memory ceiling, network or published port. Only the migration Quadlet
+changes; the other five retained Quadlets remain byte-identical. Source hashes
+for 493 retained migration modules and the 423-row ledger are bound in
+`manifests/migration-continuation-inputs.json`. Django's actual loader checks
+history consistency and its full forward plan on the host. The only explicit
+non-atomic declaration found in those sources is the already-recorded Constance
+migration; no pending non-atomic migration is approved.
+
+Progress and receipt files are written under the existing protected runtime
+parent in `continuation-evidence`, whose ownership is mapped through rootless
+Podman to the pinned container UID 999. Files are mode 0600; the node validator
+resolves the UID mapping and validates identities, sizes and allowed fields.
+They remain locally on the host after shutdown, alongside the retained originals
+and cold copies. They are not raw application logs. Missing or malformed evidence
+cannot count as successful continuation.
+
+Before unit replacement, its exact old file is copied to the protected node
+operation directory. Configuration rollback requires stopped services, restoring
+that verified unit, removing only proven operation-created helper/contract files,
+and a user daemon reload. It does not undo applied database migrations and must
+not be followed by rerunning the first-install launcher. No automatic database
+restore, volume deletion or retry is implemented. Terminal review determines the
+next action from the receipt, native progress, shutdown and storage records.

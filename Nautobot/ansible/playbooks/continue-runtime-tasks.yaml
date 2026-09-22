@@ -1,0 +1,356 @@
+---
+- name: Create protected continuation node evidence
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/sudo
+      - -n
+      - /usr/bin/mktemp
+      - -d
+      - /tmp/nautobot-runtime.XXXXXXXX
+  changed_when: false
+  register: runtime_node
+- name: Require protected continuation evidence path
+  ansible.builtin.assert:
+    that: runtime_node.stdout is match('^/tmp/nautobot-runtime[.][A-Za-z0-9_]+$')
+- name: Stage continuation node validators
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/../scripts/{{ item }}'
+    dest: '{{ runtime_node.stdout }}/{{ item }}'
+    mode: '0600'
+  become: true
+  loop:
+    - continuation-node.py
+    - inspect-retained-database.py
+    - runtime-initialization-node.py
+    - migration-continuation.py
+- name: Stage storage review helper
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/../../../restic/scripts/canary-backup.py'
+    dest: '{{ runtime_node.stdout }}/canary-backup.py'
+    mode: '0600'
+  become: true
+- name: Stage continuation operation
+  ansible.builtin.copy:
+    content: '{{ runtime_operation | to_json }}'
+    dest: '{{ runtime_node.stdout }}/operation.json'
+    mode: '0600'
+  become: true
+- name: Verify retained identity cold copies and stopped services
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/sudo
+      - -n
+      - /usr/bin/python3
+      - '{{ runtime_node.stdout }}/continuation-node.py'
+      - preflight
+      - '{{ runtime_node.stdout }}'
+  changed_when: false
+  register: continuation_preflight
+  failed_when: false
+- name: Preserve continuation preflight
+  ansible.builtin.copy:
+    content: '{{ continuation_preflight | to_json }}'
+    dest: '{{ runtime_evidence_root }}/preflight.json'
+    mode: '0600'
+  delegate_to: localhost
+  no_log: true
+- name: Require verified continuation preflight
+  ansible.builtin.assert:
+    that: continuation_preflight.rc == 0
+- name: Capture continuation journal cursor
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/sudo
+      - -n
+      - /usr/bin/python3
+      - '{{ runtime_node.stdout }}/continuation-node.py'
+      - journal-baseline
+      - '{{ runtime_node.stdout }}'
+  changed_when: false
+  register: continuation_cursor
+- name: Preserve continuation node cursor
+  ansible.builtin.copy:
+    content: '{{ continuation_cursor.stdout }}'
+    dest: '{{ runtime_node.stdout }}/journal-baseline.json'
+    mode: '0600'
+  become: true
+- name: Preserve prior migration unit for configuration rollback
+  ansible.builtin.copy:
+    src: /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container
+    dest: '{{ runtime_node.stdout }}/previous-migration.container'
+    remote_src: true
+    mode: '0600'
+  become: true
+- name: Continue retained database with independent shutdown
+  block:
+    - name: Create exclusive continuation progress directory
+      ansible.builtin.file:
+        path: /var/lib/nautobot/runtime/continuation-evidence
+        state: directory
+        owner: nautobot
+        group: nautobot
+        mode: '0700'
+      become: true
+    - name: Map progress directory to the pinned container user
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''unshare'', ''chown'', ''999:999'', ''/var/lib/nautobot/runtime/continuation-evidence'']
+          }}'
+      changed_when: true
+    - name: Install reviewed continuation helper
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../scripts/migration-continuation.py'
+        dest: /var/lib/nautobot/runtime/migration-continuation.py
+        owner: nautobot
+        group: nautobot
+        mode: '0644'
+        force: false
+      become: true
+    - name: Install reviewed migration source and ledger contract
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../../manifests/migration-continuation-inputs.json'
+        dest: /var/lib/nautobot/runtime/migration-continuation-inputs.json
+        owner: nautobot
+        group: nautobot
+        mode: '0644'
+        force: false
+      become: true
+    - name: Install only the reviewed continuation migration unit
+      ansible.builtin.copy:
+        src: '{{ runtime_rendered_directory }}/nautobot-migration.container'
+        dest: /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container
+        owner: nautobot
+        group: nautobot
+        mode: '0600'
+      become: true
+    - name: Verify installed continuation identities before startup
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - installed
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+    - name: Generate continuation user unit
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''daemon-reload''] }}'
+      changed_when: false
+    - name: Arm independent continuation stop guard
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/systemd-run
+          - --unit={{ runtime_operation.guard_unit }}
+          - --on-active=35m
+          - --timer-property=AccuracySec=1s
+          - --property=TimeoutStartSec=90s
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - guard-stop
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_guard
+    - name: Verify continuation stop guard active
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/systemctl
+          - is-active
+          - '{{ runtime_operation.guard_unit }}.timer'
+      changed_when: false
+    - name: Start existing private data services without transport wait
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''--no-block'',
+          item] }}'
+      changed_when: false
+      loop:
+        - nautobot-postgresql.service
+        - nautobot-redis.service
+      register: continuation_start
+      no_log: true
+      async: 30
+      poll: 1
+    - name: Wait for new healthy data service invocations
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - ready
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_ready
+      until: continuation_ready.rc == 0
+      retries: 24
+      delay: 5
+      no_log: true
+    - name: Start new migration invocation without transport wait
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''--no-block'',
+          ''nautobot-migration.service''] }}'
+      changed_when: false
+      register: continuation_migration
+      no_log: true
+      async: 30
+      poll: 1
+    - name: Poll new migration invocation and preserve progress
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - poll
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_poll
+      until: continuation_poll.rc != 75
+      retries: 190
+      delay: 10
+      failed_when: false
+      no_log: true
+    - name: Preserve continuation postflight
+      ansible.builtin.copy:
+        content: '{{ continuation_poll | to_json }}'
+        dest: '{{ runtime_evidence_root }}/postflight.json'
+        mode: '0600'
+      delegate_to: localhost
+      no_log: true
+    - name: Require native continuation completion
+      ansible.builtin.assert:
+        that:
+          - continuation_poll.rc == 0
+          - (continuation_poll.stdout | from_json).passed | bool
+  always:
+    - name: Request each continuation service stop independently
+      ansible.builtin.command:
+        argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''stop'', ''--no-block'',
+          item] }}'
+      changed_when: false
+      loop:
+        - nautobot-migration.service
+        - nautobot-redis.service
+        - nautobot-postgresql.service
+      register: continuation_stop
+      failed_when: false
+      ignore_errors: true
+      no_log: true
+      async: 30
+      poll: 1
+    - name: Prove continuation shutdown and retained cold copies
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - stopped
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_stopped
+      until: continuation_stopped.rc == 0
+      retries: 24
+      delay: 5
+      failed_when: false
+      ignore_errors: true
+      no_log: true
+    - name: Inspect continuation guard activation
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/systemctl
+          - show
+          - '{{ runtime_operation.guard_unit }}.service'
+          - --property=ExecMainStartTimestampMonotonic
+          - --value
+      changed_when: false
+      register: continuation_guard_fired
+      failed_when: false
+    - name: Disarm continuation guard only after shutdown proof
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/systemctl
+          - stop
+          - '{{ runtime_operation.guard_unit }}.timer'
+      changed_when: false
+      when: continuation_stopped.rc | default(1) == 0
+      register: continuation_disarm
+      failed_when: false
+    - name: Read sanitized continuation evidence even after failure
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - evidence
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_native
+      failed_when: false
+      no_log: true
+    - name: Preserve continuation native-progress
+      ansible.builtin.copy:
+        content: '{{ continuation_native | to_json }}'
+        dest: '{{ runtime_evidence_root }}/native-progress.json'
+        mode: '0600'
+      delegate_to: localhost
+      no_log: true
+    - name: Review delayed continuation storage
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/continuation-node.py'
+          - journal-review
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: continuation_storage
+      failed_when: false
+      no_log: true
+    - name: Preserve continuation storage
+      ansible.builtin.copy:
+        content: '{{ continuation_storage | to_json }}'
+        dest: '{{ runtime_evidence_root }}/storage.json'
+        mode: '0600'
+      delegate_to: localhost
+      no_log: true
+    - name: Preserve continuation lifecycle
+      ansible.builtin.copy:
+        content: '{{ continuation_record | to_json }}'
+        dest: '{{ runtime_evidence_root }}/continuation-stages.json'
+        mode: '0600'
+      delegate_to: localhost
+      vars:
+        continuation_record:
+          accepted: false
+          node_evidence: '{{ runtime_node.stdout }}'
+          postflight_status: '{{ continuation_poll.rc | default("not_started") }}'
+          stop_statuses: '{{ continuation_stop.results | default([]) | map(attribute="rc", default=69)
+            | list }}'
+          stopped_status: '{{ continuation_stopped.rc | default(69) }}'
+          stopped_evidence: '{{ continuation_stopped.stdout | default("") }}'
+          guard_start_monotonic: '{{ continuation_guard_fired.stdout | default("unknown") }}'
+          guard_disarm_status: '{{ continuation_disarm.rc | default(69) }}'
+          native_evidence_status: '{{ continuation_native.rc | default(69) }}'
+          storage_status: '{{ continuation_storage.rc | default(69) }}'
+          volumes_deleted: false
+    - name: Require completed continuation and safe shutdown
+      ansible.builtin.assert:
+        that:
+          - continuation_poll.rc | default(69) == 0
+          - continuation_stopped.rc | default(69) == 0
+          - continuation_guard_fired.rc == 0
+          - continuation_guard_fired.stdout | trim == '0'
+          - continuation_disarm.rc | default(69) == 0
+          - continuation_native.rc == 0
+          - continuation_storage.rc == 0
+          - (continuation_storage.stdout | from_json).passed | bool

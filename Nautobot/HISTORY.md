@@ -262,3 +262,18 @@ Terminal tag `nautobot-runtime-initialization-v2-failed` points to
 All 48 consumed input identities match that archive. Its sanitized result's
 pending-archival field is historical. Runtime acceptance did not advance.
 Recovery inspection is separate and cannot rerun migration or replace volumes.
+
+## Accepted retained-database inspection
+
+`nautobot-retained-database-inspection-v1`: verified cold copies of both stopped
+volumes; read-only ledger inspection; PostgreSQL stopped, Redis stayed stopped,
+no containers remained; guard disarmed and 75-second storage review quiet.
+Terminal tag `nautobot-database-inspection-v1-accepted`, archive commit
+`16835ade6b92376d12b9834286fa57f0a81cbb17` (published and read back).
+All 53 consumed input identities were verified, including six bound rendered
+artifacts. Bundle `4976dfe6bb7bd005a8e425468a9149eda3f52848a0e32868ac9c35a88588defd`.
+The tag preserves the exact operation and `manifests/database-inspection-result.json`;
+its pending-archival field is historical. Ledger: 423 applied migrations; static
+comparison found 16 core and 10 DNS Models files unrecorded. Initialization and
+runtime acceptance did not advance. Originals and protected host copies remain;
+no restoration or migration retry occurred. The consumed slot is now clean.

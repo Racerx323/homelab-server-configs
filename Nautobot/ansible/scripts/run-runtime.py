@@ -17,13 +17,13 @@ ROOT = bounded.ROOT
 
 def validate():
     try:
-        subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/'Nautobot/schemas/runtime-initialization.schema.json'),
+        subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/'Nautobot/schemas/operation.schema.json'),
                         str(ROOT/'Nautobot/manifests/operation.yaml')], check=True, timeout=30,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError as exc:
         raise bounded.PreflightBlocked('runtime_not_ready') from exc
     operation = bounded.yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-    if (operation['operation']['stage'] != 'runtime_initialization'
+    if (operation['operation'].get('stage') not in ('runtime_initialization', 'runtime_continuation')
             or not operation['operation']['authorization_ready']
             or not operation['authorization']['mutation_authorized'] or operation['authorization']['blockers']):
         raise bounded.PreflightBlocked('runtime_not_ready')
@@ -54,6 +54,12 @@ def bundle_rows(operation):
         'Nautobot/manifests/accepted-live-state.yaml', 'Nautobot/schemas/operation.schema.json', 'Nautobot/schemas/runtime-initialization.schema.json',
         'Nautobot/schemas/host-convergence.schema.json', 'Nautobot/schemas/repository-initialization.schema.json',
         'Nautobot/schemas/accepted-host-baseline.schema.json',
+        'Nautobot/schemas/runtime-continuation.schema.json',
+        'Nautobot/ansible/playbooks/continue-runtime-tasks.yaml',
+        'Nautobot/ansible/scripts/continuation-node.py',
+        'Nautobot/ansible/scripts/inspect-retained-database.py',
+        'Nautobot/ansible/scripts/migration-continuation.py',
+        'Nautobot/tests/test_runtime_continuation.py',
         'Nautobot/ansible/scripts/run-runtime.py', 'Nautobot/ansible/scripts/validate-contracts.py',
         'Nautobot/schemas/desired-state.schema.json', 'Nautobot/container/Containerfile',
         'Nautobot/container/requirements.lock', 'Nautobot/ansible/scripts/render-runtime.py',
@@ -96,7 +102,7 @@ def execute(authorized_hash):
     root,fd=bounded.prepare_evidence(rows,digest)
     bounded.write_exclusive(fd,'ansible-progress.jsonl',b'')
     environment=bounded.minimal_environment()
-    environment.update(ANSIBLE_CONFIG=str(ROOT/'Nautobot/ansible/ansible.cfg'),LC_ALL='C.UTF-8')
+    environment.update(ANSIBLE_CONFIG=str(ROOT/'Nautobot/ansible/ansible.cfg'),LC_ALL='C.UTF-8',PYTHONDONTWRITEBYTECODE='1')
     environment.update(ANSIBLE_CALLBACK_PLUGINS=str(ROOT/'Nautobot/ansible/callback_plugins'),
                        ANSIBLE_CALLBACKS_ENABLED='runtime_progress',
                        NAUTOBOT_PROGRESS_FILE=str(root/'ansible-progress.jsonl'))
@@ -108,7 +114,7 @@ def execute(authorized_hash):
           str(ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml'))
     result={'accepted':False,'mutation_status':'unknown_until_review','bundle_sha256':digest}
     try:
-        bounded.COMMAND_TIMEOUT_SECONDS=1800
+        bounded.COMMAND_TIMEOUT_SECONDS=operation['runtime']['overall_timeout_seconds']
         rc,out,err,truncated=bounded.drain_process(argv,environment)
         # Do not retain service output: diagnostics may contain application secrets.
         result.update(ansible_exit_status=rc,output_truncated=truncated,

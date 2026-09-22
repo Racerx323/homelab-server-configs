@@ -18,7 +18,9 @@ SERVICES = {'postgresql', 'redis', 'migration', 'web', 'worker', 'scheduler'}
 DESTINATIONS = {'postgresql_data': '/var/lib/postgresql/data', 'redis_data': '/data', 'nautobot_media': '/opt/nautobot/media'}
 
 
-def render(desired, inputs, initialization=False):
+def render(desired, inputs, initialization=False, continuation=None):
+    if continuation is not None and (not initialization or not re.fullmatch('[0-9a-f]{64}', continuation)):
+        raise ValueError('continuation_token')
     spec = importlib.util.spec_from_file_location('contracts', Path(__file__).with_name('validate-contracts.py'))
     contracts = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(contracts)
@@ -59,7 +61,7 @@ def render(desired, inputs, initialization=False):
                     'worker': 'celery worker --loglevel INFO --concurrency ' + str(desired['services']['worker']['concurrency']),
                     'scheduler': 'celery beat --loglevel INFO'}
         artifacts[f'nautobot-{name}.container'] = env.get_template('container.j2').render(
-            name=name, service=service, image=image, command=commands.get(name, ''), initialization=initialization,
+            name=name, service=service, image=image, command=commands.get(name, ''), initialization=initialization, continuation=continuation,
             dependencies=['nautobot-' + dep + '.service' for dep in service.get('depends_on', [])],
             volumes=[{'name': v, 'destination': DESTINATIONS[v]} for v in service.get('volumes', [])])
     # Non-secret review contract; actual protected configuration is provided separately.

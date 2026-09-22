@@ -34,14 +34,15 @@
         that:
           - inventory_hostname == 'j2-svpi4mf'
           - ansible_play_hosts_all | length == 1
-          - runtime_operation.operation.stage | default('') == 'runtime_initialization'
+          - runtime_operation.operation.stage | default('') in ['runtime_initialization', 'runtime_continuation']
           - runtime_operation.operation.authorization_ready | bool
           - runtime_operation.authorization.mutation_authorized | bool
           - runtime_operation.authorization.blockers | length == 0
           - runtime_bundle_verified | default(false) | bool
-          - runtime_operation.runtime.first_install_only | bool
+          - (runtime_operation.operation.stage == 'runtime_initialization') == (runtime_operation.runtime.first_install_only | bool)
         fail_msg: Runtime definition is inactive; reviewed operation and bundle required.
     - name: Verify all local rendered files against the reviewed bundle
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.stat:
         path: '{{ runtime_rendered_directory }}/{{ item }}'
         checksum_algorithm: sha256
@@ -49,6 +50,7 @@
       loop: '{{ runtime_units }}'
       register: runtime_local_files
     - name: Require exact regular-file identities
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that:
           - item.stat.isreg
@@ -56,6 +58,7 @@
           - item.stat.checksum == runtime_operation.runtime.artifact_sha256[item.item]
       loop: '{{ runtime_local_files.results }}'
     - name: Verify canonical account
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv:
           - getent
@@ -64,11 +67,13 @@
       changed_when: false
       register: runtime_account
     - name: Require reviewed account identity
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that:
           - (runtime_account.stdout | split(':'))[2:4] == ['999', '985']
           - (runtime_account.stdout | split(':'))[5] == runtime_home
     - name: Inspect existing unit paths without replacing a deployment
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.stat:
         path: '{{ runtime_home }}/.config/containers/systemd/{{ item }}'
       become: true
@@ -85,10 +90,12 @@
         - nautobot-nautobot_media.volume
       register: runtime_existing
     - name: Require a first installation
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that: not item.stat.exists
       loop: '{{ runtime_existing.results }}'
     - name: Inspect existing runtime objects before first installation
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv: '{{ runtime_user_command + ["/usr/bin/podman"] + item }}'
       loop:
@@ -107,12 +114,14 @@
       changed_when: false
       register: runtime_objects
     - name: Refuse existing Nautobot objects including partial installation residue
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that: '''nautobot'' not in (item.stdout | lower)'
         fail_msg: Existing Nautobot runtime objects require a separate ownership and recovery review.
       loop: '{{ runtime_objects.results }}'
       no_log: true
     - name: Inspect protected service environment files
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.stat:
         path: '{{ runtime_home }}/runtime/{{ item }}.env'
       become: true
@@ -123,6 +132,7 @@
       register: runtime_environments
       no_log: true
     - name: Require canonical ownership and protected environment files
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that:
           - item.stat.isreg
@@ -132,12 +142,14 @@
       loop: '{{ runtime_environments.results }}'
       no_log: true
     - name: Inspect non-secret application configuration
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.stat:
         path: '{{ runtime_home }}/runtime/nautobot_config.py'
         checksum_algorithm: sha256
       become: true
       register: runtime_config
     - name: Require reviewed application configuration readable inside container
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that:
           - runtime_config.stat.isreg
@@ -146,15 +158,18 @@
           - runtime_config.stat.mode == '0644'
           - runtime_config.stat.checksum == runtime_operation.runtime.configuration_sha256
     - name: Verify provisioned Redis configuration secret metadata only
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''secret'', ''inspect'', ''nautobot-redis-config'']
           }}'
       changed_when: false
       register: runtime_secret
     - name: Require Redis secret
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that: (runtime_secret.stdout | from_json)[0].Spec.Name == 'nautobot-redis-config'
     - name: Create protected node evidence directory
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
@@ -165,9 +180,11 @@
       register: runtime_node
       changed_when: true
     - name: Validate node evidence path
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that: runtime_node.stdout is match('^/tmp/nautobot-runtime[.][A-Za-z0-9_]+$')
     - name: Stage bounded initialization evidence helpers
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ runtime_node.stdout }}/{{ item.name }}'
@@ -179,12 +196,14 @@
         - src: '{{ playbook_dir }}/../../../restic/scripts/canary-backup.py'
           name: canary-backup.py
     - name: Stage reviewed non-secret operation
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.copy:
         content: '{{ runtime_operation | to_json }}'
         dest: '{{ runtime_node.stdout }}/operation.json'
         mode: '0600'
       become: true
     - name: Verify current images configuration and headroom
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
@@ -197,17 +216,20 @@
       register: runtime_preflight
       failed_when: false
     - name: Preserve preflight
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.copy:
         content: '{{ {"status": runtime_preflight.rc, "output": runtime_preflight.stdout} | to_json }}'
         dest: '{{ runtime_evidence_root }}/preflight.json'
         mode: '0600'
       delegate_to: localhost
     - name: Require current preflight
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that:
           - runtime_preflight.rc == 0
           - (runtime_preflight.stdout | from_json).passed | bool
     - name: Capture current boot and kernel cursor
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.command:
         argv:
           - /usr/bin/sudo
@@ -220,9 +242,11 @@
       register: runtime_cursor
       failed_when: false
     - name: Require journal baseline
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.assert:
         that: runtime_cursor.rc == 0
     - name: Preserve node journal baseline
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       ansible.builtin.copy:
         content: '{{ runtime_cursor.stdout }}'
         dest: '{{ runtime_node.stdout }}/journal-baseline.json'
@@ -230,6 +254,7 @@
       become: true
   tasks:
     - name: Apply once and preserve stage results on failure
+      when: runtime_operation.operation.stage == 'runtime_initialization'
       block:
         - name: Install bounded native migration entrypoint
           ansible.builtin.copy:
@@ -387,3 +412,6 @@
           ansible.builtin.fail:
             msg: Initialization failed; operation-owned services were asked to stop. Retain volumes and
               review sanitized records; do not retry or reverse migrations.
+    - name: Use explicit retained database continuation path
+      ansible.builtin.include_tasks: continue-runtime-tasks.yaml
+      when: runtime_operation.operation.stage == 'runtime_continuation'

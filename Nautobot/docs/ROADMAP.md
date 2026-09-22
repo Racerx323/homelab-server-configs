@@ -11,8 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains the consumed, successful retained-database inspection; terminal archival
-is pending. Negative security tests were not run and remain unresolved.
+contains a locally validated continuation candidate after published inspection archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -79,9 +78,11 @@ PostgreSQL stopped afterward, Redis stayed inactive, no containers remain, and
 the stop guard was disarmed without firing. The 75-second delayed review found
 no storage events. Protected cold copies remain on the host.
 [Inspection acceptance](../manifests/database-inspection-result.json) records
-identities, hashes and results. Next: archive this inspection, then prepare a
-bounded continuation against the retained database with native migration-plan
-review and phase/migration progress evidence. Execution needs a separately
+identities, hashes and results. The inspection is archived as `nautobot-database-inspection-v1-accepted` at
+`16835ad`. A [continuation specification](RUNTIME_INITIALIZATION.md#prepared-continuation-of-retained-migrations)
+is implemented with native migration-plan verification, sanitized phase/migration
+progress, independent stops and unchanged memory limits. Next: review the frozen
+continuation bundle for execution authorization. Execution needs a separately
 reviewed bundle; do not rerun first installation or discard the cold copies.
 
 The pre-data prerequisite is complete: repository initialization, canary backup

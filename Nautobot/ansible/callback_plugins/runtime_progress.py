@@ -9,9 +9,10 @@ import yaml
 
 
 def task_names():
-    plays = [yaml.safe_load(p.read_text())[0] for p in
-             (Path(__file__).resolve().parents[1] / 'playbooks').glob('*.yaml')
-             if p.name in ('deploy-runtime.yaml', 'inspect-retained-database.yaml')]
+    paths = Path(__file__).resolve().parents[1] / 'playbooks'
+    plays = [yaml.safe_load((paths / name).read_text())[0] for name in
+             ('deploy-runtime.yaml', 'inspect-retained-database.yaml')]
+    continuation = yaml.safe_load((paths / 'continue-runtime-tasks.yaml').read_text())
     names = set()
 
     def visit(tasks):
@@ -23,6 +24,7 @@ def task_names():
 
     for play in plays:
         visit(play.get('pre_tasks', []) + play.get('tasks', []))
+    visit(continuation)
     return names
 
 
