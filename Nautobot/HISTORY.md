@@ -298,3 +298,17 @@ result's pending Git archival field is historical; publication is now verified.
 The operation slot was cleared only after remote verification. Administrator
 bootstrap, application startup and full workload acceptance remain outstanding;
 accepted stage-3/stage-4 identities are unchanged.
+
+## Failed administrator bootstrap
+
+`nautobot-administrator-bootstrap-v1` failed before administrator creation.
+Published annotated tag `nautobot-administrator-bootstrap-v1-failed` resolves to
+`d8336e5b65b112d9e1e1d8ec55b2cdec226fb592`, remotely verified September 22, 2026.
+It retains the consumed definition and sanitized `administrator-bootstrap-result.json`.
+Native configuration and migration checks passed; the account check failed.
+Pinned-source reproduction identified the `shell -c` configuration-path collision;
+the exact live traceback was not retained. Creation was not attempted. Cleanup,
+stopped-state verification and the 75-second storage review passed. Accepted live
+state is unchanged. The archived pending-publication field is historical.
+The successor uses `--command`, parser regressions and recognized callback task
+names; its execution requires separate exact-bundle approval.

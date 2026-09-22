@@ -59,9 +59,9 @@ def bootstrap(runner=native.command, inspect=True):
                 raise ValueError('resource_boundary')
         data = credentials()
         steps = [('configuration', ['check']), ('pending_migrations', ['migrate', '--check']),
-                 ('account_absent', ['shell', '--interface', 'python', '-c', PHASE_CODE.format(phase='absent')]),
+                 ('account_absent', ['shell', '--interface', 'python', '--command', PHASE_CODE.format(phase='absent')]),
                  ('creation', ['createsuperuser', '--noinput']),
-                 ('account_verified', ['shell', '--interface', 'python', '-c', PHASE_CODE.format(phase='verify')])]
+                 ('account_verified', ['shell', '--interface', 'python', '--command', PHASE_CODE.format(phase='verify')])]
         for name, args in steps:
             phase = name
             if name == 'creation':

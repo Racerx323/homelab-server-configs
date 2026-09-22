@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Offline bootstrap behavior, private handoff and independent cleanup tests."""
 import copy
+import argparse
+import ast
+from functools import partial
 import hashlib
 import importlib.util
 import json
@@ -33,6 +36,51 @@ DATA = {'username': 'admin', 'email': 'fixture@example.invalid', 'password': 'a'
 
 
 class Bootstrap(unittest.TestCase):
+    def parse_native_cli(self, argv):
+        fixture=json.loads((ROOT/'Nautobot/tests/fixtures/nautobot-cli-parser.json').read_text())
+        g={'argparse':argparse,'ArgumentParser':argparse.ArgumentParser,'partial':partial,
+           'os':os,'sys':sys,'PY314':sys.version_info >= (3,14),
+           'DESCRIPTION':'Pinned parser fixture','USAGE':'%(prog)s SUBCOMMAND',
+           'get_config_path':lambda:'/fixture/nautobot_config.py'}
+        exec(fixture['django_classes'],g)
+        exec(fixture['nautobot_classes'],g)
+        with patch.object(sys,'argv',argv),patch.dict(os.environ):
+            exec(fixture['parser_prefix'],g)
+        return g['args'].config_path,g['unparsed_args']
+
+    def test_pinned_parser_reproduces_short_option_collision(self):
+        expression=app.PHASE_CODE.format(phase='absent')
+        path,remaining=self.parse_native_cli(['nautobot-server','shell','--interface','python','-c',expression])
+        self.assertEqual(path,expression)
+        self.assertNotIn(expression,remaining)
+
+    def test_actual_bootstrap_arguments_survive_pinned_outer_parser(self):
+        calls=[]
+        def run(argv, timeout):
+            path,remaining=self.parse_native_cli(argv)
+            self.assertEqual(path,'/fixture/nautobot_config.py')
+            self.assertEqual(remaining,argv[1:])
+            if argv[1]=='shell':self.assertIn('--command',remaining)
+            calls.append(argv)
+            return {'exit_status':0}
+        with patch.object(app,'credentials',return_value=DATA):
+            self.assertTrue(app.bootstrap(run,inspect=False)['passed'])
+        self.assertEqual(len(calls),5)
+
+    def test_callback_recognizes_all_bootstrap_tasks(self):
+        path=ROOT/'Nautobot/ansible/callback_plugins/runtime_progress.py'
+        tree=ast.parse(path.read_text())
+        function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='task_names')
+        namespace={'Path':Path,'yaml':yaml,'__file__':str(path)}
+        exec(compile(ast.Module(body=[function],type_ignores=[]),str(path),'exec'),namespace)
+        allowed=namespace['task_names']()
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/bootstrap-administrator.yaml').read_text())[0]
+        def visit(tasks):
+            for task in tasks:
+                self.assertIn(task['name'],allowed)
+                for key in ('block','rescue','always'):visit(task.get(key,[]))
+        visit(play['pre_tasks']+play['tasks'])
+
     def operation(self):
         schema = json.loads((ROOT/'Nautobot/schemas/administrator-bootstrap.schema.json').read_text())
         return {k: copy.deepcopy(v['const']) for k, v in schema['properties'].items()}

@@ -11,7 +11,7 @@ import yaml
 def task_names():
     paths = Path(__file__).resolve().parents[1] / 'playbooks'
     plays = [yaml.safe_load((paths / name).read_text())[0] for name in
-             ('deploy-runtime.yaml', 'inspect-retained-database.yaml')]
+             ('deploy-runtime.yaml', 'inspect-retained-database.yaml', 'bootstrap-administrator.yaml')]
     continuation = yaml.safe_load((paths / 'continue-runtime-tasks.yaml').read_text())
     names = set()
 

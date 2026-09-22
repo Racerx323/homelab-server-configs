@@ -449,7 +449,7 @@ repos:
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_administrator_bootstrap.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/(?:ansible/|schemas/|manifests/|tests/test_administrator_bootstrap\.py|docs/BOOTSTRAP_AND_STARTUP\.md)
+        files: ^Nautobot/(?:ansible/|schemas/|manifests/|tests/(?:test_administrator_bootstrap\.py|fixtures/(?:nautobot-cli-parser\.json|CLI_PARSER_PROVENANCE\.md|DJANGO-LICENSE\.txt))|docs/BOOTSTRAP_AND_STARTUP\.md)
       - id: nautobot-runtime-continuation
         name: Validate retained migration continuation and guarded failure paths
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime_continuation.py

@@ -2,18 +2,16 @@
 
 ## Current next action
 
-Administrator bootstrap failed before creation on September 22, 2026. Native
-configuration and no-pending-migration checks passed; the account-absence check
-returned 1. Subsequent pinned-source reproduction identified `shell -c` being
-consumed as Nautobot's configuration-file option; `--command` passed the local
-CLI-wrapper fixture. The exact host traceback was not retained. Creation was
-not attempted; account existence remains unestablished. Cleanup and stopped-state
-checks passed, the guard did not fire, and 75 seconds of delayed storage review
-were quiet. [Bootstrap result](../manifests/administrator-bootstrap-result.json)
-owns this outcome. The consumed operation remains in place pending terminal
-archival. Next archive the failed operation, apply the tested long-option
-correction, add CLI-wrapper regression coverage and align bootstrap task names
-before preparing a separately approved retry.
+Administrator bootstrap retry is prepared for exact-bundle execution review.
+The first attempt failed before creation and is archived in the published tag
+`nautobot-administrator-bootstrap-v1-failed` at `d8336e5`; see [history](../HISTORY.md).
+The pinned CLI consumes `shell -c` as its configuration-path option. Both account
+checks now use `--command`, covered by actual pinned parser excerpts; bootstrap
+task names are now recognized in sanitized progress records. No retry has run.
+The single active operation is `nautobot-administrator-bootstrap-v2`. Review its
+private frozen bundle, commit the definition and verify validation before execution.
+Existing-account refusal, cleanup, resource limits and delayed storage checks
+remain required. Application startup is still a separate operation.
 
 Runtime initialization is accepted as of September 22, 2026. The authorized
 continuation passed all five native steps in 285.165 seconds, including
@@ -46,7 +44,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains the consumed administrator-bootstrap definition, pending archival. Negative security tests were not run and remain unresolved.
+contains the unexecuted administrator-bootstrap retry definition. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact

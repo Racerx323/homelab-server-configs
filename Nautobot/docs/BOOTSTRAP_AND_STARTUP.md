@@ -43,6 +43,10 @@ values during preparation. Never hash passwords into evidence.
    application. No migration is authorized by this operation.
 3. Use Nautobot's configured user model to check whether `admin` exists. Existing
    identity stops creation and requires review; never reset or promote it silently.
+   Use `nautobot-server shell --interface python --command CODE` for account
+   checks. The outer Nautobot CLI reserves `-c` for `--config-path`; the short
+   option must not be used for Django shell code. Regression fixtures preserve
+   the pinned outer parser and verify that both account expressions reach Django.
 4. Run native `nautobot-server createsuperuser --noinput`. The pinned Django
    implementation accepts `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`
    and `DJANGO_SUPERUSER_PASSWORD`. Load these inside the disposable process from

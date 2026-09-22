@@ -69,6 +69,7 @@ def bundle_rows(operation):
         'Nautobot/ansible/scripts/run-restic-repository-preflight.py',
         'Nautobot/ansible/playbooks/deploy-runtime.yaml', 'Nautobot/ansible/scripts/initialize-application.py',
         'Nautobot/ansible/callback_plugins/runtime_progress.py',
+        'Nautobot/ansible/playbooks/bootstrap-administrator.yaml',
         'Nautobot/ansible/playbooks/inspect-retained-database.yaml',
         'Nautobot/ansible/scripts/runtime-initialization-node.py', 'restic/scripts/canary-backup.py',
         'Nautobot/tests/test_runtime_initialization.py', 'Nautobot/docs/RUNTIME_INITIALIZATION.md', 'Nautobot/ansible/ansible.cfg',
@@ -77,12 +78,14 @@ def bundle_rows(operation):
         'inventory/prod/hosts.yaml', 'inventory/prod/groups/inventory_automation.yaml',
         'inventory/prod/hosts/j2-svpi4mf.yaml', 'tests/repository/run-with-ansible-local-temp.sh']
     if operation['operation']['stage'] == 'administrator_bootstrap':
-        sources += ['Nautobot/ansible/playbooks/bootstrap-administrator.yaml',
-                    'Nautobot/ansible/scripts/bootstrap-node.py',
+        sources += ['Nautobot/ansible/scripts/bootstrap-node.py',
                     'Nautobot/ansible/scripts/bootstrap-application.py',
                     'Nautobot/ansible/scripts/bootstrap-secret.py',
                     'Nautobot/ansible/scripts/provision-credentials.py',
                     'Nautobot/tests/test_administrator_bootstrap.py',
+                    'Nautobot/tests/fixtures/nautobot-cli-parser.json',
+                    'Nautobot/tests/fixtures/CLI_PARSER_PROVENANCE.md',
+                    'Nautobot/tests/fixtures/DJANGO-LICENSE.txt',
                     'Nautobot/docs/BOOTSTRAP_AND_STARTUP.md']
     sources += [p['path'] for p in operation['prerequisites']] + list(operation['input_sha256'])
     rows=[]
