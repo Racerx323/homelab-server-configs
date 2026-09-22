@@ -1,8 +1,9 @@
 # Startup baseline and recovery preparation
 
-This is the next bounded read-only review for `ama@10.1.2.170`. It is prepared,
-not executed. The active operation and startup policy remain inactive. Existing
-administrator and initialized database contents must be preserved.
+This procedure defines bounded read-only review for `ama@10.1.2.170`. The
+September 22 refresh and stopped-volume preservation passed; evidence and archive
+identities are recorded in the roadmap and history. The prepared startup operation
+requires separate exact-bundle execution approval.
 
 ## Baseline collection
 
@@ -101,7 +102,7 @@ expectations, dependency files and evidence provenance for every row. The generi
 collector cannot infer that a probe labelled as an administrator check actually
 performs browser authentication. The native HTTP/service probes are joined by the concrete session, network and
 Job probes listed below. Assemble their frozen paths and expected fields with the
-remaining runtime/resource/storage receipts after preservation, before activation. No receipt may be
+runtime/resource/storage checks through `assemble-startup.py`. No receipt may be
 substituted with a hand-authored success value or old packet-trial result.
 
 The workload manifest's import/export/audit adapters remain unqualified. A startup
@@ -147,5 +148,7 @@ an explicit live startup acceptance check, not a result of those fixtures.
 
 The September 22 read-only baseline and hashes are retained privately in
 `/home/aaron/code/.local-evidence/nautobot-startup-preflight-20260922/REVIEW.json`.
-The separate [preservation operation](STARTUP_PRESERVATION.md) is the next mutation
-to review. Startup cannot be frozen as executable until its recovery receipt exists.
+The separate [preservation operation](STARTUP_PRESERVATION.md) has a verified
+recovery receipt and published archive. The refreshed baseline is retained in
+`/home/aaron/code/.local-evidence/nautobot-startup-assembly-20260922/`.
+See [startup execution](STARTUP_EXECUTION.md) for the assembled contract.

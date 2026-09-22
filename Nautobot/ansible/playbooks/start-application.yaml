@@ -24,8 +24,7 @@
           - inventory_hostname == 'j2-svpi4mf'
           - ansible_play_hosts_all | length == 1
         fail_msg: Startup candidate inactive; reviewed activation, network evidence and recovery required.
-    # Verified inputs below are supplied only by a future exact-bundle activation.
-    # The current launcher rejects application_startup, and policy stays false.
+    # Verified inputs are supplied only by the exact-hash launcher after approval.
     - name: Require bounded controller-supplied artifact and recovery paths
       ansible.builtin.assert:
         that:

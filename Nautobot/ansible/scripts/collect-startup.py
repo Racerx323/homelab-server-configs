@@ -12,6 +12,7 @@ sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location('bounded', Path(__file__).with_name('run-restic-repository-preflight.py'))
 bounded = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bounded)
+FAILURE_CODES = frozenset(['boot', 'bootstrap_secret', 'cgroup_path', 'command_or_output_boundary', 'container_state', 'credential_metadata', 'cursor_unavailable', 'effective_memory', 'http', 'image', 'invocation', 'kernel_message', 'memory_config', 'mode', 'native_failure', 'native_receipt_count', 'native_receipt_shape', 'network', 'observation_short', 'oom', 'pid', 'private_ports', 'process_changed', 'root_required', 'runtime_probe_failed', 'service_state', 'static_type', 'storage_event', 'swap', 'unexpected_runtime_failure', 'unprivileged_readonly'])
 GROUPS = {
     'native_configuration_and_migrations', 'health_and_static_http',
     'administrator_login_logout', 'allowed_denied_dual_stack_access',
@@ -79,6 +80,8 @@ def collect(contract, runner=run):
             observed = json.loads(out)
             if not isinstance(observed, dict):
                 raise ValueError('invalid_receipt')
+            if observed.get('error_class') in FAILURE_CODES:
+                row['error_class'] = observed['error_class']
             row['matches'] = {key: type(observed.get(key)) is type(value) and observed.get(key) == value
                               for key, value in check['expected'].items()}
             row['passed'] = all(row['matches'].values())

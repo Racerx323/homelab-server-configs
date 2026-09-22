@@ -12,17 +12,18 @@ did not fire, and the 75-second delayed storage review found no errors.
 Published annotated tag `nautobot-administrator-bootstrap-v2-accepted` at
 `17dbc01` preserves the consumed definition and accepted result; its remote identity
 was verified. The archived result's pending-publication field is historical.
-The active operation is clean. Do not rerun bootstrap: the administrator exists.
-The inactive application-startup candidate is implemented with offline rendering,
+Administrator bootstrap is archived. Do not rerun it: the administrator exists.
+The application-startup candidate is implemented with offline rendering,
 ordered Ansible startup, native entrypoint, hash-bound launcher, bounded collector
 and failure stops. Network packet evidence is accepted and archived. The fresh read-only baseline was collected and reviewed on September 22;
 services remain stopped and installed identities match the bootstrap archive.
 Concrete session/network/Job probes are implemented locally. Stopped-database
 preservation passed on September 22: both volume copies matched content and
 metadata, with final stopped-state and identity checks passing. See the
-[preservation result](../manifests/startup-preservation-result.json). Terminal
-archival is pending; next archive preservation, refresh the startup baseline,
-and assemble the startup activation contract. See
+[preservation result](../manifests/startup-preservation-result.json). Preservation
+is archived in `nautobot-startup-preservation-v1-accepted`. The refreshed stopped
+baseline matched accepted identities. The active startup definition is prepared;
+execute only after exact-bundle approval. See [startup execution](STARTUP_EXECUTION.md) and
 [startup baseline and recovery](STARTUP_PREFLIGHT_AND_RECOVERY.md) and the sequence in
 [bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). No startup bundle is frozen.
 Browser login, application startup, workload acceptance and application-aware

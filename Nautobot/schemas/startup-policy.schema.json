@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Inactive application startup candidate policy",
+  "title": "Application startup policy with separate exact-bundle authorization",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -26,7 +26,7 @@
       "const": 1
     },
     "execution_authorized": {
-      "const": false
+      "type": "boolean"
     },
     "stage": {
       "const": "application_startup"

@@ -28,11 +28,13 @@
     "Cold copy verified; restore not exercised.",
     "Application startup remains pending."
   ],
-  "archive_status": "pending",
+  "archive_status": "published_tag_verified",
   "evidence_sha256": {
     "ansible.stderr": "79c81ee790a762631546850678e7177f40e80c070adc92bf26f24a66d245a0d0",
     "result.json": "3dd1ff8237ddeb9562385a8499e423d567d98491a5df3560b1ee2c984b587592",
     "ansible.stdout": "30f58fda8583715111a5b67f75a61ef09190a4ea4402d1b3877a9cded416d436",
     "preservation.json": "fa062fd1ecfe902ce94671e59057518fbc0e12ac74ff505df4ff6c64b907f62d"
-  }
+  },
+  "terminal_tag": "nautobot-startup-preservation-v1-accepted",
+  "terminal_commit": "42b6b18ae476ce3467c9f51f04f515d1b7337fde"
 }

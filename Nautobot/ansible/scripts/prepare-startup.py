@@ -20,7 +20,7 @@ def prepare(output):
     policy = yaml.safe_load((ROOT/'Nautobot/manifests/startup-policy.yaml').read_text())
     Draft202012Validator(json.loads((ROOT/'Nautobot/schemas/startup-policy.schema.json').read_text())).validate(policy)
     operation = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-    if operation != {'schema_version': 1, 'operation': {'state': 'clean', 'authorization_ready': False}}:
+    if operation != {'schema_version': 1, 'operation': {'state': 'clean', 'authorization_ready': False}} and operation.get('operation', {}).get('stage') != 'application_startup':
         raise ValueError('active_operation')
     tag = 'nautobot-administrator-bootstrap-v2-accepted'
     git = lambda *args: subprocess.check_output(['git', '-C', str(ROOT), *args], timeout=15)
@@ -53,9 +53,7 @@ def prepare(output):
               'artifact_changes': changes,
               'unchanged_existing_units': sorted(name for name, value in changes.items()
                                                   if value['before_sha256'] == value['after_sha256']),
-              'blockers': ['network_owner_deployed_policy_and_live_vantages',
-                           'fresh_stopped_baseline_and_recovery_review',
-                           'live_acceptance_collector_and_exact_startup_activation']}
+              'remaining_gates': ['reviewed_baseline_and_recovery_inputs', 'exact_startup_bundle_authorization']}
     (output/'STARTUP_REVIEW.json').write_text(json.dumps(report, indent=2)+'\n')
     return report
 

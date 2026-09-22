@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-execution_authorized: false
+execution_authorized: true
 stage: application_startup
 host: j2-svpi4mf
 source_policy: Caddy/manifests/deployment.yaml

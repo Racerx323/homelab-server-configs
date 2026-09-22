@@ -337,6 +337,8 @@ Bundle `eabbf6cdb678acb38e38019b280ccdc0e310bc1fc54f3c0be2af7333739de074`;
 PostgreSQL 3218 entries and Redis 6 entries matched source-before, source-after
 and copy content/metadata. Final stopped-state and installed-identity checks
 passed. `manifests/startup-preservation-result.json` records sanitized evidence;
-`terminal/startup-preservation/` retains the exact consumed bundle. Proposed tag
-`nautobot-startup-preservation-v1-accepted` awaits publication. No restore or
+`terminal/startup-preservation/` retains the exact consumed bundle. Published annotated tag
+`nautobot-startup-preservation-v1-accepted` resolves to
+`42b6b18ae476ce3467c9f51f04f515d1b7337fde`; remote identity verified. The tagged pending-publication
+field is historical; the exact bundle remains in the tag. No restore or
 application startup was performed.

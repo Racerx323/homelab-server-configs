@@ -73,6 +73,13 @@ class Contracts(unittest.TestCase):
             self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis', 'migration'])
             self.assertFalse(operation['failure']['automatic_restore'])
             self.assertFalse(operation['acceptance']['application_accepted'])
+        elif operation['operation'].get('stage') == 'application_startup':
+            contract = json.loads((ROOT / 'Nautobot/schemas/startup-operation.schema.json').read_text())
+            validate(contract, operation)
+            self.assertIn(contract, SCHEMA['oneOf'])
+            self.assertFalse(operation['scope']['automatic_restore'])
+            self.assertFalse(operation['scope']['reboot'])
+            self.assertFalse(operation['scope']['caddy_publication'])
         elif operation['operation'].get('stage') == 'runtime_initialization':
             validate(json.loads((ROOT / 'Nautobot/schemas/runtime-initialization.schema.json').read_text()), operation)
             self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')

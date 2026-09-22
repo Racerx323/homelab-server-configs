@@ -70,6 +70,56 @@ class Startup(unittest.TestCase):
         self.assertIs(calls[0]['synchronous'], False)
         self.assertEqual(calls[0]['job_kwargs'], {})
 
+    def test_collector_retains_only_fixed_failure_categories(self):
+        contract = self.contract()
+        result = collector.collect(contract, lambda *a: (0, json.dumps({'error_class': 'native_receipt_shape', 'raw': 'private'}), '', False))
+        self.assertFalse(result['accepted'])
+        self.assertEqual(result['checks'][0]['error_class'], 'native_receipt_shape')
+        self.assertNotIn('private', json.dumps(result))
+        result = collector.collect(contract, lambda *a: (0, json.dumps({'error_class': 'private'}), '', False))
+        self.assertNotIn('error_class', result['checks'][0])
+
+    def test_native_receipts_require_exact_steps_and_no_hidden_failure(self):
+        check = load('runtime_checks', 'startup-runtime-check.py')
+        def rows(value):
+            return [{'MESSAGE': 'NAUTOBOT_STARTUP_RESULT='+json.dumps(value)}]
+        value = {'role': 'web', 'passed': True, 'steps': {k: {'exit_status': 0, 'output_limited': False}
+                 for k in ('configuration', 'pending_migrations', 'static_collection')}}
+        check.native_receipt(rows(value), 'web')
+        with self.assertRaisesRegex(ValueError, 'native_receipt_count'):
+            check.native_receipt(rows(value)*2, 'web')
+        value['steps']['configuration']['error'] = 'timeout'
+        with self.assertRaisesRegex(ValueError, 'native_failure'):
+            check.native_receipt(rows(value), 'web')
+
+    def test_cgroup_check_uses_effective_limits_and_oom_events(self):
+        check = load('runtime_cgroups', 'startup-runtime-check.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory);proc=root/'proc';groups=root/'cgroup'
+            (proc/'42').mkdir(parents=True);(groups/'runtime').mkdir(parents=True)
+            (proc/'42/cgroup').write_text('0::/runtime\n')
+            (groups/'runtime/memory.max').write_text(str(384*1024**2))
+            (groups/'runtime/memory.swap.max').write_text('0')
+            events=groups/'runtime/memory.events';events.write_text('oom 0\noom_kill 0\n')
+            check.cgroup_evidence(42,384,True,proc,groups)
+            with self.assertRaisesRegex(ValueError,'effective_memory'):
+                check.cgroup_evidence(42,1536,True,proc,groups)
+            events.write_text('oom 1\noom_kill 0\n')
+            with self.assertRaisesRegex(ValueError,'oom'):
+                check.cgroup_evidence(42,384,True,proc,groups)
+
+    def test_startup_operation_requires_recovery_and_forbids_reboot(self):
+        value = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+        schema = json.loads((ROOT/'Nautobot/schemas/startup-operation.schema.json').read_text())
+        Draft202012Validator(schema).validate(value)
+        value['scope']['reboot'] = True
+        with self.assertRaises(ValidationError):
+            Draft202012Validator(schema).validate(value)
+        value['scope']['reboot'] = False
+        del value['prerequisites']['preservation_commit']
+        with self.assertRaises(ValidationError):
+            Draft202012Validator(schema).validate(value)
+
     def test_preservation_bundle_detects_tampering_and_wrong_authorization(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)/'bundle'
@@ -237,8 +287,11 @@ class Startup(unittest.TestCase):
             with patch.object(launcher.subprocess, 'check_output') as command:
                 with self.assertRaisesRegex(ValueError, 'authorization_hash'):
                     launcher.execute(Path('/tmp/spec.json'), 'wrong')
-                with self.assertRaisesRegex(ValueError, 'startup_inactive'):
-                    launcher.execute(Path('/tmp/spec.json'), 'expected')
+                policy = yaml.safe_load((ROOT/'Nautobot/manifests/startup-policy.yaml').read_text())
+                operation = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+                with patch.object(launcher.yaml, 'safe_load', side_effect=[{**policy, 'execution_authorized': False}, operation]):
+                    with self.assertRaisesRegex(ValueError, 'startup_inactive'):
+                        launcher.execute(Path('/tmp/spec.json'), 'expected')
                 command.assert_not_called()
 
     def test_playbook_collects_evidence_instead_of_supplied_acceptance_boolean(self):
@@ -312,12 +365,12 @@ class Startup(unittest.TestCase):
         self.assertFalse(node.healthy('migration', good))
         self.assertTrue(node.healthy('migration', {**good, 'SubState': 'exited'}))
 
-    def test_inactive_policy_rejects_activation(self):
+    def test_policy_requires_boolean_and_exact_bundle_gate(self):
         policy = yaml.safe_load((ROOT/'Nautobot/manifests/startup-policy.yaml').read_text())
         schema = json.loads((ROOT/'Nautobot/schemas/startup-policy.schema.json').read_text())
         Draft202012Validator(schema).validate(policy)
         with self.assertRaises(ValidationError):
-            Draft202012Validator(schema).validate({**policy, 'execution_authorized': True})
+            Draft202012Validator(schema).validate({**policy, 'execution_authorized': 'true'})
 
     def test_actual_ansible_gate_rejects_before_contact(self):
         play = yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/start-application.yaml').read_text())[0]

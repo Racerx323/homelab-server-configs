@@ -22,6 +22,9 @@ bounded = collector.bounded
 ROOT = HERE.parents[2]
 FILES = (
     'Nautobot/schemas/startup-execution.schema.json',
+    'Nautobot/schemas/startup-operation.schema.json',
+    'Nautobot/schemas/startup-policy.schema.json',
+    'Nautobot/docs/STARTUP_EXECUTION.md',
     'Nautobot/manifests/operation.yaml', 'Nautobot/manifests/startup-policy.yaml',
     'Nautobot/manifests/desired-state.yaml', 'Nautobot/manifests/accepted-live-state.yaml',
     'Nautobot/manifests/startup-network-handoff.yaml',
@@ -112,7 +115,9 @@ def execute(specification, authorized_hash):
     if digest != authorized_hash:
         raise ValueError('authorization_hash')
     policy = yaml.safe_load((ROOT/'Nautobot/manifests/startup-policy.yaml').read_text())
+    Draft202012Validator(json.loads((ROOT/'Nautobot/schemas/startup-policy.schema.json').read_text())).validate(policy)
     operation = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+    Draft202012Validator(json.loads((ROOT/'Nautobot/schemas/startup-operation.schema.json').read_text())).validate(operation)
     if (policy.get('execution_authorized') is not True
             or operation.get('operation', {}).get('stage') != 'application_startup'
             or operation['operation'].get('authorization_ready') is not True):
