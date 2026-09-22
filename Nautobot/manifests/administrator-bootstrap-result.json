@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-administrator-bootstrap-v1",
+  "outcome": "administrator_bootstrap_failed_before_creation",
+  "accepted": false,
+  "reviewed_at": "2026-09-22T15:55:58.427788+00:00",
+  "definition_commit": "1ed01bafb8959d996195d16053389c9649d9181e",
+  "bundle_sha256": "907cd035fdc21084435553a999c3f0095b3b338444220fd9ca317d4d513c03db",
+  "native": {
+    "creation_attempted": false,
+    "failed_phase": "account_absent",
+    "passed": false,
+    "steps": {
+      "account_absent": {
+        "exit_status": 1,
+        "output_limited": false
+      },
+      "configuration": {
+        "exit_status": 0,
+        "output_limited": false
+      },
+      "pending_migrations": {
+        "exit_status": 0,
+        "output_limited": false
+      }
+    }
+  },
+  "mutation_status": "private_data_services_temporarily_started_and_stopped",
+  "administrator_creation_attempted": false,
+  "account_existence": "not_established",
+  "cleanup": {
+    "passed": true,
+    "cleanup": {
+      "probe": true,
+      "redis": true,
+      "postgresql": true,
+      "input.json": true,
+      "bootstrap-application.py": true,
+      "initialize-application.py": true,
+      "directory": true
+    }
+  },
+  "shutdown": {
+    "passed": true,
+    "services": {
+      "postgresql": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "ac21b2c0965c4e4883db8e478788f8cd"
+      },
+      "redis": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "13c143da37ec436ebc8e208dba541168"
+      },
+      "migration": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": ""
+      }
+    },
+    "transient_removed": true,
+    "cold_copies_verified": true
+  },
+  "guard_fired": false,
+  "guard_disarmed": true,
+  "controller_secret_cleanup": true,
+  "storage": {
+    "boot_unchanged": true,
+    "cursor_verified": true,
+    "entries_reviewed": 30,
+    "storage_event_count": 0,
+    "delayed_seconds": 75.00011465902207,
+    "passed": true
+  },
+  "controller": {
+    "ansible_exit_status": 2,
+    "output_truncated": false,
+    "task_diagnostics_complete": true
+  },
+  "diagnostic_limitations": [
+    "Account-absence child exited 1; no retained exception detail, and existing-account status 17 was not observed.",
+    "Bootstrap task names are absent from the progress callback allowlist and appear as unrecognized_task."
+  ],
+  "boundaries": {
+    "administrator_accepted": false,
+    "application_started": false,
+    "new_migrations_run": false,
+    "restic_changed": false
+  },
+  "evidence_sha256": {
+    "ansible-progress.jsonl": "8dcea2539c48c64f5abb354b4c20e164176b83bb38f65fb9ae886047d6d695fb",
+    "bootstrap-input-location.json": "7331358a82871b85979addbbfa5e34f33bc9ae1b6d5ff942f578677da63d10fc",
+    "bootstrap-stages.json": "9135e6c810bcd6e843bf88ed61dc47ed2ae50686c8b037006ddbeda7a1d7d03e",
+    "bundle-files.sha256": "5613d09453878626fd24ddbe0a64cd2a5d552097e1bc7cedcfacbeaf2251b392",
+    "bundle.sha256": "4c6ee4cffa850ca9a11b1ca1e96ee21653454a5f881ec617e35e46b1fc225b90",
+    "native-command.json": "fb97db906680bddf4ccfb1ce3122aeb7da173bb1e290d819de94164b432152b5",
+    "native.json": "1a9dbd62ae78f4674305d5de5373bb938fb3ddb653e99375fae2a3cc01535c16",
+    "preflight.json": "61133be949cda5023c23da0918bb5dfa4b08dd167cfd83acc4088daf4499d172",
+    "result.json": "683bddb4a1f48785c5d69cd4c0c3006d57ff1b15eea7b36b0bc98943ba60c98a",
+    "storage.json": "698af870780538862e0ff7c419ff99fea6932f91e1db6bb42539295bf8395dc5"
+  },
+  "git_archival": "pending",
+  "subsequent_diagnosis": {
+    "reviewed_at": "2026-09-22T16:03:20.778261+00:00",
+    "cause": "short_shell_c_option_consumed_as_nautobot_configuration_path",
+    "basis": "frozen_invocation_and_pinned_source_with_matching_offline_reproduction",
+    "host_traceback_retained": false,
+    "candidate_correction": "use_shell_long_command_option_for_both_account_checks",
+    "local_corrected_native_sequence_passed": true,
+    "live_retry_performed": false,
+    "evidence_sha256": {
+      "DIAGNOSIS.md": "6bc69420f5c233aa8ac37b87ef94bad42e05380d0cd762ec3de6ceb38b9fe3cd",
+      "diagnose-bootstrap-cli.py": "44c6068edcd67e72126d30055c04e00e480dcd23d84f9837a49b1b3d9faf9613",
+      "parser-result.json": "719d15707450dde6939615beb909129a007649b05d6ee91cb74b2fd06eaabfeb",
+      "test-bootstrap-pinned-wrapper.py": "592af05e6f84b989a2bd0a816d5c0e74813bf27529442dd57be13f514f2cc0f4",
+      "wrapper-result.json": "33942961e97eb4024b988cb21fa741f275b76d116c60cb93206487f2c40d2e1b"
+    }
+  }
+}
