@@ -506,7 +506,7 @@ class Startup(unittest.TestCase):
         self.assertEqual([p['state'] for p in phases],['started','completed']*3)
         self.assertEqual([p['phase'] for p in phases[::2]],
                          ['configuration','pending_migrations','static_collection'])
-        self.assertTrue(all(set(p)=={'role','phase','state','elapsed_seconds'} for p in phases))
+        self.assertTrue(all(set(p)=={'role','invocation','phase','state','elapsed_seconds'} for p in phases))
 
     def test_current_invocation_native_receipt_is_required(self):
         calls = []
@@ -515,17 +515,37 @@ class Startup(unittest.TestCase):
             return ''
         value = node.native_status('web', 'a'*32, query)
         self.assertFalse(value['passed']); self.assertFalse(value['terminal'])
-        self.assertIn('_SYSTEMD_INVOCATION_ID='+'a'*32, calls[0])
-        self.assertIn('_SYSTEMD_USER_UNIT=nautobot-web.service', calls[0])
+        self.assertIn('CONTAINER_NAME=nautobot-web', calls[0])
+        self.assertIn('_UID=999', calls[0])
         steps = {key: {'exit_status':0,'output_limited':False} for key in
                  ('configuration','pending_migrations','static_collection')}
-        receipt = {'role':'web','passed':True,'steps':steps}
+        receipt = {'role':'web','passed':True,'steps':steps,'invocation':'a'*32}
         row = json.dumps({'MESSAGE':'NAUTOBOT_STARTUP_RESULT='+json.dumps(receipt)})
         self.assertTrue(node.native_status('web','a'*32,lambda _:row)['passed'])
         self.assertTrue(node.native_status('web','a'*32,lambda _:row+'\n'+row)['terminal'])
         receipt['steps']['configuration']['exit_status'] = 1
         row = json.dumps({'MESSAGE':'NAUTOBOT_STARTUP_RESULT='+json.dumps(receipt)})
         self.assertTrue(node.native_status('web','a'*32,lambda _:row)['terminal'])
+
+    def test_journal_receipts_exclude_prior_invocations_and_attached_duplicates(self):
+        steps={k:{'exit_status':0,'output_limited':False} for k in
+               ('configuration','pending_migrations','static_collection')}
+        def row(invocation):
+            return {'MESSAGE':'NAUTOBOT_STARTUP_RESULT='+json.dumps(
+                {'role':'web','passed':True,'steps':steps,'invocation':invocation})}
+        rows=[row('b'*32),row('a'*32)]
+        check=load('runtime_receipt_restart','startup-runtime-check.py')
+        check.native_receipt(rows,'web','a'*32)
+        raw='\n'.join(json.dumps(x) for x in rows)
+        self.assertTrue(node.native_status('web','a'*32,lambda _:raw)['passed'])
+        self.assertFalse(node.native_status('web','c'*32,lambda _:raw)['passed'])
+        with self.assertRaisesRegex(ValueError,'native_receipt_count'):
+            check.native_receipt(rows+[row('a'*32)],'web','a'*32)
+        # Only CONTAINER_NAME journal records are queried: attached service output
+        # lacks that field and cannot be counted as a duplicate receipt.
+        calls=[]
+        node.native_status('web','a'*32,lambda argv:calls.append(argv) or raw)
+        self.assertIn('CONTAINER_NAME=nautobot-web',calls[0])
 
     def test_readiness_waits_for_native_then_http_and_rejects_restart(self):
         state = {'ActiveState':'active','SubState':'running','Result':'success',
@@ -581,12 +601,18 @@ class Startup(unittest.TestCase):
                 diagnostic.cleanup({'identity':'ours'})
             call.assert_not_called()
 
-    def test_archived_baseline_review_preserves_database_units(self):
+    def test_archived_baseline_review_records_logging_delta_and_preserves_storage(self):
         with tempfile.TemporaryDirectory() as directory:
             report = preparation.prepare(Path(directory)/'rendered')
             self.assertFalse(report['execution_authorized'])
-            self.assertIn('nautobot-postgresql.container', report['unchanged_existing_units'])
-            self.assertIn('nautobot-redis.container', report['unchanged_existing_units'])
+            for name in ('nautobot-postgresql.container', 'nautobot-redis.container'):
+                delta=report['artifact_changes'][name]
+                rendered=(Path(directory)/'rendered'/name).read_text()
+                self.assertIn('LogDriver=journald\n',rendered)
+                self.assertEqual(hashlib.sha256(rendered.replace('LogDriver=journald\n','').encode()).hexdigest(),delta['before_sha256'])
+                self.assertNotEqual(delta['before_sha256'],delta['after_sha256'])
+            for name in ('nautobot-postgresql_data.volume','nautobot-redis_data.volume','nautobot-private.network'):
+                self.assertIn(name,report['unchanged_existing_units'])
             self.assertNotEqual(report['artifact_changes']['nautobot-migration.container']['before_sha256'], report['artifact_changes']['nautobot-migration.container']['after_sha256'])
             with self.assertRaises(FileExistsError):
                 preparation.prepare(Path(directory)/'rendered')

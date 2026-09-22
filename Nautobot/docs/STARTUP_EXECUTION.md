@@ -164,3 +164,43 @@ timeout, transport error, redirect, body-size or content-type mismatch), never
 response bodies, redirect destinations or exception text. Lifecycle evidence
 retains the last readiness/HTTP response even when full acceptance was not reached.
 Only separately authorized execution can validate this behavior on the ARM64 host.
+
+## Explicit logging and server configuration
+
+The target's retained preflight reports Podman 5.4.2; the integrity-checked local
+Quadlet generator is pinned to the same version. Its
+[version-specific reference](https://docs.podman.io/en/v5.4.2/markdown/podman-systemd.unit.5.html#logdriver)
+supports `LogDriver=journald` in `[Container]`. All six container roles explicitly
+select it, including initialization and migration-continuation variants. `[Service] StandardOutput=journal` alone does not select the container
+log driver. Historical archives remain unchanged.
+
+For startup application roles only, pass systemd's `INVOCATION_ID` through Podman's `--env=INVOCATION_ID` option;
+never forward the entire host environment. Application phase/result records carry
+that identity. Readiness and final acceptance select current-boot journal records
+by container name and owning UID, then require exactly one successful receipt for
+the current invocation. This excludes prior restarts and attached-output duplicates.
+Recheck service state after collection. Log presence alone is not HTTP readiness.
+
+Nautobot 3.2.3 delegates `start` to django-webserver 1.2.0. The retained implementation
+adds strict/need-app/module/static arguments but no master flag. Explicit startup
+arguments enable uWSGI master, Python threads, a single interpreter and SIGTERM
+shutdown. Existing listener, memory limits and default process count are unchanged.
+These match the relevant settings in the upstream service configuration guidance.
+
+Two opt-in local regressions complement the normal offline suites:
+
+```sh
+NAUTOBOT_JOURNAL_TEST_IMAGE=EXISTING_LOCAL_IMAGE PYTHONDONTWRITEBYTECODE=1 python3 Nautobot/tests/test_startup_journal.py
+NAUTOBOT_SERVER_TEST_PYTHON=/PATH/TO/ISOLATED_VENV/bin/python PYTHONDONTWRITEBYTECODE=1 python3 Nautobot/tests/test_startup_server.py
+```
+
+Run both outside the filesystem sandbox. The journal test requires local rootless
+Podman and user systemd; it creates/removes one uniquely named service/container,
+uses an existing image without pulls/network, and tests receipts across restarts.
+The server test requires Django 5.2.17, django-webserver 1.2.0 and pyuwsgi
+2.0.30.post1 in an isolated virtualenv. It uses real uWSGI with a minimal WSGI
+application importing uwsgidecorators: missing master must fail; the corrected
+command must serve HTTP and static content. It does not initialize a database or
+run the full Nautobot application. Both tests clean up their temporary processes.
+Local x86/runtime-version differences do not replace the separately approved
+ARM64 trial and full application acceptance checks.

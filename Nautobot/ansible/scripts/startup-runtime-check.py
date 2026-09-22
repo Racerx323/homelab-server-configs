@@ -45,9 +45,11 @@ def states():
     return result
 
 
-def native_receipt(entries, role):
+def native_receipt(entries, role, invocation=None):
     values = [json.loads(e['MESSAGE'].split('=', 1)[1]) for e in entries
               if isinstance(e.get('MESSAGE'), str) and e['MESSAGE'].startswith('NAUTOBOT_STARTUP_RESULT=')]
+    if invocation is not None:
+        values = [v for v in values if v.get('invocation') == invocation]
     require(len(values) == 1, 'native_receipt_count')
     value = values[0]
     expected = {'configuration', 'pending_migrations'}
@@ -63,8 +65,9 @@ def native():
     for role in ('migration', 'web', 'worker', 'scheduler'):
         invocation = current[role]['InvocationID']
         require(re.fullmatch('[0-9a-f]{32}', invocation), 'invocation')
-        raw = run(['/usr/bin/journalctl', '_SYSTEMD_INVOCATION_ID='+invocation, '-o', 'json', '--no-pager', '--quiet'])
-        native_receipt([json.loads(line) for line in raw.splitlines()], role)
+        raw = run(['/usr/bin/journalctl', 'CONTAINER_NAME=nautobot-'+role, '_UID=999', '-b', '-n', '1000', '-o', 'json', '--no-pager', '--quiet'])
+        native_receipt([json.loads(line) for line in raw.splitlines()], role, invocation)
+    require(states() == current, 'process_changed')
     return {'native_checks_passed': True, 'all_services_healthy_without_restarts': True}
 
 

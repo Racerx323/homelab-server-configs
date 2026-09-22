@@ -71,8 +71,7 @@ def stop_all(runner=base.call, inspect=service):
 def native_status(role, invocation, runner=base.call):
     if not re.fullmatch('[0-9a-f]{32}', invocation):
         raise ValueError('invalid_invocation')
-    raw = runner(['/usr/bin/journalctl', '_SYSTEMD_INVOCATION_ID='+invocation,
-                  '_SYSTEMD_USER_UNIT=nautobot-'+role+'.service', '_UID=999',
+    raw = runner(['/usr/bin/journalctl', 'CONTAINER_NAME=nautobot-'+role, '_UID=999', '-b',
                   '-o', 'json', '--no-pager', '--quiet', '-n', '1000'])
     receipts = []
     phase = None
@@ -81,10 +80,12 @@ def native_status(role, invocation, runner=base.call):
         message = entry.get('MESSAGE', '')
         if message.startswith('NAUTOBOT_STARTUP_PHASE='):
             value = json.loads(message.split('=', 1)[1])
-            if value.get('role') == role:
+            if value.get('role') == role and value.get('invocation') == invocation:
                 phase = {k:value.get(k) for k in ('phase','state','elapsed_seconds')}
         if message.startswith('NAUTOBOT_STARTUP_RESULT='):
-            receipts.append(json.loads(message.split('=', 1)[1]))
+            value = json.loads(message.split('=', 1)[1])
+            if isinstance(value, dict) and value.get('invocation') == invocation:
+                receipts.append(value)
     result = {'passed': False, 'terminal': False, 'phase': phase, 'reason': 'waiting_native_receipt'}
     if not receipts:
         return result

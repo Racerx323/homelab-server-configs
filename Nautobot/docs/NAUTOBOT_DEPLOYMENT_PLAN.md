@@ -479,3 +479,12 @@ Nautobot and other Restic consumers retain workload/storage acceptance and
 backup/restore criteria. Transport convergence does not clear those gates.
 Historical Nautobot remediation definitions and evidence remain retained; future
 transport operations use the shared component without modifying active observers.
+
+## Container logging
+
+All Nautobot container Quadlets explicitly select `LogDriver=journald`, including
+PostgreSQL, Redis, migration, web, worker and scheduler, and initialization variants.
+This provides consistent container-log collection without changing host-wide Podman
+defaults. Service stdout/stderr journal settings do not replace the container log
+driver. Application readiness receipts additionally bind to the current systemd
+invocation; database/cache health checks retain their own acceptance criteria.

@@ -2,24 +2,25 @@
 
 ## Current next action
 
-The second application-startup attempt remains unaccepted. Migration passed
-native configuration, post_upgrade and pending-migration checks, validating the
-metrics-cache correction on the target. Web/worker/scheduler became active, but
-all 13 HTTP readiness probes were exhausted before full acceptance. Their exit
-137 statuses followed cleanup and are not evidence of the original cause.
-All service processes and containers are absent; the stop timer is inactive.
-Failed service markers and data are retained; no automatic restore occurred.
-The result and all 48 consumed inputs are preserved in published tag
-`nautobot-application-startup-v2-failed` at `a9b6562`.
+The latest application-startup attempt failed at web readiness. Migration passed;
+web native configuration, pending-migration and static collection checks passed
+in container logs, but server startup raised: "you have to enable the uWSGI master
+process to use this module." Separately, the gate queried systemd journal while
+web used the k8s-file container log driver, so it never received the native receipt.
+Worker and scheduler did not start; the full acceptance collector was not reached.
 
-The corrected successor is definition-only. Local correction now gates
-progression on current-invocation native receipts
-and web HTTP readiness, retaining phase timings and categorized HTTP failures.
-The original HTTP exception was not retained and remains unknown. The fresh baseline and recovery-copy review passed. Next: publish and validate
-preparation, then obtain exact-bundle approval for the retry. Startup and workload acceptance remain incomplete.
-The initial failed startup is preserved in published tag
-`nautobot-application-startup-v1-failed` at `a39d139`.
-The following preparation description is historical to this consumed attempt.
+All six services are processless, containers absent and the stop timer inactive.
+No matching storage/OOM kernel events were found. Data and recovery copies remain;
+no automatic restore occurred. The failed operation is preserved in published tag
+`nautobot-application-startup-v3-failed` at `332c3dc`; see [history](../HISTORY.md).
+The successor definition explicitly selects journald for every container variant,
+binds application receipts to the current invocation and enables uWSGI master mode.
+Pinned-generator rendering and application regressions passed locally. The fresh
+read-only baseline confirms stopped services, installed consumed identities, guard
+integrity and unchanged recovery-copy hashes. Full ARM64 acceptance remains pending.
+Next: publish the corrected preparation, verify CI and authorize the exact bundle.
+Earlier startup failures remain in published v1/v2 terminal tags. Startup and
+workload acceptance remain incomplete.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native
 checks passed: configuration, no pending migrations, account absence, creation

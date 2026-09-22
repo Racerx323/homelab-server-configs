@@ -115,6 +115,8 @@ class Initialization(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             op=copy.deepcopy(self.op);op['runtime']['rendered_directory']=tmp
             files=renderer.render(self.desired,self.inputs,True)
+            # Synthetic current-render fixture; preserve consumed historical hashes.
+            op['runtime']['artifact_sha256']={n:hashlib.sha256(t.encode()).hexdigest() for n,t in files.items()}
             for n,t in files.items():(Path(tmp)/n).write_text(t)
             with patch.object(launcher,'validate',return_value=op), patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('must not execute')):
                 with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bundle_hash_mismatch'):launcher.execute('0'*64)

@@ -6,6 +6,7 @@ After={{ dependencies | join(" ") }}
 {% endif %}
 
 [Container]
+LogDriver=journald
 Image={{ image }}
 Pull=never
 ContainerName=nautobot-{{ name }}
@@ -31,6 +32,8 @@ Tmpfs=/opt/nautobot/static:rw,size=256m,mode=1777
 Environment=PYTHONDONTWRITEBYTECODE=1
 PodmanArgs=--memory-swap=1536m
 {% else %}
+# Pass only the systemd invocation identity, not the host environment.
+PodmanArgs=--env=INVOCATION_ID
 Entrypoint=python3
 Exec=/run/startup-application.py {{ name }}
 Volume=/var/lib/nautobot/runtime/startup-application.py:/run/startup-application.py:ro

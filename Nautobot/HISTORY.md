@@ -381,5 +381,9 @@ but uWSGI failed without master mode. Container logs used k8s-file while readine
 looked in the journal. Worker and scheduler were not started. Final cleanup
 verified no service processes or containers; data and recovery copies remain.
 All 48 consumed inputs and sanitized results are preserved in the archive
-for `nautobot-application-startup-v3-failed`; publication remains pending.
+for published tag `nautobot-application-startup-v3-failed`.
 The peeled annotated tag identifies the archive commit. Accepted state is unchanged.
+
+Archive commit `332c3dc6ec4aafcd69c36bc181c00f8515d86830` and annotated tag
+object `00114c42ba064614221eb852b8f5cd875880aa02` were verified remotely.
+Consumed files were removed only after exact archive comparison.

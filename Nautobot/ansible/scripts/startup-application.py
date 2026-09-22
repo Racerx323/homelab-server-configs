@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import tempfile
@@ -13,7 +14,7 @@ native = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(native)
 LIMITS = {'migration': 1536, 'web': 1536, 'worker': 1536, 'scheduler': 384}
 COMMANDS = {
-    'web': ['nautobot-server', 'start', '--http', '0.0.0.0:8080'],
+    'web': ['nautobot-server', 'start', '--http', '0.0.0.0:8080', '--master', '--enable-threads', '--single-interpreter', '--die-on-term'],
     'worker': ['nautobot-server', 'celery', 'worker', '--loglevel', 'INFO', '--concurrency', '2'],
     'scheduler': ['nautobot-server', 'celery', 'beat', '--loglevel', 'INFO', '--pidfile', '/tmp/nautobot-beat.pid'],
 }
@@ -22,7 +23,10 @@ COMMANDS = {
 def prepare(role, runner=native.command, inspect=True, report=None):
     if role not in LIMITS:
         raise ValueError('unknown_role')
+    invocation = os.environ.get('INVOCATION_ID', '')
     if inspect:
+        if not re.fullmatch('[0-9a-f]{32}', invocation):
+            raise ValueError('invocation_boundary')
         if os.getuid() != 999 or Path('/sys/fs/cgroup/memory.max').read_text().strip() != str(LIMITS[role] * 1024**2):
             raise ValueError('resource_boundary')
         if Path('/sys/fs/cgroup/memory.swap.max').read_text().strip() != '0':
@@ -38,12 +42,12 @@ def prepare(role, runner=native.command, inspect=True, report=None):
     steps.append(('pending_migrations', ['migrate', '--check'], 120))
     if role == 'web':
         steps.append(('static_collection', ['collectstatic', '--noinput'], 120))
-    receipt = {'role': role, 'passed': False, 'steps': {}}
+    receipt = {'role': role, 'passed': False, 'steps': {}, 'invocation': invocation}
     for name, args, timeout in steps:
         started = time.monotonic()
-        if report: report({'role':role,'phase':name,'state':'started','elapsed_seconds':0})
+        if report: report({'role':role,'invocation':invocation,'phase':name,'state':'started','elapsed_seconds':0})
         result = runner(['nautobot-server'] + args, timeout)
-        if report: report({'role':role,'phase':name,'state':'completed','elapsed_seconds':round(time.monotonic()-started,3)})
+        if report: report({'role':role,'invocation':invocation,'phase':name,'state':'completed','elapsed_seconds':round(time.monotonic()-started,3)})
         receipt['steps'][name] = result
         if result.get('exit_status') != 0 or result.get('error') or result.get('output_limited'):
             receipt['failed_phase'] = name

@@ -168,6 +168,21 @@ class RuntimeTests(unittest.TestCase):
             receipt.write_text('{}')
             with self.assertRaises(RuntimeError):resolve(directory)
 
+    def test_initialization_logging_generator(self):
+        for continuation in (None, 'a'*64):
+            with self.subTest(continuation=continuation), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);units=root/'units';output=root/'generated';units.mkdir();output.mkdir()
+                files=renderer.render(self.desired,self.inputs,initialization=True,continuation=continuation)
+                for name,text in files.items():(units/name).write_text(text)
+                result=subprocess.run([str(resolve()),'--user',str(output)],env={**os.environ,'QUADLET_UNIT_DIRS':str(units)},capture_output=True,timeout=30)
+                self.assertEqual(result.returncode,0,result.stderr.decode())
+                for name,text in files.items():
+                    if name.endswith('.container'):
+                        self.assertEqual(text.count('LogDriver=journald'),1)
+                        generated=(output/name.replace('.container','.service')).read_text()
+                        self.assertIn('--log-driver journald',generated)
+                        self.assertNotIn('--env=INVOCATION_ID',generated)
+
     def test_generator(self):
         generator=resolve()
         self.assertTrue(generator.is_file(),'Quadlet generator required for this test')
@@ -182,6 +197,11 @@ class RuntimeTests(unittest.TestCase):
                 self.assertTrue(p.exists(),result.stderr.decode())
             web=(output/'nautobot-web.service').read_text()
             self.assertIn('--memory=1536m',web)
+            for role in renderer.SERVICES:
+                generated=(output/f'nautobot-{role}.service').read_text()
+                self.assertIn('--log-driver journald',generated)
+                if role in ('migration','web','worker','scheduler'):
+                    self.assertIn('--env=INVOCATION_ID',generated)
             self.assertIn('nautobot-migration.service',web)
             self.assertNotIn('--publish',(output/'nautobot-postgresql.service').read_text())
 
