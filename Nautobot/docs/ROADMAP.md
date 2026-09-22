@@ -2,6 +2,21 @@
 
 ## Current next action
 
+Runtime initialization is accepted as of September 22, 2026. The authorized
+continuation passed all five native steps in 285.165 seconds, including
+`post_upgrade` and the final no-pending-migrations check. Its native plan covered
+58 migrations; 56 individual completion messages were recognized by the parser.
+Two per-migration completion timings remain unobserved; native completion and
+no-pending checks passed. PostgreSQL, Redis and migration are stopped, cold copies
+remain verified, the guard did not fire, and the 75-second storage review was quiet.
+[Initialization result](../manifests/runtime-initialization-result.json) owns this
+acceptance. Next: archive this consumed operation, then prepare administrator
+bootstrap and application runtime startup under the stage-5 plan. Web, worker,
+scheduler, application backup/restore and workload acceptance remain outstanding.
+
+The prerequisite and failed-attempt history below provides context; it does not
+override the current accepted initialization result.
+
 Image-store readiness is archived in `nautobot-image-load-v1-ready` at `0dd657b`.
 Durable provenance is in [runtime-image-store.json](../manifests/runtime-image-store.json).
 V1 through v6 are archived. The approved v7 readiness trial passed all five checks:
@@ -11,7 +26,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains a locally validated continuation candidate after published inspection archival. Negative security tests were not run and remain unresolved.
+contains the consumed successful continuation, awaiting terminal archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -34,7 +49,8 @@ bundle: exact full snapshot/subtree, independent tree/content comparison,
 unchanged source, 75-second quiet cursor-bounded kernel review and credential
 cleanup. [Restore acceptance](../manifests/canary-restore-result.json) records the
 result. Its published terminal tag is `nautobot-canary-restore-v1-accepted`
-at `01bb966`. Initialization stopped before installation and is archived in `nautobot-runtime-initialization-v1-blocked` at `c5040e3`. The corrected retry passed preflight, installed the data services and reached migration, but `post_upgrade` timed out; initialization remains unaccepted.
+at `01bb966`. Initialization stopped before installation and is archived in `nautobot-runtime-initialization-v1-blocked` at `c5040e3`. The corrected retry passed preflight, installed the data services and reached migration, but `post_upgrade` timed out. That failed attempt is historical; the continuation
+subsequently completed initialization.
 Do not rerun either the consumed backup or restore.
 Do not rerun the consumed initialization bundle.
 Do not rerun the consumed preflight definition. Historical failed
@@ -48,7 +64,7 @@ Credential provisioning was previously archived at
 retain preparation/observation context; older absence and pending-archive claims
 are not current-state statements.
 
-## Runtime initialization candidate
+## Runtime initialization history and accepted continuation
 
 The approved attempt stopped before runtime installation. Read-only reproduction
 identified Podman inheriting inaccessible `/home/ama`; the metadata queries pass
@@ -58,8 +74,8 @@ limitation. Do not rerun the consumed definition. The corrected retry passed the
 installed the private data-service units. Native configuration checking passed;
 `post_upgrade` exhausted the bounded native budget. The controller task return
 stalled despite migration exiting 69. Independent authorized stops succeeded;
-PostgreSQL/Redis are inactive, migration failed, no containers remain, and both
-data volumes are retained. Configuration and boot continuity passed; a delayed
+At that failed attempt, PostgreSQL/Redis were inactive, migration had failed,
+no containers remained, and both data volumes were retained. Configuration and boot continuity passed; a delayed
 kernel review found no storage errors. The retry review in [history](../HISTORY.md)
 records the evidence and unresolved command-return gap. Partial database state
 requires a reviewed recovery path; do not rerun the first-install bundle. Read-only
@@ -73,7 +89,8 @@ migration retry. The approved inspection completed on September 22, 2026:
 both stopped volumes were independently copied and verified before PostgreSQL
 started. Its read-only ledger contains 423 applied migrations. Static comparison
 with pinned sources finds 16 core and 10 DNS Models migration files unrecorded;
-this is not a complete native migration plan. Initialization remains incomplete.
+this was not a complete native migration plan. Initialization was incomplete
+at inspection; the later native continuation covered third-party dependencies too.
 PostgreSQL stopped afterward, Redis stayed inactive, no containers remain, and
 the stop guard was disarmed without firing. The 75-second delayed review found
 no storage events. Protected cold copies remain on the host.
@@ -81,9 +98,9 @@ no storage events. Protected cold copies remain on the host.
 identities, hashes and results. The inspection is archived as `nautobot-database-inspection-v1-accepted` at
 `16835ad`. A [continuation specification](RUNTIME_INITIALIZATION.md#prepared-continuation-of-retained-migrations)
 is implemented with native migration-plan verification, sanitized phase/migration
-progress, independent stops and unchanged memory limits. Next: review the frozen
-continuation bundle for execution authorization. Execution needs a separately
-reviewed bundle; do not rerun first installation or discard the cold copies.
+progress, independent stops and unchanged memory limits. It executed once and
+passed; terminal archival is now pending. Do not rerun the continuation or first
+installation, and do not discard the cold copies.
 
 The pre-data prerequisite is complete: repository initialization, canary backup
 with full integrity checking, and isolated restore are accepted and archived.
@@ -107,9 +124,9 @@ A failed stage attempts independent stops while preserving persistent data.
 
 Local regressions cover the actual selected units and Quadlet parser, native
 command sequence and failures, sanitized receipts, data-service assertions,
-bundle/prerequisite gates and real Ansible stop sequencing. Database creation occurred during the failed initialization. Remaining migrations,
-health and delayed storage observation require a separately approved continuation
-bundle that handles existing data.
+bundle/prerequisite gates and real Ansible stop sequencing. Database creation occurred during the failed initialization. The continuation
+completed the remaining migrations, health and delayed storage checks; the
+accepted result above records their scope and diagnostic limitation.
 
 After initialization is accepted, prepare administrator bootstrap and application
 startup. The temporary migration static cache does not provide the later web

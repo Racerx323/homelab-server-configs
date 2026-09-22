@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-runtime-continuation-v1",
+  "outcome": "runtime_initialization_accepted",
+  "accepted": true,
+  "reviewed_at": "2026-09-22T14:53:50.476114+00:00",
+  "definition_commit": "983cf0b3a09b876dcb3194c045263afd26ef26e3",
+  "bundle_sha256": "ba3bc760d334955a3d56eb743038471a88df43cdea8c011e8b253745c0910677",
+  "native": {
+    "elapsed": 285.165,
+    "memory_limit_bytes": 1610612736,
+    "migration_attempted": true,
+    "passed": true,
+    "pending_before": [
+      [
+        "load_balancers",
+        "0001_initial"
+      ],
+      [
+        "load_balancers",
+        "0002_create_default_statuses_pool_members"
+      ],
+      [
+        "nautobot_dns_models",
+        "0001_initial"
+      ],
+      [
+        "nautobot_dns_models",
+        "0002_srvrecordmodel"
+      ],
+      [
+        "nautobot_dns_models",
+        "0003_remove_aaaarecordmodel_ttl_remove_arecordmodel_ttl_and_more"
+      ],
+      [
+        "nautobot_dns_models",
+        "0004_rename_aaaarecordmodel_aaaarecord_and_more"
+      ],
+      [
+        "nautobot_dns_models",
+        "0005_dnsview_alter_dnszone_name_dnsviewprefixassignment_and_more"
+      ],
+      [
+        "nautobot_dns_models",
+        "0006_rename_address_aaaarecord_ip_address_and_more"
+      ],
+      [
+        "nautobot_dns_models",
+        "0007_dnsregistrar_dnsregistration"
+      ],
+      [
+        "nautobot_dns_models",
+        "0008_dnszone_auto_create_ptr"
+      ],
+      [
+        "nautobot_dns_models",
+        "0009_alter_aaaarecord__ttl_alter_arecord__ttl_and_more"
+      ],
+      [
+        "nautobot_dns_models",
+        "0010_aaaarecord_enabled_arecord_enabled_and_more"
+      ],
+      [
+        "sessions",
+        "0001_initial"
+      ],
+      [
+        "silk",
+        "0001_initial"
+      ],
+      [
+        "silk",
+        "0002_auto_update_uuid4_id_field"
+      ],
+      [
+        "silk",
+        "0003_request_prof_file"
+      ],
+      [
+        "silk",
+        "0004_request_prof_file_storage"
+      ],
+      [
+        "silk",
+        "0005_increase_request_prof_file_length"
+      ],
+      [
+        "silk",
+        "0006_fix_request_prof_file_blank"
+      ],
+      [
+        "silk",
+        "0007_sqlquery_identifier"
+      ],
+      [
+        "silk",
+        "0008_sqlquery_analysis"
+      ],
+      [
+        "social_django",
+        "0001_initial"
+      ],
+      [
+        "social_django",
+        "0002_add_related_name"
+      ],
+      [
+        "social_django",
+        "0003_alter_email_max_length"
+      ],
+      [
+        "social_django",
+        "0004_auto_20160423_0400"
+      ],
+      [
+        "social_django",
+        "0005_auto_20160727_2333"
+      ],
+      [
+        "social_django",
+        "0006_partial"
+      ],
+      [
+        "social_django",
+        "0007_code_timestamp"
+      ],
+      [
+        "social_django",
+        "0008_partial_timestamp"
+      ],
+      [
+        "social_django",
+        "0009_auto_20191118_0520"
+      ],
+      [
+        "social_django",
+        "0010_uid_db_index"
+      ],
+      [
+        "social_django",
+        "0011_alter_id_fields"
+      ],
+      [
+        "social_django",
+        "0012_usersocialauth_extra_data_new"
+      ],
+      [
+        "social_django",
+        "0013_migrate_extra_data"
+      ],
+      [
+        "social_django",
+        "0014_remove_usersocialauth_extra_data"
+      ],
+      [
+        "social_django",
+        "0015_rename_extra_data_new_usersocialauth_extra_data"
+      ],
+      [
+        "social_django",
+        "0016_alter_usersocialauth_extra_data"
+      ],
+      [
+        "social_django",
+        "0017_usersocialauth_user_social_auth_uid_required"
+      ],
+      [
+        "taggit",
+        "0001_initial"
+      ],
+      [
+        "taggit",
+        "0002_auto_20150616_2121"
+      ],
+      [
+        "taggit",
+        "0003_taggeditem_add_unique_index"
+      ],
+      [
+        "taggit",
+        "0004_alter_taggeditem_content_type_alter_taggeditem_tag"
+      ],
+      [
+        "taggit",
+        "0005_auto_20220424_2025"
+      ],
+      [
+        "taggit",
+        "0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx"
+      ],
+      [
+        "users",
+        "0002_token_ordering_by_created"
+      ],
+      [
+        "users",
+        "0003_alter_user_options"
+      ],
+      [
+        "users",
+        "0004_alter_user_managers"
+      ],
+      [
+        "users",
+        "0005_ensure_object_permission_names_are_unique"
+      ],
+      [
+        "users",
+        "0006_make_object_permission_name_globally_unique"
+      ],
+      [
+        "users",
+        "0007_alter_objectpermission_object_types"
+      ],
+      [
+        "users",
+        "0008_make_object_permission_a_changelogged_model"
+      ],
+      [
+        "users",
+        "0009_update_all_charfields_max_length_to_255"
+      ],
+      [
+        "users",
+        "0010_user_default_saved_views"
+      ],
+      [
+        "users",
+        "0011_alter_user_default_saved_views"
+      ],
+      [
+        "vpn",
+        "0001_initial"
+      ],
+      [
+        "vpn",
+        "0002_populate_defaults"
+      ],
+      [
+        "vpn",
+        "0003_vpntunnel_secrets_group"
+      ],
+      [
+        "vpn",
+        "0004_vpn_overlay_support"
+      ]
+    ],
+    "steps": {
+      "configuration": {
+        "bytes": 48,
+        "error": null,
+        "exit_status": 0
+      },
+      "configuration_after": {
+        "bytes": 48,
+        "error": null,
+        "exit_status": 0
+      },
+      "pending_migrations": {
+        "bytes": 0,
+        "error": null,
+        "exit_status": 0
+      },
+      "plan": {
+        "bytes": 3080,
+        "error": null,
+        "exit_status": 0
+      },
+      "post_upgrade": {
+        "bytes": 8767,
+        "error": null,
+        "exit_status": 0
+      }
+    },
+    "swap_limit_bytes": 0,
+    "uid": 999,
+    "invocation_nonce": "8fc25a30dd2288187fa2c54b33c8fa5dde15d8392f68855acee0c6bf0b99e993"
+  },
+  "migration_invocation": "688da88c58aa45ab9a7edb6d986a2486",
+  "data_services": {
+    "postgresql": {
+      "running": true,
+      "healthy": true,
+      "private": true,
+      "memory_bytes": 1610612736,
+      "durable_volume": true,
+      "effective_memory_bytes": 1610612736
+    },
+    "redis": {
+      "running": true,
+      "healthy": true,
+      "private": true,
+      "memory_bytes": 536870912,
+      "durable_volume": true,
+      "effective_memory_bytes": 536870912
+    }
+  },
+  "shutdown": {
+    "passed": true,
+    "services": {
+      "postgresql": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "3da8743c0f2642ae878c51535d6c0913"
+      },
+      "redis": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "51ecbacb2ea34684b6b2f46d3c751dbd"
+      },
+      "migration": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": ""
+      }
+    },
+    "cold_copies_verified": true
+  },
+  "guard_fired": false,
+  "guard_disarmed": true,
+  "storage": {
+    "boot_unchanged": true,
+    "cursor_verified": true,
+    "entries_reviewed": 30,
+    "storage_event_count": 0,
+    "delayed_seconds": 75.00012129801326,
+    "passed": true
+  },
+  "progress": {
+    "planned_migrations": 58,
+    "individually_recognized_completions": 56,
+    "completion_events_not_recognized": [
+      [
+        "load_balancers",
+        "0002_create_default_statuses_pool_members"
+      ],
+      [
+        "vpn",
+        "0002_populate_defaults"
+      ]
+    ],
+    "limitation": "Two individual completion messages were not recognized; successful native post_upgrade and migrate --check establish no pending migrations. No final ledger count was separately queried."
+  },
+  "boundaries": {
+    "production_runtime_accepted": false,
+    "administrator_bootstrap": false,
+    "application_started": false,
+    "application_backup_accepted": false,
+    "volumes_deleted": false,
+    "cold_copies_retained": true
+  },
+  "git_archival": "pending",
+  "evidence_sha256": {
+    "bundle.sha256": "9f28994fa4c17e5daf6dbd93f3ab8a5dd42288019cb41fc9a258fef40b4f62bc",
+    "continuation-stages.json": "41348779a7bef9b8d98e25c838179c17928253632e56185dff8e438e432fde1a",
+    "live-progress.json": "be096aefae3780bdff1d7aab36812e4fb7a67c24f46419b1413b4bb3dde0f84a",
+    "result.json": "2143b64bbd5feea584f72b185b01863c47495c8db8b040ce0331ea189b7267bd",
+    "preflight.json": "d1e3f57dfc49097d11bfdebe42992b104a147dd0a142f4a4004fa98aad1f9886",
+    "native-progress.json": "96c1516f0610b2040b5a4b720d36c18b89ad081541983f318f5bfb0f3e0cdce4",
+    "live-progress.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bundle-files.sha256": "ed3521a18fcaef2f6b41c46e420775a2634f769e5025ae5bc895b14c3b5fbb70",
+    "ansible-progress.jsonl": "6da1757d404ce05efcd636f23026358f576e0518c19ebf5c1461d4d992a9f174",
+    "storage.json": "5776654d01e31af13810eb20e7c941beb4a3c7da30557276c03b26cf974d7e3b",
+    "postflight.json": "3d5a29eb408aece3f680d6d7c43435aa1b6eb2c5160b96e6d1d93a7fa635e66e"
+  }
+}
