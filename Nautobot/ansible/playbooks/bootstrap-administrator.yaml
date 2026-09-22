@@ -1,0 +1,370 @@
+---
+- hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+  module_defaults:
+    ansible.builtin.command:
+      chdir: /
+  vars:
+    runtime_operation: '{{ lookup(''ansible.builtin.file'', ''../../manifests/operation.yaml'') | from_yaml
+      }}'
+    runtime_home: /var/lib/nautobot
+    runtime_user_command:
+      - /usr/bin/sudo
+      - -n
+      - /usr/sbin/runuser
+      - --user
+      - nautobot
+      - --
+      - /usr/bin/env
+      - XDG_RUNTIME_DIR=/run/user/999
+      - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+  name: Bootstrap initial administrator with no application listener
+  pre_tasks:
+    - name: Require exact bootstrap-only execution gate
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - runtime_operation.operation.stage == 'administrator_bootstrap'
+          - runtime_operation.operation.authorization_ready | bool
+          - runtime_bundle_verified | default(false) | bool
+          - not runtime_operation.runtime.first_install_only | bool
+          - runtime_operation.runtime.services == ['postgresql', 'redis']
+  tasks:
+    - name: Create protected bootstrap node evidence
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/mktemp
+          - -d
+          - /tmp/nautobot-runtime.XXXXXXXX
+      changed_when: false
+      register: runtime_node
+    - name: Require protected bootstrap evidence path
+      ansible.builtin.assert:
+        that: runtime_node.stdout is match('^/tmp/nautobot-runtime[.][A-Za-z0-9_]+$')
+    - name: Stage bootstrap node validators
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../scripts/{{ item }}'
+        dest: '{{ runtime_node.stdout }}/{{ item }}'
+        mode: '0600'
+      become: true
+      loop:
+        - bootstrap-node.py
+        - continuation-node.py
+        - inspect-retained-database.py
+        - runtime-initialization-node.py
+        - migration-continuation.py
+    - name: Stage storage review helper
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../../../restic/scripts/canary-backup.py'
+        dest: '{{ runtime_node.stdout }}/canary-backup.py'
+        mode: '0600'
+      become: true
+    - name: Stage bootstrap operation
+      ansible.builtin.copy:
+        content: '{{ runtime_operation | to_json }}'
+        dest: '{{ runtime_node.stdout }}/operation.json'
+        mode: '0600'
+      become: true
+    - name: Verify accepted initialization and stopped baseline
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/bootstrap-node.py'
+          - preflight
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: bootstrap_preflight
+      failed_when: false
+    - name: Preserve bootstrap preflight
+      ansible.builtin.copy:
+        content: '{{ bootstrap_preflight | to_json }}'
+        dest: '{{ runtime_evidence_root }}/preflight.json'
+        mode: '0600'
+      delegate_to: localhost
+      no_log: true
+    - name: Require bootstrap preflight
+      ansible.builtin.assert:
+        that: bootstrap_preflight.rc == 0
+    - name: Capture bootstrap kernel cursor
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ runtime_node.stdout }}/bootstrap-node.py'
+          - journal-baseline
+          - '{{ runtime_node.stdout }}'
+      changed_when: false
+      register: bootstrap_cursor
+    - name: Retain bootstrap cursor
+      ansible.builtin.copy:
+        content: '{{ bootstrap_cursor.stdout }}'
+        dest: '{{ runtime_node.stdout }}/journal-baseline.json'
+        mode: '0600'
+      become: true
+    - name: Bootstrap under independent stop and secret cleanup guard
+      block:
+        - name: Arm independent bootstrap cleanup guard
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemd-run
+              - --unit={{ runtime_operation.guard_unit }}
+              - --on-active=15m
+              - --timer-property=AccuracySec=1s
+              - --property=TimeoutStartSec=120s
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - cleanup
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+        - name: Verify bootstrap guard active
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - is-active
+              - '{{ runtime_operation.guard_unit }}.timer'
+          changed_when: false
+        - name: Create transient bootstrap directory in runtime tmpfs
+          ansible.builtin.file:
+            path: /run/user/999/nautobot-bootstrap
+            state: directory
+            owner: nautobot
+            group: nautobot
+            mode: '0700'
+          become: true
+        - name: Stage nonsecret bootstrap helpers
+          ansible.builtin.copy:
+            src: '{{ playbook_dir }}/../scripts/{{ item }}'
+            dest: /run/user/999/nautobot-bootstrap/{{ item }}
+            owner: nautobot
+            group: nautobot
+            mode: '0644'
+          loop:
+            - bootstrap-application.py
+            - initialize-application.py
+          become: true
+        - name: Resolve approved initial administrator credential in controller tmpfs
+          ansible.builtin.command:
+            argv:
+              - python3
+              - '{{ playbook_dir }}/../scripts/bootstrap-secret.py'
+              - '{{ runtime_secret_directory }}'
+              - '{{ runtime_bootstrap_identity_sha256 }}'
+          delegate_to: localhost
+          changed_when: false
+          no_log: true
+        - name: Copy transient administrator input
+          ansible.builtin.copy:
+            src: '{{ runtime_secret_directory }}/input.json'
+            dest: /run/user/999/nautobot-bootstrap/input.json
+            owner: nautobot
+            group: nautobot
+            mode: '0600'
+          become: true
+          no_log: true
+        - name: Map transient input to the pinned application UID
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/podman'', ''unshare'', ''chown'', ''999:999'',
+              ''/run/user/999/nautobot-bootstrap/input.json''] }}'
+          changed_when: true
+          no_log: true
+        - name: Start only private data services
+          ansible.builtin.command:
+            argv: '{{ runtime_user_command + [''/usr/bin/systemctl'', ''--user'', ''start'', ''--no-block'',
+              item] }}'
+          loop:
+            - nautobot-postgresql.service
+            - nautobot-redis.service
+          changed_when: false
+          async: 30
+          poll: 1
+          no_log: true
+        - name: Require new healthy private service invocations
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - ready
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_ready
+          until: bootstrap_ready.rc == 0
+          retries: 24
+          delay: 5
+          no_log: true
+        - name: Run bounded native administrator bootstrap
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - run
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_native
+          failed_when: false
+          no_log: true
+          async: 660
+          poll: 2
+        - name: Preserve native bootstrap receipt
+          ansible.builtin.copy:
+            content: '{{ bootstrap_native | to_json }}'
+            dest: '{{ runtime_evidence_root }}/native-command.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Require successful native creation and authentication
+          ansible.builtin.assert:
+            that:
+              - bootstrap_native.rc == 0
+              - (bootstrap_native.stdout | from_json).passed | bool
+      always:
+        - name: Independently remove bootstrap input and stop private services
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - cleanup
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_cleanup
+          failed_when: false
+          ignore_errors: true
+          no_log: true
+        - name: Remove controller credential input independently
+          ansible.builtin.file:
+            path: '{{ runtime_secret_directory }}/input.json'
+            state: absent
+          delegate_to: localhost
+          register: bootstrap_controller_cleanup
+          failed_when: false
+          ignore_errors: true
+          no_log: true
+        - name: Verify controller credential input absent
+          ansible.builtin.stat:
+            path: '{{ runtime_secret_directory }}/input.json'
+          delegate_to: localhost
+          register: bootstrap_controller_absent
+          failed_when: false
+          no_log: true
+        - name: Prove bootstrap shutdown configuration and cold-copy continuity
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - stopped
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_stopped
+          until: bootstrap_stopped.rc == 0
+          retries: 24
+          delay: 5
+          failed_when: false
+          ignore_errors: true
+          no_log: true
+        - name: Inspect bootstrap guard activation
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - show
+              - '{{ runtime_operation.guard_unit }}.service'
+              - --property=ExecMainStartTimestampMonotonic
+              - --value
+          register: bootstrap_guard_fired
+          changed_when: false
+          failed_when: false
+        - name: Disarm bootstrap guard only after shutdown proof
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - stop
+              - '{{ runtime_operation.guard_unit }}.timer'
+          when: bootstrap_stopped.rc | default(69) == 0
+          register: bootstrap_disarm
+          changed_when: false
+          failed_when: false
+        - name: Collect sanitized bootstrap receipt after failure
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - evidence
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_receipt
+          failed_when: false
+          no_log: true
+        - name: Preserve sanitized bootstrap receipt
+          ansible.builtin.copy:
+            content: '{{ bootstrap_receipt | to_json }}'
+            dest: '{{ runtime_evidence_root }}/native.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Review delayed bootstrap storage events
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ runtime_node.stdout }}/bootstrap-node.py'
+              - journal-review
+              - '{{ runtime_node.stdout }}'
+          changed_when: false
+          register: bootstrap_storage
+          failed_when: false
+          no_log: true
+        - name: Preserve bootstrap storage review
+          ansible.builtin.copy:
+            content: '{{ bootstrap_storage | to_json }}'
+            dest: '{{ runtime_evidence_root }}/storage.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Preserve bootstrap lifecycle
+          ansible.builtin.copy:
+            content: '{{ {''accepted'': false, ''cleanup'': bootstrap_cleanup, ''stopped'': bootstrap_stopped,
+              ''guard'': bootstrap_guard_fired, ''disarm'': bootstrap_disarm, ''controller_removed'':
+              not (bootstrap_controller_absent.stat.exists | default(true))} | to_json }}'
+            dest: '{{ runtime_evidence_root }}/bootstrap-stages.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Require native acceptance and every cleanup boundary
+          ansible.builtin.assert:
+            that:
+              - bootstrap_native.rc | default(69) == 0
+              - bootstrap_cleanup.rc | default(69) == 0
+              - bootstrap_stopped.rc | default(69) == 0
+              - bootstrap_guard_fired.rc == 0
+              - bootstrap_guard_fired.stdout | trim == '0'
+              - bootstrap_disarm.rc | default(69) == 0
+              - not (bootstrap_controller_absent.stat.exists | default(true))
+              - bootstrap_receipt.rc == 0
+              - (bootstrap_receipt.stdout | from_json).passed | bool
+              - bootstrap_storage.rc == 0
+              - (bootstrap_storage.stdout | from_json).passed | bool

@@ -58,6 +58,11 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'administrator_bootstrap':
+            validate(json.loads((ROOT / 'Nautobot/schemas/administrator-bootstrap.schema.json').read_text()), operation)
+            self.assertFalse(operation['runtime']['first_install_only'])
+            self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis'])
+            self.assertFalse(operation['acceptance']['application_accepted'])
         elif operation['operation'].get('stage') == 'retained_database_inspection':
             validate(json.loads((ROOT / 'Nautobot/schemas/database-inspection.schema.json').read_text()), operation)
             self.assertEqual(operation['runtime']['services'], ['postgresql'])

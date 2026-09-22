@@ -1,5 +1,161 @@
 ---
 schema_version: 1
 operation:
-  state: clean
-  authorization_ready: false
+  id: nautobot-administrator-bootstrap-v1
+  stage: administrator_bootstrap
+  state: definition
+  authorization_ready: true
+  target:
+    host: j2-svpi4mf
+    address: 10.1.2.170
+    ssh_user: ama
+    execution_user: nautobot
+  source_commit: 567724e0dfa1038c429cf5021273c525d438a184
+prerequisites:
+  - path: Nautobot/manifests/restic-initialization-result.json
+    sha256: 3cb3c1c599dcbdbc258431c61f68c98fde59e2faf228737b29d0db032c8ab9cd
+    tag: nautobot-restic-initialization-v1-accepted
+    commit: 08a7e622aa2e15650d8ba1beb0695b10e06cb134
+    outcome: repository_initialization_accepted
+  - path: Nautobot/manifests/canary-backup-result.json
+    sha256: 86796f9ff1dba4290e426b4a48c82cc6a9008e7b905bdfd9af2b8aab3bb140e8
+    tag: nautobot-canary-backup-v1-accepted
+    commit: 7521e023a19c874fd276f36ccbba71840fbf9a3a
+    outcome: canary_backup_integrity_accepted
+  - path: Nautobot/manifests/canary-restore-result.json
+    sha256: f6815b15d283d52424784612fc5d7fc16b7582992780baea1cc7bbf622453278
+    tag: nautobot-canary-restore-v1-accepted
+    commit: 01bb9660fb4f30dcd275fe6301e0a06a92dc6f75
+    outcome: isolated_canary_restore_accepted
+  - path: Nautobot/manifests/configuration-readiness-result.json
+    sha256: 9fc45b117f64678bf4ffb6f51488380ef7ef2103c2a3da3c4d19586ae71c2bf4
+    tag: nautobot-configuration-auth-v7-ready
+    commit: cd15ca72e440654012e34593e049b20e9e125d43
+    outcome: disposable_configuration_and_positive_connection_readiness_passed
+  - path: Nautobot/manifests/image-load-result.json
+    sha256: 8282cb7584d286df5c33cf05aaf1caa6ce6808b5c149fc7cf9ff78982bfa111c
+    tag: nautobot-image-load-v1-ready
+    commit: 0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b
+    outcome: image_store_readiness_passed
+  - path: Nautobot/manifests/credential-result.json
+    sha256: 51a304aa10be937af030fcc092c37ee0ea22be79aa6173267f319067f7818eee
+    tag: nautobot-credentials-v1-provisioned
+    commit: 451b82d38906b7b5ca6770010fe924a0a9ce3ca1
+    outcome: complete
+  - path: Nautobot/manifests/database-inspection-result.json
+    sha256: 01bc809c98596ca2432ac33912e7919d86c98eaf45edd55b4ee88e8ba98e3849
+    tag: nautobot-database-inspection-v1-accepted
+    commit: 16835ade6b92376d12b9834286fa57f0a81cbb17
+    outcome: cold_preservation_and_ledger_inspection_accepted
+  - path: Nautobot/manifests/runtime-initialization-result.json
+    sha256: d4d3e9f48ffc4c399f40b61d4205db936eb575a1a12f8f9b73951a406fafef68
+    tag: nautobot-runtime-initialization-v1-accepted
+    commit: 6a31396b0a54868911c294abc586f0beac06f09b
+    outcome: runtime_initialization_accepted
+input_sha256:
+  Nautobot/manifests/accepted-live-state.yaml: c82c69ab1da6484c2e6c9acc901ad8ac37d553b3e984381deb8cbc6411dc7905
+  Nautobot/manifests/desired-state.yaml: edcb4e908a6df9b2934e27bb38707eb1f63b4243ede156bbe0d0fa579761b720
+  Nautobot/manifests/runtime-inputs.json: 70ce43e5ad05345f800593b83dbccd3ce1da29b45e25eef71bb532fbaa97bcdb
+  Nautobot/manifests/qualified-image.json: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+  Nautobot/manifests/provisioned-credentials.json: 59fa64f23cce63214d112c4416516cb1d0f8e771b29ca90fba99258abbbb3fc7
+  Nautobot/manifests/configuration-readiness.json: f7a7d04d04a335b582c43ccb1fc6002723bec8634810646c2ee813716f051dfe
+  Nautobot/manifests/runtime-image-store.json: e7f406775307a4ac260229a6122201b384cb60bf25cd21736d8a210f9066814f
+  Nautobot/manifests/migration-continuation-inputs.json: 7d10cc8cf18788a05e48ad2994ff7b442df1a69c9a8acd674862af21676999ee
+runtime:
+  first_install_only: false
+  rendered_directory: /home/aaron/code/.local-evidence/nautobot-administrator-bootstrap-bundle-20260922/rendered
+  artifact_sha256:
+    nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
+    nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
+    nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717
+    nautobot-postgresql.container: 463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905
+    nautobot-redis.container: 906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9
+    nautobot-migration.container: f1e96d625d4b11d299131e850bf1c39c84df831b3ce6576e95cf44421a98656c
+  configuration_sha256: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+  images:
+    custom:
+      reference: localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf
+      id: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+    postgresql:
+      reference: docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296
+      id: 46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf
+    redis:
+      reference: docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323
+      id: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
+  services:
+    - postgresql
+    - redis
+  overall_timeout_seconds: 1200
+  persistent_volumes:
+    - postgresql_data
+    - redis_data
+  secret_source: existing_protected_environment_files_and_redis_config_secret
+  recovery_host: j2-svpi4mf.local.theama.co
+  expected_boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
+observation:
+  delayed_seconds: 75
+  storage_event_pattern: I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset|timed
+    out|timeout
+failure:
+  stop_data_services: true
+  remove_transient_input: true
+  retain_database: true
+  automatic_restore: false
+  automatic_account_delete: false
+  automatic_retry: false
+acceptance:
+  require:
+    - native_configuration
+    - no_pending_migrations
+    - account_previously_absent
+    - native_creation
+    - exact_account_flags
+    - positive_authentication
+    - transient_input_removed
+    - data_services_stopped
+    - guard_not_fired
+    - configuration_unchanged
+    - quiet_delayed_storage
+  application_accepted: false
+  browser_login_accepted: false
+authorization:
+  mutation_authorized: true
+  approval_record: not_yet_granted_exact_bundle_required
+  blockers: []
+  command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+  excluded:
+    - web
+    - worker
+    - scheduler
+    - migrations
+    - published_ports
+    - Caddy
+    - reboot
+    - Restic
+    - secret_rotation
+    - volume_deletion
+    - automatic_copy_restore
+guard_unit: nautobot-administrator-bootstrap-guard
+continuation:
+  cold_copy: /var/lib/nautobot/recovery/nautobot-retained-database-inspection-v1
+  cold_volumes:
+    nautobot-postgresql_data:
+      verified: true
+      entries: 2894
+      tree_sha256: 82ce0feaae53128150cd6b2b6589fa21615fe79eb86051fed8075541a489b0c1
+    nautobot-redis_data:
+      verified: true
+      entries: 6
+      tree_sha256: 93cad498d3f207fd4ca57ecf0f6cf51f7b80eb2f9f564f2c39c081dd2ece340f
+bootstrap:
+  username: admin
+  identity_reference: /home/aaron/code/.local-evidence/nautobot-runtime-preparation-20260921/bootstrap-inputs.json
+  doppler:
+    project: homelab-dev
+    config: prd_nautobot
+    key: NAUTOBOT_INITIAL_ADMIN_PASSWORD
+  native_timeout_seconds: 120
+  guard_seconds: 900
+  probe_sha256:
+    bootstrap-application.py: 892c9e6b1a0e9e719869073e843bdb0d886f287ad9d336b4d1948d642bf43f4f
+    initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b

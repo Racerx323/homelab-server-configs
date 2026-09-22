@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
+import stat
 sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location('bounded', Path(__file__).with_name('run-restic-repository-preflight.py'))
 bounded = importlib.util.module_from_spec(spec)
@@ -23,14 +25,14 @@ def validate():
     except subprocess.CalledProcessError as exc:
         raise bounded.PreflightBlocked('runtime_not_ready') from exc
     operation = bounded.yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-    if (operation['operation'].get('stage') not in ('runtime_initialization', 'runtime_continuation')
+    if (operation['operation'].get('stage') not in ('runtime_initialization', 'runtime_continuation', 'administrator_bootstrap')
             or not operation['operation']['authorization_ready']
             or not operation['authorization']['mutation_authorized'] or operation['authorization']['blockers']):
         raise bounded.PreflightBlocked('runtime_not_ready')
     return operation
 
 
-def verify_prerequisites(operation):
+def verify_prerequisites(operation, require_clean=True):
     def git(*args):
         try:return subprocess.check_output(['git','-C',str(ROOT),*args],stderr=subprocess.DEVNULL,timeout=30)
         except (OSError,subprocess.SubprocessError) as exc:raise bounded.PreflightBlocked('archive_unavailable') from exc
@@ -45,7 +47,7 @@ def verify_prerequisites(operation):
     for name,digest in operation['input_sha256'].items():
         if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest:
             raise bounded.PreflightBlocked('accepted_input_drift')
-    if git('status','--porcelain'):raise bounded.PreflightBlocked('clean_source_required')
+    if require_clean and git('status','--porcelain'):raise bounded.PreflightBlocked('clean_source_required')
 
 
 def bundle_rows(operation):
@@ -55,6 +57,7 @@ def bundle_rows(operation):
         'Nautobot/schemas/host-convergence.schema.json', 'Nautobot/schemas/repository-initialization.schema.json',
         'Nautobot/schemas/accepted-host-baseline.schema.json',
         'Nautobot/schemas/runtime-continuation.schema.json',
+        'Nautobot/schemas/administrator-bootstrap.schema.json',
         'Nautobot/ansible/playbooks/continue-runtime-tasks.yaml',
         'Nautobot/ansible/scripts/continuation-node.py',
         'Nautobot/ansible/scripts/inspect-retained-database.py',
@@ -73,12 +76,34 @@ def bundle_rows(operation):
         'Nautobot/ansible/templates/runtime/volume.j2', 'Nautobot/docs/OPERATIONS.md',
         'inventory/prod/hosts.yaml', 'inventory/prod/groups/inventory_automation.yaml',
         'inventory/prod/hosts/j2-svpi4mf.yaml', 'tests/repository/run-with-ansible-local-temp.sh']
+    if operation['operation']['stage'] == 'administrator_bootstrap':
+        sources += ['Nautobot/ansible/playbooks/bootstrap-administrator.yaml',
+                    'Nautobot/ansible/scripts/bootstrap-node.py',
+                    'Nautobot/ansible/scripts/bootstrap-application.py',
+                    'Nautobot/ansible/scripts/bootstrap-secret.py',
+                    'Nautobot/ansible/scripts/provision-credentials.py',
+                    'Nautobot/tests/test_administrator_bootstrap.py',
+                    'Nautobot/docs/BOOTSTRAP_AND_STARTUP.md']
     sources += [p['path'] for p in operation['prerequisites']] + list(operation['input_sha256'])
     rows=[]
     for name in dict.fromkeys(sources):
         path=ROOT/name
         if path.is_symlink() or not path.is_file():raise bounded.PreflightBlocked('unsafe_source')
         rows.append((hashlib.sha256(path.read_bytes()).hexdigest(), name))
+    if operation['operation']['stage'] == 'administrator_bootstrap':
+        identity = Path(operation['bootstrap']['identity_reference'])
+        info = identity.lstat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+                or stat.S_IMODE(info.st_mode) != 0o600 or info.st_size > 4096):
+            raise bounded.PreflightBlocked('bootstrap_identity_metadata')
+        raw = identity.read_bytes()
+        data = json.loads(raw)
+        if (set(data) != {'username', 'email'} or data['username'] != 'admin'
+                or not isinstance(data['email'], str) or '@' not in data['email']):
+            raise bounded.PreflightBlocked('bootstrap_identity_shape')
+        # This private identity contains no password. Its hash is only in the
+        # private bundle manifest, never the public operation definition.
+        rows.append((hashlib.sha256(raw).hexdigest(), 'private/bootstrap-identity.json'))
     rendered=Path(operation['runtime']['rendered_directory'])
     if not rendered.is_absolute() or rendered.is_symlink():raise bounded.PreflightBlocked('unsafe_rendered_directory')
     for name,digest in sorted(operation['runtime']['artifact_sha256'].items()):
@@ -106,12 +131,19 @@ def execute(authorized_hash):
     environment.update(ANSIBLE_CALLBACK_PLUGINS=str(ROOT/'Nautobot/ansible/callback_plugins'),
                        ANSIBLE_CALLBACKS_ENABLED='runtime_progress',
                        NAUTOBOT_PROGRESS_FILE=str(root/'ansible-progress.jsonl'))
+    bootstrap = operation['operation']['stage'] == 'administrator_bootstrap'
+    secret_directory = tempfile.mkdtemp(prefix='nautobot-bootstrap.', dir='/dev/shm') if bootstrap else None
+    if secret_directory:
+        bounded.write_exclusive(fd, 'bootstrap-input-location.json',
+                                json.dumps({'directory': secret_directory, 'contains_secret_values': False}).encode())
     argv=('/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
           'ansible-playbook','--inventory',str(ROOT/'inventory/prod/hosts.yaml'),
           '--limit','j2-svpi4mf','--user','ama','--extra-vars',
           json.dumps({'ansible_host':'10.1.2.170','runtime_bundle_verified':True,
-                      'runtime_rendered_directory':str(rendered),'runtime_evidence_root':str(root)}),
-          str(ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml'))
+                      'runtime_rendered_directory':str(rendered),'runtime_evidence_root':str(root),
+                      'runtime_secret_directory':secret_directory,
+                      'runtime_bootstrap_identity_sha256':dict((name, digest) for digest, name in rows).get('private/bootstrap-identity.json')}),
+          str(ROOT/'Nautobot/ansible/playbooks'/('bootstrap-administrator.yaml' if bootstrap else 'deploy-runtime.yaml')))
     result={'accepted':False,'mutation_status':'unknown_until_review','bundle_sha256':digest}
     try:
         bounded.COMMAND_TIMEOUT_SECONDS=operation['runtime']['overall_timeout_seconds']
@@ -122,6 +154,13 @@ def execute(authorized_hash):
     except BaseException:
         result['error_class']='execution_interrupted_or_failed'
     finally:
+        if secret_directory:
+            try:
+                (Path(secret_directory)/'input.json').unlink(missing_ok=True)
+                Path(secret_directory).rmdir()
+                result['controller_secret_cleanup'] = True
+            except OSError:
+                result['controller_secret_cleanup'] = False
         try:
             events=[json.loads(line) for line in (root/'ansible-progress.jsonl').read_text().splitlines()]
             result['task_diagnostics_complete']=bool(events) and events[-1].get('event')=='playbook_complete'
@@ -132,7 +171,7 @@ def execute(authorized_hash):
         os.close(fd)
     print('Review required; evidence_root='+str(root))
     return 0 if (result.get('ansible_exit_status')==0 and not result.get('output_truncated')
-                 and result.get('task_diagnostics_complete')) else 69
+                 and result.get('task_diagnostics_complete') and result.get('controller_secret_cleanup', True)) else 69
 
 
 def main():
@@ -140,10 +179,10 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('mode',choices=['show-command','show-hash','execute']);p.add_argument('authorized_hash',nargs='?');a=p.parse_args()
     if a.mode=='show-command':
         print('python3 Nautobot/ansible/scripts/run-runtime.py execute AUTHORIZED_SHA256')
-        print('Initialization only; exact-bundle live authorization required.')
+        print('One reviewed runtime stage only; exact-bundle live authorization required.')
         return 0
     if a.mode=='show-hash':
-        operation=validate();verify_prerequisites(operation)
+        operation=validate();verify_prerequisites(operation, require_clean=False)
         bounded.BUNDLE_DOMAIN='nautobot-runtime-bundle-v1'
         print(bounded.bundle_hash(bundle_rows(operation)));return 0
     if not a.authorized_hash:p.error('exact authorized SHA256 required')

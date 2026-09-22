@@ -67,10 +67,11 @@ Native account authentication is not yet proof of browser login or logout.
 
 ### Bounds, failure and acceptance
 
-Propose a 120-second ceiling for each native check/creation command, a 15-minute
-independent guard and a 20-minute controller envelope including cleanup/storage
-review. These are proposed execution limits; confirm the actual task budget and
-failure tests before freezing. Reuse the existing thin bundle launcher and
+The implementation bounds each native check/creation command to 120 seconds,
+the disposable container to 660 seconds, the independent guard to 15 minutes and
+the controller to 20 minutes including cleanup/storage review. Five sequential
+native commands fit within the 630-second probe wait. Startup and shutdown each
+have a bounded readiness wait; guard activation fails acceptance. Reuse the existing thin bundle launcher and
 Ansible lifecycle instead of another attempt-specific transaction framework.
 
 Accept only after successful native creation, exact account/flags verification,
@@ -81,13 +82,46 @@ report whether creation was attempted and what is proven. Do not automatically
 delete an account, restore the old pre-migration cold copy or retry creation.
 Cleanup failure is an acceptance failure even if the administrator exists.
 
-Before execution approval, implement a strict bootstrap contract and tests for
+The strict bootstrap contract and offline suite cover
 existing users, creation failure, success followed by verification failure,
 secret-safe output, independent cleanup failures, lost controller/guard expiry,
-stale invocations and first-install exclusion. Exercise the actual native command
-and secret handoff with a disposable fixture when available; distinguish local
-fixtures from pinned ARM64 execution. Bind all non-secret inputs and the published
-initialization prerequisite into the exact bundle.
+stale invocations and first-install exclusion. A disposable SQLite fixture exercised native creation
+and authentication with the pinned Django source; it does not establish ARM64
+Nautobot execution. All non-secret inputs and the published initialization
+prerequisite are bound into the exact bundle.
+
+### Execution entrypoint and evidence
+
+`ansible/scripts/run-runtime.py` selects `bootstrap-administrator.yaml` only for
+`administrator_bootstrap`; the initialization playbook remains separate. The
+bootstrap schema fixes the target, accepted prerequisites, unit/image identities,
+credential reference, time bounds and exclusions. The approved username/email
+file is bound by hash in the private bundle and rechecked before credential
+resolution; its contents and hash remain outside Git. Preparation may calculate a
+bundle from reviewed working files; execution additionally requires a clean Git
+source tree and the exact approved hash before any credential or host access.
+
+```bash
+python3 Nautobot/ansible/scripts/run-runtime.py show-hash
+python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+```
+
+Execution resolves only the initial-admin password. Controller input uses a
+protected `/dev/shm/nautobot-bootstrap.*` directory; target input uses
+`/run/user/999/nautobot-bootstrap`. The password enters only the native creation
+child's environment, never Podman's configured environment or command arguments.
+The controller launcher removes its input even when Ansible fails; the target's
+independent guard shares the normal cleanup path. If the controller is killed
+without running its finalizer, review/remove its recorded tmpfs directory before
+retrying. Never publish or hash that input.
+
+Receipts name configuration, pending migrations, account absence, creation and
+account verification independently. Child output is discarded. Private evidence
+includes preflight, native receipt, cleanup/service/guard statuses and the delayed
+storage review. A completed command does not establish acceptance until shutdown,
+credential removal, identity continuity and storage checks pass. The existing
+pre-migration cold copies remain historical recovery inputs, not an automatic
+rollback for the newly initialized database or administrator account.
 
 ## Following operation: application startup
 

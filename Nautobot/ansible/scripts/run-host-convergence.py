@@ -37,6 +37,7 @@ BUNDLE_FILES = (
     'Nautobot/schemas/runtime-initialization.schema.json',
     'Nautobot/schemas/database-inspection.schema.json',
     'Nautobot/schemas/runtime-continuation.schema.json',
+    'Nautobot/schemas/administrator-bootstrap.schema.json',
     'Nautobot/ansible/ansible.cfg',
 )
 
