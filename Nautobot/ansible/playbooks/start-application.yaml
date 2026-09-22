@@ -185,7 +185,7 @@
       always:
         - name: Preserve controller lifecycle evidence without secret command output
           ansible.builtin.copy:
-            content: '{{ {"accepted": startup_accepted | default(false), "installed": startup_installed | default({}), "stopped": startup_stopped | default({}), "guard": startup_guard_activation | default({}), "journal_cursor": startup_journal_cursor.stdout | default("")} | to_json }}'
+            content: '{{ {"accepted": startup_accepted | default(false), "installed": startup_installed | default({}), "stopped": startup_stopped | default({}), "guard": startup_guard_activation | default({}), "readiness": startup_service_state.stdout | default(""), "http": startup_http.stdout | default(""), "journal_cursor": startup_journal_cursor.stdout | default("")} | to_json }}'
             dest: '{{ startup_controller_evidence }}/startup-lifecycle.json'
             mode: '0600'
           delegate_to: localhost

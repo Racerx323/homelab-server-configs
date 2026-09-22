@@ -403,6 +403,18 @@ class Startup(unittest.TestCase):
         self.assertTrue(check(startup_current_baseline={'stdout':json.dumps({'services':before})},startup_before=before))
         self.assertFalse(check(startup_current_baseline={'stdout':json.dumps({'services':{'migration':{**state,'InvocationID':'different'}}})},startup_before=before))
 
+    def test_reviewed_cleanup_markers_require_exact_processless_failure_shape(self):
+        state = {'ActiveState':'failed','SubState':'failed','Result':'exit-code',
+                 'ExecMainStatus':'137','InvocationID':'retained','MainPID':'0','ControlPID':'0'}
+        for role in ('web','worker','scheduler'):
+            self.assertTrue(node.baseline_stopped(role,state))
+            self.assertFalse(node.healthy(role,state))
+            for key,value in [('MainPID','1'),('ControlPID','1'),('ExecMainStatus','1'),
+                              ('InvocationID',''),('Result','timeout')]:
+                self.assertFalse(node.baseline_stopped(role,{**state,key:value}))
+        for role in ('migration','postgresql','redis'):
+            self.assertFalse(node.baseline_stopped(role,state))
+
     def test_cursor_parser_rejects_ambiguous_or_missing_cursor(self):
         assemble=load('startup_assembly','assemble-startup.py')
         self.assertEqual(assemble.parse_cursor('-- No entries --\n-- cursor: s=abc;i=1\n'),'s=abc;i=1')
@@ -463,11 +475,86 @@ class Startup(unittest.TestCase):
             tasks[0]['ansible.builtin.command']['argv'] = ['/bin/true']
             tasks[1]['ansible.builtin.command']['argv'] = ['/usr/bin/python3',str(stub)]
             (root/'tasks.yaml').write_text(yaml.safe_dump(tasks))
-            play = [{'hosts':'localhost','gather_facts':False,'tasks':[{'ansible.builtin.include_tasks':'tasks.yaml','loop':['migration','web'],'loop_control':{'loop_var':'startup_role'}}]}]
+            play = [{'hosts':'localhost','gather_facts':False,'vars':{'startup_controller_evidence':str(root)},'tasks':[{'ansible.builtin.include_tasks':'tasks.yaml','loop':['migration','web'],'loop_control':{'loop_var':'startup_role'}}]}]
             (root/'play.yaml').write_text(yaml.safe_dump(play))
             result = subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(root/'play.yaml')],capture_output=True,timeout=30)
             self.assertEqual(result.returncode,2)
             self.assertEqual(log.read_text(),'check\n')
+
+    def test_exhausted_readiness_preserves_evidence_and_blocks_next_role(self):
+        tasks = yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/start-service-tasks.yaml').read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); log = root/'calls'
+            stub = root/'state.py'
+            stub.write_text('import json,sys\nfrom pathlib import Path\np=Path('+repr(str(log))+')\np.write_text(p.read_text()+"check\\n" if p.exists() else "check\\n")\nprint(json.dumps({"terminal":False}))\nsys.exit(69)\n')
+            tasks[0]['ansible.builtin.command']['argv'] = ['/bin/true']
+            tasks[1]['ansible.builtin.command']['argv'] = ['/usr/bin/python3',str(stub)]
+            tasks[1]['retries'] = 0
+            (root/'tasks.yaml').write_text(yaml.safe_dump(tasks))
+            play = [{'hosts':'localhost','gather_facts':False,'vars':{'startup_controller_evidence':str(root)},'tasks':[{'ansible.builtin.include_tasks':'tasks.yaml','loop':['migration','web'],'loop_control':{'loop_var':'startup_role'}}]}]
+            (root/'play.yaml').write_text(yaml.safe_dump(play))
+            result = subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(root/'play.yaml')],capture_output=True,timeout=30)
+            self.assertEqual(result.returncode,2)
+            self.assertEqual(log.read_text(),'check\n')
+            self.assertEqual(json.loads((root/'readiness-migration.json').read_text()),{'terminal':False})
+
+    def test_native_phase_progress_contains_no_command_output(self):
+        phases = []
+        result = app.prepare('web',runner=lambda *_:{'exit_status':0,'output_limited':False},
+                             inspect=False,report=phases.append)
+        self.assertTrue(result['passed'])
+        self.assertEqual([p['state'] for p in phases],['started','completed']*3)
+        self.assertEqual([p['phase'] for p in phases[::2]],
+                         ['configuration','pending_migrations','static_collection'])
+        self.assertTrue(all(set(p)=={'role','phase','state','elapsed_seconds'} for p in phases))
+
+    def test_current_invocation_native_receipt_is_required(self):
+        calls = []
+        def query(argv):
+            calls.append(argv)
+            return ''
+        value = node.native_status('web', 'a'*32, query)
+        self.assertFalse(value['passed']); self.assertFalse(value['terminal'])
+        self.assertIn('_SYSTEMD_INVOCATION_ID='+'a'*32, calls[0])
+        self.assertIn('_SYSTEMD_USER_UNIT=nautobot-web.service', calls[0])
+        steps = {key: {'exit_status':0,'output_limited':False} for key in
+                 ('configuration','pending_migrations','static_collection')}
+        receipt = {'role':'web','passed':True,'steps':steps}
+        row = json.dumps({'MESSAGE':'NAUTOBOT_STARTUP_RESULT='+json.dumps(receipt)})
+        self.assertTrue(node.native_status('web','a'*32,lambda _:row)['passed'])
+        self.assertTrue(node.native_status('web','a'*32,lambda _:row+'\n'+row)['terminal'])
+        receipt['steps']['configuration']['exit_status'] = 1
+        row = json.dumps({'MESSAGE':'NAUTOBOT_STARTUP_RESULT='+json.dumps(receipt)})
+        self.assertTrue(node.native_status('web','a'*32,lambda _:row)['terminal'])
+
+    def test_readiness_waits_for_native_then_http_and_rejects_restart(self):
+        state = {'ActiveState':'active','SubState':'running','Result':'success',
+                 'ExecMainStatus':'0','InvocationID':'a'*32}
+        with patch.object(node,'http_checks') as unused:
+            result = node.readiness('web',lambda _:state,
+                lambda *_:{'passed':False,'terminal':False},unused)
+            self.assertFalse(result['passed']); unused.assert_not_called()
+        for good in (False,True):
+            result = node.readiness('web',lambda _:state,
+                lambda *_:{'passed':True,'terminal':False},lambda:{'passed':good})
+            self.assertEqual(result['passed'],good)
+        states = iter([state,{**state,'InvocationID':'b'*32}])
+        result = node.readiness('worker',lambda _:next(states),
+            lambda *_:{'passed':True,'terminal':False})
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['reason'],'service_changed_during_probe')
+
+    def test_http_failures_are_classified_without_response_content(self):
+        for error, expected in [
+            (node.urllib.error.URLError(ConnectionRefusedError('private text')), 'connection_refused'),
+            (TimeoutError('private text'), 'timeout'),
+            (node.urllib.error.HTTPError('private-url',503,'private text',{},None), 'http_status')]:
+            opener = types.SimpleNamespace(open=lambda *a, **k: None)
+            with patch.object(opener,'open',side_effect=error):
+                result = node.http_checks(opener)
+            self.assertFalse(result['passed'])
+            self.assertEqual(result['details']['health']['error'],expected)
+            self.assertNotIn('private',json.dumps(result))
 
     def test_diagnostic_runs_only_native_check_and_redacts_inside_container(self):
         diagnostic = load('diagnostic', 'diagnose-startup-configuration.py')

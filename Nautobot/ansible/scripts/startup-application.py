@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import time
 
 spec = importlib.util.spec_from_file_location('native', Path(__file__).with_name('startup-command.py'))
 native = importlib.util.module_from_spec(spec)
@@ -18,7 +19,7 @@ COMMANDS = {
 }
 
 
-def prepare(role, runner=native.command, inspect=True):
+def prepare(role, runner=native.command, inspect=True, report=None):
     if role not in LIMITS:
         raise ValueError('unknown_role')
     if inspect:
@@ -39,7 +40,10 @@ def prepare(role, runner=native.command, inspect=True):
         steps.append(('static_collection', ['collectstatic', '--noinput'], 120))
     receipt = {'role': role, 'passed': False, 'steps': {}}
     for name, args, timeout in steps:
+        started = time.monotonic()
+        if report: report({'role':role,'phase':name,'state':'started','elapsed_seconds':0})
         result = runner(['nautobot-server'] + args, timeout)
+        if report: report({'role':role,'phase':name,'state':'completed','elapsed_seconds':round(time.monotonic()-started,3)})
         receipt['steps'][name] = result
         if result.get('exit_status') != 0 or result.get('error') or result.get('output_limited'):
             receipt['failed_phase'] = name
@@ -51,7 +55,7 @@ def prepare(role, runner=native.command, inspect=True):
 def main():
     role = sys.argv[1] if len(sys.argv) == 2 else ''
     try:
-        receipt = prepare(role)
+        receipt = prepare(role, report=lambda phase: print('NAUTOBOT_STARTUP_PHASE='+json.dumps(phase), flush=True))
     except Exception:
         print(json.dumps({'passed': False, 'error': 'startup_boundary'}), flush=True)
         return 69

@@ -2,27 +2,23 @@
 
 ## Current next action
 
-Application startup failed on September 22 during native configuration validation,
-before migration or application startup. The separately approved diagnostic now
-identifies the error: Prometheus attempts to create a gauge file under
-`/prom_cache` on the read-only container filesystem. The pinned image inherits
-`prometheus_multiproc_dir=/prom_cache`; that directory lacks a writable mount.
-See [startup and diagnostic results](../manifests/application-startup-result.json).
+The second application-startup attempt remains unaccepted. Migration passed
+native configuration, post_upgrade and pending-migration checks, validating the
+metrics-cache correction on the target. Web/worker/scheduler became active, but
+all 13 HTTP readiness probes were exhausted before full acceptance. Their exit
+137 statuses followed cleanup and are not evidence of the original cause.
+All service processes and containers are absent; the stop timer is inactive.
+Failed service markers and data are retained; no automatic restore occurred.
+The result and all 48 consumed inputs are preserved in published tag
+`nautobot-application-startup-v2-failed` at `a9b6562`.
 
-Diagnostic cleanup passed and was independently verified: all service processes
-and containers are absent, both stop timers are inactive, and the migration failed
-marker is retained. The original result's armed-guard fields describe the earlier
-failed startup, not this later state. Broader cursor-bounded kernel review found
-no matched storage/OOM events; no fresh diagnostic-only cursor was collected.
-
-Readiness, failed-state cleanup and cursor corrections are locally validated.
-The bounded metrics-directory correction is now implemented and locally tested,
-including actual Podman permissions, capacity and clean recreation. Retry artifacts
-are prepared for review. Terminal archival is complete; clean published source/CI
-and a baseline/recovery review within its validity window remain before execution. The failed operation is archived in published tag
-`nautobot-application-startup-v1-failed` at `a39d139`. The active definition is
-`nautobot-application-startup-v2`; execution still requires a fresh, reviewed
-bundle hash and approval. Startup is not accepted.
+The corrected successor is definition-only. Local correction now gates
+progression on current-invocation native receipts
+and web HTTP readiness, retaining phase timings and categorized HTTP failures.
+The original HTTP exception was not retained and remains unknown. The fresh baseline and recovery-copy review passed. Next: publish and validate
+preparation, then obtain exact-bundle approval for the retry. Startup and workload acceptance remain incomplete.
+The initial failed startup is preserved in published tag
+`nautobot-application-startup-v1-failed` at `a39d139`.
 The following preparation description is historical to this consumed attempt.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native

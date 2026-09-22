@@ -166,8 +166,10 @@ def execute(specification, authorized_hash):
     try:
         rc, out, err, truncated = bounded.drain_process(argv, environment)
         result.update(ansible_exit_status=rc, output_truncated=truncated)
-        receipt = json.loads((evidence/'acceptance.json').read_text())
+        receipt = json.loads((evidence/'acceptance.json').read_text()) if (evidence/'acceptance.json').exists() else {}
         lifecycle = json.loads((evidence/'startup-lifecycle.json').read_text())
+        if not receipt:
+            result['error'] = 'acceptance_not_reached_review_lifecycle_and_readiness'
         result['accepted'] = rc == 0 and not truncated and receipt.get('accepted') is True and lifecycle.get('accepted') is True
     except BaseException:
         result['error'] = 'execution_failed_review_remote_guard_and_evidence'

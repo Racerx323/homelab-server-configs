@@ -16,8 +16,11 @@ do not change the timestamp of old evidence.
 
 The reviewed migration configuration-failure marker may remain `failed/failed`
 with `Result=exit-code`, `ExecMainStatus=69`, a retained InvocationID and both
-MainPID/ControlPID zero. Every other role must be inactive/dead with both PIDs
-zero. The live preflight must exactly match the frozen service-state records
+MainPID/ControlPID zero. Reviewed web/worker/scheduler cleanup markers may
+remain failed/failed with Result=exit-code, ExecMainStatus=137, a retained
+InvocationID and both PIDs zero. Require evidence that these statuses followed
+cleanup, not an unexplained crash. PostgreSQL/Redis must be inactive/dead with
+both PIDs zero. The live preflight must exactly match the frozen service-state records
 before mutation. Do not run `reset-failed` merely to make the baseline pass.
 Starting migration creates a new invocation, which must subsequently pass normal
 healthy-readiness checks; baseline eligibility is not application acceptance.
@@ -142,3 +145,22 @@ The test resolves the local image ID without pulling, consumes the rendered moun
 and verifies UID 999 writes, a read-only root, the size cap, and clean recreation.
 It does not establish ARM64 Nautobot readiness; the separately approved target
 startup must pass native configuration and all existing acceptance checks.
+
+## Initialization and readiness evidence
+
+Systemd `active/running` alone does not establish application readiness. Start
+roles sequentially and require the native initialization receipt belonging to
+that role's current systemd invocation before advancing. The receipt must show
+all required commands completed successfully without truncated output. Web must
+also pass loopback health and static-file checks before starting the worker.
+A state or invocation change during the probe invalidates that sample.
+
+Retain phase start/completion timings and the final readiness JSON per role,
+including when the polling budget is exhausted. Exhaustion still stops progress
+and enters cleanup; retaining diagnostics does not waive readiness. Existing
+command deadlines, resource limits and outer cleanup guard remain in effect.
+HTTP diagnostics retain status and bounded categories (connection refused,
+timeout, transport error, redirect, body-size or content-type mismatch), never
+response bodies, redirect destinations or exception text. Lifecycle evidence
+retains the last readiness/HTTP response even when full acceptance was not reached.
+Only separately authorized execution can validate this behavior on the ARM64 host.

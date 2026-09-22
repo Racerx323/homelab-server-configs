@@ -369,4 +369,7 @@ under `terminal/application-startup/objects/`. Bundle:
 All service processes and containers were stopped; data and recovery copies
 were retained. Exit 137 followed cleanup, not a proven initial crash. Exact
 HTTP errors were not retained. Accepted application state is unchanged.
-Publication verification is pending; no successor is active.
+Published archive commit `a9b65628bc41bc8f2665be830ec25e963a21b77f`; annotated
+tag object `dc90a2cf1b714c74e1ea6d6787ca673744406d46` verified remotely.
+Consumed inputs were removed from the current branch only after verification.
+The corrected successor remains subject to separate execution approval.
