@@ -123,4 +123,6 @@ regexes = [
   '''c08a584765abe5f78d665edf3d1f16fcf065f4b41c9b10611431801f17ed903f''',
   '''c787b411b066eeb9647943cecf0ae2eb4b8cb61edc366630ac382c0b1d705f72''',
   '''f0d42e4d3b396cfb9743eb38f97e590025c6700d07291432958c1ffa7187bc54''',
+  # SHA-256 of archived nonsecret startup-network-client.py, verified against source.
+  '''5510e67b204636f43c243192d4bf1105632c8194849a3925d28440f97f57f876''',
 ]

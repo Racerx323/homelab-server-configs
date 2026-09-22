@@ -1,0 +1,19 @@
+---
+functions:
+  - inventory
+  - automation
+
+components:
+  - podman
+  - nautobot
+  - postgresql
+  - redis
+  - restic
+  - msmtp
+  - msmtp-mta
+  - munin-node
+  - webmin
+  - needrestart
+  - watchdog
+
+ansible_python_interpreter: /usr/bin/python3

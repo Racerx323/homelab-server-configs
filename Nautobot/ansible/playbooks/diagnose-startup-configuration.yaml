@@ -1,0 +1,97 @@
+---
+- name: Capture native configuration failure without retrying startup
+  hosts: j2-svpi4mf
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    diagnostic_user: [/usr/bin/sudo, '-n', /usr/sbin/runuser, --user, nautobot, --, /usr/bin/env, 'XDG_RUNTIME_DIR=/run/user/999', 'DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus']
+  pre_tasks:
+    - name: Require exact diagnostic bundle approval
+      ansible.builtin.assert:
+        that:
+          - diagnostic_bundle_verified | default(false) | bool
+          - ansible_play_hosts_all | length == 1
+          - inventory_hostname == 'j2-svpi4mf'
+    - name: Create private helper directory
+      ansible.builtin.command:
+        argv: [sudo, '-n', /usr/bin/mktemp, '-d', /tmp/nautobot-config-diagnostic.XXXXXXXX]
+        chdir: /
+      register: diagnostic_directory
+      changed_when: true
+    - name: Stage frozen helpers
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/{{ item }}'
+        dest: '{{ diagnostic_directory.stdout }}/{{ item }}'
+        owner: root
+        group: root
+        mode: '0600'
+      loop: [diagnose-startup-configuration.py, startup-node.py, runtime-initialization-node.py, canary-backup.py, startup-command.py, inputs.json]
+      become: true
+    - name: Verify stopped baseline and input identities
+      ansible.builtin.command:
+        argv: [sudo, '-n', /usr/bin/python3, '{{ diagnostic_directory.stdout }}/diagnose-startup-configuration.py', baseline]
+        chdir: /
+      changed_when: false
+  tasks:
+    - name: Run isolated configuration check under stop guard
+      block:
+        - name: Arm twenty-minute independent cleanup guard
+          ansible.builtin.command:
+            argv: [sudo, '-n', /usr/bin/systemd-run, '--unit={{ diagnostic_guard }}', '--on-active=1200s', '--timer-property=AccuracySec=1s', '--property=TimeoutStartSec=800s', /usr/bin/python3, '{{ diagnostic_directory.stdout }}/diagnose-startup-configuration.py', cleanup]
+            chdir: /
+          changed_when: true
+        - name: Verify diagnostic guard
+          ansible.builtin.command:
+            argv: [sudo, '-n', /usr/bin/systemctl, is-active, '{{ diagnostic_guard }}.timer']
+            chdir: /
+          changed_when: false
+        - name: Start only PostgreSQL and Redis
+          ansible.builtin.command:
+            argv: '{{ diagnostic_user + ["/usr/bin/systemctl", "--user", "start", "nautobot-" + item + ".service"] }}'
+            chdir: /
+          loop: [postgresql, redis]
+          changed_when: true
+        - name: Capture bounded redacted native check output
+          ansible.builtin.command:
+            argv: [sudo, '-n', /usr/bin/python3, '{{ diagnostic_directory.stdout }}/diagnose-startup-configuration.py', check]
+            chdir: /
+          register: diagnostic_result
+          failed_when: false
+          changed_when: true
+          no_log: true
+        - name: Preserve private diagnostic result
+          ansible.builtin.copy:
+            content: '{{ {"rc": diagnostic_result.rc, "stdout": diagnostic_result.stdout, "node_directory": diagnostic_directory.stdout} | to_json }}'
+            dest: '{{ diagnostic_evidence }}/diagnostic.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+      always:
+        - name: Remove only labeled probe and stop all service processes
+          ansible.builtin.command:
+            argv: [sudo, '-n', /usr/bin/python3, '{{ diagnostic_directory.stdout }}/diagnose-startup-configuration.py', cleanup]
+            chdir: /
+          register: diagnostic_cleanup
+          failed_when: false
+          changed_when: true
+        - name: Retain cleanup result
+          ansible.builtin.copy:
+            content: '{{ {"rc": diagnostic_cleanup.rc, "stdout": diagnostic_cleanup.stdout, "node_directory": diagnostic_directory.stdout} | to_json }}'
+            dest: '{{ diagnostic_evidence }}/cleanup.json'
+            mode: '0600'
+          delegate_to: localhost
+        - name: Require no process or container residue
+          ansible.builtin.assert:
+            that: diagnostic_cleanup.rc == 0
+        - name: Disarm diagnostic and prior startup timers after processless proof
+          ansible.builtin.command:
+            argv: [sudo, '-n', /usr/bin/systemctl, stop, '{{ item }}.timer']
+            chdir: /
+          loop: ['{{ diagnostic_guard }}', '{{ prior_startup_guard }}']
+          changed_when: true
+
+    - name: Require a captured native result
+      ansible.builtin.assert:
+        that:
+          - diagnostic_result.rc == 0
+          - (diagnostic_result.stdout | from_json).passed

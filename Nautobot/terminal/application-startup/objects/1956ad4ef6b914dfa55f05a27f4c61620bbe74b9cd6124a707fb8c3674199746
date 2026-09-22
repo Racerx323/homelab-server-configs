@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "host": "j2-svpi4mf",
+  "accepted": true,
+  "collected_at": "2026-09-22T20:44:34.835293+00:00",
+  "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+  "services": {
+    "postgresql": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": "443694165dfb47dbac44be5bd4644721"
+    },
+    "redis": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": "2519e6f11869486d8e43abb1835e0523"
+    },
+    "migration": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    },
+    "web": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    },
+    "worker": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    },
+    "scheduler": {
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    }
+  },
+  "containers": [],
+  "images": [
+    {
+      "Id": "808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+        "localhost/sha256@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf"
+      ],
+      "Size": 932916896,
+      "SharedSize": 0,
+      "VirtualSize": 932916896,
+      "Labels": {
+        "io.buildah.version": "1.39.3",
+        "org.opencontainers.image.created": "2026-08-17T16:51:02.136Z",
+        "org.opencontainers.image.description": "Network Source of Truth & Network Automation Platform",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.revision": "4c8374efc39288beaa1adba69855b51075881329",
+        "org.opencontainers.image.source": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.title": "Nautobot",
+        "org.opencontainers.image.url": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.version": "v3.2.3"
+      },
+      "Containers": 0,
+      "Digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+      "History": [
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+        "localhost/nautobot-homelab:qualified"
+      ],
+      "Names": [
+        "localhost/nautobot-homelab:qualified",
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa"
+      ],
+      "Created": 1790015069,
+      "CreatedAt": "2026-09-21T18:24:29Z"
+    },
+    {
+      "Id": "808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+        "localhost/sha256@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf"
+      ],
+      "Size": 932916896,
+      "SharedSize": 0,
+      "VirtualSize": 932916896,
+      "Labels": {
+        "io.buildah.version": "1.39.3",
+        "org.opencontainers.image.created": "2026-08-17T16:51:02.136Z",
+        "org.opencontainers.image.description": "Network Source of Truth & Network Automation Platform",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.revision": "4c8374efc39288beaa1adba69855b51075881329",
+        "org.opencontainers.image.source": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.title": "Nautobot",
+        "org.opencontainers.image.url": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.version": "v3.2.3"
+      },
+      "Containers": 0,
+      "Digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+      "History": [
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+        "localhost/nautobot-homelab:qualified"
+      ],
+      "Names": [
+        "localhost/nautobot-homelab:qualified",
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa"
+      ],
+      "Created": 1790015069,
+      "CreatedAt": "2026-09-21T18:24:29Z"
+    },
+    {
+      "Id": "82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Size": 138656332,
+      "SharedSize": 0,
+      "VirtualSize": 138656332,
+      "Labels": null,
+      "Containers": 0,
+      "Digest": "sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323",
+      "History": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Names": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Created": 1787072201,
+      "CreatedAt": "2026-08-18T16:56:41Z"
+    },
+    {
+      "Id": "46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Size": 483627015,
+      "SharedSize": 0,
+      "VirtualSize": 483627015,
+      "Labels": null,
+      "Containers": 0,
+      "Digest": "sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296",
+      "History": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Names": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Created": 1786648527,
+      "CreatedAt": "2026-08-13T19:15:27Z"
+    }
+  ],
+  "volumes": [
+    {
+      "Name": "nautobot-postgresql_data",
+      "Driver": "local",
+      "Mountpoint": "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-postgresql_data/_data",
+      "CreatedAt": "2026-09-21T19:47:29.054988031-05:00",
+      "Labels": {},
+      "Scope": "local",
+      "Options": {},
+      "MountCount": 0,
+      "NeedsCopyUp": true,
+      "LockNumber": 0
+    },
+    {
+      "Name": "nautobot-redis_data",
+      "Driver": "local",
+      "Mountpoint": "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-redis_data/_data",
+      "CreatedAt": "2026-09-21T19:47:41.551480973-05:00",
+      "Labels": {},
+      "Scope": "local",
+      "Options": {},
+      "MountCount": 0,
+      "NeedsCopyUp": true,
+      "LockNumber": 2
+    }
+  ],
+  "listeners": "LISTEN 0      4096   0.0.0.0:10000 0.0.0.0:*\nLISTEN 0      128    0.0.0.0:22    0.0.0.0:*\nLISTEN 0      4096      [::]:10000    [::]:*\nLISTEN 0      128       [::]:22       [::]:*\nLISTEN 0      4096         *:4949        *:*\n",
+  "mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/sda2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,noatime\"\n      }\n   ]\n}\n",
+  "free_bytes": 934185218048,
+  "memory": "MemTotal:        8006376 kB\nMemFree:         1505384 kB\nMemAvailable:    7633596 kB\nBuffers:          272944 kB\nCached:          5510512 kB\nSwapCached:            0 kB\nActive:           330404 kB\nInactive:        5534244 kB\nActive(anon):     110692 kB\nInactive(anon):        0 kB\nActive(file):     219712 kB\nInactive(file):  5534244 kB\nUnevictable:        2272 kB\nMlocked:            2272 kB\nSwapTotal:       2097148 kB\nSwapFree:        2097148 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:                 4 kB\nWriteback:             0 kB\nAnonPages:         83596 kB\nMapped:            60252 kB\nShmem:             27696 kB\nKReclaimable:     476376 kB\nSlab:             549544 kB\nSReclaimable:     476376 kB\nSUnreclaim:        73168 kB\nKernelStack:        2896 kB\nPageTables:         3036 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:     6100336 kB\nCommitted_AS:     240808 kB\nVmallocTotal:   261087232 kB\nVmallocUsed:       45188 kB\nVmallocChunk:          0 kB\nPercpu:             4128 kB\nCmaTotal:         524288 kB\nCmaFree:          493848 kB\nBalloon:               0 kB\n",
+  "runtime_files": {
+    "continuation-evidence": {
+      "regular": false
+    },
+    "initialize-application.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 3760,
+      "sha256": "4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b"
+    },
+    "migration-continuation-inputs.json": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 144342
+    },
+    "migration-continuation.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 11034,
+      "sha256": "d2067f3f95bbccf606678656db8beecccb59e7803868a768f11ecb5eb0f2bb26"
+    },
+    "migration.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "nautobot_config.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 468,
+      "sha256": "ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90"
+    },
+    "postgresql.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 83
+    },
+    "redis.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 79
+    },
+    "scheduler.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "web.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "worker.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    }
+  },
+  "quadlets": {
+    "nautobot-migration.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1516,
+      "sha256": "f1e96d625d4b11d299131e850bf1c39c84df831b3ce6576e95cf44421a98656c"
+    },
+    "nautobot-postgresql.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 686,
+      "sha256": "463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905"
+    },
+    "nautobot-postgresql_data.volume": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 45,
+      "sha256": "0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a"
+    },
+    "nautobot-private.network": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 39,
+      "sha256": "0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63"
+    },
+    "nautobot-redis.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 712,
+      "sha256": "906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9"
+    },
+    "nautobot-redis_data.volume": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 40,
+      "sha256": "b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717"
+    }
+  },
+  "guard": {
+    "verified": true
+  },
+  "journal_cursor": "-- No entries --\n-- cursor: s=bb640115c63545a9abbdf0084aa6ab0e;i=7032;b=70c9f650a6a2458384a9f96462bef393;m=7b825882f9;t=65c186f3d44ef;x=d1a7c402330a77d9\n",
+  "scope": "stopped_startup_baseline",
+  "review_sources": {
+    "baseline.json": "cf0804fc3e6e7de9e8cd6c3c5a84a1d4de31df0600bb8c7864e5e8eae16a984e",
+    "storage-review.json": "c90d5a5ea60d53fab888dbac63b2c6303c35e2c571b5ec37ba41fdc3942e3868"
+  },
+  "limitations": [
+    "Kernel review limited to last 500 current-boot entries.",
+    "Database content not queried while stopped; initialized state relies on accepted bootstrap plus retained provenance."
+  ]
+}

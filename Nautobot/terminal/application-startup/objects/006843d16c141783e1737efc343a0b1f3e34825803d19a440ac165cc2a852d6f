@@ -26,10 +26,7 @@
       ],
       "properties": {
         "state": {
-          "enum": [
-            "definition",
-            "terminal-pending"
-          ]
+          "const": "definition"
         },
         "stage": {
           "const": "application_startup"
@@ -39,37 +36,12 @@
           "pattern": "^[a-z0-9-]+$"
         },
         "authorization_ready": {
-          "type": "boolean"
+          "const": true
         },
         "target": {
           "const": "j2-svpi4mf"
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "terminal-pending"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "authorization_ready": {
-                "const": false
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "authorization_ready": {
-                "const": true
-              }
-            }
-          }
-        }
-      ]
+      }
     },
     "prerequisites": {
       "type": "object",

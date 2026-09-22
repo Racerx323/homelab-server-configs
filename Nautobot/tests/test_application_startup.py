@@ -351,11 +351,45 @@ class Startup(unittest.TestCase):
         def inspect(role):
             if role == 'worker':
                 raise RuntimeError('fixture inspection failure')
-            return {'ActiveState': 'inactive', 'SubState': 'dead'}
+            return {'ActiveState': 'inactive', 'SubState': 'dead', 'MainPID': '0', 'ControlPID': '0'}
         value = node.stop_all(run, inspect)
         self.assertFalse(value['passed'])
         self.assertEqual(calls, ['nautobot-'+role+'.service' for role in node.STOP])
         self.assertTrue(value['stopped']['postgresql'])
+
+    def test_native_command_retains_redacted_failure_and_bounds_timeout(self):
+        runner=load('startup_diagnostic_command','startup-command.py')
+        secret='fixture-private-credential'
+        with patch.dict(os.environ, {'STARTUP_TEST_SECRET':secret}):
+            result=runner.command(['/usr/bin/python3','-c',
+                'import os,sys;print("configuration E001",file=sys.stderr);print(os.environ["STARTUP_TEST_SECRET"],file=sys.stderr);sys.exit(1)'],5)
+        self.assertEqual(result['exit_status'],1)
+        self.assertIn('configuration E001',result['diagnostics']['stderr'])
+        self.assertNotIn(secret,json.dumps(result))
+        self.assertIn('[REDACTED]',result['diagnostics']['stderr'])
+        result=runner.command(['/usr/bin/python3','-c','import time;time.sleep(3)'],.1)
+        self.assertEqual(result['error'],'timeout')
+        self.assertNotIn('diagnostics',runner.command(['/usr/bin/python3','-c','print("ok")'],5))
+
+    def test_failed_unit_cleanup_requires_both_pids_zero_and_retains_failure(self):
+        value = {'ActiveState':'failed', 'SubState':'failed', 'MainPID':'0', 'ControlPID':'0'}
+        self.assertTrue(node.processless(value))
+        self.assertTrue(node.terminal(value))
+        for key in ('MainPID','ControlPID'):
+            self.assertFalse(node.processless({**value,key:'5'}))
+            missing=dict(value);del missing[key]
+            self.assertFalse(node.processless(missing))
+        result=node.stop_all(lambda *a:None,lambda role:value)
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['failed_units_retained'],list(node.STOP))
+        self.assertFalse(node.processless({**value,'ActiveState':'activating'}))
+
+    def test_cursor_parser_rejects_ambiguous_or_missing_cursor(self):
+        assemble=load('startup_assembly','assemble-startup.py')
+        self.assertEqual(assemble.parse_cursor('-- No entries --\n-- cursor: s=abc;i=1\n'),'s=abc;i=1')
+        for value in ('', '-- No entries --', '-- cursor: ', '-- cursor: x\n-- cursor: y', '-- cursor: a b'):
+            with self.assertRaisesRegex(ValueError,'journal_cursor_shape'):
+                assemble.parse_cursor(value)
 
     def test_service_acceptance_rejects_stale_failed_or_partial_state(self):
         good = {'ActiveState': 'active', 'SubState': 'running', 'Result': 'success', 'ExecMainStatus': '0', 'InvocationID': 'new'}
@@ -401,6 +435,46 @@ class Startup(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertEqual(log.read_text(), 'migration\n')
 
+    def test_real_ansible_terminal_readiness_stops_without_retries(self):
+        tasks = yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/start-service-tasks.yaml').read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); log = root/'calls'
+            stub = root/'state.py'
+            stub.write_text('import json,sys\nfrom pathlib import Path\np=Path('+repr(str(log))+')\np.write_text(p.read_text()+"check\\n" if p.exists() else "check\\n")\nprint(json.dumps({"terminal":True}))\nsys.exit(69)\n')
+            tasks[0]['ansible.builtin.command']['argv'] = ['/bin/true']
+            tasks[1]['ansible.builtin.command']['argv'] = ['/usr/bin/python3',str(stub)]
+            (root/'tasks.yaml').write_text(yaml.safe_dump(tasks))
+            play = [{'hosts':'localhost','gather_facts':False,'tasks':[{'ansible.builtin.include_tasks':'tasks.yaml','loop':['migration','web'],'loop_control':{'loop_var':'startup_role'}}]}]
+            (root/'play.yaml').write_text(yaml.safe_dump(play))
+            result = subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(root/'play.yaml')],capture_output=True,timeout=30)
+            self.assertEqual(result.returncode,2)
+            self.assertEqual(log.read_text(),'check\n')
+
+    def test_diagnostic_runs_only_native_check_and_redacts_inside_container(self):
+        diagnostic = load('diagnostic', 'diagnose-startup-configuration.py')
+        inputs = {'image':'localhost/test@sha256:'+'a'*64,'identity':'test'}
+        def state(role):
+            if role in ('postgresql','redis'):
+                return {'ActiveState':'active','SubState':'running','Result':'success','ExecMainStatus':'0','InvocationID':'new'}
+            return {'ActiveState':'failed','SubState':'failed','MainPID':'0','ControlPID':'0'}
+        response = types.SimpleNamespace(returncode=0,stdout=b'{"exit_status":1,"diagnostics":{"stderr":"E001"}}')
+        with patch.object(diagnostic,'containers',return_value=[]), patch.object(diagnostic.node,'service',side_effect=state), patch.object(diagnostic.subprocess,'run',return_value=response) as run:
+            value = diagnostic.check(inputs)
+        self.assertTrue(value['passed']);self.assertFalse(value['configuration_passed'])
+        argv = run.call_args.args[0];payload=run.call_args.kwargs['input'].decode()
+        self.assertIn("command(['nautobot-server','check'],120)",payload)
+        self.assertNotIn('post_upgrade',payload)
+        self.assertIn('def redact(',payload)
+        self.assertIn('--read-only',argv)
+        self.assertIn('--pull',argv)
+
+    def test_diagnostic_does_not_remove_foreign_probe(self):
+        diagnostic = load('diagnostic_cleanup','diagnose-startup-configuration.py')
+        with patch.object(diagnostic,'containers',return_value=[{'Id':'x','Names':[diagnostic.NAME]}]), patch.object(diagnostic.node.base,'podman',return_value=[{'Config':{'Labels':{diagnostic.LABEL:'foreign'}}}]), patch.object(diagnostic.node.base,'call') as call:
+            with self.assertRaisesRegex(ValueError,'foreign_container'):
+                diagnostic.cleanup({'identity':'ours'})
+            call.assert_not_called()
+
     def test_archived_baseline_review_preserves_database_units(self):
         with tempfile.TemporaryDirectory() as directory:
             report = preparation.prepare(Path(directory)/'rendered')
@@ -421,6 +495,12 @@ class Startup(unittest.TestCase):
             self.assertIn('Exec=/run/startup-application.py '+role, text)
             self.assertIn('ReadOnly=true', text)
             self.assertNotIn('CONTINUATION_TOKEN', text)
+            self.assertIn('Tmpfs=/prom_cache:rw,size=16m,mode=1777,noexec,nosuid,nodev', text)
+            self.assertIn('Environment=PROMETHEUS_MULTIPROC_DIR=/prom_cache', text)
+            self.assertIn('Environment=prometheus_multiproc_dir=/prom_cache', text)
+            self.assertNotIn('Volume=/prom_cache', text)
+        for role in ('postgresql', 'redis'):
+            self.assertNotIn('/prom_cache', files['nautobot-'+role+'.container'])
         self.assertIn('PublishPort=127.0.0.1:8080:8080', files['nautobot-web.container'])
         self.assertIn('User=999', files['nautobot-nautobot_media.volume'])
         verifier = 'ExecStartPre=/usr/bin/sudo -n /usr/bin/python3 -I /usr/local/lib/nautobot-network/backend_guard.py check'

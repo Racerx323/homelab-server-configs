@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 import tempfile
 
-spec = importlib.util.spec_from_file_location('native', Path(__file__).with_name('startup-command.py'))
+spec = importlib.util.spec_from_file_location('native', Path(__file__).with_name('initialize-application.py'))
 native = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(native)
 LIMITS = {'migration': 1536, 'web': 1536, 'worker': 1536, 'scheduler': 384}

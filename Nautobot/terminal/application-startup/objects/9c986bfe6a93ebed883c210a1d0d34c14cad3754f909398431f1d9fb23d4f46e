@@ -1,0 +1,188 @@
+---
+- name: Candidate application startup using existing initialized data
+  hosts: inventory_automation
+  gather_facts: false
+  become: false
+  any_errors_fatal: true
+  module_defaults:
+    ansible.builtin.command:
+      chdir: /
+  vars:
+    startup_policy: '{{ lookup("ansible.builtin.file", "../../manifests/startup-policy.yaml") | from_yaml }}'
+    startup_operation: '{{ lookup("ansible.builtin.file", "../../manifests/operation.yaml") | from_yaml }}'
+    startup_user_command: ['/usr/bin/sudo', '-n', '/usr/sbin/runuser', '--user', nautobot, '--', '/usr/bin/env', 'XDG_RUNTIME_DIR=/run/user/999', 'DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus']
+  pre_tasks:
+    - name: Block startup before host contact until reviewed activation exists
+      ansible.builtin.assert:
+        that:
+          - startup_policy.execution_authorized | bool
+          - startup_operation.operation.stage | default('') == 'application_startup'
+          - startup_operation.operation.authorization_ready | default(false) | bool
+          - startup_bundle_verified | default(false) | bool
+          - startup_network_evidence_verified | default(false) | bool
+          - startup_recovery_review_verified | default(false) | bool
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+        fail_msg: Startup candidate inactive; reviewed activation, network evidence and recovery required.
+    # Verified inputs are supplied only by the exact-hash launcher after approval.
+    - name: Require bounded controller-supplied artifact and recovery paths
+      ansible.builtin.assert:
+        that:
+          - startup_evidence is match('^/tmp/nautobot-startup\.[A-Za-z0-9_]+$')
+          - startup_guard is match('^nautobot-startup-[a-z0-9-]+$')
+          - startup_artifacts | length > 0
+          - startup_artifacts | map(attribute='destination') | unique | length == startup_artifacts | length
+          - startup_before | list | sort == startup_policy.services | sort
+    - name: Verify controller artifact hashes before transfer
+      ansible.builtin.stat:
+        path: '{{ item.source }}'
+        checksum_algorithm: sha256
+      loop: '{{ startup_artifacts }}'
+      delegate_to: localhost
+      register: startup_local_artifacts
+    - name: Require frozen regular artifacts
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.checksum == item.item.sha256
+          - item.item.destination is match('^/var/lib/nautobot/(runtime/[A-Za-z0-9_.-]+|\.config/containers/systemd/nautobot-[A-Za-z0-9_.-]+)$')
+          - item.item.destination is not search('\.env$')
+      loop: '{{ startup_local_artifacts.results }}'
+    - name: Inspect node evidence destination
+      ansible.builtin.stat:
+        path: '{{ startup_evidence }}'
+      become: true
+      register: startup_remote_destination
+    - name: Refuse existing node evidence destination
+      ansible.builtin.assert:
+        that: not startup_remote_destination.stat.exists
+    - name: Create protected node evidence directory without reusing prior evidence
+      ansible.builtin.command:
+        argv: ['/usr/bin/sudo', '-n', /usr/bin/install, '-d', '-m', '0700', '{{ startup_evidence }}']
+      changed_when: true
+    - name: Stage independent stop helpers before arming guard
+      ansible.builtin.copy:
+        src: '{{ item.source }}'
+        dest: '{{ startup_evidence }}/{{ item.name }}'
+        owner: root
+        group: root
+        mode: '0600'
+      loop:
+        - {name: startup-node.py, source: ../scripts/startup-node.py}
+        - {name: runtime-initialization-node.py, source: ../scripts/runtime-initialization-node.py}
+        - {name: canary-backup.py, source: ../../../restic/scripts/canary-backup.py}
+      become: true
+    - name: Verify staged helper hashes
+      ansible.builtin.stat:
+        path: '{{ startup_evidence }}/{{ item.key }}'
+        checksum_algorithm: sha256
+      loop: '{{ startup_helper_sha256 | dict2items }}'
+      register: startup_helper_stats
+      become: true
+    - name: Require exact staged helpers
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.uid == 0
+          - item.stat.mode == '0600'
+          - item.stat.checksum == item.item.value
+      loop: '{{ startup_helper_stats.results }}'
+    - name: Check current boot and stopped services before mutation
+      ansible.builtin.command:
+        argv: ['/usr/bin/sudo', '-n', /usr/bin/python3, '{{ startup_evidence }}/startup-node.py', baseline, '{{ startup_expected_boot }}']
+      changed_when: false
+  tasks:
+    - name: Start application under an independent stop guard
+      block:
+        - name: Capture journal cursor before service mutation
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/journalctl, '-n', '0', '--show-cursor', '--no-pager']
+          register: startup_journal_cursor
+          changed_when: false
+        - name: Require journal cursor
+          ansible.builtin.assert:
+            that: "startup_journal_cursor.stdout is search('-- cursor: ')"
+        - name: Arm independent stop guard before file mutation
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', '/usr/bin/systemd-run', '--unit={{ startup_guard }}', '--on-active=7200s', '--timer-property=AccuracySec=1s', '--property=TimeoutStartSec=800s', /usr/bin/python3, '{{ startup_evidence }}/startup-node.py', stop]
+          changed_when: true
+        - name: Verify guard is active
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', '/usr/bin/systemctl', is-active, '{{ startup_guard }}.timer']
+          changed_when: false
+        - name: Install only frozen nonsecret startup artifacts with original backups
+          ansible.builtin.copy:
+            src: '{{ item.source }}'
+            dest: '{{ item.destination }}'
+            owner: nautobot
+            group: nautobot
+            # Container UID 999 must read code through the rootless bind mount.
+            mode: '{{ "0644" if item.destination is search("\.py$") else "0600" }}'
+            backup: true
+          loop: '{{ startup_artifacts }}'
+          become: true
+          register: startup_installed
+        - name: Reload user units
+          ansible.builtin.command:
+            argv: '{{ startup_user_command + ["/usr/bin/systemctl", "--user", "daemon-reload"] }}'
+          changed_when: true
+        - name: Start services serially and stop progression on failure
+          ansible.builtin.include_tasks: start-service-tasks.yaml
+          loop: '{{ startup_policy.start_order }}'
+          loop_control:
+            loop_var: startup_role
+        - name: Verify web health and static assets over local recovery
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/python3, '{{ startup_evidence }}/startup-node.py', http]
+          changed_when: false
+          register: startup_http
+          until: startup_http.rc == 0
+          retries: 12
+          delay: 5
+        - name: Collect bounded live acceptance evidence on controller
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ playbook_dir }}/../scripts/collect-startup.py', '{{ startup_acceptance_contract }}', '{{ startup_controller_evidence }}/acceptance.json']
+          delegate_to: localhost
+          changed_when: false
+          no_log: true
+        - name: Check guard did not activate
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/systemctl, show, '{{ startup_guard }}.service', '--property=ExecMainStartTimestampMonotonic', '--value']
+          register: startup_guard_activation
+          changed_when: false
+        - name: Require guard nonactivation
+          ansible.builtin.assert:
+            that: startup_guard_activation.stdout | trim == '0'
+        - name: Disarm guard after all live evidence passes
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/systemctl, stop, '{{ startup_guard }}.timer']
+          changed_when: true
+        - name: Record complete startup acceptance
+          ansible.builtin.set_fact:
+            startup_accepted: true
+      rescue:
+        - name: Independently stop every service without deleting data
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/python3, '{{ startup_evidence }}/startup-node.py', stop]
+          register: startup_stopped
+          failed_when: false
+          changed_when: false
+        - name: Disarm guard only when stopped-state proof succeeds
+          ansible.builtin.command:
+            argv: ['/usr/bin/sudo', '-n', /usr/bin/systemctl, stop, '{{ startup_guard }}.timer']
+          when: startup_stopped.rc == 0
+          changed_when: true
+          failed_when: false
+        - name: Report unsuccessful startup and preserve data for review
+          ansible.builtin.fail:
+            msg: Startup failed; review stopped-state evidence and retained backups. No automatic data restore or retry.
+      always:
+        - name: Preserve controller lifecycle evidence without secret command output
+          ansible.builtin.copy:
+            content: '{{ {"accepted": startup_accepted | default(false), "installed": startup_installed | default({}), "stopped": startup_stopped | default({}), "guard": startup_guard_activation | default({}), "journal_cursor": startup_journal_cursor.stdout | default("")} | to_json }}'
+            dest: '{{ startup_controller_evidence }}/startup-lifecycle.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true

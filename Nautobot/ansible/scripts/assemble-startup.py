@@ -23,6 +23,13 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def parse_cursor(raw):
+    lines = [line[len('-- cursor: '):] for line in raw.splitlines() if line.startswith('-- cursor: ')]
+    if len(lines) != 1 or not lines[0] or any(c.isspace() for c in lines[0]):
+        raise ValueError('journal_cursor_shape')
+    return lines[0]
+
+
 def assemble(output, baseline, recovery):
     os.umask(0o077)
     output.mkdir(mode=0o700)
@@ -35,7 +42,7 @@ def assemble(output, baseline, recovery):
     desired = yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
     before = json.loads((output/'baseline.json').read_text())
     accepted = yaml.safe_load((ROOT/'Nautobot/manifests/startup-preservation.yaml').read_text())
-    settings = {'boot_id':before['boot_id'], 'journal_cursor':before['journal_cursor'].strip().removeprefix('-- cursor: '),
+    settings = {'boot_id':before['boot_id'], 'journal_cursor':parse_cursor(before['journal_cursor']),
                 'limits_mib':{r:v['memory_limit_mib'] for r,v in desired['services'].items()},
                 'images':{r:accepted['runtime']['images'][r if r in ('postgresql','redis') else 'custom']['id'] for r in desired['services']},
                 'storage_pattern':r'reset.*USB device|I/O error|Buffer I/O|EXT4-fs error|uas_eh|device offline|timing out command|blk_update_request|out of memory|oom-kill'}

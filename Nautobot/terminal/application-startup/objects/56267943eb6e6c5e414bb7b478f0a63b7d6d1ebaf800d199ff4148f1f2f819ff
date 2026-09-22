@@ -18,7 +18,7 @@ def service(role, runner=base.call):
     if role not in ROLES:
         raise ValueError('role')
     raw = runner(base.USER + ['/usr/bin/systemctl', '--user', 'show', 'nautobot-' + role + '.service',
-                             '--property=ActiveState,SubState,Result,ExecMainStatus,InvocationID,MainPID,ControlPID'])
+                             '--property=ActiveState,SubState,Result,ExecMainStatus,InvocationID'])
     return dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
 
 
@@ -29,28 +29,16 @@ def healthy(role, value):
             and bool(value.get('InvocationID')))
 
 
-def processless(value):
-    return ((value.get('ActiveState'), value.get('SubState')) in
-            {('inactive', 'dead'), ('failed', 'failed')}
-            and value.get('MainPID') == '0' and value.get('ControlPID') == '0')
-
-
-def terminal(value):
-    return value.get('ActiveState') == 'failed'
-
-
 def stop_all(runner=base.call, inspect=service):
-    result = {}; failed_units = []
+    result = {}
     for role in STOP:
         try:
             runner(base.USER + ['/usr/bin/systemctl', '--user', 'stop', 'nautobot-' + role + '.service'], 120)
             value = inspect(role)
-            result[role] = processless(value)
-            if value.get('ActiveState') == 'failed':
-                failed_units.append(role)
+            result[role] = value.get('ActiveState') == 'inactive' and value.get('SubState') == 'dead'
         except Exception:
             result[role] = False
-    return {'passed': all(result.values()), 'stopped': result, 'failed_units_retained': failed_units}
+    return {'passed': all(result.values()), 'stopped': result}
 
 
 def http_checks(opener=None):
@@ -88,7 +76,7 @@ def main():
         elif len(sys.argv) == 3 and sys.argv[1] == 'state':
             role = sys.argv[2]
             value = service(role)
-            result = {'passed': healthy(role, value), 'terminal': terminal(value), 'state': value}
+            result = {'passed': healthy(role, value), 'state': value}
         elif len(sys.argv) == 2 and sys.argv[1] == 'http':
             result = http_checks()
         else:

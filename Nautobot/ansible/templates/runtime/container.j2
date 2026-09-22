@@ -34,12 +34,17 @@ PodmanArgs=--memory-swap=1536m
 Entrypoint=python3
 Exec=/run/startup-application.py {{ name }}
 Volume=/var/lib/nautobot/runtime/startup-application.py:/run/startup-application.py:ro
+Volume=/var/lib/nautobot/runtime/startup-command.py:/run/startup-command.py:ro
 Volume=/var/lib/nautobot/runtime/startup-job.py:/opt/nautobot/jobs/startup_readiness.py:ro
 Volume=/var/lib/nautobot/runtime/startup-job-probe.py:/run/startup-job-probe.py:ro
 Volume=/var/lib/nautobot/runtime/initialize-application.py:/run/initialize-application.py:ro
 User=999
 Group=999
 ReadOnly=true
+# Private per-container metric files; discarded on container recreation.
+Tmpfs=/prom_cache:rw,size=16m,mode=1777,noexec,nosuid,nodev
+Environment=PROMETHEUS_MULTIPROC_DIR=/prom_cache
+Environment=prometheus_multiproc_dir=/prom_cache
 Tmpfs=/opt/nautobot/git:rw,size=16m,mode=1777
 Tmpfs=/opt/nautobot/jobs:rw,size=16m,mode=1777
 Tmpfs=/opt/nautobot/static:rw,size=256m,mode=1777

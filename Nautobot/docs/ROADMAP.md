@@ -2,6 +2,27 @@
 
 ## Current next action
 
+Application startup failed on September 22 during native configuration validation,
+before migration or application startup. The separately approved diagnostic now
+identifies the error: Prometheus attempts to create a gauge file under
+`/prom_cache` on the read-only container filesystem. The pinned image inherits
+`prometheus_multiproc_dir=/prom_cache`; that directory lacks a writable mount.
+See [startup and diagnostic results](../manifests/application-startup-result.json).
+
+Diagnostic cleanup passed and was independently verified: all service processes
+and containers are absent, both stop timers are inactive, and the migration failed
+marker is retained. The original result's armed-guard fields describe the earlier
+failed startup, not this later state. Broader cursor-bounded kernel review found
+no matched storage/OOM events; no fresh diagnostic-only cursor was collected.
+
+Readiness, failed-state cleanup and cursor corrections are locally validated.
+The bounded metrics-directory correction is now implemented and locally tested,
+including actual Podman permissions, capacity and clean recreation. Retry artifacts
+are prepared for review; terminal archival, clean published source/CI and fresh
+baseline/recovery review remain before an execution hash can be frozen. The stream
+remains terminal-pending; startup is not accepted.
+The following preparation description is historical to this consumed attempt.
+
 Administrator bootstrap is accepted as of September 22, 2026. All five native
 checks passed: configuration, no pending migrations, account absence, creation
 and exact administrator identity/flags plus positive authentication.
