@@ -19,6 +19,9 @@ spec = importlib.util.spec_from_file_location('collector', HERE/'collect-startup
 collector = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(collector)
 bounded = collector.bounded
+node_spec = importlib.util.spec_from_file_location('startup_node', HERE/'startup-node.py')
+node = importlib.util.module_from_spec(node_spec)
+node_spec.loader.exec_module(node)
 ROOT = HERE.parents[2]
 FILES = (
     'Nautobot/schemas/startup-execution.schema.json',
@@ -67,8 +70,8 @@ def prepare(specification, root=ROOT):
     if (not re.fullmatch('[0-9a-f-]{36}', baseline.get('boot_id', ''))
             or set(baseline.get('services', {})) != {'postgresql', 'redis', 'migration', 'web', 'worker', 'scheduler'}):
         raise ValueError('baseline_shape')
-    for state in baseline['services'].values():
-        if state.get('ActiveState') != 'inactive' or state.get('SubState') != 'dead' or 'InvocationID' not in state:
+    for role, state in baseline['services'].items():
+        if not node.baseline_stopped(role, state) or 'InvocationID' not in state:
             raise ValueError('baseline_not_stopped')
     expected_helpers = {'startup-node.py', 'runtime-initialization-node.py', 'canary-backup.py'}
     if set(value['helper_sha256']) != expected_helpers:

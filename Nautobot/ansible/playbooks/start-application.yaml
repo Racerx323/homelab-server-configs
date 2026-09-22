@@ -92,7 +92,11 @@
     - name: Check current boot and stopped services before mutation
       ansible.builtin.command:
         argv: ['/usr/bin/sudo', '-n', /usr/bin/python3, '{{ startup_evidence }}/startup-node.py', baseline, '{{ startup_expected_boot }}']
+      register: startup_current_baseline
       changed_when: false
+    - name: Require the exact reviewed service state including retained failure marker
+      ansible.builtin.assert:
+        that: (startup_current_baseline.stdout | from_json).services == startup_before
   tasks:
     - name: Start application under an independent stop guard
       block:

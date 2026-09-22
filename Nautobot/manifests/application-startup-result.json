@@ -33,7 +33,7 @@
     "Review failed-but-processless unit handling and guard disarm.",
     "Parse the exact journal cursor line; reject display preamble."
   ],
-  "archive_status": "pending",
+  "archive_status": "published_tag_verified",
   "evidence_sha256": {
     "kernel-review-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "variables.json": "ccd4efb39dfe114d6e19402eb6163e2c944e50117ebf32ae98fac46f55e63498",
@@ -84,5 +84,10 @@
       "review.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "variables.json": "6ef06e26826a627dda964dcf79873317d6480a6bbf8fe7374b21f22fd56d5d64"
     }
+  },
+  "archive": {
+    "tag": "nautobot-application-startup-v1-failed",
+    "commit": "a39d1391b6b07373a1006f1489a245a8a99862b0",
+    "tag_object": "4784564b875791c632fae1af7fa78e0bb6946eb5"
   }
 }

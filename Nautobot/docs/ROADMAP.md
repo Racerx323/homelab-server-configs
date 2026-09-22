@@ -18,9 +18,11 @@ no matched storage/OOM events; no fresh diagnostic-only cursor was collected.
 Readiness, failed-state cleanup and cursor corrections are locally validated.
 The bounded metrics-directory correction is now implemented and locally tested,
 including actual Podman permissions, capacity and clean recreation. Retry artifacts
-are prepared for review; terminal archival, clean published source/CI and fresh
-baseline/recovery review remain before an execution hash can be frozen. The stream
-remains terminal-pending; startup is not accepted.
+are prepared for review. Terminal archival is complete; clean published source/CI
+and a baseline/recovery review within its validity window remain before execution. The failed operation is archived in published tag
+`nautobot-application-startup-v1-failed` at `a39d139`. The active definition is
+`nautobot-application-startup-v2`; execution still requires a fresh, reviewed
+bundle hash and approval. Startup is not accepted.
 The following preparation description is historical to this consumed attempt.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native

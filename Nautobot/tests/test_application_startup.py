@@ -255,7 +255,7 @@ class Startup(unittest.TestCase):
             baseline = root/'baseline.json'
             baseline.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf',
                 'boot_id': '00000000-0000-0000-0000-000000000000',
-                'services': {role: {'ActiveState': 'inactive', 'SubState': 'dead', 'InvocationID': ''}
+                'services': {role: {'ActiveState': 'inactive', 'SubState': 'dead', 'InvocationID': '', 'MainPID': '0', 'ControlPID': '0'}
                              for role in node.ROLES}}))
             recovery = root/'recovery.json'
             recovery.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf'}))
@@ -383,6 +383,25 @@ class Startup(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertEqual(result['failed_units_retained'],list(node.STOP))
         self.assertFalse(node.processless({**value,'ActiveState':'activating'}))
+
+    def test_retry_baseline_retains_only_reviewed_processless_migration_failure(self):
+        state = {'ActiveState':'failed','SubState':'failed','Result':'exit-code',
+                 'ExecMainStatus':'69','InvocationID':'retained','MainPID':'0','ControlPID':'0'}
+        self.assertTrue(node.baseline_stopped('migration',state))
+        self.assertFalse(node.healthy('migration',state))
+        for role in ('web','worker','scheduler','postgresql','redis'):
+            self.assertFalse(node.baseline_stopped(role,state))
+        for key,value in [('MainPID','1'),('ControlPID','1'),('ExecMainStatus','1'),('InvocationID',''),('Result','timeout')]:
+            self.assertFalse(node.baseline_stopped('migration',{**state,key:value}))
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/start-application.yaml').read_text())[0]
+        assertion=next(t for t in play['pre_tasks'] if t['name'].startswith('Require the exact reviewed service state'))
+        from jinja2 import Environment
+        # Actual Ansible from_json filter, with observed state differing from the frozen review.
+        env=Environment();env.filters['from_json']=json.loads
+        check=env.compile_expression(assertion['ansible.builtin.assert']['that'])
+        before={'migration':state}
+        self.assertTrue(check(startup_current_baseline={'stdout':json.dumps({'services':before})},startup_before=before))
+        self.assertFalse(check(startup_current_baseline={'stdout':json.dumps({'services':{'migration':{**state,'InvocationID':'different'}}})},startup_before=before))
 
     def test_cursor_parser_rejects_ambiguous_or_missing_cursor(self):
         assemble=load('startup_assembly','assemble-startup.py')

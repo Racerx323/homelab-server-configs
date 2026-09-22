@@ -58,7 +58,7 @@ def collect():
     result['services'] = {}
     for role in ROLES:
         raw = command(USER + ['/usr/bin/systemctl', '--user', 'show', 'nautobot-' + role + '.service',
-                              '--property=ActiveState,SubState,InvocationID,Result,ExecMainStatus'])
+                              '--property=ActiveState,SubState,InvocationID,Result,ExecMainStatus,MainPID,ControlPID'])
         result['services'][role] = dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
     result['containers'] = json.loads(command(USER + ['/usr/bin/podman', 'ps', '--all', '--format', 'json']))
     result['images'] = json.loads(command(USER + ['/usr/bin/podman', 'images', '--format', 'json']))

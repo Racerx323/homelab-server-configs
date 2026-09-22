@@ -35,6 +35,16 @@ def processless(value):
             and value.get('MainPID') == '0' and value.get('ControlPID') == '0')
 
 
+def baseline_stopped(role, value):
+    if not processless(value):
+        return False
+    if value.get('ActiveState') == 'inactive':
+        return True
+    # The reviewed configuration failure is retained until a new invocation.
+    return (role == 'migration' and value.get('Result') == 'exit-code'
+            and value.get('ExecMainStatus') == '69' and bool(value.get('InvocationID')))
+
+
 def terminal(value):
     return value.get('ActiveState') == 'failed'
 
@@ -81,7 +91,7 @@ def main():
             if Path('/proc/sys/kernel/random/boot_id').read_text().strip() != sys.argv[2]:
                 raise ValueError('boot_changed')
             states = {role: service(role) for role in ROLES}
-            stopped = all(v.get('ActiveState') == 'inactive' and v.get('SubState') == 'dead' for v in states.values())
+            stopped = all(baseline_stopped(role, value) for role, value in states.items())
             no_containers = base.podman('ps', '--all', '--format', 'json') == []
             base.call(['/usr/bin/python3', '-I', '/usr/local/lib/nautobot-network/backend_guard.py', 'check'])
             result = {'passed': stopped and no_containers, 'services': states, 'guard_verified': True}

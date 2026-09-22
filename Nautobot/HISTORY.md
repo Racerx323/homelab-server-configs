@@ -342,3 +342,19 @@ passed. `manifests/startup-preservation-result.json` records sanitized evidence;
 `42b6b18ae476ce3467c9f51f04f515d1b7337fde`; remote identity verified. The tagged pending-publication
 field is historical; the exact bundle remains in the tag. No restore or
 application startup was performed.
+
+## Failed application startup
+
+`nautobot-application-startup-v1` failed native configuration validation before
+migration or application services started. Annotated published tag
+`nautobot-application-startup-v1-failed` resolves to
+`a39d1391b6b07373a1006f1489a245a8a99862b0`; remote tag object
+`4784564b875791c632fae1af7fa78e0bb6946eb5` verified September 22, 2026.
+All 47 consumed input hashes are preserved in `terminal/application-startup/`
+in that tag, alongside the original definition and approved diagnostic bundle.
+The diagnostic identified read-only `/prom_cache` as the configuration failure.
+Final cleanup was independently verified: all service PIDs zero, no containers,
+both stop timers inactive; migration failed marker retained. The initial armed
+guard fields are historical. Accepted application state is unchanged.
+The successor binds a bounded per-container metrics tmpfs and the reviewed
+processless failed migration state; it requires separate execution approval.

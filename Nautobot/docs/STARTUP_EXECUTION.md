@@ -8,11 +8,19 @@ None of those later stages is accepted by this startup check.
 ## Preconditions and authorization
 
 Archive preservation first. Review a fresh stopped baseline with unchanged boot,
-images, environment-file metadata, configuration, six stopped services, no containers
+images, environment-file metadata, configuration, six processless services, no containers
 or TCP 8080 listener, verified backend guard and bounded kernel review. The launcher
 requires the reviewed baseline to be no more than one hour old at execution. If it
 expires, recollect and review it, rebuild the hash and obtain approval of that hash;
 do not change the timestamp of old evidence.
+
+The reviewed migration configuration-failure marker may remain `failed/failed`
+with `Result=exit-code`, `ExecMainStatus=69`, a retained InvocationID and both
+MainPID/ControlPID zero. Every other role must be inactive/dead with both PIDs
+zero. The live preflight must exactly match the frozen service-state records
+before mutation. Do not run `reset-failed` merely to make the baseline pass.
+Starting migration creates a new invocation, which must subsequently pass normal
+healthy-readiness checks; baseline eligibility is not application acceptance.
 
 The policy's `execution_authorized` flag enables the prepared launcher contract;
 it is not user approval. The launcher additionally requires the exact approved
