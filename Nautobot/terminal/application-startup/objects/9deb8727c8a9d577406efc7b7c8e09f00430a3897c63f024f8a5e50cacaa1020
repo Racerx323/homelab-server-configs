@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "host": "j2-svpi4mf",
+  "artifacts": [
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/initialize-application.py",
+      "destination": "/var/lib/nautobot/runtime/initialize-application.py",
+      "sha256": "4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-migration.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container",
+      "sha256": "89a5cc96a894c655eb7a46a478b031d73b919ad05a7a5c372a3e9c225c5534fd"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-nautobot_media.volume",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume",
+      "sha256": "ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-postgresql.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container",
+      "sha256": "463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-postgresql_data.volume",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume",
+      "sha256": "0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-private.network",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network",
+      "sha256": "0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-redis.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container",
+      "sha256": "906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-redis_data.volume",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume",
+      "sha256": "b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-scheduler.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container",
+      "sha256": "3dd01df09f975f3b00874aeeac1dfa6d1891ba5ce8a1dcb3ad9ab46dbcd5f5ec"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-web.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container",
+      "sha256": "8b7d53ebf27feba5870904c16b210a528400550d78579657802473bd8887dc20"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/nautobot-worker.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container",
+      "sha256": "8165467c413240a08266761f39bc67c1718c40d077de58f24fa05dcae7117d93"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/startup-application.py",
+      "destination": "/var/lib/nautobot/runtime/startup-application.py",
+      "sha256": "0d75da58f789b57f5556239c90834b8cf5f3c476cc3826fd60cb6e7da1a3865b"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/startup-command.py",
+      "destination": "/var/lib/nautobot/runtime/startup-command.py",
+      "sha256": "701061362ce1fc9b24c36fa8cc2d78eb9c100f5e8a13d9f63c6034d76ccea606"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/startup-job-probe.py",
+      "destination": "/var/lib/nautobot/runtime/startup-job-probe.py",
+      "sha256": "07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c"
+    },
+    {
+      "source": "/tmp/nautobot-startup-readiness-candidate-20260922/artifacts/startup-job.py",
+      "destination": "/var/lib/nautobot/runtime/startup-job.py",
+      "sha256": "85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6"
+    }
+  ],
+  "acceptance_contract": {
+    "schema_version": 1,
+    "checks": [
+      {
+        "id": "native",
+        "group": "native_configuration_and_migrations",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-controller.py",
+          "native",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/runtime-expectations.json"
+        ],
+        "timeout_seconds": 180,
+        "expected": {
+          "native_checks_passed": true,
+          "all_services_healthy_without_restarts": true
+        }
+      },
+      {
+        "id": "http",
+        "group": "health_and_static_http",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-controller.py",
+          "http",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/runtime-expectations.json"
+        ],
+        "timeout_seconds": 60,
+        "expected": {
+          "health_and_static_passed": true
+        }
+      },
+      {
+        "id": "session",
+        "group": "administrator_login_logout",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-browser-probe.py"
+        ],
+        "timeout_seconds": 180,
+        "expected": {
+          "administrator_login_logout": true,
+          "csrf_and_host_rejections": true,
+          "tunnel_cleanup": true
+        }
+      },
+      {
+        "id": "network",
+        "group": "allowed_denied_dual_stack_access",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-network-probe.py"
+        ],
+        "timeout_seconds": 180,
+        "expected": {
+          "allowed_both_proxies_both_families": true,
+          "denied_both_families_with_counters": true
+        }
+      },
+      {
+        "id": "job",
+        "group": "worker_scheduler_and_representative_job",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-job-controller.py"
+        ],
+        "timeout_seconds": 150,
+        "expected": {
+          "job_completed": true,
+          "single_worker_concurrency_two": true
+        }
+      },
+      {
+        "id": "resources",
+        "group": "resource_and_secret_boundaries",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-controller.py",
+          "resources",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/runtime-expectations.json"
+        ],
+        "timeout_seconds": 180,
+        "expected": {
+          "resources_and_secret_metadata_passed": true
+        }
+      },
+      {
+        "id": "storage",
+        "group": "cleanup_and_storage_observation",
+        "argv": [
+          "/usr/bin/python3",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-controller.py",
+          "storage",
+          "/tmp/nautobot-startup-readiness-candidate-20260922/runtime-expectations.json"
+        ],
+        "timeout_seconds": 150,
+        "expected": {
+          "delayed_storage_review_passed": true,
+          "boot_and_processes_continuous": true
+        }
+      }
+    ]
+  },
+  "baseline": {
+    "path": "/tmp/nautobot-startup-readiness-candidate-20260922/baseline.json",
+    "sha256": "651d817183e4c670bd78cc03c7745d915e701793a5cebc773c0e6276c6287457"
+  },
+  "recovery": {
+    "path": "/tmp/nautobot-startup-readiness-candidate-20260922/recovery.json",
+    "sha256": "9aa92e96e78c32553829da41cfc0ce0b664ac4a2981d988d089ed14a3898c785"
+  },
+  "helper_sha256": {
+    "startup-node.py": "749560ebb77dc051a472744aead29691ae019c12cbdc23980bb36f1850aa7635",
+    "runtime-initialization-node.py": "a3e52b33e4caa5232ac70f2996917b8ce742d086993f354be2c31a7c83892cb4",
+    "canary-backup.py": "d001c41874f1c798d769a9d3aa8d8d66c1dc3e53f5637fb10b028865af01594e"
+  },
+  "probe_files": {
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-check.py": "03a6a1d2beb7c475dbd1e7aa6593b14d93c05b2b80db4d12823583c71d68d9f9",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-runtime-controller.py": "3bb1768c8887094b7ebdafc9376d256dfb6d4c80adaff6e2b86e89fcd68b4f4d",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-job-controller.py": "05b4655ea0753dca49185b1653a2110d8f3c0592033cc3bff4bd208affd577b4",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-network-probe.py": "df1b9df540ae2fd3ce383979b021bba19bd33d4a5a913b9676d5b675e9408556",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-network-client.py": "5510e67b204636f43c243192d4bf1105632c8194849a3925d28440f97f57f876",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/provision-credentials.py": "bf19c571c6165ef84f0d06c73f09cb69f29cc5043f55f5a91cecca4666ac8701",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/probes/startup-browser-probe.py": "a05edba0ceac8b33d1838b3d544de3e06a73fa2dc68365527d70e4e2d0bf5252",
+    "/tmp/nautobot-startup-readiness-candidate-20260922/runtime-expectations.json": "2abeb7d4e69f6bffda57d209212065a9b300da3e3af3d85529b0fe67fa08fd0c"
+  }
+}

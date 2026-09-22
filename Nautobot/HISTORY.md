@@ -373,3 +373,13 @@ Published archive commit `a9b65628bc41bc8f2665be830ec25e963a21b77f`; annotated
 tag object `dc90a2cf1b714c74e1ea6d6787ca673744406d46` verified remotely.
 Consumed inputs were removed from the current branch only after verification.
 The corrected successor remains subject to separate execution approval.
+
+## Third application startup failure
+
+`nautobot-application-startup-v3` passed native migration and web preparation,
+but uWSGI failed without master mode. Container logs used k8s-file while readiness
+looked in the journal. Worker and scheduler were not started. Final cleanup
+verified no service processes or containers; data and recovery copies remain.
+All 48 consumed inputs and sanitized results are preserved in the archive
+for `nautobot-application-startup-v3-failed`; publication remains pending.
+The peeled annotated tag identifies the archive commit. Accepted state is unchanged.
