@@ -135,12 +135,12 @@ implementation gaps before opening any application listener:
 
 | Area | Existing candidate | Required startup preparation |
 | --- | --- | --- |
-| Migration dependency | Web/worker/scheduler require the migration service; the installed unit is the consumed continuation | Replace it with a reviewed repeatable native `post_upgrade` unit; never reuse the continuation's one-use ledger/receipt contract. Preserve native checks, resource limits and progress. |
-| Static/startup directories | Writable Git/Jobs/static tmpfs exists only in the initialization render | Supply writable runtime paths and regenerate static assets for the serving container. Initialization's temporary static files are gone. Verify real CSS/JS responses. |
-| Media | Only web mounts the desired-state media volume | Reconcile the shared-media requirement for web and task consumers, numeric ownership and backup inclusion. Do not introduce unreviewed durable volumes. |
-| Recovery access | Renderer permits only the LAN IPv4 and permanent ULA backend binds | Add the plan-permitted `127.0.0.1:8080` recovery bind and matching renderer/schema tests for an SSH tunnel; no wildcard bind. |
-| Backend policy | Baseline LAN management acceptance is broader than the application policy | Verify and, through its owner, implement TCP 8080 access only from the exact pihole0/pihole00 IPv4/ULA sources plus local recovery. Same-subnet access must be covered, not merely routed UniFi traffic. |
-| Lifecycle | Units use `WantedBy=default.target`, and Beat is configured with Nautobot's database scheduler | Qualify a single worker (concurrency 2), one scheduler, dependencies, writable process paths, logout and separately authorized reboot persistence. |
+| Migration dependency | Candidate uses a repeatable native wrapper, with configuration and no-pending checks around `post_upgrade` | Qualify the replacement against the initialized database; never reuse continuation ledger/token inputs. |
+| Static/startup directories | Candidate supplies bounded writable tmpfs; web collects static assets before executing the server | Verify real CSS/JS responses from the web container. |
+| Media | Candidate mounts the planned media volume in migration, web, worker and scheduler; Quadlet declares container UID/GID 999 ownership | Verify effective rootless ownership and include media in application backup. |
+| Recovery access | Candidate renders the plan-permitted `127.0.0.1:8080` bind alongside exact IPv4/ULA host binds | Verify SSH-tunnel login/logout and retain no wildcard bind. |
+| Backend policy | Machine-readable owner handoff is prepared; no policy has been deployed | Obtain exact source/interface evidence and allowed/denied tests before listeners open. |
+| Lifecycle | Candidate starts services serially, checks fresh invocations and includes an independent stop guard | Complete activation and live acceptance evidence; logout/reboot and pilot remain separate. |
 
 Use current inventory references for both proxy nodes; do not infer IPv6 addresses
 from their IPv4 addresses. Network/firewall changes require the owning component's
@@ -167,6 +167,163 @@ and diagnostics, and restore only reviewed prior configuration where safe.
 Database writes are not reversed by restoring a Quadlet. Do not prune volumes or
 restore the pre-migration cold copy automatically. The startup bundle must state
 which services remain running on success and stopped on failure.
+
+### Implemented candidate and activation boundary
+
+`manifests/startup-policy.yaml` and its strict schema deliberately require
+`execution_authorized: false`. The active operation is clean. Neither the existing
+runtime launcher nor this policy authorizes application startup. Do not set an
+Ansible extra variable to bypass this boundary.
+
+The candidate implementation consists of:
+
+- `startup-application.py`: resource/UID checks, native configuration and migration
+  checks, repeatable `post_upgrade` only for the migration role, web-local
+  `collectstatic`, then native web/worker/Beat execution. It never creates an admin.
+- Runtime renderer/templates: bounded application memory and zero swap, read-only
+  application roots, capped writable directories, shared media and loopback bind.
+  Existing PostgreSQL/Redis units remain byte-identical to the accepted archive.
+- `start-application.yaml` and `start-service-tasks.yaml`: blocked pre-contact gate,
+  reviewed artifact checks/copies with backups, user daemon reload, ordered starts,
+  new-invocation checks, local HTTP/static checks, and independent stop-on-failure.
+- `startup-node.py`: strict service-state checks, bounded loopback HTTP probes and
+  stop attempts that continue after an earlier stop or inspection fails.
+- `prepare-startup.py`: offline rendering tied to the accepted bootstrap archive,
+  with exact before/after hashes against installed artifacts. It refuses an active
+  operation and an existing output directory.
+
+Prepare a fresh review directory locally:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 Nautobot/ansible/scripts/prepare-startup.py \
+  --output /tmp/nautobot-startup-review
+```
+
+The review is not a deployment bundle. Before activation, the exact-bundle launcher
+must supply and verify fresh stopped-state/identity evidence, staged helper hashes,
+artifact destinations, the guard identity and protected evidence directories.
+The candidate expects those reviewed inputs; it does not manufacture them.
+Browser authentication, allowed/denied network probes, representative Job, resource
+and storage acceptance still require their live evidence collector and reviewed
+contract. The candidate refuses successful completion without that acceptance.
+These are explicit remaining activation work, not evidence already obtained.
+
+Native migration commands have 120/1800/120-second bounds, with a 2160-second
+systemd start bound; application startup is bounded to 480 seconds per service.
+Ansible readiness uses 5-second delays (444 attempts for migration, 108 otherwise).
+The candidate guard is two hours to cover serial startup, evidence and cleanup.
+Review final aggregate deadlines before activation; the guard is a failure stop,
+not the pilot observation window. Migration remains `Restart=no`.
+
+Offline tests exercise actual Ansible failure progression and the inactive gate,
+native command ordering/failure, independent cleanup, schema boundaries, rendering
+against archived units, and the pinned Quadlet generator. They do not prove live
+rootless ownership, boot persistence, browser login or deployed firewall policy.
+
+The pinned Nautobot 3.2.3 source delegates `start` to `django_webserver`'s uWSGI
+command, which maps `STATIC_ROOT`; this is why web must collect assets in its own
+container. General references: [Nautobot installation](https://docs.nautobot.com/projects/core/en/stable/user-guide/administration/installation/nautobot/)
+and [Quadlet volume ownership](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html).
+
+### Concrete preparation sequence
+
+This is repository preparation, not an executable startup operation. Keep the
+consumed bootstrap definition until its annotated terminal tag is published and
+verified. Then reconcile history and return `operation.yaml` to clean; define a
+startup operation only when its implementation and owner prerequisites are ready.
+
+1. Bind the accepted bootstrap result, initialized database, loaded image,
+   credential/configuration records and existing stopped-volume identities. Do
+   not run administrator bootstrap or first-install deployment again.
+2. Update `manifests/desired-state.yaml`, its schema and
+   `ansible/scripts/validate-contracts.py` together for shared media consumers,
+   the explicit recovery bind and bounded migration resources. Keep the accepted
+   service memory ceilings and worker concurrency unchanged.
+3. Update `ansible/templates/runtime/container.j2` and
+   `ansible/scripts/render-runtime.py`. Render a normal repeatable migration unit
+   without continuation token, ledger fixture or initialization helper. Confirm
+   writable Git/Jobs/static/process paths from the pinned image; ensure static
+   files exist in the actual web container, not only the completed migration
+   container. Use the already-planned media volume for approved consumers and
+   verify ownership as seen inside each rootless container.
+4. Add a separate startup stage contract and Ansible path. The current
+   `deploy-runtime.yaml` accepts initialization/continuation only; neither stage
+   is an application-startup interface. The thin launcher must reject startup
+   until its schema, prerequisites, exact bundle and authorization agree.
+5. Prepare the network-owner handoff below and obtain deployed-policy evidence
+   before any listener opens. A repository policy declaration is insufficient.
+6. Render and compare with the accepted installed artifacts; validate with the
+   pinned Quadlet parser. Cover secret exclusion, unintended binds, missing
+   media/static paths, migration failure preventing dependents, independent
+   service stops, stale invocation evidence and partial installation in focused
+   tests. Wire the tests into the existing validation entrypoint and pre-commit.
+7. Assemble one reviewable startup bundle with exact artifacts, configuration
+   backups/hashes, target, ordered service actions, deadlines, acceptance and
+   recovery. No credential lookup or live probe is part of this preparation.
+
+### Network-owner handoff
+
+The machine-readable proposal is `manifests/startup-network-handoff.yaml`.
+The repository source is `Caddy/manifests/deployment.yaml` (relative to the
+repository root); inventory links the logical proxy names to their management
+FQDNs. Its current declarations are:
+
+| Permitted source | IPv4 | Permanent ULA |
+| --- | --- | --- |
+| pihole0 | 10.1.0.53 | fd36:5aa8:6971:1::53 |
+| pihole00 | 10.1.0.54 | fd36:5aa8:6971:1::54 |
+
+These are repository declarations, not newly verified live source addresses.
+The Caddy service VIP is not a substitute for proof of the proxies' egress source.
+Recheck the owning source and actual route/source selection in the separately
+reviewed network operation. Destination is Nautobot TCP 8080 at the two approved
+host addresses; local recovery uses `127.0.0.1:8080` through SSH. No wildcard bind,
+new DNS publication or Caddy route is included.
+
+`homelab-network` owns the policy. Ask it to prepare enforcement that covers
+same-subnet traffic as well as routed traffic, with rollback preserving SSH and
+existing monitoring. Do not assume the UniFi gateway sees direct LAN traffic.
+The resulting evidence must show installed rules, interface coverage and both
+address families. Test allowed access from each proxy and denied access from a
+reviewed non-proxy LAN source. Record unavailable vantage points explicitly;
+do not manufacture a pass or broaden the backend allowlist to the whole LAN.
+
+### Proposed startup acceptance and recovery contract
+
+Before mutation, require the accepted archives, fresh identity/drift checks,
+verified restrictive policy, no unexpected application containers/listeners and
+protected copies of every file to be replaced. Preserve existing database/cache
+volumes and credentials. Review the need for a fresh application-consistent
+recovery capture before repeatable `post_upgrade`: historical pre-migration cold
+copies cannot restore the current initialized database and administrator account.
+Any backup operation remains under the Restic owner's separate reviewed stage.
+
+Start PostgreSQL/Redis, prove new healthy invocations, run the repeatable migration
+prerequisite once, then web, worker and scheduler. A migration failure stops
+progression without implicit retries through dependent unit starts. Use bounded
+waits and independent cleanup with sanitized phase diagnostics. Select numerical
+deadlines and the initial observation duration from reviewed image/startup behavior
+when freezing the implementation; these are not yet defined by this document.
+
+The initial startup acceptance must include native no-pending-migration checks,
+HTTP `/health/` 200, real CSS/JS delivery, exact listener addresses, permitted and
+rejected backend access for both families, SSH-tunnel administrator login/logout,
+CSRF/host behavior, authenticated cache/broker connectivity, one worker with
+concurrency 2, one Beat scheduler, a completed representative Job, and effective
+resource limits. Define the representative Job and its harmless inputs before
+execution. Verify secret absence from persistent environments and evidence.
+
+Proposed successful terminal state: all six intended runtime services have their
+reviewed systemd state (migration completed successfully; other services running),
+with no temporary probe or credential residue. On failure, independently stop
+new application services and data services, preserve the database/media, retain
+diagnostics and restore only reviewed configuration backups when safe. Do not
+claim data rollback from a file restoration. Prove stopped-state or report manual
+intervention if a stop fails. Never delete volumes or the administrator account.
+
+Logout persistence can be checked within the startup operation if included in
+its frozen contract. Reboot, extended observation, application backup/restore,
+Caddy publication and the seven-day pilot remain separate reviewed stages.
 
 ## Remaining stage-5 gates
 

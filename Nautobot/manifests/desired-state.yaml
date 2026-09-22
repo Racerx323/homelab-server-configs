@@ -99,6 +99,9 @@ services:
       maxmemory_mib: 384
       eviction: noeviction
   migration:
+    memory_limit_mib: 1536
+    volumes:
+      - nautobot_media
     image: custom_nautobot
     role: migration
     kind: oneshot
@@ -131,11 +134,16 @@ services:
       - address: fd36:5aa8:6971:1::170
         family: ipv6
         port: 8080
+      - address: 127.0.0.1
+        family: ipv4
+        port: 8080
     secret_references:
       - django_secret_key
       - postgresql_password
       - redis_password
   worker:
+    volumes:
+      - nautobot_media
     image: custom_nautobot
     role: celery_worker
     memory_limit_mib: 1536
@@ -147,6 +155,8 @@ services:
       - postgresql_password
       - redis_password
   scheduler:
+    volumes:
+      - nautobot_media
     image: custom_nautobot
     role: celery_beat
     memory_limit_mib: 384

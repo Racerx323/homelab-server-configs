@@ -1,2 +1,6 @@
 [Volume]
 VolumeName=nautobot-{{ name }}
+{% if name == 'nautobot_media' %}
+User=999
+Group=999
+{% endif %}

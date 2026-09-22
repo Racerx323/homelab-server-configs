@@ -78,6 +78,15 @@ secure proxy header and production settings. The generated
 The pinned-image configuration/API check remains required; rendering alone cannot
 prove that an injected settings file is correct.
 
+## Application startup candidate
+
+Use `ansible/scripts/prepare-startup.py --output NEW_PRIVATE_DIRECTORY` to render
+and compare startup artifacts with the accepted bootstrap archive. See
+[bootstrap/startup preparation](BOOTSTRAP_AND_STARTUP.md) for implementation,
+remaining activation work and the network-owner handoff. The startup policy is
+inactive and the current runtime launcher does not accept this stage. Do not use
+initialization or bootstrap as a substitute startup command.
+
 ## Runtime deployment boundary
 
 `ansible/playbooks/deploy-runtime.yaml` and `ansible/scripts/run-runtime.py` now

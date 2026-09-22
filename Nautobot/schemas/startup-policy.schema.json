@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Inactive application startup candidate policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "execution_authorized",
+    "stage",
+    "host",
+    "source_policy",
+    "services",
+    "start_order",
+    "stop_order",
+    "service_start_timeout_seconds",
+    "migration_timeout_seconds",
+    "guard_seconds",
+    "storage_observation_seconds",
+    "success_state",
+    "failure_state",
+    "prerequisites",
+    "acceptance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "execution_authorized": {
+      "const": false
+    },
+    "stage": {
+      "const": "application_startup"
+    },
+    "host": {
+      "const": "j2-svpi4mf"
+    },
+    "source_policy": {
+      "const": "Caddy/manifests/deployment.yaml"
+    },
+    "services": {
+      "const": [
+        "postgresql",
+        "redis",
+        "migration",
+        "web",
+        "worker",
+        "scheduler"
+      ]
+    },
+    "start_order": {
+      "const": [
+        "postgresql",
+        "redis",
+        "migration",
+        "web",
+        "worker",
+        "scheduler"
+      ]
+    },
+    "stop_order": {
+      "const": [
+        "scheduler",
+        "worker",
+        "web",
+        "migration",
+        "redis",
+        "postgresql"
+      ]
+    },
+    "service_start_timeout_seconds": {
+      "const": 540
+    },
+    "migration_timeout_seconds": {
+      "const": 2220
+    },
+    "guard_seconds": {
+      "const": 7200
+    },
+    "storage_observation_seconds": {
+      "const": 75
+    },
+    "success_state": {
+      "const": "running_pending_acceptance"
+    },
+    "failure_state": {
+      "const": "stopped_data_retained"
+    },
+    "prerequisites": {
+      "const": [
+        "accepted_bootstrap_archive",
+        "fresh_stopped_baseline",
+        "exact_rendered_bundle",
+        "deployed_backend_policy",
+        "recovery_review"
+      ]
+    },
+    "acceptance": {
+      "const": [
+        "native_configuration_and_migrations",
+        "health_and_static_http",
+        "administrator_login_logout",
+        "allowed_denied_dual_stack_access",
+        "worker_scheduler_and_representative_job",
+        "resource_and_secret_boundaries",
+        "cleanup_and_storage_observation"
+      ]
+    }
+  }
+}

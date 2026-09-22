@@ -305,11 +305,20 @@
     "services": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["postgresql", "redis", "migration", "web", "worker", "scheduler"],
+      "required": [
+        "postgresql",
+        "redis",
+        "migration",
+        "web",
+        "worker",
+        "scheduler"
+      ],
       "properties": {
         "postgresql": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "memory_limit_mib",
@@ -318,19 +327,37 @@
                 "secret_references"
               ],
               "properties": {
-                "image": { "const": "postgresql" },
-                "role": { "const": "database" },
-                "memory_limit_mib": { "const": 1536 },
-                "published_endpoints": { "maxItems": 0 },
-                "volumes": { "const": ["postgresql_data"] },
-                "secret_references": { "const": ["postgresql_password"] }
+                "image": {
+                  "const": "postgresql"
+                },
+                "role": {
+                  "const": "database"
+                },
+                "memory_limit_mib": {
+                  "const": 1536
+                },
+                "published_endpoints": {
+                  "maxItems": 0
+                },
+                "volumes": {
+                  "const": [
+                    "postgresql_data"
+                  ]
+                },
+                "secret_references": {
+                  "const": [
+                    "postgresql_password"
+                  ]
+                }
               }
             }
           ]
         },
         "redis": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "memory_limit_mib",
@@ -341,14 +368,34 @@
                 "memory_policy"
               ],
               "properties": {
-                "image": { "const": "redis" },
-                "role": { "const": "task_queue" },
-                "memory_limit_mib": { "const": 512 },
-                "published_endpoints": { "maxItems": 0 },
-                "volumes": { "const": ["redis_data"] },
-                "secret_references": { "const": ["redis_password"] },
+                "image": {
+                  "const": "redis"
+                },
+                "role": {
+                  "const": "task_queue"
+                },
+                "memory_limit_mib": {
+                  "const": 512
+                },
+                "published_endpoints": {
+                  "maxItems": 0
+                },
+                "volumes": {
+                  "const": [
+                    "redis_data"
+                  ]
+                },
+                "secret_references": {
+                  "const": [
+                    "redis_password"
+                  ]
+                },
                 "memory_policy": {
-                  "properties": { "maxmemory_mib": { "const": 384 } }
+                  "properties": {
+                    "maxmemory_mib": {
+                      "const": 384
+                    }
+                  }
                 }
               }
             }
@@ -356,29 +403,65 @@
         },
         "migration": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "kind",
                 "command",
                 "depends_on",
                 "before",
-                "secret_references"
+                "secret_references",
+                "volumes",
+                "memory_limit_mib"
               ],
               "properties": {
-                "image": { "const": "custom_nautobot" },
-                "role": { "const": "migration" },
-                "kind": { "const": "oneshot" },
-                "command": { "const": ["nautobot-server", "post_upgrade"] },
-                "depends_on": { "const": ["postgresql", "redis"] },
-                "before": { "const": ["web", "worker", "scheduler"] }
+                "image": {
+                  "const": "custom_nautobot"
+                },
+                "role": {
+                  "const": "migration"
+                },
+                "kind": {
+                  "const": "oneshot"
+                },
+                "command": {
+                  "const": [
+                    "nautobot-server",
+                    "post_upgrade"
+                  ]
+                },
+                "depends_on": {
+                  "const": [
+                    "postgresql",
+                    "redis"
+                  ]
+                },
+                "before": {
+                  "const": [
+                    "web",
+                    "worker",
+                    "scheduler"
+                  ]
+                },
+                "volumes": {
+                  "const": [
+                    "nautobot_media"
+                  ]
+                },
+                "memory_limit_mib": {
+                  "const": 1536
+                }
               }
             }
           ]
         },
         "web": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "memory_limit_mib",
@@ -388,17 +471,40 @@
                 "secret_references"
               ],
               "properties": {
-                "image": { "const": "custom_nautobot" },
-                "role": { "const": "web" },
-                "memory_limit_mib": { "const": 1536 },
-                "depends_on": { "const": ["migration"] },
-                "volumes": { "const": ["nautobot_media"] },
+                "image": {
+                  "const": "custom_nautobot"
+                },
+                "role": {
+                  "const": "web"
+                },
+                "memory_limit_mib": {
+                  "const": 1536
+                },
+                "depends_on": {
+                  "const": [
+                    "migration"
+                  ]
+                },
+                "volumes": {
+                  "const": [
+                    "nautobot_media"
+                  ]
+                },
                 "published_endpoints": {
                   "const": [
-                    { "address": "10.1.2.170", "family": "ipv4", "port": 8080 },
+                    {
+                      "address": "10.1.2.170",
+                      "family": "ipv4",
+                      "port": 8080
+                    },
                     {
                       "address": "fd36:5aa8:6971:1::170",
                       "family": "ipv6",
+                      "port": 8080
+                    },
+                    {
+                      "address": "127.0.0.1",
+                      "family": "ipv4",
                       "port": 8080
                     }
                   ]
@@ -409,38 +515,76 @@
         },
         "worker": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "memory_limit_mib",
                 "concurrency",
                 "depends_on",
-                "secret_references"
+                "secret_references",
+                "volumes"
               ],
               "properties": {
-                "image": { "const": "custom_nautobot" },
-                "role": { "const": "celery_worker" },
-                "memory_limit_mib": { "const": 1536 },
-                "concurrency": { "const": 2 },
-                "depends_on": { "const": ["migration"] }
+                "image": {
+                  "const": "custom_nautobot"
+                },
+                "role": {
+                  "const": "celery_worker"
+                },
+                "memory_limit_mib": {
+                  "const": 1536
+                },
+                "concurrency": {
+                  "const": 2
+                },
+                "depends_on": {
+                  "const": [
+                    "migration"
+                  ]
+                },
+                "volumes": {
+                  "const": [
+                    "nautobot_media"
+                  ]
+                }
               }
             }
           ]
         },
         "scheduler": {
           "allOf": [
-            { "$ref": "#/$defs/service" },
+            {
+              "$ref": "#/$defs/service"
+            },
             {
               "required": [
                 "memory_limit_mib",
                 "depends_on",
-                "secret_references"
+                "secret_references",
+                "volumes"
               ],
               "properties": {
-                "image": { "const": "custom_nautobot" },
-                "role": { "const": "celery_beat" },
-                "memory_limit_mib": { "const": 384 },
-                "depends_on": { "const": ["migration"] }
+                "image": {
+                  "const": "custom_nautobot"
+                },
+                "role": {
+                  "const": "celery_beat"
+                },
+                "memory_limit_mib": {
+                  "const": 384
+                },
+                "depends_on": {
+                  "const": [
+                    "migration"
+                  ]
+                },
+                "volumes": {
+                  "const": [
+                    "nautobot_media"
+                  ]
+                }
               }
             }
           ]

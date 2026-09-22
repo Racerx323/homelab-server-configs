@@ -1,0 +1,27 @@
+---
+schema_version: 1
+owner: homelab-network
+state: proposed_not_deployed
+execution_authorized: false
+source_reference: Caddy/manifests/deployment.yaml
+target_reference: inventory/prod/hosts/j2-svpi4mf.yaml
+protocol: tcp
+destination_port: 8080
+destinations: [10.1.2.170, 'fd36:5aa8:6971:1::170']
+allowed_sources:
+  pihole0: [10.1.0.53, 'fd36:5aa8:6971:1::53']
+  pihole00: [10.1.0.54, 'fd36:5aa8:6971:1::54']
+local_recovery: 127.0.0.1:8080
+required_evidence:
+  - actual_proxy_egress_addresses
+  - interface_and_same_subnet_enforcement
+  - installed_ipv4_and_ipv6_rules
+  - allowed_access_from_both_proxies_over_both_families
+  - denied_access_from_nonproxy_lan_sources_over_both_families
+  - preserved_management_and_monitoring
+  - exact_policy_rollback
+unresolved:
+  - owner_selected_enforcement_mechanism
+  - nonproxy_test_vantage_references
+  - reviewed_live_network_operation
+excluded: [DNS_publication, Caddy_route, VIP_changes, gateway_reboot]

@@ -312,3 +312,20 @@ stopped-state verification and the 75-second storage review passed. Accepted liv
 state is unchanged. The archived pending-publication field is historical.
 The successor uses `--command`, parser regressions and recognized callback task
 names; its execution requires separate exact-bundle approval.
+
+## Accepted administrator bootstrap
+
+`nautobot-administrator-bootstrap-v2` is accepted. Published annotated tag
+`nautobot-administrator-bootstrap-v2-accepted` resolves to
+`17dbc01d45e591ebcbc019865f1ac010df7238bc`; remote identity verified on
+September 22, 2026. Definition commit `45e10f33eb9deefc2a2f29d68f12d5d7dcc60e08`;
+approved bundle `370f9ea861b96e0923dc3d886ca16560f2b609beefbcefa1930da3b6e1461f5f`.
+All 70 frozen inputs were verified. The tag preserves the consumed definition
+and `manifests/administrator-bootstrap-result.json`; its pending-archival field
+is historical. All five native checks passed, including account absence, native
+creation and exact administrator flags/identity with positive authentication.
+Transient credentials and the disposable container were removed; data services
+stopped; identities/cold copies verified; guard disarmed without activation;
+75-second storage review quiet. The administrator is now present: do not rerun
+bootstrap. The active slot is clean. Application startup and browser acceptance
+remain unperformed; stage-3/stage-4 accepted identities are unchanged.

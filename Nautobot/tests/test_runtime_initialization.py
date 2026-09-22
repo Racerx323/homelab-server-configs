@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline initialization-only production path, parser and failure tests."""
 import copy
+import hashlib
 import importlib.util
 import json
 import os
@@ -130,8 +131,16 @@ class Initialization(unittest.TestCase):
                     if args[0]=='rev-parse':return proof['commit'].encode()
                     if args[0]=='show':return (ROOT/proof['path']).read_bytes()
             raise AssertionError(args)
+        # Exercise prerequisite mechanics against explicit current fixture hashes;
+        # consumed initialization inputs must not track evolving desired state.
+        op=copy.deepcopy(self.op)
+        op['input_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+                            for name in op['input_sha256']}
         with patch.object(launcher.subprocess,'check_output',side_effect=git):
-            launcher.verify_prerequisites(self.op)
+            launcher.verify_prerequisites(op)
+            op['input_sha256']['Nautobot/manifests/desired-state.yaml']='0'*64
+            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'accepted_input_drift'):
+                launcher.verify_prerequisites(op)
 
     def test_prerequisite_record_drift(self):
         op=copy.deepcopy(self.op);op['prerequisites'][0]['sha256']='0'*64

@@ -39,6 +39,7 @@ def render(desired, inputs, initialization=False, continuation=None):
     desired = copy.deepcopy(desired)
     if initialization:
         desired['services']['migration']['memory_limit_mib'] = 1536
+        desired['services']['migration']['volumes'] = []
     env = Environment(loader=FileSystemLoader(TEMPLATES), undefined=StrictUndefined,
                       trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
     artifacts = {'nautobot-private.network': env.get_template('network.j2').render(network=desired['runtime']['network'])}
@@ -54,7 +55,7 @@ def render(desired, inputs, initialization=False, continuation=None):
             raise ValueError('only web may publish ports')
         for endpoint in service.get('published_endpoints', []):
             if (endpoint['address'], endpoint['family'], endpoint['port']) not in {
-                ('10.1.2.170', 'ipv4', 8080), ('fd36:5aa8:6971:1::170', 'ipv6', 8080)}:
+                ('127.0.0.1', 'ipv4', 8080), ('10.1.2.170', 'ipv4', 8080), ('fd36:5aa8:6971:1::170', 'ipv6', 8080)}:
                 raise ValueError('unreviewed backend binding')
         commands = {'migration': '/run/initialize-application.py' if initialization else ' '.join(desired['services']['migration']['command'][1:]),
                     'web': 'start --http 0.0.0.0:8080',

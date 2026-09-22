@@ -9,11 +9,16 @@ and exact administrator identity/flags plus positive authentication.
 review. Transient credentials and the disposable container were removed; data
 services are stopped, configuration and cold copies remained verified, the guard
 did not fire, and the 75-second delayed storage review found no errors.
-The consumed operation remains in place pending terminal Git archival. Do not
-rerun it: the administrator now exists. Next archive this accepted result, then
-prepare the separate application startup operation described in
-[bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). Browser login, application
-startup, workload acceptance and application-aware backup/restore remain pending.
+Published annotated tag `nautobot-administrator-bootstrap-v2-accepted` at
+`17dbc01` preserves the consumed definition and accepted result; its remote identity
+was verified. The archived result's pending-publication field is historical.
+The active operation is clean. Do not rerun bootstrap: the administrator exists.
+The inactive application-startup candidate is implemented with offline rendering,
+ordered Ansible startup, native entrypoint and failure stops. Next complete the
+network-owner evidence and exact activation/acceptance contract, following the sequence in
+[bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). No startup bundle is frozen.
+Browser login, application startup, workload acceptance and application-aware
+backup/restore remain pending.
 
 Runtime initialization is accepted as of September 22, 2026. The authorized
 continuation passed all five native steps in 285.165 seconds, including
@@ -46,7 +51,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains the consumed accepted administrator-bootstrap definition, pending archival. Negative security tests were not run and remain unresolved.
+is clean after accepted administrator-bootstrap archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
