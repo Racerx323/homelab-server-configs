@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "host": "j2-svpi4mf",
+  "accepted": true,
+  "collected_at": "2026-09-22T21:48:19.503261+00:00",
+  "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+  "services": {
+    "postgresql": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": "c9f099893fa1406cb7744e76c29b2f3c"
+    },
+    "redis": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": "5925cbf55c9e44ad981234b64ae5be41"
+    },
+    "migration": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "exit-code",
+      "ExecMainStatus": "69",
+      "ActiveState": "failed",
+      "SubState": "failed",
+      "InvocationID": "4daae0cbd28949beb279b6e6b171a578"
+    },
+    "web": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    },
+    "worker": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    },
+    "scheduler": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "ExecMainStatus": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "InvocationID": ""
+    }
+  },
+  "containers": [],
+  "images": [
+    {
+      "Id": "808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+        "localhost/sha256@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf"
+      ],
+      "Size": 932916896,
+      "SharedSize": 0,
+      "VirtualSize": 932916896,
+      "Labels": {
+        "io.buildah.version": "1.39.3",
+        "org.opencontainers.image.created": "2026-08-17T16:51:02.136Z",
+        "org.opencontainers.image.description": "Network Source of Truth & Network Automation Platform",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.revision": "4c8374efc39288beaa1adba69855b51075881329",
+        "org.opencontainers.image.source": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.title": "Nautobot",
+        "org.opencontainers.image.url": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.version": "v3.2.3"
+      },
+      "Containers": 0,
+      "Digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+      "History": [
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+        "localhost/nautobot-homelab:qualified"
+      ],
+      "Names": [
+        "localhost/nautobot-homelab:qualified",
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa"
+      ],
+      "Created": 1790015069,
+      "CreatedAt": "2026-09-21T18:24:29Z"
+    },
+    {
+      "Id": "808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+        "localhost/sha256@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf"
+      ],
+      "Size": 932916896,
+      "SharedSize": 0,
+      "VirtualSize": 932916896,
+      "Labels": {
+        "io.buildah.version": "1.39.3",
+        "org.opencontainers.image.created": "2026-08-17T16:51:02.136Z",
+        "org.opencontainers.image.description": "Network Source of Truth & Network Automation Platform",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.revision": "4c8374efc39288beaa1adba69855b51075881329",
+        "org.opencontainers.image.source": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.title": "Nautobot",
+        "org.opencontainers.image.url": "https://github.com/nautobot/nautobot",
+        "org.opencontainers.image.version": "v3.2.3"
+      },
+      "Containers": 0,
+      "Digest": "sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf",
+      "History": [
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa",
+        "localhost/nautobot-homelab:qualified"
+      ],
+      "Names": [
+        "localhost/nautobot-homelab:qualified",
+        "localhost/sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa"
+      ],
+      "Created": 1790015069,
+      "CreatedAt": "2026-09-21T18:24:29Z"
+    },
+    {
+      "Id": "82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Size": 138656332,
+      "SharedSize": 0,
+      "VirtualSize": 138656332,
+      "Labels": null,
+      "Containers": 0,
+      "Digest": "sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323",
+      "History": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Names": [
+        "docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323"
+      ],
+      "Created": 1787072201,
+      "CreatedAt": "2026-08-18T16:56:41Z"
+    },
+    {
+      "Id": "46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf",
+      "ParentId": "",
+      "RepoTags": null,
+      "RepoDigests": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Size": 483627015,
+      "SharedSize": 0,
+      "VirtualSize": 483627015,
+      "Labels": null,
+      "Containers": 0,
+      "Digest": "sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296",
+      "History": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Names": [
+        "docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296"
+      ],
+      "Created": 1786648527,
+      "CreatedAt": "2026-08-13T19:15:27Z"
+    }
+  ],
+  "volumes": [
+    {
+      "Name": "nautobot-postgresql_data",
+      "Driver": "local",
+      "Mountpoint": "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-postgresql_data/_data",
+      "CreatedAt": "2026-09-21T19:47:29.054988031-05:00",
+      "Labels": {},
+      "Scope": "local",
+      "Options": {},
+      "MountCount": 0,
+      "NeedsCopyUp": true,
+      "LockNumber": 0
+    },
+    {
+      "Name": "nautobot-redis_data",
+      "Driver": "local",
+      "Mountpoint": "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-redis_data/_data",
+      "CreatedAt": "2026-09-21T19:47:41.551480973-05:00",
+      "Labels": {},
+      "Scope": "local",
+      "Options": {},
+      "MountCount": 0,
+      "NeedsCopyUp": true,
+      "LockNumber": 2
+    },
+    {
+      "Name": "nautobot-nautobot_media",
+      "Driver": "local",
+      "Mountpoint": "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media/_data",
+      "CreatedAt": "2026-09-22T16:09:02.047934067-05:00",
+      "Labels": {},
+      "Scope": "local",
+      "Options": {
+        "GID": "999",
+        "UID": "999",
+        "o": "uid=999,gid=999"
+      },
+      "UID": 999,
+      "GID": 999,
+      "MountCount": 0,
+      "NeedsCopyUp": true,
+      "LockNumber": 4
+    }
+  ],
+  "listeners": "LISTEN 0      4096   0.0.0.0:10000 0.0.0.0:*\nLISTEN 0      128    0.0.0.0:22    0.0.0.0:*\nLISTEN 0      4096      [::]:10000    [::]:*\nLISTEN 0      128       [::]:22       [::]:*\nLISTEN 0      4096         *:4949        *:*\n",
+  "mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/sda2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,noatime\"\n      }\n   ]\n}\n",
+  "free_bytes": 934185283584,
+  "memory": "MemTotal:        8006376 kB\nMemFree:         1487680 kB\nMemAvailable:    7616412 kB\nBuffers:          273220 kB\nCached:          5510612 kB\nSwapCached:            0 kB\nActive:           331116 kB\nInactive:        5534440 kB\nActive(anon):     111396 kB\nInactive(anon):        0 kB\nActive(file):     219720 kB\nInactive(file):  5534440 kB\nUnevictable:        2272 kB\nMlocked:            2272 kB\nSwapTotal:       2097148 kB\nSwapFree:        2097148 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:                 0 kB\nWriteback:             0 kB\nAnonPages:         84240 kB\nMapped:            61336 kB\nShmem:             27876 kB\nKReclaimable:     476692 kB\nSlab:             550456 kB\nSReclaimable:     476692 kB\nSUnreclaim:        73764 kB\nKernelStack:        2784 kB\nPageTables:         3088 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:     6100336 kB\nCommitted_AS:     241248 kB\nVmallocTotal:   261087232 kB\nVmallocUsed:       45436 kB\nVmallocChunk:          0 kB\nPercpu:             4416 kB\nCmaTotal:         524288 kB\nCmaFree:          439708 kB\nBalloon:               0 kB\n",
+  "runtime_files": {
+    "continuation-evidence": {
+      "regular": false
+    },
+    "initialize-application.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 3760,
+      "sha256": "4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b"
+    },
+    "migration-continuation-inputs.json": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 144342
+    },
+    "migration-continuation.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 11034,
+      "sha256": "d2067f3f95bbccf606678656db8beecccb59e7803868a768f11ecb5eb0f2bb26"
+    },
+    "migration.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "nautobot_config.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 468,
+      "sha256": "ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90"
+    },
+    "postgresql.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 83
+    },
+    "redis.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 79
+    },
+    "scheduler.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "startup-application.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 2733,
+      "sha256": "de30de5080156d85bd235e5b004a86080542115f573648a66792ab16d1c79124"
+    },
+    "startup-job-probe.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 2054,
+      "sha256": "07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c"
+    },
+    "startup-job.py": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o644",
+      "size": 796,
+      "sha256": "85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6"
+    },
+    "web.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    },
+    "worker.env": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 430
+    }
+  },
+  "quadlets": {
+    "nautobot-migration.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1532,
+      "sha256": "16ee24f33b1074debfa946ce1d80af145623a54d79cc4fdab9daebbf48db431a"
+    },
+    "nautobot-migration.container.745734.2026-09-22@16:08:35~": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1516
+    },
+    "nautobot-nautobot_media.volume": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 63,
+      "sha256": "ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13"
+    },
+    "nautobot-postgresql.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 686,
+      "sha256": "463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905"
+    },
+    "nautobot-postgresql_data.volume": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 45,
+      "sha256": "0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a"
+    },
+    "nautobot-private.network": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 39,
+      "sha256": "0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63"
+    },
+    "nautobot-redis.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 712,
+      "sha256": "906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9"
+    },
+    "nautobot-redis_data.volume": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 40,
+      "sha256": "b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717"
+    },
+    "nautobot-scheduler.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1504,
+      "sha256": "0763ed323e0cae63f926c168f7fb8c988078129f9a6297a2a8dc6b270e1adeb2"
+    },
+    "nautobot-web.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1769,
+      "sha256": "4743cf66cc49b672e38acac0b4169490262235bc54760a98b9275f374b69caf5"
+    },
+    "nautobot-worker.container": {
+      "regular": true,
+      "uid": 999,
+      "gid": 985,
+      "mode": "0o600",
+      "size": 1488,
+      "sha256": "8b280c50569c161d94a186973b1209c47cc4a99938d94fdfc20be46a20d8eeeb"
+    }
+  },
+  "guard": {
+    "verified": true
+  },
+  "journal_cursor": "-- No entries --\n-- cursor: s=bb640115c63545a9abbdf0084aa6ab0e;i=7751;b=70c9f650a6a2458384a9f96462bef393;m=7c66524469;t=65c195337065f;x=958d75b762d00a5b\n",
+  "recovery_copies": {
+    "nautobot-postgresql_data": {
+      "entries": 3218,
+      "tree_sha256": "c0bc83825dc0ba2e60b442d03fa28ae85c68de99de9ce7bb22c5d70bf54331f7"
+    },
+    "nautobot-redis_data": {
+      "entries": 6,
+      "tree_sha256": "c73f40a68acf161774bc53e040c425b306fe47dbf9fdb29ca268acf34925f6bf"
+    }
+  },
+  "scope": "stopped_runtime_with_reviewed_processless_migration_failure",
+  "review_sources": {
+    "raw_baseline_sha256": "9c83417140381ab002d5cfa8ba07e4ed1b3fce6b6295afe4f742c79be088a745",
+    "kernel_review_sha256": "b589146e215f3a3c1d4af2275c5279550cadf72940a08bcc4d20306ab5e6fee7"
+  },
+  "limitations": [
+    "Migration failed marker deliberately preserved; exact service-state match required before retry.",
+    "Recovery copies retain initialized database and administrator before startup; live volumes may differ after normal data-service activity.",
+    "External IPv6 and workload/restore acceptance remain separate historical limitations."
+  ]
+}

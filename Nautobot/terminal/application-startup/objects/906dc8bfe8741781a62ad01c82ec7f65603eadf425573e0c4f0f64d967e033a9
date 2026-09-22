@@ -1,0 +1,27 @@
+[Unit]
+Description=Nautobot redis
+
+[Container]
+Image=docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323
+Pull=never
+ContainerName=nautobot-redis
+Network=nautobot-private.network
+NetworkAlias=redis
+EnvironmentFile=/var/lib/nautobot/runtime/redis.env
+Volume=nautobot-redis_data.volume:/data
+PodmanArgs=--memory=512m
+Secret=nautobot-redis-config,type=mount,target=redis.conf,uid=999,gid=999,mode=0400
+Exec=redis-server /run/secrets/redis.conf
+HealthCmd=/bin/sh -c 'test "$(redis-cli --raw ping)" = PONG'
+Notify=healthy
+HealthInterval=10s
+HealthRetries=6
+
+[Service]
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=90
+
+[Install]
+WantedBy=default.target

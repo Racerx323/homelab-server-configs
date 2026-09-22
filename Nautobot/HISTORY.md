@@ -358,3 +358,15 @@ both stop timers inactive; migration failed marker retained. The initial armed
 guard fields are historical. Accepted application state is unchanged.
 The successor binds a bounded per-container metrics tmpfs and the reviewed
 processless failed migration state; it requires separate execution approval.
+
+## Second application startup failure
+
+`nautobot-application-startup-v2` exhausted HTTP readiness after successful
+native migration. Terminal tag: `nautobot-application-startup-v2-failed`; its
+peeled commit identifies this archive. All 48 consumed inputs are preserved
+under `terminal/application-startup/objects/`. Bundle:
+`93c7f56eb7fc7c57d4ad88b206624e7b96c7a2f516e8e170ed05c6948621a3b3`.
+All service processes and containers were stopped; data and recovery copies
+were retained. Exit 137 followed cleanup, not a proven initial crash. Exact
+HTTP errors were not retained. Accepted application state is unchanged.
+Publication verification is pending; no successor is active.

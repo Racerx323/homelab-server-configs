@@ -1,10 +1,10 @@
 ---
 schema_version: 1
 operation:
-  state: terminal-pending
+  state: definition
   stage: application_startup
   id: nautobot-application-startup-v2
-  authorization_ready: false
+  authorization_ready: true
   target: j2-svpi4mf
 prerequisites:
   preservation_tag: nautobot-startup-preservation-v1-accepted
