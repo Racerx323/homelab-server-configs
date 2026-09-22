@@ -17,8 +17,12 @@ The inactive application-startup candidate is implemented with offline rendering
 ordered Ansible startup, native entrypoint, hash-bound launcher, bounded collector
 and failure stops. Network packet evidence is accepted and archived. The fresh read-only baseline was collected and reviewed on September 22;
 services remain stopped and installed identities match the bootstrap archive.
-Concrete session/network/Job probes are implemented locally. Next authorize the
-separate stopped-database preservation, then assemble the startup activation contract. See
+Concrete session/network/Job probes are implemented locally. Stopped-database
+preservation passed on September 22: both volume copies matched content and
+metadata, with final stopped-state and identity checks passing. See the
+[preservation result](../manifests/startup-preservation-result.json). Terminal
+archival is pending; next archive preservation, refresh the startup baseline,
+and assemble the startup activation contract. See
 [startup baseline and recovery](STARTUP_PREFLIGHT_AND_RECOVERY.md) and the sequence in
 [bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). No startup bundle is frozen.
 Browser login, application startup, workload acceptance and application-aware

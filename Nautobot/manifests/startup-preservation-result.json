@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-startup-database-preservation-v1",
+  "stage": "startup_database_preservation",
+  "accepted": true,
+  "reviewed_at": "2026-09-22T20:41:57.932771+00:00",
+  "bundle_sha256": "eabbf6cdb678acb38e38019b280ccdc0e310bc1fc54f3c0be2af7333739de074",
+  "source_commit": "9130f86723458cee3ad16bee1d5d4fa8e4f8b31f",
+  "ansible_exit_status": 0,
+  "copy_verification": {
+    "nautobot-postgresql_data": {
+      "verified": true,
+      "entries": 3218,
+      "tree_sha256": "c0bc83825dc0ba2e60b442d03fa28ae85c68de99de9ce7bb22c5d70bf54331f7"
+    },
+    "nautobot-redis_data": {
+      "verified": true,
+      "entries": 6,
+      "tree_sha256": "c73f40a68acf161774bc53e040c425b306fe47dbf9fdb29ca268acf34925f6bf"
+    }
+  },
+  "postconditions": {
+    "data_services_stopped": true,
+    "containers_absent": true,
+    "installed_identities_unchanged": true
+  },
+  "limitations": [
+    "Cold copy verified; restore not exercised.",
+    "Application startup remains pending."
+  ],
+  "archive_status": "pending",
+  "evidence_sha256": {
+    "ansible.stderr": "79c81ee790a762631546850678e7177f40e80c070adc92bf26f24a66d245a0d0",
+    "result.json": "3dd1ff8237ddeb9562385a8499e423d567d98491a5df3560b1ee2c984b587592",
+    "ansible.stdout": "30f58fda8583715111a5b67f75a61ef09190a4ea4402d1b3877a9cded416d436",
+    "preservation.json": "fa062fd1ecfe902ce94671e59057518fbc0e12ac74ff505df4ff6c64b907f62d"
+  }
+}

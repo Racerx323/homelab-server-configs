@@ -329,3 +329,14 @@ stopped; identities/cold copies verified; guard disarmed without activation;
 75-second storage review quiet. The administrator is now present: do not rerun
 bootstrap. The active slot is clean. Application startup and browser acceptance
 remain unperformed; stage-3/stage-4 accepted identities are unchanged.
+
+## Accepted startup database preservation
+
+`nautobot-startup-database-preservation-v1` passed on September 22, 2026.
+Bundle `eabbf6cdb678acb38e38019b280ccdc0e310bc1fc54f3c0be2af7333739de074`;
+PostgreSQL 3218 entries and Redis 6 entries matched source-before, source-after
+and copy content/metadata. Final stopped-state and installed-identity checks
+passed. `manifests/startup-preservation-result.json` records sanitized evidence;
+`terminal/startup-preservation/` retains the exact consumed bundle. Proposed tag
+`nautobot-startup-preservation-v1-accepted` awaits publication. No restore or
+application startup was performed.
