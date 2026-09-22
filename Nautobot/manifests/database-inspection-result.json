@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-retained-database-inspection-v1",
+  "outcome": "cold_preservation_and_ledger_inspection_accepted",
+  "accepted": true,
+  "definition_commit": "ac1d1b66d393ab2797b881a31c0a517935db44f3",
+  "bundle_sha256": "4976dfe6bb7bd005a8e425468a9149eda3f52848a0e32868ac9c35a88588defd",
+  "reviewed_at": "2026-09-22T14:07:03.229552+00:00",
+  "cold_copies": {
+    "passed": true,
+    "cold_copy": "/var/lib/nautobot/recovery/nautobot-retained-database-inspection-v1",
+    "volumes": {
+      "nautobot-postgresql_data": {
+        "verified": true,
+        "entries": 2894,
+        "tree_sha256": "82ce0feaae53128150cd6b2b6589fa21615fe79eb86051fed8075541a489b0c1"
+      },
+      "nautobot-redis_data": {
+        "verified": true,
+        "entries": 6,
+        "tree_sha256": "93cad498d3f207fd4ca57ecf0f6cf51f7b80eb2f9f564f2c39c081dd2ece340f"
+      }
+    },
+    "previous_postgresql_invocation": "a0c2af7927b5411f83b524fde70439c9"
+  },
+  "ledger": {
+    "database": "nautobot",
+    "server_version_num": "170011",
+    "read_only": "on",
+    "exists": true,
+    "applied_count": 423,
+    "unrecorded_core_and_dns_files": 26,
+    "last_recorded": {
+      "app": "ipam",
+      "name": "0058_iprange_role_data",
+      "applied": "2026-09-22T01:01:24.56816+00:00"
+    }
+  },
+  "services_stopped": {
+    "passed": true,
+    "services": {
+      "postgresql": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "f61d59375ccf4d1290176c8932c3f7d6"
+      },
+      "redis": {
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "InvocationID": "b95b12a5427a47468dea055a6f6b9b29"
+      },
+      "migration": {
+        "Result": "exit-code",
+        "ExecMainStatus": "69",
+        "ActiveState": "failed",
+        "SubState": "failed",
+        "InvocationID": "25996a46fad64550974145e48eb4c685"
+      }
+    }
+  },
+  "guard_fired": false,
+  "guard_disarmed": true,
+  "storage_review": {
+    "boot_unchanged": true,
+    "cursor_verified": true,
+    "entries_reviewed": 10,
+    "storage_event_count": 0,
+    "delayed_seconds": 75.00011642603204,
+    "passed": true
+  },
+  "initialization_accepted": false,
+  "migration_run": false,
+  "git_archival": "pending",
+  "evidence_sha256": {
+    "storage-review.json": "68da184b68d6c3cf194adff95f89903186b623aef5e917c13d8a33fe550b6f92",
+    "stages.json": "2b0feedaa81a8f838248eb926746d997d653f8074ddb0aebae722bfa782f1a56",
+    "bundle.sha256": "b6c36b03d3dfe302e7777ed5be56eaa0184107a256946116f9f4b386cfb0d909",
+    "result.json": "87de9aaa56ec7fcfadb4a11da3b30fa730706ed8193459d71db7553081907cd8",
+    "ledger.json": "896803479fb7d2d3c96677f58eb97f38ab44be4bfb1ea0ece8890a9d18e66c69",
+    "bundle-files.sha256": "0f033ab8f81075c089eaacd9f3ee3431db95f66e16c7b8e17beccfc878df46f4",
+    "preservation.json": "b1e16b29c914b4aea3ddec588ca88b3b5660bad8c66b2430f6d75bd9bd2fef3d",
+    "migration-comparison.json": "d06c91922ac6e6609d3437da054aa10245f90afb3538c632346cf3260bd62bde",
+    "ansible-progress.jsonl": "676cf2c8eb69241c39caa243fa22e04b1d6f57ab6bcb8bd0db2be8967498c28e"
+  }
+}

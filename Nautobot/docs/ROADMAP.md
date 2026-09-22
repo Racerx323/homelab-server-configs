@@ -11,7 +11,8 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-contains a retained-database inspection candidate after failure archival. Negative security tests were not run and remain unresolved.
+contains the consumed, successful retained-database inspection; terminal archival
+is pending. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -69,11 +70,23 @@ discarded. A harmless Ansible failure returned normally with complete diagnostic
 the historical long-running wait remains unreproduced. The
 [prepared recovery procedure](RUNTIME_INITIALIZATION.md#recovery-from-partial-initialization)
 starts with cold preservation and migration-ledger inspection, not another blind
-migration retry. Its implementation is now prepared with a node-local stop guard, cold-copy verification, bounded SQL and an always-stop path. The exact bundle requires separate execution approval.
+migration retry. The approved inspection completed on September 22, 2026:
+both stopped volumes were independently copied and verified before PostgreSQL
+started. Its read-only ledger contains 423 applied migrations. Static comparison
+with pinned sources finds 16 core and 10 DNS Models migration files unrecorded;
+this is not a complete native migration plan. Initialization remains incomplete.
+PostgreSQL stopped afterward, Redis stayed inactive, no containers remain, and
+the stop guard was disarmed without firing. The 75-second delayed review found
+no storage events. Protected cold copies remain on the host.
+[Inspection acceptance](../manifests/database-inspection-result.json) records
+identities, hashes and results. Next: archive this inspection, then prepare a
+bounded continuation against the retained database with native migration-plan
+review and phase/migration progress evidence. Execution needs a separately
+reviewed bundle; do not rerun first installation or discard the cold copies.
 
 The pre-data prerequisite is complete: repository initialization, canary backup
 with full integrity checking, and isolated restore are accepted and archived.
-The active initialization-only operation binds their exact terminal records,
+The consumed initialization-only operation bound their exact terminal records,
 positive application readiness, accepted image IDs, credential provenance and
 host identity. Do not rerun consumed prerequisites or add a negative SQLSTATE
 qualification gate.
@@ -82,7 +95,7 @@ The [initialization procedure](RUNTIME_INITIALIZATION.md) owns the reviewed
 implementation, native commands, bounds, acceptance and recovery details. The
 launcher and Ansible path select only the private network, two durable volumes,
 PostgreSQL, Redis and migration. Six Quadlets are rendered; web, worker and
-scheduler units are excluded. The initialization bundle has been consumed. The active successor only preserves and inspects retained volumes; execution still requires its own approved hash.
+scheduler units are excluded. The initialization bundle has been consumed. The inspection successor has also been consumed successfully; do not rerun it.
 
 The migration wrapper performs native configuration checking, `post_upgrade`,
 a second configuration check and pending-migration checking. It records safe
@@ -93,9 +106,9 @@ A failed stage attempts independent stops while preserving persistent data.
 
 Local regressions cover the actual selected units and Quadlet parser, native
 command sequence and failures, sanitized receipts, data-service assertions,
-bundle/prerequisite gates and real Ansible stop sequencing. Current target
-identity, first database creation, migrations, health and delayed storage
-observation remain live checks under a separately approved bundle.
+bundle/prerequisite gates and real Ansible stop sequencing. Database creation occurred during the failed initialization. Remaining migrations,
+health and delayed storage observation require a separately approved continuation
+bundle that handles existing data.
 
 After initialization is accepted, prepare administrator bootstrap and application
 startup. The temporary migration static cache does not provide the later web
