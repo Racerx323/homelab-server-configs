@@ -1837,6 +1837,9 @@
       "$ref": "runtime-initialization.schema.json"
     },
     {
+      "$ref": "database-inspection.schema.json"
+    },
+    {
       "title": "Prepared bounded ARM64 image qualification; external hash approval required",
       "const": {
         "schema_version": 1,

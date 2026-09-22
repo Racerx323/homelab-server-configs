@@ -317,7 +317,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|database-inspection)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -438,6 +438,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^(?:Nautobot/|restic/)
+      - id: nautobot-database-inspection
+        name: Validate retained database preservation and inspection
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_database_inspection.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/
       - id: nautobot-runtime-initialization
         name: Validate private runtime initialization and failure boundaries
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime_initialization.py

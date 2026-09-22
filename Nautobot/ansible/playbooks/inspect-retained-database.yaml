@@ -1,0 +1,318 @@
+---
+- name: Preserve retained volumes and inspect the migration ledger
+  hosts: inventory_automation
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    inspection_operation: '{{ lookup(''ansible.builtin.file'', ''../../manifests/operation.yaml'') | from_yaml
+      }}'
+  pre_tasks:
+    - name: Require the exact reviewed inspection boundary
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - inspection_bundle_verified | default(false) | bool
+          - inspection_operation.operation.stage == 'retained_database_inspection'
+    - name: Create protected inspection evidence directory
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/mktemp
+          - -d
+          - /tmp/nautobot-inspection.XXXXXXXX
+        chdir: /
+      register: inspection_node
+      changed_when: true
+    - name: Stage bounded inspection helpers
+      ansible.builtin.copy:
+        src: '{{ item.src }}'
+        dest: '{{ inspection_node.stdout }}/{{ item.name }}'
+        mode: '0600'
+      become: true
+      loop:
+        - src: '{{ playbook_dir }}/../scripts/inspect-retained-database.py'
+          name: inspect-retained-database.py
+        - src: '{{ playbook_dir }}/../scripts/runtime-initialization-node.py'
+          name: runtime-initialization-node.py
+        - src: '{{ playbook_dir }}/../../../restic/scripts/canary-backup.py'
+          name: canary-backup.py
+    - name: Stage the reviewed operation
+      ansible.builtin.copy:
+        content: '{{ inspection_operation | to_json }}'
+        dest: '{{ inspection_node.stdout }}/operation.json'
+        mode: '0600'
+      become: true
+    - name: Capture inspection journal baseline
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+          - journal-baseline
+          - '{{ inspection_node.stdout }}'
+        chdir: /
+      register: inspection_cursor
+      changed_when: false
+      failed_when: false
+      no_log: true
+    - name: Require inspection cursor
+      ansible.builtin.assert:
+        that: inspection_cursor.rc == 0
+    - name: Preserve node journal baseline
+      ansible.builtin.copy:
+        content: '{{ inspection_cursor.stdout }}'
+        dest: '{{ inspection_node.stdout }}/journal-baseline.json'
+        mode: '0600'
+      become: true
+    - name: Preserve both stopped volumes independently
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/sudo
+          - -n
+          - /usr/bin/python3
+          - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+          - preserve
+          - '{{ inspection_node.stdout }}'
+        chdir: /
+      register: inspection_copy
+      changed_when: false
+      failed_when: false
+      no_log: true
+    - name: Preserve preservation
+      ansible.builtin.copy:
+        content: '{{ inspection_copy | to_json }}'
+        dest: '{{ inspection_evidence_root }}/preservation.json'
+        mode: '0600'
+      delegate_to: localhost
+      no_log: true
+    - name: Require verified cold copies
+      ansible.builtin.assert:
+        that: inspection_copy.rc == 0
+  tasks:
+    - name: Inspect PostgreSQL and always request stop
+      block:
+        - name: Arm independent eight minute PostgreSQL stop guard
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemd-run
+              - --unit={{ inspection_operation.guard_unit }}
+              - --on-active=8m
+              - --timer-property=AccuracySec=1s
+              - --property=TimeoutStartSec=120s
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/env
+              - XDG_RUNTIME_DIR=/run/user/999
+              - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+              - /usr/bin/systemctl
+              - --user
+              - stop
+              - nautobot-postgresql.service
+            chdir: /
+          changed_when: true
+          register: inspection_guard
+        - name: Verify independent stop timer is active before startup
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - is-active
+              - '{{ inspection_operation.guard_unit }}.timer'
+            chdir: /
+          changed_when: false
+        - name: Request only PostgreSQL startup without waiting in the transport
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/env
+              - XDG_RUNTIME_DIR=/run/user/999
+              - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+              - /usr/bin/systemctl
+              - --user
+              - start
+              - --no-block
+              - nautobot-postgresql.service
+            chdir: /
+          register: inspection_start
+          changed_when: true
+          async: 30
+          poll: 1
+          no_log: true
+        - name: Wait for a new healthy private PostgreSQL invocation
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+              - ready
+              - '{{ inspection_node.stdout }}'
+            chdir: /
+          register: inspection_ready
+          changed_when: false
+          failed_when: inspection_ready.rc != 0
+          no_log: true
+          until: inspection_ready.rc == 0
+          retries: 24
+          delay: 5
+        - name: Inspect only migration ledger metadata
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+              - ledger
+              - '{{ inspection_node.stdout }}'
+            chdir: /
+          register: inspection_ledger
+          changed_when: false
+          failed_when: false
+          no_log: true
+        - name: Preserve ledger
+          ansible.builtin.copy:
+            content: '{{ inspection_ledger | to_json }}'
+            dest: '{{ inspection_evidence_root }}/ledger.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Require completed read-only ledger query
+          ansible.builtin.assert:
+            that: inspection_ledger.rc == 0
+      always:
+        - name: Request PostgreSQL stop even when inspection failed
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/sbin/runuser
+              - --user
+              - nautobot
+              - --
+              - /usr/bin/env
+              - XDG_RUNTIME_DIR=/run/user/999
+              - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+              - /usr/bin/systemctl
+              - --user
+              - stop
+              - --no-block
+              - nautobot-postgresql.service
+            chdir: /
+          changed_when: true
+          register: inspection_stop
+          failed_when: false
+          async: 30
+          poll: 1
+          ignore_errors: true
+          no_log: true
+        - name: Verify all services stopped and no container writers
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+              - stopped
+              - '{{ inspection_node.stdout }}'
+            chdir: /
+          register: inspection_stopped
+          changed_when: false
+          failed_when: false
+          no_log: true
+          until: inspection_stopped.rc == 0
+          retries: 24
+          delay: 5
+          ignore_errors: true
+        - name: Record whether the independent stop guard fired
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - show
+              - '{{ inspection_operation.guard_unit }}.service'
+              - --property=ExecMainStartTimestampMonotonic
+              - --value
+            chdir: /
+          changed_when: false
+          failed_when: false
+          register: inspection_guard_fired
+        - name: Disarm guard only after stopped state is proven
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/systemctl
+              - stop
+              - '{{ inspection_operation.guard_unit }}.timer'
+            chdir: /
+          when: inspection_stopped.rc | default(1) == 0
+          failed_when: false
+          changed_when: true
+          register: inspection_disarm
+        - name: Review delayed storage after inspection
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/sudo
+              - -n
+              - /usr/bin/python3
+              - '{{ inspection_node.stdout }}/inspect-retained-database.py'
+              - journal-review
+              - '{{ inspection_node.stdout }}'
+            chdir: /
+          register: inspection_storage
+          changed_when: false
+          failed_when: false
+          no_log: true
+        - name: Preserve storage-review
+          ansible.builtin.copy:
+            content: '{{ inspection_storage | to_json }}'
+            dest: '{{ inspection_evidence_root }}/storage-review.json'
+            mode: '0600'
+          delegate_to: localhost
+          no_log: true
+        - name: Preserve inspection lifecycle separately from acceptance
+          ansible.builtin.copy:
+            dest: '{{ inspection_evidence_root }}/stages.json'
+            mode: '0600'
+            content: '{{ inspection_record | to_json }}'
+          delegate_to: localhost
+          vars:
+            inspection_record:
+              accepted: false
+              node_evidence: '{{ inspection_node.stdout }}'
+              copy_status: '{{ inspection_copy.rc }}'
+              guard_status: '{{ inspection_guard.rc | default("unknown") }}'
+              start_status: '{{ inspection_start.rc | default("not_started") }}'
+              ready_status: '{{ inspection_ready.rc | default("not_observed") }}'
+              ledger_status: '{{ inspection_ledger.rc | default("not_observed") }}'
+              stop_request_status: '{{ inspection_stop.rc | default("unknown") }}'
+              stopped_status: '{{ inspection_stopped.rc | default("unknown") }}'
+              guard_disarm_status: '{{ inspection_disarm.rc | default("not_disarmed") }}'
+              storage_status: '{{ inspection_storage.rc | default("unknown") }}'
+              stopped_evidence: '{{ inspection_stopped.stdout | default("") }}'
+              cold_copy: '{{ (inspection_copy.stdout | from_json).cold_copy }}'
+              migration_started: false
+              guard_start_monotonic: '{{ inspection_guard_fired.stdout | default("unknown") }}'
+        - name: Require stopped state and quiet storage
+          ansible.builtin.assert:
+            that:
+              - inspection_stopped.rc == 0
+              - inspection_storage.rc == 0
+              - (inspection_storage.stdout | from_json).passed | bool
+              - inspection_disarm.rc | default(1) == 0
+              - inspection_guard_fired.rc == 0
+              - inspection_guard_fired.stdout | trim == '0'

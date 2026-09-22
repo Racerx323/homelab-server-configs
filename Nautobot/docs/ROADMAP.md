@@ -11,7 +11,7 @@ configuration continuity passed with 77.8 seconds of quiet delayed observation,
 31 samples and a 10.824-second maximum gap. Guard inactive/dead, Result=success.
 Result: `manifests/configuration-readiness-result.json`. The consumed operation
 is archived as `nautobot-configuration-auth-v7-ready` (`cd15ca7`); the active slot
-retains the consumed initialization retry awaiting terminal failure archival. Negative security tests were not run and remain unresolved.
+contains a retained-database inspection candidate after failure archival. Negative security tests were not run and remain unresolved.
 This accepts disposable readiness only, not production runtime or administrator login.
 Initialization/runtime preparation is below. The fresh read-only
 Restic absence preflight passed: Restic 0.18.0, execution user `nautobot`, exact
@@ -60,9 +60,16 @@ installed the private data-service units. Native configuration checking passed;
 stalled despite migration exiting 69. Independent authorized stops succeeded;
 PostgreSQL/Redis are inactive, migration failed, no containers remain, and both
 data volumes are retained. Configuration and boot continuity passed; a delayed
-kernel review found no storage errors. [Retry review](../manifests/runtime-initialization-result.json)
+kernel review found no storage errors. The retry review in [history](../HISTORY.md)
 records the evidence and unresolved command-return gap. Partial database state
-requires a reviewed recovery path; do not rerun the first-install bundle.
+requires a reviewed recovery path; do not rerun the first-install bundle. Read-only
+follow-up confirmed stopped services, a retained PostgreSQL 17 volume and CPU-heavy
+native execution. The precise internal phase remains unknown because output was
+discarded. A harmless Ansible failure returned normally with complete diagnostics;
+the historical long-running wait remains unreproduced. The
+[prepared recovery procedure](RUNTIME_INITIALIZATION.md#recovery-from-partial-initialization)
+starts with cold preservation and migration-ledger inspection, not another blind
+migration retry. Its implementation is now prepared with a node-local stop guard, cold-copy verification, bounded SQL and an always-stop path. The exact bundle requires separate execution approval.
 
 The pre-data prerequisite is complete: repository initialization, canary backup
 with full integrity checking, and isolated restore are accepted and archived.
@@ -75,7 +82,7 @@ The [initialization procedure](RUNTIME_INITIALIZATION.md) owns the reviewed
 implementation, native commands, bounds, acceptance and recovery details. The
 launcher and Ansible path select only the private network, two durable volumes,
 PostgreSQL, Redis and migration. Six Quadlets are rendered; web, worker and
-scheduler units are excluded. The current bundle has been consumed; no further execution is authorized.
+scheduler units are excluded. The initialization bundle has been consumed. The active successor only preserves and inspects retained volumes; execution still requires its own approved hash.
 
 The migration wrapper performs native configuration checking, `post_upgrade`,
 a second configuration check and pending-migration checking. It records safe

@@ -252,3 +252,13 @@ All 47 consumed input identities were verified. The exact definition and
 archival field is historical. Accepted live state did not advance. The successor
 corrects command working directories and retains sanitized Ansible task events;
 its execution requires a new exact-bundle approval.
+
+## Retained partial initialization
+
+`nautobot-runtime-initialization-v2` failed on the native `post_upgrade` timeout.
+Independent failure stops succeeded; volumes and installed artifacts remain.
+Terminal tag `nautobot-runtime-initialization-v2-failed` points to
+`6f11f0c34f4ae10046e875cc4f21e94cffd6e2c4` (published and verified).
+All 48 consumed input identities match that archive. Its sanitized result's
+pending-archival field is historical. Runtime acceptance did not advance.
+Recovery inspection is separate and cannot rerun migration or replace volumes.

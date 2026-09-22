@@ -16,9 +16,12 @@ ROOT = bounded.ROOT
 
 
 def validate():
-    subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/'Nautobot/schemas/runtime-initialization.schema.json'),
-                    str(ROOT/'Nautobot/manifests/operation.yaml')], check=True, timeout=30,
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/'Nautobot/schemas/runtime-initialization.schema.json'),
+                        str(ROOT/'Nautobot/manifests/operation.yaml')], check=True, timeout=30,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError as exc:
+        raise bounded.PreflightBlocked('runtime_not_ready') from exc
     operation = bounded.yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
     if (operation['operation']['stage'] != 'runtime_initialization'
             or not operation['operation']['authorization_ready']
@@ -57,6 +60,7 @@ def bundle_rows(operation):
         'Nautobot/ansible/scripts/run-restic-repository-preflight.py',
         'Nautobot/ansible/playbooks/deploy-runtime.yaml', 'Nautobot/ansible/scripts/initialize-application.py',
         'Nautobot/ansible/callback_plugins/runtime_progress.py',
+        'Nautobot/ansible/playbooks/inspect-retained-database.yaml',
         'Nautobot/ansible/scripts/runtime-initialization-node.py', 'restic/scripts/canary-backup.py',
         'Nautobot/tests/test_runtime_initialization.py', 'Nautobot/docs/RUNTIME_INITIALIZATION.md', 'Nautobot/ansible/ansible.cfg',
         'Nautobot/ansible/templates/runtime/container.j2', 'Nautobot/ansible/templates/runtime/network.j2',

@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 operation:
-  id: nautobot-runtime-initialization-v2
-  stage: runtime_initialization
+  id: nautobot-retained-database-inspection-v1
+  stage: retained_database_inspection
   state: definition
   authorization_ready: true
   target:
@@ -10,7 +10,7 @@ operation:
     address: 10.1.2.170
     ssh_user: ama
     execution_user: nautobot
-  source_commit: c5040e37dc5b79e16c004f5f8e78904db1318a78
+  source_commit: 5b3828d46d51a85f20251ad07b55242772859854
 prerequisites:
   - path: Nautobot/manifests/restic-initialization-result.json
     sha256: 3cb3c1c599dcbdbc258431c61f68c98fde59e2faf228737b29d0db032c8ab9cd
@@ -51,7 +51,7 @@ input_sha256:
   Nautobot/manifests/configuration-readiness.json: f7a7d04d04a335b582c43ccb1fc6002723bec8634810646c2ee813716f051dfe
   Nautobot/manifests/runtime-image-store.json: e7f406775307a4ac260229a6122201b384cb60bf25cd21736d8a210f9066814f
 runtime:
-  first_install_only: true
+  first_install_only: false
   rendered_directory: /home/aaron/code/.local-evidence/nautobot-runtime-initialization-retry-bundle-20260921/rendered
   artifact_sha256:
     nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
@@ -73,20 +73,10 @@ runtime:
       id: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
   services:
     - postgresql
-    - redis
-    - migration
-  migration_memory_mib: 1536
-  migration_timeout_seconds: 900
-  overall_timeout_seconds: 1800
-  native_steps:
-    - check
-    - post_upgrade
-    - check
-    - migrate --check
+  overall_timeout_seconds: 1200
   persistent_volumes:
     - postgresql_data
     - redis_data
-  static_output: derived_temporary_regenerate_before_web_start
   secret_source: existing_protected_environment_files_and_redis_config_secret
   recovery_host: j2-svpi4mf.local.theama.co
   expected_boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
@@ -95,24 +85,21 @@ observation:
   storage_event_pattern: I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset|timed
     out|timeout
 failure:
-  stop_only_operation_owned_services: true
-  preserve_volumes: true
+  stop_postgresql: true
+  retain_originals_and_copies: true
+  guard_seconds: 480
   automatic_retry: false
-  reverse_migration: false
-  delete_data: false
-  controller_interrupt: remote_state_unknown_read_only_review_required
 acceptance:
-  native_checks_and_migration: true
-  healthy_private_data_services: true
-  effective_memory_limits: true
-  boot_and_storage_continuity: true
-  initialization_only: true
-  runtime_pilot_accepted: false
+  cold_copies_verified: true
+  read_only_ledger_recorded: true
+  all_services_stopped: true
+  storage_quiet: true
+  initialization_accepted: false
 authorization:
   mutation_authorized: true
   approval_record: not_yet_granted_exact_bundle_required
   blockers: []
-  command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+  command: python3 Nautobot/ansible/scripts/run-database-inspection.py execute APPROVED_SHA256
   excluded:
     - web
     - worker
@@ -124,3 +111,11 @@ authorization:
     - Restic
     - secret_rotation
     - volume_deletion
+    - migration
+    - redis_start
+    - automatic_copy_restore
+predecessor:
+  tag: nautobot-runtime-initialization-v2-failed
+  commit: 6f11f0c34f4ae10046e875cc4f21e94cffd6e2c4
+  result_sha256: 92671fa6adabc9b18df65777165f4378f39b94a603ef86a679a90f2cd54a665d
+guard_unit: nautobot-database-inspection-stop

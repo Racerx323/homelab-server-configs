@@ -114,3 +114,121 @@ an eligible implementation; `approval_record` remains ungranted in the definitio
 
 Sources: [Nautobot 3.2.3 post_upgrade](https://github.com/nautobot/nautobot/blob/v3.2.3/nautobot/core/management/commands/post_upgrade.py),
 [Quadlet service types](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html).
+
+## Recovery from partial initialization
+
+A timeout after native work begins leaves potentially partially migrated data.
+Do not run the first-install bundle again, remove named volumes, fake migrations
+or infer database completeness from unit exit status or volume size.
+
+Prepare recovery in two separately reviewed operations under this component:
+
+1. **Preserve and inspect.** Verify the exact retained volumes, installed image
+   and configuration identities, stopped units, absence of container writers,
+   boot identity and free space. Make a protected cold copy of both named-volume
+   trees before starting a database; preserve numeric ownership, modes, links
+   and contents, reject unexpected mounts, and independently verify the copy.
+   Keep this local recovery safeguard separate from Restic/application acceptance.
+   Start only the existing private PostgreSQL unit with its pinned image and
+   credentials. In a read-only SQL transaction with a statement timeout, inspect
+   the database identity, server version and `django_migrations` relation.
+   If present, retain only public app/migration identifiers and application
+   timestamps; if absent, report that fact without creating the table.
+   Compare applied migrations with the pinned application and installed Apps.
+   Stop PostgreSQL in an always/finally path, verify no container writers remain,
+   preserve both originals and cold copies, and complete a delayed storage review.
+   Do not launch migration, Redis or application services in this operation.
+2. **Continue with evidence.** Review the ledger and any inconsistent or
+   non-atomic migration before selecting a continuation. Keep the same accepted
+   images/configuration and all native post-upgrade semantics. Retain bounded,
+   flushed phase identifiers, migration identifiers and elapsed times from an
+   exact allowlist tied to the pinned source; discard other output. Record
+   unknown progress explicitly, not as success. Recalculate a justified bounded
+   duration; preserve memory/swap limits. Submit startup without holding one
+   synchronous service command open, then poll a new systemd invocation with
+   bounded commands, recording native progress and terminal status. A prior
+   success/failed state is not evidence for the new invocation. On failure,
+   attempt each owned stop independently and retain volumes and diagnostics.
+
+The inspection SQL is scoped to metadata, for example:
+
+```sql
+BEGIN READ ONLY;
+SET LOCAL statement_timeout = '10s';
+SELECT current_database(), current_setting('server_version');
+SELECT to_regclass('public.django_migrations');
+-- Only if the relation exists:
+SELECT app, name, applied FROM public.django_migrations ORDER BY applied, app, name;
+COMMIT;
+```
+
+PostgreSQL startup can perform WAL recovery and writes even when later SQL is
+read-only, so preservation/start/inspection requires its own exact-bundle approval.
+Capture permission/ownership metadata privately without credentials or application
+row contents. No automatic restoration of the cold copy is authorized: if startup
+fails, stop, retain both trees and prepare a separate reviewed restoration.
+
+Before freezing either operation, test actual execution paths for existing-volume
+identity, preservation failure, absent migration ledger, secret-safe progress,
+stale invocation state, delayed command failure, transport timeout and independent
+failure stops. Archive the consumed definition and terminal result before replacing
+the active operation. Keep the master plan's application, backup, restore and
+pilot acceptance gates unchanged.
+
+## Retained-database inspection bundle
+
+The executable inspection path is `run-database-inspection.py` with
+`inspect-retained-database.yaml`. It uses the existing six installed Quadlets and
+pinned images; it does not reinstall runtime artifacts or bypass first-install
+checks in the old launcher. The active strict inspection schema binds the
+failed predecessor archive and all accepted prerequisites. Native migration and
+Redis startup are excluded.
+
+Cold copies are created once beneath the root-owned mode-0700
+`/var/lib/nautobot/recovery/<operation-id>/` parent. Existing or partial copy
+paths stop execution. Both volumes are copied in full with numeric ownership,
+permissions, timestamps, internal symbolic links, hard links and extended
+attributes preserved. The helper rejects external links, special files, nested
+mounts, unexpected Podman volume paths and active container residue. Each tree
+is limited to 100,000 entries and 2 GiB of apparent regular-file content; at least
+4 GiB free is required. Independent source-before/source-after/destination
+comparisons must pass before startup. Copies contain database data and remain
+private on the host; they are never fetched into Git or controller logs.
+
+An eight-minute root systemd timer requests PostgreSQL stop if the controller is
+lost. Existing guard units block preservation. The timer must be active before
+startup is submitted with `--no-block`. Readiness polling requires a different
+invocation ID from the stopped predecessor, healthy private networking, correct
+image, configured memory limit and expected named volume. Redis and migration
+must remain stopped. No backend ports are published.
+
+A local `psql -X -qAt` session uses the existing PostgreSQL Unix-socket access
+policy as the container's postgres user and database role nautobot; no password
+is placed in arguments or evidence. Authentication failure stops inspection
+without modifying policy. A read-only transaction uses a 10-second statement
+limit, 30-second client limit, 10,000-row ledger bound and 2 MiB output ceiling.
+It returns database identity, numeric PostgreSQL version, read-only state,
+ledger presence and migration identifiers/timestamps. A missing ledger is a
+valid observed result, not permission to create it or accept initialization.
+The subsequent review compares these identifiers with the pinned core/App
+migration graph before selecting continuation.
+
+The always path submits PostgreSQL stop, polls for stopped units and no remaining
+containers, and disarms the timer only after stopped state is proven. It retains
+cold copies and original volumes even on failure, then performs the 75-second
+cursor-bounded storage review. Failed stop, transport loss, guard activation or
+missing evidence requires read-only investigation; no automatic restoration or
+retry is performed. The controller has a 20-minute outer bound. Node and
+controller evidence remain under separate protected `/tmp/nautobot-inspection.*`
+directories, with bounded static task events and sanitized status records.
+
+```sh
+python3 Nautobot/ansible/scripts/run-database-inspection.py show-hash
+python3 Nautobot/ansible/scripts/run-database-inspection.py execute APPROVED_SHA256
+```
+
+Execution requires approval of that exact hash. Successful inspection is neither
+successful migration nor application acceptance. Preservation failure cannot
+start PostgreSQL; shutdown failure cannot be reported as successful inspection.
+The filesystem-copy requirements follow
+[PostgreSQL 17 filesystem backup guidance](https://www.postgresql.org/docs/17/backup-file.html).
