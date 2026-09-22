@@ -169,8 +169,22 @@ class Continuation(unittest.TestCase):
 
     def test_schema_and_bad_hash_no_execution(self):
         op=self.operation()
-        with patch.object(launcher,'validate',return_value=op),patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('must not execute')):
-            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bundle_hash_mismatch'):launcher.execute('0'*64)
+        desired=yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
+        inputs=json.loads((ROOT/'Nautobot/manifests/runtime-inputs.json').read_text())
+        artifacts=renderer.render(desired,inputs,True,op['continuation']['invocation_nonce'])
+        with tempfile.TemporaryDirectory() as tmp:
+            directory=Path(tmp)
+            op['runtime']['rendered_directory']=str(directory)
+            for name in op['runtime']['artifact_sha256']:
+                data=artifacts[name].encode()
+                (directory/name).write_bytes(data)
+                op['runtime']['artifact_sha256'][name]=hashlib.sha256(data).hexdigest()
+            with patch.object(launcher,'validate',return_value=op),patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('must not execute')):
+                with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bundle_hash_mismatch'):
+                    launcher.execute('0'*64)
+                (directory/'nautobot-migration.container').write_text('corrupted fixture')
+                with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'artifact_hash_mismatch'):
+                    launcher.execute('0'*64)
         self.assertFalse(op['runtime']['first_install_only'])
         play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
         guard=next(t for t in play['pre_tasks'] if t['name']=='Require a first installation')
