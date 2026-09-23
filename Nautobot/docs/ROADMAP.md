@@ -11,10 +11,16 @@ Remaining acceptance groups were not run. This does not establish a bad password
 Independent cleanup verified all services inactive/dead with exit zero, no
 processes or containers, inactive guard timer, unchanged boot and no matching
 kernel storage/OOM events. Data and recovery copies remain. No retry or restore
-was performed. See [current result](../manifests/application-startup-result.json).
-The active operation is terminal-pending; exact consumed inputs remain in private
-evidence and its definition/bundle index in `terminal/application-startup/`.
-Next: diagnose the session probe failure before a separately reviewed retry.
+was performed. The result is preserved in published tag `nautobot-application-startup-v4-failed`.
+All exact consumed inputs and the sanitized result are preserved in that tag;
+raw evidence remains private. The successor definition is prepared.
+Read-only diagnosis supports a probe timeout: login/logout routing succeeded,
+but each Django identity helper was limited to 20 seconds on a host with roughly
+30-second native initialization. Exceptions were discarded, so the specific
+historical timeout is not proven. Local bounded identity timing and sanitized diagnostic corrections passed 47
+startup regressions. Fresh baseline and recovery review passed: all services are stopped successfully,
+installed artifacts match the consumed bundle and recovery-copy hashes match.
+Next: publish corrected preparation, verify CI, then authorize the exact retry bundle.
 Prior logging/server failures remain archived in published v1/v2/v3 tags.
 Application startup acceptance and workload acceptance remain incomplete.
 

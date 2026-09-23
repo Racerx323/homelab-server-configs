@@ -204,3 +204,18 @@ command must serve HTTP and static content. It does not initialize a database or
 run the full Nautobot application. Both tests clean up their temporary processes.
 Local x86/runtime-version differences do not replace the separately approved
 ARM64 trial and full application acceptance checks.
+
+## Session identity timing and failure evidence
+
+The session probe permits 60 seconds for each fresh Django identity check, using
+a SIGALRM timer inside the container interpreter. This bounds the actual check
+independently of SSH transport; node and controller waits are 70 and 75 seconds.
+The session acceptance group permits 240 seconds, keeping all group deadlines
+within the collector's 1200-second ceiling. The web application's configuration
+and credential policy are unchanged.
+
+Identity failure still attempts logout and revocation verification. Primary,
+logout and tunnel-cleanup errors remain separate fixed codes. The collector
+retains only allowlisted codes from nonzero probe results; acceptance remains
+failed. Never retain cookies, credentials, HTML, stderr or exception messages.
+A transport failure does not prove identity rejection or successful revocation.

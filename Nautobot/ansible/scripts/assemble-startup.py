@@ -59,7 +59,7 @@ def assemble(output, baseline, recovery):
         add(identity,group,'startup-runtime-controller.py',[identity,str(settings_path)],timeout,expected)
     runtime('native','native_configuration_and_migrations',240,{'native_checks_passed':True,'all_services_healthy_without_restarts':True})
     runtime('http','health_and_static_http',60,{'health_and_static_passed':True})
-    add('session','administrator_login_logout','startup-browser-probe.py',[],180,{'administrator_login_logout':True,'csrf_and_host_rejections':True,'tunnel_cleanup':True})
+    add('session','administrator_login_logout','startup-browser-probe.py',[],240,{'administrator_login_logout':True,'csrf_and_host_rejections':True,'tunnel_cleanup':True})
     add('network','allowed_denied_dual_stack_access','startup-network-probe.py',[],180,{'allowed_both_proxies_both_families':True,'denied_both_families_with_counters':True})
     add('job','worker_scheduler_and_representative_job','startup-job-controller.py',[],150,{'job_completed':True,'single_worker_concurrency_two':True})
     runtime('resources','resource_and_secret_boundaries',240,{'resources_and_secret_metadata_passed':True})

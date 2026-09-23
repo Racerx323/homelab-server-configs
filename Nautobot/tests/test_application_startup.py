@@ -79,6 +79,48 @@ class Startup(unittest.TestCase):
         result = collector.collect(contract, lambda *a: (0, json.dumps({'error_class': 'private'}), '', False))
         self.assertNotIn('error_class', result['checks'][0])
 
+    def test_nonzero_probe_retains_only_allowlisted_diagnostics(self):
+        result=collector.collect(self.contract(), lambda *a:(69,json.dumps({
+            'error_class':'session_timeout','cleanup_error_class':'logout_session_revocation',
+            'tunnel_error_class':'private-cookie','raw':'private-password'}),'private-stderr',False))
+        row=result['checks'][0]
+        self.assertFalse(result['accepted'])
+        self.assertEqual(row['error_class'],'session_timeout')
+        self.assertEqual(row['cleanup_error_class'],'logout_session_revocation')
+        self.assertNotIn('private',json.dumps(result))
+
+    def test_identity_deadline_is_inside_container_and_receipt_is_strict(self):
+        with patch.object(browser.subprocess,'run',return_value=types.SimpleNamespace(returncode=142,stdout=b'')) as run:
+            with self.assertRaisesRegex(ValueError,'session_timeout'):browser.session_identity('private-cookie')
+            args=run.call_args
+            self.assertNotIn('private-cookie',str(args.args[0]))
+            self.assertIn(b'signal.alarm(60)',args.kwargs['input'])
+            self.assertEqual(args.kwargs['timeout'],75)
+        with patch.object(browser.subprocess,'run',return_value=types.SimpleNamespace(returncode=0,stdout=b'STARTUP_SESSION_RESULT={"admin":"true"}')):
+            with self.assertRaisesRegex(ValueError,'session_receipt_shape'):browser.session_identity('private-cookie')
+        # Execute the real timer preamble with a disposable sleeping body.
+        preamble=browser.IDENTITY_ENTRYPOINT.split('runpy.run_path')[0].replace('signal.alarm(60)','signal.alarm(1)')
+        result=subprocess.run([sys.executable,'-c',preamble+'import time;time.sleep(10)'],timeout=5)
+        self.assertEqual(result.returncode,-14)
+
+    def test_probe_preserves_primary_cleanup_and_tunnel_failures(self):
+        from contextlib import contextmanager
+        @contextmanager
+        def healthy():yield 'http://127.0.0.1:1'
+        @contextmanager
+        def broken():
+            yield 'http://127.0.0.1:1'
+            raise ValueError('tunnel_cleanup_failed')
+        for ctx in (healthy,broken):
+            with patch.object(browser,'password',return_value='private-password'), patch.object(browser,'tunnel',ctx), patch.object(browser,'flow',side_effect=browser.SessionFailure('session_timeout','logout_session_revocation')):
+                result=browser.probe()
+            self.assertEqual(result['error_class'],'session_timeout')
+            self.assertEqual(result['cleanup_error_class'],'logout_session_revocation')
+            self.assertEqual(result['tunnel_cleanup'],ctx is healthy)
+            if ctx is broken:self.assertEqual(result['tunnel_error_class'],'tunnel_cleanup_failed')
+            self.assertNotIn('private',json.dumps(result))
+        self.assertEqual(browser.safe_error(ValueError('private-password')),'unexpected_session_failure')
+
     def test_native_receipts_require_exact_steps_and_no_hidden_failure(self):
         check = load('runtime_checks', 'startup-runtime-check.py')
         def rows(value):
@@ -193,6 +235,16 @@ class Startup(unittest.TestCase):
             result = browser.flow('http://127.0.0.1:' + str(server.server_port), 'fixture-password', lambda cookie: cookie in active)
             self.assertTrue(result['administrator_login_logout'])
             self.assertFalse(active)
+            calls=[]
+            def failing_identity(cookie):
+                calls.append(cookie)
+                raise ValueError('session_timeout' if len(calls)==1 else 'session_check_failed')
+            with self.assertRaises(browser.SessionFailure) as failure:
+                browser.flow('http://127.0.0.1:' + str(server.server_port), 'fixture-password', failing_identity)
+            self.assertEqual(failure.exception.primary,'session_timeout')
+            self.assertEqual(failure.exception.cleanup,'session_check_failed')
+            self.assertEqual(len(calls),2)
+            self.assertFalse(active, 'HTTP logout must run after identity failure')
         finally:
             server.shutdown(); server.server_close(); thread.join()
 

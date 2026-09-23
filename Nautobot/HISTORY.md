@@ -395,7 +395,11 @@ acceptance, then failed its administrator session probe. Remaining acceptance
 groups were not run. Independent cleanup verified all services inactive with
 zero exit status, no processes/containers, inactive timer and no storage/OOM
 events. Data remains. Tag `nautobot-application-startup-v4-failed` preserves all
-48 consumed inputs and sanitized results; publication pending. Its peeled commit
+48 consumed inputs and sanitized results; publication verified. Its peeled commit
 identifies the archive. Accepted application state is unchanged. Read-only
 diagnosis supports a too-short identity-check deadline; discarded exceptions
 prevent proving the exact historical failure branch.
+
+Published archive commit `7932af040294eee4b332a951c63df15ede45de2f` and tag
+object `4c7deb721d6f6d5113fa91db8fedb5e7ca44928f` were verified remotely before
+removing consumed operation files from the current branch.

@@ -13,6 +13,8 @@ spec = importlib.util.spec_from_file_location('bounded', Path(__file__).with_nam
 bounded = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bounded)
 FAILURE_CODES = frozenset(['boot', 'bootstrap_secret', 'cgroup_path', 'command_or_output_boundary', 'container_state', 'credential_metadata', 'cursor_unavailable', 'effective_memory', 'http', 'image', 'invocation', 'kernel_message', 'memory_config', 'mode', 'native_failure', 'native_receipt_count', 'native_receipt_shape', 'network', 'observation_short', 'oom', 'pid', 'private_ports', 'process_changed', 'root_required', 'runtime_probe_failed', 'service_state', 'static_type', 'storage_event', 'swap', 'unexpected_runtime_failure', 'unprivileged_readonly'])
+FAILURE_CODES = FAILURE_CODES | frozenset(('login_form', 'csrf_rejection', 'host_rejection', 'authenticated_identity', 'logout_session_revocation', 'session_timeout', 'session_transport', 'session_check_failed', 'session_receipt_count', 'session_receipt_shape', 'credential_shape', 'nonlocal_redirect', 'http_output_limit', 'tunnel_failed', 'tunnel_unavailable', 'tunnel_lost', 'tunnel_cleanup_failed', 'unexpected_session_failure'))
+
 GROUPS = {
     'native_configuration_and_migrations', 'health_and_static_http',
     'administrator_login_logout', 'allowed_denied_dual_stack_access',
@@ -73,15 +75,18 @@ def collect(contract, runner=run):
         try:
             rc, out, err, truncated = runner(check['argv'], check['timeout_seconds'])
             row.update(exit_status=rc, output_truncated=bool(truncated))
-            if rc != 0 or truncated or len(out) > 65536 or len(err) > 65536:
+            if truncated or len(out) > 65536 or len(err) > 65536:
                 raise ValueError('command_failed_or_output_limit')
             # One JSON object only. Each field is produced by a live probe, not
             # supplied via Ansible extra-vars or a previous evidence file.
             observed = json.loads(out)
             if not isinstance(observed, dict):
                 raise ValueError('invalid_receipt')
-            if observed.get('error_class') in FAILURE_CODES:
-                row['error_class'] = observed['error_class']
+            for field in ('error_class', 'cleanup_error_class', 'tunnel_error_class'):
+                if observed.get(field) in FAILURE_CODES:
+                    row[field] = observed[field]
+            if rc != 0:
+                raise ValueError('command_failed')
             row['matches'] = {key: type(observed.get(key)) is type(value) and observed.get(key) == value
                               for key, value in check['expected'].items()}
             row['passed'] = all(row['matches'].values())
