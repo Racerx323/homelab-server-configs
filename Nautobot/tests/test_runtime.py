@@ -198,6 +198,9 @@ class RuntimeTests(unittest.TestCase):
             web=(output/'nautobot-web.service').read_text()
             self.assertIn('--memory=1536m',web)
             for role in renderer.SERVICES:
+                text=(output/f'nautobot-{role}.service').read_text()
+                self.assertEqual('NAUTOBOT_CELERY_HEALTH_PROBES_AS_FILES=true' in text,role=='worker')
+            for role in renderer.SERVICES:
                 generated=(output/f'nautobot-{role}.service').read_text()
                 self.assertIn('--log-driver journald',generated)
                 if role in ('migration','web','worker','scheduler'):

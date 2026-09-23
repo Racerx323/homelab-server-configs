@@ -2,27 +2,31 @@
 
 ## Current next action
 
-The latest trial passed all six startup gates with current-invocation journald
-receipts and working web health/static HTTP. The native acceptance group also
-confirmed healthy services without restarts. Administrator login/logout then
-failed with exit 69; its generic result does not identify the failing branch.
-Remaining acceptance groups were not run. This does not establish a bad password.
+The latest trial passed all six startup gates and five acceptance groups:
+native readiness, HTTP/static, administrator login/logout with rejection and
+cleanup checks, dual-stack allowed/denied access, and the representative Job.
+The session check passed in 61.694 seconds with the corrected deadlines.
 
-Independent cleanup verified all services inactive/dead with exit zero, no
-processes or containers, inactive guard timer, unchanged boot and no matching
-kernel storage/OOM events. Data and recovery copies remain. No retry or restore
-was performed. The result is preserved in published tag `nautobot-application-startup-v4-failed`.
-All exact consumed inputs and the sanitized result are preserved in that tag;
-raw evidence remains private. The successor definition is prepared.
-Read-only diagnosis supports a probe timeout: login/logout routing succeeded,
-but each Django identity helper was limited to 20 seconds on a host with roughly
-30-second native initialization. Exceptions were discarded, so the specific
-historical timeout is not proven. Local bounded identity timing and sanitized diagnostic corrections passed 47
-startup regressions. Fresh baseline and recovery review passed: all services are stopped successfully,
-installed artifacts match the consumed bundle and recovery-copy hashes match.
-Next: publish corrected preparation, verify CI, then authorize the exact retry bundle.
-Prior logging/server failures remain archived in published v1/v2/v3 tags.
-Application startup acceptance and workload acceptance remain incomplete.
+Resource/secret-metadata acceptance then returned `command_or_output_boundary`.
+The specific command is not identified by that category; it does not establish
+an actual resource or secret-policy violation. Storage acceptance was not run.
+Independent cleanup verified all services inactive/dead with success, no processes
+or containers, inactive guard, unchanged boot and no matching storage/OOM events.
+Data remains; no automatic restore or retry occurred.
+
+The exact consumed inputs and sanitized outcome are preserved in published tag
+`nautobot-application-startup-v5-failed` at `8eb98fd`; raw evidence remains private.
+The corrected successor definition is prepared.
+Read-only diagnosis confirmed the worker heartbeat producer is disabled by
+default while the probe requires its file. This supports the failing-command
+diagnosis, but the historical command identity was not retained. The local correction explicitly enables worker heartbeat-file production and
+retains fixed per-command/role/status diagnostics. All 65 startup/rendering tests
+passed, including the pinned producer and file freshness/failure checks. No live
+correction has run. Fresh stopped-state, installed-identity and recovery-copy
+checks passed. Next: publish corrected preparation, verify CI, and authorize the
+exact retry bundle.
+Prior failed operations remain in published v1/v2/v3/v4 tags. Full application
+and workload acceptance remain incomplete.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native
 checks passed: configuration, no pending migrations, account absence, creation

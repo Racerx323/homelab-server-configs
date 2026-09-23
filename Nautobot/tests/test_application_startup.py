@@ -134,6 +134,71 @@ class Startup(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'native_failure'):
             check.native_receipt(rows(value), 'web')
 
+    def test_heartbeat_creation_freshness_and_failure_codes(self):
+        import time
+        check=load('heartbeat_checks','startup-runtime-check.py')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'heartbeat'
+            def status():return subprocess.run([sys.executable,'-c',check.heartbeat_code(),str(path)],capture_output=True,timeout=5).returncode
+            self.assertEqual(status(),70)
+            path.touch();self.assertEqual(status(),0)
+            os.utime(path,(time.time()-65,time.time()-65));self.assertEqual(status(),72)
+            os.utime(path,(time.time()+120,time.time()+120));self.assertEqual(status(),73)
+            path.unlink();path.symlink_to(Path(directory)/'other');self.assertEqual(status(),74)
+            with patch('os.lstat',side_effect=PermissionError('private-path')), patch.object(sys,'argv',['probe','unused']):
+                with self.assertRaises(SystemExit) as failure:exec(check.heartbeat_code(),{'__name__':'__main__'})
+            self.assertEqual(failure.exception.code,71)
+
+    @unittest.skipUnless(os.environ.get('NAUTOBOT_SOURCE_WHEEL'),'optional pinned producer source test')
+    def test_pinned_worker_produces_fresh_file_only_when_enabled(self):
+        import ast,zipfile
+        check=load('producer_heartbeat_checks','startup-runtime-check.py')
+        with zipfile.ZipFile(os.environ['NAUTOBOT_SOURCE_WHEEL']) as archive:
+            tree=ast.parse(archive.read('nautobot/core/celery/__init__.py').decode())
+        cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='LivenessProbe')
+        methods=[n for n in cls.body if isinstance(n,ast.FunctionDef) and n.name in ('start','update_worker_heartbeat_file','stop')]
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'heartbeat'
+            for enabled in (False,True):
+                scope={'settings':types.SimpleNamespace(CELERY_HEALTH_PROBES_AS_FILES=enabled)}
+                exec(compile(ast.fix_missing_locations(ast.Module(body=methods,type_ignores=[])),'<pinned-producer>','exec'),scope)
+                obj=types.SimpleNamespace(WORKER_HEARTBEAT_FILE=path)
+                obj.update_worker_heartbeat_file=lambda parent:scope['update_worker_heartbeat_file'](obj,parent)
+                callbacks=[]
+                parent=types.SimpleNamespace(timer=types.SimpleNamespace(call_repeatedly=lambda interval,callback,args,**kw:callbacks.append((interval,callback,args))))
+                scope['start'](obj,parent)
+                self.assertEqual(bool(callbacks),enabled)
+                for interval,callback,args in callbacks:
+                    self.assertEqual(interval,1.0);callback(*args)
+                self.assertEqual(path.exists(),enabled)
+                if enabled:
+                    result=subprocess.run([sys.executable,'-c',check.heartbeat_code(),str(path)],timeout=5)
+                    self.assertEqual(result.returncode,0)
+                scope['stop'](obj,parent)
+                self.assertFalse(path.exists())
+
+    def test_resource_commands_report_only_fixed_identity_and_status(self):
+        check=load('command_diagnostics','startup-runtime-check.py')
+        cases=[([sys.executable,'-c','import sys;print("private-secret");sys.exit(70)'],'exit_status',70),
+               (['/nonexistent-private-path'],'launch_error',None)]
+        for argv,category,rc in cases:
+            with self.assertRaises(check.CommandFailure) as failure:check.run(argv,'heartbeat','worker')
+            receipt=check.failure_receipt(failure.exception)
+            self.assertEqual(receipt['command_failure'],{'command':'heartbeat','role':'worker','category':category,'returncode':rc})
+            result=collector.collect(self.contract(),lambda *a:(69,json.dumps(receipt),'private-stderr',False))
+            self.assertEqual(result['checks'][0]['command_failure'],receipt['command_failure'])
+            self.assertNotIn('private',json.dumps(result))
+        with patch.object(check.subprocess,'run',side_effect=subprocess.TimeoutExpired('private',40)):
+            with self.assertRaises(check.CommandFailure) as failure:check.run(['ignored'],'container_inspect','redis')
+        self.assertEqual(check.failure_receipt(failure.exception)['command_failure']['category'],'timeout')
+        for stream in ('stdout','stderr'):
+            argv=[sys.executable,'-c',f'import sys;sys.{stream}.write("x"*4194304)']
+            with self.assertRaises(check.CommandFailure) as failure:check.run(argv,'container_inspect','web')
+            self.assertEqual(failure.exception.diagnostic['category'],'output_limit')
+        bad={'command':'private','role':'worker','category':'exit_status','returncode':70}
+        result=collector.collect(self.contract(),lambda *a:(69,json.dumps({'command_failure':bad}),'',False))
+        self.assertNotIn('command_failure',result['checks'][0])
+
     def test_cgroup_check_uses_effective_limits_and_oom_events(self):
         check = load('runtime_cgroups', 'startup-runtime-check.py')
         with tempfile.TemporaryDirectory() as directory:

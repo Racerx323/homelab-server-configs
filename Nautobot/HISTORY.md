@@ -412,6 +412,10 @@ session, dual-stack network and Job acceptance. Resource acceptance returned
 verified inactive successful services, no processes or containers, inactive guard
 and no matching kernel storage/OOM events. Data and recovery copies remain.
 Tag `nautobot-application-startup-v5-failed` preserves all 48 consumed inputs and
-sanitized results; publication pending. Its peeled commit identifies the archive.
+sanitized results; publication verified. Its peeled commit identifies the archive.
 Accepted application state is unchanged. Read-only diagnosis confirmed worker
 heartbeat-file production was disabled while the probe required its file.
+
+Published archive commit `8eb98fd88593280310bbf3cf049d4707f3f5136b` and annotated
+tag object `a5ee7f9129cda22ee72054c31f75f09e93ccdb03` were verified remotely;
+consumed files were removed only after exact comparison with the published tag.

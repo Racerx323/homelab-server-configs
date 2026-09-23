@@ -13,6 +13,9 @@ ContainerName=nautobot-{{ name }}
 Network=nautobot-private.network
 NetworkAlias={{ name }}
 EnvironmentFile=/var/lib/nautobot/runtime/{{ name }}.env
+{% if name == "worker" %}
+Environment=NAUTOBOT_CELERY_HEALTH_PROBES_AS_FILES=true
+{% endif %}
 {% if name in ['migration', 'web', 'worker', 'scheduler'] %}
 {% if initialization | default(false) and name == "migration" %}
 Entrypoint=python3

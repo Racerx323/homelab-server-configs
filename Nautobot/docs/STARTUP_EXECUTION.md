@@ -219,3 +219,35 @@ logout and tunnel-cleanup errors remain separate fixed codes. The collector
 retains only allowlisted codes from nonzero probe results; acceptance remains
 failed. Never retain cookies, credentials, HTML, stderr or exception messages.
 A transport failure does not prove identity rejection or successful revocation.
+
+## Worker heartbeat and resource-command diagnostics
+
+The worker Quadlet explicitly sets
+`NAUTOBOT_CELERY_HEALTH_PROBES_AS_FILES=true`. Nautobot's supported worker
+liveness producer updates `/tmp/nautobot_celery_worker_heartbeat` every second;
+the existing bounded writable `/tmp` holds it. The scheduler independently
+updates `/tmp/nautobot_celery_beat_heartbeat` from its scheduler tick. The resource
+probe requires both to be regular files with an age of at least zero and less
+than 60 seconds. It does not skip an absent file or accept a symlink.
+
+Resource command failures retain only a fixed command identity (`service_state`,
+`container_inspect`, or `heartbeat`), role, category (`exit_status`, `timeout`,
+`launch_error`, `output_limit`) and return code. Controller and collector retain
+these fields on failed acceptance; raw stdout, stderr, inspect environment values
+and exception messages are excluded. Heartbeat exit codes are:
+
+| Code | Meaning |
+| --- | --- |
+| 70 | Missing file |
+| 71 | Permission denied |
+| 72 | File age at least 60 seconds |
+| 73 | Future modification time |
+| 74 | Not a regular file |
+| 75 | Other filesystem error |
+
+The optional `NAUTOBOT_SOURCE_WHEEL` test input points to the retained pinned
+Nautobot wheel. `tests/test_application_startup.py` executes its exact worker
+start/update/stop methods with a local timer harness, checks file creation and
+removal, and runs the production freshness checker against the resulting file.
+This validates the producer/consumer contract locally; the separately authorized
+ARM64 startup trial remains the live acceptance gate.

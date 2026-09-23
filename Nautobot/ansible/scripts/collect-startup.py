@@ -85,6 +85,13 @@ def collect(contract, runner=run):
             for field in ('error_class', 'cleanup_error_class', 'tunnel_error_class'):
                 if observed.get(field) in FAILURE_CODES:
                     row[field] = observed[field]
+            diagnostic = observed.get('command_failure')
+            if (isinstance(diagnostic, dict) and set(diagnostic) == {'command', 'role', 'category', 'returncode'}
+                    and diagnostic['command'] in ('service_state', 'container_inspect', 'heartbeat')
+                    and diagnostic['role'] in ('postgresql', 'redis', 'migration', 'web', 'worker', 'scheduler')
+                    and diagnostic['category'] in ('exit_status', 'output_limit', 'timeout', 'launch_error')
+                    and (diagnostic['returncode'] is None or (type(diagnostic['returncode']) is int and -128 <= diagnostic['returncode'] <= 255))):
+                row['command_failure'] = diagnostic
             if rc != 0:
                 raise ValueError('command_failed')
             row['matches'] = {key: type(observed.get(key)) is type(value) and observed.get(key) == value
