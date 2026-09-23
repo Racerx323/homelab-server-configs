@@ -17,6 +17,25 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
 
 
+
+def startup_operation_fixture():
+    return {
+        'schema_version': 1,
+        'operation': {'state': 'definition', 'stage': 'application_startup',
+                      'id': 'offline-startup-fixture', 'authorization_ready': True,
+                      'target': 'j2-svpi4mf'},
+        'prerequisites': {
+            'preservation_tag': 'nautobot-startup-preservation-v1-accepted',
+            'preservation_commit': 'a' * 40,
+            'bootstrap_tag': 'nautobot-administrator-bootstrap-v2-accepted',
+            'network_packet_tag': 'nautobot-packet-qualification-accepted'},
+        'scope': {'success': 'running_pending_workload_acceptance',
+                  'failure': 'stopped_data_retained', 'automatic_restore': False,
+                  'reboot': False, 'caddy_publication': False},
+        'plan_sha256': 'b' * 64,
+    }
+
+
 def load(name, file):
     spec = importlib.util.spec_from_file_location(name, ROOT/'Nautobot/ansible/scripts'/file)
     module = importlib.util.module_from_spec(spec)
@@ -216,7 +235,7 @@ class Startup(unittest.TestCase):
                 check.cgroup_evidence(42,384,True,proc,groups)
 
     def test_startup_operation_requires_recovery_and_forbids_reboot(self):
-        value = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+        value = startup_operation_fixture()
         schema = json.loads((ROOT/'Nautobot/schemas/startup-operation.schema.json').read_text())
         Draft202012Validator(schema).validate(value)
         value['scope']['reboot'] = True
@@ -405,7 +424,7 @@ class Startup(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'authorization_hash'):
                     launcher.execute(Path('/tmp/spec.json'), 'wrong')
                 policy = yaml.safe_load((ROOT/'Nautobot/manifests/startup-policy.yaml').read_text())
-                operation = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+                operation = startup_operation_fixture()
                 with patch.object(launcher.yaml, 'safe_load', side_effect=[{**policy, 'execution_authorized': False}, operation]):
                     with self.assertRaisesRegex(ValueError, 'startup_inactive'):
                         launcher.execute(Path('/tmp/spec.json'), 'expected')

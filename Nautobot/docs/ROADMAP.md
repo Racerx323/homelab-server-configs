@@ -1,5 +1,7 @@
 # Nautobot roadmap and acceptance status
 
+Resume reference: [checkpoint](CHECKPOINT.md).
+
 ## Current next action
 
 Application startup is accepted for the single-host pilot. All seven groups passed:
@@ -10,14 +12,23 @@ metadata including heartbeat freshness, and delayed storage observation.
 Independent final readback confirmed PostgreSQL, Redis, web, worker and scheduler
 running, migration active/exited, zero restarts, five containers, inactive stop
 timer and no matching kernel storage/OOM events. The guard did not fire. Services
-remain running as authorized. See [startup result](../manifests/application-startup-result.json)
-for the current running state. Accepted-state schema/provenance reconciliation
-remains part of terminal archival.
+remain running as authorized at the final startup readback. The published archive
+`nautobot-application-startup-v6-accepted` preserves the result and exact inputs;
+both CI workflows passed. See [accepted live state](../manifests/accepted-live-state.yaml)
+and [history](../HISTORY.md). No fresh host collection was performed during reconciliation.
 
-The operation is terminal-pending for accepted-result archival. Next: archive this
-success, then prepare the remaining pilot workload and persistence checks under
-the master plan. See [workload and persistence preparation](WORKLOAD_PERSISTENCE_PREPARATION.md). Caddy onboarding and application-aware backup/restore remain
-separate gates; this startup result does not accept the complete platform.
+The operation slot is clean. The read-only running-baseline review completed on
+September 23 at 04:44 UTC: 19 comparisons passed, including artifact/image/config
+identity, service continuity, limits, heartbeats and effective guard checks.
+Private evidence: `/home/aaron/code/.local-evidence/nautobot-running-baseline-20260923/REVIEW.md`.
+Idle headroom passed; workload capacity and persistence remain unproven. Retained
+cold-copy metadata was checked, not current contents or restore behavior.
+
+Next: implement workload adapters and the bounded sampler, and prepare the
+separate persistence operation described in
+[workload and persistence preparation](WORKLOAD_PERSISTENCE_PREPARATION.md).
+Real application-backup overlap, isolated restore, Caddy onboarding and seven-day
+stability remain separate gates. No live mutation was performed during this review.
 
 ## Historical preparation and prerequisite results
 

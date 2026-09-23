@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Terminal accepted host baseline identity (not runtime acceptance)",
+  "title": "Accepted host and stage identities (not full runtime acceptance)",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -178,6 +178,161 @@
             "external_ipv6_denial_not_tested_approved_gateway_rule_alternative",
             "dormant_duplicate_ula_not_exhaustively_excluded",
             "primary_retry_rollback_not_live_exercised"
+          ]
+        }
+      }
+    },
+    "application_startup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "source_commit",
+        "bundle_sha256",
+        "result_sha256",
+        "boot_id",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "artifact_sha256",
+        "remaining_gates"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "running_pending_workload_acceptance"
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^nautobot-application-startup-v[1-9][0-9]*$"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "terminal_tag": {
+          "type": "string",
+          "pattern": "^nautobot-application-startup-v[1-9][0-9]*-accepted$"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "artifact_sha256": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "/var/lib/nautobot/runtime/initialize-application.py",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container",
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container",
+            "/var/lib/nautobot/runtime/startup-application.py",
+            "/var/lib/nautobot/runtime/startup-command.py",
+            "/var/lib/nautobot/runtime/startup-job-probe.py",
+            "/var/lib/nautobot/runtime/startup-job.py"
+          ],
+          "properties": {
+            "/var/lib/nautobot/runtime/initialize-application.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/runtime/startup-application.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/runtime/startup-command.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/runtime/startup-job-probe.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "/var/lib/nautobot/runtime/startup-job.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "remaining_gates": {
+          "const": [
+            "workload_acceptance",
+            "logout_and_reboot_persistence",
+            "caddy_onboarding",
+            "application_aware_backup_and_restore"
           ]
         }
       }

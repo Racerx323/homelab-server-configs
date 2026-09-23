@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline tests of actual canary decisions, cleanup tasks and launcher gates."""
 import copy
+import hashlib
 import importlib.util
 import json
 import os
@@ -173,6 +174,9 @@ class Boundaries(unittest.TestCase):
                 launcher.transport.execute('0'*64)
 
     def test_predecessor_and_snapshot_binding(self):
+        contract = copy.deepcopy(CONTRACT)
+        contract['prerequisites']['accepted_host_sha256'] = hashlib.sha256(
+            (ROOT / contract['prerequisites']['accepted_host']).read_bytes()).hexdigest()
         def git(argv, **kwargs):
             args=argv[3:]
             if args[0]=='status': return b''
@@ -184,12 +188,16 @@ class Boundaries(unittest.TestCase):
                     if args[0]=='show': return (ROOT/proof['record']).read_bytes()
             raise AssertionError(args)
         with patch.object(launcher.subprocess,'check_output',side_effect=git):
-            launcher.require_ready(CONTRACT)
-            bad=copy.deepcopy(CONTRACT); bad['snapshot']['id']='b'*64
+            launcher.require_ready(contract)
+            bad=copy.deepcopy(contract); bad['snapshot']['id']='b'*64
             with self.assertRaisesRegex(launcher.common.PreflightBlocked,'snapshot_identity_mismatch'):
                 launcher.require_ready(bad)
-            bad=copy.deepcopy(CONTRACT); bad['prerequisites']['backup_integrity']['record_sha256']='b'*64
+            bad=copy.deepcopy(contract); bad['prerequisites']['backup_integrity']['record_sha256']='b'*64
             with self.assertRaisesRegex(launcher.common.PreflightBlocked,'predecessor_identity_mismatch'):
+                launcher.require_ready(bad)
+
+            bad=copy.deepcopy(contract); bad['prerequisites']['accepted_host_sha256']='0'*64
+            with self.assertRaisesRegex(launcher.common.PreflightBlocked,'host_identity_changed'):
                 launcher.require_ready(bad)
 
     def test_journal_missing_truncated_boot_changed_and_event(self):

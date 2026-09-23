@@ -427,5 +427,9 @@ worker heartbeat/resource checks and 76.424 seconds of delayed storage review.
 Five services remain running; migration completed, zero restarts, guard disarmed.
 Tag `nautobot-application-startup-v6-accepted` preserves the exact consumed
 definition, 48 hash-verified inputs and sanitized result. Its peeled commit identifies
-the archive. Publication and accepted-state reconciliation are pending.
+the archive. Commit `6e3069f5466c75d6d8aaab4a4b82181fa8447413` and tag object
+`b818924f0d9b900d60d56b5004fdc2c19b378a7c` were verified remotely; both CI workflows passed.
+Accepted startup identity is reconciled in `manifests/accepted-live-state.yaml`.
+Consumed files were removed only after byte-for-byte archive comparison; the
+operation slot is clean. The archived publication-pending fields are historical.
 Full workload, persistence, Caddy and application recovery remain separate gates.

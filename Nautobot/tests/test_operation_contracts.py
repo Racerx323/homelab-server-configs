@@ -165,6 +165,26 @@ class Contracts(unittest.TestCase):
         del baseline_only['dual_stack_identity']
         validate(schema, baseline_only)
 
+    def test_startup_identity_requires_provenance_and_preserves_scope(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(schema, accepted)
+        identity = accepted['application_startup']
+        for key in identity:
+            bad = copy.deepcopy(accepted)
+            del bad['application_startup'][key]
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        for key, value in [('scope', 'full_runtime_accepted'), ('archive_commit', 'pending'),
+                           ('result_sha256', ''), ('reviewed_at', 'yesterday'),
+                           ('remaining_gates', []), ('artifact_sha256', {})]:
+            bad = copy.deepcopy(accepted)
+            bad['application_startup'][key] = value
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        self.assertFalse(accepted['boundaries']['runtime_accepted'])
+        baseline_only = copy.deepcopy(accepted)
+        del baseline_only['application_startup']
+        validate(schema, baseline_only)
+
     def test_status_provenance_matches_frozen_definition(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())
         operation = copy.deepcopy(schema['const'])
