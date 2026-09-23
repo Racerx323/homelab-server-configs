@@ -387,3 +387,15 @@ The peeled annotated tag identifies the archive commit. Accepted state is unchan
 Archive commit `332c3dc6ec4aafcd69c36bc181c00f8515d86830` and annotated tag
 object `00114c42ba064614221eb852b8f5cd875880aa02` were verified remotely.
 Consumed files were removed only after exact archive comparison.
+
+## Fourth application startup failure
+
+`nautobot-application-startup-v4` passed all six readiness gates and native/HTTP
+acceptance, then failed its administrator session probe. Remaining acceptance
+groups were not run. Independent cleanup verified all services inactive with
+zero exit status, no processes/containers, inactive timer and no storage/OOM
+events. Data remains. Tag `nautobot-application-startup-v4-failed` preserves all
+48 consumed inputs and sanitized results; publication pending. Its peeled commit
+identifies the archive. Accepted application state is unchanged. Read-only
+diagnosis supports a too-short identity-check deadline; discarded exceptions
+prevent proving the exact historical failure branch.
