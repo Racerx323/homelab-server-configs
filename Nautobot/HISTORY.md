@@ -419,3 +419,13 @@ heartbeat-file production was disabled while the probe required its file.
 Published archive commit `8eb98fd88593280310bbf3cf049d4707f3f5136b` and annotated
 tag object `a5ee7f9129cda22ee72054c31f75f09e93ccdb03` were verified remotely;
 consumed files were removed only after exact comparison with the published tag.
+
+## Accepted application startup
+
+`nautobot-application-startup-v6` passed all seven acceptance groups, including
+worker heartbeat/resource checks and 76.424 seconds of delayed storage review.
+Five services remain running; migration completed, zero restarts, guard disarmed.
+Tag `nautobot-application-startup-v6-accepted` preserves the exact consumed
+definition, 48 hash-verified inputs and sanitized result. Its peeled commit identifies
+the archive. Publication and accepted-state reconciliation are pending.
+Full workload, persistence, Caddy and application recovery remain separate gates.

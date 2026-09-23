@@ -2,31 +2,27 @@
 
 ## Current next action
 
-The latest trial passed all six startup gates and five acceptance groups:
-native readiness, HTTP/static, administrator login/logout with rejection and
-cleanup checks, dual-stack allowed/denied access, and the representative Job.
-The session check passed in 61.694 seconds with the corrected deadlines.
+Application startup is accepted for the single-host pilot. All seven groups passed:
+native configuration/migrations, HTTP/static, administrator sessions and rejection
+checks, dual-stack allowed/denied access, Job/worker concurrency, resource/secret
+metadata including heartbeat freshness, and delayed storage observation.
 
-Resource/secret-metadata acceptance then returned `command_or_output_boundary`.
-The specific command is not identified by that category; it does not establish
-an actual resource or secret-policy violation. Storage acceptance was not run.
-Independent cleanup verified all services inactive/dead with success, no processes
-or containers, inactive guard, unchanged boot and no matching storage/OOM events.
-Data remains; no automatic restore or retry occurred.
+Independent final readback confirmed PostgreSQL, Redis, web, worker and scheduler
+running, migration active/exited, zero restarts, five containers, inactive stop
+timer and no matching kernel storage/OOM events. The guard did not fire. Services
+remain running as authorized. See [startup result](../manifests/application-startup-result.json)
+for the current running state. Accepted-state schema/provenance reconciliation
+remains part of terminal archival.
 
-The exact consumed inputs and sanitized outcome are preserved in published tag
-`nautobot-application-startup-v5-failed` at `8eb98fd`; raw evidence remains private.
-The corrected successor definition is prepared.
-Read-only diagnosis confirmed the worker heartbeat producer is disabled by
-default while the probe requires its file. This supports the failing-command
-diagnosis, but the historical command identity was not retained. The local correction explicitly enables worker heartbeat-file production and
-retains fixed per-command/role/status diagnostics. All 65 startup/rendering tests
-passed, including the pinned producer and file freshness/failure checks. No live
-correction has run. Fresh stopped-state, installed-identity and recovery-copy
-checks passed. Next: publish corrected preparation, verify CI, and authorize the
-exact retry bundle.
-Prior failed operations remain in published v1/v2/v3/v4 tags. Full application
-and workload acceptance remain incomplete.
+The operation is terminal-pending for accepted-result archival. Next: archive this
+success, then prepare the remaining pilot workload and persistence checks under
+the master plan. See [workload and persistence preparation](WORKLOAD_PERSISTENCE_PREPARATION.md). Caddy onboarding and application-aware backup/restore remain
+separate gates; this startup result does not accept the complete platform.
+
+## Historical preparation and prerequisite results
+
+The following records describe their respective operation times; statements that
+services were stopped are superseded by the running startup result above.
 
 Administrator bootstrap is accepted as of September 22, 2026. All five native
 checks passed: configuration, no pending migrations, account absence, creation
@@ -52,8 +48,8 @@ baseline matched accepted identities. The active startup definition is prepared;
 execute only after exact-bundle approval. See [startup execution](STARTUP_EXECUTION.md) and
 [startup baseline and recovery](STARTUP_PREFLIGHT_AND_RECOVERY.md) and the sequence in
 [bootstrap and startup](BOOTSTRAP_AND_STARTUP.md). No startup bundle is frozen.
-Browser login, application startup, workload acceptance and application-aware
-backup/restore remain pending.
+The earlier startup-preparation status below is historical. Current startup
+acceptance is recorded above; workload and application-aware backup/restore remain pending.
 
 Startup network preflight (September 22) found no target filter rules and direct
 same-subnet paths. The historical preflight found the primary selecting floating IPv6 ::56 instead of the

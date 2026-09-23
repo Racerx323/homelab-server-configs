@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "operation_id": "nautobot-application-startup-v6",
+  "accepted": true,
+  "outcome": "running_pending_workload_acceptance",
+  "reviewed_at": "2026-09-23T04:16:14.932699+00:00",
+  "source_commit": "1f7bd7ad172140c4be03140f160e280e637fc3b6",
+  "bundle_sha256": "612a9a88fcc021258445594d4647a602ab4d6bf9630a4f8b24b2b2ae1a2ad699",
+  "acceptance_checks": [
+    {
+      "id": "native",
+      "group": "native_configuration_and_migrations",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "native_checks_passed": true,
+        "all_services_healthy_without_restarts": true
+      },
+      "duration_seconds": 1.699
+    },
+    {
+      "id": "http",
+      "group": "health_and_static_http",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "health_and_static_passed": true
+      },
+      "duration_seconds": 0.834
+    },
+    {
+      "id": "session",
+      "group": "administrator_login_logout",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "administrator_login_logout": true,
+        "csrf_and_host_rejections": true,
+        "tunnel_cleanup": true
+      },
+      "duration_seconds": 61.875
+    },
+    {
+      "id": "network",
+      "group": "allowed_denied_dual_stack_access",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "allowed_both_proxies_both_families": true,
+        "denied_both_families_with_counters": true
+      },
+      "duration_seconds": 12.274
+    },
+    {
+      "id": "job",
+      "group": "worker_scheduler_and_representative_job",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "job_completed": true,
+        "single_worker_concurrency_two": true
+      },
+      "duration_seconds": 34.156
+    },
+    {
+      "id": "resources",
+      "group": "resource_and_secret_boundaries",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "resources_and_secret_metadata_passed": true
+      },
+      "duration_seconds": 2.379
+    },
+    {
+      "id": "storage",
+      "group": "cleanup_and_storage_observation",
+      "passed": true,
+      "exit_status": 0,
+      "output_truncated": false,
+      "matches": {
+        "delayed_storage_review_passed": true,
+        "boot_and_processes_continuous": true
+      },
+      "duration_seconds": 76.424
+    }
+  ],
+  "final_services": {
+    "postgresql": {
+      "MainPID": "804717",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running",
+      "InvocationID": "ee3b1e849adb4309a209dfc6068681ac"
+    },
+    "redis": {
+      "MainPID": "804831",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running",
+      "InvocationID": "8ac68489850f4518b7452f84e4cebc28"
+    },
+    "migration": {
+      "MainPID": "0",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "exited",
+      "InvocationID": "dcb90a34a5ae4a3699500219537910b5"
+    },
+    "web": {
+      "MainPID": "806130",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running",
+      "InvocationID": "30f8615ad1dc40aaadf422ffffb85fb9"
+    },
+    "worker": {
+      "MainPID": "807148",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running",
+      "InvocationID": "d15bd077a5024e26bac40440338a2bd5"
+    },
+    "scheduler": {
+      "MainPID": "807737",
+      "ControlPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running",
+      "InvocationID": "f4526fa135694288820cb5748740088c"
+    }
+  },
+  "container_count": 5,
+  "stop_guard_fired": false,
+  "stop_timer_inactive": true,
+  "kernel_storage_or_oom_matches": 0,
+  "boot_id": "70c9f650-a6a2-4583-84a9-f96462bef393",
+  "archive_status": "pending",
+  "later_gates": [
+    "workload_acceptance",
+    "logout_and_reboot_persistence",
+    "caddy_onboarding",
+    "application_aware_backup_and_restore"
+  ],
+  "evidence_sha256": {
+    "final-review.py": "b8950844f22ed9854194967c0348e692e299f610bfc07fd8d161041c6987ae33",
+    "variables.json": "71a8d1b24454f849f8da81e3d26f48a074d3e679d26fe9e26d12ac4bad1e3011",
+    "final-review.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "readiness-worker.json": "f3317653d3b9fc7e8271757403b667035d6804b61ae57757dc0cd5486e6152ca",
+    "result.json": "4d96ef173b5de46f101a4c52fbf3efc11d7921dbd202b4c31d928f804ebd4e8b",
+    "readiness-redis.json": "dd03e9d43b87f57a4d51ea03dc05eb1777261bd3d98228577c8756416c0707fd",
+    "final-review.json": "3dd39c787072e66f0f3443df8409d54e7c2a3c11e3c0611d0c2e7a4ca4e3c426",
+    "acceptance-contract.json": "ecd9cb2cb2a51b31755edc677dc196794f318257fb2f9275d8182dfd459cf2ac",
+    "readiness-migration.json": "964797e151c46fed4f2fdfdb98fa88cc6abd61a221fbdd23fc516b89220f7638",
+    "bundle.json": "acaa807a0841bf66cae80e96b85510c2b261c2c6e3e3649fed4562421934ad00",
+    "readiness-postgresql.json": "bb97ee8505a79035b06511e8ed92f58109a3dedc09a748ef5540ac05361c74e9",
+    "startup-lifecycle.json": "becc21fb2aead0254748fd1781e29a5d29e3a44fedb4a82d66a93f445e696524",
+    "readiness-scheduler.json": "43927922c703d3b3030c54dadb21e2703926fd86df274f2ff5bcf609272a69a4",
+    "acceptance.json": "013b0eb68352f2552bbc1ea0e805e0fc11f0c8d6d653a6e06bae70f3e38bbb6d",
+    "readiness-web.json": "e939745fca72738d83a2f94ae8936c2df9730316e21c56f1ff8e059d778ab4c6"
+  }
+}

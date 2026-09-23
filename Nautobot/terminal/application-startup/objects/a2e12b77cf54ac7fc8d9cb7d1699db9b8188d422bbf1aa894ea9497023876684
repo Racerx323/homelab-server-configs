@@ -1,0 +1,28 @@
+[Unit]
+Description=Nautobot postgresql
+
+[Container]
+LogDriver=journald
+Image=docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296
+Pull=never
+ContainerName=nautobot-postgresql
+Network=nautobot-private.network
+NetworkAlias=postgresql
+EnvironmentFile=/var/lib/nautobot/runtime/postgresql.env
+Volume=nautobot-postgresql_data.volume:/var/lib/postgresql/data
+PodmanArgs=--memory=1536m
+Environment=POSTGRES_USER=nautobot
+Environment=POSTGRES_DB=nautobot
+HealthCmd=pg_isready -U nautobot -d nautobot
+Notify=healthy
+HealthInterval=10s
+HealthRetries=6
+
+[Service]
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=90
+
+[Install]
+WantedBy=default.target
