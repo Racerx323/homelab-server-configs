@@ -403,3 +403,15 @@ prevent proving the exact historical failure branch.
 Published archive commit `7932af040294eee4b332a951c63df15ede45de2f` and tag
 object `4c7deb721d6f6d5113fa91db8fedb5e7ca44928f` were verified remotely before
 removing consumed operation files from the current branch.
+
+## Fifth application startup failure
+
+`nautobot-application-startup-v5` passed all startup gates and native, HTTP,
+session, dual-stack network and Job acceptance. Resource acceptance returned
+`command_or_output_boundary`; storage acceptance was not run. Independent cleanup
+verified inactive successful services, no processes or containers, inactive guard
+and no matching kernel storage/OOM events. Data and recovery copies remain.
+Tag `nautobot-application-startup-v5-failed` preserves all 48 consumed inputs and
+sanitized results; publication pending. Its peeled commit identifies the archive.
+Accepted application state is unchanged. Read-only diagnosis confirmed worker
+heartbeat-file production was disabled while the probe required its file.
