@@ -31,6 +31,21 @@ def backup():
             'started': 0, 'finished': 100000}
 
 
+def batch_client(client):
+    def call(request):
+        if request['action'] not in ('status_batch', 'cancel_batch'): return client(request)
+        rows = []
+        for identity in request['ids']:
+            if request['action'] == 'status_batch': rows.append(client({'action':'status','id':identity}))
+            else:
+                try:
+                    row=client({'action':'cancel','id':identity})
+                    rows.append(dict(row,id=identity,stopped=bool(row.get('absent') or (row.get('terminal') and row.get('worker_absent')))))
+                except Exception: rows.append({'id':identity,'stopped':False})
+        return {'results':rows}
+    return call
+
+
 class WorkloadOrchestrationTests(unittest.TestCase):
     def test_backup_requires_real_content_identity_success_and_actual_overlap(self):
         jobs = [{'started': 1, 'done': 2}]
@@ -47,7 +62,7 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             def client(request):
                 self.assertEqual(json.loads((root/'owned-jobs.json').read_text()), [x['id'] for x in request['requests']])
                 raise RuntimeError('transport_lost_after_dispatch')
-            runner = session.Session(root, CONTRACT, client, backup)
+            runner = session.Session(root, CONTRACT, batch_client(client), backup)
             with self.assertRaises(RuntimeError): runner.submit('audit', {}, count=2)
             self.assertEqual(len(runner.owned), 2)
 
@@ -56,46 +71,89 @@ class WorkloadOrchestrationTests(unittest.TestCase):
         for p in contract['phases']: p['minimum_seconds'] = 2
         now = [0]
         requests = []
+        seen = set()
         def client(request):
             if request['action'] == 'submit_batch':
                 requests.extend(request['requests']); return {}
             item = next(r for r in requests if r['id'] == request['id'])
+            if item['kind'] == 'audit' and request['id'] not in seen:
+                seen.add(request['id'])
+                return {'id':request['id'],'terminal':False,'status':'STARTED','started':now[0],'done':None}
             result = {'sha256': 'c'*64}
             if item['kind'] == 'import': result['receipt'] = {'objects': {'owned': 'id'}}
             return {'id': request['id'], 'status': 'SUCCESS', 'terminal': True, 'started': now[0], 'done': now[0]+1, 'result': result}
         with tempfile.TemporaryDirectory() as d:
-            runner = session.Session(Path(d), contract, client, backup, clock=lambda: now[0], sleep=lambda x: now.__setitem__(0, now[0]+x))
+            runner = session.Session(Path(d), contract, batch_client(client), backup, clock=lambda: now[0], sleep=lambda x: now.__setitem__(0, now[0]+x))
             result = runner.execute({}, 'test')
             self.assertTrue(result['backup_overlap_passed'])
             self.assertEqual([sum(r['kind'] == k for r in requests) for k in ('import', 'export', 'audit')], [2, 3, 10])
             self.assertEqual(len(runner.phases), 5)
             self.assertTrue(all(a['end'] == b['start'] for a, b in zip(runner.phases, runner.phases[1:])))
 
-    def test_audits_wait_for_capture_after_repository_preflight(self):
-        import threading
+    def test_backup_waits_for_running_audits_and_short_backup_overlaps(self):
         import time
-        contract = copy.deepcopy(CONTRACT)
-        contract['phases'] = [dict(contract['phases'][2], minimum_seconds=0)]
-        ready = threading.Event()
-        finish = threading.Event()
-        calls = []
-        def producer():
-            time.sleep(0.05)
-            ready.set()
-            if not finish.wait(5): raise ValueError('test_timeout')
-            return backup()
+        contract=copy.deepcopy(CONTRACT);contract['phases']=[dict(contract['phases'][2],minimum_seconds=0)]
+        ids=[];observed=[];started=[False]
         def client(request):
-            if request['action'] == 'submit_batch':
-                self.assertTrue(ready.is_set())
-                calls.extend(request['requests'])
-                if len(calls) == 10: finish.set()
-                return {}
-            return {'id': request['id'], 'status': 'SUCCESS', 'terminal': True,
-                    'started': 1, 'done': 2, 'result': {}}
+            if request['action']=='submit_batch':
+                ids.extend(x['id'] for x in request['requests']);return {}
+            if request['action']=='status_batch':
+                observed.append(time.time())
+                running = not started[0]
+                return {'results':[{'id':i,'terminal':not running,'status':'STARTED' if running else 'SUCCESS','started':observed[0], 'done':None if running else time.time(),'result':{}} for i in request['ids']]}
+            return {'results':[]}
+        def producer():
+            self.assertTrue(observed)
+            receipt=backup();receipt['started']=time.time();started[0]=True
+            time.sleep(0.01);receipt['finished']=time.time();return receipt
         with tempfile.TemporaryDirectory() as d:
-            runner = session.Session(Path(d), contract, client, producer, capture_ready=ready.is_set)
-            self.assertTrue(runner.execute({}, 'test')['backup_overlap_passed'])
-            self.assertEqual(len(calls), 10)
+            runner=session.Session(Path(d),contract,client,producer)
+            self.assertTrue(runner.execute({},'test')['backup_overlap_passed'])
+            self.assertEqual(len(ids),10)
+
+    def test_concurrent_timing_writes_preserve_all_events(self):
+        from concurrent.futures import ThreadPoolExecutor
+        with tempfile.TemporaryDirectory() as d:
+            runner=session.Session(Path(d),CONTRACT,lambda r:None,backup)
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                list(pool.map(runner.event,[str(i) for i in range(20)]))
+            rows=json.loads((Path(d)/'timing.json').read_text())
+            self.assertEqual({r['event'] for r in rows},{str(i) for i in range(20)})
+            self.assertEqual(len(rows),20)
+
+    def test_queued_jobs_are_not_running_and_batch_coverage_is_required(self):
+        now=[0];calls=[]
+        def client(request):
+            calls.append(request)
+            ready=now[0]>=30
+            return {'results':[{'id':i,'terminal':False,'status':'STARTED' if ready else 'PENDING','started':1 if ready else None,'done':None} for i in request['ids']]}
+        with tempfile.TemporaryDirectory() as d:
+            runner=session.Session(Path(d),CONTRACT,client,backup,clock=lambda:now[0],sleep=lambda n:now.__setitem__(0,now[0]+n))
+            runner.running(['one','two'])
+            self.assertEqual(now[0],30)
+            self.assertTrue(all(c['ids']==['one','two'] for c in calls))
+            runner.client=lambda request:{'results':[]}
+            with self.assertRaisesRegex(ValueError,'status_coverage'):runner.running(['one','two'])
+
+    def test_finished_audits_refuse_backup_and_stop_once(self):
+        contract=copy.deepcopy(CONTRACT);contract['phases']=[dict(contract['phases'][2],minimum_seconds=0)]
+        calls=[]
+        def client(request):
+            calls.append(request['action'])
+            if request['action']=='submit_batch':return {}
+            if request['action']=='status_batch':return {'results':[{'id':i,'status':'SUCCESS','started':1,'done':2,'terminal':True} for i in request['ids']]}
+            return {'results':[{'id':i,'stopped':True} for i in request['ids']]}
+        with tempfile.TemporaryDirectory() as d:
+            with patch(__name__+'.backup') as producer:
+                runner=session.Session(Path(d),contract,client,producer)
+                with self.assertRaisesRegex(ValueError,'audits_finished_before_backup'):runner.execute({},'test')
+                runner.cancel_owned();producer.assert_not_called()
+                self.assertEqual(calls.count('cancel_batch'),1)
+
+    def test_async_window_leaves_time_for_bounded_stop_and_final_cleanup(self):
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/run-workload.yaml').read_text())[0]
+        task=next(t for t in play['tasks'][0]['block'] if 'async' in t)
+        self.assertGreaterEqual(task['async'], CONTRACT['limits']['whole_workload_timeout_seconds']+300+60+60)
 
     def test_sample_allowance_covers_maximum_duration(self):
         samples = CONTRACT['limits']['whole_workload_timeout_seconds'] // CONTRACT['sampling']['interval_seconds'] + 1
@@ -153,7 +211,7 @@ class WorkloadOrchestrationTests(unittest.TestCase):
                 calls.append(request['id'])
                 if request['id'] == 'one': raise RuntimeError('unreachable')
                 return {'terminal': True, 'worker_absent': False}
-            runner = session.Session(Path(d), CONTRACT, client, backup)
+            runner = session.Session(Path(d), CONTRACT, batch_client(client), backup)
             runner.owned = ['one', 'two']
             self.assertFalse(runner.cancel_owned())
             self.assertEqual(calls, ['one', 'two'])
@@ -166,9 +224,9 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             calls.append(request)
             if request['action'] == 'submit_batch': return {}
             if request['action'] == 'cancel': return {'terminal': True, 'worker_absent': True}
-            return {'terminal': True, 'status': 'FAILURE', 'started': 1, 'done': 2}
+            return {'id':request['id'],'terminal': True, 'status': 'FAILURE', 'started': 1, 'done': 2}
         with tempfile.TemporaryDirectory() as d:
-            runner = session.Session(Path(d), contract, client, backup)
+            runner = session.Session(Path(d), contract, batch_client(client), backup)
             with self.assertRaisesRegex(ValueError, 'job_failed'): runner.execute({}, 'test')
             self.assertTrue(any(c['action'] == 'cancel' for c in calls))
             self.assertTrue((Path(d)/'owned-jobs.json').exists())
@@ -227,6 +285,21 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             broken = copy.deepcopy(operation); broken['execution']['operation_id'] = 'wrong-operation'
             with self.assertRaisesRegex(ValueError, 'operation_execution_mismatch'): launcher.verify_operation(execution, broken)
             self.assertEqual(actual, execution)
+            import workload_adapter
+            retained = {'schema_version':1,'fixture_sha256':hashlib.sha256(generator.canonical(generator.dataset(CONTRACT))).hexdigest(),'objects':{n['key']:str(__import__('uuid').uuid4()) for n in workload_adapter.plan(generator.dataset(CONTRACT))}}
+            (root/'retained-ownership.json').write_text(json.dumps(retained))
+            retained_hash=hashlib.sha256((root/'retained-ownership.json').read_bytes()).hexdigest()
+            execution['resume']={'source_operation':'previous-trial','ownership_sha256':retained_hash,
+                'registration':{n:str(__import__('uuid').uuid4()) for n in ('PilotImport','PilotExport','PilotAudit')}}
+            (root/'execution.json').write_text(json.dumps(execution))
+            manifest['files']['execution.json']=hashlib.sha256((root/'execution.json').read_bytes()).hexdigest()
+            manifest['files']['retained-ownership.json']=retained_hash
+            raw=json.dumps(manifest).encode();(root/'bundle.json').write_bytes(raw);approval=hashlib.sha256(raw).hexdigest()
+            with patch.object(launcher,'load_operation',return_value=operation):launcher.verify(root,approval)
+            (root/'retained-ownership.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError,'input_identity'):launcher.verify(root,approval)
+            (root/'retained-ownership.json').write_text(json.dumps(retained))
+
             (root/'workload_session.py').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'input_identity'): launcher.verify(root, approval)
             # Rehashing substituted code does not make it reviewed code.

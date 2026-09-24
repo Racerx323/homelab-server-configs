@@ -195,48 +195,6 @@
           "minLength": 1
         }
       }
-    },
-    "resume": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "source_operation",
-        "ownership_sha256",
-        "registration"
-      ],
-      "properties": {
-        "source_operation": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9-]{1,63}$"
-        },
-        "ownership_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "registration": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "PilotImport",
-            "PilotExport",
-            "PilotAudit"
-          ],
-          "properties": {
-            "PilotImport": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "PilotExport": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "PilotAudit": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        }
-      }
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",

@@ -96,7 +96,7 @@
             argv: ['/usr/bin/python3', '{{ workload_root }}/workload_session.py', --root, '{{ workload_root }}']
             chdir: /
           become: true
-          async: 11400
+          async: 11000
           poll: 5
           changed_when: true
           register: workload_run
@@ -137,7 +137,7 @@
             src: '{{ workload_root }}/{{ item }}'
             dest: '{{ workload_local_evidence }}/'
             flat: true
-          loop: [result.json, timing.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-capture-started.json, application-snapshots-before.json, application-snapshots-after.json]
+          loop: [result.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-capture-started.json, application-snapshots-before.json, application-snapshots-after.json]
           become: true
           failed_when: false
           register: workload_fetch
@@ -162,7 +162,7 @@
         - name: Check mandatory evidence after a successful node run
           ansible.builtin.stat:
             path: '{{ workload_local_evidence }}/{{ item }}'
-          loop: [result.json, timing.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json]
+          loop: [result.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json]
           delegate_to: localhost
           register: workload_required_evidence
           when: workload_run is defined and workload_run.rc | default(1) == 0

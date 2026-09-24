@@ -84,23 +84,6 @@ def verify(bundle, approved):
     spec = importlib.util.spec_from_file_location('generator', ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
     generator = importlib.util.module_from_spec(spec); spec.loader.exec_module(generator)
     if json.loads((bundle/'dataset.json').read_text()) != generator.dataset(contract): raise ValueError('fixture_mismatch')
-    if execution.get('resume'):
-        if execution['resume']['source_operation'] == execution['operation_id']: raise ValueError('retained_source_operation')
-        if 'retained-ownership.json' not in files or files['retained-ownership.json'] != execution['resume']['ownership_sha256']:
-            raise ValueError('retained_ownership_identity')
-        ownership = json.loads((bundle/'retained-ownership.json').read_text())
-        if ownership.get('fixture_sha256') != hashlib.sha256(generator.canonical(generator.dataset(contract))).hexdigest():
-            raise ValueError('retained_fixture_identity')
-        adapter_spec = importlib.util.spec_from_file_location('retained_adapter', ROOT/'Nautobot/ansible/scripts/workload_adapter.py')
-        adapter = importlib.util.module_from_spec(adapter_spec); adapter_spec.loader.exec_module(adapter)
-        if (set(ownership) != {'schema_version','fixture_sha256','objects'} or ownership['schema_version'] != 1
-                or set(ownership['objects']) != {n['key'] for n in adapter.plan(generator.dataset(contract))}):
-            raise ValueError('retained_ownership_shape')
-        import uuid
-        for identity in ownership['objects'].values(): uuid.UUID(identity)
-        if len(set(execution['resume']['registration'].values())) != 3: raise ValueError('retained_registration_identity')
-    elif 'retained-ownership.json' in files:
-        raise ValueError('unreviewed_retained_ownership')
     verify_operation(execution, load_operation())
     return manifest, execution
 
@@ -199,7 +182,7 @@ def execute(args, manifest, execution):
     environment['ANSIBLE_CONFIG'] = str(ROOT/'Nautobot/ansible/ansible.cfg')
     result = subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
         'ansible-playbook','--limit','j2-svpi4mf','--user','ama','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(args.bundle/'run-workload.yaml'),
-        '--extra-vars','@'+str(inputs)],cwd=ROOT,env=environment,timeout=11700)
+        '--extra-vars','@'+str(inputs)],cwd=ROOT,env=environment,timeout=11100)
     raise SystemExit(result.returncode)
 
 if __name__=='__main__':main()

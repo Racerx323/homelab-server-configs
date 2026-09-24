@@ -47,17 +47,15 @@ def verify_backup(receipt, jobs, operation):
 
 
 class Session:
-    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep, ownership=None):
+    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep, capture_ready=None):
         self.root, self.contract, self.client, self.backup = root, contract, client, backup
         self.clock, self.sleep = clock, sleep
-        self.owned, self.jobs, self.phases, self.ownership = [], [], [], ownership
+        self.capture_ready = capture_ready
+        self.owned, self.jobs, self.phases, self.ownership = [], [], [], None
         self.monitor = None
         self.backup_future = None
         self.failure = threading.Event()
         self.stop_lock = threading.Lock()
-        self.stop_result = None
-        self.timing = []
-        self.timing_lock = threading.Lock()
         self.started = clock()
 
     def healthy(self):
@@ -85,36 +83,15 @@ class Session:
         self.client({'action': 'submit_batch', 'requests': requests})
         return identities
 
-    def event(self, action):
-        with self.timing_lock:
-            self.timing.append({'event': action, 'utc_seconds': time.time()})
-            save(self.root/'timing.json', self.timing)
-
-    def statuses(self, ids):
-        rows = self.client({'action': 'status_batch', 'ids': ids})['results']
-        require(len(rows) == len(ids) and {r['id'] for r in rows} == set(ids), 'status_coverage')
-        return rows
-
-    def running(self, ids):
-        deadline = self.clock() + self.contract['limits']['single_job_timeout_seconds']
-        while True:
-            self.healthy()
-            require(self.clock() < deadline, 'audit_start_timeout')
-            rows = self.statuses(ids)
-            require(not any(r['terminal'] for r in rows), 'audits_finished_before_backup')
-            if all(r['status'] == 'STARTED' and r['started'] is not None for r in rows):
-                self.event('audit_pair_running_observed')
-                return
-            self.wait(min(deadline, self.clock() + 1))
-
     def completed(self, ids):
         deadline = self.clock() + self.contract['limits']['single_job_timeout_seconds']
         receipts = {}
         while len(receipts) < len(ids):
             self.healthy()
             require(self.clock() < deadline, 'job_timeout')
-            for row in self.statuses([i for i in ids if i not in receipts]):
-                identity = row['id']
+            for identity in ids:
+                if identity in receipts: continue
+                row = self.client({'action': 'status', 'id': identity})
                 if row['terminal']:
                     require(row['status'] == 'SUCCESS' and row['started'] is not None and row['done'] is not None, 'job_failed')
                     receipts[identity] = row
@@ -125,17 +102,18 @@ class Session:
 
     def cancel_owned(self):
         with self.stop_lock:
-            if self.stop_result is not None: return self.stop_result
-            self.event('stop_started')
+            return self._cancel_owned()
+
+    def _cancel_owned(self):
+        outcome = []
+        for identity in list(self.owned):
             try:
-                outcome = self.client({'action': 'cancel_batch', 'ids': list(self.owned)})['results'] if self.owned else []
-                require(len(outcome) == len(self.owned) and {r['id'] for r in outcome} == set(self.owned), 'stop_coverage')
+                result = self.client({'action': 'cancel', 'id': identity})
+                outcome.append({'id': identity, 'stopped': bool(result.get('absent') or (result.get('terminal') and result.get('worker_absent'))), 'terminal': result.get('terminal'), 'worker_absent': result.get('worker_absent')})
             except Exception as error:
-                outcome = [{'id': i, 'stopped': False, 'error_class': type(error).__name__} for i in self.owned]
-            save(self.root/'stop-results.json', outcome)
-            self.stop_result = all(r.get('stopped') is True for r in outcome)
-            self.event('stop_finished')
-            return self.stop_result
+                outcome.append({'id': identity, 'stopped': False, 'error_class': type(error).__name__})
+        save(self.root/'stop-results.json', outcome)
+        return all(r['stopped'] for r in outcome)
 
     def execute(self, dataset, operation):
         backup_receipt = None
@@ -153,17 +131,16 @@ class Session:
                 if phase['id'] == 'jobs_and_backup_overlap':
                     pool = ThreadPoolExecutor(max_workers=1)
                     try:
-                        self.event('audit_pair_dispatch_started')
-                        first_pair = self.submit('audit', dataset, count=2)
-                        self.event('audit_pair_dispatch_returned')
-                        self.running(first_pair)
-                        self.healthy()
-                        self.event('backup_launch_requested')
                         pending = pool.submit(self.backup)
                         self.backup_future = pending
+                        if self.capture_ready is not None:
+                            while not self.capture_ready():
+                                self.healthy()
+                                require(not pending.done(), 'backup_finished_before_capture_signal')
+                                self.wait(self.clock() + 0.2)
                         audits = []
-                        for index in range(self.contract['jobs'][2]['repetitions']//2):
-                            pair = self.completed(first_pair if index == 0 else self.submit('audit', dataset, count=2))
+                        for _ in range(self.contract['jobs'][2]['repetitions']//2):
+                            pair = self.completed(self.submit('audit', dataset, count=2))
                             require(max(r['started'] for r in pair) < min(r['done'] for r in pair), 'audit_concurrency_unproven')
                             audits.extend(pair)
                         while not pending.done(): self.wait(self.clock() + 1)
@@ -231,7 +208,7 @@ def main():
     def client(request):
         source = "__name__='__main__'\nREQUEST=" + repr(request) + '\n' + bridge
         command = sampler.USER + ['/usr/bin/podman', 'exec', '-i', 'nautobot-web', 'nautobot-server', 'shell', '--interface', 'python', '--command', 'import sys;exec(sys.stdin.read())']
-        raw = native_command(command, source.encode(), timeout=300 if request['action'] == 'cancel_batch' else 60)
+        raw = native_command(command, source.encode())
         lines = [x[len('WORKLOAD_CONTROL='):] for x in raw.splitlines() if x.startswith('WORKLOAD_CONTROL=')]
         require(len(lines) == 1, 'bridge_receipt')
         value = json.loads(lines[0]); require(not value.get('failed'), 'native_failure')
@@ -257,15 +234,16 @@ def main():
                     os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=10)
         return json.loads(Path(owner['receipt']).read_text())
 
-    resume = specification.get('resume')
-    ownership = None
-    if resume:
-        raw = (root/'retained-ownership.json').read_bytes()
-        require(hashlib.sha256(raw).hexdigest() == resume['ownership_sha256'], 'retained_ownership_identity')
-        ownership = json.loads(raw)
-    session = Session(root, contract, client, backup, ownership=ownership)
+    def capture_ready():
+        path = root/'application-capture-started.json'
+        if not path.exists(): return False
+        value = json.loads(path.read_text())
+        require(value['operation_id'] == specification['operation_id'] and isinstance(value['started'], (int, float)), 'capture_signal_identity')
+        return True
+
+    session = Session(root, contract, client, backup, capture_ready=capture_ready)
     stop = threading.Event()
-    registration = resume['registration'] if resume else {name: str(uuid.uuid4()) for name in ('PilotImport', 'PilotExport', 'PilotAudit')}
+    registration = {name: str(uuid.uuid4()) for name in ('PilotImport', 'PilotExport', 'PilotAudit')}
     save(root/'registration.json', registration)
     def monitor():
         reader = sampler.Reader(specification['journal_cursor'])
@@ -286,11 +264,9 @@ def main():
                 sampler.validate(row, first, previous, contract); previous = row
                 stop.wait(max(0, row['start'] + contract['sampling']['interval_seconds'] - time.monotonic()))
     try:
-        client({'action': 'register', 'registration': registration, 'reuse_disabled': bool(resume)})
+        client({'action': 'register', 'registration': registration})
     except BaseException:
-        if not resume: client({'action': 'disable', 'registration': registration})
-        # Reused rows may have failed the disabled-state check. Never change an
-        # unexpectedly enabled registration during cleanup of failed activation.
+        client({'action': 'disable', 'registration': registration})
         raise
     def guarded_monitor():
         try: monitor()
@@ -305,7 +281,6 @@ def main():
             stop.set(); session.monitor.result(timeout=60)
             samples = [json.loads(x) for x in (root/'samples.jsonl').read_text().splitlines()]
             result['resources'] = sampler.review_samples(samples, session.phases, contract)
-            result['import_mode'] = 'retained_fixture_repeat' if resume else 'new_fixture'
             result['accepted'] = False  # Operator reviews representativeness and all receipts.
             save(root/'result.json', result)
         except BaseException:

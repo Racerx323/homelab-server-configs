@@ -539,24 +539,9 @@ installed Restic policy or schedule. Retained payloads are root-only and bounded
 by the six capture limits. On this tmpfs host, reserve their capacity in memory
 headroom. Never treat the historical cold-copy metadata as a current restore.
 
-Dispatch the first audit pair before backup and require native STARTED state for
-both Jobs before launching capture. If either finishes before that observation,
-fail coordination without starting backup. Acceptance still compares actual Job
-timestamps against the completed backup interval; running-state observation alone
-is not overlap proof. Status checks are batched into one native shell call. Stop
-reconciliation uses one batch and retains its result across failure handlers;
-unknown worker replies stay unresolved. Dispatch, running observation, backup
-launch and stop timestamps are retained in `timing.json`.
-
-For an explicitly reviewed repeat trial, `execution.resume` binds the source
-operation, ownership-file SHA-256 and all three registration UUIDs. Freeze
-`retained-ownership.json`; its fixture digest must match the generated dataset.
-The adapter still verifies every object UUID and refuses drift or adoption by
-name. Existing registrations must match their exact module/class/UUID and be
-disabled; activation is atomic. An unexpectedly enabled row is not disabled as
-cleanup of failed reuse. A lost activation response remains an unresolved state
-for inspection. Repeat-fixture imports are labelled separately from first-import
-qualification. Do not delete fixtures or registrations as implicit retry cleanup. Evidence allows
+Audit dispatch waits for the producer's atomic capture-start record after its
+repository checks. Acceptance still compares actual Job timestamps against the
+completed backup interval; the signal alone is not overlap proof. Evidence allows
 8 MiB for samples across the three-hour maximum, with the existing five-second
 sampling and 15-second maximum gap. Successful minimum coverage is 4,575 seconds.
 

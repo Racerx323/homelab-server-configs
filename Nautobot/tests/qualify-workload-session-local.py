@@ -66,7 +66,8 @@ def main():
     generator=load('generator',ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
     contract=yaml.safe_load((ROOT/'Nautobot/manifests/workload-test.yaml').read_text())
     # Accelerated functional qualification, not the production duration/headroom test.
-    contract['fixture'].update(locations=2,devices=30,interfaces_per_device=4,ip_assignments=30)
+    # Use the reviewed dataset: tiny audits can finish between status observations.
+    # Phase padding remains accelerated; Job work is not delayed artificially.
     dataset=generator.dataset(contract)
     for phase in contract['phases']: phase['minimum_seconds']=1
     summary={'started':time.time(), 'restic_version':command([args.restic,'version']), 'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__).resolve(), ROOT/'restic/scripts/application-backup.py', *[ROOT/'Nautobot/ansible/scripts'/n for n in ('workload_session.py','workload_control.py','workload_jobs.py','workload_adapter.py','workload_sampler.py')]]}, 'passed':False,'host_sampler_tested':False,'ansible_host_staging_tested':False,
@@ -183,7 +184,7 @@ for line in sys.stdin:
                 result=producer.run(backup_root,specification,capture)
                 if not result['integrity_passed']: raise RuntimeError(json.dumps(result))
                 return result
-            session=Session(args.output,contract,client,backup, capture_ready=lambda: (backup_root/'application-capture-started.json').is_file())
+            session=Session(args.output,contract,client,backup)
             try:
                 result=session.execute(dataset,'disposable-workload')
                 summary.update(result,passed=True,celery_dispatch_tested=True,jobs=len(session.jobs))
@@ -224,6 +225,30 @@ for line in sys.stdin:
                 finally:
                     # Bounded test lock expires by itself; never kill other sessions.
                     lock_process.wait(timeout=25)
+
+                # Retained registration reuse requires exact UUIDs and disabled rows.
+                try:
+                    client({'action':'register','registration':registration,'reuse_disabled':True})
+                except RuntimeError:
+                    summary['enabled_registration_reuse_rejected']=True
+                else:
+                    raise AssertionError('enabled_registration_adopted')
+                client({'action':'disable','registration':registration})
+                wrong=dict(registration,PilotAudit=str(uuid.uuid4()))
+                try:
+                    client({'action':'register','registration':wrong,'reuse_disabled':True})
+                except RuntimeError:
+                    summary['wrong_registration_reuse_rejected']=True
+                else:
+                    raise AssertionError('wrong_registration_adopted')
+                reused=client({'action':'register','registration':registration,'reuse_disabled':True})
+                assert set(reused['registered'])==set(registration.values())
+                resumed_root=args.output/'retained-fixture';resumed_root.mkdir(mode=0o700)
+                resumed_contract=json.loads(json.dumps(contract));resumed_contract['phases']=[dict(contract['phases'][1],minimum_seconds=0)]
+                resumed=Session(resumed_root,resumed_contract,client,backup,ownership=session.ownership)
+                resumed.execute(dataset,'disposable-retained')
+                assert resumed.ownership==session.ownership and len(resumed.jobs)==5
+                summary['retained_fixture_and_registration_verified']=True
 
             finally:
                 client({'action':'disable','registration':registration})

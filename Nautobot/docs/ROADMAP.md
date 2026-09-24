@@ -90,9 +90,27 @@ for the maximum duration. Controller Doppler copies have independent cleanup,
 and the launcher binds the active operation and plan. Focused validation and the
 final bundle are recorded privately at
 `/home/aaron/code/.local-evidence/nautobot-workload-bundle-20260924/`.
-Implementation publication/CI and exact-hash execution approval remain pending.
-No workload, backup upload or service mutation occurred on the target during
-preparation. Interrupted-transport recovery, full application restore and workload
+Preparation commit `e530c5e` is published and both CI workflows passed.
+The explicitly authorized workload trial started September 24 at approximately
+14:15 CDT. Staging, hash readback and boot/service preflight passed; the initial
+25 samples covered two minutes without storage errors or throttling. The trial subsequently stopped at approximately 15:19 CDT because backup and
+audit Job execution did not overlap. All 15 Jobs and the backup/full integrity
+check succeeded individually; overall workload acceptance failed. Cleanup receipts
+report credential and temporary Job-file removal. Independent final-state verification passed. Timing diagnosis confirms the
+16.8-second backup finished 12 seconds before the first audit began; dispatch was
+ordered after capture start. The correction should start audits first, confirm
+actual execution, then launch backup, while retaining timestamp-based overlap
+acceptance. Batch native observations and consolidate duplicate stop sweeps. A
+retry must explicitly reconcile the retained fixture ownership and disabled Job
+registrations; no correction or retry has been executed. Detailed diagnosis is in
+the private evidence directory under `diagnosis/DIAGNOSIS.md`. The repository correction is now implemented: audit-first running-state gating,
+batched status/stop calls, once-only stop reconciliation and explicit retained
+fixture/disabled-registration reuse. Full-size disposable qualification passed
+actual overlap, integrity, cancellation, retained-state reuse and cleanup.
+Validation evidence is under `correction-validation/REVIEW.md`. Production retry,
+terminal archival and a new frozen execution bundle remain pending. Recovery-idle and final observation coverage were not completed.
+Private running status and review instructions are in the evidence directory's
+`STATUS.md`. Do not rerun the consumed bundle or interrupt the quiet window. Interrupted-transport recovery, full application restore and workload
 headroom remain distinct gaps. The older cold copy is not current data recovery.
 
 Planning is consolidated in the

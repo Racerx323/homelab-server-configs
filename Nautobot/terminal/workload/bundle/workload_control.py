@@ -17,21 +17,6 @@ def perform(request):
     if action == 'disable':
         Job.objects.filter(pk__in=request['registration'].values(), module_name='workload_jobs', job_class_name__in=classes.values()).update(enabled=False)
         return {'disabled': True}
-    if action in ('status_batch', 'cancel_batch'):
-        identities = request['ids']
-        if not isinstance(identities, list) or len(identities) > 15 or len(set(identities)) != len(identities):
-            raise ValueError('batch_identity')
-        rows = []
-        for identity in identities:
-            if action == 'status_batch':
-                rows.append(perform({'action': 'status', 'id': identity}))
-            else:
-                try:
-                    row = perform({'action': 'cancel', 'id': identity})
-                    rows.append(dict(row, id=identity, stopped=bool(row.get('absent') or (row.get('terminal') and row.get('worker_absent')))))
-                except Exception as error:
-                    rows.append({'id': identity, 'stopped': False, 'error_class': type(error).__name__})
-        return {'results': rows}
     if action == 'submit_batch':
         from django.db import transaction
         with transaction.atomic():
@@ -111,14 +96,6 @@ def register(request, classes, Job, get_jobs):
     from nautobot.extras.utils import refresh_job_model_from_job_class
     rows = []
     for cls in classes.values():
-        if request.get('reuse_disabled'):
-            job = Job.objects.get(pk=request['registration'][cls], module_name='workload_jobs', job_class_name=cls, enabled=False)
-            if Job.objects.filter(module_name='workload_jobs', job_class_name=cls).exclude(pk=job.pk).exists():
-                raise ValueError('ambiguous_workload_registration')
-            job.enabled = True
-            job.validated_save()
-            rows.append(str(job.pk))
-            continue
         if Job.objects.filter(module_name='workload_jobs', job_class_name=cls).exists():
             raise ValueError('preexisting_workload_job')
         native = available['workload_jobs.' + cls]

@@ -445,3 +445,14 @@ the archive. Published commit `bcf6ae4062bee8f483c4b3ee03dec0c5aa4955b6`
 and tag object `c71a5790511bef3dddf9668f02e49c0cd4f022cb` were verified remotely
 before byte-matched consumed inputs were removed. Accepted application identity is unchanged;
 workload, backup upload, restore and persistence remain separate gates.
+
+## Failed workload qualification
+
+`nautobot-workload-qualification-v1` completed 15 successful Jobs and an application
+backup/full check, but failed actual backup/audit overlap. Planned phase coverage
+was incomplete. Final readback confirmed unchanged services/boot and cleanup;
+fixture, disabled registrations and snapshot remain retained. Application startup
+acceptance is unchanged; workload, restore and persistence are not accepted.
+Tag `nautobot-workload-qualification-v1-failed` preserves the exact consumed inputs
+and sanitized result. Its peeled commit identifies the archive. Publication is
+pending; the operation remains terminal-pending until remote verification.
