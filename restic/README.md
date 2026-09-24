@@ -62,3 +62,13 @@ otherwise follows the user's cache directory and keeps persistent cache data.
 
 No live Restic configuration or executable backup path exists in this
 directory yet.
+
+## Application payload producer
+
+`scripts/application-backup.py` captures a consumer-defined application payload,
+verifies the initialized repository, uploads one identified snapshot and performs
+a full data check. Nautobot owns its six-part dataset and capture/consistency
+contract; see [the Nautobot procedure](../Nautobot/docs/OPERATIONS.md#application-backup-producer).
+The helper is a candidate, not a schedule or live authorization. Initialization,
+isolated restore and retention remain separate. Its regression suite is
+`python3 restic/tests/test_application_backup.py`.

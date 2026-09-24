@@ -74,7 +74,7 @@
           "const": "synthetic_benchmark_range_never_configured_on_network"
         },
         "import_adapter": {
-          "const": "review_required_for_pinned_nautobot_api_and_required_model_references"
+          "const": "native_models_qualified_orchestration_candidate"
         },
         "real_inventory_comparison": {
           "const": "required_before_claiming_representativeness"

@@ -266,3 +266,215 @@ The archived image-store identity is in `manifests/runtime-image-store.json`.
 Use [configuration and authentication qualification](CONFIGURATION_AUTHENTICATION.md)
 for the frozen Ansible disposable-trial procedure, exact-hash approval, independent
 guard, cleanup and acceptance requirements.
+
+## Workload and persistence qualification
+
+The [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification)
+owns the sequence and acceptance criteria. Workload parameters remain in
+`manifests/workload-test.yaml`; progress and qualification results are recorded in
+[ROADMAP.md](ROADMAP.md). This procedure is not a live authorization.
+
+### Adapter and sampler procedure
+
+- [workload_adapter.py](../ansible/scripts/workload_adapter.py) builds native
+  model operations and uses `validated_save()` in one database transaction.
+  It creates dedicated support records, then Locations, Devices, Interfaces,
+  Prefixes, IPAddresses and IPAddressToInterface assignments. Existing global
+  names are refused without the exact previously retained object-ID receipt.
+  Repeat imports make no writes and refuse missing objects or drift. Import
+  errors roll back the transaction; there is no automatic fixture deletion.
+- [workload_jobs.py](../ansible/scripts/workload_jobs.py) defines import, export
+  and read-only audit Jobs with 840-second soft / 900-second hard timeouts.
+  The adapter must be loaded alongside the Jobs module. The candidate Ansible playbook installs these modules into the existing
+  web/worker Jobs tmpfs only during an approved workload stage. It does not change
+  Quadlets or restart production services. Preserve the first import's returned
+  ownership receipt before a second import. A lost receipt requires review;
+  matching names never authorize adopting existing records.
+- Export is a verified projection of fixture fields and natural references,
+  sorted by key, excluding database IDs/timestamps. Audit also checks fixture
+  membership and detects additional assignments involving owned interfaces.
+  These are fixture checks, not a full database export or backup.
+- [workload_sampler.py](../ansible/scripts/workload_sampler.py) reads selected
+  systemd/Podman metadata, cgroups, proc/sys counters and cursor-bounded kernel
+  messages. It records no environment or raw journal text. Samples are private,
+  exclusive-create files, limited to 4 MiB; subprocesses have three-second and
+  4 MiB limits. It retains a failing sample before stopping. Missing journal
+  continuity, metrics or command results are incomplete, never success.
+  `review_samples()` verifies ordered minimum-duration phases, initial/final
+  coverage, gaps, resource criteria and swap behavior. It explicitly does not
+  accept Jobs, backup overlap or the whole workload.
+
+Reviewed source: PyPI `nautobot-3.2.3-py3-none-any.whl`, SHA-256
+`a00573a5f304687d8c42680d79955cb5e5c040c0185ecaba24c9d18c1d9aba47`,
+verified against versioned package metadata before local static inspection.
+Relevant paths: `nautobot/dcim/models/{locations,devices,device_components}.py`,
+`nautobot/ipam/models.py`, `nautobot/extras/models/{statuses,roles}.py`,
+`nautobot/core/models/__init__.py` and `nautobot/extras/jobs.py`.
+LocationType permits Device content; Status permits each status-bearing model;
+Role permits Device. IPAM requires parent prefixes in the dedicated Namespace.
+Prefix/address constructors populate derived network fields before validation.
+Context7's general Nautobot examples supplement this review but do not establish
+compatibility with the pinned version.
+
+### Qualification and deployment procedure
+
+1. Exercise the real adapter in a disposable Nautobot 3.2.3/PostgreSQL environment
+   with the deployed app set: initial import, exact second import, three exports,
+   concurrent audits, collision/drift refusal and a mid-import rollback. Offline
+   MemoryStore tests exercise the production decision loop but do not substitute
+   for native model constraints, signals or database transactions. Keep this
+   qualification away from the production database.
+2. Bind dataset hash, Job inputs and receipt to an operation; review fixture size
+   against intended inventory. Do not accept an arbitrary user-provided dataset
+   merely because the candidate parser accepts its shape.
+3. Qualify `ansible/playbooks/run-workload.yaml` and `workload_session.py` for
+   registration, phase control, exact Job-ID collection, timeouts, sampler
+   supervision and stop-load cleanup in a disposable environment.
+   Concurrent audits must have evidence of actual overlap at concurrency two.
+   Killing the sampler does not stop Jobs; orchestration must stop only the
+   operation-owned load, preserve records, and independently verify termination.
+   Never stop production services as an automatic workload cleanup action.
+4. Preserve actual phase boundaries and results, including first/last samples.
+   Treat a sampler nonzero exit, interruption or missing terminal receipt as
+   incomplete. The frozen node input is a JSON rendering of the validated YAML contract,
+   keeping the sampler standard-library-only. Before activation, validate the
+   contract schema and expected
+   baseline identities independently. Current reader paths are pilot-specific
+   (`sda`, `sda2`, service account UID 999), not fleet defaults.
+5. Review and authorize the real application-aware backup through its owner.
+   Record actual overlap with Jobs; successful sampling alone cannot satisfy it.
+   Keep isolated full restore as a separate stage. Freeze a workload bundle only
+   when these prerequisites and tested failure handling are concrete.
+
+### Persistence procedure
+
+Prepare logout and reboot as separate bounded stages, each with its own exact
+inputs. No active operation is opened by this document.
+
+| Stage | Required preparation | Acceptance and failure boundary |
+| --- | --- | --- |
+| Logout | Enumerate only operation-owned test login sessions; independent administrator connection; current user-manager/linger, unit invocation and restart baseline | Close only those sessions; observe five minutes from the independent connection with continued health, unchanged invocations/restarts and no collection gaps. Preserve evidence and stop if continuity fails. |
+| Reboot | Confirm console recovery; fresh baseline; record pending kernel; freeze reconnect/readiness deadlines; preserve reviewed current database/media recovery inputs and a quiesced logical comparison | One authorized reboot; new boot ID, automatic service activation, matching persistent artifact identities, healthy logical data, limits, guard, both backend families and management/Munin access. Observe at least 75 seconds after readiness. No automatic repeated reboot or destructive restore. |
+
+The concrete collector, session identities, readiness deadlines and current
+recovery evidence still need preparation before either persistence bundle can be
+frozen. Stage acceptance must distinguish daemon activation from proven data
+persistence and must retain collection gaps or unexpected service restarts.
+
+### Local qualification and bundle interface
+
+`tests/qualify-workload-local.py` accepts immutable local application, PostgreSQL
+and Redis image IDs and a new private output directory. Build the application
+image from the pinned Nautobot release with the hash-verified DNS Models wheel
+in `container/requirements.lock`. The runner uses an internal Podman network,
+no published ports, disposable database storage and scoped cleanup. It never
+uses SSH or production credentials. The default fixture matches the workload
+contract; `--small` is only for native bridge regressions. Preserve image IDs,
+input hashes, native output and cleanup receipts; do not call this an ARM64 or
+production acceptance run.
+
+`ansible/scripts/run-workload.py --bundle DIRECTORY --approve SHA256 --evidence
+NEW_DIRECTORY --backup-secrets PROTECTED_CREDENTIAL_DIRECTORY` is the candidate live entrypoint. Do not execute it without a
+reviewed bundle and live authorization. `bundle.json` maps flat input filenames
+and required repository-source paths to SHA-256 values; its exact bytes define
+the approval hash. It binds the strict `workload-execution.schema.json` input,
+validated contract JSON, deterministic dataset, Ansible playbook and all helpers.
+The launcher rechecks source hashes, schema, backup authorization, fixture and
+paths before invoking Ansible. No executable workload instance is supplied now.
+
+The Restic owner must supply a separately reviewed, frozen
+`application-backup.py` entrypoint and its dependencies. It writes a fresh
+`application-backup-result.json` beneath the operation directory. Required fields
+are `kind: application_backup`, the exact `operation_id`, `upload_passed`,
+`integrity_passed`, full `snapshot_id`, UTC epoch `started`/`finished`, and
+`content_sha256` entries for `postgresql_custom_dump`, `media`, `configuration`,
+`image_dependency_manifest`, `quadlet_config_hashes`, and `versions_migrations`.
+These must come from actual backup/integrity verification, not constructed labels.
+Never substitute the existing canary helper. Credential resolution and cleanup
+remain Restic-owned inputs; secret values never enter bundle arguments or JSON.
+
+The node boundary enforces phase and Job deadlines independently of the Ansible
+connection, records Job IDs before dispatch and checks sampler failure while
+Jobs run. Audit pairs are enqueued together. On failure it cancels only recorded
+IDs and distinguishes terminal database state from confirmed worker absence.
+Unknown cancellation means manual review, not successful cleanup. Interrupted
+backup processes retain uploaded snapshots and evidence; no automatic unlock,
+prune, fixture deletion or data restore is permitted. Collection and cleanup
+failures remain visible in `orchestration.json`. Missing receipts are incomplete;
+reviewer acceptance remains separate from an exit-zero process result.
+
+### Application-backup producer
+
+The reusable Restic entrypoint is `restic/scripts/application-backup.py --root
+PROTECTED_DIRECTORY`. Freeze its exact bytes as `application-backup.py` plus a
+non-secret `application-backup.json` in the workload bundle. The latter binds the
+operation ID, execution UID, required staging filesystem, exact Restic
+version/repository URL and ID, snapshot hostname, deadline,
+six bounded capture commands and the PostgreSQL archive-list validator. The
+launcher rejects a substituted producer or a mismatched operation ID.
+
+Nautobot owns the capture commands and their application meaning:
+
+- `postgresql_custom_dump`: the installed PostgreSQL client's `pg_dump -Fc`,
+  using the rootless database container and existing local authentication;
+  require custom-format magic and successful `pg_restore --list` on its bytes.
+- `media`: a complete archive of the reviewed application media tree.
+- `configuration`: reviewed recovery configuration, excluding injected passwords,
+  secret-bearing environment files and Podman secret content. Preserve external
+  secret references and independent password/key recovery instructions.
+- `image_dependency_manifest`: immutable image identities and dependency lock.
+- `quadlet_config_hashes`: hashes and recoverable definitions of the actual
+  reviewed Quadlets and non-secret application configuration.
+- `versions_migrations`: native installed core/App versions and database migration
+  ledger. Do not substitute desired-state labels for installed observations.
+
+Before freezing a live contract, review source paths, mount/capacity, executable
+identities, maximum capture sizes, and the database/media consistency boundary.
+`source_consistency_reviewed` is an authorization input, not a measured guarantee.
+A logical PostgreSQL dump is transactionally consistent within PostgreSQL; it
+cannot by itself synchronize media changes. The workload's import phase must
+finish before backup and the overlap Jobs must remain read-only. Any other
+application writer needs a reviewed exclusion/quiescence or snapshot strategy.
+No automatic service stop or new maintenance-mode change is hidden in this helper.
+
+Resolve `repository`, `password` and `credentials.json` outside the bundle into a
+new owner-only directory (0700, regular files 0600). The credentials JSON contains
+only `id`/`key` for S3; `{}` is reserved for disposable local-repository tests.
+Pass that directory to `run-workload.py --backup-secrets DIRECTORY`. Ansible stages
+these files with `no_log`; no secret is included in the approval hash. The
+credential-resolving controller operation owns removal of its local copies. The
+producer attempts both remote credential removals independently; Ansible also
+attempts both in `always` and checks absence even after producer failure. A
+successful backup receipt requires both cleanup flags true.
+
+Capture output is protected and size/deadline bounded. Available staging space
+must exceed the sum of the reviewed capture limits. The helper checks repository
+identity without initializing, derives the full snapshot ID from before/after
+sets, rejects nonzero upload status including partial snapshots, runs full
+`check --read-data`, verifies payload hashes remain unchanged and checks lock
+absence. It retains payload and snapshot IDs on failure. It never initializes,
+restores, forgets, prunes, unlocks or repairs a production repository. A successful
+receipt remains `accepted: false` and `restore_verified: false`; application
+recovery is a separate exact-snapshot stage.
+
+`tests/qualify-workload-session-local.py` exercises the real Session engine,
+native asynchronous Celery Jobs and the producer against an internal Podman
+network and disposable local Restic repository. It uses accelerated phase lengths;
+it does not qualify ARM64 headroom, the production durations, Pi hardware sampling,
+SSH staging or user-systemd behavior. Preserve those as explicit live checks.
+The existing offline tests exercise inactive Ansible gating and failure decisions;
+they do not substitute for successful staging/cleanup on the target.
+
+Cancellation kills the operation-owned backup process group and retains its
+receipts. A lost Podman exec transport is not proof that a process inside a
+container stopped: the live capture definition must bound its server-side work
+and the failure review must verify no operation-owned dump/query remains. An
+absent producer completion record or unresolved child activity prevents acceptance.
+
+The scoped Job stop path sends terminate+revoke for the recorded task ID and
+requires a positive acknowledgment. It waits boundedly for a responding pilot
+worker to report that ID absent and for native JobResult state to settle. A
+revocation label or missing worker reply alone is insufficient. Only after
+positive absence may the native reaper settle a remaining nonterminal row.
+The disposable test checks REVOKED before the Job's own lock timeout, avoiding
+a false pass caused by a task naturally failing while cancellation is checked.

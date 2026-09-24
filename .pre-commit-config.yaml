@@ -438,6 +438,24 @@ repos:
         language: system
         pass_filenames: false
         files: ^(?:Nautobot/|restic/)
+      - id: nautobot-application-backup
+        name: Nautobot application backup producer
+        entry: python3 restic/tests/test_application_backup.py
+        language: system
+        pass_filenames: false
+        files: ^(restic/|Nautobot/ansible/|Nautobot/tests/)
+      - id: nautobot-workload-candidates
+        name: Validate workload ownership and sampling boundaries
+        entry: python3 Nautobot/tests/test_workload.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(?:ansible/scripts/(?:workload_.*|make-workload-fixture|validate-contracts)\.py|manifests/workload-test\.yaml|schemas/workload-test\.schema\.json|tests/test_workload\.py)
+      - id: nautobot-workload-orchestration
+        name: Validate workload orchestration and backup overlap
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_workload_orchestration.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(?:ansible/.*workload.*|tests/test_workload.*|manifests/workload-test\.yaml|schemas/workload-.*\.json)
       - id: nautobot-database-inspection
         name: Validate retained database preservation and inspection
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_database_inspection.py

@@ -50,3 +50,7 @@ additions and versions, Debian's mail frontend requirement, recipient/account
 qualification, rollback and end-to-end verification. Fleet msmtp configuration
 is owned by `homelab-dns/msmtp`; the pilot's older mail configuration is not the
 fleet standard.
+
+For an isolated upstream-build investigation, see the
+[standalone CI comparison](docs/CI_COMPARISON.md). This does not replace the
+packaged monitoring configuration or authorize fleet changes.

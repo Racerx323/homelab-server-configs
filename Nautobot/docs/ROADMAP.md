@@ -24,11 +24,110 @@ Private evidence: `/home/aaron/code/.local-evidence/nautobot-running-baseline-20
 Idle headroom passed; workload capacity and persistence remain unproven. Retained
 cold-copy metadata was checked, not current contents or restore behavior.
 
-Next: implement workload adapters and the bounded sampler, and prepare the
-separate persistence operation described in
-[workload and persistence preparation](WORKLOAD_PERSISTENCE_PREPARATION.md).
-Real application-backup overlap, isolated restore, Caddy onboarding and seven-day
-stability remain separate gates. No live mutation was performed during this review.
+The workload adapters passed disposable x86_64 Nautobot 3.2.3/PostgreSQL 17
+qualification on September 24 with DNS Models 2.3.0: 500 Devices, 2,000 Interfaces,
+500 IP assignments, native partial-import rollback, unowned-object refusal,
+repeat import without row/timestamp changes, three identical exports, ten audits
+in concurrent pairs and drift refusal. All disposable containers and the internal
+network were removed. A second small native run also passed Job registration,
+synchronous JobResult execution/readback and disabling the owned registrations.
+This is model/API qualification, not ARM64 headroom,
+production persistence or full workload acceptance.
+
+The Ansible candidate stages exact inputs, checks boot/service identity, installs
+temporary Job modules, runs the phase/stop boundary, retains evidence and removes
+only matching installed Job files. The Restic application-backup producer is now
+implemented and hash-bound to the workload launcher. Its contract requires all six
+content categories, verifies repository URL/ID, execution UID, filesystem/capacity
+and version, derives the new full snapshot ID, performs a full data check and
+attempts both credential removals independently. Ansible adds unconditional
+remote credential cleanup/readback. No live backup definition is active.
+
+Disposable native qualification has passed the success path: all 15 asynchronous
+Jobs, actual backup overlap, custom-format PostgreSQL dump/listing, Restic 0.18.0
+upload/full check and completed-Job liveness. The local data set has 30 Devices;
+this is accelerated functional coverage, not the ARM64 workload-duration test.
+The final running-Job stop test passed: scoped termination/revocation produced
+REVOKED in approximately 0.12 seconds, before the test's five-second lock timeout,
+with positive worker-absence evidence. Earlier failures exposed inherited file
+limits and the difference between revocation metadata and process termination;
+those records remain preserved. All disposable containers and networks were removed.
+The native command boundary, 49 offline tests and Ansible syntax checks passed.
+Private evidence: `/home/aaron/code/.local-evidence/nautobot-workload-orchestration-20260924/REVIEW.md`.
+Queued-task reply validation has regression coverage; the native cancellation test
+exercised a running task. Missing worker replies remain unknown.
+
+Approved next work: finalize the actual consumer capture
+commands and database/media consistency boundary, inventory representativeness,
+fresh running baseline and recovery inputs. Authoritative Ansible host staging,
+Pi sampling, interrupted-transport handling, production duration/headroom and full
+application restore remain
+separate evidence gaps. No production host was contacted during this work.
+
+Planning is consolidated in the
+[master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification);
+[OPERATIONS.md](OPERATIONS.md#workload-and-persistence-qualification) holds procedures.
+The former separate workload/persistence preparation document has been removed.
+
+## Documentation consolidation audit — September 24, 2026
+
+Audit and consolidate `ansible/`, `docs/`, `manifests/`, `schemas/` and `tests/`
+together. For each stage, trace the master-plan requirement to desired/operation
+inputs, schema constraints, execution and cleanup behavior, acceptance evidence,
+and regression coverage. Check defaults, required fields, stage names, paths,
+bundle source lists and failure semantics for agreement. Identify unused or
+superseded definitions separately from retained historical records. Consolidate
+shared implementation only where the ownership and execution contracts agree;
+keep distinct live authorization and recovery boundaries intact.
+
+The completed review below covers documentation and its references. It is not a
+completed cross-directory behavioral audit. The approved capture/consistency and
+staging/sampling preparation must retain that distinction before a live bundle
+is frozen. Live workload execution still requires exact-bundle authorization.
+
+The docs directory contains 21 Markdown files (about 5,000 lines). The main
+problem is duplicated stage status and historical preparation prose, not missing
+architecture. The master plan remains the single architecture/stage authority;
+OPERATIONS owns repeatable procedures, HISTORY the terminal tag/commit index,
+and this roadmap only current progress and evidence gaps. Do not copy detailed
+terminal transcripts into HISTORY or add another planning document.
+
+| Documents audited | Consolidation destination | Required treatment |
+| --- | --- | --- |
+| CREDENTIAL_PREPARATION; CREDENTIAL_PROVISIONING | OPERATIONS: credentials | Merge provider selection, delivery, provisioning and cleanup; keep identities in manifests. Remove obsolete “runtime remains inactive” statements. |
+| IMAGE_BUILD; IMAGE_LOADING_AND_CONFIGURATION | OPERATIONS: images | Retain build/load commands, immutable identity and rollback; remove repeated future-stage lists already in the plan. |
+| CONFIGURATION_AUTHENTICATION | OPERATIONS: disposable qualification | Retain current native checks and failure handling; superseded trial narratives belong in existing terminal tags, indexed by HISTORY. |
+| RUNTIME_INITIALIZATION | OPERATIONS: initialization and recovery | Merge native migration, retained-ledger inspection and continuation procedures; move operation-specific outcomes to existing history/manifests. |
+| BOOTSTRAP_AND_STARTUP; STARTUP_PREFLIGHT_AND_RECOVERY; STARTUP_PRESERVATION; STARTUP_EXECUTION | OPERATIONS: startup and recovery | One ordered procedure for baseline, preservation, bootstrap, startup and acceptance. Keep architecture criteria in the plan; derive current volume/copy paths from operation inputs. |
+| ISOLATED_BACKUP_RESTORE; CANARY_BACKUP_INTEGRITY; CANARY_ISOLATED_RESTORE | OPERATIONS: canary upload and restore | Consolidate shared canary contract but retain separate upload/restore authorization steps and exact-snapshot rules. Reusable repository policy stays in restic/. |
+| HOST_BASELINE_CONVERGENCE; MEMORY_CONTROLLER; PACKAGE_CLEANUP | OPERATIONS: host baseline maintenance | Retain reusable diagnostics, acceptance and rollback. Remove dated “next action” narratives after verifying their terminal archive references. |
+| STORAGE_REMEDIATION_DECISION | Plan: accepted transport rationale; OPERATIONS: historical recovery pointer | Options were investigation history, not current competing plans. Preserve their exact historical text in existing tags; future transport changes belong to host-storage/. |
+| ROADMAP | Current progress/evidence map only | Its 1,000-line body repeats completed image, credential, DNS and startup preparation. Collapse those sections to HISTORY/manifests and owning-repository archive links after reference review. |
+| CHECKPOINT | Navigation only | Already reduced to navigation; do not store a second plan or status ledger here. |
+| NAUTOBOT_DEPLOYMENT_PLAN; OPERATIONS | Keep as authorities | Consolidate architecture into the former, executable procedures into the latter; avoid moving runtime identities/results into either. |
+
+Concrete stale examples: CREDENTIAL_PREPARATION says the runtime launcher remains
+inactive; IMAGE_LOADING_AND_CONFIGURATION says authentication remains untested;
+BOOTSTRAP_AND_STARTUP repeats several successive preparation states;
+STORAGE_REMEDIATION_DECISION still says deployment is paused and forbids starting
+applications; HOST_BASELINE_CONVERGENCE still says current status belongs there,
+contradicting the roadmap/manifest ownership rule. The roadmap
+contains both completed and “next” image qualification text. These are historical
+claims superseded by accepted startup, not new deployment blockers.
+
+Local Markdown links and literal component operation paths were checked across
+all 21 files; none pointed to a missing local file. The consolidation risk is
+duplicate/stale meaning and bundle coupling, not broken navigation.
+
+Deletion requires coordinated code edits: current bundle builders explicitly hash
+IMAGE_BUILD, CREDENTIAL_PROVISIONING, IMAGE_LOADING_AND_CONFIGURATION,
+CONFIGURATION_AUTHENTICATION, RUNTIME_INITIALIZATION, BOOTSTRAP_AND_STARTUP,
+STARTUP_PRESERVATION, STARTUP_EXECUTION, HOST_BASELINE_CONVERGENCE, the canary
+procedures and STORAGE_REMEDIATION_DECISION. Update those source-file maps and
+regression fixtures to OPERATIONS sections before removing documents; verify all
+links and preserve terminal tags unchanged. This audit does not silently invalidate
+existing bundles or rewrite accepted history. Consolidation can be performed in
+those groups without changing the deployment stage sequence.
 
 ## Historical preparation and prerequisite results
 

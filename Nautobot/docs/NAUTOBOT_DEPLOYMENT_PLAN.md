@@ -374,6 +374,14 @@ Each backup contains:
 - Quadlet and application configuration hashes; and
 - installed Nautobot/App versions and migration state.
 
+Nautobot owns application capture and database/media consistency; the shared
+Restic component owns repository verification, snapshot identification, upload
+and integrity checking. Qualify the producer together with the workload
+orchestration before approving a live workload bundle. Successful archive listing
+or integrity checking does not replace an isolated application restore. See the
+[application-backup procedure](OPERATIONS.md#application-backup-producer) for the
+reviewed implementation and credential boundaries.
+
 Run nightly backups and retain 7 daily, 5 weekly, and 12 monthly snapshots.
 Define the weekly check as either a full `restic check --read-data` or an
 explicit reviewed subset policy. A subset check is routine monitoring only and
@@ -410,6 +418,58 @@ The combined baseline and workload requirements are:
   temperature above 80 degrees Celsius; and
 - at least 1.5 GiB memory available during representative imports, exports,
   backups, and Jobs.
+
+### Stage-5 workload and persistence qualification
+
+The workload implementation uses the pinned Nautobot model/Job APIs. Qualify its
+adapters first against disposable Nautobot/PostgreSQL with the deployed App set.
+Prove native transaction rollback, refusal of unowned objects, repeat imports
+without writes, deterministic exports and concurrent read-only audits. Offline
+stores alone cannot establish native model or database behavior. Disposable
+x86_64 qualification does not replace the ARM64 pilot's runtime acceptance.
+
+`manifests/workload-test.yaml` defines the synthetic fixture, phase durations,
+sampling cadence and stop thresholds. Its initial scope is 10 Locations, 500
+Devices, four Interfaces per Device and 500 IP assignments in a dedicated
+Namespace using benchmarking addresses. Those addresses never become network
+configuration or external probe targets. Compare fixture scale and operation mix
+with intended production inventory before claiming representativeness.
+
+Use native Jobs for two imports, three deterministic exports and ten audits at
+concurrency two. Preserve exact JobResult identities and a fixture ownership
+receipt. A name prefix or Namespace alone does not establish DCIM ownership.
+Stop on unowned collisions, unexplained drift, missing records, failed Jobs or
+Job deadlines. Preserve fixture data on failure; deletion requires separately
+reviewed ownership and scope. Do not restore production data automatically.
+
+Observe at least 15 minutes idle, 15 minutes import/export, 30 minutes Jobs and
+real application-backup overlap, 15 minutes recovery and 75 seconds of delayed
+storage observation. Sample every five seconds with a maximum 15-second gap.
+Missing metrics, journal continuity or terminal evidence make the observation
+incomplete. Stop operation-owned load on resource/storage failures; never stop
+unrelated Jobs or production services as generic test cleanup. Record actual
+execution overlap, not just enqueue times. The reviewed backup must contain the
+application data specified above, and its full snapshot identity and integrity
+result must be retained. A canary or sampler-only pass does not satisfy this gate.
+
+Use separate logout and reboot stages after a fresh baseline and current recovery
+review. Logout closes only operation-owned sessions and proves five minutes of
+service continuity from an independent administrative connection. Before reboot,
+confirm console recovery, record pending kernel changes and freeze reconnect and
+readiness deadlines. Require a new boot, automatic activation, preserved logical
+database/media content, expected resource limits, effective backend guard,
+dual-stack access and management/monitoring continuity. Observe at least 75 seconds
+after readiness. Do not hash changing PostgreSQL files as a logical comparison,
+add package upgrades or repeatedly reboot as automatic recovery.
+
+Ansible remains the orchestration owner. Frozen inputs bind phase control,
+Job registration/cleanup, sampler supervision and the separately authorized
+Restic-owned backup path. Node-local monitoring must stop operation-owned load
+if sample coverage is lost. Backup upload and isolated full
+restore remain distinct operations; no workload qualification grants restore,
+retention, prune or authority-migration authorization. Repeatable execution and
+qualification procedures belong in [OPERATIONS.md](OPERATIONS.md#workload-and-persistence-qualification),
+while current progress belongs in [ROADMAP.md](ROADMAP.md).
 
 Network and application acceptance requires:
 
