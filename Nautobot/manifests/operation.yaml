@@ -1,24 +1,24 @@
 schema_version: 1
 operation:
-  state: terminal-pending
+  state: definition
   stage: workload_qualification
-  id: nautobot-workload-qualification-v1
-  authorization_ready: false
+  id: nautobot-workload-qualification-v2
+  authorization_ready: true
   target: j2-svpi4mf
 plan_sha256: 918b8ba125af3a334db474a99422de564e88438d6c2b677e79fe64d386913540
-source_commit: bcf6ae4062bee8f483c4b3ee03dec0c5aa4955b6
+source_commit: 5298c9c0000d150d48644a703f271d1ccef79aef
 execution:
   schema_version: 1
   stage: workload_qualification
   execution_authorized: true
-  operation_id: nautobot-workload-qualification-v1
-  root: /tmp/nautobot-workload.811f959873464ba9aab6a220531da5f9
+  operation_id: nautobot-workload-qualification-v2
+  root: /tmp/nautobot-workload.e157112eb1fe48e18d04cbda70f14af6
   boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
-  journal_cursor: s=bb640115c63545a9abbdf0084aa6ab0e;i=a8c4;b=70c9f650a6a2458384a9f96462bef393;m=a2404088b7;t=65c3f2d254aad;x=b61bc163b7b00cad
+  journal_cursor: s=bb640115c63545a9abbdf0084aa6ab0e;i=cd8d;b=70c9f650a6a2458384a9f96462bef393;m=a401ae51dc;t=65c40ee9313d2;x=347bc74dfe1a96b5
   baseline_review:
     passed: true
-    reviewed_at: '2026-09-24T18:59:44.794121+00:00'
-    evidence_sha256: 9afedab35b8a47a7b5e7405bb32525a505a8261a8b751d5e8b45d84d95eabb4e
+    reviewed_at: '2026-09-24T21:04:20.240006+00:00'
+    evidence_sha256: b0f6b73e814e57e97ac532ba2b9312b0bc4b4be07712a9a3939f23618aaa76d7
     boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
     services:
       postgresql:
@@ -40,10 +40,17 @@ execution:
     authorized: true
     argv:
       - /usr/bin/python3
-      - /tmp/nautobot-workload.811f959873464ba9aab6a220531da5f9/application-backup.py
+      - /tmp/nautobot-workload.e157112eb1fe48e18d04cbda70f14af6/application-backup.py
       - --root
-      - /tmp/nautobot-workload.811f959873464ba9aab6a220531da5f9
-    receipt: /tmp/nautobot-workload.811f959873464ba9aab6a220531da5f9/application-backup-result.json
+      - /tmp/nautobot-workload.e157112eb1fe48e18d04cbda70f14af6
+    receipt: /tmp/nautobot-workload.e157112eb1fe48e18d04cbda70f14af6/application-backup-result.json
+  resume:
+    source_operation: nautobot-workload-qualification-v1
+    ownership_sha256: 988c44d81a7cbf1fefb176edfe6c54cc37c1cfb3ab04a158e3d5c04b3bcf8e66
+    registration:
+      PilotAudit: 286e76b0-427d-49a0-9297-27f88cb76b7e
+      PilotExport: e7475bcd-7353-4c4c-b599-0fbe7ca31695
+      PilotImport: dbf6d387-769d-4a01-add8-d4ee60624ef4
 scope:
   quiet_application_window: true
   synthetic_fixture_only: true

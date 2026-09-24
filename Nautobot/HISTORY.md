@@ -454,5 +454,8 @@ was incomplete. Final readback confirmed unchanged services/boot and cleanup;
 fixture, disabled registrations and snapshot remain retained. Application startup
 acceptance is unchanged; workload, restore and persistence are not accepted.
 Tag `nautobot-workload-qualification-v1-failed` preserves the exact consumed inputs
-and sanitized result. Its peeled commit identifies the archive. Publication is
-pending; the operation remains terminal-pending until remote verification.
+and sanitized result. Published commit
+`5298c9c0000d150d48644a703f271d1ccef79aef` and annotated tag object
+`5081e80845df0a18421d670e554757482e4e8c51` were verified remotely. All consumed
+archive files were removed from the current branch only after byte comparison
+with the published tag. The archived publication-pending fields are historical.

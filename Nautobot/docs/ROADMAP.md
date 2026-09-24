@@ -80,38 +80,36 @@ mutation or service change occurred. Terminal Git archival is published and veri
 consumed inputs were removed only after exact comparison with the tag. Both CI
 workflows passed for archive commit `bcf6ae4`.
 
-The current single operation defines workload qualification. A fresh read-only
-baseline and five-sample refresh passed with matching artifacts, continuous boot,
-five running services without restarts, empty media and approximately 4 GB free
-tmpfs. The revised disposable run passed 15 asynchronous Jobs, real capture/upload
-and full-check overlap, scoped cancellation and container/network cleanup.
-Audit dispatch now waits for actual capture start; samples have an 8 MiB allowance
-for the maximum duration. Controller Doppler copies have independent cleanup,
-and the launcher binds the active operation and plan. Focused validation and the
-final bundle are recorded privately at
-`/home/aaron/code/.local-evidence/nautobot-workload-bundle-20260924/`.
-Preparation commit `e530c5e` is published and both CI workflows passed.
-The explicitly authorized workload trial started September 24 at approximately
-14:15 CDT. Staging, hash readback and boot/service preflight passed; the initial
-25 samples covered two minutes without storage errors or throttling. The trial subsequently stopped at approximately 15:19 CDT because backup and
-audit Job execution did not overlap. All 15 Jobs and the backup/full integrity
-check succeeded individually; overall workload acceptance failed. Cleanup receipts
-report credential and temporary Job-file removal. Independent final-state verification passed. Timing diagnosis confirms the
-16.8-second backup finished 12 seconds before the first audit began; dispatch was
-ordered after capture start. The correction should start audits first, confirm
-actual execution, then launch backup, while retaining timestamp-based overlap
-acceptance. Batch native observations and consolidate duplicate stop sweeps. A
-retry must explicitly reconcile the retained fixture ownership and disabled Job
-registrations; no correction or retry has been executed. Detailed diagnosis is in
-the private evidence directory under `diagnosis/DIAGNOSIS.md`. The repository correction is now implemented: audit-first running-state gating,
-batched status/stop calls, once-only stop reconciliation and explicit retained
-fixture/disabled-registration reuse. Full-size disposable qualification passed
-actual overlap, integrity, cancellation, retained-state reuse and cleanup.
-Validation evidence is under `correction-validation/REVIEW.md`. Production retry,
-terminal archival and a new frozen execution bundle remain pending. Recovery-idle and final observation coverage were not completed.
-Private running status and review instructions are in the evidence directory's
-`STATUS.md`. Do not rerun the consumed bundle or interrupt the quiet window. Interrupted-transport recovery, full application restore and workload
-headroom remain distinct gaps. The older cold copy is not current data recovery.
+The first live workload trial failed backup/audit overlap despite 15 successful
+Jobs and successful backup/full integrity checking. The published archive
+`nautobot-workload-qualification-v1-failed` retains exact inputs and sanitized
+results; both CI workflows passed for `5298c9c`. Consumed files were removed only
+after byte comparison with that tag. Accepted application state is unchanged.
+
+The corrected retry is prepared in the single active operation. Audits must be
+observed running before backup starts; actual timestamps still decide overlap.
+Status checks are batched, stop reconciliation runs once, and timing is retained.
+The retry binds the original fixture ownership receipt and three exact disabled
+Job registrations. Its imports are repeat imports; the historical successful
+initial import is separate evidence. No fixture deletion or implicit adoption.
+
+Read-only baseline refresh on September 24 at 21:02 UTC passed: unchanged boot,
+service invocations, image/configuration identities and limits; five running
+services without restarts; no matching storage/OOM events; five successful health
+samples; empty media and approximately 4 GB free tmpfs. Prior temporary modules
+and credentials are absent; all prior Jobs are terminal and registrations disabled.
+The quiet application window remains required. Disposable full-size qualification
+and focused regressions cover corrected coordination and retained-state reuse;
+production overlap and full phase coverage remain unproven.
+
+Private candidate, baseline and exact command:
+`/home/aaron/code/.local-evidence/nautobot-workload-retry-20260924/REVIEW.md`.
+Preparation publication/CI and exact execution approval remain pending. The retry
+retains the same 15 Jobs, one backup/full check, 4,575-second minimum and
+10,800-second workload limit. It does not authorize restart, reboot, restore,
+prune or fixture deletion. Retained snapshots and old cold-copy metadata are not
+application restore proof. Workload headroom, recovery-idle/final observation,
+application restore and persistence remain separate acceptance requirements.
 
 Planning is consolidated in the
 [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification);
