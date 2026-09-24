@@ -24,5 +24,8 @@
   "workload_accepted": false,
   "backup_upload_tested": false,
   "application_restore_tested": false,
-  "terminal_git_archive_pending": true
+  "terminal_git_archive_pending": false,
+  "terminal_tag": "nautobot-workload-capture-qualification-v1-passed",
+  "archive_commit": "bcf6ae4062bee8f483c4b3ee03dec0c5aa4955b6",
+  "tag_object": "c71a5790511bef3dddf9668f02e49c0cd4f022cb"
 }

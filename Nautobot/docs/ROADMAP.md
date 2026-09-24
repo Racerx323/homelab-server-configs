@@ -17,7 +17,7 @@ remain running as authorized at the final startup readback. The published archiv
 both CI workflows passed. See [accepted live state](../manifests/accepted-live-state.yaml)
 and [history](../HISTORY.md). No fresh host collection was performed during reconciliation.
 
-The operation slot is clean. The read-only running-baseline review completed on
+The earlier operation slot was reconciled. The read-only running-baseline review completed on
 September 23 at 04:44 UTC: 19 comparisons passed, including artifact/image/config
 identity, service continuity, limits, heartbeats and effective guard checks.
 Private evidence: `/home/aaron/code/.local-evidence/nautobot-running-baseline-20260923/REVIEW.md`.
@@ -41,7 +41,7 @@ implemented and hash-bound to the workload launcher. Its contract requires all s
 content categories, verifies repository URL/ID, execution UID, filesystem/capacity
 and version, derives the new full snapshot ID, performs a full data check and
 attempts both credential removals independently. Ansible adds unconditional
-remote credential cleanup/readback. No live backup definition is active.
+remote credential cleanup/readback. The workload definition is prepared below; execution is pending.
 
 Disposable native qualification has passed the success path: all 15 asynchronous
 Jobs, actual backup overlap, custom-format PostgreSQL dump/listing, Restic 0.18.0
@@ -76,9 +76,23 @@ All six captures and dump listing succeeded; seven between-capture health sample
 were quiet. Independent readback confirmed raw-capture removal and unchanged
 boot/service identities. Nonsecret staging remains retained. See the
 [sanitized result](../manifests/workload-capture-result.json). No upload, fixture
-mutation or service change occurred. Terminal Git archival is pending. Before
-freezing the live workload bundle, archive the result, pass CI for the current
-implementation, and verify baseline/recovery inputs remain valid. Interrupted-transport recovery, full application restore and workload
+mutation or service change occurred. Terminal Git archival is published and verified;
+consumed inputs were removed only after exact comparison with the tag. Both CI
+workflows passed for archive commit `bcf6ae4`.
+
+The current single operation defines workload qualification. A fresh read-only
+baseline and five-sample refresh passed with matching artifacts, continuous boot,
+five running services without restarts, empty media and approximately 4 GB free
+tmpfs. The revised disposable run passed 15 asynchronous Jobs, real capture/upload
+and full-check overlap, scoped cancellation and container/network cleanup.
+Audit dispatch now waits for actual capture start; samples have an 8 MiB allowance
+for the maximum duration. Controller Doppler copies have independent cleanup,
+and the launcher binds the active operation and plan. Focused validation and the
+final bundle are recorded privately at
+`/home/aaron/code/.local-evidence/nautobot-workload-bundle-20260924/`.
+Implementation publication/CI and exact-hash execution approval remain pending.
+No workload, backup upload or service mutation occurred on the target during
+preparation. Interrupted-transport recovery, full application restore and workload
 headroom remain distinct gaps. The older cold copy is not current data recovery.
 
 Planning is consolidated in the

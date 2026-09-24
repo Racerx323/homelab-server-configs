@@ -10,6 +10,7 @@ import sys
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from concurrent.futures import Future
 import yaml
 
@@ -69,6 +70,36 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             self.assertEqual([sum(r['kind'] == k for r in requests) for k in ('import', 'export', 'audit')], [2, 3, 10])
             self.assertEqual(len(runner.phases), 5)
             self.assertTrue(all(a['end'] == b['start'] for a, b in zip(runner.phases, runner.phases[1:])))
+
+    def test_audits_wait_for_capture_after_repository_preflight(self):
+        import threading
+        import time
+        contract = copy.deepcopy(CONTRACT)
+        contract['phases'] = [dict(contract['phases'][2], minimum_seconds=0)]
+        ready = threading.Event()
+        finish = threading.Event()
+        calls = []
+        def producer():
+            time.sleep(0.05)
+            ready.set()
+            if not finish.wait(5): raise ValueError('test_timeout')
+            return backup()
+        def client(request):
+            if request['action'] == 'submit_batch':
+                self.assertTrue(ready.is_set())
+                calls.extend(request['requests'])
+                if len(calls) == 10: finish.set()
+                return {}
+            return {'id': request['id'], 'status': 'SUCCESS', 'terminal': True,
+                    'started': 1, 'done': 2, 'result': {}}
+        with tempfile.TemporaryDirectory() as d:
+            runner = session.Session(Path(d), contract, client, producer, capture_ready=ready.is_set)
+            self.assertTrue(runner.execute({}, 'test')['backup_overlap_passed'])
+            self.assertEqual(len(calls), 10)
+
+    def test_sample_allowance_covers_maximum_duration(self):
+        samples = CONTRACT['limits']['whole_workload_timeout_seconds'] // CONTRACT['sampling']['interval_seconds'] + 1
+        self.assertGreater(CONTRACT['limits']['collection_stream_bytes'], samples * 3500)
 
     def test_sampler_failure_stops_further_submissions(self):
         with tempfile.TemporaryDirectory() as d:
@@ -164,7 +195,7 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             execution = {'schema_version': 1, 'stage': 'workload_qualification', 'execution_authorized': True,
                 'operation_id': 'offline-fixture', 'root': '/tmp/nautobot-workload.'+'a'*32,
                 'boot_id': '00000000-0000-0000-0000-000000000000', 'journal_cursor': 'offline-only',
-                'baseline_review': {'passed': True, 'boot_id': '00000000-0000-0000-0000-000000000000',
+                'baseline_review': {'passed': True, 'reviewed_at':'2026-09-24T00:00:00Z', 'evidence_sha256':'b'*64, 'boot_id': '00000000-0000-0000-0000-000000000000',
                     'services': {r: {'memory_max': 1024, 'invocation': 'a'*32} for r in workload_sampler.ROLES}},
                 'backup': {'authorized': True, 'argv': ['/usr/bin/python3', '/tmp/nautobot-workload.'+'a'*32+'/application-backup.py', '--root', '/tmp/nautobot-workload.'+'a'*32],
                            'receipt': '/tmp/nautobot-workload.'+'a'*32+'/application-backup-result.json'}}
@@ -185,7 +216,16 @@ class WorkloadOrchestrationTests(unittest.TestCase):
                         'source_files': {p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in launcher.SOURCE_FILES}}
             raw = json.dumps(manifest).encode(); (root/'bundle.json').write_bytes(raw)
             approval = hashlib.sha256(raw).hexdigest()
-            _, actual = launcher.verify(root, approval)
+            operation_schema = json.loads((ROOT/'Nautobot/schemas/workload-operation.schema.json').read_text())
+            operation = {'schema_version':1, 'operation':{'state':'definition','stage':'workload_qualification','id':execution['operation_id'],'authorization_ready':True,'target':'j2-svpi4mf'},
+                'plan_sha256':hashlib.sha256((ROOT/'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md').read_bytes()).hexdigest(),
+                'source_commit':'a'*40,'execution':execution,'scope':operation_schema['properties']['scope']['const']}
+            with patch.object(launcher, 'load_operation', return_value=operation):
+                _, actual = launcher.verify(root, approval)
+            broken = copy.deepcopy(operation); broken['operation']['authorization_ready'] = False
+            with self.assertRaisesRegex(ValueError, 'operation_inactive'): launcher.verify_operation(execution, broken)
+            broken = copy.deepcopy(operation); broken['execution']['operation_id'] = 'wrong-operation'
+            with self.assertRaisesRegex(ValueError, 'operation_execution_mismatch'): launcher.verify_operation(execution, broken)
             self.assertEqual(actual, execution)
             (root/'workload_session.py').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'input_identity'): launcher.verify(root, approval)
@@ -197,6 +237,25 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             schema = json.loads((ROOT/'Nautobot/schemas/workload-execution.schema.json').read_text())
             for invalid in (dict(execution, unexpected=True), dict(execution, stage='initialization')):
                 with self.assertRaises(jsonschema.ValidationError): jsonschema.validate(invalid, schema)
+
+    def test_controller_secret_cleanup_on_failure_and_partial_resolution(self):
+        for fail_at in (None, 2):
+            with self.subTest(fail_at=fail_at), tempfile.TemporaryDirectory() as d:
+                root = Path(d); evidence = root/'evidence'; evidence.mkdir()
+                (root/'application-backup.json').write_text(json.dumps({'repository_url': '/disposable'}))
+                values = []; paths = []
+                def reader(*reference):
+                    if len(values) == fail_at: raise ValueError('resolution_failed')
+                    values.append(bytearray(b'fixture-only'))
+                    return values[-1]
+                with self.assertRaises(ValueError):
+                    with launcher.resolved_credentials(root, evidence, reader) as path:
+                        paths.append(path)
+                        self.assertEqual((path/'password').stat().st_mode & 0o777, 0o600)
+                        raise ValueError('execution_failed')
+                self.assertTrue(all(not p.exists() for p in paths))
+                self.assertTrue(all(all(byte == 0 for byte in v) for v in values))
+                self.assertTrue(all(json.loads((evidence/'controller-credential-cleanup.json').read_text()).values()))
 
     def test_bundle_hash_rejects_before_reading_activation(self):
         with tempfile.TemporaryDirectory() as d:

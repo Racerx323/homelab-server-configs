@@ -738,7 +738,12 @@ class Startup(unittest.TestCase):
             call.assert_not_called()
 
     def test_archived_baseline_review_records_logging_delta_and_preserves_storage(self):
-        with tempfile.TemporaryDirectory() as directory:
+        original_read = Path.read_text
+        def fixture_read(path, *args, **kwargs):
+            if path == ROOT/'Nautobot/manifests/operation.yaml':
+                return 'schema_version: 1\noperation: {state: clean, authorization_ready: false}\n'
+            return original_read(path, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as directory, patch.object(Path, 'read_text', fixture_read):
             report = preparation.prepare(Path(directory)/'rendered')
             self.assertFalse(report['execution_authorized'])
             for name in ('nautobot-postgresql.container', 'nautobot-redis.container'):

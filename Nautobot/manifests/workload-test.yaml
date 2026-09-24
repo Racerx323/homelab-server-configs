@@ -79,7 +79,7 @@ swap_acceptance:
 limits:
   single_job_timeout_seconds: 900
   whole_workload_timeout_seconds: 10800
-  collection_stream_bytes: 4194304
+  collection_stream_bytes: 8388608
 cleanup:
   automatic_delete: false
   preserve_on_failure: true

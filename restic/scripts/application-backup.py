@@ -168,6 +168,8 @@ def run(root, spec, call=invoke):
         require(space.f_bavail * space.f_frsize > sum(c['maximum_bytes'] for c in spec['captures'].values()), 'capture_capacity')
         payload = root/'payload'; payload.mkdir(mode=0o700)
         status['started'] = time.time()  # Actual capture/load begins after repository preflight.
+        record(root/'application-capture-started.tmp', {'operation_id': spec['operation_id'], 'started': status['started']})
+        os.rename(root/'application-capture-started.tmp', root/'application-capture-started.json')
         capture_env = {k: v for k, v in env.items() if not k.startswith('AWS_')}
         for name in SECTIONS:
             status['phase'] = 'capture_' + name

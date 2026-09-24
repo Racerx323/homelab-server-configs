@@ -183,7 +183,7 @@ for line in sys.stdin:
                 result=producer.run(backup_root,specification,capture)
                 if not result['integrity_passed']: raise RuntimeError(json.dumps(result))
                 return result
-            session=Session(args.output,contract,client,backup)
+            session=Session(args.output,contract,client,backup, capture_ready=lambda: (backup_root/'application-capture-started.json').is_file())
             try:
                 result=session.execute(dataset,'disposable-workload')
                 summary.update(result,passed=True,celery_dispatch_tested=True,jobs=len(session.jobs))

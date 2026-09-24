@@ -73,6 +73,13 @@ class Contracts(unittest.TestCase):
             self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis', 'migration'])
             self.assertFalse(operation['failure']['automatic_restore'])
             self.assertFalse(operation['acceptance']['application_accepted'])
+        elif operation['operation'].get('stage') == 'workload_qualification':
+            from jsonschema import RefResolver
+            schema = json.loads((ROOT/'Nautobot/schemas/workload-operation.schema.json').read_text())
+            Draft202012Validator(schema, resolver=RefResolver(base_uri=(ROOT/'Nautobot/schemas').as_uri()+'/', referrer=schema)).validate(operation)
+            self.assertFalse(operation['scope']['restore'])
+            self.assertFalse(operation['scope']['service_restart'])
+            self.assertEqual(operation['execution']['operation_id'], operation['operation']['id'])
         elif operation['operation'].get('stage') == 'application_startup':
             contract = json.loads((ROOT / 'Nautobot/schemas/startup-operation.schema.json').read_text())
             validate(contract, operation)

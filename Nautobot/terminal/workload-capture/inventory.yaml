@@ -1,6 +1,0 @@
-all:
-  children:
-    inventory_automation:
-      hosts:
-        j2-svpi4mf:
-          ansible_host: 10.1.2.170

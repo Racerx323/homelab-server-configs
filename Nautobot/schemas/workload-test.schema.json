@@ -261,7 +261,7 @@
           "const": 10800
         },
         "collection_stream_bytes": {
-          "const": 4194304
+          "const": 8388608
         }
       }
     },

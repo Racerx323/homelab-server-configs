@@ -512,3 +512,43 @@ revocation label or missing worker reply alone is insufficient. Only after
 positive absence may the native reaper settle a remaining nonterminal row.
 The disposable test checks REVOKED before the Job's own lock timeout, avoiding
 a false pass caused by a task naturally failing while cancellation is checked.
+
+### Freezing and running the workload bundle
+
+The single operation manifest must name `workload_qualification`, the exact
+execution input, governing-plan hash, source base commit and reviewed baseline
+hash/time. The launcher rejects an inactive or different operation, source drift,
+substituted helpers and changed baseline service invocations. The bundle's file
+hashes identify the prepared revision in addition to its source base commit.
+Definition flags express the candidate scope; only approval of the final bundle
+hash authorizes execution. Publish the implementation and verify CI before use.
+
+Use `run-workload.py --bundle DIRECTORY --approve SHA256 --evidence NEW_DIRECTORY
+--resolve-doppler` for the reviewed pilot. The controller resolves only
+`homelab-dev/prd_restic/NAUTOBOT_RESTIC_REPOSITORY_PASSWORD` and
+`homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID` plus
+`NAUTOBOT_RESTIC_B2_APPLICATION_KEY`, through the existing bounded reader.
+It removes all controller copies independently even after partial resolution or
+execution failure, and records cleanup booleans without values. The alternative
+`--backup-secrets` accepts caller-managed files; the caller owns their cleanup.
+No secret resolution occurs while preparing or verifying a bundle.
+
+Ansible stages the private capture under root-owned `/tmp`; application commands
+still execute in the existing rootless containers. This does not change the
+installed Restic policy or schedule. Retained payloads are root-only and bounded
+by the six capture limits. On this tmpfs host, reserve their capacity in memory
+headroom. Never treat the historical cold-copy metadata as a current restore.
+
+Audit dispatch waits for the producer's atomic capture-start record after its
+repository checks. Acceptance still compares actual Job timestamps against the
+completed backup interval; the signal alone is not overlap proof. Evidence allows
+8 MiB for samples across the three-hour maximum, with the existing five-second
+sampling and 15-second maximum gap. Successful minimum coverage is 4,575 seconds.
+
+On failure, stop only owned Jobs and the backup process group; preserve fixtures,
+snapshots, payload and receipts. Check remote and controller credential removal,
+Job-file cleanup, remaining native Job activity and any container-side dump.
+Missing cleanup or collection evidence leaves the outcome unresolved. Do not
+restart services, delete snapshots, restore data or remove fixtures automatically.
+Full application restore, reboot/logout persistence, Caddy and pilot acceptance
+remain separate stages.

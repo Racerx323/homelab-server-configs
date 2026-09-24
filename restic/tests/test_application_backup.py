@@ -29,6 +29,7 @@ class BackupTests(unittest.TestCase):
             calls.append(argv)
             if argv[0] == '/usr/bin/findmnt': return 0, b'fixturefs'
             if 'destination' in kwargs:
+                self.assertEqual(json.loads((root/'application-capture-started.json').read_text())['operation_id'], 'offline-backup')
                 p = kwargs['destination']; p.write_bytes(b'PGDMPfixture'); p.chmod(0o600)
                 return 0, b''
             if argv[0] == '/usr/bin/pg_restore': return 0, b'toc'

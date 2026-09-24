@@ -441,5 +441,7 @@ and PostgreSQL dump listing. Seven between-capture health samples were quiet;
 independent readback verified raw-capture removal and unchanged services/boot.
 Tag `nautobot-workload-capture-qualification-v1-passed` preserves the exact
 consumed nonsecret bundle and sanitized result; its peeled commit identifies
-the archive. Publication is pending. Accepted application identity is unchanged;
+the archive. Published commit `bcf6ae4062bee8f483c4b3ee03dec0c5aa4955b6`
+and tag object `c71a5790511bef3dddf9668f02e49c0cd4f022cb` were verified remotely
+before byte-matched consumed inputs were removed. Accepted application identity is unchanged;
 workload, backup upload, restore and persistence remain separate gates.

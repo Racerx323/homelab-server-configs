@@ -47,9 +47,10 @@ def verify_backup(receipt, jobs, operation):
 
 
 class Session:
-    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep):
+    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep, capture_ready=None):
         self.root, self.contract, self.client, self.backup = root, contract, client, backup
         self.clock, self.sleep = clock, sleep
+        self.capture_ready = capture_ready
         self.owned, self.jobs, self.phases, self.ownership = [], [], [], None
         self.monitor = None
         self.backup_future = None
@@ -132,6 +133,11 @@ class Session:
                     try:
                         pending = pool.submit(self.backup)
                         self.backup_future = pending
+                        if self.capture_ready is not None:
+                            while not self.capture_ready():
+                                self.healthy()
+                                require(not pending.done(), 'backup_finished_before_capture_signal')
+                                self.wait(self.clock() + 0.2)
                         audits = []
                         for _ in range(self.contract['jobs'][2]['repetitions']//2):
                             pair = self.completed(self.submit('audit', dataset, count=2))
@@ -228,7 +234,14 @@ def main():
                     os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=10)
         return json.loads(Path(owner['receipt']).read_text())
 
-    session = Session(root, contract, client, backup)
+    def capture_ready():
+        path = root/'application-capture-started.json'
+        if not path.exists(): return False
+        value = json.loads(path.read_text())
+        require(value['operation_id'] == specification['operation_id'] and isinstance(value['started'], (int, float)), 'capture_signal_identity')
+        return True
+
+    session = Session(root, contract, client, backup, capture_ready=capture_ready)
     stop = threading.Event()
     registration = {name: str(uuid.uuid4()) for name in ('PilotImport', 'PilotExport', 'PilotAudit')}
     save(root/'registration.json', registration)

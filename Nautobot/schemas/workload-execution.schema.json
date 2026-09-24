@@ -44,7 +44,9 @@
       "required": [
         "passed",
         "boot_id",
-        "services"
+        "services",
+        "reviewed_at",
+        "evidence_sha256"
       ],
       "properties": {
         "passed": {
@@ -156,6 +158,14 @@
               }
             }
           }
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
@@ -188,5 +198,5 @@
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Reviewed workload execution input; no active instance is supplied"
+  "title": "Reviewed workload execution input; exact bundle authorization required"
 }

@@ -115,6 +115,7 @@
           loop: [password, credentials.json]
           become: true
           register: workload_secret_residue
+          failed_when: false
         - name: Remove only exact operation Job bytes from container tmpfs
           ansible.builtin.command:
             argv: '{{ workload_user + ["/usr/bin/podman", "exec", item.item.0, "python3", "-c", workload_remove_code, item.item.1.name, item.item.1.sha256] }}'
@@ -136,7 +137,7 @@
             src: '{{ workload_root }}/{{ item }}'
             dest: '{{ workload_local_evidence }}/'
             flat: true
-          loop: [result.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-snapshots-before.json, application-snapshots-after.json]
+          loop: [result.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-capture-started.json, application-snapshots-before.json, application-snapshots-after.json]
           become: true
           failed_when: false
           register: workload_fetch
@@ -148,7 +149,10 @@
           delegate_to: localhost
         - name: Reject any remaining backup credential
           ansible.builtin.assert:
-            that: not item.stat.exists
+            that:
+              - item.stat is defined
+              - item.stat.exists is defined
+              - not item.stat.exists
           loop: '{{ workload_secret_residue.results }}'
         - name: Report unresolved cleanup explicitly
           ansible.builtin.assert:
