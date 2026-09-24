@@ -444,6 +444,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^(restic/|Nautobot/ansible/|Nautobot/tests/)
+      - id: nautobot-workload-capture
+        name: Validate pilot backup capture boundaries
+        entry: python3 Nautobot/tests/test_workload_capture.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/scripts/(workload_capture|qualify-workload-capture|run-capture-qualification)\.py|tests/test_workload_capture\.py)
       - id: nautobot-workload-candidates
         name: Validate workload ownership and sampling boundaries
         entry: python3 Nautobot/tests/test_workload.py

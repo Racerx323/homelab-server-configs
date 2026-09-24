@@ -437,6 +437,40 @@ finish before backup and the overlap Jobs must remain read-only. Any other
 application writer needs a reviewed exclusion/quiescence or snapshot strategy.
 No automatic service stop or new maintenance-mode change is hidden in this helper.
 
+The pilot capture helper is `workload_capture.py --root DIRECTORY SECTION`.
+Freeze it with `backup-sources.json`, the desired-state manifest, qualified-image
+manifest and dependency lock. The source map permits only the reviewed
+`nautobot_config.py` and current `.container`, `.volume` and `.network` definitions;
+exclude environment/secret files and Ansible backup copies. It checks their hashes
+before and after capture. The launcher binds all execution helpers to repository
+bytes as well as binding bundle contents to their approval hash.
+
+For this pilot, use the confirmed quiet application window: no manual/API writes
+or media uploads, completed synthetic imports, and read-only overlap audits.
+`consistency: quiet_pilot_empty_media` requires a directory-only media tree before
+and after every capture. Any file or symlink rejects capture. Preserve the directory
+layout in the media archive; this is not qualification of populated media backup.
+PostgreSQL uses `pg_dump --no-password -U nautobot -d nautobot --format=custom`
+as the container's postgres user, with a 600-second container-side timeout.
+Validate the dump with the same container's `pg_restore --list`. Native version
+metadata and the ordered migration ledger are read separately; do not migrate
+during the window. PostgreSQL snapshot consistency does not extend to media.
+See [PostgreSQL 17 pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html).
+
+Before workload execution, the temporary capture qualification playbook stages
+and hashes the actual helpers, captures all six categories, checks the dump and
+samples host health between captures. Bound the dump to 256 MiB and each other
+category to 16 MiB. Require 384 MiB spare staging capacity above the normal memory
+headroom floor because this pilot's `/tmp` is tmpfs. The qualification does not
+claim continuous sampling across captures or exercise workload Jobs, B2 upload,
+reboot, or restore. It fetches only the result and removes raw captures independently
+on success/failure. Retain the mode-0700 staging directory and receipt for review.
+If the controller/target is lost or forcibly terminated, raw residue is possible;
+inspect that exact directory before recovery, never repeat or recursively clean
+an unverified operation path. This qualification itself requires a reviewed
+mutation approval for temporary target files. Do not call it complete from syntax
+checks or from the earlier disposable-container qualification.
+
 Resolve `repository`, `password` and `credentials.json` outside the bundle into a
 new owner-only directory (0700, regular files 0600). The credentials JSON contains
 only `id`/`key` for S3; `{}` is reserved for disposable local-repository tests.

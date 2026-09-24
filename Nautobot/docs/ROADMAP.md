@@ -57,12 +57,29 @@ Private evidence: `/home/aaron/code/.local-evidence/nautobot-workload-orchestrat
 Queued-task reply validation has regression coverage; the native cancellation test
 exercised a running task. Missing worker replies remain unknown.
 
-Approved next work: finalize the actual consumer capture
-commands and database/media consistency boundary, inventory representativeness,
-fresh running baseline and recovery inputs. Authoritative Ansible host staging,
-Pi sampling, interrupted-transport handling, production duration/headroom and full
-application restore remain
-separate evidence gaps. No production host was contacted during this work.
+Read-only target refresh on September 24 matched accepted artifact hashes and
+boot identity. Five application services remain running with zero restarts;
+the retained kernel journal window contains no matching storage/OOM events.
+The actual sampler passed five samples at five-second intervals, each collected
+in under one second. This is collection-path qualification, not workload capacity.
+The database is approximately 27 MB with 481 migrations; media has three directories
+and no files. `/tmp` is tmpfs, so capture staging must be bounded against memory.
+Private evidence: `/home/aaron/code/.local-evidence/nautobot-workload-preflight-20260924/`.
+Both workflows for published commit `4fbf660` passed; they do not validate later edits.
+
+The user confirmed a quiet application window with only the reviewed synthetic
+Jobs. The pilot capture helper now defines all six backup inputs, refuses populated
+media, verifies reviewed configuration hashes and bounds database commands inside
+the container. The launcher now rejects rehashed substitutions of repository code.
+The authorized temporary capture/staging qualification passed on September 24.
+All six captures and dump listing succeeded; seven between-capture health samples
+were quiet. Independent readback confirmed raw-capture removal and unchanged
+boot/service identities. Nonsecret staging remains retained. See the
+[sanitized result](../manifests/workload-capture-result.json). No upload, fixture
+mutation or service change occurred. Terminal Git archival is pending. Before
+freezing the live workload bundle, archive the result, pass CI for the current
+implementation, and verify baseline/recovery inputs remain valid. Interrupted-transport recovery, full application restore and workload
+headroom remain distinct gaps. The older cold copy is not current data recovery.
 
 Planning is consolidated in the
 [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification);

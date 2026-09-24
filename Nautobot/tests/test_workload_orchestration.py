@@ -158,8 +158,8 @@ class WorkloadOrchestrationTests(unittest.TestCase):
         import jsonschema
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            for name in launcher.REQUIRED - {'execution.json', 'contract.json', 'dataset.json', 'application-backup.json'}:
-                source = ROOT/'restic/scripts'/name if name == 'application-backup.py' else (ROOT/'Nautobot/ansible/playbooks'/name if name.endswith('.yaml') else SCRIPTS/name)
+            for name in launcher.REQUIRED - {'execution.json', 'contract.json', 'dataset.json', 'application-backup.json', 'backup-sources.json'}:
+                source = ROOT/launcher.DATA_FILES[name] if name in launcher.DATA_FILES else ROOT/'restic/scripts'/name if name == 'application-backup.py' else (ROOT/'Nautobot/ansible/playbooks'/name if name.endswith('.yaml') else SCRIPTS/name)
                 shutil.copyfile(source, root/name)
             execution = {'schema_version': 1, 'stage': 'workload_qualification', 'execution_authorized': True,
                 'operation_id': 'offline-fixture', 'root': '/tmp/nautobot-workload.'+'a'*32,
@@ -176,6 +176,10 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             producer_tests = importlib.util.spec_from_file_location('producer_tests', ROOT/'restic/tests/test_application_backup.py')
             pt = importlib.util.module_from_spec(producer_tests); producer_tests.loader.exec_module(pt)
             specification = pt.contract(); specification['operation_id'] = execution['operation_id']
+            prefix = ['/usr/bin/python3', execution['root']+'/workload_capture.py', '--root', execution['root']]
+            for section in specification['captures']: specification['captures'][section]['argv'] = prefix + [section]
+            specification['dump_validator'] = prefix + ['validate_dump']
+            (root/'backup-sources.json').write_text(json.dumps({'consistency':'quiet_pilot_empty_media','quiet_window_confirmed':True,'files':{}}))
             (root/'application-backup.json').write_text(json.dumps(specification))
             manifest = {'files': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in root.iterdir()},
                         'source_files': {p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in launcher.SOURCE_FILES}}
@@ -185,6 +189,11 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             self.assertEqual(actual, execution)
             (root/'workload_session.py').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'input_identity'): launcher.verify(root, approval)
+            # Rehashing substituted code does not make it reviewed code.
+            manifest['files']['workload_session.py'] = hashlib.sha256((root/'workload_session.py').read_bytes()).hexdigest()
+            raw = json.dumps(manifest).encode(); (root/'bundle.json').write_bytes(raw)
+            with self.assertRaisesRegex(ValueError, 'execution_source_identity'):
+                launcher.verify(root, hashlib.sha256(raw).hexdigest())
             schema = json.loads((ROOT/'Nautobot/schemas/workload-execution.schema.json').read_text())
             for invalid in (dict(execution, unexpected=True), dict(execution, stage='initialization')):
                 with self.assertRaises(jsonschema.ValidationError): jsonschema.validate(invalid, schema)

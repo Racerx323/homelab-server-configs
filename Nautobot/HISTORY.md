@@ -433,3 +433,13 @@ Accepted startup identity is reconciled in `manifests/accepted-live-state.yaml`.
 Consumed files were removed only after byte-for-byte archive comparison; the
 operation slot is clean. The archived publication-pending fields are historical.
 Full workload, persistence, Caddy and application recovery remain separate gates.
+
+## Passed temporary workload capture qualification
+
+`nautobot-workload-capture-qualification-v1` passed all six application captures
+and PostgreSQL dump listing. Seven between-capture health samples were quiet;
+independent readback verified raw-capture removal and unchanged services/boot.
+Tag `nautobot-workload-capture-qualification-v1-passed` preserves the exact
+consumed nonsecret bundle and sanitized result; its peeled commit identifies
+the archive. Publication is pending. Accepted application identity is unchanged;
+workload, backup upload, restore and persistence remain separate gates.

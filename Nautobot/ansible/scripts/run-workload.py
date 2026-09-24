@@ -15,8 +15,11 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[3]
 REQUIRED = {'execution.json', 'contract.json', 'dataset.json', 'workload_adapter.py',
-            'workload_jobs.py', 'workload_control.py', 'workload_session.py', 'workload_sampler.py', 'run-workload.yaml', 'application-backup.py', 'application-backup.json'}
-SOURCE_FILES = ('restic/scripts/application-backup.py', 'Nautobot/ansible/scripts/run-workload.py', 'Nautobot/ansible/ansible.cfg', 'Nautobot/schemas/workload-test.schema.json', 'Nautobot/schemas/workload-execution.schema.json',
+            'workload_jobs.py', 'workload_control.py', 'workload_session.py', 'workload_sampler.py', 'run-workload.yaml', 'workload_capture.py', 'backup-sources.json', 'desired-state.yaml', 'requirements.lock', 'qualified-image.json', 'application-backup.py', 'application-backup.json'}
+DATA_FILES = {'desired-state.yaml': 'Nautobot/manifests/desired-state.yaml',
+              'requirements.lock': 'Nautobot/container/requirements.lock',
+              'qualified-image.json': 'Nautobot/manifests/qualified-image.json'}
+SOURCE_FILES = ('Nautobot/container/requirements.lock', 'Nautobot/manifests/qualified-image.json', 'restic/scripts/application-backup.py', 'Nautobot/ansible/scripts/run-workload.py', 'Nautobot/ansible/ansible.cfg', 'Nautobot/schemas/workload-test.schema.json', 'Nautobot/schemas/workload-execution.schema.json',
     'Nautobot/ansible/scripts/make-workload-fixture.py', 'Nautobot/ansible/scripts/validate-contracts.py',
     'Nautobot/schemas/desired-state.schema.json', 'Nautobot/manifests/desired-state.yaml',
     'tests/repository/run-with-ansible-local-temp.sh', 'inventory/prod/hosts.yaml',
@@ -36,6 +39,13 @@ def verify(bundle, approved):
         path = bundle/name
         if not re.fullmatch('[A-Za-z0-9_.-]+', name) or path.is_symlink() or not path.is_file(): raise ValueError('bundle_path')
         if hashlib.sha256(path.read_bytes()).hexdigest() != digest: raise ValueError('input_identity')
+    # A self-consistent bundle must also contain the reviewed repository code.
+    for name in REQUIRED - {'execution.json', 'contract.json', 'dataset.json', 'application-backup.json', 'backup-sources.json'}:
+        source = (ROOT/DATA_FILES[name] if name in DATA_FILES else ROOT/'restic/scripts'/name if name == 'application-backup.py' else
+                  ROOT/'Nautobot/ansible/playbooks'/name if name.endswith('.yaml') else
+                  ROOT/'Nautobot/ansible/scripts'/name)
+        if hashlib.sha256(source.read_bytes()).hexdigest() != files[name]:
+            raise ValueError('execution_source_identity')
     execution = json.loads((bundle/'execution.json').read_text())
     from jsonschema import Draft202012Validator, FormatChecker
     Draft202012Validator(json.loads((ROOT/'Nautobot/schemas/workload-execution.schema.json').read_text()), format_checker=FormatChecker()).validate(execution)
@@ -58,6 +68,13 @@ def verify(bundle, approved):
     backup_contract = json.loads((bundle/'application-backup.json').read_text())
     producer.validate(backup_contract)
     if backup_contract['operation_id'] != execution['operation_id']: raise ValueError('backup_operation_identity')
+    source_policy = json.loads((bundle/'backup-sources.json').read_text())
+    if source_policy.get('consistency') != 'quiet_pilot_empty_media' or source_policy.get('quiet_window_confirmed') is not True:
+        raise ValueError('backup_consistency')
+    prefix = ['/usr/bin/python3', execution['root']+'/workload_capture.py', '--root', execution['root']]
+    for section, capture in backup_contract['captures'].items():
+        if capture['argv'] != prefix + [section]: raise ValueError('backup_capture_arguments')
+    if backup_contract['dump_validator'] != prefix + ['validate_dump']: raise ValueError('backup_validator_arguments')
     from jsonschema import validate
     import yaml
     contract = json.loads((bundle/'contract.json').read_text())

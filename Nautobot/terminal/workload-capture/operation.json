@@ -1,0 +1,26 @@
+{
+  "operation_id": "nautobot-workload-capture-qualification-v1",
+  "state": "prepared_awaiting_authorization",
+  "target": "ama@10.1.2.170",
+  "plan_sha256": "918b8ba125af3a334db474a99422de564e88438d6c2b677e79fe64d386913540",
+  "source_commit": "4fbf660323ce90f596a3374479fbb64a5ab3ce60",
+  "uncommitted_inputs": true,
+  "live_workload_authorized": false,
+  "scope": [
+    "temporary_protected_staging",
+    "read_only_application_captures",
+    "dump_listing",
+    "between_capture_health_samples",
+    "raw_capture_cleanup"
+  ],
+  "excluded": [
+    "workload_jobs",
+    "B2_upload",
+    "service_changes",
+    "database_mutation",
+    "restore",
+    "reboot"
+  ],
+  "baseline_sha256": "358c5648f7a6ed49ac0e2d79e697d62411a669e24a7a575d7b4b98299c69c5f4",
+  "rollback": "No production data mutation; retain directory/evidence and independently remove only operation-owned raw captures. Inspect residue after forced termination or transport loss."
+}
