@@ -12,7 +12,7 @@
   until: startup_service_state.rc == 0 or ((startup_service_state.stdout | from_json).terminal | default(false))
   failed_when: false
   ignore_errors: true  # Persist exhausted readiness evidence; the assertion below still blocks progression.
-  retries: '{{ 444 if startup_role == "migration" else 108 }}'
+  retries: '{{ 72 if startup_role == "migration" else 108 }}'
   delay: 5
   no_log: true
 - name: Retain bounded service readiness diagnostics

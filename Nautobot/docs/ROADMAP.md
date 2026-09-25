@@ -3,22 +3,30 @@
 ## Current next action
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
-The accepted synthetic workload is archived. The corrected logout operation ran:
-its five-minute PAM-session observation passed, but the final redundant stop of
-an already-unloaded test unit returned 5 and failed the orchestration assertion.
-All 54 samples retained stable running service identities, zero restarts, HTTP
-200 and the existing manager session. Both owned units ended inactive with PID 0;
-proxy checks passed in both families. Bounded PAM-session logout is accepted by retained-evidence review, with the
-original orchestration error explicitly retained; terminal Git archival is pending.
-Private evidence: `nautobot-logout-resolution-20260925/REVIEW.md`.
+The synthetic workload and bounded PAM-session logout are accepted and archived.
+The logout archive preserves the original redundant-stop orchestration error;
+acceptance rests on retained observation, closure and final unit-state evidence.
+Accepted state is reconciled and the active operation slot is clean.
 
-Cleanup handling is corrected and locally tested against the real Ansible
-assertions, including unloaded, active, permission-error and failed-read cases.
-The sanitized decision is `manifests/logout-persistence-result.json`. Next archive
-the consumed definition/bundle and acceptance decision before clearing this
-operation. Preserve the original frozen playbook separately from the corrected
-reusable implementation. No live retry was needed. Reboot and full application
-restore remain separate gates.
+Fresh read-only reboot baseline collected September 25: accepted artifact and boot
+identities match; services, linger and guard are healthy; both proxy families return
+HTTP 200. The boot image matches running kernel `6.18.50+rpt-rpi-v8`.
+Private evidence: `nautobot-reboot-baseline-20260925/REVIEW.md`.
+
+The approved architecture separates explicit initialization/upgrades from ordinary
+boot. Local implementation keeps the migration-named oneshot as a configuration
+and pending-migration gate, removes boot-time `post_upgrade`, shortens its timeout
+to 300 seconds and updates receipt validators, desired state/schema and tests.
+Initialization/continuation retain upgrade execution; web retains static collection.
+The host still runs the previous accepted artifacts. No deployment or reboot occurred.
+
+Next review and publish this implementation, then prepare a scoped deployment
+bundle and current recovery preservation/logical comparison before reboot. Do not
+reuse the old startup baseline or archived bundles with the changed desired state.
+Console/physical recovery was confirmed available September 25. A fresh quiet
+window and current recovery/consistency evidence are still required. The proposed
+ten-minute application readiness ceiling is not a measured reboot guarantee.
+Reconciliation and implementation remain uncommitted; no active operation is open.
 
 ## Accepted scope and remaining gates
 
@@ -29,7 +37,7 @@ restore remain separate gates.
 | Stage 5 prerequisites and startup | Image, credentials, native readiness, initialization, administrator and startup results archived | [History](../HISTORY.md), component manifests |
 | Synthetic workload | Accepted only for repeat-fixture workload, 15 Jobs and application-backup overlap/integrity | [Synthetic acceptance](../manifests/accepted-live-state.yaml) |
 | Real-inventory representativeness | Open; compare scale and operation mix with intended inventory | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification) |
-| Logout and reboot persistence | Bounded PAM logout accepted; archival pending. Reboot remains open | [Procedures](OPERATIONS.md#persistence-procedure) |
+| Logout and reboot persistence | Bounded PAM logout accepted and archived. Reboot remains open | [Procedures](OPERATIONS.md#persistence-procedure) |
 | Application restore | Open; canary restore and dump listing do not satisfy it | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |

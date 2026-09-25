@@ -202,8 +202,16 @@ Create one private Podman network and these Quadlet-managed services:
 - Nautobot web;
 - one Celery worker with concurrency `2`;
 - one Celery Beat scheduler; and
-- a one-shot migration unit that runs `nautobot-server post_upgrade` before
-  web, worker, or scheduler startup.
+- a one-shot readiness gate (retaining the `migration` unit name) before web,
+  worker, or scheduler startup. Ordinary boot checks configuration and rejects
+  pending migrations; it must not invoke `post_upgrade`.
+
+Run `nautobot-server post_upgrade` only in separately reviewed initialization or
+upgrade operations, before accepting that image/database combination. This
+separation avoids repeating upgrade work during ordinary reboot while retaining
+fail-closed schema readiness. Web startup still collects static assets into its
+ephemeral writable directory. Explicit initialization/upgrade deadlines remain
+separate from normal boot readiness deadlines.
 
 ### Internal metrics runtime requirement
 

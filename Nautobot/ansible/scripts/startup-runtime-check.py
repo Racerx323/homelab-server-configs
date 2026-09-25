@@ -100,7 +100,6 @@ def native_receipt(entries, role, invocation=None):
     require(len(values) == 1, 'native_receipt_count')
     value = values[0]
     expected = {'configuration', 'pending_migrations'}
-    if role == 'migration': expected.add('post_upgrade')
     if role == 'web': expected.add('static_collection')
     require(value.get('passed') is True and value.get('role') == role and set(value.get('steps', {})) == expected, 'native_receipt_shape')
     require(all(v.get('exit_status') == 0 and not v.get('output_limited') and not v.get('error')

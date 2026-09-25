@@ -95,7 +95,6 @@ def native_status(role, invocation, runner=base.call):
     if not isinstance(receipt, dict) or not isinstance(receipt.get('steps'), dict) or not all(isinstance(v, dict) for v in receipt['steps'].values()):
         return {**result, 'terminal': True, 'reason': 'native_failed_or_invalid'}
     expected = {'configuration', 'pending_migrations'}
-    if role == 'migration': expected.add('post_upgrade')
     if role == 'web': expected.add('static_collection')
     valid = (receipt.get('role') == role and receipt.get('passed') is True
              and set(receipt.get('steps', {})) == expected

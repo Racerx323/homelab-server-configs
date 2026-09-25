@@ -107,7 +107,8 @@ services:
     kind: oneshot
     command:
       - nautobot-server
-      - post_upgrade
+      - migrate
+      - --check
     depends_on:
       - postgresql
       - redis

@@ -451,18 +451,18 @@ class Startup(unittest.TestCase):
         self.assertNotIn('post_upgrade', str(calls))
         self.assertNotIn('createsuperuser', str(calls))
 
-    def test_repeatable_migration_native_sequence_and_bounds(self):
+    def test_boot_readiness_never_runs_upgrade(self):
         calls = []
         def run(argv, timeout):
             calls.append((argv, timeout))
             return {'exit_status': 0}
         self.assertTrue(app.prepare('migration', run, inspect=False)['passed'])
-        self.assertEqual([x[0][1:] for x in calls], [['check'], ['post_upgrade'], ['migrate', '--check']])
-        self.assertEqual([x[1] for x in calls], [120, 1800, 120])
+        self.assertEqual([x[0][1:] for x in calls], [['check'], ['migrate', '--check']])
+        self.assertEqual([x[1] for x in calls], [120, 120])
 
     def test_each_failure_stops_subsequent_commands(self):
         for role in app.LIMITS:
-            total = 3 if role in ('web', 'migration') else 2
+            total = 3 if role == 'web' else 2
             for fail_at in range(total):
                 calls = []
                 def run(argv, timeout):

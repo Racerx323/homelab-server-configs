@@ -444,6 +444,71 @@ selects or terminates sessions, enables linger, starts units or accepts persiste
 Compare returned artifacts with accepted state and review current recovery inputs.
 A collection result is readiness evidence, not a persistence pass.
 
+#### Reboot baseline and recovery preparation
+
+Use a fresh, separately authorized read-only collection on `ama@10.1.2.170`.
+Reuse `persistence-preflight.py` with its exact `startup-preflight.py` dependency;
+retain their hashes, stdout, stderr and exit status privately. A prepared collection
+is not authorization to reboot or to create a new backup. Compare each observation
+against accepted state, not against a value generated from the same observation.
+
+| Evidence | Collection and review | Readiness condition |
+| --- | --- | --- |
+| Host and runtime | Existing persistence collector: boot ID, UID/linger, sessions, five service invocations/restarts, images, volumes, listeners, mounts and artifact hashes | Running services match accepted startup artifacts; explain every change since logout acceptance. Preserve unrelated login sessions. |
+| Boot activation | Read generated user unit dependencies and enabled target links, user-manager boot dependencies and backend guard persistence/dependencies | All five services are pulled into the lingering user's boot target; migration must not unexpectedly run during reboot. Guard precedes backend exposure. Running now is not proof of automatic activation. |
+| Kernel and boot inputs | Record running release; read installed kernel package versions, `/boot/firmware` kernel/image links and applicable boot configuration; record pending-reboot markers if present | Identify the expected next kernel from boot inputs. If ambiguous, leave unresolved. No package update, boot edit or marker removal. |
+| Capacity and health | Existing collector memory/filesystem capacity; current-boot kernel storage/OOM messages, current HTTP health and service limits | No unexplained active storage/OOM condition; enough capacity for separately reviewed recovery preservation. No new SMART query or self-test. |
+| Access paths | Read-only primary proxy checks to both permanent backend addresses; SSH/Webmin reachability and Munin master polling from their approved sources | Capture working preboot paths and expected addresses; distinguish HTTP reachability from certificate trust. |
+| Recovery references | Inspect metadata of retained cold copy and accepted full application snapshot/integrity references | Record their age and relationship to current logical data. Existence and an old integrity result are not a fresh restore qualification. |
+| Physical recovery | Confirm console/physical recovery for this host and who can use it during the window | Explicit confirmation for the planned reboot window; do not infer continuing availability from an earlier operation. |
+
+Do not read credential contents or include raw database/media data in repository
+records. Database logical comparison, backup creation and any write-quiescing action
+belong to a separately reviewed mutation bundle. Before freezing the reboot,
+reserve a quiet application window, account for scheduled Jobs/writers, and define
+one consistent preboot database/media view. Capture deterministic logical counts
+and digests with an explicit table/file scope, excluding documented volatile data;
+compare the identical scope after boot. Do not substitute PostgreSQL file hashes,
+a login check, or an old snapshot for this comparison. Validate the comparison
+against disposable data before it can gate a live reboot.
+
+For recovery preparation, enumerate actual writers before reserving the window:
+manual/API clients, Celery tasks and scheduled Jobs. An earlier quiet window does
+not authorize a new one. The proposed preservation stage should create a fresh
+PostgreSQL custom-format dump, media copy and nonsecret deployment metadata,
+verify dump readability and checksums, and use the approved application-backup
+producer for upload/integrity. Compare deterministic logical exports from a
+consistent database view and a stable media tree before and after reboot; first
+qualify table coverage and exclusions on disposable data. Preserve the prior cold
+copy and snapshots. A full isolated restore remains a separate unfulfilled gate;
+backup readability or integrity alone must not be recorded as restore acceptance.
+
+Pinned upstream references distinguish upgrade work from normal services:
+[Nautobot 3.2.3 upgrades](https://github.com/nautobot/nautobot/blob/v3.2.3/nautobot/docs/user-guide/administration/upgrading/upgrading.md)
+and [service definitions](https://github.com/nautobot/nautobot/blob/v3.2.3/nautobot/docs/user-guide/administration/installation/services.md).
+The approved plan separates upgrade execution from normal boot. The gate keeps
+its existing unit name and dependencies but runs no upgrade command during normal
+startup. Its unit timeout is 300 seconds; explicit initialization/continuation
+retain their independent longer limits. Deployment requires a new bundle binding
+the changed script, receipt validators and rendered Quadlet; accepted live hashes
+must remain historical until that deployment passes.
+
+Proposed execution bounds for review are one reboot, ten minutes for SSH return,
+ten additional minutes for application readiness, then at least 75 seconds of
+post-readiness health/storage observation. These are candidate limits until the
+operation binds them. Expect a new boot ID and new service invocations, retain
+persistent image/configuration identities, and require automatic activation with
+no operator start commands. Freeze a bounded controller that survives disconnects;
+retain preboot evidence before issuing the reboot and reconnect without reissuing it.
+On timeout or changed data, stop and retain evidence. Console investigation and any
+service repair or restore need their own scoped authorization; never automatically
+repeat reboot or overwrite the live database.
+
+Preparation is complete only when each row has an observed result or an explicit
+unresolved gap, current recovery preservation and logical comparison are reviewed,
+and exact collection/execution inputs are frozen. Keep current gaps in ROADMAP,
+operation inputs in the manifest, and eventual results in history and archive tags.
+
 For the logout definition, identify every service-account session and its class.
 Preserve the account's `Service=systemd-user`, `Class=manager` or `manager-early`
 session: that represents the user manager, not an ordinary login. Prove the
@@ -2851,8 +2916,10 @@ and arm a two-hour independent stop timer. Preserve original artifact backups;
 install reviewed runtime code/Quadlets and reload the user manager. Existing
 PostgreSQL/Redis units remain byte-identical. Start PostgreSQL, Redis, migration,
 web, worker and scheduler serially, requiring new successful invocations.
-Migration runs native `post_upgrade` against the initialized database, including
-Job discovery. The web role collects static assets. The media volume is new,
+The retained migration-named unit is a normal-start readiness gate: native
+configuration and pending-migration checks only. Run `post_upgrade`, including
+Job discovery, in the explicit initialization/upgrade operation before accepting
+the image/database pairing. The web role still collects static assets. The media volume is new,
 durable and owned by container UID/GID 999. The application remains rootless.
 
 The collector requires all seven groups:

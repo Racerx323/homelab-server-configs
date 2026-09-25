@@ -487,3 +487,16 @@ operation definition. Terminal execution identities remain the annotated tags
 indexed above. Consolidation did not modify those tags or accepted evidence.
 The authentication negative-test requirement introduced by `0317261` was later
 superseded by native positive readiness; its historical failures remain archived.
+
+## Accepted bounded PAM logout
+
+`nautobot-logout-persistence-v1`: bounded PAM-session logout accepted from retained
+evidence; original Ansible exit 2 remains recorded for the redundant final stop
+of an unloaded test unit. All 54 samples passed, both owned units were inactive
+with PID zero, and dual-stack proxy checks passed. Reboot, interactive SSH logout
+and full application restore remain unproven. Terminal tag `nautobot-logout-persistence-v1-accepted`
+was verified published: commit `4f6a6204f90fa28854dabccaa553c3547b1b4ea4`, tag object
+`849ff189f094a82bcb669ca42878a4f8c60e3deb`. Both frozen bundles (including the earlier
+pre-Ansible failure) and the sanitized decision were byte-verified against the
+published tag before removal from main. Archived publication-pending fields are
+historical. Accepted identity is reconciled and the operation slot is clean.

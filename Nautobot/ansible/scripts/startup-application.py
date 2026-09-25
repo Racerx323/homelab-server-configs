@@ -37,8 +37,6 @@ def prepare(role, runner=native.command, inspect=True, report=None):
             with tempfile.TemporaryFile(dir='/opt/nautobot/' + directory):
                 pass
     steps = [('configuration', ['check'], 120)]
-    if role == 'migration':
-        steps.append(('post_upgrade', ['post_upgrade'], 1800))
     steps.append(('pending_migrations', ['migrate', '--check'], 120))
     if role == 'web':
         steps.append(('static_collection', ['collectstatic', '--noinput'], 120))

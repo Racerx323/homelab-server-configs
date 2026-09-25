@@ -52,6 +52,8 @@ class RuntimeTests(unittest.TestCase):
         migration=files['nautobot-migration.container']
         self.assertIn('Type=oneshot',migration);self.assertIn('Restart=no',migration)
         self.assertIn('Exec=/run/startup-application.py migration',migration)
+        self.assertIn('TimeoutStartSec=300',migration)
+        self.assertEqual(self.desired['services']['migration']['command'], ['nautobot-server','migrate','--check'])
         for role,limit in [('web',1536),('worker',1536),('scheduler',384),('postgresql',1536),('redis',512)]:
             self.assertIn(f'--memory={limit}m',files[f'nautobot-{role}.container'])
     def test_reject_unsafe_inputs(self):

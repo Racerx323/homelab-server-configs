@@ -100,3 +100,18 @@ synthetic_workload:
     - application_restore
     - caddy_onboarding
     - seven_day_stable_pilot_before_authority_or_semaphore
+logout_persistence:
+  state: accepted
+  scope: PAM_session_logout_only
+  operation: nautobot-logout-persistence-v1
+  reviewed_at: '2026-09-25T17:36:52.964362+00:00'
+  terminal_tag: nautobot-logout-persistence-v1-accepted
+  archive_commit: 4f6a6204f90fa28854dabccaa553c3547b1b4ea4
+  tag_object: 849ff189f094a82bcb669ca42878a4f8c60e3deb
+  bundle_sha256: b4c5de728ff430fb45033d70cc30e19a3e717180ea345e8b817cef2b7a432b82
+  result_sha256: 42c77a6d460a81544afee69a518cddbe07d90496e13a28856da53572341a57b1
+  orchestration_exit_status: 2
+  cleanup_discrepancy: redundant_stop_of_unloaded_unit
+  reboot_accepted: false
+  interactive_ssh_logout_accepted: false
+  application_restore_accepted: false

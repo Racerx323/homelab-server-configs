@@ -1,6 +1,0 @@
-{
-  "status": "failed_before_ansible_launch",
-  "ansible_exit_status": 127,
-  "host_contact": false,
-  "bundle_sha256": "b1c9472a69674221b7bdc164290a232364fa6d381f09db34f7f978d7195f585a"
-}

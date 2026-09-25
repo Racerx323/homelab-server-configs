@@ -106,7 +106,7 @@ Restart=no
 Restart=on-failure
 RestartSec=10
 {% endif %}
-TimeoutStartSec={{ 1860 if continuation | default(none) and name == "migration" else (900 if initialization | default(false) and name == "migration" else (2160 if name == "migration" else (480 if name in ["web", "worker", "scheduler"] else 300))) }}
+TimeoutStartSec={{ 1860 if continuation | default(none) and name == "migration" else (900 if initialization | default(false) and name == "migration" else (300 if name == "migration" else (480 if name in ["web", "worker", "scheduler"] else 300))) }}
 TimeoutStopSec=90
 
 {% if name != 'migration' %}

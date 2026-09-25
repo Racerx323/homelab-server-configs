@@ -428,6 +428,75 @@
           }
         }
       }
+    },
+    "logout_persistence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "bundle_sha256",
+        "result_sha256",
+        "orchestration_exit_status",
+        "cleanup_discrepancy",
+        "reboot_accepted",
+        "interactive_ssh_logout_accepted",
+        "application_restore_accepted"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "PAM_session_logout_only"
+        },
+        "operation": {
+          "const": "nautobot-logout-persistence-v1"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_tag": {
+          "const": "nautobot-logout-persistence-v1-accepted"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "orchestration_exit_status": {
+          "const": 2
+        },
+        "cleanup_discrepancy": {
+          "const": "redundant_stop_of_unloaded_unit"
+        },
+        "reboot_accepted": {
+          "const": false
+        },
+        "interactive_ssh_logout_accepted": {
+          "const": false
+        },
+        "application_restore_accepted": {
+          "const": false
+        }
+      }
     }
   }
 }

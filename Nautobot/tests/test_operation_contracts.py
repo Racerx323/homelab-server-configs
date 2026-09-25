@@ -127,6 +127,20 @@ class Contracts(unittest.TestCase):
         validate(json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text()), accepted)
         self.assertFalse(any(accepted['boundaries'].values()))
 
+    def test_logout_acceptance_cannot_expand_scope(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for key in ('reboot_accepted', 'interactive_ssh_logout_accepted', 'application_restore_accepted'):
+            bad = copy.deepcopy(accepted)
+            bad['logout_persistence'][key] = True
+            with self.assertRaises(ValidationError):
+                validate(schema, bad)
+        bad = copy.deepcopy(accepted)
+        bad['logout_persistence']['orchestration_exit_status'] = 0
+        with self.assertRaises(ValidationError):
+            validate(schema, bad)
+
     def test_canary_definition_boundaries(self):
         import hashlib
         schema=json.loads((ROOT/'Nautobot/schemas/canary-backup.schema.json').read_text())
