@@ -78,14 +78,16 @@ resources were removed; repository hooks passed. A private inactive successor
 bundle is prepared at `nautobot-preservation-drain-fix-20260925/REVIEW.md`.
 The consumed v1 definition and sanitized result are preserved in the published
 failure tag indexed in HISTORY. Files were byte-verified before removal from main;
-the operation slot is clean. No preservation retry occurred.
+the operation slot now defines the separate corrected retry. No retry occurred.
 
 Fresh read-only baseline at 2026-09-25 20:35 UTC matches accepted artifacts and boot;
 five services are healthy, HTTP returns 200, media is empty and no scheduled writers
 are registered. Retained staging has no credentials, and tmpfs capacity is sufficient.
 Review: `nautobot-preservation-retry-baseline-20260925/REVIEW.md`.
-Next publish the correction and verify CI, then activate a new exact bundle for
-execution approval while this baseline remains fresh. Fresh preservation and reboot persistence remain unproven.
+Correction `2fda8fa` is published; repository validation and CodeQL passed.
+The corrected bundle is frozen against that commit and the 20:35 UTC baseline.
+Next obtain exact execution approval; baseline expires September 26 at 20:35 UTC.
+Scope and recovery: `nautobot-preservation-drain-fix-20260925/EXECUTION.md`. Fresh preservation and reboot persistence remain unproven.
 Diagnosis: `nautobot-preservation-drain-diagnosis-20260925/REVIEW.md`.
 
 ## Accepted scope and remaining gates
