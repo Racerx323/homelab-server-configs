@@ -21,19 +21,43 @@ The new gate itself remains unexecuted; reboot persistence is not accepted.
 Private evidence: `nautobot-boot-readiness-bundle-20260925/REVIEW.json`.
 
 The terminal archive is published and verified; accepted artifact identities
-are reconciled and the active operation slot is clean. Reconciliation is uncommitted.
+are reconciled and the active operation slot is clean. Reconciliation is published.
 Recovery preservation/comparison preparation is specified in OPERATIONS using the
 existing application-backup producer. The user reserved a fresh quiet window
 covering capture, later reboot and postboot comparison. This does not establish
 absence of scheduled writers or authorize their suspension.
 
-Next qualify the actual logical exporter/comparator against disposable pinned
-PostgreSQL data and review current writer/media inventories before defining live
-preservation. The existing media adapter supports only empty media; the old cold
-copy requires stopped services and must not be reused on the running database.
-No exclusions of volatile data are approved. Current backup/restore consistency,
-new gate execution and reboot persistence remain unproven. No backup, writer pause,
-service restart, reboot or restore has been authorized by this preparation.
+The logical database comparator is implemented and locally qualified against
+immutable AMD64 PostgreSQL 17.11 and the existing qualification application image.
+Tests cover snapshot isolation during a concurrent committed write, content/order,
+duplicates, NULL/empty values, schema/sequences, bounds and transaction cleanup.
+Private qualification evidence: `nautobot-logical-snapshot-20260925/`.
+This does not qualify execution on ARM64 or every live database object type.
+
+Read-only inventory at 2026-09-25 19:01 UTC found 245 public tables, 64 sequences,
+no rows in the database periodic-task or scheduled-Job tables, and 32 successful
+Job results. Media contained three directories and no files. Private evidence:
+`nautobot-recovery-inventory-20260925/`. A transient idle database connection and
+successful historical Jobs do not establish empty broker queues or absent writers.
+
+Preservation preparation now includes an inactive scope contract, executable-stage
+schema, Ansible stop/capture/resume path, broker drain, temporary logical client,
+stopped-container metadata handling, guarded backup and supervised bundle launcher.
+AMD64 native qualification passed with real Celery task completion, Redis priority
+and unacknowledged-state checks, and repeatable logical captures. The actual Ansible
+block's local failure regression verified all writer-resume attempts and both
+credential removals despite injected backup and worker-resume failures. Production
+systemd/ARM64 behavior remains a live qualification boundary.
+Private evidence: `nautobot-preservation-native-final-20260925/` and
+`nautobot-preservation-preparation-20260925/`.
+
+The review bundle remains inactive: current implementation is uncommitted and CI
+has not reviewed it. Next commit/publish, verify CI, refresh or re-review the bounded
+baseline and activate one exact preservation operation for execution approval.
+The active operation slot remains clean. No credentials were resolved and no host
+was contacted or changed during bundle preparation. Fresh preservation, new
+boot-gate execution and reboot persistence remain unproven; no volatile-data
+exclusions or automatic restore are approved.
 
 ## Accepted scope and remaining gates
 

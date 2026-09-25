@@ -74,8 +74,10 @@ def pairs(text):
 
 
 class Reader:
-    def __init__(self, cursor, runner=run, proc=Path('/proc'), sys=Path('/sys')):
+    def __init__(self, cursor, runner=run, proc=Path('/proc'), sys=Path('/sys'), roles=ROLES):
         self.cursor, self.run, self.proc, self.sys = cursor, runner, proc, sys
+        self.roles = tuple(roles)
+        require(bool(self.roles) and set(self.roles) <= set(ROLES), 'service_coverage')
 
     def sample(self):
         start = time.monotonic()
@@ -93,15 +95,15 @@ class Reader:
         require(re.fullmatch(r'throttled=0x[0-9a-fA-F]+', throttle), 'throttling_unavailable')
         sample['throttling_flags'] = int(throttle.split('=')[1], 16)
         raw = self.run(USER + ['/usr/bin/systemctl', '--user', 'show',
-                       *['nautobot-' + r + '.service' for r in ROLES],
+                       *['nautobot-' + r + '.service' for r in self.roles],
                        '--property=Id,ActiveState,SubState,Result,NRestarts,InvocationID'])
         units = {row['Id']: row for block in raw.strip().split('\n\n')
                  if (row := dict(line.split('=', 1) for line in block.splitlines()))}
         # Format selection avoids reading Config.Env, labels or secrets.
         raw = self.run(USER + ['/usr/bin/podman', 'inspect', '--format',
-                              '{{.Name}} {{.State.Pid}}', *['nautobot-' + r for r in ROLES]])
+                              '{{.Name}} {{.State.Pid}}', *['nautobot-' + r for r in self.roles]])
         pids = dict(line.split() for line in raw.splitlines())
-        for role in ROLES:
+        for role in self.roles:
             pid = int(pids['nautobot-' + role])
             require(pid > 1, 'container_pid')
             path = (self.proc / str(pid) / 'cgroup').read_text().strip()
@@ -129,7 +131,7 @@ class Reader:
         return sample
 
 
-def validate(sample, first, previous, contract):
+def validate(sample, first, previous, contract, roles=ROLES):
     """One bad/missing sample stops collection. No implicit success for absent data."""
     stop = contract['stop_criteria']
     require(sample['boot_id'] == first['boot_id'], 'boot_changed')
@@ -144,8 +146,8 @@ def validate(sample, first, previous, contract):
     require(sample['ext4_error_count'] == first['ext4_error_count'] and sample['kernel_storage_errors_since_cursor'] == 0, 'storage_error')
     require(len(sample['diskstats']) >= 11 and all(type(n) is int and n >= 0 for n in sample['diskstats']), 'diskstats_missing')
     require(len(sample['swap_in_out_counters']) == 2 and all(type(n) is int and n >= 0 for n in sample['swap_in_out_counters']), 'swap_counters')
-    require(set(sample['services']) == set(ROLES), 'service_coverage')
-    for role in ROLES:
+    require(set(sample['services']) == set(roles), 'service_coverage')
+    for role in roles:
         row, base = sample['services'][role], first['services'][role]
         unit = row['unit']
         require(unit['ActiveState'] == 'active' and unit['SubState'] == 'running' and unit['Result'] == 'success', 'service_state')

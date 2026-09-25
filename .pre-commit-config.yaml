@@ -451,6 +451,18 @@ repos:
         language: system
         pass_filenames: false
         files: ^(restic/|Nautobot/ansible/|Nautobot/tests/)
+      - id: nautobot-recovery-preservation
+        name: Validate recovery preservation preparation
+        entry: python3 Nautobot/tests/test_recovery_preservation.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/(scripts/(recovery_probe|preservation-node|preservation-backup|preservation-bundle|workload_sampler)\.py|playbooks/preserve-application\.yaml)|manifests/recovery-preservation\.yaml|schemas/(recovery-preservation|preservation-execution)\.schema\.json|tests/(test_recovery_preservation|preservation_native|qualify-preservation-local)\.py)
+      - id: nautobot-logical-database
+        name: Validate logical database comparison
+        entry: python3 Nautobot/tests/test_logical_database.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/scripts/logical_database\.py|tests/(test_logical_database|qualify-logical-local)\.py)
       - id: nautobot-workload-capture
         name: Validate pilot backup capture boundaries
         entry: python3 Nautobot/tests/test_workload_capture.py

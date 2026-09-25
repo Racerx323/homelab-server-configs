@@ -1,0 +1,62 @@
+---
+schema_version: 1
+kind: recovery_preservation_preparation
+execution_authorized: false
+target: j2-svpi4mf
+quiet_window: reserved_reconfirm_at_execution
+services:
+  remain_running: [postgresql, redis]
+  stop_producers: [scheduler, web]
+  drain_then_stop: worker
+  resume_independently: [worker, web, scheduler]
+  resume_on_failure: true
+  database_service_restart: false
+  reboot: false
+  migration: false
+capture:
+  producer: restic/scripts/application-backup.py
+  adapter: Nautobot/ansible/scripts/preservation-node.py
+  comparator: Nautobot/ansible/scripts/logical_database.py
+  consistency: stopped_application_writers_empty_media
+  metadata: collect_and_verify_before_stopping_application_containers
+  logical: repeatable_read_before_and_after_backup_with_sequence_state
+  media: empty_directories_only_reject_files_and_symlinks
+  sections: [postgresql_custom_dump, media, configuration, image_dependency_manifest, quadlet_config_hashes, versions_migrations]
+  restore_verified: false
+broker:
+  database: 0
+  cache_database_excluded: 1
+  worker_count: 1
+  inspect: [active, reserved, scheduled]
+  redis: all_list_keys_and_unacked_hash_and_index
+  consecutive_empty_observations: 2
+  observation_separation_seconds: 5
+  drain_timeout_seconds: 180
+  cancel_or_purge: false
+credentials:
+  application: existing_protected_web_env_for_temporary_read_only_client
+  repository_password: homelab-dev/prd_restic/NAUTOBOT_RESTIC_REPOSITORY_PASSWORD
+  b2_key_id: homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
+  b2_key: homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY
+  independent_cleanup: true
+verification:
+  backup: exact_repository_identity_new_full_snapshot_id_full_read_data_check
+  logical: identical_complete_receipts_no_volatile_exclusions
+  data_services: unchanged_invocations_and_boot
+  application: all_writers_resumed_and_http_health
+  delayed_storage_observation_seconds: 75
+  publication: sanitized_decision_only_private_rows_and_credentials_excluded
+recovery:
+  automatic_restore: false
+  automatic_reboot: false
+  controller_loss: retain_node_evidence_review_and_resume_writers_manually
+  payload: retain_in_root_owned_0700_operation_directory_pending_review
+  later_reboot: recheck_preserved_identity_before_using_it_after_writer_resume
+freeze_prerequisites:
+  - qualify_native_broker_drain_and_temporary_client
+  - qualify_ansible_failure_resume_and_credential_cleanup
+  - resource_and_storage_guard_throughout_capture_and_integrity
+  - fresh_accepted_artifacts_images_capacity_and_service_baseline
+  - current_backup_source_contract_and_repository_identity
+  - supervised_controller_and_exact_operation_schema_launcher
+  - commit_publish_and_verify_ci

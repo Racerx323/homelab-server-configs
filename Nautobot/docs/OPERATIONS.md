@@ -486,6 +486,34 @@ qualified pilot capture sections. Do not reactivate `startup-preservation.yaml`:
 its cold-copy procedure was designed for stopped services and historical artifact
 identities. Copying the running PostgreSQL volume is not this recovery method.
 
+The reusable comparison implementation is
+`ansible/scripts/logical_database.py`. Call `identity(connection)` with a dedicated
+psycopg2 connection under the reviewed execution wrapper, then `compare(before,
+after)`. It uses PostgreSQL 17 repeatable-read/read-only transactions, fixed UTC,
+date/interval/bytea/float formatting, server JSON row encoding and sorted SHA-256
+row hashes. Duplicate rows remain duplicated; empty tables are included. Sequence
+values and called state are captured separately and still require writer control.
+Receipts contain hashes and object names, not row contents; keep them private.
+
+Limits are one million rows, 256 MiB cumulative row encoding, 4,096 relations,
+20,000 entries per definition query, 60 seconds per SQL statement, five seconds
+for locks and a five-minute capture deadline checked between reads. The wrapper
+must additionally bound process memory and total runtime, including a single large
+row fetch. Errors roll back the read transaction and return no partial identity.
+This is a data comparator, not a complete DDL/privilege backup: column, constraint,
+index, view, enum, function, trigger, extension and sequence definitions are
+fingerprinted, but ownership/grants and all database configuration are not.
+Unsupported relation kinds, domains and large objects fail closed. Review the
+actual object/type inventory before binding it into a live operation.
+
+Run `tests/qualify-logical-local.py` with immutable `--postgres-image` and
+`--app-image` local IDs and a fresh protected `--output` directory. It creates an
+internal network, resource-limited disposable PostgreSQL with tmpfs storage and no
+published ports, invokes the real exporter tests, and removes its containers and
+network in a finally path. The normal validation hook runs only the neutral tests;
+real database qualification is explicit. AMD64 qualification does not establish
+ARM64 execution or live schema coverage.
+
 The preparation contract is:
 
 | Step | Required input or action | Evidence and stop condition |
@@ -522,6 +550,84 @@ live mutations.
 The recovery stage and later reboot each need an exact bundle. An accepted backup
 and dump listing do not prove a full isolated restore. Keep the latter as its own
 unfulfilled acceptance gate. Preserve prior cold copies and snapshots throughout.
+
+#### Application preservation bundle preparation
+
+`manifests/recovery-preservation.yaml` and its schema define the reviewed,
+**inactive** preparation scope. `ansible/playbooks/preserve-application.yaml`
+contains the candidate stop/capture/resume path. This is not an executable approved
+operation, and `manifests/operation.yaml` stays clean until the execution contract
+and prerequisites are qualified.
+
+The outage sequence is: verify current artifacts/images and healthy services;
+record selected image/package metadata before containers are removed; stage
+protected transient backup credentials; stop scheduler then web; inspect the one
+worker's active, reserved and scheduled tasks and all Redis broker list keys
+(including priority queues) plus unacknowledged deliveries; require two empty
+observations five seconds apart; stop the drained worker. A missing worker reply
+is a failure. Drain timeout is 180 seconds. Never revoke, cancel or purge work.
+PostgreSQL and Redis stay running throughout.
+
+`recovery_probe.py` owns bounded drain decisions. `preservation-node.py` owns
+observations and capture selection, including a resource-limited temporary client
+using the accepted application image and existing protected application environment.
+That client imports the comparator directly without Django initialization. It
+rejects other PostgreSQL client connections and nonempty broker state after the
+worker stops. No credential values or task arguments enter its receipts.
+
+Capture logical identity, run the Restic owner's six-section producer and full
+integrity check, capture identity again and require exact equality. Empty media
+must remain unchanged. The stopped-container adapter uses image/package observations
+from before shutdown rather than trying to exec removed containers. Those
+observations must be bound to the same operation and independently checked image
+identities before authorization.
+
+The Ansible always path attempts both credential removals and all three writer
+resumes independently, then checks health, stable database/cache invocations,
+unchanged boot and delayed storage errors. A failed resume, missing credential
+absence evidence or missing acceptance receipt prevents acceptance. Retain the
+protected operation directory and backup payload for review; do not dump its
+contents into Git. Controller loss can prevent the always path: inspect retained
+node evidence and service state, then explicitly recover each writer. No restore
+or second reboot is an automatic fallback.
+
+`preservation-backup.py` runs the existing Restic producer under the resource and
+storage sampler, restricted explicitly to PostgreSQL and Redis while writers are
+stopped. It stops the owned producer process group on failed/missing sampling,
+thermal/throttling/storage/OOM events, service drift or deadline; the Ansible always
+path remains responsible for service recovery and independent secret removal.
+Default workload sampling still requires all five services.
+
+Prepare a bundle with `preservation-bundle.py freeze --operation OPERATION.json
+--destination BUNDLE --backup APPLICATION-BACKUP.json --sources BACKUP-SOURCES.json`.
+The launcher derives capture argv from the reviewed root, validates the owning
+backup contract, freezes all nonsecret helpers and records exact hashes. Its
+execution contract is `schemas/preservation-execution.schema.json`. An inactive
+review bundle is permitted; execution requires an exact active operation match,
+a baseline no older than 24 hours, reviewed CI/source identity, committed bytes for
+every input, the explicit approval hash and a supervised lingering controller.
+
+The execution entrypoint is `preservation-bundle.py execute --bundle BUNDLE
+--approve SHA256 --evidence PRIVATE-PERSISTENT-DIRECTORY`. Run it only through a
+reviewed user-systemd unit with `RuntimeMaxSec=4500`, `KillMode=control-group`,
+`Restart=no`, private output, the existing SSH agent reference and `UMask=0077`.
+The launcher bounds Ansible to 4,200 seconds and its output to 8 MiB. It resolves
+only the existing reviewed Doppler references through the owning credential reader
+and lifecycle, uses transient files under `/run/user`, and independently removes
+them. No secret values belong in the frozen bundle. A review bundle's hash is not
+execution authorization, and publication/CI must be verified before activation.
+
+Local qualification uses `tests/qualify-preservation-local.py` with immutable
+PostgreSQL, Redis and application image IDs. It exercises real Celery completion,
+priority/unacknowledged broker state and the temporary logical client on AMD64.
+The neutral test suite also executes the actual Ansible block with local command
+stubs to inject backup and resume failures; this proves orchestration continuation
+and credential-file cleanup, not production systemd/ARM64 behavior. The authorized
+live stage must close those target-specific gaps.
+
+Restarting writers ends the preserved consistent interval. The later reboot
+operation must recheck the preserved identity or take a fresh preservation. Reboot,
+restore, migration and changes to PostgreSQL/Redis services are outside this bundle.
 
 #### Reboot baseline and recovery preparation
 

@@ -1,0 +1,154 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "plan_sha256",
+    "accepted_state_sha256",
+    "ci_success_commit",
+    "root",
+    "token",
+    "baseline_collected_at",
+    "boot_id",
+    "artifact_sha256",
+    "app_image_id",
+    "image_ids",
+    "boundaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "stage",
+        "id",
+        "target",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "properties": {
+        "state": {
+          "const": "definition"
+        },
+        "stage": {
+          "const": "recovery_preservation"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-recovery-preservation-v[1-9][0-9]*$"
+        },
+        "target": {
+          "const": "j2-svpi4mf"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "accepted_state_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ci_success_commit": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "root": {
+      "type": "string",
+      "pattern": "^/tmp/nautobot-preservation\\.[0-9a-f]{32}$"
+    },
+    "token": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "baseline_collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "artifact_sha256": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^/var/lib/nautobot/(runtime/[a-zA-Z0-9_-]+\\.py|\\.config/containers/systemd/nautobot-[a-zA-Z0-9_.-]+)$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "app_image_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "image_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "postgresql",
+        "redis",
+        "web",
+        "worker",
+        "scheduler"
+      ],
+      "properties": {
+        "postgresql": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "redis": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "web": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "worker": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "scheduler": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "boundaries": {
+      "const": {
+        "quiet_window_reserved": true,
+        "stop_and_resume_application_writers": true,
+        "data_service_restart": false,
+        "reboot": false,
+        "restore": false,
+        "cancel_or_purge": false
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Nautobot recovery preservation operation"
+}
