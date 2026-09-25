@@ -74,8 +74,19 @@ def verify(bundle,approval):
     return manifest,op
 
 
+def ansible_executable():
+    # systemd user services do not inherit interactive-shell PATH additions.
+    # Resolve only the account's conventional install directory and system paths.
+    search=os.pathsep.join((str(Path.home()/'.local/bin'),os.defpath))
+    executable=shutil.which('ansible-playbook',path=search)
+    if not executable or not Path(executable).is_absolute():
+        raise ValueError('ansible_executable_unavailable')
+    return executable
+
+
 def execute(bundle,approval,evidence):
     manifest,op=verify(bundle,approval)
+    ansible=ansible_executable()
     if not re.fullmatch(r'[0-9a-f]{32}',os.environ.get('INVOCATION_ID','')):
         raise ValueError('supervised_controller_required')
     linger=subprocess.run(['/usr/bin/loginctl','show-user',str(os.getuid()),'-p','Linger','--value'],capture_output=True,text=True,check=True,timeout=10)
@@ -95,7 +106,7 @@ def execute(bundle,approval,evidence):
     try:
         with (evidence/'ansible.stdout').open('xb') as out,(evidence/'ansible.stderr').open('xb') as err:
             process=subprocess.run(['/usr/bin/prlimit','--fsize=8388608:8388608','--','/bin/bash',str(bundle/'ansible-temp.sh'),
-                'ansible-playbook','-i',str(bundle/'inventory.ini'),str(bundle/'playbook.yaml'),'--extra-vars','@'+str(inputs)],
+                ansible,'-i',str(bundle/'inventory.ini'),str(bundle/'playbook.yaml'),'--extra-vars','@'+str(inputs)],
                 stdin=subprocess.DEVNULL,stdout=out,stderr=err,env=env,cwd=bundle,timeout=900)
         result.update(status='collected' if process.returncode==0 else 'failed',ansible_exit_status=process.returncode)
     finally:

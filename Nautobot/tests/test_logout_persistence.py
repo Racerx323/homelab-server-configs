@@ -90,6 +90,16 @@ class Logout(unittest.TestCase):
         self.assertNotIn('reboot',play.read_text())
         self.assertEqual(parsed['hosts'],'j2-svpi4mf')
 
+    def test_ansible_resolution_without_interactive_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            home=Path(d);binary=home/'.local/bin/ansible-playbook'
+            binary.parent.mkdir(parents=True);binary.write_text('#!/bin/sh\nexit 0\n');binary.chmod(0o700)
+            with patch.object(bundle.Path,'home',return_value=home),patch.dict(bundle.os.environ,{'PATH':'/nonexistent'}):
+                self.assertEqual(bundle.ansible_executable(),str(binary))
+        with patch.object(bundle.shutil,'which',return_value=None):
+            with self.assertRaisesRegex(ValueError,'ansible_executable_unavailable'):
+                bundle.ansible_executable()
+
     def test_bundle_tamper_and_expiry(self):
         op=json.loads((ROOT/'Nautobot/tests/fixtures/logout-operation.json').read_text())
         op['baseline']['collected_at']=datetime.now(timezone.utc).isoformat()

@@ -4,7 +4,8 @@
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
 The accepted synthetic workload is archived. One logout-persistence operation is
-now defined; live execution is not authorized.
+defined. Its authorized attempt failed on the controller before Ansible launched;
+logout qualification remains unproven.
 The controller service renderer, runtime-only credential path and durable receipt
 handling are implemented locally. Disposable systemd tests passed for client
 detachment, forced exit and deadline cleanup with retained evidence. Workstation
@@ -18,9 +19,16 @@ The retained cold-copy directory is present, but restore remains unverified.
 
 The bounded PAM-session lifecycle, node-local observer, strict schema and bundle
 launcher passed the full offline validation suite. The operation binds the reviewed
-baseline and existing recovery limitations. Its private bundle is frozen under
-`nautobot-logout-bundle-20260925/bundle`. Next review and publish this implementation,
-verify CI, then authorize the exact bundle for execution. No target session has been opened or closed.
+baseline and existing recovery limitations. Implementation `6ae5e6c` is published
+and repository validation and CodeQL passed. The authorized attempt failed with
+exit 127 because the supervised environment could not resolve `ansible-playbook`.
+No playbook tasks ran or target sessions changed. Private receipts are retained in
+`nautobot-logout-bundle-20260925/execution`. Executable resolution now uses an absolute account-local or system path. Seven
+logout tests and a real local user-service syntax check with a restricted PATH
+passed. The corrected bundle is prepared separately under
+`nautobot-logout-resolution-20260925/bundle`; the failed bundle remains intact.
+Next publish the correction and verify CI before requesting corrected-bundle
+execution approval. No live retry has been performed.
 The baseline/collector correction is published in `7a49a03` and its CI passed.
 Private baseline evidence: `nautobot-logout-baseline-20260925/baseline-final.json`.
 Reboot persistence and isolated

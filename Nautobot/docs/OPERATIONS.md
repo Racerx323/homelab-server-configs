@@ -491,6 +491,12 @@ notes that PAM processes can move into a session scope. Verify both transient-un
 and owned-session absence; do not assume a cgroup name proves cleanup. If either
 remains, preserve evidence and require scoped recovery. Never use `terminate-user`.
 
+The launcher resolves `ansible-playbook` to an absolute executable from the
+controller account’s `~/.local/bin` or system executable paths before staging.
+It does not depend on interactive-shell PATH additions. Qualify resolution under
+the actual user-service environment with a local version/syntax check before
+freezing; this check must not run a target playbook.
+
 The reusable implementation is `ansible/playbooks/logout-persistence.yaml`,
 `ansible/scripts/logout-node.py` and `ansible/scripts/logout-bundle.py`, with
 `schemas/logout-persistence.schema.json` validating the single active operation.
