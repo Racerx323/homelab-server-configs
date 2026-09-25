@@ -1,0 +1,41 @@
+---
+- name: Record writer recovery obligation
+  ansible.builtin.set_fact:
+    reboot_resume_required: true
+- name: stop writers
+  ansible.builtin.command:
+    argv: '{{ reboot_user + ["/usr/bin/systemctl", "--user", "stop", "nautobot-" + item + ".service"] }}'
+    chdir: /
+  changed_when: true
+  loop:
+    - scheduler
+    - web
+- name: Collect drain-{{ reboot_phase }}
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - -B
+      - '{{ reboot_root }}/reboot-node.py'
+      - --root
+      - '{{ reboot_root }}'
+      - drain-{{ reboot_phase }}
+    chdir: /
+  changed_when: false
+- name: stop writers
+  ansible.builtin.command:
+    argv: '{{ reboot_user + ["/usr/bin/systemctl", "--user", "stop", "nautobot-" + item + ".service"] }}'
+    chdir: /
+  changed_when: true
+  loop:
+    - worker
+- name: Collect logical-{{ reboot_phase }}
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - -B
+      - '{{ reboot_root }}/reboot-node.py'
+      - --root
+      - '{{ reboot_root }}'
+      - logical-{{ reboot_phase }}
+    chdir: /
+  changed_when: false

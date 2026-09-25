@@ -202,22 +202,6 @@
             flat: true
           loop:
             - before
-            - logical-before
-            - automatic
-            - drain-after
-            - logical-after
-            - logical-after-verified
-            - final
-          failed_when: false
-          ignore_unreachable: true
-          register: collected
-        - name: Verify all retained controller receipts
-          ansible.builtin.stat:
-            path: '{{ reboot_evidence }}/{{ item }}.json'
-            follow: false
-            checksum_algorithm: sha256
-          loop:
-            - before
             - drain-before
             - logical-before
             - logical-before-verified
@@ -226,15 +210,14 @@
             - logical-after
             - logical-after-verified
             - final
-          delegate_to: localhost
-          become: false
-          register: controller_receipts
           failed_when: false
+          ignore_unreachable: true
+          register: collected
         - name: Record recovery without asserting acceptance
           ansible.builtin.copy:
             content: '{{ {"attempted": reboot_attempted | default(false), "resume_required": reboot_resume_required | default(false),
-              "resumes": resumed, "health_rc": final_health.rc | default(-1), "collection": collected, "controller_receipts":
-              controller_receipts, "accepted": false} | to_nice_json }}'
+              "resumes": resumed, "health_rc": final_health.rc | default(-1), "collection": collected, "accepted": false}
+              | to_nice_json }}'
             dest: '{{ reboot_evidence }}/recovery.json'
             mode: '0600'
           delegate_to: localhost
@@ -258,12 +241,5 @@
               - reboot_resume_required | default(false)
               - final_health.rc | default(-1) == 0
               - resumed.results | default([]) | selectattr("rc", "equalto", 0) | list | length == 3
-              - collected.results | selectattr("dest", "defined") | list | length == 7
+              - collected.results | selectattr("dest", "defined") | list | length == 9
               - final_access.rc | default(-1) == 0
-              - controller_receipts.results | length == 9
-              - controller_receipts.results | selectattr("stat.isreg", "defined") | selectattr("stat.isreg", "equalto", true)
-                | list | length == 9
-              - controller_receipts.results | selectattr("stat.mode", "defined") | selectattr("stat.mode", "equalto", "0600")
-                | list | length == 9
-              - controller_receipts.results | selectattr("stat.size", "defined") | selectattr("stat.size", "gt", 0) | list
-                | length == 9

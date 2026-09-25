@@ -127,4 +127,9 @@ regexes = [
   '''5510e67b204636f43c243192d4bf1105632c8194849a3925d28440f97f57f876''',
   # Nonsecret preservation staging ownership token; frozen bundle must remain exact.
   '''^token": "b90134e6bcf541ba83acebb3dd7eb822"$''',
+  # Explicitly approved exact nonsecret reboot access integrity hashes.
+  '''^access\-automatic\.json": "ab60e1152d4694f322c03b7993566adbeea503b487dc1b1196db64855c6ef1c2"$''',
+  '''^access\-before\.json": "ab60e1152d4694f322c03b7993566adbeea503b487dc1b1196db64855c6ef1c2"$''',
+  '''^access\-final\.json": "ab60e1152d4694f322c03b7993566adbeea503b487dc1b1196db64855c6ef1c2"$''',
+  '''^access\.py": "a91b047189698bccdc2a2850466852dbe8f363f00dbb0e09f91f543dbe083861"$''',
 ]

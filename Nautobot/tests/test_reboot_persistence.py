@@ -107,6 +107,37 @@ class RebootTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'bundle_drift'):
                     bundle.verify(root/'bundle', identity, executing=False)
 
+    def test_actual_collection_after_tmpfs_loss(self):
+        # Run the real fetch/stat/assert tasks against disposable local files.
+        source = ROOT/'Nautobot/ansible/playbooks/reboot-persistence.yaml'
+        always = yaml.safe_load(source.read_text())[0]['tasks'][0]['always']
+        tasks = [copy.deepcopy(t) for t in always if t['name'] in (
+            'Preserve controller receipts', 'Verify all retained controller receipts',
+            'Require recovery and complete receipts')]
+        names = next(t['loop'] for t in tasks if 'ansible.builtin.stat' in t)
+        for fault in (None, 'missing_preboot', 'symlink_preboot'):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory); remote = root/'remote'; evidence = root/'evidence'
+                remote.mkdir(); evidence.mkdir()
+                for name in names:
+                    target = evidence if name in ('drain-before', 'logical-before-verified') else remote
+                    path = target/(name+'.json'); path.write_text('{"passed":true}'); path.chmod(0o600)
+                if fault:
+                    path = evidence/'drain-before.json'; path.unlink()
+                    if fault == 'symlink_preboot':
+                        path.symlink_to(evidence/'logical-before-verified.json')
+                play = [{'hosts': 'localhost', 'gather_facts': False, 'vars': {
+                    'reboot_root': str(remote), 'reboot_evidence': str(evidence),
+                    'reboot_resume_required': True, 'final_health': {'rc': 0},
+                    'final_access': {'rc': 0}, 'resumed': {'results': [{'rc': 0}]*3}},
+                    'tasks': tasks}]
+                path = root/'play.yaml'; path.write_text(yaml.safe_dump(play, sort_keys=False))
+                result = subprocess.run([shutil.which('ansible-playbook'), '-i', 'localhost,',
+                    '-c', 'local', str(path)], capture_output=True, text=True, timeout=90)
+                self.assertEqual(result.returncode == 0, fault is None, result.stdout+result.stderr)
+                self.assertFalse((remote/'drain-before.json').exists())
+                self.assertFalse((remote/'logical-before-verified.json').exists())
+
     def test_ansible_failure_boundaries(self):
         # Replace external side effects only. Execute the actual block/always and
         # include structure through Ansible, including its real failed-task routing.

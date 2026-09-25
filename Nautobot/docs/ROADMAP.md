@@ -2,21 +2,33 @@
 
 ## Current next action
 
-Reboot execution preparation now includes a single-dispatch Ansible path,
-controller-durable intent, volatile-host restaging, current-invocation boot-gate
-receipts, independent writer recovery, and logical comparisons against accepted
-preservation. Fresh read-only evidence collected September 25 at 21:52 UTC shows
-healthy services/linger/guard, the unchanged boot and kernel, both proxy address
-families at HTTP 200, and SSH/Webmin/Munin reachability. Private evidence:
-`nautobot-reboot-preparation-20260925/`. Reboot has not been executed; the new
-boot gate and reboot persistence remain unproven. Complete preparation validation,
-publication/CI and freeze review before requesting execution authorization.
+The authorized reboot test executed once. The boot ID changed, expected kernel
+and artifacts matched, all five services started automatically, and current-boot
+native readiness receipts passed. Health was observed at about 258 seconds of
+host uptime. Both logical comparisons matched the preserved reference, writers
+resumed, final proxy/monitoring checks passed, and delayed storage checks passed.
+
+The controller exited 2 at its final collection assertion: it expected to fetch
+two preboot-only files again after `/tmp` was cleared. All nine receipts already
+exist on the controller; independent readback matched the seven surviving node
+receipts and confirmed healthy services, guard/artifacts and no owned helper
+containers. Retain the consumed bundle and reporting failure. The operation is
+consumed and not authorization-ready. Bounded reboot persistence is accepted
+with the collection-reporting defect explicitly retained. The corrected local
+collector passed eight tests, including actual Ansible collection after tmpfs
+loss and rejection of missing or symlinked preboot evidence. Effective resource
+limits, private networking, heartbeats and credential metadata also passed a
+read-only review. No repeat reboot or correction deployment occurred.
+
+Next: archive the consumed bundle and acceptance decision, then reconcile accepted
+state. Private decision: `nautobot-reboot-preparation-20260925/ACCEPTANCE.json`.
+Full application restore and full stage-5 acceptance remain open.
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
 The synthetic workload and bounded PAM-session logout are accepted and archived.
 The logout archive preserves the original redundant-stop orchestration error;
 acceptance rests on retained observation, closure and final unit-state evidence.
-Accepted state is reconciled and the active operation slot is clean.
+Accepted logout state is reconciled; the consumed reboot operation awaits terminal archival.
 
 Fresh read-only reboot baseline collected September 25: accepted artifact and boot
 identities match; services, linger and guard are healthy; both proxy families return
@@ -31,7 +43,7 @@ The new gate itself remains unexecuted; reboot persistence is not accepted.
 Private evidence: `nautobot-boot-readiness-bundle-20260925/REVIEW.json`.
 
 The terminal archive is published and verified; accepted artifact identities
-are reconciled and the active operation slot is clean. Reconciliation is published.
+were reconciled and that operation slot was cleared. Reconciliation is published.
 Recovery preservation/comparison preparation is specified in OPERATIONS using the
 existing application-backup producer. The user reserved a fresh quiet window
 covering capture, later reboot and postboot comparison. This does not establish
@@ -101,16 +113,18 @@ Logical identity, backup upload/full integrity, resource guard, writer recovery,
 health and delayed storage checks passed. Node/controller credentials were removed;
 boot and data-service invocations were unchanged. The accepted archive is published
 and byte-verified; HISTORY and accepted state now bind snapshot and logical hashes.
-The operation slot is clean. No restore or reboot occurred.
+The preservation slot was cleared after archival. A separate reboot definition
+now occupies the operation slot. No restore or reboot occurred.
 
 Reboot preparation now defines preboot comparison against the preserved identity,
 one reboot with no resend, automatic startup observation before any repair, and a
 second bounded writer pause for postboot logical comparison followed by recovery.
 Reusable sequence and failure cases live in OPERATIONS. The Ansible path and
-read-only refresh are implemented; publication/CI precede execution readiness.
+read-only refresh are complete; execution and its collection defect are summarized above.
 Current logical identity has not been rechecked; writer
 resume ended the preservation interval. A mismatch requires separate fresh
-preservation before reboot. Reboot persistence and full isolated restore remain open.
+preservation before reboot. Bounded reboot persistence is reviewed as accepted; its archive/reconciliation
+and full isolated restore remain open.
 
 ## Accepted scope and remaining gates
 
@@ -121,7 +135,7 @@ preservation before reboot. Reboot persistence and full isolated restore remain 
 | Stage 5 prerequisites and startup | Image, credentials, native readiness, initialization, administrator and startup results archived | [History](../HISTORY.md), component manifests |
 | Synthetic workload | Accepted only for repeat-fixture workload, 15 Jobs and application-backup overlap/integrity | [Synthetic acceptance](../manifests/accepted-live-state.yaml) |
 | Real-inventory representativeness | Open; compare scale and operation mix with intended inventory | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification) |
-| Logout and reboot persistence | Bounded PAM logout accepted and archived. Reboot remains open | [Procedures](OPERATIONS.md#persistence-procedure) |
+| Logout and reboot persistence | Bounded PAM logout archived; bounded reboot accepted with reporting defect, archival pending | [Procedures](OPERATIONS.md#persistence-procedure) |
 | Application restore | Open; canary restore and dump listing do not satisfy it | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |

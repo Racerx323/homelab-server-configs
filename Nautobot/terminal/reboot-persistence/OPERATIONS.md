@@ -717,12 +717,6 @@ an interrupted operation automatically. After a changed boot is observed, Ansibl
 restages and hashes the same frozen observers and restores comparison receipts.
 Restaging does not start application services. A boot that does not change fails
 before restaging; an ambiguous request is never resent.
-The preboot drain and logical-verification receipts remain on the controller and
-are not restaged. Final collection fetches seven surviving/postboot receipts,
-then checks all nine controller receipts are nonempty regular files with mode
-0600. Missing or symlinked controller evidence fails verification. Retain original
-controller status even when independent evidence review accepts the live result;
-never rewrite an orchestration failure as a successful invocation.
 
 The two connection/readiness limits are 600 seconds each (connection polling has
 an initial ten-second delay). Drain and logical-client commands are bounded to
