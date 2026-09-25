@@ -1,46 +1,4 @@
 schema_version: 1
 operation:
-  state: definition
-  stage: recovery_preservation
-  id: nautobot-recovery-preservation-v2
-  target: j2-svpi4mf
-  authorization_ready: true
-  source_commit: 2fda8fa15d1dc8950a507de78ad239c9f1caef94
-plan_sha256: 7c88ea81725930b1a7c410d0f34d944b2882b195641e10b213a69409a74e838c
-accepted_state_sha256: 0cd2433bbcc52f0a5e76d6d4b5114b4846b2017cc9b3a2c9c19fc1c5f75c0a03
-ci_success_commit: 2fda8fa15d1dc8950a507de78ad239c9f1caef94
-root: /tmp/nautobot-preservation.b90134e6bcf541ba83acebb3dd7eb822
-token: b90134e6bcf541ba83acebb3dd7eb822  # Nonsecret staging identifier; gitleaks:allow
-baseline_collected_at: '2026-09-25T20:35:04.751456+00:00'
-boot_id: 70c9f650-a6a2-4583-84a9-f96462bef393
-artifact_sha256:
-  /var/lib/nautobot/runtime/initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b
-  /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
-  /var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume: ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13
-  /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container: a2e12b77cf54ac7fc8d9cb7d1699db9b8188d422bbf1aa894ea9497023876684
-  /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
-  /var/lib/nautobot/.config/containers/systemd/nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
-  /var/lib/nautobot/.config/containers/systemd/nautobot-redis.container: e07c7c3e89adb7a5c57efa32639cbdea28fc11d04be340a2eabfce0d6faa9aae
-  /var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717
-  /var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container: 7dde40f84c637dd79ec5859cf9a17ec9e68b2e111d647a39a8987e7c7cb248db
-  /var/lib/nautobot/.config/containers/systemd/nautobot-web.container: c8adc29062e82fdf5d524eb339b312b66611e81085d06235df658e5cce5a2e76
-  /var/lib/nautobot/.config/containers/systemd/nautobot-worker.container: d01b0ed26ea2b9228c3b126aac6d9e4329faec41eb0ac644245d6f4c9e9d989d
-  /var/lib/nautobot/runtime/startup-application.py: 59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e
-  /var/lib/nautobot/runtime/startup-command.py: 701061362ce1fc9b24c36fa8cc2d78eb9c100f5e8a13d9f63c6034d76ccea606
-  /var/lib/nautobot/runtime/startup-job-probe.py: 07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c
-  /var/lib/nautobot/runtime/startup-job.py: 85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6
-  /var/lib/nautobot/runtime/nautobot_config.py: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
-app_image_id: sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
-image_ids:
-  postgresql: sha256:46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf
-  redis: sha256:82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
-  web: sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
-  worker: sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
-  scheduler: sha256:808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
-boundaries:
-  quiet_window_reserved: true
-  stop_and_resume_application_writers: true
-  data_service_restart: false
-  reboot: false
-  restore: false
-  cancel_or_purge: false
+  state: clean
+  authorization_ready: false

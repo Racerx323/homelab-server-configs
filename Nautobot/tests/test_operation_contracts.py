@@ -16,6 +16,19 @@ def validate(schema, value):
 
 
 class Contracts(unittest.TestCase):
+    def test_preservation_acceptance_does_not_accept_reboot_or_restore(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for field in ('restore_verified', 'reboot_persistence_accepted', 'current_data_identity_rechecked'):
+            bad = copy.deepcopy(accepted)
+            bad['recovery_preservation'][field] = True
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        for field in ('snapshot_id', 'logical_before_sha256', 'logical_after_sha256', 'archive_commit'):
+            bad = copy.deepcopy(accepted)
+            del bad['recovery_preservation'][field]
+            with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_unverified_prerequisites_are_explicit(self):
         for name, result in [('host_baseline', 'host_baseline_accepted'),
                              ('repository_initialization', 'repository_initialization_accepted')]:
@@ -58,6 +71,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'reboot_persistence':
+            validate(json.loads((ROOT/'Nautobot/schemas/reboot-execution.schema.json').read_text()), operation)
+            self.assertFalse(operation['boundaries']['automatic_restore'])
+            self.assertFalse(operation['boundaries']['automatic_service_repair'])
         elif operation['operation'].get('stage') == 'boot_readiness':
             validate(json.loads((ROOT/'Nautobot/schemas/boot-readiness.schema.json').read_text()), operation)
             self.assertFalse(any(operation['boundaries'].values()))

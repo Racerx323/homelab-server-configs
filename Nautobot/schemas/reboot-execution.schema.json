@@ -14,7 +14,10 @@
     "artifact_sha256",
     "app_image_id",
     "image_ids",
-    "boundaries"
+    "boundaries",
+    "expected_kernel",
+    "preserved_logical_sha256",
+    "snapshot_id"
   ],
   "properties": {
     "schema_version": {
@@ -36,11 +39,11 @@
           "const": "definition"
         },
         "stage": {
-          "const": "recovery_preservation"
+          "const": "reboot_persistence"
         },
         "id": {
           "type": "string",
-          "pattern": "^nautobot-recovery-preservation-v[1-9][0-9]*$"
+          "pattern": "^nautobot-reboot-persistence-v[1-9][0-9]*$"
         },
         "target": {
           "const": "j2-svpi4mf"
@@ -75,7 +78,7 @@
     },
     "root": {
       "type": "string",
-      "pattern": "^/tmp/nautobot-preservation\\.[0-9a-f]{32}$"
+      "pattern": "^/tmp/nautobot-reboot\\.[0-9a-f]{32}$"
     },
     "token": {
       "type": "string",
@@ -141,14 +144,27 @@
     "boundaries": {
       "const": {
         "quiet_window_reserved": true,
-        "stop_and_resume_application_writers": true,
-        "data_service_restart": false,
-        "reboot": false,
-        "restore": false,
+        "console_recovery_confirmed": true,
+        "single_reboot": true,
+        "automatic_restore": false,
+        "automatic_service_repair": false,
+        "upgrades": false,
         "cancel_or_purge": false
       }
+    },
+    "expected_kernel": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.+_-]{1,80}$"
+    },
+    "preserved_logical_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Nautobot recovery preservation operation"
+  "title": "Nautobot bounded reboot persistence operation"
 }

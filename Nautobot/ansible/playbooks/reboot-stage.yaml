@@ -1,0 +1,29 @@
+---
+- name: Create private volatile stage
+  ansible.builtin.file:
+    path: '{{ reboot_root }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+- name: Stage verified inputs
+  ansible.builtin.copy:
+    src: '{{ item.source }}'
+    dest: '{{ reboot_root }}/{{ item.name }}'
+    owner: root
+    group: root
+    mode: '0600'
+  loop: '{{ reboot_files }}'
+- name: Hash staged inputs
+  ansible.builtin.stat:
+    path: '{{ reboot_root }}/{{ item.name }}'
+    checksum_algorithm: sha256
+  loop: '{{ reboot_files }}'
+  register: readback
+- name: Reject stage drift
+  ansible.builtin.assert:
+    that:
+      - item.stat.isreg
+      - not item.stat.islnk
+      - item.stat.checksum == item.item.sha256
+  loop: '{{ readback.results }}'

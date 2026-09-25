@@ -591,6 +591,98 @@
           "pattern": "^/var/lib/nautobot/boot-readiness\\.[0-9a-f]{32}$"
         }
       }
+    },
+    "recovery_preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "bundle_sha256",
+        "result_sha256",
+        "snapshot_id",
+        "logical_before_sha256",
+        "logical_after_sha256",
+        "logical_identity_equal",
+        "full_integrity_passed",
+        "writer_recovery_passed",
+        "credential_cleanup_passed",
+        "restore_verified",
+        "reboot_persistence_accepted",
+        "current_data_identity_rechecked"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "quiesced_application_backup_and_logical_continuity"
+        },
+        "operation": {
+          "const": "nautobot-recovery-preservation-v2"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_tag": {
+          "const": "nautobot-recovery-preservation-v2-accepted"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "logical_before_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "logical_after_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "logical_identity_equal": {
+          "const": true
+        },
+        "full_integrity_passed": {
+          "const": true
+        },
+        "writer_recovery_passed": {
+          "const": true
+        },
+        "credential_cleanup_passed": {
+          "const": true
+        },
+        "restore_verified": {
+          "const": false
+        },
+        "reboot_persistence_accepted": {
+          "const": false
+        },
+        "current_data_identity_rechecked": {
+          "const": false
+        }
+      }
     }
   }
 }

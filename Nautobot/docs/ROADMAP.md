@@ -2,6 +2,16 @@
 
 ## Current next action
 
+Reboot execution preparation now includes a single-dispatch Ansible path,
+controller-durable intent, volatile-host restaging, current-invocation boot-gate
+receipts, independent writer recovery, and logical comparisons against accepted
+preservation. Fresh read-only evidence collected September 25 at 21:52 UTC shows
+healthy services/linger/guard, the unchanged boot and kernel, both proxy address
+families at HTTP 200, and SSH/Webmin/Munin reachability. Private evidence:
+`nautobot-reboot-preparation-20260925/`. Reboot has not been executed; the new
+boot gate and reboot persistence remain unproven. Complete preparation validation,
+publication/CI and freeze review before requesting execution authorization.
+
 Repository records reviewed September 25, 2026; this is not a fresh host check.
 The synthetic workload and bounded PAM-session logout are accepted and archived.
 The logout archive preserves the original redundant-stop orchestration error;
@@ -78,7 +88,7 @@ resources were removed; repository hooks passed. A private inactive successor
 bundle is prepared at `nautobot-preservation-drain-fix-20260925/REVIEW.md`.
 The consumed v1 definition and sanitized result are preserved in the published
 failure tag indexed in HISTORY. Files were byte-verified before removal from main;
-the operation slot now defines the separate corrected retry. No retry occurred.
+the operation slot is clean after accepted preservation archival.
 
 Fresh read-only baseline at 2026-09-25 20:35 UTC matches accepted artifacts and boot;
 five services are healthy, HTTP returns 200, media is empty and no scheduled writers
@@ -86,9 +96,21 @@ are registered. Retained staging has no credentials, and tmpfs capacity is suffi
 Review: `nautobot-preservation-retry-baseline-20260925/REVIEW.md`.
 Correction `2fda8fa` is published; repository validation and CodeQL passed.
 The corrected bundle is frozen against that commit and the 20:35 UTC baseline.
-Next obtain exact execution approval; baseline expires September 26 at 20:35 UTC.
-Scope and recovery: `nautobot-preservation-drain-fix-20260925/EXECUTION.md`. Fresh preservation and reboot persistence remain unproven.
-Diagnosis: `nautobot-preservation-drain-diagnosis-20260925/REVIEW.md`.
+The authorized retry completed and is accepted: all eight receipts passed review.
+Logical identity, backup upload/full integrity, resource guard, writer recovery,
+health and delayed storage checks passed. Node/controller credentials were removed;
+boot and data-service invocations were unchanged. The accepted archive is published
+and byte-verified; HISTORY and accepted state now bind snapshot and logical hashes.
+The operation slot is clean. No restore or reboot occurred.
+
+Reboot preparation now defines preboot comparison against the preserved identity,
+one reboot with no resend, automatic startup observation before any repair, and a
+second bounded writer pause for postboot logical comparison followed by recovery.
+Reusable sequence and failure cases live in OPERATIONS. The Ansible path and
+read-only refresh are implemented; publication/CI precede execution readiness.
+Current logical identity has not been rechecked; writer
+resume ended the preservation interval. A mismatch requires separate fresh
+preservation before reboot. Reboot persistence and full isolated restore remain open.
 
 ## Accepted scope and remaining gates
 

@@ -1971,6 +1971,9 @@
       "$ref": "preservation-execution.schema.json"
     },
     {
+      "$ref": "reboot-execution.schema.json"
+    },
+    {
       "title": "Prepared bounded ARM64 image qualification; external hash approval required",
       "const": {
         "schema_version": 1,

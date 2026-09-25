@@ -662,7 +662,8 @@ records. Database logical comparison, backup creation and any write-quiescing ac
 belong to a separately reviewed mutation bundle. Before freezing the reboot,
 reserve a quiet application window, account for scheduled Jobs/writers, and define
 one consistent preboot database/media view. Capture deterministic logical counts
-and digests with an explicit table/file scope, excluding documented volatile data;
+and digests with an explicit table/file scope; no volatile-data exclusions are
+approved for the current pilot.
 compare the identical scope after boot. Do not substitute PostgreSQL file hashes,
 a login check, or an old snapshot for this comparison. Validate the comparison
 against disposable data before it can gate a live reboot.
@@ -698,6 +699,78 @@ retain preboot evidence before issuing the reboot and reconnect without reissuin
 On timeout or changed data, stop and retain evidence. Console investigation and any
 service repair or restore need their own scoped authorization; never automatically
 repeat reboot or overwrite the live database.
+
+The reboot entrypoint is `ansible/scripts/reboot-bundle.py`; Ansible owns the
+single request, writer transitions and reconnection in
+`ansible/playbooks/reboot-persistence.yaml`. Freeze with `freeze --operation
+OPERATION.json --destination BUNDLE --logical PRESERVED_LOGICAL.json`; run the
+repository launcher with `execute --bundle BUNDLE --approve SHA256 --evidence
+EVIDENCE` only through the reviewed persistent controller service. The launcher
+requires published source/CI identity, the exact active operation, a baseline no
+older than 24 hours, controller linger and a new protected evidence directory.
+Preparation bundles with `authorization_ready: false` cannot execute.
+
+Host staging remains root-owned mode 0700 beneath `/tmp`; it is expected to vanish
+at reboot. Before dispatch, the controller fetches preboot receipts and fsyncs an
+exclusive reboot-intent file and its parent directory. It never resumes or retries
+an interrupted operation automatically. After a changed boot is observed, Ansible
+restages and hashes the same frozen observers and restores comparison receipts.
+Restaging does not start application services. A boot that does not change fails
+before restaging; an ambiguous request is never resent.
+
+The two connection/readiness limits are 600 seconds each (connection polling has
+an initial ten-second delay). Drain and logical-client commands are bounded to
+240 and 360 seconds respectively. Final writer recovery has a 600-second readiness
+limit and a 75-second storage observation. The controller bounds the entire run to
+4200 seconds. Native boot receipts must match each current invocation and prove
+configuration and pending-migration checks, plus web static collection. Neither
+operator starts nor an old successful receipt prove automatic persistence.
+
+All writer resumes are attempted independently after a preboot failure or after
+postboot comparison. After dispatch and before automatic activation is proved,
+there is no automatic repair. Controller loss or unreachable host leaves manual
+recovery required; consult console evidence before separately authorizing repair.
+Retain the staged files and private controller receipts for review. No new backup,
+restore, package update, credential provisioning or daemon configuration occurs.
+The existing protected application environment is used only by the temporary
+read-only logical client. Final acceptance also requires proxy IPv4/IPv6 health,
+SSH/Webmin reachability, Munin banner, guard and delayed storage checks. These
+access checks do not prove Webmin certificate trust or external Internet blocking.
+
+For the executable reboot test, bind the accepted preservation snapshot, both
+private logical-receipt hashes and the current accepted artifact map. Verify the
+private receipts against the published acceptance hashes before comparing data.
+Use this sequence in one separately authorized Ansible operation:
+
+1. Refresh the read-only boot, access, storage, writer and recovery baseline.
+   Confirm the reserved quiet window and console recovery still cover execution.
+   Verify the retained snapshot reference and protected logical receipt availability.
+2. Pause web/scheduler, drain and stop the worker using the qualified preservation
+   path. Capture a fresh logical identity and empty-media inventory. Require exact
+   equality with the accepted preservation identity. On mismatch or failed drain,
+   resume writers independently, retain diagnostics and do not issue the reboot.
+   Prepare fresh preservation separately; do not refresh the reference silently.
+3. Record a durable controller receipt before issuing exactly one reboot. Do not
+   issue another reboot after a transport error. Reconnect within the reviewed
+   deadline and require a changed boot ID, expected kernel, unchanged artifacts
+   and automatic activation of all five services plus the read-only boot gate.
+   Capture these observations before any operator start or restart command.
+4. Verify both proxy address families, backend guard, administration/Munin access
+   and the delayed storage interval. Then repeat the bounded writer pause/drain
+   and logical/media capture for comparison with the preboot and preserved views.
+   This second comparison pause is part of the execution scope and must be explicit
+   in its approval. Independently resume writers and verify health and cleanup.
+5. Accept only if automatic startup evidence and exact data continuity both pass.
+   A data mismatch is a failed acceptance, not permission to restore or overwrite.
+   If reconnect or automatic activation fails, retain evidence and use the reviewed
+   console-recovery boundary; service repair cannot count as automatic persistence.
+
+The reboot launcher/playbook and failure-path tests must be implemented and reviewed
+before freezing execution inputs. Tests must cover preboot mismatch with no reboot,
+ambiguous disconnect with no second reboot, changed boot identity, readiness timeout,
+postboot mismatch and independent writer recovery. Reuse the existing comparator,
+backup provenance and supervised controller; do not introduce a second exporter.
+No reboot command is authorized by this preparation procedure.
 
 Preparation is complete only when each row has an observed result or an explicit
 unresolved gap, current recovery preservation and logical comparison are reviewed,

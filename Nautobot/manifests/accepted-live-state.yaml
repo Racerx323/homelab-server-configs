@@ -137,3 +137,23 @@ boot_readiness:
   new_gate_executed: false
   reboot_persistence_accepted: false
   recovery_backups_retained: /var/lib/nautobot/boot-readiness.45bc4a738b684c6da22617bb962d6d32
+recovery_preservation:
+  state: accepted
+  scope: quiesced_application_backup_and_logical_continuity
+  operation: nautobot-recovery-preservation-v2
+  reviewed_at: '2026-09-25T21:22:57.941225+00:00'
+  terminal_tag: nautobot-recovery-preservation-v2-accepted
+  archive_commit: 2c161602ff40662e71377db6944d4bd4ccbc59b2
+  tag_object: f5ec66896b5b9bd42846d3692ef91a9ebf260ae1
+  bundle_sha256: 9e5ba46a3306df4ff8a77f1c6742cff6ec82c7f716007e9952af5412e9e371bf
+  result_sha256: 6daf868f74bcb4f597d651c106004b70319ad59d0992d3626df61b54feb789bb
+  snapshot_id: 7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c
+  logical_before_sha256: df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270
+  logical_after_sha256: df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270
+  logical_identity_equal: true
+  full_integrity_passed: true
+  writer_recovery_passed: true
+  credential_cleanup_passed: true
+  restore_verified: false
+  reboot_persistence_accepted: false
+  current_data_identity_rechecked: false

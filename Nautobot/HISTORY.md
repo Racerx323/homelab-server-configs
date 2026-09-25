@@ -523,3 +523,16 @@ commit `ae0098298d6f94047fc0d76a8226990c2eb24b6c`, tag object
 `158f91a589bb8432a2e1b5b9fbe437e473a25eb9`. All consumed bundle files were
 byte-verified against the published tag before removal from main. Remote protected
 staging remains retained; the operation slot is clean pending successor preparation.
+
+## Accepted recovery preservation
+
+`nautobot-recovery-preservation-v2` accepted quiesced application backup, full
+integrity, exact logical continuity and writer recovery. Node/controller credentials
+were removed; boot and data-service invocations remained unchanged. Snapshot and
+logical evidence hashes are recorded in accepted state. Restore, current-data
+recheck and reboot persistence remain unproven. Published tag
+`nautobot-recovery-preservation-v2-accepted`: commit
+`2c161602ff40662e71377db6944d4bd4ccbc59b2`, tag object
+`f5ec66896b5b9bd42846d3692ef91a9ebf260ae1`. Consumed files were byte-verified
+against the tag before removal from main. Archived publication-pending fields are
+historical; protected host staging remains retained and the operation slot is clean.
