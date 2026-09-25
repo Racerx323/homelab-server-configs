@@ -1,0 +1,26 @@
+{
+  "bundle_sha256": "bb64ef32620d0dbf3bf90900bdedc089be70e60689e5997d25dc904535d0f71d",
+  "result": "failed",
+  "accepted": false,
+  "failure_phase": "drain",
+  "failure_reason": "bounded_command_failed",
+  "underlying_cause": "Nautobot CLI consumes -c as config-path before drain code runs",
+  "backup_started": false,
+  "logical_capture_started": false,
+  "writer_resume_passed": true,
+  "transient_credential_files_absent": true,
+  "health_passed": true,
+  "delayed_storage_check_passed": true,
+  "reboot_performed": false,
+  "repeat_authorized": false,
+  "operation_id": "nautobot-recovery-preservation-v1",
+  "evidence_sha256": {
+    "after.json": "a1caebe507835ab74f2fd926047f33b9458d1f5c85d8631fc1b2c4d8b14988cf",
+    "ansible-inputs.json": "b350751f4f92334849f76eed051120d7d3924a3faf812649de5ac43aafb73f7b",
+    "ansible.log": "70c234cea96a30af7d26160a2b0245dc246772062ba3ff34eee8e7e962abaada",
+    "before.json": "22ca8c1aaa3283b1b9b4e72af984840511887884a9d243a7638977f132546e46",
+    "cleanup.json": "7901122499640715657feb9361ed1ce24f2b23afd7d41dacbd07afe7ff42d477",
+    "controller-credential-cleanup.json": "b2768ec14cc0d108eb422c52aa7c59bbdbb673edec3534ec05a1afdfe05ece47",
+    "controller-result.json": "e0903f32df066c8f4c443dad0dd387da4aeb38f9fdefd2fdac1f8251f92d641b"
+  }
+}

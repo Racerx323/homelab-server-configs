@@ -1,0 +1,159 @@
+---
+- name: Preserve current Nautobot data in a bounded application outage
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  vars:
+    preservation_user: ['/usr/sbin/runuser', '--user', nautobot, '--', '/usr/bin/env', 'XDG_RUNTIME_DIR=/run/user/999', 'DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus']
+  pre_tasks:
+    - name: Require one verified separately authorized bundle
+      ansible.builtin.assert:
+        that:
+          - preservation_verified | default(false) | bool
+          - preservation_execution_authorized | default(false) | bool
+          - inventory_hostname == 'j2-svpi4mf'
+          - ansible_play_hosts_all | length == 1
+          - preservation_root is match('^/tmp/nautobot-preservation\.[0-9a-f]{32}$')
+    - name: Refuse retained operation data
+      ansible.builtin.stat:
+        path: '{{ preservation_root }}'
+      register: existing
+    - name: Require unused root
+      ansible.builtin.assert:
+        that: not existing.stat.exists
+    - name: Create protected operation root
+      ansible.builtin.file:
+        path: '{{ preservation_root }}'
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+    - name: Stage frozen nonsecret inputs
+      ansible.builtin.copy:
+        src: '{{ item.source }}'
+        dest: '{{ preservation_root }}/{{ item.name }}'
+        owner: root
+        group: root
+        mode: '0600'
+      loop: '{{ preservation_files }}'
+    - name: Read back frozen inputs
+      ansible.builtin.stat:
+        path: '{{ preservation_root }}/{{ item.name }}'
+        checksum_algorithm: sha256
+      loop: '{{ preservation_files }}'
+      register: readback
+    - name: Reject staged drift
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.checksum == item.item.sha256
+      loop: '{{ readback.results }}'
+    - name: Verify running baseline before touching services
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-node.py', --root, '{{ preservation_root }}', before]
+        chdir: /
+      changed_when: false
+  tasks:
+    - name: Preserve and independently restore writers
+      block:
+        - name: Stage transient credentials without logging
+          ansible.builtin.copy:
+            src: '{{ preservation_secrets }}/{{ item }}'
+            dest: '{{ preservation_root }}/{{ item }}'
+            mode: '0600'
+            owner: root
+            group: root
+          loop: [repository, password, credentials.json]
+          no_log: true
+        - name: Record resume obligation before first stop attempt
+          ansible.builtin.set_fact:
+            preservation_resume_required: true
+        - name: Stop scheduler and web producers
+          ansible.builtin.command:
+            argv: '{{ preservation_user + ["/usr/bin/systemctl", "--user", "stop", "nautobot-" + item + ".service"] }}'
+            chdir: /
+          loop: [scheduler, web]
+          changed_when: true
+        - name: Drain naturally without cancellation or queue purge
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-node.py', --root, '{{ preservation_root }}', drain]
+            chdir: /
+          changed_when: false
+        - name: Stop drained worker
+          ansible.builtin.command:
+            argv: '{{ preservation_user + ["/usr/bin/systemctl", "--user", "stop", "nautobot-worker.service"] }}'
+            chdir: /
+          changed_when: true
+        - name: Capture quiesced logical identity
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-node.py', --root, '{{ preservation_root }}', logical-before]
+            chdir: /
+          changed_when: true
+        - name: Execute owning backup and full integrity producer
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-backup.py', --root, '{{ preservation_root }}']
+            chdir: /
+          async: 1800
+          poll: 5
+          changed_when: true
+        - name: Capture after identity and verify preserved backup
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-node.py', --root, '{{ preservation_root }}', '{{ item }}']
+            chdir: /
+          loop: [logical-after, compare]
+          changed_when: false
+      always:
+        - name: Attempt each credential removal independently
+          ansible.builtin.file:
+            path: '{{ preservation_root }}/{{ item }}'
+            state: absent
+          loop: [password, credentials.json]
+          failed_when: false
+          no_log: true
+        - name: Attempt all writer resumes even when a prior resume fails
+          ansible.builtin.command:
+            argv: '{{ preservation_user + ["/usr/bin/systemctl", "--user", "start", "nautobot-" + item + ".service"] }}'
+            chdir: /
+          loop: [worker, web, scheduler]
+          when: preservation_resume_required | default(false)
+          register: resumed
+          failed_when: false
+          changed_when: true
+        - name: Check final health and delayed storage errors
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ preservation_root }}/preservation-node.py', --root, '{{ preservation_root }}', after]
+            chdir: /
+          register: final_health
+          failed_when: false
+          changed_when: false
+        - name: Verify credential absence
+          ansible.builtin.stat:
+            path: '{{ preservation_root }}/{{ item }}'
+          loop: [password, credentials.json]
+          register: residue
+          failed_when: false
+          no_log: true
+        - name: Fetch private bounded receipts only
+          ansible.builtin.fetch:
+            src: '{{ preservation_root }}/{{ item }}.json'
+            dest: '{{ preservation_evidence }}/'
+            flat: true
+          loop: [before, drain, logical-before, logical-after, comparison, application-backup-result, backup-resource-review, after]
+          failed_when: false
+          register: collection
+        - name: Persist independent cleanup and collection results
+          ansible.builtin.copy:
+            content: '{{ {"resumes": resumed, "health_rc": final_health.rc | default(-1), "credential_absent": residue.results | map(attribute="stat.exists", default=true) | list, "collected": collection.results | map(attribute="dest", default="missing") | list} | to_nice_json }}'
+            dest: '{{ preservation_evidence }}/cleanup.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+        - name: Reject incomplete recovery or credential cleanup
+          ansible.builtin.assert:
+            that:
+              - final_health.rc | default(-1) == 0
+              - collection.results | selectattr('dest', 'defined') | list | length == 8
+              - residue.results | selectattr('stat.exists', 'defined') | list | length == 2
+              - residue.results | selectattr('stat.exists', 'equalto', false) | list | length == 2
+              - resumed.results | default([]) | selectattr('rc', 'defined') | selectattr('rc', 'ne', 0) | list | length == 0
