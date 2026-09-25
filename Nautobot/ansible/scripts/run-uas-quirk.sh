@@ -18,7 +18,7 @@ readonly -a bundle_files=(
     inventory/prod/hosts.yaml
     inventory/prod/groups/inventory_automation.yaml
     inventory/prod/hosts/j2-svpi4mf.yaml
-    Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
+    Nautobot/docs/OPERATIONS.md
     Nautobot/manifests/operation.yaml
     Nautobot/schemas/operation.schema.json
     Nautobot/ansible/playbooks/apply-uas-quirk.yaml

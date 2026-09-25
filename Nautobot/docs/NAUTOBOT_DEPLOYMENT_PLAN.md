@@ -14,9 +14,9 @@ live stage requires separately reviewed inputs and scoped authorization.
 ## Navigation
 
 Use the [roadmap](ROADMAP.md) for current progress, acceptance gaps and next-stage
-preparation. Detailed procedures remain in
-[host convergence](HOST_BASELINE_CONVERGENCE.md),
-[operator procedures](OPERATIONS.md) and the owning component guides.
+preparation. [Operator procedures](OPERATIONS.md) cover host convergence, credentials,
+images, initialization, startup, workload and recovery. [History](../HISTORY.md)
+indexes completed operations; manifests own desired, accepted and active state.
 These supporting records do not change the architecture or grant live authorization.
 
 ## Accepted target

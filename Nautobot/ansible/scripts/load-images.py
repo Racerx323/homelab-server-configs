@@ -31,7 +31,7 @@ FILES = {
     'settings.py':'Nautobot/ansible/templates/runtime/nautobot_config.py',
     'inputs.json':'Nautobot/manifests/runtime-inputs.json',
     'tests.py':'Nautobot/tests/test_image_load.py',
-    'PROCEDURE.md':'Nautobot/docs/IMAGE_LOADING_AND_CONFIGURATION.md',
+    'PROCEDURE.md':'Nautobot/docs/OPERATIONS.md',
     'ansible-temp.sh':'tests/repository/run-with-ansible-local-temp.sh',
 }
 GENERATED = {'spec.json','provenance.json','inventory.json','ansible.cfg'}

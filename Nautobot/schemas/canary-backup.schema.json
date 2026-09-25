@@ -40,7 +40,7 @@
           "execution_user": "nautobot"
         },
         "source_commit": "08a7e622aa2e15650d8ba1beb0695b10e06cb134",
-        "procedure": "Nautobot/docs/CANARY_BACKUP_INTEGRITY.md"
+        "procedure": "Nautobot/docs/OPERATIONS.md"
       }
     },
     "implementation": {

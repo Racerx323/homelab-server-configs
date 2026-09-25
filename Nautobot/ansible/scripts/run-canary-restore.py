@@ -28,8 +28,7 @@ common.BUNDLE_FILES = tuple(dict.fromkeys(common.BUNDLE_FILES + (
     'restic/tests/test_canary_restore.py',
     'Nautobot/schemas/canary-restore.schema.json',
     'Nautobot/manifests/restic-initialization-result.json',
-    'Nautobot/docs/CANARY_ISOLATED_RESTORE.md',
-    'Nautobot/docs/ISOLATED_BACKUP_RESTORE.md',
+    'Nautobot/docs/OPERATIONS.md',
 )))
 
 

@@ -27,7 +27,7 @@ FILES = (
     'Nautobot/schemas/startup-execution.schema.json',
     'Nautobot/schemas/startup-operation.schema.json',
     'Nautobot/schemas/startup-policy.schema.json',
-    'Nautobot/docs/STARTUP_EXECUTION.md',
+    'Nautobot/docs/OPERATIONS.md',
     'Nautobot/manifests/operation.yaml', 'Nautobot/manifests/startup-policy.yaml',
     'Nautobot/manifests/desired-state.yaml', 'Nautobot/manifests/accepted-live-state.yaml',
     'Nautobot/manifests/startup-network-handoff.yaml',

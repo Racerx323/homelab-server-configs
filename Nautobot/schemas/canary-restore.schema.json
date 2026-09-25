@@ -41,7 +41,7 @@
           "execution_user": "nautobot"
         },
         "source_commit": "7521e023a19c874fd276f36ccbba71840fbf9a3a",
-        "procedure": "Nautobot/docs/CANARY_ISOLATED_RESTORE.md"
+        "procedure": "Nautobot/docs/OPERATIONS.md"
       }
     },
     "implementation": {

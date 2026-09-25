@@ -477,3 +477,13 @@ All 46 consumed archive files were removed only after byte comparison with the
 published tag. Accepted synthetic identity is reconciled; the operation is clean.
 Archive CI passed: Repository validation `36150423192` and Push on main `36150421944`.
 Archived publication-pending fields are historical.
+
+## Documentation consolidation reference
+
+The pre-consolidation roadmap, stage manuals and historical decision narratives
+are preserved at [commit 368f93a](https://github.com/Racerx323/homelab-server-configs/tree/368f93a3286f15d0803ae783164fa78414d4b78f/Nautobot/docs).
+Use that immutable snapshot to interpret historical prose; it is not a current
+operation definition. Terminal execution identities remain the annotated tags
+indexed above. Consolidation did not modify those tags or accepted evidence.
+The authentication negative-test requirement introduced by `0317261` was later
+superseded by native positive readiness; its historical failures remain archived.

@@ -32,7 +32,7 @@ FILES = {
     'desired.yaml':'Nautobot/manifests/desired-state.yaml',
     'operation.yaml':'Nautobot/manifests/operation.yaml',
     'operation.schema.json':'Nautobot/schemas/image-build.schema.json',
-    'PROCEDURE.md':'Nautobot/docs/IMAGE_BUILD.md',
+    'PROCEDURE.md':'Nautobot/docs/OPERATIONS.md',
     'run-with-ansible-local-temp.sh':'tests/repository/run-with-ansible-local-temp.sh',
     'launcher.py':'Nautobot/ansible/scripts/prepare-image-build.py',
 }

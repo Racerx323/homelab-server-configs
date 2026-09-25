@@ -17,7 +17,7 @@ readonly operation_user=ama
 readonly evidence_limit_bytes=8388608
 readonly -a bundle_files=(
     Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md
-    Nautobot/docs/STORAGE_REMEDIATION_DECISION.md
+    Nautobot/docs/OPERATIONS.md
     Nautobot/manifests/operation.yaml
     Nautobot/schemas/operation.schema.json
     Nautobot/ansible/playbooks/rollback-host-baseline.yaml

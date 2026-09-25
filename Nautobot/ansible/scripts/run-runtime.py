@@ -72,7 +72,7 @@ def bundle_rows(operation):
         'Nautobot/ansible/playbooks/bootstrap-administrator.yaml',
         'Nautobot/ansible/playbooks/inspect-retained-database.yaml',
         'Nautobot/ansible/scripts/runtime-initialization-node.py', 'restic/scripts/canary-backup.py',
-        'Nautobot/tests/test_runtime_initialization.py', 'Nautobot/docs/RUNTIME_INITIALIZATION.md', 'Nautobot/ansible/ansible.cfg',
+        'Nautobot/tests/test_runtime_initialization.py', 'Nautobot/ansible/ansible.cfg',
         'Nautobot/ansible/templates/runtime/container.j2', 'Nautobot/ansible/templates/runtime/network.j2',
         'Nautobot/ansible/templates/runtime/volume.j2', 'Nautobot/docs/OPERATIONS.md',
         'inventory/prod/hosts.yaml', 'inventory/prod/groups/inventory_automation.yaml',
@@ -85,8 +85,7 @@ def bundle_rows(operation):
                     'Nautobot/tests/test_administrator_bootstrap.py',
                     'Nautobot/tests/fixtures/nautobot-cli-parser.json',
                     'Nautobot/tests/fixtures/CLI_PARSER_PROVENANCE.md',
-                    'Nautobot/tests/fixtures/DJANGO-LICENSE.txt',
-                    'Nautobot/docs/BOOTSTRAP_AND_STARTUP.md']
+                    'Nautobot/tests/fixtures/DJANGO-LICENSE.txt']
     sources += [p['path'] for p in operation['prerequisites']] + list(operation['input_sha256'])
     rows=[]
     for name in dict.fromkeys(sources):

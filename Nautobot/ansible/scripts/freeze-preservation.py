@@ -33,7 +33,7 @@ def freeze(destination):
         'scripts/canary-backup.py': 'restic/scripts/canary-backup.py',
         'ansible.cfg': 'Nautobot/ansible/ansible.cfg',
         'schema.json': 'Nautobot/schemas/startup-preservation.schema.json',
-        'REVIEW.md': 'Nautobot/docs/STARTUP_PRESERVATION.md',
+        'REVIEW.md': 'Nautobot/docs/OPERATIONS.md',
     }
     for name, source in files.items():
         target = destination/name; target.parent.mkdir(exist_ok=True)

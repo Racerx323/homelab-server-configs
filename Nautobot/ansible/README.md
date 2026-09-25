@@ -33,7 +33,7 @@ authorization before running `execute`.
 
 [The active manifest](../manifests/operation.yaml) defines the unready
 host-baseline convergence operation. See
-[the convergence procedure](../docs/HOST_BASELINE_CONVERGENCE.md) for retained
+[the convergence procedure](../docs/OPERATIONS.md#retained-host-baseline-convergence-and-acceptance) for retained
 evidence, the completed 59/59 preflight, pending polling review and terminal
 acceptance. [The acceptance map](../docs/ROADMAP.md) separates
 those results from later workload and recovery gates.

@@ -56,7 +56,7 @@ Do not infer HA safety merely from `serial: 1`.
 
 ## History and acceptance
 
-Retain the original [Nautobot remediation](../../Nautobot/docs/STORAGE_REMEDIATION_DECISION.md)
+Retain the original [Nautobot remediation](../../Nautobot/docs/OPERATIONS.md#nautobot-storage-remediation-decision)
 and its operation evidence. New transport changes use this component. Existing
 consumer acceptance requirements remain valid; migration of ownership does not
 rewrite historical operation manifests or clear any workload/Restic gate.

@@ -119,7 +119,7 @@
                   "const": "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md"
                 },
                 "storage_decision": {
-                  "const": "Nautobot/docs/STORAGE_REMEDIATION_DECISION.md"
+                  "const": "Nautobot/docs/OPERATIONS.md"
                 },
                 "backblaze_b2": {
                   "const": "backblaze-b2/docs/B2_ARCHITECTURE.md"

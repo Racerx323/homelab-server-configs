@@ -30,7 +30,7 @@ ID, as defined in the [kernel documentation](https://docs.kernel.org/admin-guide
 It matches that USB ID, not an individual disk serial number.
 
 The original boot-file procedure and rollback are documented in
-[Nautobot's storage decision](../../Nautobot/docs/STORAGE_REMEDIATION_DECISION.md)
+[Nautobot's storage decision](../../Nautobot/docs/OPERATIONS.md#nautobot-storage-remediation-decision)
 and [Ansible operations](../../Nautobot/ansible/README.md#jmicron-uas-quirk-remediation).
 The retained implementation is
 [apply-uas-quirk.yaml](../../Nautobot/ansible/playbooks/apply-uas-quirk.yaml), with

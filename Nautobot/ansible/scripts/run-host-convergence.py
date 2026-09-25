@@ -27,7 +27,7 @@ BUNDLE_FILES = (
     'Nautobot/ansible/scripts/run-host-convergence.py',
     'Nautobot/ansible/scripts/evaluate-host-convergence.py',
     'Nautobot/ansible/scripts/validate-host-convergence.py',
-    'Nautobot/docs/HOST_BASELINE_CONVERGENCE.md',
+    'Nautobot/docs/OPERATIONS.md',
     'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
     'inventory/prod/hosts.yaml',
     'inventory/prod/groups/inventory_automation.yaml',

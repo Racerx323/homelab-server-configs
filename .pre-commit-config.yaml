@@ -389,7 +389,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|STORAGE_REMEDIATION_DECISION)\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|OPERATIONS)\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-uas-quirk-launcher
         name: Validate Nautobot JMicron UAS-quirk operation
@@ -399,7 +399,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/STORAGE_REMEDIATION_DECISION\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/OPERATIONS\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: check-json
         name: Validate JSON with jq
@@ -413,6 +413,13 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: nautobot-documentation-contracts
+        name: Validate Nautobot documentation and cross-directory references
+        entry: python3 Nautobot/tests/test_documentation_contracts.py
+        language: system
+        pass_filenames: false
+        files: ^(?:Nautobot/|\.pre-commit-config\.yaml|\.github/workflows/validation\.yml)
 
       - id: nautobot-candidate-contracts
         name: Validate Nautobot runtime and Restic candidate contracts
@@ -473,7 +480,7 @@ repos:
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_administrator_bootstrap.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/(?:ansible/|schemas/|manifests/|tests/(?:test_administrator_bootstrap\.py|fixtures/(?:nautobot-cli-parser\.json|CLI_PARSER_PROVENANCE\.md|DJANGO-LICENSE\.txt))|docs/BOOTSTRAP_AND_STARTUP\.md)
+        files: ^Nautobot/(?:ansible/|schemas/|manifests/|tests/(?:test_administrator_bootstrap\.py|fixtures/(?:nautobot-cli-parser\.json|CLI_PARSER_PROVENANCE\.md|DJANGO-LICENSE\.txt))|docs/OPERATIONS\.md)
       - id: nautobot-application-startup
         name: Validate inactive application startup and recovery boundaries
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_application_startup.py
@@ -504,7 +511,7 @@ repos:
         entry: python3 Nautobot/tests/test_image_build.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/(?:test_image_build\.py|fixtures/image-build-operation\.yaml)|docs/IMAGE_BUILD\.md)
+        files: ^Nautobot/(?:ansible/|container/|schemas/|manifests/|tests/(?:test_image_build\.py|fixtures/image-build-operation\.yaml)|docs/OPERATIONS\.md)
 
       - id: nautobot-credential-contracts
         name: Validate private credential provisioning and failure handling

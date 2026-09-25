@@ -25,7 +25,7 @@ FILES = {'active.yaml':'Nautobot/manifests/operation.yaml',
          'accepted.yaml':'Nautobot/manifests/accepted-live-state.yaml',
          'qualified.json':'Nautobot/manifests/qualified-image.json',
          'tests.py':'Nautobot/tests/test_credentials.py',
-         'PROCEDURE.md':'Nautobot/docs/CREDENTIAL_PROVISIONING.md',
+         'PROCEDURE.md':'Nautobot/docs/OPERATIONS.md',
          'ansible-temp.sh':'tests/repository/run-with-ansible-local-temp.sh'}
 KEYS = ['NAUTOBOT_DJANGO_SECRET_KEY','NAUTOBOT_POSTGRESQL_PASSWORD',
         'NAUTOBOT_REDIS_PASSWORD','NAUTOBOT_INITIAL_ADMIN_PASSWORD']
