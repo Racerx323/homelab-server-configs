@@ -51,13 +51,20 @@ systemd/ARM64 behavior remains a live qualification boundary.
 Private evidence: `nautobot-preservation-native-final-20260925/` and
 `nautobot-preservation-preparation-20260925/`.
 
-The review bundle remains inactive: current implementation is uncommitted and CI
-has not reviewed it. Next commit/publish, verify CI, refresh or re-review the bounded
-baseline and activate one exact preservation operation for execution approval.
-The active operation slot remains clean. No credentials were resolved and no host
-was contacted or changed during bundle preparation. Fresh preservation, new
-boot-gate execution and reboot persistence remain unproven; no volatile-data
-exclusions or automatic restore are approved.
+Preservation implementation is published at `e1cac5e`; repository validation and
+CodeQL passed. Fresh read-only baseline at 2026-09-25 19:51 UTC matches all reviewed
+artifacts, images and boot identity. Five services are healthy with zero restarts;
+application health returns HTTP 200, media remains empty and no scheduled writers
+are registered. Tmpfs capacity and the installed Restic version match the capture
+contract. Private review: `nautobot-preservation-baseline-20260925/REVIEW.md`.
+
+The user explicitly approved setting the preservation definition authorization-ready
+and freezing its bundle. The active operation records the reviewed source commit,
+fresh baseline and bounded pause/drain/capture/resume scope. Next obtain separate
+execution approval for the exact frozen hash; no live preservation has run.
+No credentials were resolved or writers suspended. Baseline expires September 26
+at 19:51 UTC. Fresh preservation, boot-gate execution and reboot persistence remain
+unproven; no reboot, automatic restore or volatile-data exclusions are authorized.
 
 ## Accepted scope and remaining gates
 

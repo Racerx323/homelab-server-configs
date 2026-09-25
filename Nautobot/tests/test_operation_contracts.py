@@ -88,6 +88,12 @@ class Contracts(unittest.TestCase):
             self.assertFalse(operation['scope']['restore'])
             self.assertFalse(operation['scope']['service_restart'])
             self.assertEqual(operation['execution']['operation_id'], operation['operation']['id'])
+        elif operation['operation'].get('stage') == 'recovery_preservation':
+            contract = json.loads((ROOT / 'Nautobot/schemas/preservation-execution.schema.json').read_text())
+            validate(contract, operation)
+            self.assertIn({'$ref': 'preservation-execution.schema.json'}, SCHEMA['oneOf'])
+            for boundary in ('data_service_restart', 'reboot', 'restore', 'cancel_or_purge'):
+                self.assertFalse(operation['boundaries'][boundary])
         elif operation['operation'].get('stage') == 'application_startup':
             contract = json.loads((ROOT / 'Nautobot/schemas/startup-operation.schema.json').read_text())
             validate(contract, operation)
