@@ -18,7 +18,8 @@ boot. Local implementation keeps the migration-named oneshot as a configuration
 and pending-migration gate, removes boot-time `post_upgrade`, shortens its timeout
 to 300 seconds and updates receipt validators, desired state/schema and tests.
 Initialization/continuation retain upgrade execution; web retains static collection.
-The host still runs the previous accepted artifacts. No deployment or reboot occurred.
+The host still runs the previous accepted artifacts. No deployment or reboot occurred. One boot-readiness artifact deployment is now
+defined, limited to two files and daemon-reload; execution awaits exact approval.
 
 Next review and publish this implementation, then prepare a scoped deployment
 bundle and current recovery preservation/logical comparison before reboot. Do not
@@ -26,7 +27,7 @@ reuse the old startup baseline or archived bundles with the changed desired stat
 Console/physical recovery was confirmed available September 25. A fresh quiet
 window and current recovery/consistency evidence are still required. The proposed
 ten-minute application readiness ceiling is not a measured reboot guarantee.
-Reconciliation and implementation remain uncommitted; no active operation is open.
+Reconciliation and implementation remain uncommitted; the boot-readiness operation is defined but unexecuted.
 
 ## Accepted scope and remaining gates
 

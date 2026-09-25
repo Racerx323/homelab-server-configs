@@ -469,6 +469,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*logout.*|schemas/(logout-persistence|operation)\.schema\.json|manifests/operation\.yaml|tests/test_logout_persistence\.py|tests/fixtures/logout-operation\.json)
+      - id: nautobot-boot-readiness
+        name: Validate bounded boot readiness deployment and rollback
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_boot_readiness.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*boot.*|schemas/(boot-readiness|operation)\.schema\.json|tests/test_boot_readiness\.py|tests/fixtures/boot-operation\.json)
       - id: nautobot-controller-persistence
         name: Validate workload controller supervision and persistence preparation
         entry: python3 Nautobot/tests/test_controller_persistence.py

@@ -444,6 +444,40 @@ selects or terminates sessions, enables linger, starts units or accepts persiste
 Compare returned artifacts with accepted state and review current recovery inputs.
 A collection result is readiness evidence, not a persistence pass.
 
+#### Boot-readiness artifact deployment
+
+`ansible/scripts/boot-bundle.py` freezes the active boot-readiness definition and
+runs `ansible/playbooks/boot-readiness.yaml` only with its exact approval hash.
+The two installable artifacts are `startup-application.py` and
+`nautobot-migration.container`. Freeze from reviewed desired state and accepted
+live hashes; never replace accepted hashes with the new desired hashes early.
+
+The playbook refuses an existing recovery directory, verifies the baseline and
+all accepted artifact hashes, backs up both originals and verifies backup hashes,
+then installs the two files preserving ownership/mode. It runs user-manager
+`daemon-reload` only. No application start/stop, reboot, database command or secret
+resolution belongs to this stage. After 75 seconds, verify unchanged running
+invocations/boot/health, new artifact hashes, the generated five-minute timeout,
+backend guard and cursor-bounded storage history. This qualifies installation,
+not a future boot or execution of the changed readiness gate.
+
+On mutation failure, restore both originals, reload definitions, and independently
+verify rollback. Keep failures of restoration, reload and verification distinct.
+Controller/transport loss can prevent rescue: preserve the exact persistent root
+and read it back before recovery; no automatic replay, restart or reboot. Missing
+receipts or failed recovery require manual review. Recovery backups remain until
+terminal archival and separately reviewed cleanup. A failed preflight may leave
+only protected staging; do not reuse that directory.
+
+Freeze locally with `python3 Nautobot/ansible/scripts/boot-bundle.py freeze
+/absolute/private/new-bundle`. The execution command is the frozen script's
+`execute --approve SHA256 --evidence /absolute/private/new-evidence`, run in a
+non-restarting user systemd service with linger, a 960-second ceiling, UMask 0077,
+null journal streams and the existing SSH agent reference. Retain bounded Ansible
+stdout/stderr and review actual receipts independently of controller exit status.
+The reviewed baseline expires after 24 hours. Commit/publish implementation and
+verify CI before requesting execution approval.
+
 #### Reboot baseline and recovery preparation
 
 Use a fresh, separately authorized read-only collection on `ama@10.1.2.170`.
