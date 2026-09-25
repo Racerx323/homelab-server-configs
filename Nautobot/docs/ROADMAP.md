@@ -4,6 +4,11 @@ Resume reference: [checkpoint](CHECKPOINT.md).
 
 ## Current next action
 
+Synthetic repeat-fixture workload acceptance is recorded in
+`manifests/accepted-live-state.yaml`; full stage 5 remains open. Next prepare the
+separate persistence/recovery stages under the master plan, addressing durable
+controller supervision before another long operation. No successor is active.
+
 Application startup is accepted for the single-host pilot. All seven groups passed:
 native configuration/migrations, HTTP/static, administrator sessions and rejection
 checks, dual-stack allowed/denied access, Job/worker concurrency, resource/secret
@@ -86,7 +91,7 @@ Jobs and successful backup/full integrity checking. The published archive
 results; both CI workflows passed for `5298c9c`. Consumed files were removed only
 after byte comparison with that tag. Accepted application state is unchanged.
 
-The corrected retry has executed; the single operation is terminal-pending. Audits must be
+The corrected retry has executed and its archive is reconciled; the operation is clean. Audits must be
 observed running before backup starts; actual timestamps still decide overlap.
 Status checks are batched, stop reconciliation runs once, and timing is retained.
 The retry binds the original fixture ownership receipt and three exact disabled
@@ -117,8 +122,8 @@ disabled registrations and positive worker absence. Scoped recovery removed four
 exact-hash temporary module copies; independent readback confirmed absent modules
 and remote credentials, unchanged boot/service invocations and zero restarts.
 Controller credential directories are absent currently. Final review accepted the synthetic repeat-fixture workload only, retaining the
-controller interruption and recovered cleanup. Terminal archive publication and
-accepted-state reconciliation remain pending. Evidence: the private retry directory's
+controller interruption and recovered cleanup. The accepted archive is published and verified; accepted-state/history are
+reconciled and consumed files removed only after exact archive comparison. Evidence: the private retry directory's
 `review-20260925/REVIEW.md`. No workload rerun, restore or fixture deletion occurred.
 Real-inventory representativeness, application restore and persistence remain
 separate gates. Future long-running operations need durable controller supervision

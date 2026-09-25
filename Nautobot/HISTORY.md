@@ -471,4 +471,9 @@ is unproven; current credential absence is verified. Full stage 5, representativ
 persistence and application restore remain open. Tag
 `nautobot-workload-qualification-v2-accepted` preserves exact consumed inputs,
 recovery procedure and sanitized decision; its peeled commit identifies the archive.
-Publication remains pending and the operation stays terminal-pending.
+Published archive commit `f7fed3ceab25dab6d15dac36eb083f779b047b0f` and tag object
+`9210966d11130ea92221aea2c964366add647e6e` were verified remotely.
+All 46 consumed archive files were removed only after byte comparison with the
+published tag. Accepted synthetic identity is reconciled; the operation is clean.
+Archive CI passed: Repository validation `36150423192` and Push on main `36150421944`.
+Archived publication-pending fields are historical.

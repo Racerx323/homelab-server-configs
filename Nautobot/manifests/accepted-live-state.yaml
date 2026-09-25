@@ -74,3 +74,29 @@ application_startup:
     - logout_and_reboot_persistence
     - caddy_onboarding
     - application_aware_backup_and_restore
+synthetic_workload:
+  state: accepted
+  scope: synthetic_pilot_repeat_fixture_workload_only
+  operation: nautobot-workload-qualification-v2
+  reviewed_at: '2026-09-25T14:47:34.780031+00:00'
+  bundle_sha256: 457f7c941ae11ff892a8ecb15ea082326c3f93a52d570649490840c871228152
+  result_sha256: 341c9839ce57945a2acc933b42f6a6df628c2e6050ff6c8df3429892e2c89319
+  terminal_tag: nautobot-workload-qualification-v2-accepted
+  archive_commit: f7fed3ceab25dab6d15dac36eb083f779b047b0f
+  tag_object: 9210966d11130ea92221aea2c964366add647e6e
+  snapshot_id: 028d50637353e7f901c563f2ec63a1adba3c954195e15f130a5e801959fa9219
+  controller_outcome: interrupted_cause_unproven
+  cleanup: recovered_and_independently_verified
+  full_stage_5_accepted: false
+  application_restore_verified: false
+  limitations:
+    - repeat_imports_reuse_retained_fixture; original_initial_import_is_separate_evidence
+    - controller_interruption_cause_and_historical_credential_finalizer_unproven
+    - controller_tmp_evidence_lost_after_workstation_restart
+    - controller_dependent_cleanup_required_scoped_recovery
+  remaining_gates:
+    - real_inventory_representativeness
+    - logout_and_reboot_persistence
+    - application_restore
+    - caddy_onboarding
+    - seven_day_stable_pilot_before_authority_or_semaphore

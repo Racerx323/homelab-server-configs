@@ -336,6 +336,98 @@
           ]
         }
       }
+    },
+    "synthetic_workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "bundle_sha256",
+        "result_sha256",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "snapshot_id",
+        "controller_outcome",
+        "cleanup",
+        "full_stage_5_accepted",
+        "application_restore_verified",
+        "limitations",
+        "remaining_gates"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "synthetic_pilot_repeat_fixture_workload_only"
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "controller_outcome": {
+          "const": "interrupted_cause_unproven"
+        },
+        "cleanup": {
+          "const": "recovered_and_independently_verified"
+        },
+        "full_stage_5_accepted": {
+          "const": false
+        },
+        "application_restore_verified": {
+          "const": false
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "remaining_gates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   }
 }

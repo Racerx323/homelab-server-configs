@@ -172,6 +172,22 @@ class Contracts(unittest.TestCase):
         del baseline_only['dual_stack_identity']
         validate(schema, baseline_only)
 
+    def test_synthetic_workload_identity_cannot_expand_acceptance(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(schema, accepted)
+        for key in accepted['synthetic_workload']:
+            bad = copy.deepcopy(accepted)
+            del bad['synthetic_workload'][key]
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        for key, value in [('scope', 'full_runtime_accepted'), ('full_stage_5_accepted', True),
+                           ('application_restore_verified', True), ('archive_commit', 'pending'),
+                           ('snapshot_id', 'latest'), ('controller_outcome', 'uninterrupted'),
+                           ('limitations', []), ('remaining_gates', [])]:
+            bad = copy.deepcopy(accepted)
+            bad['synthetic_workload'][key] = value
+            with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_startup_identity_requires_provenance_and_preserves_scope(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
