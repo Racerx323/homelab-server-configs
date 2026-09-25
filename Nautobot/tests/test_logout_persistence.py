@@ -100,6 +100,26 @@ class Logout(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'ansible_executable_unavailable'):
                 bundle.ansible_executable()
 
+    def test_actual_cleanup_assertions_allow_only_proven_absence(self):
+        play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/logout-persistence.yaml').read_text())[0]
+        task=copy.deepcopy(play['tasks'][0]['always'][-1])
+        for code,load,pid,state,read_rc,passes in (
+            (0,'loaded',0,'inactive',0,True),
+            (5,'not-found',0,'inactive',0,True),
+            (5,'loaded',0,'inactive',0,False),
+            (1,'not-found',0,'inactive',0,False),
+            (5,'not-found',123,'inactive',0,False),
+            (5,'not-found',0,'active',0,False),
+            (5,'not-found',0,'inactive',1,False),
+        ):
+            with self.subTest(code=code,load=load,pid=pid,state=state,read_rc=read_rc),tempfile.TemporaryDirectory() as d:
+                unit={'rc':read_rc,'stdout_lines':[f'LoadState={load}',f'MainPID={pid}',f'ActiveState={state}']}
+                probe=[{'hosts':'localhost','gather_facts':False,'vars':{
+                    'logout_stop':{'rc':code},'logout_final_units':{'results':[unit]}},'tasks':[task]}]
+                path=Path(d)/'test.yaml';path.write_text(yaml.safe_dump(probe))
+                result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(path)],capture_output=True,text=True,cwd=ROOT)
+                self.assertEqual(result.returncode==0,passes,result.stdout+result.stderr)
+
     def test_bundle_tamper_and_expiry(self):
         op=json.loads((ROOT/'Nautobot/tests/fixtures/logout-operation.json').read_text())
         op['baseline']['collected_at']=datetime.now(timezone.utc).isoformat()

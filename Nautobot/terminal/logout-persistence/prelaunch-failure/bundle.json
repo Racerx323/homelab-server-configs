@@ -1,0 +1,22 @@
+{
+  "files": {
+    "OPERATIONS.md": "b898ea6e6cf6cecb9493c77c0c056ab679b7e40f63437ecfe54e2a9e8fcb9e1b",
+    "PLAN.md": "05ea9b2cbeb809eb9dcff0776d9654cff2a39e18df6372497830cff2951758e7",
+    "accepted-state.yaml": "9c7909763f1e2b29f0df0da1aff5a68ecca0271e0bd4745f09093b7de2d802ea",
+    "ansible-temp.sh": "457bd8965c67263a6fe43298dca830094320a94066dfe8af0a4fe1c242b65a9e",
+    "ansible.cfg": "7f4bad5df77730cfd3ebcbab20e880d530bc6c17fdca42daf405cafea60d008f",
+    "inventory.ini": "7215287e190b9db4f08117628d013849e916f450f86032c7db44e9b80e0113f2",
+    "logout-bundle.py": "1db9965e352c5ff7a317b8a14beefb4f49036c38ffe71aebbe6f925b2b9d5f29",
+    "logout-node.py": "9bf57c0f70782cdef8a724fe715b9cbf95864127903c1b3cf6b03d3c7425f2fd",
+    "operation.json": "7dd1189ee49e10e3727da03a02e455d1fb47ff4e4559703f845382a6f1cba440",
+    "playbook.yaml": "21c5045905aef956adfce5677f6715f6c7f3d8a593f90ae75abfff34eebbd667",
+    "schema.json": "255383a7ed63d9faa648922d2bff8a40fca75dffe153b10090314b3f550a2203",
+    "startup-network-client.py": "5510e67b204636f43c243192d4bf1105632c8194849a3925d28440f97f57f876"
+  },
+  "source_commit": "7a49a0341cd37e683e1924c9040f8133dcb29746",
+  "stage": "logout_persistence",
+  "targets": [
+    "ama@10.1.2.170",
+    "pi@10.1.0.53"
+  ]
+}

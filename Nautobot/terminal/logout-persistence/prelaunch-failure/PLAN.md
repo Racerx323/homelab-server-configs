@@ -1,0 +1,550 @@
+# Nautobot deployment plan
+
+## Status and authorization boundary
+
+This document is the governing definition for deploying Nautobot on
+`j2-svpi4mf`. It records the accepted architecture, implementation stages,
+ownership boundaries, validation, and acceptance criteria.
+
+Creating this plan does not authorize host mutation, package installation,
+network or DNS changes, UniFi changes, Caddy publication, container startup,
+secrets creation, source-of-truth migration, or production acceptance. Each
+live stage requires separately reviewed inputs and scoped authorization.
+
+## Navigation
+
+Use the [roadmap](ROADMAP.md) for current progress, acceptance gaps and next-stage
+preparation. [Operator procedures](OPERATIONS.md) cover host convergence, credentials,
+images, initialization, startup, workload and recovery. [History](../HISTORY.md)
+indexes completed operations; manifests own desired, accepted and active state.
+These supporting records do not change the architecture or grant live authorization.
+
+## Accepted target
+
+| Property | Accepted value |
+| --- | --- |
+| Host | `j2-svpi4mf` |
+| SSH administration | `ama@10.1.2.170` |
+| Ethernet MAC | `dc:a6:32:eb:49:69` |
+| IPv4 | UniFi fixed DHCP assignment `10.1.2.170/22` |
+| Permanent IPv6 ULA | `fd36:5aa8:6971:1::170/64` |
+| Host FQDN | `j2-svpi4mf.local.theama.co` |
+| Application FQDN | `nautobot.local.theama.co` |
+| Platform | Raspberry Pi 4B, four ARM64 cores, 8 GB RAM |
+| Power | PoE Texas `GAT-PiHAT`, IEEE 802.3at, rated up to 20 W |
+| Storage adapter | Geekworm `X872 V2.0`, USB 3.0 to M.2 NVMe, up to 5 Gbps |
+| Storage | 1 TB NVMe over USB 3 through JMicron `152d:0583`, `usb-storage` driver, ext4 root filesystem |
+| Container runtime | Rootless Podman with user Quadlets |
+
+Before defining the host-baseline operation, a fresh read-only qualification
+must prove that the hardware, storage, temperature, current load, cgroup-v2
+support, and 64-bit Debian installation remain sufficient for a small homelab
+deployment. Preserve the bounded qualification evidence outside this
+architecture plan and bind its sanitized evidence manifest to the operation.
+ARM64 remains a pilot risk because Nautobot publishes ARM64 images but does not
+cover that architecture in its automated tests.
+
+The storage design disables UAS for JMicron `152d:0583` with the exact kernel
+token `usb-storage.quirks=152d:0583:u`. The active root device must bind to
+`usb-storage`; loading the kernel UAS module does not violate this requirement.
+Storage validation must treat both power and transport as possible fault paths.
+Verify the negotiated PoE supply, Raspberry Pi throttling history, USB link
+speed, bridge identity, active device driver, kernel command line, and NVMe
+health from the live host rather than inferring them from product names.
+Manufacturer references: [PoE Texas GAT-PiHAT][gat-pihat] and [Geekworm X872
+V2.0][x872-v2].
+
+Pin these initial application versions:
+
+- Nautobot `3.2.3` using the upstream `3.2.3-py3.12` ARM64 image variant;
+- Nautobot DNS Models `2.3.0`;
+- PostgreSQL `17`;
+- Redis `7.4`; and
+- Semaphore UI `2.18.29` only after the Nautobot acceptance and soak gates.
+
+Resolve and record architecture-specific image digests before implementation.
+Do not deploy mutable tags such as `latest`.
+
+## Ownership model
+
+During bootstrap, the existing repositories retain authority:
+
+| Information | Bootstrap authority |
+| --- | --- |
+| Host membership, functions, components, and OS facts | `homelab-server-configs/inventory` |
+| VLANs, prefixes, addresses, DHCP, firewall, and NAT | `homelab-network` |
+| A, AAAA, PTR, CNAME, and SRV records | `homelab-dns` |
+| Caddy configuration and release lifecycle | `homelab-server-configs/Caddy` |
+| Passwords, tokens, application keys, and private keys | Approved secrets system |
+
+After Nautobot passes backup and restore acceptance, migrate authority one
+domain at a time. A repository becomes a generated or reconciled projection
+only after an exact comparison, reviewed cutover, and explicit ownership
+update. Caddy configuration bytes, protocol-v2 candidates, accepted-live
+evidence, and live authorization remain repository-owned.
+
+Nautobot events and webhooks may request export or validation. They must never
+publish a release, reload DNS, contact an HA node, or initiate a live change.
+
+## Host baseline
+
+### Service identity and rootless runtime
+
+- Preserve `ama` as the SSH administration identity.
+- Create a non-login `nautobot` service account with home
+  `/var/lib/nautobot`.
+- Assign the non-overlapping subordinate UID and GID range
+  `165536:65536`, after proving that range is unused.
+- Enable systemd lingering only for the `nautobot` service account.
+- Store rootless Quadlets beneath
+  `/var/lib/nautobot/.config/containers/systemd/`.
+- Store persistent container data on the SSD beneath the service account's
+  rootless Podman storage.
+
+Install the reviewed Debian packages for `podman`, `uidmap`, `passt`,
+`slirp4netns`, `fuse-overlayfs`, `crun`, `dbus-user-session`, `smartmontools`,
+`restic`, `msmtp`, `msmtp-mta`, and `needrestart`. Record exact installed
+versions. The two MSMTP packages provide a sendmail-compatible outbound
+transport for host software; relay configuration and credentials require
+separate review and must remain outside Git.
+
+### Required and unwanted services
+
+Preserve and validate these required host-baseline services:
+
+- SSH;
+- NetworkManager;
+- systemd-timesyncd;
+- Munin Node;
+- Webmin; and
+- watchdog.
+
+`homelab-dns` owns Keepalived removal. Its separately authorized process must
+purge the package and `/etc/keepalived` after an APT dry run proves the removal
+set. The Nautobot host-baseline operation must fail before mutation unless the
+package, unit, process, and configuration directory are absent. This host has
+no VIP or HA ownership role.
+
+Disable and mask:
+
+- `avahi-daemon.service` and `avahi-daemon.socket`;
+- `bluetooth.service`; and
+- `ModemManager.service`.
+
+Do not purge Avahi, Bluetooth, or ModemManager packages unless a later APT dry
+run proves NetworkManager, Raspberry Pi, and USB-gadget dependencies remain
+intact.
+
+Restrict Webmin, Munin, SSH, and the Nautobot backend through authoritative
+UniFi firewall policy. Stage-3 baseline acceptance requires evidence that existing
+management and monitoring services permit only approved sources over IPv4 and
+IPv6, including denial of unintended access through the ISP-delegated global
+IPv6 address. Listener inventory alone is insufficient. Stage 4 proves stable
+host identity and dual-stack routing/DNS; stage 5 separately proves application
+backend access from the exact Caddy nodes and absence of published database and
+Redis ports. Recheck baseline restrictions after relevant network/runtime changes.
+The network owner retains responsibility for firewall policy and any correction.
+
+Install and qualify SMART monitoring using the owning
+[JMicron USB/NVMe profile](../../smartmontools/docs/JMICRON_NVME_PROFILE.md).
+For this NVMe bridge, preserve qualified autodetection selecting `sntjmicron`;
+do not force the ATA-oriented `sat` or `usbjmicron` types. The root device uses
+the separately owned `host-storage` transport profile. Record command-specific
+bridge limitations and the health telemetry that remains trustworthy; neither
+command success nor a self-test-log anomaly alone establishes media health.
+Maintain kernel I/O monitoring and qualify off-host backup/restore separately.
+Baseline acceptance of a documented limitation does not waive later recovery
+acceptance or authorize new SMART commands or self-tests.
+
+## Dual-stack network and DNS
+
+Preserve the existing NetworkManager profile behavior:
+
+- `Wired connection 1` remains bound to `eth0` and autoconnects;
+- `ipv4.method` remains `auto`;
+- UniFi continues fixing `10.1.2.170` to MAC `dc:a6:32:eb:49:69`;
+- `ipv6.method` remains `auto`;
+- router advertisements continue supplying the IPv6 default route, SLAAC ULA,
+  and ISP-delegated global address; and
+- `fd36:5aa8:6971:1::170/64` is added as the permanent host ULA.
+
+Do not publish the temporary SLAAC ULA or ISP-delegated global address as the
+host's stable identity.
+
+Use `homelab-network/Ubiquiti/j2-svpi4mf-ula-operation.md` for the separately
+authorized network stage. It must retain the NetworkManager rollback,
+address-and-route validation, and UniFi fixed-lease ownership boundaries.
+
+The separately authorized DNS stage adds:
+
+| Type | Owner/name | Value |
+| --- | --- | --- |
+| A | `j2-svpi4mf.local.theama.co.` | `10.1.2.170` |
+| AAAA | `j2-svpi4mf.local.theama.co.` | `fd36:5aa8:6971:1::170` |
+| PTR | `10.1.2.170` | `j2-svpi4mf.local.theama.co.` |
+| PTR | `fd36:5aa8:6971:1::170` | `j2-svpi4mf.local.theama.co.` |
+
+Validate exact forward and reverse results through both Pi-hole nodes and both
+shared DNS VIP address families before accepting the host identity.
+
+## Nautobot runtime
+
+Build one custom ARM64 image from the pinned Nautobot base. Install the pinned
+DNS Models package and a hash-locked Python dependency set during the image
+build. A later `nautobot-homelab-intent` app requires its own schema and review
+before inclusion.
+
+Create one private Podman network and these Quadlet-managed services:
+
+- PostgreSQL with no host-published port and a dedicated volume;
+- Redis with no host-published port, authentication, persistence appropriate
+  for the task queue, and a bounded memory policy;
+- Nautobot web;
+- one Celery worker with concurrency `2`;
+- one Celery Beat scheduler; and
+- a one-shot migration unit that runs `nautobot-server post_upgrade` before
+  web, worker, or scheduler startup.
+
+### Internal metrics runtime requirement
+
+Nautobot includes Prometheus client instrumentation used by its health-check
+code during application initialization, including `nautobot-server check`.
+The pinned image selects `/prom_cache` through `prometheus_multiproc_dir`.
+This is an internal application dependency: it does not add a Prometheus server,
+a metrics scraper, or replace the required Munin monitoring. Enabling metrics
+exposition or deploying a collector requires separate monitoring review.
+
+For migration, web, worker and scheduler containers:
+
+- Keep the root filesystem read-only.
+- Mount `/prom_cache` as a separate per-container tmpfs capped at 16 MiB, using
+  `mode=1777,noexec,nosuid,nodev` so application UID 999 can write there.
+- Set both `PROMETHEUS_MULTIPROC_DIR` and `prometheus_multiproc_dir` to
+  `/prom_cache`, keeping current and legacy client spelling consistent.
+- Give each newly created container an empty cache. Processes within that
+  container share its cache; do not share it between services or retain it as
+  durable application data or backup content.
+- Keep existing service memory ceilings. Validate writable metrics files,
+  read-only root protection, the tmpfs cap and clean container recreation,
+  followed by native configuration validation on the qualified ARM64 image.
+
+The tmpfs cap is a maximum, not preallocated memory. PostgreSQL and Redis do not
+receive this mount. A fresh cache on container recreation implements the
+[Prometheus client's multiprocess-directory lifecycle requirement](https://github.com/prometheus/client_python/blob/master/docs/content/multiprocess/_index.md).
+
+### Runtime memory and exposure
+
+Use these initial memory ceilings:
+
+| Service | Limit |
+| --- | ---: |
+| Nautobot web | 1536 MiB |
+| Celery worker | 1536 MiB |
+| Celery scheduler | 384 MiB |
+| PostgreSQL | 1536 MiB |
+| Redis | 512 MiB |
+
+Change a ceiling only from recorded pilot evidence. Leave the remaining memory
+for Debian, Podman, baseline services, filesystem cache, migrations, and
+upgrades.
+
+Bind the web backend only to `10.1.2.170:8080`,
+`[fd36:5aa8:6971:1::170]:8080`, and loopback where required for recovery.
+Permit TCP 8080 only from `pihole0` and `pihole00` over their exact IPv4 and
+permanent ULA addresses. PostgreSQL and Redis remain private to the Podman
+network.
+
+Configure:
+
+- `ALLOWED_HOSTS` for `nautobot.local.theama.co` and the approved recovery
+  identity;
+- the trusted HTTPS origin for `https://nautobot.local.theama.co`;
+- the secure proxy header for Caddy's `X-Forwarded-Proto: https`; and
+- Nautobot as the authentication owner, without a second Caddy authentication
+  layer.
+
+Store the Django secret key, database password, Redis password, initial
+administrator credential, Restic repository password, and Backblaze
+credentials in the approved secrets system. Inject values through protected
+Podman secrets or credential files; never commit secret values.
+
+## Caddy application onboarding
+
+Use an SSH tunnel for bootstrap administration. Direct LAN browser access is
+not an accepted steady-state interface.
+
+Onboard `nautobot.local.theama.co` through the existing application and
+protocol-v2 lifecycle with this contract:
+
+| Field | Accepted value |
+| --- | --- |
+| Fragment | `20-nautobot.caddy` |
+| Public A | `10.1.0.56` |
+| Public AAAA | `fd36:5aa8:6971:1::56` |
+| Allowed clients | `10.1.0.0/22 fd36:5aa8:6971:1::/64` |
+| Backend protocol | HTTP; Caddy terminates TLS |
+| Upstreams | `10.1.2.170:8080 [fd36:5aa8:6971:1::170]:8080` |
+| Load-balancing policy | `first` |
+| Host header | `nautobot.local.theama.co` |
+| Authentication owner | Nautobot |
+
+The two upstreams are network paths to one application instance. They do not
+constitute application HA.
+
+Use this health and transport contract:
+
+| Field | Accepted value |
+| --- | --- |
+| Active method and URI | `GET /health/` |
+| Expected status | `200` |
+| Interval / timeout | `30s` / `5s` |
+| Passes / failures | `2` / `3` |
+| Passive window / maximum failures | `30s` / `2` |
+| Unhealthy status | `5xx` |
+| Dial timeout | `3s` |
+| Response-header timeout | `10s` |
+
+The route uses HTTP backend comments in place of TLS directives. Application
+DNS receives only the Proxy VIP A and AAAA records. It receives no PTR; the
+Proxy VIP PTR targets remain exclusively `proxy.local.theama.co.`.
+
+DNS changes, the Caddy fragment, immutable release creation, publication,
+acceptance, and rollback remain separate authorizations. No inventory event,
+webhook, or scheduled task may invoke them automatically.
+
+## Inventory and authority migration
+
+During the separately authorized repository implementation stage:
+
+- add `j2-svpi4mf` to `inventory/prod/hosts.yaml`;
+- add an `inventory_automation` group with functions `inventory` and
+  `automation`;
+- record `podman`, `nautobot`, `postgresql`, `redis`, `restic`, `msmtp`,
+  `msmtp-mta`, `munin-node`, `webmin`, `needrestart`, and `watchdog` as
+  components;
+- add `semaphore` only after its deployment is accepted; and
+- record the Raspberry Pi hardware, SSD storage, management FQDN, permanent
+  ULA, and absence of an HA role.
+
+After platform acceptance, migrate authority in this order:
+
+1. Host membership, functions, components, and OS facts.
+2. Prefixes, IP addresses, and allocation intent.
+3. DNS zones and records through DNS Models.
+4. Applications, upstreams, health contracts, authentication ownership, and
+   TLS trust references through the reviewed homelab intent app.
+5. Versioned adapter exports for the future Caddy fragment generator.
+
+Each cutover requires an exact repository comparison, resolution of every
+difference, approval of a specific Nautobot revision, deterministic export,
+and an explicit ownership-document update.
+
+## Semaphore boundary
+
+After seven accepted days of Nautobot-only operation, define Semaphore UI as a
+separate deployment stage. Use version `2.18.29`, a pinned ARM64 artifact or
+image digest, a separate database and database user, and the Nautobot Ansible
+inventory plugin.
+
+Semaphore may launch bounded inventory checks, proposal generation, validation,
+and separately authorized Ansible tasks. It must not turn an inventory event,
+webhook, or schedule into a live Caddy, DNS, network, or HA-node change.
+
+## Backups and recovery
+
+Use Restic with a dedicated private Backblaze B2 bucket through its
+S3-compatible endpoint. Use a bucket-scoped application key with exactly
+`listAllBucketNames`, `listBuckets`, `readBuckets`, `listFiles`, `readFiles`,
+`writeFiles`, and `deleteFiles`. An empty repository root is represented by an
+omitted Backblaze `namePrefix` and `null` provider readback. Do not use the
+Backblaze master key.
+
+Repository initialization must remain blocked until a terminal host-baseline
+record establishes an accepted non-secret host identity. Storage qualification
+or a successful Restic read-only preflight does not substitute for host-baseline
+acceptance. If the retained post-baseline host state is selected instead of the
+defined rollback, accept that state through a separately reviewed convergence
+operation before authorizing `restic init`.
+
+Each backup contains:
+
+- a PostgreSQL custom-format logical dump;
+- Nautobot media and required configuration artifacts;
+- custom-image and Python dependency manifests;
+- Quadlet and application configuration hashes; and
+- installed Nautobot/App versions and migration state.
+
+Nautobot owns application capture and database/media consistency; the shared
+Restic component owns repository verification, snapshot identification, upload
+and integrity checking. Qualify the producer together with the workload
+orchestration before approving a live workload bundle. Successful archive listing
+or integrity checking does not replace an isolated application restore. See the
+[application-backup procedure](OPERATIONS.md#application-backup-producer) for the
+reviewed implementation and credential boundaries.
+
+Run nightly backups and retain 7 daily, 5 weekly, and 12 monthly snapshots.
+Define the weekly check as either a full `restic check --read-data` or an
+explicit reviewed subset policy. A subset check is routine monitoring only and
+cannot satisfy the full integrity acceptance gate. Perform a monthly isolated
+restore test.
+
+Nautobot must not become authoritative until the exact B2 bucket, endpoint,
+scoped application key, repository-password recovery location, successful
+upload, integrity check, and clean isolated restore are recorded.
+
+## Validation and acceptance
+
+Acceptance has two explicit levels. Stage 3 host-baseline acceptance establishes
+host identity, baseline services, storage transport and health, current-boot
+resource health, and the ability to run the rootless runtime. It is the prerequisite
+for repository initialization; it does not certify an application workload.
+Stage 5 full host and workload acceptance additionally proves application service
+logout/reboot persistence, private database exposure, and resource headroom during
+representative imports, exports, backups and Jobs. Those checks depend on the
+runtime and separately authorized backup stages and must remain outstanding until
+measured. This separation avoids a circular initialization dependency without
+waiving any acceptance criterion. Authority migration requires both levels.
+
+The combined baseline and workload requirements are:
+
+- zero failed systemd units;
+- required baseline services active and unwanted services absent;
+- rootless services surviving logout and reboot;
+- no host-published PostgreSQL or Redis ports;
+- the running command line containing `usb-storage.quirks=152d:0583:u` exactly
+  once and JMicron `152d:0583` binding to `usb-storage`, not UAS;
+- SMART health recorded or an explicit USB-bridge limitation documented;
+- no firmware throttling, OOM events, persistent swap growth, or sustained
+  temperature above 80 degrees Celsius; and
+- at least 1.5 GiB memory available during representative imports, exports,
+  backups, and Jobs.
+
+### Stage-5 workload and persistence qualification
+
+The workload implementation uses the pinned Nautobot model/Job APIs. Qualify its
+adapters first against disposable Nautobot/PostgreSQL with the deployed App set.
+Prove native transaction rollback, refusal of unowned objects, repeat imports
+without writes, deterministic exports and concurrent read-only audits. Offline
+stores alone cannot establish native model or database behavior. Disposable
+x86_64 qualification does not replace the ARM64 pilot's runtime acceptance.
+
+`manifests/workload-test.yaml` defines the synthetic fixture, phase durations,
+sampling cadence and stop thresholds. Its initial scope is 10 Locations, 500
+Devices, four Interfaces per Device and 500 IP assignments in a dedicated
+Namespace using benchmarking addresses. Those addresses never become network
+configuration or external probe targets. Compare fixture scale and operation mix
+with intended production inventory before claiming representativeness.
+
+Use native Jobs for two imports, three deterministic exports and ten audits at
+concurrency two. Preserve exact JobResult identities and a fixture ownership
+receipt. A name prefix or Namespace alone does not establish DCIM ownership.
+Stop on unowned collisions, unexplained drift, missing records, failed Jobs or
+Job deadlines. Preserve fixture data on failure; deletion requires separately
+reviewed ownership and scope. Do not restore production data automatically.
+
+Observe at least 15 minutes idle, 15 minutes import/export, 30 minutes Jobs and
+real application-backup overlap, 15 minutes recovery and 75 seconds of delayed
+storage observation. Sample every five seconds with a maximum 15-second gap.
+Missing metrics, journal continuity or terminal evidence make the observation
+incomplete. Stop operation-owned load on resource/storage failures; never stop
+unrelated Jobs or production services as generic test cleanup. Record actual
+execution overlap, not just enqueue times. The reviewed backup must contain the
+application data specified above, and its full snapshot identity and integrity
+result must be retained. A canary or sampler-only pass does not satisfy this gate.
+
+Use separate logout and reboot stages after a fresh baseline and current recovery
+review. Logout closes only operation-owned sessions and proves five minutes of
+service continuity from an independent administrative connection. Before reboot,
+confirm console recovery, record pending kernel changes and freeze reconnect and
+readiness deadlines. Require a new boot, automatic activation, preserved logical
+database/media content, expected resource limits, effective backend guard,
+dual-stack access and management/monitoring continuity. Observe at least 75 seconds
+after readiness. Do not hash changing PostgreSQL files as a logical comparison,
+add package upgrades or repeatedly reboot as automatic recovery.
+
+Ansible remains the orchestration owner. Frozen inputs bind phase control,
+Job registration/cleanup, sampler supervision and the separately authorized
+Restic-owned backup path. Node-local monitoring must stop operation-owned load
+if sample coverage is lost. Backup upload and isolated full
+restore remain distinct operations; no workload qualification grants restore,
+retention, prune or authority-migration authorization. Repeatable execution and
+qualification procedures belong in [OPERATIONS.md](OPERATIONS.md#workload-and-persistence-qualification),
+while current progress belongs in [ROADMAP.md](ROADMAP.md).
+
+Network and application acceptance requires:
+
+- exact A, AAAA, and PTR results for the host;
+- SSH reachability over IPv4 and the permanent ULA;
+- preservation of the SLAAC ULA, global IPv6 address, and IPv6 default route;
+- `/health/` returning `200` through both backend address families;
+- trusted HTTPS through both public Proxy VIP address families;
+- denied clients receiving `403` and unknown hostnames retaining `421`; and
+- no unintended direct access to the backend, database, Redis, Webmin, or
+  Munin through the global IPv6 address.
+
+Data and recovery acceptance requires:
+
+- deterministic inventory and DNS exports with no unexplained drift;
+- all secrets absent from Git and bounded evidence;
+- successful Backblaze upload, full `restic check --read-data`, and isolated
+  full restore; and
+- seven days of stable pilot operation before authority migration or Semaphore
+  installation.
+
+## Execution stages
+
+1. **Repository plan:** this document only.
+2. **Repository implementation:** reviewed Containerfile, Quadlets, templates,
+   validators, tests, backup tooling, manifests, and proposed cross-repository
+   definitions; no live contact.
+3. **Host baseline:** package installation, service cleanup, SMART validation,
+   service account, rootless Podman, and firewall prerequisites.
+4. **Dual-stack identity:** permanent ULA, host DNS, forward/reverse validation,
+   and rollback proof.
+5. **Nautobot pilot:** pinned image build, secrets, data services, application
+   startup, monitoring, backup, restore, and resource testing.
+6. **Caddy onboarding:** reviewed DNS intent, route, immutable release, and
+   separately authorized production publication.
+7. **Authority migration:** one data domain at a time after reconciliation.
+8. **Semaphore:** separately accepted after the Nautobot soak period.
+
+Do not combine these stages into one authorization. Before every live stage,
+collect a read-only baseline, present the exact inputs and hashes, state the
+rollback boundary, and obtain scoped authorization.
+
+## References
+
+- `inventory/README.md`
+- `Caddy/docs/APPLICATION_ONBOARDING.md`
+- `Caddy/docs/caddy_plan-v1.1.md`
+- `Caddy/docs/FUTURE_REVERSE_PROXY_GENERATOR_PROMPT.md`
+- `../../../homelab-network/Ubiquiti/j2-svpi4mf-ula-operation.md`
+- `../../../homelab-network/Ubiquiti/udm-se-ipv6-ula-configuration.md`
+- `../../../homelab-network/Ubiquiti/pihole0-ip-configuration.md`
+- <https://docs.nautobot.com/projects/core/en/stable/>
+- <https://docs.nautobot.com/projects/dns-models/en/stable/>
+- <https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html>
+- <https://www.backblaze.com/docs/cloud-storage-integrate-restic-with-backblaze-b2>
+
+[gat-pihat]: https://shop.poetexas.com/products/gat-pihat
+[x872-v2]: https://geekworm.com/products/x872-v2
+
+## Host transport ownership
+
+[Host storage](../../host-storage/docs/HOST_STORAGE_ARCHITECTURE.md) owns
+root transport, boot configuration, reboot and recovery. Host inventory selects
+the shared hardware/transport profile. `smartmontools/` owns the package workaround,
+SMART collection and smartd policy; `Webmin/` owns temperature polling behavior.
+Nautobot and other Restic consumers retain workload/storage acceptance and
+backup/restore criteria. Transport convergence does not clear those gates.
+Historical Nautobot remediation definitions and evidence remain retained; future
+transport operations use the shared component without modifying active observers.
+
+## Container logging
+
+All Nautobot container Quadlets explicitly select `LogDriver=journald`, including
+PostgreSQL, Redis, migration, web, worker and scheduler, and initialization variants.
+This provides consistent container-log collection without changing host-wide Podman
+defaults. Service stdout/stderr journal settings do not replace the container log
+driver. Application readiness receipts additionally bind to the current systemd
+invocation; database/cache health checks retain their own acceptance criteria.

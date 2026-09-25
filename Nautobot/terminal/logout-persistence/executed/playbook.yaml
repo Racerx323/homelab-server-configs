@@ -184,7 +184,7 @@
           failed_when: false
         - name: Collect unit status even when observation failed
           ansible.builtin.command:
-            argv: [/usr/bin/systemctl, show, '{{ item }}', '--property=Id,LoadState,ActiveState,SubState,Result,MainPID']
+            argv: [/usr/bin/systemctl, show, '{{ item }}', '--property=Id,ActiveState,SubState,Result,MainPID']
           loop: ['{{ logout_operation.test_unit }}', '{{ logout_operation.observer_unit }}']
           register: logout_final_units
           changed_when: false
@@ -199,13 +199,7 @@
         - name: Reject unresolved owned-unit cleanup
           ansible.builtin.assert:
             that:
-              - >-
-                logout_stop.rc | default(0) == 0 or
-                (logout_stop.rc | default(-1) == 5 and
-                 logout_final_units.results[0].rc == 0 and
-                 'LoadState=not-found' in logout_final_units.results[0].stdout_lines and
-                 'MainPID=0' in logout_final_units.results[0].stdout_lines and
-                 'ActiveState=inactive' in logout_final_units.results[0].stdout_lines)
+              - logout_stop.rc | default(0) == 0
               - item.rc == 0
               - "'MainPID=0' in item.stdout_lines"
               - "'ActiveState=inactive' in item.stdout_lines or 'ActiveState=failed' in item.stdout_lines"

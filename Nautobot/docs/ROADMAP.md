@@ -3,37 +3,22 @@
 ## Current next action
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
-The accepted synthetic workload is archived. One logout-persistence operation is
-defined. Its authorized attempt failed on the controller before Ansible launched;
-logout qualification remains unproven.
-The controller service renderer, runtime-only credential path and durable receipt
-handling are implemented locally. Disposable systemd tests passed for client
-detachment, forced exit and deadline cleanup with retained evidence. Workstation
-linger for `aaron` was enabled with explicit authorization and verified
-`Linger=yes` on September 25, 2026; its user manager is active. Last-logout and
-workstation-reboot survival were not tested. The read-only target baseline was collected September 25: all five
-services running with zero restarts, accepted artifact hashes and boot unchanged,
-HTTP health 200, backend guard verified, and target linger enabled. The sole
-service-account session is `manager-early`, not an ordinary login; preserve it.
-The retained cold-copy directory is present, but restore remains unverified.
+The accepted synthetic workload is archived. The corrected logout operation ran:
+its five-minute PAM-session observation passed, but the final redundant stop of
+an already-unloaded test unit returned 5 and failed the orchestration assertion.
+All 54 samples retained stable running service identities, zero restarts, HTTP
+200 and the existing manager session. Both owned units ended inactive with PID 0;
+proxy checks passed in both families. Bounded PAM-session logout is accepted by retained-evidence review, with the
+original orchestration error explicitly retained; terminal Git archival is pending.
+Private evidence: `nautobot-logout-resolution-20260925/REVIEW.md`.
 
-The bounded PAM-session lifecycle, node-local observer, strict schema and bundle
-launcher passed the full offline validation suite. The operation binds the reviewed
-baseline and existing recovery limitations. Implementation `6ae5e6c` is published
-and repository validation and CodeQL passed. The authorized attempt failed with
-exit 127 because the supervised environment could not resolve `ansible-playbook`.
-No playbook tasks ran or target sessions changed. Private receipts are retained in
-`nautobot-logout-bundle-20260925/execution`. Executable resolution now uses an absolute account-local or system path. Seven
-logout tests and a real local user-service syntax check with a restricted PATH
-passed. The corrected bundle is prepared separately under
-`nautobot-logout-resolution-20260925/bundle`; the failed bundle remains intact.
-Next publish the correction and verify CI before requesting corrected-bundle
-execution approval. No live retry has been performed.
-The baseline/collector correction is published in `7a49a03` and its CI passed.
-Private baseline evidence: `nautobot-logout-baseline-20260925/baseline-final.json`.
-Reboot persistence and isolated
-application restore each require their own baseline, recovery review and bundle.
-The definition is not deployment authorization. Reboot and restore are excluded.
+Cleanup handling is corrected and locally tested against the real Ansible
+assertions, including unloaded, active, permission-error and failed-read cases.
+The sanitized decision is `manifests/logout-persistence-result.json`. Next archive
+the consumed definition/bundle and acceptance decision before clearing this
+operation. Preserve the original frozen playbook separately from the corrected
+reusable implementation. No live retry was needed. Reboot and full application
+restore remain separate gates.
 
 ## Accepted scope and remaining gates
 
@@ -44,7 +29,7 @@ The definition is not deployment authorization. Reboot and restore are excluded.
 | Stage 5 prerequisites and startup | Image, credentials, native readiness, initialization, administrator and startup results archived | [History](../HISTORY.md), component manifests |
 | Synthetic workload | Accepted only for repeat-fixture workload, 15 Jobs and application-backup overlap/integrity | [Synthetic acceptance](../manifests/accepted-live-state.yaml) |
 | Real-inventory representativeness | Open; compare scale and operation mix with intended inventory | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification) |
-| Logout and reboot persistence | Open; separate operations | [Procedures](OPERATIONS.md#persistence-procedure) |
+| Logout and reboot persistence | Bounded PAM logout accepted; archival pending. Reboot remains open | [Procedures](OPERATIONS.md#persistence-procedure) |
 | Application restore | Open; canary restore and dump listing do not satisfy it | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |
