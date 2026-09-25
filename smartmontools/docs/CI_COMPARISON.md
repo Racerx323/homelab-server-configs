@@ -98,3 +98,64 @@ smartd remains untested. Keep the packaged production policy unchanged pending
 separate review. Private field summaries, verified evidence and an unpublished
 upstream draft are retained under
 `/home/aaron/code/.local-evidence/smartmontools-ci-comparison-20260924/explicit-type/`.
+
+## Candidate device-type compatibility follow-up
+
+The [maintainer's follow-up](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-5833255782)
+requests USB bcdDevice and a CI-only `-d sat/sntjmicron` test. The pinned source
+`06489e03695e0cf0a7366f0d402fbff8763bf3e6` already implements this experimental
+option. It tries ATA identification through SAT before using the NVMe bridge
+path. This is distinct from forcing `-d sat` and from the earlier installed-versus-
+candidate self-test-log comparison.
+
+Set specification `comparison_mode: candidate_device_types` and
+`expected_bcd_device: "0213"`. Preflight resolves the USB ancestor of the root disk,
+requires one bridge `152d:0583`, and reads its sysfs bcdDevice descriptor. A changed
+or malformed revision stops before device queries. The descriptor is not a verified
+firmware release. Successful preflight preserves a separate descriptor receipt.
+
+Use the same verified candidate for three alternating pairs:
+
+```text
+CANDIDATE -d sntjmicron -r nvmeioctl,2 -q noserial -l selftest /dev/sda
+CANDIDATE -d sat/sntjmicron -r nvmeioctl,2 -q noserial -l selftest /dev/sda
+```
+
+The installed executable receives only `--version`, not the experimental option.
+Six reads, 75 seconds after every return, 40-second command bounds and the
+900-second trial deadline remain unchanged. USB disconnects as well as resets
+stop further queries. Keep smartd, Webmin, Nautobot, packages and drive database
+unchanged; do not run update-smart-drivedb, restart services or start a self-test.
+Readback must establish successful NVMe/log decoding as well as transport stability;
+exit zero alone is insufficient. This does not qualify candidate smartd.
+
+Keep controller receipts beside the private approval bundle rather than only in
+volatile `/tmp`; remote evidence remains in `/var/tmp`. An interrupted controller
+still makes collection incomplete until remote evidence is recovered and reviewed.
+The foreground launcher is not a claim of durable controller supervision. Do not
+close its execution session or rerun a claimed bundle. Publication remains separate.
+
+## Separating detection errors from scheduled discovery
+
+For a focused follow-up, `comparison_mode: candidate_detection_attribution`
+requires exactly two candidate reads: explicit `sntjmicron`, then
+`sat/sntjmicron`. It uses `-r ioctl,2` to include ATA and SCSI transactions,
+not just the NVMe tunnel. Other command, identity, output, continuity and
+75-second delayed-event bounds are unchanged. The installed binary still
+receives only `--version`.
+
+Record `scsi_ioerr_before`, `scsi_ioerr_at_return` and `scsi_ioerr_after`;
+`returned_epoch` separates the short command interval from the later observation.
+Compare rejected SAT commands and sense responses with the immediate delta.
+Do not attribute increments arising only during the later observation to the
+candidate. A rejected IDENTIFY command followed by successful NVMe fallback is
+not itself a USB reset or failed self-test-log read.
+
+Normal monitoring remains active. Immediate sampling narrows, but does not
+eliminate, concurrent-process ambiguity. Neither a residual +1 nor source review
+alone proves that Webmin ran parted at that instant. If live debug output cannot
+separate the causes, report that limit and prepare process/kernel tracing as a
+separate scoped operation; do not silently attach to daemons or enable tracefs.
+See [the Webmin discovery investigation](../../Webmin/docs/DISK_DISCOVERY_FOLLOW_UP_PROMPT.md)
+for the independently reproduced parted increment. Preserve all raw buffers
+privately. Freeze and authorize the exact bundle before upload/execution.

@@ -23,6 +23,50 @@ class Comparison(unittest.TestCase):
             self.assertNotIn('-X', argv)
             self.assertNotIn('sat', argv)
 
+    def test_candidate_modes_never_send_combined_option_to_installed_binary(self):
+        spec = {'queries': 6, 'observation_after_each_seconds': 75,
+                'maximum_trial_seconds': 900, 'production_package_or_configuration_changes': False,
+                'self_test_start': False, 'comparison_mode': 'candidate_device_types',
+                'expected_bcd_device': '0213'}
+        plan = m.query_plan(spec, '/candidate/smartctl')
+        self.assertEqual(len(plan), 6)
+        self.assertEqual([row[2] for row in plan], ['sntjmicron', 'sat/sntjmicron'] * 3)
+        for _, binary, mode in plan:
+            self.assertEqual(binary, '/candidate/smartctl')
+            self.assertNotIn('-t', m.query_argv(binary, mode))
+        for key, value in [('queries', 7), ('expected_bcd_device', '9999'),
+                           ('observation_after_each_seconds', 30), ('comparison_mode', 'auto'),
+                           ('self_test_start', True)]:
+            with self.assertRaises(ValueError): m.query_plan(dict(spec, **{key: value}), '/candidate')
+        with self.assertRaises(ValueError): m.query_argv('/candidate', 'sat')
+
+    def test_attribution_is_two_candidate_reads_with_all_ioctl_diagnostics(self):
+        spec = {'queries': 2, 'observation_after_each_seconds': 75,
+                'maximum_trial_seconds': 900, 'production_package_or_configuration_changes': False,
+                'self_test_start': False, 'comparison_mode': 'candidate_detection_attribution',
+                'expected_bcd_device': '0213'}
+        plan = m.query_plan(spec, '/candidate')
+        self.assertEqual([row[2] for row in plan], ['sntjmicron', 'sat/sntjmicron'])
+        for _, binary, mode in plan:
+            argv = m.query_argv(binary, mode, attribution=True)
+            self.assertEqual(binary, '/candidate')
+            self.assertEqual(argv[argv.index('-r') + 1], 'ioctl,2')
+            self.assertNotIn('-t', argv)
+            self.assertNotIn('-T', argv)
+        with self.assertRaises(ValueError):
+            m.query_plan(dict(spec, queries=6), '/candidate')
+
+    def test_descriptor_requires_unique_matching_bridge_and_valid_revision(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            p = Path(directory)
+            for name, value in [('idVendor', '152d'), ('idProduct', '0583'), ('bcdDevice', '0213')]:
+                (p/name).write_text(value)
+            self.assertEqual(m.bridge_descriptor([p])['bcdDevice'], '0213')
+            with self.assertRaises(ValueError): m.bridge_descriptor([p, p])
+            (p/'bcdDevice').write_text('unknown')
+            with self.assertRaises(ValueError): m.bridge_descriptor([p])
+
     def test_exit_mask_all_bits_and_combinations(self):
         self.assertEqual(m.exit_bits(0), [])
         for bit, label in enumerate(m.FLAGS):
@@ -51,6 +95,8 @@ class Comparison(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'cursor_coverage_missing'):
                 m.storage_since(token)
         with patch.object(m, 'checked', side_effect=['{"__CURSOR":"fixture"}\n', '{"MESSAGE":"reset SuperSpeed USB device"}\n']):
+            self.assertTrue(m.storage_since(token)[1])
+        with patch.object(m, 'checked', side_effect=['{"__CURSOR":"fixture"}\n', '{"MESSAGE":"usb 2-1: USB disconnect, device number 2"}\n']):
             self.assertTrue(m.storage_since(token)[1])
 
 

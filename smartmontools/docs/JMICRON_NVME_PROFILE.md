@@ -10,7 +10,12 @@ The pilot is Debian 13/trixie ARM64 with bridge `152d:0583`, WD_BLACK SN7100
 1TB NVMe media, and `usb-storage` at 5 Gbps. USB bcdDevice `0213` is a descriptor
 value, not a verified bridge firmware release string.
 
-Autodetection selects `sntjmicron`. Preserve working autodetection. Do not force
+The qualified installed database selected `sntjmicron`. Newer drive databases
+can intentionally report `152d:0583` as ambiguous because SATA adapters reuse
+that ID. Do not update the production database as part of a standalone test.
+The maintainer has requested descriptor-specific matching and a bounded CI-only
+`-d sat/sntjmicron` comparison; see [the comparison procedure](CI_COMPARISON.md#candidate-device-type-compatibility-follow-up).
+Preserve the qualified production configuration pending that review. Do not force
 `sat` or `usbjmicron` merely because this NVMe drive is connected over USB; those
 ATA paths differ from this NVMe path. Transport quirks, power, firmware, and
 reboot changes belong to `host-storage/` and remain separate from this procedure.

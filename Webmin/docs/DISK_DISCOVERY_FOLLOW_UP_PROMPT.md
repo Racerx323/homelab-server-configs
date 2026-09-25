@@ -72,3 +72,12 @@ requiring this optional discovery fix first. Define a separate Webmin-owned chan
 
 This is a restoration plan, not evidence that polling has been enabled. The
 existing observer's normal completion deliberately left `collect_notemp=1`.
+
+## Related combined-device detection diagnostics
+
+The candidate smartctl `sat/sntjmicron` path introduces SAT identification probes
+before NVMe fallback. Its counter increments must be separated from this
+parted finding; sharing `ioerr_cnt` does not establish a common rejected opcode.
+Use the [focused detection procedure](../../smartmontools/docs/CI_COMPARISON.md#separating-detection-errors-from-scheduled-discovery)
+for immediate-versus-settled counters and all-ioctl reporting. Keep monitoring
+unchanged and retain any unresolved concurrent-process attribution explicitly.
