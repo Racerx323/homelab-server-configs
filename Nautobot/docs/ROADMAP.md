@@ -13,21 +13,17 @@ identities match; services, linger and guard are healthy; both proxy families re
 HTTP 200. The boot image matches running kernel `6.18.50+rpt-rpi-v8`.
 Private evidence: `nautobot-reboot-baseline-20260925/REVIEW.md`.
 
-The approved architecture separates explicit initialization/upgrades from ordinary
-boot. Local implementation keeps the migration-named oneshot as a configuration
-and pending-migration gate, removes boot-time `post_upgrade`, shortens its timeout
-to 300 seconds and updates receipt validators, desired state/schema and tests.
-Initialization/continuation retain upgrade execution; web retains static collection.
-The host still runs the previous accepted artifacts. No deployment or reboot occurred. One boot-readiness artifact deployment is now
-defined, limited to two files and daemon-reload; execution awaits exact approval.
+Boot-readiness artifact deployment is accepted: the two reviewed files were
+installed and the user manager reloaded. The generated gate timeout is five minutes;
+boot, running service identities, sessions and before/after HTTP health remained
+unchanged. No restart, reboot or rollback occurred. Original backups are retained.
+The new gate itself remains unexecuted; reboot persistence is not accepted.
+Private evidence: `nautobot-boot-readiness-bundle-20260925/REVIEW.json`.
 
-Next review and publish this implementation, then prepare a scoped deployment
-bundle and current recovery preservation/logical comparison before reboot. Do not
-reuse the old startup baseline or archived bundles with the changed desired state.
-Console/physical recovery was confirmed available September 25. A fresh quiet
-window and current recovery/consistency evidence are still required. The proposed
-ten-minute application readiness ceiling is not a measured reboot guarantee.
-Reconciliation and implementation remain uncommitted; the boot-readiness operation is defined but unexecuted.
+Next archive the consumed definition/bundle and decision, then reconcile accepted
+artifact identities. Current recovery preservation and logical database/media
+comparison remain prerequisites to the separate reboot operation. Console recovery
+was confirmed September 25. No further mutation is authorized by this record.
 
 ## Accepted scope and remaining gates
 

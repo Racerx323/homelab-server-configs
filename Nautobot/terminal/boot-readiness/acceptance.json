@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "operation": "nautobot-boot-readiness-v1",
+  "reviewed_at": "2026-09-25T18:41:54.399220+00:00",
+  "accepted": true,
+  "scope": "two_artifact_installation_and_daemon_reload_only",
+  "bundle_sha256": "0a0c0124b1e4eee8e8189958cc354cdd00b63dc3c4d42ddf1a1ffa7031d7ad6d",
+  "ansible_exit_status": 0,
+  "artifacts": [
+    {
+      "name": "startup-application.py",
+      "destination": "/var/lib/nautobot/runtime/startup-application.py",
+      "before_sha256": "70f74c788a9dd10ea1e440aa94d15c5c75befe63bf79c263bfe1d8f6949f76fb",
+      "after_sha256": "59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e"
+    },
+    {
+      "name": "nautobot-migration.container",
+      "destination": "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container",
+      "before_sha256": "72826833864565b7398148b7e6636622bc4bef2fe1734d691b04343bf95e5a72",
+      "after_sha256": "2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2"
+    }
+  ],
+  "services_boot_sessions_unchanged": true,
+  "http_status": 200,
+  "generated_timeout_seconds": 300,
+  "before_after_elapsed_seconds": 87.73058834997937,
+  "rollback_needed": false,
+  "recovery_backups_retained": "/var/lib/nautobot/boot-readiness.45bc4a738b684c6da22617bb962d6d32",
+  "new_gate_executed": false,
+  "reboot_persistence_accepted": false,
+  "terminal_git_archive_pending": true,
+  "evidence_sha256": {
+    "ansible.stderr": "79c81ee790a762631546850678e7177f40e80c070adc92bf26f24a66d245a0d0",
+    "collection.json": "6beacdfca77dfdd634e0b374eb6b2d0030623c752cb9d6db60a01b806a3c5ec8",
+    "controller-started.json": "cc360cb71eb8328cb755990effe14991cb0ce15caf741f9cf4d4da4b26c2a917",
+    "controller-result.json": "a4df40b686182333dec1323afc0548cee846162f47b997cf34721bc8fe537933",
+    "after.json": "e505d40ebd75f52b2ac62879b2231fcc6cf036c95938749a21903704f274de1e",
+    "ansible.stdout": "0d1cf24583d4135a70289a01cfa4e8671c39419c8e086527a961cf5a2e642fb6",
+    "ansible-inputs.json": "7f0e9633f417fe484d45b59f11a7ee3cc20f867bc1b644f6cdefd772ba8d38e9",
+    "before.json": "e6f134123affe53be273e99c8f03009a606d10ab1441100f0f6a6fd1b902e7c8"
+  },
+  "limitations": [
+    "Before/after health checks, not continuous sampling.",
+    "Artifact, guard and cursor-bounded storage checks attested by verified frozen helper; raw listings not separately retained.",
+    "New readiness gate and reboot remain unexecuted."
+  ]
+}
