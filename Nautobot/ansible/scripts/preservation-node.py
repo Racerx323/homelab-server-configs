@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import resource
+import re
 import shutil
 import subprocess
 import sys
@@ -28,7 +29,8 @@ REASONS = frozenset(('broker_key_limit','broker_unacked_type','broker_unacked_in
     'writers_not_stopped','helper_exists','helper_ownership','drain_receipt_missing','source_changed',
     'media_changed','resource_guard_failed','preservation_not_verified','target_identity',
     'services_not_ready','boot_changed','data_service_restarted','storage_error','resumed_state_changed',
-    'bounded_command_failed','native_probe_failed'))
+    'bounded_command_failed','native_probe_failed','command_timeout','command_output_limit',
+    'cli_configuration_missing','cli_import_failed','cli_permission_denied','cli_arguments_rejected'))
 
 
 def safe_reason(error):
@@ -38,13 +40,31 @@ def safe_reason(error):
 def bounded(argv, data=None, timeout=60):
     def limits(): resource.setrlimit(resource.RLIMIT_FSIZE, (4 * 1024**2, 4 * 1024**2))
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
-        result = subprocess.run(argv, input=data, stdout=out, stderr=err, timeout=timeout,
-                                cwd='/', preexec_fn=limits)
+        try:
+            result = subprocess.run(argv, input=data, stdout=out, stderr=err, timeout=timeout,
+                                    cwd='/', preexec_fn=limits)
+        except subprocess.TimeoutExpired:
+            raise ValueError('command_timeout') from None
         out.seek(0); raw = out.read(4 * 1024**2 + 1)
-    if result.returncode or len(raw) > 4 * 1024**2:
+        err.seek(0); errors = err.read(4 * 1024**2 + 1)
+    if max(len(raw), len(errors)) > 4 * 1024**2:
+        raise ValueError('command_output_limit')
+    if result.returncode:
         for line in raw.decode(errors='replace').splitlines():
             if line.startswith('PRESERVATION_ERROR=') and line.removeprefix('PRESERVATION_ERROR=') in REASONS:
                 raise ValueError(line.removeprefix('PRESERVATION_ERROR='))
+        # Classify only known pre-probe failures; never retain exception messages,
+        # source lines or paths (a CLI error can contain credentials or code).
+        diagnostics = errors.decode(errors='replace')
+        patterns = (
+            (r'^FileNotFoundError: Configuration file not found at ', 'cli_configuration_missing'),
+            (r'^ModuleNotFoundError:', 'cli_import_failed'),
+            (r'^PermissionError:', 'cli_permission_denied'),
+            (r'^nautobot-server: error: (?:unrecognized arguments|argument )', 'cli_arguments_rejected'),
+        )
+        for pattern, reason in patterns:
+            if re.search(pattern, diagnostics, re.MULTILINE):
+                raise ValueError(reason)
         raise ValueError('bounded_command_failed')
     return raw
 
@@ -52,6 +72,13 @@ def bounded(argv, data=None, timeout=60):
 def save(root, name, data): node.write(root, name + '.json', data)
 def load(root, name): return json.loads((root / (name + '.json')).read_text())
 def pod(args, **kwargs): return bounded(node.USER + ['/usr/bin/podman', *args], **kwargs)
+
+
+def drain_command():
+    # Nautobot's outer parser owns -c/--config-path. Keep source off argv too.
+    return ['exec', '-i', 'nautobot-worker', 'nautobot-server', 'shell',
+            '--interface', 'python', '--command', 'import sys;exec(sys.stdin.read())']
+
 
 
 def verify_artifacts(op):
@@ -155,7 +182,7 @@ def main():
     if args.phase=='before': before(root,op)
     elif args.phase=='drain':
         code=(root/'recovery_probe.py').read_text()+"\ntry: print('PRESERVATION_DRAIN='+json.dumps(native_drain()))\nexcept Exception as error:\n print('PRESERVATION_ERROR='+(str(error) if type(error) is ValueError and str(error) in "+repr(REASONS)+" else 'native_probe_failed'));raise SystemExit(69)"
-        raw=pod(['exec','-i','nautobot-worker','nautobot-server','shell','-c',code],timeout=240).decode()
+        raw=pod(drain_command(),data=code.encode(),timeout=240).decode()
         rows=[r.removeprefix('PRESERVATION_DRAIN=') for r in raw.splitlines() if r.startswith('PRESERVATION_DRAIN=')]
         if len(rows)!=1: raise ValueError('drain_receipt_missing')
         save(root,'drain',json.loads(rows[0]))

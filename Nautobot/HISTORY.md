@@ -512,3 +512,14 @@ backups remain retained. The two hashes in the current application artifact map
 are superseded by this deployment; original startup identities remain in the
 startup archive. `boot_readiness` records the before/after hashes and provenance.
 The active slot is clean; archived publication-pending fields are historical.
+
+## Failed recovery preservation
+
+`nautobot-recovery-preservation-v1` failed before drain execution: the CLI consumed
+`-c` as a configuration path. No logical capture or backup began. Writer recovery,
+HTTP health, delayed storage checks and credential cleanup passed. Accepted state
+is unchanged. Published tag `nautobot-recovery-preservation-v1-failed` preserves
+commit `ae0098298d6f94047fc0d76a8226990c2eb24b6c`, tag object
+`158f91a589bb8432a2e1b5b9fbe437e473a25eb9`. All consumed bundle files were
+byte-verified against the published tag before removal from main. Remote protected
+staging remains retained; the operation slot is clean pending successor preparation.

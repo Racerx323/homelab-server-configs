@@ -617,9 +617,19 @@ and lifecycle, uses transient files under `/run/user`, and independently removes
 them. No secret values belong in the frozen bundle. A review bundle's hash is not
 execution authorization, and publication/CI must be verified before activation.
 
+The worker probe uses `nautobot-server shell --interface python --command` with
+Python source on stdin. Never use `-c`: Nautobot's outer parser consumes it as
+`--config-path` before Django dispatch. Known pre-probe configuration, import,
+permission and argument failures map to fixed reason codes; raw stderr, exception
+messages and source remain private and are not copied into receipts. Unknown
+failures remain `bounded_command_failed`; a classified error is not proof of drain.
+
 Local qualification uses `tests/qualify-preservation-local.py` with immutable
 PostgreSQL, Redis and application image IDs. It exercises real Celery completion,
 priority/unacknowledged broker state and the temporary logical client on AMD64.
+It also checks the actual CLI parser at the settings boundary using production
+argv. This parser check does not initialize a complete Nautobot database. The
+launcher regression exercises its drain phase and stdin command execution.
 The neutral test suite also executes the actual Ansible block with local command
 stubs to inject backup and resume failures; this proves orchestration continuation
 and credential-file cleanup, not production systemd/ARM64 behavior. The authorized

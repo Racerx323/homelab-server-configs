@@ -187,5 +187,60 @@ class PreparationTests(unittest.TestCase):
         self.assertTrue(any('ansible.builtin.assert' in t for t in cleanup))
 
 
+class LauncherDiagnosticsTests(unittest.TestCase):
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location('preservation_node_test', SCRIPTS / 'preservation-node.py')
+        self.node = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.node)
+
+    def test_actual_drain_phase_uses_explicit_command_and_stdin(self):
+        import json
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'preservation.json').write_text('{}')
+            (root / 'recovery_probe.py').write_text(
+                "import json\ndef native_drain(): return {'worker_empty': True, 'broker_empty': True}\n")
+            seen = []
+            def invoke(argv, data, timeout):
+                seen.append(argv)
+                self.assertEqual(argv[:5], ['exec', '-i', 'nautobot-worker', 'nautobot-server', 'shell'])
+                self.assertEqual(argv[5:9], ['--interface', 'python', '--command', 'import sys;exec(sys.stdin.read())'])
+                self.assertNotIn('-c', argv)
+                self.assertIn(b'def native_drain', data)
+                return self.node.bounded([sys.executable, '-c', argv[-1]], data=data, timeout=timeout)
+            original = self.node.bounded
+            def bounded(argv, **kwargs):
+                if argv == ['/usr/bin/hostname']: return b'j2-svpi4mf\n'
+                return original(argv, **kwargs)
+            with patch.object(self.node, 'pod', side_effect=invoke), patch.object(self.node, 'bounded', side_effect=bounded), \
+                 patch.object(self.node.os, 'getuid', return_value=0), \
+                 patch.object(sys, 'argv', ['preservation-node.py', '--root', str(root), 'drain']):
+                self.node.main()
+            self.assertEqual(len(seen), 1)
+            self.assertTrue(json.loads((root / 'drain.json').read_text())['worker_empty'])
+
+    def test_stderr_is_classified_without_private_details(self):
+        samples = [
+            ('FileNotFoundError: Configuration file not found at PRIVATE_TOKEN', 'cli_configuration_missing'),
+            ('ModuleNotFoundError: PRIVATE_TOKEN', 'cli_import_failed'),
+            ('PermissionError: PRIVATE_TOKEN', 'cli_permission_denied'),
+            ('nautobot-server: error: unrecognized arguments PRIVATE_TOKEN', 'cli_arguments_rejected'),
+            ('RuntimeError: PRIVATE_TOKEN', 'bounded_command_failed'),
+        ]
+        for error, expected in samples:
+            code = 'import sys;sys.stderr.write(' + repr(error) + ');sys.exit(1)'
+            with self.assertRaisesRegex(ValueError, '^' + expected + '$'):
+                self.node.bounded([sys.executable, '-c', code])
+        code = "import sys; print('PRESERVATION_ERROR=worker_reply_coverage'); sys.stderr.write('PRIVATE_TOKEN'); sys.exit(69)"
+        with self.assertRaisesRegex(ValueError, '^worker_reply_coverage$'):
+            self.node.bounded([sys.executable, '-c', code])
+
+    def test_timeout_has_fixed_reason(self):
+        with self.assertRaisesRegex(ValueError, '^command_timeout$'):
+            self.node.bounded([sys.executable, '-c', 'import time;time.sleep(5)'], timeout=0.05)
+
+
 if __name__ == '__main__':
     unittest.main()

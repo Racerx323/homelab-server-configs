@@ -58,13 +58,35 @@ application health returns HTTP 200, media remains empty and no scheduled writer
 are registered. Tmpfs capacity and the installed Restic version match the capture
 contract. Private review: `nautobot-preservation-baseline-20260925/REVIEW.md`.
 
-The user explicitly approved setting the preservation definition authorization-ready
-and freezing its bundle. The active operation records the reviewed source commit,
-fresh baseline and bounded pause/drain/capture/resume scope. Next obtain separate
-execution approval for the exact frozen hash; no live preservation has run.
-No credentials were resolved or writers suspended. Baseline expires September 26
-at 19:51 UTC. Fresh preservation, boot-gate execution and reboot persistence remain
-unproven; no reboot, automatic restore or volatile-data exclusions are authorized.
+Recovery preservation was executed with exact authorization on September 25.
+It failed during worker drain at 20:10 UTC, before logical capture or backup.
+Diagnosis confirmed a CLI collision: `shell -c CODE` treats CODE as the
+configuration path. The harmless `shell --interface python --command` probe passed;
+full drain and preservation remain unqualified. The helper discarded the outer CLI
+stderr, and local native tests had bypassed this production entry path.
+All writer-resume commands succeeded, final health and delayed storage checks
+passed, data-service invocations and boot were unchanged, and both transient
+credential files were removed. Missing success-path receipts correctly prevent
+acceptance. The consumed definition and protected staging remain retained.
+Private evidence: `nautobot-preservation-preparation-20260925/STATUS.md`.
+
+The CLI correction now uses explicit `--command` with probe source on stdin.
+Known pre-probe stderr failures and timeouts have fixed sanitized reason codes.
+Thirteen preservation regressions and disposable AMD64 integration passed,
+including the actual drain phase and real Nautobot parser boundary. All disposable
+resources were removed; repository hooks passed. A private inactive successor
+bundle is prepared at `nautobot-preservation-drain-fix-20260925/REVIEW.md`.
+The consumed v1 definition and sanitized result are preserved in the published
+failure tag indexed in HISTORY. Files were byte-verified before removal from main;
+the operation slot is clean. No preservation retry occurred.
+
+Fresh read-only baseline at 2026-09-25 20:35 UTC matches accepted artifacts and boot;
+five services are healthy, HTTP returns 200, media is empty and no scheduled writers
+are registered. Retained staging has no credentials, and tmpfs capacity is sufficient.
+Review: `nautobot-preservation-retry-baseline-20260925/REVIEW.md`.
+Next publish the correction and verify CI, then activate a new exact bundle for
+execution approval while this baseline remains fresh. Fresh preservation and reboot persistence remain unproven.
+Diagnosis: `nautobot-preservation-drain-diagnosis-20260925/REVIEW.md`.
 
 ## Accepted scope and remaining gates
 

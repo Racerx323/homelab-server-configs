@@ -13,6 +13,25 @@ def hold():
 
 
 def main():
+    # Exercise the real Nautobot outer parser with the production argv. Stop at
+    # settings loading: this isolated Celery fixture is not a full Nautobot DB.
+    import importlib.util
+    import sys
+    from pathlib import Path
+    from unittest.mock import patch
+    from nautobot.core import cli
+    path = Path(__file__).resolve().parents[1] / 'ansible/scripts/preservation-node.py'
+    spec = importlib.util.spec_from_file_location('preservation_entry', path)
+    entry = importlib.util.module_from_spec(spec); spec.loader.exec_module(entry)
+    class SettingsBoundary(Exception): pass
+    with patch.dict(os.environ, {'NAUTOBOT_CONFIG': '/qualification/config.py'}), \
+         patch.object(sys, 'argv', ['nautobot-server', *entry.drain_command()[4:]]), \
+         patch.object(cli, 'load_settings', side_effect=SettingsBoundary) as loader:
+        try: cli.main()
+        except SettingsBoundary: pass
+        else: raise AssertionError('settings_boundary_not_reached')
+        loader.assert_called_once_with('/qualification/config.py')
+    print('native_cli_config_path_preserved_passed')
     import psycopg2
     import redis
     import recovery_probe as probe
