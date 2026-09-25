@@ -125,4 +125,6 @@ regexes = [
   '''f0d42e4d3b396cfb9743eb38f97e590025c6700d07291432958c1ffa7187bc54''',
   # SHA-256 of archived nonsecret startup-network-client.py, verified against source.
   '''5510e67b204636f43c243192d4bf1105632c8194849a3925d28440f97f57f876''',
+  # Nonsecret preservation staging ownership token; frozen bundle must remain exact.
+  '''^token": "b90134e6bcf541ba83acebb3dd7eb822"$''',
 ]
