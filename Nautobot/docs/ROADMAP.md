@@ -9,9 +9,18 @@ handling are implemented locally. Disposable systemd tests passed for client
 detachment, forced exit and deadline cleanup with retained evidence. Workstation
 linger for `aaron` was enabled with explicit authorization and verified
 `Linger=yes` on September 25, 2026; its user manager is active. Last-logout and
-workstation-reboot survival were not tested. The read-only logout preflight
-collector is prepared; authorize fresh target collection and review session
-ownership/recovery inputs before freezing its observer/session-close operation.
+workstation-reboot survival were not tested. The read-only target baseline was collected September 25: all five
+services running with zero restarts, accepted artifact hashes and boot unchanged,
+HTTP health 200, backend guard verified, and target linger enabled. The sole
+service-account session is `manager-early`, not an ordinary login; preserve it.
+The retained cold-copy directory is present, but restore remains unverified.
+
+The bounded PAM-session logout test is specified in OPERATIONS. Next implement
+and validate its owned-session lifecycle and node-local observer, then freeze
+one execution bundle for approval. Collection exposed and corrected a `loginctl`
+property-selection bug; the correction has local regression coverage. CI passed
+for published `af48d4e`; the collector correction and this review remain local.
+Private baseline evidence: `nautobot-logout-baseline-20260925/baseline-final.json`.
 Reboot persistence and isolated
 application restore each require their own baseline, recovery review and bundle.
 No successor operation is active or authorized by this roadmap.

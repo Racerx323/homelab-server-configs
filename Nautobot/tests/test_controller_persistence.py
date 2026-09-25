@@ -106,6 +106,21 @@ class Controller(unittest.TestCase):
 
 
 class Persistence(unittest.TestCase):
+    def test_loginctl_property_selection(self):
+        observed = []
+        def command(argv):
+            observed.append(argv)
+            if 'show-user' in argv:
+                flags = [argv[i+1] for i, x in enumerate(argv[:-1]) if x == '-p']
+                self.assertEqual(flags, ['UID','Linger','State','Sessions'])
+                return 'UID=999\nLinger=yes\nState=lingering\nSessions=1\n'
+            if 'list-sessions' in argv: return '1 999 nautobot manager-early'
+            return 'ActiveState=active\nSubState=running\nResult=success\nInvocationID=fixture\nNRestarts=0\n'
+        with patch.object(persistence.baseline,'collect',return_value={'boot_id':'fixture','guard':{'verified':True}}), patch.object(persistence.baseline,'command',side_effect=command), patch.object(Path,'read_text',return_value='fixture'):
+            result = persistence.collect()
+        self.assertTrue(result['persistence_review']['preconditions_observed'])
+        self.assertEqual(result['persistence_user']['Sessions'],'1')
+
     def test_linger_service_drift_and_manual_session_gate(self):
         data = {'persistence_user':{'UID':'999','Linger':'yes'}, 'guard':{'verified':True},
                 'persistence_services':{role:{'ActiveState':'active','SubState':'running','Result':'success',

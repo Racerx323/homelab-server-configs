@@ -37,7 +37,7 @@ def assess(data):
 def collect():
     data = baseline.collect()
     data['persistence_user'] = pairs(baseline.command([
-        '/usr/bin/loginctl', 'show-user', 'nautobot', '--property=UID,Linger,State,Sessions']))
+        '/usr/bin/loginctl', 'show-user', 'nautobot', '-p', 'UID', '-p', 'Linger', '-p', 'State', '-p', 'Sessions']))
     data['login_sessions'] = baseline.command(['/usr/bin/loginctl', 'list-sessions', '--no-legend', '--no-pager'])
     data['persistence_services'] = {
         role: pairs(baseline.command(baseline.USER + ['/usr/bin/systemctl', '--user', 'show',

@@ -444,10 +444,12 @@ selects or terminates sessions, enables linger, starts units or accepts persiste
 Compare returned artifacts with accepted state and review current recovery inputs.
 A collection result is readiness evidence, not a persistence pass.
 
-For the logout definition, identify every service-account session and prove which
-were opened by this operation. Confirm the independent administrator connection
+For the logout definition, identify every service-account session and its class.
+Preserve the account's `Service=systemd-user`, `Class=manager` or `manager-early`
+session: that represents the user manager, not an ordinary login. Prove the
+ownership of any other session before closing it. Confirm the independent administrator connection
 uses a different account and cannot hold the service user's manager alive. Do not
-close an existing or unowned session. If other sessions exist for the service
+close an existing or unowned session. If other ordinary login sessions exist for the service
 account, defer the test; ending only a test session while another remains would
 not prove survival after its last logout. Record the account's session list both
 before and after closing only the owned sessions.
@@ -455,7 +457,7 @@ before and after closing only the owned sessions.
 Prepare a five-minute observer from that independent connection, sampling every
 five seconds with an explicit maximum ten-second gap. Bind boot ID, the five
 service invocations/restart counts, backend guard and image/configuration hashes
-to the fresh baseline. Require no remaining service-account login sessions,
+to the fresh baseline. Require no remaining ordinary service-account login sessions,
 continued healthy application responses, unchanged invocations/restarts and no
 new storage errors. Run the application request through the already approved
 proxy-source path; do not bypass backend enforcement or introduce Caddy onboarding.
@@ -463,6 +465,31 @@ Freeze exact session IDs, collection commands, observation deadlines and recover
 inputs before requesting execution authorization. On a gap, service change or
 failed health read, preserve evidence and classify the test incomplete/failed;
 do not restart services or restore data automatically.
+
+For an account with a `nologin` shell, prepare one transient system service using
+`User=nautobot`, `PAMName=login`, `Type=exec`, `Restart=no`, `RuntimeMaxSec=120`,
+`TimeoutStopSec=10`, and `/usr/bin/sleep 90`. Do not change the account shell,
+password, SSH policy or existing PAM files. Validate the installed PAM stack and
+systemd version first. Record the service MainPID and require exactly one new
+session for UID 999 whose Leader equals that PID and whose Service is `login`;
+exclude the pre-existing manager session. A unit name or username alone is not
+ownership proof. If registration is absent, ambiguous or inconsistent, stop the
+owned transient unit and report incomplete; do not terminate an arbitrary session.
+
+Once ownership is independently established, stop only the named transient unit,
+verify its PAM session disappeared, then begin the 300-second observation from
+`ama`. The sleep and runtime deadlines also bound an abandoned test session.
+The observer must not run inside the test session. Capture every sample locally
+on the node and collect it afterward; controller disconnect alone must not erase
+coverage. Use a 420-second observer deadline with no automatic retry. Starting
+and stopping this test session, staging its observer, and any proxy health probes
+must be included explicitly in the execution bundle and authorization.
+
+This tests PAM-session closure, not an interactive SSH login; retain that scope
+in acceptance. [The systemd 257 PAMName contract](https://github.com/systemd/systemd/blob/v257/man/systemd.exec.xml)
+notes that PAM processes can move into a session scope. Verify both transient-unit
+and owned-session absence; do not assume a cgroup name proves cleanup. If either
+remains, preserve evidence and require scoped recovery. Never use `terminate-user`.
 
 The logout session lifecycle/observer and reboot execution bundle remain separate
 preparation. Reboot must also prove logical data persistence. No read-only
