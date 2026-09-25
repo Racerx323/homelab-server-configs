@@ -86,7 +86,7 @@ Jobs and successful backup/full integrity checking. The published archive
 results; both CI workflows passed for `5298c9c`. Consumed files were removed only
 after byte comparison with that tag. Accepted application state is unchanged.
 
-The corrected retry is prepared in the single active operation. Audits must be
+The corrected retry has executed; the single operation is terminal-pending. Audits must be
 observed running before backup starts; actual timestamps still decide overlap.
 Status checks are batched, stop reconciliation runs once, and timing is retained.
 The retry binds the original fixture ownership receipt and three exact disabled
@@ -104,12 +104,25 @@ production overlap and full phase coverage remain unproven.
 
 Private candidate, baseline and exact command:
 `/home/aaron/code/.local-evidence/nautobot-workload-retry-20260924/REVIEW.md`.
-Preparation publication/CI and exact execution approval remain pending. The retry
-retains the same 15 Jobs, one backup/full check, 4,575-second minimum and
-10,800-second workload limit. It does not authorize restart, reboot, restore,
-prune or fixture deletion. Retained snapshots and old cold-copy metadata are not
-application restore proof. Workload headroom, recovery-idle/final observation,
-application restore and persistence remain separate acceptance requirements.
+Preparation commit `127b0ff` was published, both CI workflows passed, and exact
+execution approval was received. The node completed successfully September 24 at
+17:33:58 CDT: 15 Jobs, actual backup overlap/full integrity check, all five phases
+and 915 health samples passed. No storage errors or throttling; swap recovered.
+The controller stopped polling earlier and its temporary evidence was lost across
+a workstation restart. The exact interruption cause and historical controller
+credential-finalizer execution remain unproven.
+
+September 25 read-only investigation confirmed node async exit 0, terminal Jobs,
+disabled registrations and positive worker absence. Scoped recovery removed four
+exact-hash temporary module copies; independent readback confirmed absent modules
+and remote credentials, unchanged boot/service invocations and zero restarts.
+Controller credential directories are absent currently. Final review accepted the synthetic repeat-fixture workload only, retaining the
+controller interruption and recovered cleanup. Terminal archive publication and
+accepted-state reconciliation remain pending. Evidence: the private retry directory's
+`review-20260925/REVIEW.md`. No workload rerun, restore or fixture deletion occurred.
+Real-inventory representativeness, application restore and persistence remain
+separate gates. Future long-running operations need durable controller supervision
+and recoverable cleanup; the current path depended on a surviving controller.
 
 Planning is consolidated in the
 [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification);

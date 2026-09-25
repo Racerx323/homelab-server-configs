@@ -1,9 +1,9 @@
 schema_version: 1
 operation:
-  state: terminal-pending
+  state: definition
   stage: workload_qualification
   id: nautobot-workload-qualification-v2
-  authorization_ready: false
+  authorization_ready: true
   target: j2-svpi4mf
 plan_sha256: 918b8ba125af3a334db474a99422de564e88438d6c2b677e79fe64d386913540
 source_commit: 5298c9c0000d150d48644a703f271d1ccef79aef

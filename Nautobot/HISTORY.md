@@ -459,3 +459,16 @@ and sanitized result. Published commit
 `5081e80845df0a18421d670e554757482e4e8c51` were verified remotely. All consumed
 archive files were removed from the current branch only after byte comparison
 with the published tag. The archived publication-pending fields are historical.
+
+## Accepted synthetic repeat-fixture workload
+
+`nautobot-workload-qualification-v2` passed 15 Jobs, all five phases, actual
+application-backup overlap/integrity and resource/storage checks. Acceptance is
+limited to the synthetic repeat-fixture workload. Node exit was successful;
+controller interruption cause remains unproven. Independent scoped recovery
+completed module cleanup with unchanged services. Historical controller cleanup
+is unproven; current credential absence is verified. Full stage 5, representativeness,
+persistence and application restore remain open. Tag
+`nautobot-workload-qualification-v2-accepted` preserves exact consumed inputs,
+recovery procedure and sanitized decision; its peeled commit identifies the archive.
+Publication remains pending and the operation stays terminal-pending.

@@ -1,0 +1,50 @@
+- name: Complete original approved workload module cleanup
+  hosts: inventory_automation
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Remove only exact consumed temporary module bytes and verify absence
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/env
+          - XDG_RUNTIME_DIR=/run/user/999
+          - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus
+          - /usr/bin/podman
+          - exec
+          - '{{ item.container }}'
+          - python3
+          - -c
+          - import hashlib,pathlib,sys,json; p=pathlib.Path('/opt/nautobot/jobs')/sys.argv[1]; assert not p.is_symlink(); assert not p.exists() or hashlib.sha256(p.read_bytes()).hexdigest()==sys.argv[2]; p.unlink(missing_ok=True); assert not p.exists(); print(json.dumps({'absent':True,'file':sys.argv[1]}))
+          - '{{ item.name }}'
+          - '{{ item.sha256 }}'
+        chdir: /
+      become: true
+      loop:
+        - container: nautobot-web
+          name: workload_adapter.py
+          sha256: b16fcad7edfa3d16db525fdbe766376d171482c168dc321f67dba7f6b837db6a
+        - container: nautobot-web
+          name: workload_jobs.py
+          sha256: 74e44e98fe577d3a18936b5fff02b9d2840eba2758d02f406579a98238159a79
+        - container: nautobot-worker
+          name: workload_adapter.py
+          sha256: b16fcad7edfa3d16db525fdbe766376d171482c168dc321f67dba7f6b837db6a
+        - container: nautobot-worker
+          name: workload_jobs.py
+          sha256: 74e44e98fe577d3a18936b5fff02b9d2840eba2758d02f406579a98238159a79
+      register: cleanup
+      failed_when: false
+      changed_when: true
+    - name: Preserve each cleanup outcome
+      ansible.builtin.copy:
+        content: '{{ cleanup.results | to_nice_json }}'
+        dest: /home/aaron/code/.local-evidence/nautobot-workload-retry-20260924/review-20260925/module-cleanup.json
+        mode: '0600'
+      delegate_to: localhost
+    - name: Require every cleanup success
+      ansible.builtin.assert:
+        that: cleanup.results | selectattr('rc', 'ne', 0) | list | length == 0
