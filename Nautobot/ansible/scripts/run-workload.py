@@ -13,6 +13,7 @@ import re
 import subprocess
 import tempfile
 from contextlib import contextmanager
+import workload_controller as controller
 
 ROOT = Path(__file__).resolve().parents[3]
 REQUIRED = {'execution.json', 'contract.json', 'dataset.json', 'workload_adapter.py',
@@ -20,7 +21,7 @@ REQUIRED = {'execution.json', 'contract.json', 'dataset.json', 'workload_adapter
 DATA_FILES = {'desired-state.yaml': 'Nautobot/manifests/desired-state.yaml',
               'requirements.lock': 'Nautobot/container/requirements.lock',
               'qualified-image.json': 'Nautobot/manifests/qualified-image.json'}
-SOURCE_FILES = ('Nautobot/docs/OPERATIONS.md', 'restic/docs/RESTIC_ARCHITECTURE.md','Nautobot/manifests/operation.yaml', 'Nautobot/schemas/workload-operation.schema.json', 'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md', 'Nautobot/manifests/accepted-live-state.yaml', 'Nautobot/manifests/workload-capture-result.json', 'Nautobot/manifests/restic-initialization-result.json','Nautobot/ansible/scripts/run-restic-repository-preflight.py','Nautobot/container/requirements.lock', 'Nautobot/manifests/qualified-image.json', 'restic/scripts/application-backup.py', 'Nautobot/ansible/scripts/run-workload.py', 'Nautobot/ansible/ansible.cfg', 'Nautobot/schemas/workload-test.schema.json', 'Nautobot/schemas/workload-execution.schema.json',
+SOURCE_FILES = ('Nautobot/ansible/scripts/workload_controller.py', 'Nautobot/docs/OPERATIONS.md', 'restic/docs/RESTIC_ARCHITECTURE.md','Nautobot/manifests/operation.yaml', 'Nautobot/schemas/workload-operation.schema.json', 'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md', 'Nautobot/manifests/accepted-live-state.yaml', 'Nautobot/manifests/workload-capture-result.json', 'Nautobot/manifests/restic-initialization-result.json','Nautobot/ansible/scripts/run-restic-repository-preflight.py','Nautobot/container/requirements.lock', 'Nautobot/manifests/qualified-image.json', 'restic/scripts/application-backup.py', 'Nautobot/ansible/scripts/run-workload.py', 'Nautobot/ansible/ansible.cfg', 'Nautobot/schemas/workload-test.schema.json', 'Nautobot/schemas/workload-execution.schema.json',
     'Nautobot/ansible/scripts/make-workload-fixture.py', 'Nautobot/ansible/scripts/validate-contracts.py',
     'Nautobot/schemas/desired-state.schema.json', 'Nautobot/manifests/desired-state.yaml',
     'tests/repository/run-with-ansible-local-temp.sh', 'inventory/prod/hosts.yaml',
@@ -124,14 +125,14 @@ def verify_operation(execution, operation):
 
 
 @contextmanager
-def resolved_credentials(bundle, evidence, reader=None):
+def resolved_credentials(bundle, evidence, reader=None, runtime=None):
     """Use the existing bounded Doppler reader; cleanup is independent per file."""
     if reader is None:
         import importlib.util
         spec = importlib.util.spec_from_file_location('restic_secrets', ROOT/'Nautobot/ansible/scripts/run-restic-repository-preflight.py')
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         reader = module.read_secret
-    directory = Path(tempfile.mkdtemp(prefix='nautobot-workload-secrets.'))
+    directory = Path(tempfile.mkdtemp(prefix='nautobot-workload-secrets.', dir=runtime))
     values = []
     cleanup = {}
     try:
@@ -171,16 +172,32 @@ def main():
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--approve', required=True)
     parser.add_argument('--evidence', type=Path, required=True)
-    credentials = parser.add_mutually_exclusive_group(required=True)
-    credentials.add_argument('--backup-secrets', type=Path, help='Protected separately resolved credential directory; caller owns cleanup')
-    credentials.add_argument('--resolve-doppler', action='store_true', help='Resolve the approved references transiently and remove controller copies')
+    parser.add_argument('--resolve-doppler', action='store_true', required=True)
     args = parser.parse_args()
     manifest, execution = verify(args.bundle, args.approve)
-    if args.resolve_doppler:
-        with resolved_credentials(args.bundle, args.evidence) as directory:
+    runtime = controller.runtime(args.approve)
+    controller.persistent_path(args.evidence)
+    controller.private_directory(args.evidence.parent)
+    args.evidence.mkdir(mode=0o700, parents=False, exist_ok=False)
+    controller.receipt(args.evidence/'controller-started.json', {
+        'approval': args.approve, 'operation_id': execution['operation_id'],
+        'invocation_id': os.environ['INVOCATION_ID'],
+        'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+        'remote_root': execution['root'], 'status': 'running',
+    })
+    status = 'incomplete'
+    code = None
+    try:
+        with resolved_credentials(args.bundle, args.evidence, runtime=runtime) as directory:
             args.backup_secrets = directory
-            return execute(args, manifest, execution)
-    return execute(args, manifest, execution)
+            code = execute(args, manifest, execution)
+        status = 'collected' if code == 0 else 'failed'
+    finally:
+        controller.receipt(args.evidence/'controller-result.json', {
+            'status': status, 'ansible_exit_status': code,
+            'acceptance': 'requires_independent_review',
+        })
+    return code
 
 
 def execute(args, manifest, execution):
@@ -188,7 +205,6 @@ def execute(args, manifest, execution):
     for p, mode in [(args.backup_secrets, 0o700), *((args.backup_secrets/n, 0o600) for n in ('repository', 'password', 'credentials.json'))]:
         info=p.lstat()
         if p.is_symlink() or any(parent.is_symlink() for parent in p.parents) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != mode or not (stat.S_ISDIR(info.st_mode) if mode == 0o700 else stat.S_ISREG(info.st_mode)): raise ValueError('backup_secret_metadata')
-    args.evidence.mkdir(mode=0o700, parents=False, exist_ok=False)
     artifacts = [{'name': n, 'source': str((args.bundle/n).resolve()), 'sha256': sha} for n, sha in manifest['files'].items() if n != 'run-workload.yaml']
     extra = {'ansible_host': '10.1.2.170', 'workload_bundle_verified': True, 'workload_baseline_verified': True,
              'workload_execution': execution, 'workload_root': execution['root'],
@@ -197,9 +213,23 @@ def execute(args, manifest, execution):
     inputs = args.evidence/'ansible-inputs.json'; inputs.write_text(json.dumps(extra)); inputs.chmod(0o600)
     environment = {k: v for k, v in os.environ.items() if k in ('PATH', 'HOME', 'USER', 'LOGNAME', 'SSH_AUTH_SOCK', 'LANG', 'LC_ALL')}
     environment['ANSIBLE_CONFIG'] = str(ROOT/'Nautobot/ansible/ansible.cfg')
-    result = subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
-        'ansible-playbook','--limit','j2-svpi4mf','--user','ama','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(args.bundle/'run-workload.yaml'),
-        '--extra-vars','@'+str(inputs)],cwd=ROOT,env=environment,timeout=11700)
-    raise SystemExit(result.returncode)
+    # Keep bounded private output outside volatile runtime storage. No inherited
+    # terminal, pipe or journal receives Ansible output. systemd owns descendants.
+    with (args.evidence/'ansible.stdout').open('xb') as out, (args.evidence/'ansible.stderr').open('xb') as err:
+        os.fchmod(out.fileno(), 0o600); os.fchmod(err.fileno(), 0o600)
+        result = subprocess.run(['/usr/bin/prlimit', '--fsize=16777216:16777216', '--',
+            '/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
+            'ansible-playbook','--limit','j2-svpi4mf','--user','ama','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(args.bundle/'run-workload.yaml'),
+            '--extra-vars','@'+str(inputs)],cwd=ROOT,env=environment,stdin=subprocess.DEVNULL,
+            stdout=out,stderr=err,timeout=11700)
+        if out.tell() >= 16777216 or err.tell() >= 16777216:
+            raise ValueError('controller_output_limit')
+    return result.returncode
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    try:
+        raise SystemExit(main())
+    except Exception:
+        # Detailed private Ansible output is retained separately; exception text
+        # from secret resolution must never escape into service-manager logs.
+        raise SystemExit(69)

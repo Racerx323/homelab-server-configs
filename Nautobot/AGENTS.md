@@ -34,6 +34,12 @@ Use these ownership boundaries when the corresponding artifacts are created:
 - Sanitized terminal definitions and evidence manifests are preserved by
   annotated Git tags; raw evidence remains outside Git.
 
+Keep `docs/` consolidated: the master plan, `OPERATIONS.md`, `ROADMAP.md` and a
+navigation-only `CHECKPOINT.md`. Put new procedures in OPERATIONS, current gaps
+and the next action in ROADMAP, and terminal results in HISTORY/archive tags.
+Do not add stage-specific planning or status manuals. The documentation-contract
+test enforces this layout; an approved ownership change must update it explicitly.
+
 Do not create placeholder files merely to satisfy this layout. Add each file
 when its owning implementation or operation contract is reviewed.
 

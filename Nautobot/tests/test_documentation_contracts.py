@@ -49,6 +49,17 @@ def headings(text):
 
 
 class DocumentationContracts(unittest.TestCase):
+    def test_document_responsibilities_stay_consolidated(self):
+        self.assertEqual({p.name for p in (COMPONENT/'docs').glob('*.md')}, {
+            'NAUTOBOT_DEPLOYMENT_PLAN.md', 'OPERATIONS.md', 'ROADMAP.md', 'CHECKPOINT.md'})
+        plan = (COMPONENT/'docs/NAUTOBOT_DEPLOYMENT_PLAN.md').read_text()
+        self.assertNotRegex(plan, r'nautobot-[a-z-]+-v[0-9]+-(?:accepted|failed)')
+        self.assertNotRegex(plan, r'(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])')
+        checkpoint = (COMPONENT/'docs/CHECKPOINT.md').read_text()
+        self.assertLessEqual(len(checkpoint.splitlines()), 15)
+        self.assertIn('NAUTOBOT_DEPLOYMENT_PLAN.md', checkpoint)
+        self.assertIn('ROADMAP.md', checkpoint)
+
     def test_current_manual_links_and_sections_resolve(self):
         for path in (COMPONENT / 'docs').glob('*.md'):
             for link in re.findall(r'\]\(([^)\s]+)\)', path.read_text()):
@@ -57,6 +68,8 @@ class DocumentationContracts(unittest.TestCase):
                 filename, _, anchor = link.partition('#')
                 target = path.parent / filename if filename else path
                 with self.subTest(document=path.name, link=link):
+                    self.assertTrue(target.resolve().is_relative_to(ROOT.resolve()),
+                                    f'Cross-repository links must use a portable URL: {link}')
                     self.assertTrue(target.exists(), f'Missing local link: {target}')
                     if anchor and target.suffix == '.md':
                         self.assertIn(anchor, headings(target.read_text()))

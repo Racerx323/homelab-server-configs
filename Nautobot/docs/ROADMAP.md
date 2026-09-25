@@ -4,8 +4,15 @@
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
 The operation slot is clean and the accepted synthetic workload is archived.
-Prepare controller-resilient execution and evidence retention before the next
-long operation, then prepare logout persistence. Reboot persistence and isolated
+The controller service renderer, runtime-only credential path and durable receipt
+handling are implemented locally. Disposable systemd tests passed for client
+detachment, forced exit and deadline cleanup with retained evidence. Workstation
+linger for `aaron` was enabled with explicit authorization and verified
+`Linger=yes` on September 25, 2026; its user manager is active. Last-logout and
+workstation-reboot survival were not tested. The read-only logout preflight
+collector is prepared; authorize fresh target collection and review session
+ownership/recovery inputs before freezing its observer/session-close operation.
+Reboot persistence and isolated
 application restore each require their own baseline, recovery review and bundle.
 No successor operation is active or authorized by this roadmap.
 
@@ -29,7 +36,11 @@ The accepted workload's node execution succeeded, but its controller stopped
 polling and volatile controller evidence was lost after a workstation restart.
 The interruption cause and historical credential-finalizer execution remain
 unproven. Scoped recovery and independent readback verified current cleanup.
-Do not claim that the existing controller path survives disconnection or restart.
+The new service envelope passed disposable local lifecycle qualification
+(private evidence: `nautobot-controller-supervision-20260925/qualification.json`).
+The production launcher has offline coverage; no new workload was executed.
+The controller cannot resume work across a workstation restart and never
+retries automatically. Historical interruption and cleanup limits remain.
 
 The repeat imports reused a retained owned fixture. Initial-import evidence is
 separate; synthetic success is not a claim of production representativeness.

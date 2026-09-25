@@ -35,12 +35,9 @@ inputs and are not counted as passing live checks merely because CI passed.
 Likewise, disposable workload scripts require separate local container execution;
 CI does not establish ARM64 performance, reboot survival or successful restore.
 
-For long operations, review controller supervision and recoverable evidence before
-freezing a bundle. The current workload launcher uses controller temporary paths
-and an Ansible invocation; its node-local phase deadline does not guarantee durable
-controller polling or cleanup across workstation loss. Require an independently
-reviewed supervision/recovery design before another long execution. This paragraph
-records an implementation gap; it does not claim that supervision is implemented.
+For long operations, use the [controller supervision procedure](#workload-controller-supervision).
+A manager exit receipt is not remote acceptance. Controller restart never grants
+permission to replay a workload; retain node evidence and review cleanup first.
 
 ## Procedure index
 
@@ -353,6 +350,82 @@ compatibility with the pinned version.
    Keep isolated full restore as a separate stage. Freeze a workload bundle only
    when these prerequisites and tested failure handling are concrete.
 
+### Workload controller supervision
+
+Ansible remains the orchestration owner. `workload_controller.py` only renders a
+controller-side systemd user service and records its exit; rendering does not
+install or start it. Freeze the helper with the workload sources. Preserve the
+rendered unit with the reviewed execution command and paths. Use a stable checkout
+and frozen bundle until the operation is archived; do not edit their sources
+while execution or exit handling is pending.
+
+Before execution, verify the controller's user manager, `Linger=yes`, systemd
+parser compatibility, persistent filesystem/capacity and SSH-agent availability
+for the full window. The launcher refuses a missing service invocation, missing
+linger or non-tmpfs runtime storage before resolving secrets or contacting the
+host. Do not enable linger, change authentication or install units implicitly.
+An agent tied to the disappearing login session is insufficient. Doppler must
+work noninteractively through the existing local authentication context; do not
+put tokens in the unit or manager environment. The target's service-account
+linger is a separate persistence prerequisite.
+
+Render with the reviewed approval digest and absolute paths:
+
+```sh
+python3 Nautobot/ansible/scripts/workload_controller.py \
+  --bundle /absolute/frozen/bundle --approve SHA256 \
+  --evidence /absolute/private/persistent/evidence/new-operation \
+  --ssh-socket /absolute/reviewed/agent/socket
+```
+
+The existing evidence parent must be owned by the controller user and mode 0700,
+with no symlinks. Evidence must be outside Git and outside `/tmp`, `/var/tmp` and
+`/run`; additionally verify its backing filesystem survives workstation restart.
+The new operation directory must not exist. The unit uses `Type=exec`,
+`Restart=no`, `KillMode=control-group`, a 12000-second deadline and 45-second stop
+bound. There is no boot enablement or automatic replay. Its unit name must match
+`nautobot-workload-` plus the first 24 approval-hash characters. Validate the
+rendered unit with `systemd-analyze verify` before separately authorized linking
+and starting through the controller user's service manager.
+
+Secrets are resolved inside the service into its mode-0700 `RuntimeDirectory`
+beneath `/run/user/UID`, with mode-0600 files. Normal failure attempts each file's
+cleanup independently. `RuntimeDirectoryPreserve=no` lets the service manager
+remove the directory even when Python cannot finalize; reboot clears its tmpfs.
+The `ExecStopPost` receipt deliberately does not claim that directory removal has
+already happened. Verify absence independently after the unit stops. Never copy
+runtime credentials into durable evidence.
+
+Retain `controller-started.json` (approval, boot, invocation and remote root),
+`controller-result.json`, `controller-stop.json`, controller cleanup receipt,
+private Ansible inputs/output and fetched node evidence. Output is limited to
+16 MiB per stream and never inherited by the terminal or journal. Start/result
+receipts are exclusive and fsynced. A prior evidence directory is not reused.
+`collected` means Ansible returned zero and normal credential cleanup finished;
+it does not accept the workload. An interrupted or missing exit/finalizer record
+means incomplete controller coverage, even if node execution subsequently passes.
+
+After controller loss, inspect the unit and exact remote operation read-only.
+Do not restart the service or rerun the workload. Independently verify node
+process termination, exact owned Jobs/registration state, credential absence,
+module residue and all required receipts. Only then prepare scoped recovery of
+owned residue. Node-local deadlines continue to bound load, but controller
+supervision does not guarantee node-side Ansible finalization after workstation
+power loss. Preserve that distinction in the terminal review.
+
+Offline regressions cover rendering, service-parser validation, normal failure,
+timeout, credential cleanup, duplicate receipt refusal and missing-finalizer
+classification. Before a new long live operation, qualify the rendered service
+with a disposable local payload: detach its terminal, kill its main process,
+allow the deadline to expire and independently verify descendant termination,
+runtime removal and retained evidence. These checks must not invoke the real
+workload or production credentials. A workstation reboot is not automatically
+part of this qualification. Neither offline tests nor rendering prove live
+manager/logout survival.
+
+Reference semantics: [systemd service lifecycle](https://www.freedesktop.org/software/systemd/man/systemd.service.html)
+and [runtime directory lifecycle](https://www.freedesktop.org/software/systemd/man/systemd.exec.html).
+
 ### Persistence procedure
 
 Prepare logout and reboot as separate bounded stages, each with its own exact
@@ -363,10 +436,37 @@ inputs. No active operation is opened by this document.
 | Logout | Enumerate only operation-owned test login sessions; independent administrator connection; current user-manager/linger, unit invocation and restart baseline | Close only those sessions; observe five minutes from the independent connection with continued health, unchanged invocations/restarts and no collection gaps. Preserve evidence and stop if continuity fails. |
 | Reboot | Confirm console recovery; fresh baseline; record pending kernel; freeze reconnect/readiness deadlines; preserve reviewed current database/media recovery inputs and a quiesced logical comparison | One authorized reboot; new boot ID, automatic service activation, matching persistent artifact identities, healthy logical data, limits, guard, both backend families and management/Munin access. Observe at least 75 seconds after readiness. No automatic repeated reboot or destructive restore. |
 
-The concrete collector, session identities, readiness deadlines and current
-recovery evidence still need preparation before either persistence bundle can be
-frozen. Stage acceptance must distinguish daemon activation from proven data
-persistence and must retain collection gaps or unexpected service restarts.
+`ansible/scripts/persistence-preflight.py` extends the existing read-only startup
+collector with the service account's UID/linger, login-session inventory, and the
+five running services' invocation IDs, restart counters and PIDs. Freeze it with
+`startup-preflight.py` for the separately authorized bounded collection. It never
+selects or terminates sessions, enables linger, starts units or accepts persistence.
+Compare returned artifacts with accepted state and review current recovery inputs.
+A collection result is readiness evidence, not a persistence pass.
+
+For the logout definition, identify every service-account session and prove which
+were opened by this operation. Confirm the independent administrator connection
+uses a different account and cannot hold the service user's manager alive. Do not
+close an existing or unowned session. If other sessions exist for the service
+account, defer the test; ending only a test session while another remains would
+not prove survival after its last logout. Record the account's session list both
+before and after closing only the owned sessions.
+
+Prepare a five-minute observer from that independent connection, sampling every
+five seconds with an explicit maximum ten-second gap. Bind boot ID, the five
+service invocations/restart counts, backend guard and image/configuration hashes
+to the fresh baseline. Require no remaining service-account login sessions,
+continued healthy application responses, unchanged invocations/restarts and no
+new storage errors. Run the application request through the already approved
+proxy-source path; do not bypass backend enforcement or introduce Caddy onboarding.
+Freeze exact session IDs, collection commands, observation deadlines and recovery
+inputs before requesting execution authorization. On a gap, service change or
+failed health read, preserve evidence and classify the test incomplete/failed;
+do not restart services or restore data automatically.
+
+The logout session lifecycle/observer and reboot execution bundle remain separate
+preparation. Reboot must also prove logical data persistence. No read-only
+preflight authorizes logout, reboot, service changes or restore.
 
 ### Local qualification and bundle interface
 
@@ -380,12 +480,13 @@ contract; `--small` is only for native bridge regressions. Preserve image IDs,
 input hashes, native output and cleanup receipts; do not call this an ARM64 or
 production acceptance run.
 
-`ansible/scripts/run-workload.py --bundle DIRECTORY --approve SHA256 --evidence
-NEW_DIRECTORY --backup-secrets PROTECTED_CREDENTIAL_DIRECTORY` is the candidate live entrypoint. Do not execute it without a
-reviewed bundle and live authorization. `bundle.json` maps flat input filenames
-and required repository-source paths to SHA-256 values; its exact bytes define
-the approval hash. It binds the strict `workload-execution.schema.json` input,
-validated contract JSON, deterministic dataset, Ansible playbook and all helpers.
+`ansible/scripts/run-workload.py` is the workload service entrypoint. It requires
+a reviewed bundle, systemd invocation and private runtime directory; direct
+interactive execution and caller-owned credential files are no longer supported.
+`bundle.json` maps flat inputs and repository sources to SHA-256 values, including
+`workload_controller.py`. Its exact bytes define the approval hash. It binds the
+strict `workload-execution.schema.json`, validated contract, deterministic
+dataset, Ansible playbook and helpers.
 The launcher rechecks source hashes, schema, backup authorization, fixture and
 paths before invoking Ansible. No executable workload instance is supplied now.
 
@@ -655,7 +756,7 @@ package reinstall, rollback, service transition or reboot is present.
 
 The existing 59-check preflight establishes listener identity, not access-control
 acceptance. Stage 3 additionally requires a network-owner-reviewed evidence matrix.
-Follow the [UniFi access procedure](../../../homelab-network/Ubiquiti/UNIFI_ACCESS.md)
+Follow the [UniFi access procedure](https://github.com/Racerx323/homelab-network/blob/main/Ubiquiti/UNIFI_ACCESS.md)
 for separately authorized controller reads. Any correction follows homelab-network's
 own operation, rollback and authorization process. This checklist authorizes no
 controller access, remote probe or policy change.

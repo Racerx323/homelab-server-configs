@@ -463,6 +463,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(?:ansible/scripts/(?:workload_.*|make-workload-fixture|validate-contracts)\.py|manifests/workload-test\.yaml|schemas/workload-test\.schema\.json|tests/test_workload\.py)
+      - id: nautobot-controller-persistence
+        name: Validate workload controller supervision and persistence preparation
+        entry: python3 Nautobot/tests/test_controller_persistence.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/scripts/(run-workload|workload_controller|persistence-preflight|startup-preflight)\.py|tests/test_controller_persistence\.py)
       - id: nautobot-workload-orchestration
         name: Validate workload orchestration and backup overlap
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_workload_orchestration.py
