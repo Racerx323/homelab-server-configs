@@ -55,7 +55,7 @@ application_startup:
   tag_object: b818924f0d9b900d60d56b5004fdc2c19b378a7c
   artifact_sha256:
     /var/lib/nautobot/runtime/initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b
-    /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 72826833864565b7398148b7e6636622bc4bef2fe1734d691b04343bf95e5a72
+    /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
     /var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume: ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13
     /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container: a2e12b77cf54ac7fc8d9cb7d1699db9b8188d422bbf1aa894ea9497023876684
     /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
@@ -65,7 +65,7 @@ application_startup:
     /var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container: 7dde40f84c637dd79ec5859cf9a17ec9e68b2e111d647a39a8987e7c7cb248db
     /var/lib/nautobot/.config/containers/systemd/nautobot-web.container: c8adc29062e82fdf5d524eb339b312b66611e81085d06235df658e5cce5a2e76
     /var/lib/nautobot/.config/containers/systemd/nautobot-worker.container: d01b0ed26ea2b9228c3b126aac6d9e4329faec41eb0ac644245d6f4c9e9d989d
-    /var/lib/nautobot/runtime/startup-application.py: 70f74c788a9dd10ea1e440aa94d15c5c75befe63bf79c263bfe1d8f6949f76fb
+    /var/lib/nautobot/runtime/startup-application.py: 59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e
     /var/lib/nautobot/runtime/startup-command.py: 701061362ce1fc9b24c36fa8cc2d78eb9c100f5e8a13d9f63c6034d76ccea606
     /var/lib/nautobot/runtime/startup-job-probe.py: 07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c
     /var/lib/nautobot/runtime/startup-job.py: 85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6
@@ -115,3 +115,25 @@ logout_persistence:
   reboot_accepted: false
   interactive_ssh_logout_accepted: false
   application_restore_accepted: false
+boot_readiness:
+  state: accepted
+  scope: two_artifact_installation_and_daemon_reload_only
+  operation: nautobot-boot-readiness-v1
+  reviewed_at: '2026-09-25T18:41:54.399220+00:00'
+  terminal_tag: nautobot-boot-readiness-v1-accepted
+  archive_commit: abbd4c60c4fc854c04fa82b768f285e895991832
+  tag_object: d1aa697832e9b71d91e5cc711374287affd7a9a6
+  bundle_sha256: 0a0c0124b1e4eee8e8189958cc354cdd00b63dc3c4d42ddf1a1ffa7031d7ad6d
+  result_sha256: fb8fef01f1521521cdfe68e0316bea89e1a55e9e475be03122a7ded52ba54104
+  updated_artifacts:
+    - name: startup-application.py
+      destination: /var/lib/nautobot/runtime/startup-application.py
+      before_sha256: 70f74c788a9dd10ea1e440aa94d15c5c75befe63bf79c263bfe1d8f6949f76fb
+      after_sha256: 59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e
+    - name: nautobot-migration.container
+      destination: /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container
+      before_sha256: 72826833864565b7398148b7e6636622bc4bef2fe1734d691b04343bf95e5a72
+      after_sha256: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
+  new_gate_executed: false
+  reboot_persistence_accepted: false
+  recovery_backups_retained: /var/lib/nautobot/boot-readiness.45bc4a738b684c6da22617bb962d6d32

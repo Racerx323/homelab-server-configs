@@ -500,3 +500,15 @@ was verified published: commit `4f6a6204f90fa28854dabccaa553c3547b1b4ea4`, tag o
 pre-Ansible failure) and the sanitized decision were byte-verified against the
 published tag before removal from main. Archived publication-pending fields are
 historical. Accepted identity is reconciled and the operation slot is clean.
+
+## Accepted boot-readiness artifact installation
+
+`nautobot-boot-readiness-v1` accepted two-file installation and user daemon-reload
+with unchanged services, boot, sessions and HTTP health. The new gate was not run;
+reboot persistence remains unproven. Tag `nautobot-boot-readiness-v1-accepted` published and verified:
+commit `abbd4c60c4fc854c04fa82b768f285e895991832`, tag object `d1aa697832e9b71d91e5cc711374287affd7a9a6`.
+Consumed files were byte-verified against that tag before removal. Original remote
+backups remain retained. The two hashes in the current application artifact map
+are superseded by this deployment; original startup identities remain in the
+startup archive. `boot_readiness` records the before/after hashes and provenance.
+The active slot is clean; archived publication-pending fields are historical.

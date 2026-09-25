@@ -497,6 +497,100 @@
           "const": false
         }
       }
+    },
+    "boot_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "bundle_sha256",
+        "result_sha256",
+        "updated_artifacts",
+        "new_gate_executed",
+        "reboot_persistence_accepted",
+        "recovery_backups_retained"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "two_artifact_installation_and_daemon_reload_only"
+        },
+        "operation": {
+          "const": "nautobot-boot-readiness-v1"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_tag": {
+          "const": "nautobot-boot-readiness-v1-accepted"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "updated_artifacts": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "destination",
+              "before_sha256",
+              "after_sha256"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "destination": {
+                "type": "string"
+              },
+              "before_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "after_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "new_gate_executed": {
+          "const": false
+        },
+        "reboot_persistence_accepted": {
+          "const": false
+        },
+        "recovery_backups_retained": {
+          "type": "string",
+          "pattern": "^/var/lib/nautobot/boot-readiness\\.[0-9a-f]{32}$"
+        }
+      }
     }
   }
 }

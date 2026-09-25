@@ -20,10 +20,20 @@ unchanged. No restart, reboot or rollback occurred. Original backups are retaine
 The new gate itself remains unexecuted; reboot persistence is not accepted.
 Private evidence: `nautobot-boot-readiness-bundle-20260925/REVIEW.json`.
 
-Next archive the consumed definition/bundle and decision, then reconcile accepted
-artifact identities. Current recovery preservation and logical database/media
-comparison remain prerequisites to the separate reboot operation. Console recovery
-was confirmed September 25. No further mutation is authorized by this record.
+The terminal archive is published and verified; accepted artifact identities
+are reconciled and the active operation slot is clean. Reconciliation is uncommitted.
+Recovery preservation/comparison preparation is specified in OPERATIONS using the
+existing application-backup producer. The user reserved a fresh quiet window
+covering capture, later reboot and postboot comparison. This does not establish
+absence of scheduled writers or authorize their suspension.
+
+Next qualify the actual logical exporter/comparator against disposable pinned
+PostgreSQL data and review current writer/media inventories before defining live
+preservation. The existing media adapter supports only empty media; the old cold
+copy requires stopped services and must not be reused on the running database.
+No exclusions of volatile data are approved. Current backup/restore consistency,
+new gate execution and reboot persistence remain unproven. No backup, writer pause,
+service restart, reboot or restore has been authorized by this preparation.
 
 ## Accepted scope and remaining gates
 

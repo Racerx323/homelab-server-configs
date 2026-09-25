@@ -478,6 +478,51 @@ stdout/stderr and review actual receipts independently of controller exit status
 The reviewed baseline expires after 24 hours. Commit/publish implementation and
 verify CI before requesting execution approval.
 
+#### Pre-reboot recovery preservation and logical comparison
+
+Use the existing owning paths: `restic/scripts/application-backup.py` for capture,
+upload and full integrity checking, and `ansible/scripts/workload_capture.py` for
+qualified pilot capture sections. Do not reactivate `startup-preservation.yaml`:
+its cold-copy procedure was designed for stopped services and historical artifact
+identities. Copying the running PostgreSQL volume is not this recovery method.
+
+The preparation contract is:
+
+| Step | Required input or action | Evidence and stop condition |
+| --- | --- | --- |
+| Review current state | Fresh accepted artifact/image references, available capacity, media inventory, database object inventory and writer inventory | Refuse unknown source objects, image/config drift or insufficient capacity. Host collection is separately authorized. |
+| Establish consistency | Reserved quiet application window; enumerate Celery Beat schedules, active/queued tasks and other writers | A user quiet window alone does not stop automation. Define any writer pause/resume in the mutation operation; do not invent a claim that writers are absent. |
+| Capture logical baseline | One repeatable-read, read-only database transaction; complete explicit schema/table/column inventory, row counts and deterministic row-content digests | Include empty tables and duplicate rows. Preserve types, nulls and values. A missing/extra object or changed digest fails comparison. No implicit volatile-table exclusions. |
+| Capture sequence state | Enumerate sequences and record values plus called state while writers are controlled | Sequences are not covered by an ordinary MVCC snapshot. Concurrent sequence activity invalidates a consistent baseline. |
+| Capture media identity | Full relative-path inventory, entry type, size and content digest, with pre/post stability check | Reject symlinks or unsupported entries. Empty-media helper is usable only after fresh proof of its empty-media precondition. Populated media requires a qualified capture adapter. |
+| Preserve recovery | PostgreSQL custom dump, media, configuration, dependency/image manifest, Quadlet identities and versions/migration ledger | Reuse existing six-section application backup contract. Verify dump format and listing; keep sensitive payloads in protected staging/encrypted repository. |
+| Verify snapshot | Record full snapshot ID, source metadata, upload exit and full `check --read-data` result | Keep existing snapshots; no retention, prune, initialization or restore. Failed upload/integrity leaves the stage unaccepted. |
+| Validate stable window | Repeat the same logical and media identity after capture | Before/after equality plus controlled writers is required; equality alone cannot exclude a transient write that was reverted. |
+| Later postboot comparison | Repeat identical versioned inventory/canonicalization under the same controlled-writer policy | Compare logical data and sequence/media state before allowing test Jobs or administrator login that changes data. Any difference remains explicit until reviewed. |
+
+Canonicalization must be implemented and tested against the pinned PostgreSQL
+version before freezing execution: deterministic column order and type metadata,
+fixed session formatting, stable row encoding with unambiguous lengths, and
+order-independent rows preserving multiplicity. Do not compare custom dump bytes,
+physical database files or catalog OIDs as logical identity. Bound memory, output,
+statement duration and whole collection time. Digest receipts are private; raw
+rows and credentials must never reach logs or Git. Public evidence includes only
+the reviewed decision and private receipt hashes.
+
+Qualification must use disposable data with NULL versus empty strings, Unicode,
+binary values, numeric/time values, duplicate rows, empty tables, schema drift,
+sequence changes and populated media. Prove that row reordering passes while an
+insert/update/delete, changed sequence, missing object or changed media fails.
+Run the real database exporter, not just a comparator over fabricated manifests.
+Writer-control failure or timeout must preserve evidence and report exactly which
+services/tasks remain paused; restoring their prior state is a separately bounded
+part of the reviewed operation. The current preparation authorizes none of these
+live mutations.
+
+The recovery stage and later reboot each need an exact bundle. An accepted backup
+and dump listing do not prove a full isolated restore. Keep the latter as its own
+unfulfilled acceptance gate. Preserve prior cold copies and snapshots throughout.
+
 #### Reboot baseline and recovery preparation
 
 Use a fresh, separately authorized read-only collection on `ama@10.1.2.170`.

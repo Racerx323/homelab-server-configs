@@ -144,6 +144,17 @@ class Contracts(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validate(schema, bad)
 
+    def test_boot_installation_does_not_claim_gate_execution(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        for key in ('new_gate_executed', 'reboot_persistence_accepted'):
+            bad = copy.deepcopy(accepted)
+            bad['boot_readiness'][key] = True
+            with self.assertRaises(ValidationError):
+                validate(schema, bad)
+        for row in accepted['boot_readiness']['updated_artifacts']:
+            self.assertEqual(accepted['application_startup']['artifact_sha256'][row['destination']], row['after_sha256'])
+
     def test_canary_definition_boundaries(self):
         import hashlib
         schema=json.loads((ROOT/'Nautobot/schemas/canary-backup.schema.json').read_text())
