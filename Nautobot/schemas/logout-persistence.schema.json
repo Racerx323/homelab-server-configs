@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounded PAM-session logout qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "plan_sha256",
+    "root",
+    "test_unit",
+    "observer_unit",
+    "limits",
+    "baseline",
+    "recovery"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "stage",
+        "id",
+        "target",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "properties": {
+        "state": {
+          "const": "definition"
+        },
+        "stage": {
+          "const": "logout_persistence"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-logout-persistence-v[1-9][0-9]*$"
+        },
+        "target": {
+          "const": "j2-svpi4mf"
+        },
+        "authorization_ready": {
+          "const": true
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "root": {
+      "type": "string",
+      "pattern": "^/tmp/nautobot-logout\\.[0-9a-f]{32}$"
+    },
+    "test_unit": {
+      "type": "string",
+      "pattern": "^nautobot-logout-test-[0-9a-f]{32}\\.service$"
+    },
+    "observer_unit": {
+      "type": "string",
+      "pattern": "^nautobot-logout-observer-[0-9a-f]{32}\\.service$"
+    },
+    "limits": {
+      "const": {
+        "session_seconds": 120,
+        "observation_seconds": 300,
+        "sample_seconds": 5,
+        "max_gap_seconds": 10,
+        "observer_deadline_seconds": 420,
+        "controller_seconds": 900
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collected_at",
+        "evidence_sha256",
+        "boot_id",
+        "artifact_sha256",
+        "services"
+      ],
+      "properties": {
+        "collected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "artifact_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "services": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "postgresql",
+            "redis",
+            "web",
+            "worker",
+            "scheduler"
+          ],
+          "properties": {
+            "postgresql": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "InvocationID",
+                "NRestarts"
+              ],
+              "properties": {
+                "InvocationID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "NRestarts": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            },
+            "redis": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "InvocationID",
+                "NRestarts"
+              ],
+              "properties": {
+                "InvocationID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "NRestarts": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            },
+            "web": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "InvocationID",
+                "NRestarts"
+              ],
+              "properties": {
+                "InvocationID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "NRestarts": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            },
+            "worker": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "InvocationID",
+                "NRestarts"
+              ],
+              "properties": {
+                "InvocationID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "NRestarts": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            },
+            "scheduler": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "InvocationID",
+                "NRestarts"
+              ],
+              "properties": {
+                "InvocationID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "NRestarts": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cold_copy",
+        "application_snapshot",
+        "restore_verified",
+        "automatic_service_restart_or_restore"
+      ],
+      "properties": {
+        "cold_copy": {
+          "const": "/var/lib/nautobot/recovery/nautobot-startup-database-preservation-v1"
+        },
+        "application_snapshot": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "restore_verified": {
+          "const": false
+        },
+        "automatic_service_restart_or_restore": {
+          "const": false
+        }
+      }
+    }
+  }
+}

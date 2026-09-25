@@ -21,6 +21,7 @@ BUNDLE_FILES = (
     'Nautobot/manifests/operation.yaml',
     'Nautobot/schemas/operation.schema.json',
     'Nautobot/schemas/workload-operation.schema.json',
+    'Nautobot/schemas/logout-persistence.schema.json',
     'Nautobot/schemas/workload-execution.schema.json',
     'Nautobot/schemas/host-convergence.schema.json',
     'Nautobot/ansible/playbooks/preflight-host-convergence.yaml',

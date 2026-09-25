@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "operation": {
+    "state": "definition",
+    "stage": "logout_persistence",
+    "id": "nautobot-logout-persistence-v99",
+    "target": "j2-svpi4mf",
+    "authorization_ready": true,
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "plan_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "root": "/tmp/nautobot-logout.00000000000000000000000000000000",
+  "test_unit": "nautobot-logout-test-00000000000000000000000000000000.service",
+  "observer_unit": "nautobot-logout-observer-00000000000000000000000000000000.service",
+  "limits": {
+    "session_seconds": 120,
+    "observation_seconds": 300,
+    "sample_seconds": 5,
+    "max_gap_seconds": 10,
+    "observer_deadline_seconds": 420,
+    "controller_seconds": 900
+  },
+  "baseline": {
+    "collected_at": "2000-01-01T00:00:00+00:00",
+    "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "boot_id": "00000000-0000-0000-0000-000000000000",
+    "artifact_sha256": {
+      "/var/lib/nautobot/runtime/fixture.py": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "services": {
+      "postgresql": {
+        "InvocationID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "NRestarts": "0"
+      },
+      "redis": {
+        "InvocationID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "NRestarts": "0"
+      },
+      "web": {
+        "InvocationID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "NRestarts": "0"
+      },
+      "worker": {
+        "InvocationID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "NRestarts": "0"
+      },
+      "scheduler": {
+        "InvocationID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "NRestarts": "0"
+      }
+    }
+  },
+  "recovery": {
+    "cold_copy": "/var/lib/nautobot/recovery/nautobot-startup-database-preservation-v1",
+    "application_snapshot": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "restore_verified": false,
+    "automatic_service_restart_or_restore": false
+  }
+}

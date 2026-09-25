@@ -317,7 +317,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -463,6 +463,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(?:ansible/scripts/(?:workload_.*|make-workload-fixture|validate-contracts)\.py|manifests/workload-test\.yaml|schemas/workload-test\.schema\.json|tests/test_workload\.py)
+      - id: nautobot-logout-persistence
+        name: Validate bounded logout ownership and observation contracts
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_logout_persistence.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*logout.*|schemas/(logout-persistence|operation)\.schema\.json|manifests/operation\.yaml|tests/test_logout_persistence\.py|tests/fixtures/logout-operation\.json)
       - id: nautobot-controller-persistence
         name: Validate workload controller supervision and persistence preparation
         entry: python3 Nautobot/tests/test_controller_persistence.py

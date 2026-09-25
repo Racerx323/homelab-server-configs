@@ -3,7 +3,8 @@
 ## Current next action
 
 Repository records reviewed September 25, 2026; this is not a fresh host check.
-The operation slot is clean and the accepted synthetic workload is archived.
+The accepted synthetic workload is archived. One logout-persistence operation is
+now defined; live execution is not authorized.
 The controller service renderer, runtime-only credential path and durable receipt
 handling are implemented locally. Disposable systemd tests passed for client
 detachment, forced exit and deadline cleanup with retained evidence. Workstation
@@ -15,15 +16,16 @@ HTTP health 200, backend guard verified, and target linger enabled. The sole
 service-account session is `manager-early`, not an ordinary login; preserve it.
 The retained cold-copy directory is present, but restore remains unverified.
 
-The bounded PAM-session logout test is specified in OPERATIONS. Next implement
-and validate its owned-session lifecycle and node-local observer, then freeze
-one execution bundle for approval. Collection exposed and corrected a `loginctl`
-property-selection bug; the correction has local regression coverage. CI passed
-for published `af48d4e`; the collector correction and this review remain local.
+The bounded PAM-session lifecycle, node-local observer, strict schema and bundle
+launcher passed the full offline validation suite. The operation binds the reviewed
+baseline and existing recovery limitations. Its private bundle is frozen under
+`nautobot-logout-bundle-20260925/bundle`. Next review and publish this implementation,
+verify CI, then authorize the exact bundle for execution. No target session has been opened or closed.
+The baseline/collector correction is published in `7a49a03` and its CI passed.
 Private baseline evidence: `nautobot-logout-baseline-20260925/baseline-final.json`.
 Reboot persistence and isolated
 application restore each require their own baseline, recovery review and bundle.
-No successor operation is active or authorized by this roadmap.
+The definition is not deployment authorization. Reboot and restore are excluded.
 
 ## Accepted scope and remaining gates
 

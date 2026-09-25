@@ -491,9 +491,61 @@ notes that PAM processes can move into a session scope. Verify both transient-un
 and owned-session absence; do not assume a cgroup name proves cleanup. If either
 remains, preserve evidence and require scoped recovery. Never use `terminate-user`.
 
-The logout session lifecycle/observer and reboot execution bundle remain separate
-preparation. Reboot must also prove logical data persistence. No read-only
-preflight authorizes logout, reboot, service changes or restore.
+The reusable implementation is `ansible/playbooks/logout-persistence.yaml`,
+`ansible/scripts/logout-node.py` and `ansible/scripts/logout-bundle.py`, with
+`schemas/logout-persistence.schema.json` validating the single active operation.
+Ansible owns session creation and closure; the node helper owns read-only evidence,
+ownership checks and continuity decisions. The test session's MainPID must match
+its new PAM session Leader. The observer uses a separate system service under
+root, outside the closing service-account session. Its receipt is node-local;
+missing or interrupted receipts never pass. A controller loss requires read-only
+recovery collection, not automatic replay.
+
+The primary proxy supplies before/after HTTP checks for both permanent backend
+families, with its expected source addresses. The continuous five-minute observer
+checks local in-container HTTP health, the five service identities/restart counts,
+boot identity and manager-session continuity. It also requires retained kernel
+journal coverage without storage errors, accepted artifact hashes and the backend
+guard. Proxy checks are endpoint checks, not continuous network sampling. The
+transient-unit/session cleanup and evidence-fetch results are recorded separately.
+No application service is restarted as test cleanup; failure recovery is limited
+to the exact owned test unit. The read-only observer may run until its independent
+deadline after controller loss; inspect its terminal state before any cleanup.
+
+Freeze only after offline schema, Ansible syntax, ownership, continuity, failure
+and bundle-integrity tests pass. The baseline must be less than 24 hours old at
+execution, and live preflight must still match it. A reviewed old backup receipt
+is not a fresh restore claim. Refresh stale baseline/recovery evidence and freeze
+again rather than bypassing expiry. `freeze` copies every non-secret execution
+input, inventory, policy, schema and helper into a new private directory:
+
+```sh
+python3 Nautobot/ansible/scripts/logout-bundle.py freeze /absolute/private/new-bundle
+```
+
+Run only after approval of the printed SHA-256 and both targets: mutation of the
+owned session/staging on `ama@10.1.2.170`, and read-only HTTP probes through
+`pi@10.1.0.53`. The controller evidence parent must exist, be owned by the
+controller user, mode 0700, persistent and outside Git. Choose a new evidence
+path and a unique controller unit. The launcher refuses an interactive invocation
+or disabled controller linger. The reviewed execution command is:
+
+```sh
+systemd-run --user --unit=nautobot-logout-controller-UNIQUE \
+  --property=Type=exec --property=Restart=no --property=RuntimeMaxSec=960 \
+  --property=TimeoutStopSec=30 --property=KillMode=control-group \
+  --property=UMask=0077 --property=StandardOutput=null --property=StandardError=null \
+  --setenv=SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
+  /usr/bin/python3 /absolute/private/new-bundle/logout-bundle.py execute \
+  --approve SHA256 --evidence /absolute/private/new-evidence
+```
+
+Review the resulting controller, node and cleanup records independently before
+acceptance. `collected` only means Ansible exited successfully. Preserve the exact
+operation and sanitized terminal evidence before clearing the active slot. Local
+regressions do not prove target PAM session registration; that is a live criterion.
+Reboot remains a separate operation that must also prove logical data persistence.
+No read-only preflight authorizes logout, reboot, service changes or restore.
 
 ### Local qualification and bundle interface
 

@@ -58,6 +58,11 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'logout_persistence':
+            validate(json.loads((ROOT/'Nautobot/schemas/logout-persistence.schema.json').read_text()), operation)
+            self.assertFalse(operation['recovery']['automatic_service_restart_or_restore'])
+            self.assertFalse(operation['recovery']['restore_verified'])
+            self.assertEqual(operation['limits']['observation_seconds'], 300)
         elif operation['operation'].get('stage') == 'administrator_bootstrap':
             validate(json.loads((ROOT / 'Nautobot/schemas/administrator-bootstrap.schema.json').read_text()), operation)
             self.assertFalse(operation['runtime']['first_install_only'])
