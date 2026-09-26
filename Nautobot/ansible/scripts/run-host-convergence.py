@@ -20,6 +20,7 @@ PREFIX = 'nautobot-host-convergence.'
 BUNDLE_FILES = (
     'Nautobot/manifests/operation.yaml',
     'Nautobot/schemas/operation.schema.json',
+    'Nautobot/schemas/application-restore.schema.json',
     'Nautobot/schemas/workload-operation.schema.json',
     'Nautobot/schemas/logout-persistence.schema.json',
     'Nautobot/schemas/boot-readiness.schema.json',

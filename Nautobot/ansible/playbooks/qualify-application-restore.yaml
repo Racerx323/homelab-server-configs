@@ -1,0 +1,51 @@
+---
+- name: Qualify isolated application restore on disposable local resources
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Require explicit disposable qualification inputs
+      ansible.builtin.assert:
+        that:
+          - restore_local_root is defined
+          - restore_local_adapter is defined
+          - restore_local_root is match('^/home/aaron/code/\.local-evidence/nautobot-restore-local-[A-Za-z0-9_/-]+$')
+    - name: Exercise native restore with independent final cleanup
+      block:
+        - name: Qualify setup
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', setup, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify capture
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', capture, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify retrieve
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', retrieve, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify extract
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', extract, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify restore
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', restore, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify compare
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', compare, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify application
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', application, --root, '{{ restore_local_root }}']
+          changed_when: true
+        - name: Qualify native rejection paths
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', negative, --root, '{{ restore_local_root }}']
+          changed_when: true
+      always:
+        - name: Remove only owned disposable resources and credentials
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ restore_local_adapter }}', cleanup, --root, '{{ restore_local_root }}']
+          changed_when: true

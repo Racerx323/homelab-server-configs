@@ -289,6 +289,34 @@ repos:
         files: >-
           ^(?:\.pre-commit-config\.yaml|backblaze-b2/(?:docs/MASTER_KEY_ROTATION\.md|manifests/operation\.yaml|schemas/operation\.schema\.json|scripts/(?:protected_doppler_master_write\.py|run-master-key-rotation\.sh)|tests/(?:master-key-rotation-launcher-regression|protected-doppler-master-write-regression)\.py))$
 
+      - id: nautobot-application-restore
+        name: Validate isolated application restore boundaries
+        entry: python3 Nautobot/tests/test_application_restore.py
+        language: system
+        pass_filenames: false
+        files: ^(Nautobot/(ansible/(scripts/restore_(payload|runtime|node|probe|inventory|host_monitor)\.py|playbooks/(qualify-application-restore|restore-application)\.yaml)|tests/(test_application_restore|restore_local|restore_native)\.py)|restic/scripts/application-restore\.py)$
+      - id: nautobot-restore-node
+        name: Validate target restore supervision and cleanup
+        entry: python3 Nautobot/tests/test_restore_node.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/(scripts/restore_.*\.py|playbooks/restore-application\.yaml)|tests/(test_restore_node|qualify_restore_.*)\.py)$
+      - id: nautobot-restore-bundle
+        name: Validate restore bundle and credential delivery
+        entry: python3 Nautobot/tests/test_restore_bundle.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/(scripts/(application-restore-bundle|restore_.*)\.py|playbooks/restore-.*\.yaml)|tests/test_restore_bundle\.py|schemas/application-restore\.schema\.json)$
+      - id: nautobot-restore-syntax
+        name: Validate full application restore Ansible syntax
+        entry: >-
+          /bin/bash tests/repository/run-with-ansible-local-temp.sh
+          ansible-playbook -i localhost, --syntax-check
+          Nautobot/ansible/playbooks/restore-application.yaml
+          -e restore_context=disposable
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/ansible/playbooks/restore-(application|stage)\.yaml$
       - id: nautobot-qualification-evidence-capture
         name: Validate Nautobot qualification evidence capture
         entry: >-
@@ -317,7 +345,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions

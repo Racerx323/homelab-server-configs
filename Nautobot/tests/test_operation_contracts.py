@@ -105,6 +105,10 @@ class Contracts(unittest.TestCase):
             self.assertFalse(operation['scope']['restore'])
             self.assertFalse(operation['scope']['service_restart'])
             self.assertEqual(operation['execution']['operation_id'], operation['operation']['id'])
+        elif operation['operation'].get('stage') == 'isolated_application_restore':
+            validate(json.loads((ROOT/'Nautobot/schemas/application-restore.schema.json').read_text()), operation)
+            self.assertFalse(operation['boundaries']['production_service_changes'])
+            self.assertFalse(operation['boundaries']['production_volume_restore'])
         elif operation['operation'].get('stage') == 'recovery_preservation':
             contract = json.loads((ROOT / 'Nautobot/schemas/preservation-execution.schema.json').read_text())
             validate(contract, operation)

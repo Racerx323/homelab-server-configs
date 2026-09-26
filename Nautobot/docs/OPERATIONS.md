@@ -1052,6 +1052,329 @@ positive absence may the native reaper settle a remaining nonterminal row.
 The disposable test checks REVOKED before the Job's own lock timeout, avoiding
 a false pass caused by a task naturally failing while cancellation is checked.
 
+### Isolated full application restore preparation
+
+This procedure closes the application recovery gate, not the pre-data canary gate.
+Use the accepted preservation record in `manifests/accepted-live-state.yaml` to
+select one full snapshot ID, its repository identity, published archive and private
+logical reference. Never select `latest`. Bind these identities and the archived
+capture-source map to a new operation only after the previous slot is clean.
+A newer live database is not the comparison reference for an older backup.
+
+Nautobot owns extraction semantics, PostgreSQL reconstruction, configuration
+mapping and application checks. The Restic component owns authenticated repository
+access and exact-snapshot retrieval. Reuse its containment and credential-cleanup
+contracts; the canary's file comparison alone cannot establish application recovery.
+Preparation does not authorize target contact, downloads, secret resolution,
+containers, writer pauses or a restore.
+
+#### Inputs and isolation
+
+Review all six captured sections: custom-format database dump, media,
+configuration, image/dependency manifests, Quadlet/configuration hashes and native
+versions/migration ledger. Verify repository/snapshot metadata against the accepted
+backup receipt, then verify recovered section hashes against the independent
+capture receipt. Require the private reference and receipts to be available before
+execution; snapshot integrity alone does not prove the payload is the intended one.
+
+Use a unique rootless restore namespace with dedicated storage, database and cache
+on the reviewed host. Never mount production database, Redis or media volumes.
+Do not install recovered Quadlets into the live user manager or overwrite live
+configuration. Map recovered configuration to disposable database/cache endpoints;
+record only the necessary isolation overrides. Use the accepted immutable images
+and App/dependency versions, without automatic image pulls, upgrades or migrations.
+
+Application containers must have no external egress and no published ports. Prove
+this isolation independently before starting code from the restored database.
+Keep the scheduler and worker stopped; do not replay restored Jobs, periodic tasks,
+webhooks or external integrations. Run application checks inside the isolated
+network through a bounded observer. Restic retrieval credentials must not be
+mounted in application containers. Supply disposable database/cache credentials;
+resolve any required application secret from its approved external reference into
+protected ephemeral files, never from repository content or logged environment.
+
+Treat every restored archive as untrusted input: bound compressed and expanded
+sizes and entry counts; reject absolute/traversing paths, symlinks, hard links,
+devices and unexpected members before writing. Extract only to a new owned
+protected directory. The accepted pilot backup has directory-only media; verify
+that exact tree and retain the limitation that populated-media recovery is unproven.
+Do not silently broaden the media contract to accept unexpected files.
+
+#### Validation sequence
+
+1. Collect a separately authorized fresh read-only baseline: current application
+   health, service/container identities, image availability, storage capacity,
+   resource headroom and absence of conflicting restore resources. Inspect the
+   exact accepted snapshot and private logical-reference availability through the
+   appropriate credential boundary. Production writers need not pause for an
+   isolated historical restore; any required outage must be explicitly reviewed.
+2. Freeze exact snapshot/repository identities, payload/reference hashes, resource
+   names, destination, image digests, credentials references, per-phase deadlines,
+   memory/CPU/disk limits and cleanup boundaries. Capacity must cover dump,
+   extraction, reconstructed PostgreSQL, indexes/WAL and evidence, in addition to
+   production headroom. Do not infer database capacity from compressed dump size.
+3. Retrieve the snapshot to protected staging and verify payload hashes and
+   section inventory before extraction. Retain sanitized phase/status receipts;
+   raw database, configuration and media content remain private.
+4. Restore into an empty isolated PostgreSQL database using the pinned compatible
+   client/server. Require complete restore success and ownership/extension mapping
+   compatible with the captured application. No production database connection or
+   automatic repair is permitted.
+5. Before application startup, run the qualified logical comparator against the
+   restored database. Require exact tables/content/schema/sequence equality with
+   the preservation reference and exact media-tree equality. Independently compare
+   migration ledger, versions, recovered config/Quadlet hashes and dependency
+   manifests. Do not exclude differing tables merely to obtain a pass.
+6. After content equality, prove native application configuration and no pending
+   migrations using recovered configuration plus reviewed isolation overrides.
+   Start only isolated web/cache as needed for health, representative inventory
+   reads and deterministic exports. Compare exported results with the restored
+   fixture/reference. Application-startup writes are separate from pre-start data
+   equality; do not mistake those writes for backup corruption. Do not run
+   `post_upgrade`, create an administrator or enable a scheduler to fix a failure.
+7. Independently verify production health, unchanged production service identities,
+   no new exposed ports, resource headroom and delayed storage/OOM observations.
+   Stop and remove only proved operation-owned containers/network and ephemeral
+   credentials, attempting cleanup independently on failure. Retain protected raw
+   restore data pending explicit retention/disposal review. Receipt absence,
+   unresolved child processes or unverified credential removal blocks acceptance.
+
+#### Qualification and failure boundary
+
+Implement one reusable Ansible path and thin hash-bound launcher. Qualify the real
+retrieval, archive validation, database import and comparator against disposable
+PostgreSQL and a disposable local Restic repository before target execution.
+Exercise wrong snapshot/reference, corrupt or incomplete payload, unsafe archive
+members, restore errors, schema/content/sequence mismatches, blocked egress,
+timeouts, controller loss and independent cleanup. Offline mocks do not qualify
+native restoration; AMD64 tests do not establish ARM64 capacity or live isolation.
+
+A failure stops only isolated work and preserves evidence. Do not restore over
+production, restart production services, prune/forget snapshots, unlock/repair the
+repository, replace the reference or retry automatically. A lost controller must
+leave bounded operation-owned processes and independently recoverable evidence;
+verify their state before manual cleanup. Bind a supervised controller and node
+stop bounds to the execution bundle.
+
+Acceptance requires retrieved payload identity, pre-start logical/media equality,
+recovered application checks, production noninterference and cleanup evidence.
+Record the exact snapshot, isolated runtime and limitations in a sanitized terminal
+manifest. Archive before reconciling accepted state. This proves recovery of that
+snapshot only; it does not accept production failover, populated-media recovery,
+full stage 5, real-inventory representativeness or the seven-day pilot.
+
+#### Target restore isolation and inputs
+
+The inactive target definition is
+`manifests/application-restore-preparation.yaml`. It binds archive provenance,
+full snapshot and repository identities, the six payload hashes, private logical
+reference hash, installed ARM64 image IDs, credential references and candidate
+resource/time limits. Neither this definition nor a successful baseline activates
+`manifests/operation.yaml`; that slot stays clean until an executable operation is
+reviewed. Reverify baseline freshness and all source hashes before freezing.
+
+Use a disposable rootless PostgreSQL container with `--network=none` as the
+network namespace anchor. Redis, the application and observers join that exact
+container ID through `--network=container:ID`, using `127.0.0.1` endpoints. This
+avoids both bridge egress and a separate infra image. These modes are documented
+in the [Podman 5.4.2 run reference](https://docs.podman.io/en/v5.4.2/markdown/podman-run.1.html#network-mode-net).
+Verify namespace identity, loopback-only interfaces, absence of external routes
+and published ports before recovered application code runs. The successful local
+namespace probe is not target enforcement evidence. Do not add host networking,
+port forwarding or a production network attachment to make a failed check pass.
+
+Use new, label-bound SSD storage beneath the service account's restore area.
+No production volume or live environment file is mounted. The recovered config
+remains hash-verified; override only database/cache endpoints, database name and
+protected disposable passwords. Resolve the original Django secret through its
+approved Doppler reference if required for recovered data. Restic credentials
+stay outside application mounts and are removed independently after retrieval.
+Worker and scheduler remain stopped. Application writable directories, including
+its private 16 MiB metrics cache, retain the reviewed runtime protections.
+
+The preparation bounds propose 768 MiB PostgreSQL, 128 MiB Redis and 1024 MiB for
+one application/observer container at a time. Enforce an aggregate two-CPU ceiling
+and retain the 1536 MiB available-memory floor, five-second sampling and maximum
+15-second coverage gap. SSD working-set monitoring stops owned work above 4 GiB
+while retaining at least 8 GiB reserve; this is a sampled stop threshold, not a
+filesystem quota. Validate enforcement and import expansion locally before
+freezing. A single idle memory/disk observation does not establish loaded capacity.
+All production services continue running; no quiet window or production writer
+pause is part of this isolated historical-snapshot operation.
+
+Keep source-snapshot readback distinct from host baseline. The host collector
+reads service state, accepted artifact hashes, local image availability, capacity,
+read-only database size, health and bounded kernel history. It must preserve
+command status and the journal coverage limit; a no-match filtered journal exit
+must not discard otherwise valid observations. Collection does not resolve
+Doppler values or contact B2. Exact cloud snapshot readback remains an execution
+precondition under the separately approved credential boundary.
+
+#### Local restore implementation interface
+
+`restic/scripts/application-restore.py --root DIRECTORY` reads a protected
+`restore.json` contract and protected `repository`, `password` and
+`credentials.json` files. The contract binds the full snapshot/repository IDs,
+repository URL, exact Restic version, snapshot host/tags/path, six content hashes
+and per-section size limits. It uses exact-file `restic dump` into a newly created
+`retrieved` directory. Existing destinations, wrong metadata, nonzero commands,
+size/deadline overruns and hash differences fail. Both credential files receive
+independent cleanup attempts; payload remains private for review. This primitive
+must be invoked through the approved application restore bundle for live use;
+local qualification alone does not authorize repository access.
+
+`restore_payload.py` validates the four tar sections against an independently
+supplied exact member/type/hash map before contained extraction. It rejects links,
+devices, traversal, duplicates, oversized content and nonempty pilot media.
+`restore_runtime.py` remains the original disposable-fixture importer. The target
+adapter is `restore_node.py`, driven by `restore-application.yaml`; it imports only
+into a newly created `nautobot_restore` database inside an owned isolated
+PostgreSQL container. Both paths use a single transaction and refuse replacement
+of an existing database. Neither primitive supplies live authorization.
+
+The disposable qualification playbook is
+`ansible/playbooks/qualify-application-restore.yaml`. Its local phase adapter and
+native probe live in `tests/restore_local.py` and `tests/restore_native.py`.
+Supply a new protected evidence directory containing `qualification.json` with a
+unique `nautobot-restore-local-` prefix plus twelve hex digits, an absolute Restic
+path and full locally available image IDs keyed by `app`, `postgresql`, `redis`.
+Invoke through the repository Ansible temporary-directory wrapper, with explicit
+`restore_local_root` and absolute `restore_local_adapter` extra vars. Run outside
+the filesystem sandbox because the playbook invokes rootless Podman. It never
+pulls images, contacts the target or uses production credentials. A subsequent local
+run may supply `disposable_fixture` and `disposable_fixture_sha256` to reuse only
+the protected synthetic dump created by a prior local run; this skips fixture
+migrations, not restoration or validation. Never substitute production data.
+
+Ansible owns setup, capture, retrieval, extraction, import, pre-start logical
+comparison, native checks and negative cases; its `always` block removes only
+owned containers/network and ephemeral credentials. The fixture initializes a
+fresh Nautobot database, captures a custom dump and all six categories, and stores
+one snapshot in a disposable local Restic repository. Raw fixture payload remains
+private. Native checks cover migration readiness, Django health and deterministic
+fixture reads; they do not qualify the production uWSGI service, browser login,
+ARM64 resources, production config mapping or populated media. Local container
+user/interpreter settings are fixture accommodations, not desired-state changes.
+
+#### Target restore orchestration and qualification
+
+`restore-application.yaml` operates on one `restore_target` inventory member.
+Target transport uses administration SSH with root-owned Ansible modules and
+explicit `runuser` for rootless commands; Podman and transient user services run
+as UID 999. The launcher verifies the bundle and Ansible stages its frozen inputs into a new protected
+`/var/lib/nautobot/restore-tests/nautobot-restore-TOKEN` directory, where TOKEN is
+24 lowercase hex digits. Bind `restore_token` to that basename. Require both
+`restore_verified` and separate `restore_execution_authorized`; these flags alone
+are not a bundle-verification mechanism. The launcher also requires the exact
+active operation, source commit, reviewed CI and a baseline younger than 24 hours.
+
+The protected `runtime.json` binds context, UID, token, full image IDs, the five
+production container names and the staged Restic helper. Stage `members.json`,
+the hash-verified `logical-reference.json`, restore scripts and retrieval contract
+under the same operation boundary. Deliver credentials only after guard activation. Use
+only the independently reviewed preservation inputs to generate the member map
+with `restore_inventory.py`. The accepted preservation producer stores
+`observed-images-before-stop.json`, unlike the online workload producer's text
+inventory. Reconstructing media and dependency archives must reproduce their
+accepted section hashes before accepting that map. Never derive expected hashes
+from the downloaded payload itself.
+
+The playbook arms a user-systemd guard before retrieval. Its `ExecStopPost` calls
+owned-resource cleanup on normal stop, failure, signal or runtime expiry. A
+terminal latch prevents later phases from creating resources after cleanup starts.
+Commands hold a phase lock, poll the latch and have independent time/output bounds.
+Cleanup attempts every container, the named volume and each credential separately;
+foreign labels or incomplete removal fail acceptance. Retrieved payload and
+nonsecret receipts stay protected for review. There are no automatic retries.
+
+PostgreSQL, Redis and the single application container receive memory caps of
+768/128/1024 MiB, zero additional swap and CPU caps of 0.75/0.25/1.0. Inspect both
+requested settings and effective cgroup-v2 memory, swap and CPU controls. Retrieval
+runs separately in a transient service capped at two CPUs, 512 MiB, no swap and
+1,200 seconds; it is bound to the guard's lifecycle. No automatic image volumes,
+image pulls, published ports, workers or scheduler are created. The application
+has a read-only root, dropped capabilities, no-new-privileges and bounded writable
+`/tmp`, git, Jobs, static and metrics directories. Container UID 0 maps to the
+unprivileged rootless runtime account; no production user or image is changed.
+Transient container logging is disabled to keep restored data out of the journal;
+structured phase failures record classifications and safe stack locations.
+
+Only the new restore media directory is writable by the health probe. Its exact
+empty directory tree must match afterward. Compare the complete database logical
+identity **before** native health checks: the health backend may create/delete its
+own test row and advance a sequence. Then verify native configuration, pending
+migrations, archived versions/ledger, Django health and repeatable Manufacturer
+export hashes. This does not start uWSGI or establish browser acceptance.
+
+During target execution, Ansible also starts `restore_host_monitor.py` as a bounded
+system service from a separately staged **root-owned** script directory. Stage
+`workload_sampler.py` there with the same frozen provenance; never execute a
+service-account-writable script as root. The existing sampler checks production
+service continuity, memory, temperature, throttling, storage journal coverage and
+OOM counters. It publishes root-owned receipts under an exclusive `/run/TOKEN-monitor`
+directory. The rootless guard rejects failed or older-than-15-second receipts.
+After cleanup, retain 75 seconds of host sampling, verify fresh health, and stop
+only this operation's monitor. Raw host receipts remain for review; do not grant
+the application account journal access or sudo privileges for this test.
+
+Local qualification uses `tests/qualify_restore_target.py` to prepare disposable
+inputs from a hash-bound synthetic fixture made by the earlier local playbook.
+Run the **same** `restore-application.yaml` with a local `restore_target` inventory
+and its generated extra-vars file through the repository Ansible wrapper. Target
+host monitoring is skipped only for explicit disposable context. The helper
+`tests/qualify_restore_guard.py --qualified-root DIRECTORY` verifies actual
+user-systemd finalization after SIGKILL, independently of Ansible cleanup. Run
+both outside the filesystem sandbox because they invoke Podman. AMD64 success
+qualifies this path locally; ARM64 resource behavior, B2 retrieval, target root
+monitoring and production noninterference still require the approved live run.
+
+#### Freezing and executing the isolated restore bundle
+
+`application-restore-bundle.py freeze` takes `--operation`, `--destination`,
+`--baseline`, `--members` and `--logical` paths. The destination must be new.
+It includes the operation, all execution sources, plan, procedures, accepted and
+preparation manifests, private baseline/reference and exact member map. It binds
+accepted preservation provenance and deterministically generates runtime,
+retrieval and inventory inputs. Secret values are never frozen or hashed.
+`verify --bundle DIRECTORY --approve SHA256` additionally checks current operation
+identity, committed execution sources, reviewed CI and baseline freshness.
+
+`render-controller --bundle DIRECTORY --approve SHA256 --evidence DIRECTORY
+--ssh-socket PATH` renders the bounded user service; it does not install or start
+it. The supervised controller has a 4,500-second ceiling, its Ansible subprocess
+4,200 seconds, and the node guard 3,600 seconds plus bounded cleanup. The host
+monitor runs at most 4,200 seconds. A runtime directory on controller tmpfs and
+linger are required; manager finalization records exit status and removes that
+directory. Ansible results never automatically mark acceptance.
+
+After separate execution approval, the controller resolves only the four named
+Doppler references into one mode-0600 delivery file inside its private tmpfs.
+Ansible creates exclusive staging directories, verifies copied hashes, and runs
+the read-only production comparison from root-owned scripts. It starts the root
+monitor and rootless cleanup guard before delivering JSON through protected stdin
+with `no_log`. Credentials never appear in command arguments. The node installs
+files under the same phase lock and terminal latch used by cleanup; partial
+installation removes delivered files. A cleanup latch prevents late delivery from
+recreating credentials. Controller credentials are independently removed even
+when provider resolution or Ansible fails.
+
+Staging refuses existing roots rather than adopting retained work. Before guard
+activation, a staging failure leaves only nonsecret private inputs. After guard
+activation, its finalizer owns resource and credential removal independently of
+Ansible. The playbook also attempts cleanup, production readback and bounded
+receipt collection independently. Missing receipts or failed cleanup require
+review; never retry against the same directory. Retain the downloaded database,
+recovered configuration and logical reference privately until an explicit disposal
+decision. Do not publish raw receipts containing recovered application data.
+
+`tests/qualify_restore_delivery.py` prepares disposable inputs for the same staging
+and delivery tasks; it uses the hash-bound synthetic fixture, not production data
+or credentials. Run the generated inventory/extra-vars with the target playbook
+through the Ansible wrapper outside the sandbox. Check returned receipts and
+resource absence independently, then remove the synthetic delivery file. A second
+run must reject retained staging before delivering credentials. This local test
+does not qualify live SSH/become, root monitoring or ARM64 resource headroom.
+
 ### Freezing and running the workload bundle
 
 The single operation manifest must name `workload_qualification`, the exact

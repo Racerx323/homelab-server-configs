@@ -1,0 +1,192 @@
+---
+- name: Qualify full application recovery in an isolated rootless runtime
+  hosts: restore_target
+  gather_facts: false
+  become: '{{ restore_context == "target" }}'
+  become_user: root
+  environment:
+    XDG_RUNTIME_DIR: '{{ "/run/user/999" if restore_context == "target" else lookup("env", "XDG_RUNTIME_DIR") }}'
+    DBUS_SESSION_BUS_ADDRESS: '{{ "unix:path=/run/user/999/bus" if restore_context == "target" else lookup("env", "DBUS_SESSION_BUS_ADDRESS") }}'
+  vars:
+    restore_user_prefix: '{{ ["/usr/sbin/runuser", "--user", "nautobot", "--", "/usr/bin/env", "HOME=/var/lib/nautobot", "XDG_RUNTIME_DIR=/run/user/999", "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus"] if restore_context == "target" else [] }}'
+  tasks:
+    - name: Require pre-staged verified inputs and explicit execution scope
+      ansible.builtin.assert:
+        that:
+          - restore_verified | default(false) | bool
+          - restore_execution_authorized | default(false) | bool
+          - ansible_play_hosts_all | length == 1
+          - restore_context in ['target', 'disposable']
+          - restore_token == restore_root | basename
+          - restore_token is match('^nautobot-restore-[a-f0-9]{24}$')
+          - restore_context != 'target' or inventory_hostname == 'j2-svpi4mf'
+          - restore_context != 'target' or restore_root is match('^/var/lib/nautobot/restore-tests/nautobot-restore-[a-f0-9]{24}$')
+          - restore_context != 'disposable' or ansible_connection == 'local'
+    - name: Stage exact frozen nonsecret inputs in new private directories
+      ansible.builtin.include_tasks: restore-stage.yaml
+      when: restore_stage | default(false) | bool
+    - name: Inspect root-owned host monitor directory
+      ansible.builtin.stat:
+        path: '{{ restore_monitor_scripts }}'
+      become: true
+      become_user: root
+      when: restore_context == 'target'
+      register: restore_monitor_directory
+    - name: Require protected monitor staging
+      ansible.builtin.assert:
+        that:
+          - restore_monitor_scripts is match('^/tmp/nautobot-restore-monitor-[a-f0-9]{24}$')
+          - restore_monitor_directory.stat.isdir
+          - not restore_monitor_directory.stat.islnk
+          - restore_monitor_directory.stat.uid == 0
+          - restore_monitor_directory.stat.mode == '0700'
+      when: restore_context == 'target'
+    - name: Inspect frozen root monitor scripts
+      ansible.builtin.stat:
+        path: '{{ restore_monitor_scripts }}/{{ item }}'
+        checksum_algorithm: sha256
+      become: true
+      become_user: root
+      loop: [restore_host_monitor.py, workload_sampler.py]
+      when: restore_context == 'target'
+      register: restore_monitor_files
+    - name: Verify root monitor ownership and frozen contents before execution
+      ansible.builtin.assert:
+        that:
+          - item.stat.isreg
+          - not item.stat.islnk
+          - item.stat.uid == 0
+          - item.stat.mode == '0600'
+          - item.stat.checksum == restore_monitor_sha256[item.item]
+      loop: '{{ restore_monitor_files.results }}'
+      when: restore_context == 'target'
+    - name: Restore with node-local supervision and independent finalization
+      block:
+        - name: Start bounded host monitoring with kernel cursor as root
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemd-run
+              - '--unit={{ restore_token }}-host-monitor.service'
+              - --property=Type=exec
+              - --property=RuntimeMaxSec=4200
+              - --property=StandardOutput=null
+              - --property=StandardError=null
+              - /usr/bin/python3
+              - -B
+              - '{{ restore_monitor_scripts }}/restore_host_monitor.py'
+              - --token
+              - '{{ restore_token }}'
+          become: true
+          become_user: root
+          when: restore_context == 'target'
+          changed_when: true
+        - name: Wait for first host health receipt
+          ansible.builtin.wait_for:
+            path: '/run/{{ restore_token }}-monitor/sample.json'
+            timeout: 30
+          when: restore_context == 'target'
+        - name: Arm resource sampling and unconditional node cleanup
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "arm", "--root", restore_root] }}'
+          changed_when: true
+        - name: Deliver credentials through protected stdin only after guard activation
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "inject", "--root", restore_root] }}'
+            stdin: '{{ lookup("ansible.builtin.file", restore_credentials_file) }}'
+            stdin_add_newline: false
+          no_log: true
+          changed_when: true
+          when: restore_stage | default(false) | bool
+        - name: Retrieve only the six exact snapshot files
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "retrieve", "--root", restore_root] }}'
+          changed_when: true
+          no_log: true
+        - name: Validate all archive members before extraction
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_payload.py"), "--root", restore_root] }}'
+          changed_when: true
+        - name: Create owned bounded containers without external networking
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "start", "--root", restore_root] }}'
+          changed_when: true
+        - name: Import into a new isolated database
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "import", "--root", restore_root] }}'
+          changed_when: true
+        - name: Compare complete logical identity before application setup
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "logical", "--root", restore_root] }}'
+          changed_when: false
+        - name: Check native configuration migrations health and archived ledger
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "check", "--root", restore_root] }}'
+          changed_when: false
+      always:
+        - name: Stop guard and trigger independent node cleanup
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/systemctl", "--user", "stop", (restore_token + "-guard.service")] }}'
+          register: restore_guard_stop
+          failed_when: false
+          changed_when: true
+        - name: Independently retry and verify cleanup of every owned resource
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "cleanup", "--root", restore_root] }}'
+          register: restore_cleanup
+          failed_when: false
+          changed_when: true
+        - name: Verify production identities and health independently of cleanup outcome
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "finish", "--root", restore_root] }}'
+          register: restore_finish
+          failed_when: false
+          changed_when: false
+        - name: Observe the storage settling interval while host monitoring continues
+          ansible.builtin.pause:
+            seconds: 75
+          when: restore_context == 'target'
+        - name: Verify current host health before stopping monitoring
+          ansible.builtin.command:
+            argv: '{{ restore_user_prefix + ["/usr/bin/python3", "-B", (restore_scripts + "/restore_node.py"), "host-health", "--root", restore_root] }}'
+          when: restore_context == 'target'
+          register: restore_host_health
+          failed_when: false
+          changed_when: false
+        - name: Stop only the operation host monitor
+          ansible.builtin.command:
+            argv: '{{ ["/usr/bin/systemctl", "stop", (restore_token + "-host-monitor.service")] }}'
+          become: true
+          become_user: root
+          when: restore_context == 'target'
+          register: restore_monitor_stop
+          failed_when: false
+          changed_when: true
+        - name: Inspect bounded nonsecret receipt files independently
+          ansible.builtin.stat:
+            path: '{{ restore_root }}/{{ item }}'
+          loop: '{{ restore_receipts | default([]) }}'
+          register: restore_receipt_files
+          failed_when: false
+        - name: Fetch available regular receipts without masking execution failure
+          ansible.builtin.fetch:
+            src: '{{ restore_root }}/{{ item.item }}'
+            dest: '{{ restore_evidence }}/{{ item.item | replace("/", "-") }}'
+            flat: true
+          loop: '{{ restore_receipt_files.results }}'
+          loop_control:
+            label: '{{ item.item }}'
+          when:
+            - item.stat is defined
+            - item.stat.isreg | default(false)
+            - not item.stat.islnk | default(false)
+            - item.stat.size | default(0) <= 4194304
+          register: restore_fetch
+          failed_when: false
+        - name: Require complete cleanup and unchanged production
+          ansible.builtin.assert:
+            that:
+              - restore_guard_stop.rc == 0
+              - restore_cleanup.rc == 0
+              - restore_finish.rc == 0
+              - restore_context != 'target' or restore_host_health.rc == 0
+              - restore_context != 'target' or restore_monitor_stop.rc == 0

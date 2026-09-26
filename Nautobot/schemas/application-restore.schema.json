@@ -1,0 +1,168 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "token",
+    "root",
+    "monitor_root",
+    "plan_sha256",
+    "accepted_state_sha256",
+    "preparation_sha256",
+    "members_sha256",
+    "logical_sha256",
+    "ci_success_commit",
+    "restic_version",
+    "baseline",
+    "boundaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "stage",
+        "id",
+        "target",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "properties": {
+        "state": {
+          "const": "definition"
+        },
+        "stage": {
+          "const": "isolated_application_restore"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"
+        },
+        "target": {
+          "const": "j2-svpi4mf"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      }
+    },
+    "token": {
+      "type": "string",
+      "pattern": "^nautobot-restore-[a-f0-9]{24}$"
+    },
+    "root": {
+      "type": "string",
+      "pattern": "^/var/lib/nautobot/restore-tests/nautobot-restore-[a-f0-9]{24}$"
+    },
+    "monitor_root": {
+      "type": "string",
+      "pattern": "^/tmp/nautobot-restore-monitor-[a-f0-9]{24}$"
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "accepted_state_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "preparation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "members_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "logical_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ci_success_commit": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      ]
+    },
+    "restic_version": {
+      "const": "restic 0.18.0 compiled with go1.24.4 on linux/arm64"
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collected_at",
+        "sha256",
+        "boot_id",
+        "artifact_sha256",
+        "services"
+      ],
+      "properties": {
+        "collected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "artifact_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^/var/lib/nautobot/(runtime/[A-Za-z0-9_-]+\\.py|\\.config/containers/systemd/nautobot-[A-Za-z0-9_.-]+)$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "services": {
+          "type": "object",
+          "required": [
+            "postgresql",
+            "redis",
+            "web",
+            "worker",
+            "scheduler"
+          ],
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "const": {
+        "production_service_changes": false,
+        "production_volume_restore": false,
+        "reboot": false,
+        "image_pull": false,
+        "snapshot_deletion": false,
+        "worker_or_scheduler_start": false,
+        "isolated_restore": true
+      }
+    }
+  }
+}
