@@ -548,8 +548,8 @@ part of the reviewed operation. The current preparation authorizes none of these
 live mutations.
 
 The recovery stage and later reboot each need an exact bundle. An accepted backup
-and dump listing do not prove a full isolated restore. Keep the latter as its own
-unfulfilled acceptance gate. Preserve prior cold copies and snapshots throughout.
+and dump listing do not prove a full isolated restore. Require its separate
+acceptance record for the selected snapshot and scope. Preserve prior cold copies and snapshots throughout.
 
 #### Application preservation bundle preparation
 

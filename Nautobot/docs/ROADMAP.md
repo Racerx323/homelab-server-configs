@@ -4,8 +4,8 @@
 
 The isolated historical application restore is accepted and archived. Accepted
 state/history are reconciled and the active operation is clean. Next: review the
-remaining stage-5 gaps against the intended pilot scope before preparing another
-live stage. No repeat restore is needed. Private review:
+remaining stage-5 gaps below and define recurring application protection before
+preparing another live stage. No repeat restore is needed. Private review:
 `nautobot-restore-workdir-20260926/REVIEW.json`.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -62,6 +62,28 @@ copies remain private; no host cleanup or restore was performed during reconcili
 | Application restore | Bounded historical restore passed; archived and reconciled; populated media remains unqualified | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |
+
+## Stage-5 gap review
+
+Repository review on September 26 found the following gaps. This review did not
+contact hosts, resolve credentials or inspect live timers; absence of a repository
+implementation is not proof that a host has no manually configured schedule.
+
+| Area | Evidence and gap | Next decision or work |
+| --- | --- | --- |
+| Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. Intended inventory scale, DNS record mix, media use and Job mix are not bound to an accepted comparison. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Obtain the intended pilot inventory/export and workload envelope, then compare them with the accepted fixture. Repeat only testing needed to cover material differences. |
+| Nightly backup | The shared producer and application capture have qualified one-shot execution. No Nautobot-owned recurring backup unit or schedule was found. The online capture explicitly requires a quiet window and directory-only media. | Define unattended execution/credential ownership, writer/media consistency, schedule/timezone, bounded duration, non-overlap and missed-run behavior before implementing a timer. A historical manual quiet-window approval is not recurring authority. |
+| Weekly integrity | Full integrity passed for accepted operations. No recurring check policy or schedule was found. | Choose the plan's full-check policy or an explicitly reviewed subset policy; a subset does not replace full integrity acceptance. |
+| Retention | Plan requires 7 daily, 5 weekly and 12 monthly snapshots; no consumer retention execution contract was found. | Review exact snapshot grouping/selection and dry-run candidates. Authorize deletion/retention separately; backup approval does not authorize forget/prune. |
+| Monthly restore | Bounded historical restore is accepted; no monthly scheduling contract was found. Media contained directories only. | Define exact-snapshot selection, supervision and retained-payload disposal. Qualify populated-media capture/restore before relying on it for uploads. |
+| Monitoring | Accepted host/runtime/workload observations and internal metrics support exist. These do not prove ongoing backup-age, integrity-failure or missed-schedule alerts. No Nautobot-owned recurring protection alert path was found in the reviewed sources. | Review existing Munin/notification ownership and select observable outcomes, alert destination and failure/recovery tests. Internal Prometheus files do not imply a deployed scraper. |
+| Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
+
+The immediate implementation candidate is the recurring application-backup
+contract, reusing the qualified capture/Restic primitives after the consistency
+and unattended-credential decisions above. Workload comparison can proceed in
+parallel once the intended inventory is supplied. This review grants no scheduled
+execution, host contact, retention deletion or Caddy publication.
 
 ## Evidence limits carried forward
 
