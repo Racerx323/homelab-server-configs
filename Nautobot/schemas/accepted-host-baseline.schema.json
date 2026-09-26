@@ -683,6 +683,100 @@
           "const": false
         }
       }
+    },
+    "reboot_persistence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "bundle_sha256",
+        "result_sha256",
+        "decision",
+        "boot_id",
+        "controller_exit_status",
+        "controller_success",
+        "native_boot_gate_executed",
+        "logical_identity_equal",
+        "writer_recovery_passed",
+        "effective_resource_review_passed",
+        "reporting_correction_deployed",
+        "full_application_restore_verified",
+        "full_stage_5_accepted"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "single_host_bounded_reboot_persistence"
+        },
+        "operation": {
+          "const": "nautobot-reboot-persistence-v1"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_tag": {
+          "const": "nautobot-reboot-persistence-v1-accepted"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "decision": {
+          "const": "accepted_with_collection_reporting_defect"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "controller_exit_status": {
+          "const": 2
+        },
+        "controller_success": {
+          "const": false
+        },
+        "native_boot_gate_executed": {
+          "const": true
+        },
+        "logical_identity_equal": {
+          "const": true
+        },
+        "writer_recovery_passed": {
+          "const": true
+        },
+        "effective_resource_review_passed": {
+          "const": true
+        },
+        "reporting_correction_deployed": {
+          "const": false
+        },
+        "full_application_restore_verified": {
+          "const": false
+        },
+        "full_stage_5_accepted": {
+          "const": false
+        }
+      }
     }
   }
 }

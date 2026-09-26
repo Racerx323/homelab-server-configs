@@ -264,6 +264,17 @@ class Contracts(unittest.TestCase):
         del baseline_only['application_startup']
         validate(schema, baseline_only)
 
+    def test_reboot_acceptance_retains_reporting_defect_and_scope(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(schema, accepted)
+        for key, value in [('controller_exit_status', 0), ('controller_success', True),
+                           ('full_stage_5_accepted', True), ('full_application_restore_verified', True),
+                           ('reporting_correction_deployed', True), ('archive_commit', 'pending')]:
+            bad = copy.deepcopy(accepted)
+            bad['reboot_persistence'][key] = value
+            with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_status_provenance_matches_frozen_definition(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())
         operation = copy.deepcopy(schema['const'])

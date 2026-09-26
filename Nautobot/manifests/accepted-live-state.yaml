@@ -157,3 +157,24 @@ recovery_preservation:
   restore_verified: false
   reboot_persistence_accepted: false
   current_data_identity_rechecked: false
+reboot_persistence:
+  state: accepted
+  scope: single_host_bounded_reboot_persistence
+  operation: nautobot-reboot-persistence-v1
+  reviewed_at: '2026-09-25T22:34:39.464494+00:00'
+  terminal_tag: nautobot-reboot-persistence-v1-accepted
+  archive_commit: b3bd5070fa8d0c77be7fe2bc57042eb2e959f33c
+  tag_object: f7ae81b25e3c39a0d14ee23563ac35982b39d679
+  bundle_sha256: e7707d159a1c3711d6633bd48562199f274b5fd511c6b7b5d9fde5f5bf59c4bd
+  result_sha256: 8c1d0e438dc9152bcfecf198623538a04c12e33f0715168b19ad645cb83cce6e
+  decision: accepted_with_collection_reporting_defect
+  boot_id: 237b64d9-5496-44a2-9a90-a2285d17914b
+  controller_exit_status: 2
+  controller_success: false
+  native_boot_gate_executed: true
+  logical_identity_equal: true
+  writer_recovery_passed: true
+  effective_resource_review_passed: true
+  reporting_correction_deployed: false
+  full_application_restore_verified: false
+  full_stage_5_accepted: false

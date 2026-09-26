@@ -536,3 +536,18 @@ recheck and reboot persistence remain unproven. Published tag
 `f5ec66896b5b9bd42846d3692ef91a9ebf260ae1`. Consumed files were byte-verified
 against the tag before removal from main. Archived publication-pending fields are
 historical; protected host staging remains retained and the operation slot is clean.
+
+## Accepted bounded reboot persistence
+
+`nautobot-reboot-persistence-v1` accepted one reboot, automatic boot-readiness execution,
+logical data continuity, writer recovery and final access/resource/storage checks.
+The original controller exit 2 is retained: final collection incorrectly required
+two preboot-only tmpfs files; all nine controller receipts were preserved and seven
+surviving node receipts matched independently. No repeat reboot or correction
+deployment occurred. Published tag `nautobot-reboot-persistence-v1-accepted`:
+commit `b3bd5070fa8d0c77be7fe2bc57042eb2e959f33c`, tag object
+`f7ae81b25e3c39a0d14ee23563ac35982b39d679`. Consumed public files were byte-verified
+against the tag before removal; private logical input remains outside Git with its
+hash in the archive. `reboot_persistence` records acceptance and provenance; earlier
+stage-local unproven fields remain historical. The operation slot is clean.
+Full application restore and full stage-5 acceptance remain open.
