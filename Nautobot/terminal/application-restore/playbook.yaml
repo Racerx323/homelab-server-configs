@@ -7,9 +7,6 @@
   environment:
     XDG_RUNTIME_DIR: '{{ "/run/user/999" if restore_context == "target" else lookup("env", "XDG_RUNTIME_DIR") }}'
     DBUS_SESSION_BUS_ADDRESS: '{{ "unix:path=/run/user/999/bus" if restore_context == "target" else lookup("env", "DBUS_SESSION_BUS_ADDRESS") }}'
-  module_defaults:
-    ansible.builtin.command:
-      chdir: '{{ "/var/lib/nautobot" if restore_context == "target" else "/" }}'
   vars:
     restore_user_prefix: '{{ ["/usr/sbin/runuser", "--user", "nautobot", "--", "/usr/bin/env", "HOME=/var/lib/nautobot", "XDG_RUNTIME_DIR=/run/user/999", "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus"] if restore_context == "target" else [] }}'
   tasks:

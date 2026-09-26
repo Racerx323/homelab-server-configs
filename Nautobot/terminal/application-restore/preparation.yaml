@@ -1,0 +1,111 @@
+---
+schema_version: 1
+kind: isolated_application_restore_preparation
+execution_authorized: false
+authorization_ready: false
+target:
+  host: j2-svpi4mf
+  administration: ama@10.1.2.170
+  runtime_account: nautobot
+  uid: 999
+  platform: linux/arm64
+source:
+  terminal_tag: nautobot-recovery-preservation-v2-accepted
+  archive_commit: 2c161602ff40662e71377db6944d4bd4ccbc59b2
+  repository_id: 536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9
+  repository_url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
+  snapshot_id: 7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c
+  hostname: j2-svpi4mf
+  tags:
+    - nautobot-recovery-preservation-v2
+  payload_path: /tmp/nautobot-preservation.b90134e6bcf541ba83acebb3dd7eb822/payload
+  receipt_sha256: f0590887c6ffaefcd4978421d24a45d3cdc824b87a78ed855290c676ea425b4d
+  logical_reference_sha256: df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270
+  content_sha256:
+    configuration: cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2
+    image_dependency_manifest: 9c0f85c2a3fc9770286f2c2641a958f131d6e4a5300619c76e3b2b5e1cc5649a
+    media: 6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04
+    postgresql_custom_dump: 51de3bd686c18a684ff28dc31c06ddefa9e63694762439fae52938e712a1d115
+    quadlet_config_hashes: a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0
+    versions_migrations: 1271747b9ce460b3c05ab185108363d6ca21a50cb98909a3c8ff4007c39ca025
+  reference: preservation_time_not_current_live_database
+baseline:
+  collected_at: '2026-09-26T16:35:55.319560+00:00'
+  boot_id: 237b64d9-5496-44a2-9a90-a2285d17914b
+  sha256: 5148a8233d326bd808020a5b3d3b1a192b709f654d6da88cb7f04aa01b9a8038
+  freshness_seconds: 86400
+  live_repository_contacted: false
+runtime:
+  image_ids:
+    application: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+    postgresql: 46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf
+    redis: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
+  image_pull: never
+  podman_version: 5.4.2
+  postgresql_network: none
+  client_network: container:EXACT_RESTORE_POSTGRESQL_ID
+  endpoint: 127.0.0.1
+  published_ports: []
+  workers: false
+  scheduler: false
+  production_service_changes: false
+  production_volumes_mounted: false
+  postgresql_database: nautobot_restore
+  postgresql_user: nautobot
+  root_filesystem: read_only_for_application
+  metrics_tmpfs_mib: 16
+  identity_and_volume_names: unique_operation_token_with_verified_labels_before_cleanup
+  staging_parent: /var/lib/nautobot/restore-tests
+  staging_mode: '0700'
+  postgresql_storage: new_owned_ssd_volume_not_production
+  media_storage: new_owned_directory_empty_tree_only
+configuration:
+  source: recovered_hash_verified_nautobot_config.py
+  overrides:
+    NAUTOBOT_DB_HOST: 127.0.0.1
+    NAUTOBOT_DB_NAME: nautobot_restore
+    NAUTOBOT_DB_USER: nautobot
+    NAUTOBOT_REDIS_HOST: 127.0.0.1
+  database_and_cache_passwords: ephemeral_generated_values_in_protected_files
+  django_secret_reference: homelab-dev/prd_nautobot/NAUTOBOT_DJANGO_SECRET_KEY
+  restic_secret_references:
+    - homelab-dev/prd_restic/NAUTOBOT_RESTIC_REPOSITORY_PASSWORD
+    - homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
+    - homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY
+  archive_member_map_sha256: 6c9917862f9f3d901e6b1a1d209b6113b307f1c7a634e36937794874c73bffbb
+  production_env_file_reuse: false
+  secret_resolution_performed: false
+candidate_bounds:
+  postgresql_memory_mib: 768
+  redis_memory_mib: 128
+  application_memory_mib: 1024
+  aggregate_cpu_limit: 2
+  free_memory_floor_mib: 1536
+  working_set_stop_gib: 4
+  disk_reserve_gib: 8
+  sampling_seconds: 5
+  maximum_sample_gap_seconds: 15
+  retrieval_timeout_seconds: 1200
+  import_timeout_seconds: 600
+  logical_timeout_seconds: 360
+  application_check_timeout_seconds: 600
+  controller_timeout_seconds: 4200
+  controller_service_stop_seconds: 4500
+  node_guard_stop_seconds: 3600
+  host_monitor_stop_seconds: 4200
+  delayed_storage_seconds: 75
+  status: locally_enforced_target_execution_unqualified
+acceptance:
+  - exact_snapshot_and_six_section_hashes
+  - safe_archive_inventory
+  - pre_start_logical_and_empty_media_equality
+  - native_configuration_and_migration_readiness
+  - isolated_health_and_deterministic_exports
+  - only_loopback_interfaces_no_external_routes_or_ports
+  - unchanged_production_services_and_health
+  - independent_owned_resource_and_credential_cleanup
+remaining_prerequisites:
+  - execution_time_target_resource_and_monitor_preflight
+  - exact_repository_snapshot_readback_at_authorized_execution
+  - commit_publication_and_ci
+  - exact_bundle_execution_approval

@@ -1261,13 +1261,7 @@ user/interpreter settings are fixture accommodations, not desired-state changes.
 `restore-application.yaml` operates on one `restore_target` inventory member.
 Target transport uses administration SSH with root-owned Ansible modules and
 explicit `runuser` for rootless commands; Podman and transient user services run
-as UID 999. All Ansible command tasks use `/var/lib/nautobot` as their target
-working directory (including staging and finalizers); disposable tasks use `/`.
-Changing HOME alone does not change the inherited SSH directory. Guard and
-retrieval units explicitly use the protected operation root as WorkingDirectory.
-Qualify this boundary from an inaccessible administration directory across a real
-UID transition; a same-user disposable run alone does not cover it. Production
-inspection and HTTP failures retain distinct sanitized command labels. The launcher verifies the bundle and Ansible stages its frozen inputs into a new protected
+as UID 999. The launcher verifies the bundle and Ansible stages its frozen inputs into a new protected
 `/var/lib/nautobot/restore-tests/nautobot-restore-TOKEN` directory, where TOKEN is
 24 lowercase hex digits. Bind `restore_token` to that basename. Require both
 `restore_verified` and separate `restore_execution_authorized`; these flags alone

@@ -1,0 +1,6 @@
+{
+  "logical-reference.json": {
+    "sha256": "df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270",
+    "reason": "Private logical reference remains outside Git; exact consumed input is bound by hash."
+  }
+}

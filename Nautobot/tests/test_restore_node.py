@@ -21,6 +21,45 @@ class NodeTests(unittest.TestCase):
         with self.assertRaisesRegex(node.Blocked, 'command_output_bound'):
             node.bounded(['/usr/bin/python3', '-c', 'print("x"*10000)'], maximum=100)
 
+    def test_named_failure_does_not_disclose_stderr(self):
+        with self.assertRaisesRegex(node.Blocked, "^production_http_health_command_exit_7$"):
+            node.bounded(["/usr/bin/python3", "-c", "import sys; print('synthetic-private-value', file=sys.stderr); sys.exit(7)"], label="production_http_health")
+        with self.assertRaisesRegex(node.Blocked, "diagnostic_label"):
+            node.bounded(["/usr/bin/true"], label="unsafe value")
+
+    def test_supervised_helpers_bind_working_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = object.__new__(node.Restore)
+            runtime.root = Path(directory); runtime.token = 'nautobot-restore-'+'a'*24
+            runtime.unit = runtime.token+'-guard.service'
+            runtime.spec = {'restic_helper':'/tmp/application-restore.py'}
+            commands = []
+            def execute(argv, **kwargs):
+                commands.append(argv)
+                (runtime.root/'guard.json').write_text('{}')
+                return b''
+            with patch.object(runtime, 'sample'), patch.object(runtime, 'production', return_value={}), patch.object(runtime, 'active'), patch.object(node, 'bounded', side_effect=execute):
+                runtime.arm()
+                runtime.retrieve()
+            self.assertEqual(len(commands), 2)
+            for argv in commands:
+                self.assertIn('--property=WorkingDirectory='+directory, argv)
+
+    def test_command_defaults_cover_staging_and_finalization(self):
+        import yaml
+        play = yaml.safe_load((SCRIPTS.parent/'playbooks/restore-application.yaml').read_text())[0]
+        self.assertEqual(play['module_defaults']['ansible.builtin.command']['chdir'],
+                         '{{ "/var/lib/nautobot" if restore_context == "target" else "/" }}')
+        def visit(tasks):
+            for task in tasks:
+                if 'ansible.builtin.command' in task:
+                    self.assertNotIn('chdir', task['ansible.builtin.command'])
+                    self.assertNotIn('module_defaults', task)
+                for key in ('block', 'always', 'rescue'):
+                    visit(task.get(key, []))
+        visit(play['tasks'])
+        visit(yaml.safe_load((SCRIPTS.parent/'playbooks/restore-stage.yaml').read_text()))
+
     def test_stop_latch_interrupts_command(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); (root/'stopped.json').write_text('{}')

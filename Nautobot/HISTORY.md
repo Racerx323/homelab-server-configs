@@ -551,3 +551,15 @@ against the tag before removal; private logical input remains outside Git with i
 hash in the archive. `reboot_persistence` records acceptance and provenance; earlier
 stage-local unproven fields remain historical. The operation slot is clean.
 Full application restore and full stage-5 acceptance remain open.
+
+## Failed isolated application restore
+
+`nautobot-application-restore-v1` failed during guard arming before target credential
+delivery or snapshot retrieval. Rootless Podman inherited an inaccessible working
+directory. Controller/Ansible exit 2 is retained. Independent cleanup verified
+absent restore resources and credentials, inactive monitor/guard, unchanged
+production service identities and HTTP 200 from the service account directory.
+Accepted live state is unchanged. The exact consumed bundle and sanitized result
+are preserved in `terminal/application-restore`; the private logical reference
+is represented only by its hash. Intended tag: `nautobot-application-restore-v1-failed`;
+publication remains pending. Protected nonsecret host staging remains retained.

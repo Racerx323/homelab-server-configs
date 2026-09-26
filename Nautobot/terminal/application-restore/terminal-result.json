@@ -1,0 +1,49 @@
+{
+  "approval": "f380f5724de4f36c8800c9da155767bf7d6007a21e50d26260037e66f88b48a8",
+  "accepted": false,
+  "outcome": "failed_before_target_credential_delivery",
+  "controller_exit": 2,
+  "ansible_exit": 2,
+  "failed_phase": "arm",
+  "cause": "rootless podman exec inherited inaccessible /home/ama working directory",
+  "diagnostic_confirmation": {
+    "cwd": "/var/lib/nautobot",
+    "command_status": 0,
+    "http_status": 200
+  },
+  "completed": [
+    "nonsecret staging and hash readback",
+    "production preflight",
+    "root host monitor",
+    "independent cleanup and final readback"
+  ],
+  "not_executed": [
+    "target credential delivery",
+    "snapshot retrieval",
+    "restore container creation",
+    "database import",
+    "restored application validation"
+  ],
+  "controller_doppler_resolution_occurred": true,
+  "controller_credentials_removed": true,
+  "target_credentials_absent": true,
+  "restore_containers_and_volume_absent": true,
+  "production_service_identities_unchanged": true,
+  "monitor_and_guard_inactive": true,
+  "retry_performed": false,
+  "residue": "Retained nonsecret staging, private evidence and failed controller unit; consumed definition preserved pending terminal archival.",
+  "evidence_sha256": {
+    "ansible-inputs.json": "65575b2de0ba980d7e0758c48b516104364d08fbf4be8656f797e8c66f27c0fa",
+    "arm-failure.json": "36162777298f4d602b928a15eb23049497c034d9efed9275aaad1208eb8e9b50",
+    "cleanup-result.json": "08a9cdda593c2bdeed61800a4a03a6c60c80c15b82fd52ae5719fbaa8202e19c",
+    "controller-result.json": "e0903f32df066c8f4c443dad0dd387da4aeb38f9fdefd2fdac1f8251f92d641b",
+    "controller-started.json": "7f234a874ad2cbf3c6350b782261daa23ac1c30bd090838f8a3b1088b81c4dbc",
+    "controller-stop.json": "04c95c32b4c051533365af12cfed5258de14eb69fc82052674a7ab5cbd61043b",
+    "credential-cleanup.json": "af4f660ff6d9d67a34ed77eadf5a1263a14c2bc270d65406d1c5d298097c2931",
+    "finish-failure.json": "36162777298f4d602b928a15eb23049497c034d9efed9275aaad1208eb8e9b50",
+    "health-working-directory.json": "45af6605a2e08bf4cb639c4c721db149c0f0de092dec4233f405d9eb7ba8f723",
+    "independent-terminal.json": "39542020a161626a8e2344661c3f5770bf16538f164472417b999fe3291fb163",
+    "private-health-diagnostic.json": "41b1c71041d0f5ea29abe3695b01d79f7b00e2ae8d85a0fd9f2c5e6ac7f6ee4d",
+    "stopped.json": "1acdbc56043049b672c7fc5333ba266d0e5c9d2dad436627a7508b0cdd4047bb"
+  }
+}

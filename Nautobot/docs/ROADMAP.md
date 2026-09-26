@@ -29,7 +29,7 @@ size about 46 MiB. No matching storage/OOM errors appeared in the bounded
 acceptance. Private review: `nautobot-restore-baseline-20260926/REVIEW.json`.
 
 Snapshot payload and private logical-reference hashes match the published archive.
-No Doppler resolution, B2 contact, download or target mutation occurred. A separate
+During that baseline, no Doppler resolution, B2 contact, download or target mutation occurred. A separate
 local probe verified shared loopback-only container networking and cleanup; target
 namespace enforcement remains unproven. The first collector's filtered-journal
 nonzero exit is retained privately; the complete revised collection exited zero.
@@ -58,13 +58,26 @@ failures, terminal delivery rejection and altered frozen runtime inputs. Evidenc
 `nautobot-restore-delivery-20260926`. A wrong-snapshot run after credential
 delivery also proved independent cleanup (`nautobot-restore-delivery-fault-20260926`).
 The real baseline caught and corrected a validator assumption: deployed nonsecret
-runtime Python files are mode 0644; Quadlets are mode 0600. No target contact or
-real secrets were used.
+runtime Python files are mode 0644; Quadlets are mode 0600. The disposable
+delivery qualification used no target contact or real secrets.
 
-Next: publish the implementation, verify CI and baseline freshness, then freeze
-one exact operation bundle for execution approval. The operation slot is clean.
-Full production restore, ARM64 load headroom, live staging/monitoring and
-populated-media recovery remain unproven; local Django checks do not qualify
+Implementation publication and repository CI passed. The authorized September 26
+restore execution failed while arming its cleanup guard, before target credential
+delivery, snapshot retrieval or restore container creation. Rootless Podman
+inherited inaccessible `/home/ama`; the same read-only health probe from
+`/var/lib/nautobot` returned HTTP 200. Controller exit 2 is retained.
+Independent cleanup verified absent restore resources and credentials, inactive
+monitor/guard, and unchanged identities for all five production services.
+Controller-resolved credentials were removed. Nonsecret staging and the consumed
+operation definition remain retained pending terminal archival. Private review:
+`nautobot-restore-bundle-20260926/REVIEW.json`.
+
+Next: correct working-directory handling and targeted diagnostics, qualify the
+privilege-transition path, then archive the failure and prepare a separately
+authorized retry. Do not rerun the consumed bundle. Full production restore,
+ARM64 restore-load headroom, target namespace enforcement and populated-media
+recovery remain unproven. Successful staging and brief host monitoring do not
+qualify monitoring across a full restore; local Django checks do not qualify
 production uWSGI/browser use.
 
 Bounded reboot persistence is accepted and archived. One reboot changed the boot

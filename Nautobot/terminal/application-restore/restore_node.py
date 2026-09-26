@@ -48,8 +48,7 @@ def save(path, value):
     os.replace(temporary, path)
 
 
-def bounded(argv, *, root=None, timeout=30, data=None, maximum=4194304, label=None):
-    if label is not None: require(re.fullmatch(r"[a-z][a-z0-9_]{0,63}", label), "diagnostic_label")
+def bounded(argv, *, root=None, timeout=30, data=None, maximum=4194304):
     # stderr can contain credentials or application data; retain only status/class.
     with tempfile.TemporaryFile() as source, tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         if data is not None: source.write(data); source.seek(0)
@@ -61,7 +60,7 @@ def bounded(argv, *, root=None, timeout=30, data=None, maximum=4194304, label=No
                 require(out.tell() <= maximum and err.tell() <= maximum, 'command_output_bound')
                 if root is not None: require(not (root/'stopped.json').exists(), 'guard_stopped')
                 time.sleep(.1)
-            require(process.returncode == 0, (label+'_' if label else '')+'command_exit_'+str(process.returncode))
+            require(process.returncode == 0, 'command_exit_'+str(process.returncode))
             require(out.tell() <= maximum and err.tell() <= maximum, 'command_output_bound')
             out.seek(0)
             return out.read()
@@ -110,14 +109,14 @@ class Restore:
         result = {}
         for name in self.spec['production_containers']:
             require(re.fullmatch('nautobot-(postgresql|redis|web|worker|scheduler)', name), 'production_name')
-            obj = json.loads(self.call(['/usr/bin/podman', 'inspect', name], label='production_inspect'))[0]
+            obj = json.loads(self.call(['/usr/bin/podman', 'inspect', name]))[0]
             require(obj['State']['Running'], 'production_not_running')
             result[name] = {k: obj[k] for k in ('Id', 'Image')}
             result[name]['StartedAt'] = obj['State']['StartedAt']
         if self.spec['context'] == 'target':
             require(len(result) == 5, 'production_inventory')
             code = "import urllib.request; assert urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8080/health/', headers={'Host':'nautobot.local.theama.co'}), timeout=5).status == 200"
-            self.call(['/usr/bin/podman', 'exec', 'nautobot-web', 'python3', '-c', code], label='production_http_health')
+            self.call(['/usr/bin/podman', 'exec', 'nautobot-web', 'python3', '-c', code])
         return result
 
     def host_health(self):
@@ -160,7 +159,7 @@ class Restore:
         require(re.fullmatch('/[A-Za-z0-9_./-]+', str(self.root)), 'guard_path')
         require(re.fullmatch('/[A-Za-z0-9_./-]+', script), 'guard_script')
         bounded(['/usr/bin/systemd-run', '--user', '--unit='+self.unit, '--property=Type=exec',
-                 '--property=WorkingDirectory='+str(self.root), '--property=Restart=no', '--property=RuntimeMaxSec=3600', '--property=TimeoutStopSec=240',
+                 '--property=Restart=no', '--property=RuntimeMaxSec=3600', '--property=TimeoutStopSec=240',
                  '--property=ExecStopPost=/usr/bin/python3 -B '+script+' cleanup --root '+str(self.root),
                  '/usr/bin/python3', '-B', script, 'guard', '--root', str(self.root)])
         for _ in range(100):
@@ -242,7 +241,6 @@ class Restore:
         require(re.fullmatch('/[A-Za-z0-9_./-]+', helper), 'helper_path')
         self.call(['/usr/bin/systemd-run', '--user', '--wait', '--collect',
                    '--unit='+self.token+'-retrieval.service', '--property=Type=exec',
-                   '--property=WorkingDirectory='+str(self.root),
                    '--property=BindsTo='+self.unit, '--property=After='+self.unit,
                    '--property=CPUQuota=200%', '--property=MemoryMax=512M',
                    '--property=MemorySwapMax=0', '--property=RuntimeMaxSec=1200',
