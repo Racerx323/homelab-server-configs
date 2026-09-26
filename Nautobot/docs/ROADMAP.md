@@ -2,9 +2,10 @@
 
 ## Current next action
 
-The isolated historical application restore passed on September 26. Next: archive
-the consumed bundle and bounded acceptance decision, then reconcile accepted state
-and clear the active operation. No repeat restore is needed. Private review:
+The isolated historical application restore is accepted and archived. Accepted
+state/history are reconciled and the active operation is clean. Next: review the
+remaining stage-5 gaps against the intended pilot scope before preparing another
+live stage. No repeat restore is needed. Private review:
 `nautobot-restore-workdir-20260926/REVIEW.json`.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -25,7 +26,7 @@ not qualify populated-media recovery, restored uWSGI/browser serving, general
 resource headroom or current-data disaster recovery. Full stage 5 remains open.
 The [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) owns criteria;
 [OPERATIONS](OPERATIONS.md#isolated-full-application-restore-preparation) owns the
-reusable procedure. Accepted-state reconciliation awaits terminal archival.
+reusable procedure. The published archive and accepted state retain this bounded decision.
 
 Bounded reboot persistence is accepted and archived. One reboot changed the boot
 identity; all five services activated automatically and native boot-readiness
@@ -58,7 +59,7 @@ copies remain private; no host cleanup or restore was performed during reconcili
 | Synthetic workload | Accepted only for repeat-fixture workload, 15 Jobs and application-backup overlap/integrity | [Synthetic acceptance](../manifests/accepted-live-state.yaml) |
 | Real-inventory representativeness | Open; compare scale and operation mix with intended inventory | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification) |
 | Logout and reboot persistence | Bounded PAM logout archived; bounded reboot archived with reporting defect | [Procedures](OPERATIONS.md#persistence-procedure) |
-| Application restore | Bounded historical restore passed; terminal archival/reconciliation pending; populated media remains unqualified | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
+| Application restore | Bounded historical restore passed; archived and reconciled; populated media remains unqualified | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |
 
@@ -77,7 +78,7 @@ retries automatically. Historical interruption and cleanup limits remain.
 The repeat imports reused a retained owned fixture. Initial-import evidence is
 separate; synthetic success is not a claim of production representativeness.
 The preserved application snapshot now passed bounded isolated restore with
-directory-only media, pending archival. Full stage 5 remains unaccepted.
+directory-only media, archived and reconciled. Full stage 5 remains unaccepted.
 
 Earlier stage-specific remaining-gate fields describe what that stage did not
 accept. Read them with the newer workload and persistence records; do not reinterpret

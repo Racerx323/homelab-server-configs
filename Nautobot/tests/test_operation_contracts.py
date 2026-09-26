@@ -268,6 +268,23 @@ class Contracts(unittest.TestCase):
         del baseline_only['application_startup']
         validate(schema, baseline_only)
 
+    def test_application_restore_acceptance_retains_scope_and_provenance(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        validate(schema, accepted)
+        for field in accepted['application_restore']:
+            bad = copy.deepcopy(accepted)
+            del bad['application_restore'][field]
+            with self.assertRaises(ValidationError): validate(schema, bad)
+        for field, value in [('full_stage_5_accepted', True),
+                             ('populated_media_recovery_qualified', True),
+                             ('restored_uwsgi_browser_qualified', True),
+                             ('current_data_disaster_recovery_qualified', True),
+                             ('archive_commit', 'pending'), ('logical_identity_equal', False)]:
+            bad = copy.deepcopy(accepted)
+            bad['application_restore'][field] = value
+            with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_reboot_acceptance_retains_reporting_defect_and_scope(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())

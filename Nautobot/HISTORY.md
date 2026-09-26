@@ -575,8 +575,11 @@ preparation; accepted live state is unchanged.
 ARM64 database import, complete logical equality, native checks and directory-only
 media verification. Controller and Ansible exited zero; nine receipts matched
 independent readback. Resource/credential cleanup and production continuity passed.
-Intended tag: `nautobot-application-restore-v2-accepted`; publication is pending.
-The exact consumed bundle and sanitized result are in `terminal/application-restore`;
-the private logical reference is represented only by its hash. Protected payload
+Published tag: `nautobot-application-restore-v2-accepted`, commit
+`9fcc94c5b3ab3453d2dc751bb0ec4742a8fbb332`, tag object
+`0dcb5d98f95764d58de55ccf025d943d2e20f3f7`. Consumed public files were byte-verified against the
+published tag before removal. The private logical reference remains hash-bound
+outside Git. `application_restore` records bounded acceptance and provenance;
+the active operation is clean. Archived publication-pending fields are historical. Protected payload
 and staging remain retained. Populated media, restored uWSGI/browser serving,
 current-data disaster recovery and full stage-5 acceptance remain unqualified.

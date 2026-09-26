@@ -777,6 +777,110 @@
           "const": false
         }
       }
+    },
+    "application_restore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "terminal_tag",
+        "archive_commit",
+        "tag_object",
+        "bundle_sha256",
+        "result_sha256",
+        "snapshot_id",
+        "controller_exit_status",
+        "ansible_exit_status",
+        "logical_identity_equal",
+        "native_checks_passed",
+        "directory_only_media_verified",
+        "independent_receipt_matches",
+        "resource_and_credential_cleanup_passed",
+        "production_continuity_passed",
+        "populated_media_recovery_qualified",
+        "restored_uwsgi_browser_qualified",
+        "current_data_disaster_recovery_qualified",
+        "full_stage_5_accepted"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "isolated_historical_application_restore_directory_only_media"
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_tag": {
+          "type": "string",
+          "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "controller_exit_status": {
+          "const": 0
+        },
+        "ansible_exit_status": {
+          "const": 0
+        },
+        "logical_identity_equal": {
+          "const": true
+        },
+        "native_checks_passed": {
+          "const": true
+        },
+        "directory_only_media_verified": {
+          "const": true
+        },
+        "independent_receipt_matches": {
+          "const": 9
+        },
+        "resource_and_credential_cleanup_passed": {
+          "const": true
+        },
+        "production_continuity_passed": {
+          "const": true
+        },
+        "populated_media_recovery_qualified": {
+          "const": false
+        },
+        "restored_uwsgi_browser_qualified": {
+          "const": false
+        },
+        "current_data_disaster_recovery_qualified": {
+          "const": false
+        },
+        "full_stage_5_accepted": {
+          "const": false
+        }
+      }
     }
   }
 }

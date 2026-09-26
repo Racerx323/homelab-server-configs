@@ -178,3 +178,26 @@ reboot_persistence:
   reporting_correction_deployed: false
   full_application_restore_verified: false
   full_stage_5_accepted: false
+application_restore:
+  state: accepted
+  scope: isolated_historical_application_restore_directory_only_media
+  operation: nautobot-application-restore-v2
+  reviewed_at: '2026-09-26T18:44:32.406780+00:00'
+  terminal_tag: nautobot-application-restore-v2-accepted
+  archive_commit: 9fcc94c5b3ab3453d2dc751bb0ec4742a8fbb332
+  tag_object: 0dcb5d98f95764d58de55ccf025d943d2e20f3f7
+  bundle_sha256: 6c4f210822e7c34b44c68f1a29934b952ab5bf7375afe3a8beb6d078f1b02156
+  result_sha256: 4663ec71b086b3f0f8d2aaa6f2840015a3cd0b01a49732032d7cf7a292b233ae
+  snapshot_id: 7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c
+  controller_exit_status: 0
+  ansible_exit_status: 0
+  logical_identity_equal: true
+  native_checks_passed: true
+  directory_only_media_verified: true
+  independent_receipt_matches: 9
+  resource_and_credential_cleanup_passed: true
+  production_continuity_passed: true
+  populated_media_recovery_qualified: false
+  restored_uwsgi_browser_qualified: false
+  current_data_disaster_recovery_qualified: false
+  full_stage_5_accepted: false
