@@ -3,15 +3,15 @@
   "operation": {
     "state": "definition",
     "stage": "isolated_application_restore",
-    "id": "nautobot-application-restore-v1",
+    "id": "nautobot-application-restore-v2",
     "target": "j2-svpi4mf",
     "authorization_ready": true,
-    "source_commit": "92782ba77b525f77fd64f92de8df2feb9756f924"
+    "source_commit": "f222493a7cfd54f4ed30010de1b3466a31aede2b"
   },
-  "token": "nautobot-restore-e0191ef1bbed1d4831a60709",
-  "root": "/var/lib/nautobot/restore-tests/nautobot-restore-e0191ef1bbed1d4831a60709",
-  "monitor_root": "/tmp/nautobot-restore-monitor-e0191ef1bbed1d4831a60709",
-  "ci_success_commit": "92782ba77b525f77fd64f92de8df2feb9756f924",
+  "token": "nautobot-restore-34c2044c0436d5a649608b23",
+  "root": "/var/lib/nautobot/restore-tests/nautobot-restore-34c2044c0436d5a649608b23",
+  "monitor_root": "/tmp/nautobot-restore-monitor-34c2044c0436d5a649608b23",
+  "ci_success_commit": "f222493a7cfd54f4ed30010de1b3466a31aede2b",
   "restic_version": "restic 0.18.0 compiled with go1.24.4 on linux/arm64",
   "baseline": {
     "collected_at": "2026-09-26T16:35:55.319560+00:00",

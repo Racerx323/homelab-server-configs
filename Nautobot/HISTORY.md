@@ -560,6 +560,23 @@ directory. Controller/Ansible exit 2 is retained. Independent cleanup verified
 absent restore resources and credentials, inactive monitor/guard, unchanged
 production service identities and HTTP 200 from the service account directory.
 Accepted live state is unchanged. The exact consumed bundle and sanitized result
-are preserved in `terminal/application-restore`; the private logical reference
-is represented only by its hash. Intended tag: `nautobot-application-restore-v1-failed`;
-publication remains pending. Protected nonsecret host staging remains retained.
+are preserved by published tag `nautobot-application-restore-v1-failed`, commit
+`f222493a7cfd54f4ed30010de1b3466a31aede2b`, tag object
+`e68dc9db9159b758164a6d5351518a2a67b24580`. The private logical reference
+is represented only by its hash. Consumed public files were byte-verified against
+the published tag before removal. Protected nonsecret host staging remains retained.
+The archival commit also contains the tested correction; frozen terminal files
+preserve the actual failed implementation. The active slot is cleared for retry
+preparation; accepted live state is unchanged.
+
+## Accepted bounded isolated application restore
+
+`nautobot-application-restore-v2` passed historical snapshot retrieval, isolated
+ARM64 database import, complete logical equality, native checks and directory-only
+media verification. Controller and Ansible exited zero; nine receipts matched
+independent readback. Resource/credential cleanup and production continuity passed.
+Intended tag: `nautobot-application-restore-v2-accepted`; publication is pending.
+The exact consumed bundle and sanitized result are in `terminal/application-restore`;
+the private logical reference is represented only by its hash. Protected payload
+and staging remain retained. Populated media, restored uWSGI/browser serving,
+current-data disaster recovery and full stage-5 acceptance remain unqualified.
