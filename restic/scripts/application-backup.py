@@ -130,20 +130,49 @@ def snapshot_set(raw):
     return result
 
 
-def run(root, spec, call=invoke):
+def specification_hash(spec):
+    return hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def verified_capture(root, spec):
+    """A receipt binds exact inputs and files; it does not assert writer recovery."""
+    receipt = root/'application-capture-result.json'
+    protected(receipt)
+    require(receipt.stat().st_size < LIMIT, 'receipt_limit')
+    value = json.loads(receipt.read_text())
+    require(value.get('capture_passed') is True and value.get('specification_sha256') == specification_hash(spec)
+            and all(value.get('credential_cleanup', {}).get(k) is True for k in ('password', 'credentials.json')),
+            'capture_not_verified')
+    hashes = value.get('content_sha256', {})
+    require(set(hashes) == set(SECTIONS), 'capture_sections')
+    payload = root/'payload'
+    protected(payload, True)
+    require({p.name for p in payload.iterdir()} == set(SECTIONS), 'payload_membership')
+    for name in SECTIONS:
+        path = payload/name
+        protected(path)
+        require(0 < path.stat().st_size < spec['captures'][name]['maximum_bytes']
+                and digest(path) == hashes[name], 'payload_changed')
+    return value
+
+
+def run(root, spec, call=invoke, phase="all"):
+    require(phase in ("all", "capture", "upload"), "backup_phase")
     validate(spec)
     protected(root, True)
     require(os.getuid() == spec['execution_uid'], 'execution_identity')
     # These transient files must be staged independently, not in a frozen bundle.
     secret_paths = [root/'password', root/'credentials.json']
     for p in [root/'repository', *secret_paths]: protected(p)
-    require(not (root/'application-backup-result.json').exists(), 'already_consumed')
+    result_path = root/('application-capture-result.json' if phase == 'capture' else 'application-backup-result.json')
+    require(not result_path.exists(), 'already_consumed')
     env = {'PATH': '/usr/bin:/bin', 'HOME': str(root), 'TMPDIR': str(root), 'LC_ALL': 'C',
            'AWS_EC2_METADATA_DISABLED': 'true'}
     status = {'kind': 'application_backup', 'operation_id': spec['operation_id'],
-              'requested_at': time.time(), 'started': None, 'upload_attempted': False, 'upload_passed': False,
+              'requested_at': time.time(), 'mode': phase, 'specification_sha256': specification_hash(spec),
+              'capture_passed': False, 'started': None, 'upload_attempted': False, 'upload_passed': False,
               'integrity_passed': False, 'snapshot_id': None, 'content_sha256': {}}
-    record(root/'application-backup-started.json', status)
+    record(root/('application-capture-requested.json' if phase == 'capture' else 'application-backup-started.json'), status)
     deadline = time.monotonic() + spec['timeout_seconds']
     base = [spec['restic'], '--no-cache', '--repository-file', str(root/'repository'),
             '--password-file', str(root/'password')]
@@ -163,24 +192,32 @@ def run(root, spec, call=invoke):
         require(checked([spec['restic'], 'version']).decode().strip() == spec['restic_version'], 'restic_version')
         config = json.loads(checked(base + ['cat', 'config']))
         require(config.get('id') == spec['repository_id'] and config.get('version') == 2, 'repository_mismatch')
-        require(checked(['/usr/bin/findmnt', '--noheadings', '--output', 'SOURCE', '--target', str(root)]).decode().strip() == spec['required_filesystem'], 'source_mount')
-        space = os.statvfs(root)
-        require(space.f_bavail * space.f_frsize > sum(c['maximum_bytes'] for c in spec['captures'].values()), 'capture_capacity')
-        payload = root/'payload'; payload.mkdir(mode=0o700)
-        status['started'] = time.time()  # Actual capture/load begins after repository preflight.
-        record(root/'application-capture-started.tmp', {'operation_id': spec['operation_id'], 'started': status['started']})
-        os.rename(root/'application-capture-started.tmp', root/'application-capture-started.json')
-        capture_env = {k: v for k, v in env.items() if not k.startswith('AWS_')}
-        for name in SECTIONS:
-            status['phase'] = 'capture_' + name
-            capture = spec['captures'][name]
-            rc, _ = call(capture['argv'], capture_env, deadline, destination=payload/name, maximum=capture['maximum_bytes'])
-            require(rc == 0, 'capture_failed_' + name)
-            require((payload/name).stat().st_size > 0, 'empty_capture')
-            status['content_sha256'][name] = digest(payload/name)
-        with (payload/'postgresql_custom_dump').open('rb') as stream:
-            require(stream.read(5) == b'PGDMP', 'not_custom_format')
-        checked(spec['dump_validator'], input_path=payload/'postgresql_custom_dump')
+        payload = root/'payload'
+        if phase == 'upload':
+            captured = verified_capture(root, spec)
+            status.update(content_sha256=captured['content_sha256'], started=captured['started'], capture_passed=True)
+        else:
+            require(checked(['/usr/bin/findmnt', '--noheadings', '--output', 'SOURCE', '--target', str(root)]).decode().strip() == spec['required_filesystem'], 'source_mount')
+            space = os.statvfs(root)
+            require(space.f_bavail * space.f_frsize > sum(c['maximum_bytes'] for c in spec['captures'].values()), 'capture_capacity')
+            payload.mkdir(mode=0o700)
+            status['started'] = time.time()  # Actual capture/load begins after repository preflight.
+            record(root/'application-capture-started.tmp', {'operation_id': spec['operation_id'], 'started': status['started']})
+            os.rename(root/'application-capture-started.tmp', root/'application-capture-started.json')
+            capture_env = {k: v for k, v in env.items() if not k.startswith('AWS_')}
+            for name in SECTIONS:
+                status['phase'] = 'capture_' + name
+                capture = spec['captures'][name]
+                rc, _ = call(capture['argv'], capture_env, deadline, destination=payload/name, maximum=capture['maximum_bytes'])
+                require(rc == 0, 'capture_failed_' + name)
+                require((payload/name).stat().st_size > 0, 'empty_capture')
+                status['content_sha256'][name] = digest(payload/name)
+            with (payload/'postgresql_custom_dump').open('rb') as stream:
+                require(stream.read(5) == b'PGDMP', 'not_custom_format')
+            checked(spec['dump_validator'], input_path=payload/'postgresql_custom_dump')
+            status['capture_passed'] = True
+        if phase == 'capture':
+            return status
         status['phase'] = 'snapshot_baseline'
         before = snapshot_set(checked(base + ['snapshots', '--json']))
         record(root/'application-snapshots-before.json', sorted(before))
@@ -220,7 +257,7 @@ def run(root, spec, call=invoke):
             except Exception: cleanup[path.name] = False
         status.update(finished=time.time(), credential_cleanup=cleanup,
                       accepted=False, restore_verified=False)
-        record(root/'application-backup-result.json', status)
+        record(result_path, status)
     return status
 
 
@@ -228,14 +265,15 @@ def main():
     os.umask(0o077)
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', required=True, type=Path)
+    parser.add_argument('--phase', choices=('all', 'capture', 'upload'), default='all')
     args = parser.parse_args()
     protected(args.root, True)
     protected(args.root/'application-backup.json')
     # SIGTERM from the owner reaches finally and attempts every credential cleanup.
     def terminated(*_): raise InterruptedError('cancelled')
     signal.signal(signal.SIGTERM, terminated)
-    result = run(args.root, json.loads((args.root/'application-backup.json').read_text()))
-    return 0 if result['integrity_passed'] and all(result['credential_cleanup'].values()) else 1
+    result = run(args.root, json.loads((args.root/'application-backup.json').read_text()), phase=args.phase)
+    return 0 if result['capture_passed' if args.phase == 'capture' else 'integrity_passed'] and all(result['credential_cleanup'].values()) else 1
 
 
 if __name__ == '__main__': raise SystemExit(main())

@@ -1,0 +1,162 @@
+---
+schema_version: 1
+kind: recurring_protection_binding_candidate
+execution_authorized: false
+target: j2-svpi4mf
+execution_user: nautobot
+execution_uid: 999
+commands:
+  adapter: Nautobot/ansible/scripts/recurring_node.py
+  supervisor: Nautobot/ansible/scripts/recurring_protection.py
+  disposal: Nautobot/ansible/scripts/recurring_disposal.py
+  playbook: Nautobot/ansible/playbooks/recurring-capture.yaml
+  producer: restic/scripts/application-backup.py
+  before_pause: [service_health, http_health, artifacts, images, versions, media, capacity, credentials]
+  pause_order: [stop_scheduler, stop_web, drain_worker_without_cancellation, stop_worker]
+  resume_order: [worker, web, scheduler]
+  unchanged_services: [postgresql, redis]
+  migration: false
+  reboot: false
+capture:
+  media_policy: empty_directories_only
+  media_access: podman_unshare_read_only
+  staging_directory: /var/lib/nautobot/protection/staging
+  staging_filesystem: ext4
+  capacity_admission: full_capture_budget_plus_free_headroom
+  retained_capacity: reserve_full_capture_before_pause
+  populated_media: blocked
+  metadata: collect_versions_and_images_before_writer_stop
+  snapshot_tag: nautobot-recurring
+  retention_delete: false
+  staging_disposal:
+    implementation_status: local_regressions_passed_target_qualification_pending
+    successful_payload: remove_only_after_snapshot_identity_integrity_and_writer_health_verified
+    failed_or_interrupted_payload: retain_for_explicit_operator_review
+    evidence: retain_sanitized_receipts_outside_payload
+    safety: exact_owned_run_root_no_symlinks_no_active_run_under_run_lock
+    exhaustion: refuse_new_capture_without_deleting_unreviewed_payloads
+credentials:
+  provider: doppler
+  proposed_project: homelab-dev
+  proposed_config: prd_nautobot_backup
+  service_token_access: read_only
+  bootstrap: protected_service_account_file_outside_git
+  expires_at: required_at_deployment
+  token_lifetime_days: 90
+  rotation_lead_days: 14
+  rotation_owner: homelab_operator
+  token_file: /var/lib/nautobot/protection/credentials/doppler-service-token
+  token_mode: '0600'
+  inherited_unrelated_secrets: forbidden
+  provisioning_authorized: false
+  canonical_references:
+    NAUTOBOT_RESTIC_REPOSITORY_PASSWORD: homelab-dev/prd_restic/NAUTOBOT_RESTIC_REPOSITORY_PASSWORD
+    NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID: homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY_ID
+    NAUTOBOT_RESTIC_B2_APPLICATION_KEY: homelab-dev/prd_b2/NAUTOBOT_RESTIC_B2_APPLICATION_KEY
+notifications:
+  method: direct_apprise_interim_user_selected
+  format_owner: Caddy/docs/APPRISE_DELIVERY.md
+  future_delivery_owner: homelab-notification
+  reference_contract: Caddy/docs/APPRISE_DELIVERY.md
+  endpoint: http://10.1.3.83:8000/notify/apprise
+  producer: nautobot-backup
+  application: Nautobot
+  network_requests_from_backup: false
+  separate_notification_service: true
+  notification_failure_changes_backup_result: false
+  shared_durable_client: future_work
+  caddy_source_allowlist_modification: false
+freeze_prerequisites:
+  - fresh_rootless_target_baseline_and_installed_command_versions
+  - bind_artifact_image_metadata_and_repository_identities
+  - qualify_target_capture_and_independent_resume_deadlines
+  - provision_reviewed_minimum_scope_read_only_token_and_rotation
+  - qualify_standardized_direct_failure_recovery_delivery
+  - qualify_staging_capacity_and_owned_disposal_policy
+  - commit_publish_ci_and_exact_execution_approval
+prerequisite_preparation:
+  execution_authorized: false
+  package_installation: candidate_artifacts_and_read_only_target_transaction_verified
+  packages:
+    ansible_core:
+      name: ansible-core
+      version: 2.19.11-0+deb13u1
+      architecture: all
+      url: https://deb.debian.org/debian/pool/main/a/ansible-core/ansible-core_2.19.11-0+deb13u1_all.deb
+      sha256: e6008ff6bb4de9601b167753dc8557e0c53c50e5e3f78c39c6b7f89fafa594bb
+      executable: /usr/bin/ansible-playbook
+      dependency_transaction: eight_new_packages_zero_upgrades_zero_removals
+      signed_index_verification: target_cached_trixie_signature_and_index_hash_verified
+      install_recommends: false
+    doppler:
+      name: doppler
+      version: 3.76.6
+      architecture: arm64
+      url: https://github.com/DopplerHQ/cli/releases/download/3.76.6/doppler_3.76.6_linux_arm64.deb
+      sha256: 68211b3da678020c63971391c832b632949d3554df87d478e7400eb82ea833e2
+      executable: /usr/bin/doppler
+      verification: downloaded_hash_matches_immutable_release_asset_digest
+  commands_required: [ansible-playbook, doppler, podman, restic, python3, findmnt]
+  packages_missing_at_baseline: [ansible, doppler]
+  package_inputs_required:
+    - arm64_compatible_package_or_dependency_set
+    - exact_versions_and_verified_source_or_artifact_sha256
+    - package_transaction_review_and_existing_package_preservation
+  staging_owner_uid: 999
+  staging_owner_gid: 985
+  staging_mode: '0700'
+  staging_creation: separate_scoped_deployment
+  credential_inputs_required:
+    - reviewed_provider_config_with_only_three_canonical_references
+    - read_only_service_token_and_expiry_rotation_owner
+    - protected_token_file_owned_by_service_account
+  notification_delivery_test: separate_explicit_authorization
+  schedule_enablement: separate_after_capture_resume_acceptance
+schedule_candidate:
+  timezone: America/Chicago
+  trigger: '03:20:00'
+  orchestration_timeout_seconds: 1800
+  capture_timeout_seconds: 450
+  recovery_timeout_seconds: 240
+  persistent_catchup: false
+  known_conflict: e2scrub_all.service
+  admission: refuse_before_writer_pause_if_scrub_not_inactive
+  skip_reporting: missed_backup_alert
+  guarantee: admission_observation_only_not_a_cross_owner_mutex
+  enablement: requires_refreshed_system_timer_review_and_duration_qualification
+dependency_transaction_lock:
+  source: target_cached_signed_trixie_index
+  installed_package_preservation: zero_upgrades_zero_removals
+  new_packages:
+    - name: ansible-core
+      version: '2.19.11-0+deb13u1'
+      sha256: e6008ff6bb4de9601b167753dc8557e0c53c50e5e3f78c39c6b7f89fafa594bb
+      url: https://deb.debian.org/debian/pool/main/a/ansible-core/ansible-core_2.19.11-0+deb13u1_all.deb
+    - name: ieee-data
+      version: '20240722'
+      sha256: 3bc399924ecb60af22569cb34c07a66a6e4a68c49c78a60b479e7d4913fe54e0
+      url: https://deb.debian.org/debian/pool/main/i/ieee-data/ieee-data_20240722_all.deb
+    - name: python3-dnspython
+      version: '2.7.0-1'
+      sha256: 81897352780f900b502bac04d46f6131533664c1b204d2e7fa5e4297f433a082
+      url: https://deb.debian.org/debian/pool/main/d/dnspython/python3-dnspython_2.7.0-1_all.deb
+    - name: python3-httplib2
+      version: '0.22.0-1+deb13u1'
+      sha256: 47367d0117220161f94c33c3a9ba5d31b1a8a6560ab4c6606c825b5d9c5d802e
+      url: https://deb.debian.org/debian/pool/main/p/python-httplib2/python3-httplib2_0.22.0-1+deb13u1_all.deb
+    - name: python3-netaddr
+      version: '1.3.0-1'
+      sha256: 1fc29a64ee60cf334ab88ad89a61540df5381bc388615c6092bd1cd41719e525
+      url: https://deb.debian.org/debian/pool/main/p/python-netaddr/python3-netaddr_1.3.0-1_all.deb
+    - name: python3-packaging
+      version: '25.0-1'
+      sha256: d70c8469f6e9c6105e1ebcd3ebdc963f11dadbeddd89d2d1a2a3cb1c97d2ecbc
+      url: https://deb.debian.org/debian/pool/main/p/python-packaging/python3-packaging_25.0-1_all.deb
+    - name: python3-pyparsing
+      version: '3.1.2-1'
+      sha256: f784864f3835bc7e62391350418f28958cc004f1d46690a5c03300ec0a9bcc54
+      url: https://deb.debian.org/debian/pool/main/p/pyparsing/python3-pyparsing_3.1.2-1_all.deb
+    - name: python3-resolvelib
+      version: '1.1.0-1'
+      sha256: 341185635136e19e642f63e409e910ac1ba706e71a8a3cbffd196d6dab792e03
+      url: https://deb.debian.org/debian/pool/main/p/python-resolvelib/python3-resolvelib_1.1.0-1_all.deb

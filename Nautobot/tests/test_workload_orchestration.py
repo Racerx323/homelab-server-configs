@@ -90,6 +90,77 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             self.assertEqual(len(runner.phases), 5)
             self.assertTrue(all(a['end'] == b['start'] for a, b in zip(runner.phases, runner.phases[1:])))
 
+    def test_expanded_shared_submission_fits_native_request_bound(self):
+        import workload_control
+        spec = importlib.util.spec_from_file_location('expanded_generator', SCRIPTS/'make-workload-fixture.py')
+        generator = importlib.util.module_from_spec(spec); spec.loader.exec_module(generator)
+        import workload_adapter
+        contract = generator.expanded_contract()
+        dataset = generator.dataset(contract)
+        ownership = {'schema_version': 1, 'fixture_sha256': 'a'*64,
+                     'objects': {n['key']: '12345678-1234-1234-1234-123456789012' for n in workload_adapter.plan(dataset)}}
+        submitted = []
+        with tempfile.TemporaryDirectory() as d:
+            runner = session.Session(Path(d), contract, lambda request: submitted.append(request), backup, ownership=ownership)
+            runner.submit('audit', dataset, count=10)
+        request = submitted[0]
+        self.assertLess(len(repr(request).encode()) + (SCRIPTS/'workload_control.py').stat().st_size, 4194304)
+        rows = workload_control.submission_requests(request)
+        self.assertEqual(len(rows), 10)
+        self.assertTrue(all(row['kwargs']['ownership'] == ownership for row in rows))
+        request['requests'][0]['kwargs'] = {}
+        with self.assertRaisesRegex(ValueError, 'submission_shared_arguments'):
+            workload_control.submission_requests(request)
+
+    def test_exports_are_verified_before_compact_result_retention(self):
+        projection = ['x'*1024 for _ in range(1500)]
+        digest = hashlib.sha256((json.dumps(projection, sort_keys=True, separators=(',', ':'))+'\n').encode()).hexdigest()
+        for valid in (True, False):
+            with self.subTest(valid=valid), tempfile.TemporaryDirectory() as d:
+                def client(request):
+                    return {'results': [{'id': identity, 'terminal': True, 'status': 'SUCCESS', 'started': 1, 'done': 2,
+                        'result': {'normalized': projection, 'sha256': digest if valid else 'a'*64, 'counts': {}}}
+                        for identity in request['ids']]}
+                runner = session.Session(Path(d), CONTRACT, client, backup)
+                if valid:
+                    rows = runner.completed(['one', 'two', 'three'])
+                    self.assertTrue(all(row['export_projection_verified'] for row in rows))
+                    self.assertLess((Path(d)/'job-results.json').stat().st_size, 4096)
+                else:
+                    with self.assertRaisesRegex(ValueError, 'export_projection_digest'):
+                        runner.completed(['one'])
+                    self.assertFalse((Path(d)/'job-results.json').exists())
+
+    def test_single_batch_queues_ten_jobs_on_two_slots(self):
+        contract = copy.deepcopy(CONTRACT)
+        contract['audit_submission'] = 'single_batch'
+        contract['phases'] = [dict(contract['phases'][2], minimum_seconds=0)]
+        submitted = []
+        polls = [0]
+        def client(request):
+            if request['action'] == 'submit_batch':
+                submitted.append(request['requests']); return {}
+            if request['action'] == 'status_batch':
+                polls[0] += 1
+                rows = []
+                for i, entry in enumerate(submitted[0]):
+                    running = polls[0] == 1
+                    rows.append({'id': entry['id'], 'terminal': not running,
+                                 'status': ('STARTED' if i < 2 else 'PENDING') if running else 'SUCCESS',
+                                 'started': (1 + i//2 * 2) if not running or i < 2 else None,
+                                 'done': None if running else 2 + i//2 * 2, 'result': {}})
+                return {'results': rows}
+            return {'results': []}
+        with tempfile.TemporaryDirectory() as d:
+            runner = session.Session(Path(d), contract, client, backup)
+            result = runner.execute({}, 'test')
+            self.assertTrue(result['jobs_passed'])
+            self.assertEqual(len(submitted), 1)
+            self.assertEqual(len(submitted[0]), 10)
+            self.assertEqual(len(runner.jobs), 10)
+            events = json.loads((Path(d)/'timing.json').read_text())
+            self.assertEqual(next(e for e in events if e['event'] == 'audit_batch_completed')['peak_active'], 2)
+
     def test_backup_waits_for_running_audits_and_short_backup_overlaps(self):
         import time
         contract=copy.deepcopy(CONTRACT);contract['phases']=[dict(contract['phases'][2],minimum_seconds=0)]

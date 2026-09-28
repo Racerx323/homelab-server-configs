@@ -942,6 +942,204 @@ prune, fixture deletion or data restore is permitted. Collection and cleanup
 failures remain visible in `orchestration.json`. Missing receipts are incomplete;
 reviewer acceptance remains separate from an exit-zero process result.
 
+### Recurring application protection contract
+
+This is the implementation and qualification contract for recurring protection,
+not an installed schedule or executable operation. The master plan owns nightly
+backup, 7 daily/5 weekly/12 monthly retention, weekly integrity and monthly isolated
+restore requirements. Nautobot owns scheduling and database/media consistency;
+Restic owns shared repository primitives. Keep deployment, credential provisioning,
+backup/check/restore execution and retention deletion explicitly scoped.
+
+#### Unattended execution and credentials
+
+Prepare Ansible-managed host-local supervision so recurring protection does not
+depend on a developer workstation, interactive SSH agent or personal Doppler login.
+Keep application access under the existing rootless service account; isolate any
+required root-owned host observations and privileged recovery actions. Review the
+unit identities, credential reader and persistent state paths before installation.
+Do not enable Semaphore as a shortcut to scheduling.
+
+Use read-only Doppler service-token access scoped to the minimum configuration.
+The current canonical repository password and B2 key references span `prd_restic`
+and `prd_b2` in `homelab-dev`. A candidate dedicated configuration can reference
+only the required secrets; its name, cross-config resolution and provider access
+must be reviewed and tested before creation. Do not copy a personal CLI login or
+assume a single-config token can directly read arbitrary configurations. Restore
+may require the application secret through a separately reviewed minimal scope.
+
+Provision the bootstrap token through an approved protected service credential;
+its delivery, owner/mode, rotation, expiry and independent recovery location are
+part of the deployment contract. Resolving that token cannot depend on the same
+token already being available in Doppler. Fetch named secrets into private runtime
+storage without command-line values, journal output or value hashes. Reject provider
+failure or stale fallback instead of silently reusing an old credential. Prove
+cleanup after partial resolution, capture failure, upload failure, timeout and
+service-manager termination. Reconfirm B2 key capabilities with its owner; read-only
+Doppler access does not make the fetched B2 credential read-only.
+
+#### Capture consistency and bounded writer recovery
+
+The selected policy permits a brief nightly writer pause in the plan's
+03:00–04:00 America/Chicago window. Implement and qualify this sequence:
+
+1. Resolve credentials and check repository identity, source mounts, capacity,
+   accepted application artifacts and recovery readiness before pausing writers.
+2. Record application state. Pause scheduler and web, drain the worker with the
+   existing bounded broker checks, then stop the worker. Reject unknown external
+   writers, undrained work or unsupported media entries; never cancel/purge Jobs.
+3. Capture the custom database dump and all six required backup sections into a
+   new protected directory. Verify dump readability, metadata, source stability,
+   and a complete media manifest while writes remain blocked.
+4. Finalize the immutable capture manifest, then resume the original writer state
+   and prove health independently of the later upload result. A node-local recovery
+   mechanism must bound the outage even if capture or its controller dies.
+5. Upload only the verified capture, prove the exact new snapshot and content
+   identity, and record success. Never reread changing live media during upload.
+
+Do not keep the application paused for B2 transfer or repository-wide integrity
+checking. Splitting local capture from upload requires refactoring and qualification
+of the current combined helper; the existing one-shot path must retain its behavior.
+If uninterrupted writes are required, review another database/media consistency
+method before implementation. Repeated media hashes alone do not prove consistency
+with a concurrent database transaction.
+
+The current adapter supports directories-only media. Populated-media support must
+preserve reviewed paths, bytes and metadata, reject links/special files and traversal,
+and prove unchanged identity through capture and isolated restore with real files.
+Until qualified, reject uploads in the backup preflight rather than produce an
+incomplete snapshot. Do not turn a prior manual quiet-window approval into a standing
+nightly outage authorization.
+
+#### Scheduling, integrity and retention
+
+Use America/Chicago (including daylight-saving transitions), with capture and
+writer recovery inside 03:00–04:00. Specify deadlines and maximum start delay
+before rendering timers; the one-hour window is not an approved one-hour outage. A missed nightly run must generate an observable missed-run state;
+do not unexpectedly pause the application at boot outside the approved window.
+Serialize capture, repository maintenance and restore with a reviewed lock. Bound
+lock waits and report skipped work. Do not automatically unlock or repair a repository.
+
+Track separate results for capture, writer recovery, upload, integrity and restore.
+Choose a full weekly data check as the initial candidate under the plan; any subset
+policy needs explicit review and must not be labelled full integrity acceptance.
+A weekly check failure must not erase the last successful backup receipt or authorize
+a repair. The current shared backup helper always runs a full check; separating
+routine upload verification from weekly full checks must preserve that legacy default
+and all exact-snapshot acceptance paths.
+
+Give recurring application snapshots a stable consumer/dataset tag and host identity.
+Unique operation tags remain useful for correlation but must not define retention
+groups. Unique staging paths must not split each run into its own retention group.
+Review an explicit host/dataset-filtered grouping strategy before any deletion.
+Historical canary, preservation, workload and recovery-reference snapshots stay
+outside recurring retention selection. Do not retroactively retag them automatically.
+
+Start retention qualification with a disposable repository containing multiple days,
+weeks, months, missed days and unrelated snapshots. Apply the plan's 7/5/12 policy
+in dry-run form and inspect full keep/remove snapshot IDs. Refuse ambiguity, missing
+verified backup, empty selection or a recovery-reference deletion. Retention removes
+snapshot records; prune removes unreferenced data and is a separate authorization.
+Neither belongs implicitly in a backup or integrity job. Re-evaluate selection under
+exclusive maintenance immediately before an authorized retention action.
+
+Monthly restore selects a full snapshot ID from a verified recurring-backup receipt,
+checks repository and capture provenance, and runs the existing isolated restore
+boundary with fresh staging and independent cleanup. Do not use `latest`, auto-enable
+workers/schedulers, migrate the restored database or overwrite production. Define
+bounded disposal of owned sensitive captures and restored payloads; indefinite
+retention of a new full local dump every night is not a capacity policy. Failed or
+ambiguous cleanup remains explicit and blocks unsafe reuse.
+
+#### Monitoring and qualification
+
+Expose sanitized last-attempt, last-success, snapshot ID, phase status and duration
+for backup, integrity and restore. Monitor overdue/missed runs, lock conflicts,
+credential expiry/fetch failure, writer-recovery failure, capacity and retained
+payloads. Derive age thresholds from the selected cadence and grace window. Keep
+notification delivery failure separate from the backup outcome. Use Apprise through the existing
+notification owner. The selected persistent endpoint is
+`http://10.1.3.83:8000/notify/apprise`, using saved configuration `apprise`.
+Do not substitute localhost on the Nautobot host. Verify endpoint access, any
+authentication requirements and recipient selection before deployment; a configuration key and a tag are different identifiers. Verify failure and
+recovery delivery, including the case where a timer never starts. An in-process
+failure handler alone cannot detect that case. Internal Prometheus writable files
+do not establish a scraper or replace required Munin monitoring.
+
+Before a live bundle, qualify actual timer/service execution in a disposable
+environment: concurrent triggers, missed windows, credential failure, full staging,
+media mismatch, failed dump, upload interruption, failed check, exhausted space,
+controller loss and independent writer recovery. Prove old one-shot contracts still
+pass. No test may delete unrelated snapshots or stage data. Final acceptance requires
+authorized host readback, one complete scheduled cycle, failure/recovery alert proof
+and separately authorized retention behavior; installation alone is not acceptance.
+
+Documentation references: [Doppler service tokens](https://docs.doppler.com/docs/service-tokens)
+and [Restic retention and grouping](https://restic.readthedocs.io/en/stable/060_forget.html).
+Verify installed CLI capabilities during the later authorized preflight.
+
+### Capture/resume implementation and local qualification
+
+`restic/scripts/application-backup.py --phase capture` verifies the repository,
+produces all six payload sections, validates the custom dump, and removes transient
+credentials. It records a capture receipt binding the exact specification and
+payload hashes. `--phase upload` requires that successful receipt, exact protected
+payload membership and unchanged hashes before upload; it preserves the existing
+snapshot-difference and full-integrity checks. Credentials must be supplied anew
+for upload. The default `--phase all` retains the existing one-shot behavior.
+Neither split phase proves writer health on its own.
+
+`ansible/tasks/capture-resume-upload.yaml` owns the reusable ordering: pause/drain,
+capture, always attempt every reviewed writer resume, independently verify health,
+then upload. Capture or resume failure prevents upload. Credential cleanup runs
+on both paths, including when the producer cannot start. Resume commands must
+restore the pre-capture writer state; a successful command alone is insufficient
+without the independent health probe.
+
+This task include is not a deployable recurring schedule. Its consumer must
+provide protected staging, preflight including repository/capacity checks, an
+exclusive run lock, the reviewed pause/drain/resume commands and an independently
+armed node-local recovery deadline. The guard-check command must verify that
+actual guard before any pause. Defining an authorization variable does not replace
+an approved operation or those prerequisites. The recurring supervisor below provides the local guard and schedule definitions.
+Production command bindings, unattended credential provisioning and notification
+integration require qualification before deployment.
+
+Run `tests/qualify_capture_resume.py` with an absolute local Restic binary,
+a disposable-only PostgreSQL custom dump and a new output directory. It executes
+the real Ansible include and real disposable Restic upload/check, using local
+writer-command adapters for success, capture failure, resume failure, health
+failure, payload drift, upload failure and integrity failure. Those adapters do
+not qualify production user-systemd or controller-loss recovery. The separate
+native workload qualification exercises PostgreSQL dump production/validation.
+
+### Expanded synthetic workload profile
+
+`make-workload-fixture.py --expanded --output FILE` generates one Location,
+200 Devices, four Interfaces per Device, 2,000 IPs distributed cyclically across
+the Devices' first Interfaces, and 2,000 native DNS Models A records. The DNS view
+is fixture-owned; its `.invalid` zone and records are disabled, with automatic
+PTR creation disabled. No DNS publication or external network configuration is
+performed. Four Interfaces per Device and A-only records are local test choices,
+not inferred inventory requirements. The original default fixture remains
+available for regression and historical comparison. The expanded fixture has a
+different ownership digest and cannot adopt the retained live fixture. A later
+operation must explicitly resolve that fixture transition; this profile neither
+deletes old objects nor bypasses collision/ownership checks.
+
+The expanded contract submits ten audit Jobs in one batch, retaining two worker
+slots. The session verifies actual running Jobs before starting the overlap
+backup, checks successful completion and peak concurrency, and records start
+delay/completion times in `timing.json`. Large batch inputs are transmitted once;
+exports are hash-verified before compact summaries are retained, keeping request
+and receipt bounds intact. It retains paired mode for existing contracts.
+Use `qualify-workload-local.py --expanded` for native model validation and
+`qualify-workload-session-local.py --expanded` for real disposable Celery dispatch
+and Restic overlap. Both require explicit immutable local image IDs and a new
+private output directory. The session qualifier also requires an absolute Restic
+binary. These accelerated tests do not replace the target's resource/duration
+qualification or establish the intended DNS type, media or Job mix.
+
 ### Application-backup producer
 
 The reusable Restic entrypoint is `restic/scripts/application-backup.py --root
@@ -3732,3 +3930,177 @@ start/update/stop methods with a local timer harness, checks file creation and
 removal, and runs the production freshness checker against the resulting file.
 This validates the producer/consumer contract locally; the separately authorized
 ARM64 startup trial remains the live acceptance gate.
+
+### Node-local recurring supervision
+
+`ansible/scripts/recurring_protection.py` owns the nonblocking run lock, the
+America/Chicago admission window and a protected recovery lease. Ansible retains
+pause/drain/capture/resume/upload ordering through `playbooks/recurring-capture.yaml`.
+The preparation adapter must check original writer state, capacity and repository
+identity, resolve credentials and create mode-0600 `inputs.json` in the supplied
+mode-0700 run directory before any pause. Bind reviewed absolute commands and
+protected configuration; `execution_authorized` alone is not deployment authority.
+
+`render-recurring-protection.py` emits review-only user units. It does not install
+or enable them. The candidate nightly trigger is 03:20 America/Chicago, without
+persistent catch-up. Production admission must remain 03:00–04:00 with enough time
+for capture and recovery. Select capture/recovery deadlines from target measurements
+before freezing a deployment. One-shot services use `TimeoutStartSec`; the backup
+service uses `KillMode=control-group`. The independent guard timer stops the backup
+service before attempting every reviewed resume command and independent health.
+A failed resume, health check or credential cleanup latches manual intervention
+and blocks later attempts. Do not clear that latch without examining retained state.
+
+After verified resume, Ansible calls the supervisor's `recovered` action, which
+rechecks health and disarms the guard under the state lock. Upload and integrity
+checking then proceed without keeping writers paused. `OnFailure` also invokes
+recovery after primary-service termination. A preflight failure recovers credentials
+without issuing writer resume commands. Successful payload disposal is opt-in through the supervisor configuration; failed
+payloads remain retained and capacity admission applies before every new run.
+
+The separate 04:05 freshness timer compares the last successful run against the
+expected local calendar day, including daylight-saving transitions. It also checks
+five minutes after boot. This produces a protected observation and service failure,
+not an Apprise delivery receipt. A host outage or lost user manager still requires
+external monitoring; the guard is not a substitute for host-reboot recovery.
+
+Run `tests/test_recurring_protection.py` for window, overlap, recovery-latch,
+cleanup, freshness and unit-definition regressions. Run
+`tests/qualify_recurring_systemd.py --output NEW_PRIVATE_DIRECTORY` outside the
+filesystem sandbox for real disposable user-systemd service/timer execution.
+It tests success, forced primary termination, deadline expiry and the recurring
+Ansible playbook with harmless writer/producer adapters, then removes its owned
+units. The timer callback cannot interrupt upload after verified resume wins the
+state lock; failure-triggered recovery can still clean credentials after upload
+termination. This does not qualify production
+Nautobot commands, unattended provider access or delivery through Apprise.
+
+### Recurring production bindings and interim notifications
+
+`manifests/recurring-protection.yaml` is the inactive binding candidate.
+`ansible/scripts/recurring_node.py` runs only as UID 999 on `j2-svpi4mf` and
+sets the rootless HOME, runtime directory and user bus explicitly, including when
+called through the shared producer's sanitized environment. The existing root-run
+one-shot capture helper is unchanged. The rootless adapter collects image/version
+metadata before stopping application containers, checks the pinned files and
+images, verifies capacity and empty media, and stages the actual Ansible inputs.
+It rejects populated media; this is not populated-media recovery qualification.
+
+The protected binding JSON supplies `artifact_sha256`, `image_ids`, `versions`,
+`metadata_files` (path and SHA-256 for desired state, requirements lock and image
+receipt), `minimum_free_bytes`, `maximum_retained_bytes`, `capture_limits`,
+`backup_template`, the installed `producer` path, `state_directory`,
+`supervisor_configuration`, `credentials` and `notification`. The backup template
+uses the shared producer schema; target/repository identity and filesystem must
+come from reviewed baseline evidence. `supervisor_binding()` constructs an inactive
+supervisor definition with exact commands, a 450-second capture/drain budget and
+240-second recovery budget. These are candidate ceilings requiring target
+qualification, not observed outage durations. Pending artifacts and retained
+payload capacity require operator review; this path does not delete snapshots.
+
+The proposed unattended Doppler configuration is `homelab-dev/prd_nautobot_backup`,
+with references to the three canonical secrets listed in the manifest. Provision
+only read access and a protected service-account token file; record its timezone-aware
+`expires_at`, CLI path and rotation procedure in the reviewed binding. The resolver
+rejects expired/unreviewed credentials, uses named `secrets get --plain` calls with
+`DOPPLER_TOKEN` in an isolated environment and temporary HOME, and does not use a
+personal CLI login or fallback file. Token values never enter argv or receipts.
+Provider creation and bootstrap-token delivery remain separate live operations.
+
+The operator selected temporary direct delivery while the generic durable client
+remains future work. Follow the multiline content contract in
+[Caddy Apprise delivery](../../Caddy/docs/APPRISE_DELIVERY.md): severity icon,
+application/node, Summary, Impact, Details, correlation and Next step. Omit HA
+sections when irrelevant. Bind `notification.method` to `direct_apprise`, endpoint
+to `http://10.1.3.83:8000/notify/apprise`, and the reviewed `hostname`/`fqdn`.
+The renderer emits a separate notification service and a 15-minute retry timer
+when `notification_argv` is supplied. The backup process never performs HTTP.
+
+`recurring_delivery.py` persists each pending transition before sending and retries
+its unchanged identity before acknowledging a newer transition. HTTP 200 means
+Apprise accepted the request, not proof of receipt at every downstream target.
+A crash after HTTP acceptance can duplicate delivery; the Idempotency-Key is not
+an exactly-once guarantee. No redirects, response bodies, raw exceptions or secrets
+enter alerts. Delivery failure leaves pending state and a failed notification
+service without changing the backup result or recursively notifying about itself.
+This interim path is not the Caddy durable queue or its eight-attempt/dead-letter
+protocol. Do not install the Caddy helper on Nautobot or spoof a Caddy source.
+
+Run `tests/test_recurring_bindings.py` for rootless command order, preserved
+one-shot behavior, isolated credential resolution/failure, direct local HTTP
+formatting, pending transition identity and notification-unit validation. Tests
+use disposable provider and HTTP endpoints, not the production services.
+Documentation basis: [Doppler CLI commands](https://github.com/DopplerHQ/cli/blob/master/_autodocs/api-reference/cmd.md)
+and [Apprise API](https://github.com/caronc/apprise-api#readme).
+
+### Recurring media access and prerequisite preparation
+
+The recurring adapter invokes `media_namespace.py` through `podman unshare` as
+Nautobot's rootless service account. It inspects and archives only the reviewed
+directory-only media tree. Files, symlinks, oversized trees and changed directory
+lists fail capture. Never relax mapped volume permissions to obtain host access.
+Populated media requires a separately reviewed capture/restore contract.
+
+Production run directories belong below
+`/var/lib/nautobot/protection/staging`, owned by UID 999/GID 985 with mode 0700
+and no symlink ancestors. Verify ext4 before creating a run; `/tmp` remains only
+a disposable local-test default. Before pausing writers, reserve the sum of all
+capture limits in both the retained-payload budget and available disk space, with
+additional configured free-space headroom. Exhaustion blocks capture; retained
+payloads are never silently deleted. Review an owned disposal policy before
+unattended enablement.
+
+Use the inactive prerequisite section of `manifests/recurring-protection.yaml`
+to prepare exact ARM64-compatible Ansible and Doppler package inputs, verified
+sources/versions and the proposed package transaction. Define the service-owned
+staging directory, minimal read-only Doppler references, token expiry/rotation and
+protected token path in the eventual deployment bundle. Package installation,
+credential provisioning and directory creation require scoped live authorization.
+Do not enable schedules as part of prerequisite installation. Review the Sunday
+filesystem-scrub overlap before selecting the final trigger.
+
+Run `tests/test_recurring_media.py`, `tests/test_recurring_bindings.py` and
+`tests/test_recurring_protection.py` locally. Target acceptance must additionally
+prove namespace media access, staging filesystem/ownership/capacity, installed
+command identities, and independent writer recovery. A local mapped-permission
+fixture does not establish those target postconditions.
+
+### Recurring prerequisite package and credential review
+
+Use the exact package versions, source URLs, hashes and executable paths in
+`manifests/recurring-protection.yaml`. The candidate uses Debian's minimal
+[ansible-core package](https://packages.debian.org/trixie/ansible-core) and the
+[Doppler ARM64 release](https://github.com/DopplerHQ/cli/releases/tag/3.76.6).
+Before installation, verify Debian signed repository metadata, resolve the target
+APT transaction with recommends disabled, and reject unrelated removals/upgrades.
+The downloaded package hash is a content identity, not a substitute for repository
+signature verification. Bind dependency versions and rollback package availability
+into the eventual bundle. Do not run the downloaded ARM64 binary on the controller.
+
+Provision only the dedicated backup config's three canonical secret references;
+verify it exposes no inherited unrelated application credentials. Doppler supports
+[config-scoped service tokens](https://docs.doppler.com/docs/service-tokens).
+Use read-only access, the proposed 90-day expiry and operator rotation at least
+14 days beforehand. Keep token values out of arguments, Git and evidence; install
+only in the service-owned protected path in the manifest. Prove named-reference
+resolution without logging values. Expiry metadata must match provider readback.
+
+The 03:20 candidate reserves 30 minutes for orchestration plus bounded preparation
+and recovery within the approved hour. An active, failed or unreadable known scrub
+state refuses preparation before credentials or writer pause. This admission
+observation is not a lock shared with the filesystem owner: review refreshed
+system timers and observed duration before enabling. A skipped backup follows the
+existing missed-backup reporting path.
+
+For staging disposal, remove only a completed run's payload after its exact full
+snapshot ID, successful full integrity check and verified writer health are
+recorded. Retain sanitized receipts. Hold the run lock, prove the exact owned root,
+reject symlinks and any active or unresolved run, and never traverse another root.
+Failed or interrupted payloads require explicit operator review; capacity exhaustion
+blocks new work. `recurring_disposal.py` implements this policy under the supervisor run/state locks.
+It verifies all files before deletion and uses directory-relative, no-follow access,
+rejecting hard links and changed identities. The empty payload directory and receipts
+remain. Any disposal failure latches manual intervention, including an interrupted
+partial disposal; do not automatically retry deletion. Target qualification remains
+required before unattended deployment. Run `tests/test_recurring_disposal.py` and
+`tests/test_recurring_protection.py` for these boundaries.

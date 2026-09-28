@@ -521,6 +521,30 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*boot.*|schemas/(boot-readiness|operation)\.schema\.json|tests/test_boot_readiness\.py|tests/fixtures/boot-operation\.json)
+      - id: nautobot-recurring-disposal
+        name: Validate verified successful-payload disposal
+        entry: python3 Nautobot/tests/test_recurring_disposal.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/
+      - id: nautobot-recurring-media
+        name: Validate recurring media and staging capacity
+        entry: python3 Nautobot/tests/test_recurring_media.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/
+      - id: nautobot-recurring-bindings
+        name: Validate recurring rootless commands credentials and notifications
+        entry: python3 Nautobot/tests/test_recurring_bindings.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*recurring.*|manifests/recurring-protection\.yaml|tests/test_recurring_bindings\.py)
+      - id: nautobot-recurring-protection
+        name: Validate recurring schedule and independent recovery boundary
+        entry: python3 Nautobot/tests/test_recurring_protection.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*recurring.*|ansible/tasks/capture-resume-upload\.yaml|tests/test_recurring_protection\.py)
       - id: nautobot-controller-persistence
         name: Validate workload controller supervision and persistence preparation
         entry: python3 Nautobot/tests/test_controller_persistence.py

@@ -21,7 +21,7 @@ def contract():
 
 
 class BackupTests(unittest.TestCase):
-    def exercise(self, root, backup_rc=0, integrity_rc=0):
+    def exercise(self, root, backup_rc=0, integrity_rc=0, phase="all"):
         for name, value in [('repository', '/disposable'), ('password', 'disposable-only'), ('credentials.json', '{}')]:
             p = root/name; p.write_text(value); p.chmod(0o600)
         calls = []; snapshots = [0]
@@ -42,7 +42,7 @@ class BackupTests(unittest.TestCase):
             if 'check' in argv: return integrity_rc, b''
             if argv[-2:] == ['list', 'locks']: return 0, b''
             raise AssertionError(argv)
-        result = producer.run(root, contract(), call)
+        result = producer.run(root, contract(), call, phase=phase)
         return result, calls
 
     def test_success_and_private_credential_cleanup(self):
@@ -54,6 +54,34 @@ class BackupTests(unittest.TestCase):
             self.assertTrue(all(result['credential_cleanup'].values()))
             self.assertFalse((Path(d)/'password').exists())
             self.assertFalse(any(x in a for a in calls for x in ('init','forget','prune','unlock','restore')))
+
+    def test_capture_only_cleans_secrets_without_upload(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            result, calls = self.exercise(root, phase='capture')
+            self.assertTrue(result['capture_passed'])
+            self.assertFalse(result['upload_attempted'])
+            self.assertFalse(any('backup' in argv or 'check' in argv for argv in calls))
+            self.assertTrue(all(result['credential_cleanup'].values()))
+            self.assertEqual(producer.verified_capture(root, contract())['content_sha256'], result['content_sha256'])
+
+    def test_capture_handoff_rejects_drift_specification_and_symlinks(self):
+        for change in ('specification', 'payload', 'symlink', 'extra', 'incomplete'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as d:
+                root = Path(d)
+                self.exercise(root, phase='capture')
+                spec = contract()
+                if change == 'specification': spec['hostname'] = 'different'
+                if change == 'payload': (root/'payload/media').write_bytes(b'changed')
+                if change == 'symlink':
+                    (root/'payload/media').unlink()
+                    (root/'payload/media').symlink_to(root/'payload/configuration')
+                if change == 'extra': (root/'payload/unreviewed').write_bytes(b'extra')
+                if change == 'incomplete':
+                    receipt = root/'application-capture-result.json'
+                    value = json.loads(receipt.read_text()); value['capture_passed'] = False
+                    receipt.write_text(json.dumps(value))
+                with self.assertRaises(ValueError): producer.verified_capture(root, spec)
 
     def test_incomplete_snapshot_never_passes(self):
         with tempfile.TemporaryDirectory() as d:

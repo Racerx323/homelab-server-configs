@@ -90,6 +90,29 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(sum(n['model'] == 'dcim.interface' for n in nodes), 2000)
         self.assertEqual(sum(n['model'] == 'ipam.ipaddresstointerface' for n in nodes), 500)
 
+    def test_expanded_profile_and_dns_scope(self):
+        value = generator.dataset(generator.expanded_contract())
+        nodes = adapter.plan(value)
+        counts = {model: sum(n['model'] == model for n in nodes) for model in {n['model'] for n in nodes}}
+        self.assertEqual(counts['dcim.location'], 1)
+        self.assertEqual(counts['dcim.device'], 200)
+        self.assertEqual(counts['ipam.ipaddress'], 2000)
+        self.assertEqual(counts['nautobot_dns_models.arecord'], 2000)
+        self.assertTrue(all(n['fields']['enabled'] is False for n in nodes if n['model'] == 'nautobot_dns_models.arecord'))
+        value['dns_records'][0]['address'] = '10.1.0.1/24'
+        with self.assertRaisesRegex(ValueError, 'dns_scope'): adapter.plan(value)
+
+    def test_multiple_ips_on_same_interface_and_dns_readback(self):
+        value = dataset()
+        value['ip_assignments'].append(dict(value['ip_assignments'][0], address='198.18.0.50/24'))
+        value['dns_records'] = [{'name': 'host-0001', 'address': '198.18.0.50/24'}]
+        store = MemoryStore()
+        first = adapter.apply(value, store, write=True)
+        self.assertEqual(adapter.apply(value, store, first['receipt']), first)
+        store.rows[-1]['fields']['enabled'] = True
+        with self.assertRaisesRegex(ValueError, 'owned_object_drift'):
+            adapter.apply(value, store, first['receipt'])
+
     def test_second_import_no_writes_and_three_exports_match(self):
         store = MemoryStore()
         first = adapter.apply(dataset(), store, write=True)

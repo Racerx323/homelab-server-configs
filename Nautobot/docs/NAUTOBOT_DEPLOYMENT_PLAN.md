@@ -390,7 +390,36 @@ or integrity checking does not replace an isolated application restore. See the
 [application-backup procedure](OPERATIONS.md#application-backup-producer) for the
 reviewed implementation and credential boundaries.
 
-Run nightly backups and retain 7 daily, 5 weekly, and 12 monthly snapshots.
+### Implementation prerequisites for recurring protection
+
+Ansible Core and the Doppler CLI are required implementation prerequisites on
+the Nautobot host before recurring protection can be deployed. Ansible owns the
+node-local capture/resume/upload playbook; Doppler resolves the narrowly scoped
+unattended backup credentials. A controller-only Ansible installation does not
+satisfy this node-local execution requirement. Use the minimal `ansible-core`
+package for built-in modules, with a Python-compatible version, and an ARM64
+Doppler package. Bind exact versions, verified package sources/hashes and the
+reviewed dependency transaction in deployment inputs; do not install mutable
+latest versions or upgrade unrelated host packages implicitly.
+
+The service account must be able to execute both tools with explicit paths under
+its supervised environment. Require a read-only, config-scoped Doppler service
+token exposing only the backup credentials, with expiry and rotation ownership.
+Package installation, token provisioning and schedule enablement are separate
+reviewed mutations. Qualify command availability, protected disk-backed staging,
+capacity admission and independent writer recovery before unattended operation.
+
+Run nightly backups within 03:00–04:00 America/Chicago and retain 7 daily,
+5 weekly, and 12 monthly snapshots. A brief scheduled write pause is permitted
+for consistent database/media capture. Bound and independently recover that pause;
+resume application writers after verified local capture, before upload and
+repository-wide checking. Use Apprise through the existing notification owner for
+backup, integrity and recovery outcomes. Exact routing and unattended credential
+provisioning belong to the reviewed execution contract. Until the shared durable
+client is available, a separate Nautobot notification service may deliver directly
+to Apprise using the shared standardized alert format. Notification failure must
+never change backup or writer-recovery outcomes; retain pending alert state for
+bounded retries.
 Define the weekly check as either a full `restic check --read-data` or an
 explicit reviewed subset policy. A subset check is routine monitoring only and
 cannot satisfy the full integrity acceptance gate. Perform a monthly isolated
@@ -442,6 +471,14 @@ Devices, four Interfaces per Device and 500 IP assignments in a dedicated
 Namespace using benchmarking addresses. Those addresses never become network
 configuration or external probe targets. Compare fixture scale and operation mix
 with intended production inventory before claiming representativeness.
+
+The intended pilot envelope is one site, 200 devices and 2,000 IPs, with
+2,000 DNS records and ten Jobs submitted together, queuing behind the existing
+two worker slots. DNS record types, interface density, media use and Job behavior
+must be defined before claiming coverage. Qualify burst submission, bounded queue
+latency and completion with worker concurrency two; this does not require ten
+simultaneous workers. A larger device fixture alone does not prove the IP, DNS
+or burst-queue envelope.
 
 Use native Jobs for two imports, three deterministic exports and ten audits at
 concurrency two. Preserve exact JobResult identities and a fixture ownership

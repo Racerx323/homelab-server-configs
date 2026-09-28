@@ -27,7 +27,7 @@ def validate(desired, workload=None):
     if workload is not None:
         Draft202012Validator(json.loads((ROOT / 'Nautobot/schemas/workload-test.schema.json').read_text())).validate(workload)
         f = workload['fixture']
-        if f['locations'] > f['devices'] or f['ip_assignments'] > f['devices'] or f['devices'] > 64000:
+        if f['locations'] > f['devices'] or f['ip_assignments'] > 64000 or f['devices'] > 64000:
             raise ValueError('Unsupported fixture cardinality')
 
 

@@ -18,10 +18,11 @@ def require(value, code):
 
 
 def plan(dataset):
-    require(set(dataset) == {'schema_version', 'namespace', 'locations', 'devices', 'ip_assignments'}
+    require(set(dataset) in ({'schema_version', 'namespace', 'locations', 'devices', 'ip_assignments'},
+                            {'schema_version', 'namespace', 'locations', 'devices', 'ip_assignments', 'dns_records'})
             and dataset['schema_version'] == 1 and dataset['namespace'] == 'pilot-synthetic', 'fixture_shape')
     require(0 < len(dataset['locations']) <= len(dataset['devices']) <= 64000
-            and len(dataset['ip_assignments']) <= len(dataset['devices']), 'fixture_counts')
+            and 0 < len(dataset['ip_assignments']) <= 64000, 'fixture_counts')
     nodes, keys = [], set()
 
     def add(key, model, lookup, fields=None, content_types=None):
@@ -67,9 +68,9 @@ def plan(dataset):
         require(set(row) == {'device', 'interface', 'address'}, 'assignment_shape')
         key = row['device'] + '/' + row['interface']
         address = ipaddress.ip_interface(row['address'])
-        require(key in interfaces and key not in assigned and address.version == 4 and address.network.prefixlen == 24
+        require(key in interfaces and row['address'] not in assigned and address.version == 4 and address.network.prefixlen == 24
                 and address.ip in ipaddress.ip_network('198.18.0.0/15') and str(address) == row['address'], 'assignment_scope')
-        assigned.add(key)
+        assigned.add(row['address'])
         prefix = str(address.network)
         if prefix not in prefixes:
             add(prefix, 'ipam.prefix', {'namespace': ref('namespace'), 'network': str(address.network.network_address), 'prefix_length': 24},
@@ -77,7 +78,20 @@ def plan(dataset):
             prefixes.add(prefix)
         add(row['address'], 'ipam.ipaddress', {'parent': ref(prefix), 'host': str(address.ip)},
             {'mask_length': 24, 'status': ref('status'), 'type': 'host'})
-        add('assignment/' + key, 'ipam.ipaddresstointerface', {'ip_address': ref(row['address']), 'interface': ref(key)})
+        add('assignment/' + key + ('/' + row['address'] if 'dns_records' in dataset or len(dataset['ip_assignments']) > len(dataset['devices']) else ''), 'ipam.ipaddresstointerface', {'ip_address': ref(row['address']), 'interface': ref(key)})
+    if dataset.get('dns_records'):
+        require(len(dataset['dns_records']) <= 64000, 'dns_count')
+        add('dns-view', 'nautobot_dns_models.dnsview', {'name': name})
+        add('dns-zone', 'nautobot_dns_models.dnszone',
+            {'name': 'pilot-synthetic.invalid', 'dns_view': ref('dns-view')},
+            {'filename': 'pilot-synthetic.invalid', 'soa_mname': 'ns.pilot-synthetic.invalid',
+             'soa_rname': 'hostmaster@pilot-synthetic.invalid', 'auto_create_ptr': False, 'enabled': False})
+        for row in dataset['dns_records']:
+            require(set(row) == {'name', 'address'} and re.fullmatch(r'host-\d{4,5}', row['name'])
+                    and row['address'] in assigned, 'dns_scope')
+            add('dns/' + row['name'], 'nautobot_dns_models.arecord',
+                {'zone': ref('dns-zone'), 'name': row['name']},
+                {'ip_address': ref(row['address']), 'enabled': False, 'ttl': 3600})
     return nodes
 
 
@@ -123,6 +137,8 @@ class DjangoStore:
     def __init__(self):
         import nautobot
         require(nautobot.__version__ == '3.2.3', 'nautobot_version')
+        from importlib.metadata import version
+        require(version('nautobot-dns-models') == '2.3.0', 'dns_models_version')
         from django.apps import apps
         self.model = apps.get_model
 
@@ -184,6 +200,10 @@ class DjangoStore:
             'ipam.ipaddress': {'parent__namespace': objects['namespace']},
             'ipam.ipaddresstointerface': {'ip_address__parent__namespace': objects['namespace']},
         }
+        if 'dns-view' in objects:
+            scopes['nautobot_dns_models.dnszone'] = {'dns_view': objects['dns-view']}
+            for record in ('arecord', 'aaaarecord', 'cnamerecord', 'ptrrecord', 'nsrecord', 'mxrecord', 'txtrecord', 'srvrecord'):
+                scopes['nautobot_dns_models.' + record] = {'zone__dns_view': objects['dns-view']}
         for model, lookup in scopes.items():
             from django.db.models import Q
             scope = Q(**lookup)

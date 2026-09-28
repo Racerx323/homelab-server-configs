@@ -2,6 +2,20 @@
 import json
 
 
+def submission_requests(request):
+    """Expand a bounded batch without repeating its large shared fixture on the wire."""
+    rows = request['requests']
+    if (not isinstance(rows, list) or not 1 <= len(rows) <= 15
+            or any(not isinstance(row, dict) or row.get('action') != 'submit' for row in rows)
+            or len({row['id'] for row in rows}) != len(rows)):
+        raise ValueError('submission_batch')
+    if 'shared_kwargs' in request:
+        if not isinstance(request['shared_kwargs'], dict) or any('kwargs' in row for row in rows):
+            raise ValueError('submission_shared_arguments')
+        return [dict(row, kwargs=request['shared_kwargs']) for row in rows]
+    return rows
+
+
 def perform(request):
     from django.contrib.auth import get_user_model
     from nautobot.extras.models import Job, JobResult
@@ -34,8 +48,9 @@ def perform(request):
         return {'results': rows}
     if action == 'submit_batch':
         from django.db import transaction
+        requests = submission_requests(request)
         with transaction.atomic():
-            return {'submitted': [perform(item) for item in request['requests']]}
+            return {'submitted': [perform(item) for item in requests]}
     if action == 'submit':
         job = Job.objects.get(module_name='workload_jobs', job_class_name=classes[request['kind']], enabled=True)
         result = JobResult.objects.create(pk=request['id'], name=job.name, job_model=job, user=user)

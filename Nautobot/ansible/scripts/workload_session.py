@@ -82,12 +82,16 @@ class Session:
         if self.ownership is not None: kwargs['ownership'] = self.ownership
         self.healthy()
         requests = [{'action': 'submit', 'kind': kind, 'id': identity, 'kwargs': kwargs} for identity in identities]
-        self.client({'action': 'submit_batch', 'requests': requests})
+        batch = {'action': 'submit_batch', 'requests': requests}
+        if count > 1 and self.contract.get('audit_submission') == 'single_batch':
+            batch['shared_kwargs'] = kwargs
+            for request in requests: del request['kwargs']
+        self.client(batch)
         return identities
 
-    def event(self, action):
+    def event(self, action, **measurements):
         with self.timing_lock:
-            self.timing.append({'event': action, 'utc_seconds': time.time()})
+            self.timing.append({'event': action, 'utc_seconds': time.time(), **measurements})
             save(self.root/'timing.json', self.timing)
 
     def statuses(self, ids):
@@ -95,14 +99,14 @@ class Session:
         require(len(rows) == len(ids) and {r['id'] for r in rows} == set(ids), 'status_coverage')
         return rows
 
-    def running(self, ids):
+    def running(self, ids, minimum=None):
         deadline = self.clock() + self.contract['limits']['single_job_timeout_seconds']
         while True:
             self.healthy()
             require(self.clock() < deadline, 'audit_start_timeout')
             rows = self.statuses(ids)
             require(not any(r['terminal'] for r in rows), 'audits_finished_before_backup')
-            if all(r['status'] == 'STARTED' and r['started'] is not None for r in rows):
+            if sum(r['status'] == 'STARTED' and r['started'] is not None for r in rows) >= (minimum or len(ids)):
                 self.event('audit_pair_running_observed')
                 return
             self.wait(min(deadline, self.clock() + 1))
@@ -117,6 +121,12 @@ class Session:
                 identity = row['id']
                 if row['terminal']:
                     require(row['status'] == 'SUCCESS' and row['started'] is not None and row['done'] is not None, 'job_failed')
+                    result = row.get('result')
+                    if isinstance(result, dict) and 'normalized' in result:
+                        raw = (json.dumps(result['normalized'], sort_keys=True, separators=(',', ':')) + '\n').encode()
+                        require(hashlib.sha256(raw).hexdigest() == result.get('sha256'), 'export_projection_digest')
+                        row = dict(row, result={k: v for k, v in result.items() if k != 'normalized'},
+                                   export_projection_verified=True)
                     receipts[identity] = row
             if len(receipts) < len(ids): self.wait(min(deadline, self.clock() + 1))
         self.jobs.extend(receipts.values())
@@ -154,18 +164,34 @@ class Session:
                     pool = ThreadPoolExecutor(max_workers=1)
                     try:
                         self.event('audit_pair_dispatch_started')
-                        first_pair = self.submit('audit', dataset, count=2)
+                        batch = self.contract.get('audit_submission', 'pairs') == 'single_batch'
+                        submitted_at = time.time()
+                        first_pair = self.submit('audit', dataset, count=self.contract['jobs'][2]['repetitions'] if batch else 2)
                         self.event('audit_pair_dispatch_returned')
-                        self.running(first_pair)
+                        self.running(first_pair, minimum=2)
                         self.healthy()
                         self.event('backup_launch_requested')
                         pending = pool.submit(self.backup)
                         self.backup_future = pending
                         audits = []
-                        for index in range(self.contract['jobs'][2]['repetitions']//2):
-                            pair = self.completed(first_pair if index == 0 else self.submit('audit', dataset, count=2))
-                            require(max(r['started'] for r in pair) < min(r['done'] for r in pair), 'audit_concurrency_unproven')
-                            audits.extend(pair)
+                        if batch:
+                            audits = self.completed(first_pair)
+                            # Queueing is allowed; observed timestamps prove bounded worker overlap.
+                            events = sorted([(r['started'], 1) for r in audits] + [(r['done'], -1) for r in audits])
+                            active = peak = 0
+                            for _, delta in events:
+                                active += delta
+                                peak = max(peak, active)
+                            require(peak == 2, 'audit_worker_concurrency')
+                            self.event('audit_batch_completed', submitted=len(first_pair), peak_active=peak,
+                                       submitted_at=submitted_at,
+                                       start_delay_seconds=[r['started'] - submitted_at for r in audits],
+                                       completion_seconds=[r['done'] - submitted_at for r in audits])
+                        else:
+                            for index in range(self.contract['jobs'][2]['repetitions']//2):
+                                pair = self.completed(first_pair if index == 0 else self.submit('audit', dataset, count=2))
+                                require(max(r['started'] for r in pair) < min(r['done'] for r in pair), 'audit_concurrency_unproven')
+                                audits.extend(pair)
                         while not pending.done(): self.wait(self.clock() + 1)
                         backup_receipt = pending.result()
                     except BaseException:

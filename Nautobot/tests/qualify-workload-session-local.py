@@ -53,6 +53,7 @@ def command(argv, timeout=900, data=None):
 
 def main():
     parser=argparse.ArgumentParser()
+    parser.add_argument('--expanded', action='store_true')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--database-fixture', type=Path, help='Optional private disposable-only migrated dump; flushed before use')
     for name in ('app-image','postgres-image','redis-image','restic'): parser.add_argument('--'+name, required=True)
@@ -68,6 +69,7 @@ def main():
     # Accelerated functional qualification, not the production duration/headroom test.
     # Use the reviewed dataset: tiny audits can finish between status observations.
     # Phase padding remains accelerated; Job work is not delayed artificially.
+    if args.expanded: contract=generator.expanded_contract()
     dataset=generator.dataset(contract)
     for phase in contract['phases']: phase['minimum_seconds']=1
     summary={'started':time.time(), 'restic_version':command([args.restic,'version']), 'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__).resolve(), ROOT/'restic/scripts/application-backup.py', *[ROOT/'Nautobot/ansible/scripts'/n for n in ('workload_session.py','workload_control.py','workload_jobs.py','workload_adapter.py','workload_sampler.py')]]}, 'passed':False,'host_sampler_tested':False,'ansible_host_staging_tested':False,

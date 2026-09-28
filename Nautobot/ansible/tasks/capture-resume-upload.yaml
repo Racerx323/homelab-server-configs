@@ -1,0 +1,109 @@
+---
+# Consumer owns the exclusive lock, schedule window, protected staging and an
+# independently armed node-local recovery deadline before including these tasks.
+- name: Require the scoped capture contract
+  ansible.builtin.assert:
+    that:
+      - application_capture_authorized | bool
+      - application_backup_root is match('^(/tmp/[a-zA-Z0-9_.-]+|/var/lib/nautobot/protection/staging/nautobot-recurring[.][a-z0-9_]+)$')
+      - application_pause_commands | length > 0
+      - application_resume_commands | length > 0
+      - application_backup_credentials | list | sort == ['credentials.json', 'password']
+
+- name: Verify the consumer recovery guard before pausing writers
+  ansible.builtin.command:
+    argv: "{{ application_guard_check_argv }}"
+    chdir: /
+  changed_when: false
+
+- name: Capture while paused and always attempt each writer recovery
+  block:
+    - name: Pause and drain writers in the reviewed order
+      ansible.builtin.command:
+        argv: "{{ item }}"
+        chdir: /
+      loop: "{{ application_pause_commands }}"
+      changed_when: true
+      no_log: true
+
+    - name: Stage transient capture credentials
+      ansible.builtin.copy:
+        src: "{{ item.value }}"
+        dest: "{{ application_backup_root }}/{{ item.key }}"
+        mode: '0600'
+      loop: "{{ application_backup_credentials | dict2items }}"
+      no_log: true
+
+    - name: Produce and verify local application capture
+      ansible.builtin.command:
+        argv: "{{ application_producer_argv + ['--root', application_backup_root, '--phase', 'capture'] }}"
+        chdir: /
+      async: 1800
+      poll: 2
+      changed_when: true
+      no_log: true
+  always:
+    - name: Attempt every writer resume even if another fails
+      ansible.builtin.command:
+        argv: "{{ item }}"
+        chdir: /
+      loop: "{{ application_resume_commands }}"
+      register: application_resume_results
+      failed_when: false
+      changed_when: true
+      no_log: true
+
+    - name: Independently verify writer health
+      ansible.builtin.command:
+        argv: "{{ application_health_argv }}"
+        chdir: /
+      register: application_resume_health
+      failed_when: false
+      changed_when: false
+      no_log: true
+
+    - name: Remove capture credentials independently of writer health
+      ansible.builtin.file:
+        path: "{{ application_backup_root }}/{{ item }}"
+        state: absent
+      loop: [password, credentials.json]
+      no_log: true
+
+    - name: Require proven recovery before upload
+      ansible.builtin.assert:
+        that:
+          - application_resume_results.results | selectattr('rc', 'ne', 0) | list | length == 0
+          - application_resume_health.rc == 0
+
+- name: Disarm the consumer guard only after independently verified recovery
+  ansible.builtin.command:
+    argv: "{{ application_resume_verified_argv }}"
+    chdir: /
+  when: application_resume_verified_argv is defined
+  changed_when: true
+
+- name: Upload only after successful capture and verified resume
+  block:
+    - name: Restage short-lived upload credentials
+      ansible.builtin.copy:
+        src: "{{ item.value }}"
+        dest: "{{ application_backup_root }}/{{ item.key }}"
+        mode: '0600'
+      loop: "{{ application_backup_credentials | dict2items }}"
+      no_log: true
+
+    - name: Verify immutable capture then upload and check integrity
+      ansible.builtin.command:
+        argv: "{{ application_producer_argv + ['--root', application_backup_root, '--phase', 'upload'] }}"
+        chdir: /
+      async: 1800
+      poll: 2
+      changed_when: true
+      no_log: true
+  always:
+    - name: Remove upload credentials after any outcome
+      ansible.builtin.file:
+        path: "{{ application_backup_root }}/{{ item }}"
+        state: absent
+      loop: [password, credentials.json]
+      no_log: true

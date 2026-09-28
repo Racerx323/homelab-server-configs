@@ -78,6 +78,11 @@
         },
         "real_inventory_comparison": {
           "const": "required_before_claiming_representativeness"
+        },
+        "dns_records": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64000
         }
       }
     },
@@ -312,6 +317,12 @@
           "const": true
         }
       }
+    },
+    "audit_submission": {
+      "enum": [
+        "pairs",
+        "single_batch"
+      ]
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",

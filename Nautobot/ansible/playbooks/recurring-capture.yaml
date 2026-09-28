@@ -1,0 +1,29 @@
+---
+# Node-local only. A reviewed prepare adapter supplies protected inputs; the
+# supervisor owns the exclusive lock, window and independent recovery guard.
+- name: Capture, resume and upload under node-local supervision
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Require the recurring supervisor configuration
+      ansible.builtin.assert:
+        that:
+          - protection_configuration is defined
+          - protection_script is defined
+          - application_capture_authorized | bool
+    - name: Execute the shared capture ordering
+      ansible.builtin.include_tasks: ../tasks/capture-resume-upload.yaml
+      vars:
+        application_guard_check_argv:
+          - /usr/bin/python3
+          - "{{ protection_script }}"
+          - --config
+          - "{{ protection_configuration }}"
+          - check
+        application_resume_verified_argv:
+          - /usr/bin/python3
+          - "{{ protection_script }}"
+          - --config
+          - "{{ protection_configuration }}"
+          - recovered
