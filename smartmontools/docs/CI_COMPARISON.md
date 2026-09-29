@@ -159,3 +159,68 @@ separate scoped operation; do not silently attach to daemons or enable tracefs.
 See [the Webmin discovery investigation](../../Webmin/docs/DISK_DISCOVERY_FOLLOW_UP_PROMPT.md)
 for the independently reproduced parted increment. Preserve all raw buffers
 privately. Freeze and authorize the exact bundle before upload/execution.
+
+## Maintainer clarification and pending autodetection verification
+
+On September 29, 2026, [chrfranke confirmed the detection interpretation](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-5894223773).
+The planned drivedb addition matches USB `152d:0583` with descriptor
+`bcdDevice=0x0213` to `sntjmicron`. This descriptor is not a verified firmware
+version. The maintainer also confirmed that the two rejected ATA identification
+probes before successful NVMe fallback are expected with `sat/sntjmicron`.
+A separate planned refactoring removes the unnecessary IDENTIFY PACKET DEVICE
+probe and is expected to reduce that path to one counter increment per detection.
+Neither statement establishes resolution of the self-test-log/smartd anomaly.
+
+The September 29 publication check found upstream `main` at
+`06489e03695e0cf0a7366f0d402fbff8763bf3e6`; its
+[drivedb entry](https://github.com/smartmontools/smartmontools/blob/06489e03695e0cf0a7366f0d402fbff8763bf3e6/drivedb/drivedb.h)
+still contains `0xXXXX`. The announced descriptor match is therefore not present
+in that inspected revision. Retain explicit `-d sntjmicron`; no installed database,
+package, smartd configuration or Webmin setting was changed by this review.
+
+After publication, pin and review the exact updated database and compatible
+binary. Prepare a bounded standalone comparison of automatic detection against
+explicit `sntjmicron`, proving the database actually loaded, descriptor identity,
+selected transport, command exit mask, immediate/settled counters and 75-second
+kernel continuity. Preserve production configuration and do not start a self-test.
+Use the existing exact-bundle execution gate before target queries. Do not remove
+production device-type selectors merely because upstream adds a match; accept
+the target comparison first. No future monitoring or automatic test is scheduled.
+
+The separate Webmin discovery finding is linked in the preceding procedure.
+Its reproduced `parted` increment has no identified SCSI opcode/sense response;
+the maintainer's explanation of smartctl's SAT probes does not identify it.
+
+## Repository-only local database preparation
+
+The [maintainer's local-database alternative](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-5895877546)
+allows testing before the upstream database addition is published.
+`configs/jms583-0213.drivedb.h` contains only the proposed USB descriptor match.
+It is a review-only input, not an installed override or an executable bundle.
+
+The [pinned candidate manual](https://github.com/smartmontools/smartmontools/blob/06489e03695e0cf0a7366f0d402fbff8763bf3e6/src/smartctl.8.in)
+defines `-B +FILE` as prepending entries to the usual databases; `-B FILE`
+replaces them for that invocation. Use an explicit absolute path with the additive
+form in a later approved comparison. Do not copy this file to a default database
+path: doing so could change other smartctl/smartd consumers. Default paths are
+build-dependent; the target's installed manual and version remain authoritative.
+Installed-version behavior and native parser acceptance are not yet verified by
+this repository-only preparation.
+
+The [Webmin observation status](../../Webmin/docs/DISK_DISCOVERY_OBSERVATION_STATUS.md)
+records a running 24-hour observation. While it is active, preparation must remain
+local: no target contact, file transfer, manual disk query, database update,
+service change, observer restart or editing of approved observer inputs. The
+recorded completion checkpoint is September 30 at approximately 14:32 CDT plus
+settling time; elapsed time alone is not proof of completion. Retrieve and review
+the terminal observation through its owning procedure before any comparison.
+
+After that review, prepare a separate bounded bundle binding the exact binary,
+override hash, USB descriptor and target identity. First verify database parsing
+and matching without device access using the version's documented diagnostic
+options. Then compare an explicit `sntjmicron` control with automatic detection
+using the additive override. Require the selected type, exit-mask interpretation,
+immediate and settled counter deltas, and at least 75 seconds of kernel continuity
+after each read. Stop on resets, timeouts or filesystem errors. Do not start a
+self-test or qualify smartd by inference. The existing comparison runner does not
+yet support this database mode; no live executable bundle is frozen here.
