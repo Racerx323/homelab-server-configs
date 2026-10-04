@@ -12,11 +12,10 @@ passed two scheduled cycles and the final 75-second follow-up without a discover
 counter increment. Polling remained enabled. The older results below retain
 their historical scope; do not replay a completed deployment by default.
 
-The authorized [24-hour passive observation](DISK_DISCOVERY_OBSERVATION.md) has
-started. Read its [startup record](DISK_DISCOVERY_OBSERVATION_STATUS.md) before
-continuing; do not start a duplicate observer. It retains the accepted patch and
-monitoring configuration, with local alerts and no automatic rollback. Final
-acceptance remains pending.
+The September 29 passive observation stopped before completing 24 hours.
+The [October 4 reboot and baseline review](DISK_DISCOVERY_REBOOT_RESULT.md) passed;
+the corrected replacement observer started October 4 at 17:56 CDT. Its new
+24-hour result remains pending.
 
 Use this prompt for the separate investigation. The counter finding does not
 block the reviewed Nautobot stage-3 baseline decision. No fix is assumed necessary

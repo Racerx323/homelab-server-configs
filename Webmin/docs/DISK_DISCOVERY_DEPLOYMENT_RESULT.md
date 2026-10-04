@@ -60,7 +60,7 @@ live operation and must recheck current source/configuration state.
 
 ## Passive follow-up
 
-The [24-hour passive observation](DISK_DISCOVERY_OBSERVATION.md) started under
-separate authorization. Its [startup record](DISK_DISCOVERY_OBSERVATION_STATUS.md)
-records initial checks and checkpoint times. The longer observation has not yet
-passed and does not extend this pilot acceptance.
+The September 29 passive observation stopped before completing 24 hours.
+The [October 4 reboot and baseline review](DISK_DISCOVERY_REBOOT_RESULT.md) passed;
+the corrected replacement observer started October 4 at 17:56 CDT. Its new
+24-hour result remains pending.

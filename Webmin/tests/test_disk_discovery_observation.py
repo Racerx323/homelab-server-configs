@@ -18,7 +18,7 @@ def serialize(value):
         parts = [x for pair in value.items() for x in pair]
         return 'HASH,' + ','.join(quote(serialize(x), safe='') for x in parts)
     if isinstance(value, list):
-        return 'ARRAY' + (',' + ','.join(quote(serialize(x), safe='') for x in value) if value else '')
+        return 'ARRAY,' + ','.join(quote(serialize(x), safe='') for x in value)
     return 'VAL,' + quote(str(value), safe='')
 
 
@@ -40,6 +40,46 @@ class PassiveTests(unittest.TestCase):
                 passive.drive_health(raw, expected)
         with self.assertRaises(ValueError):
             passive.drive_health(serialize({'drivetemps': []}).encode(), ['/dev/sda'])
+
+    def test_webmin_empty_containers_and_malformed_children(self):
+        # Literal producer outputs, independent of the Python fixture serializer.
+        self.assertEqual(passive.deserialize('ARRAY,'), [])
+        self.assertEqual(passive.deserialize('HASH,'), {})
+        raw = serialize({'other': [], 'empty': {},
+                         'drivetemps': [dict(self.drive, errors=[])]}).encode()
+        self.assertEqual(passive.drive_health(raw, ['/dev/sda']),
+                         [{'device': '/dev/sda', 'temp': 43.0}])
+        for malformed in ['ARRAY,,', 'HASH,,', 'ARRAY,VAL%2Cx,', 'HASH,VAL%2Cx']:
+            with self.subTest(value=malformed), self.assertRaises(ValueError):
+                passive.deserialize(malformed)
+
+    def test_failure_cache_retained_exactly_and_never_overwritten(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            raw = b'ARRAY,,private-invalid-input'
+            with self.assertRaisesRegex(ValueError, 'cache_encoding'):
+                passive.cached_health(raw, ['/dev/sda'], root)
+            evidence = root / 'failure-cache.bin'
+            self.assertEqual(evidence.read_bytes(), raw)
+            self.assertEqual(evidence.stat().st_mode & 0o777, 0o600)
+            metadata = json.loads((root / 'failure-cache.json').read_text())
+            self.assertEqual(metadata['sha256'], hashlib.sha256(raw).hexdigest())
+            with self.assertRaises(FileExistsError):
+                passive.cached_health(b'invalid-new', ['/dev/sda'], root)
+            self.assertEqual(evidence.read_bytes(), raw)
+
+    def test_success_does_not_retain_cache_and_retention_is_bounded(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            passive.cached_health(serialize({'drivetemps': [self.drive]}).encode(), ['/dev/sda'], root)
+            self.assertEqual(list(root.iterdir()), [])
+            with self.assertRaisesRegex(RuntimeError, 'failure_cache_bound'):
+                passive.cached_health(b'x' * 2_000_001, ['/dev/sda'], root)
+            self.assertEqual(list(root.iterdir()), [])
+            root.chmod(0o755)
+            with self.assertRaisesRegex(RuntimeError, 'unsafe_failure'):
+                passive.cached_health(b'invalid', ['/dev/sda'], root)
 
     def test_failed_missing_duplicate_and_invalid_health(self):
         for changes in [{'failed': '1'}, {'errors': ['error']}, {'temp': 'nan'}, {'temp': '80'}]:

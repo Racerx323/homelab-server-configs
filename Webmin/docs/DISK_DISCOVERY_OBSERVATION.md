@@ -1,11 +1,11 @@
 # 24-hour passive observation
 
-The user-authorized observation started on September 29, 2026. See the
-[startup record](DISK_DISCOVERY_OBSERVATION_STATUS.md) for observed state and
-checkpoint times. The 24-hour outcome remains pending. It follows the accepted
-[single-host pilot](DISK_DISCOVERY_DEPLOYMENT_RESULT.md). The exact approved
-bundle retains the original prepared procedure; this document records the
-subsequent execution state without changing those immutable inputs.
+The September 29 observation stopped with a cache parser error before completing
+24 hours. See the [observation record](DISK_DISCOVERY_OBSERVATION_STATUS.md) for
+the diagnosis and later baseline review. The repository observer now handles
+Webmin's empty-container encoding and retains bounded failure-cache input. A
+replacement observation must use a separately reviewed execution bundle; the
+original bundle and terminal evidence remain unchanged.
 
 ## Scope and evidence
 
@@ -15,7 +15,7 @@ self-test or workload command, installs no package, changes no source or polling
 configuration, and attaches no tracer. It runs as a bounded transient systemd
 service so SSH disconnection does not stop it.
 
-The operation specification is derived from the retained accepted pilot. It
+The operation specification is derived from the reviewed host baseline. It
 pins source/binary/configuration hashes, boot, kernel, packages, root topology,
 Webmin/smartd service identities, the five-minute collection interval and exactly
 one expected drive. This preparation does not assert that those facts are still
@@ -29,7 +29,11 @@ strictly; missing or extra drives, absent health fields, failed health, error
 records or invalid temperatures prevent acceptance. History uses at most its
 latest 400 records per sample and accumulates unique post-start collection times.
 Raw evidence and preserved configuration bytes remain in a root-owned mode-0700
-directory, outside Git.
+directory, outside Git. During observation, parser or health-validation failure
+retains the exact cache input as `failure-cache.bin` (exclusive creation, mode
+0600, maximum 2 MB) and records its hash and file metadata before failing the
+run. Successful reads do not save raw cache input. Pre-directory startup
+preflight is outside this retention path.
 
 ## Acceptance and limits
 

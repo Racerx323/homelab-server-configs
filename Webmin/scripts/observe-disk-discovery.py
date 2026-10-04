@@ -54,6 +54,9 @@ def deserialize(value, depth=0):
         return unquote(parts[0], errors='strict')
     if kind not in ('HASH', 'ARRAY') or len(parts) > 10000:
         raise ValueError('cache_encoding')
+    # Webmin emits a trailing separator even for an empty container.
+    if parts == ['']:
+        return {} if kind == 'HASH' else []
     values = [deserialize(unquote(p, errors='strict'), depth + 1) for p in parts]
     if kind == 'ARRAY':
         return values
@@ -109,7 +112,33 @@ def history(data, now, temperature=False):
     return records
 
 
-def collect(spec, since):
+def cached_health(data, expected, evidence_root=None, cache_stat=None):
+    """Keep the exact bounded parser input privately before propagating failure."""
+    try:
+        return drive_health(data, expected)
+    except (ValueError, TypeError, KeyError):
+        if evidence_root is not None:
+            root = Path(evidence_root)
+            if root.is_symlink() or root.stat().st_mode & 0o777 != 0o700:
+                raise RuntimeError('unsafe_failure_evidence_directory')
+            if len(data) > 2_000_000:
+                raise RuntimeError('failure_cache_bound')
+            path = root / 'failure-cache.bin'
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            write(root / 'failure-cache.json', {
+                'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data),
+                'captured_wall': time.time(),
+                'cache_mtime_ns': cache_stat.st_mtime_ns if cache_stat else None,
+                'cache_inode': cache_stat.st_ino if cache_stat else None,
+            })
+        raise
+
+
+def collect(spec, since, evidence_root=None):
     now, mono = time.time(), time.monotonic()
     paths = spec['files']
     files = {p: hashlib.sha256(read(p)).hexdigest() for p in paths}
@@ -140,7 +169,7 @@ def collect(spec, since):
             'packages': dict(line.split(' ', 1) for line in packages.splitlines()),
             'services': run(['systemctl', 'show', 'webmin.service', 'smartmontools.service', '-p', 'Id', '-p', 'ActiveState', '-p', 'MainPID']),
             'counters': {name: int(read(path), base) for name, (path, base) in spec['counters'].items()},
-            'health': drive_health(data, spec['expected_devices']), 'cache_mtime': after.st_mtime,
+            'health': cached_health(data, spec['expected_devices'], evidence_root, after), 'cache_mtime': after.st_mtime,
             'history': histories, 'kernel_events': events, 'busy': busy}
 
 
@@ -203,7 +232,7 @@ def observe(spec_path, root):
     signal.signal(signal.SIGTERM, interrupted)
     signal.signal(signal.SIGINT, interrupted)
     try:
-        baseline = collect(spec, time.time() - spec['interval_seconds'])
+        baseline = collect(spec, time.time() - spec['interval_seconds'], root)
         write(root / 'baseline.json', baseline)
         validate(spec, baseline, baseline)
         seen = {name: set() for name in spec['history']}
@@ -213,7 +242,7 @@ def observe(spec_path, root):
         write(root / 'result.json', {'state': 'observing', 'start_wall': baseline['wall']})
         with (root / 'samples.jsonl').open('x') as stream:
             while True:
-                sample = collect(spec, last['wall'] - 2)
+                sample = collect(spec, last['wall'] - 2, root)
                 # Retain failed raw evidence before evaluating it.
                 stream.write(json.dumps(sample, sort_keys=True) + '\n')
                 stream.flush()
