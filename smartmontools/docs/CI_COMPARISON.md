@@ -402,8 +402,115 @@ invocations, package, bridge and boot identity. Eight retrieved evidence files
 matched remote SHA-256 values. Private review and original evidence are under
 `/home/aaron/code/.local-evidence/smartmontools-smartd-retry-20261006/`.
 
-Archive and reconcile this bounded admission before preparing repeated-check
-observation. Choose that later interval/duration from historical warning cadence;
+The bounded admission is archived and published under
+`smartmontools-smartd-admission-v2-accepted`; [history](../HISTORY.md) records remote
+identity verification. Choose the later interval/duration from warning history;
 one clean check does not establish intermittent-warning resolution. Production
 monitoring remained active and unchanged. No daemon upgrade, repeated observation,
 cleanup or upstream publication occurred. Do not replay the consumed bundle.
+
+## Repeated-check observation preparation
+
+The retained October 6 journal query requested the preceding 48 hours, with 23 entries
+and no 1,000-entry truncation. It records a self-test error-count rise at
+October 4, 5:42:04 p.m. CDT and recovery at 6:12:20 p.m. CDT, about 30 minutes
+apart. Earlier retained investigation evidence also records intermittent
+`0 -> 1 -> 0` transitions. This supports retaining a normal 30-minute sampling
+interval and observing for 48 hours rather than drawing conclusions from another
+short trial. It does not establish a recurrence distribution or guarantee that
+48 hours will reproduce the old behavior. The fresh baseline found volatile
+journal storage and no sample in the requested 48-to-47-hour-old interval; full
+historical coverage is not established. The warning pair informs this bounded
+proposal, not an event-rate claim.
+
+`configs/smartd-observation.json` is an inactive definition: `execution_ready` is
+false. It specifies one continuous candidate process for 172,800 seconds,
+1,800-second checks, at least 96 completed monitoring checks, a 60-second bound
+on initial checking and each observed device command, a 1,920-second maximum
+gap between completed checks, 15-second independent audits, 16 MiB per diagnostic
+stream, and at least 75 seconds of post-exit observation. Registration reads do
+not count as monitoring checks. A delayed or skipped check makes coverage
+incomplete rather than silently reducing the acceptance requirement.
+
+The proposed foreground command retains the accepted binary and private inputs:
+
+```text
+TRIAL/smartd -d -q errors -i 1800 -c TRIAL/smartd.conf -B TRIAL/empty.drivedb -s TRIAL/state/ -A TRIAL/attributes/ -j TRIAL/json/ -r nvmeioctl,2
+```
+
+Keep the same explicit-device configuration and initially empty private state.
+Retain that state across all checks in the same process; do not restart onecheck
+repeatedly or copy mutable production state. Keep production monitoring and its
+alert route active. No self-test schedule, notification recipient, package change,
+database installation or persistent service registration is proposed. Candidate
+warnings and production-daemon journal events must be attributed separately.
+
+`scripts/observe-smartd.py` implements the local supervision core. It counts
+successful monitoring self-test-log transactions separately from registration,
+rejects unexpected command diagnostics, bounds output and command/check gaps,
+invokes an independent audit callback, and performs owned-process shutdown plus
+post-exit settling on normal completion or failure. A Linux parent-death signal
+kills the candidate if the supervisor dies, including the fork-to-prctl race.
+That crash outcome is incomplete and cannot claim post-exit evidence coverage.
+The core keeps `accepted=false`; terminal evidence requires review. The launcher dispatches repeated mode to
+`smartd-observation-control.py`, whose host-local supervisor survives SSH loss;
+it does not hold the short controller open for 48 hours.
+
+Local tests exercise streamed diagnostics, configuration arguments, command and
+check deadlines, early process exit, output bounds, audit failures, controlled
+shutdown and actual child termination after supervisor death. The transaction
+parser also consumes the retained successful native single-check diagnostics.
+These tests do not establish native unattended launch or 48-hour runtime behavior.
+
+The integration now provides an exclusive launch claim, detached host-local
+supervision, atomic status with PID/start-time/boot identity, and read-only status
+without extending observation deadlines. Cancellation opens a PID handle and
+rechecks supervisor identity before signalling it; the installed daemon is not
+signalled. A second cancellation cannot interrupt the first shutdown/settling.
+Lost supervisors, cancellation and forced kill are incomplete outcomes.
+
+Independent audits check clock/boot, production file/service identities, private
+input metadata, observer inactivity, counters and candidate state. Audits have a
+five-second deadline. Because journald is volatile, each audit validates the last
+cursor, captures through the last record actually read, and durably appends only
+kernel and production-smartd records plus cursor/hash receipts before advancing.
+A missing cursor or storage fault stops observation. This preserves forward
+coverage without changing journald configuration or assuming 48-hour retention.
+Unrelated journal messages are not retained. Kernel and production logs each
+have a 32 MiB bound; checkpoint receipts have a 16 MiB bound. Staging requires
+256 MiB free; audits stop below 64 MiB. Startup/exit output and terminal state
+membership are retained separately; no automatic acceptance is recorded.
+
+Local tests now cover detached launch after the submitting process exits,
+read-only status, duplicate refusal, stale PID rejection, owned cancellation,
+shutdown/settling, rolling journal coverage and input/transport binding. Native
+unprivileged option qualification reaches a deliberately unreadable configuration
+(exit 6) before device access. The fresh read-only target baseline confirms PID
+handles, parent-death signals and ample staging space, with unchanged production
+identities/counters and no active observer or failed units. Normal system timers
+remain enabled, including apt maintenance; they are not an exclusive quiet window.
+Any resulting identity/counter/evidence drift stops the trial for review.
+
+The private execution bundle is prepared under
+`/home/aaron/code/.local-evidence/smartmontools-smartd-observation-preparation-20261006/bundle/`.
+Its procedure contains exact start/status/cancel commands and recovery limits.
+The repository definition remains inactive; only the separately hash-approved
+frozen specification enables launch. A complete quiet run would qualify bounded
+repeated operation on this host. If production warnings do not recur, report
+candidate non-reproduction, not demonstrated elimination or a controlled
+comparative fix. If they recur, correlate timestamps without claiming complete
+causal isolation. Native 48-hour runtime behavior remains unqualified until the
+approved trial and evidence review complete.
+
+The hash-approved observation started October 6, 2026, at 1:34:30 p.m. CDT.
+Controller transport exited zero. A new SSH status connection after submission
+confirmed the same live supervisor and one completed monitoring check at about
+15 seconds. The observation is running, not accepted. The approved manifest is
+`089f66b50fef200afe9ce104f5682a4f6af0b647aa0b4e399a7d6f3b95b47867`.
+Private launch and readiness receipts are beside the frozen bundle.
+
+Operator checkpoints are October 6 at 3:34:30 p.m., October 7 at 1:34:30 p.m.,
+and October 8 at 1:34:30 p.m. CDT. Final settling and terminal review follow the
+48-hour observation. Use the bound status command and original remote path in
+the private receipt; do not submit another launch. No automatic operator
+checkpoint scheduling is installed.

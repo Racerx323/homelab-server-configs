@@ -118,6 +118,35 @@ class Qualification(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'bundle_file'):
                 controller.verify(root, digest)
 
+    def test_repeated_dispatch_and_control_are_bound_to_recorded_trial(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            names = ['execute-smartd-qualification.py', 'qualify-smartd.py', 'compare-ci-smartctl.py',
+                     'observe-smartd.py', 'smartd-observation-control.py', 'smartd', 'smartd.conf',
+                     'empty.drivedb', 'baseline.json', 'specification.json', 'PROCEDURE.md']
+            for name in names:
+                (root/name).write_text('fixture')
+            manifest = {'scope':'candidate_smartd_repeated_checks',
+                        'files':{n:hashlib.sha256((root/n).read_bytes()).hexdigest() for n in names}}
+            raw = json.dumps(manifest).encode()
+            (root/'manifest.json').write_bytes(raw)
+            digest = hashlib.sha256(raw).hexdigest()
+            with patch.object(controller.subprocess, 'run') as run:
+                run.return_value.returncode = 0
+                controller.main(root, digest)
+                self.assertIn(b'REPEATED=True', run.call_args.kwargs['input'])
+                (root/'controller-evidence/stdout').write_text('{"remote_evidence":"/var/tmp/smartd-observation.abcdefgh"}\n')
+                run.return_value.stdout = b'{"state":"running"}\n'
+                run.return_value.stderr = b''
+                self.assertEqual(controller.control(root, digest, 'status', '/var/tmp/smartd-observation.abcdefgh'), 0)
+                count = run.call_count
+                for action, remote in [('cancel','/var/tmp/smartd-observation.otherone'),
+                                       ('status','/var/tmp/smartd-observation.abcdefgh/..'),
+                                       ('start','/var/tmp/smartd-observation.abcdefgh')]:
+                    with self.assertRaises(ValueError):
+                        controller.control(root, digest, action, remote)
+                self.assertEqual(run.call_count, count)
+
 
 if __name__ == '__main__':
     unittest.main()

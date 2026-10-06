@@ -1,0 +1,16 @@
+{
+  "execution_ready": false,
+  "scope": "candidate_smartd_repeated_checks",
+  "duration_seconds": 172800,
+  "interval_seconds": 1800,
+  "minimum_completed_checks": 96,
+  "command_deadline_seconds": 60,
+  "maximum_check_gap_seconds": 1920,
+  "audit_interval_seconds": 15,
+  "post_exit_observation_seconds": 75,
+  "stream_limit_bytes": 16777216,
+  "self_test_start": false,
+  "production_changes": false,
+  "notification_delivery": false,
+  "persistent_service_registration": false
+}

@@ -31,7 +31,7 @@ the correct unreadable-file exit 6, so no repeated probe was needed. The empty
 database also emitted its expected missing-DEFAULT warning. This check qualifies
 option compatibility only. The retry needs its own hash-bound approval.
 
-## Corrected single-check admission: accepted, archival pending
+## Corrected single-check admission: accepted and archived
 
 The separately authorized corrected bundle
 `6c6846d56e66af89f2d2affe2d4125fee70b15bc9fb39a3caa5d2fcff13d3b45`
@@ -43,12 +43,31 @@ eight retrieved evidence files matched their remote hashes.
 
 The consumed bundle and original evidence remain private and unchanged, with
 the acceptance decision recorded separately in `EXECUTION_REVIEW.json` under
-`smartmontools-smartd-retry-20261006`. Terminal archival and reconciliation remain
-pending. This is admission only: intermittent-warning resolution, repeated-check
+`smartmontools-smartd-retry-20261006`. This is admission only:
+intermittent-warning resolution, repeated-check
 qualification and production replacement remain unaccepted.
 
 The exact non-sensitive consumed definition and sanitized acceptance manifest
-are prepared for annotated tag `smartmontools-smartd-admission-v2-accepted`.
-Verify its publication before removing consumed operation files or freezing the
-repeated-check operation. The full raw baseline, binary and reports remain
-private and are identified by their original hashes in the terminal manifest.
+are published at commit `3a236a8f00a9689bdd27f2c242d3ff4d531cca99`, annotated tag
+`smartmontools-smartd-admission-v2-accepted`. The remote tag object was verified as
+`7961f214fafc974cd9cef2ecd424bf8461c26f89`, with the expected peeled commit.
+Consumed operation files are removed from the current tree after verification.
+The full raw baseline, binary and reports remain private, identified by their
+original hashes in the terminal manifest.
+
+The next observation is defined for 48 hours at 30-minute intervals. Its local
+supervision and inactive repository configuration are prepared. Detached launch,
+read-only status and identity-bound cancellation are locally qualified. Native
+option/runtime checks and a fresh authorized baseline passed. Journald uses
+volatile storage, so the observation preserves verified incremental journal
+evidence privately. The execution bundle requires separate hash approval. See
+the repeated-check preparation in
+`docs/CI_COMPARISON.md` for evidence, acceptance bounds and remaining work.
+
+The separately approved repeated-check bundle started October 6, 2026, at
+1:34:30 p.m. CDT. Its manifest is
+`089f66b50fef200afe9ce104f5682a4f6af0b647aa0b4e399a7d6f3b95b47867`.
+The controller exited zero; a new SSH connection confirmed supervisor survival
+and one completed monitoring check. The 48-hour observation remains running,
+with terminal acceptance pending. Private launch/readiness receipts are retained
+under `smartmontools-smartd-observation-preparation-20261006`.
