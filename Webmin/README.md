@@ -6,10 +6,9 @@ guarded configuration change, observation, and rollback.
 The [patched-polling procedure](docs/PATCHED_POLLING_TRIAL.md) covers the
 maintainer's reduced-query patch and an observation with temperatures enabled.
 
-The September 29 passive observation stopped before completing 24 hours.
-The [October 4 reboot and baseline review](docs/DISK_DISCOVERY_REBOOT_RESULT.md) passed;
-the corrected replacement observer started October 4 at 17:56 CDT. Its new
-24-hour result remains pending.
+The corrected October 4–5 passive observation [passed full evidence review](docs/DISK_DISCOVERY_OBSERVATION_RESULT.md)
+on October 6. The observer is inactive; monitoring remains enabled. The earlier
+incomplete run remains archived separately.
 
 > The drive-polling mitigation is a trial. A quiet observation does not accept
 > storage for production use or satisfy Nautobot and Restic acceptance checks.

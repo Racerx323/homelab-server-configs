@@ -204,16 +204,19 @@ replaces them for that invocation. Use an explicit absolute path with the additi
 form in a later approved comparison. Do not copy this file to a default database
 path: doing so could change other smartctl/smartd consumers. Default paths are
 build-dependent; the target's installed manual and version remain authoritative.
-Installed-version behavior and native parser acceptance are not yet verified by
-this repository-only preparation.
+Local smartctl 7.5 from Debian `7.5-2~bpo13+1` (amd64, extracted without
+installation) passed native parsing, exact descriptor matching, wrong-revision
+rejection, additive loading and malformed-database rejection on October 6.
+Private `smartmontools-drivedb-preparation-20261006/PARSER_RESULT.json` records
+identities and limits. These checks opened no device. The exact ARM64 candidate
+must repeat parser/matcher preflight before live reads; current installed-version
+identity remains an execution precondition.
 
-The [Webmin observation status](../../Webmin/docs/DISK_DISCOVERY_OBSERVATION_STATUS.md)
-records a running 24-hour observation. While it is active, preparation must remain
-local: no target contact, file transfer, manual disk query, database update,
-service change, observer restart or editing of approved observer inputs. The
-recorded completion checkpoint is September 30 at approximately 14:32 CDT plus
-settling time; elapsed time alone is not proof of completion. Retrieve and review
-the terminal observation through its owning procedure before any comparison.
+The [Webmin deployment result](../../Webmin/docs/DISK_DISCOVERY_DEPLOYMENT_RESULT.md)
+now records acceptance of the October 4–5 passive observation, reviewed October 6.
+The observer is inactive; the earlier incomplete run remains separate. The old
+September 30 waiting checkpoint is superseded. No new observation may be running
+when the comparison starts; the runner checks observer inactivity before each read.
 
 After that review, prepare a separate bounded bundle binding the exact binary,
 override hash, USB descriptor and target identity. First verify database parsing
@@ -222,5 +225,86 @@ options. Then compare an explicit `sntjmicron` control with automatic detection
 using the additive override. Require the selected type, exit-mask interpretation,
 immediate and settled counter deltas, and at least 75 seconds of kernel continuity
 after each read. Stop on resets, timeouts or filesystem errors. Do not start a
-self-test or qualify smartd by inference. The existing comparison runner does not
-yet support this database mode; no live executable bundle is frozen here.
+self-test or qualify smartd by inference. The runner now supports `candidate_local_database`: exactly two candidate reads,
+explicit `sntjmicron` followed by `auto` with `-B +FILE`. Only the automatic read
+receives the override. Hash-check the database before reads; no default database
+installation is permitted. Any immediate or settled counter increase stops this
+comparison for review. A completed capture is not automatic acceptance: review
+the raw transport diagnostics and selected device type separately. This does not
+qualify candidate smartd or authorize removing production selectors.
+
+## October 6 bounded local-database comparison result
+
+The separately authorized two-read comparison completed successfully. The
+explicit `sntjmicron` control and automatic detection with the private additive
+entry both returned zero and decoded an NVMe self-test log with no test in
+progress and no tests logged. Immediate and settled SCSI counter deltas were
+zero for each read; both post-return intervals exceeded 75 seconds. No matched
+kernel storage fault, ext4 error increase, boot drift, monitored configuration
+hash change or service identity change occurred. Eleven retrieved evidence files
+matched remote hashes.
+
+The output did not print an explicit device-type label; the verified outcome is
+successful automatic NVMe reading with the hash-bound, natively matched entry.
+Decoded summaries matched; equality of entire debug buffers is not claimed.
+Private `smartmontools-drivedb-preparation-20261006/REVIEW.json` records the
+bounded acceptance and retained evidence. The default databases and monitoring
+configuration were not changed. Candidate smartd remains unqualified. Do not
+replay the consumed bundle. An upstream summary draft is prepared privately;
+publication and any persistent local override remain separate actions.
+
+## Candidate-smartd qualification preparation
+
+The October 6 smartctl result does not qualify the daemon's self-test-log
+error-count handling. Keep the installed smartd, monitoring configuration and
+alert route unchanged. Retain the tested custom database entry as an optional
+smartctl input; it is not needed for this explicitly typed daemon comparison.
+The bounded smartctl summary was [published upstream](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-6020344626).
+
+Prepare candidate-smartd qualification in two separately reviewed stages:
+
+1. **Single-check admission.** Obtain the smartd ARM64 binary from the reviewed
+   upstream build, verify artifact provenance, executable hash and version, and
+   confirm that its source includes the daemon code under investigation. The
+   existing smartctl binary hash cannot identify or qualify smartd. Review the
+   installed daemon's recent error-count transitions and a fresh device/service
+   baseline without issuing exploratory disk reads. Confirm no observation or
+   other maintenance is active.
+2. **Repeated-check observation.** Only after the single check passes, define a
+   bounded foreground candidate observation with private persistent state and
+   logs. Review the check interval and duration against the historical warning
+   cadence; one check cannot demonstrate that intermittent transitions stopped.
+   Preserve production monitoring throughout, attribute output to the correct
+   process, and stop the candidate on storage faults or unexpected commands.
+   Do not infer resolution merely from absence of warnings in a short run.
+
+The review-only input is
+`configs/jmicron-nvme.smartd-qualification.conf`: one explicit device and
+`-l selftest`, without scanning, blanket checks, self-test schedules or alerts.
+Before freezing execution, verify candidate support for that NVMe directive
+against its pinned source/manual. Use the candidate's documented one-check exit
+mode for stage one; keep the process in the foreground, with a 60-second deadline,
+bounded output and at least 75 seconds of post-exit kernel observation. Validate
+its exact exit-code convention separately from smartctl's bitmask.
+
+Bind all state, attribute-log, PID and output destinations to a protected trial
+directory. Verify the effective compiled defaults and command overrides; refuse
+execution if the candidate could write production state or send notifications.
+Do not share the live daemon's state files. If baseline state is needed for later
+transition comparison, explicitly review a read-only copy and its provenance;
+never seed a candidate with mutable live files. Daemon state and logs can contain
+serials and remain private. No service registration or package installation is
+part of either stage.
+
+Record native configuration registration, the actual self-test-log command/result,
+interpreted error count, immediate/settled counters, kernel continuity, and
+unchanged installed binary/configuration/service identities. Candidate startup
+alone is not acceptance. A clean one-check exit permits preparation of the next
+stage, not daemon replacement. Preserve evidence after failure; terminate only
+the owned candidate and verify its exit. Production monitoring requires no
+rollback because it was not replaced.
+
+Current readiness: procedure and minimal configuration prepared; candidate-smartd
+artifact/hash, fresh baseline, effective output/state overrides and native
+qualification are still required. No executable smartd bundle is frozen and no
+live daemon check is authorized. Existing smartctl bundles must not be repurposed.

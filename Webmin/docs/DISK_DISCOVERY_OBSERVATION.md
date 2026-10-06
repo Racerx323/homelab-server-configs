@@ -1,11 +1,10 @@
 # 24-hour passive observation
 
-The September 29 observation stopped with a cache parser error before completing
-24 hours. See the [observation record](DISK_DISCOVERY_OBSERVATION_STATUS.md) for
-the diagnosis and later baseline review. The repository observer now handles
-Webmin's empty-container encoding and retains bounded failure-cache input. A
-replacement observation must use a separately reviewed execution bundle; the
-original bundle and terminal evidence remain unchanged.
+The September 29 observation stopped with a cache parser error. The corrected
+replacement completed October 4–5 and [passed full evidence review](DISK_DISCOVERY_OBSERVATION_RESULT.md)
+on October 6. This document defines the observer procedure; the
+[status record](DISK_DISCOVERY_OBSERVATION_STATUS.md) preserves startup history.
+The original failed run and immutable bundles remain retained.
 
 ## Scope and evidence
 

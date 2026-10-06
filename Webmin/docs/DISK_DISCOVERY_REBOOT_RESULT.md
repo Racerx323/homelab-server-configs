@@ -69,6 +69,6 @@ external notifications are excluded.
 **Subsequent state:** the user authorized this exact bundle, and the replacement
 observer started on October 4 at 17:56 CDT. See the
 [startup and checkpoint record](DISK_DISCOVERY_OBSERVATION_STATUS.md).
-The new 24-hour result remains pending. Raw reboot and qualification
+The [24-hour observation subsequently passed full review](DISK_DISCOVERY_OBSERVATION_RESULT.md). Raw reboot and qualification
 records, error records and their hash manifest remain private under
 `disk-discovery-follow-up-20260929/reboot-qualification-20261004`.

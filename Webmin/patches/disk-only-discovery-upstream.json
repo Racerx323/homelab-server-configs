@@ -1,0 +1,19 @@
+{
+  "state": "review_only_not_deployed",
+  "upstream_commit": "11be3726f7679b6ad87d9b9a8f02ff887fe1b1f6",
+  "patch_sha256": "9a210bf7809496e01fb081d42017f8be277eea95105616589a2440a4ce8d199a",
+  "files": {
+    "fdisk/fdisk-lib.pl": {
+      "before": "929504a4c9ae624ff8e31f322664ff14f5270ddf4ae7a94f60f965ea8f8bfe32",
+      "after": "512743f3ddb89c3136f570363a270c5de5e0aa8ec7fe4fca779095bdd274ef8d"
+    },
+    "smart-status/smart-status-lib.pl": {
+      "before": "36a5a336bf5d928a61d5dab3d0e8778a0585c9c8f9edcb8ecb97d0331bff5a83",
+      "after": "b4996a22be5db03e168f4e93d62a670999882b0432d6ee213cb2c01c68fc4c64"
+    },
+    "system-status/system-status-lib.pl": {
+      "before": "5e882de08dda5696e2a14cc645813a789688e94465380e9a120479477d40b7b5",
+      "after": "6972a85b1372166b095d4630d438e5dfceb62b44fb0499c83cb232a3d1995707"
+    }
+  }
+}

@@ -90,20 +90,25 @@ def storage_since(token):
     return raw, any(re.search(PATTERN, x.get('MESSAGE', ''), re.I) for x in rows)
 
 
-def query_argv(binary, device_type='sntjmicron', attribution=False):
-    if device_type not in ('sntjmicron', 'sat/sntjmicron'):
+def query_argv(binary, device_type='sntjmicron', attribution=False, database=None):
+    if device_type not in ('sntjmicron', 'sat/sntjmicron', 'auto') or (device_type == 'auto' and database is None):
         raise ValueError('unreviewed_device_type')
-    return [binary, '-d', device_type, '-r', 'ioctl,2' if attribution else 'nvmeioctl,2',
+    database_args = ['-B', '+' + str(database)] if database is not None else []
+    return [binary, *database_args, '-d', device_type, '-r', 'ioctl,2' if attribution else 'nvmeioctl,2',
             '-q', 'noserial', '-l', 'selftest', '/dev/sda']
 
 
 def query_plan(spec, candidate):
     mode = spec.get('comparison_mode', 'installed_vs_candidate')
-    if (spec['queries'] != (2 if mode == 'candidate_detection_attribution' else 6) or spec['observation_after_each_seconds'] != 75
+    if (spec['queries'] != (2 if mode in ('candidate_detection_attribution','candidate_local_database') else 6) or spec['observation_after_each_seconds'] != 75
             or spec['maximum_trial_seconds'] != 900
             or spec['production_package_or_configuration_changes'] is not False
             or spec['self_test_start'] is not False):
         raise ValueError('unreviewed_trial_scope')
+    if mode == 'candidate_local_database':
+        if spec.get('expected_bcd_device') != '0213' or not re.fullmatch('[0-9a-f]{64}',spec.get('database_sha256','')):
+            raise ValueError('unreviewed_database')
+        return [('candidate-explicit',str(candidate),'sntjmicron'),('candidate-auto',str(candidate),'auto')]
     if mode in ('candidate_device_types', 'candidate_detection_attribution'):
         if spec.get('expected_bcd_device') != '0213':
             raise ValueError('unreviewed_bridge_revision')
@@ -113,6 +118,25 @@ def query_plan(spec, candidate):
         raise ValueError('unreviewed_comparison_mode')
     return [('installed', '/usr/sbin/smartctl', 'sntjmicron'),
             ('candidate', str(candidate), 'sntjmicron')] * 3
+
+
+def verify_database(binary, database, expected):
+    if database.is_symlink() or not stat.S_ISREG(database.lstat().st_mode) or digest(database) != expected:
+        raise ValueError('database_identity')
+    # No device operand: native parser and USB matching only.
+    for revision, matches in [('0x0213',True),('0x0200',False)]:
+        code,out,err=run([str(binary),'-B',str(database),'-P','showall','0x152d:0x0583',revision])
+        # -P showall returns the match count, not the device-query bitmask.
+        if code != int(matches) or err or (b'sntjmicron' in out) != matches:
+            raise ValueError('database_native_match')
+
+
+def observer_inactive():
+    code,out,_=run(['systemctl','show','webmin-discovery-observation.service','--property=LoadState,ActiveState'])
+    fields=dict(line.split('=',1) for line in out.decode().splitlines() if '=' in line)
+    # A completed transient unit may already have been garbage-collected.
+    if code not in (0,1) or fields.get('ActiveState') != 'inactive' or fields.get('LoadState') not in ('loaded','not-found'):
+        raise ValueError('observation_not_inactive')
 
 
 def bridge_descriptor(ancestry):
@@ -164,6 +188,10 @@ def main(bundle):
         raise ValueError('failed_host_units')
     evidence = bundle / 'evidence'
     evidence.mkdir(mode=0o700)  # Refuse replay into existing evidence.
+    database = bundle/'jms583-0213.drivedb.h' if spec.get('comparison_mode') == 'candidate_local_database' else None
+    if database is not None:
+        observer_inactive()
+        verify_database(candidate,database,spec['database_sha256'])
     before = config_identity()
     services = service_identity()
     boot = Path('/proc/sys/kernel/random/boot_id').read_text()
@@ -183,7 +211,11 @@ def main(bundle):
         for number, (label, binary, device_type) in enumerate(plan, 1):
             token = cursor()
             prefix = f'{number:02d}-{label}'
-            argv = query_argv(binary, device_type, spec.get('comparison_mode') == 'candidate_detection_attribution')
+            if database is not None:
+                observer_inactive()
+                if digest(database) != spec['database_sha256']: raise ValueError('database_changed')
+            argv = query_argv(binary, device_type, spec.get('comparison_mode') in ('candidate_detection_attribution','candidate_local_database'),
+                              database if device_type == 'auto' else None)
             row = {'number': number, 'binary': label, 'device_type': device_type, 'started_epoch': time.time(),
                    'scsi_ioerr_before': Path('/sys/block/sda/device/ioerr_cnt').read_text().strip(),
                    'ext4_before': Path('/sys/fs/ext4/sda2/errors_count').read_text().strip()}
@@ -213,6 +245,8 @@ def main(bundle):
             row['continuity'] = unchanged
             (evidence/'result.json').write_text(json.dumps(result, indent=2)+'\n')
             require_continue(code, event, unchanged)
+            if database is not None and (row['scsi_ioerr_before'] != row['scsi_ioerr_at_return'] or row['scsi_ioerr_before'] != row['scsi_ioerr_after']):
+                raise ValueError('unexpected_counter_increment')
         raw, event = storage_since(trial_cursor)
         (evidence/'all-kernel.jsonl').write_text(raw)
         if event:

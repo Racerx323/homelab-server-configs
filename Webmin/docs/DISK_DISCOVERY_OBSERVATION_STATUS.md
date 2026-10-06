@@ -1,8 +1,8 @@
 # Passive observation startup record
 
-Latest: the replacement observer started on October 4 at 17:56 CDT, following
-the [accepted reboot baseline](DISK_DISCOVERY_REBOOT_RESULT.md). Its new 24-hour
-outcome is pending; the previous run remains archived and incomplete.
+Latest: the [October 4–5 observation passed full evidence review](DISK_DISCOVERY_OBSERVATION_RESULT.md)
+on October 6. The observer completed successfully and is inactive. The earlier
+failed run remains separate. The entries below preserve historical startup state.
 
 ## October 4 replacement startup
 

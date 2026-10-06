@@ -56,6 +56,35 @@ class Comparison(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.query_plan(dict(spec, queries=6), '/candidate')
 
+    def test_local_database_mode_is_two_reads_and_override_only_on_auto(self):
+        spec={'comparison_mode':'candidate_local_database','queries':2,'observation_after_each_seconds':75,
+              'maximum_trial_seconds':900,'production_package_or_configuration_changes':False,
+              'self_test_start':False,'expected_bcd_device':'0213','database_sha256':'a'*64}
+        plan=m.query_plan(spec,'/candidate')
+        self.assertEqual([r[2] for r in plan],['sntjmicron','auto'])
+        self.assertNotIn('-B',m.query_argv('/candidate'))
+        argv=m.query_argv('/candidate','auto',True,Path('/private/entry.h'))
+        self.assertEqual(argv[argv.index('-B')+1],'+/private/entry.h')
+        self.assertNotIn('-t',argv)
+        with self.assertRaises(ValueError): m.query_argv('/candidate','auto')
+        with self.assertRaises(ValueError): m.query_plan(dict(spec,database_sha256='bad'),'/candidate')
+
+    def test_database_hash_and_native_match_fail_closed(self):
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'entry.h';path.write_text('fixture')
+            with patch.object(m,'run',side_effect=[(1,b'sntjmicron',b''),(0,b'No presets',b'')]) as runner:
+                m.verify_database('/candidate',path,m.digest(path))
+                self.assertTrue(all('/dev/sda' not in call.args[0] for call in runner.call_args_list))
+            with self.assertRaises(ValueError):m.verify_database('/candidate',path,'a'*64)
+            with patch.object(m,'run',return_value=(1,b'',b'parse error')):
+                with self.assertRaises(ValueError):m.verify_database('/candidate',path,m.digest(path))
+            with patch.object(m,'run',return_value=(0,b'LoadState=loaded\nActiveState=active\n',b'')):
+                with self.assertRaises(ValueError):m.observer_inactive()
+            with patch.object(m,'run',return_value=(1,b'LoadState=not-found\nActiveState=inactive\n',b'')):
+                m.observer_inactive()
+
     def test_descriptor_requires_unique_matching_bridge_and_valid_revision(self):
         import tempfile
         with tempfile.TemporaryDirectory() as directory:

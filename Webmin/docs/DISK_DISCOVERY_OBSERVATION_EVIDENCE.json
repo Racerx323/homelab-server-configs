@@ -1,0 +1,28 @@
+{
+  "state": "accepted_single_host_observation",
+  "archive_sha256": "42211e5d4216ea724ab1dcfbd4e185cfaefb1690e21d958583080c6861884a4a",
+  "archive_bytes": 412955,
+  "files_verified": 16,
+  "sample_count": 1437,
+  "maximum_sample_gap_seconds": 60.270795734002604,
+  "temperature_range_c": [
+    41.0,
+    43.0
+  ],
+  "counts": {
+    "diskused": 287,
+    "drivetemp": 287,
+    "load": 287
+  },
+  "counter_deltas": {
+    "ext4": 0,
+    "ioerr": 0,
+    "iotmo": 0
+  },
+  "kernel_events": 0,
+  "duration_seconds": 86404.027113758,
+  "settled_seconds": 116.92374515533447,
+  "settling_basis": "completed_health_cache_write",
+  "start_cdt": "2026-10-04T17:56:26.186172-05:00",
+  "finish_cdt": "2026-10-05T17:56:30.213286-05:00"
+}
