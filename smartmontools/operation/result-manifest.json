@@ -1,0 +1,35 @@
+{
+  "outcome": "failed_before_device_registration",
+  "accepted": false,
+  "bundle_sha256": "ea90fc04b9b950d2a5a5db20752da12e54dd9b08dfa53a062832143e84de922e",
+  "candidate_exit_status": 1,
+  "controller_exit_status": 2,
+  "candidate_exited": true,
+  "reason": "incompatible_debug_and_pidfile_options",
+  "post_exit_observation_seconds": 75.0001275849936,
+  "counters_unchanged": true,
+  "kernel_fault": false,
+  "production_identity_unchanged": true,
+  "retrieved_files_verified": 5,
+  "frozen_bundle_unchanged": true,
+  "retry_executed": false,
+  "local_correction": "omit -p in foreground mode",
+  "correction_tests_exit": 0,
+  "correction_hooks_exit": 0,
+  "evidence_sha256": {
+    "EXECUTION_REVIEW.json": "1d8bee945555134e13b52975b64399c44cd40b70afda5ff3c799cd358783dea6",
+    "verified-hashes.json": "5ebfbc16c2495a81ddd5fb9083e2d051aef8206e16e75d6780f6a2d0646eed12",
+    "remote-evidence/evidence/result.json": "a5e08323514abeadbd82e04811cb6ab36f5aef6442939a77cc3ea01303c57ae5",
+    "post-baseline.json": "f9b6b765ae79642f57105325f4c28b7ed3dee1837fd868855202a2039f200a05"
+  },
+  "external_inputs": {
+    "baseline.json": {
+      "sha256": "8674a7e418c5c7b54f79a7db027e10539cc13f012e5430c9f47860094d6be407",
+      "retention": "private original consumed bundle; includes raw daemon journal and device identities"
+    },
+    "smartd": {
+      "sha256": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
+      "retention": "private original consumed bundle and verified upstream artifact 10763334265"
+    }
+  }
+}

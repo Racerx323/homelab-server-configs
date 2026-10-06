@@ -1,0 +1,23 @@
+{
+  "scope": "candidate_smartd_onecheck",
+  "host": "j2-svpi4mf",
+  "device": "/dev/sda",
+  "candidate_deadline_seconds": 60,
+  "observation_after_exit_seconds": 75,
+  "baseline_expires": "2026-10-06T12:22:10.010062-05:00",
+  "latest_start": "2026-10-06T12:17:10.010062-05:00",
+  "production_changes": false,
+  "self_test_start": false,
+  "notification_delivery": false,
+  "artifact_id": 10763334265,
+  "ci_run_id": 35888458253,
+  "source_commit": "06489e03695e0cf0a7366f0d402fbff8763bf3e6",
+  "archive_sha256": "ad7d8840f9349e7ab8a04dc8741ad7bf5799cb1cdd712901faba32b1b09bff74",
+  "inputs": {
+    "smartd": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
+    "smartd.conf": "828cbe5739862f5594271e56e844807aae062b93cb3a8bda265d2e66cf3c170f",
+    "empty.drivedb": "ee07a5eb328d5befbccb937ecfb02fe3503569385b2612e0f2c5208312cea417",
+    "baseline.json": "8674a7e418c5c7b54f79a7db027e10539cc13f012e5430c9f47860094d6be407",
+    "compare-ci-smartctl.py": "ac1010d48c168d5908ea6440b4cfa9650138a27d6814e11736882fe3ad2d695f"
+  }
+}

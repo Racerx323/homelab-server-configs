@@ -287,8 +287,9 @@ mode for stage one; keep the process in the foreground, with a 60-second deadlin
 bounded output and at least 75 seconds of post-exit kernel observation. Validate
 its exact exit-code convention separately from smartctl's bitmask.
 
-Bind all state, attribute-log, PID and output destinations to a protected trial
-directory. Verify the effective compiled defaults and command overrides; refuse
+Bind all state, attribute-log and output destinations to a protected trial
+directory. Debug mode suppresses PID files; do not supply `-p`, which conflicts
+with that mode. Verify the effective compiled defaults and command overrides; refuse
 execution if the candidate could write production state or send notifications.
 Do not share the live daemon's state files. If baseline state is needed for later
 transition comparison, explicitly review a read-only copy and its provenance;
@@ -304,7 +305,71 @@ stage, not daemon replacement. Preserve evidence after failure; terminate only
 the owned candidate and verify its exit. Production monitoring requires no
 rollback because it was not replaced.
 
-Current readiness: procedure and minimal configuration prepared; candidate-smartd
-artifact/hash, fresh baseline, effective output/state overrides and native
-qualification are still required. No executable smartd bundle is frozen and no
-live daemon check is authorized. Existing smartctl bundles must not be repurposed.
+The October 6 preparation verified smartd in the same retained CI archive:
+SHA-256 `9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221`.
+Native, unprivileged `--version` and `--help` ran from an anonymous memory file,
+without device access or installation. They identify `pre-8.0-583`, source
+`06489e03695e`, and list the output overrides individually; that check did not
+validate their combination. The fresh read-only
+baseline matches the package, bridge, root device and production service
+identities. The observer is inactive; SCSI count is `0x2`, ext4 errors are zero,
+and no failed units or pending systemd jobs were found. Recent production logs
+still show a self-test error-count increase followed by a decrease. This is the
+reason to qualify the daemon separately.
+
+The pinned source confirms that registration reads Identify Controller,
+SMART/Health and the self-test log, followed by the single monitoring check.
+This is one daemon check, not one device read. An absent self-test schedule
+prevents test initiation; absent mail/command directives prevent notifications.
+Debug/onecheck mode stays in the foreground and uses stdout rather than syslog.
+Private `-s`, `-A` and `-j` paths isolate state, attributes and JSON;
+debug mode suppresses PID creation and requires omitting `-p`.
+an explicit empty `-B` input bypasses default database files. A minimal environment
+also excludes inherited notification variables. State is written after the check
+and at exit. The source omits zero-valued state fields, so an absent
+`self-test-errors` key means zero only in a verified, newly written state file.
+
+`scripts/qualify-smartd.py` owns the candidate deadline, bounded partial output,
+post-exit observation and continuity checks. It reuses the smartctl comparison's
+read-only identity/journal helpers, without invoking its query plan. The separate
+`scripts/execute-smartd-qualification.py` verifies all manifest members, claims
+the bundle once and stages a root-owned mode-0700 trial. A mismatch, active
+observer, additional smartd, visible maintenance, expired baseline or changed
+counter/service/configuration identity stops before the candidate check.
+The baseline is valid for one hour, with five minutes reserved before expiry.
+Normal production monitoring remains active, so concurrent polling still limits
+attribution. The checks do not certify an exclusive host maintenance lock.
+
+The consumed private bundle is preserved unchanged under
+`/home/aaron/code/.local-evidence/smartmontools-smartd-preparation-20261006/bundle/`.
+Its `PROCEDURE.md` records the exact command, hash gate, deadlines, evidence
+collection and recovery boundary. Local tests cover configuration restrictions,
+timeout/output failure handling, inherited environment isolation, admission
+evidence, baseline expiry and manifest tampering. They do not qualify live ARM64
+registration or device transactions. Native configuration registration, actual
+self-test-log results and preserved state remain unqualified. Do not replay the
+consumed bundle or edit its frozen inputs.
+
+## October 6 single-check admission failure
+
+The authorized bundle
+`ea90fc04b9b950d2a5a5db20752da12e54dd9b08dfa53a062832143e84de922e`
+was executed once. Candidate smartd exited 1 after rejecting the simultaneous
+`-d` and `-p` options; the controller returned 2 for failed admission. The pinned
+source rejects that combination during argument parsing, before device
+registration. No candidate device check occurred. The original preparation
+incorrectly treated a private PID path as compatible with debug mode.
+
+The post-exit observation lasted 75.000 seconds, with SCSI count unchanged at
+`0x2`, ext4 errors zero and no matched kernel storage fault. A separate read-only
+post-baseline confirmed unchanged boot, bridge, package, production binary/config
+hashes and smartd/Webmin service identities; no failed host units were found.
+Five retrieved evidence files matched their remote SHA-256 values. Raw evidence,
+the original exit statuses and the consumed bundle remain private and retained.
+
+The reusable command now omits `-p`; its regression rejects any PID-file argument
+in foreground mode. This repository correction has not been executed on the
+target. Preserve the failure archive before preparing a replacement bundle,
+refresh its baseline as needed, and obtain approval of its new hash before any
+retry. Candidate smartd admission, repeated-check qualification and production
+replacement remain unaccepted. No automatic retry or production change occurred.
