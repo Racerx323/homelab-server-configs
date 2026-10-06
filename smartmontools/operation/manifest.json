@@ -1,14 +1,14 @@
 {
   "scope": "candidate_smartd_single_check",
   "files": {
-    "PROCEDURE.md": "f9badf9f7fe71bc4d4313c81941c2dc600413f7a9bf39ce7b57bb946d8f562f8",
-    "baseline.json": "8674a7e418c5c7b54f79a7db027e10539cc13f012e5430c9f47860094d6be407",
+    "PROCEDURE.md": "08c65e42c3a15e0dd9e22fe4c14d599964dc8e8d7b3896816dd808389b35f78f",
+    "baseline.json": "860f4b02f3a7cbfdc5655a7d6a85a517d7505b05dd46f1888e809bd0d52a1d21",
     "compare-ci-smartctl.py": "ac1010d48c168d5908ea6440b4cfa9650138a27d6814e11736882fe3ad2d695f",
     "empty.drivedb": "ee07a5eb328d5befbccb937ecfb02fe3503569385b2612e0f2c5208312cea417",
     "execute-smartd-qualification.py": "60a304ba597dda0b8e22e31009f1fdabf3e1865ec2481d30943b81a94df4493d",
-    "qualify-smartd.py": "0d7d92994473b04b90c260e177bd8e086ba355ab0adec12ce972f3f4ddda5c41",
+    "qualify-smartd.py": "7b635bf92570377996a4f53a7694bd8739e9362e6a3ab8be3afea2218b9a647b",
     "smartd": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
     "smartd.conf": "828cbe5739862f5594271e56e844807aae062b93cb3a8bda265d2e66cf3c170f",
-    "specification.json": "5c047401addf47f4f5ba77bcb368ae0429d634f6614cec6e87770113f0ce50f8"
+    "specification.json": "eae540d6d7bd42811e73e68917391c96a67aa355ee938114a2eb2afed5f349cd"
   }
 }

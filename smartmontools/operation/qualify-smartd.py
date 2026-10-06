@@ -31,7 +31,7 @@ def argv_for(root):
     return [str(root/'smartd'), '-d', '-q', 'onecheck',
             '-c', str(root/'smartd.conf'), '-B', str(root/'empty.drivedb'),
             '-s', str(root/'state')+'/', '-A', str(root/'attributes')+'/',
-            '-j', str(root/'json')+'/', '-p', str(root/'candidate.pid'),
+            '-j', str(root/'json')+'/',
             '-r', 'nvmeioctl,2']
 
 

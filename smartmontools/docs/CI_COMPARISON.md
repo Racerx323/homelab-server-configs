@@ -369,7 +369,41 @@ the original exit statuses and the consumed bundle remain private and retained.
 
 The reusable command now omits `-p`; its regression rejects any PID-file argument
 in foreground mode. This repository correction has not been executed on the
-target. Preserve the failure archive before preparing a replacement bundle,
-refresh its baseline as needed, and obtain approval of its new hash before any
-retry. Candidate smartd admission, repeated-check qualification and production
+target. The failure archive is published under
+`smartmontools-smartd-admission-v1-failed`; see [history](../HISTORY.md) for verified
+identities. The retry preparation refreshed the baseline and natively checked
+the corrected options without device access: argument parsing reached a
+deliberately unreadable configuration and returned exit 6. The empty database's
+missing-DEFAULT warning is expected. This does not qualify live registration.
+Obtain approval of the replacement bundle's new hash before any retry.
+Candidate smartd admission, repeated-check qualification and production
 replacement remain unaccepted. No automatic retry or production change occurred.
+
+## October 6 corrected single-check admission result
+
+The separately approved retry bundle
+`6c6846d56e66af89f2d2affe2d4125fee70b15bc9fb39a3caa5d2fcff13d3b45`
+completed once with candidate and controller exits zero. Manual evidence review
+accepted single-check admission. The original runner result retains its
+`accepted=false` manual-review gate; the separate private execution review records
+the acceptance decision without rewriting raw evidence.
+
+One NVMe device registered. Five diagnostic transactions succeeded: Identify
+Controller, SMART/Health and self-test-log registration reads, then SMART/Health
+and self-test-log monitoring reads. Both log requests were adjusted to 512 bytes
+with the candidate's 18-entry protection. The newly written private daemon state
+indicates zero self-test errors; the pinned writer omits zero-valued fields.
+The empty database's missing-DEFAULT warning was expected. No self-test started.
+
+The 75.000-second post-exit observation found unchanged SCSI count `0x2`, ext4
+errors zero and no matched kernel storage fault. An independent read-only
+post-baseline confirmed unchanged production binaries/configuration, service
+invocations, package, bridge and boot identity. Eight retrieved evidence files
+matched remote SHA-256 values. Private review and original evidence are under
+`/home/aaron/code/.local-evidence/smartmontools-smartd-retry-20261006/`.
+
+Archive and reconcile this bounded admission before preparing repeated-check
+observation. Choose that later interval/duration from historical warning cadence;
+one clean check does not establish intermittent-warning resolution. Production
+monitoring remained active and unchanged. No daemon upgrade, repeated observation,
+cleanup or upstream publication occurred. Do not replay the consumed bundle.

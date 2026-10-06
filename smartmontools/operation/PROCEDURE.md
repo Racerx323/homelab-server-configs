@@ -8,11 +8,11 @@ JMicron `152d:0583` / `0213`, usb-storage, installed package `7.5-2~bpo13+1`.
 Exact controller command, substituting only the approved manifest digest:
 
 ```text
-PYTHONDONTWRITEBYTECODE=1 python3 /home/aaron/code/.local-evidence/smartmontools-smartd-preparation-20261006/bundle/execute-smartd-qualification.py APPROVED_SHA256
+PYTHONDONTWRITEBYTECODE=1 python3 /home/aaron/code/.local-evidence/smartmontools-smartd-retry-20261006/bundle/execute-smartd-qualification.py APPROVED_SHA256
 ```
 
-Latest start: October 6, 2026 at 12:17:10 p.m. CDT. Baseline expires at
-12:22:10 p.m. CDT. A changed or expired baseline requires review and a new bundle,
+Latest start: October 6, 2026 at 01:01:25 PM CDT. Baseline expires at
+01:06:25 PM CDT. A changed or expired baseline requires review and a new bundle,
 not an override or automatic retry. The baseline found no observer, pending host
 jobs or failed units. Ordinary smartd/Webmin polling remains active. These are
 point-in-time checks, not a global maintenance lock; do not start other storage
@@ -25,7 +25,7 @@ The trial verifies baseline identities and candidate version before any disk
 access, then invokes exactly this command with TRIAL replaced by that directory:
 
 ```text
-TRIAL/smartd -d -q onecheck -c TRIAL/smartd.conf -B TRIAL/empty.drivedb -s TRIAL/state/ -A TRIAL/attributes/ -j TRIAL/json/ -p TRIAL/candidate.pid -r nvmeioctl,2
+TRIAL/smartd -d -q onecheck -c TRIAL/smartd.conf -B TRIAL/empty.drivedb -s TRIAL/state/ -A TRIAL/attributes/ -j TRIAL/json/ -r nvmeioctl,2
 ```
 
 Configuration is exactly one effective line:
@@ -35,8 +35,8 @@ reads. There is no self-test schedule, test initiation, scan, mail recipient,
 notification command, service registration, package installation, restart,
 production state sharing or default database change. Source review establishes
 that no mail or warning script is invoked without recipient/command directives.
-Debug mode directs logs to captured output and suppresses PID creation; the
-explicit private PID path also prevents any production PID destination.
+Debug mode directs logs to captured output and suppresses PID creation. The
+corrected command omits -p, which this candidate rejects in debug mode.
 State, attributes and JSON are private even on normal exit. Zero-valued state
 fields are omitted by this revision's writer.
 
@@ -72,3 +72,9 @@ remove trial evidence automatically. Cleanup requires verified collection and
 exact trial-path ownership. A passing admission allows preparation of a later
 repeated-check observation; it does not qualify intermittent-warning resolution
 or authorize a daemon upgrade or upstream publication.
+
+The prior failure is preserved in published tag
+`smartmontools-smartd-admission-v1-failed`. Its consumed bundle is not reused.
+A disk-free native probe confirmed corrected option compatibility by reaching a
+deliberately unreadable configuration (exit 6). That is not device qualification.
+The empty database emits a missing-DEFAULT warning; it remains deliberately empty.
