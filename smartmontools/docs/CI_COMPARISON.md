@@ -93,8 +93,10 @@ reported a request adjustment to `0x0200` with CDW10 `0x007f0006` and truncation
 to 18 entries. No permissive override was used.
 
 This is bounded non-reproduction on the candidate while the old behavior
-reproduced in the same session, not proof of permanent resolution. Candidate
-smartd remains untested. Keep the packaged production policy unchanged pending
+reproduced in the same session, not proof of permanent resolution. At that stage
+candidate smartd was untested; its later bounded qualification is recorded in
+[the observation review](SMARTD_OBSERVATION_REVIEW.md).
+Keep the packaged production policy unchanged pending
 separate review. Private field summaries, verified evidence and an unpublished
 upstream draft are retained under
 `/home/aaron/code/.local-evidence/smartmontools-ci-comparison-20260924/explicit-type/`.
@@ -499,13 +501,15 @@ frozen specification enables launch. A complete quiet run would qualify bounded
 repeated operation on this host. If production warnings do not recur, report
 candidate non-reproduction, not demonstrated elimination or a controlled
 comparative fix. If they recur, correlate timestamps without claiming complete
-causal isolation. Native 48-hour runtime behavior remains unqualified until the
-approved trial and evidence review complete.
+causal isolation. The approved trial and independent evidence review are now
+complete; [the terminal review](SMARTD_OBSERVATION_REVIEW.md) records bounded
+single-host qualification and its coverage limits.
 
 The hash-approved observation started October 6, 2026, at 1:34:30 p.m. CDT.
 Controller transport exited zero. A new SSH status connection after submission
 confirmed the same live supervisor and one completed monitoring check at about
-15 seconds. The observation is running, not accepted. The approved manifest is
+15 seconds. That readiness receipt established running status only. The approved
+manifest is
 `089f66b50fef200afe9ce104f5682a4f6af0b647aa0b4e399a7d6f3b95b47867`.
 Private launch and readiness receipts are beside the frozen bundle.
 
@@ -514,3 +518,12 @@ and October 8 at 1:34:30 p.m. CDT. Final settling and terminal review follow the
 48-hour observation. Use the bound status command and original remote path in
 the private receipt; do not submit another launch. No automatic operator
 checkpoint scheduling is installed.
+
+On October 9, independent review accepted bounded qualification of the completed
+October 6–8 observation: 96 monitoring checks, verified rolling journal coverage,
+exit zero and reported 75.09-second settling. The original runner retains
+`accepted=false`; the separate manual decision and evidence hashes are in
+[SMARTD_OBSERVATION_REVIEW.md](SMARTD_OBSERVATION_REVIEW.md). Production warnings
+did not recur. This is non-reproduction, not proof of an intermittent-bug fix.
+Production policy and original evidence remain unchanged; archival and upstream
+publication have not occurred.

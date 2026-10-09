@@ -1,0 +1,117 @@
+{
+  "scope": "one_bounded_48_hour_candidate_smartd_observation",
+  "decision": "accepted_bounded_qualification",
+  "accepted": true,
+  "intermittent_bug": "non_reproduction_not_proven_fixed",
+  "review_date": "2026-10-09",
+  "bundle_sha256": "089f66b50fef200afe9ce104f5682a4f6af0b647aa0b4e399a7d6f3b95b47867",
+  "source_commit": "06489e03695e0cf0a7366f0d402fbff8763bf3e6",
+  "candidate_sha256": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
+  "original_runner_result_unchanged": {
+    "accepted": false,
+    "completed": true,
+    "failure": null,
+    "candidate_exited": true,
+    "candidate_exit_status": 0,
+    "post_exit_observation_seconds": 75.09053030103678,
+    "completed_checks": 96,
+    "elapsed_seconds": 172875.10228988898,
+    "review_required": true
+  },
+  "verification": {
+    "regular_files": 27,
+    "total_bytes": 12519314,
+    "remote_local_sha256_match": true,
+    "monitoring_checks": 96,
+    "registration_selftest_reads": 1,
+    "successful_nvme_transactions": 195,
+    "selftest_transport_bytes": 512,
+    "unused_entries_per_read": 18,
+    "interpreted_selftest_errors": 0,
+    "state_note": "No self-test-errors key; independent payload decoding supports zero interpreted errors",
+    "check_gap_seconds": {
+      "minimum": 1799.0,
+      "maximum": 1801.0,
+      "counts": {
+        "1800.0": 93,
+        "1801.0": 1,
+        "1799.0": 1
+      }
+    },
+    "journal_checkpoints": 11391,
+    "journal_source_records": 2967,
+    "all_cursor_links_and_source_batch_hashes_verified": true,
+    "kernel_records": 0,
+    "production_smartd_records": 0,
+    "source_suppression_indicators": 0,
+    "production_warning_recurrence": false,
+    "normal_audit_gap_max_seconds": 15.278903245925903,
+    "final_audit_gap_seconds": 87.87301301956177,
+    "shutdown_signal": 15,
+    "candidate_exit_status": 0,
+    "owned_processes_absent_on_review": true,
+    "production_endpoint_identity_unchanged": true,
+    "counter_endpoints": {
+      "ioerr_cnt": "0x2",
+      "ext4_errors": "0"
+    }
+  },
+  "expected_candidate_notices": {
+    "missing_DEFAULT_for_empty_private_database": 1,
+    "protective_selftest_log_truncation": 97
+  },
+  "limitations": [
+    "Per-audit counter, configuration, service, clock and private-state snapshots were not retained. Frozen audit code and terminal success support those checks; the October 9 independent endpoint matches baseline but does not reconstruct every historical sample.",
+    "Candidate diagnostics have no absolute receive/completion timestamps. CSV wall times support cycle timing to one second; reported transaction durations are candidate-supplied, not independent transport latency measurements.",
+    "CSV contains 96 cycles from initial checking through hour 47.5, not 96 complete 30-minute intervals. Continuous 48-hour duration is supported by start/terminal identities, supervisor monotonic result and rolling audit coverage.",
+    "Settling sleeps for 75 seconds then performs one final audit; it does not audit every 15 seconds during settling. The final checkpoint gap is 87.873 seconds and journal source coverage bridges it. Exact candidate-exit wall time is not independently recorded.",
+    "Journald coverage is bounded to records actually stored and queried. Cursor checks cannot prove every underlying event was emitted or never dropped. No suppression indicators were found in the retained source window; full historical retention outside this window remains unestablished.",
+    "Private state has only nvme-available-spare = 100 and no self-test-errors key; all 97 raw self-test-log payloads independently show 18 unused records, supporting zero interpreted errors without inventing a state-field value.",
+    "Production smartd and Webmin polling remained active. No original production warning recurred, so there are no in-window warning timestamps to correlate with candidate checks and no controlled causal comparison.",
+    "Only explicit sntjmicron with private empty database and restricted self-test-log policy was qualified on one host. Production replacement, custom-database/autodetection daemon behavior, alert delivery, self-test scheduling and fleet behavior remain unqualified."
+  ],
+  "evidence_sha256": {
+    "PROCEDURE.md": "c671d0e1a7138a72cb530dd0e02784848d85b08355df896c76b76dd14f0441a6",
+    "private-attributes/device.nvme.csv": "63c7f6edbe5d071aa3fe55990e94a7ad0f891eb6c465462c44b4b0849e729b15",
+    "baseline.json": "db23e4ad835bfbd387c5478efd2735071962f0ed50922785c8cf323cf23ec70e",
+    "compare-ci-smartctl.py": "ac1010d48c168d5908ea6440b4cfa9650138a27d6814e11736882fe3ad2d695f",
+    "empty.drivedb": "ee07a5eb328d5befbccb937ecfb02fe3503569385b2612e0f2c5208312cea417",
+    "evidence/journal-checkpoints.jsonl": "08452c2ddbbfae63b94036577fcecb7d4b68b5a2c7880aa1d7ac87d58ed4aef4",
+    "evidence/kernel.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/production-smartd.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/progress.json": "6f904c249597854c947df47f51e02b589c980a7b213a6925efa8c6bf127ae581",
+    "evidence/result.json": "17df4038c4f351477970a11f2eb1f08c3f07c0adbf894b4f02a2196e877cc4f4",
+    "evidence/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/stdout": "5ec8a0591d8deba3dbabf0a9b3c0ace600f1041c40d27ed644bd466dcdd0e3ba",
+    "evidence/terminal.json": "17df4038c4f351477970a11f2eb1f08c3f07c0adbf894b4f02a2196e877cc4f4",
+    "evidence/version": "64083317b03c18f2cdfa7c800eb30f78bfffdb15f34880c1669705265021cfb0",
+    "execute-smartd-qualification.py": "616da2de2334b4063755314ec29a3898a67849127b8cd3381aacf83b866a175f",
+    "private-json/device.nvme.json": "11e09d6850dc5a8a76798f5899466c469b8871a969b4fe5ca8d8e7bf8b3f0a89",
+    "launch.claim": "55167b1ec2b96c75ad9e60666bbb77e3620efbb69d1cb9179c863cd2ecbe46bb",
+    "observe-smartd.py": "e39cbaa3e6e08fda74fee2e7a4a4c5895d8b32655a98510393d7f4b436c9d1fb",
+    "qualify-smartd.py": "7b635bf92570377996a4f53a7694bd8739e9362e6a3ab8be3afea2218b9a647b",
+    "smartd": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
+    "smartd-observation-control.py": "b6edd27e0b70fb27012c76c87283a574674126665fd6dde176223f19ab4f2bd8",
+    "smartd.conf": "828cbe5739862f5594271e56e844807aae062b93cb3a8bda265d2e66cf3c170f",
+    "specification.json": "ff0f4c488796263826328c0917eb6d0894681dec26793e6efdafe5d4986e41a7",
+    "private-state/primary.nvme.state": "df6f0968aca4126f59c46557b70b93a40a92541cf607b37d6301925b5b4436ca",
+    "private-state/backup.nvme.state": "df6f0968aca4126f59c46557b70b93a40a92541cf607b37d6301925b5b4436ca",
+    "status.json": "7f57b75ad94318dbdb88f11005c940f16e02c554012e49e041400fde36cd414f",
+    "supervisor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "private_review_sha256": "f5e6b4eee8cd1f283da36ad32dd147cf5261e6f64e09e491abc4a309ec47ad02",
+  "source_journal_cross_check_sha256": "fdecd4c181593c6437c62850a1d51390d2d93598d4c1e0f99e8365b083f7bbd3",
+  "external_inputs": {
+    "baseline.json": {
+      "sha256": "db23e4ad835bfbd387c5478efd2735071962f0ed50922785c8cf323cf23ec70e",
+      "retention": "complete private consumed observation bundle; excluded from Git"
+    },
+    "smartd": {
+      "sha256": "9fa55e0684180152d3c7e8a3a588ab3caea40745b3cecdd8c13179ae21d13221",
+      "retention": "complete private consumed observation bundle; excluded from Git"
+    }
+  },
+  "archive_policy": "Exact non-sensitive frozen definition retained; baseline, candidate binary, raw evidence and consumed execution claim remain private. This archive is incomplete and cannot be used to launch.",
+  "approved_upstream_destination": "smartmontools/smartmontools#648",
+  "approved_upstream_body_sha256": "0c52a0c7c4619c55c0fc44e841d836c2de295dd8a4eef1e7fdfa375a86ded3c9"
+}

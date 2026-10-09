@@ -54,3 +54,8 @@ fleet standard.
 For an isolated upstream-build investigation, see the
 [standalone CI comparison](docs/CI_COMPARISON.md). This does not replace the
 packaged monitoring configuration or authorize fleet changes.
+
+The [candidate smartd observation review](docs/SMARTD_OBSERVATION_REVIEW.md)
+accepts bounded single-host qualification of the October 6–8, 2026 trial.
+Production warning non-reproduction does not prove the intermittent bug is fixed;
+production replacement remains unqualified.

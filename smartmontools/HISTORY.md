@@ -68,6 +68,25 @@ The separately approved repeated-check bundle started October 6, 2026, at
 1:34:30 p.m. CDT. Its manifest is
 `089f66b50fef200afe9ce104f5682a4f6af0b647aa0b4e399a7d6f3b95b47867`.
 The controller exited zero; a new SSH connection confirmed supervisor survival
-and one completed monitoring check. The 48-hour observation remains running,
-with terminal acceptance pending. Private launch/readiness receipts are retained
+and one completed monitoring check. Private launch/readiness receipts are retained
 under `smartmontools-smartd-observation-preparation-20261006`.
+
+## Repeated-check observation: bounded qualification accepted, archival pending
+
+The observation completed October 8, 2026, at 1:35:45 p.m. CDT. Independent
+October 9 review verified the frozen inputs and launch/terminal identities,
+matched 27 retrieved regular files against remote hashes, counted 96 monitoring
+checks and confirmed shutdown/settling evidence. All 11,391 journal checkpoint
+links, batch counts and hashes matched the still-retained source journal.
+Independent production boot/service/configuration/counter endpoints match the
+launch baseline. See [the terminal review](docs/SMARTD_OBSERVATION_REVIEW.md) for
+evidence hashes and limits.
+
+The separate manual decision accepts bounded single-host qualification. Neither
+candidate nor production self-test-log warnings recurred; this is non-reproduction,
+not demonstrated elimination. Raw counter/service snapshots for every audit and
+absolute transaction completion timestamps were not retained. Production polling
+remained active. The original runner's `accepted=false` result and consumed
+execution claim remain unchanged. A sanitized upstream-results draft is retained
+privately and unposted. Terminal archival remains pending separate authorization;
+no tag, commit, push, publication or remote cleanup occurred during this review.
