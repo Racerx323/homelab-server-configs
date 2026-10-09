@@ -528,5 +528,7 @@ did not recur. This is non-reproduction, not proof of an intermittent-bug fix.
 Production policy and original evidence remain unchanged. Terminal archival is
 published and verified under `smartmontools-smartd-observation-v1-accepted`; see
 [history](../HISTORY.md). Consumed operation files are removed from main after
-that verification. The sanitized upstream-results draft remains unposted, pending
-specific payload/destination approval.
+that verification. The exact approved sanitized results were posted once as
+[smartmontools issue #648 comment 6085677444](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-6085677444) on October 9,
+2026, at 12:13:27 p.m. CDT. Independent API readback matched the entire approved
+body. The issue remains closed; production policy is unchanged.

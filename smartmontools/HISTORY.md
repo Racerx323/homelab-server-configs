@@ -87,14 +87,19 @@ candidate nor production self-test-log warnings recurred; this is non-reproducti
 not demonstrated elimination. Raw counter/service snapshots for every audit and
 absolute transaction completion timestamps were not retained. Production polling
 remained active. The original runner's `accepted=false` result and consumed
-execution claim remain unchanged. A sanitized upstream-results draft is retained
-privately and unposted. The separately approved terminal archive is published in
+execution claim remain unchanged. The separately approved terminal archive is published in
 annotated tag `smartmontools-smartd-observation-v1-accepted`, at commit
 `af93245e1509c2e5a725c96336d2825933baa21b`. The remote annotated tag object
 `05fc866eae01cff2888e1bd19b23abb9c2ead3a5` and its peeled commit were
 verified before consumed operation files were removed from main. The exact
 non-sensitive frozen definition and sanitized result manifest remain in the tag;
 the baseline, candidate binary, execution claim and raw evidence remain private.
-The sanitized archive cannot be used to replay launch. Upstream comment publication
-remains pending specific payload/destination approval. No production change or
-remote evidence cleanup occurred.
+The sanitized archive cannot be used to replay launch.
+
+After explicit approval of the exact payload and destination, the sanitized
+results were posted once to smartmontools issue #648 on October 9, 2026, at
+12:13:27 p.m. CDT, as [comment 6085677444](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-6085677444).
+Independent API readback matched the complete approved body, SHA-256
+`0c52a0c7c4619c55c0fc44e841d836c2de295dd8a4eef1e7fdfa375a86ded3c9`.
+The issue remains closed. Private publication receipts are retained alongside
+the observation review. No production change or remote evidence cleanup occurred.

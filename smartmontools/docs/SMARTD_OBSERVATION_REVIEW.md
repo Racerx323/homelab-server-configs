@@ -107,11 +107,16 @@ sanitized evidence manifest are retained in the tag. Consumed repository operati
 files were removed from main only after verification. Raw evidence, the complete
 private bundle and execution claim remain unchanged.
 
-The sanitized upstream draft remains unposted, pending specific approval of its
-exact payload and destination. Preserve production policy and both local and
-remote evidence. No new trial, SMART query, restart, installation, production
-change or remote cleanup occurred. Archive commits, tag creation and repository
-pushes were separately authorized after the evidence review.
+The exact approved sanitized results were posted once to smartmontools issue #648
+as [comment 6085677444](https://github.com/smartmontools/smartmontools/issues/648#issuecomment-6085677444) on October 9, 2026, at 12:13:27 p.m.
+CDT. Independent API readback matched the complete approved body; the issue remains
+closed. Private `publication/UPSTREAM_PUBLICATION.json` records the payload hash,
+destination and verification.
+
+Preserve production policy and both local and remote evidence. No new trial,
+SMART query, restart, installation, production change or remote cleanup occurred.
+Archive commits, tag creation, repository pushes and the exact upstream comment
+were separately authorized after the evidence review.
 
 ## Evidence hashes
 
