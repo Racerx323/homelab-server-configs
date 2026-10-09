@@ -100,10 +100,18 @@ Private collection, verification scripts, analysis, source-journal cross-check,
 separate `EXECUTION_REVIEW.json` and sanitized `UPSTREAM_RESULTS_DRAFT.md` are under
 `/home/aaron/code/.local-evidence/smartmontools-smartd-observation-preparation-20261006/review-20261009/`.
 
-Review the sanitized results draft, then separately authorize terminal archival
-and any upstream publication. Preserve production policy and both local and
+The separately approved terminal archive is published and verified under annotated
+tag `smartmontools-smartd-observation-v1-accepted`; [history](../HISTORY.md) records
+the archive commit and remote tag identity. The exact non-sensitive definition and
+sanitized evidence manifest are retained in the tag. Consumed repository operation
+files were removed from main only after verification. Raw evidence, the complete
+private bundle and execution claim remain unchanged.
+
+The sanitized upstream draft remains unposted, pending specific approval of its
+exact payload and destination. Preserve production policy and both local and
 remote evidence. No new trial, SMART query, restart, installation, production
-change, cleanup, commit, push or publication occurred during this review.
+change or remote cleanup occurred. Archive commits, tag creation and repository
+pushes were separately authorized after the evidence review.
 
 ## Evidence hashes
 

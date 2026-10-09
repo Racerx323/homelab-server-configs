@@ -525,5 +525,8 @@ exit zero and reported 75.09-second settling. The original runner retains
 `accepted=false`; the separate manual decision and evidence hashes are in
 [SMARTD_OBSERVATION_REVIEW.md](SMARTD_OBSERVATION_REVIEW.md). Production warnings
 did not recur. This is non-reproduction, not proof of an intermittent-bug fix.
-Production policy and original evidence remain unchanged; archival and upstream
-publication have not occurred.
+Production policy and original evidence remain unchanged. Terminal archival is
+published and verified under `smartmontools-smartd-observation-v1-accepted`; see
+[history](../HISTORY.md). Consumed operation files are removed from main after
+that verification. The sanitized upstream-results draft remains unposted, pending
+specific payload/destination approval.

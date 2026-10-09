@@ -71,7 +71,7 @@ The controller exited zero; a new SSH connection confirmed supervisor survival
 and one completed monitoring check. Private launch/readiness receipts are retained
 under `smartmontools-smartd-observation-preparation-20261006`.
 
-## Repeated-check observation: bounded qualification accepted, archival pending
+## Repeated-check observation: bounded qualification accepted and archived
 
 The observation completed October 8, 2026, at 1:35:45 p.m. CDT. Independent
 October 9 review verified the frozen inputs and launch/terminal identities,
@@ -88,5 +88,13 @@ not demonstrated elimination. Raw counter/service snapshots for every audit and
 absolute transaction completion timestamps were not retained. Production polling
 remained active. The original runner's `accepted=false` result and consumed
 execution claim remain unchanged. A sanitized upstream-results draft is retained
-privately and unposted. Terminal archival remains pending separate authorization;
-no tag, commit, push, publication or remote cleanup occurred during this review.
+privately and unposted. The separately approved terminal archive is published in
+annotated tag `smartmontools-smartd-observation-v1-accepted`, at commit
+`af93245e1509c2e5a725c96336d2825933baa21b`. The remote annotated tag object
+`05fc866eae01cff2888e1bd19b23abb9c2ead3a5` and its peeled commit were
+verified before consumed operation files were removed from main. The exact
+non-sensitive frozen definition and sanitized result manifest remain in the tag;
+the baseline, candidate binary, execution claim and raw evidence remain private.
+The sanitized archive cannot be used to replay launch. Upstream comment publication
+remains pending specific payload/destination approval. No production change or
+remote evidence cleanup occurred.
