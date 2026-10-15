@@ -134,3 +134,18 @@ raw identities and journals remain outside Git.
 | `status.json` | `7f57b75ad94318dbdb88f11005c940f16e02c554012e49e041400fde36cd414f` |
 | `source-journal.stdout` | `fdecd4c181593c6437c62850a1d51390d2d93598d4c1e0f99e8365b083f7bbd3` |
 | `EXECUTION_REVIEW.json` | `f5e6b4eee8cd1f283da36ad32dd147cf5261e6f64e09e491abc4a309ec47ad02` |
+
+## October 14 evidence revalidation
+
+Read-only remote verification found all 27 retained trial files unchanged from
+the October 9 collection. Local reanalysis reproduced the transaction counts,
+cycle spacing, journal receipt chain and batch hashes. The separate review in
+private `review-20261014/EXECUTION_REVIEW.json` reaffirms bounded qualification
+and non-reproduction; the original runner and October 9 decision are unchanged.
+
+The October 9 source-journal query result and script hashes were verified; the
+historical query was not repeated. It retained a verification summary rather
+than raw source records, so this revalidation cannot reconstruct every source
+record independently. The October 9 production endpoint remains historical
+evidence, not a claim about current production health. No new collection trial,
+production mutation, remote cleanup or upstream publication occurred.

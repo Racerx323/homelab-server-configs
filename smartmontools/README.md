@@ -59,3 +59,11 @@ The [candidate smartd observation review](docs/SMARTD_OBSERVATION_REVIEW.md)
 accepts bounded single-host qualification of the October 6–8, 2026 trial.
 Production warning non-reproduction does not prove the intermittent bug is fixed;
 production replacement remains unqualified.
+
+The [production transition plan](docs/PRODUCTION_TRANSITION_PLAN.md) defines
+the next pilot stage: fresh baseline and package selection, production-policy
+qualification, guarded rollback and a separately approved execution bundle.
+Planning does not authorize a package installation or service restart.
+The selected path is to retain production unchanged while waiting for a suitable
+Debian package. The [next status review](docs/PRODUCTION_TRANSITION_PLAN.md#follow-up-action-package-and-upstream-status)
+is recorded for October 28, 2026; it is not an automated reminder.
