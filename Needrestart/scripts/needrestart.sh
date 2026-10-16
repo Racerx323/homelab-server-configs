@@ -1,6 +1,7 @@
 #!/bin/bash
 # Reports Debian services, sessions, and kernels that require attention.
 # Install directory: /usr/local/sbin/
+# Script test: sudo env RECIPIENT=notify@mailrise.xyz /usr/local/sbin/needrestart.sh -t
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
