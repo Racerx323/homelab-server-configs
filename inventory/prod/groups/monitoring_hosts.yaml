@@ -2,5 +2,7 @@
 functions:
   - monitoring
 
+# Members may also provide notification; shared host facts belong in hosts/.
+
 monitoring:
   enabled: true

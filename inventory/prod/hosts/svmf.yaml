@@ -1,0 +1,25 @@
+---
+display_name: Munin master and notification host
+
+functions:
+  - monitoring
+  - notification
+
+components:
+  - munin
+  - apprise_api
+  - mailrise
+
+monitoring:
+  enabled: true
+  role: master
+  configuration_authority: homelab-monitoring-observability/Munin
+
+component_runtime:
+  munin: native
+  apprise_api: podman
+  mailrise: podman
+
+recovery_access:
+  method: local_console
+  operator_confirmed_available: true

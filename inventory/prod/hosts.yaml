@@ -13,15 +13,19 @@ all:
         pihole0: {}
         pihole00: {}
 
+    ntp_servers:
+      hosts:
+        j2-svntp1:
+          management_fqdn: ntp1.local.theama.co
+
     monitoring_hosts:
       hosts:
-        monitoring:
-          management_fqdn: monitoring.local.theama.co
+        svmf:
+          management_fqdn: svmf.local.theama.co
 
     notification_hosts:
       hosts:
-        notification:
-          management_fqdn: notification.local.theama.co
+        svmf: {}
 
     inventory_automation:
       hosts:

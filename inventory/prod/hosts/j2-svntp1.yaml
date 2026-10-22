@@ -1,0 +1,16 @@
+---
+display_name: Standby NTP server
+
+functions:
+  - ntp
+
+monitoring:
+  enabled: true
+  role: node
+  profile: ntp
+  configuration_authority: homelab-monitoring-observability/Munin
+  deployment_status: node_runtime_accepted
+  master_fqdn: svmf.local.theama.co
+  intended_address_families:
+    - ipv4
+    - ipv6

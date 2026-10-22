@@ -25,10 +25,10 @@ inventory/
     │   └── reverse_proxy.yaml
     ├── hosts/
     │   ├── j2-svpi4mf.yaml
-    │   ├── monitoring.yaml
-    │   ├── notification.yaml
+    │   ├── j2-svntp1.yaml
     │   ├── pihole0.yaml
-    │   └── pihole00.yaml
+    │   ├── pihole00.yaml
+    │   └── svmf.yaml
     └── hosts.yaml
 ```
 
@@ -41,6 +41,13 @@ Each environment is independent:
 - Files under `hosts/` contain only facts or overrides unique to the named host.
 
 The filename of a host-variable file must match its key in `hosts.yaml`.
+
+`svmf` is one host in both `monitoring_hosts` and `notification_hosts`, reached
+through `svmf.local.theama.co`. It runs the native Munin master and Podman
+Apprise API/Mailrise services. The former monitoring/notification host keys were
+placeholders, not additional hosts or planned DNS names. Keep both functions and
+all three components in the shared host record; do not duplicate its lifecycle.
+Container ownership and privilege mode are not inferred from the SSH account.
 
 ## Functions and components
 
@@ -144,3 +151,17 @@ on automatic Ansible `host_vars` discovery. Selection enables classification
 by storage type and does not trigger deployment. Unknown hosts remain unselected
 until their hardware is verified. Runtime hashes, backups and boot IDs belong
 in private operation records, not inventory.
+
+## Munin profile selection
+
+`prod/hosts/j2-svntp1.yaml` explicitly selects the monitoring owner's `ntp`
+profile and both address families. This is desired configuration, not an accepted
+installation by itself. `deployment_status: selected_not_deployed` requires a separate
+approved node operation. `installed_contained_not_accepted` records retained
+installation artifacts after failed acceptance and containment; it does not
+authorize startup or establish functioning monitoring. `node_runtime_accepted`
+records accepted installed plugin paths, guarded startup and both literal TCP
+paths; it does not accept master polling, graphs, alerts or scheduled job health.
+The master and job-success
+producers have independent reviews. Address allocation remains in `homelab-network/ipam`; DNS remains in
+`homelab-dns`. Host selection must not trigger any of those changes.

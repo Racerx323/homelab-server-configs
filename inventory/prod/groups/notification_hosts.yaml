@@ -2,6 +2,8 @@
 functions:
   - notification
 
+# These are services on member hosts, not independent notification appliances.
+
 components:
   - apprise_api
   - mailrise
