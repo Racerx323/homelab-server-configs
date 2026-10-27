@@ -6,6 +6,13 @@ exclude: (?:^|/)(?:\.vexp|\.agents)/
 repos:
   - repo: local
     hooks:
+      - id: watchdog-panic-guards
+        name: Watchdog one-use panic guard contracts (offline)
+        entry: python3 watchdog/tests/test_panic_recovery.py
+        language: system
+        pass_filenames: false
+        files: ^watchdog/(scripts/(run-panic-recovery|panic-worker)\.py|tests/test_panic_recovery\.py|docs/CONTROLLED-PANIC-REVIEW\.md)$
+
       - id: shellcheck
         name: ShellCheck
         entry: shellcheck

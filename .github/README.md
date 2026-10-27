@@ -14,9 +14,9 @@ reviewable without storing credentials or machine-specific secrets.
 
 | Area | Status | Purpose |
 | --- | --- | --- |
-| [`Needrestart`](../Needrestart/) | Implemented | Runs a scheduled Debian `needrestart` scan and sends actionable notifications through a sendmail-compatible MTA. |
 | [`Webmin`](../Webmin/) | Scaffold | Reserved `configs`, `scripts`, and `templates` directories for future Webmin configuration. |
-| [`watchdog`](../watchdog/) | Scaffold | Reserved `configs`, `scripts`, and `templates` directories for future watchdog configuration. |
+| [`watchdog`](../watchdog/readme.md) | Defined; automation pending | Fleet policy, host exceptions and pilot recovery contract; deployment automation remains pending. |
+| [`Needrestart`](../Needrestart/) | Implemented | Runs a scheduled Debian `needrestart` scan and sends actionable notifications through a sendmail-compatible MTA. |
 
 The Needrestart workflow currently includes:
 
@@ -42,7 +42,7 @@ transport separately.
 │   ├── scripts/         Notification script and cron definition
 │   └── templates/       Reserved for templates
 ├── Webmin/              Future Webmin configs, scripts, and templates
-└── watchdog/            Future watchdog configs, scripts, and templates
+└── watchdog/            Fleet lifecycle documentation and deployment scaffolding
 ```
 
 ## Getting started

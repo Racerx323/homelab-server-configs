@@ -1,0 +1,23 @@
+---
+name: Watchdog offline contracts
+
+'on':
+  pull_request:
+    paths: ['watchdog/**', '.github/workflows/watchdog-contracts.yml']
+  push:
+    branches: [main]
+    paths: ['watchdog/**', '.github/workflows/watchdog-contracts.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate local one-use, receipt and rejection contracts
+        run: python3 watchdog/tests/test_panic_recovery.py
+        # Full frozen-payload qualification also needs the sibling NTP repository.
+        # Local sealing checks all exact dependency bytes before execution approval.
