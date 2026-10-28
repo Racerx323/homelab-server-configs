@@ -2,9 +2,10 @@
 
 Status: operator confirmations retained; the
 [controlled-panic review](CONTROLLED-PANIC-REVIEW.md) now defines the selected
-mechanism and exact proposed deadlines. Historical unset/provisional timing below
-is superseded by that review. Its executable runner is locally qualified but unapproved; no trigger
-is scheduled. The five-minute usable-NTP requirement remains unchanged.
+mechanism and revised separate acceptance stages. Historical deadline proposals
+are superseded by that contract. The revised observer has local qualification;
+native acceptance and independent reset attribution remain open.
+No new trigger is scheduled. Five minutes applies to NTP availability, not precision.
 
 ## Retained facts and confirmation status
 
@@ -94,27 +95,13 @@ short test checkpoints below remain operational acceptance/escalation limits,
 not permission to pass a normal-operation outage longer than five minutes; freeze
 them in the later execution review.
 
-Define T_submit as the first trigger submission, T_reset as independently observed
-reset, and T_healthy as the start of sustained accepted health. Record T_confirmed
-only if evidence establishes trigger completion. One deliberate attempt maximum.
-
-| Checkpoint | Proposed limit | Response if not satisfied |
-| --- | --- | --- |
-| Fresh preflight | Finish within 15 minutes before T_submit; recheck critical ownership and peer/power assertions immediately before submission | Do not trigger on stale/drifted evidence |
-| Evidence baseline | Identify console, clocks and healthy service before T_submit | Do not trigger without usable independent notes/controller evidence |
-| Hardware expiry acceptance interval | Unset until mechanism, effective timeout and attribution are qualified | Cannot seal a trigger without a justified interval; 60-second device timeout alone is insufficient |
-| Reset observation escalation | T_submit + 2 minutes, provisionally | Stop automatic progression; operator assesses via console under the agreed manual-recovery plan; no reinjection |
-| Console/boot access | Observe continuously; a console alone is not restored NTP service | Retain timeline; invoke only reviewed recovery if required |
-| Usable NTP service | Within 300 seconds of outage onset; conservatively use last confirmed healthy time if onset is uncertain | Five-minute resilience acceptance fails if exceeded or unproved; hand over to attended restoration/hold |
-| Stability observation | At least 30 continuous minutes from T_healthy, with no further reset and required health evidence | Any reset or material evidence gap prevents pass; preserve the interval for disposition |
-| Maintenance reservation | Propose 90 minutes with an attended recovery margin | If the operator's window cannot cover the attempt and agreed fallback, do not start |
-| Failed-test handoff | At the health deadline above, record failure and hand control to the attended recovery/hold plan | Aaron accepts hours to days of outage; name the recovery owner and next check time before any extended hold |
-
-The two-minute escalation proposal is not a claim that the hardware should reset
-at two minutes and is not a substitute for the qualified expiry interval. Exact
-health probes, thresholds, permissible evidence gaps and restoration bounds must
-come from the owning NTP acceptance contract and be frozen with execution inputs.
-OBS-09's final observation interval remains separate from this 30-minute proposal.
+Use the [current timing contract](CONTROLLED-PANIC-REVIEW.md#timing-contract)
+for final freshness, <=60-second boot/network recovery, <=five-minute NTP
+availability, <=30-minute convergence and subsequent 30-minute stability. Record
+separate results and retain independent panic/reset attribution. Do not derive
+hardware timeout from SSH recovery or classify settling precision as an outage.
+The observer's total cap and attendance reserve must cover the complete windows
+in a new reviewed scope; no earlier consumed review is extended by this change.
 
 ## Stop, interruption and restoration
 

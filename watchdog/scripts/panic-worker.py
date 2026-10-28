@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Fixed j2 panic worker. Loaded only by the sealed controller; no standalone CLI."""
 import base64
+import hashlib
 import json
 import math
 import os
@@ -48,11 +49,51 @@ def command(argv, timeout=10):
     return row
 
 
-def protected(path, digest=None):
-    row = h.file_record(path)
-    require('sha256' in row and not row.get('changed_during_read'), 'file unavailable: '+path)
-    require(row['uid'] == 0 and not row['mode'] & 0o022, 'untrusted file: '+path)
-    require(digest is None or row['sha256'] == digest, 'file drift: '+path)
+def executable_record(path, limit=64*1024**2):
+    """Hash a bounded regular executable without retaining its contents."""
+    path = Path(path)
+    row = {}
+    def signature(info):
+        return tuple(getattr(info, key) for key in (
+            'st_dev', 'st_ino', 'st_mode', 'st_uid', 'st_gid', 'st_nlink',
+            'st_size', 'st_mtime_ns', 'st_ctime_ns'))
+    try:
+        require(path.is_absolute(), 'absolute path required')
+        require(not any(parent.is_symlink() for parent in path.parents), 'symlink ancestor')
+        info = path.lstat()
+        row = {'mode': stat.S_IMODE(info.st_mode), 'uid': info.st_uid, 'gid': info.st_gid,
+               'size': info.st_size, 'inode': info.st_ino, 'device': info.st_dev,
+               'nlink': info.st_nlink, 'mtime_ns': info.st_mtime_ns}
+        require(stat.S_ISREG(info.st_mode), 'regular file required')
+        require(info.st_mode & stat.S_IXUSR, 'owner execute permission required')
+        require(0 < info.st_size <= limit, 'executable size outside 1..'+str(limit)+' bytes')
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+        with os.fdopen(fd, 'rb') as stream:
+            require(signature(os.fstat(stream.fileno())) == signature(info), 'file identity changed before read')
+            digest = hashlib.sha256(); total = 0
+            while chunk := stream.read(min(65536, limit-total+1)):
+                total += len(chunk)
+                require(total <= limit, 'executable grew beyond byte bound')
+                digest.update(chunk)
+            require(total == info.st_size and signature(os.fstat(stream.fileno())) == signature(info)
+                    and signature(path.lstat()) == signature(info), 'file changed during read')
+        row['sha256'] = digest.hexdigest()
+    except (OSError, ValueError) as error:
+        row['error'] = str(error)
+    return row
+
+
+def protected(path, digest=None, executable=False):
+    row = executable_record(path) if executable else h.file_record(path)
+    try:
+        reason = row.get('error') or ('missing' if row.get('missing') else
+                 'changed during read' if row.get('changed_during_read') else 'digest unavailable')
+        require('sha256' in row and not row.get('changed_during_read'), 'file unavailable: '+path+': '+reason)
+        require(row['uid'] == 0 and not row['mode'] & 0o022, 'untrusted file: '+path)
+        require(digest is None or row['sha256'] == digest, 'file drift: '+path)
+    except ValueError as error:
+        emit({'capture_complete': False, 'failed_file': {'path': path, 'record': row}, 'error': str(error)})
+        raise
     return row
 
 
@@ -98,51 +139,93 @@ def critical(expected):
             'configuration': configs, 'owners': owners, 'watchdog': watchdog}
 
 
-def health(expected):
+def native_available(value):
+    """Accept synchronized service on a permitted source, independently of precision."""
+    system = value['system']
+    if int(system.get('leap', 3)) != 0 or not 1 <= int(system.get('stratum', 16)) <= 15:
+        return False
+    selected = [p for p in value['peers'] if ((p['status'] >> 8) & 7) in (6, 7)]
+    # PPS can supersede the system peer; do not require both to be the system source.
+    pps = [p for p in selected if ((p['status'] >> 8) & 7) == 7]
+    selected = pps or selected
+    if len(selected) != 1:
+        return False
+    peer = selected[0]; variables = peer['variables']
+    if int(variables.get('reach', 0)) == 0:
+        return False
+    if variables.get('srcadr') in ('SHM(0)', '127.127.28.0', 'SHM(2)', '127.127.28.2'):
+        return True
+    return (variables.get('srchost') in RECIPE['nts_servers']
+            and (peer['status'] >> 8) & 0x60 == 0x60
+            and int(variables.get('ntscookies', 0)) > 0)
+
+
+def health(expected, strict=True):
     boot = identity(expected); start = time.monotonic()
     # Source-built native protocol library; read-only localhost variables/cookie counts.
     native = command(['/usr/bin/python3', '-I', '-B', '-c', MEASURE.decode()])
     value = json.loads(native['stdout'])
+    finite_timing = True
     for peer in value['peers']:
         for key in ('offset', 'jitter'):
-            require(math.isfinite(float(peer['variables'][key])), 'nonfinite native timing')
-    checks = cutover.measurement_checks(value, RECIPE)
-    require(checks and all(v is True for v in checks.values()), 'NTP not ready')
-    units = p.state()
-    for unit in p.CORE:
-        require(units[unit].get('returncode') == 0, 'unit query failed')
-        props = p.properties(units[unit])
-        require(props.get('ActiveState') == 'active' and props.get('UnitFileState') == 'enabled', 'core unit inactive/disabled')
-    service = p.properties(units['timeservice.service'])
-    processes = command(['/usr/bin/ps', '-eo', 'pid,ppid,euid,egid,comm'])
-    rows = [line.split() for line in processes['stdout'].splitlines()[1:]]
-    ntp = [x for x in rows if len(x) == 5 and x[4] == 'ntpd']
-    gps = [x for x in rows if len(x) == 5 and x[4] == 'gpsd']
-    require(len(ntp) == len(gps) == 1, 'daemon count')
-    for row, name in [(ntp[0], 'ntpd'), (gps[0], 'gpsd')]:
-        require(row[2:4] == BASE['credentials'][name], 'daemon credentials')
-        require(row[1] == service['MainPID'], 'daemon supervisor parent')
-        require(os.readlink('/proc/'+row[0]+'/exe') == '/usr/local/sbin/'+name, 'daemon executable')
-        status = p.text_record('/proc/'+row[0]+'/status')['text']
-        ids = {line.split(':', 1)[0]: line.split(':', 1)[1].split()
-               for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
-        require(ids == {'Uid': [BASE['credentials'][name][0]]*4,
-                        'Gid': [BASE['credentials'][name][1]]*4}, 'full daemon credentials')
-    require(service.get('NRestarts') == '0' and not service.get('DropInPaths'), 'supervisor restart/override')
-    numbers = set()
-    for path in ('/dev/serial0', '/dev/pps0'):
-        resolved = Path(path).resolve()
-        require(str(resolved).startswith('/dev/'), 'receiver alias escaped /dev')
-        metadata = os.stat(resolved)
-        require(stat.S_ISCHR(metadata.st_mode), 'receiver character identity')
-        numbers.add(metadata.st_rdev)
-    held = set()
-    for fd in p.names('/proc/'+gps[0][0]+'/fd', 128):
-        info = os.stat(fd)
-        if stat.S_ISCHR(info.st_mode): held.add(info.st_rdev)
-    require(numbers <= held, 'GPSD does not hold both receiver devices')
-    require(identity(expected) == boot and time.monotonic()-start <= 10, 'health duration/boot')
+            try:
+                finite_timing = finite_timing and math.isfinite(float(peer['variables'][key]))
+            except (KeyError, TypeError, ValueError):
+                finite_timing = False
+    try:
+        checks = cutover.measurement_checks(value, RECIPE)
+    except (ValueError, KeyError, TypeError):
+        if strict: raise
+        checks = {'measurement_complete': False}
+    checks['finite_timing'] = finite_timing
+    if strict and (not checks or not all(v is True for v in checks.values())):
+        emit({'capture_complete': False, 'stage': 'health', 'native': value, 'checks': checks,
+              'error': 'NTP not ready'})
+    if strict:
+        require(checks and all(v is True for v in checks.values()), 'NTP not ready')
+    units = {}
+    try:
+        units = p.state()
+        for unit in p.CORE:
+            require(units[unit].get('returncode') == 0, 'unit query failed')
+            props = p.properties(units[unit])
+            require(props.get('ActiveState') == 'active' and props.get('UnitFileState') == 'enabled', 'core unit inactive/disabled')
+        service = p.properties(units['timeservice.service'])
+        processes = command(['/usr/bin/ps', '-eo', 'pid,ppid,euid,egid,comm'])
+        rows = [line.split() for line in processes['stdout'].splitlines()[1:]]
+        ntp = [x for x in rows if len(x) == 5 and x[4] == 'ntpd']
+        gps = [x for x in rows if len(x) == 5 and x[4] == 'gpsd']
+        require(len(ntp) == len(gps) == 1, 'daemon count')
+        for row, name in [(ntp[0], 'ntpd'), (gps[0], 'gpsd')]:
+            require(row[2:4] == BASE['credentials'][name], 'daemon credentials')
+            require(row[1] == service['MainPID'], 'daemon supervisor parent')
+            require(os.readlink('/proc/'+row[0]+'/exe') == '/usr/local/sbin/'+name, 'daemon executable')
+            status = p.text_record('/proc/'+row[0]+'/status')['text']
+            ids = {line.split(':', 1)[0]: line.split(':', 1)[1].split()
+                   for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
+            require(ids == {'Uid': [BASE['credentials'][name][0]]*4,
+                            'Gid': [BASE['credentials'][name][1]]*4}, 'full daemon credentials')
+        require(service.get('NRestarts') == '0' and not service.get('DropInPaths'), 'supervisor restart/override')
+        numbers = set()
+        for path in ('/dev/serial0', '/dev/pps0'):
+            resolved = Path(path).resolve()
+            require(str(resolved).startswith('/dev/'), 'receiver alias escaped /dev')
+            metadata = os.stat(resolved)
+            require(stat.S_ISCHR(metadata.st_mode), 'receiver character identity')
+            numbers.add(metadata.st_rdev)
+        held = set()
+        for fd in p.names('/proc/'+gps[0][0]+'/fd', 128):
+            info = os.stat(fd)
+            if stat.S_ISCHR(info.st_mode): held.add(info.st_rdev)
+        require(numbers <= held, 'GPSD does not hold both receiver devices')
+        require(identity(expected) == boot and time.monotonic()-start <= 10, 'health duration/boot')
+    except BaseException as error:
+        emit({'capture_complete': False, 'stage': 'service-health', 'native': value,
+              'checks': checks, 'units': units, 'error': str(error)})
+        raise
     return {'boot': boot, 'native': value, 'checks': checks, 'units': units,
+            'available': native_available(value),
+            'precision': bool(checks) and all(v is True for v in checks.values()),
             'daemon_metadata': ntp+gps, 'elapsed': time.monotonic()-start}
 
 
@@ -226,13 +309,16 @@ def full(expected):
         require(result['journal_context_before'] == result['journal_context_after'], 'journal process continuity')
         result['journal_policy'] = journal_policy(result['errors']['stdout'], expected, result['journal_context_before'])
         require(result['journal_policy']['healthy'], 'unresolved current boot errors require review')
-        result['native_tools'] = {f: protected(f) for f in ('/usr/local/bin/ntpq', '/usr/local/sbin/ntpd', '/usr/local/sbin/gpsd')}
+        result['native_tools'] = {}
+        for path in ('/usr/local/bin/ntpq', '/usr/local/sbin/ntpd', '/usr/local/sbin/gpsd'):
+            result['native_tools'][path] = protected(path, executable=True)
         result['leap_records'] = command(p.COMMANDS['leap_journal'])
-        result['maintenance_records'] = {name: p.text_record(name) for name in (
-            '/var/lib/ntpstats-retention/last-success.json',
-            '/var/lib/needrestart-reporting/last-success.json')}
-        require(all('text' in row and not row.get('changed_during_read')
-                    for row in result['maintenance_records'].values()), 'maintenance evidence absent')
+        result['maintenance_records'] = {}
+        for name in ('/var/lib/ntpstats-retention/last-success.json',
+                     '/var/lib/needrestart-reporting/last-success.json'):
+            row = p.text_record(name)
+            result['maintenance_records'][name] = row
+            require('text' in row and not row.get('changed_during_read'), 'maintenance evidence unavailable: '+name)
         require(identity(expected) == expected, 'full capture boot drift')
         return result
     except (Exception, WorkerDeadline) as error:
@@ -342,13 +428,15 @@ def journal_inputs(expected):
 
 def entry(mode, expected):
     signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(WorkerDeadline('worker deadline')))
-    signal.alarm({'boot': 2, 'health': 10, 'full': 120, 'trigger': 90, 'journal': 30, 'journal-inputs': 90}[mode])
+    signal.alarm({'boot': 2, 'health': 10, 'recovery': 10, 'full': 120, 'trigger': 90, 'journal': 30, 'journal-inputs': 90}[mode])
     if mode == 'trigger':
         trigger()
     elif mode == 'journal-inputs':
         emit(journal_inputs(expected))
     elif mode == 'journal':
         emit(journal(expected))
+    elif mode == 'recovery':
+        emit(health(expected, strict=False))
     elif mode == 'boot':
         emit({'boot': identity()})
     else:

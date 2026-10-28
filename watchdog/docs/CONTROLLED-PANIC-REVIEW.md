@@ -1,6 +1,9 @@
 # Single controlled-panic watchdog recovery review
 
-Status: reusable contract for the implemented one-use controller and worker.
+Status: separate availability, convergence and stability stages are implemented
+and locally qualified in the one-use controller and worker. Native recovery and
+independent reset attribution remain unproved under this revised contract.
+No successor operation is sealed or authorized by this repository change.
 An executable operation is sealed separately with its exact inputs and expiry;
 repository implementation or local qualification is not execution approval.
 See [history](../HISTORY.md) for the active review and qualification results.
@@ -62,6 +65,16 @@ before exiting nonzero. Failed bounded commands retain their output/status. The
 controller saves the transport record before rejecting it; partial capture never
 passes preflight. Values not yet collected remain absent. A separate journal-only
 inspection uses the same guarded transport but cannot authorize or invoke panic.
+
+`timeservice.service` supervises the source-built `ntpd` and `gpsd` processes.
+Validate that unit and its child identities; do not substitute an `ntpd.service`
+or independently activate GPSD. Executable hashing is separate from the 1 MiB
+configuration capture limit: stream each regular executable up to 64 MiB in
+64 KiB chunks without retaining contents. Require root ownership, owner execute
+permission, no group/other writes, no symlink traversal and stable descriptor/path
+identity and metadata across the read. Preserve the specific failed-file record
+and preceding successful records. Local tests establish these file contracts;
+current native hashes and post-reset continuity still require live preflight.
 
 ## Why this trigger, and what attribution can establish
 
@@ -154,68 +167,117 @@ included in the reported upper bound.
 
 Let H conservatively bound the start of the last healthy pre-trigger sample,
 S the first trigger submission, P the independently witnessed panic interval,
-R the independently witnessed reset/boot-start interval, and C the completion
-of the third consecutive post-boot healthy sample. SSH departure is not P or R.
+R the independently witnessed reset/boot-start interval, B the first authenticated
+SSH observation of the expected host with a changed boot ID, A the completion
+of the first qualifying native-plus-dual-stack availability sample, and C the
+completion of three consecutive precision-ready samples at least 30 seconds
+apart. SSH departure is not P or R. Availability and precision observations must
+be collected independently; a failed precision check must not suppress clients.
 
-| Boundary | Exact proposed criterion | Failure response |
+| Boundary | Accepted criterion | Failure response |
 | --- | --- | --- |
 | Final freshness | 0 <= S-H <= 10 seconds | Abort before submission if stale |
-| Reset observation | Upper bound R.latest-P.earliest <= 30 seconds, with confirmed panic and no intervention | Mark reset-timing failure if exceeded; missing P/R is inconclusive, never infer reset from SSH |
-| Hardware expectation | Less than 16 seconds from last actual hardware feed to expiry, source-derived | Not a measured deadline from S; 30 seconds allows observation/boot visibility overhead, not a guarantee |
-| Escalation | At S+120 seconds without observed reset/boot | End autonomous progression; Aaron assesses KVM and chooses the bounded recovery branch |
-| Usable NTP | C-H <= 300 seconds, including uncertainty | Fail five-minute resilience; preserve later recovery separately |
-| Recovery sampling | Start after new-boot SSH identity is available; health samples at least 30 seconds apart; 10-second maximum sample duration | Timeout/missing/false sample breaks the consecutive run; never extend five-minute deadline |
-| Stability | 30 continuous minutes from C; sample every 60 seconds including the final sample; completed-sample gap <= 75 seconds | Reset, health failure or excess gap prevents stability acceptance |
-| Automatic work cap | S+45 minutes | Save terminal result and stop automated reads; no automatic reset, replay or indefinite polling |
-| Reserved attendance | 90 minutes available before arming | Do not start without this reservation; extended failed-test hold is a separate operator disposition |
+| Boot/network recovery | B-S <= 60 seconds | Record the availability miss; continue only within the reviewed observation/recovery bounds |
+| Reset attribution | Upper bound R.latest-P.earliest <= 30 seconds with confirmed panic, <=2 seconds uncertainty and no intervention | Missing observations are inconclusive; this separate mechanism claim is not inferred from B |
+| Hardware expectation | Less than 16 seconds from last actual hardware feed to expiry, source-derived | Not a deadline measured from S or proof of reset cause |
+| Escalation | At S+120 seconds without a changed-boot SSH observation or independently confirmed boot | Stop autonomous progression; operator assesses console/recovery |
+| NTP service availability | A-H <= 300 seconds, including uncertainty; both fixed IP families qualify in the same bounded sample | Record availability failure, not a precision failure; operator chooses bounded hold/recovery |
+| Timing convergence | C-S <= 1800 seconds; three precision-ready samples at least 30 seconds apart | Record convergence failure; preserve measurements and stop seeking a pass, without automatically restarting the service |
+| Sustained stability | 30 continuous minutes from C; sample every 60 seconds including the final sample; completed-sample gap <=75 seconds | Reset, service failure, precision failure or excess gap prevents acceptance; do not restart the window automatically |
+| Overall observation cap | S+70 minutes, including final reconciliation | Stop reads and retain partial results; the executable review must explicitly bind this replacement for the old 45-minute cap |
+| Reserved attendance | 90 minutes before arming, including at most 15 minutes of preflight | No indefinite extension; subsequent hold belongs to the operator |
+
+Aaron accepted the <=60-second boot/network criterion and selected up to
+30 minutes for convergence followed by 30 minutes of stability. The 30-minute
+settling budget includes receiver acquisition, source selection and the three
+confirmation samples; it does not restart at first PPS or first good sample.
+Record those milestones separately. A timeout is a missed acceptance budget,
+not proof that the hardware is defective or an instruction to stop acquisition.
+The existing production supervisor policy remains in force.
 
 Poll for post-boot SSH at most once per 5 seconds, each connection bounded to
-3 seconds, one outstanding connection only. Do not probe old-card identity using
-new-card assumptions. Health samples may read node state and send one mode-3 NTP
-request per fixed IP family, each bounded to 2 seconds. Fixed cadence observations
-are not a retry of the destructive trigger. Retain unsuccessful samples and gaps.
+3 seconds, one outstanding connection only. After boot, collect native state,
+availability and timing with 30 seconds between completed samples while converging; bound each combined
+sample to 10 seconds and each client exchange to 2 seconds. Retain timestamps,
+failed checks, errors and gaps independently. During stability use the cadence
+above. No precision failure may skip the dual-stack availability measurements.
+No client clock adjustment, forced producer or changed source policy is allowed.
 
-C is deliberately the third qualifying sample, not a backdated first response.
-The five-minute bound is therefore conservative. Long deployment-test downtime
-is tolerated by Aaron but cannot pass normal-operation resilience. The 30-minute
-stability interval is this pilot's proposed acceptance check, not OBS-09.
+A is the first directly observed qualifying pair, not a backdated response or
+three precision samples. Record IPv4 and IPv6 first-success times separately;
+the later successful family and native check complete A. Where an outage origin
+is not bounded by H, report observed restoration and an unknown outage duration
+rather than manufacture a five-minute pass. Follow-up observations started long
+after reboot cannot establish the original availability or convergence deadline.
 
-## Usable service and post-boot checks
+The first three qualifying precision samples establish C. A later relapse during
+stability fails the fixed window; retained later improvement remains separate.
+This recovery stability window does not start or close final OBS-09. Long
+operator-approved deployment downtime does not waive normal availability goals.
 
-Reuse repository-owned NTP native parsing/client packet validation, without
-invoking old operation runners or Munin plugins. Pin actual commands and parser
-bytes in the executable bundle. Run the repository-owned native `measure-time-service.py` through isolated
-system Python against localhost. Reuse `measurement_checks` from the accepted
-cutover implementation for system, serial/PPS and all three configured NTS
-associations. Hash the installed ntpq/ntpd/gpsd files before and after; do not
-invoke a historical operation runner or change native control policy. Require:
+## Service availability, convergence and reconciliation
 
-- PPS selected using the accepted SHM(2)/PPS classification, serial and PPS
-  reachable, leap 0 and stratum 1. Absolute selected PPS offset <= 5 ms and
-  jitter <= 1 ms. Do not equate the legacy native `o` tally alone with selection.
-- All three configured NTS upstreams authenticated/reachable with cookies;
-  distinguish missing acquisition from a parser error. Neither passes.
-- Valid synchronized stratum-1 PPS mode-4 client responses on both fixed address
-  families, request nonce/originate match and plausible timestamps. No client
-  clock adjustment. SSH or ICMP success is not usable NTP.
-- Expected NTP/GPSD supervisor credentials, active core services and no supervisor
-  restart within the new-boot observation interval. GPS/PPS inputs must be owned
-  by the expected running service, not an extra diagnostic reader.
+### NTP service availability
 
-Post-boot reconciliation also requires a new boot ID, same expected host/key,
-unchanged protected files/vendor policy/kernel, restored sole PID 1 watchdog
-ownership and active runtime policy. Compare network addresses/routes/resolvers,
-UDP listeners and retained access policy with accepted values. Send one bounded
-administrative READVAR probe per fixed family during final reconciliation and
-require denial under the existing client-check semantics. Preserve current-boot
-service/storage error entries; unexplained relevant errors prevent acceptance.
+Use the expected host/key and new boot identity, the active `timeservice.service`
+supervisor and its expected NTP/GPSD children. Validate credentials, device/SHM
+ownership and current source state without opening GPS/PPS devices. Require:
 
-Keep cron/Munin and maintenance timers enabled with their expected configuration;
-read existing records only. Capture existing leap timer/service records to inform
-OBS-06, without claiming a scheduled job ran merely because its timer exists.
-Master polling/graphs and independent firewall coverage remain separate scopes.
-No master contact or forced job is included. Missing future scheduled records do
-not justify forcing them or silently closing their prerequisite gates.
+- A selected synchronized source allowed by the existing all-source production
+  configuration (PPS, selectable NMEA, or an authenticated configured NTS peer).
+  Record which source supplies time. Do not require PPS-only selection to label
+  NTP available; do not add or relax sources to pass the test.
+- Direct valid synchronized mode-4 replies on both fixed address families:
+  leap 0, stratum 1–15, matching request nonce/originate and plausible timestamps.
+  Unsynchronized replies, KoD, timeout, or a reply from an unexpected endpoint
+  do not qualify. SSH success or an active unit alone does not establish NTP
+  availability. Keep administrative-query denial as a separate policy check.
+- No supervisor restart or unexplained child/identity change during that sample.
+  Record acquisition/degraded state separately. Full configured-source coverage,
+  PPS precision and all upstreams being ready belong to the convergence gate.
+
+Availability means synchronized protocol service under the accepted source policy;
+it does not certify millisecond precision. Retain offset/jitter as measurements,
+without applying the steady-state thresholds to A. If a consumer needs a stricter
+accuracy SLA, declare it separately rather than silently importing it here.
+
+### Timing convergence and stability
+
+Reuse repository-owned native measurement and client parsing. Pin commands and
+parser bytes in the executable review. For pre-trigger readiness, C and each
+stability sample require the existing full precision criteria:
+
+- PPS selected using the accepted SHM(2)/PPS classification; serial/PPS reachable,
+  leap 0 and stratum 1; absolute selected PPS offset <=5 ms and jitter <=1 ms.
+  The legacy native `o` tally alone does not establish selection.
+- All three configured NTS upstreams authenticated/reachable with cookies.
+  Missing acquisition is pending; parser errors are errors. Neither passes C.
+- Valid synchronized stratum-1 PPS client replies on both fixed IP families,
+  including nonce/originate and timestamp checks.
+- Expected active core services, supervisor/child credentials and GPS/PPS
+  ownership; stable boot and supervisor invocation, with no repeated reset.
+
+An available but imprecise service is recorded as available/converging or degraded,
+not unreachable. Record the native measurements even when precision rejects them.
+Do not stop or restart `timeservice.service`, erase learned drift, force PPS,
+change alerts, or replace media solely because precision is still settling.
+Actual service failure, corruption, identity drift or repeated reset still invokes
+the reviewed stop and operator-recovery rules.
+
+### Final reconciliation
+
+Require the expected new boot, host/key, unchanged protected configuration/kernel,
+sole PID 1 watchdog ownership and active policy. Compare native executable hashes,
+network addresses/routes/resolvers, UDP listeners and access policy against the
+baseline. Hash native executables with the bounded streaming reader. Require
+administrative READVAR denial on each family under the existing policy. Preserve
+relevant current-boot errors; unresolved errors prevent full acceptance.
+
+Keep cron/Munin and maintenance timers enabled with expected configuration; read
+existing records only. Capture leap service/timer records without inferring job
+success from timer presence. Master polling/graphs, broader firewall coverage and
+future recurrence evidence remain separate. Missing scheduled records do not
+justify forcing jobs or silently closing their gates.
 
 ## Independent evidence and interruption
 
@@ -251,8 +313,10 @@ Execution approval must explicitly include these attended contingencies:
 1. Before submission: abort cleanly on any failed prerequisite. Leave services
    and policy intact. An armed/uncertain operation remains consumed.
 2. After submission: allow automatic boot and health observation to the stated
-   deadlines. At S+120 without reset, or H+300 without usable health, stop seeking
-   a pass and inspect the KVM. Never type debugger reboot/continue as evidence of
+   deadlines. At S+120 without boot, or H+300 without NTP availability, stop seeking
+   that deadline pass and inspect the KVM. Timing-only nonconvergence at S+1800
+   stops the bounded observer and hands off to an operator hold; it does not
+   mandate a power action or media replacement. Never type debugger reboot/continue as evidence of
    watchdog expiry. Do not issue another panic or remote restart.
 3. If still hung or boot-looping, Aaron may disconnect only j2's identified PoE
    cable/port physically, hold it off for at least 30 seconds, then reconnect
@@ -279,7 +343,7 @@ not accept the new deployment. Preserve primary time service and antenna power.
 
 ## Qualification and execution-seal boundary
 
-The controller is `watchdog/scripts/run-panic-recovery.py`; its streamed worker
+The existing controller is `watchdog/scripts/run-panic-recovery.py`; its streamed worker
 is `watchdog/scripts/panic-worker.py`. Tests exercise actual receipt, archive,
 expiry, one-use grant and rejection guards offline. The write primitive is tested
 only against a temporary regular file with live prerequisites bypassed; this
@@ -287,6 +351,11 @@ neither simulates nor proves a hardware reset. A streamed boot-query payload mus
 reject the controller's identity before any target-specific collection. No live
 inspection or failure injection belongs in local qualification.
 
+The separate A/C paths, independent client probing, fixed deadlines and retained
+stage results have local regression coverage. Before sealing, bind the exact
+qualified sources and current target facts, and resolve the independent evidence
+method for reset attribution. Do not replay consumed archives. Local tests cannot
+establish a native recovery result or supply missing historical observations.
 The seal includes both scripts, tests, native/read-only dependencies, baseline,
 host key, this contract, operator template, notes and generated execution review.
 Check verifies exact source and archive bytes. Execute requires a fresh operator
@@ -298,8 +367,10 @@ network/record reconciliation and final operator acceptance pending. Completion
 cannot substitute for KVM panic/reset observations. The executable review names
 all exact read scopes and conservative preflight rejection conditions.
 
-Closure records separate preflight, submission, attribution, five-minute service,
-stability, restoration/residue and operator acceptance results. Failed or missing
+Closure records separate preflight, submission, boot/network recovery, attribution,
+NTP availability, timing convergence, stability, restoration/residue and operator
+acceptance results. Each result is passed, failed, pending or inconclusive with
+its own evidence; do not roll them into one ambiguous recovery verdict. Failed or missing
 evidence remains failed/inconclusive. This stage cannot close fleet adoption,
 all failure modes or overall production acceptance. Qualified OBS-02/D1–D5 and
 bounded OBS-04 remain unchanged; OBS-09 is not started.

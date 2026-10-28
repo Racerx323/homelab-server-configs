@@ -35,8 +35,9 @@ SOURCES = {'runner.py': ROOT/'scripts/run-panic-recovery.py',
            'contract.md': ROOT/'docs/CONTROLLED-PANIC-REVIEW.md'}
 LIMIT = 1024**2
 ENV = {'PATH': '/usr/bin:/bin', 'LC_ALL': 'C', 'PYTHONDONTWRITEBYTECODE': '1'}
-TIMING = {'health': 300, 'reset': 30, 'escalation': 120, 'stability': 1800,
-          'cadence': 60, 'gap': 75, 'total': 2700, 'reservation': 5400}
+TIMING = {'boot': 60, 'availability': 300, 'convergence': 1800, 'reset': 30,
+          'escalation': 120, 'stability': 1800, 'convergence_cadence': 30,
+          'cadence': 60, 'gap': 75, 'total': 4200, 'reservation': 5400}
 
 
 def encoded(v): return (json.dumps(v, sort_keys=True)+'\n').encode()
@@ -96,7 +97,7 @@ def dependencies(files):
 
 
 def payload(spec, files, mode, expected):
-    require(mode in ('boot', 'health', 'full', 'trigger', 'journal', 'journal-inputs'), 'closed worker mode')
+    require(mode in ('boot', 'health', 'recovery', 'full', 'trigger', 'journal', 'journal-inputs'), 'closed worker mode')
     # Load only repository-owned, hash-pinned source. No target file import or staging.
     names = ('helper.py', 'passive.py', 'ownership.py', 'readiness.py', 'worker.py', 'cutover.py', 'measurement.py')
     bootstrap = ('import types, json\n'+__import__('inspect').getsource(module)
@@ -267,10 +268,150 @@ def trigger_channel(spec, files, directory, record, operator_path, digest):
     return healthy, submitted
 
 
-def evaluate_timing(healthy, confirmation, stamps, boot, initial_boot):
+def evaluate_timing(submit, confirmation, stamps, boot, initial_boot):
     require(boot != initial_boot, 'new boot required')
     require(len(stamps) >= 3 and all(b-a >= 30 for a,b in zip(stamps[-3:],stamps[-2:])), 'three spaced samples required')
-    require(confirmation-healthy <= TIMING['health'], 'five-minute resilience failed')
+    require(confirmation == stamps[-1] and confirmation-submit <= TIMING['convergence'],
+            '30-minute convergence deadline')
+
+
+def recovery_clients(files):
+    """Always attempt both families; classify availability and precision on each reply."""
+    parser = module('client', files['client.py']); result = {}
+    for endpoint in ('10.1.0.51', 'fd36:5aa8:6971:1::51'):
+        row = {'available': False, 'precision': False}
+        try:
+            family = socket.AF_INET6 if ':' in endpoint else socket.AF_INET
+            with socket.socket(family, socket.SOCK_DGRAM) as sock:
+                sock.settimeout(2); sock.connect((endpoint, 123))
+                nonce = secrets.token_bytes(8)
+                packet = bytearray(48); packet[0] = 0x23; packet[40:48] = nonce
+                sock.send(packet); raw = sock.recv(512)
+            row['response'] = parser.ntp_response(raw, nonce, structural=True)
+            row['response'].pop('time_service_accepted', None)
+            require(raw[0] >> 6 == 0 and 1 <= raw[1] <= 15, 'unsynchronized/KoD reply')
+            now = time.time()
+            for offset in (32, 40):
+                sec, fraction = struct.unpack('!II', raw[offset:offset+8])
+                require(abs(sec-2208988800+fraction/2**32-now) <= 10, 'implausible NTP timestamp')
+            row['available'] = True
+            try:
+                parser.ntp_response(raw, nonce)
+                row['precision'] = True
+            except ValueError as error:
+                row['precision_error'] = str(error)
+        except (ValueError, OSError, TimeoutError) as error:
+            row['error'] = str(error)
+        row['finished'] = time.monotonic()
+        result[endpoint] = row
+    return result
+
+
+def recovery_sample(spec, files, directory, record, boot):
+    start = time.monotonic()
+    # Client evidence survives native precision failures and native collection errors.
+    packets = recovery_clients(files); record.save('recovery-clients', packets)
+    native = None; error = None
+    try:
+        remaining = 10-(time.monotonic()-start)
+        require(remaining > 0, 'combined sample budget exhausted')
+        native = observe(spec, files, directory, record, 'recovery', boot, remaining)
+    except (ValueError, OSError, TimeoutError) as exc:
+        error = str(exc)
+    finished = time.monotonic()
+    bounded = finished-start <= 10
+    row = {'started': start, 'finished': finished, 'native': native, 'clients': packets,
+           'error': error, 'bounded': bounded,
+           'available': bounded and bool(native and native.get('available'))
+                        and all(v['available'] for v in packets.values()),
+           'precision': bounded and bool(native and native.get('precision'))
+                        and all(v['precision'] for v in packets.values())}
+    record.save('recovery-sample', row)
+    return row
+
+
+def recovery_observation(spec, files, directory, record, initial, healthy, submit, result):
+    """Observe fixed deadlines; mutate result so later failure retains earlier stages."""
+    stages = result['stages'] = {k: {'passed': False} for k in
+                                ('boot_network', 'availability', 'convergence', 'stability')}
+    result['hardware_attribution'] = 'pending independent KVM evidence'
+    stages['availability']['first_success'] = {}
+    boot = None; first = None; stamps = []; confirmation = None
+    while confirmation is None:
+        loop = time.monotonic()
+        if boot is None:
+            try:
+                observed = observe(spec, files, directory, record, 'boot', None, 3)['boot']
+                if observed != initial:
+                    boot = observed
+                    result['new_boot'] = boot
+                    finished = time.monotonic()
+                    stages['boot_network'].update(passed=finished-submit <= TIMING['boot'],
+                                                  finished=finished, origin=submit)
+                    record.save('boot-network', stages['boot_network'])
+            except (ValueError, OSError, TimeoutError) as error:
+                record.save('boot-not-ready', {'error': str(error)})
+            if boot is None:
+                require(time.monotonic()-submit < TIMING['escalation'],
+                        '120-second escalation: use attended console plan')
+                time.sleep(max(0, 5-(time.monotonic()-loop)))
+                continue
+        require(stages['boot_network']['finished']-submit <= TIMING['escalation'],
+                '120-second escalation: use attended console plan')
+        require(time.monotonic() <= submit+TIMING['convergence'], '30-minute convergence deadline')
+        if not stages['availability']['passed']:
+            require(time.monotonic() <= healthy+TIMING['availability'], 'five-minute availability deadline')
+        observed = observe(spec, files, directory, record, 'boot', None, 3)['boot']
+        require(observed == boot, 'unplanned second reset')
+        row = recovery_sample(spec, files, directory, record, boot)
+        finished = row['finished']; native = row['native']
+        if stages['availability']['passed']:
+            require(native is not None and row['bounded'], 'native service observation lost after availability')
+        if native:
+            require(native['boot'] == boot, 'native boot changed')
+            if first is None: first = native
+            stable_service(first, native)
+            if native.get('available'):
+                stages['availability']['first_success'].setdefault('native', finished)
+        for family, reply in row['clients'].items():
+            if reply['available']:
+                stages['availability']['first_success'].setdefault(family, reply['finished'])
+        if row['available'] and not stages['availability']['passed']:
+            stages['availability'].update(passed=finished-healthy <= TIMING['availability'],
+                                          finished=finished, origin=healthy)
+            record.save('availability', stages['availability'])
+        if not stages['availability']['passed']:
+            require(finished < healthy+TIMING['availability'], 'five-minute availability deadline')
+        if row['precision'] and row['available']:
+            stamps.append(finished)
+        else:
+            stamps = []
+        stages['convergence']['samples'] = list(stamps)
+        if len(stamps) >= 3:
+            evaluate_timing(submit, finished, stamps, boot, initial)
+            confirmation = finished
+            stages['convergence'].update(passed=True, finished=finished, origin=submit)
+            record.save('convergence', stages['convergence'])
+        else:
+            require(finished < submit+TIMING['convergence'], '30-minute convergence deadline')
+            time.sleep(max(0, min(finished+TIMING['convergence_cadence'],
+                                 submit+TIMING['convergence'],
+                                 healthy+TIMING['availability'] if not stages['availability']['passed']
+                                 else submit+TIMING['convergence'])-time.monotonic()))
+    last = confirmation; deadline = confirmation+TIMING['stability']
+    while last < deadline:
+        time.sleep(max(0, min(last+TIMING['cadence'], deadline)-time.monotonic()))
+        require(observe(spec, files, directory, record, 'boot', None, 3)['boot'] == boot,
+                'unplanned second reset')
+        row = recovery_sample(spec, files, directory, record, boot)
+        require(row['available'] and row['precision'], 'stability sample failed')
+        stable_service(first, row['native'])
+        require(row['finished']-last <= TIMING['gap']
+                and row['finished']-submit <= TIMING['total'], 'stability gap/deadline')
+        last = row['finished']
+    stages['stability'].update(passed=True, origin=confirmation, finished=last)
+    record.save('stability', stages['stability'])
+    return boot
 
 
 def execute(directory, digest, operator_path):
@@ -296,45 +437,14 @@ def execute(directory, digest, operator_path):
         require(time.monotonic()-start <= 900, 'stale preflight')
         htime, submit = trigger_channel(spec, files, directory, record, operator_path, digest)
         result['trigger_attempted'] = True
-        boot = None; stamps = []; first = None; new_boot = None
-        while time.monotonic() < htime+300:
-            loop = time.monotonic()
-            try:
-                observed = observe(spec, files, directory, record, 'boot', None, 3)['boot']
-                if observed == initial: raise ValueError('old boot still running')
-                if new_boot is None: new_boot = observed
-                require(new_boot == observed, 'unplanned second reset')
-                boot = observed
-                value, finished = sample(spec, files, directory, record, boot)
-                if first is None: first = value
-                stable_service(first, value)
-                if not stamps or finished-stamps[-1] >= 30: stamps.append(finished)
-                if len(stamps) >= 3: break
-            except (ValueError, OSError, TimeoutError) as error:
-                record.save('health-not-ready', {'error': str(error)})
-                if 'second reset' in str(error) or 'supervisor restarted' in str(error): raise
-                stamps = []; first = None
-            if time.monotonic() >= submit+120 and boot is None:
-                raise ValueError('120-second escalation: use attended console plan')
-            time.sleep(max(0, 5-(time.monotonic()-loop)))
-        confirmation = time.monotonic()
-        evaluate_timing(htime, confirmation, stamps, boot, initial)
-        result['five_minute_health'] = True
-        record.save('health-restored', {'H': htime, 'C': confirmation, 'boot': boot, 'samples': stamps})
-        deadline = confirmation+1800; last = confirmation
-        while last < deadline:
-            time.sleep(max(0, min(last+60, deadline)-time.monotonic()))
-            value, finished = sample(spec, files, directory, record, boot)
-            stable_service(first, value)
-            require(finished-last <= 75 and finished-submit <= 2700, 'stability gap/deadline')
-            last = finished
+        boot = recovery_observation(spec, files, directory, record, initial, htime, submit, result)
         final = observe(spec, files, directory, record, 'full', boot, 120)
         require({k: v['sha256'] for k,v in final['native_tools'].items()} ==
                 {k: v['sha256'] for k,v in baseline['native_tools'].items()}, 'native executable drift')
         record.save('final-clients-and-denial', clients(files, administrative=True))
         record.save('reconciliation', {'before': baseline['network'], 'after': final['network'],
                                       'operator_comparison_required': True})
-        require(time.monotonic()-submit <= 2700, 'automatic work cap')
+        require(time.monotonic()-submit <= TIMING['total'], 'automatic work cap')
         result.update(stability_complete=True, new_boot=boot, hardware_attribution='pending independent KVM evidence',
                       restoration='no persistent changes; compare captured configuration/network before acceptance')
     except (Exception, KeyboardInterrupt) as error:
@@ -506,6 +616,15 @@ Operation `{spec['operation_id']}` targets j2-svntp1 only. Expiry epoch
 occurred during preparation. See the bundled `contract.md` for mechanism,
 independent evidence, timing and attended manual-recovery branches.
 
+Post-update observation binding: {json.dumps(spec.get('post_update_observation'), sort_keys=True)}.
+When present, this advances the boot identity from accepted current observation;
+it does not replace the original kernel, systemd, native configuration or four
+protected-file expectations. The same full preflight checks those before arming.
+Historical five-minute precision misses remain recorded. They do not establish
+an availability outage; the revised stages below require separate evidence.
+The known WSL mDNS limitation is not probed here: this runner uses only unicast
+NTP/client-denial checks. Windows discovery was accepted separately.
+
 ## Exact executable scope
 
 The controller streams frozen Python to strict-key `ama@10.1.0.51`, alias
@@ -517,8 +636,13 @@ or logged. Local ownership/mode/link checks and noninteractive public-key
 extraction must pass before the execution receipt. Agent, password and keyboard
 interactive authentication are disabled; only this explicit identity is offered.
 Every observation and the trigger channel use the same restricted SSH options.
-Local qualification does not establish server acceptance. The consumed v1
-attempt failed SSH authentication before remote execution and must not be replayed.
+Local qualification does not establish server acceptance. The October 26 v1
+attempt failed SSH authentication. The October 28 v1 attempt stopped before
+arming at executable-file validation; its exact file rejection reason was lost.
+Neither consumed attempt may be replayed. The corrected reader and diagnostic
+retention are locally qualified; current executable hashes and maintenance-record
+reads still have to pass full preflight before arming. No daemon failure is
+inferred from the earlier generic file error.
 The sole destructive path runs sync once, rechecks native/ownership
 and health, emits a nonce, and waits at most eight seconds for the controller's
 single grant. It then opens /proc/sysrq-trigger once and writes ASCII c once.
@@ -535,7 +659,14 @@ statvfs, thermal_zone0, vcgencmd get_throttled; addresses, routes, DNS runtime a
 listeners; current NTP child /proc/PID/stat and clock ticks, supervisor monotonic
 start/invocation around journal capture; current-boot error journal capped at 200 records, existing leap journal
 capped at 60, the two existing retention/reporting last-success JSON records,
-and hashes/metadata of ntpq, ntpd and gpsd. No credential contents,
+and hashes/metadata of ntpq, ntpd and gpsd. Executables are regular, root-owned,
+owner-executable files without group/other writes or symlink traversal. Hashing
+streams at most 64 MiB per executable in 64 KiB chunks, retaining no contents;
+descriptor/path identity and metadata must remain stable. Small configuration
+reads retain their existing limits. File rejection records the path and reason,
+and full capture retains already completed executable records. The service is
+timeservice.service; ntpd and gpsd are its supervised processes, not separate
+service units. No credential contents,
 private NTS cookies, GPS device reader, package action or forced maintenance job.
 
 Current-boot errors are classified using the existing bounded NTP startup policy,
@@ -557,19 +688,37 @@ loss before grant leaves the machine running; loss after a possible grant hands
 over to attended KVM recovery, with attribution unproved until reviewed.
 
 Bounded SSH reconnection is read-only: once per five seconds, three-second boot
-query limit. Native/client health sample <=10 seconds; require three consecutive
-healthy observations >=30 seconds apart within 300 seconds of the final healthy
-baseline. The destructive-channel baseline conservatively uses controller launch time plus
-worker elapsed time before native health began, minus two seconds uncertainty.
-Transport/startup delay therefore lengthens the measured outage bound. Reject
-submission if this baseline is more than ten seconds old.
-Observed reset bound is 30 seconds from independently confirmed panic, with
-<=2 seconds observation uncertainty; hardware timing expectation is not a guarantee.
-At 120 seconds without a new boot, automatic work stops for console escalation.
-After healthy recovery, observe 30 minutes at 60-second cadence, gaps <=75 seconds.
-Total automatic work <=45 minutes after submission. Hardware attribution and
-network/record reconciliation require human review; controller completion alone
-never marks recovery accepted or begins OBS-09.
+query limit. B is the first authenticated new-boot observation; B-S must be <=60
+seconds. At S+120 without authenticated new-boot SSH, stop for console assessment.
+A boot miss remains failed even if later service observations pass. Independent
+console observations cannot be inferred from SSH or change a controller verdict.
+
+Native/client samples are bounded to ten seconds, each UDP exchange to two seconds.
+Always attempt both fixed families before native collection, retaining replies
+and errors even if precision or native collection fails. Availability requires a
+synchronized permitted native source (PPS, selectable NMEA or authenticated
+configured NTS), unchanged timeservice.service/daemon ownership, and direct mode-4
+LI0 stratum 1–15 replies with matching originate nonce and plausible receive/transmit
+times. Record each family's first success. A is the completion of the first sample
+where native and both families qualify together; A-H must be <=300 seconds.
+The conservative H is controller launch plus worker elapsed time before final
+healthy measurement, minus two seconds uncertainty. Require 0<=S-H<=10 seconds.
+
+Precision remains PPS stratum1, offset <=5 ms and jitter <=1 ms, receiver reach,
+all three authenticated NTS upstreams/cookies and both PPS client replies.
+Allow C-S<=1800 seconds, including acquisition and three consecutive precision-ready
+samples at least 30 seconds apart. Wait 30 seconds after each converging sample,
+clipped only by an absolute stage deadline; a late third sample cannot pass.
+Once C is established, observe 1800 continuous seconds at 60-second cadence,
+completed-sample gaps <=75 seconds. Failures never restart the stability window.
+Separate stage results survive later failures and interruption. Precision-only
+settling never stops/restarts the service, resets drift or selects fallback media.
+
+The overall automatic observation cap is S+70 minutes, including final reconciliation;
+it replaces the old 45-minute cap for this new review only. Reset attribution still
+requires independently confirmed panic/reset bounds <=30 seconds, uncertainty <=2
+seconds and no intervention. Hardware attribution and network/record reconciliation
+require human review; completion never marks recovery accepted or starts OBS-09.
 
 Per command/stream <=1 MiB; aggregate saved events <=64 MiB; full capture <=120
 seconds; sync <=30 seconds; trigger channel <=90 seconds plus five seconds of
@@ -594,7 +743,8 @@ once with the current card, followed by its guarded previous-card fallback.
 No switch API, debugger reboot, second panic, filesystem repair, reimage, shared
 power action or service/configuration change is authorized by this scope.
 Intervention before reset makes expiry attribution inconclusive. Late recovery
-cannot pass five-minute resilience. Preserve both cards, logs and consumed receipt.
+cannot pass the missed availability deadline; precision uses its separate settling
+budget. Preserve both cards, logs and consumed receipt.
 
 OBS-02/D1–D5 and bounded OBS-04 unchanged; OBS-09 unstarted. Native hardware
 recovery and console attribution remain live qualification, not local test results.
@@ -623,7 +773,50 @@ def prepare(directory, digest, window=False):
     return spec, files
 
 
-def seal(directory, baseline, readiness, assessment, qualification, identity_file, scope="panic"):
+def observed_baseline(base, directory):
+    """Advance boot identity only from accepted, integrity-bound observations."""
+    directory = private_dir(directory)
+    outcome_raw = read(directory/'outcome.json')
+    outcome = json.loads(outcome_raw)
+    manifest = read(directory/'manifest.json')
+    require(sha(manifest) == outcome['approved_manifest_sha256'], 'observation input manifest')
+    for name, row in json.loads(manifest).items():
+        require(Path(name).name == name, 'observation member path')
+        raw = read(directory/name)
+        require(sha(raw) == row['sha256'] and len(raw) == row['size'], 'observation input drift')
+    results = directory/'results'
+    records_raw = read(results/'results-manifest.json')
+    records = json.loads(records_raw)
+    def captured(name):
+        raw = read(results/name)
+        require(sha(raw) == records[name]['sha256'] and len(raw) == records[name]['size'],
+                'observation result drift: '+name)
+        return raw
+    assessed = captured('assessment.json')
+    require(sha(assessed) == outcome['assessment_sha256']
+            and outcome.get('bounded_timing_and_client_acceptance') is True, 'accepted observation required')
+    facts = json.loads(assessed)
+    require(all(facts.get(k) is True for k in ('completed', 'all_31_on_time',
+            'all_timing_samples_pass', 'service_continuity', 'boot_continuity',
+            'protected_hashes_unchanged', 'watchdog_policy_unchanged',
+            'watchdog_owner_unchanged', 'watchdog_state_unchanged')), 'observation continuity')
+    boot = captured('boot.stdout').decode().strip()
+    require(re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot)
+            and captured('finish-boot.stdout').decode().strip() == boot, 'observed boot identity')
+    require(captured('identity.stdout').decode().strip() == 'j2-svntp1', 'observed hostname')
+    require('6.18.50+rpt-rpi-v8' in captured('finish-kernel.stdout').decode(), 'observed kernel')
+    hashes = dict((path, digest) for digest, path in
+                  (line.split(None, 1) for line in captured('finish-protected_hashes.stdout').decode().splitlines()))
+    require(hashes.get('/etc/ntp.conf') == base['protected']['/etc/ntp.conf'], 'NTP configuration drift')
+    # Other retained native/source inputs are deliberately not silently rebased:
+    # critical() verifies their original values before any panic grant.
+    return dict(base, boot=boot, post_update_observation={
+        'outcome_sha256': sha(outcome_raw), 'input_manifest_sha256': sha(manifest),
+        'results_manifest_sha256': sha(records_raw), 'assessment_sha256': sha(assessed),
+        'five_minute_recovery_accepted': False})
+
+
+def seal(directory, baseline, readiness, assessment, qualification, identity_file, scope="panic", post_update_observation=None):
     require(not directory.exists(), 'existing operation directory')
     outcome = json.loads(read(baseline/'outcome.json'))
     require(outcome.get('capture_accepted') is True and outcome.get('debugger_transport_gap_resolved') is True, 'accepted debugger baseline')
@@ -659,17 +852,22 @@ def seal(directory, baseline, readiness, assessment, qualification, identity_fil
             'credentials': {'ntpd':['999','985'], 'gpsd':['65534','20']},
             'accepted_outcome_sha256': sha(read(baseline/'outcome.json')),
             'evidence_sha256': outcome['evidence_sha256']}
+    if post_update_observation is not None:
+        require(scope == 'panic', 'post-update baseline is for panic scope only')
+        base = observed_baseline(base, post_update_observation)
     files['baseline.json'] = encoded(base)
     files['operator-template.json'] = encoded({'bundle_sha256':'FILL_FROM_SEAL','epoch':0,
         **{k:False for k in ('aaron_attending','console_identifies_j2','laptop_independent_power','peer_serving','antenna_on_j1',
         'j2_port_identified','recovery_card_available','reservation_90_minutes','no_other_reset_actions','notes_ready')},
-        'clock_uncertainty_seconds':None,'fallback_identity':'unknown-hold-powered-off'})
+        'clock_uncertainty_seconds':None,'fallback_identity':'j1-svntp1 at 10.1.0.51; exclusive replacement only'})
     files['operator-notes.md'] = b'''# Independent operator record\n\nBefore execute, copy operator-template.json to private operator-record.json and\ncomplete it from Aaron's fresh confirmation. Never fill boolean observations by\nassumption. Epoch must be within five minutes when checked, including before grant.\nRetain UTC/monotonic clock correlation and any clock disagreement.\n\nRecord host identification, panic text, reset/boot transitions and interventions\nas earliest/latest elapsed bounds relative to submitted.json monotonic time.\nDo not derive a panic time from SSH loss. Video optional. No KVM event evidence\nmeans attribution stays inconclusive. Preserve original notes privately.\n\nReview reset.latest - panic.earliest <=30 seconds including <=2 seconds timing\nuncertainty, no alternate reset/power intervention, native path exclusions, new\nboot and health. Read result.json plus every failed/partial sample. No automatic\nacceptance or retry. At failure Aaron owns the console/card recovery or explicit\nhold, with next attended check within 60 minutes.\n'''
     auth = authentication(identity_file)
     now = int(time.time()); spec = {'schema':1,'purpose':{'journal':'watchdog-error-journal','inputs':'watchdog-journal-inputs','panic':'single-panic-watchdog-recovery'}[scope],'operation_id':directory.name,
         'authentication':auth,'directory':str(directory),'prepared_epoch':now,'expires_epoch':now+86400,
         'hostname':'j2-svntp1','endpoints':['10.1.0.51','fd36:5aa8:6971:1::51'],
-        'kernel_release':'6.18.50+rpt-rpi-v8','timing':TIMING,'members':{k:sha(v) for k,v in files.items()}}
+        'kernel_release':'6.18.50+rpt-rpi-v8','timing':TIMING,
+        'post_update_observation':base.get('post_update_observation'),
+        'members':{k:sha(v) for k,v in files.items()}}
     validate(spec); files.update({'spec.json':encoded(spec),'review.md':review(spec).encode()})
     directory.mkdir(mode=0o700)
     for name,raw in files.items(): create(directory/name,raw)
@@ -686,11 +884,12 @@ def main():
     os.umask(0o077)
     parser=argparse.ArgumentParser(description=__doc__); sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('seal');p.add_argument('--directory',type=Path,required=True);p.add_argument('--baseline',type=Path,required=True);p.add_argument('--readiness',type=Path,required=True);p.add_argument('--assessment',type=Path,required=True);p.add_argument('--qualification',type=Path,required=True);p.add_argument('--identity-file',type=Path,required=True);p.add_argument('--scope',choices=('panic','journal','inputs'),default='panic')
+    p.add_argument('--post-update-observation',type=Path)
     for action in ('check','execute','inspect'):
         p=sub.add_parser(action);p.add_argument('--directory',type=Path,required=True);p.add_argument('--sha256',required=True)
         if action=='execute':p.add_argument('--operator-record',type=Path,required=True)
     args=parser.parse_args(); directory=args.directory.absolute()
-    if args.action=='seal':result=seal(directory,args.baseline.absolute(),args.readiness.absolute(),args.assessment.absolute(),args.qualification.absolute(),args.identity_file.absolute(),args.scope)
+    if args.action=='seal':result=seal(directory,args.baseline.absolute(),args.readiness.absolute(),args.assessment.absolute(),args.qualification.absolute(),args.identity_file.absolute(),args.scope,args.post_update_observation)
     elif args.action=='check':prepare(directory,args.sha256);result={'integrity':True,'target_contact':False}
     elif args.action=='inspect':result=inspect_journal(directory,args.sha256)
     else:result=execute(directory,args.sha256,args.operator_record)

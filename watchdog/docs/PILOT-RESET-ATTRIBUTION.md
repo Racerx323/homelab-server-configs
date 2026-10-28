@@ -88,26 +88,21 @@ fresh ownership/panic/peer checks. If evidence cannot distinguish the cause,
 qualify only observed recovery and leave hardware attribution open. Do not claim
 that the source analysis has completed live qualification.
 
-## Five-minute resilience requirement
+## Availability and precision requirements
 
-Aaron requires normal-operation outages to last no more than five minutes.
-Measure restored accepted NTP service, not merely SSH or a login prompt. The
-review must reuse NTP acceptance criteria for usable client responses, selection,
-leap state and timing health; no weaker definition of service restoration.
+Use the separate stages in the [current recovery contract](CONTROLLED-PANIC-REVIEW.md#timing-contract):
+boot/network <=60 seconds; synchronized dual-stack NTP availability <=five minutes;
+up to 30 minutes for precision convergence, then 30 minutes of stability. The
+five-minute availability requirement does not include steady-state offset/jitter.
+Keep native source evidence and direct client replies; SSH alone is insufficient.
 
-Use an off-node monotonic timeline. Record last confirmed healthy and first failed
-observations, first restored healthy response, and probe gaps. Report an interval
-or conservative upper bound when outage start is uncertain. More than 300 seconds
-or uncertainty crossing that bound fails to establish the resilience target.
-Later stability checks can confirm the initial recovery timestamp; they do not
-restart the outage clock. One successful fault test demonstrates only that path,
-not five-minute recovery for every application, network, storage or power fault.
-
-Deployment-test downtime may extend into hours or days for investigation, as Aaron
-allows. It still cannot be recorded as a five-minute recovery pass. At five minutes
-without usable NTP, mark failure and hand over to attended KVM/media recovery or an
-explicit hold. Keep j1 serving and antenna power unchanged. OBS-02/D1–D5 and OBS-04
-remain unchanged; this does not start OBS-09.
+Record off-node monotonic intervals, last healthy observation, first independently
+qualifying availability pair, precision confirmation, gaps and uncertainty. Do not
+backdate convergence or availability from later samples. These service results do
+not prove hardware expiry; retain the independent attribution requirements above.
+On availability failure, use the reviewed attended hold/recovery plan. A precision
+failure alone does not justify shutdown, media swap or reinjection. Preserve the
+serving peer, antenna power, OBS-02/D1–D5 and bounded OBS-04; OBS-09 remains separate.
 
 The [focused confirmation review](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-debugger-inputs-20261026-v1/review.md) is now sealed/unexecuted. Its scope
 requires separate exact-hash execution approval; ordinary KVM confirmation did not

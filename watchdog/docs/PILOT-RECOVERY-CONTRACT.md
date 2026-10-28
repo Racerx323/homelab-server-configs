@@ -1,6 +1,7 @@
 # NTP pilot watchdog adoption and recovery contract
 
-Status: implemented pilot controls; live recovery unaccepted. The
+Status: accepted separation of recovery stages; revised observer implementation
+and full live recovery acceptance remain pending. The
 [single controlled-panic contract](CONTROLLED-PANIC-REVIEW.md) defines timing,
 evidence and restoration. The guarded runner is locally qualified; its sealed
 executable review requires separate exact-hash approval. Earlier unselected-trigger
@@ -79,8 +80,12 @@ Debian 11 card, j1 serving time/powering the antenna and separate node PoE ports
 Recheck availability at execution preflight. Use timestamped attended console notes
 and controller evidence; video is optional. See the
 [attribution analysis](PILOT-RESET-ATTRIBUTION.md) for remaining technical inputs.
-Normal-operation NTP outages must not exceed five minutes; hours-to-days tolerance
-applies only to deployment testing and cannot count as a resilience pass.
+Boot/network recovery has a <=60-second budget. Normal-operation NTP service
+availability has a five-minute budget, separate from precision. Allow up to
+30 minutes from trigger submission for timing convergence, followed by 30 minutes
+of sustained stability. The linked contract defines source/client evidence and
+each clock boundary. Deployment-test downtime does not waive availability goals;
+precision-only settling does not mandate shutdown or media replacement.
 
 ## Trigger-selection gate
 
@@ -106,7 +111,7 @@ All rows must have concrete reviewed values before sealing execution:
 | Scope and artifact | Exact host identity, executable/configuration bytes and approved SHA-256 | Pilot identified; exact executable artifact recorded in history |
 | Preconditions | Fresh ownership/timeout, stable services/files, operator access and peer/power checks | Retained baseline only; fresh confirmation still required at execution preflight |
 | Trigger | Exact one-use command, mechanism, permissions and attribution rationale | Single SysRq panic selected in linked review; guarded worker implemented; live approval pending |
-| Timing | Earliest start, expiry, hardware-reset tolerance, boot/access/health deadlines and observation duration | Normal-operation outage must not exceed 300 seconds; deployment testing may take longer; 30-second observed-reset criterion and 120-second escalation proposed in linked review |
+| Timing | Earliest start, expiry, hardware-reset tolerance, boot/access/health deadlines and observation duration | Boot/network <=60 seconds; NTP availability <=300 seconds; convergence <=30 minutes then 30-minute stability; separate attribution and escalation in linked contract |
 | Abort | Checks that stop before injection, operator stop path and post-trigger contingency | No blind retry; post-trigger SSH loss is expected, not a reason to reinject |
 | Interruption | Durable consumed receipt and armed/triggered state; controller-loss/manual-recovery instructions | Receipt must precede trigger; uncertain submission consumes the attempt |
 | Restoration | Exact original files/metadata and safe application method for any temporary setting | No permanent change proposed; any required temporary input must be bound and restored |
