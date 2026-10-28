@@ -145,7 +145,9 @@ is needed. The gates above apply if a suitable package becomes available.
 
 ## Follow-up action: package and upstream status
 
-- [ ] Due October 28, 2026 (America/Chicago): review Debian package availability
+- [x] October 28, 2026: Debian package and upstream status reviewed; no suitable
+  distribution upgrade found. See the result below.
+- [ ] Due November 11, 2026 (America/Chicago): review Debian package availability
   and upstream issue #648. This is an operator follow-up recorded in the repository,
   not an automated reminder or a target-side scheduled task.
 
@@ -166,3 +168,32 @@ Check sooner if the existing monitoring reports renewed self-test-log warnings
 or storage symptoms. Preserve that evidence and scope any host investigation
 separately. This follow-up does not authorize SMART queries, a new trial, target
 APT refresh, installation, restart, notification sending or upstream publication.
+
+### October 28 result
+
+Fresh Debian InRelease downloads passed signature and validity checks. Their
+signed hashes matched the ARM64 binary and source indexes already downloaded
+earlier that day. Versions remain `7.4-3` in trixie/main and `7.5-2~bpo13+1` in
+trixie-backports/main. Source archive checksums match the October 14 reviewed
+archives: backports still has the older `0x218`/19-record workaround, without
+the qualified 512-byte/18-record handling.
+
+Upstream main commit `db52eefb84e40499830411fe494404dcce022705` contains the
+512-byte/18-record handling and truncated-entry cleanup. The retained source
+blobs were verified against that commit's Git tree. This does not qualify the
+entire newer commit for deployment. The official latest-release API still names
+`RELEASE_7_5`. Issue #648 remains closed, with no comments after the October 9
+results report. An upstream implementation is not evidence of a shipped Debian
+package.
+
+Decision: retain production unchanged; no custom package or deployment is
+selected. Next manual package review: November 11. Existing same-day investigation
+records describe production warning recurrences on October 17, 22 and 26; those
+are outside the accepted October 6–8 trial and do not establish Webmin causation.
+Any further host investigation is separate from this package review. Do not
+interpret the earlier non-reproduction result as proof that production is fixed.
+
+Private evidence: `/home/aaron/code/.local-evidence/smartd-follow-up-20261028/`,
+with refreshed release/issue metadata and revalidation receipts under
+`scheduled-review/`. This follow-up contacted only public package/upstream
+services; it issued no target commands, SMART queries, changes or notifications.

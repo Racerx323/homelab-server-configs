@@ -66,4 +66,5 @@ qualification, guarded rollback and a separately approved execution bundle.
 Planning does not authorize a package installation or service restart.
 The selected path is to retain production unchanged while waiting for a suitable
 Debian package. The [next status review](docs/PRODUCTION_TRANSITION_PLAN.md#follow-up-action-package-and-upstream-status)
-is recorded for October 28, 2026; it is not an automated reminder.
+is recorded for November 11, 2026 after the October 28 review found no suitable
+distribution upgrade; it is not an automated reminder.
