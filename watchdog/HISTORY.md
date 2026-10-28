@@ -1,5 +1,12 @@
 # Watchdog history
 
+## Offline CI dependency checkout corrected — October 28, 2026
+
+The guards job omitted sibling NTP sources used by the expanded recovery tests.
+The workflow now checks out both repositories side by side and pins the NTP
+dependency to its qualified commit. Tests retain the actual shared helpers;
+no production behavior or live acceptance requirement changed.
+
 ## Watchdog successor readiness snapshot accepted — October 28, 2026
 
 The [approved read-only inspection](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-successor-readiness-20261028-v1/outcome.md) completed at 15:38:26 CDT.

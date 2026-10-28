@@ -17,7 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          path: homelab-server-configs
+          persist-credentials: false
+      - name: Check out qualified NTP helper sources
+        uses: actions/checkout@v7
+        with:
+          repository: Racerx323/homelab-ntp
+          ref: 897e4971c0310476e14b37389dd9cfa05f73198d
+          path: homelab-ntp
+          persist-credentials: false
       - name: Validate local one-use, receipt and rejection contracts
+        working-directory: homelab-server-configs
         run: python3 watchdog/tests/test_panic_recovery.py
-        # Full frozen-payload qualification also needs the sibling NTP repository.
-        # Local sealing checks all exact dependency bytes before execution approval.
