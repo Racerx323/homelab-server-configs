@@ -272,7 +272,10 @@ recurring_credentials:
   bundle_sha256: b53918415b8aa946862ea15ae81a42867ddbf6b2f3824cc523d44dbed96ed6e1
   evidence_directory: nautobot-recurring-credentials-preparation-20261029
   execution_review_sha256: accca654f775768e2673ea7feef2a2df8d32a6f9b96dfe9f8a22ffe1f7eb60e3
-  archive_state: pending
+  archive_state: archived
+  terminal_tag: nautobot-recurring-credentials-v1-accepted
+  archive_commit: 063c70d090e9a9ae2e6ee1276c82123a0913ff2c
+  tag_object: 016c22b7afaafe603819a1081115924acf4b1532
   metadata:
     config: prd_nautobot_backup
     created_at: '2026-10-29T21:17:53.180000+00:00'

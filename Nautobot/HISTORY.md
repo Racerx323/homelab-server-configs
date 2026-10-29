@@ -602,3 +602,23 @@ Independent readback verified native service commands, capacity and unchanged
 application artifacts, services, mapped media, boot, timers and APT policy.
 No rollback was needed; native package-changing rollback remains unqualified.
 Credentials, capture/resume and recurring schedules remain later stages.
+
+## Recurring credential provisioning
+
+`nautobot-recurring-credentials-v1`: accepted three canonical references, one
+config-scoped read-only service token and protected delivery to UID 999/GID 985.
+Native resolution, independent provider/file metadata readback, temporary-value
+cleanup and application/host continuity passed. No rollback was needed.
+
+Published annotated tag: `nautobot-recurring-credentials-v1-accepted`; archive commit
+`063c70d090e9a9ae2e6ee1276c82123a0913ff2c`; tag object `016c22b7afaafe603819a1081115924acf4b1532`.
+Bundle SHA-256: `b53918415b8aa946862ea15ae81a42867ddbf6b2f3824cc523d44dbed96ed6e1`.
+The tag preserves `terminal-credential-definition.json`, `terminal-credential-bundle.json`,
+`terminal-credential-playbook.json` and `recurring-credential-review.json` beneath
+`manifests/`. The executed playbook is retained separately because the reusable
+source received an equivalent assertion-filter policy correction after execution.
+Consumed records were byte-verified against the published tag before removal.
+Current accepted identity and expiry/rotation ownership remain in
+`manifests/accepted-live-state.yaml:recurring_credentials`. Raw receipts and token
+metadata remain private. The operation slot is clean; capture/resume,
+notifications and recurring schedules remain separate later stages.

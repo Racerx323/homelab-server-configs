@@ -4241,7 +4241,10 @@ evidence before later schedule enablement.
 
 Use `ansible/scripts/recurring-credential-bundle.py` to freeze one definition and
 execute one approved bundle through `provision-recurring-credentials.yaml`.
-Keep the repository operation gates false. The accepted prerequisite archive is
+Prepare the stage operation and sanitized `manifests/recurring-credential-review.json`
+before freezing. These consumed records are archived and removed after acceptance;
+the launcher refuses a clean operation slot. Keep the repository operation gates
+false. The accepted prerequisite archive is
 an input identity, not permission to create credentials. The source config and
 canonical Restic/B2 secret values remain unchanged; only reference expressions
 are written to the new dedicated config.

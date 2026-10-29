@@ -5,9 +5,8 @@
 Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
-The consumed credential operation remains disabled pending terminal archival.
-Next: separately authorize commit/tag/push of its terminal definition and sanitized
-acceptance record. Then prepare capture/resume qualification as a separate stage.
+The credential operation is archived and the operation slot is clean.
+Next: prepare capture/resume qualification as a separate stage.
 No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -201,7 +200,7 @@ remains open.
 
 The September 28 next action was to assemble prerequisite installation and
 credential-provisioning definitions. Installation is now accepted and archived;
-credential provisioning is accepted pending archival. Read-only dependency/timer evidence is in private
+credential provisioning is accepted and archived. Read-only dependency/timer evidence is in private
 `nautobot-prerequisite-dependencies-20260928/`; no target mutation occurred.
 Target namespace read-only access was refreshed on October 29; protected staging directory creation is accepted, while actual capture capacity remains unqualified.
  Do not change production volume permissions to
@@ -209,7 +208,7 @@ make the current adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream retains the disabled consumed credential definition pending archival; timers and retention deletion remain unauthorized.
+stream is clean after credential archival; timers and retention deletion remain unauthorized.
 
 ### Intended workload comparison
 
@@ -288,7 +287,7 @@ and system timers were preserved.
 
 The token expires January 27, 2027 at 21:17:52 UTC. Aaron owns rotation by
 January 13, 2027 at 21:17:52 UTC. Non-secret identity and acceptance hashes are in
-`manifests/accepted-live-state.yaml` and `manifests/recurring-credential-review.json`;
-raw receipts remain private. The consumed operation stays disabled until terminal
-archival is separately authorized. Capture/resume, notifications and schedules
+`manifests/accepted-live-state.yaml`; the sanitized review and exact executed
+definition are preserved in the published terminal tag indexed by HISTORY.
+Raw receipts remain private. The operation slot is clean. Capture/resume, notifications and schedules
 remain later approvals; credential resolution does not qualify B2/Restic access.
