@@ -211,7 +211,7 @@ make the current adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. No service, package, credential,
 backup or notification changes were made. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream now has one disabled pending prerequisite definition; no timer, retention deletion or provider mutation is authorized.
+stream is clean after prerequisite installation archival; no timer, retention deletion or provider mutation is authorized.
 
 ### Intended workload comparison
 
@@ -267,16 +267,10 @@ remain unchanged; HTTP health is 200. APT/restart/notification policy matched th
 pre-install observation. No rollback was needed.
 
 [Accepted-live state](../manifests/accepted-live-state.yaml) records the installed
-state. The [review manifest](../manifests/recurring-prerequisite-review.json) records
-the acceptance decision and preserves earlier failed attempts. Exact bundle,
-consumed approval, stages and raw receipts remain private under
-`nautobot-prerequisite-real-install-20261029`; process receipts were not rewritten
-to manufacture acceptance.
-
-Terminal archival remains pending because commit/tag/push was not authorized.
-Keep the consumed operation definition disabled until its annotated pushed archive
-exists, then reconcile HISTORY and return the operation to neutral. No new
-installation attempt or additional prerequisite approval is needed.
+identity and pushed terminal archive. [HISTORY](../HISTORY.md#recurring-prerequisite-installation)
+indexes the exact executed definition, bundle manifest and sanitized acceptance
+record. Raw receipts remain private. The active operation is neutral; no further
+installation attempt or prerequisite approval is needed.
 
 Credential provisioning is the next separate live stage: only the three canonical
 backup references, config-scoped read-only access, expiry/rotation ownership and

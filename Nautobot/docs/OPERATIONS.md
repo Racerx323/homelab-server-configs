@@ -4113,8 +4113,13 @@ bounded rollback. Internal checks and ordinary OS session notices do not require
 additional approval stages. Credentials, capture/resume, notification tests and
 schedule enablement remain separately authorized work.
 
-`manifests/operation.yaml` owns the pending definition. Keep its repository gates
-false during preparation. `ansible/scripts/prerequisite-bundle.py freeze` produces
+For a new installation, `manifests/operation.yaml` owns the pending definition;
+create its sanitized qualification record at
+`manifests/recurring-prerequisite-review.json`. Keep its repository gates false
+during preparation. A clean operation refuses freezing before creating a bundle.
+Terminal definitions and review records are indexed in HISTORY and retained in
+annotated pushed tags; they are not inputs for a new operation.
+`ansible/scripts/prerequisite-bundle.py freeze` produces
 the final execution candidate with its gates ready; it changes no repository gates
 and never contacts the host. There is no preliminary disabled-bundle step.
 

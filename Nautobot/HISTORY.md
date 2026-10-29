@@ -583,3 +583,22 @@ outside Git. `application_restore` records bounded acceptance and provenance;
 the active operation is clean. Archived publication-pending fields are historical. Protected payload
 and staging remain retained. Populated media, restored uWSGI/browser serving,
 current-data disaster recovery and full stage-5 acceptance remain unqualified.
+
+## Recurring prerequisite installation
+
+`nautobot-recurring-prerequisites-v1`: accepted nine pinned packages and two
+service-owned mode 0700 directories. Annotated tag `nautobot-recurring-prerequisites-v1-accepted`
+was pushed before the consumed definition was removed from main.
+Archive commit: `aa2ec1bbbb4869a5e0633a5441ed9c74a75612d8`; tag object: `a40e1f25bd6588ab3dc13b647565ffe135047558`.
+Bundle SHA-256: `4f7e0a4abbade83ade68f305bd0ca51c450fd803e0877402f0a56ed534c313d3`.
+
+The tag preserves `manifests/terminal-prerequisite-definition.json` (exact executed
+definition), `terminal-prerequisite-bundle.json` (exact input hash manifest), and
+`recurring-prerequisite-review.json` (sanitized qualification and acceptance).
+Current identity is in `manifests/accepted-live-state.yaml:recurring_prerequisites`;
+private execution-review SHA-256:
+`0ca739e73db522164fefe18b461442dfb74df202442abc966eac107a4dd97abc`.
+Independent readback verified native service commands, capacity and unchanged
+application artifacts, services, mapped media, boot, timers and APT policy.
+No rollback was needed; native package-changing rollback remains unqualified.
+Credentials, capture/resume and recurring schedules remain later stages.

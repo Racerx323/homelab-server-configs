@@ -73,7 +73,7 @@ def validate(bundle, op):
 def freeze(destination, artifacts):
     import yaml
     op = yaml.safe_load((ROOT / FILES['operation.yaml']).read_text())
-    require(op['operation']['stage'] == 'recurring_prerequisite_installation', 'operation_stage')
+    require(op['operation'].get('stage') == 'recurring_prerequisite_installation', 'operation_stage')
     destination.mkdir(mode=0o700, parents=False, exist_ok=False)
     for name, source in FILES.items():
         shutil.copyfile(ROOT / source, destination / name)

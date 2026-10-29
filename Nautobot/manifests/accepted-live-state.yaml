@@ -209,7 +209,10 @@ recurring_prerequisites:
   bundle_sha256: 4f7e0a4abbade83ade68f305bd0ca51c450fd803e0877402f0a56ed534c313d3
   evidence_directory: nautobot-prerequisite-real-install-20261029
   execution_review_sha256: 0ca739e73db522164fefe18b461442dfb74df202442abc966eac107a4dd97abc
-  archive_state: pending_commit_tag_push_authorization
+  archive_state: archived
+  terminal_tag: nautobot-recurring-prerequisites-v1-accepted
+  archive_commit: aa2ec1bbbb4869a5e0633a5441ed9c74a75612d8
+  tag_object: a40e1f25bd6588ab3dc13b647565ffe135047558
   packages:
     - name: ansible-core
       version: 2.19.11-0+deb13u1

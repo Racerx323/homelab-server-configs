@@ -962,7 +962,10 @@
           "pattern": "^[0-9a-f]{64}$"
         },
         "archive_state": {
-          "const": "pending_commit_tag_push_authorization"
+          "enum": [
+            "pending_commit_tag_push_authorization",
+            "archived"
+          ]
         },
         "packages": {
           "type": "array",
@@ -1079,8 +1082,38 @@
               }
             }
           }
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "archive_state": {
+                "const": "archived"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "terminal_tag",
+              "archive_commit",
+              "tag_object"
+            ]
+          }
+        }
+      ]
     }
   }
 }

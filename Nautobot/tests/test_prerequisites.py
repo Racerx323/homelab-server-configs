@@ -29,12 +29,57 @@ bundle = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bundle)
 
 
+def fixture_repository(root):
+    """Use current inputs with synthetic operation data, independent of archives."""
+    for name, source in bundle.FILES.items():
+        if name in ('operation.yaml', 'qualification.json'):
+            continue
+        target = root / source
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / source, target)
+    schema = json.loads((root / bundle.FILES['schema.json']).read_text())['properties']
+    candidate = yaml.safe_load((root / bundle.FILES['recurring-protection.yaml']).read_text())
+    accepted = yaml.safe_load((root / bundle.FILES['accepted-state.yaml']).read_text())
+    packages = [dict(p, architecture='all', source='debian')
+                for p in candidate['dependency_transaction_lock']['new_packages']]
+    doppler = candidate['prerequisite_preparation']['packages']['doppler']
+    packages.append(dict({key: doppler[key] for key in ('name', 'version', 'sha256', 'url')},
+                         architecture='arm64', source='doppler'))
+    sources = {}
+    for name, definition in schema['sources']['properties'].items():
+        props = definition['properties']
+        sources[name] = {key: value['const'] for key, value in props.items() if key != 'sha256'}
+        sources[name]['sha256'] = {key: '0' * 64 for key in props['sha256']['required']}
+    op = {
+        'schema_version': 1,
+        'operation': {'id': 'disposable-fixture', 'stage': 'recurring_prerequisite_installation',
+                      'state': 'pending', 'authorization_ready': False, 'execution_enabled': False,
+                      'source_commit': '0' * 40},
+        'target': schema['target']['const'],
+        'plan_sha256': bundle.sha(root / bundle.FILES['PLAN.md']),
+        'baseline': {'collected_at': '2000-01-01T00:00:00+00:00', 'packages_sha256': '0' * 64,
+                     'artifact_sha256': accepted['application_startup']['artifact_sha256'],
+                     'raw_sha256': {'fixture': '0' * 64}, 'foreign_architectures': [],
+                     'mapped_media': {path: {'exists': True, 'uid': 123, 'gid': 123,
+                                             'mode': '0700', 'symlink': False}
+                                      for path in schema['baseline']['properties']['mapped_media']['required']}},
+        'sources': sources, 'packages': packages, 'minimum_free_bytes': 16 * 1024**3,
+        'mutation_boundary': {'packages': 'fixture pins only',
+                              'directories': schema['mutation_boundary']['properties']['directories']['const'],
+                              'directory_owner': '999:985', 'directory_mode': '0700',
+                              'temporary_stage': '/tmp/disposable-fixture', 'side_effects': 'fixture only',
+                              'credentials': False, 'units_or_timers': False},
+        'command_template': 'fixture only',
+    }
+    for key in ('acceptance', 'rollback', 'external_inputs', 'unresolved_prerequisites', 'later_stages'):
+        op[key] = ['fixture only']
+    (root / bundle.FILES['operation.yaml']).write_text(yaml.safe_dump(op))
+    (root / bundle.FILES['qualification.json']).write_text('{}\n')
+    return op
+
+
 class Guards(unittest.TestCase):
     def test_single_candidate_preserves_disabled_repository_definition(self):
-        source = ROOT / 'Nautobot/manifests/operation.yaml'
-        original = source.read_bytes()
-        op = yaml.safe_load(original)
-        self.assertFalse(op['operation']['execution_enabled'])
         class SourceFixture:
             def create_module(self, spec):
                 return None
@@ -42,13 +87,19 @@ class Guards(unittest.TestCase):
                 module.verify_sources = lambda root, operation: None
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
+            repository = root / 'repository'
+            op = fixture_repository(repository)
+            source = repository / bundle.FILES['operation.yaml']
+            original = source.read_bytes()
+            self.assertFalse(op['operation']['execution_enabled'])
             inputs = root / 'inputs'
             inputs.mkdir()
             for filename in bundle.external_names(op):
                 (inputs / filename).write_text('disposable source fixture')
             destination = root / 'candidate'
             with patch.object(bundle.importlib.util, 'spec_from_file_location',
-                              return_value=ModuleSpec('source_fixture', SourceFixture())), patch('builtins.print'):
+                              return_value=ModuleSpec('source_fixture', SourceFixture())), \
+                    patch.object(bundle, 'ROOT', repository), patch('builtins.print'):
                 bundle.freeze(destination, inputs)
             digest = bundle.sha(destination / 'bundle.json')
             manifest, frozen = bundle.verify(destination, digest)
@@ -62,6 +113,17 @@ class Guards(unittest.TestCase):
             (destination / 'operation.json').write_text('{}')
             with self.assertRaisesRegex(ValueError, 'input_identity'):
                 bundle.verify(destination, digest)
+
+    def test_neutral_operation_refuses_freeze_before_creating_candidate(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            operation = root / bundle.FILES['operation.yaml']
+            operation.parent.mkdir(parents=True)
+            operation.write_text('schema_version: 1\noperation: {state: clean, authorization_ready: false}\n')
+            destination = root / 'candidate'
+            with patch.object(bundle, 'ROOT', root), self.assertRaisesRegex(ValueError, 'operation_stage'):
+                bundle.freeze(destination, root / 'absent-inputs')
+            self.assertFalse(destination.exists())
 
     def test_failed_command_keeps_bounded_sanitized_diagnostics(self):
         with self.assertRaises(node.CommandFailure) as caught:
@@ -201,12 +263,13 @@ class Guards(unittest.TestCase):
                     node.rollback_plan(root, {'packages': []})
 
     def test_pending_schema_bindings_and_disabled_execution(self):
-        op = yaml.safe_load((ROOT / 'Nautobot/manifests/operation.yaml').read_text())
-        Draft202012Validator(json.loads((ROOT / 'Nautobot/schemas/recurring-prerequisites.schema.json').read_text())).validate(op)
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
+            repository = root / 'repository'
+            op = fixture_repository(repository)
+            Draft202012Validator(json.loads((ROOT / 'Nautobot/schemas/recurring-prerequisites.schema.json').read_text())).validate(op)
             for dest, source in bundle.FILES.items():
-                shutil.copyfile(ROOT / source, root / dest)
+                shutil.copyfile(repository / source, root / dest)
             bundle.validate(root, op)
             op['packages'][0]['version'] = 'unreviewed'
             with self.assertRaises(ValueError):
