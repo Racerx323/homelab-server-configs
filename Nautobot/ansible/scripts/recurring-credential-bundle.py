@@ -14,6 +14,7 @@ import yaml
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[3]
+DOPPLER = '/usr/bin/doppler'
 FILES = {
     'launcher.py': 'Nautobot/ansible/scripts/recurring-credential-bundle.py',
     'recurring_credentials.py': 'Nautobot/ansible/scripts/recurring_credentials.py',
@@ -71,9 +72,10 @@ def freeze(root):
     (root / 'accepted.json').write_text(json.dumps(accepted, sort_keys=True) + '\n')
     (root / 'inventory.ini').write_text('[inventory_automation]\nj2-svpi4mf ansible_host=10.1.2.170 ansible_user=ama ansible_python_interpreter=/usr/bin/python3 ansible_ssh_common_args="-o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=10"\n')
     (root / 'ansible.cfg').write_text('[defaults]\nhost_key_checking=True\nretry_files_enabled=False\nno_target_syslog=True\nstdout_callback=default\n[ssh_connection]\npipelining=True\n')
-    ansible = shutil.which('ansible-playbook', path=str(Path.home() / '.local/bin') + ':/usr/bin:/bin')
+    ansible = shutil.which('ansible-playbook')
     require(ansible is not None, 'controller_ansible')
-    controller = {p: sha(Path(p)) for p in (ansible, '/usr/bin/doppler')}
+    ansible = str(Path(ansible).absolute())
+    controller = {p: sha(Path(p)) for p in (ansible, DOPPLER)}
     (root / 'controller.json').write_text(json.dumps(controller, sort_keys=True) + '\n')
     validate(root)
     for path in root.iterdir():

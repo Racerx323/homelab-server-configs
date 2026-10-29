@@ -54,8 +54,21 @@ class Credentials(unittest.TestCase):
             root = Path(tmp)
             repo = root / 'repo'
             fixture(repo)
-            with patch.object(bundle, 'ROOT', repo), patch('builtins.print'):
+            # CI installs Ansible in its Python toolchain, outside system paths.
+            toolchain = root / 'toolchain'
+            toolchain.mkdir()
+            ansible = toolchain / 'ansible-playbook'
+            ansible.symlink_to(shutil.which('ansible-playbook'))
+            # Freeze hashes Doppler but must never invoke it in this local test.
+            doppler = toolchain / 'doppler'
+            doppler.write_text('#!/bin/sh\nexit 99\n')
+            doppler.chmod(0o700)
+            with patch.object(bundle, 'ROOT', repo), patch.object(bundle, 'DOPPLER', str(doppler), create=True), \
+                    patch.object(Path, 'home', return_value=root), \
+                    patch.dict(os.environ, {'PATH': str(toolchain) + os.pathsep + os.defpath}), patch('builtins.print'):
                 bundle.freeze(root / 'candidate')
+            controller = json.loads((root / 'candidate/controller.json').read_text())
+            self.assertEqual(controller, {str(p): bundle.sha(p) for p in (ansible, doppler)})
             digest = bundle.sha(root / 'candidate/bundle.json')
             op = bundle.verify(root / 'candidate', digest)
             self.assertTrue(op['operation']['execution_enabled'])
