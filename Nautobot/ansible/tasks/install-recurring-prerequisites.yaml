@@ -1,0 +1,38 @@
+---
+- name: Converge packages and directories with bounded rescue
+  block:
+    - name: Install exact local packages without downloads upgrades or removals
+      ansible.builtin.command:
+        argv: '{{ (prerequisite_plan.stdout | from_json).install_argv }}'
+      when: (prerequisite_plan.stdout | from_json).missing | length > 0
+      changed_when: true
+    - name: Create only service-owned protection and staging directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        owner: '{{ prerequisite_operation.target.uid }}'
+        group: '{{ prerequisite_operation.target.gid }}'
+        mode: '0700'
+      loop: '{{ prerequisite_operation.mutation_boundary.directories }}'
+    - name: Independently verify exact packages commands directories and service continuity
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ prerequisite_root }}/prerequisite_node.py', accept, '{{ prerequisite_root }}']
+      changed_when: false
+  rescue:
+    - name: Verify rollback removes only packages introduced by this attempt
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ prerequisite_root }}/prerequisite_node.py', rollback-plan, '{{ prerequisite_root }}']
+      changed_when: false
+      register: prerequisite_rollback
+    - name: Purge only verified introduced packages without autoremove
+      ansible.builtin.command:
+        argv: '{{ (prerequisite_rollback.stdout | from_json).argv }}'
+      when: (prerequisite_rollback.stdout | from_json).argv | length > 0
+      changed_when: true
+    - name: Remove only new empty directories and verify rollback residue
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ prerequisite_root }}/prerequisite_node.py', rollback-directories, '{{ prerequisite_root }}']
+      changed_when: true
+    - name: Report failed installation after verified rollback
+      ansible.builtin.fail:
+        msg: Installation failed; rollback verified. Any failed rescue requires manual intervention. Retain stage evidence.

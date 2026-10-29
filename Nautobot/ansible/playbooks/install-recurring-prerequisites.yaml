@@ -1,0 +1,76 @@
+---
+- name: Install only reviewed recurring protection prerequisites
+  hosts: j2-svpi4mf
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  environment:
+    LC_ALL: C
+    DEBIAN_FRONTEND: noninteractive
+    NEEDRESTART_MODE: l
+  pre_tasks:
+    - name: Require verified single-host installation approval
+      ansible.builtin.assert:
+        that:
+          - prerequisite_verified | default(false)
+          - prerequisite_operation.operation.execution_enabled | bool
+          - prerequisite_operation.operation.stage == 'recurring_prerequisite_installation'
+          - ansible_play_hosts_all == ['j2-svpi4mf']
+    - name: Inspect protected stage before creation
+      ansible.builtin.stat:
+        path: '{{ prerequisite_root }}'
+      register: prerequisite_existing
+    - name: Refuse retained stage reuse
+      ansible.builtin.assert:
+        that: not prerequisite_existing.stat.exists
+    - name: Create protected stage
+      ansible.builtin.file:
+        path: '{{ prerequisite_root }}'
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+  tasks:
+    - name: Run the approved installation stage and retain its receipts
+      block:
+        - name: Transfer only node execution inputs
+          ansible.builtin.copy:
+            src: '{{ prerequisite_bundle }}/{{ item }}'
+            dest: '{{ prerequisite_root }}/{{ item }}'
+            owner: root
+            group: root
+            mode: '0600'
+          loop: '{{ prerequisite_hashes.keys() | list }}'
+        - name: Create isolated empty package archive cache
+          ansible.builtin.file:
+            path: '{{ prerequisite_root }}/archives'
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+        - name: Verify staged hashes baseline and exact simulated transaction
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/python3
+              - '{{ prerequisite_root }}/prerequisite_node.py'
+              - preflight
+              - '{{ prerequisite_root }}'
+              - --hashes
+              - '{{ prerequisite_hashes | to_json }}'
+          changed_when: false
+          register: prerequisite_plan
+        - name: Converge packages directories and acceptance with bounded rescue
+          ansible.builtin.include_tasks: '{{ prerequisite_bundle }}/install-tasks.yaml'
+      always:
+        - name: Find receipts from successful or failed phases
+          ansible.builtin.find:
+            paths: '{{ prerequisite_root }}'
+            patterns: [before.json, postconditions.json, rollback.json, 'failure-*.json']
+            file_type: file
+          register: prerequisite_receipts
+        - name: Retain bounded node receipts on controller
+          ansible.builtin.fetch:
+            src: '{{ item.path }}'
+            dest: '{{ prerequisite_evidence }}/{{ item.path | basename }}'
+            flat: true
+          loop: '{{ prerequisite_receipts.files }}'

@@ -4104,3 +4104,129 @@ remain. Any disposal failure latches manual intervention, including an interrupt
 partial disposal; do not automatically retry deletion. Target qualification remains
 required before unattended deployment. Run `tests/test_recurring_disposal.py` and
 `tests/test_recurring_protection.py` for these boundaries.
+
+### Recurring prerequisite installation
+
+Prepare and qualify one immutable candidate, obtain one installation-only approval,
+then run one playbook containing transfer, preflight, installation, acceptance and
+bounded rollback. Internal checks and ordinary OS session notices do not require
+additional approval stages. Credentials, capture/resume, notification tests and
+schedule enablement remain separately authorized work.
+
+`manifests/operation.yaml` owns the pending definition. Keep its repository gates
+false during preparation. `ansible/scripts/prerequisite-bundle.py freeze` produces
+the final execution candidate with its gates ready; it changes no repository gates
+and never contacts the host. There is no preliminary disabled-bundle step.
+
+Supply a protected artifact directory containing the nine `<package-name>.deb`
+files and `debian.{gpg,InRelease,Packages}` / `doppler.{gpg,InRelease,Packages}`
+identified by the operation. Confirm signing-key trust against official vendor
+HTTPS documentation and its designated key download, including expiry/revocation:
+Debian `41587F7DB8C774BCCF131416762F67A0B2C39DE4`, Doppler
+`BD8F51EC1320748CED4E6E3BDE2A7741A397C129`. Match Debian's required signer, not
+whole-keyring equality. Record trust evidence in the review manifest. Freeze checks
+signatures, signed ARM64 indexes, package hashes and package control identities.
+It installs no keyring or APT source.
+
+```sh
+python3 Nautobot/ansible/scripts/prerequisite-bundle.py freeze NEW_PRIVATE_CANDIDATE --artifacts REVIEWED_ARTIFACT_DIRECTORY
+```
+
+The printed SHA-256 binds the operation and all non-secret inputs, including
+prepared changes beyond the recorded source commit. Present that hash, exact
+command, target, package/directory boundary, acceptance, rollback and external
+inputs for approval. Do not edit an approved candidate or reuse its approval for
+changed bytes. After explicit approval, run the same candidate:
+
+```sh
+python3 BUNDLE/prerequisite-bundle.py execute --bundle BUNDLE --approve REVIEWED_BUNDLE_SHA256 --evidence NEW_PRIVATE_EVIDENCE_DIRECTORY
+```
+
+Use absolute paths, an operator-owned 0700 evidence parent without symlink
+ancestors, and a new evidence destination. Require administrative SSH/sudo access
+and an application/package baseline at most 24 hours old. The launcher verifies
+the whole bundle and invokes Ansible through
+`tests/repository/run-with-ansible-local-temp.sh`. It transfers only the nine
+packages, node guard, operation JSON and Ansible temporary-directory wrapper into
+a new root-owned 0700 stage. Documentation, signed metadata and controller inputs
+remain in the local approval bundle. The node verifies received SHA-256 hashes and
+metadata together before interpreting the operation.
+
+Preflight checks UID/GID/home, ARM64 and configured foreign architectures, clean
+dpkg audit, unrelated package records, accepted artifacts, services/HTTP health,
+mapped media and directory metadata. Pinned packages must be all absent or all
+present at exact versions; refuse partial state. Existing service directories
+must already be UID 999/GID 985 mode 0700 without symlinks. Require ext4 and at least
+16 GiB free; this is not final capture-capacity acceptance.
+
+Review effective `DPkg` and `Binary::apt-get::DPkg` hooks and relevant installed
+policy without running hooks/scanners or reading authentication/proxy values.
+Stop on policy drift. Preserve smartmontools, Webmin and existing monitoring.
+`NEEDRESTART_MODE=l` inhibits service/container restarts but can allow ordinary
+terminal/desktop notices; disclose those in the installation approval. Keep the
+existing mail-notification policy. No backup/Apprise notification test is included.
+
+The same approved playbook records its baseline and requires an exact nine-package
+simulation. Both simulation and installation set `Dir::Etc::sourcelist=` and
+`Dir::Etc::sourceparts=` for that command only, so configured repository candidates
+cannot override the reviewed local files. Allow APT to acquire those local files:
+`--no-download` also skips that local acquisition and can break actual installation
+after a successful simulation. No network package sources, persistent APT source
+or hook configuration changes are included. Install only the reviewed packages without
+APT update, recommends, unrelated upgrades or removals, and create only
+`/var/lib/nautobot/protection` and its `staging` child with UID 999/GID 985 mode 0700.
+Acceptance verifies exact package records/manual flags, explicit service-account
+`/usr/bin/ansible-playbook` and `/usr/bin/doppler` versions, protected directories,
+capacity, application continuity and mapped media. Ansible version checks use the
+same temporary-directory wrapper with `LC_ALL=C.UTF-8`; keep APT parsing in `C`.
+
+Qualify acquisition with actual installation of the pinned artifacts using the same
+APT version in a disposable, network-disabled environment. Check exact package
+deltas, idempotence and bounded purge. Package-manager fixtures and simulation
+alone do not qualify archive acquisition; record architecture and host-hook limits.
+
+Receipts are collected on success and failure: `before.json`, `postconditions.json`,
+`rollback.json` when produced, and bounded `failure-<phase>.json` diagnostics.
+Node commands cap captured stdout/stderr at 4 MiB per stream with a timeout;
+do not impose a process-wide file-size limit on APT cache files. Failures retain
+status and sanitized 16 KiB excerpts, never stdin or environment values. Review observations against frozen expectations before
+recording acceptance; process success alone is insufficient. Missing receipts or
+controller interruption require bounded node inspection, not an automatic retry.
+Retain node-stage inputs, receipts and previous evidence.
+
+After package mutation, rescue simulates purge of only packages introduced by
+that attempt, refuses unrelated drift and never autoremoves. Remove only new,
+empty service directories in reverse order with `rmdir`; refuse unsafe metadata,
+symlinks or nonempty paths. Verify original packages/manual flags, clean audit and
+application continuity. Failed rescue requires manual intervention. Journals,
+caches, APT/dpkg bookkeeping, needrestart markers, Python bytecode and man-db
+triggers are ordinary effects, not byte-for-byte filesystem rollback.
+
+Run focused qualification once for the final implementation:
+
+```sh
+/bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_prerequisites.py
+```
+
+The full-playbook regression requires a disposable rootless user namespace:
+
+```sh
+podman unshare /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_prerequisites.py
+```
+
+It exercises real staging, node preflight, APT simulation refusal and failure-receipt
+collection with synthetic packages and host probes. It never installs a package.
+The remaining fixtures cover convergence, idempotence, drift and rollback. Reuse
+`test_recurring_media.py`, `test_recurring_bindings.py`,
+`test_recurring_protection.py` and `test_recurring_disposal.py` when relevant to
+changed behavior. Local tests do not establish target or native ARM64 acceptance.
+
+Credential provisioning is separate: only the three canonical references in
+`manifests/recurring-protection.yaml`, through a config-scoped read-only service
+token without unrelated inherited secrets. Approval requires provider metadata,
+exact expiry (proposed lifetime 90 days), named rotation owner and a deadline at
+least 14 days before expiry. Deliver out of band to the specified service-owned
+0600 file; keep values out of argv, Git, logs, hashes and evidence. Verify scope,
+expiry and reference resolution without recording values. Preparation creates no
+provider config, token or host credential file. Refresh timer/scrub-duration
+evidence before later schedule enablement.

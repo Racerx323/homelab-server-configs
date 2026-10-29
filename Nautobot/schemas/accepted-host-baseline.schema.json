@@ -881,6 +881,206 @@
           "const": false
         }
       }
+    },
+    "recurring_prerequisites": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "filesystem",
+        "minimum_free_bytes",
+        "independent_acceptance",
+        "application_continuity_preserved",
+        "mapped_media_preserved",
+        "system_timer_set_preserved",
+        "credentials_provisioned",
+        "recurring_units_enabled",
+        "target_rollback_qualified",
+        "operation",
+        "reviewed_at",
+        "bundle_sha256",
+        "evidence_directory",
+        "execution_review_sha256",
+        "archive_state",
+        "packages",
+        "service_commands",
+        "directories"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "nine_pinned_packages_and_two_protected_directories_only"
+        },
+        "filesystem": {
+          "const": "ext4"
+        },
+        "minimum_free_bytes": {
+          "const": 17179869184
+        },
+        "independent_acceptance": {
+          "const": true
+        },
+        "application_continuity_preserved": {
+          "const": true
+        },
+        "mapped_media_preserved": {
+          "const": true
+        },
+        "system_timer_set_preserved": {
+          "const": true
+        },
+        "credentials_provisioned": {
+          "const": false
+        },
+        "recurring_units_enabled": {
+          "const": false
+        },
+        "target_rollback_qualified": {
+          "const": false
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_review_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "archive_state": {
+          "const": "pending_commit_tag_push_authorization"
+        },
+        "packages": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "version",
+              "architecture"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "ansible-core",
+                  "ieee-data",
+                  "python3-dnspython",
+                  "python3-httplib2",
+                  "python3-netaddr",
+                  "python3-packaging",
+                  "python3-pyparsing",
+                  "python3-resolvelib",
+                  "doppler"
+                ]
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "architecture": {
+                "enum": [
+                  "all",
+                  "arm64"
+                ]
+              }
+            }
+          }
+        },
+        "service_commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ansible_playbook",
+            "ansible_version",
+            "doppler",
+            "doppler_version"
+          ],
+          "properties": {
+            "ansible_playbook": {
+              "const": "/usr/bin/ansible-playbook"
+            },
+            "ansible_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "doppler": {
+              "const": "/usr/bin/doppler"
+            },
+            "doppler_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "directories": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "/var/lib/nautobot/protection",
+            "/var/lib/nautobot/protection/staging"
+          ],
+          "properties": {
+            "/var/lib/nautobot/protection": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uid",
+                "gid",
+                "mode"
+              ],
+              "properties": {
+                "uid": {
+                  "const": 999
+                },
+                "gid": {
+                  "const": 985
+                },
+                "mode": {
+                  "const": "0700"
+                }
+              }
+            },
+            "/var/lib/nautobot/protection/staging": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uid",
+                "gid",
+                "mode"
+              ],
+              "properties": {
+                "uid": {
+                  "const": 999
+                },
+                "gid": {
+                  "const": 985
+                },
+                "mode": {
+                  "const": "0700"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

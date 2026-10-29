@@ -1,0 +1,219 @@
+{
+  "acceptance": [
+    "exact nine package versions and signed package hashes",
+    "explicit service-account /usr/bin/ansible-playbook and /usr/bin/doppler versions",
+    "all original package records and manual flags preserved",
+    "accepted artifacts and application service InvocationIDs unchanged; HTTP 200",
+    "service-owned 0700 staging on ext4 with at least 16 GiB free",
+    "mapped media metadata unchanged; no monitoring configuration changes",
+    "independent readback and operator acceptance required; no automatic accepted-state update"
+  ],
+  "baseline": {
+    "artifact_sha256": {
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container": "2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume": "ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container": "a2e12b77cf54ac7fc8d9cb7d1699db9b8188d422bbf1aa894ea9497023876684",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume": "0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network": "0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container": "e07c7c3e89adb7a5c57efa32639cbdea28fc11d04be340a2eabfce0d6faa9aae",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume": "b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container": "7dde40f84c637dd79ec5859cf9a17ec9e68b2e111d647a39a8987e7c7cb248db",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container": "c8adc29062e82fdf5d524eb339b312b66611e81085d06235df658e5cce5a2e76",
+      "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container": "d01b0ed26ea2b9228c3b126aac6d9e4329faec41eb0ac644245d6f4c9e9d989d",
+      "/var/lib/nautobot/runtime/initialize-application.py": "4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b",
+      "/var/lib/nautobot/runtime/startup-application.py": "59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e",
+      "/var/lib/nautobot/runtime/startup-command.py": "701061362ce1fc9b24c36fa8cc2d78eb9c100f5e8a13d9f63c6034d76ccea606",
+      "/var/lib/nautobot/runtime/startup-job-probe.py": "07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c",
+      "/var/lib/nautobot/runtime/startup-job.py": "85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6"
+    },
+    "collected_at": "2026-10-29T14:31:23.717352+00:00",
+    "foreign_architectures": [
+      "armhf"
+    ],
+    "mapped_media": {
+      "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media": {
+        "exists": true,
+        "gid": 166534,
+        "mode": "0700",
+        "symlink": false,
+        "uid": 166534
+      },
+      "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media/_data": {
+        "exists": true,
+        "gid": 166534,
+        "mode": "0755",
+        "symlink": false,
+        "uid": 166534
+      }
+    },
+    "packages_sha256": "1a145e9eb3c23720e46783015c28024396cfaeea17d4d2fc682d62e42866da15",
+    "raw_sha256": {
+      "collector.py": "34bf543ab3f27a1d50489e09db507fa4c1fc587bca3a3ab2eb804f9847ee9dd8",
+      "exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "followup-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "followup.jsonl": "c5d0ccdd5e842798852496145c3751685a608c6e4c8cf241a8afc370b47d9339",
+      "followup.py": "a554d012a78d7bf16179fd5b3d5b5138d112854965fe0a988ee2e7e559e1f780",
+      "followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "foreign-architectures.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "foreign-architectures.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "foreign-architectures.txt": "9e0ba6a32c0b55665ea19e2b546fb6c8b4794fd1e171579c991c6cb528f9d374",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.json": "1d094504ca6ea8af7e467125ce40b6bf4c7139f6837b8f2126ec001752211671"
+    }
+  },
+  "command_template": "python3 <BUNDLE>/prerequisite-bundle.py execute --bundle <BUNDLE> --approve <BUNDLE_SHA256> --evidence <NEW_PRIVATE_EVIDENCE_DIRECTORY>",
+  "external_inputs": [
+    "official signing-key trust confirmed in recurring-prerequisite-review.json; review immutable artifact bundle",
+    "fresh same-day read-only baseline and signed metadata; no apt update implicit",
+    "one installation-only approval for the exact final candidate, covering transfer, simulation, installation, acceptance and bounded rollback; preparation grants no live authorization",
+    "protected new controller evidence path and existing administrative sudo/SSH access"
+  ],
+  "later_stages": [
+    "separate Doppler config/token provisioning for only three canonical backup references",
+    "capture/resume and target staging-disposal qualification",
+    "notification delivery qualification",
+    "schedule enablement after refreshed timer/duration review"
+  ],
+  "minimum_free_bytes": 17179869184,
+  "mutation_boundary": {
+    "credentials": false,
+    "directories": [
+      "/var/lib/nautobot/protection",
+      "/var/lib/nautobot/protection/staging"
+    ],
+    "directory_mode": "0700",
+    "directory_owner": "999:985",
+    "packages": "nine pinned additions only; zero upgrades, removals or network package resolution",
+    "side_effects": "APT/dpkg bookkeeping including listchanges seen database and needrestart runtime markers, Python bytecode and man-db triggers; NEEDRESTART_MODE=l; ordinary OS terminal/desktop session notices may occur under unchanged host policy",
+    "temporary_stage": "new root-owned 0700 /tmp/nautobot-prerequisites-<bundle-prefix>-<nonce>; retain for review; wrapper-owned 0700 /tmp/homelab-server-configs-ansible.* is created and cleaned for Ansible checks",
+    "units_or_timers": false
+  },
+  "operation": {
+    "authorization_ready": true,
+    "execution_enabled": true,
+    "id": "nautobot-recurring-prerequisites-v1",
+    "source_commit": "034efcec059385ccb0bfd458743a8e328dbee061",
+    "stage": "recurring_prerequisite_installation",
+    "state": "pending"
+  },
+  "packages": [
+    {
+      "architecture": "all",
+      "name": "ansible-core",
+      "sha256": "e6008ff6bb4de9601b167753dc8557e0c53c50e5e3f78c39c6b7f89fafa594bb",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/a/ansible-core/ansible-core_2.19.11-0+deb13u1_all.deb",
+      "version": "2.19.11-0+deb13u1"
+    },
+    {
+      "architecture": "all",
+      "name": "ieee-data",
+      "sha256": "3bc399924ecb60af22569cb34c07a66a6e4a68c49c78a60b479e7d4913fe54e0",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/i/ieee-data/ieee-data_20240722_all.deb",
+      "version": "20240722"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-dnspython",
+      "sha256": "81897352780f900b502bac04d46f6131533664c1b204d2e7fa5e4297f433a082",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/d/dnspython/python3-dnspython_2.7.0-1_all.deb",
+      "version": "2.7.0-1"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-httplib2",
+      "sha256": "47367d0117220161f94c33c3a9ba5d31b1a8a6560ab4c6606c825b5d9c5d802e",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/p/python-httplib2/python3-httplib2_0.22.0-1+deb13u1_all.deb",
+      "version": "0.22.0-1+deb13u1"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-netaddr",
+      "sha256": "1fc29a64ee60cf334ab88ad89a61540df5381bc388615c6092bd1cd41719e525",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/p/python-netaddr/python3-netaddr_1.3.0-1_all.deb",
+      "version": "1.3.0-1"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-packaging",
+      "sha256": "d70c8469f6e9c6105e1ebcd3ebdc963f11dadbeddd89d2d1a2a3cb1c97d2ecbc",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/p/python-packaging/python3-packaging_25.0-1_all.deb",
+      "version": "25.0-1"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-pyparsing",
+      "sha256": "f784864f3835bc7e62391350418f28958cc004f1d46690a5c03300ec0a9bcc54",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/p/pyparsing/python3-pyparsing_3.1.2-1_all.deb",
+      "version": "3.1.2-1"
+    },
+    {
+      "architecture": "all",
+      "name": "python3-resolvelib",
+      "sha256": "341185635136e19e642f63e409e910ac1ba706e71a8a3cbffd196d6dab792e03",
+      "source": "debian",
+      "url": "https://deb.debian.org/debian/pool/main/p/python-resolvelib/python3-resolvelib_1.1.0-1_all.deb",
+      "version": "1.1.0-1"
+    },
+    {
+      "architecture": "arm64",
+      "name": "doppler",
+      "sha256": "68211b3da678020c63971391c832b632949d3554df87d478e7400eb82ea833e2",
+      "source": "doppler",
+      "url": "https://packages.doppler.com/public/cli/deb/debian/pool/any-version/main/d/do/doppler_3.76.6/doppler_3.76.6_linux_arm64.deb",
+      "version": "3.76.6"
+    }
+  ],
+  "plan_sha256": "3e1c74a76468ed75b12739718fc93481450968234c91630b4a4ad6d1cba9c876",
+  "rollback": [
+    "before mutation: cleanup owned controller temporaries only; retain root-owned node stage",
+    "after mutation: simulate purge of only introduced packages; reject other changes; no autoremove",
+    "remove only new empty service directories using rmdir; never retained payloads",
+    "verify original dpkg records, manual flags, artifacts and service identities; otherwise manual intervention"
+  ],
+  "schema_version": 1,
+  "sources": {
+    "debian": {
+      "fingerprint": "41587F7DB8C774BCCF131416762F67A0B2C39DE4",
+      "index": "debian.Packages",
+      "index_path": "main/binary-arm64/Packages",
+      "keyring": "debian.gpg",
+      "release": "debian.InRelease",
+      "sha256": {
+        "debian.InRelease": "0584fba32e13e0ab8285fb16c27adea1ec03a73669c18702821094fd6ca86675",
+        "debian.Packages": "f97011263173eaccb1a215a28a6ec7ba1f6e5cebd8bb68e8fa0475b1d4021161",
+        "debian.gpg": "506b815cbb32d9b6066b4a2aa524071e071761e7e7f68c3ac74f3061ba852017"
+      }
+    },
+    "doppler": {
+      "fingerprint": "BD8F51EC1320748CED4E6E3BDE2A7741A397C129",
+      "index": "doppler.Packages",
+      "index_path": "main/binary-arm64/Packages",
+      "keyring": "doppler.gpg",
+      "release": "doppler.InRelease",
+      "sha256": {
+        "doppler.InRelease": "17aba85222f8392e5543c697edd104353060edc59e0add1cdd7ca35ac4b95ccb",
+        "doppler.Packages": "904a430408c8179e8e5cbc4bf9790adda18625355c93c4235aab62f4d809f999",
+        "doppler.gpg": "d940528226d70bfdaa6a0a6e741a24d994e424836012fad86bd5c15d3fa1f9a4"
+      }
+    }
+  },
+  "target": {
+    "address": "10.1.2.170",
+    "gid": 985,
+    "host": "j2-svpi4mf",
+    "ssh_user": "ama",
+    "uid": 999
+  },
+  "unresolved_prerequisites": [
+    "native ARM64 executable acceptance and host maintainer-script/trigger effects remain unqualified",
+    "live protected directory creation and complete application continuity acceptance remain unperformed",
+    "target package-changing rollback remains unperformed; real disposable installation and exact purge passed"
+  ]
+}

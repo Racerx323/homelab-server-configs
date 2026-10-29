@@ -1,0 +1,860 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_prerequisite_preparation_review",
+  "live_acceptance": true,
+  "fresh_observation": {
+    "collected_at": "2026-10-29T14:31:23.717352+00:00",
+    "raw_evidence_directory": "nautobot-prerequisite-preparation-20261029",
+    "service_identity": "999:985",
+    "accepted_startup_artifacts_matching": 15,
+    "application_services_running": 5,
+    "http_status": 200,
+    "debian_simulation": "eight additions; zero upgrades or removals; Doppler not installed",
+    "rootless_media": "three directories; no files; namespace read-only inspection only",
+    "staging": "ext4; 936282062848 free bytes observed; protection/staging absent",
+    "monitoring_changes": false,
+    "smart_requests": false,
+    "secret_values_read": false,
+    "architecture": "arm64",
+    "foreign_architectures": [
+      "armhf"
+    ],
+    "foreign_architectures_raw_sha256": "9e0ba6a32c0b55665ea19e2b546fb6c8b4794fd1e171579c991c6cb528f9d374"
+  },
+  "historical_evidence": {
+    "nautobot-prerequisite-dependencies-20260928": {
+      "collector.py": "a0942952b944f2ff722142ae9f643b531229d5730234841581739e230f3fa9e2",
+      "stdout.json": "815dca3a78ab1941712fe01132569ba464da85890369894307a6d8182053936f",
+      "transport.json": "afc8f827f5b6ffa5eeb14377c171bf49bc081bbc297f2d851616a3c64675fdd6",
+      "signature-collector.py": "71acfe9dfc4d84533637bc604add9c6127c9ff8bb1fe89a75f52209a8823ede6",
+      "signature-stdout.jsonl": "bd426da4c8181e0e81e01337c43d1c6a5c5440533e139183e15a78c27c034cca",
+      "dependency-index.jsonl": "864e0b1a2271f751b66f7e9cac2c7a896673fddc45653505329b23203676dfd1"
+    },
+    "nautobot-recurring-baseline-20260928": {
+      "REVIEW.json": "c6f02c67aef30f4cd153a56eb191bfa364918e33e555daffd958b8e253792622",
+      "stdout.json": "3a1111340ba94fb3a0dc55c85617255dc591dc3a553cfaa813840822b633c5c6",
+      "transport.json": "fa4e5c8085048c126c635acf12d14f894d01f3073cb1db9ab3453b51931f0166",
+      "followup.json": "825675c3c5306e40e9eb1d8fa708013d1bdbf1b2a0ba39b1b353066d97028f51",
+      "media-review.json": "7a8e479b82187f97c042de474172479de099a0c76db33a876fcca7bfba1d32b7"
+    }
+  },
+  "local_qualification": {
+    "prerequisite-tests": {
+      "tests": 8,
+      "result": "passed",
+      "raw_log_sha256": "6bc853dc0e176d92d3fc69fefa04343ec81bb06d29847345ec390cf253565691"
+    },
+    "recurring-regressions": {
+      "tests": 31,
+      "result": "passed",
+      "raw_log_sha256": "4cc67b4290ef0af59f84d83f17f3ee8c18e715bbe68622cd21f886a8dccd503d"
+    },
+    "documentation-contracts": {
+      "tests": 5,
+      "result": "passed",
+      "raw_log_sha256": "00748966e3c336f9030c4095e7ec6d2f904af69128e44dc526931f247d75109b"
+    },
+    "historical": true
+  },
+  "limitations": [
+    "Target package-changing rollback was not invoked or qualified by the successful install.",
+    "Protected staging acceptance does not establish capture capacity or populated-media support.",
+    "Credential provisioning, capture/resume qualification, notification testing and schedule enablement remain later stages.",
+    "Terminal annotated/pushed archive and operation cleanup remain pending; commit/tag/push not authorized."
+  ],
+  "preserved": [
+    "accepted-live-state.yaml",
+    "desired-state.yaml",
+    "architecture plan",
+    "HISTORY.md",
+    "frozen observation bundles and consumed claims",
+    "all prior raw evidence and retained payloads",
+    "smartmontools and Webmin production configuration"
+  ],
+  "read_only_hook_and_signing_review": {
+    "host_observed_at": "2026-10-29T15:31:46.880425+00:00",
+    "key_checked_at": "2026-10-29T15:42:28.611231+00:00",
+    "evidence_directory": "nautobot-prerequisite-hook-trust-20261029",
+    "scope": "read policy and installed source; scoped apt-config/dpkg queries; public-source downloads and local signature checks only",
+    "active_hooks": [
+      "apt-listchanges --apt",
+      "dpkg-preconfigure --apt",
+      "needrestart apt-pinvoke"
+    ],
+    "installed_versions": {
+      "apt": "3.0.3",
+      "apt-listchanges": "4.8",
+      "needrestart": "3.11-1",
+      "debian-archive-keyring": "2025.1"
+    },
+    "restart_assessment": "installed apt-pinvoke passes no restart-mode override; NEEDRESTART_MODE=l is selected after needrestart configuration and inhibits service/container restart branches",
+    "notification_assessment": {
+      "needrestart_sendnotify_default": true,
+      "needrestart_mail_disabled_by_existing_policy": true,
+      "needrestart_write_and_desktop_not_disabled_by_existing_policy": true,
+      "mode_l_does_not_disable_session_notifications": true,
+      "stale_sessions_not_scanned": true,
+      "apt_listchanges_new_install_branch": "with observed default show_all=false, all absent packages return no news/changelog data; email body dispatch requires nonempty data",
+      "apt_listchanges_bookkeeping": "may seed/update /var/lib/apt/listchanges; ordinary package bookkeeping, not filesystem rollback",
+      "installation_scope": "ordinary OS terminal/desktop session notices are disclosed in the installation-only approval request; leave existing policy unchanged; no Nautobot backup/Apprise notification test"
+    },
+    "signing_trust": {
+      "debian": {
+        "fingerprint": "41587F7DB8C774BCCF131416762F67A0B2C39DE4",
+        "expiry_utc": "2033-03-22T18:56:21+00:00",
+        "retained_inrelease_signature_verified": true,
+        "verification_exit_status": 0,
+        "same_full_keyring_as_bundle": false,
+        "official_document_url": "https://ftp-master.debian.org/keys.html",
+        "public_key_url": "https://ftp-master.debian.org/keys/release-13.asc",
+        "trust_basis": "current official HTTPS documentation and designated public key; no independent out-of-band or Web-of-Trust attestation"
+      },
+      "doppler": {
+        "fingerprint": "BD8F51EC1320748CED4E6E3BDE2A7741A397C129",
+        "expiry_utc": "2031-04-16T05:24:07+00:00",
+        "retained_inrelease_signature_verified": true,
+        "verification_exit_status": 0,
+        "same_full_keyring_as_bundle": true,
+        "official_document_url": "https://docs.doppler.com/docs/install-cli",
+        "public_key_url": "https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key",
+        "trust_basis": "current official HTTPS documentation and designated public key; no independent out-of-band or Web-of-Trust attestation"
+      }
+    },
+    "raw_sha256": [
+      {
+        "file": "apt-config.cc",
+        "sha256": "e48a4b6369a921c26a350a88f552797794ce719e81a1c2228e13ae2052af23ef"
+      },
+      {
+        "file": "collector.py",
+        "sha256": "2ae2dbedf75529d4ab59628d8c824f27b342f7f901b2f2a29519ccbbac3c6a27"
+      },
+      {
+        "file": "debian-confirmed.gpg",
+        "sha256": "abced156a22aa8683b228299ac35c1ea51515eef900cec0e562f56716dfe3915"
+      },
+      {
+        "file": "debian-keys.html",
+        "sha256": "b271f4c351a3b54f6a6be9667bb834809d12ee514055b903ccb06839d274e3e0"
+      },
+      {
+        "file": "debian-release-13.asc",
+        "sha256": "4d097bb93f83d731f475c5b92a0c2fcf108cfce1d4932792fca72d00b48d198b"
+      },
+      {
+        "file": "doppler-confirmed.gpg",
+        "sha256": "d940528226d70bfdaa6a0a6e741a24d994e424836012fad86bd5c15d3fa1f9a4"
+      },
+      {
+        "file": "doppler-current.asc",
+        "sha256": "7b9552d5da3f8c8706b77ecc41ea37b86f5242e2e2913d53de6caf8346140154"
+      },
+      {
+        "file": "doppler-install.html",
+        "sha256": "cc944d4643d9b43a35fa336ceed7d4e4188bc241c77d7b437db2bc27aaf6a3f3"
+      },
+      {
+        "file": "doppler-install.sh",
+        "sha256": "f63b7a860fd824f6eb76c1315790ab54fc4aa86242beb39c03f815a2abd4897c"
+      },
+      {
+        "file": "exit-status.txt",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "followup.json",
+        "sha256": "dc0f971f97ed426edb65563aba6c7c29601229a5b869229e028303480c452f5f"
+      },
+      {
+        "file": "followup.py",
+        "sha256": "ab865bd620e8b9d320ef29e00acea002d9e09c4f0f873bd8641ce80df375211d"
+      },
+      {
+        "file": "followup.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "key-fetch.json",
+        "sha256": "2fe60963343dc66f03ef0a9a40cc3debb55d8703e65ee648f484f24f392e7674"
+      },
+      {
+        "file": "key-verification.json",
+        "sha256": "dffcb1608f304b16621caee345d69b93b9851c3e2a8a0db28d240c813ab53059"
+      },
+      {
+        "file": "notification-policy.json",
+        "sha256": "3b2015d5b7394b1a1fb9beedd80d5ec11406a2571511e21c19a67c9eb0eb4e14"
+      },
+      {
+        "file": "notification-policy.py",
+        "sha256": "baeda8b0b5b3d24f70a1295a82b4480304abde35779959b55d889dfe33fe8aed"
+      },
+      {
+        "file": "notification-policy.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "notification-policy.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "source-fetch.json",
+        "sha256": "21b0c6c90649646608e7a2c9e871dadd59694ee8eb47eff90071754f790cdf6d"
+      },
+      {
+        "file": "stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "stdout.json",
+        "sha256": "b5c149660b5fe29f356d7c4c3fc07b422b1dd035bab7e34156f13c7502ac9141"
+      },
+      {
+        "file": "debconf-control-review.json",
+        "sha256": "bacdaa1afe88e75ebb69cd3608accfa9c588c6c71905fb89597ff3b9233269ea"
+      }
+    ],
+    "executed_hooks": false,
+    "executed_needrestart_scanner": false,
+    "notifications_delivered": false,
+    "package_transactions": false,
+    "secret_values_read": false,
+    "target_mutation": false,
+    "installation_authorization_ready": false,
+    "debconf_assessment": "all nine reviewed package control archives lack config/templates; no package-specific debconf script identified or executed"
+  },
+  "approval_candidate_preparation": {
+    "prepared_at": "2026-10-29T16:17:58.487702+00:00",
+    "scope": "finalize installation-only approval request; no live execution authorized",
+    "repository_operation_enabled": false,
+    "prospective_bundle_gates": "freeze --approval-candidate changes only frozen operation gates to permit the future exact-hash execute command after explicit installation approval",
+    "normal_os_session_notices": "disclosed ordinary package-hook side effect, not a separate approval stage or monitoring change",
+    "local_prerequisite_tests": 9,
+    "result": "passed",
+    "test_log_sha256": "b04604eebaa450047e35c65336fd7dde6c222c29c0a5d12f8b4ed32ff99fc370",
+    "test_evidence_directory": "nautobot-prerequisite-installation-approval-20261029",
+    "approval_request_ready": true,
+    "live_installation_authorized": false,
+    "immutable_test_log": "qualification-logs/b04604eebaa450047e35c65336fd7dde6c222c29c0a5d12f8b4ed32ff99fc370.log",
+    "historical": true
+  },
+  "installation_attempt": {
+    "bundle_sha256": "e5ae81c33912a0d1851e3e88b31438aa46e53bc74bc0e0a2759f798b74a6f6f1",
+    "result": "pre_package_mutation_refusal",
+    "live_acceptance": false,
+    "ansible_exit_status": 2,
+    "apt_simulation_exit_status": 100,
+    "package_installation_performed": false,
+    "checks": {
+      "pinned_packages_absent": true,
+      "unrelated_package_digest_unchanged": true,
+      "dpkg_audit_clean": true,
+      "requested_directories_absent": true,
+      "accepted_artifacts_unchanged": true,
+      "five_application_services_unchanged": true,
+      "http_200": true,
+      "boot_unchanged": true,
+      "system_timer_set_unchanged": true,
+      "recurring_units_absent": true,
+      "mapped_media_unchanged": true
+    },
+    "retained_node_stage": "/tmp/nautobot-prerequisites-e5ae81c33912a0d1-39d161bd",
+    "evidence_directory": "nautobot-prerequisite-installation-approval-20261029",
+    "execution_review_sha256": "c7166aed38e32952a9b575fbff53e6101590b36959a0498f8a7c24a8cfeda810",
+    "remaining_gap": "Read-only target solver diagnosis; native install/rollback remain unexercised. One approved attempt stopped before package mutation; do not automatically retry."
+  },
+  "focused_refactor": {
+    "reviewed_at": "2026-10-29T17:05:20.534034+00:00",
+    "scope": "repository refactor and local qualification only; no target contact or installation retry",
+    "workflow": "one final review candidate; one approved playbook stage with preflight, install, acceptance and bounded rollback",
+    "node_input_count": 12,
+    "signed_source_verification": "controller freeze; complete approval bundle checked before SSH; node verifies received execution-input hashes",
+    "failure_evidence": "baseline saved before solver; bounded sanitized command diagnostics and receipts collected on failure",
+    "qualification": {
+      "prerequisite_guards_and_convergence": {
+        "tests": 10,
+        "result": "passed in qualified-prerequisites.log; its remaining full-playbook fixture failure was corrected and retested separately"
+      },
+      "full_playbook": {
+        "tests": 1,
+        "result": "passed",
+        "scope": "rootless user namespace; real production staging/preflight/receipt collection, synthetic host probes and package; APT simulation refuses missing dependency; no installation"
+      },
+      "recurring_regressions": {
+        "tests": 31,
+        "result": "passed"
+      },
+      "documentation": {
+        "tests": 5,
+        "result": "passed"
+      },
+      "ansible_syntax": "passed through repository temporary-directory wrapper",
+      "yaml_lint": "passed"
+    },
+    "evidence_directory": "nautobot-prerequisite-refactor-20261029",
+    "log_sha256": {
+      "qualified-prerequisites.log": "c4a20f3f0750087992f71be7a9fed56a465cd6db12c3563928f71024b0442a2d",
+      "full-playbook.log": "21f6a7cd9c44aafd05ab555e534f1d976984510b7dd3901ef4333cf1eb4e84af",
+      "qualified-recurring.log": "2a1ecc7f767a55f7707bd73e9dbb5035a5495fdb76121544d31d16dee65dce20"
+    },
+    "remaining_gaps": [
+      "real target nine-package APT solver failure unresolved",
+      "native ARM64 installation, maintainer-script effects and target rollback unqualified"
+    ],
+    "approval_request_ready": false,
+    "target_contact": false,
+    "live_acceptance": false,
+    "historical": true
+  },
+  "solver_resolution": {
+    "observed_at": "2026-10-29T17:22:23.497358+00:00",
+    "evidence_directory": "nautobot-prerequisite-solver-20261029",
+    "cause": "APT selected repository acquisition candidates for versions also supplied as local debs; --no-download rejected those candidates before simulation.",
+    "correction": "Set command-local Dir::Etc::sourcelist= and Dir::Etc::sourceparts= on simulation and installation; retain --no-download and existing host source files/hooks.",
+    "native_simulation": {
+      "status": 0,
+      "additions": 9,
+      "upgrades": 0,
+      "removals": 0,
+      "stderr_empty": true,
+      "artifact_hashes_match": true,
+      "package_records_unchanged": true,
+      "package_records_sha256": "65a31dc01209fc0dfefb892e0b6bf704a30613aca80d6fc70a6eb3b283392ce2",
+      "protection_directory_exists": false
+    },
+    "qualification": {
+      "affected_tests": 3,
+      "result": "passed",
+      "coverage": [
+        "shared simulation/install acquisition arguments",
+        "real preflight state and drift guards",
+        "full production playbook staging and real APT refusal with protected failure receipts"
+      ],
+      "prior_unaffected_checks": "Carry forward focused_refactor qualification; no claim of native installation acceptance.",
+      "documentation_contracts": {
+        "tests": 5,
+        "result": "passed"
+      }
+    },
+    "source_review": {
+      "version": "APT 3.0.3",
+      "urls": [
+        "https://sources.debian.org/data/main/a/apt/3.0.3/apt-private/private-install.cc",
+        "https://sources.debian.org/data/main/a/apt/3.0.3/apt-pkg/acquire-item.cc"
+      ]
+    },
+    "raw_sha256": {
+      "confirmed-local.py": "b210834e203ec77eb8fa677b47f6bc21b4055ab9c083c9e2bbcb4353fe05719f",
+      "confirmed-local.json": "5b0a8cea6bceda572696636dc7332605cc2a82f0af781a0036c71fe5758e11a7",
+      "confirmed-local.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "confirmed-local.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "private-install.cc": "65eb1ce272ca9efdd5794fe718ea0f07f2719f941fd880b71295539095672f97",
+      "acquire-item.cc": "a567649e6d8611e7733f34b570f561959f7fdfaa1c888377395e88d3752cc82c",
+      "affected-tests.log": "a455bf9a89f3a5170fc3de7bf72948eb9a1cf847c7cde679519d00f5398f1808",
+      "affected-tests.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "live_acceptance": false,
+    "next_action": "Review and approve one final exact-hash installation candidate; no separate transfer or simulation approval.",
+    "historical": true
+  },
+  "corrected_installation_attempt": {
+    "bundle_sha256": "29870b1c82f2d9e18768f58335d2ff79a0f1cb7bf0f00058148eaf5271425655",
+    "result": "preflight_failed_before_package_or_service_directory_mutation",
+    "ansible_exit_status": 2,
+    "failure": {
+      "command": {
+        "executable": "apt-mark",
+        "exit_status": -25,
+        "stderr": "",
+        "stdout": "",
+        "timed_out": false
+      },
+      "phase": "preflight",
+      "reason": "command_failed:apt-mark"
+    },
+    "signal": "SIGXFSZ",
+    "helper_file_size_limit_bytes": 4194304,
+    "exact_file_that_hit_limit": "not established",
+    "independent_apt_mark_status": 0,
+    "observed_at": "2026-10-29T17:39:19.997862+00:00",
+    "checks": {
+      "original_package_records_unchanged": true,
+      "manual_flags_unchanged": true,
+      "dpkg_audit_clean": true,
+      "accepted_artifacts_match": true,
+      "services_unchanged": true,
+      "http_200": true,
+      "media_unchanged": true,
+      "protected_directories_absent": true,
+      "boot_unchanged": true,
+      "timers_unchanged": true,
+      "recurring_units_absent": true
+    },
+    "target_stage": "/tmp/nautobot-prerequisites-29870b1c82f2d9e1-0350f0dd",
+    "rollback": "not needed; installation was not reached",
+    "approval_consumed": true,
+    "retry_authorized": false,
+    "live_acceptance": false,
+    "raw_sha256": [
+      {
+        "file": "authorization.json",
+        "sha256": "8a43cf55e22867e2e29d8aada601b51d9a68909a7cbe6e340d6b498f480a2145"
+      },
+      {
+        "file": "independent-readback.py",
+        "sha256": "69e45a215d654de4649e6502b1236879adc7bd02eee9120d103b00422336d90a"
+      },
+      {
+        "file": "independent-readback.json",
+        "sha256": "55da33764ae135dc74861f9c22960ccb6eb8ae3ed6e743a7f4002e694cce48cb"
+      },
+      {
+        "file": "independent-readback.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "installation-evidence/ansible.stdout",
+        "sha256": "2742d9080f7ba0ec7533e11b5d5fe4652bd8a396943dec28527f5ec7abba1d74"
+      },
+      {
+        "file": "installation-evidence/ansible.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "installation-evidence/failure-preflight.json",
+        "sha256": "9d4431b09fc3dfc28a3c287ddef99eb9524a707981c09b9124a3748de352b615"
+      },
+      {
+        "file": "installation-evidence/controller-result.json",
+        "sha256": "f5fa1254fe0b5ab84b4f4814f075c6238141dbffcc1ff7d1d19e7e697fea813f"
+      }
+    ],
+    "evidence_directory": "nautobot-prerequisite-solver-20261029",
+    "historical": true
+  },
+  "output_limit_resolution": {
+    "evidence_directory": "nautobot-prerequisite-output-limit-20261029",
+    "cause": "The subprocess-wide RLIMIT_FSIZE intended to cap output also capped APT cache files. The original helper reproduces SIGXFSZ on local cold-cache apt-mark.",
+    "target_evidence": {
+      "warm_cache_probe_passed_with_original_limit": true,
+      "cache_bytes": {
+        "/var/cache/apt/pkgcache.bin": 70997968,
+        "/var/cache/apt/srcpkgcache.bin": 70977422
+      },
+      "cache_timestamps": "Cache files were created during the independent readback after the failed attempt.",
+      "cold_cache_failure_inference": "Consistent with local reproduction and target cache sizes/timestamps; the original failing syscall was not traced. Target caches were not deleted or invalidated.",
+      "corrected_helper_read_only_probe": "apt-mark showmanual passed; manual flags and package records unchanged",
+      "observed_at": "2026-10-29T17:51:30.292429+00:00"
+    },
+    "correction": "Bound stdout and stderr to 4 MiB each using pipes; retain timeout, 16 KiB sanitized failure excerpts and protected stdin delivery. Remove only the node helper subprocess file-size limit.",
+    "local_qualification": {
+      "prerequisite_tests": 15,
+      "result": "passed",
+      "local_apt": "2.8.3 amd64",
+      "coverage": [
+        "native apt-mark cold private cache larger than 4 MiB",
+        "full production playbook with real cold-cache apt-mark, real APT refusal and receipt fetch",
+        "bounded stdout/stderr overflow and timeout",
+        "guard drift refusal, idempotence and reverse rollback fixtures"
+      ],
+      "stdin_delivery_refinement": "Focused rerun passed after adding stdin assertion to large-file regression.",
+      "unaffected_recurring_regressions": "Prior 31 passing media/bindings/supervisor/disposal regressions retained; implementation unchanged.",
+      "documentation_contracts": 5,
+      "metadata_checks": "YAML lint and whitespace checks passed; evidence hashes use explicit file/sha256 fields to avoid treating an authorization-record digest as a credential."
+    },
+    "orchestration_review": {
+      "launcher": "unchanged; one freeze, verify exact bundle, invoke Ansible",
+      "playbook": "unchanged; owns transfer, preflight, install, acceptance and bounded rescue",
+      "additional_stage_or_runner": false,
+      "target_inputs": 12,
+      "approval": "one exact installation bundle, one live attempt; no separate transfer or simulation gate"
+    },
+    "raw_sha256": {
+      "prerequisite-tests.log": "8be9624fe706f560b9205bc17a9bfbc352f8cd35dae7624c226d9a7d0ffc5e57",
+      "stdin-file-test.log": "e4e546ca7b81002d7c075340176048edded67482ed6cfb9c74f3b7c0e8b43862",
+      "cold-cache-reproduction.json": "32c66bd9fe701cfbf26804b812aaa0509077ccc7b7bfb312b277105119fc8743",
+      "trace.json": "c087055ff3d64de4dcc51901c40d1ca8bb9ebe238379ec688e69471b19d0f344",
+      "trace-files.json": "10949a64be1ea84886196529bca9ed6be4434c5e7e052561b976799f743944da",
+      "trace-limited.json": "32d1348c3e738ef4152f721ed5a6fa244f5afb2c6965b6a63a7e9eb81c2ce3c5",
+      "cache-metadata.json": "107f93b0d4eb9c7b010425c4ba2563749275815ab0242eb157bfa6ddeb3411eb",
+      "corrected-probe.py": "b409d7393b4de317a82a26f17cd4ec13786f0cc92caedf0bffc6a185dba31483",
+      "corrected-probe.json": "e4c959905d57d5a03d1d3da4894e4e0b57cb32fa7b16ddf713c7fafd7b7ea3ad",
+      "corrected-probe.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "live_acceptance": false,
+    "target_installation_attempted": false,
+    "historical": true
+  },
+  "replacement_installation_attempt": {
+    "bundle_sha256": "3173e028e2f539a5d6c4dd264959d31e4fcf0aa5228017bd4849f4d7a86440b5",
+    "result": "installation_command_refused_before_protected_directory_creation",
+    "observed_at": "2026-10-29T18:03:55.740067+00:00",
+    "preflight_passed": true,
+    "ansible_exit_status": 2,
+    "apt_exit_status": 100,
+    "apt_error": "E: Internal Error, Pathname to install is not absolute 'python3-packaging_25.0-1_all.deb'",
+    "rollback_receipt": {
+      "accepted": false,
+      "restored": true
+    },
+    "independent_checks": {
+      "package_records_unchanged": true,
+      "manual_flags_unchanged": true,
+      "dpkg_audit_clean": true,
+      "accepted_artifacts_match": true,
+      "application_services_unchanged": true,
+      "http_200": true,
+      "mapped_media_unchanged": true,
+      "protected_directories_absent": true,
+      "boot_unchanged": true,
+      "system_timers_unchanged": true,
+      "recurring_units_absent": true
+    },
+    "target_stage": "/tmp/nautobot-prerequisites-3173e028e2f539a5-86bb3203",
+    "approval_consumed": true,
+    "retry_authorized": false,
+    "live_acceptance": false,
+    "remaining_gap": "Actual APT offline local-archive installation was not covered by the simulation/refusal fixtures. Diagnose this acquisition error and exercise the actual transaction in a disposable environment before preparing another candidate.",
+    "raw_sha256": [
+      {
+        "file": "authorization.json",
+        "sha256": "aeba2c13736f6113e73180d4d6542370aaeaec165f2261abd8d31ad8053606ae"
+      },
+      {
+        "file": "independent-readback.py",
+        "sha256": "5ece1a69b0317025ee140d4e9299f31dffe7ab8535770327312b07f7fdb8b6c6"
+      },
+      {
+        "file": "independent-readback.json",
+        "sha256": "7c6758376a6aaa47c10a282e62b8edd4036eec225aac34ea99efdb47f2bca0eb"
+      },
+      {
+        "file": "independent-readback.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "installation-evidence/ansible.stdout",
+        "sha256": "bc414c1ab85a8670d3766e3187ddc4435cdfd32d7b82274c4b3d0eacf893d5c2"
+      },
+      {
+        "file": "installation-evidence/ansible.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "installation-evidence/before.json",
+        "sha256": "08ffa2eadfa1ed44da08e3b8eb6da315e3ea6690e2886b1a93f2cf0a16cdf772"
+      },
+      {
+        "file": "installation-evidence/rollback.json",
+        "sha256": "84967e3eea15e67995c0ee85a7b279ffed2f2ff9e02d35a3e46a6e492273bbce"
+      },
+      {
+        "file": "installation-evidence/controller-result.json",
+        "sha256": "f5fa1254fe0b5ab84b4f4814f075c6238141dbffcc1ff7d1d19e7e697fea813f"
+      }
+    ],
+    "evidence_directory": "nautobot-prerequisite-output-limit-20261029",
+    "historical": true
+  },
+  "real_acquisition_qualification": {
+    "evidence_directory": "nautobot-prerequisite-real-install-20261029",
+    "production_contact": false,
+    "cause": "APT --no-download skipped local-file acquisition; real installation retained a relative archive filename although simulation passed.",
+    "corrections": [
+      "Remove --no-download from install/simulation; keep repository sources disabled, exact local inputs, no unrelated changes.",
+      "Use LC_ALL=C.UTF-8 only for the service-account Ansible version check through the protected wrapper."
+    ],
+    "actual_transaction": {
+      "apt": "3.0.3 amd64",
+      "network": "none",
+      "exact_artifacts": 9,
+      "original_failure_reproduced": true,
+      "corrected_install_passed": true,
+      "local_file_uris_only": true,
+      "unrelated_packages_preserved": true,
+      "manual_flags_verified": true,
+      "idempotence_passed": true,
+      "bounded_purge_restored_package_and_manual_records": true,
+      "ansible_version": "ansible-playbook [core 2.19.11]",
+      "doppler_arm64_installed": true,
+      "doppler_execution_tested": false,
+      "target_acceptance": false
+    },
+    "service_account": "Ansible version check ran as UID 999/GID 985, with production wrapper and UTF-8 locale.",
+    "method": "Real APT/dpkg, nine exact signed package artifacts, no mocked package manager, container networking disabled. Foreign ARM64 Doppler names are accounted for in amd64 test output.",
+    "limits": [
+      "Target ARM64 Doppler execution and native host maintainer-script/trigger effects remain unqualified.",
+      "The disposable container does not reproduce production application services or every host hook."
+    ],
+    "orchestration": "Launcher and playbook unchanged; no additional production steps or approval gates.",
+    "raw_sha256": [
+      {
+        "file": "Containerfile",
+        "sha256": "49afa22fc67b6af4801fc75838477faecc1dcdb80ac76c01866c324e6f2b3df2"
+      },
+      {
+        "file": "qualify.py",
+        "sha256": "7762220f38e5cf03fa67812421df89cfeaf9bd9610dbdeadee97ded90f2a58ff"
+      },
+      {
+        "file": "inputs/current.py",
+        "sha256": "ae36e1cf287b38e1cc1c819bd020a1329f43e2de7734092309cec8196d63da8f"
+      },
+      {
+        "file": "ansible-locale.log",
+        "sha256": "ee328864326bd43b11170d8ca3264f13b5685ea81c122f6ff63fe5d262d7f8e2"
+      },
+      {
+        "file": "final/RESULT.json",
+        "sha256": "fa4a0b5e36a30d2b7a2417bdad080d33f639da7fff35a6a535adace3b83a9fe5"
+      },
+      {
+        "file": "final/bounded-purge.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/bounded-purge.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "final/bounded-purge.stdout",
+        "sha256": "af4d542e0a77995a162d0d56b45a6595aa864a853e0be8d69835ede3fd9967b7"
+      },
+      {
+        "file": "final/container-identity.txt",
+        "sha256": "7912aeb58e3201e96818dff9d8e0bc7071c4e891e9faef04d367d7662c5ed100"
+      },
+      {
+        "file": "final/corrected-install.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/corrected-install.stderr",
+        "sha256": "fe5cccd9b14437adc48cae205ca1ebb846d6b317f6214ea24ba7b9c064028e91"
+      },
+      {
+        "file": "final/corrected-install.stdout",
+        "sha256": "6ead98febc6ce8d26bbed02d258fa3dd3b4307290be493b8149d64476f8febee"
+      },
+      {
+        "file": "final/idempotent-install.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/idempotent-install.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "final/idempotent-install.stdout",
+        "sha256": "d6cf996206dfb4579ab84a4f11f2b8d55f9bd617f13ece0eff7126daa19b3ba3"
+      },
+      {
+        "file": "final/local-uris.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/local-uris.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "final/local-uris.stdout",
+        "sha256": "0743651961a57dc6b075e784d7207eb1ad3d81a0e5daf5821997ad38d3174fc2"
+      },
+      {
+        "file": "final/original-install.status",
+        "sha256": "eea8254c7500ba3de996aa8ad6af399183f04e17d4a8102fde539dbc93a90012"
+      },
+      {
+        "file": "final/original-install.stderr",
+        "sha256": "4a92e08a27b9034b1b25eb69ad53fb4427f77c1b164021279604d0510ed93c04"
+      },
+      {
+        "file": "final/original-install.stdout",
+        "sha256": "b9c0125e049588a5282ece8a8bbefb83142d8c6227a80f27cbb771054bf30b8f"
+      },
+      {
+        "file": "final/purge-simulation.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/purge-simulation.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "final/purge-simulation.stdout",
+        "sha256": "d4620c95250d466125e68e7fce6393dcb4c01bd9d938bdd5b2f290dc43cc71da"
+      },
+      {
+        "file": "final/qualification.log",
+        "sha256": "d3b41ceb10f95a2ed18db2c38b9789f4fa4d8f9f82bf5d21d8408074b79c38d5"
+      },
+      {
+        "file": "final/simulation.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "final/simulation.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "final/simulation.stdout",
+        "sha256": "ed62695445470dc415f9874b7447b9579968a06d200b526da2d5e6c5d1c93ffc"
+      }
+    ]
+  },
+  "installation_acceptance": {
+    "bundle_sha256": "4f7e0a4abbade83ade68f305bd0ca51c450fd803e0877402f0a56ed534c313d3",
+    "operation": "nautobot-recurring-prerequisites-v1",
+    "stage": "recurring_prerequisite_installation",
+    "accepted": true,
+    "reviewed_at": "2026-10-29T18:36:23.793899+00:00",
+    "review_basis": "Approved stage completed; independent readback matched exact frozen package/directory boundaries and continuity criteria.",
+    "ansible_exit_status": 0,
+    "independent_checks": {
+      "exact_package_delta": true,
+      "manual_flags": true,
+      "dpkg_audit_clean": true,
+      "artifacts_match": true,
+      "services_unchanged": true,
+      "http_200": true,
+      "media_unchanged": true,
+      "directories_protected": true,
+      "empty_staging": true,
+      "filesystem_capacity": true,
+      "boot_unchanged": true,
+      "timers_unchanged": true,
+      "recurring_units_absent": true,
+      "ansible_version": true,
+      "doppler_version": true,
+      "apt_restart_notification_policy_unchanged": true
+    },
+    "packages_added": [
+      {
+        "name": "ansible-core",
+        "version": "2.19.11-0+deb13u1",
+        "architecture": "all"
+      },
+      {
+        "name": "ieee-data",
+        "version": "20240722",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-dnspython",
+        "version": "2.7.0-1",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-httplib2",
+        "version": "0.22.0-1+deb13u1",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-netaddr",
+        "version": "1.3.0-1",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-packaging",
+        "version": "25.0-1",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-pyparsing",
+        "version": "3.1.2-1",
+        "architecture": "all"
+      },
+      {
+        "name": "python3-resolvelib",
+        "version": "1.1.0-1",
+        "architecture": "all"
+      },
+      {
+        "name": "doppler",
+        "version": "3.76.6",
+        "architecture": "arm64"
+      }
+    ],
+    "directories": {
+      "/var/lib/nautobot/protection": {
+        "exists": true,
+        "uid": 999,
+        "gid": 985,
+        "mode": "0700",
+        "symlink": false
+      },
+      "/var/lib/nautobot/protection/staging": {
+        "exists": true,
+        "uid": 999,
+        "gid": 985,
+        "mode": "0700",
+        "symlink": false
+      }
+    },
+    "ansible_version": "ansible-playbook [core 2.19.11]",
+    "doppler_version": "v3.76.6",
+    "target_stage": "/tmp/nautobot-prerequisites-4f7e0a4abbade83a-25dc4b12",
+    "rollback": "not invoked; successful installation accepted",
+    "target_rollback_qualification": false,
+    "approval_consumed": true,
+    "retry_authorized": false,
+    "terminal_archive": "pending; commit/tag/push not authorized",
+    "later_stages_authorized": false,
+    "raw_sha256": [
+      {
+        "file": "authorization.json",
+        "sha256": "b69775df26faa51a4e7253b66b7affd3b42cc5ff67664c044ffb938b61741377"
+      },
+      {
+        "file": "independent-readback.py",
+        "sha256": "a15fd5e2860292cc73d709c2b1c7ed9390af2614e7da4425be6b121f79b31f22"
+      },
+      {
+        "file": "independent-readback.json",
+        "sha256": "d138c88624bbee87d046d40a2c9e83a1824b7b8ecb3adf0a294abdef386ff507"
+      },
+      {
+        "file": "independent-readback.status",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "file": "installation-evidence/ansible.stdout",
+        "sha256": "8388a00985c4acb07573d6deb9353e5716f358e6fe19cc52609aa063889fd952"
+      },
+      {
+        "file": "installation-evidence/ansible.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "installation-evidence/before.json",
+        "sha256": "08ffa2eadfa1ed44da08e3b8eb6da315e3ea6690e2886b1a93f2cf0a16cdf772"
+      },
+      {
+        "file": "installation-evidence/postconditions.json",
+        "sha256": "7965a400531b55a686bf77aa6212efd20d7eb9fb2a631059e873118576f85f79"
+      },
+      {
+        "file": "installation-evidence/controller-result.json",
+        "sha256": "a8fdddd03940df6c89e0cca83fe8b9c7a38cf1701583580f722de2c2c8c6f235"
+      },
+      {
+        "file": "post-install-policy/stdout.json",
+        "sha256": "1ba12d71ec63e8db04190220bcfcf171762eadf216f3c15391550beb17561e8a"
+      },
+      {
+        "file": "post-install-policy/followup.json",
+        "sha256": "07cc1831c3f1623409bf21da18328cb1ff0f5026ddfe6f77bdb1ef8bc5a44d15"
+      },
+      {
+        "file": "post-install-policy/notification-policy.json",
+        "sha256": "3b2015d5b7394b1a1fb9beedd80d5ec11406a2571511e21c19a67c9eb0eb4e14"
+      }
+    ],
+    "evidence_directory": "nautobot-prerequisite-real-install-20261029",
+    "execution_review_sha256": "0ca739e73db522164fefe18b461442dfb74df202442abc966eac107a4dd97abc"
+  }
+}

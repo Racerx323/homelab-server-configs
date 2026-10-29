@@ -16,6 +16,20 @@ def validate(schema, value):
 
 
 class Contracts(unittest.TestCase):
+    def test_recurring_prerequisites_do_not_accept_later_stages(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for field in ('credentials_provisioned', 'recurring_units_enabled', 'target_rollback_qualified'):
+            bad = copy.deepcopy(accepted)
+            bad['recurring_prerequisites'][field] = True
+            with self.subTest(field=field), self.assertRaises(ValidationError):
+                validate(schema, bad)
+        bad = copy.deepcopy(accepted)
+        bad['recurring_prerequisites']['directories']['/var/lib/nautobot/protection/staging']['mode'] = '0755'
+        with self.assertRaises(ValidationError):
+            validate(schema, bad)
+
     def test_preservation_acceptance_does_not_accept_reboot_or_restore(self):
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
@@ -71,6 +85,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_prerequisite_installation':
+            validate(json.loads((ROOT / 'Nautobot/schemas/recurring-prerequisites.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
         elif operation['operation'].get('stage') == 'reboot_persistence':
             validate(json.loads((ROOT/'Nautobot/schemas/reboot-execution.schema.json').read_text()), operation)
             self.assertFalse(operation['boundaries']['automatic_restore'])

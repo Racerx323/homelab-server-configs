@@ -3,9 +3,13 @@
 ## Current next action
 
 The isolated historical application restore is accepted and archived. Accepted
-state/history are reconciled and the active operation is clean. Current work is
-local capture/resume and expanded synthetic workload qualification. Complete the
-recurring protection integration gaps below before preparing another live stage. No repeat restore is needed. Private review:
+state/history remain reconciled for that restore. Recurring prerequisite installation
+is now accepted: nine pinned packages and two protected directories. The consumed
+operation remains disabled pending terminal archive; commit/tag/push has not been
+authorized. After archival closeout, the next live stage is separate credential
+provisioning preparation and approval.
+Credential provisioning, capture/resume qualification and schedules remain
+separate later stages. No repeat restore is needed. Private review:
 `nautobot-restore-workdir-20260926/REVIEW.json`.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -197,17 +201,17 @@ membership and exclusive-lock regressions. Failed/interrupted payloads remain
 retained; disposal failure latches manual intervention. Target disposal acceptance
 remains open.
 
-Next: assemble the prerequisite installation and credential-provisioning operation
-for separate approval, binding the verified package transaction and the new
-disposal helper. Read-only dependency/timer evidence is in private
+The September 28 next action was to assemble prerequisite installation and
+credential-provisioning definitions. Installation is now prepared separately;
+credential provisioning remains a later approval stage. Read-only dependency/timer evidence is in private
 `nautobot-prerequisite-dependencies-20260928/`; no target mutation occurred.
-Target namespace access and disk staging remain unqualified live.
+Target namespace read-only access was refreshed on October 29; disk staging creation remains unqualified live.
  Do not change production volume permissions to
 make the current adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. No service, package, credential,
 backup or notification changes were made. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream remains clean; no timer, retention deletion or provider mutation is authorized.
+stream now has one disabled pending prerequisite definition; no timer, retention deletion or provider mutation is authorized.
 
 ### Intended workload comparison
 
@@ -251,3 +255,32 @@ The checkpoint is navigation only. Earlier preparation narratives are historical
 and preserved in the Git snapshot referenced by HISTORY, not current instructions.
 SMART and Webmin follow-ups are owned by their components; their upstream status
 is not duplicated here and does not introduce a new Nautobot acceptance gate.
+
+### Recurring prerequisite installation
+
+The October 29 installation is accepted. Independent readback verified all nine
+exact package versions and manual flags, native service-account Ansible 2.19.11
+and Doppler 3.76.6, and both UID 999/GID 985 mode 0700 directories on ext4 with
+required free capacity. Staging is empty. All 15 accepted application artifacts,
+five service InvocationIDs, mapped media, boot identity and nine system timers
+remain unchanged; HTTP health is 200. APT/restart/notification policy matched the
+pre-install observation. No rollback was needed.
+
+[Accepted-live state](../manifests/accepted-live-state.yaml) records the installed
+state. The [review manifest](../manifests/recurring-prerequisite-review.json) records
+the acceptance decision and preserves earlier failed attempts. Exact bundle,
+consumed approval, stages and raw receipts remain private under
+`nautobot-prerequisite-real-install-20261029`; process receipts were not rewritten
+to manufacture acceptance.
+
+Terminal archival remains pending because commit/tag/push was not authorized.
+Keep the consumed operation definition disabled until its annotated pushed archive
+exists, then reconcile HISTORY and return the operation to neutral. No new
+installation attempt or additional prerequisite approval is needed.
+
+Credential provisioning is the next separate live stage: only the three canonical
+backup references, config-scoped read-only access, expiry/rotation ownership and
+protected delivery. No credential values, provider configuration or tokens were
+created by this installation. Capture/resume, notification testing and schedules
+remain later stages. Native package-changing rollback and actual capture capacity
+remain unqualified; successful installation does not establish those outcomes.

@@ -352,7 +352,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -528,6 +528,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*boot.*|schemas/(boot-readiness|operation)\.schema\.json|tests/test_boot_readiness\.py|tests/fixtures/boot-operation\.json)
+      - id: nautobot-recurring-prerequisites
+        name: Validate recurring prerequisite guards and Ansible convergence
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_prerequisites.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*prerequisite.*|schemas/(recurring-prerequisites|operation)\.schema\.json|manifests/(operation|recurring-protection)\.yaml|tests/test_prerequisites\.py)
       - id: nautobot-recurring-disposal
         name: Validate verified successful-payload disposal
         entry: python3 Nautobot/tests/test_recurring_disposal.py

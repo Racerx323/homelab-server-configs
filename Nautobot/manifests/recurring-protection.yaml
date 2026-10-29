@@ -76,7 +76,20 @@ freeze_prerequisites:
   - commit_publish_ci_and_exact_execution_approval
 prerequisite_preparation:
   execution_authorized: false
-  package_installation: candidate_artifacts_and_read_only_target_transaction_verified
+  package_installation: accepted_nine_packages_and_protected_directories_only
+  installation_playbook: Nautobot/ansible/playbooks/install-recurring-prerequisites.yaml
+  installation_tasks: Nautobot/ansible/tasks/install-recurring-prerequisites.yaml
+  installation_launcher: Nautobot/ansible/scripts/prerequisite-bundle.py
+  installation_guard: Nautobot/ansible/scripts/prerequisite_node.py
+  installation_operation: Nautobot/manifests/operation.yaml
+  local_qualification: Nautobot/tests/test_prerequisites.py
+  executable_paths:
+    ansible: /usr/bin/ansible-playbook
+    doppler: /usr/bin/doppler
+    python: /usr/bin/python3
+    podman: /usr/bin/podman
+    restic: /usr/bin/restic
+    findmnt: /usr/bin/findmnt
   packages:
     ansible_core:
       name: ansible-core
@@ -95,7 +108,9 @@ prerequisite_preparation:
       url: https://github.com/DopplerHQ/cli/releases/download/3.76.6/doppler_3.76.6_linux_arm64.deb
       sha256: 68211b3da678020c63971391c832b632949d3554df87d478e7400eb82ea833e2
       executable: /usr/bin/doppler
-      verification: downloaded_hash_matches_immutable_release_asset_digest
+      verification: signed_doppler_arm64_package_index_and_downloaded_artifact_verified
+      signed_repository_url: https://packages.doppler.com/public/cli/deb/debian/
+      signing_fingerprint: BD8F51EC1320748CED4E6E3BDE2A7741A397C129
   commands_required: [ansible-playbook, doppler, podman, restic, python3, findmnt]
   packages_missing_at_baseline: [ansible, doppler]
   package_inputs_required:

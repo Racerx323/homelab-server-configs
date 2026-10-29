@@ -1,0 +1,459 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "target",
+    "plan_sha256",
+    "baseline",
+    "sources",
+    "packages",
+    "minimum_free_bytes",
+    "mutation_boundary",
+    "acceptance",
+    "rollback",
+    "external_inputs",
+    "unresolved_prerequisites",
+    "later_stages",
+    "command_template"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "authorization_ready",
+        "execution_enabled",
+        "source_commit"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "const": "recurring_prerequisite_installation"
+        },
+        "state": {
+          "const": "pending"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "target": {
+      "const": {
+        "host": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "ssh_user": "ama",
+        "uid": 999,
+        "gid": 985
+      }
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collected_at",
+        "packages_sha256",
+        "artifact_sha256",
+        "raw_sha256",
+        "mapped_media",
+        "foreign_architectures"
+      ],
+      "properties": {
+        "collected_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packages_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "artifact_sha256": {
+          "type": "object",
+          "minProperties": 15,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "raw_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "mapped_media": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media",
+            "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media/_data"
+          ],
+          "properties": {
+            "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "exists",
+                "uid",
+                "gid",
+                "mode",
+                "symlink"
+              ],
+              "properties": {
+                "exists": {
+                  "type": "boolean"
+                },
+                "uid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "gid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "mode": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "symlink": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "/var/lib/nautobot/.local/share/containers/storage/volumes/nautobot-nautobot_media/_data": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "exists",
+                "uid",
+                "gid",
+                "mode",
+                "symlink"
+              ],
+              "properties": {
+                "exists": {
+                  "type": "boolean"
+                },
+                "uid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "gid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "mode": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "symlink": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "foreign_architectures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "debian",
+        "doppler"
+      ],
+      "properties": {
+        "debian": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "keyring",
+            "release",
+            "index",
+            "fingerprint",
+            "index_path",
+            "sha256"
+          ],
+          "properties": {
+            "keyring": {
+              "const": "debian.gpg"
+            },
+            "release": {
+              "const": "debian.InRelease"
+            },
+            "index": {
+              "const": "debian.Packages"
+            },
+            "fingerprint": {
+              "const": "41587F7DB8C774BCCF131416762F67A0B2C39DE4"
+            },
+            "index_path": {
+              "const": "main/binary-arm64/Packages"
+            },
+            "sha256": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "debian.gpg",
+                "debian.InRelease",
+                "debian.Packages"
+              ],
+              "properties": {
+                "debian.gpg": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "debian.InRelease": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "debian.Packages": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        },
+        "doppler": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "keyring",
+            "release",
+            "index",
+            "fingerprint",
+            "index_path",
+            "sha256"
+          ],
+          "properties": {
+            "keyring": {
+              "const": "doppler.gpg"
+            },
+            "release": {
+              "const": "doppler.InRelease"
+            },
+            "index": {
+              "const": "doppler.Packages"
+            },
+            "fingerprint": {
+              "const": "BD8F51EC1320748CED4E6E3BDE2A7741A397C129"
+            },
+            "index_path": {
+              "const": "main/binary-arm64/Packages"
+            },
+            "sha256": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "doppler.gpg",
+                "doppler.InRelease",
+                "doppler.Packages"
+              ],
+              "properties": {
+                "doppler.gpg": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "doppler.InRelease": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "doppler.Packages": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version",
+          "sha256",
+          "url",
+          "architecture",
+          "source"
+        ],
+        "properties": {
+          "name": {
+            "enum": [
+              "ansible-core",
+              "ieee-data",
+              "python3-dnspython",
+              "python3-httplib2",
+              "python3-netaddr",
+              "python3-packaging",
+              "python3-pyparsing",
+              "python3-resolvelib",
+              "doppler"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://[^ ]+$"
+          },
+          "architecture": {
+            "enum": [
+              "all",
+              "arm64"
+            ]
+          },
+          "source": {
+            "enum": [
+              "debian",
+              "doppler"
+            ]
+          }
+        }
+      },
+      "maxItems": 9
+    },
+    "minimum_free_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mutation_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packages",
+        "directories",
+        "directory_owner",
+        "directory_mode",
+        "temporary_stage",
+        "side_effects",
+        "credentials",
+        "units_or_timers"
+      ],
+      "properties": {
+        "packages": {
+          "type": "string",
+          "minLength": 1
+        },
+        "directories": {
+          "const": [
+            "/var/lib/nautobot/protection",
+            "/var/lib/nautobot/protection/staging"
+          ]
+        },
+        "directory_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "directory_mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporary_stage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "side_effects": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credentials": {
+          "const": false
+        },
+        "units_or_timers": {
+          "const": false
+        }
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "rollback": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "external_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "unresolved_prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "later_stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "command_template": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Nautobot recurring prerequisite installation"
+}
