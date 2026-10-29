@@ -4005,7 +4005,8 @@ only read access and a protected service-account token file; record its timezone
 rejects expired/unreviewed credentials, uses named `secrets get --plain` calls with
 `DOPPLER_TOKEN` in an isolated environment and temporary HOME, and does not use a
 personal CLI login or fallback file. Token values never enter argv or receipts.
-Provider creation and bootstrap-token delivery remain separate live operations.
+Provider creation and bootstrap-token delivery belong to the separately approved
+credential-provisioning stage.
 
 The operator selected temporary direct delivery while the generic durable client
 remains future work. Follow the multiline content contract in
@@ -4235,3 +4236,56 @@ least 14 days before expiry. Deliver out of band to the specified service-owned
 expiry and reference resolution without recording values. Preparation creates no
 provider config, token or host credential file. Refresh timer/scrub-duration
 evidence before later schedule enablement.
+
+### Recurring credential provisioning
+
+Use `ansible/scripts/recurring-credential-bundle.py` to freeze one definition and
+execute one approved bundle through `provision-recurring-credentials.yaml`.
+Keep the repository operation gates false. The accepted prerequisite archive is
+an input identity, not permission to create credentials. The source config and
+canonical Restic/B2 secret values remain unchanged; only reference expressions
+are written to the new dedicated config.
+
+The controller needs its existing authenticated Doppler session and SSH/sudo
+access. Bind its CLI executable identities when freezing. The approved preflight
+requires no existing backup config or host credential directory, an empty `prd`
+parent except Doppler metadata, and all three canonical source names. An incomplete
+config listing, inherited extra name or partial prior run stops before creation.
+Cross-config referencing must be supported by the provider account.
+
+```sh
+python3 Nautobot/ansible/scripts/recurring-credential-bundle.py freeze NEW_PRIVATE_BUNDLE
+python3 BUNDLE/launcher.py execute BUNDLE --approve EXACT_BUNDLE_SHA256 --evidence NEW_PRIVATE_EVIDENCE_DIRECTORY
+```
+
+Use absolute paths and an operator-owned 0700 evidence parent. The SHA-256 covers
+all non-secret inputs; the token is generated only inside the approved run and
+never enters the bundle, argv or receipts. Ansible keeps provider responses private
+and disables diff output. Only the token and non-secret expiry/rotation metadata
+persist beneath `/var/lib/nautobot/protection/credentials`, UID 999/GID 985,
+directory 0700 and files 0600. Temporary verification code is root-owned; temporary
+resolved values are protected and removed after testing the existing resolver.
+No personal login or fallback credentials are installed on the host.
+
+Require independent provider scope/expiry readback, exactly the three reference
+names plus Doppler metadata, raw-expression equality and native named resolution.
+Compare host snapshots before/after: application artifacts and service invocations,
+packages, boot, mapped media and timers must remain unchanged. Review sanitized
+receipts before updating accepted state; controller exit zero alone is insufficient.
+Native token resolution and provider mutations are not qualified by local fixtures.
+
+A bundle is consumed once, including failure. Do not retry automatically. On failure,
+revoke only its newly identified token slug, remove only its newly created regular
+host files and empty directory, and retain the provider config for manual review.
+Ambiguous provider responses, failed revocation or cleanup require explicit recovery;
+do not delete an existing config or replace existing tokens. Lost controller contact
+also requires state readback before recovery. This is bounded containment, not an
+atomic rollback of the provider transaction.
+
+Aaron owns the proposed 90-day lifetime and rotation at least 14 days before expiry.
+The metadata records the provider's timezone-aware expiry and computed rotation date.
+Rotation requires a separately approved replacement and old-token revocation; this
+stage creates no rotation timer. Recheck inherited scope before schedule enablement.
+Run `tests/test_recurring_credentials.py` and `tests/test_recurring_bindings.py`
+through the repository Ansible temporary-directory wrapper. Capture/resume,
+notification testing and recurring schedule enablement remain separate stages.

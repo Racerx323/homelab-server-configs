@@ -264,3 +264,28 @@ recurring_prerequisites:
   credentials_provisioned: false
   recurring_units_enabled: false
   target_rollback_qualified: false
+recurring_credentials:
+  state: accepted
+  scope: three_canonical_references_and_read_only_service_token_only
+  operation: nautobot-recurring-credentials-v1
+  reviewed_at: '2026-10-29T21:20:06.035276+00:00'
+  bundle_sha256: b53918415b8aa946862ea15ae81a42867ddbf6b2f3824cc523d44dbed96ed6e1
+  evidence_directory: nautobot-recurring-credentials-preparation-20261029
+  execution_review_sha256: accca654f775768e2673ea7feef2a2df8d32a6f9b96dfe9f8a22ffe1f7eb60e3
+  archive_state: pending
+  metadata:
+    config: prd_nautobot_backup
+    created_at: '2026-10-29T21:17:53.180000+00:00'
+    doppler: /usr/bin/doppler
+    expires_at: '2027-01-27T21:17:52+00:00'
+    project: homelab-dev
+    read_only: true
+    rotation_due_at: '2027-01-13T21:17:52+00:00'
+    rotation_owner: Aaron (homelab operator)
+    token_file: /var/lib/nautobot/protection/credentials/doppler-service-token
+  independent_acceptance: true
+  application_continuity_preserved: true
+  temporary_values_removed: true
+  capture_resume_qualified: false
+  notifications_qualified: false
+  recurring_units_enabled: false

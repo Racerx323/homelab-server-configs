@@ -1,0 +1,31 @@
+---
+- name: Exclusively create the new credential directory
+  ansible.builtin.command:
+    argv: [/usr/bin/mkdir, --mode=0700, --, '{{ op.delivery.directory }}']
+  register: directory_created
+  changed_when: true
+- name: Set protected service ownership
+  ansible.builtin.file:
+    path: '{{ op.delivery.directory }}'
+    owner: '{{ op.target.uid }}'
+    group: '{{ op.target.gid }}'
+    mode: '0700'
+- name: Deliver only the service token and non-secret expiry metadata
+  ansible.builtin.copy:
+    content: '{{ item.content }}'
+    dest: '{{ item.path }}'
+    owner: '{{ op.target.uid }}'
+    group: '{{ op.target.gid }}'
+    mode: '0600'
+  loop:
+    - path: '{{ op.delivery.token_file }}'
+      content: '{{ issued_token.stdout }}'
+    - path: '{{ op.delivery.metadata_file }}'
+      content: '{{ metadata.stdout }}'
+- name: Privately compare delivered token without persisting hashes
+  ansible.builtin.slurp:
+    src: '{{ op.delivery.token_file }}'
+  register: delivered
+- name: Require exact protected delivery
+  ansible.builtin.assert:
+    that: (delivered.content | b64decode) == issued_token.stdout

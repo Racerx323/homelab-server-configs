@@ -352,7 +352,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -528,6 +528,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*boot.*|schemas/(boot-readiness|operation)\.schema\.json|tests/test_boot_readiness\.py|tests/fixtures/boot-operation\.json)
+      - id: nautobot-recurring-credentials
+        name: Validate recurring credential scope and protected delivery
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_recurring_credentials.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/(?:.*recurring.*|scripts/prerequisite_node\.py)|schemas/(recurring-credentials|operation)\.schema\.json|manifests/(operation|recurring-protection)\.yaml|tests/test_recurring_credentials\.py)
       - id: nautobot-recurring-prerequisites
         name: Validate recurring prerequisite guards and Ansible convergence
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_prerequisites.py

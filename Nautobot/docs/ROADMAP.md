@@ -2,15 +2,13 @@
 
 ## Current next action
 
-The isolated historical application restore is accepted and archived. Accepted
-state/history remain reconciled for that restore. Recurring prerequisite installation
-is now accepted: nine pinned packages and two protected directories. The consumed
-operation remains disabled pending terminal archive; commit/tag/push has not been
-authorized. After archival closeout, the next live stage is separate credential
-provisioning preparation and approval.
-Credential provisioning, capture/resume qualification and schedules remain
-separate later stages. No repeat restore is needed. Private review:
-`nautobot-restore-workdir-20260926/REVIEW.json`.
+Recurring prerequisite installation is accepted and archived. Credential-only
+provisioning is now accepted: the three canonical references, one config-scoped
+read-only token and protected service-owned delivery passed independent readback.
+The consumed credential operation remains disabled pending terminal archival.
+Next: separately authorize commit/tag/push of its terminal definition and sanitized
+acceptance record. Then prepare capture/resume qualification as a separate stage.
+No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -202,16 +200,16 @@ retained; disposal failure latches manual intervention. Target disposal acceptan
 remains open.
 
 The September 28 next action was to assemble prerequisite installation and
-credential-provisioning definitions. Installation is now prepared separately;
-credential provisioning remains a later approval stage. Read-only dependency/timer evidence is in private
+credential-provisioning definitions. Installation is now accepted and archived;
+credential provisioning is accepted pending archival. Read-only dependency/timer evidence is in private
 `nautobot-prerequisite-dependencies-20260928/`; no target mutation occurred.
-Target namespace read-only access was refreshed on October 29; disk staging creation remains unqualified live.
+Target namespace read-only access was refreshed on October 29; protected staging directory creation is accepted, while actual capture capacity remains unqualified.
  Do not change production volume permissions to
 make the current adapter pass. Private baseline and read-only follow-ups:
-`nautobot-recurring-baseline-20260928/REVIEW.json`. No service, package, credential,
-backup or notification changes were made. Populated
+`nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
+backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream is clean after prerequisite installation archival; no timer, retention deletion or provider mutation is authorized.
+stream retains the disabled consumed credential definition pending archival; timers and retention deletion remain unauthorized.
 
 ### Intended workload comparison
 
@@ -269,12 +267,28 @@ pre-install observation. No rollback was needed.
 [Accepted-live state](../manifests/accepted-live-state.yaml) records the installed
 identity and pushed terminal archive. [HISTORY](../HISTORY.md#recurring-prerequisite-installation)
 indexes the exact executed definition, bundle manifest and sanitized acceptance
-record. Raw receipts remain private. The active operation is neutral; no further
+record. Raw receipts remain private. Prerequisite installation is closed; no further
 installation attempt or prerequisite approval is needed.
 
-Credential provisioning is the next separate live stage: only the three canonical
+The subsequent credential stage is accepted separately: only the three canonical
 backup references, config-scoped read-only access, expiry/rotation ownership and
 protected delivery. No credential values, provider configuration or tokens were
 created by this installation. Capture/resume, notification testing and schedules
 remain later stages. Native package-changing rollback and actual capture capacity
 remain unqualified; successful installation does not establish those outcomes.
+
+### Recurring credential provisioning
+
+The approved credential-only playbook completed on October 29. Independent provider
+readback confirmed exactly three canonical reference expressions and one read-only
+service token in `homelab-dev/prd_nautobot_backup`. Native UID 999 resolved all three
+references; protected file ownership/modes and temporary-value cleanup passed.
+Application artifacts, service invocations, packages, mapped media, boot identity
+and system timers were preserved.
+
+The token expires January 27, 2027 at 21:17:52 UTC. Aaron owns rotation by
+January 13, 2027 at 21:17:52 UTC. Non-secret identity and acceptance hashes are in
+`manifests/accepted-live-state.yaml` and `manifests/recurring-credential-review.json`;
+raw receipts remain private. The consumed operation stays disabled until terminal
+archival is separately authorized. Capture/resume, notifications and schedules
+remain later approvals; credential resolution does not qualify B2/Restic access.

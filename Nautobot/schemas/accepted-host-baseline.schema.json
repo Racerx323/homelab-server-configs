@@ -1114,6 +1114,127 @@
           }
         }
       ]
+    },
+    "recurring_credentials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "operation",
+        "reviewed_at",
+        "bundle_sha256",
+        "evidence_directory",
+        "execution_review_sha256",
+        "archive_state",
+        "metadata",
+        "independent_acceptance",
+        "application_continuity_preserved",
+        "temporary_values_removed",
+        "capture_resume_qualified",
+        "notifications_qualified",
+        "recurring_units_enabled"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "three_canonical_references_and_read_only_service_token_only"
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_review_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "archive_state": {
+          "enum": [
+            "pending",
+            "archived"
+          ]
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "config",
+            "created_at",
+            "doppler",
+            "expires_at",
+            "project",
+            "read_only",
+            "rotation_due_at",
+            "rotation_owner",
+            "token_file"
+          ],
+          "properties": {
+            "config": {
+              "const": "prd_nautobot_backup"
+            },
+            "created_at": {
+              "type": "string",
+              "minLength": 1
+            },
+            "doppler": {
+              "const": "/usr/bin/doppler"
+            },
+            "expires_at": {
+              "type": "string",
+              "minLength": 1
+            },
+            "project": {
+              "const": "homelab-dev"
+            },
+            "read_only": {
+              "const": true
+            },
+            "rotation_due_at": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rotation_owner": {
+              "type": "string",
+              "minLength": 1
+            },
+            "token_file": {
+              "const": "/var/lib/nautobot/protection/credentials/doppler-service-token"
+            }
+          }
+        },
+        "independent_acceptance": {
+          "const": true
+        },
+        "application_continuity_preserved": {
+          "const": true
+        },
+        "temporary_values_removed": {
+          "const": true
+        },
+        "capture_resume_qualified": {
+          "const": false
+        },
+        "notifications_qualified": {
+          "const": false
+        },
+        "recurring_units_enabled": {
+          "const": false
+        }
+      }
     }
   }
 }

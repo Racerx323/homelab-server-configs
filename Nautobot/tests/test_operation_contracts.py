@@ -85,6 +85,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_credential_provisioning':
+            validate(json.loads((ROOT / 'Nautobot/schemas/recurring-credentials.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
         elif operation['operation'].get('stage') == 'recurring_prerequisite_installation':
             validate(json.loads((ROOT / 'Nautobot/schemas/recurring-prerequisites.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])
