@@ -36,7 +36,7 @@ def main():
         source = root/'source'; source.mkdir(mode=0o700)
         (source/'password').write_text(secrets.token_hex(32)); (source/'password').chmod(0o600)
         (source/'credentials.json').write_text('{}'); (source/'credentials.json').chmod(0o600)
-        for scenario in ('success', 'capture_failure', 'resume_failure', 'health_failure', 'payload_drift', 'upload_failure', 'integrity_failure'):
+        for scenario in ('capture_only', 'success', 'capture_failure', 'resume_failure', 'health_failure', 'payload_drift', 'upload_failure', 'integrity_failure'):
             run = Path(tempfile.mkdtemp(prefix='nautobot-capture-case.'))
             try:
                 state = run/'writer'; state.write_text('running')
@@ -65,6 +65,8 @@ elif mode=='capture':
     if scenario=='capture_failure':sys.exit(1)
     sys.stdout.buffer.write(pathlib.Path('''+repr(str(args.dump))+''').read_bytes())
 elif mode=='restic':
+    if 'cat' in sys.argv:
+        with (root/'events').open('a') as out:out.write('repository_read\\n')
     if 'backup' in sys.argv:
         assert (root/'writer').read_text()=='running'
         with (root/'events').open('a') as out:out.write('upload\\n')
@@ -89,6 +91,7 @@ else:raise ValueError('mode')
                 for name,value in [('application-backup.json',json.dumps(spec)),('repository',str(repository))]:
                     (run/name).write_text(value); (run/name).chmod(0o600)
                 variables = {'application_capture_authorized':True,'application_backup_root':str(run),
+                             'application_upload_enabled':scenario!='capture_only',
                              'application_guard_check_argv':['/bin/true'],
                              'application_pause_commands':[[sys.executable,str(driver),'pause']],
                              'application_resume_commands':[[sys.executable,str(driver),'resume'],[sys.executable,str(driver),'resume_remaining']],
@@ -102,14 +105,15 @@ else:raise ValueError('mode')
                 (args.output/(scenario+'.log')).write_bytes(result.stdout+result.stderr)
                 log = events.read_text().splitlines()
                 snapshots = json.loads(call([str(args.restic),'-r',str(repository),'-p',str(source/'password'),'snapshots','--json']))
-                assert (result.returncode==0)==(scenario=='success'), (scenario,result.returncode)
+                assert (result.returncode==0)==(scenario in ('success','capture_only')), (scenario,result.returncode)
                 assert 'resume' in log and 'resume_remaining' in log and 'health' in log, (scenario,log)
                 assert not any((run/name).exists() for name in ('password','credentials.json'))
-                if scenario in ('capture_failure','resume_failure','health_failure','payload_drift'):
+                if scenario in ('capture_only','capture_failure','resume_failure','health_failure','payload_drift'):
                     assert 'upload' not in log and not snapshots, (scenario,log)
                 else:
                     assert log.index('resume') < log.index('health') < log.index('upload')
                     assert len(snapshots)==(0 if scenario=='upload_failure' else 1)
+                if scenario=='capture_only': assert 'repository_read' not in log
                 if scenario!='resume_failure': assert state.read_text()=='running'
                 results.append({'scenario':scenario,'passed':True,'ansible_exit':result.returncode,'snapshots':len(snapshots),'events':log})
             finally:

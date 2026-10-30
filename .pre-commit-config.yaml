@@ -352,7 +352,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions

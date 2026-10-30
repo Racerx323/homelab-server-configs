@@ -61,7 +61,7 @@ class BackupTests(unittest.TestCase):
             result, calls = self.exercise(root, phase='capture')
             self.assertTrue(result['capture_passed'])
             self.assertFalse(result['upload_attempted'])
-            self.assertFalse(any('backup' in argv or 'check' in argv for argv in calls))
+            self.assertFalse(any('backup' in argv or 'check' in argv or 'cat' in argv or 'snapshots' in argv for argv in calls))
             self.assertTrue(all(result['credential_cleanup'].values()))
             self.assertEqual(producer.verified_capture(root, contract())['content_sha256'], result['content_sha256'])
 

@@ -1,5 +1,46 @@
 # Watchdog history
 
+## J2 recovery accepted with timing exception — October 30, 2026
+
+Aaron [approved the sealed acceptance exception](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-timing-disposition-20261030-v1/acceptance.md).
+The J2 Phase 3 watchdog recovery prerequisite is satisfied; independent reset
+timing and hardware attribution remain unproved. Original verdicts and fleet
+requirements remain unchanged. No repeat panic solely for timing is required.
+Next: remaining Phase 3/OBS-09 contract decisions, including OBS-05 disposition.
+No live action, final production acceptance or second-host rollout is authorized.
+
+## Reset-timing disposition proposed — October 30, 2026
+
+Prepared the [acceptance-exception review](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-timing-disposition-20261030-v1/review.md) from verified retained evidence.
+Recommend qualified acceptance of the J2 pilot recovery prerequisite while keeping
+independent reset timing and hardware attribution unproved; no repeat panic solely
+for the missed timing measurement. Decision pending Aaron's approval. Original
+verdicts, fleet requirements, OBS-02/D1–D5 and final production gates are unchanged.
+No target contact, execution or configuration change.
+
+## Controlled panic recovered; independent reset timing unmeasured — October 29, 2026
+
+The [approved attempt](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-panic-recovery-20261029-v1/outcome.md) completed at 18:55:04 CDT:
+boot/network 50.643 seconds; usable native/dual-stack NTP 119.119 seconds;
+convergence 882.997 seconds; stability 1801.631 seconds, all 31 samples passing.
+Final protected/native/watchdog/network and client-denial checks passed. One panic,
+one new boot, no manual intervention, retry or persistent configuration change.
+Aaron confirmed panic text; the approximately five-second reset interval was an
+untimed visual estimate. Exact reset-timing attribution and overall watchdog
+acceptance remain open. Next: review that limitation, without automatically
+repeating the panic. OBS-02/D1–D5 and separate final-observation gates remain.
+
+## KVM successor sealed — October 29, 2026
+
+Prepared the [single-attempt review](/home/aaron/code/.local-evidence/homelab-server-configs/current/watchdog-panic-recovery-20261029-v1/review.md)
+with the accepted bounded readiness snapshot and operator-confirmed ordinary KVM
+visibility. A checked snapshot adapter advances boot identity without claiming
+sustained stability or reset attribution; shared live preflight remains mandatory.
+All 99 focused tests passed. Manual panic/reset notes, separate recovery/timing
+gates and attended recovery remain explicit. Sealed and unexecuted; next is
+exact-hash execution approval. No target contact or retry. Earlier outcomes and
+OBS-02/D1–D5 remain unchanged.
+
 ## Offline CI dependency checkout corrected — October 28, 2026
 
 The guards job omitted sibling NTP sources used by the expanded recovery tests.

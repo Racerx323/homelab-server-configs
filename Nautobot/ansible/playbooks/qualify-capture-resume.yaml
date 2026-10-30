@@ -1,0 +1,98 @@
+---
+- name: Qualify one bounded local capture and writer resume
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  vars:
+    op: '{{ capture_operation }}'
+    run_root: /var/lib/nautobot/protection/qualification
+    user_environment:
+      HOME: /var/lib/nautobot
+      XDG_RUNTIME_DIR: /run/user/999
+      DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/999/bus
+      PYTHONDONTWRITEBYTECODE: '1'
+  tasks:
+    - name: Require the approved one-host capture-only bundle
+      ansible.builtin.assert:
+        that:
+          - capture_bundle_verified | bool
+          - op.operation.execution_enabled | bool
+          - ansible_play_hosts_all == ['j2-svpi4mf']
+          - ansible_host == '10.1.2.170'
+          - not ansible_check_mode
+          - not op.binding.upload_enabled | bool
+          - not op.supervisor.dispose_successful_payload | bool
+    - name: Claim a new qualification directory without replacing retained state
+      ansible.builtin.command:
+        argv: [/usr/bin/mkdir, --mode=0700, '{{ run_root }}']
+        chdir: /
+      changed_when: true
+    - name: Assign the protected directory to the service account
+      ansible.builtin.file:
+        path: '{{ run_root }}'
+        owner: '999'
+        group: '985'
+        mode: '0700'
+    - name: Transfer only frozen execution inputs
+      ansible.builtin.copy:
+        src: '{{ capture_bundle }}/runtime/'
+        dest: '{{ run_root }}/'
+        owner: '999'
+        group: '985'
+        mode: '0600'
+        directory_mode: '0700'
+    - name: Configure and execute under the existing independent supervisor
+      become_user: nautobot
+      environment: '{{ user_environment }}'
+      block:
+        - name: Refuse drift and create the bounded service definitions
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ run_root }}/scripts/capture_qualification.py', configure, '{{ run_root }}']
+            chdir: /
+          changed_when: true
+        - name: Validate the four temporary recovery units
+          ansible.builtin.command:
+            argv: '{{ ["/usr/bin/systemd-analyze", "--user", "verify"] + op.unit_paths }}'
+            chdir: /
+          changed_when: false
+        - name: Link only the primary and independent recovery units for this boot
+          ansible.builtin.command:
+            argv: '{{ ["/usr/bin/systemctl", "--user", "link", "--runtime"] + op.unit_paths }}'
+            chdir: /
+          changed_when: true
+        - name: Reload the service account unit definitions
+          ansible.builtin.command:
+            argv: [/usr/bin/systemctl, --user, daemon-reload]
+            chdir: /
+          changed_when: true
+        - name: Start the one-shot trial without enabling any schedule
+          vars:
+            ansible_async_dir: '{{ run_root }}/state/controller-async'
+          async: 1200
+          poll: 5
+          ansible.builtin.command:
+            argv: [/usr/bin/systemctl, --user, start, nautobot-protection-qualification.service]
+            chdir: /
+          changed_when: true
+        - name: Verify capture hashes cleanup and native writer recovery
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, -B, '{{ run_root }}/scripts/capture_qualification.py', inspect, '{{ run_root }}']
+            chdir: /
+          register: result
+          changed_when: false
+        - name: Save sanitized observations for independent acceptance
+          ansible.builtin.copy:
+            content: '{{ result.stdout }}'
+            dest: '{{ capture_evidence }}/observations.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+        - name: Remove only runtime links after proven healthy completion
+          ansible.builtin.command:
+            argv: '{{ ["/usr/bin/systemctl", "--user", "disable", "--runtime"] + op.unit_names }}'
+            chdir: /
+          changed_when: true
+      rescue:
+        - name: Retain recovery services and protected evidence for operator review
+          ansible.builtin.fail:
+            msg: Capture qualification failed. Independent recovery remains available. Inspect protected state before any retry or cleanup; never remove retained payloads.

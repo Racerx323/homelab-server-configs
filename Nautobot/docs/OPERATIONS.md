@@ -4292,3 +4292,50 @@ stage creates no rotation timer. Recheck inherited scope before schedule enablem
 Run `tests/test_recurring_credentials.py` and `tests/test_recurring_bindings.py`
 through the repository Ansible temporary-directory wrapper. Capture/resume,
 notification testing and recurring schedule enablement remain separate stages.
+
+### Attended capture/resume qualification
+
+Prepare one `recurring_capture_resume_qualification` operation using the accepted
+package and credential records. `capture-resume-bundle.py` freezes the operation,
+execution inputs, producer, metadata, controller binary identity and architecture
+revision. Keep repository execution gates false. The command in the private approval
+request binds one exact bundle and one fresh evidence directory.
+
+```sh
+python3 Nautobot/ansible/scripts/capture-resume-bundle.py freeze NEW_PRIVATE_BUNDLE
+python3 BUNDLE/launcher.py execute BUNDLE --approve EXACT_SHA256 --evidence NEW_PRIVATE_EVIDENCE_DIRECTORY
+```
+
+Run attended within 03:00–04:00 America/Chicago, with the full capture/recovery budget
+remaining. The playbook claims an absent service-owned qualification directory,
+checks accepted artifacts, packages, credentials and original service health, then
+links only four runtime user units. It starts the primary once without enabling a
+schedule. Existing node-local supervision owns pause/drain/capture/resume, the
+exclusive lock and independent recovery. Controller loss does not disarm recovery.
+
+The split producer capture phase performs no remote repository request. Credentials
+are resolved before the pause; the capture-only qualification disables the upload
+block. Default consumers still upload after verified resume, independently checking
+repository identity before remote mutation. The qualification retains the successful
+payload, so it does not exercise disposal or claim a successful remote backup.
+
+Require the six-section capture receipt and independent payload hash verification,
+native custom-dump parsing, recovered writer/HTTP health, unchanged PostgreSQL/Redis
+invocations and boot, no upload receipt, removed transient credentials and an inactive
+guard. Review measured capture duration and the conservative preparation-plus-pause
+bound. A successful normal trial does not qualify production forced-termination
+recovery. Review all observations independently before changing accepted live state.
+
+After healthy completion, remove only the four runtime unit links; retain protected
+code, state and payload. On failure leave independent recovery available, retain
+evidence and inspect terminal state. Resume/health or credential-cleanup failure
+latches manual intervention. Do not replay a consumed bundle, clear a latch, revoke
+the accepted token, delete payloads or remove recovery units without scoped review.
+No package change, reboot, SMART request, notification, retention or schedule
+enablement belongs to this stage.
+
+Local qualification reuses `qualify_capture_resume.py` with a new disposable PostgreSQL
+dump and the real Restic binary, `qualify_recurring_systemd.py`, and the media, binding,
+supervisor and disposal regressions. Run Ansible through
+`tests/repository/run-with-ansible-local-temp.sh`. Keep test receipts private and
+distinguish local adapters from native target service-manager acceptance.

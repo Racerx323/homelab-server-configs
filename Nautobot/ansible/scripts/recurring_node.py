@@ -136,6 +136,7 @@ def prepare(path,cfg,root):
     (root/'repository').write_text(spec['repository_url']);(root/'repository').chmod(0o600)
     resolve(cfg['credentials'],root)
     atomic(root/'inputs.json',dict(application_capture_authorized=True,
+        application_upload_enabled=cfg.get('upload_enabled', True),
         application_pause_commands=[base+['stop','scheduler'],base+['stop','web'],base+['drain'],base+['stop','worker']],
         application_resume_commands=[base+['start',r] for r in ('worker','web','scheduler')],
         application_health_argv=base+['health'],application_backup_credentials={

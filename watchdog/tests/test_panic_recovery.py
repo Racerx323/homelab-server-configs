@@ -614,6 +614,54 @@ class Guards(unittest.TestCase):
                 m=tarfile.TarInfo(n);m.size=len(b);a.addfile(m,io.BytesIO(b))
         r.create(d/'execution.tar',out.getvalue());return d,r.sha(out.getvalue())
 
+    def snapshot_fixture(self):
+        d=self.root/'snapshot';d.mkdir(mode=0o700);(d/'results').mkdir(mode=0o700)
+        boot='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        spec={'hostname':'j2-svntp1','target':'ama@10.1.0.51','reference_boot_id':boot}
+        def manifest(root, files):
+            for name,raw in files.items():r.create(root/name,raw)
+            return r.encoded({name:{'sha256':r.sha(raw),'size':len(raw)} for name,raw in files.items()})
+        inputs=r.encoded({'members':json.loads(manifest(d,{'spec.json':r.encoded(spec)}))})
+        r.create(d/'manifest.json',inputs)
+        receipt=r.encoded({'approved_sha256':r.sha(inputs)})
+        client=r.encoded({'queries_denied':True,'leap':0,'stratum':1,'refid':'PPS'})
+        results={'execution.json':receipt,'capture-result.json':r.encoded({
+            'capture_complete':True,'returncodes':{'boot':0},'target_mutation':False,'panic':False,'retry':False}),
+            'boot.stdout':boot.encode(),'finish-boot.stdout':boot.encode(),
+            'identity.stdout':b'j2-svntp1','kernel.stdout':b'Linux 6.18.50+rpt-rpi-v8 #1 SMP aarch64 GNU/Linux',
+            'services.stdout':b'same','finish-services.stdout':b'same',
+            'client-0.stdout':client,'client-1.stdout':client,
+            'protected_hashes.stdout':b'abc  /etc/ntp.conf\n'}
+        records=manifest(d/'results',results);r.create(d/'results/results-manifest.json',records)
+        outcome={'capture_accepted':True,'approved_manifest_sha256':r.sha(inputs),
+            'results_manifest_sha256':r.sha(records),'approved_receipt_sha256':r.sha(receipt),
+            'observed_boot':boot,'services_stable':True,'all_observed_services_running':True,
+            'timing_checks':{'offset':True}}
+        r.create(d/'outcome.json',outcome)
+        return d,{'boot':'old','protected':{'/etc/ntp.conf':'abc'},'manager':{'retained':True}}
+
+    def test_snapshot_advances_only_boot_without_stability_claim(self):
+        d,base=self.snapshot_fixture();result=r.snapshot_baseline(base,d)
+        self.assertEqual(result['protected'],base['protected'])
+        self.assertEqual(result['manager'],base['manager']);self.assertEqual(base['boot'],'old')
+        self.assertNotEqual(result['boot'],base['boot'])
+        self.assertTrue(result['readiness_snapshot']['bounded_snapshot_only'])
+        for key in ('hardware_attribution_accepted','historical_recovery_accepted','sustained_stability_accepted'):
+            self.assertFalse(result['readiness_snapshot'][key])
+
+    def test_snapshot_capture_tampering_rejected(self):
+        d,base=self.snapshot_fixture();(d/'results/boot.stdout').write_text('different')
+        with self.assertRaisesRegex(ValueError,'member drift'):r.snapshot_baseline(base,d)
+
+    def test_snapshot_false_acceptance_and_receipt_drift_rejected(self):
+        d,base=self.snapshot_fixture();path=d/'outcome.json';outcome=json.loads(path.read_bytes())
+        for field,value,error in [('capture_accepted',False,'accepted snapshot'),
+                                  ('approved_receipt_sha256','wrong','receipt binding'),
+                                  ('services_stable',False,'service continuity'),
+                                  ('observed_boot','different','boot continuity')]:
+            path.write_bytes(r.encoded(dict(outcome,**{field:value})))
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,error):r.snapshot_baseline(base,d)
+
     def test_archive_wrong_hash_and_review_drift(self):
         d,digest=self.make_archive()
         with patch.object(r,'SOURCES',self.sources):

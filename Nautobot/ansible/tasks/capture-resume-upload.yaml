@@ -83,6 +83,7 @@
   changed_when: true
 
 - name: Upload only after successful capture and verified resume
+  when: application_upload_enabled | default(true) | bool
   block:
     - name: Restage short-lived upload credentials
       ansible.builtin.copy:

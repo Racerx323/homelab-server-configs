@@ -1,0 +1,211 @@
+{
+  "state": "prepared_execution_disabled",
+  "target_mutation": false,
+  "read_only_baseline": {
+    "collected_at": "2026-10-29T21:48:32.747764+00:00",
+    "sha256": "efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927",
+    "accepted_artifacts_packages_and_media_match": true,
+    "namespace_media": "directory_only",
+    "staging_filesystem": "ext4",
+    "secret_values_read": false
+  },
+  "local_qualification": {
+    "real_ansible_restic_cases": [
+      {
+        "scenario": "capture_only",
+        "passed": true,
+        "ansible_exit": 0,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health"
+        ]
+      },
+      {
+        "scenario": "success",
+        "passed": true,
+        "ansible_exit": 0,
+        "snapshots": 1,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health",
+          "restic",
+          "restic",
+          "repository_read",
+          "restic",
+          "restic",
+          "upload",
+          "restic",
+          "restic",
+          "restic"
+        ]
+      },
+      {
+        "scenario": "capture_failure",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health"
+        ]
+      },
+      {
+        "scenario": "resume_failure",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health"
+        ]
+      },
+      {
+        "scenario": "health_failure",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health"
+        ]
+      },
+      {
+        "scenario": "payload_drift",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health",
+          "restic",
+          "restic",
+          "repository_read"
+        ]
+      },
+      {
+        "scenario": "upload_failure",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 0,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health",
+          "restic",
+          "restic",
+          "repository_read",
+          "restic",
+          "restic",
+          "upload",
+          "restic"
+        ]
+      },
+      {
+        "scenario": "integrity_failure",
+        "passed": true,
+        "ansible_exit": 2,
+        "snapshots": 1,
+        "events": [
+          "pause",
+          "restic",
+          "capture",
+          "resume",
+          "resume_remaining",
+          "health",
+          "restic",
+          "restic",
+          "repository_read",
+          "restic",
+          "restic",
+          "upload",
+          "restic",
+          "restic"
+        ]
+      }
+    ],
+    "real_user_systemd_cases": [
+      {
+        "case": "success",
+        "credentials_removed": true,
+        "phase": "complete",
+        "writers_resumed": true
+      },
+      {
+        "case": "killed",
+        "credentials_removed": true,
+        "phase": "recovered_failure",
+        "writers_resumed": true
+      },
+      {
+        "case": "deadline",
+        "credentials_removed": true,
+        "phase": "recovered_failure",
+        "writers_resumed": true
+      },
+      {
+        "case": "ansible",
+        "credentials_removed": true,
+        "phase": "complete",
+        "writers_resumed": true
+      }
+    ],
+    "focused_regression_tests_passed": 77,
+    "native_target_accepted": false,
+    "ansible_syntax": "passed",
+    "operation_schema": "passed",
+    "yaml_lint": "passed",
+    "documentation_contracts": "passed"
+  },
+  "remaining_gaps": [
+    "Native capture/drain/resume timing and capacity acceptance",
+    "Production forced-termination independent recovery",
+    "Remote repository access upload integrity and restore",
+    "Notification delivery successful-payload disposal and recurring schedule enablement"
+  ],
+  "boundary": "One attended capture-only trial; four runtime unit links; existing credentials; retained payload; no upload or schedule.",
+  "mechanical_index_verification": "unavailable: vexp workspace is not a Git repository; explicit repository checks used",
+  "bundle_sha256": "0b4d2d152717275988df280ae9eced49d921724e142c8fd3bf2ff79ca50874ce",
+  "bundle_qualification": {
+    "producer_verify": true,
+    "wrong_approval_refused": true,
+    "replay_refused_before_ansible": true,
+    "input_drift_refused": true,
+    "bundle_sha256": "0b4d2d152717275988df280ae9eced49d921724e142c8fd3bf2ff79ca50874ce"
+  },
+  "evidence_sha256": {
+    "baseline.json": "efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927",
+    "capture-cases/result.json": "92c580b64a747d61bd2fc448218d6c939cb247d380b5d00bd6bd9e146057fe5f",
+    "systemd/results.json": "9aa261012adb6fa780c860cd08bb4c27ddcaace6dc36d53e9641b9660af051a8",
+    "regressions.log": "be9246ce70469339812d7eb760a9c14d7f6c065745c7c3f29384352515636758",
+    "bundle-qualification.json": "26a279876e768111e7211c1c4967b1dff2caf86f12c1391938c3b3f06cf5571b",
+    "local-container-cleanup.json": "6454f1aec9914322f0a071baca2ba28e7728f92c264f22abe2934304977a09c7"
+  }
+}

@@ -145,3 +145,12 @@ If attribution, recovery or restoration cannot be proved, retain an incomplete o
 failed outcome and stop further rollout. Keep policy adoption, independent recovery
 and controlled expiry acceptance separate. OBS-02/D1–D5 and bounded OBS-04 remain
 unchanged. Final OBS-09 observation does not begin automatically after this test.
+
+## Approved J2 acceptance exception
+
+For j2-svntp1 only, the operator-approved pilot exception permits the demonstrated
+controlled-panic recovery to satisfy the Phase 3 watchdog recovery prerequisite
+while independent reset timing and precise hardware attribution remain unproved.
+Preserve the original test verdicts and the separate acceptance addendum referenced
+in readiness/history. This exception does not relax future fleet test criteria,
+authorize another fault, or replace final observation and production acceptance.

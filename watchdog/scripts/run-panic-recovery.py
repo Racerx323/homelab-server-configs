@@ -617,13 +617,25 @@ occurred during preparation. See the bundled `contract.md` for mechanism,
 independent evidence, timing and attended manual-recovery branches.
 
 Post-update observation binding: {json.dumps(spec.get('post_update_observation'), sort_keys=True)}.
-When present, this advances the boot identity from accepted current observation;
+Bounded readiness snapshot: {json.dumps(spec.get('readiness_snapshot'), sort_keys=True)}.
+When present, these bindings advance boot identity from accepted observation;
 it does not replace the original kernel, systemd, native configuration or four
 protected-file expectations. The same full preflight checks those before arming.
 Historical five-minute precision misses remain recorded. They do not establish
 an availability outage; the revised stages below require separate evidence.
 The known WSL mDNS limitation is not probed here: this runner uses only unicast
 NTP/client-denial checks. Windows discovery was accepted separately.
+
+## Independent KVM observations
+
+Use the existing independently powered KVM and manual elapsed-time notes;
+video recording is not required. Ordinary console visibility was confirmed
+by Aaron during successor preparation. This is not proof of panic visibility.
+Before arming, confirm the identified host is still visible, the timing method
+is ready and combined uncertainty is at most two seconds. Record actual panic
+text and reset/boot-start bounds; absence or ambiguity leaves attribution
+inconclusive. Do not substitute black screen, grant or SSH events. No automatic
+retry or console configuration change is included.
 
 ## Exact executable scope
 
@@ -816,7 +828,67 @@ def observed_baseline(base, directory):
         'five_minute_recovery_accepted': False})
 
 
-def seal(directory, baseline, readiness, assessment, qualification, identity_file, scope="panic", post_update_observation=None):
+def snapshot_baseline(base, directory):
+    """Bind an accepted bounded snapshot without claiming sustained acceptance."""
+    directory = private_dir(directory)
+    outcome_raw = read(directory/'outcome.json')
+    outcome = json.loads(outcome_raw)
+    require(outcome.get('capture_accepted') is True, 'accepted snapshot required')
+    manifest_raw = read(directory/'manifest.json')
+    require(sha(manifest_raw) == outcome['approved_manifest_sha256'], 'snapshot input manifest')
+    def checked(root, entries):
+        values = {}
+        for name, row in entries.items():
+            require(Path(name).name == name, 'snapshot member path')
+            raw = read(root/name)
+            require(sha(raw) == row['sha256'] and len(raw) == row['size'], 'snapshot member drift: '+name)
+            values[name] = raw
+        return values
+    inputs = checked(directory, json.loads(manifest_raw)['members'])
+    records_raw = read(directory/'results/results-manifest.json')
+    require(sha(records_raw) == outcome['results_manifest_sha256'], 'snapshot results manifest')
+    results = checked(directory/'results', json.loads(records_raw))
+    receipt = results['execution.json']
+    require(sha(receipt) == outcome['approved_receipt_sha256']
+            and json.loads(receipt)['approved_sha256'] == sha(manifest_raw), 'snapshot receipt binding')
+    spec = json.loads(inputs['spec.json'])
+    require(spec['hostname'] == 'j2-svntp1' and spec['target'] == 'ama@10.1.0.51', 'snapshot target')
+    capture = json.loads(results['capture-result.json'])
+    require(capture['capture_complete'] is True and capture['returncodes']
+            and all(v == 0 for v in capture['returncodes'].values()), 'snapshot capture incomplete')
+    require(capture['target_mutation'] is False and capture['panic'] is False
+            and capture['retry'] is False, 'snapshot read-only scope')
+    boot = results['boot.stdout'].decode().strip()
+    require(re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot)
+            and results['finish-boot.stdout'].decode().strip() == boot
+            and boot == outcome['observed_boot'] == spec['reference_boot_id'], 'snapshot boot continuity')
+    require(results['identity.stdout'].decode().strip() == 'j2-svntp1'
+            and results['kernel.stdout'].decode().split()[:2] == ['Linux', '6.18.50+rpt-rpi-v8'], 'snapshot identity')
+    require(results['services.stdout'] == results['finish-services.stdout']
+            and outcome['services_stable'] is True
+            and outcome['all_observed_services_running'] is True, 'snapshot service continuity')
+    require(outcome['timing_checks'] and all(v is True for v in outcome['timing_checks'].values()),
+            'snapshot timing acceptance')
+    for name in ('client-0.stdout', 'client-1.stdout'):
+        client = json.loads(results[name])
+        require(client['queries_denied'] is True and client['leap'] == 0
+                and client['stratum'] == 1 and client['refid'] == 'PPS', 'snapshot client acceptance')
+    hashes = {path: digest for digest, path in
+              (line.split(None, 1) for line in results['protected_hashes.stdout'].decode().splitlines())}
+    require(hashes.get('/etc/ntp.conf') == base['protected']['/etc/ntp.conf'], 'snapshot NTP drift')
+    for path, digest in hashes.items():
+        if path in base['protected']:
+            require(digest == base['protected'][path], 'snapshot protected drift')
+    # Only boot is advanced. Full critical()/health() still verifies the retained
+    # native inputs, exclusive ownership, journal provenance and current health.
+    return dict(base, boot=boot, readiness_snapshot={
+        'outcome_sha256': sha(outcome_raw), 'input_manifest_sha256': sha(manifest_raw),
+        'results_manifest_sha256': sha(records_raw), 'receipt_sha256': sha(receipt),
+        'bounded_snapshot_only': True, 'hardware_attribution_accepted': False,
+        'historical_recovery_accepted': False, 'sustained_stability_accepted': False})
+
+
+def seal(directory, baseline, readiness, assessment, qualification, identity_file, scope="panic", post_update_observation=None, readiness_snapshot=None):
     require(not directory.exists(), 'existing operation directory')
     outcome = json.loads(read(baseline/'outcome.json'))
     require(outcome.get('capture_accepted') is True and outcome.get('debugger_transport_gap_resolved') is True, 'accepted debugger baseline')
@@ -855,6 +927,9 @@ def seal(directory, baseline, readiness, assessment, qualification, identity_fil
     if post_update_observation is not None:
         require(scope == 'panic', 'post-update baseline is for panic scope only')
         base = observed_baseline(base, post_update_observation)
+    if readiness_snapshot is not None:
+        require(scope == 'panic', 'readiness snapshot is for panic scope only')
+        base = snapshot_baseline(base, readiness_snapshot)
     files['baseline.json'] = encoded(base)
     files['operator-template.json'] = encoded({'bundle_sha256':'FILL_FROM_SEAL','epoch':0,
         **{k:False for k in ('aaron_attending','console_identifies_j2','laptop_independent_power','peer_serving','antenna_on_j1',
@@ -867,6 +942,7 @@ def seal(directory, baseline, readiness, assessment, qualification, identity_fil
         'hostname':'j2-svntp1','endpoints':['10.1.0.51','fd36:5aa8:6971:1::51'],
         'kernel_release':'6.18.50+rpt-rpi-v8','timing':TIMING,
         'post_update_observation':base.get('post_update_observation'),
+        'readiness_snapshot':base.get('readiness_snapshot'),
         'members':{k:sha(v) for k,v in files.items()}}
     validate(spec); files.update({'spec.json':encoded(spec),'review.md':review(spec).encode()})
     directory.mkdir(mode=0o700)
@@ -885,11 +961,12 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__); sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('seal');p.add_argument('--directory',type=Path,required=True);p.add_argument('--baseline',type=Path,required=True);p.add_argument('--readiness',type=Path,required=True);p.add_argument('--assessment',type=Path,required=True);p.add_argument('--qualification',type=Path,required=True);p.add_argument('--identity-file',type=Path,required=True);p.add_argument('--scope',choices=('panic','journal','inputs'),default='panic')
     p.add_argument('--post-update-observation',type=Path)
+    p.add_argument('--readiness-snapshot',type=Path)
     for action in ('check','execute','inspect'):
         p=sub.add_parser(action);p.add_argument('--directory',type=Path,required=True);p.add_argument('--sha256',required=True)
         if action=='execute':p.add_argument('--operator-record',type=Path,required=True)
     args=parser.parse_args(); directory=args.directory.absolute()
-    if args.action=='seal':result=seal(directory,args.baseline.absolute(),args.readiness.absolute(),args.assessment.absolute(),args.qualification.absolute(),args.identity_file.absolute(),args.scope,args.post_update_observation)
+    if args.action=='seal':result=seal(directory,args.baseline.absolute(),args.readiness.absolute(),args.assessment.absolute(),args.qualification.absolute(),args.identity_file.absolute(),args.scope,args.post_update_observation,args.readiness_snapshot)
     elif args.action=='check':prepare(directory,args.sha256);result={'integrity':True,'target_contact':False}
     elif args.action=='inspect':result=inspect_journal(directory,args.sha256)
     else:result=execute(directory,args.sha256,args.operator_record)

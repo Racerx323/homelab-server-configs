@@ -190,8 +190,11 @@ def run(root, spec, call=invoke, phase="all"):
             env.update(AWS_ACCESS_KEY_ID=credentials['id'], AWS_SECRET_ACCESS_KEY=credentials['key'])
         require((root/'password').stat().st_size > 0, 'empty_password')
         require(checked([spec['restic'], 'version']).decode().strip() == spec['restic_version'], 'restic_version')
-        config = json.loads(checked(base + ['cat', 'config']))
-        require(config.get('id') == spec['repository_id'] and config.get('version') == 2, 'repository_mismatch')
+        # Split capture must remain local while application writers are paused.
+        # Upload independently verifies repository identity before any mutation.
+        if phase != 'capture':
+            config = json.loads(checked(base + ['cat', 'config']))
+            require(config.get('id') == spec['repository_id'] and config.get('version') == 2, 'repository_mismatch')
         payload = root/'payload'
         if phase == 'upload':
             captured = verified_capture(root, spec)

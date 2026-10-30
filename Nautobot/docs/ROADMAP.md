@@ -6,7 +6,9 @@ Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
 The credential operation is archived and the operation slot is clean.
-Next: prepare capture/resume qualification as a separate stage.
+One disabled capture/resume qualification operation is prepared. Next: review its
+exact capture-only approval request and authorize one attended trial inside
+03:00–04:00 America/Chicago. Native duration and recovery acceptance remain open.
 No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -105,7 +107,7 @@ The existing accepted one-shot behavior must remain covered by regression tests.
 | --- | --- |
 | Nightly consistency | Brief nightly writer pause approved for local database/media capture; resume before upload/check. |
 | Window and timezone | 03:00–04:00 America/Chicago approved; candidate 03:20 trigger, 450-second capture deadline and 240-second recovery budget. Target duration qualification pending; no catch-up outage outside the window. |
-| Unattended credentials | Candidate: minimal read-only Doppler service-token configuration referencing existing canonical secrets, with protected local bootstrap delivery. Candidate lifetime is 90 days with rotation 14 days beforehand; UID 999 executes. Provider entity creation and scope/expiry readback remain pending. |
+| Unattended credentials | Accepted and archived: three canonical references, config-scoped read-only token and protected delivery. Aaron owns rotation by January 13, 2027; expiry January 27. UID 999 resolution passed. |
 | Weekly integrity | Full data check is the initial candidate; no subset waiver proposed. |
 | Retention | Plan's 7 daily/5 weekly/12 monthly policy; exact recurring dataset filter/grouping and dry-run qualification must precede deletion approval. Historical recovery snapshots remain excluded. |
 | Monitoring | User-confirmed persistent endpoint: `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`. Transport/authentication and failure/recovery delivery remain unqualified. No test message or new scraper authorized. |
@@ -208,7 +210,7 @@ make the current adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream is clean after credential archival; timers and retention deletion remain unauthorized.
+stream now holds the disabled capture/resume definition; timers and retention deletion remain unauthorized.
 
 ### Intended workload comparison
 
@@ -291,3 +293,27 @@ January 13, 2027 at 21:17:52 UTC. Non-secret identity and acceptance hashes are 
 definition are preserved in the published terminal tag indexed by HISTORY.
 Raw receipts remain private. The operation slot is clean. Capture/resume, notifications and schedules
 remain later approvals; credential resolution does not qualify B2/Restic access.
+
+### Capture/resume qualification preparation
+
+The pending operation prepares one capture-only trial using the existing rootless
+adapter, Ansible capture ordering and independent supervisor. The fresh October 29
+read-only baseline matched accepted artifacts/packages and mapped permissions;
+namespace media remained directory-only and staging was ext4 with approximately
+936 GB free. Accepted credentials are reused without provider mutation.
+
+The shared producer's split capture phase now defers repository access until upload,
+so remote I/O does not extend the writer pause. Upload remains enabled by default
+for existing callers; this qualification explicitly disables it and payload disposal.
+Only four runtime user-unit links are proposed: primary, guard timer, guard service
+and recovery service. No nightly, freshness or notification units are installed.
+The trial retains its local payload and protected state for review.
+
+Local evidence includes eight real Ansible/Restic cases with a new disposable
+PostgreSQL dump, four real user-systemd supervision cases, and existing media,
+binding, supervisor and disposal regressions. The capture-only case made no
+repository-read or upload call. These are workstation checks, not target acceptance.
+The active operation, sanitized `capture-resume-review.json` and OPERATIONS define
+acceptance, failure containment and evidence gaps. Production forced-termination
+recovery, upload/integrity, notifications, disposal and schedule enablement remain
+separate later qualifications. No writers were paused during preparation.

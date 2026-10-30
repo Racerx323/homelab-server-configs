@@ -1,8 +1,9 @@
 # Single controlled-panic watchdog recovery review
 
 Status: separate availability, convergence and stability stages are implemented
-and locally qualified in the one-use controller and worker. Native recovery and
-independent reset attribution remain unproved under this revised contract.
+and locally qualified in the one-use controller and worker. Native outcomes and
+scoped acceptance exceptions are recorded in history and acceptance addenda;
+this reusable contract alone does not establish live acceptance.
 No successor operation is sealed or authorized by this repository change.
 An executable operation is sealed separately with its exact inputs and expiry;
 repository implementation or local qualification is not execution approval.
@@ -104,6 +105,13 @@ bounded source-and-observation attribution, not a hardware reset-register proof.
 Any contradictory evidence, debugger entry, unexplained power event, missing
 panic observation or intervention before reset makes attribution inconclusive.
 Do not convert an inconclusive result into a pass because the server returned.
+
+For j2-svntp1 only, the operator-approved pilot exception permits the demonstrated
+controlled-panic recovery to satisfy the Phase 3 watchdog recovery prerequisite
+while independent reset timing and precise hardware attribution remain unproved.
+Preserve the original test verdicts and the separate acceptance addendum referenced
+in readiness/history. This exception does not relax future fleet test criteria,
+authorize another fault, or replace final observation and production acceptance.
 
 ## Fresh preflight and arming
 
