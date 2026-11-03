@@ -34,10 +34,11 @@ application services, retained state and timer identities are unchanged, and the
 transient notification unit is inactive. Duplicate counts were not separately
 quantified; this does not establish exactly-once delivery.
 
-Next: publish and verify the authorized terminal archive for this accepted stage. The
-consumed operation remains disabled until its archive is published and verified.
-See `manifests/recurring-notification-review.json` and accepted live state.
-Then prepare a separately scoped disposal/retention decision. Remaining
+The notification terminal archive is published and byte-verified. The consumed
+operation is cleared; the deployment stream is clean. See
+`manifests/recurring-notification-review.json`, accepted live state and HISTORY.
+
+Next: prepare a separately scoped disposal/retention decision. Remaining
 failure-recovery/timer gates must close before schedules.
 This accepts one attended upload with directory-only media; production fault
 injection, populated-media recovery, disposal, retention and

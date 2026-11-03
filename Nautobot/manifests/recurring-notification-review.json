@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "accepted_pending_archival",
+  "status": "accepted_archived",
   "operation_id": "nautobot-recurring-notification-v1",
   "bundle_sha256": "b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed",
   "source_commit": "587a44482a17c23c7e41f7a545718cfff2838f1b",
@@ -93,9 +93,7 @@
     "readback.sh": "f8af5f5bde06e85242836918b7a4f2e468f78486742db62a7ddc02ba2d8b2f42",
     "check-acceptance.py": "f26b1fcb6c4950da1e4aaed9d9a23a13a88f6d88e75a8957696321b4da18d79c"
   },
-  "remaining_gaps": [
-    "terminal_publication_and_verification_pending"
-  ],
+  "remaining_gaps": [],
   "later_stages": [
     "disposal",
     "retention",
@@ -138,7 +136,7 @@
     "routing_changed": false,
     "recurring_schedule_enabled": false,
     "scope": "attended_simulated_failure_and_recovery_delivery_only",
-    "terminal_archival": "pending_publication",
+    "terminal_archival": "published_verified",
     "evidence_sha256": {
       "approval-record.json": "3beddcf1ebff5bc878b689fae608323451b247eeeb4b3e14884a039f85f63612",
       "pre-execution.json": "6c79b743268a34a35f97ab29e309b52f981e04933f2d1befcfd3334304f14ae4",
@@ -148,8 +146,23 @@
       "acceptance-checks.json": "63f537722802b38e2eb4bf8057fe58d699e89770ec9b7e9a45de1e67e369b429",
       "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
       "execution/ansible.stdout": "289d3075af64edd006a1615610d9ff860089207dd613369865616eca27d6165c",
-      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    }
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal/publication-verification.json": "ce10a95a5ba37b589b31561c1880c69131830b9102ccf17f67459cdfb321329a"
+    },
+    "terminal_tag": "nautobot-recurring-notification-v1-accepted",
+    "archive_commit": "dc811fd3c4c5772a1583a3f28caaeed00c0144f1",
+    "tag_object": "8136784d026dc311ad2f96342b58852f8037e1ea"
   },
-  "terminal_publication_authorized": true
+  "terminal_publication_authorized": true,
+  "terminal_archival": {
+    "remote": "Racerx323/homelab-server-configs",
+    "tag": "nautobot-recurring-notification-v1-accepted",
+    "archive_commit": "dc811fd3c4c5772a1583a3f28caaeed00c0144f1",
+    "tag_object": "8136784d026dc311ad2f96342b58852f8037e1ea",
+    "archive_sha256": "06f29b1080ca20a452cc7aefc4eb941075241d406266d468bd29b651df60e6c2",
+    "bundle_sha256": "b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed",
+    "all_member_hashes_verified": true,
+    "members": 27,
+    "published_verified": true
+  }
 }

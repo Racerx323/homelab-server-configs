@@ -721,8 +721,11 @@ including unchanged services/retained state/timers and an inactive transient uni
 Duplicate counts were not separately quantified; no exactly-once claim is made.
 
 Accepted state: `manifests/accepted-live-state.yaml`, `recurring_notifications`.
-The exact approved definition, acceptance helpers and sanitized outcome are in
-`manifests/terminal-notification-archive.tar`; its adjacent manifest binds every
-member. Terminal publication is authorized and pending verification. Planned annotated tag:
-`nautobot-recurring-notification-v1-accepted`; no archive commit or tag exists yet.
+Published annotated tag: `nautobot-recurring-notification-v1-accepted`; archive commit
+`dc811fd3c4c5772a1583a3f28caaeed00c0144f1`; tag object `8136784d026dc311ad2f96342b58852f8037e1ea`.
+The tag preserves the exact approved definition, acceptance helpers and sanitized
+outcome in `manifests/terminal-notification-archive.tar`, with its per-file manifest.
+Remote tag identity, archive bytes and all 27 member hashes were verified.
+Archive SHA-256: `06f29b1080ca20a452cc7aefc4eb941075241d406266d468bd29b651df60e6c2`.
+Executed bundle SHA-256: `b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed`.
 Schedule enablement, disposal, retention and remaining recovery gates stay separate.

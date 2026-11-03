@@ -416,7 +416,7 @@ recurring_notifications:
   routing_changed: false
   recurring_schedule_enabled: false
   scope: attended_simulated_failure_and_recovery_delivery_only
-  terminal_archival: pending_publication
+  terminal_archival: published_verified
   evidence_sha256:
     approval-record.json: 3beddcf1ebff5bc878b689fae608323451b247eeeb4b3e14884a039f85f63612
     pre-execution.json: 6c79b743268a34a35f97ab29e309b52f981e04933f2d1befcfd3334304f14ae4
@@ -427,3 +427,7 @@ recurring_notifications:
     execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
     execution/ansible.stdout: 289d3075af64edd006a1615610d9ff860089207dd613369865616eca27d6165c
     execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    terminal/publication-verification.json: ce10a95a5ba37b589b31561c1880c69131830b9102ccf17f67459cdfb321329a
+  terminal_tag: nautobot-recurring-notification-v1-accepted
+  archive_commit: dc811fd3c4c5772a1583a3f28caaeed00c0144f1
+  tag_object: 8136784d026dc311ad2f96342b58852f8037e1ea
