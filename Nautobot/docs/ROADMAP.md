@@ -19,9 +19,26 @@ dump, removed transient credentials and an inactive guard. This is a recovered
 failure, not capture/resume acceptance. Its payload, qualification tree and four
 runtime links remain; the prior latch is preserved in its retained directory.
 
-Next: diagnose the normal-path readiness failure and qualify actual startup and
-readiness timing before another scoped trial. The supervisor did not retain child
-Ansible output, so the exact failed normal-path task remains an evidence gap.
+Read-only diagnosis recovered the original startup receipts: web configuration
+checks took 44.3 seconds, migration checks 48.1 seconds and static collection 44.5
+seconds. All passed, but their combined 137 seconds already exceeded the 120-second
+normal readiness wait; the first logged post-resume HTTP 200 arrived about 166
+seconds after web start. The exact health command now passes in under one second.
+The original child Ansible result was discarded and cannot be reconstructed.
+Protected task receipts are implemented and locally qualified for subsequent runs,
+including failure return codes, durations and a readiness-deadline flag without
+raw command output. They are not deployed. The normal readiness wait is now 210
+seconds in the local definition. A disposable container with a 166-second HTTP
+startup delay passed in 167.2 seconds; persistent and hung probes stayed bounded.
+Thirty binding/supervisor regressions passed, including refusal to disarm an
+expired capture guard and enforcement of the remaining recovery budget. The
+450-second capture and 240-second recovery deadlines are unchanged; recovery
+health remains capped at 120 seconds. Local probe qualification does not establish
+production total-duration acceptance. One private candidate is prepared for
+November 3, 13:00–14:00 CST, with latest admission at 13:48:30. The refreshed
+read-only baseline matches retained state; the preservation path now verifies
+both payloads and the recovered-failure state. Next: approve the exact scoped
+request for terminal archival, retained-state handling and one capture-only trial.
 The current operation is terminal-pending with execution disabled; its claim is
 consumed. No replay, cleanup or further trial is authorized. Upload, notification,
 payload disposal and recurring schedules remain separate stages.

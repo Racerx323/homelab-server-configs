@@ -27,7 +27,7 @@ def qualify(output):
         assert ctl('daemon-reload').returncode == 0
         failed = [names[0], names[3]]
         for name in failed: assert ctl('start', name).returncode != 0
-        payload, _ = fixture.terminal()
+        payload, _ = fixture.terminal('recovered_failure', additional_payload=True)
         properties = 'ActiveState,SubState,InvocationID,ExecMainStartTimestamp,MainPID,ControlPID,ControlGroup,Result'
         def show(name):
             if name not in names: return fixture.show(name)
@@ -41,8 +41,9 @@ def qualify(output):
         assert all(ctl('show', n, '--property=LoadState', '--value').stdout.strip() == 'not-found' for n in names)
         assert (Path(result['preserved_directory'])/'state/state.json').exists()
         assert (payload/'dump').read_bytes() == b'retained payload'
+        assert (payload.with_name('nautobot-recurring.older')/'dump').read_bytes() == b'older retained payload'
         output.write_text(json.dumps({'local_user_systemd': True, 'failed_units_released': True,
-                                     'latch_preserved': True, 'payload_unchanged': True,
+                                     'terminal_state_preserved': True, 'retained_payloads_unchanged': 2,
                                      'target_acceptance': False}, indent=2)+'\n')
     finally:
         if linked:

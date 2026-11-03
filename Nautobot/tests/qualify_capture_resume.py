@@ -36,7 +36,7 @@ def main():
         source = root/'source'; source.mkdir(mode=0o700)
         (source/'password').write_text(secrets.token_hex(32)); (source/'password').chmod(0o600)
         (source/'credentials.json').write_text('{}'); (source/'credentials.json').chmod(0o600)
-        for scenario in ('capture_only', 'success', 'capture_failure', 'resume_failure', 'health_failure', 'payload_drift', 'upload_failure', 'integrity_failure'):
+        for scenario in ('capture_only', 'success', 'capture_failure', 'resume_failure', 'health_failure', 'verification_failure', 'payload_drift', 'upload_failure', 'integrity_failure'):
             run = Path(tempfile.mkdtemp(prefix='nautobot-capture-case.'))
             try:
                 state = run/'writer'; state.write_text('running')
@@ -58,8 +58,13 @@ elif mode=='resume':
 elif mode=='resume_remaining': pass
 elif mode=='health':
     assert (root/'writer').read_text()=='running'
-    if scenario=='health_failure':sys.exit(1)
+    if scenario=='health_failure':
+        print('ValueError: readiness_deadline',file=sys.stderr)
+        print('SECRET_EVIDENCE_SENTINEL',file=sys.stderr)
+        sys.exit(1)
     if scenario=='payload_drift':(root/'payload/media').write_text('changed')
+elif mode=='verify':
+    if scenario=='verification_failure':sys.exit(1)
 elif mode=='capture':
     assert (root/'writer').read_text()=='paused'
     if scenario=='capture_failure':sys.exit(1)
@@ -96,6 +101,7 @@ else:raise ValueError('mode')
                              'application_pause_commands':[[sys.executable,str(driver),'pause']],
                              'application_resume_commands':[[sys.executable,str(driver),'resume'],[sys.executable,str(driver),'resume_remaining']],
                              'application_health_argv':[sys.executable,str(driver),'health'],
+                             'application_resume_verified_argv':[sys.executable,str(driver),'verify'],
                              'application_backup_credentials':{name:str(source/name) for name in ('password','credentials.json')},
                              'application_producer_argv':[sys.executable,str(ROOT/'restic/scripts/application-backup.py')]}
                 play = root/'play.yaml'
@@ -108,14 +114,30 @@ else:raise ValueError('mode')
                 assert (result.returncode==0)==(scenario in ('success','capture_only')), (scenario,result.returncode)
                 assert 'resume' in log and 'resume_remaining' in log and 'health' in log, (scenario,log)
                 assert not any((run/name).exists() for name in ('password','credentials.json'))
-                if scenario in ('capture_only','capture_failure','resume_failure','health_failure','payload_drift'):
+                receipt = run/'capture-task-results.json'
+                task_results = json.loads(receipt.read_text())
+                assert receipt.stat().st_mode & 0o777 == 0o600
+                assert task_results['capture_rc'] == (1 if scenario=='capture_failure' else 0), (scenario,task_results)
+                assert task_results['resume_rc'] == ([1,0] if scenario=='resume_failure' else [0,0])
+                assert task_results['health_rc'] == (1 if scenario in ('health_failure','resume_failure') else 0)
+                assert task_results['health_readiness_deadline'] == (scenario=='health_failure')
+                assert not task_results['credential_cleanup_failed']
+                assert 'SECRET_EVIDENCE_SENTINEL' not in receipt.read_text()
+                assert b'SECRET_EVIDENCE_SENTINEL' not in result.stdout+result.stderr
+                verification = run/'capture-resume-verification.json'
+                if scenario in ('capture_failure','resume_failure','health_failure'):
+                    assert not verification.exists()
+                else:
+                    assert json.loads(verification.read_text())['verification_rc'] == (1 if scenario=='verification_failure' else 0)
+                    assert verification.stat().st_mode & 0o777 == 0o600
+                if scenario in ('capture_only','capture_failure','resume_failure','health_failure','verification_failure','payload_drift'):
                     assert 'upload' not in log and not snapshots, (scenario,log)
                 else:
                     assert log.index('resume') < log.index('health') < log.index('upload')
                     assert len(snapshots)==(0 if scenario=='upload_failure' else 1)
                 if scenario=='capture_only': assert 'repository_read' not in log
                 if scenario!='resume_failure': assert state.read_text()=='running'
-                results.append({'scenario':scenario,'passed':True,'ansible_exit':result.returncode,'snapshots':len(snapshots),'events':log})
+                results.append({'scenario':scenario,'passed':True,'ansible_exit':result.returncode,'snapshots':len(snapshots),'events':log,'task_results':task_results})
             finally:
                 shutil.rmtree(run)
     (args.output/'result.json').write_text(json.dumps({'cases':results,'production_recovery_qualified':False},indent=2)+'\n')

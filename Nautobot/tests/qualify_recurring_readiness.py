@@ -22,7 +22,9 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--image',required=True,help='Existing disposable image with Python 3')
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--startup-delay-seconds',type=float,default=2)
     args=parser.parse_args();args.output.mkdir(mode=0o700)
+    assert 0 < args.startup_delay_seconds < node.READINESS_SECONDS
     server='''from http.server import HTTPServer,BaseHTTPRequestHandler
 from pathlib import Path
 import time
@@ -46,10 +48,11 @@ HTTPServer(('127.0.0.1',8080),Handler).serve_forever()
             try:node.health(timeout=2)
             except ValueError:pass
             else:raise AssertionError('unready endpoint accepted')
-            call(['podman','exec','-d',cid,'python3','-c',"import time;from pathlib import Path;time.sleep(2);Path('/tmp/ready').touch()"])
-            start=time.monotonic();assert node.wait_healthy(timeout=10)==rows
-            elapsed=time.monotonic()-start;assert 1.5<=elapsed<10
-            results.append({'scenario':'delayed_http_readiness','passed':True,'elapsed_seconds':elapsed})
+            call(['podman','exec','-d',cid,'python3','-c',f"import time;from pathlib import Path;time.sleep({args.startup_delay_seconds});Path('/tmp/ready').touch()"])
+            start=time.monotonic();assert node.wait_healthy()==rows
+            elapsed=time.monotonic()-start;assert args.startup_delay_seconds-0.5<=elapsed<node.READINESS_SECONDS
+            results.append({'scenario':'delayed_http_readiness','passed':True,'elapsed_seconds':elapsed,
+                            'startup_delay_seconds':args.startup_delay_seconds,'readiness_seconds':node.READINESS_SECONDS})
             call(['podman','exec',cid,'python3','-c',"from pathlib import Path;Path('/tmp/ready').unlink()"])
             start=time.monotonic()
             try:node.wait_healthy(timeout=2)

@@ -87,12 +87,12 @@ class Retained(unittest.TestCase):
         self.assertTrue((self.base/('qualification-retained-'+'a'*12)).is_dir())
         self.assertEqual(len(list(self.units.iterdir())), 4)
 
-    def terminal(self):
+    def terminal(self, phase='manual_intervention', additional_payload=False):
         import json
         payload = self.base/'staging/nautobot-recurring.test'; payload.mkdir(mode=0o700)
         (payload/'dump').write_bytes(b'retained payload')
         (self.root/'state').mkdir(mode=0o700)
-        state = {'phase': 'manual_intervention', 'credential_cleanup': True,
+        state = {'phase': phase, 'credential_cleanup': True, 'health_status': 0 if phase == 'recovered_failure' else 1,
                  'resume_statuses': [0, 0, 0], 'root': str(payload)}
         (self.root/'state/state.json').write_text(json.dumps(state))
         def tree(root):
@@ -106,6 +106,10 @@ class Retained(unittest.TestCase):
         states = {n: {'ActiveState': 'failed' if n.endswith('.service') else 'inactive',
                      'MainPID': '0', 'ControlPID': '0', 'ControlGroup': '', 'InvocationID': 'old'} for n in self.names}
         self.spec['terminal'] = {'state': state, 'payload': {'path': str(payload), **tree(payload)}, 'units': states}
+        if additional_payload:
+            other = payload.with_name('nautobot-recurring.older'); other.mkdir(mode=0o700)
+            (other/'dump').write_bytes(b'older retained payload')
+            self.spec['terminal']['retained_payloads'] = [{'path': str(other), **tree(other)}]
         def show(name): return copy.deepcopy(states[name]) if name in states else self.show(name)
         return payload, show
 
@@ -118,6 +122,24 @@ class Retained(unittest.TestCase):
     def test_terminal_payload_drift_refused(self):
         payload, show = self.terminal(); (payload/'dump').write_bytes(b'drift')
         with self.assertRaisesRegex(ValueError, 'retained_file_drift'): self.apply(show=show)
+        self.assertTrue(self.root.exists())
+
+    def test_recovered_failure_preserves_all_payloads(self):
+        payload, show = self.terminal('recovered_failure', additional_payload=True)
+        self.apply(show=show)
+        self.assertEqual((payload/'dump').read_bytes(), b'retained payload')
+        self.assertEqual((payload.with_name('nautobot-recurring.older')/'dump').read_bytes(), b'older retained payload')
+
+    def test_older_payload_drift_refused(self):
+        payload, show = self.terminal('recovered_failure', additional_payload=True)
+        (payload.with_name('nautobot-recurring.older')/'dump').write_bytes(b'drift')
+        with self.assertRaisesRegex(ValueError, 'retained_file_drift'): self.apply(show=show)
+        self.assertTrue(self.root.exists())
+
+    def test_unbound_payload_refused(self):
+        payload, show = self.terminal('recovered_failure')
+        payload.with_name('nautobot-recurring.unbound').mkdir()
+        with self.assertRaisesRegex(ValueError, 'staging_drift'): self.apply(show=show)
         self.assertTrue(self.root.exists())
 
     def test_terminal_running_unit_refused(self):

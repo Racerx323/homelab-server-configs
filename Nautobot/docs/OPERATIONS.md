@@ -4301,6 +4301,15 @@ execution inputs, producer, metadata, controller binary identity and architectur
 revision. Keep repository execution gates false. The command in the private approval
 request binds one exact bundle and one fresh evidence directory.
 
+When a failed qualification is retained, bind its exact stopped unit state,
+service invocations, tree metadata and hashes. Preservation accepts either a
+manual-intervention latch or a recovered failure with health status zero; both
+require successful writer resume and credential cleanup. Bind every retained
+staging payload explicitly. Any unbound payload or hash/metadata drift refuses
+the operation before rename. Rename only the current qualification tree, preserve
+all payloads in place, and reset only the bound failed unit records. Earlier
+retained trees and latches remain unchanged.
+
 ```sh
 python3 Nautobot/ansible/scripts/capture-resume-bundle.py freeze NEW_PRIVATE_BUNDLE
 python3 BUNDLE/launcher.py execute BUNDLE --approve EXACT_SHA256 --evidence NEW_PRIVATE_EVIDENCE_DIRECTORY
@@ -4319,15 +4328,37 @@ exclusive lock and independent recovery. Controller loss does not disarm recover
 The recurring adapter closes stdin for preliminary commands unless explicit input
 is supplied. Only the dump validator inherits the dump stream; database and media
 checks must not consume it first. After writer start, the health command waits up
-to 120 seconds for all five services and HTTP 200, using bounded probes. Admission
-checks remain immediate. The supervisor caps recovery commands by the remaining
-recovery budget and retains the manual-intervention latch if readiness cannot be
-proved. These waits do not extend the configured systemd recovery deadline.
+to 210 seconds for all five services and HTTP 200, using bounded probes. Admission
+checks remain immediate. The 450-second capture guard still includes pause,
+capture, resume, readiness and final verification. A longer readiness wait does
+not reserve extra time beyond that guard. Independent recovery keeps its
+240-second deadline and caps health at 120 seconds or the remaining recovery
+budget, whichever is smaller. Failed recovery retains the manual-intervention
+latch. These waits do not extend either configured deadline.
+
+Systemd `active/running` precedes application readiness. Diagnose restart delays
+using the invocation-bound `NAUTOBOT_STARTUP_PHASE` and `NAUTOBOT_STARTUP_RESULT`
+receipts plus HTTP observations. Startup runs configuration checks, migration
+checks and web static collection before starting the server. Account for the
+complete path when qualifying a readiness budget; do not skip accepted startup
+checks or extend capture/recovery deadlines implicitly.
+
+The capture tasks retain `capture-task-results.json` after credential cleanup,
+with pause/capture/resume/health return codes, health duration, a readiness-deadline
+flag and cleanup failure status. Guard verification retains its separate
+`capture-resume-verification.json`, including failures. Both files are mode 0600
+inside the protected run directory. They contain no command arguments, stdout,
+stderr or credential values. A missing receipt means its write was not reached;
+it is not success. Primary process output remains suppressed. These receipts must
+be included in independent readback; keep the underlying frozen run unchanged.
 
 For local qualification, `tests/qualify_capture_adapter.py` uses a disposable
 PostgreSQL container and fresh custom dump to exercise the actual adapter, including
 corrupt-input refusal. `tests/qualify_recurring_readiness.py` exercises the unchanged
 HTTP probe in a disposable container with delayed, failing and hung responses.
+Use `--startup-delay-seconds 166` to exercise the observed startup delay against
+the default readiness wait; retain measured duration and cleanup evidence.
+This tests probe timing, not production startup or total pause duration.
 These tests do not pause production writers or clear a target recovery latch.
 
 The split producer capture phase performs no remote repository request. Credentials

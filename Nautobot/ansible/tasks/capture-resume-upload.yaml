@@ -23,6 +23,7 @@
         argv: "{{ item }}"
         chdir: /
       loop: "{{ application_pause_commands }}"
+      register: application_pause_results
       changed_when: true
       no_log: true
 
@@ -40,6 +41,7 @@
         chdir: /
       async: 1800
       poll: 2
+      register: application_capture_result
       changed_when: true
       no_log: true
   always:
@@ -67,6 +69,23 @@
         path: "{{ application_backup_root }}/{{ item }}"
         state: absent
       loop: [password, credentials.json]
+      register: application_cleanup_results
+      no_log: true
+
+    - name: Retain bounded task outcomes without command output or credentials
+      ansible.builtin.copy:
+        dest: '{{ application_backup_root }}/capture-task-results.json'
+        mode: '0600'
+        content: >-
+          {{ {'schema_version': 1,
+              'pause_rc': application_pause_results.results | default([]) | map(attribute='rc', default=-1) | list,
+              'capture_rc': (application_capture_result | default({})).get('rc', -1),
+              'resume_rc': application_resume_results.results | default([]) | map(attribute='rc', default=-1) | list,
+              'health_rc': application_resume_health.rc | default(-1),
+              'health_delta': application_resume_health.delta | default('unavailable'),
+              'health_readiness_deadline': 'readiness_deadline' in (application_resume_health.stderr | default('')),
+              'credential_cleanup_failed': application_cleanup_results.results | default([]) | selectattr('failed', 'defined') | selectattr('failed') | list | length > 0
+             } | to_json }}
       no_log: true
 
     - name: Require proven recovery before upload
@@ -76,11 +95,26 @@
           - application_resume_health.rc == 0
 
 - name: Disarm the consumer guard only after independently verified recovery
-  ansible.builtin.command:
-    argv: "{{ application_resume_verified_argv }}"
-    chdir: /
   when: application_resume_verified_argv is defined
-  changed_when: true
+  block:
+    - name: Verify recovery and disarm the guard
+      ansible.builtin.command:
+        argv: "{{ application_resume_verified_argv }}"
+        chdir: /
+      register: application_verified_result
+      changed_when: true
+      no_log: true
+  always:
+    - name: Retain the independent verification outcome without raw output
+      ansible.builtin.copy:
+        dest: '{{ application_backup_root }}/capture-resume-verification.json'
+        mode: '0600'
+        content: >-
+          {{ {'schema_version': 1,
+              'verification_rc': application_verified_result.rc | default(-1),
+              'verification_delta': application_verified_result.delta | default('unavailable')
+             } | to_json }}
+      no_log: true
 
 - name: Upload only after successful capture and verified resume
   when: application_upload_enabled | default(true) | bool

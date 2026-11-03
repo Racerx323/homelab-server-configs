@@ -138,6 +138,18 @@ class ProtectionTests(unittest.TestCase):
             control.assert_not_called()
         self.assertEqual(self.supervisor.state()['phase'],'armed')
 
+    def test_late_health_success_cannot_disarm_capture_guard(self):
+        state=self.armed();clock=[state['deadline']-1]
+        def command(argv,timeout):
+            clock[0]+=2
+            return 0
+        with patch.object(module.time,'monotonic',side_effect=lambda:clock[0]), \
+                patch.object(self.supervisor,'command',side_effect=command), \
+                patch.object(self.supervisor,'control') as control:
+            with self.assertRaisesRegex(module.Blocked,'guard_already_due'):self.supervisor.recovered()
+            control.assert_not_called()
+        self.assertEqual(self.supervisor.state()['phase'],'armed')
+
     def test_readiness_cannot_extend_total_recovery_budget(self):
         self.armed()
         self.supervisor.config['recovery_seconds']=240

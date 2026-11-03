@@ -435,53 +435,116 @@
     }
   },
   "next_trial_preparation": {
-    "state": "executed_recovered_failure",
-    "target_mutation": false,
-    "window": "2026-11-03 11:55-12:55 America/Chicago",
-    "latest_admission": "2026-11-03 12:43:30 America/Chicago",
-    "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5",
-    "baseline_collected_at": "2026-11-03T17:46:38.959429+00:00",
-    "baseline_sha256": "e644c339a1b51fec1d62e066c8e7a1fdca2a53ec97b41be941c09d3ae34b615b",
-    "retained_systemd": {
-      "local_user_systemd": true,
-      "failed_units_released": true,
-      "latch_preserved": true,
-      "payload_unchanged": true,
-      "target_acceptance": false
-    },
-    "retained_regressions_passed": 10,
+    "bundle_sha256": "51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af",
+    "approval_path": "/home/aaron/code/.local-evidence/nautobot-capture-budget-20261103/APPROVAL.md",
+    "window": "2026-11-03 13:00-14:00 America/Chicago",
+    "latest_admission": "2026-11-03T13:48:30-06:00",
+    "baseline_collected_at": "2026-11-03T18:54:33.600194+00:00",
+    "baseline_sha256": "ec2196bcb5bbdaf95cca4aeda1706576aa0da44b2ed832260db499a6a508ee8b",
+    "retained_payloads": 2,
+    "retained_state": "recovered_failure",
+    "preservation_tests_passed": 13,
     "operation_contracts_passed": 16,
-    "bundle_checks": {
-      "producer_verify": true,
-      "wrong_approval_refused": true,
-      "replay_refused_before_ansible": true,
-      "input_drift_refused": true,
-      "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5"
+    "real_local_systemd_preservation_passed": true,
+    "ansible_syntax_passed": true,
+    "terminal_archive_sha256": "d93cf33742600b3321c59e1cd12ff211092da2ac72230f0c32c41bc328003151",
+    "terminal_tag": "nautobot-recurring-capture-resume-readiness-v1-failed",
+    "executed": false,
+    "published": false,
+    "execution_claim_consumed": false,
+    "repository_hooks_passed": true,
+    "sandbox_blocked_hooks_rechecked": 14
+  },
+  "readiness_diagnosis": {
+    "diagnosis": "The normal readiness wait is shorter than the accepted web startup sequence observed during this trial.",
+    "historical_task_return_code_unavailable": true,
+    "web_start_local": "2026-11-03T12:08:21-06:00",
+    "startup_steps_seconds": {
+      "configuration": 44.322,
+      "pending_migrations": 48.144,
+      "static_collection": 44.483
     },
-    "adapter_readiness_qualification_reused_unchanged": "772b5e066b3ceaaefb07f8eb716f2b6d8ee71ba34c3b4e6574f6b14fbdd6971d",
-    "archive_sha256": "45721421114e466702d9aaa66b0e94c7c62d8d2a991c48fc866550058d381250",
-    "archive_tag_pending": "nautobot-recurring-capture-resume-retry-v1-failed",
-    "approval_file": "/home/aaron/code/.local-evidence/nautobot-capture-readiness-20261103/APPROVAL.md",
-    "repository_validation": {
-      "all_applicable_checks_passed": true,
-      "initial_aggregate_status": 1,
-      "initial_wrapper_failure": "Concurrent review-manifest edit; all eight reboot tests passed. No implementation changes during hooks.",
-      "stable_reboot_hook_recheck_status": 0,
-      "archive_secret_scan_status": 0,
-      "logs_sha256": {
-        "pre-commit.log": "d09962db16c32b747358193d4bc8a1fe21e36f00bf1218a6a859c6a479786f18",
-        "reboot-hook-recheck.log": "c4e28b627729d1bd8c416d26cc75783eaf2320f7956eb6eb0a4d624655e99b76",
-        "gitleaks.log": "651265b1d33c19fa129217e9900a308a9fa27f61964535a564067122839faa84"
+    "startup_prechecks_total_seconds": 136.949,
+    "startup_prechecks_passed": true,
+    "first_logged_post_resume_http_200_local": "2026-11-03T12:11:06.952055-06:00",
+    "observed_start_to_http_200_seconds": 165.952054977417,
+    "normal_health_wait_seconds": 120,
+    "first_probe_now": {
+      "exact_normal_health_command_exit": 0,
+      "elapsed_seconds": 0.8338043731637299,
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "state_phase": "recovered_failure",
+      "mutations": false
+    },
+    "evidence_boundary": "Recovered startup receipts and journal events are historical November 3 trial observations; the exact normal health command was freshly checked read-only. Original child Ansible results cannot be reconstructed.",
+    "target_mutation": false,
+    "budgets_changed": false,
+    "retry_performed": false,
+    "task_receipts": "Local implementation only, not deployed. Fixed return codes, durations and a readiness-deadline flag; no stdout, stderr, arguments or credential values.",
+    "evidence_sha256": {
+      "health.json": "1881b82a8496788a45e162bac25404faeb80f805f20de6127a505bf177441484",
+      "startup-phases.json": "a69811de57bbc4610c9cbe0cbe50a0c0d2f08a4bfc46aa98e58a9ae6a953d089",
+      "startup-detail.json": "f34e4b15ed63c351584fc32845c51d1c4b23f7fa852f0ddef3f602b2c8f4d867",
+      "capture-cases-qualified/result.json": "00d9f1d17a338b046cb686b9c563a4495458bf227d9e5c96235028699dbb8c91",
+      "systemd/results.json": "9aa261012adb6fa780c860cd08bb4c27ddcaace6dc36d53e9641b9660af051a8"
+    },
+    "local_task_receipt_cases_passed": 9,
+    "local_systemd_cases_passed": 4,
+    "implementation_sha256": {
+      "Nautobot/ansible/tasks/capture-resume-upload.yaml": "288b25b9a66f2200bd3f9e84a7ba3788972e35c780d3e843c82dcc064954d69b",
+      "Nautobot/tests/qualify_capture_resume.py": "39801f7072582158e61678f4639ca628be62c0e3c5ebf03b551b49dfe758eb8c"
+    }
+  },
+  "readiness_budget_qualification": {
+    "normal_readiness_seconds": 210,
+    "capture_guard_seconds": 450,
+    "recovery_deadline_seconds": 240,
+    "recovery_health_cap_seconds": 120,
+    "real_http_probe_cases": [
+      {
+        "scenario": "delayed_http_readiness",
+        "passed": true,
+        "elapsed_seconds": 167.1691897870005,
+        "startup_delay_seconds": 166.0,
+        "readiness_seconds": 210
+      },
+      {
+        "scenario": "persistent_http_failure",
+        "passed": true,
+        "elapsed_seconds": 2.0062624040001538
+      },
+      {
+        "scenario": "hung_http_probe",
+        "passed": true,
+        "elapsed_seconds": 1.0058795959994313
       }
+    ],
+    "binding_regressions_passed": 15,
+    "supervisor_regressions_passed": 15,
+    "historical_comparison": {
+      "observed_startup_to_http_seconds": 165.952054977417,
+      "readiness_margin_seconds": 44.047945022583,
+      "conservative_preparation_through_web_start_seconds": 131.2,
+      "remaining_after_that_elapsed_and_full_readiness_wait_seconds": 108.8,
+      "limitation": "Historical arithmetic is not a worst-case guarantee; final verification must finish before the existing capture guard."
     },
-    "approval_received": true,
-    "predecessor_archive": {
-      "tag": "nautobot-recurring-capture-resume-retry-v1-failed",
-      "tag_object": "325bada1df4b7155eac0f3ce6da03612a34d9b93",
-      "commit": "a4c5826bcf97322873b5b777d66eb4798b07e439",
-      "remote_verified": true,
-      "archive_bytes_verified": true
+    "evidence_boundary": "Local real container HTTP probe with controlled service-status observations; no production startup, capture or resume. Full production duration remains unqualified.",
+    "target_contact": false,
+    "deployed": false,
+    "trial_performed": false,
+    "outer_deadlines_changed": false,
+    "implementation_sha256": {
+      "Nautobot/ansible/scripts/recurring_node.py": "6c0b9e5a8299612dbc949735cd89e929f9945eb49df39f778321b49f0664af83",
+      "Nautobot/tests/qualify_recurring_readiness.py": "9214c48f72808c137246e85576ba43c0681ac8f4e0408078fc7acb4412a1a579",
+      "Nautobot/tests/test_recurring_bindings.py": "8c636bb5ed54d187cac3a7bc731e3062772ba93c70fbdffa9d5300fcdd34b27a",
+      "Nautobot/tests/test_recurring_protection.py": "90f79a22515f068efb15f801b1ba330417b9cb4817345ea0e27a06de61e403e2"
     },
-    "execution_claim_consumed": true
+    "evidence_sha256": {
+      "readiness/results.json": "733861048f464d80ba492201a337cab1fd1b2314297c1db28cc61c6cd7f3201d",
+      "readiness/cleanup.json": "3586dfacf0a00e4ac218da196cefe8ebbd003322e20f358afb9d431709111f79",
+      "bindings-qualified.log": "7f112d44e7b89a92c92369b23dcc786a4f60c0c68ac1dd5bf324d2e0039e9dff",
+      "protection-final.log": "a11f1ce91a1e95507a8e6ce15757877a52eb033a7e5ed017289b920a16c4c5bb"
+    }
   }
 }

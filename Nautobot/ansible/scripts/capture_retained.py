@@ -45,14 +45,19 @@ def preserve(root, spec, units, show):
     terminal = spec.get('terminal')
     if terminal:
         state = json.loads((root/'state/state.json').read_text())
-        require(state == terminal['state'] and state['phase'] == 'manual_intervention'
+        require(state == terminal['state'] and state['phase'] in ('manual_intervention', 'recovered_failure')
                 and state['credential_cleanup'] is True and state['resume_statuses'] == [0, 0, 0], 'terminal_state')
+        require(state['phase'] != 'recovered_failure' or state.get('health_status') == 0, 'recovered_health')
         payload = Path(terminal['payload']['path'])
         staging = root.parent/'staging'
-        require(payload.parent == staging and re.fullmatch(r'nautobot-recurring\.[a-z0-9_]+', payload.name), 'payload_scope')
-        require(state['root'] == str(payload) and set(staging.iterdir()) == {payload}, 'staging_drift')
-        require(not any((payload/n).exists() for n in ('password', 'credentials.json', 'source-password', 'source-credentials.json')), 'credential_residue')
-        verify_tree(payload, terminal['payload'])
+        payloads = [terminal['payload'], *terminal.get('retained_payloads', [])]
+        paths = [Path(item['path']) for item in payloads]
+        require(len(set(paths)) == len(paths) and all(p.parent == staging and
+                re.fullmatch(r'nautobot-recurring\.[a-z0-9_]+', p.name) for p in paths), 'payload_scope')
+        require(state['root'] == str(payload) and set(staging.iterdir()) == set(paths), 'staging_drift')
+        for path, item in zip(paths, payloads):
+            require(not any(os.path.lexists(path/n) for n in ('password', 'credentials.json', 'source-password', 'source-credentials.json')), 'credential_residue')
+            verify_tree(path, item)
         require(set(terminal['units']) == set(spec['links']), 'terminal_unit_scope')
     else:
         require(not (root/'state/state.json').exists(), 'capture_started')

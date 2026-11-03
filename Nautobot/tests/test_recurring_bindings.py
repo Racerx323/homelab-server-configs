@@ -164,6 +164,19 @@ assert '--plain' in sys.argv and 'get' in sys.argv
             self.assertEqual(node.wait_healthy(timeout=5),{'ready':True})
             self.assertEqual(probe.call_count,2)
 
+    def test_default_readiness_budget_expires_before_capture_guard(self):
+        clock=[0.0]
+        def failed_probe(timeout):
+            clock[0]+=timeout
+            raise ValueError('http_health')
+        cfg=node.supervisor_binding('/tmp/binding','/tmp/state','/tmp/scripts','/usr/bin/ansible-playbook')
+        with patch.object(node,'health',side_effect=failed_probe), patch.object(node.time,'monotonic',side_effect=lambda:clock[0]), \
+                patch.object(node.time,'sleep',side_effect=lambda seconds:clock.__setitem__(0,clock[0]+seconds)):
+            with self.assertRaisesRegex(ValueError,'readiness_deadline'):node.wait_healthy()
+        self.assertEqual(clock[0],210)
+        self.assertEqual((cfg['capture_seconds'],cfg['recovery_seconds']),(450,240))
+        self.assertLess(clock[0],cfg['capture_seconds'])
+
     def test_prepare_orders_snapshot_metadata_before_credentials(self):
         cfg=dict(artifact_sha256={},minimum_free_bytes=1,maximum_retained_bytes=1000000,
                  image_ids={r:'sha256:abc' for r in node.ROLES},versions={'nautobot':'3.2.3'},

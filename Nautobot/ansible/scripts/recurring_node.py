@@ -17,6 +17,7 @@ from recurring_protection import protected, require, atomic, Supervisor
 from recurring_delivery import resolve, notify
 
 ROLES=('postgresql','redis','web','worker','scheduler')
+READINESS_SECONDS=210
 SCRIPTS=Path(__file__).resolve().parent
 # Reuse the accepted capture encoders under the application account directly.
 # The historical script's root/runuser behavior is left untouched.
@@ -76,7 +77,7 @@ def health(timeout=30):
     return rows
 
 
-def wait_healthy(timeout=120):
+def wait_healthy(timeout=READINESS_SECONDS):
     deadline=time.monotonic()+timeout
     while True:
         remaining=deadline-time.monotonic()

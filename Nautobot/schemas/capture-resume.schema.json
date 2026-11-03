@@ -381,6 +381,11 @@
             "payload": {
               "type": "object"
             },
+            "retained_payloads": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "object"}
+            },
             "units": {
               "type": "object"
             }
