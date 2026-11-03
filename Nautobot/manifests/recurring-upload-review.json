@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "stage": "recurring_upload_integrity_qualification",
+  "status": "accepted_pending_terminal_archival",
+  "execution_performed": true,
+  "production_accepted": true,
+  "bundle_sha256": "6b80008892b0d327c319fe93ba8d97dd6aa6f02e6641484d65715c0f3895e7a3",
+  "approval_request": "/home/aaron/code/.local-evidence/nautobot-upload-integrity-preparation-20261103/APPROVAL.md",
+  "baseline_collected_at": "2026-11-03T19:45:07.120972+00:00",
+  "capture_bundle_sha256": "51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af",
+  "payload_root": "/var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1",
+  "source_commit": "6cda12864e8bdfa97c4fb69d0409e5351fde4558",
+  "local_qualification": {
+    "cases": {
+      "success": {
+        "passed": true,
+        "ansible_exit_status": 0,
+        "snapshots": 1
+      },
+      "payload_drift": {
+        "passed": true,
+        "ansible_exit_status": 2,
+        "snapshots": 0
+      },
+      "service_drift": {
+        "passed": true,
+        "ansible_exit_status": 2,
+        "snapshots": 0
+      },
+      "preexisting_secret": {
+        "passed": true,
+        "ansible_exit_status": 2,
+        "snapshots": 0
+      },
+      "integrity_failure": {
+        "passed": true,
+        "ansible_exit_status": 2,
+        "snapshots": 1
+      },
+      "timeout": {
+        "passed": true,
+        "ansible_exit_status": 2,
+        "snapshots": 0
+      }
+    },
+    "real_postgresql_dump": true,
+    "real_restic": true,
+    "real_ansible_playbook": true,
+    "real_user_systemd": true,
+    "adapters": [
+      "application health",
+      "Doppler provider"
+    ],
+    "production_acceptance": false,
+    "restic_version": "restic 0.18.0 compiled with go1.24.1 on linux/amd64",
+    "postgres_image_id": "212aeeeb8faaef6c46498d86cbec6b9344d8d9492996b174664ff82c562ab685"
+  },
+  "evidence_sha256": {
+    "baseline.json": "db884879b4c0e3ff53c9b893f01fa99039086d89e50d34b1fd7132d6ac9ff346",
+    "baseline-checks.json": "ed86239f7adcfd5c43a4525354778d880ddb9f4e8dd6163e6d09bb26b99dce80",
+    "upload-baseline.json": "5f5022e3b326d30a0b3c2b92ffca5648c56a38a5fe191e205a94f56acfea4db6",
+    "qualified/summary.json": "ca243d864d84a15b863b2851515975fb7a6e4ce047929da7d33866f8f760c623",
+    "qualified.log": "4e62d922cc6fbf1a2349d8fe73e8db1cc628bc0ac1e4b5f02bec9005246bf37e",
+    "syntax.log": "43a2a7c5804cfbca531aaa8a7cc85e909689e48e62d265801ccd8e6ca1495782",
+    "restic-regressions.log": "199ac8f86aa286fac59216b9d88506458112e49f911e009d7c27b533f0b9efd4",
+    "readback.sh": "f113711c31802c8127f7d69489025069c5843752bb30aa69deed9c0607a2c1b7",
+    "check-acceptance.py": "d3ced8d49b035c36162de85f18b52dfc601093d421d9cc81002a147b3f249930",
+    "tested-runtime-identity.json": "92ec4aa68495c80e2e20fc89696e857ea2ec93fefe80f7c0578fee557a1ee70c",
+    "pre-commit.log": "ccc6f742fa8cc040efe025d992c75adf9151444c5bbbcef6a016e9dede521657",
+    "focused-recheck.log": "8b904b25964ef19f6794605568fb54a5b5105aff43f41ef4d98576a87af89ed2",
+    "host-convergence-recheck.log": "53d067dcbe9c0276daff50722fb6b68f2504e0cd60f76cb5fd45c15401da6365",
+    "image-contract-recheck.log": "008853da78db8378583ec95675c567da810524090c806c1d68dfa00eae36e1b5",
+    "bundle-scan.log": "1bce65daeae6b224d321b221ebbe733216f7607b9f6fc84b1e64a6f0c09ae8a4",
+    "source-scan.log": "f2a7ee00ca0195066ed07bc1517b9a3739e90b662a9f76796248092d9a44ee60",
+    "readback.json": "9aad72bbceb2aa0900b3560f2749d9095217da0e71206172854be5d440a6bfab",
+    "acceptance-checks.json": "e8e37b9d01a06c5102a8785c716e23320c3e5dcb0dafd248bf9183fcf6470ce9",
+    "pre-execution.json": "6944a882508f8808591443f1f85b3607749ac16b1ef03907426f7c2f9bbabeca",
+    "pre-execution-checks.json": "35a841527675570fd5ec1291a9b89189e20cd72f5a5a21b7a1ab5a5870f0f12d",
+    "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+    "execution/ansible.stdout": "d7e3cc6beff9248a21217b037d7f19c4c625f434283a1d01be565b68682f3bb7",
+    "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approval-record.json": "a167bf36c211a86b80c38c2ff78e581f532ae7f966eb12e96d5250d44a1d481a"
+  },
+  "remaining_live_checks": [],
+  "later_stages": [
+    "notifications",
+    "disposal",
+    "retention",
+    "schedule_enablement",
+    "populated_media_recovery"
+  ],
+  "repository_validation": {
+    "initial_hook_exit_status": 1,
+    "initial_failures": "Missing new schema in host snapshot and image test relying on last schema alternative; affected hooks also saw concurrent edits.",
+    "corrections": "Registered new schema in host snapshot and preserved existing alternative ordering.",
+    "focused_recheck_exit_status": 0,
+    "ansible_syntax_exit_status": 0,
+    "secret_scan_exit_status": 0,
+    "local_tests_are_target_acceptance": false
+  },
+  "accepted_at": "2026-11-03T20:15:18.448552+00:00",
+  "snapshot_id": "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24",
+  "producer_elapsed_seconds": 14.970077991485596,
+  "terminal_archival": "pending",
+  "execution_claim_consumed": true,
+  "terminal_archive": {
+    "path": "/home/aaron/code/.local-evidence/nautobot-upload-integrity-preparation-20261103/terminal/approved-bundle.tar",
+    "sha256": "b760f9ca4bf362a8cee20b8177a71688f9773b4edce477d70015bd6b829ce71b",
+    "manifest_sha256": "566db181b43d7055493969424ae9dcaa8de90f87072900eff1d1863668ac4773",
+    "publication": "authorized_pending_verification"
+  }
+}

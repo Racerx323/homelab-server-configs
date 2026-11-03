@@ -13,6 +13,7 @@ import yaml
 from jsonschema import Draft202012Validator
 
 ROOT=Path(__file__).resolve().parents[3]
+STAGE='recurring_capture_resume_qualification'
 SCRIPTS=('capture_qualification.py','recurring_node.py','recurring_protection.py','render-recurring-protection.py',
          'recurring_delivery.py','recurring_disposal.py','workload_capture.py','media_namespace.py','recovery_probe.py')
 FILES={
@@ -60,7 +61,7 @@ def validate(root):
 
 def freeze(root, operation=None):
     op=yaml.safe_load((operation or ROOT/FILES['operation.yaml']).read_text())
-    require(op['operation'].get('stage')=='recurring_capture_resume_qualification','stage')
+    require(op['operation'].get('stage')==STAGE,'stage')
     require(op['operation']['state']=='pending','operation_not_pending')
     root.mkdir(mode=0o700)
     for name,src in FILES.items():
@@ -106,10 +107,13 @@ def execute(root,digest,evidence):
     finally:(evidence/'controller-result.json').write_text(json.dumps({'exit_status':rc,'accepted':False}))
     return rc
 
-if __name__=='__main__':
+def main():
     os.umask(0o077)
     p=argparse.ArgumentParser();p.add_argument('action',choices=['freeze','verify','execute']);p.add_argument('bundle',type=Path);p.add_argument('--approve');p.add_argument('--evidence',type=Path);p.add_argument('--operation',type=Path);a=p.parse_args()
     if a.operation and a.action!='freeze':p.error('--operation is only valid for freeze')
     if a.action=='freeze':freeze(a.bundle,a.operation)
     elif a.action=='verify':verify(a.bundle,a.approve)
-    else:sys.exit(execute(a.bundle,a.approve,a.evidence))
+    else:return execute(a.bundle,a.approve,a.evidence)
+
+
+if __name__=='__main__':sys.exit(main())

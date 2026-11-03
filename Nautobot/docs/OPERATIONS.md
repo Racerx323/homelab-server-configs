@@ -4416,3 +4416,73 @@ Qualify SSH/sudo transport changes with `tests/qualify_capture_transition.py`
 through the repository Ansible temporary-directory wrapper and an existing
 local disposable SSH/sudo image. It reproduces the async permission refusal and
 checks synchronous completion as UID 999 plus nonzero command propagation.
+
+## Retained capture upload and integrity qualification
+
+Use this stage only after capture/resume acceptance and terminal archival. Reuse
+that capture's protected payload and original specification; do not recapture or
+pause writers. This is one attended upload-only operation, independent of the
+capture pause window. Nightly scheduling remains a separate stage.
+
+Prepare a fresh bounded read-only baseline of accepted capture/qualification
+file hashes and modes, boot and all five service invocations, installed Restic
+and Doppler identities, credential metadata, storage, runtime links and timers.
+Require an absent upload evidence directory and inactive upload unit. Bind the
+accepted capture, repository initialization and B2 owner records. Do not read
+credential values or contact the repository during preparation.
+
+`ansible/scripts/upload-integrity-bundle.py` reuses the capture bundle transport:
+freeze once, verify the hash, then request approval for the exact candidate and
+its `execute BUNDLE --approve SHA256 --evidence CONTROLLER_DIRECTORY` command.
+The repository operation stays disabled. The frozen candidate's gates permit
+execution only after explicit approval; a controller claim and exclusive node
+evidence directory reject replay. All Ansible invocations use the repository
+temporary-directory wrapper. No separate transfer or staging approval is needed.
+
+The single `qualify-upload-integrity.yaml` playbook transfers only runtime inputs
+and runs a transient service as Nautobot. `upload_node.py` holds the existing
+capture run lock, verifies the retained trees and executable identities, and
+checks writer/HTTP health before resolving the three existing canonical backup
+references through the accepted config-scoped read-only Doppler token. It creates
+no provider configuration or new token. Temporary files stay service-owned 0600
+beneath the accepted 0700 payload root; values never enter logs or bundle hashes.
+
+The shared `restic/scripts/application-backup.py --phase upload` implementation
+verifies repository ID/version, records the snapshot baseline, uploads the exact
+six captured files, requires exactly one new full snapshot ID with the expected
+hostname/path/tag, runs full `check --read-data`, rechecks payload hashes and
+requires no remaining repository locks. It uses `--no-cache`. Normal backup/check
+lock creation and removal is included; init, unlock, repair, restore, forget,
+prune and snapshot deletion are excluded.
+
+Preserve the original capture specification, including its 300-second total
+producer deadline. The transient service has a 420-second runtime limit and a
+30-second stop limit. Its cgroup owns child processes; `ExecStopPost` attempts all
+four named transient credential removals even if the main process is killed.
+Cleanup requires an exclusive ownership marker created only after absence was
+proved. A preflight refusal must not remove an existing credential file.
+
+Acceptance requires independent readback: full snapshot ID and matching before/
+after receipts, zero backup and full-integrity statuses, six unchanged payload
+hashes, unchanged original capture records and qualification tree, all five
+service invocations and HTTP health, absent temporary credentials, inactive unit,
+no new runtime links/timers, unchanged older retained trees/latches/payloads and
+accepted application artifacts. Hash private receipts and record a sanitized
+terminal result. Ansible success and local qualification alone are not acceptance.
+
+On failure, retain every payload, snapshot and receipt; remove only owned transient
+credentials. There is no automatic remote rollback, retry, unlock or deletion.
+A timeout can leave uploaded objects, a snapshot whose ID was not yet observed,
+or a repository lock. Stop and diagnose under bounded read-only authorization;
+any cleanup or another upload needs an explicit scoped decision. A failed cleanup
+requires prompt attended intervention within the existing protected path scope.
+
+`tests/qualify_upload_integrity.py` exercises the real playbook, service manager,
+credential resolver and Restic producer with a native PostgreSQL dump and local
+repositories. Disposable adapters supply application health and provider values.
+It covers success, replay refusal, payload/service drift, pre-existing credentials,
+failure after snapshot creation and native timeout cleanup. Run it outside the
+filesystem sandbox for local Podman/user-systemd access. Production ARM64,
+Doppler/B2 access, repository-wide timing and independent target acceptance remain
+live checks. Notification delivery, payload disposal, retention, populated-media
+recovery and schedule enablement remain separate approvals.

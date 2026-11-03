@@ -689,3 +689,23 @@ Accepted state: `manifests/accepted-live-state.yaml`, `recurring_capture_resume`
 Successful payload and protected qualification state remain retained. Upload,
 production fault injection, populated media, notifications, disposal and schedules
 remain separate approvals.
+
+## Recurring upload and integrity accepted
+
+`nautobot-recurring-upload-integrity-v1`: accepted on November 3, 2026. The
+accepted capture was uploaded without pausing writers. One snapshot was created;
+full `restic check --read-data` passed within 15.0 seconds. Independent readback
+verified six unchanged payload hashes, healthy unchanged services, credential
+cleanup, inactive transient unit and unchanged older retained state/timers.
+
+Terminal tag: `nautobot-recurring-upload-integrity-v1-accepted` (publication pending).
+The exact approved bundle and acceptance helpers are preserved in
+`manifests/terminal-upload-archive.tar`; the adjacent manifest binds every member
+and sanitized outcome. Archive SHA-256:
+`b760f9ca4bf362a8cee20b8177a71688f9773b4edce477d70015bd6b829ce71b`.
+Executed bundle SHA-256:
+`6b80008892b0d327c319fe93ba8d97dd6aa6f02e6641484d65715c0f3895e7a3`.
+Snapshot: `4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24`.
+Accepted state: `manifests/accepted-live-state.yaml`, `recurring_upload_integrity`.
+Payloads and node evidence remain retained. Notifications, disposal, retention
+and schedule enablement are separate stages.

@@ -85,6 +85,11 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_upload_integrity_qualification':
+            validate(json.loads((ROOT / 'Nautobot/schemas/upload-integrity.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
+            self.assertFalse(any(operation['boundaries'].values()))
         elif operation['operation'].get('stage') == 'recurring_capture_resume_qualification':
             validate(json.loads((ROOT / 'Nautobot/schemas/capture-resume.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])

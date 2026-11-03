@@ -5,8 +5,7 @@
 Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
-Credential provisioning and capture-only qualification are archived; the operation
-slot is clean.
+Credential provisioning and capture-only qualification are archived.
 The three failed November 3 capture trials are archived. The approved 13:00–14:00
 CST successor passed normal capture/resume and independent acceptance. Capture took
 13.1 seconds; preparation through verified resume took 281.0 seconds. The health
@@ -16,12 +15,21 @@ dump parsing passed; writers and HTTP are healthy, database/Redis invocations an
 boot unchanged, transient credentials removed, guard inactive and runtime links
 removed. Both older payloads and all preserved trees/latches are unchanged.
 
-This accepts one attended, capture-only trial with directory-only media. It does
-not qualify production fault injection, populated media, upload/integrity,
-notification delivery, disposal or schedules. The successful payload and protected
-qualification tree remain retained. Terminal archival is pushed and byte-verified;
-the operation slot is clean and the execution claim consumed. Next: prepare upload/integrity qualification
-under separate approval before considering recurring schedule enablement.
+Capture-only qualification and its archive remain accepted. The separately
+approved upload/integrity run on November 3 at 14:14 CST is now accepted: exactly
+one snapshot was created and full `restic check --read-data` passed. The producer
+finished in 15.0 seconds within its original 300-second limit. Independent readback
+confirmed all six hashes, unchanged original capture files and older retained
+state, healthy unchanged services, removed credentials, inactive transient unit
+and unchanged timer identities. The successful payload remains retained.
+
+Terminal archival (commit/tag/push) is authorized and awaiting publication verification.
+The consumed operation stays disabled and retained until its exact definition and
+sanitized evidence are published and byte-verified. See
+`manifests/recurring-upload-review.json` and the accepted-live upload record.
+This accepts one attended upload with directory-only media; production fault
+injection, populated-media recovery, notifications, disposal, retention and
+schedule enablement remain separate stages.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration

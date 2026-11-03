@@ -1,0 +1,599 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One retained capture upload and full repository integrity qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target",
+    "baseline_collected_at",
+    "boot_id",
+    "capture_root",
+    "evidence_root",
+    "payload_root",
+    "capture_bundle_sha256",
+    "restic",
+    "repository",
+    "credentials",
+    "boundaries",
+    "acceptance",
+    "operation",
+    "content_sha256",
+    "source_sha256",
+    "payload_tree",
+    "qualification_tree",
+    "services",
+    "doppler_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "target": {
+      "const": {
+        "name": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "user": "nautobot",
+        "uid": 999,
+        "gid": 985,
+        "home": "/var/lib/nautobot"
+      }
+    },
+    "baseline_collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "capture_root": {
+      "const": "/var/lib/nautobot/protection/qualification"
+    },
+    "evidence_root": {
+      "const": "/var/lib/nautobot/protection/upload-qualification"
+    },
+    "payload_root": {
+      "type": "string",
+      "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9_]+$"
+    },
+    "capture_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "restic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "version",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "const": "/usr/bin/restic"
+        },
+        "version": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "prefix",
+        "id",
+        "format_version"
+      ],
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "prefix": {
+          "const": ""
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "format_version": {
+          "const": 2
+        }
+      }
+    },
+    "credentials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config",
+        "created_at",
+        "doppler",
+        "expires_at",
+        "project",
+        "read_only",
+        "rotation_due_at",
+        "rotation_owner",
+        "token_file"
+      ],
+      "properties": {
+        "config": {
+          "const": "prd_nautobot_backup"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "doppler": {
+          "const": "/usr/bin/doppler"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "project": {
+          "const": "homelab-dev"
+        },
+        "read_only": {
+          "const": true
+        },
+        "rotation_due_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rotation_owner": {
+          "type": "string"
+        },
+        "token_file": {
+          "const": "/var/lib/nautobot/protection/credentials/doppler-service-token"
+        }
+      }
+    },
+    "boundaries": {
+      "const": {
+        "writer_pause": false,
+        "restore": false,
+        "notifications": false,
+        "disposal": false,
+        "retention": false,
+        "schedule_enablement": false,
+        "automatic_retry": false,
+        "repository_init_unlock_repair": false
+      }
+    },
+    "acceptance": {
+      "const": {
+        "accepted": false,
+        "independent_readback_required": true,
+        "full_repository_check_required": true
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "execution_enabled",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-upload-integrity-[a-z0-9-]+$"
+        },
+        "stage": {
+          "const": "recurring_upload_integrity_qualification"
+        },
+        "state": {
+          "const": "pending"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "content_sha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configuration",
+        "image_dependency_manifest",
+        "media",
+        "postgresql_custom_dump",
+        "quadlet_config_hashes",
+        "versions_migrations"
+      ],
+      "properties": {
+        "configuration": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "image_dependency_manifest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "media": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "postgresql_custom_dump": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "quadlet_config_hashes": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "versions_migrations": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "source_sha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted.yaml",
+        "provider.yaml",
+        "repository.json",
+        "PLAN.md",
+        "desired.yaml"
+      ],
+      "properties": {
+        "accepted.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provider.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "repository.json": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "PLAN.md": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "desired.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "payload_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "directories"
+      ],
+      "properties": {
+        "files": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uid",
+              "gid",
+              "mode",
+              "sha256"
+            ],
+            "properties": {
+              "uid": {
+                "const": 999
+              },
+              "gid": {
+                "const": 985
+              },
+              "mode": {
+                "enum": [
+                  384,
+                  448
+                ]
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "directories": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uid",
+              "gid",
+              "mode"
+            ],
+            "properties": {
+              "uid": {
+                "const": 999
+              },
+              "gid": {
+                "const": 985
+              },
+              "mode": {
+                "enum": [
+                  384,
+                  448
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "qualification_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "directories"
+      ],
+      "properties": {
+        "files": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uid",
+              "gid",
+              "mode",
+              "sha256"
+            ],
+            "properties": {
+              "uid": {
+                "const": 999
+              },
+              "gid": {
+                "const": 985
+              },
+              "mode": {
+                "enum": [
+                  384,
+                  448
+                ]
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "directories": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uid",
+              "gid",
+              "mode"
+            ],
+            "properties": {
+              "uid": {
+                "const": 999
+              },
+              "gid": {
+                "const": 985
+              },
+              "mode": {
+                "enum": [
+                  384,
+                  448
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nautobot-postgresql.service",
+        "nautobot-redis.service",
+        "nautobot-scheduler.service",
+        "nautobot-web.service",
+        "nautobot-worker.service"
+      ],
+      "properties": {
+        "nautobot-postgresql.service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Id",
+            "ActiveState",
+            "SubState",
+            "InvocationID"
+          ],
+          "properties": {
+            "Id": {
+              "const": "nautobot-postgresql.service"
+            },
+            "ActiveState": {
+              "const": "active"
+            },
+            "SubState": {
+              "const": "running"
+            },
+            "InvocationID": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        },
+        "nautobot-redis.service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Id",
+            "ActiveState",
+            "SubState",
+            "InvocationID"
+          ],
+          "properties": {
+            "Id": {
+              "const": "nautobot-redis.service"
+            },
+            "ActiveState": {
+              "const": "active"
+            },
+            "SubState": {
+              "const": "running"
+            },
+            "InvocationID": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        },
+        "nautobot-scheduler.service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Id",
+            "ActiveState",
+            "SubState",
+            "InvocationID"
+          ],
+          "properties": {
+            "Id": {
+              "const": "nautobot-scheduler.service"
+            },
+            "ActiveState": {
+              "const": "active"
+            },
+            "SubState": {
+              "const": "running"
+            },
+            "InvocationID": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        },
+        "nautobot-web.service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Id",
+            "ActiveState",
+            "SubState",
+            "InvocationID"
+          ],
+          "properties": {
+            "Id": {
+              "const": "nautobot-web.service"
+            },
+            "ActiveState": {
+              "const": "active"
+            },
+            "SubState": {
+              "const": "running"
+            },
+            "InvocationID": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        },
+        "nautobot-worker.service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Id",
+            "ActiveState",
+            "SubState",
+            "InvocationID"
+          ],
+          "properties": {
+            "Id": {
+              "const": "nautobot-worker.service"
+            },
+            "ActiveState": {
+              "const": "active"
+            },
+            "SubState": {
+              "const": "running"
+            },
+            "InvocationID": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        }
+      }
+    },
+    "doppler_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "execution_enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "authorization_ready": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "authorization_ready": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

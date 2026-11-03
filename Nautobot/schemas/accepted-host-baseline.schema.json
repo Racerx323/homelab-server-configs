@@ -1378,6 +1378,144 @@
           "minLength": 1
         }
       }
+    },
+    "recurring_upload_integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "bundle_sha256",
+        "status",
+        "accepted_at",
+        "capture_bundle_sha256",
+        "payload_path",
+        "payload_content_sha256",
+        "repository_id",
+        "snapshot_id",
+        "producer_elapsed_seconds",
+        "producer_deadline_seconds",
+        "backup_exit_status",
+        "integrity_exit_status",
+        "full_repository_integrity",
+        "transient_credentials_removed",
+        "services_unchanged",
+        "retained_state_unchanged",
+        "transient_unit_inactive",
+        "restore_verified",
+        "notifications_qualified",
+        "disposal_qualified",
+        "retention_qualified",
+        "recurring_schedule_enabled",
+        "media_scope",
+        "terminal_archival",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "const": "upload_integrity_accepted"
+        },
+        "accepted_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capture_bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload_content_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "repository_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "producer_elapsed_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300
+        },
+        "producer_deadline_seconds": {
+          "const": 300
+        },
+        "backup_exit_status": {
+          "const": 0
+        },
+        "integrity_exit_status": {
+          "const": 0
+        },
+        "full_repository_integrity": {
+          "const": true
+        },
+        "transient_credentials_removed": {
+          "const": true
+        },
+        "services_unchanged": {
+          "const": true
+        },
+        "retained_state_unchanged": {
+          "const": true
+        },
+        "transient_unit_inactive": {
+          "const": true
+        },
+        "restore_verified": {
+          "const": false
+        },
+        "notifications_qualified": {
+          "const": false
+        },
+        "disposal_qualified": {
+          "const": false
+        },
+        "retention_qualified": {
+          "const": false
+        },
+        "recurring_schedule_enabled": {
+          "const": false
+        },
+        "media_scope": {
+          "const": "empty_directories_only"
+        },
+        "terminal_archival": {
+          "enum": [
+            "pending",
+            "published_verified"
+          ]
+        },
+        "evidence_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
