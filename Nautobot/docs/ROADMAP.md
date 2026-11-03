@@ -5,7 +5,8 @@
 Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
-The credential operation is archived; the capture operation now occupies the slot.
+Credential provisioning and capture-only qualification are archived; the operation
+slot is clean.
 The three failed November 3 capture trials are archived. The approved 13:00–14:00
 CST successor passed normal capture/resume and independent acceptance. Capture took
 13.1 seconds; preparation through verified resume took 281.0 seconds. The health
@@ -18,8 +19,8 @@ removed. Both older payloads and all preserved trees/latches are unchanged.
 This accepts one attended, capture-only trial with directory-only media. It does
 not qualify production fault injection, populated media, upload/integrity,
 notification delivery, disposal or schedules. The successful payload and protected
-qualification tree remain retained. Terminal archival is being published; execution
-is disabled and the claim consumed. Next: prepare upload/integrity qualification
+qualification tree remain retained. Terminal archival is pushed and byte-verified;
+the operation slot is clean and the execution claim consumed. Next: prepare upload/integrity qualification
 under separate approval before considering recurring schedule enablement.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
@@ -221,8 +222,8 @@ unqualified. Do not change production volume permissions to make the adapter pas
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream is closing the accepted capture-only trial; timers and retention deletion
-remain unauthorized.
+stream is clean after capture-only archival; timers and retention deletion remain
+unauthorized.
 
 ### Intended workload comparison
 

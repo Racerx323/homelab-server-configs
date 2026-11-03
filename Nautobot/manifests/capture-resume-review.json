@@ -613,5 +613,12 @@
       "execution/observations.json": "fa1eebe052af6148d9c6c14a969e4fd8ccd261411e6dd17d7263073b6ae0fbf4",
       "acceptance-checks.json": "df599016af6af1169e4674af7d1fea2db23fe1faedf8bb6a72d287927be2ae54"
     }
+  },
+  "budget_trial_archive": {
+    "tag": "nautobot-recurring-capture-resume-budget-v1-accepted",
+    "tag_object": "1e0fdf5b2597482cd99180fdf7d333313897d223",
+    "commit": "42b90e219959a6854ec2c18efa98c720fb4f57f8",
+    "remote_verified": true,
+    "archive_bytes_verified": true
   }
 }

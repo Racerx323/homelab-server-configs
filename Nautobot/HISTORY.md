@@ -669,3 +669,23 @@ The tag preserves the exact executed bundle and unchanged sanitized outcome in
 `manifests/terminal-capture-archive.tar`, with its per-file hash manifest.
 Archive SHA-256: `d93cf33742600b3321c59e1cd12ff211092da2ac72230f0c32c41bc328003151`.
 Executed bundle SHA-256: `e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5`.
+
+## Capture-only qualification accepted
+
+`nautobot-recurring-capture-resume-budget-v1`: accepted normal capture/resume on
+November 3, 2026 with directory-only media. Six payload hashes and native dump
+parsing passed; all task return codes were zero. Capture took 13.1 seconds, health
+159.3 seconds and preparation through verified resume 281.0 seconds. Independent
+readback verified healthy writers, unchanged data services/boot, removed transient
+credentials/runtime links and unchanged older payloads and retained trees.
+
+Published annotated tag: `nautobot-recurring-capture-resume-budget-v1-accepted`; archive commit
+`42b90e219959a6854ec2c18efa98c720fb4f57f8`; tag object `1e0fdf5b2597482cd99180fdf7d333313897d223`.
+The tag preserves the exact executed bundle and sanitized accepted outcome in
+`manifests/terminal-capture-archive.tar`, with its per-file hash manifest.
+Archive SHA-256: `7edc521e3d8f42fa18ffc648eaa2d5146f39de07995151cd2b27db50ebf7d0fc`.
+Executed bundle SHA-256: `51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af`.
+Accepted state: `manifests/accepted-live-state.yaml`, `recurring_capture_resume`.
+Successful payload and protected qualification state remain retained. Upload,
+production fault injection, populated media, notifications, disposal and schedules
+remain separate approvals.
