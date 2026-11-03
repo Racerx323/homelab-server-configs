@@ -453,7 +453,15 @@
     "published": false,
     "execution_claim_consumed": false,
     "repository_hooks_passed": true,
-    "sandbox_blocked_hooks_rechecked": 14
+    "sandbox_blocked_hooks_rechecked": 14,
+    "approved": true,
+    "archive_publication": {
+      "tag": "nautobot-recurring-capture-resume-readiness-v1-failed",
+      "tag_object": "4b7455e16a2088be0feb8a8a8079edc7b841560f",
+      "commit": "12c2b44e901766da7a418859c2aa938534c32d4b",
+      "remote_verified": true,
+      "archive_bytes_verified": true
+    }
   },
   "readiness_diagnosis": {
     "diagnosis": "The normal readiness wait is shorter than the accepted web startup sequence observed during this trial.",

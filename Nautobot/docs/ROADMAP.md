@@ -37,10 +37,11 @@ health remains capped at 120 seconds. Local probe qualification does not establi
 production total-duration acceptance. One private candidate is prepared for
 November 3, 13:00–14:00 CST, with latest admission at 13:48:30. The refreshed
 read-only baseline matches retained state; the preservation path now verifies
-both payloads and the recovered-failure state. Next: approve the exact scoped
-request for terminal archival, retained-state handling and one capture-only trial.
-The current operation is terminal-pending with execution disabled; its claim is
-consumed. No replay, cleanup or further trial is authorized. Upload, notification,
+both payloads and the recovered-failure state. The exact scoped
+request covers terminal archival, retained-state handling and one capture-only trial.
+That exact request is now approved; prior terminal archival is pushed and verified.
+The successor operation is pending with repository execution disabled. Its private
+claim remains unused; execute only the approved bundle inside its attended window. Upload, notification,
 payload disposal and recurring schedules remain separate stages.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated

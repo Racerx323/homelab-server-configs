@@ -655,3 +655,17 @@ Archive SHA-256: `45721421114e466702d9aaa66b0e94c7c62d8d2a991c48fc866550058d3812
 Executed bundle SHA-256: `bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399`.
 The corrected successor separately authorizes preservation of the terminal tree
 and latch, retention of the existing payload, and one attended capture-only trial.
+
+## Capture/resume readiness failure
+
+`nautobot-recurring-capture-resume-readiness-v1`: recovered failure on November 3,
+2026. Validated local capture passed; the normal 120-second readiness wait was
+shorter than observed startup. Independent recovery proved healthy writers;
+capture/resume acceptance was not recorded. Payload and terminal state remain retained.
+
+Published annotated tag: `nautobot-recurring-capture-resume-readiness-v1-failed`; archive commit
+`12c2b44e901766da7a418859c2aa938534c32d4b`; tag object `4b7455e16a2088be0feb8a8a8079edc7b841560f`.
+The tag preserves the exact executed bundle and unchanged sanitized outcome in
+`manifests/terminal-capture-archive.tar`, with its per-file hash manifest.
+Archive SHA-256: `d93cf33742600b3321c59e1cd12ff211092da2ac72230f0c32c41bc328003151`.
+Executed bundle SHA-256: `e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5`.
