@@ -4034,6 +4034,61 @@ use disposable provider and HTTP endpoints, not the production services.
 Documentation basis: [Doppler CLI commands](https://github.com/DopplerHQ/cli/blob/master/_autodocs/api-reference/cmd.md)
 and [Apprise API](https://github.com/caronc/apprise-api#readme).
 
+### Separate notification-delivery qualification
+
+Prepare one notification-only operation after capture and upload acceptance.
+Bind the existing persistent Apprise configuration, its operator-attested fanout
+and a receipt witness. Do not inspect provider secrets or modify routing. Use
+`notification-bundle.py` with the existing one-use bundle transport and
+`qualify-notification.yaml`; repository execution gates stay disabled. Freeze
+one candidate, qualify it locally and request approval for its exact hash and
+command. The complete failure and recovery messages must be visible in that
+request, including correlation IDs and the fixed test reference time.
+
+The qualification uses `recurring_delivery.notify` and its real HTTP sender in
+an isolated, service-owned 0700 evidence directory. Both messages are explicitly
+labelled QUALIFICATION and simulated; neither claims an actual incident. A single
+transient user service runs as Nautobot, with a 180-second runtime limit and
+10-second stop limit. It does not install the recurring notification timer.
+Before sending, verify boot, service-account identity, service/HTTP health and
+the retained capture and payload trees. Refuse an existing evidence directory
+or queue; retain receipts after failure rather than replaying the operation.
+
+Send failure first, then recovery only after HTTP 200 for failure. Each message
+has at most two attempts, separated by 15 seconds: four POSTs at most. The sender
+uses a five-second socket timeout. Retry the same correlation and exact content;
+never follow redirects. Exhaustion leaves the pending message retained and stops
+the stage. An ambiguous response can cause duplicate downstream notifications.
+No automatic resend follows an HTTP 200, even if a downstream receipt is missing.
+
+Collect protected attempt receipts (event, correlation, timestamps and HTTP-200
+boolean), queue state, controller status and the final inactive unit state.
+The boolean cannot distinguish a non-200 response from a transport failure;
+no provider response bodies or secrets are recorded. Independently compare the
+read-only baseline with retained payloads, prior evidence, application identities
+and timer identities. Ignore changing timer countdowns, not changed timer names.
+
+The witness must confirm both correlations on every attested downstream
+destination. Allow ten minutes after submission for this observation, record
+receipt times and duplicates, and report missing receipts without sending more
+messages. A late receipt can be recorded separately; it does not erase a missed
+delivery bound. HTTP acceptance, local tests and a successful playbook leave
+downstream acceptance false until this confirmation is complete.
+
+If cancelled or failed, stop only `nautobot-notification-qualification.service`
+and retain its protected queue and receipts. Already delivered messages cannot
+be recalled. Do not send a compensating message, change routing, restart the
+application, clear existing latches or delete payloads. A new trial needs a
+separate scope. This stage does not enable schedules, disposal or retention.
+
+Run `tests/test_notification_qualification.py` for actual loopback HTTP retries,
+message identity, exhaustion, drift, interruption and replay refusal. Set
+`NAUTOBOT_NOTIFICATION_NATIVE=1` through the repository Ansible temporary-directory
+wrapper to run the actual playbook and transient service locally. That test
+substitutes the local account, loopback endpoint and local D-Bus health probe;
+it does not qualify the target's routing or downstream delivery. Reuse
+`tests/test_recurring_bindings.py` when modifying message formatting.
+
 ### Recurring media access and prerequisite preparation
 
 The recurring adapter invokes `media_namespace.py` through `podman unshare` as

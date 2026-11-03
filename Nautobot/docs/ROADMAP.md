@@ -24,16 +24,23 @@ state, healthy unchanged services, removed credentials, inactive transient unit
 and unchanged timer identities. The successful payload remains retained.
 
 The upload/integrity terminal archive is published and byte-verified. The consumed
-operation is cleared; the deployment stream is clean. See
+operation is cleared. See
 `manifests/recurring-upload-review.json`, accepted live state and HISTORY.
 
-Next: prepare one separate notification-delivery qualification request. Bind the
-existing notification owner, destination and exact failure/recovery messages;
-qualify delivery evidence and bounded retries without changing backup outcomes.
-This does not authorize sending notifications. Disposal and retention need their
-own scope, and remaining failure-recovery/timer gates must close before schedules.
+Notification delivery is accepted: the November 3, 15:01 CST trial submitted both
+simulated messages with HTTP 200 on their first attempts. Aaron confirmed both on
+email, Discord and Pushover within ten minutes. All 57 independent checks passed;
+application services, retained state and timer identities are unchanged, and the
+transient notification unit is inactive. Duplicate counts were not separately
+quantified; this does not establish exactly-once delivery.
+
+Next: publish and verify the authorized terminal archive for this accepted stage. The
+consumed operation remains disabled until its archive is published and verified.
+See `manifests/recurring-notification-review.json` and accepted live state.
+Then prepare a separately scoped disposal/retention decision. Remaining
+failure-recovery/timer gates must close before schedules.
 This accepts one attended upload with directory-only media; production fault
-injection, populated-media recovery, notifications, disposal, retention and
+injection, populated-media recovery, disposal, retention and
 schedule enablement remain separate stages.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated

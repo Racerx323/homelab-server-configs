@@ -386,3 +386,44 @@ recurring_upload_integrity:
     execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
     execution/ansible.stdout: d7e3cc6beff9248a21217b037d7f19c4c625f434283a1d01be565b68682f3bb7
     execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+recurring_notifications:
+  operation_id: nautobot-recurring-notification-v1
+  bundle_sha256: b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed
+  status: notification_delivery_accepted
+  accepted_at: '2026-11-03T21:04:48.725729+00:00'
+  endpoint: http://10.1.3.83:8000/notify/apprise
+  persistent_configuration: apprise
+  destinations:
+    - email
+    - Discord
+    - Pushover
+  receipt_witness: Aaron
+  correlations:
+    failure: d869688ae3690ea2584f1166fe4a948188039f1a3ec22754227d9df40a559210
+    recovery: 57a1a9d7e4212a45827892e3eb28c30e124f975887166943de42d144946926cc
+  http_attempts:
+    failure: 1
+    recovery: 1
+  retries_used: 0
+  all_six_receipts_confirmed_within_seconds: 600
+  receipt_time_precision: upper_bounds_from_displayed_minute_and_user_confirmation
+  duplicates: not_separately_quantified
+  exactly_once_delivery_claimed: false
+  services_unchanged: true
+  retained_state_unchanged: true
+  timer_identities_unchanged: true
+  transient_unit_inactive: true
+  routing_changed: false
+  recurring_schedule_enabled: false
+  scope: attended_simulated_failure_and_recovery_delivery_only
+  terminal_archival: pending_publication
+  evidence_sha256:
+    approval-record.json: 3beddcf1ebff5bc878b689fae608323451b247eeeb4b3e14884a039f85f63612
+    pre-execution.json: 6c79b743268a34a35f97ab29e309b52f981e04933f2d1befcfd3334304f14ae4
+    pre-execution-checks.json: 91bfbe565057ec8eb9e47d46590eae653b65d4a6a59f1d5625c9bfc0abd64121
+    readback.json: 9e26ee9a62d8c13f4f5bfc64ea5f8db26354dbfd639fffb43a0246ab6bb16185
+    receipt-confirmations.json: 9afe352b4655eaccd85e493cd4468caac6f23f59f015ab49374c142e92e1c04f
+    acceptance-checks.json: 63f537722802b38e2eb4bf8057fe58d699e89770ec9b7e9a45de1e67e369b429
+    execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
+    execution/ansible.stdout: 289d3075af64edd006a1615610d9ff860089207dd613369865616eca27d6165c
+    execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855

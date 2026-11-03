@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "status": "accepted_pending_archival",
+  "operation_id": "nautobot-recurring-notification-v1",
+  "bundle_sha256": "b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed",
+  "source_commit": "587a44482a17c23c7e41f7a545718cfff2838f1b",
+  "request_path": "/home/aaron/code/.local-evidence/nautobot-notification-preparation-20261103/APPROVAL.md",
+  "execution_enabled": false,
+  "production_notifications_sent": true,
+  "baseline": {
+    "collected_at": "2026-11-03T20:41:49.652134+00:00",
+    "sha256": "7513f78e4e24f70b8df4e20e910bbb85e38faa577ec8ac3f14378199e84d34f0",
+    "comparisons_passed": 42,
+    "secret_values_read": false
+  },
+  "destination": {
+    "endpoint": "http://10.1.3.83:8000/notify/apprise",
+    "persistent_configuration": "apprise",
+    "fanout": [
+      "email",
+      "Discord",
+      "Pushover"
+    ],
+    "evidence": "operator_attestation",
+    "witness": "Aaron",
+    "configuration_inspected": false
+  },
+  "messages": {
+    "failure": {
+      "event_id": "d869688ae3690ea2584f1166fe4a948188039f1a3ec22754227d9df40a559210",
+      "message": {
+        "body": "Summary\n- Node: j2-svpi4mf.local.theama.co\n- Component: recurring application backup\n- Simulated event: failure\n- State: unknown -> failure\n\nImpact\nNotification delivery test only. No production incident or recovery is claimed.\n\nDetails\n- Check: nightly-protection\n- Failure class: backup-or-writer-recovery\n- Test reference time: 2026-11-03T20:41:49.652134+00:00\n- Correlation: d869688ae3690ea2584f1166fe4a948188039f1a3ec22754227d9df40a559210\n\n\nNext step\n- Aaron: confirm this correlation on email, Discord and Pushover.\n- No application action is required.",
+        "format": "text",
+        "title": "[QUALIFICATION] 🚨 [Nautobot] Failure on j2-svpi4mf",
+        "type": "failure"
+      }
+    },
+    "recovery": {
+      "event_id": "57a1a9d7e4212a45827892e3eb28c30e124f975887166943de42d144946926cc",
+      "message": {
+        "body": "Summary\n- Node: j2-svpi4mf.local.theama.co\n- Component: recurring application backup\n- Simulated event: recovery\n- State: failure -> recovery\n\nImpact\nNotification delivery test only. No production incident or recovery is claimed.\n\nDetails\n- Check: nightly-protection\n- Failure class: none\n- Test reference time: 2026-11-03T20:41:49.652134+00:00\n- Correlation: 57a1a9d7e4212a45827892e3eb28c30e124f975887166943de42d144946926cc\n\n\nNext step\n- Aaron: confirm this correlation on email, Discord and Pushover.\n- No application action is required.",
+        "format": "text",
+        "title": "[QUALIFICATION] ✅ [Nautobot] Recovery on j2-svpi4mf",
+        "type": "success"
+      }
+    }
+  },
+  "limits": {
+    "attempts_per_message": 2,
+    "total_posts": 4,
+    "retry_seconds": 15,
+    "socket_timeout_seconds": 5,
+    "service_runtime_seconds": 180,
+    "stop_timeout_seconds": 10,
+    "receipt_wait_seconds": 600
+  },
+  "local_qualification": {
+    "native_notification_tests": 9,
+    "existing_recurring_tests": 43,
+    "operation_contract_tests": 16,
+    "documentation_contract_tests": 5,
+    "host_convergence_tests": 16,
+    "ansible_syntax": "passed_through_temporary_directory_wrapper",
+    "assertion_policy": "passed",
+    "bundle_secret_scan": "passed",
+    "native_adaptations": [
+      "local_account",
+      "loopback_HTTP_endpoint",
+      "local_DBus_health_probe"
+    ],
+    "production_acceptance": false
+  },
+  "evidence_sha256": {
+    "native-tests.log": "d4f6cb10592c211e373c734b13922596957f36a2e13ce1056af9489c8dedcd6c",
+    "recurring-tests.log": "6e03973abde6aff8c2d26aa640c28c30a576b7aff02cd8e2be896f3d54546457",
+    "convergence-tests.log": "a4e545a0a0e3fa76b0033b373141a31e00e643d3247c880a40111c333d199ad8",
+    "bundle-scan.log": "fb2bbe2709b222aad3f06f29f713824226f793fb8e4290370f80e17a7bee16d2",
+    "baseline-comparison.json": "8d48987505d4816edf9968825045c42262401965a59be013856458d54ccd3fcd",
+    "approval-record.json": "3beddcf1ebff5bc878b689fae608323451b247eeeb4b3e14884a039f85f63612",
+    "pre-execution.json": "6c79b743268a34a35f97ab29e309b52f981e04933f2d1befcfd3334304f14ae4",
+    "pre-execution-checks.json": "91bfbe565057ec8eb9e47d46590eae653b65d4a6a59f1d5625c9bfc0abd64121",
+    "readback.json": "9e26ee9a62d8c13f4f5bfc64ea5f8db26354dbfd639fffb43a0246ab6bb16185",
+    "receipt-confirmations.json": "9afe352b4655eaccd85e493cd4468caac6f23f59f015ab49374c142e92e1c04f",
+    "acceptance-checks.json": "63f537722802b38e2eb4bf8057fe58d699e89770ec9b7e9a45de1e67e369b429",
+    "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+    "execution/ansible.stdout": "289d3075af64edd006a1615610d9ff860089207dd613369865616eca27d6165c",
+    "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "external_input_sha256": {
+    "baseline.json": "7513f78e4e24f70b8df4e20e910bbb85e38faa577ec8ac3f14378199e84d34f0",
+    "baseline.sh": "4e2a4bf1ef99f07f9b66c4276c7d755d393461d64001f08cd3eb43c93fba84a5",
+    "check-baseline.py": "9f34793c1844db9d9fc90a92e23effbd50a35961404dcb62672b49f54c39f703",
+    "readback.sh": "f8af5f5bde06e85242836918b7a4f2e468f78486742db62a7ddc02ba2d8b2f42",
+    "check-acceptance.py": "f26b1fcb6c4950da1e4aaed9d9a23a13a88f6d88e75a8957696321b4da18d79c"
+  },
+  "remaining_gaps": [
+    "terminal_publication_and_verification_pending"
+  ],
+  "later_stages": [
+    "disposal",
+    "retention",
+    "remaining_failure_recovery_and_populated_media_gates",
+    "schedule_enablement"
+  ],
+  "accepted_at": "2026-11-03T21:04:48.725729+00:00",
+  "execution_consumed": true,
+  "independent_checks_passed": 57,
+  "delivery_acceptance": {
+    "operation_id": "nautobot-recurring-notification-v1",
+    "bundle_sha256": "b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed",
+    "status": "notification_delivery_accepted",
+    "accepted_at": "2026-11-03T21:04:48.725729+00:00",
+    "endpoint": "http://10.1.3.83:8000/notify/apprise",
+    "persistent_configuration": "apprise",
+    "destinations": [
+      "email",
+      "Discord",
+      "Pushover"
+    ],
+    "receipt_witness": "Aaron",
+    "correlations": {
+      "failure": "d869688ae3690ea2584f1166fe4a948188039f1a3ec22754227d9df40a559210",
+      "recovery": "57a1a9d7e4212a45827892e3eb28c30e124f975887166943de42d144946926cc"
+    },
+    "http_attempts": {
+      "failure": 1,
+      "recovery": 1
+    },
+    "retries_used": 0,
+    "all_six_receipts_confirmed_within_seconds": 600,
+    "receipt_time_precision": "upper_bounds_from_displayed_minute_and_user_confirmation",
+    "duplicates": "not_separately_quantified",
+    "exactly_once_delivery_claimed": false,
+    "services_unchanged": true,
+    "retained_state_unchanged": true,
+    "timer_identities_unchanged": true,
+    "transient_unit_inactive": true,
+    "routing_changed": false,
+    "recurring_schedule_enabled": false,
+    "scope": "attended_simulated_failure_and_recovery_delivery_only",
+    "terminal_archival": "pending_publication",
+    "evidence_sha256": {
+      "approval-record.json": "3beddcf1ebff5bc878b689fae608323451b247eeeb4b3e14884a039f85f63612",
+      "pre-execution.json": "6c79b743268a34a35f97ab29e309b52f981e04933f2d1befcfd3334304f14ae4",
+      "pre-execution-checks.json": "91bfbe565057ec8eb9e47d46590eae653b65d4a6a59f1d5625c9bfc0abd64121",
+      "readback.json": "9e26ee9a62d8c13f4f5bfc64ea5f8db26354dbfd639fffb43a0246ab6bb16185",
+      "receipt-confirmations.json": "9afe352b4655eaccd85e493cd4468caac6f23f59f015ab49374c142e92e1c04f",
+      "acceptance-checks.json": "63f537722802b38e2eb4bf8057fe58d699e89770ec9b7e9a45de1e67e369b429",
+      "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+      "execution/ansible.stdout": "289d3075af64edd006a1615610d9ff860089207dd613369865616eca27d6165c",
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "terminal_publication_authorized": true
+}

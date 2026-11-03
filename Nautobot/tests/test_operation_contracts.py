@@ -85,6 +85,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_notification_qualification':
+            validate(json.loads((ROOT / 'Nautobot/schemas/notification-qualification.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
         elif operation['operation'].get('stage') == 'recurring_upload_integrity_qualification':
             validate(json.loads((ROOT / 'Nautobot/schemas/upload-integrity.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])
@@ -343,6 +347,22 @@ class Contracts(unittest.TestCase):
         bad = copy.deepcopy(operation)
         bad['preparation_review']['readiness_review']['memory_correction']['authorization_reusable'] = True
         with self.assertRaises(ValidationError): validate(schema, bad)
+
+
+    def test_notification_acceptance_keeps_scope_and_delivery_evidence(self):
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        if 'recurring_notifications' not in accepted:
+            self.skipTest('notification stage not accepted')
+        validate(schema, accepted)
+        branch = schema['properties']['recurring_notifications']
+        record = accepted['recurring_notifications']
+        for field in branch['required']:
+            bad = copy.deepcopy(record); del bad[field]
+            with self.assertRaises(ValidationError): validate(branch, bad)
+        for field in ('exactly_once_delivery_claimed', 'routing_changed', 'recurring_schedule_enabled'):
+            bad = copy.deepcopy(record); bad[field] = True
+            with self.assertRaises(ValidationError): validate(branch, bad)
 
 
 if __name__ == '__main__': unittest.main()

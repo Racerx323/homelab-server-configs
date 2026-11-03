@@ -1,0 +1,68 @@
+---
+- name: Qualify two simulated notifications through the persistent Apprise route
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  vars:
+    op: '{{ capture_operation }}'
+    user_environment:
+      HOME: '{{ op.target.home }}'
+      XDG_RUNTIME_DIR: '/run/user/{{ op.target.uid }}'
+      DBUS_SESSION_BUS_ADDRESS: 'unix:path=/run/user/{{ op.target.uid }}/bus'
+      PYTHONDONTWRITEBYTECODE: '1'
+  tasks:
+    - name: Require the exact approved notification-only contract
+      ansible.builtin.assert:
+        that:
+          - capture_bundle_verified | bool
+          - op.operation.execution_enabled | bool
+          - op.operation.authorization_ready | bool
+          - op.operation.stage == 'recurring_notification_qualification'
+          - ansible_play_hosts_all == ['j2-svpi4mf']
+          - ansible_host == op.target.address
+          - not ansible_check_mode
+    - name: Claim an absent protected evidence directory
+      ansible.builtin.command:
+        argv: [/usr/bin/mkdir, --mode=0700, '{{ op.evidence_root }}']
+      changed_when: true
+    - name: Assign evidence to the service account
+      ansible.builtin.file:
+        path: '{{ op.evidence_root }}'
+        owner: '{{ op.target.uid }}'
+        group: '{{ op.target.gid }}'
+        mode: '0700'
+    - name: Transfer frozen execution inputs
+      ansible.builtin.copy:
+        src: '{{ capture_bundle }}/runtime/'
+        dest: '{{ op.evidence_root }}/'
+        owner: '{{ op.target.uid }}'
+        group: '{{ op.target.gid }}'
+        mode: '0600'
+        directory_mode: '0700'
+    - name: Send within one bounded transient service without installing timers
+      become_user: '{{ op.target.user }}'
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemd-run
+          - --user
+          - --wait
+          - --collect
+          - --unit=nautobot-notification-qualification
+          - --property=Type=exec
+          - --property=RuntimeMaxSec=180
+          - --property=TimeoutStopSec=10
+          - --property=KillMode=control-group
+          - --property=UMask=0077
+          - --property=StandardOutput=null
+          - --property=StandardError=null
+          - '--setenv=HOME={{ op.target.home }}'
+          - '--setenv=XDG_RUNTIME_DIR=/run/user/{{ op.target.uid }}'
+          - '--setenv=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ op.target.uid }}/bus'
+          - --setenv=PYTHONDONTWRITEBYTECODE=1
+          - /usr/bin/python3
+          - -B
+          - '{{ op.evidence_root }}/scripts/notification_qualification.py'
+          - '{{ op.evidence_root }}/operation.json'
+        chdir: /
+      changed_when: true

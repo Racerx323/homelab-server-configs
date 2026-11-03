@@ -78,6 +78,14 @@ def format_alert(contract, payload):
           f"- Correlation: {payload['event_id']}\n\nNext step\n"
           "- Evidence: journalctl --user -u nautobot-protection.service\n"
           "- First check: systemctl --user status nautobot-protection.service")
+    if contract.get('qualification') is True:
+        title='[QUALIFICATION] '+title
+        body=body.replace('- Event: ', '- Simulated event: ').replace(payload['impact'],
+            'Notification delivery test only. No production incident or recovery is claimed.')
+        body=body.replace('- Observed: ', '- Test reference time: ')
+        body=body.split('\nNext step\n')[0]+(
+            '\n\nNext step\n- Aaron: confirm this correlation on email, Discord and Pushover.'
+            '\n- No application action is required.')
     require(len((title+body).encode())<=4096,'notification_size')
     return dict(title=title,body=body,type=payload['severity'],format='text')
 

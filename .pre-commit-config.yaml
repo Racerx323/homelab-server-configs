@@ -352,7 +352,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity|notification-qualification)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -564,6 +564,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*recurring.*|ansible/tasks/capture-resume-upload\.yaml|tests/test_recurring_protection\.py)
+      - id: nautobot-notification-qualification
+        name: Validate notification qualification and bounded HTTP retries
+        entry: python3 Nautobot/tests/test_notification_qualification.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*(?:notification|recurring_delivery).*|schemas/notification-qualification\.schema\.json|tests/test_notification_qualification\.py)
       - id: nautobot-upload-integrity
         name: Validate retained capture upload contract
         entry: python3 Nautobot/tests/test_upload_integrity.py

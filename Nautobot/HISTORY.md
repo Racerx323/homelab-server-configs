@@ -711,3 +711,18 @@ Snapshot: `4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24`.
 Accepted state: `manifests/accepted-live-state.yaml`, `recurring_upload_integrity`.
 Payloads and node evidence remain retained. Notifications, disposal, retention
 and schedule enablement are separate stages.
+
+## Recurring notification delivery accepted
+
+`nautobot-recurring-notification-v1`: accepted on November 3, 2026. Both simulated
+messages received HTTP 200 on their first attempts; Aaron confirmed failure and
+recovery on email, Discord and Pushover within ten minutes. All 57 checks passed,
+including unchanged services/retained state/timers and an inactive transient unit.
+Duplicate counts were not separately quantified; no exactly-once claim is made.
+
+Accepted state: `manifests/accepted-live-state.yaml`, `recurring_notifications`.
+The exact approved definition, acceptance helpers and sanitized outcome are in
+`manifests/terminal-notification-archive.tar`; its adjacent manifest binds every
+member. Terminal publication is authorized and pending verification. Planned annotated tag:
+`nautobot-recurring-notification-v1-accepted`; no archive commit or tag exists yet.
+Schedule enablement, disposal, retention and remaining recovery gates stay separate.

@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One notification delivery qualification through the persistent route",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "target",
+    "baseline_collected_at",
+    "boot_id",
+    "evidence_root",
+    "capture_root",
+    "notification",
+    "route_attestation",
+    "observed",
+    "attempts_per_message",
+    "retry_seconds",
+    "services",
+    "preserved_trees",
+    "source_sha256",
+    "boundaries",
+    "acceptance",
+    "messages",
+    "receipt_wait_seconds"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "target": {
+      "const": {
+        "name": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "user": "nautobot",
+        "uid": 999,
+        "gid": 985,
+        "home": "/var/lib/nautobot"
+      }
+    },
+    "evidence_root": {
+      "const": "/var/lib/nautobot/protection/notification-qualification"
+    },
+    "capture_root": {
+      "const": "/var/lib/nautobot/protection/qualification"
+    },
+    "notification": {
+      "const": {
+        "method": "direct_apprise",
+        "endpoint": "http://10.1.3.83:8000/notify/apprise",
+        "hostname": "j2-svpi4mf",
+        "fqdn": "j2-svpi4mf.local.theama.co",
+        "qualification": true
+      }
+    },
+    "route_attestation": {
+      "const": {
+        "owner": "Aaron",
+        "persistent_configuration": "apprise",
+        "destinations": [
+          "email",
+          "Discord",
+          "Pushover"
+        ],
+        "receipt_witness": "Aaron",
+        "provider_configuration_read": false
+      }
+    },
+    "attempts_per_message": {
+      "const": 2
+    },
+    "retry_seconds": {
+      "const": 15
+    },
+    "boundaries": {
+      "const": {
+        "routing_changes": false,
+        "backup_execution": false,
+        "credential_access": false,
+        "writer_pause": false,
+        "schedule_enablement": false,
+        "payload_disposal": false,
+        "retention_changes": false
+      }
+    },
+    "acceptance": {
+      "const": [
+        "two_http_200_submissions",
+        "Aaron_confirms_both_correlations_on_email_Discord_Pushover",
+        "unchanged_services_payloads_retained_state_timers",
+        "inactive_transient_unit",
+        "protected_bounded_receipts",
+        "no_automatic_replay"
+      ]
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "authorization_ready",
+        "execution_enabled",
+        "source_commit"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-notification-[a-z0-9-]+$"
+        },
+        "stage": {
+          "const": "recurring_notification_qualification"
+        },
+        "state": {
+          "const": "pending"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "baseline_collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "observed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "services": {
+      "type": "object",
+      "required": [
+        "nautobot-postgresql.service",
+        "nautobot-redis.service",
+        "nautobot-scheduler.service",
+        "nautobot-web.service",
+        "nautobot-worker.service"
+      ],
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "preserved_trees": {
+      "type": "object",
+      "minProperties": 2,
+      "maxProperties": 2,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "directories",
+          "files"
+        ]
+      }
+    },
+    "source_sha256": {
+      "type": "object",
+      "required": [
+        "accepted.yaml",
+        "desired.yaml",
+        "recurring.yaml",
+        "PLAN.md",
+        "APPRISE_DELIVERY.md"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "accepted.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "desired.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recurring.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "PLAN.md": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "APPRISE_DELIVERY.md": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "messages": {
+      "type": "object",
+      "required": [
+        "failure",
+        "recovery"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "type": "object",
+          "required": [
+            "event_id",
+            "message"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "message": {
+              "type": "object",
+              "required": [
+                "title",
+                "body",
+                "type",
+                "format"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 4096
+                },
+                "type": {
+                  "const": "failure"
+                },
+                "format": {
+                  "const": "text"
+                }
+              }
+            }
+          }
+        },
+        "recovery": {
+          "type": "object",
+          "required": [
+            "event_id",
+            "message"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "message": {
+              "type": "object",
+              "required": [
+                "title",
+                "body",
+                "type",
+                "format"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 4096
+                },
+                "type": {
+                  "const": "success"
+                },
+                "format": {
+                  "const": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "receipt_wait_seconds": {
+      "const": 600
+    }
+  }
+}
