@@ -638,3 +638,20 @@ Archive SHA-256: `22f008cbde8e826a5d0700dbd63cb49a76d3d5af442d36ecc857c0d06b3cc4
 Executed bundle SHA-256: `307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773`.
 No capture/recovery acceptance was recorded. The separately approved successor
 binds preservation of this residue before a new capture-only trial.
+
+## Capture/resume dump-validation failure
+
+`nautobot-recurring-capture-resume-retry-v1`: failed on November 3, 2026 after
+writing six local sections. The dump adapter consumed validator stdin; immediate
+post-resume health failed and recovery latched manual intervention. Independent
+readback subsequently found healthy services, unchanged database/Redis invocations,
+matching payload hashes and a valid dump. This did not establish capture acceptance.
+
+Published annotated tag: `nautobot-recurring-capture-resume-retry-v1-failed`; archive commit
+`a4c5826bcf97322873b5b777d66eb4798b07e439`; tag object `325bada1df4b7155eac0f3ce6da03612a34d9b93`.
+The tag preserves the exact executed bundle and sanitized outcome in
+`manifests/terminal-capture-archive.tar`, with its per-file hash manifest.
+Archive SHA-256: `45721421114e466702d9aaa66b0e94c7c62d8d2a991c48fc866550058d381250`.
+Executed bundle SHA-256: `bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399`.
+The corrected successor separately authorizes preservation of the terminal tree
+and latch, retention of the existing payload, and one attended capture-only trial.

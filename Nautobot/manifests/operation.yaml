@@ -1,12 +1,11 @@
----
 schema_version: 1
 operation:
-  id: nautobot-recurring-capture-resume-retry-v1
+  id: nautobot-recurring-capture-resume-readiness-v1
   stage: recurring_capture_resume_qualification
-  state: terminal-pending
+  state: pending
   authorization_ready: false
   execution_enabled: false
-  source_commit: d67260d5c0f2d1cf0438331eb2451fa80e3f4bf2
+  source_commit: af9eeb78cf4a6e1ed943bc81d34acdffbb86aff3
 target:
   host: j2-svpi4mf
   address: 10.1.2.170
@@ -15,8 +14,8 @@ target:
   gid: 985
 plan_sha256: 3e1c74a76468ed75b12739718fc93481450968234c91630b4a4ad6d1cba9c876
 baseline:
-  collected_at: '2026-10-29T21:48:32.747764+00:00'
-  raw_sha256: efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927
+  collected_at: '2026-11-03T17:46:38.959429+00:00'
+  raw_sha256: e644c339a1b51fec1d62e066c8e7a1fdca2a53ec97b41be941c09d3ae34b615b
   artifact_sha256:
     /var/lib/nautobot/runtime/initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b
     /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
@@ -37,7 +36,7 @@ baseline:
     - devicetype-images
     - health_check_storage_test
     - image-attachments
-  staging_free_bytes: 936225370112
+  staging_free_bytes: 936195317760
 packages:
   - name: ansible-core
     version: 2.19.11-0+deb13u1
@@ -157,10 +156,10 @@ supervisor:
   unit_prefix: nautobot-protection-qualification
   timezone: America/Chicago
   window_date: '2026-11-03'
-  start_hour: 9
-  start_minute: 30
-  end_hour: 10
-  end_minute: 30
+  start_hour: 11
+  start_minute: 55
+  end_hour: 12
+  end_minute: 55
   capture_seconds: 450
   recovery_seconds: 240
   run_seconds: 900
@@ -180,8 +179,8 @@ supervisor:
     - localhost,
     - /var/lib/nautobot/protection/qualification/playbooks/recurring-capture.yaml
     - --extra-vars
-    - '{"ansible_async_dir": "/var/lib/nautobot/protection/qualification/state/async", "ansible_remote_tmp":
-      "/var/lib/nautobot/protection/qualification/state/tmp"}'
+    - '{"ansible_async_dir": "/var/lib/nautobot/protection/qualification/state/async",
+      "ansible_remote_tmp": "/var/lib/nautobot/protection/qualification/state/tmp"}'
   resume_commands:
     - - /usr/bin/python3
       - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
@@ -221,45 +220,48 @@ unit_paths:
   - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.timer
   - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-recovery.service
 mutation_boundary:
-  - Verify exact retained file hashes, directory modes, inactive never-started units, unchanged
-    service invocations and boot; rename qualification to qualification-retained-307ef354afe5;
-    unlink only four runtime links and reload user units. No payload deletion.
-  - Create only the absent service-owned qualification tree and new protected staging run.
+  - Verify exact stopped terminal state, payload hashes and metadata, healthy unchanged
+    services and boot; preserve qualification including its latch as qualification-retained-bdf8247fd17a;
+    unlink only four runtime links, reset only the two failed unit records and reload
+    user units. Leave all retained payloads in place.
+  - Create only the absent service-owned qualification tree and new protected staging
+    run.
   - Link four named runtime-only user units; arm only the independent guard timer.
-  - Pause scheduler and web, drain worker without cancellation, stop worker; capture locally;
-    resume worker web scheduler.
+  - Pause scheduler and web, drain worker without cancellation, stop worker; capture
+    locally; resume worker web scheduler.
   - Remove four runtime links only after verified healthy completion; retain configuration,
     evidence and payload.
-  - Ansible owns protected temporary transport/controller files; node-local async and module
-    files stay under qualification/state.
+  - Ansible owns protected temporary transport/controller files; node-local async
+    and module files stay under qualification/state.
 acceptance:
-  - All six captured sections independently hash-verified; pg_restore --list validates custom
-    dump.
-  - Writers healthy after local capture, unchanged PostgreSQL/Redis invocations and boot,
-    no upload receipt.
-  - Transient credentials removed; payload retained; guard disarmed; no recurring schedule
-    enabled.
-  - Review native capture and recovery durations against candidate ceilings; local tests are
-    not target acceptance.
+  - All six captured sections independently hash-verified; pg_restore --list validates
+    custom dump.
+  - Writers healthy after local capture, unchanged PostgreSQL/Redis invocations and
+    boot, no upload receipt.
+  - Transient credentials removed; payload retained; guard disarmed; no recurring
+    schedule enabled.
+  - Review native capture and recovery durations against candidate ceilings; local
+    tests are not target acceptance.
 rollback:
-  - Existing independent supervisor quiesces primary before attempting every resume and health
-    check.
+  - Existing independent supervisor quiesces primary before attempting every resume
+    and health check.
   - Failure retains recovery units, protected state and payload; no blind retry, recursive
     deletion or token revocation.
-  - Lost controller contact does not own node-local recovery; read back terminal state before
-    any recovery decision.
+  - Lost controller contact does not own node-local recovery; read back terminal state
+    before any recovery decision.
 external_inputs:
-  - Run attended on 2026-11-03 inside 09:30-10:30 America/Chicago with at least 690 seconds
-    remaining before pause.
-  - Existing accepted service-token and canonical sources must remain valid; no new credential
-    provisioning.
+  - Run attended on 2026-11-03 inside 11:55-12:55 America/Chicago with at least 690
+    seconds remaining before any retained-state mutation or pause.
+  - Existing accepted service-token and canonical sources must remain valid; no new
+    credential provisioning.
   - Existing controller Ansible, SSH host-key trust and sudo access.
-  - Archive the failed prior operation in an annotated pushed tag before activating this successor;
-    retain its consumed claim and exact executed bundle.
+  - Archive the failed retry operation in an annotated pushed tag before activating
+    this successor; retain both consumed claims and exact executed bundles.
 unresolved_prerequisites:
-  - Native capture/drain/resume duration and capacity acceptance require this authorized trial.
-  - Production fault-injection recovery and B2/Restic access remain unqualified by this capture-only
+  - Native capture/drain/resume duration and capacity acceptance require this authorized
     trial.
+  - Production fault-injection recovery and B2/Restic access remain unqualified by
+    this capture-only trial.
 later_stages:
   - Upload and integrity qualification
   - Production forced-termination recovery qualification
@@ -267,8 +269,49 @@ later_stages:
   - Successful-payload disposal
   - Recurring schedule enablement
 retained_state:
-  bundle_sha256: 307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773
+  bundle_sha256: bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399
   boot_id: b9673910-7616-421d-a46e-1332ebf107e1
+  directories:
+    .:
+      gid: 985
+      mode: 448
+      uid: 999
+    metadata:
+      gid: 985
+      mode: 448
+      uid: 999
+    playbooks:
+      gid: 985
+      mode: 448
+      uid: 999
+    scripts:
+      gid: 985
+      mode: 448
+      uid: 999
+    scripts/__pycache__:
+      gid: 985
+      mode: 448
+      uid: 999
+    state:
+      gid: 985
+      mode: 448
+      uid: 999
+    state/async:
+      gid: 985
+      mode: 448
+      uid: 999
+    state/tmp:
+      gid: 985
+      mode: 448
+      uid: 999
+    tasks:
+      gid: 985
+      mode: 448
+      uid: 999
+    units:
+      gid: 985
+      mode: 448
+      uid: 999
   files:
     ansible-temp.sh:
       gid: 985
@@ -303,12 +346,32 @@ retained_state:
     operation.json:
       gid: 985
       mode: 384
-      sha256: 4512f6950c76e26e7fbc93525f66400f0bf0cbdf6ce194aeaee1c7aead246f3e
+      sha256: 7bca626447ea7487f2e64f57cf774465a6864f9b508bb6a19462780594e24c88
       uid: 999
     playbooks/recurring-capture.yaml:
       gid: 985
       mode: 384
       sha256: 31e02cebc7c269b37e174b0d400d6798ec8aadb64935778d3540e0139339176f
+      uid: 999
+    scripts/__pycache__/application-backup.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 6d49ad9a3ec35c65295b8fa37321a94da62cc80ba1fae35788bd7ebfc0f0b943
+      uid: 999
+    scripts/__pycache__/recurring_delivery.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 2f686dbd98a74fc4afc18a6987818dbd3635aa4c65dc14341b01a75c76ce0c5e
+      uid: 999
+    scripts/__pycache__/recurring_protection.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 2bc88710d4f1d04c19af4ecfebaa9cefd688d226f64833d545053e2d196199aa
+      uid: 999
+    scripts/__pycache__/workload_capture.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 00bb20afed3b0c53840a20f43b286d8dd827e176da96e5136a430f67cacc6fe0
       uid: 999
     scripts/application-backup.py:
       gid: 985
@@ -365,6 +428,26 @@ retained_state:
       mode: 384
       sha256: ee04f975ef317ffefcd0e815451cf1dd26eddf9ff1b4896f8c894b8020c25dd2
       uid: 999
+    state/recovery.lock:
+      gid: 985
+      mode: 384
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      uid: 999
+    state/run.lock:
+      gid: 985
+      mode: 384
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      uid: 999
+    state/state.json:
+      gid: 985
+      mode: 384
+      sha256: 7fa80b0869855e47e215660c5a068300a91e6f5f69d017234fc99ada971133be
+      uid: 999
+    state/state.lock:
+      gid: 985
+      mode: 384
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      uid: 999
     supervisor.json:
       gid: 985
       mode: 384
@@ -395,35 +478,6 @@ retained_state:
       mode: 384
       sha256: 32647008b184b31eee8ba97be249c29b978dc03c98af8c72f383acef5544337d
       uid: 999
-  directories:
-    .:
-      gid: 985
-      mode: 448
-      uid: 999
-    metadata:
-      gid: 985
-      mode: 448
-      uid: 999
-    playbooks:
-      gid: 985
-      mode: 448
-      uid: 999
-    scripts:
-      gid: 985
-      mode: 448
-      uid: 999
-    state:
-      gid: 985
-      mode: 448
-      uid: 999
-    tasks:
-      gid: 985
-      mode: 448
-      uid: 999
-    units:
-      gid: 985
-      mode: 448
-      uid: 999
   links:
     nautobot-protection-qualification-guard.service: /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.service
     nautobot-protection-qualification-guard.timer: /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.timer
@@ -432,6 +486,151 @@ retained_state:
   service_invocations:
     nautobot-postgresql.service: 2eddaef23460475cb21267205035dabc
     nautobot-redis.service: e86c6cca149e46a6a20a69eaab900a04
-    nautobot-scheduler.service: 80218693660d46d5b2cb0d86c64bc2e6
-    nautobot-web.service: 352a4cf51b5a4411981e4b16ef9829b1
-    nautobot-worker.service: 6ca9876c8afd4783bcb1e1b8560f6a15
+    nautobot-scheduler.service: a2175b873ea0402490c3628a2badc62a
+    nautobot-web.service: 334b4b3ec6a5412ab60fd5ee7f05d29f
+    nautobot-worker.service: 53b273b9ce714e1eb8c8a4cb9a719b8e
+  terminal:
+    state:
+      configuration_sha256: a2c959fe6037cf9e643a4cb0f2adcc338ce10cc16bdf0d729ac345059c627c84
+      credential_cleanup: true
+      deadline: 2568956.01116662
+      finished_at: 1793722356.2922182
+      health_status: 1
+      phase: manual_intervention
+      previous_success: null
+      resume_statuses:
+        - 0
+        - 0
+        - 0
+      root: /var/lib/nautobot/protection/staging/nautobot-recurring.v9u1oyjm
+      started_at: 1793722231.0842407
+    payload:
+      directories:
+        .:
+          gid: 985
+          mode: 448
+          uid: 999
+        payload:
+          gid: 985
+          mode: 448
+          uid: 999
+      files:
+        application-backup.json:
+          gid: 985
+          mode: 384
+          sha256: 7213c2e4c6fee3982de86b2f17df367d7923c5539d42121642851f8232ae2db4
+          uid: 999
+        application-capture-requested.json:
+          gid: 985
+          mode: 384
+          sha256: 1eb63aa591972d86baf53064072c0d1ea1db1709b0fa11a373664193773bf4a0
+          uid: 999
+        application-capture-result.json:
+          gid: 985
+          mode: 384
+          sha256: 2ebf06cdee837b3d315f08ed19c96a79ac21ee75f9c42bb4bd69acc835c2e86c
+          uid: 999
+        application-capture-started.json:
+          gid: 985
+          mode: 384
+          sha256: 4ee6d3c994d521e7f1a81aff829f0e99dcbe980b666eb5be02002315ff417b12
+          uid: 999
+        backup-sources.json:
+          gid: 985
+          mode: 384
+          sha256: 6e63d000c450c6fb6d62000775b15b02d11e387b0c3e25b8058ca233fa12e7ea
+          uid: 999
+        desired-state.yaml:
+          gid: 985
+          mode: 384
+          sha256: c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961
+          uid: 999
+        inputs.json:
+          gid: 985
+          mode: 384
+          sha256: 651680224a7676c0ef51348fc5f0b79690b493aa4bc41a99c96354521af461b3
+          uid: 999
+        payload/configuration:
+          gid: 985
+          mode: 384
+          sha256: cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2
+          uid: 999
+        payload/image_dependency_manifest:
+          gid: 985
+          mode: 384
+          sha256: e00b1afd19528bec6df100529e03cff9195e35c4f0b0d475e85f0c1449aad31f
+          uid: 999
+        payload/media:
+          gid: 985
+          mode: 384
+          sha256: 6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04
+          uid: 999
+        payload/postgresql_custom_dump:
+          gid: 985
+          mode: 384
+          sha256: b7d30795b2367ddbdb4252a197d3f269e27b515cd670b1151d9c8dd7562ae2c8
+          uid: 999
+        payload/quadlet_config_hashes:
+          gid: 985
+          mode: 384
+          sha256: a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0
+          uid: 999
+        payload/versions_migrations:
+          gid: 985
+          mode: 384
+          sha256: 1271747b9ce460b3c05ab185108363d6ca21a50cb98909a3c8ff4007c39ca025
+          uid: 999
+        qualified-image.json:
+          gid: 985
+          mode: 384
+          sha256: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+          uid: 999
+        recurring-before.json:
+          gid: 985
+          mode: 384
+          sha256: 4f8f531b505ce44d673498be60d704767db71e269347a7a04950daf38847c244
+          uid: 999
+        repository:
+          gid: 985
+          mode: 384
+          sha256: 71a234cb6c870b76fabbb19fa90d59fdd64528700776713ec1cb7eb1827d68e2
+          uid: 999
+        requirements.lock:
+          gid: 985
+          mode: 384
+          sha256: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+          uid: 999
+      path: /var/lib/nautobot/protection/staging/nautobot-recurring.v9u1oyjm
+    units:
+      nautobot-protection-qualification-guard.service:
+        ActiveState: inactive
+        ControlGroup: ''
+        ControlPID: '0'
+        ExecMainStartTimestamp: ''
+        InvocationID: ''
+        MainPID: '0'
+        Result: success
+        SubState: dead
+      nautobot-protection-qualification-guard.timer:
+        ActiveState: inactive
+        InvocationID: ''
+        Result: success
+        SubState: dead
+      nautobot-protection-qualification-recovery.service:
+        ActiveState: failed
+        ControlGroup: ''
+        ControlPID: '0'
+        ExecMainStartTimestamp: Tue 2026-11-03 10:12:33 CST
+        InvocationID: 17dbde3158a744f8aac27d43fb821fa0
+        MainPID: '0'
+        Result: exit-code
+        SubState: failed
+      nautobot-protection-qualification.service:
+        ActiveState: failed
+        ControlGroup: ''
+        ControlPID: '0'
+        ExecMainStartTimestamp: Tue 2026-11-03 10:10:30 CST
+        InvocationID: 4b18319f0bbe4bccbc5913273a9e39f7
+        MainPID: '0'
+        Result: exit-code
+        SubState: failed

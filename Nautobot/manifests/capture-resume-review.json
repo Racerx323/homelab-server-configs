@@ -1,5 +1,5 @@
 {
-  "state": "manual_intervention_awaiting_archival",
+  "state": "approved_capture_trial_pending_execution",
   "target_mutation": true,
   "read_only_baseline": {
     "collected_at": "2026-10-29T21:48:32.747764+00:00",
@@ -454,6 +454,14 @@
         "reboot-hook-recheck.log": "c4e28b627729d1bd8c416d26cc75783eaf2320f7956eb6eb0a4d624655e99b76",
         "gitleaks.log": "651265b1d33c19fa129217e9900a308a9fa27f61964535a564067122839faa84"
       }
+    },
+    "approval_received": true,
+    "predecessor_archive": {
+      "tag": "nautobot-recurring-capture-resume-retry-v1-failed",
+      "tag_object": "325bada1df4b7155eac0f3ce6da03612a34d9b93",
+      "commit": "a4c5826bcf97322873b5b777d66eb4798b07e439",
+      "remote_verified": true,
+      "archive_bytes_verified": true
     }
   }
 }
