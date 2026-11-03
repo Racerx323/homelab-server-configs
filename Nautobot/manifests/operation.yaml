@@ -3,10 +3,10 @@ schema_version: 1
 operation:
   id: nautobot-recurring-capture-resume-v1
   stage: recurring_capture_resume_qualification
-  state: pending
+  state: terminal-pending
   authorization_ready: false
   execution_enabled: false
-  source_commit: ef254062cae88297c89264379f354600bc9f651e
+  source_commit: d67260d5c0f2d1cf0438331eb2451fa80e3f4bf2
 target:
   host: j2-svpi4mf
   address: 10.1.2.170
@@ -156,8 +156,11 @@ supervisor:
   state_directory: /var/lib/nautobot/protection/qualification/state
   unit_prefix: nautobot-protection-qualification
   timezone: America/Chicago
-  start_hour: 3
-  end_hour: 4
+  window_date: '2026-11-03'
+  start_hour: 9
+  start_minute: 30
+  end_hour: 10
+  end_minute: 30
   capture_seconds: 450
   recovery_seconds: 240
   run_seconds: 900
@@ -244,7 +247,7 @@ rollback:
   - Lost controller contact does not own node-local recovery; read back terminal state
     before any recovery decision.
 external_inputs:
-  - Run attended inside 03:00-04:00 America/Chicago with at least 690 seconds remaining
+  - Run attended on 2026-11-03 inside 09:30-10:30 America/Chicago with at least 690 seconds remaining
     before pause.
   - Existing accepted service-token and canonical sources must remain valid; no new
     credential provisioning.

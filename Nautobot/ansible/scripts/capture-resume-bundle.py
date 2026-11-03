@@ -15,6 +15,7 @@ ROOT=Path(__file__).resolve().parents[3]
 SCRIPTS=('capture_qualification.py','recurring_node.py','recurring_protection.py','render-recurring-protection.py',
          'recurring_delivery.py','recurring_disposal.py','workload_capture.py','media_namespace.py','recovery_probe.py')
 FILES={
+    'capture_retained.py':'Nautobot/ansible/scripts/capture_retained.py',
     'launcher.py':'Nautobot/ansible/scripts/capture-resume-bundle.py',
     'playbook.yaml':'Nautobot/ansible/playbooks/qualify-capture-resume.yaml',
     'schema.json':'Nautobot/schemas/capture-resume.schema.json',
@@ -48,14 +49,15 @@ def validate(root):
     require(op['accepted_credential_bundle']==accepted['recurring_credentials']['bundle_sha256'],'credential_bundle')
     require(not op['binding']['upload_enabled'] and not op['supervisor']['dispose_successful_payload']
             and 'notification_argv' not in op['supervisor'],'stage_scope')
-    require(op['supervisor']['start_hour']==3 and op['supervisor']['end_hour']==4,'approved_window')
+    # The frozen schema binds the exact attended date and window.
     for name,item in op['binding']['metadata_files'].items():
         require(item['sha256']==sha(root/'runtime/metadata'/name),'metadata_drift')
     return op
 
-def freeze(root):
-    op=yaml.safe_load((ROOT/FILES['operation.yaml']).read_text())
+def freeze(root, operation=None):
+    op=yaml.safe_load((operation or ROOT/FILES['operation.yaml']).read_text())
     require(op['operation'].get('stage')=='recurring_capture_resume_qualification','stage')
+    require(op['operation']['state']=='pending','operation_not_pending')
     root.mkdir(mode=0o700)
     for name,src in FILES.items():
         dst=root/name;dst.parent.mkdir(parents=True,exist_ok=True,mode=0o700);shutil.copyfile(ROOT/src,dst);dst.chmod(0o600)
@@ -102,7 +104,8 @@ def execute(root,digest,evidence):
 
 if __name__=='__main__':
     os.umask(0o077)
-    p=argparse.ArgumentParser();p.add_argument('action',choices=['freeze','verify','execute']);p.add_argument('bundle',type=Path);p.add_argument('--approve');p.add_argument('--evidence',type=Path);a=p.parse_args()
-    if a.action=='freeze':freeze(a.bundle)
+    p=argparse.ArgumentParser();p.add_argument('action',choices=['freeze','verify','execute']);p.add_argument('bundle',type=Path);p.add_argument('--approve');p.add_argument('--evidence',type=Path);p.add_argument('--operation',type=Path);a=p.parse_args()
+    if a.operation and a.action!='freeze':p.error('--operation is only valid for freeze')
+    if a.action=='freeze':freeze(a.bundle,a.operation)
     elif a.action=='verify':verify(a.bundle,a.approve)
     else:sys.exit(execute(a.bundle,a.approve,a.evidence))

@@ -6,7 +6,7 @@ attempts every reviewed resume command. No provider, notification or retention A
 """
 import argparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import fcntl
 import hashlib
 import json
@@ -60,7 +60,7 @@ def lock(path, blocking=True):
 
 
 def validate(config):
-    require(set(config)-{'notification_argv','staging_directory','staging_filesystem','dispose_successful_payload'} == {'schema_version', 'execution_authorized', 'state_directory', 'unit_prefix',
+    require(set(config)-{'notification_argv','staging_directory','staging_filesystem','dispose_successful_payload','window_date','start_minute','end_minute'} == {'schema_version', 'execution_authorized', 'state_directory', 'unit_prefix',
             'timezone', 'start_hour', 'end_hour', 'capture_seconds', 'recovery_seconds',
             'run_seconds', 'prepare_argv', 'ansible_argv', 'resume_commands', 'health_argv'}, 'configuration_fields')
     require(config['schema_version'] == 1 and config['execution_authorized'] is True, 'inactive_configuration')
@@ -68,6 +68,12 @@ def validate(config):
     require(config['timezone'] == 'America/Chicago', 'timezone')
     require(type(config['start_hour']) is int and type(config['end_hour']) is int
             and 0 <= config['start_hour'] < config['end_hour'] <= 24, 'window')
+    for key in ('start_minute', 'end_minute'):
+        require(type(config.get(key, 0)) is int and 0 <= config.get(key, 0) < 60, 'window_minute')
+    require(config['end_hour'] < 24 or config.get('end_minute', 0) == 0, 'window_end')
+    if 'window_date' in config:
+        require(isinstance(config['window_date'], str)
+                and date.fromisoformat(config['window_date']).isoformat() == config['window_date'], 'window_date')
     for key, maximum in [('capture_seconds', 600), ('recovery_seconds', 300), ('run_seconds', 7200)]:
         require(type(config[key]) is int and 1 <= config[key] <= maximum, 'deadline')
     require(config['capture_seconds'] + config['recovery_seconds'] < config['run_seconds'], 'run_deadline')
@@ -87,8 +93,11 @@ def validate(config):
 
 def in_window(config, now):
     local = now.astimezone(ZoneInfo(config['timezone']))
-    end = local.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=config['end_hour'])
-    return (config['start_hour'] <= local.hour < config['end_hour']
+    midnight = local.replace(hour=0, minute=0, second=0, microsecond=0)
+    start = midnight + timedelta(hours=config['start_hour'], minutes=config.get('start_minute', 0))
+    end = midnight + timedelta(hours=config['end_hour'], minutes=config.get('end_minute', 0))
+    return (config.get('window_date', local.date().isoformat()) == local.date().isoformat()
+            and start <= local < end
             and (end-local).total_seconds() >= config['capture_seconds'] + config['recovery_seconds'])
 
 

@@ -1,6 +1,6 @@
 {
-  "state": "prepared_execution_disabled",
-  "target_mutation": false,
+  "state": "failed_before_capture_awaiting_archival",
+  "target_mutation": true,
   "read_only_baseline": {
     "collected_at": "2026-10-29T21:48:32.747764+00:00",
     "sha256": "efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927",
@@ -192,20 +192,93 @@
   ],
   "boundary": "One attended capture-only trial; four runtime unit links; existing credentials; retained payload; no upload or schedule.",
   "mechanical_index_verification": "unavailable: vexp workspace is not a Git repository; explicit repository checks used",
-  "bundle_sha256": "0b4d2d152717275988df280ae9eced49d921724e142c8fd3bf2ff79ca50874ce",
+  "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
   "bundle_qualification": {
     "producer_verify": true,
     "wrong_approval_refused": true,
     "replay_refused_before_ansible": true,
     "input_drift_refused": true,
-    "bundle_sha256": "0b4d2d152717275988df280ae9eced49d921724e142c8fd3bf2ff79ca50874ce"
+    "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773"
   },
   "evidence_sha256": {
     "baseline.json": "efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927",
     "capture-cases/result.json": "92c580b64a747d61bd2fc448218d6c939cb247d380b5d00bd6bd9e146057fe5f",
     "systemd/results.json": "9aa261012adb6fa780c860cd08bb4c27ddcaace6dc36d53e9641b9660af051a8",
     "regressions.log": "be9246ce70469339812d7eb760a9c14d7f6c065745c7c3f29384352515636758",
-    "bundle-qualification.json": "26a279876e768111e7211c1c4967b1dff2caf86f12c1391938c3b3f06cf5571b",
+    "bundle-qualification.json": "4f3f4c2bf3b565fb30697665f70d56654843b5630be16c1693d56a9da96424d7",
     "local-container-cleanup.json": "6454f1aec9914322f0a071baca2ba28e7728f92c264f22abe2934304977a09c7"
+  },
+  "window_change": {
+    "date": "2026-11-03",
+    "timezone": "America/Chicago",
+    "start": "09:30",
+    "end": "10:30",
+    "latest_admission": "10:18:30",
+    "focused_tests_passed": 45,
+    "prior_runtime_qualification_date": "2026-10-29",
+    "target_baseline_refreshed": false,
+    "nightly_window_changed": false,
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-capture-resume-window-20261103/APPROVAL.md"
+  },
+  "execution": {
+    "state": "failed_before_capture",
+    "accepted": false,
+    "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
+    "execution_date": "2026-11-03",
+    "controller_exit_status": 2,
+    "failure": "Ansible async task could not set temporary-file permissions when becoming nautobot; chmod A+user:nautobot:rx:allow rejected.",
+    "mutation": "Protected qualification tree populated and four runtime units linked; user daemon reloaded.",
+    "capture_started": false,
+    "writers_paused": false,
+    "all_five_services_healthy_unchanged_invocations": true,
+    "boot_artifacts_media_unchanged": true,
+    "staging_empty": true,
+    "residue": "Qualification tree and four loaded inactive linked-runtime units retained.",
+    "rollback_performed": false,
+    "replay_authorized": false,
+    "next_action": "Correct and qualify the controller async privilege transition; define separately authorized handling of retained qualification state before another trial. Terminal archival remains pending.",
+    "evidence_sha256": {
+      "authorization.json": "42b82253b3551d61c76b4d2e0749c817effffe87ed1f9d6f0b77c02c7f804f08",
+      "execution/controller-result.json": "de0edf8aca6770d266a17271ddf953844d7404ef4c5bc43bb12d1c7b6fac9ad7",
+      "execution/ansible.stdout": "8ab61232ee7ec6db7b38bac5cdd5b86f7ac3bd0f51b56336f0c6cd90e69e279b",
+      "execution/ansible.stderr": "20627bdc5e2e1bb4844284f84d625914a54fa362dddeadaa286d5c45eecb6ad9",
+      "readback.sh": "ccf18efb55461e61666c3b8e9af667f237c5a3692b4621cea367a1d6a103182d",
+      "readback.json": "c9249439fdcd1646e2765db2115d68a3dc2ee68ad20e196b6ebad65186e00de8",
+      "readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "readback.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  },
+  "successor_preparation": {
+    "operation_id": "nautobot-recurring-capture-resume-retry-v1",
+    "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-capture-transition-20261103/APPROVAL.md",
+    "terminal_archive_sha256": "22f008cbde8e826a5d0700dbd63cb49a76d3d5af442d36ecc857c0d06b3cc47c",
+    "real_ssh_transition_scenarios": [
+      {
+        "scenario": "old_async",
+        "passed": true
+      },
+      {
+        "scenario": "synchronous_success",
+        "passed": true
+      },
+      {
+        "scenario": "synchronous_failure",
+        "passed": true
+      }
+    ],
+    "retained_state_tests_passed": 7,
+    "operation_contracts_passed": 16,
+    "documentation_contracts_passed": 5,
+    "syntax": "passed",
+    "target_mutation_during_preparation": false,
+    "active_operation_remains_failed": true,
+    "evidence_sha256": {
+      "retained-final-readback.json": "a4b29d23c92d853571441f30de634cd580fb7962e7c249b7b6158bf2748fdcd6",
+      "ssh-qualification/results.json": "f69b7f11f15d67ddb75d7efab58931c63297173cbfd7442f7c10f428a1b9d761",
+      "ssh-qualification/cleanup.json": "60aba8d416af9dd90a4560f81efc1bbb2249cdac635e969d391bb869889aa40d",
+      "bundle-qualification.json": "5ac81595fd6f8e37443207bb608fe9810031218038a73de87e93312496f58029",
+      "terminal-archive-manifest.json": "410caaee100239afec1826fcd01105fc49cc4d2261750fa1dfe1ec7bade37bbe"
+    }
   }
 }

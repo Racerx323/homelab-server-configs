@@ -87,6 +87,25 @@ class ProtectionTests(unittest.TestCase):
             for hour in ('02:59:00', '03:59:00', '04:00:00'):
                 self.assertFalse(module.in_window(self.config, datetime.fromisoformat(date+'T'+hour).replace(tzinfo=zone)))
 
+    def test_attended_date_minute_window_and_budget(self):
+        self.config.update(window_date='2026-11-03', start_hour=9, start_minute=30,
+                           end_hour=10, end_minute=30, capture_seconds=450, recovery_seconds=240)
+        module.validate(self.config)
+        zone = ZoneInfo('America/Chicago')
+        for stamp, expected in (
+                ('2026-11-03T09:29:59', False), ('2026-11-03T09:30:00', True),
+                ('2026-11-03T10:18:30', True), ('2026-11-03T10:18:31', False),
+                ('2026-11-03T10:30:00', False), ('2026-11-04T09:30:00', False),
+                ('2026-11-02T09:30:00', False)):
+            with self.subTest(stamp=stamp):
+                self.assertEqual(module.in_window(self.config,
+                    datetime.fromisoformat(stamp).replace(tzinfo=zone)), expected)
+        for change in ({'start_minute': 60}, {'end_minute': -1},
+                       {'start_minute': True}, {'window_date': '2026-11-31'},
+                       {'end_hour': 24}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                module.validate({**self.config, **change})
+
     def test_overlap_does_not_prepare(self):
         with module.lock(self.root/'run.lock'):
             self.assertEqual(self.supervisor.run(), 3)

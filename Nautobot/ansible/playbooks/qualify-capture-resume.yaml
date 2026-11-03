@@ -22,6 +22,30 @@
           - not ansible_check_mode
           - not op.binding.upload_enabled | bool
           - not op.supervisor.dispose_successful_payload | bool
+    - name: Preserve the exact inactive retained state when separately approved
+      when: op.retained_state is defined
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/python3
+          - -B
+          - '-'
+          - '{{ op.retained_state | to_json }}'
+        stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/capture_retained.py") }}'
+        chdir: /
+      changed_when: true
+    - name: Reload after removing only the approved inactive runtime links
+      when: op.retained_state is defined
+      become_user: nautobot
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, daemon-reload]
+        chdir: /
+      changed_when: true
     - name: Claim a new qualification directory without replacing retained state
       ansible.builtin.command:
         argv: [/usr/bin/mkdir, --mode=0700, '{{ run_root }}']
@@ -66,10 +90,6 @@
             chdir: /
           changed_when: true
         - name: Start the one-shot trial without enabling any schedule
-          vars:
-            ansible_async_dir: '{{ run_root }}/state/controller-async'
-          async: 1200
-          poll: 5
           ansible.builtin.command:
             argv: [/usr/bin/systemctl, --user, start, nautobot-protection-qualification.service]
             chdir: /

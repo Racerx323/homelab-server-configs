@@ -6,9 +6,14 @@ Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
 The credential operation is archived and the operation slot is clean.
-One disabled capture/resume qualification operation is prepared. Next: review its
-exact capture-only approval request and authorize one attended trial inside
-03:00–04:00 America/Chicago. Native duration and recovery acceptance remain open.
+The November 3 attended capture-only trial failed before capture at the Ansible
+async privilege transition. All five services remain healthy with unchanged
+invocations; no writers paused and staging is empty. The protected qualification
+tree and four inactive runtime unit links remain. The consumed operation awaits
+terminal archival. The synchronous controller start now passes a real disposable SSH/sudo regression,
+including reproduction of the old async failure. A private successor candidate
+binds exact retained-state preservation and another trial. Next: approve terminal
+archival and the candidate's retained-state handling/trial; do not replay the consumed bundle. Native capture duration and recovery acceptance remain open.
 No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated

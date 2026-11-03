@@ -4306,11 +4306,14 @@ python3 Nautobot/ansible/scripts/capture-resume-bundle.py freeze NEW_PRIVATE_BUN
 python3 BUNDLE/launcher.py execute BUNDLE --approve EXACT_SHA256 --evidence NEW_PRIVATE_EVIDENCE_DIRECTORY
 ```
 
-Run attended within 03:00–04:00 America/Chicago, with the full capture/recovery budget
-remaining. The playbook claims an absent service-owned qualification directory,
+Run attended within the date and America/Chicago window bound by the approved
+operation and schema, with the full capture/recovery budget remaining. An explicitly
+approved one-time trial window does not change the nightly 03:00–04:00 window. The playbook claims an absent service-owned qualification directory,
 checks accepted artifacts, packages, credentials and original service health, then
 links only four runtime user units. It starts the primary once without enabling a
-schedule. Existing node-local supervision owns pause/drain/capture/resume, the
+schedule. Keep the controller start synchronous so Ansible can pipeline the
+module across the unprivileged account transition; node-local supervision bounds
+the run and owns recovery independently. Existing node-local supervision owns pause/drain/capture/resume, the
 exclusive lock and independent recovery. Controller loss does not disarm recovery.
 
 The split producer capture phase performs no remote repository request. Credentials
@@ -4339,3 +4342,19 @@ dump and the real Restic binary, `qualify_recurring_systemd.py`, and the media, 
 supervisor and disposal regressions. Run Ansible through
 `tests/repository/run-with-ansible-local-temp.sh`. Keep test receipts private and
 distinguish local adapters from native target service-manager acceptance.
+
+For a failed trial that never started, separately authorize retained-state handling
+before another trial. Bind the exact file hashes, directory ownership/modes, boot,
+unchanged application invocations and four inactive, never-started runtime links.
+`capture_retained.py` refuses drift, renames the complete qualification directory
+to a bundle-derived retained path, and unlinks only those four links. The playbook
+reloads user units before creating the fresh qualification tree. No retained files
+or payloads are deleted. A partial failure retains evidence and stops; inspect it
+before any further mutation. Archive the consumed operation before activating its
+successor; preparation may freeze a private candidate with `--operation` while the
+repository continues to record the failed operation.
+
+Qualify SSH/sudo transport changes with `tests/qualify_capture_transition.py`
+through the repository Ansible temporary-directory wrapper and an existing
+local disposable SSH/sudo image. It reproduces the async permission refusal and
+checks synchronous completion as UID 999 plus nonzero command propagation.

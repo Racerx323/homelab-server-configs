@@ -564,6 +564,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*recurring.*|ansible/tasks/capture-resume-upload\.yaml|tests/test_recurring_protection\.py)
+      - id: nautobot-capture-retained
+        name: Validate retained capture state preservation
+        entry: python3 Nautobot/tests/test_capture_retained.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*capture.*|tests/test_capture_retained\.py)
       - id: nautobot-controller-persistence
         name: Validate workload controller supervision and persistence preparation
         entry: python3 Nautobot/tests/test_controller_persistence.py
