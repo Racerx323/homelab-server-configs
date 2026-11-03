@@ -749,5 +749,7 @@ service-account journal cursor was unreadable. Runtime inputs and an empty case
 directory remain; all 61 preservation checks passed. Accepted live state is
 unchanged. Bundle:
 `bb2e3c00d26e1bb1610c50ab1a680b835b6124ccdd471765ec198e0b38128043`.
-Terminal archival pending; proposed tag
-`nautobot-recurring-recovery-timer-v1-failed`. Never replay the consumed claim.
+Published annotated tag: `nautobot-recurring-recovery-timer-v1-failed`; archive commit
+`4949ce46844886156b0f484167c190ecf8522d13`. The remote tag, archive bytes and all
+39 member hashes were independently verified before clearing the consumed
+operation. Never replay the consumed claim.

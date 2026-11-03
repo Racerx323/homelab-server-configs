@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation_id": "nautobot-recurring-recovery-timer-v1",
-  "status": "failed_before_writer_pause_pending_archival",
+  "status": "failed_before_writer_pause_archived",
   "bundle_sha256": "bb2e3c00d26e1bb1610c50ab1a680b835b6124ccdd471765ec198e0b38128043",
   "request_path": "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/APPROVAL.md",
   "execution_enabled": false,
@@ -135,9 +135,7 @@
     "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/failure-checks.json": "1514bc39e6588753a2b298f75e0fca0e70f1f2c7de3e7daf4f5a903bf7aa993b",
     "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/journal-access.json": "116b2f2b3e4957bf0bac81adbfddd9ead361b6b46cb70d08bee5e84de58a0f47"
   },
-  "remaining_inputs": [
-    "terminal_archival_authorization"
-  ],
+  "remaining_inputs": [],
   "remaining_gaps": [
     "new_scoped_retained_state_handling_and_trial_approval"
   ],
@@ -146,8 +144,7 @@
     "remote_deletion_prune",
     "older_payload_disposal",
     "populated_media_recovery",
-    "host_outage_monitoring",
-    "commit_tag_push"
+    "host_outage_monitoring"
   ],
   "local_qualification_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-recovery-timer-preparation-20261103",
   "replacement": {
@@ -171,7 +168,7 @@
     "provider_credentials_resolved": false,
     "retained_mutation": "protected_recovery_qualification_directory_runtime_inputs_empty_killed_directory",
     "rollback": "no_service_rollback_needed_retained_inputs_preserved",
-    "terminal_archival": "pending_publication"
+    "terminal_archival": "published_verified"
   },
   "diagnosis": {
     "service_account_journal_cursor_exit_status": 1,
@@ -195,5 +192,15 @@
       "Nautobot/tests/test_recovery_qualification.py": "73451cf92121a0f89790196d28baeabbd0320f74dd4627aeff1ec127422b1938",
       "Nautobot/tests/qualify_recovery_setup.py": "d02e2c1844d216d7cf80f83bd8d27b2e48ec02baa3901b1d40cb9c71b20871be"
     }
+  },
+  "archive": {
+    "tag": "nautobot-recurring-recovery-timer-v1-failed",
+    "tag_object": "23229ab625fa72049737b27a1231388b6846bd42",
+    "archive_commit": "4949ce46844886156b0f484167c190ecf8522d13",
+    "archive_sha256": "d32af29e98bbf774aa1fea86ad43dde26ab090289c695871161c54e34dfb12f1",
+    "bundle_sha256": "bb2e3c00d26e1bb1610c50ab1a680b835b6124ccdd471765ec198e0b38128043",
+    "all_member_hashes_verified": true,
+    "members": 39,
+    "published_verified": true
   }
 }

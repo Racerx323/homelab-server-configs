@@ -64,11 +64,13 @@ access: both cases configured and validated, replay preserved existing outputs,
 and artifact/package/metadata drift stopped before unit creation. Application
 health and media probes were adapted; these results do not accept target recovery.
 
-Next: authorize terminal commit/tag/push and prepare a replacement trial with
-explicit retained-state handling, a fresh baseline and an attended window.
-Preserve the consumed bundle and evidence; the corrected code needs its own
-exact-bundle approval before another live trial.
-The operation remains disabled and occupied pending archival. See
+The failure archive and qualified cursor fix are published. The annotated tag,
+archive bytes and all 39 member hashes were independently verified; the consumed
+operation is cleared. Accepted live state is unchanged.
+
+Next: prepare a replacement trial with explicit retained-state handling, a fresh
+baseline and an attended window. Preserve the consumed bundle and evidence; the
+corrected code needs its own exact-bundle approval before another live trial. See
 `manifests/recurring-recovery-review.json`.
 Remote deletion/prune, older-payload disposal, populated-media recovery and schedule
 enablement remain separate scopes; no recurring schedule is enabled.
