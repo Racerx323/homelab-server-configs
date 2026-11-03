@@ -729,3 +729,13 @@ Remote tag identity, archive bytes and all 27 member hashes were verified.
 Archive SHA-256: `06f29b1080ca20a452cc7aefc4eb941075241d406266d468bd29b651df60e6c2`.
 Executed bundle SHA-256: `b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed`.
 Schedule enablement, disposal, retention and remaining recovery gates stay separate.
+
+## Recurring successful-payload disposal and retention analysis
+
+`nautobot-recurring-disposal-v1`: accepted six-file local disposal and read-only
+remote retention analysis; 59 independent checks passed. One eligible snapshot
+kept, four historical snapshots excluded, zero remote removals. Accepted identity:
+`manifests/accepted-live-state.yaml#recurring_disposal`; bundle
+`cd1e1d5f9efded646d71da1dd53448a4ff64c9851cf6625bc06724f6fc2c677e`.
+Terminal archival pending separate commit/tag/push authorization; proposed tag
+`nautobot-recurring-disposal-v1-accepted`. The consumed operation remains disabled.

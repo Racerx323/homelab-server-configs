@@ -1682,6 +1682,163 @@
           "pattern": "^[0-9a-f]{40}$"
         }
       }
+    },
+    "recurring_disposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "bundle_sha256",
+        "status",
+        "accepted_at",
+        "payload_path",
+        "removed_files",
+        "removed_bytes",
+        "snapshot_id",
+        "repository_id",
+        "keep",
+        "would_remove",
+        "excluded",
+        "remote_inventory_unchanged",
+        "remote_snapshots_deleted",
+        "prune_executed",
+        "receipts_and_empty_directory_retained",
+        "other_payloads_unchanged",
+        "services_unchanged",
+        "timer_identities_unchanged",
+        "transient_unit_inactive",
+        "transient_credentials_removed",
+        "recurring_schedule_enabled",
+        "scope",
+        "terminal_archival",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "const": "local_disposal_and_retention_analysis_accepted"
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload_path": {
+          "type": "string",
+          "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9]+/payload$"
+        },
+        "removed_files": {
+          "const": [
+            "configuration",
+            "image_dependency_manifest",
+            "media",
+            "postgresql_custom_dump",
+            "quadlet_config_hashes",
+            "versions_migrations"
+          ]
+        },
+        "removed_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "repository_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "keep": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "would_remove": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "remote_inventory_unchanged": {
+          "const": true
+        },
+        "remote_snapshots_deleted": {
+          "const": false
+        },
+        "prune_executed": {
+          "const": false
+        },
+        "receipts_and_empty_directory_retained": {
+          "const": true
+        },
+        "other_payloads_unchanged": {
+          "const": true
+        },
+        "services_unchanged": {
+          "const": true
+        },
+        "timer_identities_unchanged": {
+          "const": true
+        },
+        "transient_unit_inactive": {
+          "const": true
+        },
+        "transient_credentials_removed": {
+          "const": true
+        },
+        "recurring_schedule_enabled": {
+          "const": false
+        },
+        "scope": {
+          "const": "one_successful_local_payload_and_remote_retention_dry_run_only"
+        },
+        "terminal_archival": {
+          "enum": [
+            "pending_publication",
+            "published_verified"
+          ]
+        },
+        "evidence_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
     }
   }
 }

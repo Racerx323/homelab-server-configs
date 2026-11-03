@@ -4161,6 +4161,69 @@ partial disposal; do not automatically retry deletion. Target qualification rema
 required before unattended deployment. Run `tests/test_recurring_disposal.py` and
 `tests/test_recurring_protection.py` for these boundaries.
 
+### Successful local disposal and remote retention analysis
+
+Prepare this stage after the retained capture's exact snapshot and full integrity
+check are accepted. Use `disposal-bundle.py` and one `qualify-disposal.yaml` playbook.
+The operation binds the six local file hashes, sizes and inode identities, accepted
+snapshot, protected historical snapshot IDs and the complete retained trees.
+Keep repository execution disabled until the exact frozen bundle is approved.
+
+Refresh the read-only host baseline without resolving secrets or contacting the
+repository. Distinguish the historical accepted snapshot inventory from a fresh
+remote inventory: the latter is collected only during the approved execution.
+Retain failed captures, older restore/preservation payloads, frozen evidence,
+claims and latches. They are not inferred deletion candidates.
+
+The approved stage creates one service-owned 0700 evidence directory, transfers
+frozen runtime inputs and starts one transient user service with a 420-second
+runtime limit and 30-second stop limit. Under the existing capture run/state locks,
+require a completed capture, unchanged healthy services and exact payload/evidence
+trees. Resolve only the existing three backup references through the accepted
+config-scoped Doppler token. No provider configuration, new token or backup is
+created. Protected transient credentials remain inside this operation's evidence
+directory; normal and stop-post cleanup remove the two owned credential files.
+Unexpected residue is retained and fails acceptance.
+
+Read repository configuration and snapshot metadata with the pinned Restic binary,
+`--no-lock` and `--no-cache`; require the accepted repository ID and exact reviewed
+inventory. Then run only `forget --dry-run --json --host j2-svpi4mf --tag
+nautobot-recurring --group-by host,tags --keep-daily 7 --keep-weekly 5
+--keep-monthly 12`, with America/Chicago set explicitly. Grouping excludes unique
+staging paths. Require the exact eligible tag set, full keep/remove IDs, preservation
+of the accepted recovery snapshot and exclusion of historical reference snapshots.
+Refuse empty/ambiguous selection and any inventory change across the analysis.
+
+This is an analysis command, not authorization to remove snapshots. There is no
+remote lock, cache, retag, `forget` without `--dry-run`, prune, unlock or repair.
+The operator must exclude concurrent repository maintenance during the bounded
+stage; two matching inventories do not provide a repository-wide lock. A future
+snapshot-deletion request needs a fresh exact selection under exclusive maintenance.
+Prune remains a different mutation class and approval.
+
+Remove credentials before local disposal. Recheck local hashes and writer health,
+then call the existing `recurring_disposal.dispose` implementation. It verifies all
+members before unlinking any, rejects symlinks/hard links and unexpected members,
+and deletes only the six approved files. Keep the empty payload directory and all
+receipts, adding only the disposal receipt. Independently verify the resulting
+tree, unchanged older payloads/evidence, service and timer identities, empty
+credential directory, inactive transient unit and unchanged remote inventory.
+
+Local deletion cannot be undone automatically. A partial/interrupted disposal
+requires manual intervention; retain its marker and remaining files, refuse
+replay and do not clear existing capture latches. Recover missing files only from
+the exact retained snapshot into new protected staging through a separately
+reviewed restore scope. Do not recreate files in place, retry deletion, or send
+notifications as a rollback action. Scheduled disposal/retention remains disabled.
+
+Run `tests/test_disposal_qualification.py` and existing disposal/protection
+regressions. Set `RESTIC_BINARY` to a reviewed local executable for real disposable
+repository backup/check/dry-run/disposal/restore tests; add
+`NAUTOBOT_DISPOSAL_NATIVE=1` through the Ansible temporary-directory wrapper for
+the actual local playbook and user-service path. The native test uses a local
+repository, disposable provider CLI and local D-Bus health probe. It does not
+establish production remote selection or target disposal acceptance.
+
 ### Recurring prerequisite installation
 
 Prepare and qualify one immutable candidate, obtain one installation-only approval,

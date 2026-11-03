@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Exact successful local disposal and remote retention dry run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "target",
+    "baseline_collected_at",
+    "boot_id",
+    "capture_root",
+    "evidence_root",
+    "payload_root",
+    "snapshot_id",
+    "snapshot_ids",
+    "eligible_snapshot_ids",
+    "protected_snapshot_ids",
+    "remote_snapshot_inventory_basis",
+    "remote_inventory_accepted_at",
+    "content_sha256",
+    "payload_file_metadata",
+    "payload_tree",
+    "qualification_tree",
+    "services",
+    "restic",
+    "doppler_sha256",
+    "credentials",
+    "repository",
+    "source_sha256",
+    "retention",
+    "boundaries",
+    "acceptance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "target": {
+      "const": {
+        "name": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "user": "nautobot",
+        "uid": 999,
+        "gid": 985,
+        "home": "/var/lib/nautobot"
+      }
+    },
+    "capture_root": {
+      "const": "/var/lib/nautobot/protection/qualification"
+    },
+    "evidence_root": {
+      "const": "/var/lib/nautobot/protection/disposal-qualification"
+    },
+    "retention": {
+      "const": {
+        "dry_run": true,
+        "group_by": "host,tags",
+        "hostname": "j2-svpi4mf",
+        "tag": "nautobot-recurring",
+        "keep_daily": 7,
+        "keep_weekly": 5,
+        "keep_monthly": 12,
+        "timezone": "America/Chicago",
+        "no_lock": true,
+        "no_cache": true,
+        "prune": false
+      }
+    },
+    "boundaries": {
+      "const": {
+        "remote_snapshot_deletion": false,
+        "prune": false,
+        "retag": false,
+        "repository_repair": false,
+        "failed_payload_disposal": false,
+        "credential_provisioning": false,
+        "writer_pause": false,
+        "service_restart": false,
+        "notifications": false,
+        "schedules": false
+      }
+    },
+    "acceptance": {
+      "const": [
+        "exact_six_owned_payload_files_removed",
+        "empty_payload_directory_and_all_receipts_retained",
+        "historical_payloads_latches_and_evidence_unchanged",
+        "remote_inventory_unchanged_full_keep_remove_ids_recorded",
+        "no_remote_deletions_or_prune",
+        "unchanged_healthy_services_and_timers",
+        "transient_credentials_removed",
+        "inactive_transient_unit",
+        "no_automatic_retry_after_interruption"
+      ]
+    },
+    "remote_snapshot_inventory_basis": {
+      "const": "historical_accepted_upload_receipt_refresh_required_before_disposal"
+    },
+    "operation": {
+      "type": "object",
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "execution_enabled",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"
+        },
+        "stage": {
+          "const": "recurring_disposal_retention_qualification"
+        },
+        "state": {
+          "const": "pending"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "baseline_collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payload_root": {
+      "type": "string",
+      "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9_]+$"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "snapshot_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "eligible_snapshot_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "protected_snapshot_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "remote_inventory_accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "content_sha256": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "payload_file_metadata": {
+      "type": "object",
+      "minProperties": 6,
+      "maxProperties": 6,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "bytes",
+          "nlink",
+          "device",
+          "inode"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "nlink": {
+            "const": 1
+          },
+          "device": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "inode": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "payload_tree": {
+      "type": "object",
+      "required": [
+        "directories",
+        "files"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "directories": {
+          "type": "object"
+        },
+        "files": {
+          "type": "object"
+        }
+      }
+    },
+    "qualification_tree": {
+      "type": "object",
+      "required": [
+        "directories",
+        "files"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "directories": {
+          "type": "object"
+        },
+        "files": {
+          "type": "object"
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "required": [
+        "nautobot-postgresql.service",
+        "nautobot-redis.service",
+        "nautobot-scheduler.service",
+        "nautobot-web.service",
+        "nautobot-worker.service"
+      ],
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "restic": {
+      "type": "object",
+      "required": [
+        "path",
+        "version",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "/usr/bin/restic"
+        },
+        "version": {
+          "const": "restic 0.18.0 compiled with go1.24.4 on linux/arm64"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "doppler_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "credentials": {
+      "type": "object"
+    },
+    "repository": {
+      "type": "object"
+    },
+    "source_sha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted.yaml",
+        "desired.yaml",
+        "recurring.yaml",
+        "provider.yaml",
+        "repository.json",
+        "PLAN.md",
+        "RESTIC_ARCHITECTURE.md"
+      ],
+      "properties": {
+        "accepted.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "desired.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recurring.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provider.yaml": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "repository.json": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "PLAN.md": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "RESTIC_ARCHITECTURE.md": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

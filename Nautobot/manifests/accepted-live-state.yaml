@@ -431,3 +431,48 @@ recurring_notifications:
   terminal_tag: nautobot-recurring-notification-v1-accepted
   archive_commit: dc811fd3c4c5772a1583a3f28caaeed00c0144f1
   tag_object: 8136784d026dc311ad2f96342b58852f8037e1ea
+recurring_disposal:
+  operation_id: nautobot-recurring-disposal-v1
+  bundle_sha256: cd1e1d5f9efded646d71da1dd53448a4ff64c9851cf6625bc06724f6fc2c677e
+  status: local_disposal_and_retention_analysis_accepted
+  accepted_at: '2026-11-03T21:48:33.327693+00:00'
+  payload_path: /var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1/payload
+  removed_files:
+    - configuration
+    - image_dependency_manifest
+    - media
+    - postgresql_custom_dump
+    - quadlet_config_hashes
+    - versions_migrations
+  removed_bytes: 5263489
+  snapshot_id: 4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24
+  repository_id: 536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9
+  keep:
+    - 4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24
+  would_remove: []
+  excluded:
+    - 028d50637353e7f901c563f2ec63a1adba3c954195e15f130a5e801959fa9219
+    - 7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3
+    - 7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c
+    - cde42adbda73d29a98beb62d5fb4c339c10c826a5bc64f0460fb0bc884777051
+  remote_inventory_unchanged: true
+  remote_snapshots_deleted: false
+  prune_executed: false
+  receipts_and_empty_directory_retained: true
+  other_payloads_unchanged: true
+  services_unchanged: true
+  timer_identities_unchanged: true
+  transient_unit_inactive: true
+  transient_credentials_removed: true
+  recurring_schedule_enabled: false
+  scope: one_successful_local_payload_and_remote_retention_dry_run_only
+  terminal_archival: pending_publication
+  evidence_sha256:
+    approval-record.json: 66e5c2e49c601d3ef930a98cb721fdaf7aacc74ee36a11a271ca95e44ba93587
+    pre-execution.json: 57e14dd8c05bc10d1271e6b6bae24c32c82c9ea4fb7f3c13ed5e1b1368a46cf8
+    pre-execution-checks.json: 40606783ddbd8d48fc46e6573b3b506ed91bf12778d99c8bd53c73e4fbe63618
+    readback.json: 5ea80f1b38db833b63e4cb485bb58a1a3409c0cf341db9cd417ac4407ca7078c
+    acceptance-checks.json: c4358cf8d8c3c4789b4119b3df350ade0036b9e9548992c635d3c05f2b32ba7b
+    execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
+    execution/ansible.stdout: f8807c7398de574ea6cbc376e5aacca5ecc78f5aa2c8c77bad72e5787139cda7
+    execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855

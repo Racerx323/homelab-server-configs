@@ -21,7 +21,8 @@ one snapshot was created and full `restic check --read-data` passed. The produce
 finished in 15.0 seconds within its original 300-second limit. Independent readback
 confirmed all six hashes, unchanged original capture files and older retained
 state, healthy unchanged services, removed credentials, inactive transient unit
-and unchanged timer identities. The successful payload remains retained.
+and unchanged timer identities. Its payload was retained until the separately
+accepted disposal stage below.
 
 The upload/integrity terminal archive is published and byte-verified. The consumed
 operation is cleared. See
@@ -35,14 +36,23 @@ transient notification unit is inactive. Duplicate counts were not separately
 quantified; this does not establish exactly-once delivery.
 
 The notification terminal archive is published and byte-verified. The consumed
-operation is cleared; the deployment stream is clean. See
+operation was cleared before the disposal stage. See
 `manifests/recurring-notification-review.json`, accepted live state and HISTORY.
 
-Next: prepare a separately scoped disposal/retention decision. Remaining
-failure-recovery/timer gates must close before schedules.
-This accepts one attended upload with directory-only media; production fault
-injection, populated-media recovery, disposal, retention and
-schedule enablement remain separate stages.
+Local disposal and remote retention analysis are accepted. The November 3 trial
+removed exactly six approved successful-capture files (5,263,489 bytes), retaining
+their receipts and empty directory. All 59 independent checks passed. Older
+payloads, preserved evidence, application services and timer identities are unchanged;
+transient credentials are removed and the operation unit is inactive. The remote
+7/5/12 dry run kept the one eligible recurring snapshot, excluded all four historical
+snapshots and selected none for removal. All five remote snapshots remain unchanged.
+See `manifests/recurring-disposal-review.json` and accepted live state.
+
+Next: authorize terminal archival (commit/tag/push) of the consumed disposal
+operation. Its exact bundle and sanitized outcome are prepared for publication;
+the operation remains disabled and occupied until the published archive is verified.
+Remote deletion/prune, older-payload disposal, populated-media recovery, remaining
+failure-recovery/timer gates and schedule enablement remain separate scopes.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -110,7 +120,7 @@ implementation is not proof that a host has no manually configured schedule.
 | Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. Intended inventory scale, DNS record mix, media use and Job mix are not bound to an accepted comparison. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Obtain the intended pilot inventory/export and workload envelope, then compare them with the accepted fixture. Repeat only testing needed to cover material differences. |
 | Nightly backup | The shared producer and application capture have qualified one-shot execution. Review-only Nautobot nightly units now exist; no recurring schedule is deployed. The online capture explicitly requires a quiet window and directory-only media. | Define unattended execution/credential ownership, writer/media consistency, schedule/timezone, bounded duration, non-overlap and missed-run behavior before implementing a timer. A historical manual quiet-window approval is not recurring authority. |
 | Weekly integrity | Full integrity passed for accepted operations. No recurring check policy or schedule was found. | Choose the plan's full-check policy or an explicitly reviewed subset policy; a subset does not replace full integrity acceptance. |
-| Retention | Plan requires 7 daily, 5 weekly and 12 monthly snapshots; no consumer retention execution contract was found. | Review exact snapshot grouping/selection and dry-run candidates. Authorize deletion/retention separately; backup approval does not authorize forget/prune. |
+| Retention | The pending analysis contract uses 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag; disposable native dry runs preserve unrelated references and repository bytes. Current remote selection remains unqualified. | Review fresh full keep/remove IDs during the separately approved analysis. Snapshot deletion and prune require their own authorization. |
 | Monthly restore | Bounded historical restore is accepted; no monthly scheduling contract was found. Media contained directories only. | Define exact-snapshot selection, supervision and retained-payload disposal. Qualify populated-media capture/restore before relying on it for uploads. |
 | Monitoring | Accepted host/runtime/workload observations and internal metrics support exist. These do not prove ongoing backup-age, integrity-failure or missed-schedule alerts. No Nautobot-owned recurring protection alert path was found in the reviewed sources. | Review existing Munin/notification ownership and select observable outcomes, alert destination and failure/recovery tests. Internal Prometheus files do not imply a deployed scraper. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
@@ -230,8 +240,8 @@ schedule enablement. Successful staging disposal is specified only after verifie
 snapshot/integrity/writer health; failed payloads require explicit review.
 Successful-payload disposal is implemented and passes local receipt, hash, link,
 membership and exclusive-lock regressions. Failed/interrupted payloads remain
-retained; disposal failure latches manual intervention. Target disposal acceptance
-remains open.
+retained; disposal failure latches manual intervention. One successful-payload
+disposal and remote retention dry run are now accepted; remote deletion remains unauthorized.
 
 The September 28 next action was to assemble prerequisite installation and
 credential-provisioning definitions. Installation is now accepted and archived;
@@ -243,7 +253,7 @@ unqualified. Do not change production volume permissions to make the adapter pas
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream is clean after capture and upload/integrity archival; timers and retention deletion remain
+stream awaits disposal terminal archival; timers and retention deletion remain
 unauthorized.
 
 ### Intended workload comparison

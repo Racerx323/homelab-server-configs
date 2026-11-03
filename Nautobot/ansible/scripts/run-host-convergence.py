@@ -26,6 +26,7 @@ BUNDLE_FILES = (
     'Nautobot/schemas/capture-resume.schema.json',
     'Nautobot/schemas/upload-integrity.schema.json',
     'Nautobot/schemas/notification-qualification.schema.json',
+    'Nautobot/schemas/disposal-qualification.schema.json',
     'Nautobot/schemas/workload-operation.schema.json',
     'Nautobot/schemas/logout-persistence.schema.json',
     'Nautobot/schemas/boot-readiness.schema.json',

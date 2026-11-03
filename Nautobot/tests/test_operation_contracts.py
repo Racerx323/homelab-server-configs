@@ -16,6 +16,18 @@ def validate(schema, value):
 
 
 class Contracts(unittest.TestCase):
+    def test_disposal_acceptance_keeps_remote_deletion_and_schedules_separate(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        if 'recurring_disposal' not in accepted:
+            self.skipTest('no accepted disposal record')
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for field in ('remote_snapshots_deleted', 'prune_executed', 'recurring_schedule_enabled'):
+            bad = copy.deepcopy(accepted)
+            bad['recurring_disposal'][field] = True
+            with self.subTest(field=field), self.assertRaises(ValidationError):
+                validate(schema, bad)
+
     def test_recurring_prerequisites_do_not_accept_later_stages(self):
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
@@ -85,6 +97,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_disposal_retention_qualification':
+            validate(json.loads((ROOT / 'Nautobot/schemas/disposal-qualification.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
         elif operation['operation'].get('stage') == 'recurring_notification_qualification':
             validate(json.loads((ROOT / 'Nautobot/schemas/notification-qualification.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])

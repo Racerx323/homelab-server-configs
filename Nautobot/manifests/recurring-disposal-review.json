@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "status": "accepted_pending_publication",
+  "operation_id": "nautobot-recurring-disposal-v1",
+  "bundle_sha256": "cd1e1d5f9efded646d71da1dd53448a4ff64c9851cf6625bc06724f6fc2c677e",
+  "source_commit": "7fc50d26b3fca6366e6c3fd4bf9077a71265933d",
+  "request_path": "/home/aaron/code/.local-evidence/nautobot-disposal-retention-preparation-20261103/APPROVAL.md",
+  "execution_enabled": false,
+  "preparation": {
+    "target_mutation": false,
+    "provider_contact": false,
+    "secret_values_read": false,
+    "baseline_collected_at": "2026-11-03T21:24:37.740374+00:00",
+    "baseline_comparisons_passed": 48
+  },
+  "local_disposal": {
+    "root": "/var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1/payload",
+    "files": {
+      "configuration": {
+        "bytes": 20480,
+        "sha256": "cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2"
+      },
+      "image_dependency_manifest": {
+        "bytes": 20480,
+        "sha256": "e00b1afd19528bec6df100529e03cff9195e35c4f0b0d475e85f0c1449aad31f"
+      },
+      "media": {
+        "bytes": 10240,
+        "sha256": "6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04"
+      },
+      "postgresql_custom_dump": {
+        "bytes": 5127742,
+        "sha256": "3fa820b04b3605ba0a72c899890b45c16949c0ca677702d91dd4dfcf757bc919"
+      },
+      "quadlet_config_hashes": {
+        "bytes": 30720,
+        "sha256": "a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0"
+      },
+      "versions_migrations": {
+        "bytes": 53827,
+        "sha256": "1271747b9ce460b3c05ab185108363d6ca21a50cb98909a3c8ff4007c39ca025"
+      }
+    },
+    "total_bytes": 5263489,
+    "snapshot_id": "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24",
+    "retain_receipts": true,
+    "retain_empty_directory": true,
+    "retain_all_other_payloads": true,
+    "automatic_undo": false
+  },
+  "remote_retention": {
+    "analysis_only": true,
+    "group_by": "host,tags",
+    "hostname": "j2-svpi4mf",
+    "tag": "nautobot-recurring",
+    "keep_daily": 7,
+    "keep_weekly": 5,
+    "keep_monthly": 12,
+    "timezone": "America/Chicago",
+    "expected_inventory_ids": [
+      "028d50637353e7f901c563f2ec63a1adba3c954195e15f130a5e801959fa9219",
+      "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24",
+      "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+      "7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c",
+      "cde42adbda73d29a98beb62d5fb4c339c10c826a5bc64f0460fb0bc884777051"
+    ],
+    "eligible_snapshot_ids": [
+      "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24"
+    ],
+    "protected_snapshot_ids": [
+      "028d50637353e7f901c563f2ec63a1adba3c954195e15f130a5e801959fa9219",
+      "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+      "7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c",
+      "cde42adbda73d29a98beb62d5fb4c339c10c826a5bc64f0460fb0bc884777051"
+    ],
+    "inventory_basis": "fresh_approved_before_and_after_inventory",
+    "fresh_remote_selection_qualified": true,
+    "remote_deletion_authorized": false,
+    "prune_authorized": false,
+    "concurrent_repository_maintenance": "must_be_excluded_during_the_bounded_run"
+  },
+  "qualification": {
+    "native_tests": 8,
+    "existing_recurring_tests": 43,
+    "operation_contract_tests": 17,
+    "documentation_contract_tests": 5,
+    "host_convergence_tests": 16,
+    "ansible_syntax": "passed_through_repository_temporary_directory_wrapper",
+    "yaml_and_assertion_policy": "passed",
+    "bundle_secret_scan": "passed",
+    "native_scope": [
+      "real_local_Restic_backup_full_check_retention_dry_run_disposal_restore",
+      "sparse_dates_and_unique_paths_historical_reference_exclusion",
+      "actual_Ansible_user_service_and_stop_post",
+      "interrupted_partial_unlink_no_replay",
+      "inventory_drift_and_lock_refusal"
+    ],
+    "native_adaptations": [
+      "local_repository_and_account",
+      "disposable_provider_CLI",
+      "local_DBus_health_probe"
+    ],
+    "target_acceptance": false
+  },
+  "external_input_sha256": {
+    "baseline.json": "226fcdf155a9a01347b298470595b0760acd2205ecac3012789c83beb090cf9f",
+    "baseline.sh": "a463a9d7a1b838ac151db2f2963f984a919db337327c9fb2673cc99692656b7e",
+    "check-baseline.py": "9f34793c1844db9d9fc90a92e23effbd50a35961404dcb62672b49f54c39f703",
+    "readback.sh": "05ac1495c0efd09185b56a71d7894cae246af820b92668e68071042022ff18da",
+    "check-acceptance.py": "b3c89611b9f313cb4ba67de7ed5c1e3cc38cd80b0e29c768b886cb5f3ebf5f20"
+  },
+  "evidence_sha256": {
+    "baseline-comparison.json": "f2c6d84091a763a29fcbee698780e82a320a60b372df2ae9e5b41568873ac349",
+    "qualified-tests.log": "8c1986623073c17e03a95642961c03d1f27d4e6d21ba4593e43e9a8c09b89653",
+    "recurring-tests.log": "8660d6ec8b2080cd1fef651c8ad2d0b6a3b28494b48b7c9291c5d918bba40fed",
+    "validation.json": "8d78148c386bd4bc4815f19deede4d50d742648a2a7b4e8520649e4104f5df34",
+    "bundle-scan.log": "5fbf078db94b6ce7caaa812b9d8afc9415675e9ddb1c4cea0b27b3b0b6faa7be",
+    "approval-record.json": "66e5c2e49c601d3ef930a98cb721fdaf7aacc74ee36a11a271ca95e44ba93587",
+    "pre-execution.json": "57e14dd8c05bc10d1271e6b6bae24c32c82c9ea4fb7f3c13ed5e1b1368a46cf8",
+    "pre-execution-checks.json": "40606783ddbd8d48fc46e6573b3b506ed91bf12778d99c8bd53c73e4fbe63618",
+    "readback.json": "5ea80f1b38db833b63e4cb485bb58a1a3409c0cf341db9cd417ac4407ca7078c",
+    "acceptance-checks.json": "c4358cf8d8c3c4789b4119b3df350ade0036b9e9548992c635d3c05f2b32ba7b",
+    "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+    "execution/ansible.stdout": "f8807c7398de574ea6cbc376e5aacca5ecc78f5aa2c8c77bad72e5787139cda7",
+    "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "remaining_inputs": [],
+  "remaining_gaps": [
+    "terminal_archival_commit_tag_push"
+  ],
+  "later_stages": [
+    "remote_snapshot_deletion",
+    "prune",
+    "older_failed_or_restore_payload_disposal",
+    "remaining_recovery_and_timer_gates",
+    "schedule_enablement"
+  ],
+  "accepted_at": "2026-11-03T21:48:33.327693+00:00",
+  "execution": {
+    "controller_exit_status": 0,
+    "independent_checks_passed": 59,
+    "local_disposal_accepted": true,
+    "remote_analysis_accepted": true,
+    "keep": [
+      "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24"
+    ],
+    "would_remove": [],
+    "excluded": [
+      "028d50637353e7f901c563f2ec63a1adba3c954195e15f130a5e801959fa9219",
+      "7a86d7a5d0748ec72d5a99be099be0922958b290662324a4c416b6825a5f5cf3",
+      "7f59d7ccb20ccf6e3c4ea537034db77e0ec558b7a01e7cb2d1bb2bd62b77863c",
+      "cde42adbda73d29a98beb62d5fb4c339c10c826a5bc64f0460fb0bc884777051"
+    ],
+    "remote_inventory_unchanged": true,
+    "terminal_archival": "pending_publication"
+  }
+}
