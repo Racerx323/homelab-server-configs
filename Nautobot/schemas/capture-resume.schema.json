@@ -156,75 +156,148 @@
       }
     },
     "supervisor": {
-      "const": {
-        "schema_version": 1,
-        "execution_authorized": false,
-        "state_directory": "/var/lib/nautobot/protection/qualification/state",
-        "unit_prefix": "nautobot-protection-qualification",
-        "timezone": "America/Chicago",
-        "start_hour": 9,
-        "end_hour": 10,
-        "capture_seconds": 450,
-        "recovery_seconds": 240,
-        "run_seconds": 900,
-        "prepare_argv": [
-          "/usr/bin/python3",
-          "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
-          "--binding",
-          "/var/lib/nautobot/protection/qualification/binding.json",
-          "prepare"
-        ],
-        "ansible_argv": [
-          "/usr/bin/env",
-          "ANSIBLE_CONFIG=/var/lib/nautobot/protection/qualification/ansible.cfg",
-          "/bin/bash",
-          "/var/lib/nautobot/protection/qualification/ansible-temp.sh",
-          "/usr/bin/ansible-playbook",
-          "-i",
-          "localhost,",
-          "/var/lib/nautobot/protection/qualification/playbooks/recurring-capture.yaml",
-          "--extra-vars",
-          "{\"ansible_async_dir\": \"/var/lib/nautobot/protection/qualification/state/async\", \"ansible_remote_tmp\": \"/var/lib/nautobot/protection/qualification/state/tmp\"}"
-        ],
-        "resume_commands": [
-          [
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "execution_authorized",
+        "state_directory",
+        "unit_prefix",
+        "timezone",
+        "start_hour",
+        "end_hour",
+        "capture_seconds",
+        "recovery_seconds",
+        "run_seconds",
+        "prepare_argv",
+        "ansible_argv",
+        "resume_commands",
+        "health_argv",
+        "dispose_successful_payload",
+        "staging_directory",
+        "staging_filesystem",
+        "window_date",
+        "start_minute",
+        "end_minute"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "execution_authorized": {
+          "const": false
+        },
+        "state_directory": {
+          "const": "/var/lib/nautobot/protection/qualification/state"
+        },
+        "unit_prefix": {
+          "const": "nautobot-protection-qualification"
+        },
+        "timezone": {
+          "const": "America/Chicago"
+        },
+        "start_hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "end_hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "capture_seconds": {
+          "const": 450
+        },
+        "recovery_seconds": {
+          "const": 240
+        },
+        "run_seconds": {
+          "const": 900
+        },
+        "prepare_argv": {
+          "const": [
             "/usr/bin/python3",
             "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
             "--binding",
             "/var/lib/nautobot/protection/qualification/binding.json",
-            "start",
-            "worker"
-          ],
-          [
-            "/usr/bin/python3",
-            "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
-            "--binding",
-            "/var/lib/nautobot/protection/qualification/binding.json",
-            "start",
-            "web"
-          ],
-          [
-            "/usr/bin/python3",
-            "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
-            "--binding",
-            "/var/lib/nautobot/protection/qualification/binding.json",
-            "start",
-            "scheduler"
+            "prepare"
           ]
-        ],
-        "health_argv": [
-          "/usr/bin/python3",
-          "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
-          "--binding",
-          "/var/lib/nautobot/protection/qualification/binding.json",
-          "health"
-        ],
-        "dispose_successful_payload": false,
-        "staging_directory": "/var/lib/nautobot/protection/staging",
-        "staging_filesystem": "ext4",
-        "window_date": "2026-11-03",
-        "start_minute": 30,
-        "end_minute": 30
+        },
+        "ansible_argv": {
+          "const": [
+            "/usr/bin/env",
+            "ANSIBLE_CONFIG=/var/lib/nautobot/protection/qualification/ansible.cfg",
+            "/bin/bash",
+            "/var/lib/nautobot/protection/qualification/ansible-temp.sh",
+            "/usr/bin/ansible-playbook",
+            "-i",
+            "localhost,",
+            "/var/lib/nautobot/protection/qualification/playbooks/recurring-capture.yaml",
+            "--extra-vars",
+            "{\"ansible_async_dir\": \"/var/lib/nautobot/protection/qualification/state/async\", \"ansible_remote_tmp\": \"/var/lib/nautobot/protection/qualification/state/tmp\"}"
+          ]
+        },
+        "resume_commands": {
+          "const": [
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/qualification/binding.json",
+              "start",
+              "worker"
+            ],
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/qualification/binding.json",
+              "start",
+              "web"
+            ],
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/qualification/binding.json",
+              "start",
+              "scheduler"
+            ]
+          ]
+        },
+        "health_argv": {
+          "const": [
+            "/usr/bin/python3",
+            "/var/lib/nautobot/protection/qualification/scripts/recurring_node.py",
+            "--binding",
+            "/var/lib/nautobot/protection/qualification/binding.json",
+            "health"
+          ]
+        },
+        "dispose_successful_payload": {
+          "const": false
+        },
+        "staging_directory": {
+          "const": "/var/lib/nautobot/protection/staging"
+        },
+        "staging_filesystem": {
+          "const": "ext4"
+        },
+        "window_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "start_minute": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59
+        },
+        "end_minute": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59
+        }
       }
     },
     "unit_names": {
@@ -262,210 +335,56 @@
       "type": "array"
     },
     "retained_state": {
-      "const": {
-        "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
-        "boot_id": "b9673910-7616-421d-a46e-1332ebf107e1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundle_sha256",
+        "boot_id",
+        "files",
+        "directories",
+        "links",
+        "service_invocations"
+      ],
+      "properties": {
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f-]{36}$"
+        },
         "files": {
-          "ansible-temp.sh": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "457bd8965c67263a6fe43298dca830094320a94066dfe8af0a4fe1c242b65a9e",
-            "uid": 999
-          },
-          "ansible.cfg": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "5b71e97fc028566c1ed11b5c47c1be938971c04de7bf32206e7d9b17ed22672b",
-            "uid": 999
-          },
-          "binding.json": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "a6bce8aaaa5ca7346221db5cc6c5e0e45b6cd0917bfbdd70a686c82871f53312",
-            "uid": 999
-          },
-          "metadata/desired-state.yaml": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961",
-            "uid": 999
-          },
-          "metadata/qualified-image.json": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54",
-            "uid": 999
-          },
-          "metadata/requirements.lock": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6",
-            "uid": 999
-          },
-          "operation.json": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "4512f6950c76e26e7fbc93525f66400f0bf0cbdf6ce194aeaee1c7aead246f3e",
-            "uid": 999
-          },
-          "playbooks/recurring-capture.yaml": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "31e02cebc7c269b37e174b0d400d6798ec8aadb64935778d3540e0139339176f",
-            "uid": 999
-          },
-          "scripts/application-backup.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "6ab745a471dbc2b129f5251d674dd2c196a1f28ae273dd2bf1011894f351f8bf",
-            "uid": 999
-          },
-          "scripts/capture_qualification.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "0cf1ec98aeb82aaaed22dd435b164645cc99af54ab5332b7410768e56b28db27",
-            "uid": 999
-          },
-          "scripts/media_namespace.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "3bd9a40f7be0ee0a8c5fc44707bae56c8cefa10327450416f04ef6c63c293c1c",
-            "uid": 999
-          },
-          "scripts/recovery_probe.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "4095a2945654e8117deaec911cd6fe7f7f11094018900931a82bd341fa9132b6",
-            "uid": 999
-          },
-          "scripts/recurring_delivery.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "3312446a4a5aef66f61f00300e04d5cf84ecf04d067029eeddae28a043cb736c",
-            "uid": 999
-          },
-          "scripts/recurring_disposal.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "be0d6836bc2bbff5fcad49b62247ec230f2d816c861e03f2d7e05f818f069e92",
-            "uid": 999
-          },
-          "scripts/recurring_node.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "ae60089b95f41aeb257bd30d63f7d378c14d8c0901a7456bfb32f1a0a72db06a",
-            "uid": 999
-          },
-          "scripts/recurring_protection.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "6a5ad953b74a4fd493dbdc0fdfceddd62019e799e11af775c5e982609f10d57b",
-            "uid": 999
-          },
-          "scripts/render-recurring-protection.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "c71ef33da52f67e8ddf533210bd49c261b3b6820f0dd1826602dd2228829ca56",
-            "uid": 999
-          },
-          "scripts/workload_capture.py": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "aedc54e2eeac6b02257676a3e78e262529b03c28efeb35bf716cae0eff6cd8e5",
-            "uid": 999
-          },
-          "state/before.json": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "ee04f975ef317ffefcd0e815451cf1dd26eddf9ff1b4896f8c894b8020c25dd2",
-            "uid": 999
-          },
-          "supervisor.json": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "a2c959fe6037cf9e643a4cb0f2adcc338ce10cc16bdf0d729ac345059c627c84",
-            "uid": 999
-          },
-          "tasks/capture-resume-upload.yaml": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "8e8b9af36982d3c334525e50a5c1f9531d084e635941e4f14e2759f27462b3be",
-            "uid": 999
-          },
-          "units/nautobot-protection-qualification-guard.service": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "7dc6f4ba331178a4a7c68435885af19114b0ed9cb7d99d5b924843247f37f19c",
-            "uid": 999
-          },
-          "units/nautobot-protection-qualification-guard.timer": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "2af062ac28987c8c01d2537c7082c8d22b07691d12b59c30594ccf4652f5e809",
-            "uid": 999
-          },
-          "units/nautobot-protection-qualification-recovery.service": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "78b9f67b3a59574a23d7b76834e5ecb41482dcfd51a93930f7cda0b49bcc6235",
-            "uid": 999
-          },
-          "units/nautobot-protection-qualification.service": {
-            "gid": 985,
-            "mode": 384,
-            "sha256": "32647008b184b31eee8ba97be249c29b978dc03c98af8c72f383acef5544337d",
-            "uid": 999
-          }
+          "type": "object"
         },
         "directories": {
-          ".": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "metadata": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "playbooks": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "scripts": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "state": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "tasks": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          },
-          "units": {
-            "gid": 985,
-            "mode": 448,
-            "uid": 999
-          }
+          "type": "object"
         },
         "links": {
-          "nautobot-protection-qualification-guard.service": "/var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.service",
-          "nautobot-protection-qualification-guard.timer": "/var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.timer",
-          "nautobot-protection-qualification-recovery.service": "/var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-recovery.service",
-          "nautobot-protection-qualification.service": "/var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification.service"
+          "type": "object"
         },
         "service_invocations": {
-          "nautobot-postgresql.service": "2eddaef23460475cb21267205035dabc",
-          "nautobot-redis.service": "e86c6cca149e46a6a20a69eaab900a04",
-          "nautobot-scheduler.service": "80218693660d46d5b2cb0d86c64bc2e6",
-          "nautobot-web.service": "352a4cf51b5a4411981e4b16ef9829b1",
-          "nautobot-worker.service": "6ca9876c8afd4783bcb1e1b8560f6a15"
+          "type": "object"
+        },
+        "terminal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "payload",
+            "units"
+          ],
+          "properties": {
+            "state": {
+              "type": "object"
+            },
+            "payload": {
+              "type": "object"
+            },
+            "units": {
+              "type": "object"
+            }
+          }
         }
       }
     }

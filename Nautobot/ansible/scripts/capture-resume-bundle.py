@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Freeze or execute one approved capture-only Ansible definition."""
 import argparse
+from datetime import date
 import hashlib
 import json
 import os
@@ -49,7 +50,10 @@ def validate(root):
     require(op['accepted_credential_bundle']==accepted['recurring_credentials']['bundle_sha256'],'credential_bundle')
     require(not op['binding']['upload_enabled'] and not op['supervisor']['dispose_successful_payload']
             and 'notification_argv' not in op['supervisor'],'stage_scope')
-    # The frozen schema binds the exact attended date and window.
+    window=op['supervisor']
+    require(date.fromisoformat(window['window_date']).isoformat()==window['window_date'],'window_date')
+    require((window['end_hour']-window['start_hour'])*60+window['end_minute']-window['start_minute']==60,'one_hour_window')
+    # The signed-off bundle binds the exact attended date and window.
     for name,item in op['binding']['metadata_files'].items():
         require(item['sha256']==sha(root/'runtime/metadata'/name),'metadata_drift')
     return op

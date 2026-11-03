@@ -327,5 +327,133 @@
       "final-health.json": "98a1dd79cbb3d57b55049c5ec107938b66543ddf081d2be291e7f84019c337b5",
       "journal-cursor.stdout": "f187009e5e21591718aed21767c561c8d4c017b6a5337f2859a920a9aef49d4d"
     }
+  },
+  "adapter_readiness_remediation": {
+    "state": "locally_qualified_not_deployed",
+    "production_contact": false,
+    "target_latch_cleared": false,
+    "retained_payload_modified": false,
+    "dump_root_cause": "A preliminary input-less command inherited and consumed dump stdin before pg_restore.",
+    "dump_before": {
+      "real_postgresql_dump": true,
+      "direct_parser_passed": true,
+      "adapter_exit_status": 1,
+      "expected_failure_reproduced": true,
+      "corrupt_dump_refused": false,
+      "dump_bytes": 22992,
+      "dump_sha256": "e229ace68e82520bd6a1cc96523c1847bb4ffb787ff4ed310a00619d24cc5fcc"
+    },
+    "dump_after": {
+      "real_postgresql_dump": true,
+      "direct_parser_passed": true,
+      "adapter_exit_status": 0,
+      "expected_failure_reproduced": false,
+      "corrupt_dump_refused": true,
+      "dump_bytes": 22992,
+      "dump_sha256": "cf1436a5ca2149627d37b8e238eab67039f9153b5a5eb45f606916b586aa2450"
+    },
+    "readiness": [
+      {
+        "scenario": "delayed_http_readiness",
+        "passed": true,
+        "elapsed_seconds": 3.1916474670015305
+      },
+      {
+        "scenario": "persistent_http_failure",
+        "passed": true,
+        "elapsed_seconds": 2.000162573000125
+      },
+      {
+        "scenario": "hung_http_probe",
+        "passed": true,
+        "elapsed_seconds": 1.0059532099985518
+      }
+    ],
+    "systemd": [
+      {
+        "case": "success",
+        "credentials_removed": true,
+        "phase": "complete",
+        "writers_resumed": true
+      },
+      {
+        "case": "killed",
+        "credentials_removed": true,
+        "phase": "recovered_failure",
+        "writers_resumed": true
+      },
+      {
+        "case": "deadline",
+        "credentials_removed": true,
+        "phase": "recovered_failure",
+        "writers_resumed": true
+      },
+      {
+        "case": "ansible",
+        "credentials_removed": true,
+        "phase": "complete",
+        "writers_resumed": true
+      }
+    ],
+    "binding_tests_passed": 14,
+    "supervisor_tests_passed": 14,
+    "documentation_tests_passed": 5,
+    "readiness_limit_seconds": 120,
+    "per_probe_limit_seconds": 5,
+    "recovery_budget_unchanged_seconds": 240,
+    "implementation_sha256": {
+      "Nautobot/ansible/scripts/recurring_node.py": "f67cd6503d32655f9d7433faf42f743792fd18d352c65096682becfc8533e54e",
+      "Nautobot/ansible/scripts/recurring_protection.py": "3a7b138c2c418b2182ba799fba64fc26cfaa155f4a15434430f5a985353033d4"
+    },
+    "evidence_sha256": {
+      "before/results.json": "3aba5dfb42a29aa202bbef5780c54771f03e62eaee60ab54de615d441a3b6dd7",
+      "before/cleanup.json": "aa4d03daf1e9bb309f47aae337fdc70b20b5644399c40cc6c50950948770c3fd",
+      "after/results.json": "75b70fe369b910f0279af48a7698df41ce9c81a7c66a3fabc97ee18a34973cdf",
+      "after/cleanup.json": "cc0b18ed51df6fec141ef96759f10165e859dafdaa4ff9a788d74522bcc2fc02",
+      "readiness/results.json": "a1a7d786acbf4c0cff7a5fea0e0987b040a719e10e599bc8bfacca6a5d16799b",
+      "readiness/cleanup.json": "b1c7e829b899c9c3bdea4a1b07bf171b702021807f91e0136c7cffaee6474043",
+      "systemd/results.json": "9aa261012adb6fa780c860cd08bb4c27ddcaace6dc36d53e9641b9660af051a8"
+    }
+  },
+  "next_trial_preparation": {
+    "state": "prepared_not_executed",
+    "target_mutation": false,
+    "window": "2026-11-03 11:55-12:55 America/Chicago",
+    "latest_admission": "2026-11-03 12:43:30 America/Chicago",
+    "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5",
+    "baseline_collected_at": "2026-11-03T17:46:38.959429+00:00",
+    "baseline_sha256": "e644c339a1b51fec1d62e066c8e7a1fdca2a53ec97b41be941c09d3ae34b615b",
+    "retained_systemd": {
+      "local_user_systemd": true,
+      "failed_units_released": true,
+      "latch_preserved": true,
+      "payload_unchanged": true,
+      "target_acceptance": false
+    },
+    "retained_regressions_passed": 10,
+    "operation_contracts_passed": 16,
+    "bundle_checks": {
+      "producer_verify": true,
+      "wrong_approval_refused": true,
+      "replay_refused_before_ansible": true,
+      "input_drift_refused": true,
+      "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5"
+    },
+    "adapter_readiness_qualification_reused_unchanged": "772b5e066b3ceaaefb07f8eb716f2b6d8ee71ba34c3b4e6574f6b14fbdd6971d",
+    "archive_sha256": "45721421114e466702d9aaa66b0e94c7c62d8d2a991c48fc866550058d381250",
+    "archive_tag_pending": "nautobot-recurring-capture-resume-retry-v1-failed",
+    "approval_file": "/home/aaron/code/.local-evidence/nautobot-capture-readiness-20261103/APPROVAL.md",
+    "repository_validation": {
+      "all_applicable_checks_passed": true,
+      "initial_aggregate_status": 1,
+      "initial_wrapper_failure": "Concurrent review-manifest edit; all eight reboot tests passed. No implementation changes during hooks.",
+      "stable_reboot_hook_recheck_status": 0,
+      "archive_secret_scan_status": 0,
+      "logs_sha256": {
+        "pre-commit.log": "d09962db16c32b747358193d4bc8a1fe21e36f00bf1218a6a859c6a479786f18",
+        "reboot-hook-recheck.log": "c4e28b627729d1bd8c416d26cc75783eaf2320f7956eb6eb0a4d624655e99b76",
+        "gitleaks.log": "651265b1d33c19fa129217e9900a308a9fa27f61964535a564067122839faa84"
+      }
+    }
   }
 }

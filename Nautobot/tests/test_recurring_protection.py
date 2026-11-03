@@ -138,6 +138,25 @@ class ProtectionTests(unittest.TestCase):
             control.assert_not_called()
         self.assertEqual(self.supervisor.state()['phase'],'armed')
 
+    def test_readiness_cannot_extend_total_recovery_budget(self):
+        self.armed()
+        self.supervisor.config['recovery_seconds']=240
+        self.supervisor.config['resume_commands']=[['/bin/true']]*3
+        clock=[0.0];timeouts=[]
+        def control(*args):
+            if args[:2]==('stop','--no-block'):clock[0]+=100
+            return subprocess.CompletedProcess([],0,stdout=b'inactive\n')
+        def command(argv,timeout):
+            timeouts.append(timeout);clock[0]+=timeout
+            return 124 if len(timeouts)==4 else 0
+        with patch.object(module.time,'monotonic',side_effect=lambda:clock[0]), \
+                patch.object(self.supervisor,'control',side_effect=control), \
+                patch.object(self.supervisor,'command',side_effect=command):
+            self.assertEqual(self.supervisor.recover(),1)
+        self.assertEqual(timeouts,[30,30,30,50])
+        self.assertEqual(clock[0],240)
+        self.assertEqual(self.supervisor.state()['phase'],'manual_intervention')
+
     def test_late_timer_does_not_interrupt_upload(self):
         state = self.armed(); state['phase'] = 'resumed'; self.supervisor.write(state)
         with patch.object(self.supervisor, 'control') as control:

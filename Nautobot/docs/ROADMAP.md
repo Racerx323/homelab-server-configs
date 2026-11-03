@@ -5,7 +5,7 @@
 Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
-The credential operation is archived and the operation slot is clean.
+The credential operation is archived; the capture operation now occupies the slot.
 The first November 3 capture launch failure is archived in
 `nautobot-recurring-capture-resume-v1-failed`. The approved successor preserved
 that evidence and passed the synchronous SSH/sudo transition. It then failed the
@@ -14,9 +14,19 @@ its recovery health check failed. Final independent readback found all five
 services healthy and HTTP 200, unchanged PostgreSQL/Redis invocations, six matching
 payload hashes and a valid native dump. These later observations do not convert
 the failed trial into acceptance. The payload, recovery units and latch remain.
-Next: diagnose and qualify dump validation and post-resume readiness, then define
-scoped state handling. No replay or latch clearing is authorized. The successor
-awaits terminal archival; recurring scheduling remains disabled.
+The dump adapter failure is reproduced locally: an input-less preliminary database
+check consumed the validator's inherited stdin. The corrected adapter preserves the
+stream and validates a fresh PostgreSQL dump while rejecting corrupt input.
+Post-resume health now waits for readiness under bounded probe and recovery budgets;
+real HTTP tests cover delayed readiness, persistent failure and a hung endpoint.
+These are local fixes, not target acceptance. A fresh November 3 read-only baseline
+confirms healthy services, unchanged accepted identities, matching retained payload
+hashes, and stopped qualification units. The next scoped request binds terminal
+archival, preservation of the latch and payload, release of only the old failed
+unit records, and one fixed capture-only trial on November 3, 11:55–12:55 CST.
+Latest admission is 12:43:30 CST. The private candidate is qualified; repository
+operation state remains terminal-pending with execution disabled until archival
+and exact-bundle approval. No replay, payload deletion or scheduling is authorized.
 No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated

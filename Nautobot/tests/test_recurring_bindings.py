@@ -8,6 +8,7 @@ from pathlib import Path
 import secrets
 import sys
 import tempfile
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -137,6 +138,31 @@ assert '--plain' in sys.argv and 'get' in sys.argv
     def test_historical_root_execution_unchanged(self):
         self.assertEqual(historical.USER[0],'/usr/sbin/runuser');self.assertEqual(node.capture.USER,[])
         self.assertEqual(node.capture.command(['pg_dump'])[0],'/usr/bin/podman')
+
+    def test_preflight_stdin_isolated_from_validator_stream(self):
+        code = ('import sys;sys.path.insert(0,'+repr(str(SCRIPTS))+');import recurring_node as n;'
+                'child=[sys.executable,"-c","import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())"];'
+                'assert n.bounded(child)==b"";assert n.bounded(child,data=b"explicit")==b"explicit";'
+                'sys.stdout.buffer.write(sys.stdin.buffer.read())')
+        result=subprocess.run([sys.executable,'-c',code],input=b'preserved dump stream',capture_output=True,timeout=10)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(result.stdout,b'preserved dump stream')
+
+    def test_readiness_retries_without_extending_deadline(self):
+        clock=[0.0];timeouts=[]
+        def failed_probe(timeout):
+            timeouts.append(timeout);clock[0]+=timeout
+            raise ValueError('http_health')
+        with patch.object(node,'health',side_effect=failed_probe), patch.object(node.time,'monotonic',side_effect=lambda:clock[0]), \
+                patch.object(node.time,'sleep',side_effect=lambda seconds:clock.__setitem__(0,clock[0]+seconds)):
+            with self.assertRaisesRegex(ValueError,'readiness_deadline'):node.wait_healthy(timeout=7)
+        self.assertEqual(timeouts,[5,1]);self.assertEqual(clock[0],7)
+
+    def test_readiness_returns_only_after_healthy_probe(self):
+        with patch.object(node,'health',side_effect=[ValueError('service_health'),{'ready':True}]) as probe, \
+                patch.object(node.time,'sleep'):
+            self.assertEqual(node.wait_healthy(timeout=5),{'ready':True})
+            self.assertEqual(probe.call_count,2)
 
     def test_prepare_orders_snapshot_metadata_before_credentials(self):
         cfg=dict(artifact_sha256={},minimum_free_bytes=1,maximum_retained_bytes=1000000,

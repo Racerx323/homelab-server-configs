@@ -151,7 +151,7 @@ class Supervisor:
     def recovered(self):
         # Timer race is settled by this lock. A guard that wins first owns recovery;
         # it cannot be disarmed by an Ansible task that is still running.
-        require(self.command(self.config['health_argv'], self.config['recovery_seconds']/8) == 0, 'health_failed')
+        require(self.command(self.config['health_argv'], self.config['recovery_seconds']/2) == 0, 'health_failed')
         with lock(self.state_dir/'state.lock'):
             state = self.state(); self.check_binding(state)
             require(state['phase'] == 'armed' and time.monotonic() < state['deadline'], 'guard_already_due')
@@ -244,6 +244,7 @@ class Supervisor:
         except BlockingIOError: return 0
 
     def recover_locked(self, timer=False):
+        recovery_deadline = time.monotonic()+self.config['recovery_seconds']
         with lock(self.state_dir/'state.lock'):
             state = self.state()
             eligible = ('armed', 'recovering') if timer else ('preflight', 'armed', 'recovering', 'resumed')
@@ -260,8 +261,12 @@ class Supervisor:
             if time.monotonic() >= deadline:
                 state.update(phase='manual_intervention', reason='backup_not_quiescent'); self.write(state); return 1
             time.sleep(0.1)
-        statuses = [self.command(argv, self.config['recovery_seconds']/8) for argv in self.config['resume_commands']] if paused_possible else []
-        health = self.command(self.config['health_argv'], self.config['recovery_seconds']/8)
+        def within_budget(argv, maximum):
+            remaining = recovery_deadline-time.monotonic()
+            return self.command(argv, min(maximum, remaining)) if remaining > 0 else 124
+        statuses = [within_budget(argv, self.config['recovery_seconds']/8)
+                    for argv in self.config['resume_commands']] if paused_possible else []
+        health = within_budget(self.config['health_argv'], self.config['recovery_seconds']/2)
         cleanup = True
         try: self.cleanup(root)
         except Exception: cleanup = False

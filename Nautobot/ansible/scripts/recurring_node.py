@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import resource
+import time
 from recurring_protection import protected, require, atomic, Supervisor
 from recurring_delivery import resolve, notify
 
@@ -28,14 +29,16 @@ def bounded(argv, data=None, timeout=30):
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         def limit(): resource.setrlimit(resource.RLIMIT_FSIZE,(4*1024**2,4*1024**2))
         try:
-            result=subprocess.run(argv,input=data,stdout=out,stderr=err,timeout=timeout,cwd='/',preexec_fn=limit)
+            # Preflight commands must not consume a dump piped to the validator.
+            result=subprocess.run(argv,input=data,stdin=subprocess.DEVNULL if data is None else None,
+                                  stdout=out,stderr=err,timeout=timeout,cwd='/',preexec_fn=limit)
         except (OSError,subprocess.TimeoutExpired): raise ValueError('native_command_failed') from None
         require(result.returncode==0 and out.tell()<4*1024**2 and err.tell()<4*1024**2,'native_command_failed')
         out.seek(0); return out.read()
 
 
 def pod(argv, **kwargs): return bounded(['/usr/bin/podman',*argv],**kwargs)
-def system(argv): return bounded(['/usr/bin/systemctl','--user',*argv])
+def system(argv, **kwargs): return bounded(['/usr/bin/systemctl','--user',*argv], **kwargs)
 
 
 def media_command(action):
@@ -52,9 +55,9 @@ def media_directories():
 capture.empty_media=media_directories
 
 
-def states():
+def states(timeout=30):
     raw=system(['show',*['nautobot-'+role+'.service' for role in ROLES],
-                '--property=Id,ActiveState,SubState,InvocationID']).decode()
+                '--property=Id,ActiveState,SubState,InvocationID'],timeout=timeout).decode()
     result={}
     for group in raw.strip().split('\n\n'):
         row=dict(line.split('=',1) for line in group.splitlines() if '=' in line)
@@ -63,12 +66,27 @@ def states():
     return result
 
 
-def health():
-    rows=states()
+def health(timeout=30):
+    deadline=time.monotonic()+timeout
+    rows=states(timeout=timeout)
     require(all(r['ActiveState']=='active' and r['SubState']=='running' for r in rows.values()),'service_health')
     code="import http.client;c=http.client.HTTPConnection('127.0.0.1',8080,timeout=3);c.request('GET','/health/',headers={'Host':'j2-svpi4mf.local.theama.co'});print(c.getresponse().status);c.close()"
-    require(pod(['exec','nautobot-web','python3','-c',code]).strip()==b'200','http_health')
+    remaining=deadline-time.monotonic(); require(remaining>0,'health_deadline')
+    require(pod(['exec','nautobot-web','python3','-c',code],timeout=remaining).strip()==b'200','http_health')
     return rows
+
+
+def wait_healthy(timeout=120):
+    deadline=time.monotonic()+timeout
+    while True:
+        remaining=deadline-time.monotonic()
+        require(remaining>0,'readiness_deadline')
+        try:
+            return health(timeout=min(5,remaining))
+        except ValueError:
+            remaining=deadline-time.monotonic()
+            require(remaining>0,'readiness_deadline')
+            time.sleep(min(1,remaining))
 
 
 def stopped():
@@ -201,7 +219,7 @@ def main():
         if args.action=='stop': Supervisor(Path(cfg['supervisor_configuration'])).check()
         system([args.action,'nautobot-'+args.argument+'.service']);return
     if args.action=='health':
-        current=health()
+        current=wait_healthy()
         if root:
             old=load(root/'recurring-before.json')
             require(old['boot_id']==Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'boot_changed')

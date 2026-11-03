@@ -35,8 +35,18 @@
           - -B
           - '-'
           - '{{ op.retained_state | to_json }}'
+          - '{{ op.supervisor | to_json }}'
         stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/capture_retained.py") }}'
         chdir: /
+      changed_when: true
+    - name: Release only the preserved failed qualification unit records
+      when: op.retained_state.terminal is defined
+      become_user: nautobot
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, reset-failed, '{{ item }}']
+        chdir: /
+      loop: '{{ op.get("retained_state", {}).get("terminal", {}).get("units", {}) | dict2items | selectattr("value.ActiveState", "equalto", "failed") | map(attribute="key") | list }}'
       changed_when: true
     - name: Reload after removing only the approved inactive runtime links
       when: op.retained_state is defined

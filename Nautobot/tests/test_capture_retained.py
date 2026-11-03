@@ -19,6 +19,7 @@ class Retained(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.base = Path(self.tmp.name)
         self.root = self.base/'qualification'; self.root.mkdir(mode=0o700)
+        (self.base/'staging').mkdir(mode=0o700)
         (self.root/'units').mkdir(mode=0o700)
         self.units = self.base/'runtime'; self.units.mkdir()
         self.names = ['nautobot-protection-qualification'+s for s in
@@ -85,6 +86,47 @@ class Retained(unittest.TestCase):
             with self.assertRaises(OSError): self.apply()
         self.assertTrue((self.base/('qualification-retained-'+'a'*12)).is_dir())
         self.assertEqual(len(list(self.units.iterdir())), 4)
+
+    def terminal(self):
+        import json
+        payload = self.base/'staging/nautobot-recurring.test'; payload.mkdir(mode=0o700)
+        (payload/'dump').write_bytes(b'retained payload')
+        (self.root/'state').mkdir(mode=0o700)
+        state = {'phase': 'manual_intervention', 'credential_cleanup': True,
+                 'resume_statuses': [0, 0, 0], 'root': str(payload)}
+        (self.root/'state/state.json').write_text(json.dumps(state))
+        def tree(root):
+            result = {'files': {}, 'directories': {}}
+            for p in [root, *root.rglob('*')]:
+                s = p.stat(); row = {'uid': s.st_uid, 'gid': s.st_gid, 'mode': stat.S_IMODE(s.st_mode)}
+                if p.is_file(): row['sha256'] = hashlib.sha256(p.read_bytes()).hexdigest()
+                result['directories' if p.is_dir() else 'files'][str(p.relative_to(root))] = row
+            return result
+        self.spec.update(tree(self.root))
+        states = {n: {'ActiveState': 'failed' if n.endswith('.service') else 'inactive',
+                     'MainPID': '0', 'ControlPID': '0', 'ControlGroup': '', 'InvocationID': 'old'} for n in self.names}
+        self.spec['terminal'] = {'state': state, 'payload': {'path': str(payload), **tree(payload)}, 'units': states}
+        def show(name): return copy.deepcopy(states[name]) if name in states else self.show(name)
+        return payload, show
+
+    def test_terminal_latch_and_payload_preserved(self):
+        payload, show = self.terminal()
+        saved = Path(self.apply(show=show)['preserved_directory'])
+        self.assertTrue((saved/'state/state.json').exists())
+        self.assertEqual((payload/'dump').read_bytes(), b'retained payload')
+
+    def test_terminal_payload_drift_refused(self):
+        payload, show = self.terminal(); (payload/'dump').write_bytes(b'drift')
+        with self.assertRaisesRegex(ValueError, 'retained_file_drift'): self.apply(show=show)
+        self.assertTrue(self.root.exists())
+
+    def test_terminal_running_unit_refused(self):
+        _, show = self.terminal()
+        for key, value in [('ActiveState', 'active'), ('MainPID', '42'), ('ControlGroup', '/live')]:
+            self.spec['terminal']['units'][self.names[0]][key] = value
+            with self.assertRaisesRegex(ValueError, 'unit_running'): self.apply(show=show)
+            self.spec['terminal']['units'][self.names[0]][key] = {'ActiveState': 'failed', 'MainPID': '0', 'ControlGroup': ''}[key]
+        self.assertTrue(self.root.exists())
 
 
 if __name__ == '__main__': unittest.main()

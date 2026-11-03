@@ -4316,6 +4316,20 @@ module across the unprivileged account transition; node-local supervision bounds
 the run and owns recovery independently. Existing node-local supervision owns pause/drain/capture/resume, the
 exclusive lock and independent recovery. Controller loss does not disarm recovery.
 
+The recurring adapter closes stdin for preliminary commands unless explicit input
+is supplied. Only the dump validator inherits the dump stream; database and media
+checks must not consume it first. After writer start, the health command waits up
+to 120 seconds for all five services and HTTP 200, using bounded probes. Admission
+checks remain immediate. The supervisor caps recovery commands by the remaining
+recovery budget and retains the manual-intervention latch if readiness cannot be
+proved. These waits do not extend the configured systemd recovery deadline.
+
+For local qualification, `tests/qualify_capture_adapter.py` uses a disposable
+PostgreSQL container and fresh custom dump to exercise the actual adapter, including
+corrupt-input refusal. `tests/qualify_recurring_readiness.py` exercises the unchanged
+HTTP probe in a disposable container with delayed, failing and hung responses.
+These tests do not pause production writers or clear a target recovery latch.
+
 The split producer capture phase performs no remote repository request. Credentials
 are resolved before the pause; the capture-only qualification disables the upload
 block. Default consumers still upload after verified resume, independently checking
@@ -4343,16 +4357,29 @@ supervisor and disposal regressions. Run Ansible through
 `tests/repository/run-with-ansible-local-temp.sh`. Keep test receipts private and
 distinguish local adapters from native target service-manager acceptance.
 
-For a failed trial that never started, separately authorize retained-state handling
-before another trial. Bind the exact file hashes, directory ownership/modes, boot,
-unchanged application invocations and four inactive, never-started runtime links.
-`capture_retained.py` refuses drift, renames the complete qualification directory
-to a bundle-derived retained path, and unlinks only those four links. The playbook
-reloads user units before creating the fresh qualification tree. No retained files
-or payloads are deleted. A partial failure retains evidence and stops; inspect it
-before any further mutation. Archive the consumed operation before activating its
-successor; preparation may freeze a private candidate with `--operation` while the
-repository continues to record the failed operation.
+For any failed trial, bind retained-state handling into the next scoped approval.
+`capture_retained.py` verifies exact file hashes, directory ownership/modes, boot,
+healthy unchanged application invocations and four stopped runtime units. A
+never-started trial must have no run state and empty staging. A terminal trial
+must additionally match the manual-intervention state, removed-credential marker,
+payload tree and unit invocations. Reject pending jobs, running unit processes,
+held supervisor locks or any drift before mutation.
+
+Preserve the complete qualification tree, including its latch, by renaming it to
+the consumed bundle's retained path. Leave the payload in staging unchanged. Unlink
+only the four bound runtime links, reset only their failed unit records, and reload
+the user manager before creating fresh qualification state. Never reset unrelated
+failed units. The original latch remains preserved; it is not rewritten to success.
+`tests/qualify_capture_retained.py` exercises preservation and failed-unit release
+against disposable local user-systemd units; native target acceptance remains a
+live check. A partial failure stops with evidence retained, without blind retry.
+
+Archive the consumed operation before activating its successor. Preparation may
+freeze a private candidate with `--operation` while the repository continues to
+record the terminal operation. Bind the exact attended one-hour window in that
+candidate; require the complete capture/recovery budget before retained-state
+mutation and again before the pause. No payload disposal, credential provisioning
+or schedule enablement is included.
 
 Qualify SSH/sudo transport changes with `tests/qualify_capture_transition.py`
 through the repository Ansible temporary-directory wrapper and an existing
