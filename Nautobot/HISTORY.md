@@ -698,7 +698,9 @@ full `restic check --read-data` passed within 15.0 seconds. Independent readback
 verified six unchanged payload hashes, healthy unchanged services, credential
 cleanup, inactive transient unit and unchanged older retained state/timers.
 
-Terminal tag: `nautobot-recurring-upload-integrity-v1-accepted` (publication pending).
+Published annotated tag: `nautobot-recurring-upload-integrity-v1-accepted`; archive commit
+`2ef1770a455d7bb15afc95c4a25856265e9ee54d`; tag object `ecd34b21d628aa879733cfc7d1f78f03cddf05bd`.
+Remote refs, archive bytes and every archived member hash were verified.
 The exact approved bundle and acceptance helpers are preserved in
 `manifests/terminal-upload-archive.tar`; the adjacent manifest binds every member
 and sanitized outcome. Archive SHA-256:

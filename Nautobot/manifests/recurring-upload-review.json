@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "recurring_upload_integrity_qualification",
-  "status": "accepted_pending_terminal_archival",
+  "status": "accepted_archived",
   "execution_performed": true,
   "production_accepted": true,
   "bundle_sha256": "6b80008892b0d327c319fe93ba8d97dd6aa6f02e6641484d65715c0f3895e7a3",
@@ -79,7 +79,8 @@
     "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
     "execution/ansible.stdout": "d7e3cc6beff9248a21217b037d7f19c4c625f434283a1d01be565b68682f3bb7",
     "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "approval-record.json": "a167bf36c211a86b80c38c2ff78e581f532ae7f966eb12e96d5250d44a1d481a"
+    "approval-record.json": "a167bf36c211a86b80c38c2ff78e581f532ae7f966eb12e96d5250d44a1d481a",
+    "publication-verification.json": "b06b21cda92b9b2e18a3265973cfe4e3fd6692cee02b031fe975f0e47620a79e"
   },
   "remaining_live_checks": [],
   "later_stages": [
@@ -101,12 +102,15 @@
   "accepted_at": "2026-11-03T20:15:18.448552+00:00",
   "snapshot_id": "4aa30449f76dd29b319422dd6e9e525f0bb7036a8979ab3de87931a5ed6b2c24",
   "producer_elapsed_seconds": 14.970077991485596,
-  "terminal_archival": "pending",
+  "terminal_archival": "published_verified",
   "execution_claim_consumed": true,
   "terminal_archive": {
     "path": "/home/aaron/code/.local-evidence/nautobot-upload-integrity-preparation-20261103/terminal/approved-bundle.tar",
     "sha256": "b760f9ca4bf362a8cee20b8177a71688f9773b4edce477d70015bd6b829ce71b",
     "manifest_sha256": "566db181b43d7055493969424ae9dcaa8de90f87072900eff1d1863668ac4773",
-    "publication": "authorized_pending_verification"
+    "publication": "published_verified",
+    "tag": "nautobot-recurring-upload-integrity-v1-accepted",
+    "archive_commit": "2ef1770a455d7bb15afc95c4a25856265e9ee54d",
+    "tag_object": "ecd34b21d628aa879733cfc7d1f78f03cddf05bd"
   }
 }

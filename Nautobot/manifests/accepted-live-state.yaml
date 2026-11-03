@@ -376,7 +376,8 @@ recurring_upload_integrity:
   retention_qualified: false
   recurring_schedule_enabled: false
   media_scope: empty_directories_only
-  terminal_archival: pending
+  terminal_archival: published_verified
+  terminal_tag: nautobot-recurring-upload-integrity-v1-accepted
   evidence_sha256:
     readback.json: 9aad72bbceb2aa0900b3560f2749d9095217da0e71206172854be5d440a6bfab
     acceptance-checks.json: e8e37b9d01a06c5102a8785c716e23320c3e5dcb0dafd248bf9183fcf6470ce9

@@ -23,10 +23,15 @@ confirmed all six hashes, unchanged original capture files and older retained
 state, healthy unchanged services, removed credentials, inactive transient unit
 and unchanged timer identities. The successful payload remains retained.
 
-Terminal archival (commit/tag/push) is authorized and awaiting publication verification.
-The consumed operation stays disabled and retained until its exact definition and
-sanitized evidence are published and byte-verified. See
-`manifests/recurring-upload-review.json` and the accepted-live upload record.
+The upload/integrity terminal archive is published and byte-verified. The consumed
+operation is cleared; the deployment stream is clean. See
+`manifests/recurring-upload-review.json`, accepted live state and HISTORY.
+
+Next: prepare one separate notification-delivery qualification request. Bind the
+existing notification owner, destination and exact failure/recovery messages;
+qualify delivery evidence and bounded retries without changing backup outcomes.
+This does not authorize sending notifications. Disposal and retention need their
+own scope, and remaining failure-recovery/timer gates must close before schedules.
 This accepts one attended upload with directory-only media; production fault
 injection, populated-media recovery, notifications, disposal, retention and
 schedule enablement remain separate stages.
@@ -230,7 +235,7 @@ unqualified. Do not change production volume permissions to make the adapter pas
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream is clean after capture-only archival; timers and retention deletion remain
+stream is clean after capture and upload/integrity archival; timers and retention deletion remain
 unauthorized.
 
 ### Intended workload comparison
