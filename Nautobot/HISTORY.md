@@ -622,3 +622,19 @@ Current accepted identity and expiry/rotation ownership remain in
 `manifests/accepted-live-state.yaml:recurring_credentials`. Raw receipts and token
 metadata remain private. The operation slot is clean; capture/resume,
 notifications and recurring schedules remain separate later stages.
+
+## Capture/resume launch failure
+
+`nautobot-recurring-capture-resume-v1`: failed before capture on November 3, 2026.
+Ansible async temporary-file permissions prevented the primary start. All five
+application service invocations remained unchanged; no writer pause or payload.
+Protected qualification state and four inactive runtime links remained.
+
+Published annotated tag: `nautobot-recurring-capture-resume-v1-failed`; archive commit
+`88301114c3c344e4530864becef8cdbad9a3ffc5`; tag object `97dedbcc441c0b7062e338e6e13be5c608b1e3f2`.
+The tag preserves the exact executed bundle and sanitized outcome in
+`manifests/terminal-capture-archive.tar`, with its per-file hash manifest.
+Archive SHA-256: `22f008cbde8e826a5d0700dbd63cb49a76d3d5af442d36ecc857c0d06b3cc47c`.
+Executed bundle SHA-256: `307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773`.
+No capture/recovery acceptance was recorded. The separately approved successor
+binds preservation of this residue before a new capture-only trial.

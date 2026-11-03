@@ -1,5 +1,5 @@
 {
-  "state": "failed_before_capture_awaiting_archival",
+  "state": "manual_intervention_awaiting_archival",
   "target_mutation": true,
   "read_only_baseline": {
     "collected_at": "2026-10-29T21:48:32.747764+00:00",
@@ -192,13 +192,13 @@
   ],
   "boundary": "One attended capture-only trial; four runtime unit links; existing credentials; retained payload; no upload or schedule.",
   "mechanical_index_verification": "unavailable: vexp workspace is not a Git repository; explicit repository checks used",
-  "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
+  "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
   "bundle_qualification": {
     "producer_verify": true,
     "wrong_approval_refused": true,
     "replay_refused_before_ansible": true,
     "input_drift_refused": true,
-    "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773"
+    "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399"
   },
   "evidence_sha256": {
     "baseline.json": "efc0964ef5aab307df2905ad57942c1803e6d0bab44fa45f05794fedb4116927",
@@ -220,7 +220,40 @@
     "nightly_window_changed": false,
     "approval_request": "/home/aaron/code/.local-evidence/nautobot-capture-resume-window-20261103/APPROVAL.md"
   },
-  "execution": {
+  "successor_preparation": {
+    "operation_id": "nautobot-recurring-capture-resume-retry-v1",
+    "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-capture-transition-20261103/APPROVAL.md",
+    "terminal_archive_sha256": "22f008cbde8e826a5d0700dbd63cb49a76d3d5af442d36ecc857c0d06b3cc47c",
+    "real_ssh_transition_scenarios": [
+      {
+        "scenario": "old_async",
+        "passed": true
+      },
+      {
+        "scenario": "synchronous_success",
+        "passed": true
+      },
+      {
+        "scenario": "synchronous_failure",
+        "passed": true
+      }
+    ],
+    "retained_state_tests_passed": 7,
+    "operation_contracts_passed": 16,
+    "documentation_contracts_passed": 5,
+    "syntax": "passed",
+    "target_mutation_during_preparation": false,
+    "active_operation_remains_failed": false,
+    "evidence_sha256": {
+      "retained-final-readback.json": "a4b29d23c92d853571441f30de634cd580fb7962e7c249b7b6158bf2748fdcd6",
+      "ssh-qualification/results.json": "f69b7f11f15d67ddb75d7efab58931c63297173cbfd7442f7c10f428a1b9d761",
+      "ssh-qualification/cleanup.json": "60aba8d416af9dd90a4560f81efc1bbb2249cdac635e969d391bb869889aa40d",
+      "bundle-qualification.json": "5ac81595fd6f8e37443207bb608fe9810031218038a73de87e93312496f58029",
+      "terminal-archive-manifest.json": "410caaee100239afec1826fcd01105fc49cc4d2261750fa1dfe1ec7bade37bbe"
+    }
+  },
+  "prior_execution": {
     "state": "failed_before_capture",
     "accepted": false,
     "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
@@ -248,37 +281,51 @@
       "readback.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
     }
   },
-  "successor_preparation": {
+  "terminal_archive": {
+    "tag": "nautobot-recurring-capture-resume-v1-failed",
+    "commit": "88301114c3c344e4530864becef8cdbad9a3ffc5",
+    "tag_object": "97dedbcc441c0b7062e338e6e13be5c608b1e3f2",
+    "pushed": true
+  },
+  "execution": {
     "operation_id": "nautobot-recurring-capture-resume-retry-v1",
     "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
-    "approval_request": "/home/aaron/code/.local-evidence/nautobot-capture-transition-20261103/APPROVAL.md",
-    "terminal_archive_sha256": "22f008cbde8e826a5d0700dbd63cb49a76d3d5af442d36ecc857c0d06b3cc47c",
-    "real_ssh_transition_scenarios": [
-      {
-        "scenario": "old_async",
-        "passed": true
-      },
-      {
-        "scenario": "synchronous_success",
-        "passed": true
-      },
-      {
-        "scenario": "synchronous_failure",
-        "passed": true
-      }
+    "state": "manual_intervention",
+    "accepted": false,
+    "controller_exit_status": 2,
+    "trial_date": "2026-11-03",
+    "retained_state_preservation_verified": true,
+    "synchronous_privilege_transition_passed": true,
+    "capture_passed": false,
+    "capture_failure": "Native capture adapter dump-validator command failed after six sections were written.",
+    "recovery_resume_statuses": [
+      0,
+      0,
+      0
     ],
-    "retained_state_tests_passed": 7,
-    "operation_contracts_passed": 16,
-    "documentation_contracts_passed": 5,
-    "syntax": "passed",
-    "target_mutation_during_preparation": false,
-    "active_operation_remains_failed": true,
+    "recovery_health_status": 1,
+    "final_services_and_http_healthy": true,
+    "postgresql_redis_invocations_unchanged": true,
+    "boot_artifacts_media_unchanged": true,
+    "independent_dump_list_status": 0,
+    "retained_payload_hashes_match": true,
+    "payload_bytes": 5263489,
+    "transient_credentials_removed": true,
+    "upload_attempted": false,
+    "old_evidence_directory": "/var/lib/nautobot/protection/qualification-retained-307ef354afe5",
+    "retained_payload": "/var/lib/nautobot/protection/staging/nautobot-recurring.v9u1oyjm",
+    "residue": "Current qualification tree, failed primary/recovery units, inactive guard and manual-intervention latch retained.",
+    "latch_cleared": false,
+    "replay_performed": false,
+    "next_action": "Diagnose and qualify the dump-validator adapter and post-resume health readiness. Define separately authorized recovery/state handling before any new trial.",
     "evidence_sha256": {
-      "retained-final-readback.json": "a4b29d23c92d853571441f30de634cd580fb7962e7c249b7b6158bf2748fdcd6",
-      "ssh-qualification/results.json": "f69b7f11f15d67ddb75d7efab58931c63297173cbfd7442f7c10f428a1b9d761",
-      "ssh-qualification/cleanup.json": "60aba8d416af9dd90a4560f81efc1bbb2249cdac635e969d391bb869889aa40d",
-      "bundle-qualification.json": "5ac81595fd6f8e37443207bb608fe9810031218038a73de87e93312496f58029",
-      "terminal-archive-manifest.json": "410caaee100239afec1826fcd01105fc49cc4d2261750fa1dfe1ec7bade37bbe"
+      "execution/controller-result.json": "de0edf8aca6770d266a17271ddf953844d7404ef4c5bc43bb12d1c7b6fac9ad7",
+      "execution/ansible.stdout": "0cd38d44007e4c67dd5b34596ce1897a9b5cbf6a618cbaca6718cf408357af6c",
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "readback-followup.json": "ae28fa8e0a615ceba2463815333e0a92e4b65eb3cb72ebc7578bd8fc531f63fb",
+      "diagnose.json": "41728cc057593a2a3125f5e92ff29d652f3c2a35bd18acd7b6e5eb6b9b6ebb18",
+      "final-health.json": "98a1dd79cbb3d57b55049c5ec107938b66543ddf081d2be291e7f84019c337b5",
+      "journal-cursor.stdout": "f187009e5e21591718aed21767c561c8d4c017b6a5337f2859a920a9aef49d4d"
     }
   }
 }

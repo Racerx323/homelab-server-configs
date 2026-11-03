@@ -6,14 +6,17 @@ Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
 The credential operation is archived and the operation slot is clean.
-The November 3 attended capture-only trial failed before capture at the Ansible
-async privilege transition. All five services remain healthy with unchanged
-invocations; no writers paused and staging is empty. The protected qualification
-tree and four inactive runtime unit links remain. The consumed operation awaits
-terminal archival. The synchronous controller start now passes a real disposable SSH/sudo regression,
-including reproduction of the old async failure. A private successor candidate
-binds exact retained-state preservation and another trial. Next: approve terminal
-archival and the candidate's retained-state handling/trial; do not replay the consumed bundle. Native capture duration and recovery acceptance remain open.
+The first November 3 capture launch failure is archived in
+`nautobot-recurring-capture-resume-v1-failed`. The approved successor preserved
+that evidence and passed the synchronous SSH/sudo transition. It then failed the
+capture adapter's dump-validation command and latched manual intervention after
+its recovery health check failed. Final independent readback found all five
+services healthy and HTTP 200, unchanged PostgreSQL/Redis invocations, six matching
+payload hashes and a valid native dump. These later observations do not convert
+the failed trial into acceptance. The payload, recovery units and latch remain.
+Next: diagnose and qualify dump validation and post-resume readiness, then define
+scoped state handling. No replay or latch clearing is authorized. The successor
+awaits terminal archival; recurring scheduling remains disabled.
 No backup, notification or recurring schedule has been enabled.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
