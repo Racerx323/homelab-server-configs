@@ -2,7 +2,7 @@ schema_version: 1
 operation:
   id: nautobot-recurring-capture-resume-readiness-v1
   stage: recurring_capture_resume_qualification
-  state: pending
+  state: terminal-pending
   authorization_ready: false
   execution_enabled: false
   source_commit: af9eeb78cf4a6e1ed943bc81d34acdffbb86aff3

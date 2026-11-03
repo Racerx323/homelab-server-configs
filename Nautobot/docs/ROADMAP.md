@@ -6,28 +6,25 @@ Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
 The credential operation is archived; the capture operation now occupies the slot.
-The first November 3 capture launch failure is archived in
-`nautobot-recurring-capture-resume-v1-failed`. The approved successor preserved
-that evidence and passed the synchronous SSH/sudo transition. It then failed the
-capture adapter's dump-validation command and latched manual intervention after
-its recovery health check failed. Final independent readback found all five
-services healthy and HTTP 200, unchanged PostgreSQL/Redis invocations, six matching
-payload hashes and a valid native dump. These later observations do not convert
-the failed trial into acceptance. The payload, recovery units and latch remain.
-The dump adapter failure is reproduced locally: an input-less preliminary database
-check consumed the validator's inherited stdin. The corrected adapter preserves the
-stream and validates a fresh PostgreSQL dump while rejecting corrupt input.
-Post-resume health now waits for readiness under bounded probe and recovery budgets;
-real HTTP tests cover delayed readiness, persistent failure and a hung endpoint.
-These are local fixes, not target acceptance. A fresh November 3 read-only baseline
-confirms healthy services, unchanged accepted identities, matching retained payload
-hashes, and stopped qualification units. The next scoped request binds terminal
-archival, preservation of the latch and payload, release of only the old failed
-unit records, and one fixed capture-only trial on November 3, 11:55–12:55 CST.
-Latest admission is 12:43:30 CST. The private candidate is qualified; repository
-operation state remains terminal-pending with execution disabled until archival
-and exact-bundle approval. No replay, payload deletion or scheduling is authorized.
-No backup, notification or recurring schedule has been enabled.
+The first two November 3 capture failures are archived in
+`nautobot-recurring-capture-resume-v1-failed` and
+`nautobot-recurring-capture-resume-retry-v1-failed`.
+The approved 11:55–12:55 CST trial preserved both prior evidence trees and the old
+payload. The dump fix passed on the target: all six sections were captured and
+validated in about 13 seconds. Normal completion still failed with
+`resume_not_verified`; independent recovery then completed with all three resume
+statuses and health status zero. Fresh readback verified healthy services and
+HTTP 200, unchanged PostgreSQL/Redis invocations, matching payload hashes, a valid
+dump, removed transient credentials and an inactive guard. This is a recovered
+failure, not capture/resume acceptance. Its payload, qualification tree and four
+runtime links remain; the prior latch is preserved in its retained directory.
+
+Next: diagnose the normal-path readiness failure and qualify actual startup and
+readiness timing before another scoped trial. The supervisor did not retain child
+Ansible output, so the exact failed normal-path task remains an evidence gap.
+The current operation is terminal-pending with execution disabled; its claim is
+consumed. No replay, cleanup or further trial is authorized. Upload, notification,
+payload disposal and recurring schedules remain separate stages.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration

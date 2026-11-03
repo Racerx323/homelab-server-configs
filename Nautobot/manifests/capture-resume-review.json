@@ -1,5 +1,5 @@
 {
-  "state": "approved_capture_trial_pending_execution",
+  "state": "recovered_failure_awaiting_archival",
   "target_mutation": true,
   "read_only_baseline": {
     "collected_at": "2026-10-29T21:48:32.747764+00:00",
@@ -192,7 +192,7 @@
   ],
   "boundary": "One attended capture-only trial; four runtime unit links; existing credentials; retained payload; no upload or schedule.",
   "mechanical_index_verification": "unavailable: vexp workspace is not a Git repository; explicit repository checks used",
-  "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
+  "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5",
   "bundle_qualification": {
     "producer_verify": true,
     "wrong_approval_refused": true,
@@ -206,7 +206,8 @@
     "systemd/results.json": "9aa261012adb6fa780c860cd08bb4c27ddcaace6dc36d53e9641b9660af051a8",
     "regressions.log": "be9246ce70469339812d7eb760a9c14d7f6c065745c7c3f29384352515636758",
     "bundle-qualification.json": "4f3f4c2bf3b565fb30697665f70d56654843b5630be16c1693d56a9da96424d7",
-    "local-container-cleanup.json": "6454f1aec9914322f0a071baca2ba28e7728f92c264f22abe2934304977a09c7"
+    "local-container-cleanup.json": "6454f1aec9914322f0a071baca2ba28e7728f92c264f22abe2934304977a09c7",
+    "readiness_trial_outcome": "151541975186538980c876955815ba03147f69e722068ba9d88a1b89ff78ce32"
   },
   "window_change": {
     "date": "2026-11-03",
@@ -254,40 +255,6 @@
     }
   },
   "prior_execution": {
-    "state": "failed_before_capture",
-    "accepted": false,
-    "bundle_sha256": "307ef354afe5874d9ff1a9e1626fbe857e8818c4d8b6036209ff13a5ab48f773",
-    "execution_date": "2026-11-03",
-    "controller_exit_status": 2,
-    "failure": "Ansible async task could not set temporary-file permissions when becoming nautobot; chmod A+user:nautobot:rx:allow rejected.",
-    "mutation": "Protected qualification tree populated and four runtime units linked; user daemon reloaded.",
-    "capture_started": false,
-    "writers_paused": false,
-    "all_five_services_healthy_unchanged_invocations": true,
-    "boot_artifacts_media_unchanged": true,
-    "staging_empty": true,
-    "residue": "Qualification tree and four loaded inactive linked-runtime units retained.",
-    "rollback_performed": false,
-    "replay_authorized": false,
-    "next_action": "Correct and qualify the controller async privilege transition; define separately authorized handling of retained qualification state before another trial. Terminal archival remains pending.",
-    "evidence_sha256": {
-      "authorization.json": "42b82253b3551d61c76b4d2e0749c817effffe87ed1f9d6f0b77c02c7f804f08",
-      "execution/controller-result.json": "de0edf8aca6770d266a17271ddf953844d7404ef4c5bc43bb12d1c7b6fac9ad7",
-      "execution/ansible.stdout": "8ab61232ee7ec6db7b38bac5cdd5b86f7ac3bd0f51b56336f0c6cd90e69e279b",
-      "execution/ansible.stderr": "20627bdc5e2e1bb4844284f84d625914a54fa362dddeadaa286d5c45eecb6ad9",
-      "readback.sh": "ccf18efb55461e61666c3b8e9af667f237c5a3692b4621cea367a1d6a103182d",
-      "readback.json": "c9249439fdcd1646e2765db2115d68a3dc2ee68ad20e196b6ebad65186e00de8",
-      "readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "readback.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
-    }
-  },
-  "terminal_archive": {
-    "tag": "nautobot-recurring-capture-resume-v1-failed",
-    "commit": "88301114c3c344e4530864becef8cdbad9a3ffc5",
-    "tag_object": "97dedbcc441c0b7062e338e6e13be5c608b1e3f2",
-    "pushed": true
-  },
-  "execution": {
     "operation_id": "nautobot-recurring-capture-resume-retry-v1",
     "bundle_sha256": "bdf8247fd17a372151f54a6cde1451eb0c0c57ee0633da468f9e4771f64bc399",
     "state": "manual_intervention",
@@ -326,6 +293,58 @@
       "diagnose.json": "41728cc057593a2a3125f5e92ff29d652f3c2a35bd18acd7b6e5eb6b9b6ebb18",
       "final-health.json": "98a1dd79cbb3d57b55049c5ec107938b66543ddf081d2be291e7f84019c337b5",
       "journal-cursor.stdout": "f187009e5e21591718aed21767c561c8d4c017b6a5337f2859a920a9aef49d4d"
+    }
+  },
+  "terminal_archive": {
+    "tag": "nautobot-recurring-capture-resume-retry-v1-failed",
+    "tag_object": "325bada1df4b7155eac0f3ce6da03612a34d9b93",
+    "commit": "a4c5826bcf97322873b5b777d66eb4798b07e439",
+    "remote_verified": true,
+    "archive_bytes_verified": true
+  },
+  "execution": {
+    "operation_id": "nautobot-recurring-capture-resume-readiness-v1",
+    "bundle_sha256": "e007c8d42f73484770ebb3b4e49589152ea9da29d420d4403dd78fac5624baf5",
+    "state": "recovered_failure",
+    "accepted": false,
+    "controller_exit_status": 2,
+    "trial_date": "2026-11-03",
+    "window": "11:55-12:55 America/Chicago",
+    "retained_state_preservation_verified": true,
+    "capture_passed": true,
+    "capture_seconds": 12.993423461914062,
+    "primary_failure_reason": "resume_not_verified",
+    "normal_resume_failure_detail": "The supervisor discards child Ansible output; the exact failed normal-path task is not retained.",
+    "recovery_resume_statuses": [
+      0,
+      0,
+      0
+    ],
+    "recovery_health_status": 0,
+    "recovery_total_from_run_start_seconds": 277.3064994812012,
+    "final_services_and_http_healthy": true,
+    "postgresql_redis_invocations_unchanged": true,
+    "boot_artifacts_media_unchanged": true,
+    "native_dump_valid": true,
+    "payload_hashes_match": true,
+    "transient_credentials_removed": true,
+    "upload_attempted": false,
+    "guard_inactive": true,
+    "prior_trees_and_payload_unchanged": true,
+    "retained_payload": "/var/lib/nautobot/protection/staging/nautobot-recurring.156jog6b",
+    "residue": "Current qualification tree, failed primary unit, inactive recovery/guard units, four runtime links and new payload retained. Earlier latch remains unchanged in the saved predecessor tree.",
+    "new_manual_intervention_latch": false,
+    "replay_performed": false,
+    "archive_state": "pending",
+    "next_action": "Diagnose normal-path readiness failure and qualify the actual startup/readiness timing before preparing another scoped trial. Do not infer acceptance from successful capture and later recovery.",
+    "evidence_sha256": {
+      "execution/controller-result.json": "de0edf8aca6770d266a17271ddf953844d7404ef4c5bc43bb12d1c7b6fac9ad7",
+      "execution/ansible.stdout": "93230b7d1fd9d9deeff37370aaa9d24216aa9ea65d261df42dc30752f5a01077",
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "readback.json": "e00b5a6818758f576fe45c79e7a0ebcd890c8d1099b2b29091598359301fd358",
+      "diagnosis.json": "d1d148f424e594eb790dbeb94a206f8792617e1bec5af1132d13b41ad4dae619",
+      "journal.jsonl": "62a73fad6e094407429f58e4ca6db7835b9e296da4db4227dbce6486656653b7",
+      "journal-cursor.stdout": "7034bdc5c1fd55196dddd2e0a3564bf0df6fc3294e782136fe8368dda40eea33"
     }
   },
   "adapter_readiness_remediation": {
@@ -416,7 +435,7 @@
     }
   },
   "next_trial_preparation": {
-    "state": "prepared_not_executed",
+    "state": "executed_recovered_failure",
     "target_mutation": false,
     "window": "2026-11-03 11:55-12:55 America/Chicago",
     "latest_admission": "2026-11-03 12:43:30 America/Chicago",
@@ -462,6 +481,7 @@
       "commit": "a4c5826bcf97322873b5b777d66eb4798b07e439",
       "remote_verified": true,
       "archive_bytes_verified": true
-    }
+    },
+    "execution_claim_consumed": true
   }
 }
