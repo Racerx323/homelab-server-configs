@@ -151,7 +151,7 @@ class Supervisor:
     def recovered(self):
         # Timer race is settled by this lock. A guard that wins first owns recovery;
         # it cannot be disarmed by an Ansible task that is still running.
-        require(self.command(self.config['health_argv'], self.config['recovery_seconds']/2) == 0, 'health_failed')
+        require(self.command(self.config['health_argv'], self.config['recovery_seconds']) == 0, 'health_failed')
         with lock(self.state_dir/'state.lock'):
             state = self.state(); self.check_binding(state)
             require(state['phase'] == 'armed' and time.monotonic() < state['deadline'], 'guard_already_due')
@@ -244,14 +244,16 @@ class Supervisor:
         except BlockingIOError: return 0
 
     def recover_locked(self, timer=False):
-        recovery_deadline = time.monotonic()+self.config['recovery_seconds']
+        recovery_started = time.monotonic()
+        recovery_deadline = recovery_started+self.config['recovery_seconds']
         with lock(self.state_dir/'state.lock'):
             state = self.state()
             eligible = ('armed', 'recovering') if timer else ('preflight', 'armed', 'recovering', 'resumed')
             if state['phase'] not in eligible: return 0
             root = self.check_binding(state)
             paused_possible = state['phase'] != 'preflight'
-            state['phase'] = 'recovering'; self.write(state)
+            state.update(phase='recovering', recovery_started_at=time.time(),
+                         recovery_trigger='deadline' if timer else 'failure'); self.write(state)
         # Stop the whole backup cgroup before resuming; do not race a late pause.
         self.control('stop', '--no-block', self.prefix+'.service')
         deadline = time.monotonic()+self.config['recovery_seconds']/2
@@ -266,12 +268,15 @@ class Supervisor:
             return self.command(argv, min(maximum, remaining)) if remaining > 0 else 124
         statuses = [within_budget(argv, self.config['recovery_seconds']/8)
                     for argv in self.config['resume_commands']] if paused_possible else []
-        health = within_budget(self.config['health_argv'], self.config['recovery_seconds']/2)
+        # Readiness receives the remaining shared deadline, not a second half-budget.
+        # Native startup has already taken longer than half of the recovery ceiling.
+        health = within_budget(self.config['health_argv'], self.config['recovery_seconds'])
         cleanup = True
         try: self.cleanup(root)
         except Exception: cleanup = False
         state.update(phase='recovered_failure' if not any(statuses) and health == 0 and cleanup else 'manual_intervention',
-                     resume_statuses=statuses, health_status=health, credential_cleanup=cleanup, finished_at=time.time())
+                     resume_statuses=statuses, health_status=health, credential_cleanup=cleanup, finished_at=time.time(),
+                     recovery_elapsed_seconds=time.monotonic()-recovery_started)
         self.write(state)
         self.control('stop', self.prefix+'-guard.timer')
         return 0 if state['phase'] == 'recovered_failure' else 1

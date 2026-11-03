@@ -97,6 +97,10 @@ class Contracts(unittest.TestCase):
         if operation['operation']['state'] == 'clean':
             self.assertEqual(operation, {'schema_version': 1, 'operation': {
                 'state': 'clean', 'authorization_ready': False}})
+        elif operation['operation'].get('stage') == 'recurring_failure_recovery_timer_qualification':
+            validate(json.loads((ROOT / 'Nautobot/schemas/recovery-timer-qualification.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
         elif operation['operation'].get('stage') == 'recurring_disposal_retention_qualification':
             validate(json.loads((ROOT / 'Nautobot/schemas/disposal-qualification.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])

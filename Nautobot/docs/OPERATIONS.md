@@ -4604,3 +4604,73 @@ filesystem sandbox for local Podman/user-systemd access. Production ARM64,
 Doppler/B2 access, repository-wide timing and independent target acceptance remain
 live checks. Notification delivery, payload disposal, retention, populated-media
 recovery and schedule enablement remain separate approvals.
+
+## Independent failure-recovery and timer qualification
+
+Use `ansible/scripts/recovery-timer-bundle.py` with
+`ansible/playbooks/qualify-recovery-timers.yaml` for one separately approved,
+attended trial of unattended recovery. The controller starts the test and observes
+it; the node-local supervisor and systemd guard own recovery without controller
+resume commands. Keep production schedule enablement separate.
+
+Bind a fresh baseline, accepted artifacts/packages/credential metadata, exact
+runtime sources, an attended one-hour window and absent qualification paths.
+Require at least 30 minutes remaining before the first trial. The outer controller
+limit is 1,800 seconds for both cases; each existing supervisor retains a
+450-second capture deadline and one shared 240-second recovery budget. Health
+receives the remaining recovery budget after quiescence and resume, subject to the
+adapter's existing 210-second readiness ceiling. Do not split recovery into a
+120-second health allowance when measured startup already exceeds that allowance.
+
+The reusable case tasks run twice, with separate state and unit names. Both use
+real native preparation, the existing protected Doppler references, real writer
+pause/drain and the actual node-local Ansible async path. Only capture is replaced
+with an approved blocking fault after writers are stopped and the guard is armed:
+
+- Termination: kill only that case's primary cgroup and require `OnFailure`
+  recovery to resume every writer and verify health.
+- Deadline: let the independent guard expire and stop the primary cgroup before
+  recovery. Do not have the controller resume writers or cancel the guard.
+
+No capture payload, remote repository access, upload, notification, disposal,
+package/configuration changes or recurring schedule is part of this stage.
+Transient credentials must be removed after both cases. Keep all staging receipts
+and older retained evidence. PostgreSQL/Redis invocations and boot must remain
+unchanged; writer invocations are expected to change. Before each case, the
+privileged Ansible preflight runs `journalctl --show-cursor -n 0 --no-pager`.
+It reads no messages. The service-account helper validates the result and stores
+only the cursor in its protected case directory before rendering units. Missing,
+malformed or multiple cursors stop setup. Do not grant the application account
+journal access; any later diagnostic read uses root and that cursor boundary.
+
+After both recoveries, parse the 03:20 backup and 04:05 freshness calendars around
+spring and autumn DST transitions using the target's parser. Start one disposable
+runtime timer with a two-second trigger and a marker-only service, then remove its
+runtime links. This qualifies callback dispatch and calendar parsing, not a night
+of unattended production work or host-outage alert delivery. No persistent timer
+is enabled and no system clock is changed.
+
+The one-use launcher must refuse bundle drift. After execution, independently
+check before/after services, retained trees, user/system timer identities, runtime
+hashes, guard/primary quiescence, removed links, credential residue and both recovery
+receipts. A failed or partial case stops the sequence. Retain its claims, state,
+staging and recovery units; do not replay, delete retained data, clear old latches
+or remove recovery units while writers may need them. Manual intervention requires
+review of the exact retained state and separately scoped recovery authority.
+
+Local qualification uses `tests/qualify_recurring_systemd.py` for real disposable
+user-systemd failure/deadline/slow-health/Ansible execution and
+`tests/test_recovery_qualification.py` for bundle refusal and actual timer-helper
+execution (`NAUTOBOT_RECOVERY_NATIVE=1`). Run both through the repository Ansible
+temporary-directory wrapper outside the filesystem sandbox. Local writer and
+provider adapters do not establish target recovery or provider acceptance.
+
+`tests/qualify_recovery_setup.py --image IMAGE --output PRIVATE_DIRECTORY`
+exercises the current playbook from directory claim and input transfer through
+both case configurations and unit validation, stopping before runtime linking.
+Use a disposable Debian image with SSH/sudo, systemd, a user D-Bus service and the
+UID 999/GID 985 account without journal membership. The test verifies the real
+journal permission denial, privileged cursor handoff, protected outputs, replay
+refusal and artifact/package/metadata drift refusal. Only application health and
+media probes are adapted. Run it through the same Ansible temporary-directory
+wrapper outside the filesystem sandbox; it removes its container afterward.

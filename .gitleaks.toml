@@ -5,6 +5,8 @@ useDefault = true
 description = "Ignore exact public integrity pins"
 regexTarget = "match"
 regexes = [
+  # SHA-256 of bounded journal-access evidence; independently verified, not a credential.
+  '''116b2f2b3e4957bf0bac81adbfddd9ead361b6b46cb70d08bee5e84de58a0f47''',
   # Verified SHA-256 of the nonsecret capture authorization record, not a credential.
   '''42b82253b3551d61c76b4d2e0749c817effffe87ed1f9d6f0b77c02c7f804f08''',
   '''^key_sha=783dfee04b19e851a928cd87b34710213ebbe7628f98d9f34595ab83be578c00$''',

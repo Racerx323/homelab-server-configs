@@ -1,0 +1,75 @@
+---
+- name: Capture a cursor without reading journal messages
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv: [/usr/bin/journalctl, --show-cursor, -n, '0', --no-pager]
+    chdir: /
+  register: recovery_journal
+  changed_when: false
+  timeout: 10
+- name: Run one recovery case as the application account
+  become: true
+  become_user: nautobot
+  environment: '{{ user_environment }}'
+  block:
+    - name: Validate the target and create bounded recovery units
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, -B, '{{ run_root }}/scripts/recovery_qualification.py', configure, '{{ run_root }}', '{{ recovery_case }}', --journal-cursor, '{{ recovery_journal.stdout }}']
+        chdir: /
+      changed_when: true
+    - name: Validate rendered units
+      ansible.builtin.command:
+        argv: '{{ ["/usr/bin/systemd-analyze", "--user", "verify"] + op.trials[recovery_case].unit_paths }}'
+        chdir: /
+      changed_when: false
+    - name: Link only runtime recovery units
+      ansible.builtin.command:
+        argv: '{{ ["/usr/bin/systemctl", "--user", "link", "--runtime"] + op.trials[recovery_case].unit_paths }}'
+        chdir: /
+      changed_when: true
+    - name: Load runtime unit definitions
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, daemon-reload]
+        chdir: /
+      changed_when: true
+    - name: Start the primary service without enabling schedules
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, start, --no-block, '{{ op.trials[recovery_case].supervisor.unit_prefix }}.service']
+        chdir: /
+      changed_when: true
+    - name: Wait for the real writer pause and armed guard
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, -B, '{{ run_root }}/scripts/recovery_qualification.py', wait-paused, '{{ run_root }}/{{ recovery_case }}']
+        chdir: /
+      changed_when: false
+    - name: Kill only the approved primary cgroup after the pause
+      when: recovery_case == 'killed'
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, kill, --kill-whom=all, --signal=SIGKILL, '{{ op.trials[recovery_case].supervisor.unit_prefix }}.service']
+        chdir: /
+      changed_when: true
+    - name: Observe independent recovery without controller resume commands
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, -B, '{{ run_root }}/scripts/recovery_qualification.py', inspect, '{{ run_root }}/{{ recovery_case }}']
+        chdir: /
+      changed_when: false
+    - name: Remove runtime links only after verified recovery
+      ansible.builtin.command:
+        argv: '{{ ["/usr/bin/systemctl", "--user", "disable", "--runtime"] + op.trials[recovery_case].unit_names }}'
+        chdir: /
+      changed_when: true
+    - name: Release only the expected failed primary unit record
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, reset-failed, '{{ op.trials[recovery_case].supervisor.unit_prefix }}.service']
+        chdir: /
+      changed_when: true
+    - name: Reload after removing qualification links
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, daemon-reload]
+        chdir: /
+      changed_when: true
+  rescue:
+    - name: Preserve recovery services and all evidence on failure
+      ansible.builtin.fail:
+        msg: Independent recovery qualification failed. Retain runtime recovery units, claims and staging; inspect state before any separately scoped recovery or retry.

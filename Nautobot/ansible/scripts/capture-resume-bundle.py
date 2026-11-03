@@ -103,7 +103,7 @@ def execute(root,digest,evidence):
     rc=70
     try:
         with (evidence/'ansible.stdout').open('xb') as out,(evidence/'ansible.stderr').open('xb') as err:
-            rc=subprocess.run(['/usr/bin/prlimit','--core=0:0','--fsize=8388608:8388608','--','/bin/bash',str(root/'ansible-temp.sh'),controller['ansible'],'-i',str(root/'inventory.ini'),str(root/'playbook.yaml'),'--extra-vars','@'+str(evidence/'inputs.json')],cwd=root,env=env,stdin=subprocess.DEVNULL,stdout=out,stderr=err,timeout=1500).returncode
+            rc=subprocess.run(['/usr/bin/prlimit','--core=0:0','--fsize=8388608:8388608','--','/bin/bash',str(root/'ansible-temp.sh'),controller['ansible'],'-i',str(root/'inventory.ini'),str(root/'playbook.yaml'),'--extra-vars','@'+str(evidence/'inputs.json')],cwd=root,env=env,stdin=subprocess.DEVNULL,stdout=out,stderr=err,timeout=op.get('controller_timeout_seconds',1500)).returncode
     finally:(evidence/'controller-result.json').write_text(json.dumps({'exit_status':rc,'accepted':False}))
     return rc
 

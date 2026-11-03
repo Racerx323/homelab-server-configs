@@ -13,7 +13,7 @@ def render(configuration, script):
         require(path.is_absolute() and re.fullmatch(r'/[A-Za-z0-9_./-]+', str(path)), 'unit_path')
     prefix = c['unit_prefix']
     command = f'/usr/bin/python3 {script} --config {configuration}'
-    common = '[Service]\nType=oneshot\nUMask=0077\nWorkingDirectory=/\nKillMode=control-group\nTimeoutStopSec=5\n'
+    common = '[Service]\nType=oneshot\nUMask=0077\nWorkingDirectory=/\nEnvironment=PYTHONDONTWRITEBYTECODE=1\nKillMode=control-group\nTimeoutStopSec=5\n'
     units = {
         prefix+'.service': '[Unit]\nDescription=Nautobot recurring application protection\n'
             f'OnFailure={prefix}-recovery.service\n'+common+

@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "target",
+    "boot_id",
+    "accepted_sha256",
+    "baseline_sha256",
+    "trials",
+    "mutation_boundary",
+    "acceptance",
+    "rollback",
+    "external_inputs",
+    "later_stages",
+    "controller_timeout_seconds"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "execution_enabled",
+        "authorization_ready",
+        "source_commit"
+      ],
+      "properties": {
+        "id": {
+          "const": "nautobot-recurring-recovery-timer-v1"
+        },
+        "stage": {
+          "const": "recurring_failure_recovery_timer_qualification"
+        },
+        "state": {
+          "const": "pending"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "target": {
+      "const": {
+        "host": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "uid": 999,
+        "gid": 985
+      }
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "accepted_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "baseline_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "trials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "killed",
+        "deadline"
+      ],
+      "properties": {
+        "killed": {
+          "type": "object",
+          "required": [
+            "operation",
+            "baseline",
+            "packages",
+            "credential_identity",
+            "binding",
+            "supervisor",
+            "unit_names",
+            "unit_paths"
+          ]
+        },
+        "deadline": {
+          "type": "object",
+          "required": [
+            "operation",
+            "baseline",
+            "packages",
+            "credential_identity",
+            "binding",
+            "supervisor",
+            "unit_names",
+            "unit_paths"
+          ]
+        }
+      }
+    },
+    "mutation_boundary": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "acceptance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "rollback": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "external_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "later_stages": {
+      "const": [
+        "schedule_enablement",
+        "remote_deletion_prune",
+        "older_payload_disposal",
+        "populated_media_recovery",
+        "commit_tag_push"
+      ]
+    },
+    "controller_timeout_seconds": {
+      "const": 1800
+    }
+  }
+}

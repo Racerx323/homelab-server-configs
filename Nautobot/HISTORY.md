@@ -741,3 +741,13 @@ Terminal tag: `nautobot-recurring-disposal-v1-accepted`; archive commit
 `b558f4c9980b2bab0aa2e091b706808a6182180a`. The pushed archive and all 31 member
 hashes were independently verified before clearing the consumed operation.
 Remote deletion/prune and schedules remain unauthorized.
+
+## Recurring independent recovery and timer qualification failure
+
+`nautobot-recurring-recovery-timer-v1`: failed before writer pause because the
+service-account journal cursor was unreadable. Runtime inputs and an empty case
+directory remain; all 61 preservation checks passed. Accepted live state is
+unchanged. Bundle:
+`bb2e3c00d26e1bb1610c50ab1a680b835b6124ccdd471765ec198e0b38128043`.
+Terminal archival pending; proposed tag
+`nautobot-recurring-recovery-timer-v1-failed`. Never replay the consumed claim.

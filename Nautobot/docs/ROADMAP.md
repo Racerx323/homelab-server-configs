@@ -51,8 +51,25 @@ See `manifests/recurring-disposal-review.json` and accepted live state.
 The disposal terminal archive is published and independently byte-verified. The
 consumed operation is cleared; the deployment stream is clean.
 
-Next: prepare a separate qualification request for the remaining unattended
-failure-recovery and timer gates, using the accepted one-shot stages as evidence.
+The approved November 3 recovery/timer trial stopped before writer pause: the
+service-account journal-cursor read lacked permission. Only the protected
+qualification directory, frozen runtime inputs and empty first-case directory
+were created. All 61 independent preservation checks passed: original service
+invocations, timers, staging and retained evidence are unchanged. No fault,
+credential resolution or timer activation occurred. Recovery remains unaccepted.
+
+Cursor collection now uses the privileged Ansible preflight. The full setup prefix
+passed locally over SSH/sudo in disposable Debian with UID 999 denied journal
+access: both cases configured and validated, replay preserved existing outputs,
+and artifact/package/metadata drift stopped before unit creation. Application
+health and media probes were adapted; these results do not accept target recovery.
+
+Next: authorize terminal commit/tag/push and prepare a replacement trial with
+explicit retained-state handling, a fresh baseline and an attended window.
+Preserve the consumed bundle and evidence; the corrected code needs its own
+exact-bundle approval before another live trial.
+The operation remains disabled and occupied pending archival. See
+`manifests/recurring-recovery-review.json`.
 Remote deletion/prune, older-payload disposal, populated-media recovery and schedule
 enablement remain separate scopes; no recurring schedule is enabled.
 
