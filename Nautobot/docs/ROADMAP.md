@@ -6,43 +6,21 @@ Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
 The credential operation is archived; the capture operation now occupies the slot.
-The first two November 3 capture failures are archived in
-`nautobot-recurring-capture-resume-v1-failed` and
-`nautobot-recurring-capture-resume-retry-v1-failed`.
-The approved 11:55–12:55 CST trial preserved both prior evidence trees and the old
-payload. The dump fix passed on the target: all six sections were captured and
-validated in about 13 seconds. Normal completion still failed with
-`resume_not_verified`; independent recovery then completed with all three resume
-statuses and health status zero. Fresh readback verified healthy services and
-HTTP 200, unchanged PostgreSQL/Redis invocations, matching payload hashes, a valid
-dump, removed transient credentials and an inactive guard. This is a recovered
-failure, not capture/resume acceptance. Its payload, qualification tree and four
-runtime links remain; the prior latch is preserved in its retained directory.
+The three failed November 3 capture trials are archived. The approved 13:00–14:00
+CST successor passed normal capture/resume and independent acceptance. Capture took
+13.1 seconds; preparation through verified resume took 281.0 seconds. The health
+wait took 159.3 seconds within the new 210-second limit. Every pause, capture, resume,
+health and guard-verification task returned zero. Six payload hashes and native
+dump parsing passed; writers and HTTP are healthy, database/Redis invocations and
+boot unchanged, transient credentials removed, guard inactive and runtime links
+removed. Both older payloads and all preserved trees/latches are unchanged.
 
-Read-only diagnosis recovered the original startup receipts: web configuration
-checks took 44.3 seconds, migration checks 48.1 seconds and static collection 44.5
-seconds. All passed, but their combined 137 seconds already exceeded the 120-second
-normal readiness wait; the first logged post-resume HTTP 200 arrived about 166
-seconds after web start. The exact health command now passes in under one second.
-The original child Ansible result was discarded and cannot be reconstructed.
-Protected task receipts are implemented and locally qualified for subsequent runs,
-including failure return codes, durations and a readiness-deadline flag without
-raw command output. They are not deployed. The normal readiness wait is now 210
-seconds in the local definition. A disposable container with a 166-second HTTP
-startup delay passed in 167.2 seconds; persistent and hung probes stayed bounded.
-Thirty binding/supervisor regressions passed, including refusal to disarm an
-expired capture guard and enforcement of the remaining recovery budget. The
-450-second capture and 240-second recovery deadlines are unchanged; recovery
-health remains capped at 120 seconds. Local probe qualification does not establish
-production total-duration acceptance. One private candidate is prepared for
-November 3, 13:00–14:00 CST, with latest admission at 13:48:30. The refreshed
-read-only baseline matches retained state; the preservation path now verifies
-both payloads and the recovered-failure state. The exact scoped
-request covers terminal archival, retained-state handling and one capture-only trial.
-That exact request is now approved; prior terminal archival is pushed and verified.
-The successor operation is pending with repository execution disabled. Its private
-claim remains unused; execute only the approved bundle inside its attended window. Upload, notification,
-payload disposal and recurring schedules remain separate stages.
+This accepts one attended, capture-only trial with directory-only media. It does
+not qualify production fault injection, populated media, upload/integrity,
+notification delivery, disposal or schedules. The successful payload and protected
+qualification tree remain retained. Terminal archival is being published; execution
+is disabled and the claim consumed. Next: prepare upload/integrity qualification
+under separate approval before considering recurring schedule enablement.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -139,7 +117,7 @@ The existing accepted one-shot behavior must remain covered by regression tests.
 | Decision | Current position |
 | --- | --- |
 | Nightly consistency | Brief nightly writer pause approved for local database/media capture; resume before upload/check. |
-| Window and timezone | 03:00–04:00 America/Chicago approved; candidate 03:20 trigger, 450-second capture deadline and 240-second recovery budget. Target duration qualification pending; no catch-up outage outside the window. |
+| Window and timezone | 03:00–04:00 America/Chicago approved; candidate 03:20 trigger, 450-second capture deadline and 240-second recovery budget. One attended directory-only capture/resume passed within the bounds; forced-termination recovery remains unqualified. No catch-up outage outside the window. |
 | Unattended credentials | Accepted and archived: three canonical references, config-scoped read-only token and protected delivery. Aaron owns rotation by January 13, 2027; expiry January 27. UID 999 resolution passed. |
 | Weekly integrity | Full data check is the initial candidate; no subset waiver proposed. |
 | Retention | Plan's 7 daily/5 weekly/12 monthly policy; exact recurring dataset filter/grouping and dry-run qualification must precede deletion approval. Historical recovery snapshots remain excluded. |
@@ -237,13 +215,14 @@ The September 28 next action was to assemble prerequisite installation and
 credential-provisioning definitions. Installation is now accepted and archived;
 credential provisioning is accepted and archived. Read-only dependency/timer evidence is in private
 `nautobot-prerequisite-dependencies-20260928/`; no target mutation occurred.
-Target namespace read-only access was refreshed on October 29; protected staging directory creation is accepted, while actual capture capacity remains unqualified.
- Do not change production volume permissions to
-make the current adapter pass. Private baseline and read-only follow-ups:
+Target namespace access and bounded directory-only capture capacity are accepted
+for the November 3 trial. General workload/populated-media capacity remains
+unqualified. Do not change production volume permissions to make the adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
 media, intended DNS type/Job mix and interface density remain open. The operation
-stream now holds the disabled capture/resume definition; timers and retention deletion remain unauthorized.
+stream is closing the accepted capture-only trial; timers and retention deletion
+remain unauthorized.
 
 ### Intended workload comparison
 
@@ -324,29 +303,21 @@ The token expires January 27, 2027 at 21:17:52 UTC. Aaron owns rotation by
 January 13, 2027 at 21:17:52 UTC. Non-secret identity and acceptance hashes are in
 `manifests/accepted-live-state.yaml`; the sanitized review and exact executed
 definition are preserved in the published terminal tag indexed by HISTORY.
-Raw receipts remain private. The operation slot is clean. Capture/resume, notifications and schedules
-remain later approvals; credential resolution does not qualify B2/Restic access.
+Raw receipts remain private. Credential provisioning is archived; the subsequent
+capture-only acceptance is separate. Notifications and schedules remain later
+approvals; credential resolution does not qualify B2/Restic access.
 
-### Capture/resume qualification preparation
+### Capture/resume qualification
 
-The pending operation prepares one capture-only trial using the existing rootless
-adapter, Ansible capture ordering and independent supervisor. The fresh October 29
-read-only baseline matched accepted artifacts/packages and mapped permissions;
-namespace media remained directory-only and staging was ext4 with approximately
-936 GB free. Accepted credentials are reused without provider mutation.
+The November 3 attended trial accepted normal capture/resume with directory-only
+media. Six local sections and native dump validation passed; all writer, health
+and guard-verification statuses were zero. Protected receipts retain task-level
+evidence. The accepted record owns measured durations and evidence identities;
+HISTORY indexes terminal archival. Earlier failed payloads/latches and the new
+successful payload remain retained for separately approved disposition.
 
-The shared producer's split capture phase now defers repository access until upload,
-so remote I/O does not extend the writer pause. Upload remains enabled by default
-for existing callers; this qualification explicitly disables it and payload disposal.
-Only four runtime user-unit links are proposed: primary, guard timer, guard service
-and recovery service. No nightly, freshness or notification units are installed.
-The trial retains its local payload and protected state for review.
-
-Local evidence includes eight real Ansible/Restic cases with a new disposable
-PostgreSQL dump, four real user-systemd supervision cases, and existing media,
-binding, supervisor and disposal regressions. The capture-only case made no
-repository-read or upload call. These are workstation checks, not target acceptance.
-The active operation, sanitized `capture-resume-review.json` and OPERATIONS define
-acceptance, failure containment and evidence gaps. Production forced-termination
-recovery, upload/integrity, notifications, disposal and schedule enablement remain
-separate later qualifications. No writers were paused during preparation.
+The shared producer defers repository access until upload, so this trial made no
+repository-read or upload call. The four temporary runtime links were removed
+after healthy completion. Production forced-termination recovery, populated-media
+capture, upload/integrity, notifications, disposal and schedule enablement remain
+separate qualifications. OPERATIONS owns the reusable procedure.

@@ -449,9 +449,9 @@
     "ansible_syntax_passed": true,
     "terminal_archive_sha256": "d93cf33742600b3321c59e1cd12ff211092da2ac72230f0c32c41bc328003151",
     "terminal_tag": "nautobot-recurring-capture-resume-readiness-v1-failed",
-    "executed": false,
-    "published": false,
-    "execution_claim_consumed": false,
+    "executed": true,
+    "published": true,
+    "execution_claim_consumed": true,
     "repository_hooks_passed": true,
     "sandbox_blocked_hooks_rechecked": 14,
     "approved": true,
@@ -553,6 +553,65 @@
       "readiness/cleanup.json": "3586dfacf0a00e4ac218da196cefe8ebbd003322e20f358afb9d431709111f79",
       "bindings-qualified.log": "7f112d44e7b89a92c92369b23dcc786a4f60c0c68ac1dd5bf324d2e0039e9dff",
       "protection-final.log": "a11f1ce91a1e95507a8e6ce15757877a52eb033a7e5ed017289b920a16c4c5bb"
+    }
+  },
+  "budget_trial_outcome": {
+    "operation_id": "nautobot-recurring-capture-resume-budget-v1",
+    "bundle_sha256": "51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af",
+    "status": "capture_only_accepted",
+    "accepted_at": "2026-11-03T19:26:45.534074+00:00",
+    "normal_completion": true,
+    "capture_seconds": 13.113053321838379,
+    "preflight_plus_pause_upper_bound_seconds": 281.01472640037537,
+    "readiness_limit_seconds": 210,
+    "health_wait_seconds": 159.301781,
+    "task_results": {
+      "capture_rc": 0,
+      "credential_cleanup_failed": false,
+      "health_delta": "0:02:39.301781",
+      "health_rc": 0,
+      "health_readiness_deadline": false,
+      "pause_rc": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "resume_rc": [
+        0,
+        0,
+        0
+      ],
+      "schema_version": 1
+    },
+    "resume_verification": {
+      "schema_version": 1,
+      "verification_delta": "0:00:01.079426",
+      "verification_rc": 0
+    },
+    "payload_path": "/var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1",
+    "payload_content_sha256": {
+      "configuration": "cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2",
+      "image_dependency_manifest": "e00b1afd19528bec6df100529e03cff9195e35c4f0b0d475e85f0c1449aad31f",
+      "media": "6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04",
+      "postgresql_custom_dump": "3fa820b04b3605ba0a72c899890b45c16949c0ca677702d91dd4dfcf757bc919",
+      "quadlet_config_hashes": "a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0",
+      "versions_migrations": "1271747b9ce460b3c05ab185108363d6ca21a50cb98909a3c8ff4007c39ca025"
+    },
+    "retained_state_unchanged": true,
+    "transient_credentials_removed": true,
+    "runtime_links_removed": true,
+    "upload_qualified": false,
+    "independent_failure_recovery_qualified": false,
+    "notifications_qualified": false,
+    "disposal_qualified": false,
+    "recurring_schedule_enabled": false,
+    "media_scope": "empty_directories_only",
+    "evidence_sha256": {
+      "readback.json": "b5d8835ca9ea192217aa7d05b9848233552f4e7352e65947e19a35e7dbf638bb",
+      "journal.jsonl": "18fcbb22dd9d5e32174be80532a7b91728fee854b4c6bc7da19ea2b0192d445a",
+      "execution/observations.json": "fa1eebe052af6148d9c6c14a969e4fd8ccd261411e6dd17d7263073b6ae0fbf4",
+      "acceptance-checks.json": "df599016af6af1169e4674af7d1fea2db23fe1faedf8bb6a72d287927be2ae54"
     }
   }
 }

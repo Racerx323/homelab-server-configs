@@ -1265,6 +1265,119 @@
           }
         }
       ]
+    },
+    "recurring_capture_resume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "bundle_sha256",
+        "status",
+        "accepted_at",
+        "normal_completion",
+        "capture_seconds",
+        "preflight_plus_pause_upper_bound_seconds",
+        "readiness_limit_seconds",
+        "health_wait_seconds",
+        "task_results",
+        "resume_verification",
+        "payload_path",
+        "payload_content_sha256",
+        "retained_state_unchanged",
+        "transient_credentials_removed",
+        "runtime_links_removed",
+        "upload_qualified",
+        "independent_failure_recovery_qualified",
+        "notifications_qualified",
+        "disposal_qualified",
+        "recurring_schedule_enabled",
+        "media_scope",
+        "evidence_sha256",
+        "terminal_tag"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "const": "capture_only_accepted"
+        },
+        "accepted_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normal_completion": {
+          "const": true
+        },
+        "capture_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "preflight_plus_pause_upper_bound_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "readiness_limit_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "health_wait_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "task_results": {
+          "type": "object"
+        },
+        "resume_verification": {
+          "type": "object"
+        },
+        "payload_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload_content_sha256": {
+          "type": "object"
+        },
+        "retained_state_unchanged": {
+          "const": true
+        },
+        "transient_credentials_removed": {
+          "const": true
+        },
+        "runtime_links_removed": {
+          "const": true
+        },
+        "upload_qualified": {
+          "const": false
+        },
+        "independent_failure_recovery_qualified": {
+          "const": false
+        },
+        "notifications_qualified": {
+          "const": false
+        },
+        "disposal_qualified": {
+          "const": false
+        },
+        "recurring_schedule_enabled": {
+          "const": false
+        },
+        "media_scope": {
+          "const": "empty_directories_only"
+        },
+        "evidence_sha256": {
+          "type": "object"
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
