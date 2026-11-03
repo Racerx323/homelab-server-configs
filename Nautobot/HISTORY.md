@@ -737,5 +737,7 @@ remote retention analysis; 59 independent checks passed. One eligible snapshot
 kept, four historical snapshots excluded, zero remote removals. Accepted identity:
 `manifests/accepted-live-state.yaml#recurring_disposal`; bundle
 `cd1e1d5f9efded646d71da1dd53448a4ff64c9851cf6625bc06724f6fc2c677e`.
-Terminal archival pending separate commit/tag/push authorization; proposed tag
-`nautobot-recurring-disposal-v1-accepted`. The consumed operation remains disabled.
+Terminal tag: `nautobot-recurring-disposal-v1-accepted`; archive commit
+`b558f4c9980b2bab0aa2e091b706808a6182180a`. The pushed archive and all 31 member
+hashes were independently verified before clearing the consumed operation.
+Remote deletion/prune and schedules remain unauthorized.

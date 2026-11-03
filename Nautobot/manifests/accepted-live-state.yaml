@@ -466,7 +466,7 @@ recurring_disposal:
   transient_credentials_removed: true
   recurring_schedule_enabled: false
   scope: one_successful_local_payload_and_remote_retention_dry_run_only
-  terminal_archival: pending_publication
+  terminal_archival: published_verified
   evidence_sha256:
     approval-record.json: 66e5c2e49c601d3ef930a98cb721fdaf7aacc74ee36a11a271ca95e44ba93587
     pre-execution.json: 57e14dd8c05bc10d1271e6b6bae24c32c82c9ea4fb7f3c13ed5e1b1368a46cf8
@@ -476,3 +476,7 @@ recurring_disposal:
     execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
     execution/ansible.stdout: f8807c7398de574ea6cbc376e5aacca5ecc78f5aa2c8c77bad72e5787139cda7
     execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    terminal/publication-verification.json: d147e1f1b70f8c33085556d297c0b22a1bec770e76711fbdcb228eb63d9dd04d
+  terminal_tag: nautobot-recurring-disposal-v1-accepted
+  archive_commit: b558f4c9980b2bab0aa2e091b706808a6182180a
+  tag_object: 8f1ba48924b6f282b672c6c422157e713745df74
