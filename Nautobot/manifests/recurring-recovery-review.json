@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation_id": "nautobot-recurring-recovery-timer-v2",
-  "status": "accepted_pending_archival",
+  "status": "accepted_archived",
   "bundle_sha256": "fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85",
   "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-recovery-retained-preparation-20261103",
   "previous_archive": {
@@ -39,9 +39,7 @@
     ],
     "target_acceptance": false
   },
-  "remaining_inputs": [
-    "terminal_archival_authorization"
-  ],
+  "remaining_inputs": [],
   "remaining_gaps": [],
   "execution_started": true,
   "source_commit": "1b51b75851e6ab090dd69ee739b6cbc564f33a60",
@@ -92,7 +90,8 @@
     "acceptance-checks.json": "5716b267ff7d11acedcf637fd691c5ed7fab6344717c3fb50a590d8ae7577d89",
     "accepted-contract-tests.log": "7aab3968406c0c41e9e7fc58f84d9fd43b8c594f6c46f1ca9a133ff15ed835a8",
     "accepted-bundle-tests.log": "ab175864142cc379b777b42e4b5ee02183c3ade973a0c5519ef2225d873fc685",
-    "accepted-docs-tests.log": "5b496fea7ecf5cece01b012e3013b95410aae4699b5f5c5b7452651c22096f45"
+    "accepted-docs-tests.log": "5b496fea7ecf5cece01b012e3013b95410aae4699b5f5c5b7452651c22096f45",
+    "terminal/publication-verification.json": "9c5d7d2557075e5d9e572302b581c1a696afd29d9cee3939ae26d5b52c5565d0"
   },
   "acceptance": {
     "checks_passed": 85,
@@ -105,5 +104,16 @@
     "initial_evidence_preserved": true,
     "controller_exit_status": 0,
     "recurring_schedule_enabled": false
+  },
+  "archive": {
+    "tag": "nautobot-recurring-recovery-timer-v2-accepted",
+    "tag_object": "d0cc85213bfcb4122076913cb7957aaa466027fc",
+    "archive_commit": "2dd59631cd3c94333fbf3f238daa3b55a93a0920",
+    "archive_sha256": "0f337fdd375e9b38789bfe3ab20aa246520007c72486755414741c9cdd52ad8b",
+    "bundle_sha256": "fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85",
+    "all_member_hashes_verified": true,
+    "members": 39,
+    "published_verified": true,
+    "verified_at": "2026-11-04T00:44:31.594585+00:00"
   }
 }

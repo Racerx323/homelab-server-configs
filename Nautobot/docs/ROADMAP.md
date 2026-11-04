@@ -65,10 +65,13 @@ identities are unchanged. Qualification links are removed and no schedule is ena
 The first readback caught a transient Podman healthcheck job; it completed
 successfully, and the unchanged checks passed on settled readback. Both are retained.
 
-Next: authorize commit/tag/push of the terminal archive, retained-state implementation
-and its validation changes. The consumed operation remains disabled and occupied
-until its published archive is verified. See
-`manifests/recurring-recovery-review.json` and accepted live state.
+The terminal archive and qualified retained-state implementation are published.
+The annotated tag, archive bytes and all 39 member hashes were independently
+verified; the consumed operation is cleared and the deployment stream is clean.
+See `manifests/recurring-recovery-review.json` and accepted live state.
+
+Next: prepare a separate schedule-enablement request, reconciling the remaining
+recurring-protection acceptance gates before seeking approval.
 Remote deletion/prune, older-payload disposal, populated-media recovery and schedule
 enablement remain separate scopes; no recurring schedule is enabled.
 

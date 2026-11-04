@@ -761,5 +761,7 @@ and bounded marker-timer/calendar qualification; all 85 checks passed. Recovery
 was 158.5/159.0 seconds within 240 seconds; retained tree and older staging unchanged.
 Accepted identity: `manifests/accepted-live-state.yaml#recurring_recovery_timer`.
 Bundle: `fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85`.
-Terminal archival pending; proposed tag `nautobot-recurring-recovery-timer-v2-accepted`.
+Published annotated tag: `nautobot-recurring-recovery-timer-v2-accepted`; archive commit
+`2dd59631cd3c94333fbf3f238daa3b55a93a0920`. The independently fetched archive bytes and all
+39 member hashes were verified before clearing the consumed operation.
 Production schedules remain disabled. Never replay the consumed claim.

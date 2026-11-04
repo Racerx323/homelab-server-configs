@@ -504,8 +504,9 @@ recurring_recovery_timer:
   remote_repository_accessed: false
   notifications_sent: false
   capture_payload_created: false
-  terminal_archival: pending_publication
+  terminal_archival: published_verified
   evidence_sha256:
+    terminal/publication-verification.json: 9c5d7d2557075e5d9e572302b581c1a696afd29d9cee3939ae26d5b52c5565d0
     approval-record.json: 3fdc6e1ba98cf34a01065859e03ca60c539a999c15956c51a3e8ae59f4f3014b
     pre-execution.json: 77221345a94ef1ba0ca3a8b60456574368f513852ca6236db13a502d76616e0e
     pre-execution-checks.json: 0df4f763132e38cead12d915e94ee896bfdb1a955fc19564f7438978450189a0
@@ -517,3 +518,6 @@ recurring_recovery_timer:
     transient-job.json: 7e566220438d00e0a2ca9f27039d2ba61aa53908d98f6d0f805407f539e464a3
     readback.json: 396630979277ba1772660f98f297b75d21dba2fd122fa755eb5cceaf5e3aa2dc
     acceptance-checks.json: 5716b267ff7d11acedcf637fd691c5ed7fab6344717c3fb50a590d8ae7577d89
+  terminal_tag: nautobot-recurring-recovery-timer-v2-accepted
+  archive_commit: 2dd59631cd3c94333fbf3f238daa3b55a93a0920
+  tag_object: d0cc85213bfcb4122076913cb7957aaa466027fc
