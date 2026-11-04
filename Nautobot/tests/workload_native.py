@@ -75,6 +75,19 @@ with ThreadPoolExecutor(max_workers=2) as pool:
     for _ in range(5):
         assert list(pool.map(audit, (0, 1))) == [first['sha256']]*2
 assert PilotAudit().run(dataset, first['receipt'])['sha256'] == first['sha256']
+assert rows() == first_rows, 'exports_or_audits_wrote_rows'
+if any(row.get('type') == 'AAAA' for row in dataset.get('dns_records', [])):
+    # Exercise the pinned model's family validator, not only our input adapter.
+    from django.core.exceptions import ValidationError
+    record = apps.get_model('nautobot_dns_models.aaaarecord').objects.first()
+    address = apps.get_model('ipam.ipaddress').objects.filter(ip_version=4).first()
+    record.ip_address = address
+    try:
+        record.validated_save()
+        raise AssertionError('native_wrong_family_accepted')
+    except ValidationError:
+        pass
+    assert rows() == first_rows, 'invalid_dns_write'
 interface = apps.get_model('dcim.interface').objects.get(pk=first['receipt']['objects']['pilot-device-0001/eth0'])
 with transaction.atomic():
     interface.enabled = False
@@ -113,4 +126,4 @@ assert not Job.objects.filter(pk__in=registration.values(), enabled=True).exists
 print('NATIVE_WORKLOAD_RESULT=' + json.dumps({'passed': True, 'version': nautobot.__version__,
     'counts': first['counts'], 'projection_sha256': first['sha256'],
     'checks': ['native_rollback', 'unowned_refusal', 'repeat_import_no_writes', 'three_exports',
-               'ten_concurrent_audits', 'drift_refusal', 'native_registration', 'native_synchronous_job_result', 'disable_owned_registration'], 'celery_dispatch_tested': False}, sort_keys=True))
+               'ten_concurrent_audits', 'exports_and_audits_no_writes', 'drift_refusal', 'native_registration', 'native_synchronous_job_result', 'disable_owned_registration'], 'celery_dispatch_tested': False}, sort_keys=True))

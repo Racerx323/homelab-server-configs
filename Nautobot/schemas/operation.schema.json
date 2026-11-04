@@ -2039,6 +2039,9 @@
           "cleanup_or_prune": false
         }
       }
+    },
+    {
+      "$ref": "recurring-schedule.schema.json"
     }
   ],
   "$defs": {

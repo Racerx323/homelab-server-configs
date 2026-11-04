@@ -15,7 +15,8 @@ from jsonschema import Draft202012Validator
 ROOT=Path(__file__).resolve().parents[3]
 STAGE='recurring_capture_resume_qualification'
 SCRIPTS=('capture_qualification.py','recurring_node.py','recurring_protection.py','render-recurring-protection.py',
-         'recurring_delivery.py','recurring_disposal.py','workload_capture.py','media_namespace.py','recovery_probe.py')
+         'recurring_delivery.py','recurring_disposal.py','workload_capture.py','media_namespace.py','recovery_probe.py',
+         'recurring_logical.py','logical_database.py')
 FILES={
     'capture_retained.py':'Nautobot/ansible/scripts/capture_retained.py',
     'launcher.py':'Nautobot/ansible/scripts/capture-resume-bundle.py',
@@ -34,6 +35,11 @@ FILES={
     'runtime/metadata/qualified-image.json':'Nautobot/manifests/qualified-image.json',
 }
 FILES.update({'runtime/scripts/'+p:'Nautobot/ansible/scripts/'+p for p in SCRIPTS})
+GENERATED_FILES = set()
+
+
+def prepare_runtime(root, op):
+    """Optional consumer-owned deterministic inputs; default capture has none."""
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def require(ok,reason):
@@ -74,6 +80,7 @@ def freeze(root, operation=None):
     (root/'inventory.ini').write_text('[inventory_automation]\nj2-svpi4mf ansible_host=10.1.2.170 ansible_user=ama ansible_python_interpreter=/usr/bin/python3 ansible_ssh_common_args="-o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=10"\n')
     (root/'ansible.cfg').write_text('[defaults]\nhost_key_checking=True\nretry_files_enabled=False\nno_target_syslog=True\n[ssh_connection]\npipelining=True\n')
     shutil.copyfile(root/'ansible.cfg',root/'runtime/ansible.cfg')
+    prepare_runtime(root, op)
     validate(root)
     rows={str(p.relative_to(root)):sha(p) for p in sorted(root.rglob('*')) if p.is_file()}
     (root/'bundle.json').write_text(json.dumps(rows,sort_keys=True)+'\n');print(sha(root/'bundle.json'))
@@ -82,7 +89,7 @@ def verify(root,digest):
     require(root.is_absolute() and not any(p.is_symlink() for p in (root,*root.parents)),'bundle_path')
     require(sha(root/'bundle.json')==digest,'bundle_identity')
     rows=json.loads((root/'bundle.json').read_text())
-    require(set(rows)==set(FILES)|{'runtime/operation.json','runtime/ansible.cfg','controller.json','inventory.ini','ansible.cfg'},'bundle_members')
+    require(set(rows)==set(FILES)|GENERATED_FILES|{'runtime/operation.json','runtime/ansible.cfg','controller.json','inventory.ini','ansible.cfg'},'bundle_members')
     require({str(p.relative_to(root)) for p in root.rglob('*') if p.is_file()}==set(rows)|{'bundle.json'},'unexpected_members')
     for name,digest in rows.items():
         p=root/name;require(not p.is_symlink() and not any(v.is_symlink() for v in p.parents) and sha(p)==digest,'input_drift')

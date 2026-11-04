@@ -68,6 +68,36 @@ assert '--plain' in sys.argv and 'get' in sys.argv
         self.assertTrue(delivery.notify(self.root,'recovery',{},sender=available));self.assertEqual(len(sent),3)
         self.assertNotIn('delivered',json.loads((self.root/'notification.json').read_text()))
 
+    def test_finite_retry_spacing_exhaustion_survives_reentry(self):
+        contract = {'maximum_attempts': 2, 'retry_interval_seconds': 900}
+        attempts = []
+        def unavailable(contract, payload):
+            attempts.append(dict(payload)); return False
+        for stamp in (1000, 1001, 1899, 1900, 1901, 100000):
+            self.assertFalse(delivery.notify(self.root, 'failure', contract, unavailable, stamp))
+        self.assertEqual(len(attempts), 2)
+        self.assertEqual(attempts[0], attempts[1])
+        state = json.loads((self.root/'notification.json').read_text())
+        self.assertEqual(state['attempts'], 2)
+        self.assertTrue(state['exhausted'])
+        self.assertFalse(delivery.notify(self.root, 'recovery', contract, unavailable, 200000))
+        self.assertEqual(len(attempts), 2)
+
+    def test_ambiguous_send_consumes_attempt_before_process_loss(self):
+        contract = {'maximum_attempts': 1, 'retry_interval_seconds': 15}
+        def interrupted(contract, payload): raise InterruptedError('after request')
+        with self.assertRaises(InterruptedError):
+            delivery.notify(self.root, 'failure', contract, interrupted, 1000)
+        with patch.object(delivery, 'send_direct') as sender:
+            self.assertFalse(delivery.notify(self.root, 'failure', contract, sender, 2000))
+            sender.assert_not_called()
+
+    def test_retry_policy_rejects_partial_or_invalid_bounds(self):
+        for contract in ({'maximum_attempts': 2}, {'maximum_attempts': True, 'retry_interval_seconds': 1},
+                         {'maximum_attempts': 0, 'retry_interval_seconds': 1}):
+            with self.assertRaisesRegex(ValueError, 'notification_retry_policy'):
+                delivery.notify(self.root, 'failure', contract)
+
     def test_direct_http_uses_standard_format_and_no_redirect(self):
         from http.server import BaseHTTPRequestHandler, HTTPServer
         import threading
@@ -101,6 +131,31 @@ assert '--plain' in sys.argv and 'get' in sys.argv
             self.assertFalse(delivery.notify(self.root,'failure',{},sender=lambda c,p:False))
         self.assertEqual(json.loads((self.root/'state.json').read_text())['phase'],'complete')
         self.assertIsNotNone(json.loads((self.root/'notification.json').read_text())['pending'])
+
+    def test_http_rejection_exhausts_persisted_retry_budget(self):
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        import threading
+        correlations = []
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers['Content-Length']))
+                correlations.append(self.headers['Idempotency-Key'])
+                self.send_response(503); self.end_headers()
+            def log_message(self, *args): pass
+        server = HTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        endpoint = f'http://127.0.0.1:{server.server_port}/notify/apprise'
+        contract = dict(method='direct_apprise', endpoint=endpoint, hostname='test-node',
+                        fqdn='test-node.invalid', maximum_attempts=2, retry_interval_seconds=900)
+        try:
+            with patch.object(delivery, 'ENDPOINT', endpoint):
+                for stamp in (1000, 1001, 1900, 100000):
+                    self.assertFalse(delivery.notify(self.root, 'failure', contract, now=stamp))
+            self.assertEqual(len(correlations), 2)
+            self.assertEqual(correlations[0], correlations[1])
+            self.assertTrue(json.loads((self.root/'notification.json').read_text())['exhausted'])
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
 
     def test_inactive_production_binding_and_rendered_notifier(self):
         from test_recurring_protection import renderer

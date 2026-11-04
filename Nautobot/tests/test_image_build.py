@@ -33,9 +33,24 @@ class ImageBuildTests(unittest.TestCase):
     def setUp(self):
         # Bundle tests use a definition fixture, independent of the live slot.
         files={**launcher.FILES, 'operation.yaml':'Nautobot/tests/fixtures/image-build-operation.yaml'}
+        # Bind this offline candidate to today's tests without rewriting retained evidence.
+        temporary = tempfile.TemporaryDirectory(prefix='nautobot-image-test.')
+        self.addCleanup(temporary.cleanup)
+        evidence = json.loads((ROOT/files['input-evidence.json']).read_text())
+        evidence['validation_test_sha256'] = launcher.sha(Path(__file__))
+        self.evidence = Path(temporary.name)/'input-evidence.json'
+        self.evidence.write_text(json.dumps(evidence))
+        files['input-evidence.json'] = str(self.evidence)
         self.mapping=patch.object(launcher,'FILES',files)
         self.mapping.start()
         self.addCleanup(self.mapping.stop)
+
+    def test_candidate_rejects_validation_test_drift(self):
+        evidence = json.loads(self.evidence.read_text())
+        evidence['validation_test_sha256'] = '0'*64
+        self.evidence.write_text(json.dumps(evidence))
+        with self.assertRaisesRegex(ValueError, 'validation_test_drift'):
+            launcher.prepare(self.evidence.parent/'bundle')
 
     def test_actual_bundle_producer_and_tamper_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -103,7 +118,7 @@ class ImageBuildTests(unittest.TestCase):
         op = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_text())
         Draft202012Validator(schema).validate(op)
         outer=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
-        self.assertEqual(outer['oneOf'][-1]['const'],schema['const'])
+        self.assertEqual(sum(branch.get('const') == schema['const'] for branch in outer['oneOf']), 1)
         for category, key, value in [('authorization','mutation_authorized',True),
                                       ('build','host','other-host'),
                                       ('boundaries','production_store_load',True)]:

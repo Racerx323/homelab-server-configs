@@ -60,7 +60,7 @@ def lock(path, blocking=True):
 
 
 def validate(config):
-    require(set(config)-{'notification_argv','staging_directory','staging_filesystem','dispose_successful_payload','window_date','start_minute','end_minute'} == {'schema_version', 'execution_authorized', 'state_directory', 'unit_prefix',
+    require(set(config)-{'notification_argv','staging_directory','staging_filesystem','dispose_successful_payload','window_date','start_minute','end_minute','latest_start_minute'} == {'schema_version', 'execution_authorized', 'state_directory', 'unit_prefix',
             'timezone', 'start_hour', 'end_hour', 'capture_seconds', 'recovery_seconds',
             'run_seconds', 'prepare_argv', 'ansible_argv', 'resume_commands', 'health_argv'}, 'configuration_fields')
     require(config['schema_version'] == 1 and config['execution_authorized'] is True, 'inactive_configuration')
@@ -77,6 +77,13 @@ def validate(config):
     for key, maximum in [('capture_seconds', 600), ('recovery_seconds', 300), ('run_seconds', 7200)]:
         require(type(config[key]) is int and 1 <= config[key] <= maximum, 'deadline')
     require(config['capture_seconds'] + config['recovery_seconds'] < config['run_seconds'], 'run_deadline')
+    if 'latest_start_minute' in config:
+        latest = config['latest_start_minute']
+        start = config['start_hour'] * 60 + config.get('start_minute', 0)
+        end = config['end_hour'] * 60 + config.get('end_minute', 0)
+        require(type(latest) is int and start <= latest < end
+                and (end-latest)*60 >= config['run_seconds']+150+5+config['recovery_seconds']+60,
+                'latest_start_budget')
     require(Path(config['state_directory']).is_absolute(), 'state_directory')
     require(('staging_directory' in config)==('staging_filesystem' in config),'staging_fields')
     if 'staging_directory' in config:
@@ -98,6 +105,8 @@ def in_window(config, now):
     end = midnight + timedelta(hours=config['end_hour'], minutes=config.get('end_minute', 0))
     return (config.get('window_date', local.date().isoformat()) == local.date().isoformat()
             and start <= local < end
+            and ('latest_start_minute' not in config
+                 or local <= midnight + timedelta(minutes=config['latest_start_minute']))
             and (end-local).total_seconds() >= config['capture_seconds'] + config['recovery_seconds'])
 
 

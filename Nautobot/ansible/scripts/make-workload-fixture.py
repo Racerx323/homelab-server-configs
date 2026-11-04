@@ -39,6 +39,26 @@ def dataset(contract=None):
         result['dns_records'] = [
             {'name': f'host-{i:04}', 'address': result['ip_assignments'][(i-1) % f['ip_assignments']]['address']}
             for i in range(1, f['dns_records'] + 1)]
+    if f.get('profile') == 'agreed_pilot':
+        if (f['locations'], f['devices'], f['ip_assignments'], f['dns_records']) != (1, 200, 2000, 2000):
+            raise ValueError('pilot_profile_counts')
+        # Synthetic switch-like/host-like density, not discovered hardware models.
+        for i, device in enumerate(result['devices']):
+            count = 24 if i < 20 else 2 if i < 160 else 1
+            device['interfaces'] = [{'name': f'eth{j}', 'enabled': True} for j in range(count)]
+        interfaces = [(d['key'], n['name']) for d in result['devices'] for n in d['interfaces']]
+        addresses = [f'198.18.{i//250}.{i%250+1}/24' for i in range(1200)]
+        addresses += [f'2001:2::{i+1:x}/64' for i in range(800)]
+        result['ip_assignments'] = [dict(device=interfaces[i % 800][0], interface=interfaces[i % 800][1], address=a)
+                                    for i, a in enumerate(addresses)]
+        records = [dict(type=t, name=f'host-{i+1:04}', address=addresses[offset+i])
+                   for t, offset in [('A', 0), ('AAAA', 1200)] for i in range(800)]
+        records += [dict(type='PTR', name=str(i+1), address=addresses[i], target=f'host-{i+1:04}.pilot-synthetic.invalid') for i in range(250)]
+        records += [dict(type='CNAME', name=f'alias-{i+1:04}', target=f'host-{i+1:04}.pilot-synthetic.invalid') for i in range(100)]
+        records += [dict(type='TXT', name=f'text-{i+1:04}', text=f'synthetic-pilot-{i+1:04}') for i in range(40)]
+        records += [dict(type='SRV', name=f'_pilot{i+1:02}._tcp', target=f'host-{i+1:04}.pilot-synthetic.invalid',
+                         priority=10, weight=5, port=443) for i in range(10)]
+        result['dns_records'] = records
     return result
 
 
@@ -55,12 +75,20 @@ def canonical(value):
     return (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode()
 
 
+def pilot_contract():
+    contract = expanded_contract()
+    contract['fixture']['profile'] = 'agreed_pilot'
+    return contract
+
+
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--expanded', action='store_true')
+    profile = parser.add_mutually_exclusive_group()
+    profile.add_argument('--expanded', action='store_true')
+    profile.add_argument('--pilot', action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
-    payload=canonical(dataset(expanded_contract() if args.expanded else None))
+    payload=canonical(dataset(pilot_contract() if args.pilot else expanded_contract() if args.expanded else None))
     with args.output.open('xb') as out:out.write(payload)
     args.output.chmod(0o600)
     print(hashlib.sha256(payload).hexdigest())

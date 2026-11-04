@@ -152,6 +152,10 @@
         },
         "backup_template": {
           "type": "object"
+        },
+        "logical_reference": {
+          "type": "boolean",
+          "description": "Opt-in independently retained before/after logical identity; requires separate capture qualification."
         }
       }
     },
@@ -384,7 +388,9 @@
             "retained_payloads": {
               "type": "array",
               "maxItems": 10,
-              "items": {"type": "object"}
+              "items": {
+                "type": "object"
+              }
             },
             "units": {
               "type": "object"

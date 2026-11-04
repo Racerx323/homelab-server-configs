@@ -1,0 +1,452 @@
+{
+  "schema_version": 1,
+  "kind": "recurring_schedule_enablement_preparation_review",
+  "status": "installed_awaiting_first_calendar_cycle",
+  "review_date": "2026-11-04",
+  "execution_authorized": true,
+  "authorization_ready": false,
+  "operation_defined": true,
+  "source_commit": "ff3bb06c97d581689fa137b4437d3486c04e33f4",
+  "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-schedule-enablement-preparation-20261104",
+  "source_sha256": {
+    "Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md": "3e1c74a76468ed75b12739718fc93481450968234c91630b4a4ad6d1cba9c876",
+    "Nautobot/manifests/desired-state.yaml": "c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961",
+    "Nautobot/manifests/accepted-live-state.yaml": "82e0fb7633598894d226631f50421c4101b0cd91cce55eab8e85a626861cc198",
+    "Nautobot/manifests/operation.yaml": "d961eacc48b69ec3227a670fd403167ee5317dc00a9aa36d09188945e9e45fd7",
+    "Nautobot/manifests/recurring-protection.yaml": "2f2a6c569b82108455f090088852befffbfd6ce2061300e3019806ca9f81dda8",
+    "Nautobot/ansible/scripts/recurring_node.py": "6c0b9e5a8299612dbc949735cd89e929f9945eb49df39f778321b49f0664af83",
+    "Nautobot/ansible/scripts/recurring_protection.py": "c57bd68e958e2f3e9d8fd105c43413a9165a8e98cb0aa5ed03cc9bd92b5e31b9",
+    "Nautobot/ansible/scripts/recurring_delivery.py": "ec9bb6752c1f53c984e3f6ccc40db3fb17f60e9e4ea72c7ffa417e738183c585",
+    "Nautobot/ansible/scripts/recurring_disposal.py": "be0d6836bc2bbff5fcad49b62247ec230f2d816c861e03f2d7e05f818f069e92",
+    "Nautobot/ansible/scripts/render-recurring-protection.py": "d1b49cbe1562d6fb268e2f4240d9eaaa4a86efef4818dec07318d8dfe1419932",
+    "Nautobot/ansible/playbooks/recurring-capture.yaml": "31e02cebc7c269b37e174b0d400d6798ec8aadb64935778d3540e0139339176f",
+    "Nautobot/ansible/tasks/capture-resume-upload.yaml": "288b25b9a66f2200bd3f9e84a7ba3788972e35c780d3e843c82dcc064954d69b",
+    "restic/scripts/application-backup.py": "6ab745a471dbc2b129f5251d674dd2c196a1f28ae273dd2bf1011894f351f8bf",
+    "Nautobot/ansible/playbooks/install-recurring-schedule.yaml": "0947fca2685ef33ab72482fbe46c9de3ebcddfdacf1d10221a9a22cbcc1cc39a",
+    "Nautobot/ansible/scripts/schedule-bundle.py": "c79a274bc2c981b1a8696d2cd8e0927307b5ca4cf86dea713307f98ef30246d7",
+    "Nautobot/ansible/scripts/schedule_install.py": "d0972d2408ab1b5c9d19b395c61c519342a16699bcc2c7fd8139266602c39aa6",
+    "Nautobot/ansible/scripts/capture-resume-bundle.py": "d7593adfe6d9c768327f5eed5e0fe7d488c296de598c9b028af72bcd9bf5ff8d",
+    "Nautobot/schemas/recurring-schedule.schema.json": "83dbe895c96cb97786c58360c95f88b7acc2ba9706c1ba72e01570f6d9b20e6c",
+    "Nautobot/tests/qualify_schedule.py": "58de08b564debfed050e534a9301d874898acd994b1c4fef4e8f8be394789815",
+    "Nautobot/tests/fixtures/schedule-driver.py": "5fa0a15120873a6288362d726cde96f043106cec5c45ba8fedc6241cbda3774c",
+    "Nautobot/tests/test_schedule.py": "89c128bad71e6a02d65ee7d47591855ba072c5f4ddf8e3015afee0d2984a72b3"
+  },
+  "accepted_stage_archives": {
+    "recurring_prerequisites": {
+      "tag": "nautobot-recurring-prerequisites-v1-accepted",
+      "tag_object": "a40e1f25bd6588ab3dc13b647565ffe135047558",
+      "archive_commit": "aa2ec1bbbb4869a5e0633a5441ed9c74a75612d8",
+      "accepted_bundle_sha256": "4f7e0a4abbade83ade68f305bd0ca51c450fd803e0877402f0a56ed534c313d3"
+    },
+    "recurring_credentials": {
+      "tag": "nautobot-recurring-credentials-v1-accepted",
+      "tag_object": "016c22b7afaafe603819a1081115924acf4b1532",
+      "archive_commit": "063c70d090e9a9ae2e6ee1276c82123a0913ff2c",
+      "accepted_bundle_sha256": "b53918415b8aa946862ea15ae81a42867ddbf6b2f3824cc523d44dbed96ed6e1"
+    },
+    "recurring_capture_resume": {
+      "tag": "nautobot-recurring-capture-resume-budget-v1-accepted",
+      "tag_object": "1e0fdf5b2597482cd99180fdf7d333313897d223",
+      "archive_commit": "42b90e219959a6854ec2c18efa98c720fb4f57f8",
+      "accepted_bundle_sha256": "51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af"
+    },
+    "recurring_upload_integrity": {
+      "tag": "nautobot-recurring-upload-integrity-v1-accepted",
+      "tag_object": "ecd34b21d628aa879733cfc7d1f78f03cddf05bd",
+      "archive_commit": "2ef1770a455d7bb15afc95c4a25856265e9ee54d",
+      "accepted_bundle_sha256": "6b80008892b0d327c319fe93ba8d97dd6aa6f02e6641484d65715c0f3895e7a3"
+    },
+    "recurring_notifications": {
+      "tag": "nautobot-recurring-notification-v1-accepted",
+      "tag_object": "8136784d026dc311ad2f96342b58852f8037e1ea",
+      "archive_commit": "dc811fd3c4c5772a1583a3f28caaeed00c0144f1",
+      "accepted_bundle_sha256": "b8f23ba87807b194080d0836a44858fef87084d4b49c7ea55d0ba05e26490aed"
+    },
+    "recurring_disposal": {
+      "tag": "nautobot-recurring-disposal-v1-accepted",
+      "tag_object": "8f1ba48924b6f282b672c6c422157e713745df74",
+      "archive_commit": "b558f4c9980b2bab0aa2e091b706808a6182180a",
+      "accepted_bundle_sha256": "cd1e1d5f9efded646d71da1dd53448a4ff64c9851cf6625bc06724f6fc2c677e"
+    },
+    "recurring_recovery_timer": {
+      "tag": "nautobot-recurring-recovery-timer-v2-accepted",
+      "tag_object": "d0cc85213bfcb4122076913cb7957aaa466027fc",
+      "archive_commit": "2dd59631cd3c94333fbf3f238daa3b55a93a0920",
+      "accepted_bundle_sha256": "fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85"
+    }
+  },
+  "fresh_baseline": {
+    "collected_at": "2026-11-04T19:22:47.865295+00:00",
+    "comparison_count": 27,
+    "all_comparisons_passed": true,
+    "secret_values_read": false,
+    "smart_requests": false,
+    "target_mutation": false,
+    "schedule_paths_collected_at": "2026-11-04T19:28:05.951420+00:00",
+    "proposed_paths_absent": true,
+    "proposed_units_not_loaded": true,
+    "scrub_inactive": true,
+    "known_scrub_calendar": "Sun *-*-* 03:10:00 America/Chicago"
+  },
+  "proposed_scope": {
+    "timezone": "America/Chicago",
+    "nightly_trigger": "03:20:00",
+    "writer_window": "03:00-04:00",
+    "persistent_catchup": false,
+    "capture_deadline_seconds": 450,
+    "independent_recovery_seconds": 240,
+    "ansible_run_seconds": 1800,
+    "service_timeout_seconds": 1950,
+    "integrity": "full_check_after_every_nightly_upload",
+    "integrity_choice": "explicit_user_selection_2026-11-04",
+    "media": "empty_directories_only",
+    "successful_payload_disposal": true,
+    "failed_payload_disposal": false,
+    "remote_retention_delete": false,
+    "prune": false,
+    "freshness_trigger": "04:05:00 and five minutes after boot",
+    "notification_endpoint": "http://10.1.3.83:8000/notify/apprise",
+    "notification_destinations": [
+      "email",
+      "Discord",
+      "Pushover"
+    ],
+    "runtime_directory": "/var/lib/nautobot/protection/runtime",
+    "state_directory": "/var/lib/nautobot/protection/state",
+    "new_directory_owner": {
+      "uid": 999,
+      "gid": 985,
+      "mode": "0700"
+    },
+    "existing_staging_directory": "/var/lib/nautobot/protection/staging",
+    "unit_directory": "/var/lib/nautobot/.config/systemd/user",
+    "enabled_timers": [
+      "nautobot-protection.timer",
+      "nautobot-protection-freshness.timer",
+      "nautobot-protection-notification.timer"
+    ],
+    "unit_names": [
+      "nautobot-protection-freshness.service",
+      "nautobot-protection-freshness.timer",
+      "nautobot-protection-guard.service",
+      "nautobot-protection-guard.timer",
+      "nautobot-protection-notification.service",
+      "nautobot-protection-notification.timer",
+      "nautobot-protection-recovery.service",
+      "nautobot-protection.service",
+      "nautobot-protection.timer"
+    ],
+    "package_changes": false,
+    "credential_provisioning": false,
+    "remote_retention_policy": "7 daily / 5 weekly / 12 monthly remains separately scoped; no deletion or prune in this request",
+    "latest_start_implemented": true,
+    "notification_retry_implemented": true,
+    "notification_retry_policy": {
+      "maximum_attempts_per_transition": 2,
+      "retry_interval_seconds": 900,
+      "exhaustion": "retain pending identity and explicit exhausted receipt; operator review; no automatic new attempt"
+    },
+    "latest_start": "03:22:00"
+  },
+  "preapproval_gaps": [],
+  "external_inputs": [
+    {
+      "id": "activation_and_first_cycle",
+      "required": "Execute after exact approval, outside 03:00-04:00 America/Chicago and before the November 5 13:22:47 CST baseline expiry. Observe the next native 03:20 calendar activation, then read back after completion/04:05 freshness."
+    },
+    {
+      "id": "monitoring_owner",
+      "required": "Aaron owns existing host/user-manager outage monitoring and credential rotation; no monitoring changes authorized."
+    },
+    {
+      "id": "maintenance_coordination",
+      "required": "Coordinate separately authorized restore and repository maintenance with the recurring run lock. Existing scrub admission is an observation, not a cross-owner mutex."
+    }
+  ],
+  "postexecution_acceptance": [
+    "independent installed file hashes, owner/modes, enabled timer symlinks and exact next trigger",
+    "one actual calendar-triggered complete cycle; timer installation and manual start are insufficient",
+    "all six capture hashes and native dump validation; verified writer resume before repository access",
+    "exact new snapshot and full integrity success; credential cleanup; successful-payload-only disposal; independent preserved-tree comparison",
+    "actual missed-run/failure/recovery notification path with downstream receipt evidence; no unapproved production fault injection",
+    "application health and unchanged PostgreSQL/Redis invocations and boot; no active guard or leaked credentials after completion"
+  ],
+  "separate_scopes": [
+    "remote snapshot deletion/prune",
+    "older or failed retained-payload disposal",
+    "monthly isolated restore operation and schedule",
+    "populated-media support",
+    "host reboot/outage recovery",
+    "workload/headroom and seven-day pilot acceptance",
+    "Caddy onboarding and authority migration"
+  ],
+  "exact_execution_command": "python3 -B /home/aaron/code/.local-evidence/nautobot-schedule-enablement-preparation-20261104/candidate/launcher.py execute /home/aaron/code/.local-evidence/nautobot-schedule-enablement-preparation-20261104/candidate --approve 90607f422af8d4a3c94076bc8a5fe24dab1a2c394ffb36de01b48a50a4c99f56 --evidence /home/aaron/code/.local-evidence/nautobot-schedule-enablement-preparation-20261104/execution",
+  "execution_bundle_sha256": "90607f422af8d4a3c94076bc8a5fe24dab1a2c394ffb36de01b48a50a4c99f56",
+  "local_qualification": {
+    "installer_qualified": true,
+    "target_acceptance": false,
+    "production_acceptance": false,
+    "native_complete_path": {
+      "installation": true,
+      "idempotence": true,
+      "calendar_cycles": 2,
+      "real_restic_snapshots": 2,
+      "full_integrity_and_disposal": true,
+      "missed_recovery_loopback_delivery": true,
+      "drift_refusal": true,
+      "unit_and_dropin_drift_refusal": true,
+      "post_enable_rollback": true,
+      "runtime_retained_on_failure": true,
+      "target_acceptance": false,
+      "restic_sha256": "a77b8f59af4da23256edf1f768bc363c224b259082da8f6cc7fc7913535626d3"
+    },
+    "recurring_regression_cases_covered": 48,
+    "definition_contract_cases_passed": 27,
+    "additional_shared_contract_cases_passed": 29,
+    "additional_shared_contract_cases_skipped": 3,
+    "ansible_syntax_exit_status": 0,
+    "operation_schema_exit_status": 0,
+    "pre_commit_configuration_valid": true,
+    "repository_execution_gates": false,
+    "bundle_verification_exit_status": 0,
+    "native_environment": "Disposable local Podman systemd image localhost/nautobot-recovery-setup:20261103; SSH/sudo, Ansible, user systemd, Restic, HTTP and disposal exercised.",
+    "adaptations": [
+      "Application captures and pause/resume use a local adapter; native PostgreSQL dump parsing remains a production acceptance check.",
+      "Disposable local repository and credentials replace B2/Doppler; no production secrets or destinations contacted.",
+      "Media/root filesystem observations adapted to the disposable container.",
+      "Two accelerated UTC calendar triggers exercise repeated dispatch; actual Central-time cutoff separately tested across DST boundaries."
+    ],
+    "vexp_verification": "Unavailable: parent-workspace not a Git repository; direct repository validation used.",
+    "secret_scan_findings": 0,
+    "candidate_secret_scan_findings": 0,
+    "final_document_operation_cases_passed": 24
+  },
+  "evidence_sha256": {
+    "baseline.sh": {
+      "sha256": "e2e71928b0dc25066f51cec3e577da875af428fc2bb7b708a724346035a8b871"
+    },
+    "baseline.json": {
+      "sha256": "da9081224e1151581835147a10064607ca79703a26eb0f3c488e9a575febc814"
+    },
+    "baseline.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "baseline.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "baseline-comparison.json": {
+      "sha256": "48f126a9fb589ac5dec7e0c99939468944f8116fbdc215b580a6ac87fac45b54"
+    },
+    "accepted-tag-identities.json": {
+      "sha256": "0908c20d89586843c57acbab5214295515e2110ee3e2dc2773e2dcf2a2c6caae"
+    },
+    "unit-verify.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "unit-verify.stderr": {
+      "sha256": "1b45537bc18462800c891930e188915dff92dd83689fa9e9384260a762035765"
+    },
+    "unit-verify.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "recurring-regressions.log": {
+      "sha256": "d914827de71d4c97d227f69532d9a9d156fe69571fd88fa06ccc3d4b2a2f94fd"
+    },
+    "recurring-runtime-regressions.log": {
+      "sha256": "ffc711fcb1d2b697b9999ed7a334c68862fa1e1fe5494adeb5beee44ec73db6c"
+    },
+    "qualification.json": {
+      "sha256": "00ac67149e2fb9045f68143ad3cfd6f2ae6ff9922dbeba3677b3caab3a495d0e"
+    },
+    "schedule-paths.sh": {
+      "sha256": "5cccc4c857d4e98f4b468598987c7a0b1185d93482573f380b0ad38c43123be8"
+    },
+    "schedule-paths.json": {
+      "sha256": "95601635f6a0e5b6ea3e7859b59d02a5757f892e8cc3f53aeee620052fba5a69"
+    },
+    "schedule-paths.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schedule-paths.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "document-contracts.log": {
+      "sha256": "df5b0d39f40e8dc49b075be2d57fb08f10e0a01c3b447e0f2aad1cb9169b5c24"
+    },
+    "secret-scan.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "secret-scan.log": {
+      "sha256": "079538eed1f8f039393dd8fb11f43eb8f256f839728843dce78cde690d48cdb5"
+    },
+    "native-unit-guards/results.json": {
+      "sha256": "f6b008a379c3942717220510ea87139171e3a5792cb879a1661d98908f09f171"
+    },
+    "native-unit-guards/cycles.json": {
+      "sha256": "baaaa80d677e3b98b95f0081de57f1023a47971d80374e0a403127999837cc59"
+    },
+    "native-unit-guards/notification-receipts.jsonl": {
+      "sha256": "d31da359da381446ba3aa7ee4e944dbf8fe632d0e60054335d7eadf353b6719e"
+    },
+    "native-unit-guards/cleanup.json": {
+      "sha256": "743a63155923343cdb78b730a763bead699fca5eeed32ccbf24b2de0cb103d4a"
+    },
+    "native-unit-guards/install/ansible.log": {
+      "sha256": "b5cb30364115367f131df43089f3abe04f5e59ea864546938c78e6b7681d458e"
+    },
+    "native-unit-guards/idempotent/ansible.log": {
+      "sha256": "cbef17dda8b8e73c1a2d2f956819e1986de6c7090ca0098d4148c9db9e5a51dd"
+    },
+    "native-unit-guards/drift/ansible.log": {
+      "sha256": "eb10a9380f08d1ee069f7070092caac66bf9b9fee72c889dad897d09080d0636"
+    },
+    "native-unit-guards/unit-drift/ansible.log": {
+      "sha256": "077265b1cea29ee9fad13de6d5187d2b84669d166f9f79331771d9812a73fc09"
+    },
+    "native-unit-guards/dropin-drift/ansible.log": {
+      "sha256": "d53955c36e703ca1dace06059fbebb3a9395daa6b7f07801aec6e220ef03de1b"
+    },
+    "native-unit-guards/rollback/ansible.log": {
+      "sha256": "10705a796bc4f79b0b25ef58b1defc73519183a6b63c34148b74b9a2cdb6188e"
+    },
+    "final-recurring-tests.log": {
+      "sha256": "e17167ebf1a886821e684ec0ebea1b9aa1deeb67d4f96c58318668b982180be9"
+    },
+    "http-exhaustion.log": {
+      "sha256": "0ed8283285a84fb4c626a8397287aa87a19eb3f93fdd72e9f87a1c98e00d2519"
+    },
+    "final-definition-tests.log": {
+      "sha256": "bb60c64616608910bc19e0bac5aebf81865a2b96d581cf76cf1bfdeac70e6f1b"
+    },
+    "contracts-corrected.log": {
+      "sha256": "8224a4a0130b73df77169c8c06db5d0175287db28d51e73aa85492658f5558ac"
+    },
+    "ansible-syntax.log": {
+      "sha256": "18f275177c243458063fc2aba4f7bac6cd9ca16858fa0379212512ea87b393db"
+    },
+    "schema-final.log": {
+      "sha256": "6e03843105fcecad274e749986a5c904a825ffd0ac6ce3ca0126fb632b154db8"
+    },
+    "bundle-verify.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "bundle.sha256": {
+      "sha256": "cd28bfcfda376dd85be615c96a92c4d7218409f7b12c2efef54ecb4b2c5de142"
+    },
+    "final-implementation-scan.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "candidate-scan.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "final-document-contracts.log": {
+      "sha256": "c7c7ec442ee38e696a41a422957e07bd485e5fa735f3379fdcbe45c3bdafe31b"
+    },
+    "APPROVAL.md": {
+      "sha256": "bea688eac111fe6a2f3e726d7a3376c9cafc92e6ca6b5834d580099d31fbb3fd"
+    },
+    "authorization.json": {
+      "sha256": "aa66368d57a010cda0b1224eb3b2ee8eed86677afb7df64170413e6ee4926618"
+    },
+    "execution/installation.json": {
+      "sha256": "b94e3a7485f4f2e4d534eb0fb1254ccd8b8a5edf295c83c4178b60d2ad7e5176"
+    },
+    "execution/controller-result.json": {
+      "sha256": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c"
+    },
+    "execution/ansible.stdout": {
+      "sha256": "95ad1801c82616d34f8089f884fb5122f3a6b9510044ab5f9439aea79da7f53b"
+    },
+    "execution/ansible.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "installed-readback.sh": {
+      "sha256": "1362577f88ca5be75e3ab87bee6a366506f34203d31ccd4e56326b73508dddc2"
+    },
+    "installed-readback.json": {
+      "sha256": "88754ee4b13a305d0a7990418565aeb092120234d6bb32a5506caaeecc06327c"
+    },
+    "installed-readback.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "installed-readback.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "post-install-baseline.json": {
+      "sha256": "f3532bd4804de2247831088b995c104381d375f10c91a713795413fba1ca88aa"
+    },
+    "post-install-baseline.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "post-install-baseline.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "post-install-comparison.json": {
+      "sha256": "44cf4fe09e1d9fbc7748a357a9d1da9e5ee97bd3058c35dc910db49f0da4a699"
+    },
+    "post-install-comparison-final.json": {
+      "sha256": "b6160945f0ac84504e18302fd6d2378fb727cfc81a39145ab3ed852c91fdd53e"
+    },
+    "schedule-journal.jsonl": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "manager-journal-readback.sh": {
+      "sha256": "f9b5ab196da3c06037d860d5f9e94b8f936d5fe68eedac5eee2c734aba00c54f"
+    },
+    "manager-journal.jsonl": {
+      "sha256": "601085ac4fc6c963e8fa01c3b63f97ba061e0eee866c625c642e9d7ec3653c4d"
+    },
+    "manager-journal.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "downstream-confirmation.json": {
+      "sha256": "7b2b67bd3d734979ee3160da990ddd96a0055b1c6bf7466beeb5e76f2bb4c349"
+    },
+    "post-install-contracts.log": {
+      "sha256": "f6670213548d0ba8ae750d2d4a4ee6ab348088c229a3181dae7c01ce9529198d"
+    },
+    "post-install-record-scan.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    }
+  },
+  "live_execution": {
+    "approved_bundle_sha256": "90607f422af8d4a3c94076bc8a5fe24dab1a2c394ffb36de01b48a50a4c99f56",
+    "claim_consumed": true,
+    "controller_exit_status": 0,
+    "ansible_failed": 0,
+    "ansible_rescued": 0,
+    "installation_verified": true,
+    "independent_readback_at": "2026-11-04T20:29:04.702640+00:00",
+    "preservation_comparisons_passed": 27,
+    "enabled_timers": [
+      "nautobot-protection.timer",
+      "nautobot-protection-freshness.timer",
+      "nautobot-protection-notification.timer"
+    ],
+    "next_backup": "2026-11-05T03:20:00-06:00",
+    "next_freshness": "2026-11-05T04:05:00-06:00",
+    "scheduled_cycle_started": false,
+    "scheduled_cycle_accepted": false,
+    "accepted_live_state_changed": false,
+    "application_invocations_preserved": true,
+    "boot_preserved": true,
+    "retained_evidence_preserved": true,
+    "initial_freshness": "Expected missing recurring success; freshness service reports exit 1 until successful coverage exists. No backup execution or application incident is claimed.",
+    "initial_notification": {
+      "correlation": "d9f0d85f8ea4016c2f48b807d5cf8b3368e249d3e8e6f517270038d4f9259d35",
+      "event": "missed",
+      "observed_at": "2026-11-04T20:27:06.382644+00:00",
+      "discord_excerpt_received": true,
+      "email_received": true,
+      "pushover_received": true,
+      "duplicates_reported": false,
+      "source": "Aaron confirmed in this conversation; email/Pushover precise receipt times were not supplied."
+    },
+    "git_publication_authorized": false,
+    "journal_entries": 25,
+    "journal_scope": "UID 999 systemd manager after privileged installation cursor; service-only filter had no entries.",
+    "current_operation_manifest_sha256": "4eb4b5420477d9caf6597fd049f77b67c082f2f9e5756a004eb59e823ffd3bd7",
+    "record_contract_cases_passed": 24,
+    "record_secret_scan_findings": 0
+  }
+}

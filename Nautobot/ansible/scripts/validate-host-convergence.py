@@ -219,6 +219,12 @@ class Contract(unittest.TestCase):
         self.assertEqual(result.returncode, 69)
         self.assertIn('blocked:', result.stdout)
 
+    def test_snapshot_includes_operation_schema_branches(self):
+        schema = json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
+        for branch in schema['oneOf']:
+            if '$ref' in branch:
+                self.assertIn('Nautobot/schemas/' + branch['$ref'], LAUNCHER.BUNDLE_FILES)
+
     def test_source_snapshot_rejects_extras_symlinks_and_writable_inputs(self):
         root = Path(tempfile.mkdtemp(prefix='nautobot-convergence-source.', dir='/tmp'))
         try:

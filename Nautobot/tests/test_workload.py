@@ -113,6 +113,28 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'owned_object_drift'):
             adapter.apply(value, store, first['receipt'])
 
+    def test_agreed_pilot_counts_relationships_and_disabled_records(self):
+        from collections import Counter
+        value = generator.dataset(generator.pilot_contract())
+        self.assertEqual(Counter(len(d['interfaces']) for d in value['devices']), {24: 20, 2: 140, 1: 40})
+        self.assertEqual(Counter(r['type'] for r in value['dns_records']),
+                         {'A': 800, 'AAAA': 800, 'PTR': 250, 'CNAME': 100, 'TXT': 40, 'SRV': 10})
+        nodes = adapter.plan(value)
+        self.assertEqual(sum(n['model'] == 'dcim.interface' for n in nodes), 800)
+        self.assertEqual(sum(n['model'] == 'ipam.ipaddress' for n in nodes), 2000)
+        self.assertTrue(all(n['fields']['enabled'] is False for n in nodes
+                            if n['model'].startswith('nautobot_dns_models.') and n['model'] != 'nautobot_dns_models.dnsview'))
+        self.assertEqual(generator.canonical(value), generator.canonical(generator.dataset(generator.pilot_contract())))
+
+    def test_mixed_dns_refuses_wrong_family_external_targets_and_reverse_mismatch(self):
+        for kind, field, bad in [('AAAA', 'address', '198.18.0.1/24'),
+                                  ('PTR', 'target', 'host-0002.pilot-synthetic.invalid'),
+                                  ('CNAME', 'target', 'outside.example'),
+                                  ('SRV', 'port', 65536), ('TXT', 'text', 'unbounded external text')]:
+            value = generator.dataset(generator.pilot_contract())
+            next(r for r in value['dns_records'] if r['type'] == kind)[field] = bad
+            with self.subTest(kind=kind), self.assertRaises(ValueError): adapter.plan(value)
+
     def test_second_import_no_writes_and_three_exports_match(self):
         store = MemoryStore()
         first = adapter.apply(dataset(), store, write=True)

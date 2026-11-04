@@ -53,7 +53,9 @@ def command(argv, timeout=900, data=None):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--expanded', action='store_true')
+    profile = parser.add_mutually_exclusive_group()
+    profile.add_argument('--expanded', action='store_true')
+    profile.add_argument('--pilot', action='store_true')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--database-fixture', type=Path, help='Optional private disposable-only migrated dump; flushed before use')
     for name in ('app-image','postgres-image','redis-image','restic'): parser.add_argument('--'+name, required=True)
@@ -70,18 +72,25 @@ def main():
     # Use the reviewed dataset: tiny audits can finish between status observations.
     # Phase padding remains accelerated; Job work is not delayed artificially.
     if args.expanded: contract=generator.expanded_contract()
+    if args.pilot: contract=generator.pilot_contract()
     dataset=generator.dataset(contract)
     for phase in contract['phases']: phase['minimum_seconds']=1
-    summary={'started':time.time(), 'restic_version':command([args.restic,'version']), 'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__).resolve(), ROOT/'restic/scripts/application-backup.py', *[ROOT/'Nautobot/ansible/scripts'/n for n in ('workload_session.py','workload_control.py','workload_jobs.py','workload_adapter.py','workload_sampler.py')]]}, 'passed':False,'host_sampler_tested':False,'ansible_host_staging_tested':False,
+    summary={'started':time.time(), 'restic_version':command([args.restic,'version']),
+             'fixture_sha256':hashlib.sha256(generator.canonical(dataset)).hexdigest(),
+             'contract_sha256':hashlib.sha256(generator.canonical(contract)).hexdigest(),
+             'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__).resolve(), ROOT/'restic/scripts/application-backup.py', *[ROOT/'Nautobot/ansible/scripts'/n for n in ('make-workload-fixture.py','workload_session.py','workload_control.py','workload_jobs.py','workload_adapter.py','workload_sampler.py')]]}, 'passed':False,'host_sampler_tested':False,'ansible_host_staging_tested':False,
              'images':{'app':args.app_image,'postgresql':args.postgres_image,'redis':args.redis_image}}
     with tempfile.TemporaryDirectory(prefix='nautobot-session-local-') as temporary:
         work=Path(temporary); work.chmod(0o755)
-        (work/'jobs').mkdir()
+        (work/'jobs').mkdir(); (work/'jobs').chmod(0o755)
         for name in ('workload_adapter.py','workload_jobs.py'):
             shutil.copyfile(ROOT/'Nautobot/ansible/scripts'/name,work/'jobs'/name)
+            (work/'jobs'/name).chmod(0o644)
         shutil.copyfile(ROOT/'Nautobot/ansible/scripts/workload_control.py',work/'workload_control.py')
+        (work/'workload_control.py').chmod(0o644)
         config=work/'nautobot_config.py'
         config.write_text("from nautobot.core.settings import *\nPLUGINS=['nautobot_dns_models']\nINSTALLATION_METRICS_ENABLED=False\nMETRICS_ENABLED=False\nJOBS_ROOT='/work/jobs'\n")
+        config.chmod(0o644)  # Synthetic configuration must be readable by the container UID.
         env=work/'test.env'
         env.write_text('NAUTOBOT_SECRET_KEY='+secrets.token_hex(40)+'\nNAUTOBOT_DB_HOST=postgresql\nNAUTOBOT_DB_USER=nautobot\nNAUTOBOT_DB_NAME=workload_disposable\nNAUTOBOT_REDIS_HOST=redis\nNAUTOBOT_CONFIG=/work/nautobot_config.py\nPYTHONDONTWRITEBYTECODE=1\n')
         env.chmod(0o600)
@@ -117,10 +126,19 @@ import nautobot
 nautobot.setup()
 from workload_control import perform
 from django.db import close_old_connections
+from django.apps import apps
+from workload_adapter import plan
+import hashlib
 for line in sys.stdin:
     try:
         close_old_connections()
-        value=perform(json.loads(line))
+        request=json.loads(line)
+        if request['action']=='fixture_fingerprint':
+            models=sorted({n['model'] for n in plan(request['dataset'])})
+            rows={m:list(apps.get_model(m).objects.order_by('pk').values()) for m in models}
+            value={'sha256':hashlib.sha256(json.dumps(rows,sort_keys=True,default=str).encode()).hexdigest()}
+        else:
+            value=perform(request)
     except Exception as error:
         import traceback;traceback.print_exc(file=sys.stderr)
         value={'failed':True,'error_class':type(error).__name__}
@@ -133,6 +151,10 @@ for line in sys.stdin:
             def client(request):
                 import select
                 nonlocal buffered
+                if request['action']=='submit_batch' and 'fixture_rows_before' not in summary:
+                    kwargs=request.get('shared_kwargs',request['requests'][0].get('kwargs',{}))
+                    if 'ownership' in kwargs:
+                        summary['fixture_rows_before']=client({'action':'fixture_fingerprint','dataset':dataset})['sha256']
                 bridge_process.stdin.write(json.dumps(request).encode()+b'\n');bridge_process.stdin.flush()
                 deadline=time.monotonic()+90
                 while True:
@@ -189,6 +211,9 @@ for line in sys.stdin:
             session=Session(args.output,contract,client,backup)
             try:
                 result=session.execute(dataset,'disposable-workload')
+                summary['fixture_rows_after']=client({'action':'fixture_fingerprint','dataset':dataset})['sha256']
+                assert summary['fixture_rows_before']==summary['fixture_rows_after'],'repeat_import_export_or_audits_wrote_rows'
+                summary['repeat_import_exports_audits_no_writes']=True
                 summary.update(result,passed=True,celery_dispatch_tested=True,jobs=len(session.jobs))
                 probe="import sys;sys.path.insert(0,'/work');import nautobot;nautobot.setup();from workload_control import perform;import json;print(json.dumps(perform("+repr({'action':'status','id':session.jobs[0]['id']})+")))"
                 probe_result=json.loads(native_command([podman,'exec','-i',app,'python3','-'],probe.encode()))

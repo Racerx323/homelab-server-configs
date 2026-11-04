@@ -109,15 +109,34 @@ def notify(state_directory, event, contract, sender=send_direct, now=None):
     require(event in ('failure','recovery','missed'), 'notification_event')
     protected(state_directory, True)
     now=time.time() if now is None else now
+    bounded = 'maximum_attempts' in contract or 'retry_interval_seconds' in contract
+    if bounded:
+        require(type(contract.get('maximum_attempts')) is int
+                and 1 <= contract['maximum_attempts'] <= 8
+                and type(contract.get('retry_interval_seconds')) is int
+                and 1 <= contract['retry_interval_seconds'] <= 86400, 'notification_retry_policy')
     path=state_directory/'notification.json'
     with lock(state_directory/'notification.lock'):
         previous={}
         if path.exists():
             protected(path); require(path.stat().st_size<16384,'notification_state_size'); previous=json.loads(path.read_text())
+        def attempt(payload):
+            if bounded:
+                attempts = previous.get('attempts', 0)
+                require(type(attempts) is int and attempts >= 0, 'notification_attempts')
+                if attempts >= contract['maximum_attempts']:
+                    previous['exhausted'] = True; atomic(path, previous); return False
+                if now < previous.get('next_attempt_at', 0): return False
+                # Persist before HTTP: a crash consumes the attempt, never grants another.
+                previous.update(attempts=attempts+1,
+                                next_attempt_at=now+contract['retry_interval_seconds'],
+                                exhausted=attempts+1 >= contract['maximum_attempts'])
+                atomic(path, previous)
+            return sender(contract, payload)
         # A pending transition is retried unchanged before acknowledging a later one.
         pending=previous.get('pending')
         if pending is not None:
-            if not sender(contract,pending): return False
+            if not attempt(pending): return False
             previous=dict(acknowledged=pending['event'],sequence=previous['sequence'],pending=None)
             atomic(path,previous)
         if previous.get('acknowledged')==event: return True
@@ -130,6 +149,6 @@ def notify(state_directory, event, contract, sender=send_direct, now=None):
             failure_class={'recovery':'none','failure':'backup-or-writer-recovery','missed':'missed-schedule'}[event])
         previous.update(sequence=sequence,pending=payload,observed_at=now)
         atomic(path,previous)
-        if not sender(contract,payload): return False
+        if not attempt(payload): return False
         atomic(path,dict(acknowledged=event,sequence=sequence,pending=None))
         return True

@@ -45,6 +45,9 @@ def dispose(root, protected, require, atomic):
                 digest=hashlib.file_digest(stream,'sha256').hexdigest()
                 require(digest==capture['content_sha256'][name],'disposal_content')
                 identities[name]=(info.st_dev,info.st_ino)
+        if any('--logical-reference' in c.get('argv',[]) for c in spec['captures'].values()):
+            from recurring_logical import verify_retained
+            verify_retained(root,spec,capture['content_sha256'])
         atomic(root/'payload-disposal.json',{'phase':'verified','snapshot_id':result['snapshot_id'],'files':sorted(names)})
         for name in sorted(names):
             info=os.stat(name,dir_fd=fd,follow_symlinks=False)

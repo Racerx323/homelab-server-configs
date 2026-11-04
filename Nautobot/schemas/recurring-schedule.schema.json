@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "target",
+    "plan_sha256",
+    "baseline",
+    "packages",
+    "credential_identity",
+    "binding",
+    "supervisor",
+    "unit_names",
+    "unit_paths",
+    "mutation_boundary",
+    "acceptance",
+    "rollback",
+    "external_inputs",
+    "unresolved_prerequisites",
+    "later_stages",
+    "accepted_sha256",
+    "boot_id",
+    "accepted_stage_bundles",
+    "runtime_directory",
+    "state_directory",
+    "unit_directory",
+    "enabled_timers",
+    "controller_timeout_seconds"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "state",
+        "authorization_ready",
+        "execution_enabled",
+        "source_commit"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "const": "recurring_schedule_enablement"
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "terminal-pending"
+          ]
+        },
+        "authorization_ready": {
+          "type": "boolean"
+        },
+        "execution_enabled": {
+          "type": "boolean"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "target": {
+      "const": {
+        "host": "j2-svpi4mf",
+        "address": "10.1.2.170",
+        "ssh_user": "ama",
+        "uid": 999,
+        "gid": 985
+      }
+    },
+    "plan_sha256": {
+      "type": "string"
+    },
+    "baseline": {
+      "type": "object"
+    },
+    "packages": {
+      "type": "array"
+    },
+    "credential_identity": {
+      "type": "object"
+    },
+    "binding": {
+      "type": "object",
+      "required": [
+        "execution_authorized",
+        "upload_enabled",
+        "media_policy",
+        "artifact_sha256",
+        "image_ids",
+        "versions",
+        "metadata_files",
+        "minimum_free_bytes",
+        "maximum_retained_bytes",
+        "capture_limits",
+        "producer",
+        "state_directory",
+        "supervisor_configuration",
+        "credentials",
+        "backup_template",
+        "notification"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "execution_authorized": {
+          "const": false
+        },
+        "upload_enabled": {
+          "const": true
+        },
+        "media_policy": {
+          "const": "empty_directories_only"
+        },
+        "artifact_sha256": {
+          "type": "object"
+        },
+        "image_ids": {
+          "type": "object"
+        },
+        "versions": {
+          "type": "object"
+        },
+        "metadata_files": {
+          "type": "object"
+        },
+        "minimum_free_bytes": {
+          "type": "integer"
+        },
+        "maximum_retained_bytes": {
+          "type": "integer"
+        },
+        "capture_limits": {
+          "type": "object"
+        },
+        "producer": {
+          "const": "/var/lib/nautobot/protection/runtime/scripts/application-backup.py"
+        },
+        "state_directory": {
+          "const": "/var/lib/nautobot/protection/state"
+        },
+        "supervisor_configuration": {
+          "const": "/var/lib/nautobot/protection/runtime/supervisor.json"
+        },
+        "credentials": {
+          "type": "object"
+        },
+        "backup_template": {
+          "type": "object"
+        },
+        "notification": {
+          "const": {
+            "method": "direct_apprise",
+            "endpoint": "http://10.1.3.83:8000/notify/apprise",
+            "hostname": "j2-svpi4mf",
+            "fqdn": "j2-svpi4mf.local.theama.co",
+            "maximum_attempts": 2,
+            "retry_interval_seconds": 900
+          }
+        },
+        "logical_reference": {
+          "type": "boolean",
+          "description": "Opt-in independently retained before/after logical identity; requires separate capture qualification."
+        }
+      }
+    },
+    "supervisor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "execution_authorized",
+        "state_directory",
+        "unit_prefix",
+        "timezone",
+        "start_hour",
+        "end_hour",
+        "capture_seconds",
+        "recovery_seconds",
+        "run_seconds",
+        "prepare_argv",
+        "ansible_argv",
+        "resume_commands",
+        "health_argv",
+        "notification_argv",
+        "dispose_successful_payload",
+        "staging_directory",
+        "staging_filesystem",
+        "latest_start_minute"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "execution_authorized": {
+          "const": false
+        },
+        "state_directory": {
+          "const": "/var/lib/nautobot/protection/state"
+        },
+        "unit_prefix": {
+          "const": "nautobot-protection"
+        },
+        "timezone": {
+          "const": "America/Chicago"
+        },
+        "start_hour": {
+          "const": 3
+        },
+        "end_hour": {
+          "const": 4
+        },
+        "capture_seconds": {
+          "const": 450
+        },
+        "recovery_seconds": {
+          "const": 240
+        },
+        "run_seconds": {
+          "const": 1800
+        },
+        "prepare_argv": {
+          "const": [
+            "/usr/bin/python3",
+            "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+            "--binding",
+            "/var/lib/nautobot/protection/runtime/binding.json",
+            "prepare"
+          ]
+        },
+        "ansible_argv": {
+          "const": [
+            "/usr/bin/env",
+            "ANSIBLE_CONFIG=/var/lib/nautobot/protection/runtime/ansible.cfg",
+            "/bin/bash",
+            "/var/lib/nautobot/protection/runtime/ansible-temp.sh",
+            "/usr/bin/ansible-playbook",
+            "-i",
+            "localhost,",
+            "/var/lib/nautobot/protection/runtime/playbooks/recurring-capture.yaml",
+            "--extra-vars",
+            "{\"ansible_async_dir\": \"/var/lib/nautobot/protection/state/async\", \"ansible_remote_tmp\": \"/var/lib/nautobot/protection/state/tmp\"}"
+          ]
+        },
+        "resume_commands": {
+          "const": [
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/runtime/binding.json",
+              "start",
+              "worker"
+            ],
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/runtime/binding.json",
+              "start",
+              "web"
+            ],
+            [
+              "/usr/bin/python3",
+              "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+              "--binding",
+              "/var/lib/nautobot/protection/runtime/binding.json",
+              "start",
+              "scheduler"
+            ]
+          ]
+        },
+        "health_argv": {
+          "const": [
+            "/usr/bin/python3",
+            "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+            "--binding",
+            "/var/lib/nautobot/protection/runtime/binding.json",
+            "health"
+          ]
+        },
+        "notification_argv": {
+          "const": [
+            "/usr/bin/python3",
+            "/var/lib/nautobot/protection/runtime/scripts/recurring_node.py",
+            "--binding",
+            "/var/lib/nautobot/protection/runtime/binding.json",
+            "notify"
+          ]
+        },
+        "dispose_successful_payload": {
+          "const": true
+        },
+        "staging_directory": {
+          "const": "/var/lib/nautobot/protection/staging"
+        },
+        "staging_filesystem": {
+          "const": "ext4"
+        },
+        "latest_start_minute": {
+          "const": 202
+        }
+      }
+    },
+    "unit_names": {
+      "const": [
+        "nautobot-protection.service",
+        "nautobot-protection.timer",
+        "nautobot-protection-guard.timer",
+        "nautobot-protection-guard.service",
+        "nautobot-protection-recovery.service",
+        "nautobot-protection-freshness.service",
+        "nautobot-protection-freshness.timer",
+        "nautobot-protection-notification.service",
+        "nautobot-protection-notification.timer"
+      ]
+    },
+    "unit_paths": {
+      "const": [
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection.service",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection.timer",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-guard.timer",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-guard.service",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-recovery.service",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-freshness.service",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-freshness.timer",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-notification.service",
+        "/var/lib/nautobot/protection/runtime/units/nautobot-protection-notification.timer"
+      ]
+    },
+    "mutation_boundary": {
+      "type": "array"
+    },
+    "acceptance": {
+      "type": "array"
+    },
+    "rollback": {
+      "type": "array"
+    },
+    "external_inputs": {
+      "type": "array"
+    },
+    "unresolved_prerequisites": {
+      "type": "array"
+    },
+    "later_stages": {
+      "type": "array"
+    },
+    "accepted_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "boot_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f-]{36}$"
+    },
+    "accepted_stage_bundles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "runtime_directory": {
+      "const": "/var/lib/nautobot/protection/runtime"
+    },
+    "state_directory": {
+      "const": "/var/lib/nautobot/protection/state"
+    },
+    "unit_directory": {
+      "const": "/var/lib/nautobot/.config/systemd/user"
+    },
+    "enabled_timers": {
+      "const": [
+        "nautobot-protection.timer",
+        "nautobot-protection-freshness.timer",
+        "nautobot-protection-notification.timer"
+      ]
+    },
+    "controller_timeout_seconds": {
+      "const": 600
+    }
+  }
+}

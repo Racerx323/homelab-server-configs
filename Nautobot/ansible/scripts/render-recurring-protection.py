@@ -3,12 +3,16 @@
 import argparse
 from pathlib import Path
 import re
-from recurring_protection import Supervisor, require
+from recurring_protection import Supervisor, require, validate
 
 
 def render(configuration, script):
-    supervisor = Supervisor(configuration)
-    c = supervisor.config
+    return render_configuration(Supervisor(configuration).config, configuration, script)
+
+
+def render_configuration(c, configuration, script):
+    """Pure rendering for a frozen installation; creates no state or unit files."""
+    validate(c)
     for path in (configuration, script):
         require(path.is_absolute() and re.fullmatch(r'/[A-Za-z0-9_./-]+', str(path)), 'unit_path')
     prefix = c['unit_prefix']

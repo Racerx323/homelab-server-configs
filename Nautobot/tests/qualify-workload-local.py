@@ -24,8 +24,10 @@ def command(argv, timeout=900):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--expanded', action='store_true', help='One site, 200 devices, 2000 IPs and synthetic A records')
-    parser.add_argument('--small', action='store_true', help='Small fixture for native bridge regression')
+    profile = parser.add_mutually_exclusive_group()
+    profile.add_argument('--expanded', action='store_true', help='One site, 200 devices, 2000 IPs and synthetic A records')
+    profile.add_argument('--small', action='store_true', help='Small fixture for native bridge regression')
+    profile.add_argument('--pilot', action='store_true', help='Agreed mixed DNS and uneven-interface profile')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--app-image', required=True, help='Locally built image ID, not production image')
     parser.add_argument('--postgres-image', required=True)
@@ -55,6 +57,8 @@ def main():
             contract['fixture'].update(locations=2, devices=3, interfaces_per_device=2, ip_assignments=3)
             if args.expanded:
                 contract = module.expanded_contract()
+        if args.pilot:
+            contract = module.pilot_contract()
         (work/'dataset.json').write_bytes(module.canonical(module.dataset(contract)))
         (work/'nautobot_config.py').write_text("from nautobot.core.settings import *\nPLUGINS=['nautobot_dns_models']\nINSTALLATION_METRICS_ENABLED=False\nMETRICS_ENABLED=False\nJOBS_ROOT='/work/jobs'\n")
         env = work/'test.env'

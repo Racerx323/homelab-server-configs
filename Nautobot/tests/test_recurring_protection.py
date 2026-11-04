@@ -111,6 +111,18 @@ class ProtectionTests(unittest.TestCase):
             self.assertEqual(self.supervisor.run(), 3)
         self.assertEqual(json.loads((self.root/'last-skip.json').read_text())['reason'], 'overlap')
 
+    def test_latest_start_reserves_complete_service_budget(self):
+        cfg = {**self.config, 'run_seconds': 1800, 'recovery_seconds': 240, 'latest_start_minute': 202}
+        module.validate(cfg)
+        for day in ('2026-03-08', '2026-11-01', '2026-11-05'):
+            for stamp, expected in (('03:20:00', True), ('03:22:00', True),
+                                    ('03:22:00.000001', False), ('03:48:30', False)):
+                self.assertEqual(module.in_window(cfg, datetime.fromisoformat(day+'T'+stamp)
+                    .replace(tzinfo=ZoneInfo('America/Chicago'))), expected)
+        for latest in (True, 179, 203, 240):
+            with self.assertRaisesRegex(ValueError, 'latest_start_budget'):
+                module.validate({**cfg, 'latest_start_minute': latest})
+
     def test_pending_recovery_blocks_new_run(self):
         self.armed()
         with self.assertRaisesRegex(module.Blocked, 'unresolved_recovery'): self.supervisor.run()

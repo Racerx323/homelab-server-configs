@@ -79,6 +79,9 @@
         "real_inventory_comparison": {
           "const": "required_before_claiming_representativeness"
         },
+        "profile": {
+          "const": "agreed_pilot"
+        },
         "dns_records": {
           "type": "integer",
           "minimum": 0,

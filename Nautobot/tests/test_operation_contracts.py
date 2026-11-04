@@ -127,6 +127,12 @@ class Contracts(unittest.TestCase):
             self.assertFalse(operation['operation']['execution_enabled'])
             self.assertFalse(operation['operation']['authorization_ready'])
             self.assertFalse(any(operation['boundaries'].values()))
+        elif operation['operation'].get('stage') == 'recurring_schedule_enablement':
+            validate(json.loads((ROOT / 'Nautobot/schemas/recurring-schedule.schema.json').read_text()), operation)
+            self.assertFalse(operation['operation']['execution_enabled'])
+            self.assertFalse(operation['operation']['authorization_ready'])
+            self.assertFalse(operation['supervisor']['execution_authorized'])
+            self.assertFalse(operation['binding']['execution_authorized'])
         elif operation['operation'].get('stage') == 'recurring_capture_resume_qualification':
             validate(json.loads((ROOT / 'Nautobot/schemas/capture-resume.schema.json').read_text()), operation)
             self.assertFalse(operation['operation']['execution_enabled'])

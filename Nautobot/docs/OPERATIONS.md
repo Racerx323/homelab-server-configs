@@ -278,6 +278,56 @@ owns the sequence and acceptance criteria. Workload parameters remain in
 `manifests/workload-test.yaml`; progress and qualification results are recorded in
 [ROADMAP.md](ROADMAP.md). This procedure is not a live authorization.
 
+### Pilot workload profile and seven-day observation
+
+Before deployment, qualify the agreed synthetic profile against the pinned native
+models and Jobs. This profile defines test coverage; it is not a discovered inventory.
+
+| Dimension | Agreed profile |
+| --- | --- |
+| Inventory | One site, 200 devices, 800 interfaces and 2,000 IPs. Distribute interfaces unevenly, with more on switches than small hosts; freeze the exact distribution and IP assignments in the fixture. |
+| DNS | 2,000 disabled records in fixture-owned forward/reverse zones: 800 A, 800 AAAA, 250 PTR, 100 CNAME, 40 TXT and 10 SRV. Qualify forward/reverse relationships, targets and validation against the pinned DNS Models version. |
+| Jobs | Ten inventory/DNS consistency audits submitted together, concurrency two. Record queue delay, actual overlap and terminal JobResult identities. Verify absence of writes; a Job label is insufficient. |
+| Import/export | Keep two imports and three deterministic exports as their own measured phase. Preserve ownership receipts and prove repeat imports make no writes. |
+| Media | No uploads in the initial pilot. Keep directory-only enforcement; populated-media qualification requires a separate concrete attachment requirement. |
+
+Generate the agreed profile with `make-workload-fixture.py --pilot --output FILE`.
+It uses 20 switch-like devices with 24 interfaces, 140 host-like devices with two,
+and 40 small devices with one. These density labels share the synthetic device
+model; they do not identify real hardware. Assign 1,200 IPv4 and 800 IPv6 addresses
+cyclically across the 800 interfaces, using `198.18.0.0/15` and `2001:2::/48` only
+as database records. A and AAAA records share 800 hostnames; 250 PTR records map
+the first 250 IPv4 addresses back to their forward names. CNAME and SRV targets
+reference fixture-owned forward records. The disabled reverse zone is
+`0.18.198.in-addr.arpa`; forward records use `pilot-synthetic.invalid`.
+
+Run both existing local qualification paths with `--pilot` before defining a live
+workload operation. Native validation checks transaction rollback, ownership/drift
+refusal, repeat imports, exports and audit row equality. The session path checks
+real ten-Job Celery dispatch at concurrency two and backup/full-integrity overlap,
+including native fixture-row fingerprints before repeat import and after the Jobs.
+These compare all selected model rows, including timestamps; JobResult/log writes
+are expected and excluded. Retain the default and `--expanded` fixtures unchanged.
+Real inventory/model comparison and target resource acceptance remain separate.
+
+Start the seven-day observation only after reviewing stage-5 readiness and recording
+the pilot's exact fixture, images/configuration, recovery reference and start time.
+Record seven consecutive 24-hour periods with daily read-only checks of application
+health, failed units, backup/freshness/integrity receipts, cleanup, notifications and
+resource/storage evidence. Aaron owns existing host/user-manager outage monitoring
+and credential rotation. Missing evidence is an incomplete observation; an incident
+or material runtime change requires resolution and a new stable interval. Do not
+count elapsed time alone or waive a failed backup because a later one passed.
+
+Retain the plan's representative-load phases: 15 minutes idle, 15 minutes
+import/export, 30 minutes Jobs with actual backup overlap, 15 minutes recovery and
+75 seconds delayed storage observation. Sample those phases every five seconds,
+with no gap over 15 seconds. Require at least 1.5 GiB memory available, no OOM or
+throttling, no persistent swap growth, no sustained temperature above 80 C and zero
+failed units. Daily summaries cannot replace these measured phases. Report missing
+metrics and existing storage/IPv6 limitations explicitly. Seven-day acceptance,
+authority migration, Caddy onboarding and Semaphore retain their own stage boundaries.
+
 ### Adapter and sampler procedure
 
 - [workload_adapter.py](../ansible/scripts/workload_adapter.py) builds native
@@ -1137,8 +1187,9 @@ Use `qualify-workload-local.py --expanded` for native model validation and
 `qualify-workload-session-local.py --expanded` for real disposable Celery dispatch
 and Restic overlap. Both require explicit immutable local image IDs and a new
 private output directory. The session qualifier also requires an absolute Restic
-binary. These accelerated tests do not replace the target's resource/duration
-qualification or establish the intended DNS type, media or Job mix.
+binary. Use `--pilot` on both qualifiers for the agreed mixed profile described
+above. These accelerated tests do not replace the target's resource/duration
+qualification, real-inventory comparison or populated-media recovery.
 
 ### Application-backup producer
 
@@ -1265,6 +1316,79 @@ access and exact-snapshot retrieval. Reuse its containment and credential-cleanu
 contracts; the canary's file comparison alone cannot establish application recovery.
 Preparation does not authorize target contact, downloads, secret resolution,
 containers, writer pauses or a restore.
+
+#### Monthly restore contract
+
+Plan one isolated full restore per calendar month using this procedure. Once the
+current operation is archived, select the newest accepted recurring snapshot
+available at planning time and freeze its full ID, repository identity, capture
+hashes, full-integrity receipt and independent logical reference. Never resolve
+`latest` during execution. If the recurring snapshot lacks a contemporaneous logical
+reference, define and qualify how to obtain one before requesting restore approval;
+do not compare it with today's database or substitute the older preservation test.
+
+Bind a daytime attended window outside the backup window and other maintenance,
+exact immutable images, isolated storage/network names, capacity limits, phase
+deadlines and independent recovery/cleanup supervision in the later restore
+operation. Check that recurring protection is idle and that the restore cannot
+overlap its next trigger; do not disable or reschedule production protection.
+Reuse the existing restore implementation and isolation/acceptance checks below.
+Require complete pre-start logical comparison, six section hashes, migrations,
+configuration checks, native application health, repeatable exports and unchanged
+production identities. The initial pilot remains directory-only media.
+
+Retain fetched payloads, extracted files and failure evidence until separately
+approved disposal. Acceptance must account for isolated containers/volumes, guard
+and credential cleanup; failure or interrupted supervision cannot imply cleanup.
+Record the month's exact snapshot and outcome, including a missed month. This
+contract installs no monthly timer and creates no second pending operation.
+
+The installed recurring producer does not supply the required independent logical
+reference. `recurring_node.py` captures versions and the migration ledger in
+`versions_migrations`; its custom dump and six content hashes prove capture identity
+and integrity, not an independent row/sequence/schema comparison. In contrast,
+`preservation-node.py` uses `logical_database.py` before and after capture while
+writers are stopped. `restore_node.py` compares the restored database with that
+separately retained `logical-reference.json` before application startup.
+
+The candidate implementation supports an optional `binding.logical_reference:
+true`. Absence or `false` preserves the earlier capture behavior. Enable it only
+in a separately reviewed capture change; the installed schedule and its first-cycle
+acceptance remain unchanged. A reference derived only from the restored dump, or
+collected from a later live database, does not close independence.
+
+With this option, `recurring_node.py` runs the existing preservation logical probe
+before the database dump and again in the final `versions_migrations` section.
+Both probes require stopped writers, no other database clients and an empty broker.
+They use the pinned application image without Django startup, the existing protected
+application environment and the private application network. Each helper has a
+25-second running-container limit independent of its host client, a 35-second client
+timeout and bounded cleanup of its unique labelled container. The logical scan has
+a 20-second internal limit. Failures or unequal identities fail capture and block
+upload; the existing Ansible finalizer and independent guard still own writer
+recovery. Do not increase the 450-second capture or 240-second recovery deadline.
+Allow for helper startup and cleanup as well as scan time when qualifying the pause.
+Readback must find no helper residue, including a container whose creation was
+interrupted before its runtime limit could start; retain and report any such residue
+for scoped cleanup rather than accepting the trial.
+
+Retain protected `logical-before.json`, `logical-reference.json` and
+`logical-capture.json` beside the capture receipts. The reference is the pre-dump
+identity; the comparison receipt binds it to the specification and exact dump hash.
+The final versions section also carries the reference and comparison receipt,
+binding them through the six content hashes to the uploaded snapshot. Before
+successful payload disposal, the implementation verifies that the separately
+retained reference matches those captured bytes. Missing or changed references
+leave all payload files intact. Disposal never removes the reference or receipts.
+
+For monthly restore approval, bind the standalone reference hash, logical-capture
+receipt, capture specification and both capture/upload receipts to the selected
+snapshot. Verify the full chain and the recovered versions section before using
+the reference with `restore_node.py`. A local database comparison or successful
+upload alone does not accept the production capture pause. Rollback of a future
+deployment restores the previously approved runtime and disabled option, preserves
+all new receipts/payloads and independently verifies writer recovery. It cannot
+create references for older snapshots.
 
 #### Inputs and isolation
 
@@ -3974,6 +4098,121 @@ units. The timer callback cannot interrupt upload after verified resume wins the
 state lock; failure-triggered recovery can still clean credentials after upload
 termination. This does not qualify production
 Nautobot commands, unattended provider access or delivery through Apprise.
+
+### Schedule-enablement preparation and acceptance
+
+Reconcile the accepted prerequisite, credential, capture/resume, upload/integrity,
+notification, disposal and independent-recovery records before defining a schedule.
+Earlier records retain their original stage-scoped false fields; later accepted
+records establish later qualifications. Do not rewrite those historical boundaries
+or treat their combination as acceptance of a scheduled cycle.
+
+The initial scope retains the shared producer's full integrity check after every
+nightly upload. It includes directory-only media, successful-payload-only disposal,
+freshness observation and the existing Apprise destination. Remote snapshot deletion,
+prune, older-payload disposal, populated media and monthly restore remain separate
+operations. This limited scope does not complete stage 5 or waive the plan's monthly
+restore requirement. A failed nightly run is not a successful weekly integrity check.
+
+Refresh the bounded baseline without secret values or SMART requests: accepted
+artifacts/packages, credential metadata, service health/identity, namespace media,
+staging capacity, preserved trees, unit/path absence and system timer conflicts.
+The scrub admission probe is not a cross-owner mutex. Coordinate separately approved
+restore/repository maintenance with the recurring run lock, and identify who monitors
+host or user-manager loss; node-local freshness cannot cover either outage alone.
+
+Use one reusable Ansible installation path and the existing thin bundle transport.
+Install only exact protected runtime/configuration inputs and the reviewed user units;
+enable only nightly, freshness and notification timers. Do not link a retained
+qualification tree, reuse a consumed claim or create another credential. Keep all
+execution gates disabled in repository preparation. The schedule launcher freezes the runtime, generated units and their hashes; the
+installation playbook checks the accepted baseline, claims absent paths, copies only
+runtime inputs, verifies their hashes and enables three timers. A repeated identical
+installation verifies the target without changing it; its new controller receipt is
+recorded separately. Drift is refused before mutation.
+
+Bind 03:20 America/Chicago without persistent catch-up, the approved writer window,
+and reject starts after 03:22:00. This reserves the 1,950-second primary service
+ceiling, five-second stop bound and 300-second independent recovery ceiling before
+04:00. Late activations do not pause writers or catch up outside the window.
+
+Notifications permit two attempts per transition, at least 900 seconds apart. Each
+attempt is persisted before HTTP so interrupted delivery consumes its attempt.
+Exhaustion retains the pending correlation and blocks later transitions until
+operator review; restarting the service cannot reset the budget. Backup and recovery
+outcomes remain separate. Delivery can be duplicated after an ambiguous HTTP result;
+no exactly-once guarantee is made.
+
+A fresh installation has no recurring success record. Its initial freshness check
+can report a missed run and leave the freshness service failed while notification
+delivery succeeds. This does not prove a backup or application failure. Do not reset
+state to hide it; verify the first native calendar cycle and subsequent freshness.
+
+Qualify the real installation and repeated-cycle path locally: first installation,
+idempotence, file/unit drift refusal, two successive cycles, failure/rollback, missed
+and late dispatch, and notification retry exhaustion. Reuse the existing media,
+bindings, disposal and supervisor regressions. Run Ansible through the repository
+temporary-directory wrapper; local adapters do not establish target acceptance.
+
+After exact approval, independently read back installed hashes, owner/modes, enabled
+links and next trigger. Observe one actual calendar-triggered capture/resume/upload/
+full-check/disposal cycle before accepting recurring operation. Verify snapshot and
+payload identities, all writer resumes before upload, credential cleanup, unchanged
+data-service/boot identities and preservation of prior evidence. Verify the integrated
+missed-run/notification path without introducing an unapproved production fault or
+message. Record scheduler installation and scheduled-cycle acceptance separately.
+
+#### First scheduled-cycle readback
+
+Read after the selected day's 04:05 America/Chicago freshness check has completed.
+Use `ansible/scripts/inspect-recurring-cycle.py` as UID 999 on the reviewed host,
+with `--day YYYY-MM-DD` and `--expected-json` containing the approved
+`runtime_sha256` map, baseline `boot_id` and PostgreSQL/Redis
+`data_service_invocations` map. Supply these from the frozen installation evidence,
+never by treating the current target values as expected. Stream the reader without
+installing it; retain its stdout, stderr and status in protected controller evidence.
+It reads only fixed nonsecret receipts and runtime inputs, service metadata and
+native HTTP health. It does not resolve credentials, start services, take locks,
+repair state or send notifications.
+
+The reader checks the capture window, all six capture identities, pause/resume/task
+results, readiness before upload, exact snapshot delta, full-integrity success,
+successful-only disposal and absent transient credential paths. After disposal,
+use retained capture/task/hash receipts; the deleted dump cannot be parsed again.
+It also checks unchanged boot and data-service invocations, runtime hashes, inactive
+recovery, enabled timers and fresh/recovery notification state. Web, worker and
+scheduler invocation IDs are expected to change during normal capture.
+
+Exit zero means these local readback checks passed, not acceptance. Complete the
+independent checks before reconciling accepted state:
+
+- Correlate the primary service invocation and timer trigger with cursor-bounded
+  user-manager journal evidence from the installation cursor. Manual starts do
+  not establish calendar execution. Keep journal collection bounded and exclude
+  application environments and secret-bearing output.
+- Compare every older retained tree and latch with the approved baseline. Permit
+  only the new cycle's staging directory and documented recurring state changes.
+  Do not reuse the installation reader's assertions that state is absent or that
+  all five application invocation IDs are unchanged.
+- Confirm the exact snapshot's repository, host, tag and path through the approved
+  credential boundary. Producer receipts and full-check success are retained
+  evidence, not an independent current provider inventory.
+- Ask Aaron to confirm the recovery correlation on email, Discord and Pushover,
+  with receipt times and duplicates. HTTP acknowledgment alone is insufficient.
+
+Missing or failed checks keep the operation pending. Preserve the evidence and
+diagnose; do not rerun the backup, freshness or notifier to manufacture a pass,
+clear a latch, reset failed units or dispose retained payloads during readback.
+
+Installation runs outside 03:00–04:00 and requires a baseline less than 24 hours old.
+Its rescue path proves owned file/unit identities and idle or complete state, disables
+the three timers, verifies they are disabled, and removes only owned links. If writers
+may be paused, automatic unlinking is refused: keep independent recovery available
+until health and cleanup are independently established. For a later rollback, disable
+future nightly/freshness activations first, then stop the owned notification retry
+path after recovery is safe. Retain payloads, latches, receipts,
+the credential file and prior qualification trees. Ambiguous recovery or drift requires
+manual intervention, not blind removal or a latch reset.
 
 ### Recurring production bindings and interim notifications
 

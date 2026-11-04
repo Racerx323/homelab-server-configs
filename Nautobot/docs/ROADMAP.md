@@ -70,10 +70,34 @@ The annotated tag, archive bytes and all 39 member hashes were independently
 verified; the consumed operation is cleared and the deployment stream is clean.
 See `manifests/recurring-recovery-review.json` and accepted live state.
 
-Next: prepare a separate schedule-enablement request, reconciling the remaining
-recurring-protection acceptance gates before seeking approval.
-Remote deletion/prune, older-payload disposal, populated-media recovery and schedule
-enablement remain separate scopes; no recurring schedule is enabled.
+The approved recurring schedule was installed on November 4. Ansible completed
+without failure or rescue. Independent readback verified runtime hashes and
+permissions, all nine unit links and loaded identities, exactly three enabled timers,
+unchanged application/boot identities and 27 preservation comparisons. The approved
+bundle is consumed; do not replay it. See `manifests/recurring-schedule-review.json`.
+
+The first native backup trigger is **November 5 at 03:20 CST**, with freshness at
+04:05. Starts after 03:22 are refused. Each upload includes a full integrity check;
+only successful new payloads are disposed. Notifications retain a two-attempt limit
+with 15-minute spacing. The initial missed-run alert reflects the absence of a
+recurring success record; Aaron confirmed email, Discord and Pushover receipt with
+no duplicates. No backup has run under the new schedule yet.
+
+Next: observe that first calendar-triggered cycle and independently verify native
+dump/capture identities, writer readiness before upload, the exact snapshot and full
+check, credential cleanup, successful-only disposal, preserved data-service identities
+and downstream recovery delivery. Installation is verified; recurring-cycle acceptance
+and accepted-live-state reconciliation remain pending. Keep the operation pending.
+Aaron owns existing host/user-manager monitoring and credential rotation.
+
+Pre-cycle preparation is complete: OPERATIONS defines the read-only first-cycle
+checks, monthly restore contract and seven-day observation criteria. The agreed
+synthetic workload profile is recorded below. The receipt reader is locally tested;
+it has not collected or accepted a production cycle. Schedule and accepted-state
+records remain unchanged by this preparation.
+
+Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
+recovery, seven-day pilot acceptance and Git publication remain separate scopes.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -132,50 +156,52 @@ copies remain private; no host cleanup or restore was performed during reconcili
 
 ## Stage-5 gap review
 
-Repository review on September 26 found the following gaps. This review did not
-contact hosts, resolve credentials or inspect live timers; absence of a repository
-implementation is not proof that a host has no manually configured schedule.
+The September 26 repository review established this gap list. Rows below now include
+the separately accepted November 3 trials and November 4 schedule review. Historical
+observations do not establish current scheduled-operation acceptance.
 
 | Area | Evidence and gap | Next decision or work |
 | --- | --- | --- |
-| Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. Intended inventory scale, DNS record mix, media use and Job mix are not bound to an accepted comparison. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Obtain the intended pilot inventory/export and workload envelope, then compare them with the accepted fixture. Repeat only testing needed to cover material differences. |
-| Nightly backup | The shared producer and application capture have qualified one-shot execution. Review-only Nautobot nightly units now exist; no recurring schedule is deployed. The online capture explicitly requires a quiet window and directory-only media. | Define unattended execution/credential ownership, writer/media consistency, schedule/timezone, bounded duration, non-overlap and missed-run behavior before implementing a timer. A historical manual quiet-window approval is not recurring authority. |
-| Weekly integrity | Full integrity passed for accepted operations. No recurring check policy or schedule was found. | Choose the plan's full-check policy or an explicitly reviewed subset policy; a subset does not replace full integrity acceptance. |
+| Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. The synthetic pilot profile below is agreed and its mixed DNS/interface fixture passed native local qualification. Real Celery qualification also passed; live comparison and resource acceptance remain pending. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Bind any later live fixture transition and resource observation. Compare real inventory/export before claiming representativeness. |
+| Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; independent installation readback passed. First recurring-cycle acceptance is pending. | Observe the November 5 native trigger and complete the prepared first-cycle readback. Keep directory-only media, the writer window and current pending operation. |
+| Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
-| Monthly restore | Bounded historical restore is accepted; no monthly scheduling contract was found. Media contained directories only. | Define exact-snapshot selection, supervision and retained-payload disposal. Qualify populated-media capture/restore before relying on it for uploads. |
-| Monitoring | Accepted host/runtime/workload observations and internal metrics support exist. These do not prove ongoing backup-age, integrity-failure or missed-schedule alerts. No Nautobot-owned recurring protection alert path was found in the reviewed sources. | Review existing Munin/notification ownership and select observable outcomes, alert destination and failure/recovery tests. Internal Prometheus files do not imply a deployed scraper. |
+| Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Local source review found that recurring captures lack its independent full logical reference; no monthly operation or timer is installed. | After the active operation is archived, bind an accepted recurring snapshot, contemporaneous logical reference, isolation, supervision and capacity/deadlines. Retained-payload disposal remains separate. |
+| Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The installed freshness path delivered its initial missed alert to all three destinations. Aaron owns existing host/user-manager monitoring. | Verify integrated recovery delivery after the first successful cycle. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 
 The immediate implementation candidate is the recurring application-backup
 contract, reusing the qualified capture/Restic primitives after the consistency
-and unattended-credential decisions above. Workload comparison now uses the
-supplied scale; intended record types, interface density and operation mix remain open. This review grants no scheduled
-execution, host contact, retention deletion or Caddy publication.
+and unattended-credential decisions above. The schedule is now installed under its
+separate approval. The agreed synthetic workload below defines the remaining
+comparison; this documentation work grants no additional live execution, retention
+deletion or Caddy publication.
 
 ## Recurring protection definition
 
 The [recurring protection contract](OPERATIONS.md#recurring-application-protection-contract)
 now specifies credential bootstrap, bounded capture/writer recovery, scheduling,
-integrity, retention isolation, monitoring and qualification. This is repository
-preparation only; no timer, provider entity or host change was made.
+integrity, retention isolation, monitoring and qualification. Initial preparation
+was repository-only; separately approved stages have since provisioned credentials
+and installed the schedule. See the current next action above for acceptance limits.
 
 The shared producer now offers separate capture and upload modes, with a
 specification/hash-verified handoff, while preserving default one-shot behavior.
-It still labels snapshots with a unique operation tag and unique staging path.
-`preservation-node.py` reuses a directory-only media adapter. A recurring timer
-cannot safely be added without separating verified capture/writer resume from
-network work, providing a stable retention identity, and qualifying media handling.
+The recurring path uses a stable recurring tag and a unique staging path.
+`preservation-node.py` retains its directory-only media adapter. The installed
+recurring path separates verified capture/writer resume from network work and
+uses qualified directory-only handling; populated media remains outside acceptance.
 The existing accepted one-shot behavior must remain covered by regression tests.
 
 | Decision | Current position |
 | --- | --- |
 | Nightly consistency | Brief nightly writer pause approved for local database/media capture; resume before upload/check. |
-| Window and timezone | 03:00–04:00 America/Chicago approved; candidate 03:20 trigger, 450-second capture deadline and 240-second recovery budget. One attended directory-only capture/resume passed within the bounds; forced-termination recovery remains unqualified. No catch-up outage outside the window. |
+| Window and timezone | 03:00–04:00 America/Chicago; installed 03:20 trigger with latest start 03:22, 450-second capture deadline and 240-second recovery budget. Normal capture and independent termination/deadline recovery are accepted. Cutoff/repeated cycles passed local qualification; first native recurring cycle remains pending. No persistent catch-up. |
 | Unattended credentials | Accepted and archived: three canonical references, config-scoped read-only token and protected delivery. Aaron owns rotation by January 13, 2027; expiry January 27. UID 999 resolution passed. |
-| Weekly integrity | Full data check is the initial candidate; no subset waiver proposed. |
-| Retention | Plan's 7 daily/5 weekly/12 monthly policy; exact recurring dataset filter/grouping and dry-run qualification must precede deletion approval. Historical recovery snapshots remain excluded. |
-| Monitoring | User-confirmed persistent endpoint: `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`. Transport/authentication and failure/recovery delivery remain unqualified. No test message or new scraper authorized. |
-| Workload comparison | One site, 200 devices, 2,000 IPs, 2,000 DNS records and ten Jobs submitted together supplied. Keep worker concurrency two. DNS record types, interface density, Job mix and media use remain to be specified. |
+| Weekly integrity | Keep the qualified full check after every nightly upload, as selected November 4. No subset waiver or separate weekly job is proposed. |
+| Retention | Plan's 7 daily/5 weekly/12 monthly policy; one exact dry run is accepted. Refresh selection before separate deletion approval. Historical recovery snapshots remain excluded; no delete/prune timer is proposed. |
+| Monitoring | Persistent endpoint `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`; separate failure/recovery delivery is accepted. Finite retry exhaustion passed local qualification; the installed missed-run path reached all three destinations. Integrated recovery delivery remains pending. Aaron owns existing external monitoring; preparation authorizes no additional messages or monitoring changes. |
+| Workload comparison | Agreed synthetic profile: one site, 200 devices, 800 unevenly distributed interfaces, 2,000 IPs and 2,000 mixed DNS records; ten consistency audits queued at concurrency two; no media uploads. Qualify the mixed fixture before claiming coverage. |
 
 Local implementation now includes the Ansible capture/resume/upload task include,
 multiple IPs per Interface, native disabled A records in a fixture-owned `.invalid`
@@ -273,21 +299,61 @@ for the November 3 trial. General workload/populated-media capacity remains
 unqualified. Do not change production volume permissions to make the adapter pass. Private baseline and read-only follow-ups:
 `nautobot-recurring-baseline-20260928/REVIEW.json`. That September inspection made no service, package, credential,
 backup or notification changes. Populated
-media, intended DNS type/Job mix and interface density remain open. The operation
-stream is clean after verified disposal terminal archival; timers and retention deletion remain
-unauthorized.
+media remains unqualified. The September observations and earlier clean-stream
+statements describe their historical stages. The current schedule is installed and
+its operation remains pending; retention deletion remains unauthorized.
 
 ### Intended workload comparison
+
+Aaron agreed this synthetic profile on November 4. It defines the pilot test, not
+a discovered inventory or an accepted runtime result. OPERATIONS owns its
+qualification and seven-day observation procedure.
 
 | Dimension | Accepted synthetic test | Intended pilot | Interpretation |
 | --- | --- | --- | --- |
 | Sites/Locations | 10 Locations | 1 site | Larger object count alone does not establish the intended location relationships. |
 | Devices | 500 | 200 | Fixture count exceeds target; model mix still needs comparison. |
-| IP assignments | 500 | 2,000 IPs | Fourfold count gap; assignment distribution and address families need definition. |
-| Interfaces | 2,000 total, four per device | Unspecified | Do not infer interface count from IP count. |
-| DNS | No DNS workload in the accepted live test | 2,000 DNS records | Expanded local profile uses 2,000 disabled A records; intended type mix remains open. |
-| Jobs | Ten audits total, concurrency two | Ten submitted together, queueing permitted | Retain two worker slots; qualify burst queue latency, progress and completion rather than increasing concurrency. |
-| Media | Directory-only capture/restore | Unspecified | Populated-media recovery remains unqualified. |
+| IP assignments | 500 | 2,000 IPs: 1,200 IPv4 and 800 IPv6 | Agreed profile distributes benchmark addresses cyclically across 800 interfaces; native local validation passed. Target resource coverage remains pending. |
+| Interfaces | 2,000 total, four per device | 800: 20 devices × 24, 140 × 2, 40 × 1 | Native local qualification passed; density labels do not establish real hardware/model representativeness. |
+| DNS | No DNS workload in the accepted live test | 800 A, 800 AAAA, 250 PTR, 100 CNAME, 40 TXT, 10 SRV | Mixed profile passed native Nautobot 3.2.3/DNS Models 2.3.0 validation. No target DNS workload is accepted. |
+| Jobs | Ten audits total, concurrency two | Ten inventory/DNS consistency audits submitted together | Keep two slots and separate import/export phases; prove no writes, bounded queue latency and completion. |
+| Media | Directory-only capture/restore | No uploads in initial pilot | Agreed exclusion; populated-media recovery remains separate. |
+
+The `--pilot` profile now implements these counts. Native local qualification
+passed transaction rollback, ownership/drift refusal, repeat import without writes,
+three deterministic exports, ten concurrent audits and wrong-family DNS refusal.
+The default and `--expanded` datasets and their generated model operations are
+unchanged. Real Celery qualification also passed: two imports, three exports and
+ten audits submitted together, with measured peak concurrency two. All audits
+completed within 119.7 seconds; the last started after 97.6 seconds. Fixture rows,
+including timestamps, were unchanged after repeat import, exports and audits.
+The overlapping disposable backup/full-integrity check completed in 16.6 seconds.
+Cancellation, exact retained-fixture reuse and all owned container/network cleanup
+passed. These are workstation timings, not target headroom or duration acceptance.
+
+The first Celery setup attempt stopped on synthetic-file permissions under a
+private umask; no Jobs ran. Explicit read permissions on nonsecret container inputs
+fixed the local qualifier, while its credential file remains protected. The failure
+and successful rerun are both retained. Private evidence:
+`nautobot-mixed-workload-20261104/qualification.json`.
+
+The installed recurring capture still lacks an independent full logical reference.
+The opt-in candidate now compares pre-dump and post-capture identities, binds the
+reference to the dump/specification and retains it after verified disposal. Local
+qualification on the agreed workload compared 245 tables: six-section capture took
+7.0 seconds, including probes of 1.47 and 1.52 seconds. Upload/full integrity and an
+isolated restore comparison passed; sequence drift and missing/changed references
+were refused. A hung helper expired and was removed in 29.0 seconds. These are
+workstation results, not ARM64 timing or production pause acceptance. Private
+evidence: `nautobot-recurring-logical-20261104/qualification.json`.
+
+Keep the 450-second capture and 240-second recovery limits. After the pending
+schedule operation is accepted and archived, prepare a separate capture-change
+trial with the logical option enabled, exact inputs and an attended window. Measure
+the entire pause/resume path and independently check helper cleanup, reference/dump
+binding and retention before updating the durable schedule. Existing snapshots and
+the first scheduled cycle cannot acquire an independent reference retrospectively.
+The installed schedule and its pending first-cycle readback are unchanged.
 
 ## Evidence limits carried forward
 

@@ -352,7 +352,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity|notification-qualification|disposal-qualification|recovery-timer-qualification)\.schema\.json)$
+          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity|notification-qualification|disposal-qualification|recovery-timer-qualification|recurring-schedule)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -546,6 +546,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/
+      - id: nautobot-recurring-logical
+        name: Validate independent recurring logical-reference boundaries
+        entry: python3 Nautobot/tests/test_recurring_logical.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/scripts/(recurring_.*|logical_database|recovery_probe)\.py|tests/(test_recurring_logical|qualify-recurring-logical-local)\.py)
       - id: nautobot-recurring-media
         name: Validate recurring media and staging capacity
         entry: python3 Nautobot/tests/test_recurring_media.py
@@ -564,6 +570,18 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*recurring.*|ansible/tasks/capture-resume-upload\.yaml|tests/test_recurring_protection\.py)
+      - id: nautobot-recurring-schedule
+        name: Validate durable recurring schedule bundle and boundaries
+        entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_schedule.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/.*(?:schedule|recurring|capture-resume-bundle).*|schemas/(recurring-schedule|operation)\.schema\.json|manifests/operation\.yaml|tests/(test_schedule|qualify_schedule)\.py)
+      - id: nautobot-cycle-readback
+        name: Validate read-only recurring cycle receipt inspection
+        entry: python3 Nautobot/tests/test_cycle_readback.py
+        language: system
+        pass_filenames: false
+        files: ^Nautobot/(ansible/scripts/inspect-recurring-cycle\.py|tests/test_cycle_readback\.py)
       - id: nautobot-recovery-timer-qualification
         name: Validate recovery and timer qualification boundaries
         entry: python3 Nautobot/tests/test_recovery_qualification.py

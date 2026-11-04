@@ -145,6 +145,8 @@ def prepare(path,cfg,root):
     atomic(root/'recurring-before.json',{'services':before,'media':media,'images':images,'versions':versions,
                                        'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip()})
     base=['/usr/bin/python3',str(SCRIPTS/'recurring_node.py'),'--binding',str(path),'--root',str(root)]
+    require(type(cfg.get('logical_reference',False)) is bool,'logical_reference_policy')
+    if cfg.get('logical_reference',False): base+=['--logical-reference']
     spec=dict(cfg['backup_template']); spec.update(execution_uid=999,authorized=True,source_consistency_reviewed=True,
         operation_id='nautobot-recurring',captures={name:{'argv':base+['section',name],'maximum_bytes':limit}
         for name,limit in cfg['capture_limits'].items()},dump_validator=base+['section','validate_dump'])
@@ -167,6 +169,9 @@ def section(root,cfg,name):
     require(name in capture.SECTIONS,'section')
     stopped(); old=load(root/'recurring-before.json')
     require(media_directories()==old['media'],'media_changed');capture.reviewed_files(cfg['artifact_sha256'])
+    if cfg.get('logical_reference',False) and name=='postgresql_custom_dump':
+        from recurring_logical import begin
+        begin(root,pod,cfg['image_ids']['web'])
     if name=='media':
         subprocess.run(media_command('archive'),check=True,timeout=30,cwd='/')
     elif name=='image_dependency_manifest':
@@ -177,7 +182,11 @@ def section(root,cfg,name):
         query="SELECT json_agg(row_to_json(m)) FROM (SELECT app,name,applied FROM django_migrations ORDER BY app,name) m"
         raw=bounded(capture.command(['psql','-X','-q','-A','-t','--no-password','-U','nautobot','-d','nautobot',
                                     '-c','BEGIN READ ONLY; '+query+'; COMMIT;']))
-        print(json.dumps({'versions':old['versions'],'migrations':json.loads(raw)}))
+        value={'versions':old['versions'],'migrations':json.loads(raw)}
+        if cfg.get('logical_reference',False):
+            from recurring_logical import finish
+            value.update(finish(root,pod,cfg['image_ids']['web']))
+        print(json.dumps(value))
     else:
         original=sys.argv
         try:
@@ -204,9 +213,12 @@ def supervisor_binding(binding_path, state_directory, installed_scripts, ansible
 def main():
     os.umask(0o077)
     parser=argparse.ArgumentParser();parser.add_argument('--binding',type=Path,required=True)
+    parser.add_argument('--logical-reference',action='store_true')
     parser.add_argument('--root',type=Path);parser.add_argument('action',choices=['prepare','stop','start','drain','health','section','notify'])
     parser.add_argument('argument',nargs='?');args=parser.parse_args();cfg=binding(args.binding)
     root=args.root
+    if args.action=='section':
+        require(args.logical_reference is cfg.get('logical_reference',False),'logical_reference_binding')
     if args.action=='prepare': prepare(args.binding,cfg,Path(args.argument));return
     if args.action=='notify':
         directory=Path(cfg['state_directory']); state=load(directory/'state.json') if (directory/'state.json').exists() else {'phase':'idle'}

@@ -68,16 +68,20 @@ def plan(dataset):
         require(set(row) == {'device', 'interface', 'address'}, 'assignment_shape')
         key = row['device'] + '/' + row['interface']
         address = ipaddress.ip_interface(row['address'])
-        require(key in interfaces and row['address'] not in assigned and address.version == 4 and address.network.prefixlen == 24
-                and address.ip in ipaddress.ip_network('198.18.0.0/15') and str(address) == row['address'], 'assignment_scope')
+        allowed = (address.version == 4 and address.network.prefixlen == 24
+                   and address.ip in ipaddress.ip_network('198.18.0.0/15')) or (
+                   address.version == 6 and address.network.prefixlen == 64
+                   and address.ip in ipaddress.ip_network('2001:2::/48'))
+        require(key in interfaces and row['address'] not in assigned and allowed
+                and str(address) == row['address'], 'assignment_scope')
         assigned.add(row['address'])
         prefix = str(address.network)
         if prefix not in prefixes:
-            add(prefix, 'ipam.prefix', {'namespace': ref('namespace'), 'network': str(address.network.network_address), 'prefix_length': 24},
+            add(prefix, 'ipam.prefix', {'namespace': ref('namespace'), 'network': str(address.network.network_address), 'prefix_length': address.network.prefixlen},
                 {'status': ref('status'), 'type': 'network'})
             prefixes.add(prefix)
         add(row['address'], 'ipam.ipaddress', {'parent': ref(prefix), 'host': str(address.ip)},
-            {'mask_length': 24, 'status': ref('status'), 'type': 'host'})
+            {'mask_length': address.network.prefixlen, 'status': ref('status'), 'type': 'host'})
         add('assignment/' + key + ('/' + row['address'] if 'dns_records' in dataset or len(dataset['ip_assignments']) > len(dataset['devices']) else ''), 'ipam.ipaddresstointerface', {'ip_address': ref(row['address']), 'interface': ref(key)})
     if dataset.get('dns_records'):
         require(len(dataset['dns_records']) <= 64000, 'dns_count')
@@ -86,7 +90,46 @@ def plan(dataset):
             {'name': 'pilot-synthetic.invalid', 'dns_view': ref('dns-view')},
             {'filename': 'pilot-synthetic.invalid', 'soa_mname': 'ns.pilot-synthetic.invalid',
              'soa_rname': 'hostmaster@pilot-synthetic.invalid', 'auto_create_ptr': False, 'enabled': False})
+        forward = {row['name']+'.pilot-synthetic.invalid' for row in dataset['dns_records']
+                   if row.get('type', 'A') in ('A', 'AAAA')}
+        if any(row.get('type') == 'PTR' for row in dataset['dns_records']):
+            add('dns-reverse-zone', 'nautobot_dns_models.dnszone',
+                {'name': '0.18.198.in-addr.arpa', 'dns_view': ref('dns-view')},
+                {'filename': '0.18.198.in-addr.arpa', 'soa_mname': 'ns.pilot-synthetic.invalid',
+                 'soa_rname': 'hostmaster@pilot-synthetic.invalid', 'auto_create_ptr': False, 'enabled': False})
         for row in dataset['dns_records']:
+            if 'type' in row:
+                kind = row['type']
+                shapes = {'A': {'address'}, 'AAAA': {'address'}, 'PTR': {'address', 'target'},
+                          'CNAME': {'target'}, 'TXT': {'text'}, 'SRV': {'target', 'priority', 'weight', 'port'}}
+                require(kind in shapes and set(row) == {'type', 'name'} | shapes[kind], 'dns_shape')
+                fields = {'enabled': False, 'ttl': 3600}
+                zone = 'dns-zone'
+                if kind in ('A', 'AAAA'):
+                    require(re.fullmatch(r'host-\d{4,5}', row['name']) and row['address'] in assigned
+                            and ipaddress.ip_interface(row['address']).version == (4 if kind == 'A' else 6), 'dns_address_family')
+                    fields['ip_address'] = ref(row['address'])
+                elif kind == 'PTR':
+                    require(row['address'] in assigned and row['target'] in forward
+                            and re.fullmatch(r'\d{1,3}', row['name'])
+                            and ipaddress.ip_interface(row['address']).ip.reverse_pointer == row['name']+'.0.18.198.in-addr.arpa'
+                            and any(r.get('type') == 'A' and r['address'] == row['address']
+                                    and r['name']+'.pilot-synthetic.invalid' == row['target'] for r in dataset['dns_records']), 'dns_ptr_scope')
+                    fields['ptrdname'] = row['target']; zone = 'dns-reverse-zone'
+                elif kind == 'CNAME':
+                    require(re.fullmatch(r'alias-\d{4,5}', row['name']) and row['target'] in forward, 'dns_target')
+                    fields['alias'] = row['target']
+                elif kind == 'TXT':
+                    require(re.fullmatch(r'text-\d{4,5}', row['name'])
+                            and re.fullmatch(r'synthetic-pilot-\d{4,5}', row['text']), 'dns_text')
+                    fields['text'] = row['text']
+                else:
+                    require(re.fullmatch(r'_pilot\d{2}\._tcp', row['name']) and row['target'] in forward
+                            and all(type(row[k]) is int and 0 <= row[k] <= 65535 for k in ('priority', 'weight', 'port')), 'dns_srv_scope')
+                    fields.update({k: row[k] for k in ('target', 'priority', 'weight', 'port')})
+                add('dns/'+kind+'/'+row['name'], 'nautobot_dns_models.'+kind.lower()+'record',
+                    {'zone': ref(zone), 'name': row['name']}, fields)
+                continue
             require(set(row) == {'name', 'address'} and re.fullmatch(r'host-\d{4,5}', row['name'])
                     and row['address'] in assigned, 'dns_scope')
             add('dns/' + row['name'], 'nautobot_dns_models.arecord',
