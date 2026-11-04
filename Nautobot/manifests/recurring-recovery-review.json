@@ -1,199 +1,10 @@
 {
   "schema_version": 1,
-  "operation_id": "nautobot-recurring-recovery-timer-v1",
-  "status": "failed_before_writer_pause_archived",
-  "bundle_sha256": "bb2e3c00d26e1bb1610c50ab1a680b835b6124ccdd471765ec198e0b38128043",
-  "request_path": "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/APPROVAL.md",
-  "execution_enabled": false,
-  "target_acceptance": false,
-  "baseline_collected_at": "2026-11-03T23:25:07.285867+00:00",
-  "baseline_checks_passed": 58,
-  "window": {
-    "date": "2026-11-03",
-    "start": "17:30",
-    "end": "18:30",
-    "timezone": "America/Chicago",
-    "latest_first_start": "18:00"
-  },
-  "scope": [
-    "primary_termination_after_native_pause",
-    "independent_deadline_recovery",
-    "native_calendar_parser_DST",
-    "disposable_runtime_timer_callback"
-  ],
-  "code_corrections": [
-    "health_uses_remaining_240_second_recovery_budget",
-    "systemd_python_bytecode_disabled",
-    "outer_controller_1800_seconds_for_two_serial_trials"
-  ],
-  "qualification": {
-    "real_local_systemd_scenarios": [
-      {
-        "case": "success",
-        "credentials_removed": true,
-        "phase": "complete",
-        "writers_resumed": true
-      },
-      {
-        "case": "killed",
-        "credentials_removed": true,
-        "phase": "recovered_failure",
-        "writers_resumed": true
-      },
-      {
-        "case": "deadline",
-        "credentials_removed": true,
-        "phase": "recovered_failure",
-        "writers_resumed": true
-      },
-      {
-        "case": "slow-health",
-        "credentials_removed": true,
-        "phase": "recovered_failure",
-        "writers_resumed": true
-      },
-      {
-        "case": "prepare-failure",
-        "credentials_removed": true,
-        "phase": "failed",
-        "writers_resumed": true
-      },
-      {
-        "case": "timer",
-        "credentials_removed": true,
-        "phase": "complete",
-        "writers_resumed": true
-      },
-      {
-        "case": "fault-helper",
-        "credentials_removed": true,
-        "phase": "recovered_failure",
-        "writers_resumed": true
-      },
-      {
-        "case": "ansible",
-        "credentials_removed": true,
-        "phase": "complete",
-        "writers_resumed": true
-      },
-      {
-        "case": "ansible-fault",
-        "credentials_removed": true,
-        "phase": "recovered_failure",
-        "writers_resumed": true
-      }
-    ],
-    "native_timer_and_bundle_tests": 2,
-    "recurring_regressions": 43,
-    "local_adaptations": [
-      "disposable_writer_marker_and_provider",
-      "local_account_and_shortened_deadlines"
-    ],
-    "target_claims": false,
-    "contract_tests": {
-      "run": 40,
-      "passed": 39,
-      "native_skipped_in_default_run": 1
-    },
-    "native_adaptations_note": "Actual Ansible async fault and cgroup termination exercised; native writer/database probe uses disposable marker locally.",
-    "host_convergence": "passed",
-    "schema": "passed",
-    "ansible_syntax": "passed_through_repository_temporary_directory_wrapper",
-    "yaml_assertion_and_diff": "passed",
-    "secret_scan": "passed",
-    "vexp": "unavailable_not_a_git_repository_direct_checks_used"
-  },
-  "external_input_sha256": {
-    "baseline.json": "57240915b103da21b4c783754b2f5d79ae640c79f517fff92a3a4c8d58a006d5",
-    "baseline.sh": "37b15de0dd0e9fbde2a7879421911ed3f5df03eeee5e183705dfa10075c71cab",
-    "check-baseline.py": "ef6b6b14924d5054543ddb1109e1b2003db909268f3a87e58629c22e6b556be1",
-    "readback.sh": "4db37d676db1af97247274aa2e248ab8a70b1ac4af1e727c865d57a6171e1630",
-    "check-acceptance.py": "2d02f864d72687addb88801796302233b7967347beb789f0cce50ce95cce40cc"
-  },
-  "evidence_sha256": {
-    "baseline-checks.json": "c323243d624a2a42227d66fc1bae658a733ceff7ad352bb744cf07e6ea6adc59",
-    "systemd-qualified/results.json": "bbbac275f9496590bd76f61deee7fd316d01625830f29fcf65714f40aec1b24e",
-    "systemd-qualified.log": "f77bef3cde2f9934932ce4a3ae5958652297f1ea3bed2279dafe933c647c01de",
-    "recurring-tests-final.log": "e5c235834ed8f4538de42a899b9ad07600e1b3943756e27cce6605e12c67ff9b",
-    "recovery-native-tests.log": "fadc1336289bc1d3064087d65409f024e3c1c9318d041565f01d9bfbe95eb8a3",
-    "contract-tests.log": "bc507678cc3d37e7bc9152e7def3e73e71508c81611fe6d77cceabede7353fd9",
-    "ansible-syntax.log": "8295574fae0f7e3d421747ff7a45b17727f0bbc25d1a0f6004f7b82185748694",
-    "systemd-async-qualified/results.json": "ab022d166c25219c6d1f2769bf685ec9e42131721fa4650a7ce7862116ea1968",
-    "systemd-async-qualified.log": "31fc3566c6d2d9a0c81ead894a9ceae452c203800e05e7d6647e480bfc74a7e9",
-    "final-contract-tests.log": "2b02779bc3fe721dd2a0a5756655cfc84967bad30cfda79532ff49f6744f023a",
-    "host-convergence.log": "66245f21c497f4f3bb36765c87b97e92ac2e876c8212cb6e152c644b69adcf58",
-    "schema-check.log": "6e03843105fcecad274e749986a5c904a825ffd0ac6ce3ca0126fb632b154db8",
-    "final-ansible-syntax.log": "8295574fae0f7e3d421747ff7a45b17727f0bbc25d1a0f6004f7b82185748694",
-    "review-scan.log": "559d657f4aa0d4e173e36b250ebee3583f9eb322b59b6faacf0425de4aadad14",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/approval-record.json": "7cdd76f9d666178fbef3236893f8ae69ae05eb701d4731f34cf66b04309fb06a",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/pre-execution.json": "29dbed3dc996681f8a3b12c2091af65f58789f6a3e0023bc3d65decc9fa33bb8",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/pre-execution-checks.json": "c323243d624a2a42227d66fc1bae658a733ceff7ad352bb744cf07e6ea6adc59",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/execution/controller-result.json": "de0edf8aca6770d266a17271ddf953844d7404ef4c5bc43bb12d1c7b6fac9ad7",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/execution/ansible.stdout": "adbd20c20054e35c7e9eb29f554a9a902deefcfd86f0601f255caf33405fae85",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/readback.json": "f7b2e58eb07e59af3939ebe94fd435e0073f154c663556a80e0abd9c3a53f9fd",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/failure-checks.json": "1514bc39e6588753a2b298f75e0fca0e70f1f2c7de3e7daf4f5a903bf7aa993b",
-    "/home/aaron/code/.local-evidence/nautobot-recovery-timer-window-20261103/journal-access.json": "116b2f2b3e4957bf0bac81adbfddd9ead361b6b46cb70d08bee5e84de58a0f47"
-  },
-  "remaining_inputs": [],
-  "remaining_gaps": [
-    "new_scoped_retained_state_handling_and_trial_approval"
-  ],
-  "later_stages": [
-    "schedule_enablement",
-    "remote_deletion_prune",
-    "older_payload_disposal",
-    "populated_media_recovery",
-    "host_outage_monitoring"
-  ],
-  "local_qualification_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-recovery-timer-preparation-20261103",
-  "replacement": {
-    "reason": "prior_approval_after_latest_start",
-    "prior_bundle_sha256": "d151e393ae2e1d8cdc395e2d2fff4675404270ceb80124daf371815383786975",
-    "prior_execution_started": false,
-    "executable_inputs_unchanged": true,
-    "changed_bundle_members": [
-      "operation.yaml",
-      "runtime/operation.json"
-    ]
-  },
-  "execution": {
-    "controller_exit_status": 2,
-    "accepted": false,
-    "failure": "service_account_journal_cursor_permission_denied",
-    "observed_at": "2026-11-03T23:31:43.890862+00:00",
-    "preservation_checks_passed": 61,
-    "writers_paused": false,
-    "units_started": false,
-    "provider_credentials_resolved": false,
-    "retained_mutation": "protected_recovery_qualification_directory_runtime_inputs_empty_killed_directory",
-    "rollback": "no_service_rollback_needed_retained_inputs_preserved",
-    "terminal_archival": "published_verified"
-  },
-  "diagnosis": {
-    "service_account_journal_cursor_exit_status": 1,
-    "root_system_cursor_exit_status": 0,
-    "journal_messages_read": false,
-    "next_fix": "collect_cursor_through_existing_privileged_Ansible_preflight_then_deliver_only_cursor_to_service_owned_evidence",
-    "qualification_gap": "local tests did not exercise complete configure path under production journal permissions"
-  },
-  "local_setup_followup": {
-    "evidence_directory": "/home/aaron/code/.local-evidence/nautobot-recovery-cursor-fix-20261103",
-    "qualification_sha256": "8d5de81047cff9023b1c6d745d8b385ab45d96f075ace42b1ee2a69cc1bd3a09",
-    "complete_setup_passed": true,
-    "production_recovery_accepted": false,
-    "adapted_probes": [
-      "application health",
-      "mapped media inspection"
-    ],
-    "source_sha256": {
-      "Nautobot/ansible/tasks/qualify-recovery-case.yaml": "2ca9fda548d091ac9676dd3f8a6ac5e310c02ba187bdfce41dbdb26a55a7c1d2",
-      "Nautobot/ansible/scripts/recovery_qualification.py": "95814f4caa05ac12372f6ff874181b47bbedc2e642a616c53882bf48dc98d4e8",
-      "Nautobot/tests/test_recovery_qualification.py": "73451cf92121a0f89790196d28baeabbd0320f74dd4627aeff1ec127422b1938",
-      "Nautobot/tests/qualify_recovery_setup.py": "d02e2c1844d216d7cf80f83bd8d27b2e48ec02baa3901b1d40cb9c71b20871be"
-    }
-  },
-  "archive": {
+  "operation_id": "nautobot-recurring-recovery-timer-v2",
+  "status": "accepted_pending_archival",
+  "bundle_sha256": "fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85",
+  "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-recovery-retained-preparation-20261103",
+  "previous_archive": {
     "tag": "nautobot-recurring-recovery-timer-v1-failed",
     "tag_object": "23229ab625fa72049737b27a1231388b6846bd42",
     "archive_commit": "4949ce46844886156b0f484167c190ecf8522d13",
@@ -202,5 +13,97 @@
     "all_member_hashes_verified": true,
     "members": 39,
     "published_verified": true
+  },
+  "attended_window": {
+    "date": "2026-11-03",
+    "timezone": "America/Chicago",
+    "start": "18:15",
+    "end": "19:15",
+    "latest_start": "18:45"
+  },
+  "retained_state": {
+    "action": "verify_and_rename",
+    "source": "/var/lib/nautobot/protection/recovery-qualification",
+    "destination": "/var/lib/nautobot/protection/recovery-qualification-retained-bb2e3c00d26e",
+    "files": 19,
+    "directories": 6,
+    "staging_mutated": false,
+    "status": "exact_rename_verified"
+  },
+  "local_qualification": {
+    "setup_scenarios": 6,
+    "retention_tests": 15,
+    "application_probes_adapted": [
+      "health",
+      "media"
+    ],
+    "target_acceptance": false
+  },
+  "remaining_inputs": [
+    "terminal_archival_authorization"
+  ],
+  "remaining_gaps": [],
+  "execution_started": true,
+  "source_commit": "1b51b75851e6ab090dd69ee739b6cbc564f33a60",
+  "evidence_sha256": {
+    "APPROVAL.md": "9d821e2afd4a9bf42fdc91b78febb1d1cbb8be9a3590a81bd1f39614aef2ec72",
+    "ansible-syntax.log": "befebe7e78454a444e8f69db20ab0ecbc188705519bbdd60847ec87bfd548035",
+    "baseline-checks.json": "0df4f763132e38cead12d915e94ee896bfdb1a955fc19564f7438978450189a0",
+    "baseline-comparison.json": "3dd09117c2f11151cb17bc73e64236278a372fe2c7ebcb6b1f31f3a01b616d0f",
+    "baseline.json": "6ea0df5509536b4da941eca8b61897e452b9f24a77a615abcdafd67fcb031354",
+    "baseline.sh": "111741d4110cfa66d83e57bfadcc1e7b48ca76fa0ff947ed6c312517528b333f",
+    "baseline.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "baseline.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bundle-scan.log": "4c63bfc7e8232c4a2ddf184dea0e20c9441db776c3888dc1ef0a19aacadd243c",
+    "bundle-sha256.txt": "460f5518d54013f2bb5972cd2cb80ff63a46467f5a352fdf36cc319cd3edf76a",
+    "bundle-tests-final.log": "3c54430b2a312bf858e063e67ae087d78d1559ec334b69312961114663063f88",
+    "bundle-tests.log": "83c775fae0a6ae99bf7e3528a7b8018d16006f94d4b50d1ea7966762f618de12",
+    "check-acceptance.py": "9b95983fcf8415f6db6660592fbddbab10a359fa05deec7196ecf56f4966b8c2",
+    "check-baseline.py": "ef6b6b14924d5054543ddb1109e1b2003db909268f3a87e58629c22e6b556be1",
+    "operation-tests.log": "d7f62c83c01fc0c302d4137e9664b76c6b6befdd51aaea79847538be8c24cac6",
+    "previous-archived-review.json": "05592c2d17cfad63c5bbb425eb81a3e319d05471eb9b03103de4c6490280c88f",
+    "readback.sh": "e2e71928b0dc25066f51cec3e577da875af428fc2bb7b708a724346035a8b871",
+    "retained-tests.log": "b1bda2c4c7b37dc3f4912d6c1a3d53088bd73b32ca97d9115eed6b03902df30e",
+    "setup/artifact-drift.log": "34d7c57b468ec906da0bea90b6e9790cea9b2155fbb07bad1b89f32dd313e8f2",
+    "setup/cleanup.json": "0c6d40f0fe6dcde9550fd48de05efb83b246c5c911279dc22b57a92d303da941",
+    "setup/journal-permission.json": "d74f2323b18efab14ca831a2f500e284bbc2791f7241acf3943c6c94d3dff853",
+    "setup/metadata-drift.log": "519ae8f53494b948d488c55d744127de78a360e9110b6ed57601c8fbe701f2b7",
+    "setup/package-drift.log": "4228fb49644c1d0ed6066b1c1ef87d2c8182b07aa3766a477f8af8ef1a2c3c55",
+    "setup/replay.log": "051de0c8df88ca46b651b5b58e1be1daa5b4e1a22ce4058c67b4c2fbf88b1e6c",
+    "setup/results.json": "c6219c53f4121fa084a8b4f99f007d69979f1203b688d2e0279cc0d24ab5c3e9",
+    "setup/retained-setup.log": "0e43e2a832b8dbd9225aa493a3ecdb4475cd9305e7956c1006b6798b3cf91a64",
+    "setup/success.log": "e5615db9a8d0fae87bfaf8c2cc52244d9c61c65130eebb0c5e344671d064ee64",
+    "setup.log": "7c2c9e4d49ded1c1534350dfdde843dc4046f69d6308f1fba91fc517cbd7e03c",
+    "documentation-tests.log": "75a51f3f99a5e5fd62d4e3552c081fde8c40df31d69068aaf0ff131ffa986f67",
+    "assertion-policy.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-window-label-verification.json": "ceef955a6d54b6b7492abeae7d634fea1d6260dd84e73bb49b73c13f3b861ae0",
+    "bundle-verify-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bundle-scan-final.log": "c8221df57bc03d685fd6cdf6cb805507abcbb0aa077ed85ce25d984355546bfc",
+    "approval-record.json": "3fdc6e1ba98cf34a01065859e03ca60c539a999c15956c51a3e8ae59f4f3014b",
+    "pre-execution.json": "77221345a94ef1ba0ca3a8b60456574368f513852ca6236db13a502d76616e0e",
+    "pre-execution-checks.json": "0df4f763132e38cead12d915e94ee896bfdb1a955fc19564f7438978450189a0",
+    "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+    "execution/ansible.stdout": "e9edd90cc91de3a830be1785b8997fcd83e8469b65b3b0926d1d324086dcedf4",
+    "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "readback-initial.json": "cb62161b3718c715f7a617ebab23e20a10eacc202e7c757cd592e85cda186fcd",
+    "acceptance-checks-initial.json": "ed7ed3492a220e1dc02aa3d1d7542495dfe93622fe9341c026ccc9c62fd0cc0a",
+    "transient-job.json": "7e566220438d00e0a2ca9f27039d2ba61aa53908d98f6d0f805407f539e464a3",
+    "readback.json": "396630979277ba1772660f98f297b75d21dba2fd122fa755eb5cceaf5e3aa2dc",
+    "acceptance-checks.json": "5716b267ff7d11acedcf637fd691c5ed7fab6344717c3fb50a590d8ae7577d89",
+    "accepted-contract-tests.log": "7aab3968406c0c41e9e7fc58f84d9fd43b8c594f6c46f1ca9a133ff15ed835a8",
+    "accepted-bundle-tests.log": "ab175864142cc379b777b42e4b5ee02183c3ade973a0c5519ef2225d873fc685",
+    "accepted-docs-tests.log": "5b496fea7ecf5cece01b012e3013b95410aae4699b5f5c5b7452651c22096f45"
+  },
+  "acceptance": {
+    "checks_passed": 85,
+    "accepted_at": "2026-11-04T00:33:29.678101+00:00",
+    "recovery_seconds": {
+      "killed": 158.5406433781609,
+      "deadline": 158.99052901007235
+    },
+    "first_readback": "84/85; transient Podman healthcheck job then completed successfully; unchanged acceptance checks passed on settled readback",
+    "initial_evidence_preserved": true,
+    "controller_exit_status": 0,
+    "recurring_schedule_enabled": false
   }
 }

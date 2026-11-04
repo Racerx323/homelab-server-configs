@@ -753,3 +753,13 @@ Published annotated tag: `nautobot-recurring-recovery-timer-v1-failed`; archive 
 `4949ce46844886156b0f484167c190ecf8522d13`. The remote tag, archive bytes and all
 39 member hashes were independently verified before clearing the consumed
 operation. Never replay the consumed claim.
+
+## Recurring independent recovery and timer qualification acceptance
+
+`nautobot-recurring-recovery-timer-v2`: accepted two independent recovery faults
+and bounded marker-timer/calendar qualification; all 85 checks passed. Recovery
+was 158.5/159.0 seconds within 240 seconds; retained tree and older staging unchanged.
+Accepted identity: `manifests/accepted-live-state.yaml#recurring_recovery_timer`.
+Bundle: `fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85`.
+Terminal archival pending; proposed tag `nautobot-recurring-recovery-timer-v2-accepted`.
+Production schedules remain disabled. Never replay the consumed claim.

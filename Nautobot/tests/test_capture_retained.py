@@ -150,5 +150,39 @@ class Retained(unittest.TestCase):
             self.spec['terminal']['units'][self.names[0]][key] = {'ActiveState': 'failed', 'MainPID': '0', 'ControlGroup': ''}[key]
         self.assertTrue(self.root.exists())
 
+    def recovery(self):
+        import shutil
+        for link in self.units.iterdir(): link.unlink()
+        shutil.rmtree(self.root/'units')
+        self.root.rename(self.base/'recovery-qualification'); self.root = self.base/'recovery-qualification'
+        (self.root/'killed').mkdir(mode=0o700)
+        p=self.root/'input';p.write_bytes(b'frozen');p.chmod(0o600)
+        self.spec.update(kind='unstarted_recovery', files={}, directories={})
+        self.spec.pop('links')
+        for p in [self.root, *self.root.rglob('*')]:
+            s=p.stat();row={'uid':s.st_uid,'gid':s.st_gid,'mode':stat.S_IMODE(s.st_mode)}
+            if p.is_file():row['sha256']=hashlib.sha256(p.read_bytes()).hexdigest()
+            self.spec['directories' if p.is_dir() else 'files'][str(p.relative_to(self.root))]=row
+        return lambda name: self.show(name) if name in self.spec['service_invocations'] else {
+            'LoadState':'not-found','ActiveState':'inactive','MainPID':'0','ControlPID':'0','ControlGroup':''}
+
+    def test_unstarted_recovery_preserves_tree_and_staging(self):
+        show=self.recovery();payload=self.base/'staging/old-payload';payload.write_bytes(b'keep')
+        result=self.apply(show=show)
+        self.assertEqual((Path(result['preserved_directory'])/'input').read_bytes(),b'frozen')
+        self.assertEqual(payload.read_bytes(),b'keep');self.assertEqual(result['runtime_links_removed'],[])
+        with self.assertRaisesRegex(ValueError,'retained_destination_exists'):self.apply(show=show)
+
+    def test_unstarted_recovery_refuses_loaded_units_or_file_drift(self):
+        show=self.recovery()
+        def loaded(name):
+            row=show(name)
+            if 'LoadState' in row:row['LoadState']='loaded'
+            return row
+        with self.assertRaisesRegex(ValueError,'recovery_unit_present'):self.apply(show=loaded)
+        (self.root/'input').write_bytes(b'drift')
+        with self.assertRaisesRegex(ValueError,'retained_file_drift'):self.apply(show=show)
+        self.assertTrue(self.root.exists())
+
 
 if __name__ == '__main__': unittest.main()

@@ -34,7 +34,8 @@
       ],
       "properties": {
         "id": {
-          "const": "nautobot-recurring-recovery-timer-v1"
+          "type": "string",
+          "pattern": "^nautobot-recurring-recovery-timer-v[1-9][0-9]*$"
         },
         "stage": {
           "const": "recurring_failure_recovery_timer_qualification"
@@ -148,6 +149,44 @@
     },
     "controller_timeout_seconds": {
       "const": 1800
+    },
+    "retained_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "bundle_sha256",
+        "boot_id",
+        "files",
+        "directories",
+        "service_invocations"
+      ],
+      "properties": {
+        "kind": {
+          "const": "unstarted_recovery"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "files": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "directories": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "service_invocations": {
+          "type": "object",
+          "minProperties": 5,
+          "maxProperties": 5
+        }
+      }
     }
   }
 }

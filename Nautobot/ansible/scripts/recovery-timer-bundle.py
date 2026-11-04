@@ -27,6 +27,17 @@ def validate(root):
     transport.require(op['accepted_sha256'] == transport.sha(root/'accepted.yaml'), 'accepted_source_drift')
     accepted = yaml.safe_load((root/'accepted.yaml').read_text())
     base = '/var/lib/nautobot/protection/recovery-qualification'
+    if 'retained_state' in op:
+        retained = op['retained_state']
+        transport.require(retained['boot_id'] == op['boot_id'], 'retained_boot')
+        transport.require(set(retained['directories']) == {'.', 'killed', 'metadata', 'playbooks', 'scripts', 'tasks'}, 'retained_directories')
+        for name, row in retained['files'].items():
+            transport.require(not Path(name).is_absolute() and '..' not in Path(name).parts
+                              and not name.startswith('killed/'), 'retained_file_scope')
+            transport.require(set(row) == {'uid', 'gid', 'mode', 'sha256'} and len(row['sha256']) == 64, 'retained_file_metadata')
+        for directory, rows in ((True, retained['directories']), (False, retained['files'])):
+            transport.require(all(row['uid'] == 999 and row['gid'] == 985 and
+                              row['mode'] == (0o700 if directory else 0o600) for row in rows.values()), 'retained_permissions')
     for case, trial in op['trials'].items():
         c = trial['supervisor']; binding = trial['binding']; directory = base+'/'+case
         transport.require(trial['plan_sha256'] == transport.sha(root/'PLAN.md'), 'plan_drift')

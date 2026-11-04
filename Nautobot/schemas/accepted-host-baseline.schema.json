@@ -1839,6 +1839,147 @@
           "pattern": "^[0-9a-f]{40}$"
         }
       }
+    },
+    "recurring_recovery_timer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "bundle_sha256",
+        "status",
+        "accepted_at",
+        "scope",
+        "boot_id",
+        "recovery_seconds",
+        "recovery_budget_seconds",
+        "retained_tree_preserved",
+        "data_service_invocations_unchanged",
+        "original_staging_unchanged",
+        "timer_identities_unchanged",
+        "runtime_links_removed",
+        "credentials_removed",
+        "marker_timer_dispatched",
+        "calendar_cases",
+        "controller_recovery_used",
+        "recurring_schedule_enabled",
+        "remote_repository_accessed",
+        "notifications_sent",
+        "capture_payload_created",
+        "terminal_archival",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal_archival": {
+          "enum": [
+            "pending_publication",
+            "published_verified"
+          ]
+        },
+        "evidence_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-recovery-timer-v[1-9][0-9]*$"
+        },
+        "status": {
+          "const": "independent_failure_recovery_timer_accepted"
+        },
+        "scope": {
+          "const": "attended_two_faults_and_marker_timer_only"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recovery_seconds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "killed",
+            "deadline"
+          ],
+          "properties": {
+            "killed": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 240
+            },
+            "deadline": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 240
+            }
+          }
+        },
+        "recovery_budget_seconds": {
+          "const": 240
+        },
+        "calendar_cases": {
+          "const": 4
+        },
+        "retained_tree_preserved": {
+          "const": true
+        },
+        "data_service_invocations_unchanged": {
+          "const": true
+        },
+        "original_staging_unchanged": {
+          "const": true
+        },
+        "timer_identities_unchanged": {
+          "const": true
+        },
+        "runtime_links_removed": {
+          "const": true
+        },
+        "credentials_removed": {
+          "const": true
+        },
+        "marker_timer_dispatched": {
+          "const": true
+        },
+        "controller_recovery_used": {
+          "const": false
+        },
+        "recurring_schedule_enabled": {
+          "const": false
+        },
+        "remote_repository_accessed": {
+          "const": false
+        },
+        "notifications_sent": {
+          "const": false
+        },
+        "capture_payload_created": {
+          "const": false
+        }
+      }
     }
   }
 }

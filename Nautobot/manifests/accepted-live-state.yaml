@@ -480,3 +480,40 @@ recurring_disposal:
   terminal_tag: nautobot-recurring-disposal-v1-accepted
   archive_commit: b558f4c9980b2bab0aa2e091b706808a6182180a
   tag_object: 8f1ba48924b6f282b672c6c422157e713745df74
+recurring_recovery_timer:
+  operation_id: nautobot-recurring-recovery-timer-v2
+  bundle_sha256: fbd8efebb45df6a95edebfa65f342cf451add9feef90767fedd8b6d292b35c85
+  status: independent_failure_recovery_timer_accepted
+  accepted_at: '2026-11-04T00:33:29.678101+00:00'
+  scope: attended_two_faults_and_marker_timer_only
+  boot_id: b9673910-7616-421d-a46e-1332ebf107e1
+  recovery_seconds:
+    killed: 158.5406433781609
+    deadline: 158.99052901007235
+  recovery_budget_seconds: 240
+  retained_tree_preserved: true
+  data_service_invocations_unchanged: true
+  original_staging_unchanged: true
+  timer_identities_unchanged: true
+  runtime_links_removed: true
+  credentials_removed: true
+  marker_timer_dispatched: true
+  calendar_cases: 4
+  controller_recovery_used: false
+  recurring_schedule_enabled: false
+  remote_repository_accessed: false
+  notifications_sent: false
+  capture_payload_created: false
+  terminal_archival: pending_publication
+  evidence_sha256:
+    approval-record.json: 3fdc6e1ba98cf34a01065859e03ca60c539a999c15956c51a3e8ae59f4f3014b
+    pre-execution.json: 77221345a94ef1ba0ca3a8b60456574368f513852ca6236db13a502d76616e0e
+    pre-execution-checks.json: 0df4f763132e38cead12d915e94ee896bfdb1a955fc19564f7438978450189a0
+    execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
+    execution/ansible.stdout: e9edd90cc91de3a830be1785b8997fcd83e8469b65b3b0926d1d324086dcedf4
+    execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    readback-initial.json: cb62161b3718c715f7a617ebab23e20a10eacc202e7c757cd592e85cda186fcd
+    acceptance-checks-initial.json: ed7ed3492a220e1dc02aa3d1d7542495dfe93622fe9341c026ccc9c62fd0cc0a
+    transient-job.json: 7e566220438d00e0a2ca9f27039d2ba61aa53908d98f6d0f805407f539e464a3
+    readback.json: 396630979277ba1772660f98f297b75d21dba2fd122fa755eb5cceaf5e3aa2dc
+    acceptance-checks.json: 5716b267ff7d11acedcf637fd691c5ed7fab6344717c3fb50a590d8ae7577d89

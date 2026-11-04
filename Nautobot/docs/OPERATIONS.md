@@ -4622,6 +4622,17 @@ receives the remaining recovery budget after quiescence and resume, subject to t
 adapter's existing 210-second readiness ceiling. Do not split recovery into a
 120-second health allowance when measured startup already exceeds that allowance.
 
+After a setup failure before any unit was loaded, a replacement may bind
+`retained_state.kind: unstarted_recovery`. The existing preservation helper checks
+every retained file hash and directory owner/mode, the empty first-case directory,
+unchanged application invocations, the boot and window, and absence of all ten
+qualification units and links. It renames the tree to
+`recovery-qualification-retained-<prior-bundle-prefix>` before claiming a fresh
+directory. No staging entry is removed or changed. A partial failure preserves
+both trees; never rename back over a newly created directory. Independently compare
+the preserved tree with the baseline after the trial. This path cannot preserve
+a trial that reached unit creation or writer pause.
+
 The reusable case tasks run twice, with separate state and unit names. Both use
 real native preparation, the existing protected Doppler references, real writer
 pause/drain and the actual node-local Ansible async path. Only capture is replaced

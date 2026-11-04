@@ -79,6 +79,7 @@ def media_directories(): return ['local-media']
 def health(timeout=30): return {'local_application_probe': True}
 ''')
             op = json.loads((candidate/'runtime/operation.json').read_text())
+            op.pop('retained_state', None)
             op['operation']['execution_enabled'] = True
             op['boot_id'] = container('cat', '/proc/sys/kernel/random/boot_id').stdout.strip()
             op['controller_timeout_seconds'] = 1
@@ -144,6 +145,54 @@ print(json.dumps(out,sort_keys=True))''').stdout
                                        'nautobot-protection-'+case+'.service', '--property=LoadState', '--value')
                     assert status.stdout.strip() == 'not-found'
                 results.append({'scenario': scenario, 'passed': True, 'ansible_status': result.returncode})
+            # Recreate the actual pre-configure failure shape, then exercise the
+            # production preservation task followed by both complete setups.
+            container('rm', '-rf', base)
+            run(['podman', 'cp', str(candidate/'runtime'), cid+':'+base])
+            container('mkdir', '-m', '0700', base+'/killed')
+            container('chown', '-R', '999:985', base)
+            unitdir=root/'local-services';unitdir.mkdir()
+            names=['nautobot-'+role+'.service' for role in ('postgresql','redis','web','worker','scheduler')]
+            for name in names:
+                (unitdir/name).write_text('[Service]\nExecStart=/usr/bin/sleep infinity\n')
+            container('mkdir', '-p', '/var/lib/nautobot/.config/systemd/user')
+            run(['podman','cp',str(unitdir)+'/.',cid+':/var/lib/nautobot/.config/systemd/user/'])
+            container('chown','-R','999:985','/var/lib/nautobot/.config')
+            container('sudo','-u','nautobot',*env,'systemctl','--user','daemon-reload')
+            container('sudo','-u','nautobot',*env,'systemctl','--user','start',*names)
+            retained=json.loads(container('python3','-c', '''import hashlib,json,pathlib,stat
+r=pathlib.Path('/var/lib/nautobot/protection/recovery-qualification');out={'files':{},'directories':{}}
+for p in [r,*r.rglob('*')]:
+ s=p.stat();row={'uid':s.st_uid,'gid':s.st_gid,'mode':stat.S_IMODE(s.st_mode)}
+ if p.is_file(): row['sha256']=hashlib.sha256(p.read_bytes()).hexdigest()
+ out['directories' if p.is_dir() else 'files'][str(p.relative_to(r))]=row
+print(json.dumps(out))''').stdout)
+            invocations={name:container('sudo','-u','nautobot',*env,'systemctl','--user','show',name,
+                         '--property=InvocationID','--value').stdout.strip() for name in names}
+            current=copy.deepcopy(op)
+            current['retained_state']={'kind':'unstarted_recovery','bundle_sha256':'a'*64,
+                'boot_id':op['boot_id'],'service_invocations':invocations,**retained}
+            (candidate/'runtime/operation.json').write_text(json.dumps(current))
+            (root/'inputs.json').write_text(json.dumps({'capture_operation':current,
+                'capture_bundle':str(candidate),'capture_bundle_verified':True}))
+            result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
+                'ansible-playbook','-i',str(root/'inventory'),str(root/'setup.yaml'),'-e','@'+str(root/'inputs.json')],
+                env={**os.environ,'ANSIBLE_CONFIG':str(root/'ansible.cfg')},cwd=ROOT,capture_output=True,text=True,timeout=240)
+            (output/'retained-setup.log').write_text(result.stdout+result.stderr)
+            assert result.returncode==0,result.stdout[-3000:]
+            # Compare bytes and metadata independently, after the actual rename.
+            container('python3','-c', '''import hashlib,json,pathlib,stat,sys
+r=pathlib.Path('/var/lib/nautobot/protection/recovery-qualification-retained-aaaaaaaaaaaa');spec=json.loads(sys.argv[1])
+assert {str(p.relative_to(r)) for p in r.rglob('*') if p.is_file()}==set(spec['files'])
+for kind in ('files','directories'):
+ for name,expected in spec[kind].items():
+  p=r/name;s=p.stat();actual={'uid':s.st_uid,'gid':s.st_gid,'mode':stat.S_IMODE(s.st_mode)}
+  if kind=='files':actual['sha256']=hashlib.sha256(p.read_bytes()).hexdigest()
+  assert actual==expected
+for case in ('killed','deadline'):
+ assert len(list((r.parent/'recovery-qualification'/case/'units').iterdir()))==4
+''',json.dumps(retained))
+            results.append({'scenario':'retained-tree-and-complete-setup','passed':True,'ansible_status':0})
             (output/'results.json').write_text(json.dumps({'accepted': False, 'cases': results,
                 'limits': ['application health and media probes adapted', 'no production contact',
                            'no fault or timer execution in setup test']}, indent=2)+'\n')

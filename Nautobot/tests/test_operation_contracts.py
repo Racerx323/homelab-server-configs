@@ -16,6 +16,19 @@ def validate(schema, value):
 
 
 class Contracts(unittest.TestCase):
+    def test_recovery_acceptance_does_not_enable_schedules_or_other_stages(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        if 'recurring_recovery_timer' not in accepted:
+            self.skipTest('no accepted recovery qualification')
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for field in ('controller_recovery_used', 'recurring_schedule_enabled', 'remote_repository_accessed',
+                      'notifications_sent', 'capture_payload_created'):
+            bad = copy.deepcopy(accepted); bad['recurring_recovery_timer'][field] = True
+            with self.subTest(field=field), self.assertRaises(ValidationError): validate(schema, bad)
+        bad = copy.deepcopy(accepted); bad['recurring_recovery_timer']['recovery_seconds']['deadline'] = 241
+        with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_disposal_acceptance_keeps_remote_deletion_and_schedules_separate(self):
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         if 'recurring_disposal' not in accepted:

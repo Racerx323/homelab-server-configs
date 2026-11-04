@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Recovery bundle boundaries; optional real local timer dispatch."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -32,9 +33,16 @@ class RecoveryQualification(unittest.TestCase):
         spec=importlib.util.spec_from_file_location('recovery_bundle',SCRIPTS/'recovery-timer-bundle.py')
         bundle=importlib.util.module_from_spec(spec);spec.loader.exec_module(bundle)
         with tempfile.TemporaryDirectory() as temporary:
-            root=Path(temporary)/'candidate';bundle.transport.freeze(root)
+            # Qualify a fresh local fixture without changing a consumed approval.
+            current['accepted_sha256']=hashlib.sha256((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_bytes()).hexdigest()
+            fixture=Path(temporary)/'operation.yaml';fixture.write_text(yaml.safe_dump(current))
+            root=Path(temporary)/'candidate';bundle.transport.freeze(root,operation=fixture)
             digest=bundle.transport.sha(root/'bundle.json');bundle.transport.verify(root,digest)
             original=yaml.safe_load((root/'operation.yaml').read_text())
+            if 'retained_state' in original:
+                bad=json.loads(json.dumps(original));bad['retained_state']['directories']['.']['mode']=0o755
+                (root/'operation.yaml').write_text(yaml.safe_dump(bad));(root/'runtime/operation.json').write_text(json.dumps(bad))
+                with self.assertRaisesRegex(ValueError,'retained_permissions'):bundle.validate(root)
             for key,value in [('dispose_successful_payload',True),('recovery_seconds',300)]:
                 bad=json.loads(json.dumps(original));bad['trials']['killed']['supervisor'][key]=value
                 (root/'operation.yaml').write_text(yaml.safe_dump(bad));(root/'runtime/operation.json').write_text(json.dumps(bad))

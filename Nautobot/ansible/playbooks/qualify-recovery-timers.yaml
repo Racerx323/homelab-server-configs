@@ -21,6 +21,23 @@
           - ansible_play_hosts_all == ['j2-svpi4mf']
           - ansible_host == '10.1.2.170'
           - not ansible_check_mode
+    - name: Preserve the exact never-started recovery tree when separately approved
+      when: op.retained_state is defined
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/runuser
+          - --user
+          - nautobot
+          - --
+          - /usr/bin/python3
+          - -B
+          - '-'
+          - '{{ op.retained_state | to_json }}'
+          - '{{ op.trials.killed.supervisor | to_json }}'
+        stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/capture_retained.py") }}'
+        chdir: /
+      changed_when: true
     - name: Claim the absent evidence directory once
       ansible.builtin.command:
         argv: [/usr/bin/mkdir, --mode=0700, '{{ run_root }}']

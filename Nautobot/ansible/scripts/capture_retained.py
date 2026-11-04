@@ -42,6 +42,26 @@ def preserve(root, spec, units, show):
     destination = root.with_name(root.name+'-retained-'+spec['bundle_sha256'][:12])
     require(not os.path.lexists(destination), 'retained_destination_exists')
     verify_tree(root, spec)
+    if spec.get('kind') == 'unstarted_recovery':
+        require(root.name == 'recovery-qualification', 'recovery_root')
+        require((root/'killed').is_dir() and not list((root/'killed').iterdir())
+                and not any(os.path.lexists(root/n) for n in ('deadline', 'timer', 'state', 'units')), 'recovery_started')
+        names = ['nautobot-protection-'+case+suffix for case in ('killed', 'deadline')
+                 for suffix in ('.service', '-guard.timer', '-guard.service', '-recovery.service')]
+        names += ['nautobot-protection-timerqual.service', 'nautobot-protection-timerqual.timer']
+        for name in names:
+            row = show(name)
+            require(not os.path.lexists(units/name) and row['LoadState'] == 'not-found'
+                    and row['ActiveState'] == 'inactive' and row.get('MainPID', '0') == '0'
+                    and row.get('ControlPID', '0') == '0' and not row.get('ControlGroup'), 'recovery_unit_present')
+        require(set(spec['service_invocations']) == {'nautobot-'+role+'.service' for role in
+                ('postgresql', 'redis', 'web', 'worker', 'scheduler')}, 'service_scope')
+        for name, invocation in spec['service_invocations'].items():
+            row = show(name)
+            require(row['ActiveState'] == 'active' and row['SubState'] == 'running'
+                    and row['InvocationID'] == invocation, 'service_drift')
+        root.rename(destination)
+        return {'preserved_directory': str(destination), 'runtime_links_removed': []}
     terminal = spec.get('terminal')
     if terminal:
         state = json.loads((root/'state/state.json').read_text())
@@ -93,11 +113,14 @@ def preserve(root, spec, units, show):
 def main():
     require(os.getuid() == 999, 'service_identity')
     spec = json.loads(sys.argv[1])
-    root = Path('/var/lib/nautobot/protection/qualification')
+    recovery = spec.get('kind') == 'unstarted_recovery'
+    root = Path('/var/lib/nautobot/protection')/('recovery-qualification' if recovery else 'qualification')
     require(Path('/proc/sys/kernel/random/boot_id').read_text().strip() == spec['boot_id'], 'boot_changed')
     def show(name):
+        properties = 'ActiveState,SubState,InvocationID,ExecMainStartTimestamp,MainPID,ControlPID,ControlGroup,Result'
+        if recovery: properties += ',LoadState'
         raw = subprocess.check_output(['/usr/bin/systemctl', '--user', 'show', name,
-            '--property=ActiveState,SubState,InvocationID,ExecMainStartTimestamp,MainPID,ControlPID,ControlGroup,Result'], text=True, timeout=30)
+            '--property='+properties], text=True, timeout=30)
         return dict(line.split('=', 1) for line in raw.splitlines())
     # Verify before importing the retained runtime, and retain existing lock bytes.
     verify_tree(root, spec)
