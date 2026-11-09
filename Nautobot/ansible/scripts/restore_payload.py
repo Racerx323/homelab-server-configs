@@ -9,7 +9,31 @@ import tarfile
 ARCHIVES = ('media', 'configuration', 'quadlet_config_hashes', 'image_dependency_manifest')
 
 
-def extract(source, destination, expected):
+def metadata(source, reference=None):
+    """Bind recurring metadata to the independent reference before extraction."""
+    value = json.loads((source/'versions_migrations').read_text())
+    fields = set(value)
+    if fields == {'versions', 'migrations'}:
+        return value
+    if fields != {'versions', 'migrations', 'logical_reference', 'logical_capture'}:
+        raise ValueError('versions_migrations_fields')
+    if reference is None or reference.is_symlink() or not reference.is_file():
+        raise ValueError('independent_reference_required')
+    import logical_database
+    independent = json.loads(reference.read_text())
+    receipt = value['logical_capture']
+    with (source/'postgresql_custom_dump').open('rb') as stream:
+        dump_hash = hashlib.file_digest(stream, 'sha256').hexdigest()
+    if (value['logical_reference'] != independent
+            or receipt['format'] != 'recurring-logical-v1'
+            or receipt['dump_sha256'] != dump_hash
+            or receipt['reference_sha256'] != hashlib.sha256(reference.read_bytes()).hexdigest()
+            or receipt['comparison'] != logical_database.compare(independent, independent)):
+        raise ValueError('recurring_reference_binding')
+    return value
+
+
+def extract(source, destination, expected, reference=None):
     """Expected maps section to exact member names/types and independent file hashes."""
     if set(expected) != set(ARCHIVES): raise ValueError('archive_sections')
     entries = {}
@@ -37,6 +61,7 @@ def extract(source, destination, expected):
                         for name, data in members.items()}
             if observed != expected[section]: raise ValueError('archive_inventory_mismatch')
             entries[section] = members
+    value = metadata(source, reference)
     # Validate all sections before creating any destination content.
     if any(p.is_symlink() for p in [destination, *destination.parents]): raise ValueError('destination_symlink')
     destination.mkdir(mode=0o700)
@@ -51,9 +76,7 @@ def extract(source, destination, expected):
                 target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
                 fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
                 with os.fdopen(fd, 'wb') as stream: stream.write(data)
-    metadata = json.loads((source/'versions_migrations').read_text())
-    if set(metadata) != {'versions', 'migrations'}: raise ValueError('versions_migrations_fields')
-    return metadata
+    return value
 
 
 def main():
@@ -62,7 +85,8 @@ def main():
     parser.add_argument('--root', type=Path, required=True)
     args = parser.parse_args()
     root = args.root
-    extract(root/'retrieval/retrieved', root/'extracted', json.loads((root/'members.json').read_text()))
+    extract(root/'retrieval/retrieved', root/'extracted', json.loads((root/'members.json').read_text()),
+            root/'logical-reference.json')
 
 
 if __name__ == '__main__': main()

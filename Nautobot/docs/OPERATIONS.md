@@ -1343,19 +1343,22 @@ and credential cleanup; failure or interrupted supervision cannot imply cleanup.
 Record the month's exact snapshot and outcome, including a missed month. This
 contract installs no monthly timer and creates no second pending operation.
 
-The installed recurring producer does not supply the required independent logical
-reference. `recurring_node.py` captures versions and the migration ledger in
-`versions_migrations`; its custom dump and six content hashes prove capture identity
-and integrity, not an independent row/sequence/schema comparison. In contrast,
-`preservation-node.py` uses `logical_database.py` before and after capture while
-writers are stopped. `restore_node.py` compares the restored database with that
-separately retained `logical-reference.json` before application startup.
+Recurring capture supports an independent logical reference when
+`binding.logical_reference: true`; absence or `false` preserves the earlier format.
+`recurring_node.py` includes the pre-dump reference and its capture receipt in
+`versions_migrations`. The separately retained `logical-reference.json` is the
+comparison source, bound to the approved snapshot and capture evidence. A reference
+derived only from the restored dump, or collected from a later live database,
+does not establish independence. Current installation and first-cycle acceptance
+status belong in ROADMAP and the operation review manifest.
 
-The candidate implementation supports an optional `binding.logical_reference:
-true`. Absence or `false` preserves the earlier capture behavior. Enable it only
-in a separately reviewed capture change; the accepted nightly schedule remains
-unchanged until separately approved promotion. A reference derived only from the restored dump, or
-collected from a later live database, does not close independence.
+Before extraction, `restore_payload.py` requires the recurring metadata's embedded
+reference to equal the separately supplied reference, verifies its exact file hash,
+and binds the receipt to the retrieved dump hash and successful logical comparison.
+Partial or unknown metadata fields and missing or mismatched references are refused
+before creating extracted files. Historical two-field metadata remains supported
+for its separately approved restore scope. `restore_node.py` then compares the full
+restored database against the independent reference before application startup.
 
 With this option, `recurring_node.py` runs the existing preservation logical probe
 before the database dump and again in the final `versions_migrations` section.
@@ -1613,6 +1616,12 @@ pulls images, contacts the target or uses production credentials. A subsequent l
 run may supply `disposable_fixture` and `disposable_fixture_sha256` to reuse only
 the protected synthetic dump created by a prior local run; this skips fixture
 migrations, not restoration or validation. Never substitute production data.
+Set `recurring_logical: true` in the disposable qualification inputs to exercise
+recurring metadata: the production receipt producer uses real before/after database
+identity probes through the local network adapter. The target-path preparer preserves
+those receipt fields and exact standalone reference bytes for the existing restore
+playbook. A local snapshot ID is test evidence only; it must never populate the
+pending production operation.
 
 Ansible owns setup, capture, retrieval, extraction, import, pre-start logical
 comparison, native checks and negative cases; its `always` block removes only

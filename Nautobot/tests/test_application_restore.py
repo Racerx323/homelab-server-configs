@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Restore containment, identity rejection and cleanup regressions."""
 import importlib.util
+import hashlib
+import copy
 import io
 import json
 import os
@@ -40,6 +42,37 @@ class RestoreTests(unittest.TestCase):
         restore_payload.extract(self.root,self.root/'out',expected)
         self.assertTrue((self.root/'out/media').is_dir())
         with self.assertRaises(FileExistsError):restore_payload.extract(self.root,self.root/'out',expected)
+
+    def test_recurring_reference_binding_before_any_extraction(self):
+        import logical_database
+        expected = self.make_archives()
+        identity = dict(format='postgresql17-logical-v1', server_version_num='170006', schemas=['public'],
+                        definitions={}, tables={'sample': {'rows': 1, 'sha256': 'a'*64}}, sequences={})
+        reference = self.root/'logical-reference.json'
+        reference.write_text(json.dumps(identity))
+        dump = self.root/'postgresql_custom_dump'; dump.write_bytes(b'unit-only-dump')
+        receipt = dict(format='recurring-logical-v1', specification_sha256='a'*64,
+                       dump_sha256=hashlib.sha256(dump.read_bytes()).hexdigest(),
+                       reference_sha256=hashlib.sha256(reference.read_bytes()).hexdigest(),
+                       before_seconds=1, after_seconds=1, comparison=logical_database.compare(identity, identity))
+        original = dict(versions={}, migrations=[], logical_reference=identity, logical_capture=receipt)
+        for case in ('missing_reference', 'reference', 'dump', 'comparison', 'fields', 'half', 'symlink'):
+            with self.subTest(case=case):
+                value = copy.deepcopy(original); selected = reference
+                if case == 'missing_reference': selected = None
+                elif case == 'reference': value['logical_reference']['tables']['sample']['rows'] = 2
+                elif case == 'dump': value['logical_capture']['dump_sha256'] = '0'*64
+                elif case == 'comparison': value['logical_capture']['comparison']['equal'] = False
+                elif case == 'fields': value['unexpected'] = True
+                elif case == 'half': del value['logical_capture']
+                else:
+                    selected = self.root/'link'; selected.symlink_to(reference)
+                (self.root/'versions_migrations').write_text(json.dumps(value))
+                with self.assertRaises(ValueError):
+                    restore_payload.extract(self.root, self.root/'out', expected, selected)
+                self.assertFalse((self.root/'out').exists())
+        (self.root/'versions_migrations').write_text(json.dumps(original))
+        self.assertEqual(restore_payload.extract(self.root, self.root/'out', expected, reference), original)
 
     def test_unsafe_names_and_links_fail_before_extraction(self):
         for name,kind in [('../escape',tarfile.REGTYPE),('/absolute',tarfile.REGTYPE),

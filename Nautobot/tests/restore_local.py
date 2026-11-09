@@ -125,6 +125,17 @@ def main():
         save(work/'source-logical.json',json.loads(native('logical','source_fixture')))
     elif args.phase == 'capture':
         payload=work/'payload'; payload.mkdir(mode=0o700)
+        if spec.get('recurring_logical'):
+            # Use the production receipt producer with a real database identity probe.
+            # This disposable network uses different names from the production probe.
+            import recurring_logical
+            from unittest.mock import patch
+            def local_probe(*unused):
+                started = time.monotonic()
+                return json.loads(native('logical', 'source_fixture')), time.monotonic()-started
+            save(work/'application-backup.json', {'qualification': 'disposable-recurring'})
+            with patch.object(recurring_logical, 'probe', local_probe):
+                recurring_logical.begin(work, None, spec['images']['app'])
         (payload/'postgresql_custom_dump').write_bytes(pgexec('pg_dump','-U','nautobot','-d','source_fixture','-Fc'))
         expected={}
         config=(work/'nautobot_config.py').read_bytes()
@@ -133,7 +144,11 @@ def main():
         expected['quadlet_config_hashes']=archive(payload/'quadlet_config_hashes',{'SHA256.json':json.dumps({'nautobot_config.py':hashlib.sha256(config).hexdigest()}).encode()})
         expected['image_dependency_manifest']=archive(payload/'image_dependency_manifest',{'images.json':json.dumps(spec['images']).encode()})
         source=json.loads((work/'source-metadata.json').read_text())
-        save(payload/'versions_migrations',{k:source[k] for k in ('versions','migrations')})
+        versions = {k:source[k] for k in ('versions','migrations')}
+        if spec.get('recurring_logical'):
+            with patch.object(recurring_logical, 'probe', local_probe):
+                versions.update(recurring_logical.finish(work, None, spec['images']['app']))
+        save(payload/'versions_migrations', versions)
         save(work/'members.json',expected)
         (work/'repository').write_text(str(work/'disposable-repository'))
         (work/'password').write_text(secrets.token_hex(32))
@@ -155,7 +170,8 @@ def main():
         save(destination/'restore.json',json.loads((work/'contract.json').read_text()))
         call([sys.executable,str(ROOT/'restic/scripts/application-restore.py'),'--root',str(destination)],timeout=1250)
     elif args.phase == 'extract':
-        restore_payload.extract(work/'retrieval/retrieved',work/'extracted',json.loads((work/'members.json').read_text()))
+        restore_payload.extract(work/'retrieval/retrieved',work/'extracted',json.loads((work/'members.json').read_text()),
+                                work/'logical-reference.json' if spec.get('recurring_logical') else None)
         # Prove recovery of configuration bytes before using its reviewed mapping.
         if (work/'extracted/configuration/nautobot_config.py').read_bytes() != (work/'nautobot_config.py').read_bytes():
             raise ValueError('config_mismatch')

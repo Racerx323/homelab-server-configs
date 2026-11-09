@@ -44,7 +44,9 @@ def main():
                              'images': images, 'production_containers': [],
                              'restic_helper': str(ROOT/'restic/scripts/application-restore.py')})
     (root/'django-secret').write_text(secrets.token_hex(40))
-    save(root/'logical-reference.json', json.loads((fixture/'source-logical.json').read_text()))
+    reference = fixture/('logical-reference.json' if source.get('recurring_logical') else 'source-logical.json')
+    # Preserve exact reference bytes: recurring receipts bind their SHA-256.
+    (root/'logical-reference.json').write_bytes(reference.read_bytes())
     payload = root/'source-payload'; payload.mkdir(mode=0o700)
     (payload/'postgresql_custom_dump').write_bytes(dump.read_bytes())
     config = (fixture/'nautobot_config.py').read_bytes()
@@ -62,8 +64,12 @@ def main():
     with (payload/'image_dependency_manifest').open('wb') as output: capture.archive(members, output)
     expected['image_dependency_manifest'] = {k:{'type':'file','sha256':hashlib.sha256(v).hexdigest()} for k,v in members.items()}
     metadata = json.loads((fixture/'source-metadata.json').read_text())
-    save(payload/'versions_migrations', {'versions':metadata['versions'], 'migrations':[
-        {'app':a,'name':n,'applied':t} for a,n,t in metadata['migrations']]})
+    versions = {'versions':metadata['versions'], 'migrations':[
+        {'app':a,'name':n,'applied':t} for a,n,t in metadata['migrations']]}
+    if source.get('recurring_logical'):
+        captured = json.loads((fixture/'payload/versions_migrations').read_text())
+        versions.update({k: captured[k] for k in ('logical_reference', 'logical_capture')})
+    save(payload/'versions_migrations', versions)
     save(root/'members.json', expected)
     retrieval = root/'retrieval'; retrieval.mkdir(mode=0o700)
     (retrieval/'repository').write_text(str(root/'disposable-repository'))
