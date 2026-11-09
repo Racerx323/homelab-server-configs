@@ -607,8 +607,9 @@ recurring_schedule:
   remote_retention_deletion_enabled: false
   logical_reference_capture_deployed: false
   monitoring_owner: Aaron; existing monitoring unchanged
-  terminal_archival: pending_publication
+  terminal_archival: published_verified
   evidence_sha256:
+    terminal/publication-verification.json: a363fdd41d7680f12e2929ce087be77a23eeb7a0eb06c001564c2c06af700411
     readback.py: f721ea1fc97e55c7d00e79d023141632c37fc77e17ea661106a85e1a43c43029
     readback.json: 12053f19e66941ad9c95662d82c6c48cd378e43250158a3fea706ce6de06a0e8
     repository.py: b095152c2889897ce251f512c1f9f6bae1055a423cb50903b33ef45aa7cd7136
@@ -620,3 +621,6 @@ recurring_schedule:
     notification-confirmation.json: 9acac430380339731858094291202586b33a145fd27d75455cb9de1b999a0b01
     acceptance-checks.json: b4de1abc619cf1c319efbfb3e9fce49f54e9102118b885570e343264122b55a8
     verify.py: a6b5e9509fc2c3a295a5d292a91816ac616099dddc731808e474c60dceae9db0
+  terminal_tag: nautobot-recurring-schedule-v1-accepted
+  archive_commit: 1e96c0a55bc8146c263c7a7c628b92ea6f9d9bba
+  tag_object: 9ce37206375c08da0e08067b4c6e634a66453503

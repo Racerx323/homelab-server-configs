@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "kind": "recurring_schedule_enablement_preparation_review",
-  "status": "scheduled_cycles_accepted_pending_publication",
+  "status": "scheduled_cycles_accepted_archived",
   "review_date": "2026-11-09",
   "execution_authorized": true,
   "authorization_ready": false,
-  "operation_defined": true,
+  "operation_defined": false,
   "source_commit": "ff3bb06c97d581689fa137b4437d3486c04e33f4",
   "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-schedule-enablement-preparation-20261104",
   "source_sha256": {
@@ -442,7 +442,7 @@
       "duplicates_reported": false,
       "source": "Aaron confirmed in this conversation; email/Pushover precise receipt times were not supplied."
     },
-    "git_publication_authorized": false,
+    "git_publication_authorized": true,
     "journal_entries": 25,
     "journal_scope": "UID 999 systemd manager after privileged installation cursor; service-only filter had no entries.",
     "current_operation_manifest_sha256": "4eb4b5420477d9caf6597fd049f77b67c082f2f9e5756a004eb59e823ffd3bd7",
@@ -491,7 +491,19 @@
       "acceptance-checks.json": "b4de1abc619cf1c319efbfb3e9fce49f54e9102118b885570e343264122b55a8",
       "verify.py": "a6b5e9509fc2c3a295a5d292a91816ac616099dddc731808e474c60dceae9db0"
     },
-    "terminal_archival": "pending_publication",
-    "git_publication_authorized": false
+    "terminal_archival": "published_verified",
+    "git_publication_authorized": true
+  },
+  "terminal_publication": {
+    "verified_at": "2026-11-09T15:08:28.455432+00:00",
+    "remote": "Racerx323/homelab-server-configs",
+    "visibility": "PUBLIC",
+    "terminal_tag": "nautobot-recurring-schedule-v1-accepted",
+    "archive_commit": "1e96c0a55bc8146c263c7a7c628b92ea6f9d9bba",
+    "tag_object": "9ce37206375c08da0e08067b4c6e634a66453503",
+    "archive_sha256": "82358af683d64be9c6b78edacdfc97440a6e940ce24c24a67c06840cf952c689",
+    "members_verified": 51,
+    "independent_fetch": true,
+    "remote_main_matches": true
   }
 }

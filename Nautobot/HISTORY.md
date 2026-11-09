@@ -765,3 +765,17 @@ Published annotated tag: `nautobot-recurring-recovery-timer-v2-accepted`; archiv
 `2dd59631cd3c94333fbf3f238daa3b55a93a0920`. The independently fetched archive bytes and all
 39 member hashes were verified before clearing the consumed operation.
 Production schedules remain disabled. Never replay the consumed claim.
+
+## Recurring nightly protection schedule acceptance
+
+`nautobot-recurring-schedule-v1`: accepted five November 5–9 calendar cycles,
+including writer recovery, full integrity, independent snapshot identity, credential
+cleanup, successful payload disposal and preserved older state. Aaron confirmed
+missed/recovery delivery on email, Discord and Pushover without duplicates.
+Accepted identity: `manifests/accepted-live-state.yaml#recurring_schedule`.
+Bundle: `90607f422af8d4a3c94076bc8a5fe24dab1a2c394ffb36de01b48a50a4c99f56`.
+Published annotated tag: `nautobot-recurring-schedule-v1-accepted`; archive commit
+`1e96c0a55bc8146c263c7a7c628b92ea6f9d9bba`. Independent remote fetch verified the archive bytes
+and all 51 members before clearing the consumed operation. The schedule remains
+unchanged. Monthly restore, populated media, remote deletion/prune and seven-day
+pilot acceptance remain outside this result. Never replay the consumed claim.

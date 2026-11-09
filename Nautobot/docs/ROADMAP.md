@@ -93,15 +93,17 @@ See accepted live state and `manifests/recurring-schedule-review.json` for ident
 and evidence hashes. This establishes scheduled protection, not seven-day pilot
 or monthly restore acceptance.
 
-Next: authorize terminal commit/tag/push of the accepted schedule operation and
-reader correction. Keep its consumed definition pending until the annotated archive
-is pushed and verified. Do not replay the installation or change the schedule.
-After archival, prepare the separately qualified logical-reference capture change
-needed for monthly restore comparison. Aaron owns existing host/user-manager
-monitoring and credential rotation.
+The accepted schedule operation and reader correction are published in the
+annotated tag `nautobot-recurring-schedule-v1-accepted`. Independent remote fetch
+verified the archive bytes and all 51 member hashes before clearing the consumed
+operation. The deployment stream is clean; the running schedule is unchanged.
+
+Next: prepare the separately qualified logical-reference capture change needed
+for monthly restore comparison. Bind its deployment to a separate approval.
+Aaron owns existing host/user-manager monitoring and credential rotation.
 
 Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
-recovery, seven-day pilot acceptance and Git publication remain separate scopes.
+recovery, seven-day pilot acceptance remain separate scopes.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -167,7 +169,7 @@ scheduled-cycle acceptance. Earlier stage observations retain their original sco
 | Area | Evidence and gap | Next decision or work |
 | --- | --- | --- |
 | Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. The synthetic pilot profile below is agreed and its mixed DNS/interface fixture passed native local qualification. Real Celery qualification also passed; live comparison and resource acceptance remain pending. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Bind any later live fixture transition and resource observation. Compare real inventory/export before claiming representativeness. |
-| Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Archive the accepted operation. Keep directory-only media, the writer window and approved schedule unchanged. |
+| Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Preserve the archived acceptance and keep directory-only media, the writer window and approved schedule unchanged. |
 | Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial and all five accepted nightly cycles. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
 | Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Local source review found that recurring captures lack its independent full logical reference; no monthly operation or timer is installed. | After the active operation is archived, bind an accepted recurring snapshot, contemporaneous logical reference, isolation, supervision and capacity/deadlines. Retained-payload disposal remains separate. |
@@ -305,7 +307,7 @@ unqualified. Do not change production volume permissions to make the adapter pas
 backup or notification changes. Populated
 media remains unqualified. The September observations and earlier clean-stream
 statements describe their historical stages. The current schedule is installed and
-its cycles are accepted and its operation awaits terminal archival; retention deletion remains unauthorized.
+its cycles are accepted and archived; retention deletion remains unauthorized.
 
 ### Intended workload comparison
 
