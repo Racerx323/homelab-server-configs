@@ -396,8 +396,64 @@
               "type": "object"
             }
           }
+        },
+        "kind": {
+          "const": "completed_capture"
+        }
+      }
+    },
+    "schedule_guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_sha256",
+        "state"
+      ],
+      "properties": {
+        "runtime_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "state": {
+          "type": "object"
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "binding": {
+            "properties": {
+              "logical_reference": {
+                "const": true
+              }
+            },
+            "required": [
+              "logical_reference"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "schedule_guard",
+          "retained_state"
+        ],
+        "properties": {
+          "retained_state": {
+            "required": [
+              "kind",
+              "terminal"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

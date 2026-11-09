@@ -14,7 +14,7 @@ from jsonschema import Draft202012Validator
 
 ROOT=Path(__file__).resolve().parents[3]
 STAGE='recurring_capture_resume_qualification'
-SCRIPTS=('capture_qualification.py','recurring_node.py','recurring_protection.py','render-recurring-protection.py',
+SCRIPTS=('capture_qualification.py','capture_retained.py','recurring_node.py','recurring_protection.py','render-recurring-protection.py',
          'recurring_delivery.py','recurring_disposal.py','workload_capture.py','media_namespace.py','recovery_probe.py',
          'recurring_logical.py','logical_database.py')
 FILES={
@@ -57,6 +57,11 @@ def validate(root):
     require(op['accepted_credential_bundle']==accepted['recurring_credentials']['bundle_sha256'],'credential_bundle')
     require(not op['binding']['upload_enabled'] and not op['supervisor']['dispose_successful_payload']
             and 'notification_argv' not in op['supervisor'],'stage_scope')
+    if op['binding'].get('logical_reference'):
+        require(op['schedule_guard']['runtime_sha256'] == accepted['recurring_schedule']['runtime_sha256'], 'accepted_schedule')
+        require(op['schedule_guard']['state']['configuration_sha256'] == accepted['recurring_schedule']['runtime_sha256']['supervisor.json'], 'schedule_configuration')
+        require(op['retained_state']['kind'] == 'completed_capture', 'completed_capture_required')
+        require(op['supervisor']['start_hour'] >= 5 or op['supervisor']['end_hour'] <= 2, 'schedule_overlap')
     window=op['supervisor']
     require(date.fromisoformat(window['window_date']).isoformat()==window['window_date'],'window_date')
     require((window['end_hour']-window['start_hour'])*60+window['end_minute']-window['start_minute']==60,'one_hour_window')

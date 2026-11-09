@@ -22,6 +22,23 @@
           - not ansible_check_mode
           - not op.binding.upload_enabled | bool
           - not op.supervisor.dispose_successful_payload | bool
+    - name: Collect the service-manager cursor with privileged journal access
+      ansible.builtin.command:
+        argv: [/usr/bin/timeout, '30', /usr/bin/journalctl, --no-pager, --show-cursor, --output=json, --output-fields=__CURSOR, --lines=1, _UID=999, _COMM=systemd]
+        chdir: /
+      register: journal_cursor
+      changed_when: false
+    - name: Require a cursor before proceeding
+      ansible.builtin.assert:
+        that:
+          - "'-- cursor: ' in journal_cursor.stdout"
+    - name: Retain the cursor before any target mutation
+      ansible.builtin.copy:
+        content: '{{ journal_cursor.stdout }}'
+        dest: '{{ capture_evidence }}/journal-cursor.txt'
+        mode: '0600'
+      delegate_to: localhost
+      become: false
     - name: Preserve the exact inactive retained state when separately approved
       when: op.retained_state is defined
       environment: '{{ user_environment }}'
@@ -36,6 +53,7 @@
           - '-'
           - '{{ op.retained_state | to_json }}'
           - '{{ op.supervisor | to_json }}'
+          - '{{ op.get("schedule_guard", {}) | to_json }}'
         stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/capture_retained.py") }}'
         chdir: /
       changed_when: true

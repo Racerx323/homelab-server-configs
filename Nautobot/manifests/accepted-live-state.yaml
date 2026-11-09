@@ -624,3 +624,76 @@ recurring_schedule:
   terminal_tag: nautobot-recurring-schedule-v1-accepted
   archive_commit: 1e96c0a55bc8146c263c7a7c628b92ea6f9d9bba
   tag_object: 9ce37206375c08da0e08067b4c6e634a66453503
+recurring_logical_capture:
+  acceptance_checks_passed: 155
+  accepted_at: '2026-11-09T16:10:00.308470+00:00'
+  accepted_schedule_unchanged: true
+  bundle_sha256: 12554de27f6d9780c9af7c68b71ebc743dd27be96a8cdfa638997e2a7fa78980
+  capture_deadline_seconds: 450
+  capture_seconds: 23.449605464935303
+  durable_logical_capture_deployed: false
+  evidence_sha256:
+    acceptance-checks.json: b7342ab801cb4f3c17f634a62556535ea367ba610bf44ee6d3bd252f9e3fc262
+    execution/ansible.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    execution/ansible.stdout: 83f0206299f4de7d19f13519464963a7b592665ead444f9a18f775a7c901760a
+    execution/controller-result.json: 05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c
+    execution/journal-cursor.txt: 8e86ffe0102297ec38022def6c65e2fd1d59a0299ee4146d2a7dd5e65b4660ac
+    execution/observations.json: 71572842611583e69205a429e1c1850dc63736015ea6229b559bc0ac7066bddd
+    independent-readback.py: 0b35c3d66ee99b10d2ad551de539eaf866ab8529154b6269ae15dd2ebace33de
+    independent-readback.status.json: 273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6
+    independent-readback.stdout.json: 50d1d6640c5bde33491034a7e68c93421ef1ebf034e8049aceb9bcfae94b0db4
+    journal.jsonl: 812cbdbebe2c2f06c468f68e770fbb929a5d1248001fa02a14bf89d0cca90d32
+    journal.status.json: 273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6
+    live-baseline.status.json: 273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6
+    live-baseline.stdout.json: 5d2be979295f6ee3e96816ea7fa8b5f1fa411c1239c826ad773a67c63b00e9aa
+    post-trial-baseline.status.json: 273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6
+    post-trial-baseline.stdout.json: e3099a750f461da4487a63c97c1407cc956765b9b21e776be17b216743d13e8f
+  independent_acceptance: true
+  logical_helpers_absent: true
+  logical_probe_seconds:
+    after_seconds: 4.789451066870242
+    before_seconds: 5.239847967401147
+  logical_receipt_sha256:
+    logical-before.json: 6d92617ac0ccdd993de74aafee79cba76412653354f2558f1a7c67d62a482874
+    logical-capture.json: 1b9a6feba52252087d22040c36dc0b86ed8db1477b4b08795023a941983100fc
+    logical-reference.json: df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270
+  logical_table_count: 245
+  old_tree_comparisons: 16
+  operation_id: nautobot-recurring-logical-capture-v1
+  payload_content_sha256:
+    configuration: cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2
+    image_dependency_manifest: e00b1afd19528bec6df100529e03cff9195e35c4f0b0d475e85f0c1449aad31f
+    media: 6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04
+    postgresql_custom_dump: 85ee15e181fb5ac3e330442f4450b8bbc11d9f063ee8bebd0aa7cceefd6bc247
+    quadlet_config_hashes: a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0
+    versions_migrations: 09d5b1fb092f5316afd21d56a8f844a14f52db787620ae24907ef76c2188ccf9
+  payload_path: /var/lib/nautobot/protection/staging/nautobot-recurring.kthj7pal
+  payload_retained: true
+  prepare_through_resume_seconds: 293.31850242614746
+  recovery_deadline_seconds: 240
+  resume_verification:
+    schema_version: 1
+    verification_delta: '0:00:01.063756'
+    verification_rc: 0
+  retained_state_unchanged: true
+  runtime_links_removed: true
+  status: capture_only_accepted
+  task_results:
+    capture_rc: 0
+    credential_cleanup_failed: false
+    health_delta: '0:02:40.124776'
+    health_rc: 0
+    health_readiness_deadline: false
+    pause_rc:
+      - 0
+      - 0
+      - 0
+      - 0
+    resume_rc:
+      - 0
+      - 0
+      - 0
+    schema_version: 1
+  terminal_publication: pending_separate_authorization
+  transient_credentials_removed: true
+  upload_attempted: false

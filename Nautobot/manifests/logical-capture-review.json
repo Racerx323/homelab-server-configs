@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "logical_reference_capture_preparation",
+  "status": "capture_only_accepted_pending_terminal_archival",
+  "prepared_at": "2026-11-09T15:42:10.140894+00:00",
+  "operation_id": "nautobot-recurring-logical-capture-v1",
+  "execution_authorized": true,
+  "execution_enabled": false,
+  "target_contact_during_preparation": false,
+  "accepted_schedule_unchanged": true,
+  "window": {
+    "start": "2026-11-09T10:00:00-06:00",
+    "end": "2026-11-09T11:00:00-06:00",
+    "timezone": "America/Chicago",
+    "minimum_remaining_seconds": 690
+  },
+  "bundle_sha256": "12554de27f6d9780c9af7c68b71ebc743dd27be96a8cdfa638997e2a7fa78980",
+  "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-logical-capture-preparation-20261109",
+  "qualification_sha256": "ff54a3a3c1820889d74f1850c8977dd07f9cc5b59f0abc5d7b30a5de47014be4",
+  "baseline_references_sha256": "5a6dc4ef54e762b3893cda0200f6308517ab5169ab609643f46d37298682e1db",
+  "qualification": {
+    "capture_retained_tests": 19,
+    "recurring_logical_tests": 4,
+    "operation_contract_tests": 20,
+    "documentation_contract_tests": 5,
+    "repository_hooks_passed": 37,
+    "ansible_syntax_check": true,
+    "assertion_expression_check": true,
+    "yaml_lint": true,
+    "markdown_lint": true,
+    "bundle_verify": true
+  },
+  "historical_native_qualification": {
+    "path": "/home/aaron/code/.local-evidence/nautobot-recurring-logical-20261104/qualification.json",
+    "sha256": "1622702e7e782364d735dd32d788b4a71048d3b4d24435dd504ddbc20b0cd1e6",
+    "core_source_hashes_match": {
+      "Nautobot/ansible/scripts/recurring_logical.py": "8725046c8407a1969d9e750d3708f4eb1e2f8933ce582b8e8b0e66f61237da58",
+      "Nautobot/ansible/scripts/recurring_node.py": "ad419164702aa1f41011c53b104f0e10f2a8a851ddc3f275c59fed9da286a7f9",
+      "Nautobot/ansible/scripts/recurring_disposal.py": "5dbd7b22f2cb7cb436cbc13abd202cd41362368d649c2c29137c8a38cdc32c5b",
+      "Nautobot/ansible/scripts/logical_database.py": "b27cd6961ff361e0acc5b01e9ea7ba5ccfebacb7690349e72fd25a232bd76a21",
+      "Nautobot/ansible/scripts/recovery_probe.py": "4095a2945654e8117deaec911cd6fe7f7f11094018900931a82bd341fa9132b6"
+    },
+    "scope": "November 4 workstation native capture/upload/restore and controller-loss evidence; not ARM64 target timing."
+  },
+  "qualification_limit": "Historical local checks remain distinct; the approved November 9 ARM64 capture-only trial now passed independent target acceptance. Durable nightly promotion and a new snapshot/reference pair remain separate.",
+  "source_sha256": {
+    "Nautobot/ansible/playbooks/qualify-capture-resume.yaml": "5bf505886f46c667d514d949ceafcf7efe2f5c619bf91d964857fcfe0d631b0c",
+    "Nautobot/ansible/scripts/capture-resume-bundle.py": "a1ddb5d7a2660dce14e82a051a80eb793e194edfb55b3006a3b916786b7fcfdd",
+    "Nautobot/ansible/scripts/capture_qualification.py": "13fbdbebe9d008da9275359e220df2bcff28783bc6eb5c0d207ab438cf054d93",
+    "Nautobot/ansible/scripts/capture_retained.py": "02319fcef5fecb31211c65fe5d00bb68f8d9226335c1a887d331ed8e4de200b1",
+    "Nautobot/docs/OPERATIONS.md": "e9114714e283357f8c5031b5799bd4a40e2fd94ef90f6febd857c29cf318edff",
+    "Nautobot/docs/ROADMAP.md": "cb09664a015bcf3b85eefb15fdb7cdfd011da73310ced323c3de17d72d2c0748",
+    "Nautobot/manifests/operation.yaml": "cc2ed72e02e107b5a74e498bc606ff5e138eeeea6ec955a3f53fc6601cef93b8",
+    "Nautobot/schemas/capture-resume.schema.json": "d0149bc17b6dce4f05926f915c7f4603e53dd0a14737f141c680704fdaf74ee7",
+    "Nautobot/tests/test_capture_retained.py": "10680d8415886aacd1f570171b9ce8b17bd9b70e3d76bb30e189c65bf4383873"
+  },
+  "mutation_scope": [
+    "Preserve exact completed qualification tree without touching older staging.",
+    "One supervised logical-reference capture-only trial; retain payload and logical receipts.",
+    "Temporary runtime qualification units and short-lived existing credential resolution only."
+  ],
+  "remaining_live_acceptance": [],
+  "later_stages": [
+    "Separate durable promotion after trial acceptance and archival.",
+    "New accepted scheduled snapshot/reference pair before monthly restore approval.",
+    "Separate terminal publication and explicit retained-payload disposition."
+  ],
+  "execution_consumed": true,
+  "accepted_at": "2026-11-09T16:10:00.308470+00:00",
+  "acceptance": {
+    "operation_id": "nautobot-recurring-logical-capture-v1",
+    "bundle_sha256": "12554de27f6d9780c9af7c68b71ebc743dd27be96a8cdfa638997e2a7fa78980",
+    "status": "capture_only_accepted",
+    "accepted_at": "2026-11-09T16:10:00.308470+00:00",
+    "independent_acceptance": true,
+    "acceptance_checks_passed": 155,
+    "capture_seconds": 23.449605464935303,
+    "prepare_through_resume_seconds": 293.31850242614746,
+    "capture_deadline_seconds": 450,
+    "recovery_deadline_seconds": 240,
+    "logical_probe_seconds": {
+      "after_seconds": 4.789451066870242,
+      "before_seconds": 5.239847967401147
+    },
+    "logical_table_count": 245,
+    "task_results": {
+      "capture_rc": 0,
+      "credential_cleanup_failed": false,
+      "health_delta": "0:02:40.124776",
+      "health_rc": 0,
+      "health_readiness_deadline": false,
+      "pause_rc": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "resume_rc": [
+        0,
+        0,
+        0
+      ],
+      "schema_version": 1
+    },
+    "resume_verification": {
+      "schema_version": 1,
+      "verification_delta": "0:00:01.063756",
+      "verification_rc": 0
+    },
+    "payload_path": "/var/lib/nautobot/protection/staging/nautobot-recurring.kthj7pal",
+    "payload_content_sha256": {
+      "configuration": "cd9f960fb85c9d620c0568d079c0eae1ca00c82b4d05ec9cb844e2c276994bb2",
+      "image_dependency_manifest": "e00b1afd19528bec6df100529e03cff9195e35c4f0b0d475e85f0c1449aad31f",
+      "media": "6a271e232bcfb3d9ad7894a1febcd790e424d7623fcbc8b4aaf045374f586b04",
+      "postgresql_custom_dump": "85ee15e181fb5ac3e330442f4450b8bbc11d9f063ee8bebd0aa7cceefd6bc247",
+      "quadlet_config_hashes": "a3c235c5f740cee51158983f7de122ff627f72c93333018431626e8ae87869a0",
+      "versions_migrations": "09d5b1fb092f5316afd21d56a8f844a14f52db787620ae24907ef76c2188ccf9"
+    },
+    "logical_receipt_sha256": {
+      "logical-before.json": "6d92617ac0ccdd993de74aafee79cba76412653354f2558f1a7c67d62a482874",
+      "logical-capture.json": "1b9a6feba52252087d22040c36dc0b86ed8db1477b4b08795023a941983100fc",
+      "logical-reference.json": "df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270"
+    },
+    "old_tree_comparisons": 16,
+    "retained_state_unchanged": true,
+    "accepted_schedule_unchanged": true,
+    "logical_helpers_absent": true,
+    "transient_credentials_removed": true,
+    "runtime_links_removed": true,
+    "payload_retained": true,
+    "upload_attempted": false,
+    "durable_logical_capture_deployed": false,
+    "terminal_publication": "pending_separate_authorization",
+    "evidence_sha256": {
+      "live-baseline.stdout.json": "5d2be979295f6ee3e96816ea7fa8b5f1fa411c1239c826ad773a67c63b00e9aa",
+      "live-baseline.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "post-trial-baseline.stdout.json": "e3099a750f461da4487a63c97c1407cc956765b9b21e776be17b216743d13e8f",
+      "post-trial-baseline.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "independent-readback.py": "0b35c3d66ee99b10d2ad551de539eaf866ab8529154b6269ae15dd2ebace33de",
+      "independent-readback.stdout.json": "50d1d6640c5bde33491034a7e68c93421ef1ebf034e8049aceb9bcfae94b0db4",
+      "independent-readback.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "journal.jsonl": "812cbdbebe2c2f06c468f68e770fbb929a5d1248001fa02a14bf89d0cca90d32",
+      "journal.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "acceptance-checks.json": "b7342ab801cb4f3c17f634a62556535ea367ba610bf44ee6d3bd252f9e3fc262",
+      "execution/journal-cursor.txt": "8e86ffe0102297ec38022def6c65e2fd1d59a0299ee4146d2a7dd5e65b4660ac",
+      "execution/ansible.stdout": "83f0206299f4de7d19f13519464963a7b592665ead444f9a18f775a7c901760a",
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+      "execution/observations.json": "71572842611583e69205a429e1c1850dc63736015ea6229b559bc0ac7066bddd"
+    }
+  },
+  "next_action": "Authorize terminal commit/tag/push; then prepare separate durable-schedule logical-reference promotion."
+}

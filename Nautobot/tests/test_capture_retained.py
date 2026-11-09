@@ -2,16 +2,19 @@
 """Filesystem drift/refusal tests for retaining a never-started qualification."""
 import copy
 import hashlib
+import json
 import os
 from pathlib import Path
 import stat
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'ansible/scripts'))
-from capture_retained import preserve
+from capture_retained import preserve, verify_schedule
+import capture_retained
 
 
 class Retained(unittest.TestCase):
@@ -183,6 +186,90 @@ class Retained(unittest.TestCase):
         (self.root/'input').write_bytes(b'drift')
         with self.assertRaisesRegex(ValueError,'retained_file_drift'):self.apply(show=show)
         self.assertTrue(self.root.exists())
+
+    def completed(self):
+        payload, _ = self.terminal('complete')
+        self.spec['terminal']['state']['exit_status'] = 0
+        state = self.root/'state/state.json'
+        state.write_text(json.dumps(self.spec['terminal']['state']))
+        self.spec['files']['state/state.json']['sha256'] = hashlib.sha256(state.read_bytes()).hexdigest()
+        self.spec.update(kind='completed_capture', links={})
+        self.spec['terminal']['units'] = {}
+        for link in self.units.iterdir(): link.unlink()
+        def show(name):
+            return self.show(name) if name in self.spec['service_invocations'] else {
+                'LoadState':'not-found', 'ActiveState':'inactive'}
+        return payload, show
+
+    def test_completed_capture_preserves_payload_and_old_state(self):
+        payload, show = self.completed()
+        unrelated = self.base/'staging/unrelated'; unrelated.write_bytes(b'keep')
+        result = self.apply(show=show)
+        self.assertEqual(result['runtime_links_removed'], [])
+        self.assertEqual((payload/'dump').read_bytes(), b'retained payload')
+        self.assertEqual(unrelated.read_bytes(), b'keep')
+        self.assertTrue((Path(result['preserved_directory'])/'state/state.json').is_file())
+        with self.assertRaisesRegex(ValueError, 'retained_destination_exists'): self.apply(show=show)
+
+    def test_completed_capture_refuses_loaded_units_and_payload_drift(self):
+        payload, show = self.completed()
+        def loaded(name): return {**show(name), 'LoadState':'loaded'}
+        with self.assertRaisesRegex(ValueError, 'completed_unit_present'): self.apply(show=loaded)
+        (payload/'dump').write_bytes(b'drift')
+        with self.assertRaisesRegex(ValueError, 'retained_file_drift'): self.apply(show=show)
+        self.assertTrue(self.root.exists())
+
+    def test_completed_main_locks_existing_files_without_creating_recovery_lock(self):
+        _, show = self.completed()
+        for name in ('run.lock', 'state.lock'):
+            p = self.root/'state'/name; p.write_bytes(b''); p.chmod(0o600)
+            info = p.stat()
+            self.spec['files']['state/'+name] = {'uid':info.st_uid, 'gid':info.st_gid,
+                'mode':0o600, 'sha256':hashlib.sha256(b'').hexdigest()}
+        self.spec['boot_id'] = 'test-boot'
+        boot = self.base/'boot'; boot.write_text('test-boot')
+        def mapped(value):
+            if value == '/proc/sys/kernel/random/boot_id': return boot
+            if value == '/var/lib/nautobot/protection': return self.base
+            if value == '/run/user/999/systemd/user': return self.units
+            return Path(value)
+        def system(argv, **kwargs):
+            return '\n'.join(k+'='+v for k,v in show(argv[3]).items())
+        window = {'timezone':'America/Chicago','start_hour':0,'end_hour':23,'end_minute':59,
+                  'capture_seconds':450,'recovery_seconds':240}
+        with patch('capture_retained.Path', side_effect=mapped), \
+                patch('capture_retained.os.getuid', return_value=999), \
+                patch('capture_retained.subprocess.check_output', side_effect=system), \
+                patch.dict(sys.modules, {'recurring_node':SimpleNamespace(health=lambda: None, system=lambda args: b'')}), \
+                patch.object(sys, 'argv', ['capture_retained.py', json.dumps(self.spec), json.dumps(window), '{}']):
+            capture_retained.main()
+        saved = self.base/('qualification-retained-'+'a'*12)
+        self.assertTrue((saved/'state/run.lock').is_file())
+        self.assertFalse((saved/'state/recovery.lock').exists())
+
+    def test_schedule_guard_refuses_drift_and_overlap_without_mutation(self):
+        runtime = self.base/'protection/runtime'; (runtime/'units').mkdir(parents=True)
+        unit = runtime/'units/nautobot-protection.timer'; unit.write_text('[Timer]\n'); unit.chmod(0o600)
+        links = self.base/'.config/systemd/user'; links.mkdir(parents=True)
+        (links/unit.name).symlink_to(unit)
+        state = self.base/'protection/state/state.json'; state.parent.mkdir()
+        state.write_text('{"phase":"complete"}'); state.chmod(0o600)
+        spec = {'runtime_sha256':{'units/'+unit.name:hashlib.sha256(unit.read_bytes()).hexdigest()},
+                'state':{'phase':'complete'}}
+        def show(argv, **kwargs):
+            active = argv[3] in ('nautobot-protection.timer', 'nautobot-protection-freshness.timer', 'nautobot-protection-notification.timer')
+            return 'ActiveState='+('active' if active else 'inactive')+'\nUnitFileState=enabled\n'
+        with patch('capture_retained.Path', side_effect=lambda p: Path(str(p).replace('/var/lib/nautobot', str(self.base)))), \
+                patch('capture_retained.subprocess.check_output', side_effect=show):
+            verify_schedule(spec)
+            state.write_text('{"phase":"capturing"}')
+            with self.assertRaisesRegex(ValueError, 'schedule_state_drift'): verify_schedule(spec)
+            state.write_text('{"phase":"complete"}')
+            with patch('capture_retained.subprocess.check_output', return_value='ActiveState=active\nUnitFileState=enabled\n'), \
+                    self.assertRaisesRegex(ValueError, 'schedule_activity'): verify_schedule(spec)
+            unit.write_text('drift')
+            with self.assertRaisesRegex(ValueError, 'schedule_drift'): verify_schedule(spec)
+        self.assertEqual(state.read_text(), '{"phase":"complete"}')
 
 
 if __name__ == '__main__': unittest.main()

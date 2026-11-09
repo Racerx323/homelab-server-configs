@@ -1353,8 +1353,8 @@ separately retained `logical-reference.json` before application startup.
 
 The candidate implementation supports an optional `binding.logical_reference:
 true`. Absence or `false` preserves the earlier capture behavior. Enable it only
-in a separately reviewed capture change; the installed schedule and its first-cycle
-acceptance remain unchanged. A reference derived only from the restored dump, or
+in a separately reviewed capture change; the accepted nightly schedule remains
+unchanged until separately approved promotion. A reference derived only from the restored dump, or
 collected from a later live database, does not close independence.
 
 With this option, `recurring_node.py` runs the existing preservation logical probe
@@ -1371,6 +1371,28 @@ Allow for helper startup and cleanup as well as scan time when qualifying the pa
 Readback must find no helper residue, including a container whose creation was
 interrupted before its runtime limit could start; retain and report any such residue
 for scoped cleanup rather than accepting the trial.
+
+Prepare the attended capture-only trial through the existing capture bundle and
+`qualify-capture-resume.yaml`. If its qualification directory contains a completed
+trial, bind its exact tree, state, associated payload tree, boot and service
+invocations. The `completed_capture` preservation path requires its runtime links
+and loaded units absent, then renames only that qualification directory to the
+bundle-derived retained name. It leaves all staging payloads in place.
+
+Bind `schedule_guard` to accepted runtime hashes and the observed completed nightly
+state. Compare protected files, persistent unit links, enabled timers and inactive
+primary/recovery units before preservation, before configuration and after capture.
+Choose a one-hour daytime window outside the nightly window, with at least 690
+seconds remaining at admission. Capture the journal cursor through the privileged
+Ansible preflight before mutation. This is one approval and playbook execution;
+individual preflight, transfer and acceptance tasks need no additional approval.
+
+Acceptance requires the logical retention verifier, no labelled helper residue and
+the entire prepare/pause/resume interval within 450 seconds. Failed setup retains
+its evidence; failed capture leaves independent recovery available. Never disable
+the accepted schedule or automatically delete trial payloads. After trial acceptance
+and archival, separately prepare durable promotion and qualify a newly captured
+snapshot/reference pair before monthly restore approval.
 
 Retain protected `logical-before.json`, `logical-reference.json` and
 `logical-capture.json` beside the capture receipts. The reference is the pre-dump

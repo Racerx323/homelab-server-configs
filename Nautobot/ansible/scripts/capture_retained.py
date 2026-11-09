@@ -37,11 +37,66 @@ def verify_tree(root, spec):
                  'gid': info.st_gid, 'mode': stat.S_IMODE(info.st_mode)} == spec['files'][name], 'retained_file_drift')
 
 
+def verify_schedule(spec):
+    """Read-only guard for an attended trial beside the accepted nightly schedule."""
+    root = Path('/var/lib/nautobot/protection/runtime')
+    for name, digest in spec['runtime_sha256'].items():
+        path = root/name
+        require(not Path(name).is_absolute() and '..' not in Path(name).parts, 'schedule_path')
+        require(not any(p.is_symlink() for p in (path, *path.parents)), 'schedule_symlink')
+        info = path.stat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid()
+                and stat.S_IMODE(info.st_mode) == 0o600
+                and hashlib.sha256(path.read_bytes()).hexdigest() == digest, 'schedule_drift')
+        if name.startswith('units/'):
+            link = Path('/var/lib/nautobot/.config/systemd/user')/path.name
+            require(link.is_symlink() and os.readlink(link) == str(path), 'schedule_link_drift')
+    state = root.parent/'state/state.json'
+    info = state.stat()
+    require(not any(p.is_symlink() for p in (state, *state.parents))
+            and stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid()
+            and stat.S_IMODE(info.st_mode) == 0o600 and json.loads(state.read_text())
+            == spec['state'], 'schedule_state_drift')
+    require(json.loads(state.read_text())['phase'] == 'complete', 'schedule_incomplete')
+    for suffix in ('.service', '-guard.timer', '-guard.service', '-recovery.service',
+                   '.timer', '-freshness.timer', '-notification.timer'):
+        raw = subprocess.check_output(['/usr/bin/systemctl', '--user', 'show',
+            'nautobot-protection'+suffix, '--property=ActiveState,UnitFileState,DropInPaths'], text=True, timeout=30)
+        row = dict(line.split('=', 1) for line in raw.splitlines())
+        require(not row.get('DropInPaths'), 'schedule_override')
+        expected = 'active' if suffix in ('.timer', '-freshness.timer', '-notification.timer') else 'inactive'
+        require(row['ActiveState'] == expected, 'schedule_activity')
+        if expected == 'active': require(row['UnitFileState'] == 'enabled', 'schedule_disabled')
+
+
 def preserve(root, spec, units, show):
     require(re.fullmatch('[0-9a-f]{64}', spec['bundle_sha256']), 'bundle_identity')
     destination = root.with_name(root.name+'-retained-'+spec['bundle_sha256'][:12])
     require(not os.path.lexists(destination), 'retained_destination_exists')
     verify_tree(root, spec)
+    if spec.get('kind') == 'completed_capture':
+        terminal = spec['terminal']
+        state = json.loads((root/'state/state.json').read_text())
+        require(state == terminal['state'] and state['phase'] == 'complete'
+                and state['exit_status'] == 0, 'completed_state')
+        payload = Path(terminal['payload']['path'])
+        require(payload.parent == root.parent/'staging' and state['root'] == str(payload)
+                and re.fullmatch(r'nautobot-recurring\.[a-z0-9_]+', payload.name), 'payload_scope')
+        verify_tree(payload, terminal['payload'])
+        require(not spec['links'] and not terminal['units'], 'completed_links')
+        for suffix in ('.service', '-guard.timer', '-guard.service', '-recovery.service'):
+            name = 'nautobot-protection-qualification'+suffix
+            row = show(name)
+            require(not os.path.lexists(units/name) and row['LoadState'] == 'not-found'
+                    and row['ActiveState'] == 'inactive', 'completed_unit_present')
+        require(set(spec['service_invocations']) == {'nautobot-'+role+'.service' for role in
+                ('postgresql', 'redis', 'web', 'worker', 'scheduler')}, 'service_scope')
+        for name, invocation in spec['service_invocations'].items():
+            row = show(name)
+            require(row['ActiveState'] == 'active' and row['SubState'] == 'running'
+                    and row['InvocationID'] == invocation, 'service_drift')
+        root.rename(destination)
+        return {'preserved_directory': str(destination), 'runtime_links_removed': []}
     if spec.get('kind') == 'unstarted_recovery':
         require(root.name == 'recovery-qualification', 'recovery_root')
         require((root/'killed').is_dir() and not list((root/'killed').iterdir())
@@ -118,7 +173,7 @@ def main():
     require(Path('/proc/sys/kernel/random/boot_id').read_text().strip() == spec['boot_id'], 'boot_changed')
     def show(name):
         properties = 'ActiveState,SubState,InvocationID,ExecMainStartTimestamp,MainPID,ControlPID,ControlGroup,Result'
-        if recovery: properties += ',LoadState'
+        if recovery or spec.get('kind') == 'completed_capture': properties += ',LoadState'
         raw = subprocess.check_output(['/usr/bin/systemctl', '--user', 'show', name,
             '--property='+properties], text=True, timeout=30)
         return dict(line.split('=', 1) for line in raw.splitlines())
@@ -128,11 +183,15 @@ def main():
     import recurring_node as node
     from recurring_protection import in_window
     require(in_window(json.loads(sys.argv[2]), datetime.now().astimezone()), 'outside_approved_window')
+    if len(sys.argv) > 3 and json.loads(sys.argv[3]):
+        verify_schedule(json.loads(sys.argv[3]))
     node.health()
     require(not node.system(['list-jobs', '--no-legend', '--no-pager']).strip(), 'pending_jobs')
     with ExitStack() as locks:
         if spec.get('terminal'):
             for name in ('run.lock', 'recovery.lock', 'state.lock'):
+                if spec.get('kind') == 'completed_capture' and name == 'recovery.lock' and not (root/'state'/name).exists():
+                    continue  # Successful captures need not have invoked recovery.
                 stream = locks.enter_context((root/'state'/name).open('rb'))
                 fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
         print(json.dumps(preserve(root, spec, Path('/run/user/999/systemd/user'), show)))

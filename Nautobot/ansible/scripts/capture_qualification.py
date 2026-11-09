@@ -10,6 +10,7 @@ import subprocess
 import time
 from recurring_protection import atomic, protected, require, in_window
 import recurring_node as node
+from capture_retained import verify_schedule
 
 
 def configure(root):
@@ -17,6 +18,9 @@ def configure(root):
     op = node.load(root/'operation.json')
     require(op['operation']['execution_enabled'] is True, 'execution_disabled')
     require(os.getuid() == 999 and node.socket.gethostname() == op['target']['host'], 'target')
+    if op.get('schedule_guard'):
+        verify_schedule(op['schedule_guard'])
+        require(not node.pod(['ps', '-aq', '--filter', 'label=nautobot.logical']).strip(), 'logical_helper_residue')
     for path, digest in op['baseline']['artifact_sha256'].items():
         require(hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest, 'accepted_artifact_drift')
     for row in op['packages']:
@@ -67,6 +71,14 @@ def inspect(root):
     require(node.media_directories()==op['baseline']['media_directories'],'post_capture_media_drift')
     require(node.system(['show',op['supervisor']['unit_prefix']+'-guard.timer','--property=ActiveState','--value']).strip()==b'inactive','guard_still_active')
     result={'capture_seconds':receipt['finished']-receipt['started'],'preflight_plus_pause_upper_bound_seconds':state['resumed_at']-state['started_at'],'accepted':False,'capture_resume_checks_passed':True,'state':state,'capture':receipt,'services':current,'temporary_credentials_removed':True,'payload_retained':True,'independent_failure_recovery_target_qualified':False}
+    if op['binding'].get('logical_reference'):
+        import recurring_logical
+        recurring_logical.verify_retained(run, spec, receipt['content_sha256'])
+        require(not node.pod(['ps', '-aq', '--filter', 'label=nautobot.logical']).strip(), 'logical_helper_residue')
+        require(state['resumed_at']-state['started_at'] <= op['supervisor']['capture_seconds'], 'logical_capture_deadline')
+        verify_schedule(op['schedule_guard'])
+        result.update(logical_reference_verified=True, logical_helper_cleanup=True,
+                      schedule_unchanged=True, logical_capture=node.load(run/'logical-capture.json'))
     atomic(root/'result.json', result)
     print(json.dumps(result))
 

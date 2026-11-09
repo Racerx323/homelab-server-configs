@@ -98,8 +98,16 @@ annotated tag `nautobot-recurring-schedule-v1-accepted`. Independent remote fetc
 verified the archive bytes and all 51 member hashes before clearing the consumed
 operation. The deployment stream is clean; the running schedule is unchanged.
 
-Next: prepare the separately qualified logical-reference capture change needed
-for monthly restore comparison. Bind its deployment to a separate approval.
+The November 9 logical-reference capture-only trial is accepted. Capture took
+23.4 seconds; preparation through verified resume took 293.3 seconds within the
+450-second limit. All 155 independent checks passed, including six payload hashes,
+native dump parsing, the 245-table logical reference, writer health, helper and
+credential cleanup, and all 16 prior retained/staging trees. The accepted nightly
+schedule remains unchanged; the new payload and logical receipts are retained.
+
+Next: terminal commit/tag/push under separate publication approval, then prepare
+durable-schedule logical-reference promotion. The consumed operation remains
+pending archival and must not be replayed. See `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
 Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
@@ -353,13 +361,19 @@ were refused. A hung helper expired and was removed in 29.0 seconds. These are
 workstation results, not ARM64 timing or production pause acceptance. Private
 evidence: `nautobot-recurring-logical-20261104/qualification.json`.
 
-Keep the 450-second capture and 240-second recovery limits. After the pending
-schedule operation is accepted and archived, prepare a separate capture-change
-trial with the logical option enabled, exact inputs and an attended window. Measure
-the entire pause/resume path and independently check helper cleanup, reference/dump
-binding and retention before updating the durable schedule. Existing snapshots and
-the first scheduled cycle cannot acquire an independent reference retrospectively.
-The installed schedule and its pending first-cycle readback are unchanged.
+The November 9 attended ARM64 trial passed independent acceptance: 23.4-second
+capture, 293.3 seconds through verified resume, and logical probes of 5.24 and 4.79
+seconds. Native task receipts and the pre-mutation-cursor journal confirm successful
+writer recovery. The 450-second capture and 240-second recovery limits are unchanged;
+this normal trial did not inject another recovery fault. All 16 prior trees and the
+accepted nightly runtime/state/timers are preserved. No helper or credential residue
+remains. Private evidence: `nautobot-logical-capture-preparation-20261109/acceptance.json`.
+
+The consumed capture-only operation awaits terminal publication. Its payload and
+logical receipts remain retained; no upload, disposal or durable update occurred.
+After archival, prepare a separate durable update and accept a newly captured
+snapshot/reference pair before monthly restore approval. Existing snapshots cannot
+acquire an independent reference retrospectively.
 
 ## Evidence limits carried forward
 

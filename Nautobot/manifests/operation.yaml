@@ -1,5 +1,649 @@
----
 schema_version: 1
 operation:
-  state: clean
+  id: nautobot-recurring-logical-capture-v1
+  stage: recurring_capture_resume_qualification
+  state: pending
   authorization_ready: false
+  execution_enabled: false
+  source_commit: c64f7d4f36f42b409950d635bfbdc2f6baba0e08
+target:
+  host: j2-svpi4mf
+  address: 10.1.2.170
+  ssh_user: ama
+  uid: 999
+  gid: 985
+plan_sha256: 3e1c74a76468ed75b12739718fc93481450968234c91630b4a4ad6d1cba9c876
+baseline:
+  collected_at: '2026-11-09T14:46:57.466870+00:00'
+  raw_sha256: 5a6dc4ef54e762b3893cda0200f6308517ab5169ab609643f46d37298682e1db
+  artifact_sha256:
+    /var/lib/nautobot/runtime/initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b
+    /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
+    /var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume: ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13
+    /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container: a2e12b77cf54ac7fc8d9cb7d1699db9b8188d422bbf1aa894ea9497023876684
+    /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
+    /var/lib/nautobot/.config/containers/systemd/nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
+    /var/lib/nautobot/.config/containers/systemd/nautobot-redis.container: e07c7c3e89adb7a5c57efa32639cbdea28fc11d04be340a2eabfce0d6faa9aae
+    /var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717
+    /var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container: 7dde40f84c637dd79ec5859cf9a17ec9e68b2e111d647a39a8987e7c7cb248db
+    /var/lib/nautobot/.config/containers/systemd/nautobot-web.container: c8adc29062e82fdf5d524eb339b312b66611e81085d06235df658e5cce5a2e76
+    /var/lib/nautobot/.config/containers/systemd/nautobot-worker.container: d01b0ed26ea2b9228c3b126aac6d9e4329faec41eb0ac644245d6f4c9e9d989d
+    /var/lib/nautobot/runtime/startup-application.py: 59ec7f31b177187ac3c653e99ca8087e32578a0cab3b633dee39d48a09a0021e
+    /var/lib/nautobot/runtime/startup-command.py: 701061362ce1fc9b24c36fa8cc2d78eb9c100f5e8a13d9f63c6034d76ccea606
+    /var/lib/nautobot/runtime/startup-job-probe.py: 07d35ced450e972c08e55a9bc195573e9e1b440db5fb3f676947748e6105042c
+    /var/lib/nautobot/runtime/startup-job.py: 85e9ad36f04975a7c72426d92d31c91a36c0b5045d2c6010eef91b1a61c029e6
+  media_directories:
+    - devicetype-images
+    - health_check_storage_test
+    - image-attachments
+packages:
+  - name: ansible-core
+    version: 2.19.11-0+deb13u1
+    architecture: all
+  - name: ieee-data
+    version: '20240722'
+    architecture: all
+  - name: python3-dnspython
+    version: 2.7.0-1
+    architecture: all
+  - name: python3-httplib2
+    version: 0.22.0-1+deb13u1
+    architecture: all
+  - name: python3-netaddr
+    version: 1.3.0-1
+    architecture: all
+  - name: python3-packaging
+    version: 25.0-1
+    architecture: all
+  - name: python3-pyparsing
+    version: 3.1.2-1
+    architecture: all
+  - name: python3-resolvelib
+    version: 1.1.0-1
+    architecture: all
+  - name: doppler
+    version: 3.76.6
+    architecture: arm64
+credential_identity:
+  config: prd_nautobot_backup
+  created_at: '2026-10-29T21:17:53.180000+00:00'
+  doppler: /usr/bin/doppler
+  expires_at: '2027-01-27T21:17:52+00:00'
+  project: homelab-dev
+  read_only: true
+  rotation_due_at: '2027-01-13T21:17:52+00:00'
+  rotation_owner: Aaron (homelab operator)
+  token_file: /var/lib/nautobot/protection/credentials/doppler-service-token
+accepted_credential_bundle: b53918415b8aa946862ea15ae81a42867ddbf6b2f3824cc523d44dbed96ed6e1
+binding:
+  execution_authorized: false
+  upload_enabled: false
+  media_policy: empty_directories_only
+  artifact_sha256:
+    /var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: 2b1b6a4c363baf95f84370f80694eb3d232a99fa6bc416933e62405ac40ecca2
+    /var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume: ce6a04a71f24fd4c17ad4e39c366e67af2a0affa4c96272d297a3fde36d65e13
+    /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container: a2e12b77cf54ac7fc8d9cb7d1699db9b8188d422bbf1aa894ea9497023876684
+    /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a
+    /var/lib/nautobot/.config/containers/systemd/nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63
+    /var/lib/nautobot/.config/containers/systemd/nautobot-redis.container: e07c7c3e89adb7a5c57efa32639cbdea28fc11d04be340a2eabfce0d6faa9aae
+    /var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717
+    /var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container: 7dde40f84c637dd79ec5859cf9a17ec9e68b2e111d647a39a8987e7c7cb248db
+    /var/lib/nautobot/.config/containers/systemd/nautobot-web.container: c8adc29062e82fdf5d524eb339b312b66611e81085d06235df658e5cce5a2e76
+    /var/lib/nautobot/.config/containers/systemd/nautobot-worker.container: d01b0ed26ea2b9228c3b126aac6d9e4329faec41eb0ac644245d6f4c9e9d989d
+    /var/lib/nautobot/runtime/nautobot_config.py: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+  image_ids:
+    postgresql: 46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf
+    redis: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93
+    scheduler: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+    web: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+    worker: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa
+  versions:
+    nautobot: 3.2.3
+    nautobot-dns-models: 2.3.0
+  metadata_files:
+    desired-state.yaml:
+      path: /var/lib/nautobot/protection/qualification/metadata/desired-state.yaml
+      sha256: c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961
+    requirements.lock:
+      path: /var/lib/nautobot/protection/qualification/metadata/requirements.lock
+      sha256: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+    qualified-image.json:
+      path: /var/lib/nautobot/protection/qualification/metadata/qualified-image.json
+      sha256: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+  minimum_free_bytes: 17179869184
+  maximum_retained_bytes: 8589934592
+  capture_limits:
+    postgresql_custom_dump: 1073741824
+    media: 16777216
+    configuration: 16777216
+    image_dependency_manifest: 16777216
+    quadlet_config_hashes: 16777216
+    versions_migrations: 16777216
+  producer: /var/lib/nautobot/protection/qualification/scripts/application-backup.py
+  state_directory: /var/lib/nautobot/protection/qualification/state
+  supervisor_configuration: /var/lib/nautobot/protection/qualification/supervisor.json
+  credentials:
+    config: prd_nautobot_backup
+    created_at: '2026-10-29T21:17:53.180000+00:00'
+    doppler: /usr/bin/doppler
+    expires_at: '2027-01-27T21:17:52+00:00'
+    project: homelab-dev
+    read_only: true
+    rotation_due_at: '2027-01-13T21:17:52+00:00'
+    rotation_owner: Aaron (homelab operator)
+    token_file: /var/lib/nautobot/protection/credentials/doppler-service-token
+    metadata_file: /var/lib/nautobot/protection/credentials/metadata.json
+  backup_template:
+    schema_version: 1
+    operation_id: nautobot-recurring
+    authorized: false
+    repository_id: 536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9
+    repository_url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
+    restic: /usr/bin/restic
+    restic_version: restic 0.18.0 compiled with go1.24.4 on linux/arm64
+    hostname: j2-svpi4mf
+    source_consistency_reviewed: false
+    timeout_seconds: 300
+    execution_uid: 999
+    required_filesystem: /dev/sda2
+    captures: {}
+    dump_validator: []
+  logical_reference: true
+supervisor:
+  schema_version: 1
+  execution_authorized: false
+  state_directory: /var/lib/nautobot/protection/qualification/state
+  unit_prefix: nautobot-protection-qualification
+  timezone: America/Chicago
+  window_date: '2026-11-09'
+  start_hour: 10
+  start_minute: 0
+  end_hour: 11
+  end_minute: 0
+  capture_seconds: 450
+  recovery_seconds: 240
+  run_seconds: 900
+  prepare_argv:
+    - /usr/bin/python3
+    - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
+    - --binding
+    - /var/lib/nautobot/protection/qualification/binding.json
+    - prepare
+  ansible_argv:
+    - /usr/bin/env
+    - ANSIBLE_CONFIG=/var/lib/nautobot/protection/qualification/ansible.cfg
+    - /bin/bash
+    - /var/lib/nautobot/protection/qualification/ansible-temp.sh
+    - /usr/bin/ansible-playbook
+    - -i
+    - localhost,
+    - /var/lib/nautobot/protection/qualification/playbooks/recurring-capture.yaml
+    - --extra-vars
+    - '{"ansible_async_dir": "/var/lib/nautobot/protection/qualification/state/async", "ansible_remote_tmp": "/var/lib/nautobot/protection/qualification/state/tmp"}'
+  resume_commands:
+    - - /usr/bin/python3
+      - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
+      - --binding
+      - /var/lib/nautobot/protection/qualification/binding.json
+      - start
+      - worker
+    - - /usr/bin/python3
+      - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
+      - --binding
+      - /var/lib/nautobot/protection/qualification/binding.json
+      - start
+      - web
+    - - /usr/bin/python3
+      - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
+      - --binding
+      - /var/lib/nautobot/protection/qualification/binding.json
+      - start
+      - scheduler
+  health_argv:
+    - /usr/bin/python3
+    - /var/lib/nautobot/protection/qualification/scripts/recurring_node.py
+    - --binding
+    - /var/lib/nautobot/protection/qualification/binding.json
+    - health
+  dispose_successful_payload: false
+  staging_directory: /var/lib/nautobot/protection/staging
+  staging_filesystem: ext4
+unit_names:
+  - nautobot-protection-qualification.service
+  - nautobot-protection-qualification-guard.service
+  - nautobot-protection-qualification-guard.timer
+  - nautobot-protection-qualification-recovery.service
+unit_paths:
+  - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification.service
+  - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.service
+  - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-guard.timer
+  - /var/lib/nautobot/protection/qualification/units/nautobot-protection-qualification-recovery.service
+mutation_boundary:
+  - Preserve the exact completed qualification tree as qualification-retained-51ea37acf9bc; leave its disposed payload
+    receipts and every other retained tree in place. Refuse loaded qualification units and any drift.
+  - Create a new service-owned qualification directory and staging run with protected files; transfer only frozen
+    inputs.
+  - Link four temporary qualification/recovery units; run one attended capture-only trial with logical_reference
+    enabled. Pause scheduler/web, drain and stop worker, capture six sections and independent logical probes, then
+    resume all writers.
+  - Retain new logical identities, comparison receipt, dump and six-section payload. Remove temporary credentials
+    and, only after verified healthy completion, four runtime unit links.
+  - Keep durable runtime, state, schedule timers, notifications, repository snapshots and monitoring unchanged.
+    No upload, restore, disposal or durable promotion.
+acceptance:
+  - Use privileged pre-mutation journal cursor for bounded independent task/service evidence.
+  - All capture/task/verification statuses zero; native dump validation and six hashes; whole prepare/pause/resume
+    bound at most 450 seconds with unchanged 240-second independent recovery budget.
+  - Logical pre-dump and post-capture comparison equal; independently verify reference/specification/dump binding
+    and protected retained files; zero labelled logical-helper containers.
+  - All application services healthy; unchanged boot/PostgreSQL/Redis invocations, unchanged accepted durable runtime/state/timer
+    links; no upload receipt or snapshot creation.
+  - Old qualification rename is exact; old staging and retained trees preserved; no transient credentials. Target
+    timings remain unaccepted until this trial passes.
+rollback:
+  - Independent supervisor and guard own termination and writer recovery; attempt every writer resume and native
+    health check even after capture failure.
+  - Before capture, a failed setup may leave the preserved tree and new protected inputs; retain evidence and report
+    residue. Do not rename back over new state or auto-retry.
+  - After writer mutation, retain recovery links/state/payload on failure; require independent readback before further
+    cleanup. Never disable the accepted nightly schedule or delete retained payloads.
+external_inputs:
+  - Aaron available November 9, 2026, 10:00–11:00 America/Chicago; admission needs at least 690 seconds remaining.
+  - Existing accepted config-scoped Doppler service token and exactly the three canonical backup references; no
+    new provisioning.
+  - Existing pinned application images, mapped directory-only media, SSH host-key trust and sudo/controller Ansible
+    access.
+  - Previously retained November 9 observations are expected values, not a fresh target baseline from this preparation;
+    preflight refuses state/service/hash drift.
+unresolved_prerequisites:
+  - ARM64 whole-pause timing, independent helper cleanup and retained logical-reference binding require the separately
+    approved target trial.
+  - No current recurring snapshot has a retrospectively independent logical reference. Durable promotion and a subsequent
+    new accepted snapshot precede monthly restore approval.
+later_stages:
+  - Durable logical-reference schedule update after trial acceptance
+  - New scheduled snapshot and independent reference/upload/integrity acceptance
+  - Monthly isolated restore
+  - Explicit retained-payload disposal and remote retention deletion
+  - Terminal commit/tag/push
+retained_state:
+  kind: completed_capture
+  bundle_sha256: 51ea37acf9bc9cc1fa3abe3f3abd4fb0b982eadca347031f53425439f84ea9af
+  boot_id: b9673910-7616-421d-a46e-1332ebf107e1
+  directories:
+    .:
+      gid: 985
+      mode: 448
+      uid: 999
+    metadata:
+      gid: 985
+      mode: 448
+      uid: 999
+    playbooks:
+      gid: 985
+      mode: 448
+      uid: 999
+    scripts:
+      gid: 985
+      mode: 448
+      uid: 999
+    scripts/__pycache__:
+      gid: 985
+      mode: 448
+      uid: 999
+    state:
+      gid: 985
+      mode: 448
+      uid: 999
+    state/async:
+      gid: 985
+      mode: 448
+      uid: 999
+    state/tmp:
+      gid: 985
+      mode: 448
+      uid: 999
+    tasks:
+      gid: 985
+      mode: 448
+      uid: 999
+    units:
+      gid: 985
+      mode: 448
+      uid: 999
+  files:
+    ansible-temp.sh:
+      gid: 985
+      mode: 384
+      sha256: 457bd8965c67263a6fe43298dca830094320a94066dfe8af0a4fe1c242b65a9e
+      uid: 999
+    ansible.cfg:
+      gid: 985
+      mode: 384
+      sha256: 5b71e97fc028566c1ed11b5c47c1be938971c04de7bf32206e7d9b17ed22672b
+      uid: 999
+    binding.json:
+      gid: 985
+      mode: 384
+      sha256: a6bce8aaaa5ca7346221db5cc6c5e0e45b6cd0917bfbdd70a686c82871f53312
+      uid: 999
+    metadata/desired-state.yaml:
+      gid: 985
+      mode: 384
+      sha256: c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961
+      uid: 999
+    metadata/qualified-image.json:
+      gid: 985
+      mode: 384
+      sha256: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+      uid: 999
+    metadata/requirements.lock:
+      gid: 985
+      mode: 384
+      sha256: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+      uid: 999
+    operation.json:
+      gid: 985
+      mode: 384
+      sha256: 67b9ef5f10321cf966145832cbd8c6639c06388f729e2a6e45c2e30ff4310811
+      uid: 999
+    playbooks/recurring-capture.yaml:
+      gid: 985
+      mode: 384
+      sha256: 31e02cebc7c269b37e174b0d400d6798ec8aadb64935778d3540e0139339176f
+      uid: 999
+    result.json:
+      gid: 985
+      mode: 384
+      sha256: 44e0f1092d2251a43cd87f792bc73542c41aca80dd80834453dfb54f0db8d7ed
+      uid: 999
+    scripts/__pycache__/application-backup.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: f4cbe25b0e3523006510533f64758fa68de98a115d59cfb25360870eec6c3309
+      uid: 999
+    scripts/__pycache__/recurring_delivery.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 543a8bb187ca7cf6780802bc851757915fac136eef86bab7817afe3aa866b51d
+      uid: 999
+    scripts/__pycache__/recurring_protection.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: 63aefe9b85d2f32e23a8b6b031814e713dceef6eed86b63457d7836ee7fa9f92
+      uid: 999
+    scripts/__pycache__/workload_capture.cpython-313.pyc:
+      gid: 985
+      mode: 384
+      sha256: d3ecc91753d8b9db3c9b201873f8d7dee07a9c52036cce76f2d43d7f67e0bf8f
+      uid: 999
+    scripts/application-backup.py:
+      gid: 985
+      mode: 384
+      sha256: 6ab745a471dbc2b129f5251d674dd2c196a1f28ae273dd2bf1011894f351f8bf
+      uid: 999
+    scripts/capture_qualification.py:
+      gid: 985
+      mode: 384
+      sha256: 0cf1ec98aeb82aaaed22dd435b164645cc99af54ab5332b7410768e56b28db27
+      uid: 999
+    scripts/media_namespace.py:
+      gid: 985
+      mode: 384
+      sha256: 3bd9a40f7be0ee0a8c5fc44707bae56c8cefa10327450416f04ef6c63c293c1c
+      uid: 999
+    scripts/recovery_probe.py:
+      gid: 985
+      mode: 384
+      sha256: 4095a2945654e8117deaec911cd6fe7f7f11094018900931a82bd341fa9132b6
+      uid: 999
+    scripts/recurring_delivery.py:
+      gid: 985
+      mode: 384
+      sha256: 3312446a4a5aef66f61f00300e04d5cf84ecf04d067029eeddae28a043cb736c
+      uid: 999
+    scripts/recurring_disposal.py:
+      gid: 985
+      mode: 384
+      sha256: be0d6836bc2bbff5fcad49b62247ec230f2d816c861e03f2d7e05f818f069e92
+      uid: 999
+    scripts/recurring_node.py:
+      gid: 985
+      mode: 384
+      sha256: 6c0b9e5a8299612dbc949735cd89e929f9945eb49df39f778321b49f0664af83
+      uid: 999
+    scripts/recurring_protection.py:
+      gid: 985
+      mode: 384
+      sha256: 3a7b138c2c418b2182ba799fba64fc26cfaa155f4a15434430f5a985353033d4
+      uid: 999
+    scripts/render-recurring-protection.py:
+      gid: 985
+      mode: 384
+      sha256: c71ef33da52f67e8ddf533210bd49c261b3b6820f0dd1826602dd2228829ca56
+      uid: 999
+    scripts/workload_capture.py:
+      gid: 985
+      mode: 384
+      sha256: aedc54e2eeac6b02257676a3e78e262529b03c28efeb35bf716cae0eff6cd8e5
+      uid: 999
+    state/before.json:
+      gid: 985
+      mode: 384
+      sha256: 155f5f30fd8828f2c2f0a473e1edc1655ae98868d4f871a09f9cd32b1a6030f5
+      uid: 999
+    state/run.lock:
+      gid: 985
+      mode: 384
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      uid: 999
+    state/state.json:
+      gid: 985
+      mode: 384
+      sha256: 979f8faf810422a3f00c6327e7de0ce791ce0d9e585a0bfaaee5d85f90de873e
+      uid: 999
+    state/state.lock:
+      gid: 985
+      mode: 384
+      sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      uid: 999
+    supervisor.json:
+      gid: 985
+      mode: 384
+      sha256: d1c0004f7cdf565d620b498bccf8b7fa6facdb18746bfc1093f75eb47caf19fc
+      uid: 999
+    tasks/capture-resume-upload.yaml:
+      gid: 985
+      mode: 384
+      sha256: 288b25b9a66f2200bd3f9e84a7ba3788972e35c780d3e843c82dcc064954d69b
+      uid: 999
+    units/nautobot-protection-qualification-guard.service:
+      gid: 985
+      mode: 384
+      sha256: 7dc6f4ba331178a4a7c68435885af19114b0ed9cb7d99d5b924843247f37f19c
+      uid: 999
+    units/nautobot-protection-qualification-guard.timer:
+      gid: 985
+      mode: 384
+      sha256: 2af062ac28987c8c01d2537c7082c8d22b07691d12b59c30594ccf4652f5e809
+      uid: 999
+    units/nautobot-protection-qualification-recovery.service:
+      gid: 985
+      mode: 384
+      sha256: 78b9f67b3a59574a23d7b76834e5ecb41482dcfd51a93930f7cda0b49bcc6235
+      uid: 999
+    units/nautobot-protection-qualification.service:
+      gid: 985
+      mode: 384
+      sha256: 32647008b184b31eee8ba97be249c29b978dc03c98af8c72f383acef5544337d
+      uid: 999
+  links: {}
+  service_invocations:
+    nautobot-postgresql.service: 2eddaef23460475cb21267205035dabc
+    nautobot-redis.service: e86c6cca149e46a6a20a69eaab900a04
+    nautobot-web.service: f3cf22c3a3124296aef5858ffdae2ff7
+    nautobot-worker.service: 590d7b0e0257413bb86325c6436c4504
+    nautobot-scheduler.service: 986d4fdd55fc46d4860c0555dc66b4d3
+  terminal:
+    state:
+      configuration_sha256: d1c0004f7cdf565d620b498bccf8b7fa6facdb18746bfc1093f75eb47caf19fc
+      deadline: 2580382.668922899
+      exit_status: 0
+      finished_at: 1793733940.7088249
+      last_success: 1793733940.708831
+      phase: complete
+      previous_success: null
+      resumed_at: 1793733938.3464453
+      root: /var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1
+      started_at: 1793733657.331719
+    payload:
+      directories:
+        .:
+          gid: 985
+          mode: 448
+          uid: 999
+        payload:
+          gid: 985
+          mode: 448
+          uid: 999
+      files:
+        application-backup-result.json:
+          gid: 985
+          mode: 384
+          sha256: 1532ee2951f490c8f6725d468cc058d6261544e883dfbf054b5fcc8f756843fb
+          uid: 999
+        application-backup-started.json:
+          gid: 985
+          mode: 384
+          sha256: a4fb49ff336e7dcf5a24e91ba43840a0c2e9350c6928b45d4d3f9dd09e4cc5fd
+          uid: 999
+        application-backup.json:
+          gid: 985
+          mode: 384
+          sha256: 7944ca913b3982925df9f2385b5770264c06d54aac9b411fa79702269100d3d3
+          uid: 999
+        application-capture-requested.json:
+          gid: 985
+          mode: 384
+          sha256: 0fad38cf38c29ae332c4f4fe89b2cb805783c219db4efd56c4a8568d2f3bcd90
+          uid: 999
+        application-capture-result.json:
+          gid: 985
+          mode: 384
+          sha256: 3cb316066a6937724ec4319055bd85ac5a87446780417c20c941683476388b80
+          uid: 999
+        application-capture-started.json:
+          gid: 985
+          mode: 384
+          sha256: 9d7ca2f1a35488cff7a6f055dff2572edbca52548d148c459a5fa7fadf9b8a13
+          uid: 999
+        application-snapshots-after.json:
+          gid: 985
+          mode: 384
+          sha256: ae32cf0ffc64493f9392824b3f7dd65ae86a779dc4172b24529ac2c9761dafe0
+          uid: 999
+        application-snapshots-before.json:
+          gid: 985
+          mode: 384
+          sha256: 6dc9767e012e6a993b5ab52afa3f49427c469ddbfe5ced36a4738f54bb29afbe
+          uid: 999
+        application-upload-attempt.json:
+          gid: 985
+          mode: 384
+          sha256: 7e0d1e613913e9594df336f0f9343daa91a9e1dce7e33e82d05879cb7faf8e50
+          uid: 999
+        backup-sources.json:
+          gid: 985
+          mode: 384
+          sha256: 6e63d000c450c6fb6d62000775b15b02d11e387b0c3e25b8058ca233fa12e7ea
+          uid: 999
+        capture-resume-verification.json:
+          gid: 985
+          mode: 384
+          sha256: 35c9cc71a56cf3c3bd958a87030a086aea0c7fa8cb705470cfa6592753b51d07
+          uid: 999
+        capture-task-results.json:
+          gid: 985
+          mode: 384
+          sha256: c15e00774969e975404d81bdb3621da7d1e9a1a1ef1d929ca60e20283265098d
+          uid: 999
+        desired-state.yaml:
+          gid: 985
+          mode: 384
+          sha256: c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961
+          uid: 999
+        inputs.json:
+          gid: 985
+          mode: 384
+          sha256: e242403c70c1758fba1e3cc330877b485252ed1efdb8ff2e21834699be197196
+          uid: 999
+        payload-disposal.json:
+          gid: 985
+          mode: 384
+          sha256: 92e1e7cdf7ba1548ef56ab25e396ec84620d4ab39ceb95165bbae964d7b47cf5
+          uid: 999
+        qualified-image.json:
+          gid: 985
+          mode: 384
+          sha256: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+          uid: 999
+        recurring-before.json:
+          gid: 985
+          mode: 384
+          sha256: f5015d8aebd7c08a8cff737a0cc467087e9a2a941535ce3d034599f10a4aaef2
+          uid: 999
+        repository:
+          gid: 985
+          mode: 384
+          sha256: 71a234cb6c870b76fabbb19fa90d59fdd64528700776713ec1cb7eb1827d68e2
+          uid: 999
+        requirements.lock:
+          gid: 985
+          mode: 384
+          sha256: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+          uid: 999
+      path: /var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1
+    units: {}
+schedule_guard:
+  runtime_sha256:
+    ansible-temp.sh: 457bd8965c67263a6fe43298dca830094320a94066dfe8af0a4fe1c242b65a9e
+    ansible.cfg: 5b71e97fc028566c1ed11b5c47c1be938971c04de7bf32206e7d9b17ed22672b
+    binding.json: 0f0dd908ac5e92f841700f87900b5b6690b36f8b38a63394dab3ae8432bcf4a6
+    metadata/desired-state.yaml: c742f58ae62670727c8a5cb3437a2d9e2256da9e307c25fb07732c91d1d1d961
+    metadata/qualified-image.json: 5c3115e8c5ee20387f90c634eca210116ab8982fa7c26cbad339c16178550a54
+    metadata/requirements.lock: 08f2dbe30e55848085ddd70f11d77dadf66ecce33708b73c8cb721c5f2f61ae6
+    operation.json: 144163d63bf388e9178583a1e5403035af53bc547dffe588d1836b5852ced11f
+    playbooks/recurring-capture.yaml: 31e02cebc7c269b37e174b0d400d6798ec8aadb64935778d3540e0139339176f
+    scripts/application-backup.py: 6ab745a471dbc2b129f5251d674dd2c196a1f28ae273dd2bf1011894f351f8bf
+    scripts/capture_qualification.py: 0cf1ec98aeb82aaaed22dd435b164645cc99af54ab5332b7410768e56b28db27
+    scripts/media_namespace.py: 3bd9a40f7be0ee0a8c5fc44707bae56c8cefa10327450416f04ef6c63c293c1c
+    scripts/recovery_probe.py: 4095a2945654e8117deaec911cd6fe7f7f11094018900931a82bd341fa9132b6
+    scripts/recurring_delivery.py: ec9bb6752c1f53c984e3f6ccc40db3fb17f60e9e4ea72c7ffa417e738183c585
+    scripts/recurring_disposal.py: be0d6836bc2bbff5fcad49b62247ec230f2d816c861e03f2d7e05f818f069e92
+    scripts/recurring_node.py: 6c0b9e5a8299612dbc949735cd89e929f9945eb49df39f778321b49f0664af83
+    scripts/recurring_protection.py: c57bd68e958e2f3e9d8fd105c43413a9165a8e98cb0aa5ed03cc9bd92b5e31b9
+    scripts/render-recurring-protection.py: d1b49cbe1562d6fb268e2f4240d9eaaa4a86efef4818dec07318d8dfe1419932
+    scripts/schedule_install.py: d0972d2408ab1b5c9d19b395c61c519342a16699bcc2c7fd8139266602c39aa6
+    scripts/workload_capture.py: aedc54e2eeac6b02257676a3e78e262529b03c28efeb35bf716cae0eff6cd8e5
+    supervisor.json: 3d66956adc4e543b1e390daf2a1f4520f93b9e3c9aa129a10f71d610a7ac3f76
+    tasks/capture-resume-upload.yaml: 288b25b9a66f2200bd3f9e84a7ba3788972e35c780d3e843c82dcc064954d69b
+    units/nautobot-protection-freshness.service: 97c5909b9fa11ac3a59f33aac1c8f53df6b26d9f0fee3cb92419c8cf7c395a46
+    units/nautobot-protection-freshness.timer: 5742a349e1091a858143367a759169369ad6d1735dedbb3852121c5039d3e3a9
+    units/nautobot-protection-guard.service: 54ac90e819bf58dbe7d61eb4cabd918b155e60132b7a8841c8a5e9e6d6ee532d
+    units/nautobot-protection-guard.timer: 8fbc913a26e830ab13303bb373f06d7b207122517f555426a92881b2aab2de36
+    units/nautobot-protection-notification.service: e2dae00778ec26866585be995896328aa07195613e0a7825bdfdf17fc3bacfd5
+    units/nautobot-protection-notification.timer: 93d128a6cfcd4e2fedeee60ae9045f984bf4aeb016bcf4e94f15ff28f615c107
+    units/nautobot-protection-recovery.service: 99ae1b7a52e6011a81f2b3e17db73e826c1a0a8e87c8d7d4304afaf68f98eb34
+    units/nautobot-protection.service: 44ece7060582862dc8534cf6859d4ac571d0167412703c583573c25d14aed396
+    units/nautobot-protection.timer: f4b2ca32d146770a4f61b8d7f999be8f8f48faedb9505dfd3628050a3e0d0f52
+  state:
+    configuration_sha256: 3d66956adc4e543b1e390daf2a1f4520f93b9e3c9aa129a10f71d610a7ac3f76
+    deadline: 3062725.786071464
+    exit_status: 0
+    finished_at: 1794216311.0028846
+    last_success: 1794216311.0028923
+    phase: complete
+    previous_success: 1794129910.9795187
+    resumed_at: 1794216280.9554586
+    root: /var/lib/nautobot/protection/staging/nautobot-recurring.ig7nswr4
+    started_at: 1794216001.1009939

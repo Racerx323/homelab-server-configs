@@ -2180,6 +2180,185 @@
           "const": false
         }
       }
+    },
+    "recurring_logical_capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptance_checks_passed",
+        "accepted_at",
+        "accepted_schedule_unchanged",
+        "bundle_sha256",
+        "capture_deadline_seconds",
+        "capture_seconds",
+        "durable_logical_capture_deployed",
+        "evidence_sha256",
+        "independent_acceptance",
+        "logical_helpers_absent",
+        "logical_probe_seconds",
+        "logical_receipt_sha256",
+        "logical_table_count",
+        "old_tree_comparisons",
+        "operation_id",
+        "payload_content_sha256",
+        "payload_path",
+        "payload_retained",
+        "prepare_through_resume_seconds",
+        "recovery_deadline_seconds",
+        "resume_verification",
+        "retained_state_unchanged",
+        "runtime_links_removed",
+        "status",
+        "task_results",
+        "terminal_publication",
+        "transient_credentials_removed",
+        "upload_attempted"
+      ],
+      "properties": {
+        "acceptance_checks_passed": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "accepted_schedule_unchanged": {
+          "const": true
+        },
+        "bundle_sha256": {
+          "$ref": "#/properties/recurring_capture_resume/properties/bundle_sha256"
+        },
+        "capture_deadline_seconds": {
+          "const": 450
+        },
+        "capture_seconds": {
+          "$ref": "#/properties/recurring_capture_resume/properties/capture_seconds"
+        },
+        "durable_logical_capture_deployed": {
+          "const": false
+        },
+        "evidence_sha256": {
+          "$ref": "#/properties/recurring_capture_resume/properties/evidence_sha256"
+        },
+        "independent_acceptance": {
+          "const": true
+        },
+        "logical_helpers_absent": {
+          "const": true
+        },
+        "logical_probe_seconds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "before_seconds",
+            "after_seconds"
+          ],
+          "properties": {
+            "before_seconds": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 35
+            },
+            "after_seconds": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 35
+            }
+          }
+        },
+        "logical_receipt_sha256": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "logical-before.json",
+            "logical-reference.json",
+            "logical-capture.json"
+          ],
+          "properties": {
+            "logical-before.json": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "logical-reference.json": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "logical-capture.json": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "logical_table_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "old_tree_comparisons": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*$"
+        },
+        "payload_content_sha256": {
+          "$ref": "#/properties/recurring_capture_resume/properties/payload_content_sha256"
+        },
+        "payload_path": {
+          "$ref": "#/properties/recurring_capture_resume/properties/payload_path"
+        },
+        "payload_retained": {
+          "const": true
+        },
+        "prepare_through_resume_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 450
+        },
+        "recovery_deadline_seconds": {
+          "const": 240
+        },
+        "resume_verification": {
+          "$ref": "#/properties/recurring_capture_resume/properties/resume_verification"
+        },
+        "retained_state_unchanged": {
+          "$ref": "#/properties/recurring_capture_resume/properties/retained_state_unchanged"
+        },
+        "runtime_links_removed": {
+          "$ref": "#/properties/recurring_capture_resume/properties/runtime_links_removed"
+        },
+        "status": {
+          "$ref": "#/properties/recurring_capture_resume/properties/status"
+        },
+        "task_results": {
+          "$ref": "#/properties/recurring_capture_resume/properties/task_results"
+        },
+        "terminal_publication": {
+          "enum": [
+            "pending_separate_authorization",
+            "published_verified"
+          ]
+        },
+        "transient_credentials_removed": {
+          "$ref": "#/properties/recurring_capture_resume/properties/transient_credentials_removed"
+        },
+        "upload_attempted": {
+          "const": false
+        },
+        "terminal_tag": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*-accepted$"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
     }
   }
 }
