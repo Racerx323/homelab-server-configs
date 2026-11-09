@@ -20,7 +20,15 @@ class Schedule(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('schedule_bundle', ROOT/'Nautobot/ansible/scripts/schedule-bundle.py')
         bundle = importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)/'candidate'; bundle.transport.freeze(root)
+            # Acceptance advances the live record while the consumed operation
+            # retains its original hash until archival. Bind only this local test
+            # candidate to today's input; never rewrite the consumed definition.
+            candidate_operation = copy.deepcopy(operation)
+            candidate_operation['accepted_sha256'] = bundle.transport.sha(
+                ROOT/'Nautobot/manifests/accepted-live-state.yaml')
+            definition = Path(temporary)/'operation.yaml'
+            definition.write_text(yaml.safe_dump(candidate_operation, sort_keys=False))
+            root = Path(temporary)/'candidate'; bundle.transport.freeze(root, definition)
             digest = bundle.transport.sha(root/'bundle.json')
             bundle.transport.verify(root, digest)
             self.assertFalse(operation['operation']['execution_enabled'])

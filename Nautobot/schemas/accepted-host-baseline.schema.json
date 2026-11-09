@@ -1980,6 +1980,206 @@
           "const": false
         }
       }
+    },
+    "recurring_schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "bundle_sha256",
+        "status",
+        "accepted_at",
+        "scope",
+        "boot_id",
+        "timezone",
+        "backup_time",
+        "latest_start",
+        "freshness_time",
+        "full_integrity_each_upload",
+        "recurring_schedule_enabled",
+        "enabled_timers",
+        "runtime_sha256",
+        "repository_id",
+        "observed_cycles",
+        "data_service_invocations_unchanged",
+        "older_retained_state_preserved",
+        "independent_snapshot_inventory_verified",
+        "transient_credentials_removed",
+        "successful_payload_disposal_verified",
+        "recovery_delivery_destinations",
+        "notification_duplicates_reported",
+        "monthly_restore_accepted",
+        "populated_media_accepted",
+        "seven_day_pilot_accepted",
+        "remote_retention_deletion_enabled",
+        "logical_reference_capture_deployed",
+        "monitoring_owner",
+        "terminal_archival",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "boot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "terminal_archival": {
+          "enum": [
+            "pending_publication",
+            "published_verified"
+          ]
+        },
+        "evidence_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "terminal_tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-schedule-v[1-9][0-9]*$"
+        },
+        "runtime_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "repository_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_cycles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "date",
+              "snapshot_id",
+              "manager_started_at",
+              "manager_finished_at"
+            ],
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "snapshot_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "manager_started_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "manager_finished_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "monitoring_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "scheduled_cycles_accepted"
+        },
+        "scope": {
+          "const": "nightly_capture_resume_upload_full_integrity_and_successful_payload_disposal"
+        },
+        "timezone": {
+          "const": "America/Chicago"
+        },
+        "backup_time": {
+          "const": "03:20"
+        },
+        "latest_start": {
+          "const": "03:22"
+        },
+        "freshness_time": {
+          "const": "04:05"
+        },
+        "full_integrity_each_upload": {
+          "const": true
+        },
+        "recurring_schedule_enabled": {
+          "const": true
+        },
+        "enabled_timers": {
+          "const": [
+            "nautobot-protection.timer",
+            "nautobot-protection-freshness.timer",
+            "nautobot-protection-notification.timer"
+          ]
+        },
+        "data_service_invocations_unchanged": {
+          "const": true
+        },
+        "older_retained_state_preserved": {
+          "const": true
+        },
+        "independent_snapshot_inventory_verified": {
+          "const": true
+        },
+        "transient_credentials_removed": {
+          "const": true
+        },
+        "successful_payload_disposal_verified": {
+          "const": true
+        },
+        "recovery_delivery_destinations": {
+          "const": [
+            "email",
+            "Discord",
+            "Pushover"
+          ]
+        },
+        "notification_duplicates_reported": {
+          "const": false
+        },
+        "monthly_restore_accepted": {
+          "const": false
+        },
+        "populated_media_accepted": {
+          "const": false
+        },
+        "seven_day_pilot_accepted": {
+          "const": false
+        },
+        "remote_retention_deletion_enabled": {
+          "const": false
+        },
+        "logical_reference_capture_deployed": {
+          "const": false
+        }
+      }
     }
   }
 }

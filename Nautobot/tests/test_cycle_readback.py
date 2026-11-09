@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -106,6 +107,32 @@ class Readback(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unsafe_file'): reader.read(p)
         p.unlink(); p.write_text('{}'); p.chmod(0o644)
         with self.assertRaisesRegex(ValueError, 'unsafe_file'): reader.read(p)
+
+    def test_runtime_cache_does_not_relax_source_or_membership_checks(self):
+        runtime = self.root/'runtime'; scripts = runtime/'scripts'; scripts.mkdir(parents=True)
+        source = scripts/'worker.py'; source.write_text('# approved\n'); source.chmod(0o600)
+        expected = {'scripts/worker.py': hashlib.sha256(source.read_bytes()).hexdigest()}
+        cache = scripts/'__pycache__'; cache.mkdir()
+        derived = cache/('worker.'+sys.implementation.cache_tag+'.pyc')
+        derived.write_bytes(b'opaque derived cache; never executed'); derived.chmod(0o600)
+        before = derived.read_bytes(), derived.stat().st_mtime_ns
+        actual, caches = reader.runtime_hashes(runtime, expected)
+        self.assertEqual(actual, expected); self.assertEqual(len(caches), 1)
+        self.assertEqual(before, (derived.read_bytes(), derived.stat().st_mtime_ns))
+        source.write_text('# drift\n')
+        with self.assertRaisesRegex(ValueError, 'runtime_drift'): reader.runtime_hashes(runtime, expected)
+        source.write_text('# approved\n')
+        derived.chmod(0o644)
+        with self.assertRaisesRegex(ValueError, 'unsafe_file'): reader.runtime_hashes(runtime, expected)
+        derived.chmod(0o600)
+        for name in ('unknown.'+sys.implementation.cache_tag+'.pyc', 'worker.cpython-999.pyc', 'worker.py'):
+            bad = cache/name; bad.write_bytes(b'extra'); bad.chmod(0o600)
+            with self.assertRaisesRegex(ValueError, 'runtime_extra'): reader.runtime_hashes(runtime, expected)
+            bad.unlink()
+        derived.unlink(); derived.symlink_to(source)
+        with self.assertRaisesRegex(ValueError, 'runtime_symlink'): reader.runtime_hashes(runtime, expected)
+        derived.unlink(); source.unlink()
+        with self.assertRaisesRegex(ValueError, 'runtime_drift'): reader.runtime_hashes(runtime, expected)
 
 
 if __name__ == '__main__':

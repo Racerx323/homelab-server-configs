@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "kind": "recurring_schedule_enablement_preparation_review",
-  "status": "installed_awaiting_first_calendar_cycle",
-  "review_date": "2026-11-04",
+  "status": "scheduled_cycles_accepted_pending_publication",
+  "review_date": "2026-11-09",
   "execution_authorized": true,
   "authorization_ready": false,
   "operation_defined": true,
@@ -425,9 +425,9 @@
     ],
     "next_backup": "2026-11-05T03:20:00-06:00",
     "next_freshness": "2026-11-05T04:05:00-06:00",
-    "scheduled_cycle_started": false,
-    "scheduled_cycle_accepted": false,
-    "accepted_live_state_changed": false,
+    "scheduled_cycle_started": true,
+    "scheduled_cycle_accepted": true,
+    "accepted_live_state_changed": true,
     "application_invocations_preserved": true,
     "boot_preserved": true,
     "retained_evidence_preserved": true,
@@ -448,5 +448,50 @@
     "current_operation_manifest_sha256": "4eb4b5420477d9caf6597fd049f77b67c082f2f9e5756a004eb59e823ffd3bd7",
     "record_contract_cases_passed": 24,
     "record_secret_scan_findings": 0
+  },
+  "cycle_acceptance": {
+    "accepted_at": "2026-11-09T14:52:12.822809+00:00",
+    "private_evidence_directory": "/home/aaron/code/.local-evidence/nautobot-schedule-acceptance-20261109",
+    "observed_dates": [
+      "2026-11-05",
+      "2026-11-06",
+      "2026-11-07",
+      "2026-11-08",
+      "2026-11-09"
+    ],
+    "first_snapshot_id": "022a2dcf2d299e35a0cdf15b67a2daa8daed0b7ee461fd5618c7041a4737b4a6",
+    "latest_snapshot_id": "c929dcf50e93a706411c24b5cc2e1849522e84c72607d85af433b647f8da2379",
+    "preservation_comparisons_passed": 19,
+    "independent_repository_snapshot_count": 10,
+    "runtime_source_drift": false,
+    "generated_python_caches_recorded": 3,
+    "user_delivery_confirmation": {
+      "destinations": [
+        "email",
+        "Discord",
+        "Pushover"
+      ],
+      "events": [
+        "missed",
+        "recovery"
+      ],
+      "duplicates": false
+    },
+    "historical_evidence_limit": "November 5-8 supervisor state was superseded by subsequent cycles. Their original task/producer receipts and installation-cursor manager journal are retained; no reconstructed supervisor state is presented as observed. Resume-before-upload follows the hash-verified task order and successful health/verification receipts. November 9 also passes the complete current-state reader. No manual backup start was issued in this acceptance work.",
+    "evidence_sha256": {
+      "readback.py": "f721ea1fc97e55c7d00e79d023141632c37fc77e17ea661106a85e1a43c43029",
+      "readback.json": "12053f19e66941ad9c95662d82c6c48cd378e43250158a3fea706ce6de06a0e8",
+      "repository.py": "b095152c2889897ce251f512c1f9f6bae1055a423cb50903b33ef45aa7cd7136",
+      "repository.json": "db0d30ed7649d397c75b9cc06cf5d95ea9ec11c4eea5ac247d3b9e2f1d26fe5b",
+      "identities.py": "ec66240dedee51905af89a1fa2e7e22e23f298e8542871d26b1890ea828052fb",
+      "identities.json": "5912d74a6b1eac45b1c33081ccdf407a9c871af6226aed2e2a5796c4bc486f62",
+      "journal-transport.py": "2e5f50b4d51021d0c0302f387ccde8a52e242c480b9fd5f19fc3100238333064",
+      "journal.jsonl": "8af5d1f0a51b2019e1b75c0631ae8860b142ca9d71251b2fa60f62ab935dc554",
+      "notification-confirmation.json": "9acac430380339731858094291202586b33a145fd27d75455cb9de1b999a0b01",
+      "acceptance-checks.json": "b4de1abc619cf1c319efbfb3e9fce49f54e9102118b885570e343264122b55a8",
+      "verify.py": "a6b5e9509fc2c3a295a5d292a91816ac616099dddc731808e474c60dceae9db0"
+    },
+    "terminal_archival": "pending_publication",
+    "git_publication_authorized": false
   }
 }

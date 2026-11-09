@@ -4183,6 +4183,17 @@ It also checks unchanged boot and data-service invocations, runtime hashes, inac
 recovery, enabled timers and fresh/recovery notification state. Web, worker and
 scheduler invocation IDs are expected to change during normal capture.
 
+Generated Python caches are recorded separately from approved runtime hashes.
+Only protected `scripts/__pycache__/<approved-module>.<current-cache-tag>.pyc`
+files are permitted; source hashes remain exact. Unknown extras, symlinks, missing
+sources and unsafe file permissions fail readback. Do not delete caches to obtain
+a passing comparison.
+
+If later cycles have replaced the supervisor state, retain that limitation. Use
+the original cycle's producer/task receipts and cursor-bounded manager journal
+for its historical timing and outcome; do not invent an earlier supervisor state.
+Run the complete current-state reader against the latest completed cycle as well.
+
 Exit zero means these local readback checks passed, not acceptance. Complete the
 independent checks before reconciling accepted state:
 

@@ -10,6 +10,7 @@ import re
 import socket
 import stat
 import subprocess
+import sys
 from zoneinfo import ZoneInfo
 
 BASE = Path('/var/lib/nautobot/protection')
@@ -96,6 +97,26 @@ def command(argv):
     return result.stdout.decode().strip()
 
 
+def runtime_hashes(runtime, expected):
+    paths = list(runtime.rglob('*')); require(len(paths) <= 128, 'runtime_members')
+    require(not any(p.is_symlink() for p in [runtime, *paths]), 'runtime_symlink')
+    actual, caches = {}, {}
+    for path in paths:
+        if path.is_dir():
+            continue
+        name = str(path.relative_to(runtime))
+        raw = read(path)  # Cache files retain the same owner, mode, size and link checks.
+        if name not in expected:
+            match = re.fullmatch(r'scripts/__pycache__/([a-z_]+)\.'
+                                + re.escape(sys.implementation.cache_tag) + r'\.pyc', name)
+            require(match is not None and 'scripts/'+match[1]+'.py' in expected, 'runtime_extra')
+            caches[name] = hashlib.sha256(raw).hexdigest()
+        else:
+            actual[name] = hashlib.sha256(raw).hexdigest()
+    require(actual == expected, 'runtime_drift')
+    return actual, caches
+
+
 def collect(expected, day):
     require(os.getuid() == 999 and socket.gethostname() == 'j2-svpi4mf', 'target_identity')
     require(datetime.now(CENTRAL) >= datetime.combine(datetime.fromisoformat(day).date(), time(4, 5), CENTRAL), 'not_due')
@@ -106,10 +127,7 @@ def collect(expected, day):
     if state.get('phase') != 'complete':
         return {'accepted':False, 'local_checks_passed':False, 'reason':'cycle_not_complete',
                 'phase':state.get('phase')}
-    paths = list(runtime.rglob('*')); require(len(paths) <= 128, 'runtime_members')
-    require(not any(p.is_symlink() for p in [runtime, *paths]), 'runtime_symlink')
-    actual = {str(p.relative_to(runtime)):hashlib.sha256(read(p)).hexdigest() for p in paths if not p.is_dir()}
-    require(actual == expected['runtime_sha256'], 'runtime_drift')
+    actual, caches = runtime_hashes(runtime, expected['runtime_sha256'])
     require(state['configuration_sha256'] == actual['supervisor.json'], 'configuration_drift')
     require(Path('/proc/sys/kernel/random/boot_id').read_text().strip() == expected['boot_id'], 'boot_changed')
     run = Path(state['root'])
@@ -143,6 +161,7 @@ def collect(expected, day):
     require(notification.get('acknowledged') == 'recovery' and notification.get('pending') is None, 'notification_pending')
     require(read(state_path) == raw, 'state_changed_during_readback')
     result.update(accepted=False, local_checks_passed=True, run_root=str(run), units=units,
+                  derived_python_cache_sha256=caches,
                   notification=notification, collected_at=datetime.now(timezone.utc).isoformat(),
                   remaining_checks=['Correlate timer trigger, primary invocation and bounded journal; no manual-start substitution.',
                     'Compare older retained trees with the approved baseline.',

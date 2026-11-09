@@ -76,25 +76,29 @@ permissions, all nine unit links and loaded identities, exactly three enabled ti
 unchanged application/boot identities and 27 preservation comparisons. The approved
 bundle is consumed; do not replay it. See `manifests/recurring-schedule-review.json`.
 
-The first native backup trigger is **November 5 at 03:20 CST**, with freshness at
-04:05. Starts after 03:22 are refused. Each upload includes a full integrity check;
-only successful new payloads are disposed. Notifications retain a two-attempt limit
-with 15-minute spacing. The initial missed-run alert reflects the absence of a
-recurring success record; Aaron confirmed email, Discord and Pushover receipt with
-no duplicates. No backup has run under the new schedule yet.
+The November 5–9 native calendar cycles are accepted as of November 9. Each began
+at 03:20 CST and finished around 03:25 with capture, writer readiness, upload, full
+integrity, transient credential cleanup and successful-only payload disposal.
+Independent readback matched all five snapshots by repository, host, tag and path;
+all five older snapshots remain. Nineteen retained-state comparisons passed.
+Approved runtime sources, application artifacts, boot/data-service identities,
+unit links and protected directories remain unchanged. Generated Python caches
+are recorded separately under the reader's narrow protected-file exception.
 
-Next: observe that first calendar-triggered cycle and independently verify native
-dump/capture identities, writer readiness before upload, the exact snapshot and full
-check, credential cleanup, successful-only disposal, preserved data-service identities
-and downstream recovery delivery. Installation is verified; recurring-cycle acceptance
-and accepted-live-state reconciliation remain pending. Keep the operation pending.
-Aaron owns existing host/user-manager monitoring and credential rotation.
+Aaron confirmed the November 4 missed alert and November 5 recovery on email,
+Discord and Pushover, with no duplicates. November 5–8 timing comes from original
+receipts and the installation-cursor manager journal; later cycles superseded their
+supervisor state. The complete current-state reader passed for November 9.
+See accepted live state and `manifests/recurring-schedule-review.json` for identities
+and evidence hashes. This establishes scheduled protection, not seven-day pilot
+or monthly restore acceptance.
 
-Pre-cycle preparation is complete: OPERATIONS defines the read-only first-cycle
-checks, monthly restore contract and seven-day observation criteria. The agreed
-synthetic workload profile is recorded below. The receipt reader is locally tested;
-it has not collected or accepted a production cycle. Schedule and accepted-state
-records remain unchanged by this preparation.
+Next: authorize terminal commit/tag/push of the accepted schedule operation and
+reader correction. Keep its consumed definition pending until the annotated archive
+is pushed and verified. Do not replay the installation or change the schedule.
+After archival, prepare the separately qualified logical-reference capture change
+needed for monthly restore comparison. Aaron owns existing host/user-manager
+monitoring and credential rotation.
 
 Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
 recovery, seven-day pilot acceptance and Git publication remain separate scopes.
@@ -157,17 +161,17 @@ copies remain private; no host cleanup or restore was performed during reconcili
 ## Stage-5 gap review
 
 The September 26 repository review established this gap list. Rows below now include
-the separately accepted November 3 trials and November 4 schedule review. Historical
-observations do not establish current scheduled-operation acceptance.
+the separately accepted November 3 trials, November 4 installation and November 9
+scheduled-cycle acceptance. Earlier stage observations retain their original scope.
 
 | Area | Evidence and gap | Next decision or work |
 | --- | --- | --- |
 | Workload representativeness | Accepted fixture: 10 Locations, 500 Devices, 2,000 Interfaces, 500 IP assignments, two imports, three exports and ten audits at concurrency two. The synthetic pilot profile below is agreed and its mixed DNS/interface fixture passed native local qualification. Real Celery qualification also passed; live comparison and resource acceptance remain pending. The five unique hosts in `inventory/prod/hosts.yaml` are deployment inventory, not a complete homelab inventory. | Bind any later live fixture transition and resource observation. Compare real inventory/export before claiming representativeness. |
-| Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; independent installation readback passed. First recurring-cycle acceptance is pending. | Observe the November 5 native trigger and complete the prepared first-cycle readback. Keep directory-only media, the writer window and current pending operation. |
-| Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
+| Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Archive the accepted operation. Keep directory-only media, the writer window and approved schedule unchanged. |
+| Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial and all five accepted nightly cycles. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
 | Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Local source review found that recurring captures lack its independent full logical reference; no monthly operation or timer is installed. | After the active operation is archived, bind an accepted recurring snapshot, contemporaneous logical reference, isolation, supervision and capacity/deadlines. Retained-payload disposal remains separate. |
-| Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The installed freshness path delivered its initial missed alert to all three destinations. Aaron owns existing host/user-manager monitoring. | Verify integrated recovery delivery after the first successful cycle. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
+| Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The integrated missed/recovery messages reached all three destinations without duplicates. Aaron owns existing host/user-manager monitoring. | Preserve the accepted delivery evidence. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 
 The immediate implementation candidate is the recurring application-backup
@@ -196,11 +200,11 @@ The existing accepted one-shot behavior must remain covered by regression tests.
 | Decision | Current position |
 | --- | --- |
 | Nightly consistency | Brief nightly writer pause approved for local database/media capture; resume before upload/check. |
-| Window and timezone | 03:00–04:00 America/Chicago; installed 03:20 trigger with latest start 03:22, 450-second capture deadline and 240-second recovery budget. Normal capture and independent termination/deadline recovery are accepted. Cutoff/repeated cycles passed local qualification; first native recurring cycle remains pending. No persistent catch-up. |
+| Window and timezone | 03:00–04:00 America/Chicago; installed 03:20 trigger with latest start 03:22, 450-second capture deadline and 240-second recovery budget. Normal capture and independent termination/deadline recovery are accepted. Cutoff/repeated cycles passed local qualification; five native recurring cycles are accepted. No persistent catch-up. |
 | Unattended credentials | Accepted and archived: three canonical references, config-scoped read-only token and protected delivery. Aaron owns rotation by January 13, 2027; expiry January 27. UID 999 resolution passed. |
 | Weekly integrity | Keep the qualified full check after every nightly upload, as selected November 4. No subset waiver or separate weekly job is proposed. |
 | Retention | Plan's 7 daily/5 weekly/12 monthly policy; one exact dry run is accepted. Refresh selection before separate deletion approval. Historical recovery snapshots remain excluded; no delete/prune timer is proposed. |
-| Monitoring | Persistent endpoint `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`; separate failure/recovery delivery is accepted. Finite retry exhaustion passed local qualification; the installed missed-run path reached all three destinations. Integrated recovery delivery remains pending. Aaron owns existing external monitoring; preparation authorizes no additional messages or monitoring changes. |
+| Monitoring | Persistent endpoint `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`; separate failure/recovery delivery is accepted. Finite retry exhaustion passed local qualification; the integrated missed/recovery path reached all three destinations without duplicates. Aaron owns existing external monitoring; preparation authorizes no additional messages or monitoring changes. |
 | Workload comparison | Agreed synthetic profile: one site, 200 devices, 800 unevenly distributed interfaces, 2,000 IPs and 2,000 mixed DNS records; ten consistency audits queued at concurrency two; no media uploads. Qualify the mixed fixture before claiming coverage. |
 
 Local implementation now includes the Ansible capture/resume/upload task include,
@@ -301,7 +305,7 @@ unqualified. Do not change production volume permissions to make the adapter pas
 backup or notification changes. Populated
 media remains unqualified. The September observations and earlier clean-stream
 statements describe their historical stages. The current schedule is installed and
-its operation remains pending; retention deletion remains unauthorized.
+its cycles are accepted and its operation awaits terminal archival; retention deletion remains unauthorized.
 
 ### Intended workload comparison
 

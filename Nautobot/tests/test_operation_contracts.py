@@ -16,6 +16,18 @@ def validate(schema, value):
 
 
 class Contracts(unittest.TestCase):
+    def test_schedule_acceptance_keeps_restore_and_retention_separate(self):
+        accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
+        schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
+        validate(schema, accepted)
+        for field in ('monthly_restore_accepted', 'populated_media_accepted',
+                      'seven_day_pilot_accepted', 'remote_retention_deletion_enabled',
+                      'logical_reference_capture_deployed'):
+            bad = copy.deepcopy(accepted); bad['recurring_schedule'][field] = True
+            with self.subTest(field=field), self.assertRaises(ValidationError): validate(schema, bad)
+        bad = copy.deepcopy(accepted); bad['recurring_schedule']['observed_cycles'] = []
+        with self.assertRaises(ValidationError): validate(schema, bad)
+
     def test_recovery_acceptance_does_not_enable_schedules_or_other_stages(self):
         accepted = yaml.safe_load((ROOT / 'Nautobot/manifests/accepted-live-state.yaml').read_text())
         if 'recurring_recovery_timer' not in accepted:
