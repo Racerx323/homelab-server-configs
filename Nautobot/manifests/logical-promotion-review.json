@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "durable_logical_reference_promotion_preparation",
+  "operation_id": "nautobot-recurring-logical-promotion-v1",
+  "status": "installed_independently_verified_awaiting_first_scheduled_cycle",
+  "prepared_at": "2026-11-09T17:06:21.595134+00:00",
+  "execution_authorized": true,
+  "execution_enabled": false,
+  "new_target_contact": true,
+  "accepted_schedule_unchanged": true,
+  "runtime_files": [
+    "scripts/logical_database.py",
+    "scripts/recurring_logical.py",
+    "scripts/recurring_node.py",
+    "scripts/recurring_disposal.py",
+    "binding.json"
+  ],
+  "native_qualification": {
+    "native_ssh_sudo_ansible": true,
+    "promotion": true,
+    "idempotence": true,
+    "active_refusal": true,
+    "permission_refusal": true,
+    "partial_and_complete_copy_rollback": true,
+    "foreign_rollback_refusal": true,
+    "target_acceptance": false,
+    "adapted_observations": [
+      "application HTTP",
+      "mapped media",
+      "filesystem type"
+    ],
+    "candidate_bundle_sha256": "a651be5d067497e58185f249b95d3428d3689ae3828148be5eaa15c71c30d4da"
+  },
+  "native_evidence_sha256": {
+    "native-qualified/results.json": "93298dfa1747d18de4cc4a924d254113ba79838eaa7c183f8e50d81858b8d7f4",
+    "native-qualified/cleanup.json": "bf8e118a9f4546538cca8d0acaab8174c8c66c6c4edf335894efdbac2211c15d",
+    "native-qualified.log": "50b133f4225ac64b71530c3ab489f383c0818435c22b7f370673f98ebd357fb5",
+    "baseline-references.json": "3454aec914d0abfd4ea0fd556004e51488139f1f3595b185a7af3cfd45f14fed"
+  },
+  "guard_tests_passed": 9,
+  "first_fixture_failure": "SSH authentication refused before target mutation in the disposable container; corrected .ssh ownership, retained evidence, rerun passed.",
+  "limits": [
+    "Native qualification adapts application HTTP, mapped media and filesystem-type observations; target preflight is required.",
+    "Installation is not first-cycle or monthly restore acceptance.",
+    "No new production contact occurred during preparation; retained November 9 observations must still match."
+  ],
+  "acceptance_sequence": [
+    "Approve and execute one bundle; independently verify the five-file update and unchanged schedule/state/services/retained trees.",
+    "Read the first native scheduled cycle after 04:05 America/Chicago; verify logical reference, six capture hashes, exact snapshot/full integrity, writer recovery and reference-preserving disposal.",
+    "Archive only after first-cycle acceptance; monthly restore and retained-payload disposition remain separate."
+  ],
+  "bundle_sha256": "a094e815bc69195881094431bc4fce92ff91e24ddf9f45d7225e084883e0d87d",
+  "bundle_members": 26,
+  "installation_date": "2026-11-09",
+  "admission_hours": "05:00\u201323:00 America/Chicago",
+  "first_cycle_readback": "2026-11-10 after 04:05 America/Chicago",
+  "qualification": {
+    "schedule_tests": 9,
+    "cycle_readback_tests": 9,
+    "applicable_hooks_passed": 39,
+    "native_playbook_cases": 7,
+    "deployment_and_rollback_inputs_matching_native_candidate": 10,
+    "frozen_playbook_syntax": true,
+    "bundle_verification": true,
+    "secret_scan": true,
+    "vexp": "unavailable in parent workspace; direct repository checks used"
+  },
+  "qualification_notes": [
+    "Initial hook batch had 38 passes and one edit-overlap invalidation despite passing tests; isolated continuation rerun passed.",
+    "Schedule tests rerun after controller-only first-cycle input binding was added.",
+    "Syntax check passed using the frozen controller executable through the repository temporary-directory wrapper; an initial hard-coded executable path was absent."
+  ],
+  "native_execution_input_sha256": {
+    "playbook.yaml": "c89bf02c64c8d37bc26aaf9fbf1de11cb529fc4462d0da42e4d473e6eb1266af",
+    "schedule_install.py": "80baed43dd02e8ea59eed7994c76921bc76a61821cf71cf91b2280f7e7aee6b6",
+    "runtime/binding.json": "6bfd92f7da689e805ef078c8ed320b4d433bf91eab76ee5602253dd9cc2c4c19",
+    "runtime/scripts/logical_database.py": "b27cd6961ff361e0acc5b01e9ea7ba5ccfebacb7690349e72fd25a232bd76a21",
+    "runtime/scripts/recurring_logical.py": "8725046c8407a1969d9e750d3708f4eb1e2f8933ce582b8e8b0e66f61237da58",
+    "runtime/scripts/recurring_node.py": "ad419164702aa1f41011c53b104f0e10f2a8a851ddc3f275c59fed9da286a7f9",
+    "runtime/scripts/recurring_disposal.py": "5dbd7b22f2cb7cb436cbc13abd202cd41362368d649c2c29137c8a38cdc32c5b",
+    "rollback/binding.json": "0f0dd908ac5e92f841700f87900b5b6690b36f8b38a63394dab3ae8432bcf4a6",
+    "rollback/scripts/recurring_node.py": "6c0b9e5a8299612dbc949735cd89e929f9945eb49df39f778321b49f0664af83",
+    "rollback/scripts/recurring_disposal.py": "be0d6836bc2bbff5fcad49b62247ec230f2d816c861e03f2d7e05f818f069e92"
+  },
+  "evidence_directory": "/home/aaron/code/.local-evidence/nautobot-logical-promotion-preparation-20261109",
+  "source_sha256": {
+    "Nautobot/ansible/scripts/inspect-recurring-cycle.py": "16d53bc89276f8f658d6b028944c98d72532a8d05f3b71544b510f2eacdc453d",
+    "Nautobot/ansible/scripts/schedule-bundle.py": "f9c47b0f397dbd41569302cbd03e7ae9ff0aca249e2df3c98de6c0a26b43c53f",
+    "Nautobot/ansible/scripts/schedule_install.py": "80baed43dd02e8ea59eed7994c76921bc76a61821cf71cf91b2280f7e7aee6b6",
+    "Nautobot/docs/OPERATIONS.md": "b979e61795ccda9a4e8bb11c98aefd782e302550bdaa23cf89d7dccf4b1bd5b6",
+    "Nautobot/docs/ROADMAP.md": "6897f9aed4b6215f033b5aa4f5dc36f16bb02085a013bdc1b762d8c481f0ef61",
+    "Nautobot/manifests/operation.yaml": "e1c729caff8c67584202a4be8d8bfcbfb497b4a11de98616d67f0e72f1938453",
+    "Nautobot/schemas/recurring-schedule.schema.json": "e343f76f0ec64c0ebba6fe1bd4afecd678adefd49d79865210b9a447309e9961",
+    "Nautobot/tests/test_cycle_readback.py": "e43f23f86c1fc081dc22f3b9128d69a0a6d3d095e55dc74cafb40a527581855b",
+    "Nautobot/tests/test_schedule.py": "c2164ea18575b85dd0d544e8e7d4ab341c14031b8058ad84871be9dc534f3caf",
+    "Nautobot/ansible/playbooks/promote-recurring-logical.yaml": "c89bf02c64c8d37bc26aaf9fbf1de11cb529fc4462d0da42e4d473e6eb1266af",
+    "Nautobot/tests/qualify_schedule_promotion.py": "60e337612abfb73050c74b3bd66e42b0e3ff790cf01428ccccbffaa2382555b9"
+  },
+  "installation": {
+    "bundle_sha256": "a094e815bc69195881094431bc4fce92ff91e24ddf9f45d7225e084883e0d87d",
+    "observed_at": "2026-11-09T17:24:45.095991+00:00",
+    "controller_exit_status": 0,
+    "rollback_performed": false,
+    "claim_consumed": true,
+    "independent_checks_passed": 21,
+    "retained_trees_unchanged": 18,
+    "runtime_files_changed": [
+      "scripts/logical_database.py",
+      "scripts/recurring_logical.py",
+      "scripts/recurring_node.py",
+      "scripts/recurring_disposal.py",
+      "binding.json"
+    ],
+    "health_http": 200,
+    "application_invocations_unchanged": true,
+    "schedule_state_unchanged": true,
+    "timer_invocations_unchanged": true,
+    "manager_journal_only_podman_scopes": 8,
+    "first_cycle_accepted": false,
+    "evidence_directory": "/home/aaron/code/.local-evidence/nautobot-logical-promotion-preparation-20261109/live-installation",
+    "evidence_sha256": {
+      "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution/ansible.stdout": "6facd8bc644d91d60ed126887ca259d0ed2cf9b9c0a854308be9573439358aca",
+      "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
+      "execution/inputs.json": "aec7821e10231d0df601c98ba6c38d3be546c91e9a55488154046ec74b3bd1cf",
+      "execution/journal-cursor.txt": "b8611a4e52c5efeeebbd5a24490d079710e31745b4851173b87535418af010a8",
+      "execution/promotion.json": "e458e32789d7dafa114b3e913d16b35437fdbba4cba6322a0e4762c96ac8d789",
+      "installation-comparison.json": "78b876a2d929688ddf1267c3e6ff077ef6a3725f255878c24bb46e1f33ce64de",
+      "installation-readback.py": "89c42471e0adcc21b39097f6cd1cb11d5481d1685eeab814a112d04fef9c48ed",
+      "installation-readback.status.json": "a104be216d742f5bc7ab66b7cd4a37161433959a4fac49eec95153ab0e87f175",
+      "installation-readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "installation-readback.stdout.json": "eef744ffc1e52b7aaf7ef3e02ea3fbdc39fed38c1cdd52fb29ac0588823ee4bb",
+      "manager-journal.jsonl": "1fea2084e002e81085280418bc1c0daf96ec6fb1a36ed66935a5dab1690c18c3",
+      "manager-journal.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "manager-journal.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "next_action": "Read the first promoted native scheduled cycle on November 10 after 04:05 CST; no replay of this consumed bundle."
+  }
+}

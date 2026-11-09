@@ -165,14 +165,66 @@ def rollback_guard(op, expected):
                     and hashlib.sha256(path.read_bytes()).hexdigest() == expected[name], 'rollback_drift')
 
 
+def promotion_guard(op, expected, action):
+    """Read-only guards for an ordered, five-file update; never run a backup."""
+    promotion = op['promotion']; root = Path(op['runtime_directory'])
+    before = promotion['previous_runtime_sha256']
+    caches = promotion['python_cache_sha256']
+    require(set(promotion['files']) == {'binding.json', 'scripts/recurring_node.py',
+            'scripts/recurring_disposal.py', 'scripts/recurring_logical.py',
+            'scripts/logical_database.py'}, 'promotion_scope')
+    if action == 'promotion-preflight':
+        now = datetime.now(ZoneInfo('America/Chicago'))
+        require(now.date().isoformat() == promotion['installation_date']
+                and 5 <= now.hour < 23, 'promotion_window')
+        age = datetime.now(timezone.utc)-datetime.fromisoformat(op['baseline']['collected_at'])
+        require(0 <= age.total_seconds() <= 86400-600, 'baseline_expired')
+    # All mutation and rollback checks require inactive capture/recovery and exact state.
+    for suffix in ('.service', '-guard.timer', '-guard.service', '-recovery.service'):
+        require(system('show', 'nautobot-protection'+suffix,
+                       '--property=ActiveState', '--value') == 'inactive', 'active_capture_or_recovery')
+    state = Path(op['state_directory'])/'state.json'; metadata(state)
+    require(json.loads(state.read_text()) == promotion['state'], 'schedule_state_drift')
+    selected = expected
+    if action == 'promotion-preflight':
+        try:
+            runtime_files(root, {**before, **caches})
+            selected = before
+        except Refused as exc:
+            if str(exc) not in ('runtime_drift', 'runtime_members'):
+                raise
+            runtime_files(root, {**expected, **caches})
+    elif action == 'promotion-rollback-guard':
+        # Permit only approved before/after bytes, including a partially completed copy.
+        selected = dict(before)
+        for name in promotion['files']:
+            path = root/name
+            if not os.path.lexists(path):
+                require(name in promotion['new_files'], 'rollback_missing_original')
+                continue
+            metadata(path)
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            require(digest in {before.get(name), expected[name]}, 'rollback_foreign_bytes')
+            selected[name] = digest
+    elif action == 'promotion-rollback-verify':
+        selected = before
+    result = check(op, {**selected, **caches}, 'verify')
+    result.update(promotion_needed=selected == before, runtime_sha256=selected,
+                  state_unchanged=True, scheduled_cycle_accepted=False)
+    return result
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['preflight', 'verify', 'files', 'rollback-guard', 'rollback-disabled'])
+    parser.add_argument('action', choices=['preflight', 'verify', 'files', 'rollback-guard', 'rollback-disabled',
+        'promotion-preflight', 'promotion-verify', 'promotion-rollback-guard', 'promotion-rollback-verify'])
     parser.add_argument('operation'); parser.add_argument('expected')
     args = parser.parse_args()
     op = json.loads(args.operation); expected = json.loads(args.expected)
     try:
-        if args.action == 'files':
+        if args.action.startswith('promotion-'):
+            result = promotion_guard(op, expected, args.action)
+        elif args.action == 'files':
             result = runtime_files(Path(op['runtime_directory']), expected)
         elif args.action.startswith('rollback-'):
             result = rollback_guard(op, expected)

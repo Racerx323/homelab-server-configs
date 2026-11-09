@@ -107,8 +107,16 @@ schedule remains unchanged; the new payload and logical receipts are retained.
 
 The annotated logical-reference trial archive is published and independently
 byte-verified, including all 38 members. The consumed operation is cleared; the
-deployment stream is clean. Next: prepare separate durable-schedule logical-reference
-promotion. See `manifests/logical-capture-review.json`.
+deployment stream was cleared before preparing the separate durable promotion.
+The approved five-file logical-reference promotion was installed on November 9.
+Independent readback passed all 21 checks: exact runtime bytes and permissions,
+all 18 retained/staging trees unchanged, HTTP 200, unchanged application invocations,
+state and enabled timer identities. No rollback was needed; the claim is consumed.
+Next: read the first promoted native scheduled cycle on November 10 after 04:05 CST,
+including its snapshot/reference pair and reference-preserving disposal. Keep the
+operation pending and accepted live state unchanged until those checks pass.
+The calendar remains 03:20 CST; do not replay the installation bundle.
+See `manifests/logical-promotion-review.json` and `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
 Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
@@ -372,9 +380,10 @@ remains. Private evidence: `nautobot-logical-capture-preparation-20261109/accept
 
 The capture-only operation is archived and its consumed definition is cleared.
 Its payload and logical receipts remain retained; no upload, disposal or durable
-update occurred. Next, prepare a separate durable update and accept a newly captured
-snapshot/reference pair before monthly restore approval. Existing snapshots cannot
-acquire an independent reference retrospectively.
+update occurred during that trial. The separately approved five-file durable update
+is installed and independently verified; its first scheduled cycle remains pending.
+Accept a newly captured snapshot/reference pair before monthly restore approval.
+Existing snapshots cannot acquire an independent reference retrospectively.
 
 ## Evidence limits carried forward
 

@@ -1,0 +1,111 @@
+---
+- name: Promote only qualified logical-reference capture inputs
+  hosts: inventory_automation
+  gather_facts: false
+  become: true
+  vars:
+    op: '{{ capture_operation }}'
+    expected: '{{ lookup("ansible.builtin.file", capture_bundle + "/runtime-hashes.json") | from_json }}'
+    user_environment:
+      HOME: /var/lib/nautobot
+      XDG_RUNTIME_DIR: /run/user/999
+      DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/999/bus
+      PYTHONDONTWRITEBYTECODE: '1'
+    guard_command: [/usr/sbin/runuser, --user, nautobot, --, /usr/bin/python3, -B, '-']
+  tasks:
+    - name: Require the approved one-host promotion
+      ansible.builtin.assert:
+        that:
+          - capture_bundle_verified | bool
+          - op.operation.execution_enabled | bool
+          - op.operation.stage == 'recurring_schedule_enablement'
+          - op.promotion is defined
+          - ansible_play_hosts_all == ['j2-svpi4mf']
+          - ansible_host == '10.1.2.170'
+          - not ansible_check_mode
+    - name: Collect privileged service-manager cursor before mutation
+      ansible.builtin.command:
+        argv: [/usr/bin/timeout, '30', /usr/bin/journalctl, --no-pager, --show-cursor, --output=json, --output-fields=__CURSOR, --lines=1, _UID=999, _COMM=systemd]
+      register: journal_cursor
+      changed_when: false
+    - name: Require a cursor before proceeding
+      ansible.builtin.assert:
+        that: ["'-- cursor: ' in journal_cursor.stdout"]
+    - name: Retain cursor on controller
+      become: false
+      delegate_to: localhost
+      ansible.builtin.copy:
+        content: '{{ journal_cursor.stdout }}'
+        dest: '{{ capture_evidence }}/journal-cursor.txt'
+        mode: '0600'
+    - name: Refuse drift or recognize exact completed promotion
+      environment: '{{ user_environment }}'
+      ansible.builtin.command:
+        argv: '{{ guard_command + ["promotion-preflight", op | to_json, expected | to_json] }}'
+        stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/schedule_install.py") }}'
+        chdir: /
+      register: preflight
+      changed_when: false
+    - name: Promote five files with binding last
+      when: (preflight.stdout | from_json).promotion_needed
+      block:
+        - name: Install qualified dependencies before enabling logical capture
+          ansible.builtin.copy:
+            src: '{{ capture_bundle }}/runtime/{{ item }}'
+            dest: '{{ op.runtime_directory }}/{{ item }}'
+            owner: '999'
+            group: '985'
+            mode: '0600'
+          loop: '{{ op.promotion.files }}'
+        - name: Verify exact promotion with unchanged state and timers
+          environment: '{{ user_environment }}'
+          ansible.builtin.command:
+            argv: '{{ guard_command + ["promotion-verify", op | to_json, expected | to_json] }}'
+            stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/schedule_install.py") }}'
+            chdir: /
+          register: promoted
+          changed_when: false
+      rescue:
+        - name: Refuse rollback over foreign bytes or active recovery
+          environment: '{{ user_environment }}'
+          ansible.builtin.command:
+            argv: '{{ guard_command + ["promotion-rollback-guard", op | to_json, expected | to_json] }}'
+            stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/schedule_install.py") }}'
+          changed_when: false
+        - name: Restore accepted binding first and original scripts
+          ansible.builtin.copy:
+            src: '{{ capture_bundle }}/rollback/{{ item }}'
+            dest: '{{ op.runtime_directory }}/{{ item }}'
+            owner: '999'
+            group: '985'
+            mode: '0600'
+          loop: [binding.json, scripts/recurring_disposal.py, scripts/recurring_node.py]
+        - name: Remove only the two guarded additions
+          ansible.builtin.file:
+            path: '{{ op.runtime_directory }}/{{ item }}'
+            state: absent
+          loop: '{{ op.promotion.new_files }}'
+        - name: Verify restored runtime and unchanged schedule
+          environment: '{{ user_environment }}'
+          ansible.builtin.command:
+            argv: '{{ guard_command + ["promotion-rollback-verify", op | to_json, expected | to_json] }}'
+            stdin: '{{ lookup("ansible.builtin.file", capture_bundle + "/schedule_install.py") }}'
+          register: rollback
+          changed_when: false
+        - name: Retain rollback receipt on controller
+          become: false
+          delegate_to: localhost
+          ansible.builtin.copy:
+            content: '{{ rollback.stdout }}'
+            dest: '{{ capture_evidence }}/rollback.json'
+            mode: '0600'
+        - name: Report failed promotion after verified rollback
+          ansible.builtin.fail:
+            msg: Promotion failed; exact accepted files restored. Preserve evidence and consumed claim; do not replay.
+    - name: Record installation without claiming a new scheduled cycle
+      become: false
+      delegate_to: localhost
+      ansible.builtin.copy:
+        content: '{{ promoted.stdout | default(preflight.stdout) }}'
+        dest: '{{ capture_evidence }}/promotion.json'
+        mode: '0600'

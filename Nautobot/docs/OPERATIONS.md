@@ -1394,6 +1394,30 @@ the accepted schedule or automatically delete trial payloads. After trial accept
 and archival, separately prepare durable promotion and qualify a newly captured
 snapshot/reference pair before monthly restore approval.
 
+Use the schedule bundle's `promotion` mode for the durable logical-reference update.
+Freeze it with `--previous-runtime` pointing to the original accepted installation
+inputs and `--qualified-bundle` pointing to the archived accepted capture trial.
+Hash verification binds rollback bytes to the accepted schedule and all four Python
+inputs to the trial manifest. Transfer only two new logical modules, the changed
+capture/disposal scripts and the binding, in that order. No daemon reload, timer
+change, writer restart, credential fetch or immediate backup is needed.
+
+The promotion playbook admits work only on its approved date, 05:00–23:00 Chicago
+time, with a fresh baseline, inactive capture/recovery and exact completed state.
+It checks accepted runtime/cache hashes, permissions, application identities and
+enabled timers. An already exact promotion is a no-change run. On failure, guarded
+rollback restores the original binding first, restores the two original scripts,
+then removes only the two approved additions. Foreign bytes, active recovery or
+changed state stop rollback for manual review; retained payloads are never removed.
+
+Installation readback proves the five-file delta and preservation, not a scheduled
+cycle. After the first native cycle, apply the recurring readback checks plus the
+standalone reference/specification/dump binding and recovered versions-section
+binding. Verify upload/full integrity and that successful-only disposal retained
+the reference and receipts. Keep the operation pending until these checks pass;
+archive it before preparing monthly restore. Never manufacture a reference for an
+older snapshot or run another capture merely to obtain a clean receipt.
+
 Retain protected `logical-before.json`, `logical-reference.json` and
 `logical-capture.json` beside the capture receipts. The reference is the pre-dump
 identity; the comparison receipt binds it to the specification and exact dump hash.

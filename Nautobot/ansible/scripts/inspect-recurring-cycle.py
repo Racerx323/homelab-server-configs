@@ -40,7 +40,7 @@ def read(path):
     return raw
 
 
-def inspect_receipts(root, state, day):
+def inspect_receipts(root, state, day, require_logical=False):
     """Compare actual producer/task receipts, including after successful disposal."""
     hashes = {}
     def receipt(name):
@@ -86,9 +86,28 @@ def inspect_receipts(root, state, day):
     require(not payload.is_symlink() and payload.is_dir() and not any(payload.iterdir()), 'payload_residue')
     require(not any(os.path.lexists(root/n) for n in ('password', 'credentials.json',
                 'source-password', 'source-credentials.json')), 'credential_residue')
+    flags = ['--logical-reference' in item.get('argv', []) for item in spec['captures'].values()]
+    logical_verified = False
+    if require_logical or any(flags):
+        require(all(flags), 'logical_capture_not_enabled')
+        reference = receipt('logical-reference.json')
+        logical = receipt('logical-capture.json')
+        logical_before = receipt('logical-before.json')
+        require(reference.get('format') == 'postgresql17-logical-v1' and reference.get('tables')
+                and logical_before['identity'] == reference, 'independent_logical_reference')
+        require(logical['format'] == 'recurring-logical-v1'
+                and logical['specification_sha256'] == identity
+                and logical['dump_sha256'] == capture['content_sha256']['postgresql_custom_dump']
+                and logical['reference_sha256'] == hashes['logical-reference.json']
+                and logical['comparison'] == {'equal':True,'changed_sections':[],'writer_control_required':True},
+                'logical_capture_binding')
+        require(0 <= logical['before_seconds'] <= 35 and 0 <= logical['after_seconds'] <= 35
+                and state['resumed_at']-state['started_at'] <= 450, 'logical_capture_deadline')
+        logical_verified = True
     return {'snapshot_id':sid, 'content_sha256':capture['content_sha256'],
             'receipt_sha256':hashes, 'started_at':started.isoformat(), 'finished_at':finished.isoformat(),
-            'capture_resume_upload_order_verified':True, 'payload_disposal_verified':True}
+            'capture_resume_upload_order_verified':True, 'payload_disposal_verified':True,
+            'logical_reference_verified':logical_verified}
 
 
 def command(argv):
@@ -133,7 +152,8 @@ def collect(expected, day):
     run = Path(state['root'])
     require(run.parent == BASE/'staging' and re.fullmatch(r'nautobot-recurring\.[a-z0-9_]+', run.name)
             and run.is_dir() and not run.is_symlink(), 'run_path')
-    result = inspect_receipts(run, state, day)
+    binding = json.loads(read(runtime/'binding.json'))
+    result = inspect_receipts(run, state, day, require_logical=binding.get('logical_reference', False))
     units = {}
     names = ['nautobot-'+r+'.service' for r in ('postgresql','redis','web','worker','scheduler')]
     names += ['nautobot-protection'+suffix for suffix in ('.service','.timer','-guard.timer',
@@ -166,7 +186,7 @@ def collect(expected, day):
                   remaining_checks=['Correlate timer trigger, primary invocation and bounded journal; no manual-start substitution.',
                     'Compare older retained trees with the approved baseline.',
                     'Independently confirm exact repository/snapshot identity under the approved credential boundary.',
-                    'Aaron confirms recovery receipt on email, Discord and Pushover.'])
+                    'Reconcile actual state-change alerts with delivery evidence; healthy-to-healthy cycles need not send.'])
     return result
 
 

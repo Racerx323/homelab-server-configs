@@ -90,6 +90,38 @@ class Readback(unittest.TestCase):
         with patch.object(reader, 'read', side_effect=checked), self.assertRaisesRegex(ValueError, 'credential_residue'):
             self.inspect()
 
+    def logical_receipts(self):
+        spec = self.receipts['application-backup.json']
+        for value in spec['captures'].values(): value['argv'] = ['capture', '--logical-reference']
+        identity = hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        for name in ('application-capture-result.json','application-backup-result.json'):
+            self.receipts[name]['specification_sha256'] = identity
+        reference = {'format':'postgresql17-logical-v1','tables':{'table':{'rows':1,'sha256':'f'*64}}}
+        self.receipts['logical-reference.json'] = reference
+        self.receipts['logical-before.json'] = {'identity':copy.deepcopy(reference)}
+        self.receipts['logical-capture.json'] = {'format':'recurring-logical-v1','specification_sha256':identity,
+            'dump_sha256':'a'*64,'reference_sha256':hashlib.sha256(json.dumps(reference).encode()).hexdigest(),
+            'comparison':{'equal':True,'changed_sections':[],'writer_control_required':True},
+            'before_seconds':5,'after_seconds':5}
+        self.write()
+
+    def test_logical_reference_remains_verifiable_after_disposal(self):
+        self.logical_receipts()
+        result = reader.inspect_receipts(self.root,self.state,'2026-11-05',require_logical=True)
+        self.assertTrue(result['logical_reference_verified'])
+        self.assertIn('logical-reference.json',result['receipt_sha256'])
+
+    def test_required_logical_capture_cannot_silently_fall_back(self):
+        with self.assertRaisesRegex(ValueError,'logical_capture_not_enabled'):
+            reader.inspect_receipts(self.root,self.state,'2026-11-05',require_logical=True)
+
+    def test_reference_dump_and_deadline_drift_refused(self):
+        self.logical_receipts();original=copy.deepcopy(self.receipts)
+        for key,value in [('dump_sha256','b'*64),('reference_sha256','b'*64),('before_seconds',36)]:
+            with self.subTest(key=key):
+                self.receipts=copy.deepcopy(original);self.receipts['logical-capture.json'][key]=value;self.write()
+                with self.assertRaises(ValueError):self.inspect()
+
     def test_refuses_wrong_day_payload_residue_and_missing_receipt(self):
         with self.assertRaisesRegex(ValueError, 'cycle_window'):
             reader.inspect_receipts(self.root, self.state, '2026-11-06')

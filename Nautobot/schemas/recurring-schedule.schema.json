@@ -389,6 +389,59 @@
     },
     "controller_timeout_seconds": {
       "const": 600
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "new_files",
+        "state",
+        "previous_runtime_sha256",
+        "python_cache_sha256",
+        "installation_date"
+      ],
+      "properties": {
+        "files": {
+          "const": [
+            "scripts/logical_database.py",
+            "scripts/recurring_logical.py",
+            "scripts/recurring_node.py",
+            "scripts/recurring_disposal.py",
+            "binding.json"
+          ]
+        },
+        "new_files": {
+          "const": [
+            "scripts/logical_database.py",
+            "scripts/recurring_logical.py"
+          ]
+        },
+        "state": {
+          "type": "object"
+        },
+        "previous_runtime_sha256": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "python_cache_sha256": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^scripts/__pycache__/[a-z_]+\\.cpython-[0-9]+\\.pyc$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "installation_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
     }
   }
 }
