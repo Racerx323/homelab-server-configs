@@ -105,9 +105,10 @@ native dump parsing, the 245-table logical reference, writer health, helper and
 credential cleanup, and all 16 prior retained/staging trees. The accepted nightly
 schedule remains unchanged; the new payload and logical receipts are retained.
 
-Next: terminal commit/tag/push under separate publication approval, then prepare
-durable-schedule logical-reference promotion. The consumed operation remains
-pending archival and must not be replayed. See `manifests/logical-capture-review.json`.
+The annotated logical-reference trial archive is published and independently
+byte-verified, including all 38 members. The consumed operation is cleared; the
+deployment stream is clean. Next: prepare separate durable-schedule logical-reference
+promotion. See `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
 Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
@@ -369,9 +370,9 @@ this normal trial did not inject another recovery fault. All 16 prior trees and 
 accepted nightly runtime/state/timers are preserved. No helper or credential residue
 remains. Private evidence: `nautobot-logical-capture-preparation-20261109/acceptance.json`.
 
-The consumed capture-only operation awaits terminal publication. Its payload and
-logical receipts remain retained; no upload, disposal or durable update occurred.
-After archival, prepare a separate durable update and accept a newly captured
+The capture-only operation is archived and its consumed definition is cleared.
+Its payload and logical receipts remain retained; no upload, disposal or durable
+update occurred. Next, prepare a separate durable update and accept a newly captured
 snapshot/reference pair before monthly restore approval. Existing snapshots cannot
 acquire an independent reference retrospectively.
 

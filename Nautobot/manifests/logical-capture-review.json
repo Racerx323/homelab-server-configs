@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "logical_reference_capture_preparation",
-  "status": "capture_only_accepted_pending_terminal_archival",
+  "status": "capture_only_accepted_archived",
   "prepared_at": "2026-11-09T15:42:10.140894+00:00",
   "operation_id": "nautobot-recurring-logical-capture-v1",
   "execution_authorized": true,
@@ -130,7 +130,7 @@
     "payload_retained": true,
     "upload_attempted": false,
     "durable_logical_capture_deployed": false,
-    "terminal_publication": "pending_separate_authorization",
+    "terminal_publication": "published_verified",
     "evidence_sha256": {
       "live-baseline.stdout.json": "5d2be979295f6ee3e96816ea7fa8b5f1fa411c1239c826ad773a67c63b00e9aa",
       "live-baseline.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
@@ -147,7 +147,19 @@
       "execution/ansible.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "execution/controller-result.json": "05de958d6f69785122c68c6434f59bddceba0681da231405818c38a7db34221c",
       "execution/observations.json": "71572842611583e69205a429e1c1850dc63736015ea6229b559bc0ac7066bddd"
-    }
+    },
+    "terminal_tag": "nautobot-recurring-logical-capture-v1-accepted",
+    "archive_commit": "a73e50aeb7d4548ca6c46a5d0f74606942ebc2ab",
+    "tag_object": "d5329b1380e61557ef6352dd32d0973b9e67854a"
   },
-  "next_action": "Authorize terminal commit/tag/push; then prepare separate durable-schedule logical-reference promotion."
+  "next_action": "Prepare separate durable-schedule logical-reference promotion; retain the trial payload until separately approved disposition.",
+  "terminal_publication": {
+    "verified": true,
+    "archive_commit": "a73e50aeb7d4548ca6c46a5d0f74606942ebc2ab",
+    "terminal_tag": "nautobot-recurring-logical-capture-v1-accepted",
+    "tag_object": "d5329b1380e61557ef6352dd32d0973b9e67854a",
+    "archive_sha256": "3283e87c7de9ec1e5b53cec44bf58d7ee03bc9bf4a3310635fdfb23193818877",
+    "archive_members_verified": 38,
+    "repository_files_verified": 12
+  }
 }

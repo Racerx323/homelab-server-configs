@@ -694,6 +694,9 @@ recurring_logical_capture:
       - 0
       - 0
     schema_version: 1
-  terminal_publication: pending_separate_authorization
+  terminal_publication: published_verified
   transient_credentials_removed: true
   upload_attempted: false
+  terminal_tag: nautobot-recurring-logical-capture-v1-accepted
+  archive_commit: a73e50aeb7d4548ca6c46a5d0f74606942ebc2ab
+  tag_object: d5329b1380e61557ef6352dd32d0973b9e67854a

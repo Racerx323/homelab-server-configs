@@ -779,3 +779,18 @@ Published annotated tag: `nautobot-recurring-schedule-v1-accepted`; archive comm
 and all 51 members before clearing the consumed operation. The schedule remains
 unchanged. Monthly restore, populated media, remote deletion/prune and seven-day
 pilot acceptance remain outside this result. Never replay the consumed claim.
+
+## Recurring logical-reference capture acceptance
+
+`nautobot-recurring-logical-capture-v1`: accepted the November 9 ARM64 capture-only
+trial; all 155 independent checks passed. Capture took 23.4 seconds and preparation
+through verified resume took 293.3 seconds within 450 seconds. The 245-table logical
+reference, native dump, writer recovery and preservation checks passed.
+Accepted identity: `manifests/accepted-live-state.yaml#recurring_logical_capture`.
+Bundle: `12554de27f6d9780c9af7c68b71ebc743dd27be96a8cdfa638997e2a7fa78980`.
+Published annotated tag: `nautobot-recurring-logical-capture-v1-accepted`; archive commit
+`a73e50aeb7d4548ca6c46a5d0f74606942ebc2ab`. Independent remote fetch verified archive bytes and all
+38 members before clearing the consumed operation. The nightly schedule is unchanged;
+the trial payload and reference remain retained. Durable promotion, a new accepted
+snapshot/reference pair, monthly restore and disposal remain separate. Never replay
+the consumed claim.
