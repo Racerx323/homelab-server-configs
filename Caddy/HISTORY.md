@@ -255,8 +255,8 @@ repair tools and qualification tests remain; there is no deployable operation.
 
 ## Uptime Kuma application onboarding — November 11, 2026
 
-Status: terminal-pending; result: failed-consumed.
-Tag: `caddy-uptime-kuma-onboarding-terminal-2026-11-11` (planned; not created or pushed).
+Status: archived; result: failed-consumed.
+Tag: `caddy-uptime-kuma-onboarding-terminal-2026-11-11` (published; commit `8999dde79a4bc3ad202876ee98a7a4bbe89221ce`).
 Authorized outer SHA-256: `8e9e63a4a6c03a7d5e3d1fd5b50e4c60fa7a52db2b65d287798c8c671e47d818`.
 
 One approved attempt exited 1 at standby certificate preflight. Workstation
@@ -264,7 +264,8 @@ trusted node health checks passed over both families. Temporary payload staging
 completed, then both disposition commands passed after rejection. Publication,
 activation, private login and DNS were not reached. The exact failed file check
 was not retained; cause remains unconfirmed. No replay is authorized.
-The executed specification and sealed graph remain retained pending archive.
+The exact executed specification is retained in the terminal archive; the
+sealed graph and raw evidence remain in private storage.
 The application WORK.md owns follow-up W-091; no project acceptance is claimed.
 
 Retained-evidence follow-up (W-091): the consumed recipe used the repository
@@ -275,7 +276,51 @@ bytes. The fixture had installed repository bytes and derived its expected hash
 from them. Exact live failed-file identity remains unrecorded. W-092/W-093 own
 the correction and diagnostic coverage; the consumed operation stays unchanged.
 
-The local W-092/W-093 correction is held outside the current tree pending this
-terminal archive. Its patch and qualification are indexed in the application
-WORK.md. Publishing this terminal archive preserves the consumed operation;
-it neither applies the correction nor authorizes another live attempt.
+The W-092/W-093 correction was qualified outside the current tree before
+terminal archival. Its patch and qualification are indexed in the application
+WORK.md. The published terminal archive preserves the consumed operation;
+it does not authorize another live attempt.
+
+Archive cleanup reset the operation to inactive, cleared its consumed recipe
+and terminal result, and returned the local deployment stream to clean while
+retaining the published tag. The W-092/W-093 neutral correction is applied in
+place: installed reconciler identity is distinct from repository source, and
+failed file checks retain bounded metadata on captured stderr. Qualification
+uses independently verified accepted runtime bytes. Current local validation
+and remaining work are recorded in the application WORK.md. No successor or
+live authority is created by this cleanup.
+
+## Uptime Kuma application candidate — November 11, 2026
+
+Operation `20261111-uptime-kuma-application-onboarding` is defined locally in the
+existing neutral entrypoints after the archived attempt's cleanup. All 22 release
+cases, six native application cases and independent authorization-readiness checks
+pass against its current graph. The application WORK.md records the sealed bundle,
+command and scope under W-095. This is local qualification only: no live approval,
+execution or production acceptance. Changes remain uncommitted; the consumed
+predecessor and its published tag are unchanged.
+
+### Application candidate terminal result
+
+Status: terminal-pending; result: failed-consumed.
+Tag: `caddy-uptime-kuma-application-onboarding-terminal-2026-11-11` (planned; not published).
+
+The approved operation above ran once. Standby preflight passed; primary preflight
+exited 1 after the incoming namespace checks and before the certificate-service
+capture. No failed-file metadata was emitted, so the exact remaining assertion
+is unconfirmed. Both node readbacks and staging dispositions passed. Publication,
+activation, private login and DNS were not reached. No rollback was required.
+
+The exact executed operation and neutral entrypoints remain unchanged. The
+successor/coverage registries are cleared and the sanitized terminal manifest
+records the retained evidence index hash. W-096 in the application WORK.md owns
+local diagnosis and the remaining evidence gap. No retry or successor is authorized.
+The previous published archive is unchanged; this new terminal archive still
+requires its own publication authorization.
+
+Owner-directed follow-up: W-096 investigation is deferred in favor of the approved
+primary-first routine-onboarding redesign. The exact failure remains unconfirmed;
+no old check is retroactively accepted. The governing plan and onboarding guide
+record the new contract, and W-098 in the application WORK.md owns implementation
+and qualification. Executed artifacts and the terminal archive boundary remain
+unchanged; no successor or live authority is created by the documentation revision.

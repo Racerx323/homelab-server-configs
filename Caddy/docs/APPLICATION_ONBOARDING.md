@@ -1,17 +1,27 @@
 # Caddy application onboarding
 
-This guide defines the information and review required before Caddy proxies a
-new backend. It does not approve an application, create DNS records, or
-authorize a production change.
+This is the entry point for adding a proxy target to the existing Caddy service.
+It owns the input review, routine release sequence, acceptance and recovery.
+It does not authorize production changes or DNS edits.
 
-[`caddy_plan-v1.1.md`](caddy_plan-v1.1.md) owns the HA and release lifecycle.
-[`OPERATIONS.md`](OPERATIONS.md) owns publication and rollback. The supported
-example is `Caddy/templates/reverse-proxy.caddy.example`.
+[`caddy_plan-v1.1.md`](caddy_plan-v1.1.md) owns the architecture. The supported
+example is `Caddy/templates/reverse-proxy.caddy.example`. Platform installation,
+certificate repair and HA maintenance have separate procedures in
+[`OPERATIONS.md`](OPERATIONS.md); their deployment checklists are not the routine
+proxy-target onboarding procedure.
+
+The approved primary-first sequence below still needs implementation and local
+qualification. The installed publisher exposes outbound state immediately; the
+consumed certificate-derived `application-onboarding` runner does not implement
+this contract and must not be reused for it. Current component archive and
+live-authorization boundaries still apply. See the
+[implementation boundary](#implementation-boundary).
 
 ## Approval inventory
 
-Record and obtain operator approval for every field before writing a production
-fragment.
+Record these inputs in one reviewed change. Reuse confirmed fleet defaults and
+existing backend decisions; obtain one review of the completed candidate rather
+than a separate approval for each field.
 
 | Field | Required decision |
 | --- | --- |
@@ -160,15 +170,20 @@ bounded, approved test account and keep credentials, cookies, CSRF tokens, and
 request bodies outside logs and retained evidence. For SSO or other login
 methods, exercise the equivalent rejected-authentication and retry sequence.
 
-Record each request's time, address family, expected and actual status, and
-sanitized application result. Correlate Caddy/backend logs, web-health checks,
-and VIP ownership. Require no proxy-generated 502/503, unintended backend
-exclusion, web-health failure notification, or VIP movement attributable to
-rejected authentication. Observe through at least two complete configured
-active-health and notification-monitor cycles after the sequence. Verify
-another client remains usable. Static configuration validation does not prove
-this functional gate; a controlled staging test and separately authorized live
-acceptance must establish it.
+Record a bounded, sanitized result with expected and observed application behavior
+for each address family. Verify another client remains usable and expected login
+rejection does not cause proxy errors or backend exclusion. Check WebSocket use
+when the application requires it. These are onboarding completion checks, separate
+from release activation. Keep credentials private and allow the operator to perform
+the check after the route is ready; there is no ten-minute receipt window or
+rollback caused solely by operator delay. Pending login verification means
+onboarding is incomplete, not that replication failed. A failed functional check
+requires diagnosis and the reviewed application recovery, not an automatic replay.
+
+Use existing health signals and targeted observation appropriate to the changed
+route. Routine onboarding does not require requalification of platform notification
+cycles or a custom journal/receipt collector. Changes to authentication, health
+policy or transport still require focused regression coverage.
 
 For a single backend, explicitly decide whether passive exclusion offers any
 benefit and record its availability cost. The example's `@@FAIL_DURATION@@`
@@ -391,79 +406,116 @@ release or authorize node contact.
 
 ## Production change and acceptance
 
-A production backend requires repository and DNS reconciliation, an immutable
-protocol-v2 release, production-path validation, a defined successor, and an
-exact live authorization. Follow [`OPERATIONS.md`](OPERATIONS.md) and
-[`PROTOCOL_V2_RELEASE_LIFECYCLE.md`](PROTOCOL_V2_RELEASE_LIFECYCLE.md). Apply
-and accept Node B before Node A.
+Follow the [routine release sequence](#routine-release-sequence). Use the existing
+publisher, managed transport, receiver, finalizer and reconciler; do not create a
+parallel release framework. [`PROTOCOL_V2_RELEASE_LIFECYCLE.md`](PROTOCOL_V2_RELEASE_LIFECYCLE.md)
+explains their current implementation, including the pending sequencing change.
 
-After the authorized release owns the shared VIPs, test the application name
-against each address family without bypassing certificate verification:
+### Routine release sequence
 
-```bash
-application_fqdn=APPROVED_FQDN
-curl --fail --silent --show-error --ipv4 \
-    --resolve "${application_fqdn}:443:10.1.0.56" \
-    "https://${application_fqdn}/APPROVED_PATH"
-curl --fail --silent --show-error --ipv6 \
-    --resolve "${application_fqdn}:443:[fd36:5aa8:6971:1::56]" \
-    "https://${application_fqdn}/APPROVED_PATH"
-```
+1. **Prepare one candidate.** Start from the accepted release and add the reviewed
+   application fragment. Preserve unrelated routes and TLS material. Validate
+   the complete configuration, certificate coverage, changed inputs and exact
+   parent/revision/manifest. Keep the candidate outside transport-visible outbound
+   state. Record the previous release for recovery.
+2. **Activate and check Node A.** Use the existing immutable-release activation
+   mechanism. Verify the selected revision, successful reload, trusted HTTPS to
+   the new route and representative existing routes over IPv4 and IPv6. Use
+   `curl --resolve` to test the hostname before DNS changes. An unverified or
+   failed primary activation must never release this candidate for replication.
+3. **Release the same candidate to replication.** After Node A passes, expose
+   that exact revision and payload to managed lsyncd. Do not rebuild a child
+   using Node A's newly selected release as its parent. Preserve the original
+   parent so Node B can accept the same child of its prior release.
+4. **Accept and check Node B.** Let the receiver/finalizer/reconciler validate
+   integrity, local Caddy compatibility, parent identity and safe activation.
+   Confirm the selected revision and manifest match Node A, reload succeeded,
+   and new/existing routes work on Node B over both families. Reject local drift
+   with precise evidence rather than overwriting it or assuming primary success
+   proves secondary compatibility.
+5. **Complete onboarding.** Record both nodes' release acceptance and shared
+   endpoint checks. Complete private login/WebSocket checks where applicable.
+   Apply DNS only through its separate owner procedure after Caddy acceptance,
+   then verify ordinary name resolution and HTTPS. Update accepted inventories
+   only for the state actually proved.
 
-Acceptance must pass the authentication rejection and retry gate above and
-prove backend health behavior, client restrictions,
-default deny, continuous DNS and Proxy service, exact VIP ownership, and clean
-protocol-v2 residue.
+Primary service does not wait for secondary confirmation. Completion of the HA
+change does: secondary lag or rejection leaves a visible partial outcome, and
+new DNS activation remains pending. Keep a finite replication/convergence deadline
+in the reviewed implementation; do not add a deadline for human attendance.
 
-## Rollback
+## Checks and evidence
 
-Publish a new immutable release that removes the application fragment and any
-release-local CA used only by that application. Restore DNS only through its
-separate reviewed repository and authorization boundary. Do not edit the
-active release or delete its files in place. Preserve the failed release and
-bounded evidence until rollback acceptance completes.
+Keep one bounded result per deployment stage. Report the node, revision, check,
+expected value, observed value and exit status for every rejection. Keep credentials
+and private TLS material out of evidence. Retain exact changed-input hashes and
+release identities; compare the preserved parent inventory rather than treating
+all current repository tool hashes as installed production requirements.
 
-## Application-only owner operation
+Retain configuration/TLS validation, bounded convergence, existing-route checks,
+release-integrity checks and explicit recovery. Rely on the receiver/finalizer/
+reconciler for their existing safety checks rather than duplicating their logic in
+an outer controller. Qualify their actual success and failure effects when changing
+the coordinator. Installed-tool compatibility matters, but an unrelated platform
+source change is not automatically a prerequisite for adding a route.
 
-Use the neutral `application-onboarding` operation for an approved fragment
-added to an otherwise unchanged immutable release. Bind the fragment, private
-operator helper and client by hash in `certificate-release-inputs.tsv`. Preserve
-the complete parent inventory, TLS material and publisher. Reuse protocol-v2
-transfer/finalization, activate the standby first, then the primary, and retain
-the exact parent on both nodes for reverse recovery. Production inventories
-change only after live acceptance.
+Broad certificate-repair, host-foundation, HA failover and notification qualification
+belong to changes of those components. Routine onboarding must not invoke those
+workflows or require their historical operation records to match a fixture.
 
-The private helper runs on the operator workstation during the outer runner's
-ten-minute window. The operator runs the command printed by that runner and
-enters credentials only at its terminal prompts. Start with at least three
-minutes remaining. The helper checks the live controller identity, bounded
-client deadline and window throughout execution; the outer verifies an owned
-0600 receipt bound to the operation and client hash. A failed, missing, stale
-or malformed receipt rejects acceptance. Do not create a receipt by hand or
-put credentials, session tokens or request bodies in logs.
+## Recovery and partial outcomes
 
-For the reviewed Kuma contract, the client proves anonymous denial, wrong-login
-rejection, immediate correct retry, a second authenticated client, logout
-denial and continued WebSocket use after 65 seconds over both address families.
-The observer also requires repeated trusted HTTP 200 responses spanning at
-least 65 seconds and two distinct completed web-health and sync-health cycles
-within its finite deadline. It reads active-health failures forward from each
-node's baseline journal cursor (`--no-tail`, separately capped at 100 lines); truncation, query errors, health
-failures or invalid readback reject acceptance. This bounded contract does not
-claim a record of every successful Caddy active-health request.
+- **Node A fails before exposure:** restore and verify its previous immutable
+  release. Do not propagate the failed candidate. Node B stays on its prior release.
+- **Node A passes; Node B rejects or times out:** retain Node A's verified release
+  and Node B's last proven release. Stop progression and record partial acceptance,
+  the failed secondary check and the exact revision on each node. Do not claim HA
+  completion, enable the new DNS record or overwrite secondary drift. Further
+  repair or rollback requires the operation's reviewed recovery scope.
+- **Application checks fail after both activations:** use the reviewed release
+  recovery to remove or correct the new fragment. Preserve unrelated routes, TLS
+  material and bounded evidence. Do not edit active immutable files in place.
+- **Write state or recovery is uncertain:** stop with manual intervention required.
+  Never infer success from a lost controller connection or replay a consumed action.
 
-Failure after publication contains publication, restores the primary then the
-standby where changed, verifies the preserved release and service state, and
-resumes publication only through checked disposition. Unknown write state or
-unproved recovery requires manual intervention. A lost controller does not
-prove rollback and does not authorize replay. DNS activation is a separate
-owner operation after Caddy acceptance.
+The temporary mixed-revision interval means failover may lose the new route until
+Node B accepts it. Existing routes must remain healthy. This is the primary-first
+tradeoff; it must be visible in the result rather than hidden by a success label.
 
-Local qualification combines the existing release suite with the native
-application fixture. Actual Kuma/Caddy, TLS, the production-mode client, private
-helper receipts, native systemd timestamps and journal messages are exercised
-inside disposable network-isolated containers. Transport/node views and the
-helper's container invocation are controlled substitutes. This proves the
-application decisions and recovery path; it does not prove live ARM64 timing,
-production trust, SSH availability or controller-loss recovery. Those limits
-remain explicit in the operation review.
+## Implementation boundary
+
+The current publisher constructs and exposes outbound revisions in one operation.
+The new contract needs preparation/local activation to finish before transport
+exposure, without changing candidate identity. Reconcile that boundary in the
+existing release machinery and application coordinator, then qualify primary
+failure/no propagation, successful replication, secondary drift/rejection, bounded
+timeout, and existing-route preservation before requesting live authority.
+
+The certificate-derived runner and its timed helper remain consumed execution
+artifacts until their required terminal archive is published. They are not the
+routine onboarding entry point. Preserve that history, then remove their obsolete
+application-specific coupling in place; keep platform repair behavior separately
+scoped. No executable command in this guide claims that the new sequence is
+already implemented or live-accepted.
+
+## Installed baseline identities in qualification
+
+Installed-file preflight uses the accepted deployed identity from
+`manifests/accepted-live-artifacts.tsv`. Repository source hashes describe the
+candidate source; they do not prove the installed baseline. In particular,
+`reconciler_installed_sha256` identifies the unchanged installed reconciler.
+Application-only onboarding does not install the repository reconciler.
+
+Release and application fixtures require `CADDY_ACCEPTED_RECONCILER_FIXTURE`
+to name an absolute regular file containing independently retained accepted
+reconciler bytes. Both container launchers mount that file read-only; the
+fixture checks its SHA-256 against both nodes' accepted owner records before
+using it. Keep these retained runtime bytes outside the repository. Do not
+substitute repository source or update the expected hash to make a test pass.
+
+A failed file check emits one bounded metadata line on captured stderr: path,
+file type, expected SHA-256, observed SHA-256 (or unavailable/unreadable), and
+rejection. It never emits contents or follows a symlink. Preserve the outer
+preflight stderr/status with the execution evidence. Source-byte drift,
+tampering, missing files and symlinks must reject before publication, with
+staging disposition verified.

@@ -45,13 +45,19 @@ select_authentication_container() {
 }
 
 run_container() {
-    local focused_container_status=0
+    local focused_container_status=0 focused_fixture_path=${CADDY_ACCEPTED_RECONCILER_FIXTURE:-}
+    local -a focused_fixture_args=()
+    if [[ -n "$focused_fixture_path" ]]; then
+        [[ "$focused_fixture_path" =~ ^/[A-Za-z0-9_./-]+$ && -f "$focused_fixture_path" && ! -L "$focused_fixture_path" ]] || return 64
+        focused_fixture_args=(--volume "$focused_fixture_path:/accepted-reconciler.sh:ro"
+            --env CADDY_ACCEPTED_RECONCILER_FIXTURE=/accepted-reconciler.sh)
+    fi
     podman run --rm --network none \
         --env CADDY_VALIDATION_CONTAINER=1 \
         --env CADDY_FOCUSED_EVIDENCE_ROOT=/evidence \
         --volume "$workspace_root:/workspace:ro" \
         --volume "$host_evidence_root:/evidence" \
-        "$@" || focused_container_status=$?
+        "${focused_fixture_args[@]}" "$@" || focused_container_status=$?
     printf '%s_evidence_path=%s\n' "$prefix" "$host_evidence_root"
     return "$focused_container_status"
 }

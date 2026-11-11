@@ -4,6 +4,12 @@ This document describes the accepted production system. The governing
 decisions and deviations remain in
 [`caddy_plan-v1.1.md`](caddy_plan-v1.1.md).
 
+The approved primary-first design for routine proxy targets is in
+[application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence).
+It still needs implementation and live acceptance. The as-built flows below
+continue to describe installed behavior; they do not make the legacy deployment
+coordinator the procedure for a new proxy target.
+
 ## Ownership boundaries
 
 | Owner | Responsibility |

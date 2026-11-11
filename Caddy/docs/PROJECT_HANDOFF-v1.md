@@ -9,6 +9,13 @@ The current architecture and authorization authority is
 [`caddy_plan-v1.1.md`](caddy_plan-v1.1.md). The Caddy operation-window rules
 are in [`DEPLOYMENT_LIFECYCLE.md`](DEPLOYMENT_LIFECYCLE.md).
 
+For a routine proxy-target addition, use
+[application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence)
+and the current governing plan. The approved primary-first sequence still needs
+implementation; the historical snapshot below and platform standby-first procedure
+do not override that decision. Consult the current work ledger and stream registry
+rather than treating this snapshot as current execution authority.
+
 ## Versioned snapshot
 
 Update this block in one reviewed repository checkpoint when a referenced

@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=8f7dd345c3dacd5f66ed6a648105374bb22bd4486a264027a2ef033f49a81923
+readonly certificate_inputs_sha256=0329191bc2a10718dc8dac13ab2733b0c5b55358561af69228d6f260e033ea7e
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -952,9 +952,31 @@ certificate_setting() {
 }
 
 certificate_hash() {
-    local cert_file=$1 cert_expected=$2
-    regular_file "$cert_file" || return 1
-    [[ "$(sha256sum "$cert_file" | awk '{print $1}')" = "$cert_expected" ]]
+    local cert_file=$1 cert_expected=$2 cert_observed=unavailable cert_type
+    if [[ -L "$cert_file" ]]; then
+        cert_type=symlink
+    elif [[ -f "$cert_file" ]]; then
+        cert_type=regular
+        if cert_observed=$(sha256sum -- "$cert_file" 2>/dev/null | awk '{print $1}'); then
+            if [[ "$cert_expected" =~ ^[0-9a-f]{64}$ && "$cert_observed" = "$cert_expected" ]]; then
+                return 0
+            fi
+        else
+            cert_observed=unreadable
+        fi
+    elif [[ -d "$cert_file" ]]; then
+        cert_type=directory
+    elif [[ -e "$cert_file" ]]; then
+        cert_type=other
+    else
+        cert_type=missing
+    fi
+    [[ "$cert_expected" =~ ^[0-9a-f]{64}$ ]] || cert_expected=invalid
+    [[ "$cert_observed" =~ ^[0-9a-f]{64}$|^(unavailable|unreadable)$ ]] || cert_observed=invalid
+    # One bounded, shell-escaped metadata record; never log file contents or targets.
+    printf 'certificate_file_check path=%q type=%s expected=%s observed=%s result=reject\n' \
+        "${cert_file:0:512}" "$cert_type" "$cert_expected" "$cert_observed" >&2
+    return 1
 }
 
 application_release() {
@@ -1137,7 +1159,7 @@ certificate_baseline() {
     certificate_hash "$(effective_path /usr/local/libexec/finalize-incoming-release-v2.sh)" \
         "$(certificate_setting finalizer_sha256)"
     certificate_hash "$(effective_path /usr/local/libexec/reconcile-release.sh)" \
-        "$(certificate_setting reconciler_sha256)"
+        "$(certificate_setting reconciler_installed_sha256)"
     certificate_hash "$(effective_path /etc/systemd/system/caddy-cert-expiry.service)" \
         "$(certificate_setting checker_unit_sha256)"
     certificate_hash "$(effective_path /etc/systemd/system/caddy-sync-reconcile.service)" \

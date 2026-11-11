@@ -10,6 +10,17 @@ rules. [`OPERATIONS.md`](OPERATIONS.md) owns operator gates, maintenance, and
 rollback. The protocol contract lives in
 [`synchronization-protocol-v2.yaml`](../manifests/synchronization-protocol-v2.yaml).
 
+## Approved onboarding order and current implementation
+
+[Routine application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence)
+now requires Node A activation and verification before transport exposure, followed
+by independent Node B acceptance. The mechanics below describe the current
+implementation: publication exposes outbound before local activation. They do not
+yet provide that primary-first contract. Preparation must keep one candidate outside
+the watched outbound namespace until Node A passes, then expose the same revision,
+parent and payload to lsyncd. Rebuilding it after Node A activation would change
+its parent and is not equivalent. Implementation and qualification are pending.
+
 ## 1. Prepare the complete release input
 
 A reviewed deployment operation assembles a protected temporary directory:
@@ -175,10 +186,12 @@ candidate and drains the remaining queue.
 
 ## 8. Accept the live release
 
-The authorized deployment transaction verifies the active revision and
+The existing platform deployment transaction verifies the active revision and
 payload identity, services, Caddy and DNS health, dual-stack endpoints, settled
 VIP ownership, synchronization state, journals, and protocol residue. Node B
-must pass its standby-first acceptance before the operation changes Node A.
+must pass its standby-first acceptance before that transaction changes Node A.
+Routine application onboarding instead follows the approved primary-first order
+linked above; this paragraph does not authorize reuse of the legacy transaction.
 
 Application acceptance must prove the new hostname with `curl --resolve`
 before relying on DNS. DNS acceptance then proves the exact A and AAAA answers

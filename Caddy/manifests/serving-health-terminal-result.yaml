@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
-  "action": "20261111-uptime-kuma-onboarding",
+  "action": "20261111-uptime-kuma-application-onboarding",
   "result": "failed-consumed",
-  "outer_sha256": "8e9e63a4a6c03a7d5e3d1fd5b50e4c60fa7a52db2b65d287798c8c671e47d818",
-  "transaction_sha256": "32ee94568fd79815c6fcb01f46df1df765c5b892fb795f13e49d77a0eeee9a79",
-  "operation_sha256": "cadca8aa2904330ecbd58023b5ea6a2f8ec5f1c58768bfdfbb642f1f3fd1c155",
+  "outer_sha256": "6fefc1e15d0a579d0a56e9f479bf9ace17a492057ce1afa63feb4376ae0438a7",
+  "transaction_sha256": "1faeb526c802825659ecb0f9f19d953fcdb39d75a446d0948b53cce926167589",
+  "operation_sha256": "08beff29fe7f5e55adddadff1e58efc457873425078a9f6a40809abc2ca02c71",
   "exit_status": 1,
-  "failed_stage": "certificate-preflight-b",
+  "failed_stage": "certificate-preflight-a",
+  "standby_preflight_status": 0,
   "publication_reached": false,
   "activation_reached": false,
   "operator_window_opened": false,
@@ -15,5 +16,6 @@
     "node_a": 0,
     "node_b": 0
   },
-  "cause": "unconfirmed; no per-file failure identity retained"
+  "cause": "unconfirmed; primary preflight stopped after incoming namespace checks and before service capture; no failed-file metadata emitted",
+  "evidence_manifest_sha256": "ce6504c5707d91e24476be6e1ed2348e9c4cc9bb2dfec3ad3954ae5bdcc76bde"
 }

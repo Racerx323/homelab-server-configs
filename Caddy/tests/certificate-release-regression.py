@@ -19,7 +19,8 @@ REPO = Path(__file__).resolve().parents[2]
 SCENARIOS = ['success', 'namespace-absent', 'worker-failure', 'primary-worker-failure',
              'readback-failure', 'standby-readback-failure', 'reload-failure', 'rollback-failure', 'ownership-transition', 'stale-baseline', 'baseline-extra',
              'namespace-symlink', 'namespace-mode', 'namespace-owner',
-             'namespace-nonempty', 'namespace-file', 'application-success', 'application-worker-failure']
+             'namespace-nonempty', 'namespace-file', 'application-success', 'application-worker-failure',
+             'installed-source-mismatch', 'installed-missing', 'installed-symlink', 'installed-tampered']
 GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/scripts/run-serving-health-deployment-outer.sh',
                'Caddy/scripts/publish-release-v2.sh',
@@ -32,7 +33,7 @@ GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/tests/certificate-release-regression.py',
                'Caddy/tests/certificate-release-regression.sh',
                'Caddy/tests/run-focused-container.sh', 'Caddy/tests/focused-validation.yaml', 'Caddy/tests/deployable-successor-policy.sh']
-GRAPH_FILES += ['Caddy/manifests/current-live-state.tsv', 'Caddy/manifests/serving-health-production.tsv', 'Caddy/systemd/caddy-cert-expiry.service', 'Caddy/systemd/caddy-sync-reconcile.service']
+GRAPH_FILES += ['Caddy/manifests/accepted-live-artifacts.tsv', 'Caddy/manifests/current-live-state.tsv', 'Caddy/manifests/serving-health-production.tsv', 'Caddy/systemd/caddy-cert-expiry.service', 'Caddy/systemd/caddy-sync-reconcile.service']
 GRAPH_FILES += ['Caddy/tests/application-onboarding-regression.py', 'Caddy/tests/run-application-qualification.py', 'Caddy/tests/Containerfile.application']
 GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/' + name for name in [
     'proposals/20-uptime-kuma.caddy', 'scripts/private-proxy-login.py', 'scripts/verify-proxy-login.cjs']]
@@ -43,6 +44,21 @@ VIEWS = {"caddy": Path("/etc/caddy"), "sync": Path("/var/lib/caddy-sync"),
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def accepted_hash(key):
+    rows = [line.split('\t') for line in (REPO/'Caddy/manifests/accepted-live-artifacts.tsv').read_text().splitlines() if not line.startswith('#')]
+    values = [row[1] for row in rows if row[0] in ['node_a_' + key, 'node_b_' + key]]
+    assert len(values) == 2 and len(set(values)) == 1, key
+    return values[0]
+
+
+def accepted_reconciler():
+    # External retained bytes are independently checked against the owner registry.
+    path = Path(os.environ['CADDY_ACCEPTED_RECONCILER_FIXTURE'])
+    assert path.is_file() and not path.is_symlink()
+    assert digest(path) == accepted_hash('protocol_v2_reconciler')
+    return path
 
 
 def run(args, **kwargs):
@@ -301,8 +317,10 @@ def setup(root):
             shutil.copytree(releases / 'baseline', node / 'sync/outbound/baseline')
         (node / 'libexec').mkdir()
         (node / 'libexec').chmod(0o755)
-        for source, target in [('check-certificate-expiry.sh', 'check-certificate-expiry.sh'), ('finalize-incoming-release-v2.sh', 'finalize-incoming-release-v2.sh'), ('reconcile-release-v2.sh', 'reconcile-release.sh')]:
+        for source, target in [('check-certificate-expiry.sh', 'check-certificate-expiry.sh'), ('finalize-incoming-release-v2.sh', 'finalize-incoming-release-v2.sh')]:
             shutil.copy2(REPO / 'Caddy/scripts' / source, node / 'libexec' / target)
+        shutil.copy2(accepted_reconciler(), node/'libexec/reconcile-release.sh')
+        (node/'libexec/reconcile-release.sh').chmod(0o755)
         # A distinct baseline publisher makes installation and restoration observable.
         baseline_publisher = node / 'libexec/publish-release-v2.sh'
         baseline_publisher.write_text('#!/bin/bash\nexit 73\n')
@@ -312,7 +330,7 @@ def setup(root):
         (node / 'state.json').write_text(json.dumps(dict(lsyncd=True, cert_result='exit-code', cert_status=1, checker_runs=0, reloads=0, journal=[])))
     recipe = root / 'inputs.tsv'
     values = dict(baseline_revision='baseline', baseline_manifest_sha256=hashes['baseline'], tls_source_revision='tls-source', tls_source_manifest_sha256=hashes['tls-source'], publisher_baseline_sha256=digest(root / 'nodes/node-a/libexec/publish-release-v2.sh'), publisher_candidate_sha256=digest(REPO / 'Caddy/scripts/publish-release-v2.sh'), checker_sha256=digest(REPO / 'Caddy/scripts/check-certificate-expiry.sh'))
-    values.update(finalizer_sha256=digest(REPO/'Caddy/scripts/finalize-incoming-release-v2.sh'), reconciler_sha256=digest(REPO/'Caddy/scripts/reconcile-release-v2.sh'), checker_unit_sha256=digest(REPO/'Caddy/systemd/caddy-cert-expiry.service'), reconcile_unit_sha256=digest(REPO/'Caddy/systemd/caddy-sync-reconcile.service'))
+    values.update(finalizer_sha256=digest(REPO/'Caddy/scripts/finalize-incoming-release-v2.sh'), reconciler_installed_sha256=accepted_hash('protocol_v2_reconciler'), checker_unit_sha256=digest(REPO/'Caddy/systemd/caddy-cert-expiry.service'), reconcile_unit_sha256=digest(REPO/'Caddy/systemd/caddy-sync-reconcile.service'))
     if os.environ.get('CERT_APPLICATION') == '1':
         fragment = REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy'
         values.update(release_kind='application', tls_source_revision='baseline',
@@ -342,6 +360,17 @@ def suite():
         env = setup(root)
         env['CERT_CASE'] = scenario.removeprefix('application-')
         namespace = root / 'nodes/node-b/sync/outbound'
+        installed = root/'nodes/node-b/libexec/reconcile-release.sh'
+        if scenario == 'installed-source-mismatch':
+            shutil.copy2(REPO/'Caddy/scripts/reconcile-release-v2.sh', installed)
+            assert digest(installed) != accepted_hash('protocol_v2_reconciler')
+        elif scenario == 'installed-missing':
+            installed.unlink()
+        elif scenario == 'installed-symlink':
+            installed.unlink()
+            installed.symlink_to(accepted_reconciler())
+        elif scenario == 'installed-tampered':
+            installed.write_text('#!/bin/bash\nexit 99\n')
         if scenario == 'namespace-absent':
             namespace.rmdir()
         elif scenario == 'namespace-symlink':
@@ -362,7 +391,11 @@ def suite():
         elif scenario == 'baseline-extra':
             (root / 'nodes/node-b/caddy/releases/baseline/unmanifested').write_text('unexpected file')
         accepted_case = scenario in ['success', 'namespace-absent', 'application-success']
-        preflight_rejection = scenario in ['stale-baseline', 'baseline-extra', 'namespace-symlink', 'namespace-mode', 'namespace-owner', 'namespace-nonempty', 'namespace-file']
+        preflight_rejection = scenario.startswith('installed-') or scenario in ['stale-baseline', 'baseline-extra', 'namespace-symlink', 'namespace-mode', 'namespace-owner', 'namespace-nonempty', 'namespace-file']
+        if scenario.startswith('installed-'):
+            expected_type = {'installed-missing': 'missing', 'installed-symlink': 'symlink'}.get(scenario, 'regular')
+            expected_observed = digest(installed) if expected_type == 'regular' else 'unavailable'
+            (root/'installed-input.json').write_text(json.dumps(dict(type=expected_type, sha256=expected_observed)))
         before_runners = set(Path('/tmp').glob('caddy-serving-health-outer-test.*'))
         with (root/'outer.stdout').open('w') as out, (root/'outer.stderr').open('w') as err:
             result = subprocess.run(['/bin/bash', str(REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh'), '--production-path-test'], env=env, stdout=out, stderr=err)
@@ -372,6 +405,10 @@ def suite():
         if result.returncode != expected_status:
             print('Certificate scenario failed:', scenario, 'status', result.returncode, 'evidence', root, file=sys.stderr)
             raise SystemExit(1)
+        if scenario.startswith('installed-'):
+            diagnostic = (root/'runner-evidence/certificate-preflight-b.stderr').read_text()
+            assert diagnostic == ('certificate_file_check path=/usr/local/libexec/reconcile-release.sh type=' + expected_type +
+                                  ' expected=' + accepted_hash('protocol_v2_reconciler') + ' observed=' + expected_observed + ' result=reject\n')
         observations = {}
         for role in ['node-a', 'node-b']:
             switch(role)
@@ -471,6 +508,10 @@ def suite():
 def definition_check():
     assert health_response(REPO/'Caddy/configs/caddy') == '204'
     import re
+    recipe = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+    if 'reconciler_installed_sha256' in recipe:
+        assert recipe['reconciler_installed_sha256'] == accepted_hash('protocol_v2_reconciler')
+    assert 'reconciler_sha256' not in recipe, 'Ambiguous repository/installed identity'
     operation_text = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation_text, re.M))
     if fields.get('status') == 'inactive':
@@ -545,6 +586,17 @@ def verify_evidence(evidence):
         accepted = scenario in ['success', 'namespace-absent', 'application-success']
         assert observed['status'] == (0 if accepted else (125 if scenario == 'rollback-failure' else 1))
         runner = root/'runner-evidence'
+        if scenario.startswith('installed-'):
+            initial = json.loads((root/'installed-input.json').read_text())
+            expected_type = {'installed-missing': 'missing', 'installed-symlink': 'symlink'}.get(scenario, 'regular')
+            expected_hash = (digest(REPO/'Caddy/scripts/reconcile-release-v2.sh') if scenario == 'installed-source-mismatch'
+                             else hashlib.sha256(b'#!/bin/bash\nexit 99\n').hexdigest() if scenario == 'installed-tampered' else 'unavailable')
+            assert initial == dict(type=expected_type, sha256=expected_hash)
+            diagnostic = (runner/'certificate-preflight-b.stderr').read_text()
+            assert diagnostic == ('certificate_file_check path=/usr/local/libexec/reconcile-release.sh type=' + expected_type +
+                                  ' expected=' + accepted_hash('protocol_v2_reconciler') + ' observed=' + expected_hash + ' result=reject\n')
+            assert (runner/'certificate-preflight-b.status').read_text() == '1\n'
+            assert not (runner/'certificate-preflight-a.status').exists()
         for role in ['node-a', 'node-b']:
             node = root/'nodes'/role
             selected = os.readlink(node/'caddy/current')

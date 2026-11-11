@@ -10,6 +10,14 @@ Current design and recovery rules live in
 [`docs/caddy_plan-v1.1.md`](docs/caddy_plan-v1.1.md). The complete executed
 action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 
+## Add a proxy target
+
+Start with [application onboarding](docs/APPLICATION_ONBOARDING.md). The approved
+routine sequence verifies activation on Node A before releasing the same candidate
+to replication, then checks Node B. This sequencing still needs implementation;
+the current publisher exposes outbound state immediately. Platform installation
+and certificate-repair orchestration are not the routine onboarding procedure.
+
 ## Endpoints
 
 | Name | Purpose |
@@ -44,7 +52,7 @@ The `homelab-network` repository owns network-controller configuration.
 | [`docs/UNINSTALLATION.md`](docs/UNINSTALLATION.md) | Standby-first removal and preservation rules |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Component-specific diagnosis and evidence |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Accepted as-built component and data-flow model |
-| [`docs/APPLICATION_ONBOARDING.md`](docs/APPLICATION_ONBOARDING.md) | Backend inventory, template, validation, and release gate |
+| [`docs/APPLICATION_ONBOARDING.md`](docs/APPLICATION_ONBOARDING.md) | Routine proxy-target onboarding, primary-first sequence, inputs and acceptance |
 | [`docs/PROJECT_HANDOFF-v1.md`](docs/PROJECT_HANDOFF-v1.md) | Versioned context and restart-safe prompt for follow-on Caddy projects |
 | [`docs/DEPLOYMENT_LIFECYCLE.md`](docs/DEPLOYMENT_LIFECYCLE.md) | Caddy operation-window states, terminal archival, and causal evidence |
 | [`docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md`](docs/PROTOCOL_V2_RELEASE_LIFECYCLE.md) | Immutable release construction, transfer, activation, and bookkeeping |

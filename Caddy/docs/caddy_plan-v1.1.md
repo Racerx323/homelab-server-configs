@@ -113,13 +113,31 @@ The repository Caddy source set contains:
 
 ## Publication and synchronization
 
-Node A performs normal publication. The publisher creates an immutable
-revision, records its parent and source role, validates it, and exposes outbound state to
-managed lsyncd. Node B receives the candidate under its incoming namespace.
-The finalizer validates manifest contents, ownership, modes, marker state, and
-release identity. The reconciler chooses one valid target and activates it. Publication itself
-does not activate the publisher’s serving release; the reviewed operation owns
-standby acceptance and later primary activation.
+Normal application onboarding uses primary-first activation. Prepare one
+immutable child of the accepted release on Node A, with a fixed revision,
+parent and payload manifest. Keep it outside the transport-visible outbound
+namespace until Node A has validated, activated and checked that exact candidate.
+Only then expose the same revision and bytes to managed lsyncd. Node B's receiver,
+finalizer and reconciler independently validate and activate it; final checks
+prove the new route and unchanged existing routes on both nodes. Primary activation
+does not wait for secondary acceptance. HA completion and subsequent DNS activation
+do require secondary convergence.
+
+This is the approved onboarding design, pending implementation and qualification.
+The installed publisher currently exposes outbound state before local activation;
+calling it and checking Node A afterward cannot satisfy the new order. Preserve
+its current behavior for existing platform operations until the replacement path
+is implemented and separately accepted. The as-built sequence remains documented
+in [the protocol lifecycle](PROTOCOL_V2_RELEASE_LIFECYCLE.md).
+
+The temporary primary/secondary revision difference is a bounded deployment state,
+not completed HA acceptance. Node B must reject incompatible or drifted local state
+without overwriting unrelated changes. If Node A passes but Node B cannot accept,
+report primary accepted / secondary not accepted and retain each node's proven
+release. Do not declare success or automatically undo a healthy primary solely
+because secondary verification failed. Any further repair or restoration follows
+the reviewed recovery scope. Node A failure before exposure restores its previous
+release without sending the candidate to Node B.
 
 Node B can publish with `--emergency` while it owns IPv4 and IPv6 and all four
 VIPs. The reviewed emergency procedure must control normal transport and retain
@@ -205,7 +223,7 @@ The repository keeps one neutral transaction and one neutral outer runner. A
 small operation specification supplies the versioned intent. The deployment
 stream registry identifies whether that specification is inactive or defined.
 
-Future live work follows this order:
+Platform installation, certificate repair and HA maintenance follow this order:
 
 1. Verify repositories and the deployment stream.
 2. Validate the accepted current-production baseline.
@@ -218,6 +236,17 @@ Rollback restores only nodes changed by the operation, in reverse mutation
 order, preserving a previously accepted standby when it is outside scope.
 Status 125 means mutation or recovery is ambiguous, or required evidence cannot
 prove the final outcome. It must not be reported as successful acceptance.
+
+Routine proxy-target onboarding follows the primary-first order in
+[Publication and synchronization](#publication-and-synchronization) and the
+[onboarding guide](APPLICATION_ONBOARDING.md#routine-release-sequence).
+It does not inherit the certificate-repair transaction, historical deployment
+checklists, or a timed human-login window. Keep release identity, TLS validation,
+bounded convergence, existing-route checks and explicit recovery. Each blocking
+check reports the node, check, expected value, observed value and stage. Application
+login/WebSocket acceptance remains a separate onboarding completion check; operator
+delay alone does not roll back an otherwise healthy release. Platform requalification
+is required when the platform changes, rather than on each new proxy target.
 
 Production-path tests execute the same outer and transaction state machines.
 They may substitute bounded external commands, but those substitutes must
@@ -264,7 +293,9 @@ The clean stream must reject `--authorization-ready`.
 
 ## Rollback invariants
 
-- Keep one healthy owner throughout a standby-first deployment.
+- Keep one healthy owner throughout platform maintenance. Routine application
+  onboarding follows the approved primary-first sequence and reports partial
+  replication explicitly.
 - Do not reload both nodes at once.
 - Do not accept split-family or simultaneous ownership.
 - Preserve the previous release until the new release passes acceptance.
@@ -368,7 +399,8 @@ Keep documentation authority separated:
 
 The set must document routine IPv4 and IPv6 DNS and trusted-HTTPS validation;
 Node A MASTER with four VIPs and Node B BACKUP with zero VIPs;
-notification-only Pi-hole/lighttpd failures; standby-first changes; the ban on
+notification-only Pi-hole/lighttpd failures; standby-first platform maintenance
+and primary-first routine onboarding; the ban on
 simultaneous node reloads; normal Node A and guarded emergency Node B
 publication; rollback and status 125; queue inspection, retry, dead-letter
 limitations, capacity monitoring, and evidence-preserving uninstall; and the

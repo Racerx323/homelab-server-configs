@@ -4,6 +4,12 @@ This runbook covers the accepted production operating model. Read-only checks
 are copyable. Every publication, service change, failover, or rollback requires
 a reviewed operation, exact authorization boundary, and retained evidence.
 
+For a new proxy target, start with
+[application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence).
+Its approved primary-first order is separate from the platform maintenance gate
+below. The installed publisher has not yet implemented verification before outbound
+exposure; do not use the interface documented here as a shortcut to that new order.
+
 ## Authorities
 
 - [`caddy_plan-v1.1.md`](caddy_plan-v1.1.md) owns architecture and lifecycle
@@ -26,9 +32,9 @@ Use [`QUICK_START.md`](QUICK_START.md) for node, endpoint, synchronization,
 timer, and queue checks. Require Node A MASTER with four shared VIPs and Node B
 BACKUP with none during normal operation.
 
-## Production change gate
+## Platform production change gate
 
-Before mutation:
+For platform installation, certificate repair or HA maintenance, before mutation:
 
 1. require a clean synchronized repository and clean Caddy deployment stream;
 2. record the accepted-live and semantic baseline;
@@ -76,12 +82,16 @@ remote finalizer through an ad hoc SSH command, or edit an immutable release.
 
 ## Application backends
 
-Use [`APPLICATION_ONBOARDING.md`](APPLICATION_ONBOARDING.md) before preparing a
-new application fragment. Obtain approval for the complete backend inventory;
-render and validate the supported example; reconcile repository and DNS state;
-then define a separate production operation. The example is not deployable and
-does not belong in a production release until the operator approves its exact
-rendered fragment.
+Use [`APPLICATION_ONBOARDING.md`](APPLICATION_ONBOARDING.md) as the complete
+routine entry point: review the fragment, prepare one immutable candidate,
+activate and verify Node A, release the same candidate to managed replication,
+then verify Node B and complete application acceptance. It names the current
+implementation gap and partial-failure behavior. Do not route this work through
+the certificate-repair or general platform-maintenance procedure above.
+
+The supported template remains non-deployable until its rendered fragment is
+reviewed. DNS uses its own owner procedure. Authorization, preserved release
+identities and truthful per-node acceptance remain required.
 
 ## Emergency Node B publication
 

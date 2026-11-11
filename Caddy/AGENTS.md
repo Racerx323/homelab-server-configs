@@ -2,7 +2,7 @@
 
 These rules apply beneath `Caddy/` and refine the component-neutral repository
 rules in `../AGENTS.md`. The Caddy deployment is a dual-node HA system, so its
-immutable-release, standby-first, evidence, and synchronization controls are
+immutable-release, staged activation, evidence, and synchronization controls are
 deliberately stricter than the repository defaults.
 
 ## Scope and archive
@@ -43,6 +43,28 @@ deliberately stricter than the repository defaults.
 - `tests/deployment-window-policy.sh --check` enforces the Caddy stream. Do not
   use its Caddy-specific successor or coverage schema for another component.
 
+## Routine proxy-target onboarding
+
+- Start with `docs/APPLICATION_ONBOARDING.md`. Its approved primary-first design
+  governs routine route additions; platform installation, certificate repair and
+  HA maintenance retain their separately scoped standby-first procedures.
+- Prepare one immutable candidate, activate and verify it on Node A, then expose
+  that exact candidate to managed replication. Node B independently validates,
+  activates and checks it. Primary activation does not wait for Node B; complete
+  HA acceptance and DNS progression do.
+- The installed publisher exposes outbound state immediately. Do not claim the
+  primary-first path exists until its transport-exposure boundary is implemented,
+  qualified and accepted. Do not replay a consumed certificate-derived operation
+  or copy it into a new onboarding implementation.
+- Keep changed-input identity, TLS validation, bounded convergence, existing-route
+  checks and explicit recovery. Blocking checks report expected and observed values.
+  Login/WebSocket acceptance is separate from activation; operator delay alone must
+  not trigger rollback. Do not carry a timed human receipt window or unrelated
+  platform requalification into routine onboarding.
+- Preserve executed artifacts through their terminal archive. Extend the existing
+  release machinery and coordinator in place after that boundary; do not add a
+  parallel transaction framework. Documentation approval is not live authority.
+
 ## Authorization cadence
 
 - Require an exact SHA-256 authorization for Caddy live mutation, failover,
@@ -70,7 +92,8 @@ deliberately stricter than the repository defaults.
 - Keepalived, Pi-hole, and Unbound sources belong to `homelab-dns`. Network
   controller artifacts belong to `homelab-network`.
 - Never make a generic installer modify an existing production deployment.
-  Live migrations use a bounded, standby-first transaction.
+  Platform migrations use a bounded, standby-first transaction; routine route
+  additions follow the onboarding order above.
 
 ## Production inventories
 
@@ -93,7 +116,7 @@ deliberately stricter than the repository defaults.
   command status, and the raw-evidence SHA-256. Stdout labels and manually
   emitted coverage markers are summaries only.
 - Coverage proves payload construction, exact transport and command generation,
-  the full standby-first phase order, mutation boundaries, convergence,
+  the operation's approved phase order, mutation boundaries, convergence,
   rollback, and residue. Do not create one row per ordinary assertion or
   duplicate the production inventory as coverage labels.
 - Run `tests/deployable-successor-policy.sh --check` while the stream is clean.
@@ -211,8 +234,10 @@ when live behavior must change.
 
 ## Live transaction rules
 
-- Validate standby Node B before Node A. Apply and accept Node B before changing
-  Node A. Never reload or restart both nodes at the same time.
+- Platform installation, certificate repair and HA maintenance validate, apply
+  and accept Node B before changing Node A. Routine proxy-target onboarding uses
+  the approved primary-first order above. Never reload or restart both nodes at
+  the same time.
 - Capture a journal cursor before a command and use `journalctl --after-cursor`
   for post-command evidence.
 - Keep transaction-owned paths unique and clean up only exact validated paths.

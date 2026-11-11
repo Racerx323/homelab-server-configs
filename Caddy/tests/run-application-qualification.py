@@ -12,6 +12,9 @@ REPO = Path(__file__).resolve().parents[2]
 
 def main():
     os.umask(0o077)
+    accepted_fixture = Path(os.environ['CADDY_ACCEPTED_RECONCILER_FIXTURE'])
+    assert accepted_fixture.is_absolute() and accepted_fixture.is_file() and not accepted_fixture.is_symlink()
+    assert ':' not in str(accepted_fixture) and '\n' not in str(accepted_fixture)
     evidence = Path(tempfile.mkdtemp(prefix='application-qualification-', dir=str(REPO.parent / '.local-evidence/uptime-kuma')))
     name = 'caddy-' + evidence.name
     print(evidence, flush=True)
@@ -35,7 +38,9 @@ def main():
         result['image'] = subprocess.check_output(['podman','image','inspect','--format','{{.Id}}','localhost/caddy-application-validation:local'],text=True).strip()
         args = ['podman','run','-d','--pull','never','--name',name,'--systemd=always','--network','none','--cap-add','NET_ADMIN',
                 '--tmpfs','/run','--tmpfs','/run/lock','--tmpfs','/app/data:rw,nosuid,nodev,size=64m',
-                '-v',str(REPO.parent)+':/workspace:ro','-v',str(evidence)+':/qual','-e','CADDY_VALIDATION_CONTAINER=1']
+                '-v',str(REPO.parent)+':/workspace:ro','-v',str(evidence)+':/qual','-e','CADDY_VALIDATION_CONTAINER=1',
+                '-v',str(accepted_fixture)+':/accepted-reconciler.sh:ro',
+                '-e','CADDY_ACCEPTED_RECONCILER_FIXTURE=/accepted-reconciler.sh']
         if os.environ.get('CADDY_APPLICATION_SCENARIO'):
             args += ['-e','CADDY_APPLICATION_SCENARIO='+os.environ['CADDY_APPLICATION_SCENARIO']]
         run(args+[result['image']])
