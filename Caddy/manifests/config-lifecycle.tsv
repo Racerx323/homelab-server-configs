@@ -10,3 +10,4 @@ Caddy/configs/lsyncd/caddy-node-a.lua	production-current	yes	Caddy/manifests/pro
 Caddy/configs/lsyncd/caddy-node-b.lua	production-current	yes	Caddy/manifests/production-artifacts.tsv
 Caddy/configs/sysctl/70-caddy-ha.conf	production-current	yes	Caddy/scripts/install-caddy-ha.sh
 Caddy/configs/tmpfiles.d/caddy-ha.conf	production-current	yes	Caddy/manifests/production-artifacts.tsv
+Caddy/configs/caddy/conf.d/20-uptime-kuma.caddy	production-current	yes	Caddy/manifests/caddy-release-source.tsv

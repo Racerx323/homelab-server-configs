@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=1faeb526c802825659ecb0f9f19d953fcdb39d75a446d0948b53cce926167589
-readonly operation_sha256=08beff29fe7f5e55adddadff1e58efc457873425078a9f6a40809abc2ca02c71
+readonly transaction_sha256=513486f8355e87c989150780d99db4c91314df91281260001f7dfe42b5ce6781
+readonly operation_sha256=a1afb5b7010ea8e1c8c2a18a0c14a3ee433e4a83950643ac773dd5f2106b9239
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -72,11 +72,7 @@ build_payload() {
             install -m 0600 \
                 "$workspace_root/homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy" \
                 "$payload_stage/manifests/application.caddy"
-            install -d -m 0700 "$payload_stage/operator"
-            install -m 0600 "$workspace_root/homelab-monitoring-observability/uptime-kuma/scripts/private-proxy-login.py" \
-                "$payload_stage/operator/private-proxy-login.py"
-            install -m 0600 "$workspace_root/homelab-monitoring-observability/uptime-kuma/scripts/verify-proxy-login.cjs" \
-                "$payload_stage/operator/verify-proxy-login.cjs"
+
         fi
         install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
             "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh"
@@ -955,73 +951,66 @@ certificate_collect_manual_evidence() {
     printf 'Certificate repair requires manual intervention; evidence_directory=%s\n' "$workstation_evidence" >&2
 }
 
-application_operator_check() {
-    local app_operation app_status=1 app_deadline=$((SECONDS + 600))
-    app_operation=$(sed -n 's/^action: //p' "$operation_spec")
-    if [[ "$app_operation" = none && "$invocation_mode" = --production-path-test ]]; then
-        app_operation=local-qualification
+run_application_onboarding_live() {
+    local app_outer_status=0 app_target app_role app_readback_status=0
+    local app_target_file=$workstation_evidence/application-target.tsv
+    # Payload transport and evidence readback retain the shared, qualified SSH
+    # implementation. The application sequence never enters certificate repair.
+    upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
+    upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
+    remote_transaction application-primary-a "$node_a_host" application-primary \
+        node-a "$node_a_payload" "$node_a_evidence" || app_outer_status=$?
+    readback application-primary-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
+    if [[ "$app_outer_status" != 0 || "$app_readback_status" != 0 ]]; then
+        printf 'application_stage=primary expected=0 observed=%s readback=%s result=stopped\n' "$app_outer_status" "$app_readback_status" >&2
+        # No exposure command was issued. Retain evidence and prepared state;
+        # a lost SSH response cannot establish whether local recovery finished.
+        [[ "$app_outer_status" -lt 125 && "$app_readback_status" = 0 ]] || return 125
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+        return "$app_outer_status"
     fi
-    [[ "$app_operation" =~ ^[a-z0-9-]+$ && "$app_operation" != none ]] || return 1
-    python3 - "$workstation_evidence" "$payload_stage/operator/verify-proxy-login.cjs" "$app_operation" "$$" <<'PY'
-import hashlib,json,pathlib,sys,time
-root,client,operation=pathlib.Path(sys.argv[1]),pathlib.Path(sys.argv[2]),sys.argv[3]
-pid=int(sys.argv[4]);start=pathlib.Path(f'/proc/{pid}/stat').read_text().rsplit(')',1)[1].split()[19]
-with (root/'operator-window.json').open('x') as stream:
-    json.dump(dict(operation=operation,status='open',deadline=time.time()+600,controller_pid=pid,controller_start=start,
-                   client_sha256=hashlib.sha256(client.read_bytes()).hexdigest()),stream)
-PY
-    [[ -s "$workstation_evidence/operator-window.json" ]] || return 1
-    printf 'Private operator command: python3 %q %q %q\n' \
-        "$payload_stage/operator/private-proxy-login.py" "$app_operation" "$workstation_evidence/operator-receipt.json"
-    while ((SECONDS < app_deadline)); do
-        if [[ -e "$workstation_evidence/operator-receipt.json" ]]; then
-            if python3 -I "$payload_stage/operator/private-proxy-login.py" --verify-receipt \
-                "$workstation_evidence/operator-receipt.json"; then
-                app_status=0
-            fi
-            break
-        fi
-        sleep 2
+    extract_readback_file "$workstation_evidence/application-primary-a-readback.stdout" \
+        application-target.tsv "$app_target_file" || return 125
+    app_target=$(<"$app_target_file")
+    [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
+    remote_transaction application-ready-b "$node_b_host" application-secondary-ready \
+        node-b "$node_b_payload" "$node_b_evidence" || app_outer_status=$?
+    if [[ "$app_outer_status" = 0 ]]; then
+        remote_transaction application-expose-a "$node_a_host" application-expose \
+            node-a "$node_a_payload" "$node_a_evidence" "$app_target" || app_outer_status=$?
+    fi
+    if [[ "$app_outer_status" = 0 ]]; then
+        remote_transaction application-secondary-b "$node_b_host" application-secondary \
+            node-b "$node_b_payload" "$node_b_evidence" "$app_target" || app_outer_status=$?
+    fi
+    if [[ "$app_outer_status" = 0 ]]; then
+        remote_transaction application-final-a "$node_a_host" application-final \
+            node-a "$node_a_payload" "$node_a_evidence" "$app_target" || app_outer_status=$?
+        remote_transaction application-final-b "$node_b_host" application-final \
+            node-b "$node_b_payload" "$node_b_evidence" "$app_target" || app_outer_status=$?
+        remote_transaction application-shared-a "$node_a_host" application-shared \
+            node-a "$node_a_payload" "$node_a_evidence" "$app_target" || app_outer_status=$?
+    fi
+    readback application-result-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
+    readback application-result-b "$node_b_host" "$node_b_evidence" || app_readback_status=$?
+    [[ "$app_readback_status" = 0 && "$app_outer_status" != 125 && "$app_outer_status" != 255 ]] || return 125
+    if [[ "$app_outer_status" != 0 ]]; then
+        printf 'application_stage=replication-or-acceptance expected=0 observed=%s revision=%s result=partial dns=pending\n' "$app_outer_status" "$app_target" >&2
+        # B rejection does not reverse verified A. No retry, DNS or recovery
+        # outside the reviewed primary/secondary local recovery is implicit.
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+        return 2
+    fi
+    for app_role in a b; do
+        extract_readback_file "$workstation_evidence/application-result-$app_role-readback.stdout" \
+            application-manifest.tsv "$workstation_evidence/application-manifest-$app_role.tsv" || return 125
     done
-    python3 - "$workstation_evidence/operator-window.json" <<'PY'
-import json,pathlib,sys
-path=pathlib.Path(sys.argv[1]);record=json.loads(path.read_text());record['status']='closed'
-path.write_text(json.dumps(record)+'\n')
-PY
-    return "$app_status"
-}
-
-application_readback() {
-    local app_role=$1 app_stream=$2 app_dir app_file
-    app_dir=$workstation_evidence/$app_role-application
-    install -d -m 0700 "$app_dir"
-    for app_file in application-cycles.tsv application-http.tsv application-health-journal.stdout \
-        application-health-journal.stderr application-health-journal.status; do
-        extract_readback_file "$app_stream" "$app_file" "$app_dir/$app_file" || return 1
-    done
-    python3 -I - "$app_dir" <<'PY'
-import pathlib,sys
-root=pathlib.Path(sys.argv[1])
-rows=[line.split('\t') for line in (root/'application-cycles.tsv').read_text().splitlines()]
-units={'caddy-pihole-web-health.service','caddy-sync-health.service'}
-assert rows and all(len(row)==4 and row[0] in units for row in rows)
-for unit in units:
-    values=[tuple(map(int,row[1:])) for row in rows if row[0]==unit]
-    assert len(values)>=2 and [v[2] for v in values]==list(range(1,len(values)+1))
-    starts=[v[0] for v in values]
-    assert starts==sorted(set(starts)) and all(end>=start>0 for start,end,_ in values)
-http=[tuple(map(int,line.split('\t'))) for line in (root/'application-http.tsv').read_text().splitlines()]
-assert len(http)>=4 and all(len(row)==3 and row[1] in (4,6) and row[2]==200 for row in http)
-for family in (4,6):
-    times=[row[0] for row in http if row[1]==family]
-    assert times==sorted(times) and times[-1]-times[0]>=65
-journal=(root/'application-health-journal.stdout').read_text()
-assert len(journal.splitlines())<100
-assert not (root/'application-health-journal.stderr').read_text()
-status=(root/'application-health-journal.status').read_text().strip()
-assert status=='0' or (status=='1' and not journal)
-assert not any(word in journal.lower() for word in ('unhealthy','failed','unexpected status','timeout','timed out','error'))
-PY
+    cmp -s "$workstation_evidence/application-manifest-a.tsv" "$workstation_evidence/application-manifest-b.tsv" || return 125
+    cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+    cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+    printf 'application_release=%s ha=accepted private_login_websocket=pending dns=pending\n' "$app_target"
 }
 
 run_certificate_release_live() {
@@ -1099,24 +1088,6 @@ run_certificate_release_live() {
         fi
     fi
 
-    if [[ "$cert_status" = 0 && "$operation_scope" = application-onboarding ]]; then
-        application_operator_check || cert_status=$?
-        if [[ "$cert_status" = 0 ]]; then
-            remote_transaction application-observe-b "$node_b_host" certificate-application-observe \
-                node-b "$node_b_payload" "$node_b_evidence" "$cert_target" || cert_status=$?
-        fi
-        if [[ "$cert_status" = 0 ]]; then
-            remote_transaction application-observe-a "$node_a_host" certificate-application-observe \
-                node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || cert_status=$?
-        fi
-        readback application-result-a "$node_a_host" "$node_a_evidence" || cert_status=1
-        readback application-result-b "$node_b_host" "$node_b_evidence" || cert_status=1
-        if [[ "$cert_status" = 0 ]]; then
-            application_readback node-a "$workstation_evidence/application-result-a-readback.stdout" || cert_status=1
-            application_readback node-b "$workstation_evidence/application-result-b-readback.stdout" || cert_status=1
-        fi
-    fi
-
     if [[ "$cert_status" != 0 ]]; then
         if [[ "$cert_published" = true ]]; then
             remote_transaction certificate-contain-a "$node_a_host" certificate-contain-publication node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || {
@@ -1174,6 +1145,10 @@ run_live() {
     local serving_health_phase_status=0
     local serving_health_target_revision=
 
+    if [[ "$operation_scope" = application-onboarding ]]; then
+        run_application_onboarding_live
+        return
+    fi
     if release_operation; then
         run_certificate_release_live
         return
@@ -3107,7 +3082,7 @@ build_payload
 write_remote_programs
 if [[ "$invocation_mode" = --production-path-test ]] && release_operation; then
     if [[ "${CADDY_CERTIFICATE_FIXTURE_EXECUTE:-0}" = 1 ]]; then
-        run_certificate_release_live
+        run_live
     else
         exec python3 "$repository_root/Caddy/tests/certificate-release-regression.py" --entrypoint outer
     fi

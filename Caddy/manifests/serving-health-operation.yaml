@@ -1,40 +1,47 @@
 schema_version: 2
-action: 20261111-uptime-kuma-application-onboarding
+action: 20261111-uptime-kuma-primary-first
 status: defined-unexecuted
 scope: application-onboarding
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 1faeb526c802825659ecb0f9f19d953fcdb39d75a446d0948b53cce926167589
+transaction_sha256: 513486f8355e87c989150780d99db4c91314df91281260001f7dfe42b5ce6781
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_contract_sha256: d4f0fe691cf8d0d6423e6016cbc6fa4a9a370e9f2e62456cc5c3def30045f1c8
 production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 240fa27811c6383f1b1548aa462f9a37a13b2ad3bfd4a755f7d793ca2a6c3532
 certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
-certificate_inputs_sha256: 0329191bc2a10718dc8dac13ab2733b0c5b55358561af69228d6f260e033ea7e
-coverage_sha256: 489d1e182ad9192b53ad786f419c5070980e0d5ac861b9fbd2dd0c5f027bbf48
-regression_sha256: 53a7e4566c04287ca69dca1c4b76ea05413b6ab72ccfb9024840aa7f7fc4dfb3
-fixture_sha256: 5ed255bd09f8568ff55f5b93f8f395bb9207bd350908027a92a9bb124cbfa655
+certificate_inputs_sha256: cdf09e9fdc99626f7278af0bd15e291f4093ce30eafa45ede4f92ffd7b24d315
+coverage_sha256: fca6008b5fecfeda85461a16c5456f42842b2cc4a69a2450a4441f2927f2dbd7
+regression_sha256: d860dc80461ac31ab533039508fbca8b376ac0097c99a991a8120841017fe0c7
+fixture_sha256: ca023dff8c6fac326128392572cd0350aa05cea0338692a22122209745059607
+qualification_launcher_sha256: cc8e864cfcfacac6d8b9c1bba277b8c9b5f8691db9cd9378f19625df2c28d662
+authorization_policy_sha256: 66973fe7040da0c978e7a264f06a1d2b100968c87ad9b0ade08ac5560caba2fc
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 targets:
-  - pi@10.1.0.54
   - pi@10.1.0.53
+  - pi@10.1.0.54
 mutation:
-  - append only the bound Uptime Kuma fragment in a new protocol-v2 release
-  - preserve the installed publisher, complete TLS inventory and unrelated fragments
-  - accept standby before primary promotion and reload
+  - stage one protected temporary payload on each node
+  - run the pinned candidate publisher from the payload without replacing installed tools
+  - append only the bound Kuma fragment and preserve complete parent TLS and unrelated routes
+  - activate and verify Node A before exposing the same original-parent revision to managed replication
+  - independently validate and activate Node B through existing finalization and reconciliation
 acceptance:
-  - retain existing release, ownership, certificate and proxy health gates
-  - private production-mode login and WebSocket checks over IPv4 and IPv6
-  - bounded 600-second operator window with a 180-second client deadline
-  - two native completed web-health and sync-health cycles per node
-  - verified application HTTP spans at least 65 seconds per family
-  - reject active health failures and inconsistent ownership
+  - exact parent and immutable release integrity; accepted installed finalizer and reconciler identities
+  - trusted IPv4 and IPv6 new-route and existing health-route responses on both nodes
+  - matching final release manifests and trusted shared-endpoint responses
+  - at most sixty one-second secondary convergence polls; each HTTP request bounded to five seconds
+  - checked evidence readback and staging disposition; private login and WebSockets remain separate
 recovery:
-  - contain publication and restore primary then standby on acceptance failure
-  - preserve the existing Kuma account, application data and running backend
-  - loss of controller or unproved recovery requires manual intervention; no replay
+  - primary failure before exposure restores and verifies its preserved parent when mutation is known
+  - secondary post-selection failure restores its preserved parent when mutation is known
+  - secondary rejection or timeout does not reverse verified primary service; report partial and stop DNS progression
+  - final-check failure stops progression; no automatic cross-node rollback or replay
+  - uncertain mutation, lost evidence or unproved local recovery requires manual intervention
 excluded:
-  - DNS changes, backend changes, reboot, forced failover and synthetic notifications
+  - DNS, backend changes, reboot, forced failover, certificate replacement and installed-tool replacement
+  - account reset, monitors, alerts, synthetic notifications, platform monitor cycles and timed human receipts
+  - unrelated route or radio ownership changes and Git publication
 live_execution: requires-exact-outer-sha256-approval

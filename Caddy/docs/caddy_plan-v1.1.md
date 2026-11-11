@@ -123,11 +123,12 @@ prove the new route and unchanged existing routes on both nodes. Primary activat
 does not wait for secondary acceptance. HA completion and subsequent DNS activation
 do require secondary convergence.
 
-This is the approved onboarding design, pending implementation and qualification.
+This approved onboarding design is implemented and locally qualified in the
+repository; deployment and production acceptance remain pending.
 The installed publisher currently exposes outbound state before local activation;
 calling it and checking Node A afterward cannot satisfy the new order. Preserve
-its current behavior for existing platform operations until the replacement path
-is implemented and separately accepted. The as-built sequence remains documented
+its current behavior for existing platform operations until the separately qualified path
+is deployed and accepted. The as-built sequence remains documented
 in [the protocol lifecycle](PROTOCOL_V2_RELEASE_LIFECYCLE.md).
 
 The temporary primary/secondary revision difference is a bounded deployment state,

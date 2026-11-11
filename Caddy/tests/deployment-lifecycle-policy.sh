@@ -165,8 +165,15 @@ awk -F '\t' -v root="$repository_root/" \
     { command = "sha256sum \"" root $1 "\""; command | getline line; close(command);
       split(line, hash, " "); if (hash[1] != $3) exit 1 }
     seen[$1]++ { exit 1 }
-    END { if (length(seen) != 5) exit 1 }
+    END { if (length(seen) == 0) exit 1 }
 ' "$release_source_registry" || fail caddy_release_source_contract
+
+diff -u \
+    <(find "$repository_root/Caddy/configs/caddy" -type f \
+        -printf 'Caddy/configs/caddy/%P\n' | LC_ALL=C sort) \
+    <(awk -F '\t' '!/^[[:space:]]*(#|$)/ { print $1 }' \
+        "$release_source_registry" | LC_ALL=C sort) >/dev/null ||
+    fail caddy_release_source_inventory_incomplete
 
 diff -u \
     <(find "$repository_root/Caddy/scripts" -maxdepth 1 -type f \

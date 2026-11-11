@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[2]
 SCENARIOS = ['success', 'namespace-absent', 'worker-failure', 'primary-worker-failure',
              'readback-failure', 'standby-readback-failure', 'reload-failure', 'rollback-failure', 'ownership-transition', 'stale-baseline', 'baseline-extra',
              'namespace-symlink', 'namespace-mode', 'namespace-owner',
-             'namespace-nonempty', 'namespace-file', 'application-success', 'application-worker-failure',
+             'namespace-nonempty', 'namespace-file',
              'installed-source-mismatch', 'installed-missing', 'installed-symlink', 'installed-tampered']
 GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/scripts/run-serving-health-deployment-outer.sh',
@@ -34,9 +34,6 @@ GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/tests/certificate-release-regression.sh',
                'Caddy/tests/run-focused-container.sh', 'Caddy/tests/focused-validation.yaml', 'Caddy/tests/deployable-successor-policy.sh']
 GRAPH_FILES += ['Caddy/manifests/accepted-live-artifacts.tsv', 'Caddy/manifests/current-live-state.tsv', 'Caddy/manifests/serving-health-production.tsv', 'Caddy/systemd/caddy-cert-expiry.service', 'Caddy/systemd/caddy-sync-reconcile.service']
-GRAPH_FILES += ['Caddy/tests/application-onboarding-regression.py', 'Caddy/tests/run-application-qualification.py', 'Caddy/tests/Containerfile.application']
-GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/' + name for name in [
-    'proposals/20-uptime-kuma.caddy', 'scripts/private-proxy-login.py', 'scripts/verify-proxy-login.cjs']]
 GRAPH_FILES += sorted(str(p.relative_to(REPO)) for p in (REPO/'Caddy/configs/caddy').rglob('*') if p.is_file())
 VIEWS = {"caddy": Path("/etc/caddy"), "sync": Path("/var/lib/caddy-sync"),
          "libexec": Path("/usr/local/libexec")}
@@ -356,9 +353,9 @@ def suite():
     for scenario in SCENARIOS:
         root = evidence / scenario
         root.mkdir(mode=0o700)
-        os.environ['CERT_APPLICATION'] = '1' if scenario.startswith('application-') else '0'
+        os.environ['CERT_APPLICATION'] = '0'
         env = setup(root)
-        env['CERT_CASE'] = scenario.removeprefix('application-')
+        env['CERT_CASE'] = scenario
         namespace = root / 'nodes/node-b/sync/outbound'
         installed = root/'nodes/node-b/libexec/reconcile-release.sh'
         if scenario == 'installed-source-mismatch':
@@ -390,7 +387,7 @@ def suite():
             (root / 'nodes/node-b/caddy/releases/baseline/Caddyfile').write_text('unexpected drift')
         elif scenario == 'baseline-extra':
             (root / 'nodes/node-b/caddy/releases/baseline/unmanifested').write_text('unexpected file')
-        accepted_case = scenario in ['success', 'namespace-absent', 'application-success']
+        accepted_case = scenario in ['success', 'namespace-absent']
         preflight_rejection = scenario.startswith('installed-') or scenario in ['stale-baseline', 'baseline-extra', 'namespace-symlink', 'namespace-mode', 'namespace-owner', 'namespace-nonempty', 'namespace-file']
         if scenario.startswith('installed-'):
             expected_type = {'installed-missing': 'missing', 'installed-symlink': 'symlink'}.get(scenario, 'regular')
@@ -421,16 +418,10 @@ def suite():
                 assert Path('/etc/caddy/current/tls/leaf.pem').is_file()
                 assert observed['cert_status'] == 0 and observed['checker_runs'] == 1
                 assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
-                if scenario == 'application-success':
-                    assert digest('/etc/caddy/current/conf.d/20-uptime-kuma.caddy') == digest(
-                        REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy')
             else:
                 assert selected == '/etc/caddy/releases/baseline'
                 if scenario == 'rollback-failure' and role == 'node-b':
                     assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
-                elif scenario.startswith('application-'):
-                    assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
-                    assert not Path('/etc/caddy/current/conf.d/20-uptime-kuma.caddy').exists()
                 else:
                     assert Path('/usr/local/libexec/publish-release-v2.sh').read_text().endswith('exit 73\n')
         calls = [json.loads(line) for line in (root/'ssh.jsonl').read_text().splitlines()]
@@ -583,7 +574,7 @@ def verify_evidence(evidence):
         assert tx == observed['transaction_commands']
         commands = [call['command'] for call in tx]
         assert all(command.startswith('cd / && sudo -n /bin/bash -s -- certificate-') for command in commands)
-        accepted = scenario in ['success', 'namespace-absent', 'application-success']
+        accepted = scenario in ['success', 'namespace-absent']
         assert observed['status'] == (0 if accepted else (125 if scenario == 'rollback-failure' else 1))
         runner = root/'runner-evidence'
         if scenario.startswith('installed-'):

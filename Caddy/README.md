@@ -14,8 +14,8 @@ action archive lives at the Git tag recorded in [`HISTORY.md`](HISTORY.md).
 
 Start with [application onboarding](docs/APPLICATION_ONBOARDING.md). The approved
 routine sequence verifies activation on Node A before releasing the same candidate
-to replication, then checks Node B. This sequencing still needs implementation;
-the current publisher exposes outbound state immediately. Platform installation
+to replication, then checks Node B. The repository implements this sequence; installed production still uses
+the earlier publisher until a separately approved deployment. Platform installation
 and certificate-repair orchestration are not the routine onboarding procedure.
 
 ## Endpoints

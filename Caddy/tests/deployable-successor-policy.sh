@@ -185,26 +185,28 @@ successor_policy_coverage_valid() {
     awk -F '\t' '
         NR == 1 { next }
         NF != 6 { invalid = 1; exit }
-        $1 !~ /^[a-z0-9][a-z0-9_-]*$/ || $2 !~ /^(pre-mutation|accepted-path)$/ { invalid = 1; exit }
+        $1 !~ /^[a-z0-9][a-z0-9_-]*$/ || $2 !~ /^(pre-mutation|accepted-path|pre-exposure|recovery|convergence)$/ { invalid = 1; exit }
         $3 !~ /^(outer|transaction)$/ || $4 !~ /^(accept|reject|reach)$/ { invalid = 1; exit }
         $5 !~ /^decisions\/[a-z0-9][a-z0-9._-]*\.tsv$/ { invalid = 1; exit }
         $6 !~ /^raw\/[a-z0-9][a-z0-9._-]*\.(txt|tsv|json)$/ { invalid = 1; exit }
         seen_scenario[$1]++ || seen_decision[$5]++ || seen_raw[$6]++ { invalid = 1; exit }
         END { exit invalid || NR <= 1 }
     ' "$successor_policy_coverage" || return 1
-    awk -F '\t' '
+    if [[ "$successor_policy_scope" != application-onboarding ]]; then
+        awk -F '\t' '
         NR == 1 { next }
         $2 == "pre-mutation" && $3 == "outer" && $4 == "reach" { outer_pre++ }
         $2 == "pre-mutation" && $3 == "transaction" && $4 == "reject" { tx_reject++ }
         $2 == "accepted-path" && $3 == "transaction" && ($4 == "accept" || $4 == "reach") { tx_accept++ }
         END { exit(outer_pre > 0 && tx_reject > 0 && tx_accept > 0 ? 0 : 1) }
     ' "$successor_policy_coverage" || return 1
+    fi
     case "$successor_policy_scope" in
-        certificate-release-repair | application-onboarding)
+        certificate-release-repair)
             successor_policy_required_scenarios='certificate-preflight certificate-success certificate-namespace-absent certificate-worker-failure certificate-primary-worker-failure certificate-readback-failure certificate-standby-readback-failure certificate-reload-failure certificate-rollback-failure certificate-ownership-transition certificate-stale-baseline certificate-baseline-extra certificate-namespace-symlink certificate-namespace-mode certificate-namespace-owner certificate-namespace-nonempty certificate-namespace-file'
-            if [[ "$successor_policy_scope" = application-onboarding ]]; then
-                successor_policy_required_scenarios+=' certificate-application-success certificate-application-worker-failure application-success application-operator-rejection application-http-failure application-journal-failure application-cycle-failure application-readback-failure'
-            fi
+            ;;
+        application-onboarding)
+            successor_policy_required_scenarios='application-publisher-boundaries application-success application-primary-reload application-primary-http application-secondary-drift application-secondary-http application-timeout application-recovery-failure application-exposure-tamper'
             ;;
         pihole-web-health-unit-only)
             successor_policy_required_scenarios='outer-preflight web-unit-service-identity web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'
@@ -347,8 +349,12 @@ successor_policy_defined_valid() {
         *) return 1 ;;
     esac
     case "$successor_policy_scope" in
-        certificate-release-repair | application-onboarding)
+        certificate-release-repair)
             python3 "$successor_policy_repository_root/Caddy/tests/certificate-release-regression.py" --definition-check || return 1
+            ;;
+        application-onboarding)
+            [[ "$successor_policy_regression" = Caddy/tests/application-onboarding-regression.sh ]] || return 1
+            python3 -I "$successor_policy_repository_root/Caddy/tests/application-onboarding-regression.py" --definition-check || return 1
             ;;
         full-serving-health)
             grep -Fxq 'state_equivalence:' \
@@ -405,17 +411,23 @@ successor_policy_defined_valid() {
     ' "$successor_policy_repository_root/Caddy/manifests/manifest-lifecycle.tsv" || return 1
     grep -Fq -- '--production-path-test' "$successor_policy_repository_root/$successor_policy_transaction" || return 1
     grep -Fq -- '--production-path-test' "$successor_policy_repository_root/$successor_policy_outer" || return 1
-    if [[ "$successor_policy_scope" = certificate-release-repair || "$successor_policy_scope" = application-onboarding ]]; then
-        # Definition checks stay usable without Podman. Authorization separately
-        # verifies retained causal evidence against the complete current graph.
+    if [[ "$successor_policy_scope" = application-onboarding ]]; then
+        if [[ "${successor_policy_require_defined:-0}" = 1 ]]; then
+            [[ -n "${CADDY_APPLICATION_QUALIFICATION_ROOT:-}" ]] || return 1
+            python3 -I "$successor_policy_repository_root/Caddy/tests/application-onboarding-regression.py" \
+                --verify-evidence "$CADDY_APPLICATION_QUALIFICATION_ROOT" || return 1
+            successor_policy_evidence_valid "$CADDY_APPLICATION_QUALIFICATION_ROOT" \
+                "$successor_policy_repository_root/$successor_policy_coverage" outer || return 1
+            successor_policy_evidence_valid "$CADDY_APPLICATION_QUALIFICATION_ROOT" \
+                "$successor_policy_repository_root/$successor_policy_coverage" transaction || return 1
+        fi
+        return 0
+    fi
+    if [[ "$successor_policy_scope" = certificate-release-repair ]]; then
         if [[ "${successor_policy_require_defined:-0}" = 1 ]]; then
             [[ -n "${CADDY_CERTIFICATE_QUALIFICATION_ROOT:-}" ]] || return 1
             python3 "$successor_policy_repository_root/Caddy/tests/certificate-release-regression.py" \
                 --verify-evidence "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" || return 1
-            if [[ "$successor_policy_scope" = application-onboarding ]]; then
-                python3 -I "$successor_policy_repository_root/Caddy/tests/application-onboarding-regression.py" \
-                    --verify-evidence "$CADDY_CERTIFICATE_QUALIFICATION_ROOT/application" || return 1
-            fi
             successor_policy_evidence_valid "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" \
                 "$successor_policy_repository_root/$successor_policy_coverage" outer || return 1
             successor_policy_evidence_valid "$CADDY_CERTIFICATE_QUALIFICATION_ROOT" \

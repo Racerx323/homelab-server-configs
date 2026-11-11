@@ -13,13 +13,15 @@ rollback. The protocol contract lives in
 ## Approved onboarding order and current implementation
 
 [Routine application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence)
-now requires Node A activation and verification before transport exposure, followed
-by independent Node B acceptance. The mechanics below describe the current
-implementation: publication exposes outbound before local activation. They do not
-yet provide that primary-first contract. Preparation must keep one candidate outside
-the watched outbound namespace until Node A passes, then expose the same revision,
-parent and payload to lsyncd. Rebuilding it after Node A activation would change
-its parent and is not equivalent. Implementation and qualification are pending.
+requires Node A activation and verification before transport exposure, followed
+by independent Node B acceptance. The repository publisher implements this with
+`--prepare-only` and `--expose`: keep one candidate outside watched outbound,
+activate and check Node A, then expose that same revision, original parent and
+manifest. Rebuilding after activation would change its parent and is not equivalent.
+
+This path is locally qualified but not installed or accepted in production. The
+mechanics below describe installed/default publication, which exposes outbound
+before local activation. Existing platform operations retain that default behavior.
 
 ## 1. Prepare the complete release input
 

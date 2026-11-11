@@ -52,9 +52,9 @@ deliberately stricter than the repository defaults.
   that exact candidate to managed replication. Node B independently validates,
   activates and checks it. Primary activation does not wait for Node B; complete
   HA acceptance and DNS progression do.
-- The installed publisher exposes outbound state immediately. Do not claim the
-  primary-first path exists until its transport-exposure boundary is implemented,
-  qualified and accepted. Do not replay a consumed certificate-derived operation
+- The installed publisher exposes outbound state immediately. The repository now provides a
+  separately qualified preparation/exposure path; do not claim it is installed
+  or accepted until its separately approved deployment passes. Do not replay a consumed certificate-derived operation
   or copy it into a new onboarding implementation.
 - Keep changed-input identity, TLS validation, bounded convergence, existing-route
   checks and explicit recovery. Blocking checks report expected and observed values.

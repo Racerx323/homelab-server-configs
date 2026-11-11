@@ -433,10 +433,7 @@
       "description": "Certificate inventory repair, real publication and standby-first deployment with rollback.",
       "path_patterns": [
         "Caddy/manifests/certificate-release-inputs.tsv",
-        "Caddy/tests/certificate-release-regression.*",
-        "Caddy/tests/application-*.py",
-        "Caddy/tests/run-application-qualification.py",
-        "Caddy/tests/Containerfile.application"
+        "Caddy/tests/certificate-release-regression.*"
       ],
       "debian_path_patterns": [
         "Caddy/tests/certificate-release-regression.*"
@@ -455,6 +452,32 @@
       "policies": [
         "selected-shell",
         "accepted-live-hashes",
+        "test-lifecycle"
+      ]
+    },
+    "application-onboarding": {
+      "description": "Primary-first definition checks; native causal qualification runs separately through run-application-qualification.py.",
+      "path_patterns": [
+        "Caddy/tests/application-onboarding-regression.*",
+        "Caddy/tests/run-application-qualification.py",
+        "Caddy/scripts/apply-serving-health-deployment.sh",
+        "Caddy/scripts/run-serving-health-deployment-outer.sh",
+        "Caddy/scripts/publish-release-v2.sh",
+        "Caddy/manifests/serving-health-operation.yaml",
+        "Caddy/manifests/deployable-successor-coverage.tsv"
+      ],
+      "debian_path_patterns": [],
+      "shell_files": [
+        "Caddy/tests/application-onboarding-regression.sh"
+      ],
+      "host_tests": [
+        "Caddy/tests/application-onboarding-regression.sh"
+      ],
+      "debian_tests": [],
+      "policies": [
+        "selected-shell",
+        "accepted-live-hashes",
+        "deployable-successor",
         "test-lifecycle"
       ]
     }

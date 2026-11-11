@@ -302,8 +302,8 @@ predecessor and its published tag are unchanged.
 
 ### Application candidate terminal result
 
-Status: terminal-pending; result: failed-consumed.
-Tag: `caddy-uptime-kuma-application-onboarding-terminal-2026-11-11` (planned; not published).
+Status: archived; result: failed-consumed.
+Tag: `caddy-uptime-kuma-application-onboarding-terminal-2026-11-11` (published and remote-verified).
 
 The approved operation above ran once. Standby preflight passed; primary preflight
 exited 1 after the incoming namespace checks and before the certificate-service
@@ -324,3 +324,62 @@ no old check is retroactively accepted. The governing plan and onboarding guide
 record the new contract, and W-098 in the application WORK.md owns implementation
 and qualification. Executed artifacts and the terminal archive boundary remain
 unchanged; no successor or live authority is created by the documentation revision.
+
+### Primary-first integration after terminal archival
+
+The terminal archive was published at commit `54eb788e01b244baaf029b7595540a97b5ebdb24`.
+The consumed operation and recipe are now inactive/empty, its terminal manifest
+is retained only in the archive, and the local stream is clean with the tag
+retained. W-096 remains deferred; its unexplained failure is not accepted state.
+
+W-098 integrates preparation-before-exposure into the existing publisher and
+application coordinator. Node A activates and passes route checks before the
+same revision is exposed to replication. Node B independently validates and
+accepts it; secondary failure preserves the healthy primary and reports partial
+completion. Qualification and exact local identities are recorded in the
+application WORK.md. No successor, publication or live authority is created.
+
+### Primary-first application successor prepared
+
+Operation `20261111-uptime-kuma-primary-first` is defined locally after the published
+consumed-attempt archive. It uses the pinned candidate publisher from protected
+temporary payloads, verifies Node A before exposure, then accepts Node B through
+existing replication/finalization/reconciliation. Installed publisher/reconciler
+files remain unchanged. Application authorization uses primary-first evidence;
+certificate-repair qualification retains its separate contract.
+
+The application WORK.md records exact candidate qualification, source identities
+and review status. This definition is unexecuted and grants no live authority.
+Private login/WebSocket acceptance and DNS remain subsequent work.
+
+### Primary-first application terminal result
+
+Status: terminal-pending; result: accepted.
+Tag: `caddy-uptime-kuma-primary-first-terminal-2026-11-11` (planned; not published).
+
+Operation `20261111-uptime-kuma-primary-first` ran once under Aaron's exact-bundle approval.
+Node A activated and passed trusted IPv4/IPv6 route checks before exposure;
+managed replication and Node B acceptance completed with the same manifest.
+Both nodes returned 200 for the application and 204 for existing health;
+shared endpoints returned 200 in both families. All phase/readback/disposition
+statuses were zero. No rollback was needed. Installed publisher/reconciler
+files were not replaced. The terminal manifest records release and evidence
+identities; raw evidence remains private. Executed artifacts are preserved.
+
+Private login/WebSocket and repeated application acceptance, DNS progression,
+and production source-inventory reconciliation remain subsequent work. The
+consumed operation cannot be replayed. Archive publication is not authorized.
+
+Production inventory reconciliation: accepted payload identities now match both
+retained node readbacks. The production configuration includes the exact executed
+Kuma fragment; all parent source bytes remain unchanged. The source manifest pins
+those inputs to the accepted payload. Installed tool hashes remain unchanged.
+The terminal lifecycle uses `accepted-executed-definition`; no executed input was
+rewritten. Archive preparation is local only; publication still requires approval.
+
+Archive qualification also replaced the local release-source validator's fixed
+five-file assumption with exact configuration/registry equality. The current
+six-file release passes; missing and unregistered sources reject. The focused
+repository-policy profile passes. This is a local policy correction; the executed
+publisher, transaction, outer runner, operation and recipe remain byte-identical.
+Private application acceptance and DNS remain pending.

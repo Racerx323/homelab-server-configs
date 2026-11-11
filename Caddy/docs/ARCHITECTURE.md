@@ -6,7 +6,7 @@ decisions and deviations remain in
 
 The approved primary-first design for routine proxy targets is in
 [application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence).
-It still needs implementation and live acceptance. The as-built flows below
+Its repository implementation is locally qualified; live acceptance is pending. The as-built flows below
 continue to describe installed behavior; they do not make the legacy deployment
 coordinator the procedure for a new proxy target.
 

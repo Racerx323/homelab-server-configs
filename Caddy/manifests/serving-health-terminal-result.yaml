@@ -1,21 +1,39 @@
 {
   "schema_version": 1,
-  "action": "20261111-uptime-kuma-application-onboarding",
-  "result": "failed-consumed",
-  "outer_sha256": "6fefc1e15d0a579d0a56e9f479bf9ace17a492057ce1afa63feb4376ae0438a7",
-  "transaction_sha256": "1faeb526c802825659ecb0f9f19d953fcdb39d75a446d0948b53cce926167589",
-  "operation_sha256": "08beff29fe7f5e55adddadff1e58efc457873425078a9f6a40809abc2ca02c71",
-  "exit_status": 1,
-  "failed_stage": "certificate-preflight-a",
-  "standby_preflight_status": 0,
-  "publication_reached": false,
-  "activation_reached": false,
-  "operator_window_opened": false,
-  "dns_started": false,
+  "action": "20261111-uptime-kuma-primary-first",
+  "result": "accepted",
+  "outer_sha256": "fe7a7c9d3815f4b4e9893545bbd5b6aea7724d91511afaea747e5418a8d3e980",
+  "transaction_sha256": "513486f8355e87c989150780d99db4c91314df91281260001f7dfe42b5ce6781",
+  "operation_sha256": "a1afb5b7010ea8e1c8c2a18a0c14a3ee433e4a83950643ac773dd5f2106b9239",
+  "exit_status": 0,
+  "attempts": 1,
+  "release": "20261111T213048Z-71b7deb8-bc71-45d5-8f33-98270af79d3b",
+  "parent": "20260915T145938Z-ac83de9a-42dd-4c8f-8d87-582ce52c7c85",
+  "payload_manifest_sha256": "b972d15185960fc219d09c1c047cd5c2269be97f42e6cc5eef6a3b691aa7d52d",
+  "activation_order": [
+    "node-a-verified",
+    "exposed-to-replication",
+    "node-b-accepted"
+  ],
+  "node_http": {
+    "ipv4": 200,
+    "ipv6": 200
+  },
+  "existing_health_http": {
+    "ipv4": 204,
+    "ipv6": 204
+  },
+  "shared_http": {
+    "ipv4": 200,
+    "ipv6": 200
+  },
   "staging_disposition": {
     "node_a": 0,
     "node_b": 0
   },
-  "cause": "unconfirmed; primary preflight stopped after incoming namespace checks and before service capture; no failed-file metadata emitted",
-  "evidence_manifest_sha256": "ce6504c5707d91e24476be6e1ed2348e9c4cc9bb2dfec3ad3954ae5bdcc76bde"
+  "rollback_required": false,
+  "installed_tools_replaced": false,
+  "private_login_websocket": "pending",
+  "dns_started": false,
+  "evidence_manifest_sha256": "2b245c3808cf5ed5de1593c121d504220320593afba0bc994a9d4e8c8d55fc83"
 }

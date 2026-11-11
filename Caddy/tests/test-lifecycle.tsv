@@ -43,6 +43,7 @@ Caddy/tests/authentication-secret-regression.sh	production-current	current-focus
 Caddy/tests/certificate-release-regression.sh	production-current	current-focused	current-production-validation
 Caddy/tests/certificate-release-regression.py	production-current	support	current-production-validation
 Caddy/tests/application-cycle-regression.py	production-current	support	native-systemd-application-cycle-gate
+Caddy/tests/application-onboarding-regression.sh	production-current	current-focused	primary-first-definition-validation
 Caddy/tests/application-onboarding-regression.py	production-current	support	native-application-onboarding-gates
 Caddy/tests/Containerfile.application	production-current	support	offline-native-application-image
 Caddy/tests/run-application-qualification.py	production-current	support	offline-native-application-launcher

@@ -16,8 +16,8 @@ The stream and archive rules below track authority and consumed operations; they
 do not require every proxy target to repeat platform-deployment qualification.
 Use [application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence)
 for routine route additions and [operations](OPERATIONS.md) for platform changes.
-Routine onboarding has an approved primary-first design pending implementation.
-Preserve terminal artifacts while replacing its certificate-derived coupling;
+Routine onboarding has a locally qualified primary-first implementation.
+Preserve terminal artifacts before replacing consumed inputs;
 do not reinterpret an old operation's approval as approval for the new order.
 
 ## Window states

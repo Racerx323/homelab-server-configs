@@ -21,6 +21,29 @@ config_negative_root=$work_directory/config-negative-repository
 readonly config_negative_root
 install -d -m 0700 "$config_negative_root"
 cp -a -- "$caddy_root" "$config_negative_root/Caddy"
+# A release may grow; every current source still needs an exact registry row.
+sed -i '/^Caddy\/configs\/caddy\/conf.d\/00-health.caddy\t/d' \
+    "$config_negative_root/Caddy/manifests/caddy-release-source.tsv"
+config_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$config_negative_root" >"$work_directory/source-missing.log" 2>&1 || config_negative_status=$?
+[[ "$config_negative_status" -eq 1 ]]
+grep -Fxq 'deployment_lifecycle_policy_failure=caddy_release_source_inventory_incomplete' \
+    "$work_directory/source-missing.log"
+cp -- "$caddy_root/manifests/caddy-release-source.tsv" \
+    "$config_negative_root/Caddy/manifests/caddy-release-source.tsv"
+printf '# extra source\n' >"$config_negative_root/Caddy/configs/caddy/conf.d/99-unregistered.caddy"
+printf 'Caddy/configs/caddy/conf.d/99-unregistered.caddy\tproduction-current\tyes\tCaddy/manifests/caddy-release-source.tsv\n' \
+    >>"$config_negative_root/Caddy/manifests/config-lifecycle.tsv"
+config_negative_status=0
+/bin/bash "$test_directory/deployment-lifecycle-policy.sh" --check \
+    --repository-root "$config_negative_root" >"$work_directory/source-extra.log" 2>&1 || config_negative_status=$?
+[[ "$config_negative_status" -eq 1 ]]
+grep -Fxq 'deployment_lifecycle_policy_failure=caddy_release_source_inventory_incomplete' \
+    "$work_directory/source-extra.log"
+rm -- "$config_negative_root/Caddy/configs/caddy/conf.d/99-unregistered.caddy"
+cp -- "$caddy_root/manifests/config-lifecycle.tsv" \
+    "$config_negative_root/Caddy/manifests/config-lifecycle.tsv"
 sed -i '/^Caddy\/configs\/sysctl\/70-caddy-ha.conf\t/d' \
     "$config_negative_root/Caddy/manifests/config-lifecycle.tsv"
 config_negative_status=0

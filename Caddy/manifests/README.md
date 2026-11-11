@@ -1,8 +1,9 @@
 # Caddy production manifests
 
-This directory contains current production contracts and an inactive operation
-specification. The deployment stream is clean; accepted identities reference
-the pushed certificate-repair archive.
+This directory contains current production contracts and the consumed primary-first
+application operation awaiting its terminal archive. Accepted release identities
+include the Kuma route on both nodes; login/WebSocket acceptance and DNS remain
+pending. Installed tool identities retain their earlier acceptance provenance.
 
 | File | Purpose |
 | --- | --- |
@@ -21,8 +22,8 @@ the pushed certificate-repair archive.
 | `serving-health-production.tsv` | Current accepted serving-health artifacts |
 | `deployable-successor.tsv` | Single live successor registry |
 | `deployable-successor-coverage.tsv` | File-backed causal evidence contract for the outer runner and transaction |
-| `serving-health-operation.yaml` | Inactive operation specification; no live operation is defined |
-| `certificate-release-inputs.tsv` | Empty recipe schema; a future repair must define and qualify fresh input identities |
+| `serving-health-operation.yaml` | Exact consumed operation specification retained for terminal archival |
+| `certificate-release-inputs.tsv` | Exact consumed recipe retained for terminal archival |
 | `serving-health-quarantine-baseline.tsv` | Canonical empty quarantine inventory; historical trees are retained only in tagged history |
 | `dependencies.yaml` | Package, command, cross-repository, external-input, and rebuild-gap contract |
 

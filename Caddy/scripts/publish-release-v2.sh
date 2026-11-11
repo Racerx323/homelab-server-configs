@@ -15,7 +15,7 @@ readonly ipv4_object=/org/keepalived/Vrrp1/Instance/eth0/100/IPv4
 readonly ipv6_object=/org/keepalived/Vrrp1/Instance/eth0/101/IPv6
 
 usage() {
-    printf 'Usage: %s --source DIRECTORY --node-role node-a|node-b [--emergency]\n' \
+    printf 'Usage: %s --source DIRECTORY --node-role node-a|node-b [--emergency] [--prepare-only] | --expose REVISION --manifest-sha256 HASH --node-role node-a\n' \
         "${0##*/}" >&2
 }
 
@@ -26,7 +26,9 @@ require_check() {
     if "$@"; then
         return 0
     fi
-    printf 'caddy_sync_publish_v2_check_%s=false\n' "$check_label" >&2
+    printf 'caddy_sync_publish_v2_check_%s=false expected=command_success observed=command_failure command=' "$check_label" >&2
+    printf '%q ' "$@" >&2
+    printf '\n' >&2
     return 1
 }
 
@@ -53,6 +55,9 @@ coupled_master() {
 source_dir=
 node_role=
 emergency=false
+prepare_only=false
+expose_revision=
+expose_manifest=
 
 while (($#)); do
     case "$1" in
@@ -62,6 +67,18 @@ while (($#)); do
             ;;
         --node-role)
             node_role=${2:-}
+            shift 2
+            ;;
+        --prepare-only)
+            prepare_only=true
+            shift
+            ;;
+        --expose)
+            expose_revision=${2:-}
+            shift 2
+            ;;
+        --manifest-sha256)
+            expose_manifest=${2:-}
             shift 2
             ;;
         --emergency)
@@ -79,8 +96,8 @@ while (($#)); do
     esac
 done
 
-if [[ ! -d "$source_dir" || -L "$source_dir" ||
-    ! "$node_role" =~ ^node-[ab]$ ]]; then
+if [[ ! "$node_role" =~ ^node-[ab]$ ||
+    (-z "$expose_revision" && (! -d "$source_dir" || -L "$source_dir")) ]]; then
     usage
     exit 2
 fi
@@ -102,6 +119,49 @@ if [[ "$node_role" == node-b ]]; then
         exit 1
     fi
 fi
+
+# Prepared releases are outside lsyncd's outbound tree. Only root can expose
+# them, after the coordinator has checked the selected primary and its routes.
+readonly prepared_root=/var/lib/caddy-sync/prepared
+readonly outbound_root=/var/lib/caddy-sync/outbound
+if [[ "$prepare_only" = true || -n "$expose_revision" ]]; then
+    require_check primary_role test "$node_role" = node-a
+    require_check normal_publication test "$emergency" = false
+    require_check prepared_root_not_symlink test ! -L "$prepared_root"
+    install -d -o root -g root -m 0700 "$prepared_root"
+    exec 9>"$prepared_root/.publisher.lock"
+    flock -n 9 || {
+        printf 'publisher_lock expected=available observed=busy\n' >&2
+        exit 1
+    }
+fi
+if [[ -n "$expose_revision" ]]; then
+    [[ -z "$source_dir" && "$prepare_only" = false &&
+        "$expose_revision" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ &&
+        "$expose_manifest" =~ ^[0-9a-f]{64}$ ]] || exit 64
+    expose_source=$prepared_root/$expose_revision
+    require_check prepared_regular test -d "$expose_source"
+    require_check prepared_not_symlink test ! -L "$expose_source"
+    require_check prepared_symlinks_absent test -z "$(find "$expose_source" -type l -print -quit)"
+    require_check prepared_special_files_absent test -z "$(find "$expose_source" ! -type f ! -type d -print -quit)"
+    require_check prepared_hardlinks_absent test -z "$(find "$expose_source" -type f -links +1 -print -quit)"
+    require_check prepared_manifest test "$(sha256sum "$expose_source/manifest.sha256" | awk '{print $1}')" = "$expose_manifest"
+    require_check primary_selected test "$(readlink -f /etc/caddy/current)" = "/etc/caddy/releases/$expose_revision"
+    require_check prepared_identity test "$(jq -r .revision "$expose_source/release-manifest.json")" = "$expose_revision"
+    require_check prepared_completion_absent test ! -e "$expose_source/.complete"
+    # Recheck the sealed payload, not only the manifest file's identity.
+    # shellcheck disable=SC2016
+    require_check prepared_integrity bash -c 'cd "$1" && sha256sum --strict --check manifest.sha256 >/dev/null' _ "$expose_source"
+    require_check prepared_payload_matches_active diff -qr --exclude=.complete "$expose_source" /etc/caddy/current
+    require_check outbound_root_not_symlink test ! -L "$outbound_root"
+    install -d -o caddy-sync -g caddy-sync -m 0750 "$outbound_root"
+    require_check exposure_absent test ! -e "$outbound_root/$expose_revision"
+    require_check exposure_not_symlink test ! -L "$outbound_root/$expose_revision"
+    mv -T -- "$expose_source" "$outbound_root/$expose_revision"
+    printf 'Exposed primary-accepted protocol-v2 release %s.\n' "$expose_revision"
+    exit 0
+fi
+[[ -z "$expose_manifest" ]] || exit 64
 
 for required_path in Caddyfile conf.d tls/leaf.pem tls/intermediates.pem \
     tls/fullchain.pem tls/privkey.pem tls/certificate-manifest.json; do
@@ -151,10 +211,15 @@ if [[ -r /etc/caddy/current/release-manifest.json ]]; then
 fi
 readonly parent_revision
 
-readonly outbound_root=/var/lib/caddy-sync/outbound
-readonly release_dir="$outbound_root/$revision"
-install -d -o caddy-sync -g caddy-sync -m 0750 "$outbound_root"
-staging_dir=$(mktemp -d "$outbound_root/.publish-v2.XXXXXX")
+publication_root=$outbound_root
+if [[ "$prepare_only" = true ]]; then
+    publication_root=$prepared_root
+else
+    require_check outbound_root_not_symlink test ! -L "$outbound_root"
+    install -d -o caddy-sync -g caddy-sync -m 0750 "$outbound_root"
+fi
+readonly release_dir="$publication_root/$revision"
+staging_dir=$(mktemp -d "$publication_root/.publish-v2.XXXXXX")
 readonly staging_dir
 
 cleanup_staging() {
@@ -214,4 +279,8 @@ require_check release_request_regular \
     test -f "$release_dir/.finalize-request"
 require_check release_completion_absent test ! -e "$release_dir/.complete"
 
-printf 'Published protocol-v2 release %s for receiver validation.\n' "$revision"
+if [[ "$prepare_only" = true ]]; then
+    printf 'Prepared protocol-v2 release %s without transport exposure.\n' "$revision"
+else
+    printf 'Published protocol-v2 release %s for receiver validation.\n' "$revision"
+fi

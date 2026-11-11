@@ -10,11 +10,10 @@ certificate repair and HA maintenance have separate procedures in
 [`OPERATIONS.md`](OPERATIONS.md); their deployment checklists are not the routine
 proxy-target onboarding procedure.
 
-The approved primary-first sequence below still needs implementation and local
-qualification. The installed publisher exposes outbound state immediately; the
-consumed certificate-derived `application-onboarding` runner does not implement
-this contract and must not be reused for it. Current component archive and
-live-authorization boundaries still apply. See the
+The repository implementation follows the primary-first sequence below and has
+local offline qualification. Installed production still uses the earlier publisher;
+operation status and authority are recorded in the stream registry and change ledger. Consumed attempts remain in their terminal tags.
+Use the current stream and change ledger for deployment authority. See the
 [implementation boundary](#implementation-boundary).
 
 ## Approval inventory
@@ -409,7 +408,7 @@ release or authorize node contact.
 Follow the [routine release sequence](#routine-release-sequence). Use the existing
 publisher, managed transport, receiver, finalizer and reconciler; do not create a
 parallel release framework. [`PROTOCOL_V2_RELEASE_LIFECYCLE.md`](PROTOCOL_V2_RELEASE_LIFECYCLE.md)
-explains their current implementation, including the pending sequencing change.
+distinguishes installed behavior from the locally qualified preparation/exposure path.
 
 ### Routine release sequence
 
@@ -484,19 +483,23 @@ tradeoff; it must be visible in the result rather than hidden by a success label
 
 ## Implementation boundary
 
-The current publisher constructs and exposes outbound revisions in one operation.
-The new contract needs preparation/local activation to finish before transport
-exposure, without changing candidate identity. Reconcile that boundary in the
-existing release machinery and application coordinator, then qualify primary
-failure/no propagation, successful replication, secondary drift/rejection, bounded
-timeout, and existing-route preservation before requesting live authority.
+The existing publisher now supports `--prepare-only` and `--expose` for routine
+onboarding. Preparation keeps the candidate outside watched outbound state. After
+local activation and primary route checks, exposure verifies the same revision,
+original parent and manifest. The normal publisher interface retains its existing
+platform behavior.
 
-The certificate-derived runner and its timed helper remain consumed execution
-artifacts until their required terminal archive is published. They are not the
-routine onboarding entry point. Preserve that history, then remove their obsolete
-application-specific coupling in place; keep platform repair behavior separately
-scoped. No executable command in this guide claims that the new sequence is
-already implemented or live-accepted.
+The existing application coordinator uses that boundary, then lets managed
+replication, finalization and reconciliation accept Node B. Its offline fixture
+covers successful convergence, primary failure without propagation, secondary
+rejection, timeout, recovery failure and tampering before exposure. Qualification
+executes real release machinery and Caddy with simulated node/service transport;
+it is not production acceptance or a substitute for private Kuma login/WebSockets.
+
+The consumed certificate-derived attempt is archived. Its recipe and operation
+are inactive, and the reusable coordinator is corrected in place. Platform repair
+keeps its own behavior. A separately reviewed operation must bind the candidate
+publisher deployment and route change before any live execution.
 
 ## Installed baseline identities in qualification
 
@@ -510,7 +513,10 @@ Release and application fixtures require `CADDY_ACCEPTED_RECONCILER_FIXTURE`
 to name an absolute regular file containing independently retained accepted
 reconciler bytes. Both container launchers mount that file read-only; the
 fixture checks its SHA-256 against both nodes' accepted owner records before
-using it. Keep these retained runtime bytes outside the repository. Do not
+using it. The primary-first suite runs through
+`python3 Caddy/tests/run-application-qualification.py` with that environment
+variable set. Run it separately from the `certificate-release` focused profile,
+which covers platform repair and retains its standby-first ordering. Keep these retained runtime bytes outside the repository. Do not
 substitute repository source or update the expected hash to make a test pass.
 
 A failed file check emits one bounded metadata line on captured stderr: path,
@@ -519,3 +525,22 @@ rejection. It never emits contents or follows a symlink. Preserve the outer
 preflight stderr/status with the execution evidence. Source-byte drift,
 tampering, missing files and symlinks must reject before publication, with
 staging disposition verified.
+
+### Primary-first authorization evidence
+
+Use the application fixture's retained evidence for application-onboarding scope.
+`CADDY_APPLICATION_QUALIFICATION_ROOT` names the protected evidence directory for
+`Caddy/tests/deployable-successor-policy.sh --authorization-ready`. The policy
+checks the exact current operation and source graph, then independently verifies
+phase commands/status, primary-before-exposure ordering, native route readbacks,
+release selection, recovery and staging disposition. It rejects missing, stale,
+changed or symlinked evidence; a printed pass marker is insufficient.
+
+Run `application-onboarding-regression.py --verification-tests EVIDENCE_DIRECTORY`
+against the retained candidate evidence before sealing. Keep the fixture's raw
+node files and synthetic TLS material in private storage. Certificate repair
+continues to use its own scenario set and `CADDY_CERTIFICATE_QUALIFICATION_ROOT`;
+routine application authorization does not invoke certificate workers, monitor
+cycles or timed private login receipts. Private application acceptance remains
+separate completion work. These commands validate local evidence and grant no
+live execution authority.

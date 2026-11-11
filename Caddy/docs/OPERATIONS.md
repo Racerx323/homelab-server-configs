@@ -7,8 +7,9 @@ a reviewed operation, exact authorization boundary, and retained evidence.
 For a new proxy target, start with
 [application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence).
 Its approved primary-first order is separate from the platform maintenance gate
-below. The installed publisher has not yet implemented verification before outbound
-exposure; do not use the interface documented here as a shortcut to that new order.
+below. The installed publisher still exposes before local activation. The repository
+implementation adds separate preparation/exposure for routine onboarding; it needs
+its own deployment and acceptance before production use.
 
 ## Authorities
 

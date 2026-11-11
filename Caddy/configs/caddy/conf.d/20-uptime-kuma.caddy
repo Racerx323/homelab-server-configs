@@ -1,0 +1,39 @@
+# Proposed application fragment; not part of the accepted Caddy release.
+https://uptime.local.theama.co {
+    bind 10.1.0.56 fd36:5aa8:6971:1::56 {$NODE_IPV4} {$NODE_IPV6}
+    import local_tls
+
+    @allowed_clients remote_ip 10.1.0.0/22 fd36:5aa8:6971:1::/64
+    handle @allowed_clients {
+        reverse_proxy 10.1.3.75:3001 [fd36:5aa8:6971:1::75]:3001 {
+            lb_policy first
+
+            health_method GET
+            health_uri /dashboard
+            health_status 200
+            health_interval 30s
+            health_timeout 3s
+            health_passes 1
+            health_fails 3
+            health_headers {
+                Host uptime.local.theama.co
+            }
+
+            # Both upstream addresses reach one application, not two replicas.
+            fail_duration 0s
+            max_fails 1
+            unhealthy_status 5xx
+            header_up Host uptime.local.theama.co
+
+            transport http {
+                dial_timeout 3s
+                response_header_timeout 60s
+                # Avoid idle HTTP reuse races; WebSocket upgrades remain supported.
+                keepalive off
+                # HTTP is confined to the source-restricted internal backend path.
+            }
+        }
+    }
+
+    respond 403
+}

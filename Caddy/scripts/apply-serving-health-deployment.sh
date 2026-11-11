@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=0329191bc2a10718dc8dac13ab2733b0c5b55358561af69228d6f260e033ea7e
+readonly certificate_inputs_sha256=cdf09e9fdc99626f7278af0bd15e291f4093ce30eafa45ede4f92ffd7b24d315
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -991,104 +991,139 @@ application_fragment() {
     printf '%s\n' "$app_fragment"
 }
 
-application_completed_cycles() {
-    # Count distinct successful oneshot executions, not timer elapses or repeated
-    # reads of the last successful result. Delivery-worker success is not a gate.
-    local app_unit app_start app_exit app_state app_result app_status app_row
-    local app_started=$SECONDS app_deadline=$((SECONDS + 360))
-    local app_check_http=${1:-false}
-    local -A app_last=() app_count=()
-    local -a app_units=(caddy-pihole-web-health.service caddy-sync-health.service)
-    for app_unit in "${app_units[@]}"; do
-        app_last[$app_unit]=$(timeout 5 "$systemctl_command" show "$app_unit" -p ExecMainStartTimestampMonotonic --value) || return 1
-        [[ "${app_last[$app_unit]}" =~ ^[0-9]+$ ]] || return 1
-        app_count[$app_unit]=0
-    done
-    : >"$evidence_root/application-cycles.tsv"
-    if [[ "$app_check_http" = true ]]; then
-        application_shared_http || return 1
-    fi
-    app_started=$SECONDS
-    while ((SECONDS < app_deadline)); do
-        if [[ "$app_check_http" = true ]]; then
-            application_shared_http || return 1
-        fi
-        for app_unit in "${app_units[@]}"; do
-            app_row=$(timeout 5 "$systemctl_command" show "$app_unit" \
-                -p ExecMainStartTimestampMonotonic -p ExecMainExitTimestampMonotonic \
-                -p ActiveState -p Result -p ExecMainStatus) || return 1
-            app_start=$(sed -n 's/^ExecMainStartTimestampMonotonic=//p' <<<"$app_row")
-            app_exit=$(sed -n 's/^ExecMainExitTimestampMonotonic=//p' <<<"$app_row")
-            app_state=$(sed -n 's/^ActiveState=//p' <<<"$app_row")
-            app_result=$(sed -n 's/^Result=//p' <<<"$app_row")
-            app_status=$(sed -n 's/^ExecMainStatus=//p' <<<"$app_row")
-            [[ "$app_start" =~ ^[0-9]+$ && "$app_exit" =~ ^[0-9]+$ && "$app_status" =~ ^[0-9]+$ ]] || return 1
-            [[ "$app_state" =~ ^(active|activating|inactive)$ && "$app_result" = success && "$app_status" = 0 ]] || return 1
-            if [[ "$app_state" = inactive && "$app_start" -gt "${app_last[$app_unit]}" && "$app_exit" -ge "$app_start" ]]; then
-                app_last[$app_unit]=$app_start
-                app_count[$app_unit]=$((app_count[$app_unit] + 1))
-                printf '%s\t%s\t%s\t%s\n' "$app_unit" "$app_start" "$app_exit" "${app_count[$app_unit]}" \
-                    >>"$evidence_root/application-cycles.tsv"
-            fi
-        done
-        if [[ "${app_count[${app_units[0]}]}" -ge 2 && "${app_count[${app_units[1]}]}" -ge 2 && $((SECONDS - app_started)) -ge 65 ]]; then
-            if [[ "$app_check_http" = true ]]; then
-                application_shared_http || return 1
-            fi
-            return
-        fi
-        "$sleep_command" 5
-    done
-    return 1
+# Routine application onboarding uses the release protocol without certificate
+# workers, historical platform inventories or a timed operator acknowledgement.
+application_baseline() {
+    local app_base
+    app_base=$releases_root/$(certificate_setting baseline_revision)
+    require_equal application_baseline "$app_base" "$(readlink -f /etc/caddy/current)"
+    certificate_hash "$app_base/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)"
+    certificate_release_integrity "$app_base"
+    certificate_hash "$finalizer_command" "$(certificate_setting finalizer_sha256)"
+    certificate_hash /usr/local/libexec/reconcile-release.sh "$(certificate_setting reconciler_installed_sha256)"
+    "$systemctl_command" is-active --quiet caddy.service caddy-lsyncd.service caddy-sync-reconcile.path
+    certificate_serving_check
 }
 
-application_shared_http() {
-    local app_family app_address app_status
+application_routes() {
+    local app_address app_family app_host app_code app_endpoint=${1:-node}
+    app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
-        app_address=10.1.0.56
-        [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::56]'
-        capture_command "application-http-$app_family" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
+        if [[ "$app_endpoint" = shared ]]; then
+            app_address=10.1.0.56
+            [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::56]'
+        elif [[ "$node_role" = node-a ]]; then
+            app_address=10.1.0.53
+            [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::53]'
+        else
+            app_address=10.1.0.54
+            [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::54]'
+        fi
+        capture_command "application-$app_endpoint-ipv$app_family" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
             --noproxy '*' "-$app_family" --silent --show-error --fail \
-            --connect-timeout 3 --max-time 5 \
-            --resolve "uptime.local.theama.co:443:$app_address" \
-            -o /dev/null -w '%{http_code}\n' https://uptime.local.theama.co/dashboard || return 1
-        app_status=$(<"$evidence_root/application-http-$app_family.stdout")
-        [[ "$app_status" = 200 ]] || return 1
-        printf '%s\t%s\t%s\n' "$SECONDS" "$app_family" "$app_status" >>"$evidence_root/application-http.tsv"
+            --connect-timeout 3 --max-time 5 --resolve "$app_host:443:$app_address" \
+            -o /dev/null -w '%{http_code}\n' "https://$app_host/$(certificate_setting application_probe_path)"
+        app_code=$(<"$evidence_root/application-$app_endpoint-ipv$app_family.stdout")
+        require_equal "application_${app_endpoint}_ipv${app_family}" "$(certificate_setting application_http_status)" "$app_code"
     done
+    certificate_serving_check
 }
 
-application_health_journal() {
-    local app_cursor=$1
-    # --grep with a numeric --lines selects reverse traversal even with +N.
-    # Read forward after the cursor; hitting this separate cap rejects below.
-    "$journalctl_command" --after-cursor "$app_cursor" -u caddy.service \
-        --grep 'health_checker.active|upstream.*unhealthy' --quiet --no-pager --no-tail |
-        head -n 100
+application_selected() {
+    local app_selected=$1
+    require_equal application_selection "$releases_root/$app_selected" "$(readlink -f /etc/caddy/current)"
+    require_equal application_parent "$(certificate_setting baseline_revision)" \
+        "$(jq -r .parent_revision "$releases_root/$app_selected/release-manifest.json")"
+    certificate_verify_candidate "$releases_root/$app_selected"
+    "$systemctl_command" is-active --quiet caddy.service
+    application_routes
+    sha256sum "$releases_root/$app_selected/manifest.sha256" | awk '{print $1}' >"$evidence_root/application-manifest.tsv"
 }
 
-application_observe() {
-    local app_journal_status=0
-    application_release || return 1
-    certificate_verify_candidate "$releases_root/$target_revision_argument" || return 1
-    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$target_revision_argument" ]] || return 1
-    : >"$evidence_root/application-http.tsv"
-    application_completed_cycles true || return 1
-    # Only fixed health-check messages are retained; application request headers,
-    # bodies, login tokens and credentials are not requested from the journal.
-    capture_command application-health-journal application_health_journal \
-        "$(<"$evidence_root/certificate-baseline-cursor.tsv")" || app_journal_status=$?
-    if [[ "$app_journal_status" != 0 ]]; then
-        [[ "$app_journal_status" = 1 && ! -s "$evidence_root/application-health-journal.stdout" &&
-            ! -s "$evidence_root/application-health-journal.stderr" ]] || return 1
+application_restore() {
+    local app_restore_revision=$1 app_restore_base app_restore_current app_restore_pending
+    app_restore_base=$releases_root/$(certificate_setting baseline_revision) || return 1
+    app_restore_current=$(readlink -f /etc/caddy/current) || return 1
+    [[ "$app_restore_current" = "$app_restore_base" || "$app_restore_current" = "$releases_root/$app_restore_revision" ]] || return 1
+    "$systemctl_command" stop caddy-sync-reconcile.service || return 1
+    app_restore_pending=$incoming_root/node-a/$app_restore_revision
+    if [[ -e "$app_restore_pending" || -L "$app_restore_pending" ]]; then
+        certificate_verify_candidate "$app_restore_pending" || return 1
+        rm -rf -- "$app_restore_pending" || return 1
     fi
-    [[ "$(wc -l <"$evidence_root/application-health-journal.stdout")" -lt 100 ]] || return 1
-    if grep -Eiq 'unhealthy|failed|unexpected status|timed? ?out|error' "$evidence_root/application-health-journal.stdout"; then
-        return 1
-    fi
-    grep -Fxq state=healthy "$(effective_path /var/lib/caddy-pihole-web-health/state)" || return 1
-    ownership_sample
+    certificate_hash "$app_restore_base/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)" || return 1
+    certificate_release_integrity "$app_restore_base" || return 1
+    path_absent /etc/caddy/current.application-restore || return 1
+    ln -s "$app_restore_base" /etc/caddy/current.application-restore || return 1
+    mv -Tf /etc/caddy/current.application-restore /etc/caddy/current || return 1
+    capture_command application-restore-reload "$systemctl_command" reload caddy.service || return 1
+    require_equal application_restored "$app_restore_base" "$(readlink -f /etc/caddy/current)" || return 1
+    certificate_serving_check || return 1
+    printf 'restored\n' >"$evidence_root/application-recovery.tsv"
 }
+
+application_primary() (
+    local app_revision='' app_mutated=false app_stage=$payload_root/application-source app_primary_rc
+    trap 'app_primary_rc=$?; trap - EXIT; if [[ "$app_primary_rc" != 0 && "$app_mutated" = true ]]; then application_restore "$app_revision" || exit 125; fi; exit "$app_primary_rc"' EXIT
+    [[ "$node_role" = node-a ]]
+    application_baseline
+    # One reviewed change at a time; absent and protected-empty namespaces are
+    # equivalent. No historical outgoing inventory or certificate worker gate.
+    require_empty_or_absent_sync_directory application_incoming_a "$incoming_root/node-a"
+    require_empty_or_absent_sync_directory application_incoming_b "$incoming_root/node-b"
+    path_absent "$app_stage"
+    cp -a "$releases_root/$(certificate_setting baseline_revision)" "$app_stage"
+    chmod -R u+rwX "$app_stage"
+    path_absent "$app_stage/conf.d/$(application_fragment)"
+    install -m 0600 "$payload_root/manifests/application.caddy" "$app_stage/conf.d/$(application_fragment)"
+    capture_command application-prepare /bin/bash \
+        "$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh" \
+        --source "$app_stage" --node-role node-a --prepare-only
+    app_revision=$(sed -n 's/^Prepared protocol-v2 release \([^ ]*\) without transport exposure\.$/\1/p' "$evidence_root/application-prepare.stdout")
+    release_identifier "$app_revision"
+    printf '%s\n' "$app_revision" >"$evidence_root/application-target.tsv"
+    certificate_verify_candidate "/var/lib/caddy-sync/prepared/$app_revision"
+    require_equal application_prepared_parent "$(certificate_setting baseline_revision)" \
+        "$(jq -r .parent_revision "/var/lib/caddy-sync/prepared/$app_revision/release-manifest.json")"
+    path_absent "$outgoing_root/$app_revision"
+    install -d -o "$sync_user" -g "$sync_group" -m 0750 "$incoming_root/node-a"
+    path_absent "$incoming_root/node-a/$app_revision"
+    app_mutated=true
+    cp -a "/var/lib/caddy-sync/prepared/$app_revision" "$incoming_root/node-a/$app_revision"
+    capture_command application-finalize "$runuser_command" -u "$sync_user" -- "$finalizer_command" --source-role node-a
+    capture_command application-reconcile "$systemctl_command" start caddy-sync-reconcile.service
+    application_selected "$app_revision"
+    path_absent "$outgoing_root/$app_revision"
+)
+
+application_expose() (
+    [[ "$node_role" = node-a ]]
+    release_identifier "$target_revision_argument"
+    local app_expose_rc
+    trap 'app_expose_rc=$?; trap - EXIT; if [[ "$app_expose_rc" != 0 ]]; then path_absent "$outgoing_root/$target_revision_argument" || exit 125; application_restore "$target_revision_argument" || exit 125; fi; exit "$app_expose_rc"' EXIT
+    require_equal application_target "$target_revision_argument" "$(<"$evidence_root/application-target.tsv")"
+    application_selected "$target_revision_argument"
+    capture_command application-expose /bin/bash \
+        "$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh" \
+        --node-role node-a --expose "$target_revision_argument" \
+        --manifest-sha256 "$(<"$evidence_root/application-manifest.tsv")"
+)
+
+application_secondary() (
+    local app_attempt app_selected app_secondary_rc app_secondary_mutated=false
+    trap 'app_secondary_rc=$?; trap - EXIT; if [[ "$app_secondary_rc" != 0 && "$app_secondary_mutated" = true ]]; then application_restore "$target_revision_argument" || exit 125; fi; exit "$app_secondary_rc"' EXIT
+    [[ "$node_role" = node-b ]]
+    release_identifier "$target_revision_argument"
+    for ((app_attempt = 0; app_attempt < 60; app_attempt++)); do
+        app_selected=$(readlink -f /etc/caddy/current)
+        [[ "$app_selected" != "$releases_root/$target_revision_argument" ]] || break
+        require_equal secondary_waiting_parent "$releases_root/$(certificate_setting baseline_revision)" "$app_selected"
+        "$sleep_command" 1
+    done
+    require_equal secondary_convergence "$releases_root/$target_revision_argument" "$(readlink -f /etc/caddy/current)"
+    app_secondary_mutated=true
+    application_selected "$target_revision_argument"
+)
 
 certificate_release_integrity() {
     local cert_release=$1 cert_expected_paths cert_actual_paths cert_marker
@@ -1124,12 +1159,9 @@ certificate_payload() {
         application_fragment >/dev/null
         certificate_hash "$payload_root/manifests/application.caddy" \
             "$(certificate_setting application_fragment_sha256)"
-        certificate_hash "$payload_root/operator/private-proxy-login.py" \
-            "$(certificate_setting application_operator_sha256)"
-        certificate_hash "$payload_root/operator/verify-proxy-login.cjs" \
-            "$(certificate_setting application_client_sha256)"
-        # Application onboarding preserves the installed publisher and TLS set.
-        [[ "$(certificate_setting publisher_candidate_sha256)" = "$(certificate_setting publisher_baseline_sha256)" ]]
+        certificate_setting application_fqdn >/dev/null
+        certificate_setting application_probe_path >/dev/null
+        [[ "$(certificate_setting application_http_status)" =~ ^[23][0-9][0-9]$ ]]
         [[ "$(certificate_setting tls_source_revision)" = "$(certificate_setting baseline_revision)" ]]
         [[ "$(certificate_setting tls_source_manifest_sha256)" = "$(certificate_setting baseline_manifest_sha256)" ]]
     fi
@@ -5842,7 +5874,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|certificate-application-cycles|certificate-application-observe)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|application-primary|application-secondary-ready|application-expose|application-secondary|application-final|application-shared)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5852,6 +5884,22 @@ if [[ "$requested_mode" = external-attribution-capture ]]; then
     exit
 fi
 [[ "$node_role" =~ ^node-[ab]$ ]]
+if [[ "$mode" = application-* ]]; then
+    app_failed_status=0
+    trap 'app_failed_status=$?; printf "application_failure node=%s phase=%s expected=0 observed=%s line=%s\n" "$node_role" "$mode" "$app_failed_status" "$LINENO" >&2; exit "$app_failed_status"' ERR
+    certificate_payload
+    application_release
+    case "$mode" in
+        application-primary) application_primary ;;
+        application-secondary-ready) application_baseline ;;
+        application-expose) application_expose ;;
+        application-secondary) application_secondary ;;
+        application-final) application_selected "$target_revision_argument" ;;
+        application-shared) application_routes shared ;;
+        *) exit 64 ;;
+    esac
+    exit
+fi
 if [[ "$mode" = certificate-* ]]; then
     certificate_payload
     case "$mode" in
@@ -5861,11 +5909,6 @@ if [[ "$mode" = certificate-* ]]; then
         certificate-discover-target) certificate_discover_target ;;
         certificate-promote) certificate_promote ;;
         certificate-accept) certificate_accept ;;
-        certificate-application-cycles)
-            application_release
-            application_completed_cycles
-            ;;
-        certificate-application-observe) application_observe ;;
         certificate-contain-publication) certificate_contain_publication ;;
         certificate-rollback) certificate_rollback ;;
         certificate-resume-publication)

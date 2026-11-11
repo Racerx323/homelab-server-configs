@@ -11,8 +11,8 @@ are in [`DEPLOYMENT_LIFECYCLE.md`](DEPLOYMENT_LIFECYCLE.md).
 
 For a routine proxy-target addition, use
 [application onboarding](APPLICATION_ONBOARDING.md#routine-release-sequence)
-and the current governing plan. The approved primary-first sequence still needs
-implementation; the historical snapshot below and platform standby-first procedure
+and the current governing plan. The primary-first sequence is implemented and locally qualified;
+production acceptance remains pending; the historical snapshot below and platform standby-first procedure
 do not override that decision. Consult the current work ledger and stream registry
 rather than treating this snapshot as current execution authority.
 
