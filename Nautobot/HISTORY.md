@@ -804,7 +804,7 @@ the exact snapshot/reference covers 245 tables and 481 migrations. All 18 older
 retained trees and prior remote snapshots remain preserved.
 Accepted identity: `manifests/accepted-live-state.yaml#recurring_logical_promotion`.
 Bundle: `a094e815bc69195881094431bc4fce92ff91e24ddf9f45d7225e084883e0d87d`.
-Terminal tag: `nautobot-recurring-logical-promotion-v1-accepted`; its peeled commit
-preserves the exact bundle and sanitized acceptance evidence. Publication and
-independent remote verification are pending; keep the consumed operation until
-verified. Monthly restore and retained-payload disposition remain separate.
+Published annotated tag: `nautobot-recurring-logical-promotion-v1-accepted`; archive commit
+`20a8c936763ec250ed2cd5eea31a9be61c418cff`. Independent remote fetch verified the exact archive
+and all 32 members before clearing the consumed operation. Monthly restore and
+retained-payload disposition remain separate. Never replay the consumed claim.

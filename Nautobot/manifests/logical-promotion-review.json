@@ -8,7 +8,7 @@
   "schema_version": 1,
   "kind": "durable_logical_reference_promotion_preparation",
   "operation_id": "nautobot-recurring-logical-promotion-v1",
-  "status": "first_cycle_accepted_awaiting_terminal_publication",
+  "status": "accepted_archived",
   "prepared_at": "2026-11-09T17:06:21.595134+00:00",
   "execution_authorized": true,
   "execution_enabled": false,
@@ -159,10 +159,10 @@
     },
     {
       "id": "W-003",
-      "state": "In progress",
+      "state": "Resolved",
       "issue": "Preserve terminal operation before clearing it",
       "closure": "Separate publication approval, annotated pushed archive and byte verification",
-      "next_action": "Publish the exact archive/tag, independently fetch and verify bytes, then clear consumed operation."
+      "evidence": "Annotated remote tag and archive commit independently fetched; exact archive, all 32 members and six source files verified before clearing consumed operation."
     },
     {
       "id": "W-004",
@@ -246,11 +246,18 @@
       "logical-reference.json": "df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270"
     }
   },
-  "next_action": "Separate terminal commit/tag/push archival approval; keep consumed operation until archive byte verification. Monthly restore remains separate.",
+  "next_action": "Prepare separate monthly isolated restore approval using the accepted snapshot/reference pair; no restore execution is authorized.",
   "publication": {
     "authorized": true,
     "scope": "terminal archival commit, annotated tag, push, independent byte verification and closeout",
     "tag": "nautobot-recurring-logical-promotion-v1-accepted",
-    "status": "in_progress"
+    "status": "published_verified",
+    "verified": true,
+    "archive_commit": "20a8c936763ec250ed2cd5eea31a9be61c418cff",
+    "tag_object": "8bf2fd82382bd8e86a0c3fd611eefff35b8f9974",
+    "archive_sha256": "c84fee25a00097aa618dc654541a0afe0a47485beb8c7f32784c0a83f16454c7",
+    "archive_members_verified": 32,
+    "payload_hashes_verified": 31,
+    "source_files_verified": 6
   }
 }

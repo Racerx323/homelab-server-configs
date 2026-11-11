@@ -747,7 +747,7 @@ recurring_logical_promotion:
   independent_acceptance: true
   full_integrity_each_upload: true
   monthly_restore_accepted: false
-  terminal_archival: pending_publication
+  terminal_archival: published_verified
   evidence_sha256:
     acceptance-checks.json: ac9cb349d3a3ac3e6e5b7588fb6dc28789e07ca31e65e8a226e8ab497b4b7fd3
     cycle-readback.json: dcdfd1781e63b34337d5a456073924257bffad8966f5fe8d19c3ea8827fb86c1
@@ -766,3 +766,6 @@ recurring_logical_promotion:
     repository-readback.stderr: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     verification.stdout: 8b23d1cb4dee5fa0445a306d3d05e500fe7759664172c22069284343f7625640
     verify.py: 5cdbc80dbd16de0b047229a0f7b23ed550c2736fe2af9dfc98ccab52f425d3ca
+  terminal_tag: nautobot-recurring-logical-promotion-v1-accepted
+  archive_commit: 20a8c936763ec250ed2cd5eea31a9be61c418cff
+  tag_object: 8bf2fd82382bd8e86a0c3fd611eefff35b8f9974
