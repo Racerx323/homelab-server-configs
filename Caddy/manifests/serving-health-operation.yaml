@@ -1,12 +1,40 @@
 schema_version: 2
-action: none
-status: inactive
+action: 20261111-uptime-kuma-onboarding
+status: defined-unexecuted
+scope: application-onboarding
+transaction: Caddy/scripts/apply-serving-health-deployment.sh
+transaction_sha256: 32ee94568fd79815c6fcb01f46df1df765c5b892fb795f13e49d77a0eeee9a79
+outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
+state_contract: Caddy/manifests/current-live-state.tsv
+state_contract_sha256: d4f0fe691cf8d0d6423e6016cbc6fa4a9a370e9f2e62456cc5c3def30045f1c8
+production_contract: Caddy/manifests/serving-health-production.tsv
+production_contract_sha256: 240fa27811c6383f1b1548aa462f9a37a13b2ad3bfd4a755f7d793ca2a6c3532
+certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
+certificate_inputs_sha256: 8f7dd345c3dacd5f66ed6a648105374bb22bd4486a264027a2ef033f49a81923
+coverage_sha256: 6cdaf104217bc2ff5c87c452e74fe9938d1e69a9983b909ae9583e1e1fe3165f
+regression_sha256: 53a7e4566c04287ca69dca1c4b76ea05413b6ab72ccfb9024840aa7f7fc4dfb3
+fixture_sha256: 59f1fd54d27b2465f73272ad2b18f89a9f1d85ad6204b9c147e2d132002f4071
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
-transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 463c92cfb2801609bac457c90678ef13085c4bbaa58089fd84898a1899aed1da
-outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
-state_contract: Caddy/manifests/current-live-state.tsv
-production_contract: Caddy/manifests/serving-health-production.tsv
-live_execution: no-operation-defined
+targets:
+  - pi@10.1.0.54
+  - pi@10.1.0.53
+mutation:
+  - append only the bound Uptime Kuma fragment in a new protocol-v2 release
+  - preserve the installed publisher, complete TLS inventory and unrelated fragments
+  - accept standby before primary promotion and reload
+acceptance:
+  - retain existing release, ownership, certificate and proxy health gates
+  - private production-mode login and WebSocket checks over IPv4 and IPv6
+  - bounded 600-second operator window with a 180-second client deadline
+  - two native completed web-health and sync-health cycles per node
+  - verified application HTTP spans at least 65 seconds per family
+  - reject active health failures and inconsistent ownership
+recovery:
+  - contain publication and restore primary then standby on acceptance failure
+  - preserve the existing Kuma account, application data and running backend
+  - loss of controller or unproved recovery requires manual intervention; no replay
+excluded:
+  - DNS changes, backend changes, reboot, forced failover and synthetic notifications
+live_execution: requires-exact-outer-sha256-approval

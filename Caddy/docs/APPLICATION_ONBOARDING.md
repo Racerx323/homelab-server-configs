@@ -422,3 +422,48 @@ release-local CA used only by that application. Restore DNS only through its
 separate reviewed repository and authorization boundary. Do not edit the
 active release or delete its files in place. Preserve the failed release and
 bounded evidence until rollback acceptance completes.
+
+## Application-only owner operation
+
+Use the neutral `application-onboarding` operation for an approved fragment
+added to an otherwise unchanged immutable release. Bind the fragment, private
+operator helper and client by hash in `certificate-release-inputs.tsv`. Preserve
+the complete parent inventory, TLS material and publisher. Reuse protocol-v2
+transfer/finalization, activate the standby first, then the primary, and retain
+the exact parent on both nodes for reverse recovery. Production inventories
+change only after live acceptance.
+
+The private helper runs on the operator workstation during the outer runner's
+ten-minute window. The operator runs the command printed by that runner and
+enters credentials only at its terminal prompts. Start with at least three
+minutes remaining. The helper checks the live controller identity, bounded
+client deadline and window throughout execution; the outer verifies an owned
+0600 receipt bound to the operation and client hash. A failed, missing, stale
+or malformed receipt rejects acceptance. Do not create a receipt by hand or
+put credentials, session tokens or request bodies in logs.
+
+For the reviewed Kuma contract, the client proves anonymous denial, wrong-login
+rejection, immediate correct retry, a second authenticated client, logout
+denial and continued WebSocket use after 65 seconds over both address families.
+The observer also requires repeated trusted HTTP 200 responses spanning at
+least 65 seconds and two distinct completed web-health and sync-health cycles
+within its finite deadline. It reads active-health failures forward from each
+node's baseline journal cursor (`--no-tail`, separately capped at 100 lines); truncation, query errors, health
+failures or invalid readback reject acceptance. This bounded contract does not
+claim a record of every successful Caddy active-health request.
+
+Failure after publication contains publication, restores the primary then the
+standby where changed, verifies the preserved release and service state, and
+resumes publication only through checked disposition. Unknown write state or
+unproved recovery requires manual intervention. A lost controller does not
+prove rollback and does not authorize replay. DNS activation is a separate
+owner operation after Caddy acceptance.
+
+Local qualification combines the existing release suite with the native
+application fixture. Actual Kuma/Caddy, TLS, the production-mode client, private
+helper receipts, native systemd timestamps and journal messages are exercised
+inside disposable network-isolated containers. Transport/node views and the
+helper's container invocation are controlled substitutes. This proves the
+application decisions and recovery path; it does not prove live ARM64 timing,
+production trust, SSH availability or controller-loss recovery. Those limits
+remain explicit in the operation review.

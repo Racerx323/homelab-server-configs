@@ -1,0 +1,6 @@
+# Offline qualification inputs already retained locally; never pull implicitly.
+FROM 1bf189bcd6286c24facc94dcd12565b09e1cf0bdd523d3dc8852f6646be49c29 AS kuma
+FROM b3da988b4e85df69e401f1083bf29cd4aa73120fd11564209417262ccc8abf1f
+COPY --from=kuma /usr/local/bin/node /usr/local/bin/node
+COPY --from=kuma /app /app
+ENTRYPOINT ["/lib/systemd/systemd"]

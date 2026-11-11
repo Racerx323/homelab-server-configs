@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "action": "20261111-uptime-kuma-onboarding",
+  "result": "failed-consumed",
+  "outer_sha256": "8e9e63a4a6c03a7d5e3d1fd5b50e4c60fa7a52db2b65d287798c8c671e47d818",
+  "transaction_sha256": "32ee94568fd79815c6fcb01f46df1df765c5b892fb795f13e49d77a0eeee9a79",
+  "operation_sha256": "cadca8aa2904330ecbd58023b5ea6a2f8ec5f1c58768bfdfbb642f1f3fd1c155",
+  "exit_status": 1,
+  "failed_stage": "certificate-preflight-b",
+  "publication_reached": false,
+  "activation_reached": false,
+  "operator_window_opened": false,
+  "dns_started": false,
+  "staging_disposition": {
+    "node_a": 0,
+    "node_b": 0
+  },
+  "cause": "unconfirmed; no per-file failure identity retained"
+}

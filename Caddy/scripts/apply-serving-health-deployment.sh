@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=38596e6469b6b21ba75786074c9cf6bb48c33fa734e2993e320a1ac652b2eef3
+readonly certificate_inputs_sha256=8f7dd345c3dacd5f66ed6a648105374bb22bd4486a264027a2ef033f49a81923
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -957,6 +957,117 @@ certificate_hash() {
     [[ "$(sha256sum "$cert_file" | awk '{print $1}')" = "$cert_expected" ]]
 }
 
+application_release() {
+    [[ "$(awk -F '\t' '$1 == "release_kind" {print $2}' \
+        "$payload_root/manifests/certificate-release-inputs.tsv")" = application ]]
+}
+
+application_fragment() {
+    local app_fragment
+    app_fragment=$(certificate_setting application_fragment_name) || return 1
+    [[ "$app_fragment" =~ ^20-[a-z0-9-]+\.caddy$ ]] || return 1
+    printf '%s\n' "$app_fragment"
+}
+
+application_completed_cycles() {
+    # Count distinct successful oneshot executions, not timer elapses or repeated
+    # reads of the last successful result. Delivery-worker success is not a gate.
+    local app_unit app_start app_exit app_state app_result app_status app_row
+    local app_started=$SECONDS app_deadline=$((SECONDS + 360))
+    local app_check_http=${1:-false}
+    local -A app_last=() app_count=()
+    local -a app_units=(caddy-pihole-web-health.service caddy-sync-health.service)
+    for app_unit in "${app_units[@]}"; do
+        app_last[$app_unit]=$(timeout 5 "$systemctl_command" show "$app_unit" -p ExecMainStartTimestampMonotonic --value) || return 1
+        [[ "${app_last[$app_unit]}" =~ ^[0-9]+$ ]] || return 1
+        app_count[$app_unit]=0
+    done
+    : >"$evidence_root/application-cycles.tsv"
+    if [[ "$app_check_http" = true ]]; then
+        application_shared_http || return 1
+    fi
+    app_started=$SECONDS
+    while ((SECONDS < app_deadline)); do
+        if [[ "$app_check_http" = true ]]; then
+            application_shared_http || return 1
+        fi
+        for app_unit in "${app_units[@]}"; do
+            app_row=$(timeout 5 "$systemctl_command" show "$app_unit" \
+                -p ExecMainStartTimestampMonotonic -p ExecMainExitTimestampMonotonic \
+                -p ActiveState -p Result -p ExecMainStatus) || return 1
+            app_start=$(sed -n 's/^ExecMainStartTimestampMonotonic=//p' <<<"$app_row")
+            app_exit=$(sed -n 's/^ExecMainExitTimestampMonotonic=//p' <<<"$app_row")
+            app_state=$(sed -n 's/^ActiveState=//p' <<<"$app_row")
+            app_result=$(sed -n 's/^Result=//p' <<<"$app_row")
+            app_status=$(sed -n 's/^ExecMainStatus=//p' <<<"$app_row")
+            [[ "$app_start" =~ ^[0-9]+$ && "$app_exit" =~ ^[0-9]+$ && "$app_status" =~ ^[0-9]+$ ]] || return 1
+            [[ "$app_state" =~ ^(active|activating|inactive)$ && "$app_result" = success && "$app_status" = 0 ]] || return 1
+            if [[ "$app_state" = inactive && "$app_start" -gt "${app_last[$app_unit]}" && "$app_exit" -ge "$app_start" ]]; then
+                app_last[$app_unit]=$app_start
+                app_count[$app_unit]=$((app_count[$app_unit] + 1))
+                printf '%s\t%s\t%s\t%s\n' "$app_unit" "$app_start" "$app_exit" "${app_count[$app_unit]}" \
+                    >>"$evidence_root/application-cycles.tsv"
+            fi
+        done
+        if [[ "${app_count[${app_units[0]}]}" -ge 2 && "${app_count[${app_units[1]}]}" -ge 2 && $((SECONDS - app_started)) -ge 65 ]]; then
+            if [[ "$app_check_http" = true ]]; then
+                application_shared_http || return 1
+            fi
+            return
+        fi
+        "$sleep_command" 5
+    done
+    return 1
+}
+
+application_shared_http() {
+    local app_family app_address app_status
+    for app_family in 4 6; do
+        app_address=10.1.0.56
+        [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::56]'
+        capture_command "application-http-$app_family" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
+            --noproxy '*' "-$app_family" --silent --show-error --fail \
+            --connect-timeout 3 --max-time 5 \
+            --resolve "uptime.local.theama.co:443:$app_address" \
+            -o /dev/null -w '%{http_code}\n' https://uptime.local.theama.co/dashboard || return 1
+        app_status=$(<"$evidence_root/application-http-$app_family.stdout")
+        [[ "$app_status" = 200 ]] || return 1
+        printf '%s\t%s\t%s\n' "$SECONDS" "$app_family" "$app_status" >>"$evidence_root/application-http.tsv"
+    done
+}
+
+application_health_journal() {
+    local app_cursor=$1
+    # --grep with a numeric --lines selects reverse traversal even with +N.
+    # Read forward after the cursor; hitting this separate cap rejects below.
+    "$journalctl_command" --after-cursor "$app_cursor" -u caddy.service \
+        --grep 'health_checker.active|upstream.*unhealthy' --quiet --no-pager --no-tail |
+        head -n 100
+}
+
+application_observe() {
+    local app_journal_status=0
+    application_release || return 1
+    certificate_verify_candidate "$releases_root/$target_revision_argument" || return 1
+    [[ "$(readlink -f "$(effective_path /etc/caddy/current)")" = "$releases_root/$target_revision_argument" ]] || return 1
+    : >"$evidence_root/application-http.tsv"
+    application_completed_cycles true || return 1
+    # Only fixed health-check messages are retained; application request headers,
+    # bodies, login tokens and credentials are not requested from the journal.
+    capture_command application-health-journal application_health_journal \
+        "$(<"$evidence_root/certificate-baseline-cursor.tsv")" || app_journal_status=$?
+    if [[ "$app_journal_status" != 0 ]]; then
+        [[ "$app_journal_status" = 1 && ! -s "$evidence_root/application-health-journal.stdout" &&
+            ! -s "$evidence_root/application-health-journal.stderr" ]] || return 1
+    fi
+    [[ "$(wc -l <"$evidence_root/application-health-journal.stdout")" -lt 100 ]] || return 1
+    if grep -Eiq 'unhealthy|failed|unexpected status|timed? ?out|error' "$evidence_root/application-health-journal.stdout"; then
+        return 1
+    fi
+    grep -Fxq state=healthy "$(effective_path /var/lib/caddy-pihole-web-health/state)" || return 1
+    ownership_sample
+}
+
 certificate_release_integrity() {
     local cert_release=$1 cert_expected_paths cert_actual_paths cert_marker
     [[ -d "$cert_release" && ! -L "$cert_release" ]] || return 1
@@ -986,6 +1097,20 @@ certificate_payload() {
     certificate_hash "$cert_contract" "$cert_contract_hash" || return 1
     local cert_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh
     certificate_hash "$cert_source" "$(certificate_setting publisher_candidate_sha256)"
+    if grep -q $'^release_kind\t' "$cert_contract"; then
+        [[ "$(certificate_setting release_kind)" = application ]]
+        application_fragment >/dev/null
+        certificate_hash "$payload_root/manifests/application.caddy" \
+            "$(certificate_setting application_fragment_sha256)"
+        certificate_hash "$payload_root/operator/private-proxy-login.py" \
+            "$(certificate_setting application_operator_sha256)"
+        certificate_hash "$payload_root/operator/verify-proxy-login.cjs" \
+            "$(certificate_setting application_client_sha256)"
+        # Application onboarding preserves the installed publisher and TLS set.
+        [[ "$(certificate_setting publisher_candidate_sha256)" = "$(certificate_setting publisher_baseline_sha256)" ]]
+        [[ "$(certificate_setting tls_source_revision)" = "$(certificate_setting baseline_revision)" ]]
+        [[ "$(certificate_setting tls_source_manifest_sha256)" = "$(certificate_setting baseline_manifest_sha256)" ]]
+    fi
 }
 
 certificate_baseline() {
@@ -1088,6 +1213,10 @@ certificate_install_publisher() {
     cert_backup=$payload_root/publisher.before
     cert_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh
     certificate_hash "$cert_publisher" "$(certificate_setting publisher_baseline_sha256)"
+    if application_release; then
+        # No reinstall, backup or service change for an unchanged publisher.
+        return
+    fi
     path_absent "$cert_backup"
     cp -p -- "$cert_publisher" "$cert_backup"
     path_absent "$cert_publisher.certificate-new"
@@ -1110,6 +1239,11 @@ certificate_publish() {
     for cert_name in leaf.pem intermediates.pem certificate-manifest.json; do
         install -m 0600 "$cert_old/tls/$cert_name" "$cert_stage/tls/$cert_name"
     done
+    if application_release; then
+        cert_name=$(application_fragment)
+        path_absent "$cert_base/conf.d/$cert_name"
+        install -m 0600 "$payload_root/manifests/application.caddy" "$cert_stage/conf.d/$cert_name"
+    fi
     certificate_hash "$(effective_path /usr/local/libexec/publish-release-v2.sh)" \
         "$(certificate_setting publisher_baseline_sha256)"
     capture_command certificate-publish /bin/bash \
@@ -1143,7 +1277,16 @@ certificate_verify_candidate() {
     cert_old=$releases_root/$(certificate_setting tls_source_revision)
     certificate_release_integrity "$cert_candidate"
     cmp -s "$cert_base/Caddyfile" "$cert_candidate/Caddyfile"
-    diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
+    if application_release; then
+        cert_name=$(application_fragment)
+        path_absent "$cert_base/conf.d/$cert_name"
+        certificate_hash "$cert_candidate/conf.d/$cert_name" \
+            "$(certificate_setting application_fragment_sha256)"
+        diff -qr --exclude="$cert_name" "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
+        [[ "$(find "$cert_candidate/conf.d" -name "$cert_name" | wc -l)" = 1 ]]
+    else
+        diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
+    fi
     for cert_name in fullchain.pem privkey.pem; do
         cmp -s "$cert_base/tls/$cert_name" "$cert_candidate/tls/$cert_name"
     done
@@ -5677,7 +5820,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|certificate-application-cycles|certificate-application-observe)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5696,6 +5839,11 @@ if [[ "$mode" = certificate-* ]]; then
         certificate-discover-target) certificate_discover_target ;;
         certificate-promote) certificate_promote ;;
         certificate-accept) certificate_accept ;;
+        certificate-application-cycles)
+            application_release
+            application_completed_cycles
+            ;;
+        certificate-application-observe) application_observe ;;
         certificate-contain-publication) certificate_contain_publication ;;
         certificate-rollback) certificate_rollback ;;
         certificate-resume-publication)

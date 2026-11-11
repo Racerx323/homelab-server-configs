@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[2]
 SCENARIOS = ['success', 'namespace-absent', 'worker-failure', 'primary-worker-failure',
              'readback-failure', 'standby-readback-failure', 'reload-failure', 'rollback-failure', 'ownership-transition', 'stale-baseline', 'baseline-extra',
              'namespace-symlink', 'namespace-mode', 'namespace-owner',
-             'namespace-nonempty', 'namespace-file']
+             'namespace-nonempty', 'namespace-file', 'application-success', 'application-worker-failure']
 GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/scripts/run-serving-health-deployment-outer.sh',
                'Caddy/scripts/publish-release-v2.sh',
@@ -33,6 +33,9 @@ GRAPH_FILES = ['Caddy/scripts/apply-serving-health-deployment.sh',
                'Caddy/tests/certificate-release-regression.sh',
                'Caddy/tests/run-focused-container.sh', 'Caddy/tests/focused-validation.yaml', 'Caddy/tests/deployable-successor-policy.sh']
 GRAPH_FILES += ['Caddy/manifests/current-live-state.tsv', 'Caddy/manifests/serving-health-production.tsv', 'Caddy/systemd/caddy-cert-expiry.service', 'Caddy/systemd/caddy-sync-reconcile.service']
+GRAPH_FILES += ['Caddy/tests/application-onboarding-regression.py', 'Caddy/tests/run-application-qualification.py', 'Caddy/tests/Containerfile.application']
+GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/' + name for name in [
+    'proposals/20-uptime-kuma.caddy', 'scripts/private-proxy-login.py', 'scripts/verify-proxy-login.cjs']]
 GRAPH_FILES += sorted(str(p.relative_to(REPO)) for p in (REPO/'Caddy/configs/caddy').rglob('*') if p.is_file())
 VIEWS = {"caddy": Path("/etc/caddy"), "sync": Path("/var/lib/caddy-sync"),
          "libexec": Path("/usr/local/libexec")}
@@ -147,6 +150,9 @@ def adapter(name, args):
         corrupt = (((os.environ.get('CERT_CASE') == 'readback-failure' and role == 'node-a') or (os.environ.get('CERT_CASE') == 'standby-readback-failure' and role == 'node-b'))
                    and observed['checker_runs'] == 1 and not observed.get('readback_faulted')
                    and b'file=%s bytes=%s' in body)
+        corrupt = corrupt or (os.environ.get('CERT_CASE') == 'application-readback-failure'
+                              and not observed.get('readback_faulted')
+                              and b'file=%s bytes=%s' in body and b'file=application-http.tsv ' in result.stdout)
         if corrupt:
             observed['readback_faulted'] = True
             save(observed)
@@ -267,7 +273,7 @@ def setup(root):
     Path('/usr/bin/sudo').chmod(0o755)
     cert = root / 'cert'
     cert.mkdir()
-    run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '365', '-subj', '/CN=*.local.theama.co', '-keyout', str(cert / 'privkey.pem'), '-out', str(cert / 'fullchain.pem')], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '365', '-subj', '/CN=*.local.theama.co', '-addext', 'subjectAltName=DNS:*.local.theama.co', '-keyout', str(cert / 'privkey.pem'), '-out', str(cert / 'fullchain.pem')], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for name in ['leaf.pem', 'intermediates.pem']:
         shutil.copy2(cert / 'fullchain.pem', cert / name)
     (cert / 'certificate-manifest.json').write_text('{}\n')
@@ -280,7 +286,7 @@ def setup(root):
             release = releases / revision
             shutil.copytree(REPO / 'Caddy/configs/caddy', release)
             shutil.copytree(cert, release / 'tls')
-            if revision == 'baseline':
+            if revision == 'baseline' and os.environ.get('CERT_APPLICATION') != '1':
                 for name in ['leaf.pem', 'intermediates.pem', 'certificate-manifest.json']:
                     (release / 'tls' / name).unlink()
             manifest(release, revision, '' if revision == 'tls-source' else 'tls-source')
@@ -300,11 +306,20 @@ def setup(root):
         # A distinct baseline publisher makes installation and restoration observable.
         baseline_publisher = node / 'libexec/publish-release-v2.sh'
         baseline_publisher.write_text('#!/bin/bash\nexit 73\n')
+        if os.environ.get('CERT_APPLICATION') == '1':
+            shutil.copyfile(REPO / 'Caddy/scripts/publish-release-v2.sh', baseline_publisher)
         baseline_publisher.chmod(0o755)
         (node / 'state.json').write_text(json.dumps(dict(lsyncd=True, cert_result='exit-code', cert_status=1, checker_runs=0, reloads=0, journal=[])))
     recipe = root / 'inputs.tsv'
     values = dict(baseline_revision='baseline', baseline_manifest_sha256=hashes['baseline'], tls_source_revision='tls-source', tls_source_manifest_sha256=hashes['tls-source'], publisher_baseline_sha256=digest(root / 'nodes/node-a/libexec/publish-release-v2.sh'), publisher_candidate_sha256=digest(REPO / 'Caddy/scripts/publish-release-v2.sh'), checker_sha256=digest(REPO / 'Caddy/scripts/check-certificate-expiry.sh'))
     values.update(finalizer_sha256=digest(REPO/'Caddy/scripts/finalize-incoming-release-v2.sh'), reconciler_sha256=digest(REPO/'Caddy/scripts/reconcile-release-v2.sh'), checker_unit_sha256=digest(REPO/'Caddy/systemd/caddy-cert-expiry.service'), reconcile_unit_sha256=digest(REPO/'Caddy/systemd/caddy-sync-reconcile.service'))
+    if os.environ.get('CERT_APPLICATION') == '1':
+        fragment = REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy'
+        values.update(release_kind='application', tls_source_revision='baseline',
+                      tls_source_manifest_sha256=hashes['baseline'],
+                      application_fragment_name=fragment.name, application_fragment_sha256=digest(fragment),
+                      application_operator_sha256=digest(fragment.parent.parent/'scripts/private-proxy-login.py'),
+                      application_client_sha256=digest(fragment.parent.parent/'scripts/verify-proxy-login.cjs'))
     for unit in ['caddy-cert-expiry.service', 'caddy-sync-reconcile.service']:
         shutil.copy2(REPO/'Caddy/systemd'/unit, Path('/etc/systemd/system')/unit)
     recipe.write_text('key\tvalue\n' + ''.join(k+'\t'+v+'\n' for k,v in values.items()))
@@ -323,8 +338,9 @@ def suite():
     for scenario in SCENARIOS:
         root = evidence / scenario
         root.mkdir(mode=0o700)
+        os.environ['CERT_APPLICATION'] = '1' if scenario.startswith('application-') else '0'
         env = setup(root)
-        env['CERT_CASE'] = scenario
+        env['CERT_CASE'] = scenario.removeprefix('application-')
         namespace = root / 'nodes/node-b/sync/outbound'
         if scenario == 'namespace-absent':
             namespace.rmdir()
@@ -345,7 +361,7 @@ def suite():
             (root / 'nodes/node-b/caddy/releases/baseline/Caddyfile').write_text('unexpected drift')
         elif scenario == 'baseline-extra':
             (root / 'nodes/node-b/caddy/releases/baseline/unmanifested').write_text('unexpected file')
-        accepted_case = scenario in ['success', 'namespace-absent']
+        accepted_case = scenario in ['success', 'namespace-absent', 'application-success']
         preflight_rejection = scenario in ['stale-baseline', 'baseline-extra', 'namespace-symlink', 'namespace-mode', 'namespace-owner', 'namespace-nonempty', 'namespace-file']
         before_runners = set(Path('/tmp').glob('caddy-serving-health-outer-test.*'))
         with (root/'outer.stdout').open('w') as out, (root/'outer.stderr').open('w') as err:
@@ -368,10 +384,16 @@ def suite():
                 assert Path('/etc/caddy/current/tls/leaf.pem').is_file()
                 assert observed['cert_status'] == 0 and observed['checker_runs'] == 1
                 assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
+                if scenario == 'application-success':
+                    assert digest('/etc/caddy/current/conf.d/20-uptime-kuma.caddy') == digest(
+                        REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy')
             else:
                 assert selected == '/etc/caddy/releases/baseline'
                 if scenario == 'rollback-failure' and role == 'node-b':
                     assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
+                elif scenario.startswith('application-'):
+                    assert digest('/usr/local/libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
+                    assert not Path('/etc/caddy/current/conf.d/20-uptime-kuma.caddy').exists()
                 else:
                     assert Path('/usr/local/libexec/publish-release-v2.sh').read_text().endswith('exit 73\n')
         calls = [json.loads(line) for line in (root/'ssh.jsonl').read_text().splitlines()]
@@ -419,6 +441,8 @@ def suite():
     (evidence/'raw/certificate-preflight.json').write_text(json.dumps(preflight, indent=2)+'\n')
     for line in (REPO/'Caddy/manifests/deployable-successor-coverage.tsv').read_text().splitlines()[1:]:
         name, phase, entrypoint, expectation, decision_name, raw_name = line.split('\t')
+        if name.startswith('application-'):
+            continue
         assert name.startswith('certificate-')
         if name == 'certificate-preflight':
             status, expected, observed_label = 0, 'prepared-and-preflighted', 'prepared-and-preflighted'
@@ -449,7 +473,14 @@ def definition_check():
     import re
     operation_text = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation_text, re.M))
-    assert fields.get('scope') == 'certificate-release-repair', 'A defined certificate-repair operation is required'
+    if fields.get('status') == 'inactive':
+        # Repository qualification exercises the neutral implementation without
+        # manufacturing a live operation or weakening the defined-operation gate.
+        assert fields.get('action') == 'none'
+        assert fields['transaction_sha256'] == digest(REPO/'Caddy/scripts/apply-serving-health-deployment.sh')
+        assert len((REPO/'Caddy/manifests/deployable-successor-coverage.tsv').read_text().splitlines()) == 1
+        return
+    assert fields.get('scope') in ('certificate-release-repair', 'application-onboarding'), 'A defined release operation is required'
     assert fields['state_contract_sha256'] == digest(REPO/fields['state_contract'])
     assert fields['production_contract_sha256'] == digest(REPO/fields['production_contract'])
     assert fields['status'] == 'defined-unexecuted'
@@ -464,6 +495,16 @@ def definition_check():
     recipe = dict(line.split('\t') for line in (REPO/fields['certificate_inputs']).read_text().splitlines()[1:])
     assert recipe['publisher_candidate_sha256'] == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
     assert recipe['checker_sha256'] == digest(REPO/'Caddy/scripts/check-certificate-expiry.sh')
+    if fields['scope'] == 'application-onboarding':
+        assert recipe['release_kind'] == 'application'
+        app = REPO.parent/'homelab-monitoring-observability/uptime-kuma'
+        for key, path in [('application_fragment_sha256','proposals/20-uptime-kuma.caddy'),
+                          ('application_operator_sha256','scripts/private-proxy-login.py'),
+                          ('application_client_sha256','scripts/verify-proxy-login.cjs')]:
+            assert recipe[key] == digest(app/path)
+        assert recipe['baseline_revision'] == recipe['tls_source_revision']
+        assert recipe['baseline_manifest_sha256'] == recipe['tls_source_manifest_sha256']
+        assert recipe['publisher_candidate_sha256'] == recipe['publisher_baseline_sha256']
 
 
 def decode_stream(path):
@@ -501,7 +542,7 @@ def verify_evidence(evidence):
         assert tx == observed['transaction_commands']
         commands = [call['command'] for call in tx]
         assert all(command.startswith('cd / && sudo -n /bin/bash -s -- certificate-') for command in commands)
-        accepted = scenario in ['success', 'namespace-absent']
+        accepted = scenario in ['success', 'namespace-absent', 'application-success']
         assert observed['status'] == (0 if accepted else (125 if scenario == 'rollback-failure' else 1))
         runner = root/'runner-evidence'
         for role in ['node-a', 'node-b']:
@@ -531,6 +572,9 @@ def verify_evidence(evidence):
                 assert selected == '/etc/caddy/releases/baseline'
                 if scenario == 'rollback-failure' and role == 'node-b':
                     assert digest(node/'libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
+                elif scenario.startswith('application-'):
+                    assert digest(node/'libexec/publish-release-v2.sh') == digest(REPO/'Caddy/scripts/publish-release-v2.sh')
+                    assert not (node/'caddy/releases/baseline/conf.d/20-uptime-kuma.caddy').exists()
                 else:
                     assert (node/'libexec/publish-release-v2.sh').read_text() == '#!/bin/bash\nexit 73\n'
         if accepted:
@@ -542,7 +586,7 @@ def verify_evidence(evidence):
             a = decode_stream(runner/'certificate-result-a-readback.stdout')
             b = decode_stream(runner/'certificate-result-b-readback.stdout')
             assert a['certificate-manifest.tsv'] == b['certificate-manifest.tsv']
-        elif scenario in ['worker-failure', 'primary-worker-failure', 'readback-failure', 'standby-readback-failure', 'ownership-transition', 'reload-failure', 'rollback-failure']:
+        elif scenario in ['application-worker-failure', 'worker-failure', 'primary-worker-failure', 'readback-failure', 'standby-readback-failure', 'ownership-transition', 'reload-failure', 'rollback-failure']:
             contain = next(i for i,c in enumerate(commands) if ' certificate-contain-publication ' in c)
             a_restore = next(i for i,c in enumerate(commands) if ' certificate-rollback node-a ' in c)
             b_restore = next(i for i,c in enumerate(commands) if ' certificate-rollback node-b ' in c)

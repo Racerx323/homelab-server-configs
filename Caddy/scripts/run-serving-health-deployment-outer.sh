@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=463c92cfb2801609bac457c90678ef13085c4bbaa58089fd84898a1899aed1da
-readonly operation_sha256=9ac1985e1ebdc3d4d8f2c36840c21c4d1d0bb6d92cc7032a60ddc1bf13b8f0e5
+readonly transaction_sha256=32ee94568fd79815c6fcb01f46df1df765c5b892fb795f13e49d77a0eeee9a79
+readonly operation_sha256=cadca8aa2904330ecbd58023b5ea6a2f8ec5f1c58768bfdfbb642f1f3fd1c155
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -19,6 +19,10 @@ readonly continuity_retry_window_seconds=12
 
 usage() {
     printf 'Usage: %s [--production-path-test]\n' "${0##*/}" >&2
+}
+
+release_operation() {
+    [[ "$operation_scope" = certificate-release-repair || "$operation_scope" = application-onboarding ]]
 }
 
 regular_file() {
@@ -61,9 +65,19 @@ build_payload() {
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
 
     install -d -m 0700 "$payload_stage/manifests" "$payload_stage/repositories"
-    if [[ "$operation_scope" = certificate-release-repair ]]; then
+    if release_operation; then
         install -m 0600 "${CADDY_CERTIFICATE_TEST_INPUTS:-$repository_root/Caddy/manifests/certificate-release-inputs.tsv}" \
             "$payload_stage/manifests/certificate-release-inputs.tsv"
+        if grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+            install -m 0600 \
+                "$workspace_root/homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy" \
+                "$payload_stage/manifests/application.caddy"
+            install -d -m 0700 "$payload_stage/operator"
+            install -m 0600 "$workspace_root/homelab-monitoring-observability/uptime-kuma/scripts/private-proxy-login.py" \
+                "$payload_stage/operator/private-proxy-login.py"
+            install -m 0600 "$workspace_root/homelab-monitoring-observability/uptime-kuma/scripts/verify-proxy-login.cjs" \
+                "$payload_stage/operator/verify-proxy-login.cjs"
+        fi
         install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
             "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh"
         tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
@@ -266,7 +280,7 @@ ssh_stream() {
     local serving_health_host=$1
     local serving_health_program=$2
     shift 2
-    if [[ "$operation_scope" = certificate-release-repair ]]; then
+    if release_operation; then
         "$ssh_command" -o BatchMode=yes -o ConnectTimeout=10 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=3 "$serving_health_host" \
             "cd / && sudo -n /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
@@ -286,7 +300,7 @@ upload_payload() {
     serving_health_hash=$(awk '{ print $1 }' "$workstation_evidence/payload.sha256")
     capture "$serving_health_role-upload-prepare" ssh_stream "$serving_health_host" \
         "$prepare_program" "$serving_health_remote_root" "$serving_health_remote_archive" || return 1
-    if [[ "$operation_scope" = certificate-release-repair ]]; then
+    if release_operation; then
         capture "$serving_health_role-upload-copy" "$scp_command" -o BatchMode=yes -o ConnectTimeout=10 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p -- \
             "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
@@ -941,6 +955,75 @@ certificate_collect_manual_evidence() {
     printf 'Certificate repair requires manual intervention; evidence_directory=%s\n' "$workstation_evidence" >&2
 }
 
+application_operator_check() {
+    local app_operation app_status=1 app_deadline=$((SECONDS + 600))
+    app_operation=$(sed -n 's/^action: //p' "$operation_spec")
+    if [[ "$app_operation" = none && "$invocation_mode" = --production-path-test ]]; then
+        app_operation=local-qualification
+    fi
+    [[ "$app_operation" =~ ^[a-z0-9-]+$ && "$app_operation" != none ]] || return 1
+    python3 - "$workstation_evidence" "$payload_stage/operator/verify-proxy-login.cjs" "$app_operation" "$$" <<'PY'
+import hashlib,json,pathlib,sys,time
+root,client,operation=pathlib.Path(sys.argv[1]),pathlib.Path(sys.argv[2]),sys.argv[3]
+pid=int(sys.argv[4]);start=pathlib.Path(f'/proc/{pid}/stat').read_text().rsplit(')',1)[1].split()[19]
+with (root/'operator-window.json').open('x') as stream:
+    json.dump(dict(operation=operation,status='open',deadline=time.time()+600,controller_pid=pid,controller_start=start,
+                   client_sha256=hashlib.sha256(client.read_bytes()).hexdigest()),stream)
+PY
+    [[ -s "$workstation_evidence/operator-window.json" ]] || return 1
+    printf 'Private operator command: python3 %q %q %q\n' \
+        "$payload_stage/operator/private-proxy-login.py" "$app_operation" "$workstation_evidence/operator-receipt.json"
+    while ((SECONDS < app_deadline)); do
+        if [[ -e "$workstation_evidence/operator-receipt.json" ]]; then
+            if python3 -I "$payload_stage/operator/private-proxy-login.py" --verify-receipt \
+                "$workstation_evidence/operator-receipt.json"; then
+                app_status=0
+            fi
+            break
+        fi
+        sleep 2
+    done
+    python3 - "$workstation_evidence/operator-window.json" <<'PY'
+import json,pathlib,sys
+path=pathlib.Path(sys.argv[1]);record=json.loads(path.read_text());record['status']='closed'
+path.write_text(json.dumps(record)+'\n')
+PY
+    return "$app_status"
+}
+
+application_readback() {
+    local app_role=$1 app_stream=$2 app_dir app_file
+    app_dir=$workstation_evidence/$app_role-application
+    install -d -m 0700 "$app_dir"
+    for app_file in application-cycles.tsv application-http.tsv application-health-journal.stdout \
+        application-health-journal.stderr application-health-journal.status; do
+        extract_readback_file "$app_stream" "$app_file" "$app_dir/$app_file" || return 1
+    done
+    python3 -I - "$app_dir" <<'PY'
+import pathlib,sys
+root=pathlib.Path(sys.argv[1])
+rows=[line.split('\t') for line in (root/'application-cycles.tsv').read_text().splitlines()]
+units={'caddy-pihole-web-health.service','caddy-sync-health.service'}
+assert rows and all(len(row)==4 and row[0] in units for row in rows)
+for unit in units:
+    values=[tuple(map(int,row[1:])) for row in rows if row[0]==unit]
+    assert len(values)>=2 and [v[2] for v in values]==list(range(1,len(values)+1))
+    starts=[v[0] for v in values]
+    assert starts==sorted(set(starts)) and all(end>=start>0 for start,end,_ in values)
+http=[tuple(map(int,line.split('\t'))) for line in (root/'application-http.tsv').read_text().splitlines()]
+assert len(http)>=4 and all(len(row)==3 and row[1] in (4,6) and row[2]==200 for row in http)
+for family in (4,6):
+    times=[row[0] for row in http if row[1]==family]
+    assert times==sorted(times) and times[-1]-times[0]>=65
+journal=(root/'application-health-journal.stdout').read_text()
+assert len(journal.splitlines())<100
+assert not (root/'application-health-journal.stderr').read_text()
+status=(root/'application-health-journal.status').read_text().strip()
+assert status=='0' or (status=='1' and not journal)
+assert not any(word in journal.lower() for word in ('unhealthy','failed','unexpected status','timeout','timed out','error'))
+PY
+}
+
 run_certificate_release_live() {
     local cert_status=0 cert_target=- cert_published=false cert_contained=false
     local cert_target_file=$workstation_evidence/certificate-target.tsv
@@ -1016,6 +1099,24 @@ run_certificate_release_live() {
         fi
     fi
 
+    if [[ "$cert_status" = 0 && "$operation_scope" = application-onboarding ]]; then
+        application_operator_check || cert_status=$?
+        if [[ "$cert_status" = 0 ]]; then
+            remote_transaction application-observe-b "$node_b_host" certificate-application-observe \
+                node-b "$node_b_payload" "$node_b_evidence" "$cert_target" || cert_status=$?
+        fi
+        if [[ "$cert_status" = 0 ]]; then
+            remote_transaction application-observe-a "$node_a_host" certificate-application-observe \
+                node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || cert_status=$?
+        fi
+        readback application-result-a "$node_a_host" "$node_a_evidence" || cert_status=1
+        readback application-result-b "$node_b_host" "$node_b_evidence" || cert_status=1
+        if [[ "$cert_status" = 0 ]]; then
+            application_readback node-a "$workstation_evidence/application-result-a-readback.stdout" || cert_status=1
+            application_readback node-b "$workstation_evidence/application-result-b-readback.stdout" || cert_status=1
+        fi
+    fi
+
     if [[ "$cert_status" != 0 ]]; then
         if [[ "$cert_published" = true ]]; then
             remote_transaction certificate-contain-a "$node_a_host" certificate-contain-publication node-a "$node_a_payload" "$node_a_evidence" "$cert_target" || {
@@ -1073,7 +1174,7 @@ run_live() {
     local serving_health_phase_status=0
     local serving_health_target_revision=
 
-    if [[ "$operation_scope" = certificate-release-repair ]]; then
+    if release_operation; then
         run_certificate_release_live
         return
     fi
@@ -2951,19 +3052,21 @@ regular_file "$transaction"
 regular_file "$operation_spec"
 [[ "$(sha256sum "$transaction" | awk '{ print $1 }')" = "$transaction_sha256" ]]
 [[ "$(sha256sum "$operation_spec" | awk '{ print $1 }')" = "$operation_sha256" ]]
-if [[ "${CADDY_CERTIFICATE_TEST_SCOPE:-0}" = 1 ]]; then
+if [[ "${CADDY_CERTIFICATE_TEST_SCOPE:-0}" != 0 ]]; then
+    [[ "$CADDY_CERTIFICATE_TEST_SCOPE" = 1 || "$CADDY_CERTIFICATE_TEST_SCOPE" = application ]]
     [[ "$invocation_mode" = --production-path-test && "${CADDY_VALIDATION_CONTAINER:-}" = 1 && -f /run/.containerenv ]]
     operation_scope=certificate-release-repair
+    [[ "$CADDY_CERTIFICATE_TEST_SCOPE" != application ]] || operation_scope=application-onboarding
 elif [[ "${CADDY_CONTROLLED_EXERCISE_CONTRACT_ONLY:-0}" = 1 ]]; then
     operation_scope=controlled-serving-failure-exercise
 else
     operation_scope=$(sed -n 's/^scope: //p' "$operation_spec")
 fi
 readonly operation_scope
-if [[ "$operation_scope" = certificate-release-repair && "$invocation_mode" = live ]]; then
+if release_operation && [[ "$invocation_mode" = live ]]; then
     grep -Fxq 'status: defined-unexecuted' "$operation_spec"
 fi
-[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health|certificate-release-repair)$ ]]
+[[ "$operation_scope" =~ ^(pihole-web-health-unit-only|notification-standardization-only|external-notification-attribution-read-only|controlled-serving-failure-exercise|full-serving-health|certificate-release-repair|application-onboarding)$ ]]
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)
@@ -3002,7 +3105,7 @@ if [[ -n "${CADDY_CERTIFICATE_TEST_INPUTS:-}${CADDY_CERTIFICATE_TEST_SSH:-}${CAD
 fi
 build_payload
 write_remote_programs
-if [[ "$invocation_mode" = --production-path-test && "$operation_scope" = certificate-release-repair ]]; then
+if [[ "$invocation_mode" = --production-path-test ]] && release_operation; then
     if [[ "${CADDY_CERTIFICATE_FIXTURE_EXECUTE:-0}" = 1 ]]; then
         run_certificate_release_live
     else

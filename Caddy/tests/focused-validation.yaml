@@ -433,7 +433,10 @@
       "description": "Certificate inventory repair, real publication and standby-first deployment with rollback.",
       "path_patterns": [
         "Caddy/manifests/certificate-release-inputs.tsv",
-        "Caddy/tests/certificate-release-regression.*"
+        "Caddy/tests/certificate-release-regression.*",
+        "Caddy/tests/application-*.py",
+        "Caddy/tests/run-application-qualification.py",
+        "Caddy/tests/Containerfile.application"
       ],
       "debian_path_patterns": [
         "Caddy/tests/certificate-release-regression.*"
