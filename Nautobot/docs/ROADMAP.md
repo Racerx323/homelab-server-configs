@@ -112,10 +112,16 @@ The approved five-file logical-reference promotion was installed on November 9.
 Independent readback passed all 21 checks: exact runtime bytes and permissions,
 all 18 retained/staging trees unchanged, HTTP 200, unchanged application invocations,
 state and enabled timer identities. No rollback was needed; the claim is consumed.
-Next: read the first promoted native scheduled cycle on November 10 after 04:05 CST,
-including its snapshot/reference pair and reference-preserving disposal. Keep the
-operation pending and accepted live state unchanged until those checks pass.
-The calendar remains 03:20 CST; do not replay the installation bundle.
+The November 10 first promoted cycle is accepted: native dispatch at 03:20 CST,
+23.0-second capture, verified writer resume within 292.4 seconds and completion at
+03:25:28 CST. All 27 independent checks passed, including the remote snapshot's
+embedded reference for 245 tables and 481 migrations, full integrity, retained
+logical receipts, credential/helper cleanup and preservation of all 18 older trees.
+Healthy-to-healthy notification state is unchanged; no new alert was required.
+Accepted live state now records the promoted runtime and exact snapshot/reference.
+Next: obtain separate terminal commit/tag/push archival approval; retain the consumed
+operation until archive verification. The calendar remains 03:20 CST; do not replay
+the installation bundle. Monthly restore requires its own later approval.
 See `manifests/logical-promotion-review.json` and `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
@@ -133,8 +139,10 @@ All 35 focused regressions passed, with 14 independent resource-absence/inactivi
 checks. Private evidence: `nautobot-restore-local-monthly-20261109/`.
 These are local x86_64 results using synthetic data and a local database-probe
 adapter, not production snapshot, ARM64 timing, host-monitor or monthly acceptance.
-The production snapshot remains unbound; the active promotion operation and its
-first-cycle gate are unchanged. No second pending operation was created.
+The November 10 production snapshot/reference pair is now accepted for later
+monthly restore selection. No monthly restore operation is bound or authorized;
+the accepted promotion still awaits terminal archival. No second pending operation
+was created.
 
 The exact accepted preservation snapshot was retrieved and imported into isolated
 ARM64 containers. Complete pre-start logical equality, the 481-entry migration
@@ -203,7 +211,7 @@ scheduled-cycle acceptance. Earlier stage observations retain their original sco
 | Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Preserve the archived acceptance and keep directory-only media, the writer window and approved schedule unchanged. |
 | Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial and all five accepted nightly cycles. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
-| Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Logical-reference promotion is installed; its first scheduled snapshot/reference pair awaits acceptance. No monthly operation or timer is installed. | After the active operation is archived, bind an accepted recurring snapshot, contemporaneous logical reference, isolation, supervision and capacity/deadlines. Retained-payload disposal remains separate. |
+| Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Logical-reference promotion and its November 10 scheduled snapshot/reference pair are accepted; terminal archival remains pending. No monthly operation or timer is installed. | After the active operation is archived, bind an accepted recurring snapshot, contemporaneous logical reference, isolation, supervision and capacity/deadlines. Retained-payload disposal remains separate. |
 | Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The integrated missed/recovery messages reached all three destinations without duplicates. Aaron owns existing host/user-manager monitoring. | Preserve the accepted delivery evidence. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 
@@ -395,7 +403,7 @@ remains. Private evidence: `nautobot-logical-capture-preparation-20261109/accept
 The capture-only operation is archived and its consumed definition is cleared.
 Its payload and logical receipts remain retained; no upload, disposal or durable
 update occurred during that trial. The separately approved five-file durable update
-is installed and independently verified; its first scheduled cycle remains pending.
+and its first scheduled cycle are independently accepted; terminal archival remains pending.
 Accept a newly captured snapshot/reference pair before monthly restore approval.
 Existing snapshots cannot acquire an independent reference retrospectively.
 

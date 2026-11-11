@@ -2359,6 +2359,89 @@
           "pattern": "^[0-9a-f]{40}$"
         }
       }
+    },
+    "recurring_logical_promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "scope",
+        "bundle_sha256",
+        "accepted_at",
+        "runtime_sha256",
+        "repository_id",
+        "snapshot_id",
+        "cycle_date",
+        "logical_reference_sha256",
+        "logical_reference_capture_deployed",
+        "independent_acceptance",
+        "full_integrity_each_upload",
+        "monthly_restore_accepted",
+        "terminal_archival",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "bundle_sha256": {
+          "$ref": "#/properties/recurring_schedule/properties/bundle_sha256"
+        },
+        "accepted_at": {
+          "$ref": "#/properties/recurring_schedule/properties/accepted_at"
+        },
+        "runtime_sha256": {
+          "$ref": "#/properties/recurring_schedule/properties/runtime_sha256"
+        },
+        "repository_id": {
+          "$ref": "#/properties/recurring_schedule/properties/repository_id"
+        },
+        "full_integrity_each_upload": {
+          "$ref": "#/properties/recurring_schedule/properties/full_integrity_each_upload"
+        },
+        "monthly_restore_accepted": {
+          "$ref": "#/properties/recurring_schedule/properties/monthly_restore_accepted"
+        },
+        "terminal_archival": {
+          "$ref": "#/properties/recurring_schedule/properties/terminal_archival"
+        },
+        "evidence_sha256": {
+          "$ref": "#/properties/recurring_schedule/properties/evidence_sha256"
+        },
+        "terminal_tag": {
+          "$ref": "#/properties/recurring_schedule/properties/terminal_tag"
+        },
+        "archive_commit": {
+          "$ref": "#/properties/recurring_schedule/properties/archive_commit"
+        },
+        "tag_object": {
+          "$ref": "#/properties/recurring_schedule/properties/tag_object"
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^nautobot-recurring-logical-promotion-v[1-9][0-9]*$"
+        },
+        "status": {
+          "const": "first_scheduled_cycle_accepted"
+        },
+        "scope": {
+          "const": "durable_logical_reference_capture_resume_upload_integrity_disposal"
+        },
+        "snapshot_id": {
+          "$ref": "#/properties/recurring_schedule/properties/repository_id"
+        },
+        "cycle_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "logical_reference_sha256": {
+          "$ref": "#/properties/recurring_schedule/properties/repository_id"
+        },
+        "logical_reference_capture_deployed": {
+          "const": true
+        },
+        "independent_acceptance": {
+          "const": true
+        }
+      }
     }
   }
 }

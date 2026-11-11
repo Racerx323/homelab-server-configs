@@ -794,3 +794,17 @@ Published annotated tag: `nautobot-recurring-logical-capture-v1-accepted`; archi
 the trial payload and reference remain retained. Durable promotion, a new accepted
 snapshot/reference pair, monthly restore and disposal remain separate. Never replay
 the consumed claim.
+
+## Durable logical-reference promotion acceptance
+
+`nautobot-recurring-logical-promotion-v1`: the approved five-file update and its
+November 10 native scheduled cycle are accepted. All 27 independent cycle checks
+passed: capture 23.0 seconds, verified resume 292.4 seconds, whole cycle 327.5 seconds;
+the exact snapshot/reference covers 245 tables and 481 migrations. All 18 older
+retained trees and prior remote snapshots remain preserved.
+Accepted identity: `manifests/accepted-live-state.yaml#recurring_logical_promotion`.
+Bundle: `a094e815bc69195881094431bc4fce92ff91e24ddf9f45d7225e084883e0d87d`.
+Terminal tag: `nautobot-recurring-logical-promotion-v1-accepted`; its peeled commit
+preserves the exact bundle and sanitized acceptance evidence. Publication and
+independent remote verification are pending; keep the consumed operation until
+verified. Monthly restore and retained-payload disposition remain separate.

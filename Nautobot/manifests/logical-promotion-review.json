@@ -1,13 +1,19 @@
 {
+  "record_roles": {
+    "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md; frozen promotion APPROVAL.md and candidate/operation.yaml",
+    "work_ledger": "manifests/logical-promotion-review.json (work_items); docs/ROADMAP.md (next action)",
+    "result": "manifests/logical-promotion-review.json (installation and first_cycle); manifests/accepted-live-state.yaml after acceptance",
+    "procedures": "docs/OPERATIONS.md"
+  },
   "schema_version": 1,
   "kind": "durable_logical_reference_promotion_preparation",
   "operation_id": "nautobot-recurring-logical-promotion-v1",
-  "status": "installed_independently_verified_awaiting_first_scheduled_cycle",
+  "status": "first_cycle_accepted_awaiting_terminal_publication",
   "prepared_at": "2026-11-09T17:06:21.595134+00:00",
   "execution_authorized": true,
   "execution_enabled": false,
   "new_target_contact": true,
-  "accepted_schedule_unchanged": true,
+  "accepted_schedule_unchanged": false,
   "runtime_files": [
     "scripts/logical_database.py",
     "scripts/recurring_logical.py",
@@ -135,5 +141,116 @@
       "manager-journal.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "next_action": "Read the first promoted native scheduled cycle on November 10 after 04:05 CST; no replay of this consumed bundle."
+  },
+  "work_items": [
+    {
+      "id": "W-001",
+      "state": "Resolved",
+      "issue": "Verify the approved five-file installation",
+      "closure": "Independent installation evidence passes",
+      "evidence": "installation (21 checks)"
+    },
+    {
+      "id": "W-002",
+      "state": "Resolved",
+      "issue": "Accept the first native promoted cycle",
+      "closure": "Frozen reader, dispatch journal, independent snapshot/reference and retained-state verification all pass",
+      "evidence": "first_cycle: all 27 acceptance checks passed; exact remote versions section verified"
+    },
+    {
+      "id": "W-003",
+      "state": "In progress",
+      "issue": "Preserve terminal operation before clearing it",
+      "closure": "Separate publication approval, annotated pushed archive and byte verification",
+      "next_action": "Publish the exact archive/tag, independently fetch and verify bytes, then clear consumed operation."
+    },
+    {
+      "id": "W-004",
+      "state": "Deferred",
+      "issue": "Monthly isolated restore",
+      "closure": "Separate exact accepted snapshot restore approval and live acceptance",
+      "owner": "Aaron",
+      "follow_up": "docs/ROADMAP.md monthly restore gap; local qualification is already published"
+    }
+  ],
+  "first_cycle": {
+    "accepted": true,
+    "accepted_at": "2026-11-11T05:32:52.371617+00:00",
+    "checks": {
+      "transports_passed": true,
+      "frozen_reader_passed": true,
+      "exact_runtime_hashes": true,
+      "runtime_file_permissions": true,
+      "runtime_directory_permissions": true,
+      "old_retained_trees_preserved": true,
+      "only_one_new_staging_tree": true,
+      "unit_links_unchanged": true,
+      "boot_unchanged": true,
+      "data_services_unchanged": true,
+      "timers_unchanged": true,
+      "native_calendar_dispatch": true,
+      "one_successful_primary_invocation": true,
+      "capture_within_deadline": true,
+      "cycle_within_deadline": true,
+      "probes_within_deadline": true,
+      "logical_reference_preserved": true,
+      "repository_verified": true,
+      "embedded_reference_and_hash_verified": true,
+      "prior_remote_snapshots_preserved": true,
+      "full_integrity_passed": true,
+      "successful_disposal_verified": true,
+      "credential_cleanup": true,
+      "no_helper_or_job_residue": true,
+      "health_passed": true,
+      "no_new_notification_required": true,
+      "inspection_did_not_change_cycle": true
+    },
+    "checks_passed": 27,
+    "cycle_date": "2026-11-10",
+    "snapshot_id": "f00e4515a6b285f0fdffcef0745e6bb029202ac4d4da22c5804b368bf3787db7",
+    "repository_id": "536d6d1dc29c7c6ea79eed972efb43cc37445fe0be73d0bf8518e2771394f8a9",
+    "run_root": "/var/lib/nautobot/protection/staging/nautobot-recurring.utflxxle",
+    "capture_seconds": 23.03521203994751,
+    "prepare_through_resume_seconds": 292.37314438819885,
+    "whole_cycle_seconds": 327.45112466812134,
+    "manager_started_at": "2026-11-10T09:20:00.939797+00:00",
+    "manager_finished_at": "2026-11-10T09:25:28.594458+00:00",
+    "logical_table_count": 245,
+    "migration_entries": 481,
+    "retained_trees_preserved": 18,
+    "new_notification": false,
+    "monthly_restore_accepted": false,
+    "evidence_directory": "/home/aaron/code/.local-evidence/nautobot-logical-promotion-preparation-20261109/first-cycle-20261110",
+    "evidence_sha256": {
+      "acceptance-checks.json": "ac9cb349d3a3ac3e6e5b7588fb6dc28789e07ca31e65e8a226e8ab497b4b7fd3",
+      "cycle-readback.json": "dcdfd1781e63b34337d5a456073924257bffad8966f5fe8d19c3ea8827fb86c1",
+      "cycle-readback.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "cycle-readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "independent-readback.json": "ce722c4bc6a66fa77bdfd43bc86b6c37bd56388917d09c4f365879f7bed8f587",
+      "independent-readback.py": "9d030c9a980279d477ec053cb5c59ec7130654852c5312a4c3e68dc5a70f16c7",
+      "independent-readback.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "independent-readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "manager-journal.jsonl": "fffc20c86ca313b0ce779632eb71a01bd76773a9ff91c1ff8dd593a3b4423612",
+      "manager-journal.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "manager-journal.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repository-readback.json": "97f6ea9500e64a4622e7f0c1f16bc43a0734c867b2da80e88f68655345c981e3",
+      "repository-readback.py": "a019c0be77ced2f2eaec8f76ce7ab20e2b61626a8c3aaa9700c4683b4bf893ae",
+      "repository-readback.status.json": "273e544435f3441c4d90d8d104f8a28065a7b55721f5eab48536ceee186f36d6",
+      "repository-readback.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verification.stdout": "8b23d1cb4dee5fa0445a306d3d05e500fe7759664172c22069284343f7625640",
+      "verify.py": "5cdbc80dbd16de0b047229a0f7b23ed550c2736fe2af9dfc98ccab52f425d3ca"
+    },
+    "logical_receipt_sha256": {
+      "logical-before.json": "ec1cfa534f7cf023777bf60dff7481e8a38daddf4969ceae6966514849b47faf",
+      "logical-capture.json": "9c78a55def7195ba39f1d4be666022c963ba599a3a01dbd2de63f86af8c2a122",
+      "logical-reference.json": "df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270"
+    }
+  },
+  "next_action": "Separate terminal commit/tag/push archival approval; keep consumed operation until archive byte verification. Monthly restore remains separate.",
+  "publication": {
+    "authorized": true,
+    "scope": "terminal archival commit, annotated tag, push, independent byte verification and closeout",
+    "tag": "nautobot-recurring-logical-promotion-v1-accepted",
+    "status": "in_progress"
   }
 }
