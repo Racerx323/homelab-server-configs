@@ -1,0 +1,11 @@
+all:
+  children:
+    webmin_diagnostic:
+      hosts:
+        j2-svpi3bmf:
+          ansible_host: 10.1.3.75
+          ansible_user: ama
+          ansible_python_interpreter: /usr/bin/python3
+          ansible_become_flags: -n
+          ansible_ssh_common_args: -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=8 -o UserKnownHostsFile={{
+            playbook_dir }}/../payload/known_hosts -o GlobalKnownHostsFile=/dev/null

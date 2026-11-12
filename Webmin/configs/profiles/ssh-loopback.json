@@ -1,0 +1,16 @@
+{
+  "port": "10000",
+  "bind": "127.0.0.1",
+  "sockets": "::1:10000",
+  "ipv6": "1",
+  "ssl": "0",
+  "ssl_redirect": "0",
+  "allow": "127.0.0.1 ::1",
+  "deny": "",
+  "allowusers": "ama",
+  "sudo": "1",
+  "listen": "",
+  "session": "1",
+  "atboot": "1",
+  "localauth": ""
+}

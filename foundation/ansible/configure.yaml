@@ -1,0 +1,81 @@
+- name: Validate the selected v8 list-mode Perl configuration
+  ansible.builtin.command:
+    argv:
+      - perl
+      - -c
+      - /etc/needrestart/conf.d/zzz-fleet-rpi-v8.conf
+  changed_when: false
+- name: Install the fleet default mail account configuration
+  ansible.builtin.copy:
+    src: '{{ fleet_mail_root }}/msmtp/configs/msmtprc'
+    dest: /etc/msmtprc
+    owner: root
+    group: root
+    mode: '0644'
+- name: Install fleet local-recipient aliases
+  ansible.builtin.copy:
+    src: '{{ fleet_mail_root }}/msmtp/configs/msmtp_aliases'
+    dest: /etc/aliases
+    owner: root
+    group: root
+    mode: '0644'
+- name: Disable the unnecessary incoming SMTP daemon
+  ansible.builtin.systemd_service:
+    name: msmtpd.service
+    state: stopped
+    enabled: false
+    daemon_reload: true
+- name: Check the real sendmail-compatible frontend
+  ansible.builtin.command:
+    argv:
+      - readlink
+      - -f
+      - /usr/sbin/sendmail
+  changed_when: false
+  register: fleet_sendmail
+- name: Require the package-owned msmtp frontend
+  ansible.builtin.assert:
+    that: fleet_sendmail.stdout == '/usr/bin/msmtp'
+- name: Resolve the default mail route without sending or authenticating
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/msmtp
+      - --file=/etc/msmtprc
+      - --account=default
+      - --pretend
+      - notify@mailrise.xyz
+  changed_when: false
+  no_log: true
+  register: fleet_mail_route
+- name: Require the desired Mailrise endpoint and non-authenticated LAN policy
+  ansible.builtin.assert:
+    that:
+      - '''host = mailrise.local.theama.co'' in fleet_mail_route.stdout'
+      - '''port = 8025'' in fleet_mail_route.stdout'
+      - '''auth = none'' in fleet_mail_route.stdout'
+      - '''tls = off'' in fleet_mail_route.stdout'
+  no_log: true
+- name: Configure and start the selected owner Webmin profiles
+  ansible.builtin.import_tasks: '{{ fleet_server_root }}/Webmin/ansible/configure.yaml'
+- name: Verify ownership of the temporary global package-start policy before removal
+  ansible.builtin.stat:
+    path: /usr/sbin/policy-rc.d
+    follow: false
+    checksum_algorithm: sha256
+    get_mime: false
+  register: fleet_owned_policy
+- name: Refuse removal if another policy replaced the owned control
+  ansible.builtin.assert:
+    that:
+      - fleet_owned_policy.stat.isreg
+      - not fleet_owned_policy.stat.islnk
+      - fleet_owned_policy.stat.uid == 0
+      - fleet_owned_policy.stat.mode == '0755'
+      - fleet_owned_policy.stat.checksum == (lookup('ansible.builtin.file', fleet_server_root + '/foundation/templates/deny-package-starts',
+        rstrip=false) | hash('sha256'))
+- name: Restore ordinary package-start policy after package/configuration success
+  ansible.builtin.file:
+    path: /usr/sbin/policy-rc.d
+    state: absent
+- name: Verify the running foundation and unchanged watchdog
+  ansible.builtin.import_tasks: accept.yaml

@@ -165,3 +165,17 @@ paths; it does not accept master polling, graphs, alerts or scheduled job health
 The master and job-success
 producers have independent reviews. Address allocation remains in `homelab-network/ipam`; DNS remains in
 `homelab-dns`. Host selection must not trigger any of those changes.
+
+## Uptime Kuma host foundation
+
+`prod/hosts/j2-svpi3bmf.yaml` selects the Uptime Kuma host and requested
+needrestart, Webmin, msmtp and watchdog coverage as desired configuration.
+Application sources and the [initial change record](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/PLAN.md)
+belong to `homelab-monitoring-observability/uptime-kuma`. Fleet components retain
+their current owners. Mailrise is the mail owner's desired default; notification
+services remain shared and are not selected for installation on this Pi.
+
+`selected_not_deployed` establishes no installation or live acceptance. Watchdog
+backend/device ownership still requires host qualification. This host's monitoring
+function does not select a Munin plugin profile or a Munin master role. Inventory
+selection does not authorize package/service, DNS, networking or proxy changes.

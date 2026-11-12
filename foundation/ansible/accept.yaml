@@ -1,0 +1,47 @@
+- name: Preserve adopted watchdog coverage
+  ansible.builtin.import_tasks: accept-watchdog.yaml
+- name: Verify the owner Webmin loopback and resource profile
+  ansible.builtin.import_tasks: '{{ fleet_server_root }}/Webmin/ansible/accept.yaml'
+  tags: [webmin-accept]
+- name: Check mail transport availability without sending a message
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - -c
+      - import smtplib; s=smtplib.SMTP('mailrise.local.theama.co',8025,timeout=8); assert s.quit()[0]==221; print('SMTP
+        greeting/QUIT only; no message submitted')
+  changed_when: false
+  register: fleet_mail_connectivity
+- name: Observe one list-only scan under staged admission
+  ansible.builtin.import_tasks: guarded-scan.yaml
+- name: Require meaningful reporting for the actual running kernel
+  ansible.builtin.assert:
+    that:
+      - '(''NEEDRESTART-KCUR: '' + memory_controller.expected_kernel) in fleet_needrestart_report.stdout'
+      - '''NEEDRESTART-KSTA: 0'' not in fleet_needrestart_report.stdout'
+      - '''NEEDRESTART-KSTA: '' in fleet_needrestart_report.stdout'
+- name: Retain one grouped non-secret foundation observation on the controller
+  ansible.builtin.copy:
+    content: '{{ {''label'': foundation_observation_label | default(''foundation-configured''), ''watchdog_vendor_sha256'':
+      fleet_watchdog_vendor.stat.checksum, ''watchdog_manager'': fleet_watchdog_manager.stdout_lines, ''webmin_listeners'':
+      fleet_webmin_listeners.stdout_lines, ''webmin_service'': fleet_webmin_unit.stdout_lines, ''webmin_cgroup'':
+      fleet_webmin_cgroup.stdout | from_json, ''memory_available_kib'': (fleet_scan_guard.stdout | from_json).before_observer.host_available_kib, ''needrestart_report'':
+      fleet_needrestart_report.stdout_lines, ''smtp_greeting_quit'': fleet_mail_connectivity.stdout, ''messages_sent'':
+      false} | to_nice_json }}'
+    dest: '{{ operation_evidence_directory }}/{{ foundation_observation_label | default("foundation-configured")
+      }}.json'
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+- name: Confirm the fleet timezone before permitting the daily schedule
+  ansible.builtin.command:
+    argv:
+      - timedatectl
+      - show
+      - --property=Timezone
+      - --value
+  changed_when: false
+  register: fleet_timezone
+- name: Require the existing fleet timezone
+  ansible.builtin.assert:
+    that: fleet_timezone.stdout == foundation.timezone

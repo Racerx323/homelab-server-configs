@@ -5,6 +5,8 @@ useDefault = true
 description = "Ignore exact public integrity pins"
 regexTarget = "match"
 regexes = [
+  # SHA-256 verified against the archived Uptime Kuma onboarding outer runner.
+  '''8e9e63a4a6c03a7d5e3d1fd5b50e4c60fa7a52db2b65d287798c8c671e47d818''',
   # SHA-256 of bounded journal-access evidence; independently verified, not a credential.
   '''116b2f2b3e4957bf0bac81adbfddd9ead361b6b46cb70d08bee5e84de58a0f47''',
   # Verified SHA-256 of the nonsecret capture authorization record, not a credential.

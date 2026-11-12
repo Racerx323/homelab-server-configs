@@ -8,7 +8,6 @@ stdout and stderr for cron as a second reporting path.
 
 ## Requirements
 
-- Debian 12
 - Root access
 - `needrestart`
 - `cron` for scheduled execution
@@ -161,3 +160,23 @@ sudo /usr/sbin/needrestart -bkl
 Cron reads `needrestart_check` independently of `/etc/crontab`; environment
 variables in `/etc/crontab` are not inherited. Keep `MAILTO`, `RECIPIENT`, and
 `SHELL` in the installed file.
+
+## Raspberry Pi v8 foundation profile
+
+`configs/profiles/rpi-v8-list-only.conf` selects only `*-v8` kernel images and
+list-only restart handling. It preserves the vendor kernelhints file; `-b` batch
+mode performs kernel checks independently of that hint setting. Do not select
+this profile for a 2712 kernel. The [foundation tasks](../foundation/README.md)
+require native reporting of the actual running kernel before schedule enablement.
+
+`ansible/enable-schedule.yaml` uses the existing producer and daily schedule with
+the foundation staged guard and a 96 MiB/no-swap unit for the producer and its children. It is enabled only after combined
+host/application acceptance, never during package setup. Normal job notifications
+use the fleet Mailrise default; no test message is part of local qualification.
+
+The guarded schedule checks 224 MiB available before starting its separate 32 MiB
+observer, then fresh 192 MiB before the scan and at least 96 MiB sampled reserve
+while it runs. It preserves the real producer and existing Mailrise/cron behavior.
+Insufficient headroom or overlap is a nonzero skipped run, never successful scan
+acceptance. The owner foundation README describes deadlines and evidence limits.
+No schedule is activated by this repository update.

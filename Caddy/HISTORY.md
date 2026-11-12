@@ -383,3 +383,15 @@ six-file release passes; missing and unregistered sources reject. The focused
 repository-policy profile passes. This is a local policy correction; the executed
 publisher, transaction, outer runner, operation and recipe remain byte-identical.
 Private application acceptance and DNS remain pending.
+
+### Primary-first terminal archive and neutral cleanup
+
+Tag: `caddy-uptime-kuma-primary-first-terminal-2026-11-11` (published and remote-verified).
+Commit: `e6fa5310d292e6cce2209902dc2c7e70b05adde7`.
+
+The local working tree now returns the archived operation to neutral: inactive
+operation, empty recipe and coverage, no successor, clean stream and current
+hash bindings. The consumed terminal manifest remains in the archive; accepted
+release state links that tag. Accepted production configuration and installed
+identities are unchanged. Cleanup is uncommitted and grants no live authority.
+Private login/WebSocket acceptance and DNS remain pending.

@@ -1,0 +1,31 @@
+- name: Install the qualified owner scan guard before scheduling
+  ansible.builtin.import_tasks: '{{ fleet_server_root }}/foundation/ansible/install-scan-guard.yaml'
+- name: Install the owner notification producer after foundation acceptance
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Needrestart/scripts/needrestart.sh'
+    dest: /usr/local/sbin/needrestart.sh
+    owner: root
+    group: root
+    mode: '0755'
+- name: Enable the owner daily schedule with a bounded scan scope
+  ansible.builtin.copy:
+    content: '{{ lookup(''ansible.builtin.file'', fleet_server_root + ''/Needrestart/scripts/needrestart_check'',
+      rstrip=false) | replace(''/usr/local/sbin/needrestart.sh 2>&1'', ''/usr/bin/timeout --signal=TERM --kill-after=5s 470s /usr/bin/python3 -I -B /usr/local/libexec/fleet/observe-needrestart.py --guard --producer 2>&1'') }}'
+    dest: /etc/cron.d/needrestart_check
+    owner: root
+    group: root
+    mode: '0644'
+- name: Require the existing cron daemon to remain active
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - is-active
+      - cron.service
+  changed_when: false
+- name: Confirm the selected producer is executable
+  ansible.builtin.command:
+    argv:
+      - test
+      - -x
+      - /usr/local/sbin/needrestart.sh
+  changed_when: false

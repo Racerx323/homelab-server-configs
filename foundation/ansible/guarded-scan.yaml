@@ -1,0 +1,67 @@
+---
+- ansible.builtin.import_tasks: install-scan-guard.yaml
+- name: Allocate protected scan evidence
+  ansible.builtin.tempfile:
+    state: directory
+    path: /run
+    prefix: needrestart-acceptance-
+  register: fleet_scan_directory
+- name: Run one guarded list-only scan and retain failures
+  block:
+    - name: Apply staged admission and observe the actual scan
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/timeout
+          - --signal=TERM
+          - --kill-after=5s
+          - 160s
+          - /usr/bin/python3
+          - -I
+          - -B
+          - /usr/local/libexec/fleet/observe-needrestart.py
+          - --guard
+          - '{{ fleet_scan_directory.path }}'
+      register: fleet_scan_guard
+      changed_when: true
+      failed_when: false
+    - name: Read the real kernel report for the existing foundation assertion
+      ansible.builtin.command:
+        argv: [cat, '{{ fleet_scan_directory.path }}/scan.stdout']
+      register: fleet_needrestart_report
+      changed_when: false
+      failed_when: false
+  always:
+    - name: Preserve guard command outcome before asserting acceptance
+      ansible.builtin.copy:
+        content: '{{ fleet_scan_guard | to_nice_json }}'
+        dest: '{{ operation_evidence_directory }}/scan-{{ foundation_observation_label | default("foundation-configured") }}-command.json'
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+    - name: Locate retained scan evidence
+      ansible.builtin.stat:
+        path: '{{ fleet_scan_directory.path }}/{{ item }}'
+      loop: [admission.json, observation.json, guard.json, scan.stdout, scan.stderr]
+      register: fleet_scan_receipts
+    - name: Retain existing scan receipts on the protected controller
+      ansible.builtin.fetch:
+        src: '{{ item.stat.path }}'
+        dest: '{{ operation_evidence_directory }}/scan-{{ foundation_observation_label | default("foundation-configured") }}-{{ item.item }}'
+        flat: true
+      loop: '{{ fleet_scan_receipts.results }}'
+      when: item.stat.exists
+    - name: Require a guard receipt with verified owned cleanup
+      ansible.builtin.assert:
+        that:
+          - fleet_scan_guard.stdout is defined
+          - "'cleanup_error' not in (fleet_scan_guard.stdout | from_json)"
+    - name: Remove only the allocated scan directory after evidence retention
+      ansible.builtin.file:
+        path: '{{ fleet_scan_directory.path }}'
+        state: absent
+- name: Require staged admission and scan acceptance
+  ansible.builtin.assert:
+    that:
+      - fleet_scan_guard.rc == 0
+      - (fleet_scan_guard.stdout | from_json).accepted
+      - fleet_needrestart_report.rc == 0

@@ -1,0 +1,94 @@
+- name: Independently require only the two loopback Webmin TCP listeners
+  ansible.builtin.command:
+    argv:
+      - ss
+      - -H
+      - -lnt
+      - sport = :10000
+  changed_when: false
+  register: fleet_webmin_listeners
+  until: (fleet_webmin_listeners.stdout_lines | map('split') | map(attribute=3) | list | sort) == ['127.0.0.1:10000',
+    '[::1]:10000']
+  retries: 30
+  delay: 2
+- name: Refuse Webmin UDP discovery exposure
+  ansible.builtin.command:
+    argv:
+      - ss
+      - -H
+      - -lnu
+      - sport = :10000
+  changed_when: false
+  register: fleet_webmin_udp
+- name: Require no Webmin discovery socket
+  ansible.builtin.assert:
+    that: fleet_webmin_udp.stdout | trim == ''
+- name: Check both actual Webmin loopback HTTP paths
+  ansible.builtin.uri:
+    url: '{{ item }}'
+    status_code:
+      - 200
+      - 302
+    follow_redirects: none
+    use_proxy: false
+    return_content: false
+  loop:
+    - http://127.0.0.1:10000/session_login.cgi
+    - http://[::1]:10000/session_login.cgi
+  register: fleet_webmin_http
+- name: Read the real Webmin resource limits and service state
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - show
+      - webmin.service
+      - --property=ActiveState,SubState,MemoryCurrent,MemoryMax,MemorySwapMax,NRestarts
+  changed_when: false
+  register: fleet_webmin_unit
+- name: Require healthy, bounded Webmin operation
+  ansible.builtin.assert:
+    that:
+      - '''ActiveState=active'' in fleet_webmin_unit.stdout_lines'
+      - '''SubState=running'' in fleet_webmin_unit.stdout_lines'
+      - '''MemoryMax=201326592'' in fleet_webmin_unit.stdout_lines'
+      - '''MemorySwapMax=0'' in fleet_webmin_unit.stdout_lines'
+      - '''NRestarts=0'' in fleet_webmin_unit.stdout_lines'
+- name: Require disabled automatic dashboard package collection
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - '{{ foundation.work_directory }}/configure-miniserv.py'
+      - --config
+      - /etc/webmin/system-status/config
+      - --policy
+      - '{{ foundation.work_directory }}/webmin-system-status-policy.json'
+      - --verify
+  changed_when: false
+- name: Read actual Webmin cgroup memory enforcement independently
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - -c
+      - 'import json,subprocess
+
+        from pathlib import Path
+
+        name=subprocess.check_output([''systemctl'',''show'',''webmin.service'',''--property=ControlGroup'',''--value''],text=True).strip()
+
+        assert name.startswith(''/''), ''missing service cgroup''
+
+        root=Path(''/sys/fs/cgroup'')/name.lstrip(''/'')
+
+        row={key:(root/key).read_text().strip() for key in [''memory.max'',''memory.high'',''memory.swap.max'',''memory.current'',''memory.peak'',''memory.events'']}
+
+        assert row[''memory.max'']==''201326592'' and row[''memory.high'']==''134217728'' and row[''memory.swap.max'']==''0''
+
+        events=dict(line.split() for line in row[''memory.events''].splitlines())
+
+        assert events.get(''oom_kill'')==''0'', ''Webmin OOM kill observed''
+
+        print(json.dumps(row))
+
+        '
+  changed_when: false
+  register: fleet_webmin_cgroup

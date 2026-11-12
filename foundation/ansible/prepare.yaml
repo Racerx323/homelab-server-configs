@@ -1,0 +1,93 @@
+- name: Require no package-start policy before installing the owned temporary control
+  ansible.builtin.stat:
+    path: /usr/sbin/policy-rc.d
+    follow: false
+  register: fleet_policy_before
+- name: Refuse to overwrite a package-start policy
+  ansible.builtin.assert:
+    that: not fleet_policy_before.stat.exists
+- name: Create the persistent Webmin first-start guard directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/webmin.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: Contain Webmin before its package postinst can request a direct start
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
+    content: '[Unit]
+
+      ConditionPathExists=/etc/webmin/.installation-accepted
+
+      StartLimitIntervalSec=300
+
+      StartLimitBurst=3
+
+      [Service]
+
+      MemoryHigh=128M
+
+      MemoryMax=192M
+
+      MemorySwapMax=0
+
+      TasksMax=128
+
+      CPUQuota=100%
+
+      KillMode=control-group
+
+      OOMPolicy=stop
+
+      TimeoutStartSec=60
+
+      TimeoutStopSec=20
+
+      SendSIGKILL=yes
+
+      '
+    owner: root
+    group: root
+    mode: '0644'
+- name: Install temporary package-start denial
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/foundation/templates/deny-package-starts'
+    dest: /usr/sbin/policy-rc.d
+    owner: root
+    group: root
+    mode: '0755'
+- name: Install the reviewed list-only v8 kernel reporting policy
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Needrestart/configs/profiles/rpi-v8-list-only.conf'
+    dest: /etc/needrestart/conf.d/zzz-fleet-rpi-v8.conf
+    owner: root
+    group: root
+    mode: '0644'
+- name: Reload the manager so direct package start requests see the guard
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+- name: Create isolated package-hook configuration directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  loop:
+    - '{{ foundation.work_directory }}'
+    - '{{ foundation.work_directory }}/empty-listchanges'
+- name: Scope apt-listchanges configuration to this package operation
+  ansible.builtin.template:
+    src: '{{ fleet_server_root }}/foundation/templates/apt-install.conf.j2'
+    dest: '{{ foundation.work_directory }}/apt-install.conf'
+    owner: root
+    group: root
+    mode: '0600'
+- name: Suppress package-install emails without editing the shared mail profile
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/foundation/templates/listchanges.conf'
+    dest: '{{ foundation.work_directory }}/listchanges.conf'
+    owner: root
+    group: root
+    mode: '0600'

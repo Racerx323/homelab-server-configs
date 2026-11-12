@@ -1,0 +1,38 @@
+- name: Read the vendor watchdog policy identity
+  ansible.builtin.stat:
+    path: /usr/lib/systemd/system.conf.d/40-rpi-enable-watchdog.conf
+    follow: false
+    checksum_algorithm: sha256
+    get_mime: false
+  register: fleet_watchdog_vendor
+- name: Read effective manager watchdog settings
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - show
+      - --property=WatchdogDevice,RuntimeWatchdogUSec,RebootWatchdogUSec,RuntimeWatchdogPreUSec,KExecWatchdogUSec
+  changed_when: false
+  register: fleet_watchdog_manager
+- name: Identify the manager's existing watchdog descriptor using metadata only
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - -c
+      - "import os,stat\nfrom pathlib import Path\nexpected=os.stat('/dev/watchdog0')\nassert stat.S_ISCHR(expected.st_mode)\n\
+        assert os.readlink('/proc/1/exe') == '/usr/lib/systemd/systemd'\nmatches=[]\nfor path in Path('/proc/1/fd').iterdir():\n\
+        \    try: row=path.stat()\n    except FileNotFoundError: continue\n    if stat.S_ISCHR(row.st_mode) and\
+        \ row.st_rdev==expected.st_rdev: matches.append(path.name)\nassert matches, 'PID 1 does not hold the observed\
+        \ watchdog'\nassert Path('/sys/class/watchdog/watchdog0/state').read_text().strip()=='active'\nassert Path('/sys/class/watchdog/watchdog0/timeout').read_text().strip()=='60'\n\
+        print('existing PID 1 watchdog owner and effective timeout verified')\n"
+  changed_when: false
+- name: Require unchanged adopted vendor watchdog policy
+  ansible.builtin.assert:
+    that:
+      - fleet_watchdog_vendor.stat.isreg
+      - not fleet_watchdog_vendor.stat.islnk
+      - fleet_watchdog_vendor.stat.checksum == foundation.watchdog_vendor_sha256
+      - '''WatchdogDevice=/dev/watchdog0'' in fleet_watchdog_manager.stdout_lines'
+      - '''RuntimeWatchdogUSec=1min'' in fleet_watchdog_manager.stdout_lines'
+      - '''RebootWatchdogUSec=2min'' in fleet_watchdog_manager.stdout_lines'
+      - '''RuntimeWatchdogPreUSec=0'' in fleet_watchdog_manager.stdout_lines'
+      - '''KExecWatchdogUSec=0'' in fleet_watchdog_manager.stdout_lines'

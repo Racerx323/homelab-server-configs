@@ -1,0 +1,15 @@
+---
+- name: Create the fleet helper directory
+  ansible.builtin.file:
+    path: /usr/local/libexec/fleet
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: Install the owner observer used by acceptance and scheduled scans
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/foundation/scripts/observe-needrestart.py'
+    dest: /usr/local/libexec/fleet/observe-needrestart.py
+    owner: root
+    group: root
+    mode: '0755'

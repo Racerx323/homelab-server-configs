@@ -1,47 +1,14 @@
 schema_version: 2
-action: 20261111-uptime-kuma-primary-first
-status: defined-unexecuted
-scope: application-onboarding
+action: none
+status: inactive
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 513486f8355e87c989150780d99db4c91314df91281260001f7dfe42b5ce6781
+transaction_sha256: df154b7b8c444285a2f0d6a97d8ab71fb14535f31b9acc2654ce1ec4c669db7c
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-state_contract_sha256: d4f0fe691cf8d0d6423e6016cbc6fa4a9a370e9f2e62456cc5c3def30045f1c8
+state_contract_sha256: f627cc80164434da0b0977ff8b3195becc48e8310c171d0d090c88b611453034
 production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 240fa27811c6383f1b1548aa462f9a37a13b2ad3bfd4a755f7d793ca2a6c3532
-certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
-certificate_inputs_sha256: cdf09e9fdc99626f7278af0bd15e291f4093ce30eafa45ede4f92ffd7b24d315
-coverage_sha256: fca6008b5fecfeda85461a16c5456f42842b2cc4a69a2450a4441f2927f2dbd7
-regression_sha256: d860dc80461ac31ab533039508fbca8b376ac0097c99a991a8120841017fe0c7
-fixture_sha256: ca023dff8c6fac326128392572cd0350aa05cea0338692a22122209745059607
-qualification_launcher_sha256: cc8e864cfcfacac6d8b9c1bba277b8c9b5f8691db9cd9378f19625df2c28d662
-authorization_policy_sha256: 66973fe7040da0c978e7a264f06a1d2b100968c87ad9b0ade08ac5560caba2fc
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
-targets:
-  - pi@10.1.0.53
-  - pi@10.1.0.54
-mutation:
-  - stage one protected temporary payload on each node
-  - run the pinned candidate publisher from the payload without replacing installed tools
-  - append only the bound Kuma fragment and preserve complete parent TLS and unrelated routes
-  - activate and verify Node A before exposing the same original-parent revision to managed replication
-  - independently validate and activate Node B through existing finalization and reconciliation
-acceptance:
-  - exact parent and immutable release integrity; accepted installed finalizer and reconciler identities
-  - trusted IPv4 and IPv6 new-route and existing health-route responses on both nodes
-  - matching final release manifests and trusted shared-endpoint responses
-  - at most sixty one-second secondary convergence polls; each HTTP request bounded to five seconds
-  - checked evidence readback and staging disposition; private login and WebSockets remain separate
-recovery:
-  - primary failure before exposure restores and verifies its preserved parent when mutation is known
-  - secondary post-selection failure restores its preserved parent when mutation is known
-  - secondary rejection or timeout does not reverse verified primary service; report partial and stop DNS progression
-  - final-check failure stops progression; no automatic cross-node rollback or replay
-  - uncertain mutation, lost evidence or unproved local recovery requires manual intervention
-excluded:
-  - DNS, backend changes, reboot, forced failover, certificate replacement and installed-tool replacement
-  - account reset, monitors, alerts, synthetic notifications, platform monitor cycles and timed human receipts
-  - unrelated route or radio ownership changes and Git publication
-live_execution: requires-exact-outer-sha256-approval
+live_execution: no-operation-defined

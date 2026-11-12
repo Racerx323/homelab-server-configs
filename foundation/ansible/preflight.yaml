@@ -1,0 +1,47 @@
+- name: Refuse existing mail or Webmin state in this initial host operation
+  ansible.builtin.stat:
+    path: '{{ item }}'
+    follow: false
+  loop:
+    - /etc/msmtprc
+    - /etc/aliases
+    - /etc/webmin
+    - /var/webmin
+    - /usr/share/webmin
+    - /tmp/.webmin
+    - /etc/pam.d/webmin
+    - /etc/cron.d/needrestart_check
+    - /usr/local/sbin/needrestart.sh
+    - /usr/sbin/policy-rc.d
+    - /etc/systemd/system/webmin.service.d
+    - /etc/needrestart/conf.d/zzz-fleet-rpi-v8.conf
+  register: fleet_initial_paths
+- name: Require reviewed absent owned paths
+  ansible.builtin.assert:
+    that: not item.stat.exists
+  loop: '{{ fleet_initial_paths.results }}'
+  loop_control:
+    label: '{{ item.item }}'
+- name: Read installed package baseline before any prerequisite mutation
+  ansible.builtin.stat:
+    path: /var/lib/dpkg/status
+    checksum_algorithm: sha256
+    get_mime: false
+  register: fleet_package_baseline
+- name: Refuse installed-package drift
+  ansible.builtin.assert:
+    that: fleet_package_baseline.stat.checksum == foundation.package_baseline_sha256
+- name: Verify the original watchdog policy without opening the device
+  ansible.builtin.import_tasks: accept-watchdog.yaml
+- name: Read the original vendor needrestart configuration
+  ansible.builtin.stat:
+    path: /etc/needrestart/conf.d/rpi-kernel.conf
+    follow: false
+    checksum_algorithm: sha256
+    get_mime: false
+  register: fleet_needrestart_vendor
+- name: Preserve the reviewed vendor kernel policy
+  ansible.builtin.assert:
+    that:
+      - fleet_needrestart_vendor.stat.checksum == foundation.needrestart_vendor_sha256
+      - not fleet_needrestart_vendor.stat.islnk

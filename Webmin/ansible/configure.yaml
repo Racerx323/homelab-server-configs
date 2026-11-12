@@ -1,0 +1,67 @@
+- name: Install the owner Webmin configuration helper
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Webmin/scripts/configure-miniserv.py'
+    dest: '{{ foundation.work_directory }}/configure-miniserv.py'
+    owner: root
+    group: root
+    mode: '0600'
+- name: Stage the selected Webmin SSH-only profile
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Webmin/configs/profiles/ssh-loopback.json'
+    dest: '{{ foundation.work_directory }}/webmin-policy.json'
+    owner: root
+    group: root
+    mode: '0600'
+- name: Configure Webmin before permitting the first start
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - '{{ foundation.work_directory }}/configure-miniserv.py'
+      - --config
+      - /etc/webmin/miniserv.conf
+      - --policy
+      - '{{ foundation.work_directory }}/webmin-policy.json'
+  changed_when: true
+- name: Stage the small-host dashboard collection profile
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Webmin/configs/profiles/system-status-small-host.json'
+    dest: '{{ foundation.work_directory }}/webmin-system-status-policy.json'
+    owner: root
+    group: root
+    mode: '0600'
+- name: Disable dashboard package collection without changing package maintenance
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - '{{ foundation.work_directory }}/configure-miniserv.py'
+      - --config
+      - /etc/webmin/system-status/config
+      - --policy
+      - '{{ foundation.work_directory }}/webmin-system-status-policy.json'
+  changed_when: true
+- name: Protect the installed Webmin configuration
+  ansible.builtin.file:
+    path: /etc/webmin/miniserv.conf
+    owner: root
+    group: root
+    mode: '0600'
+- name: Verify the native Webmin unit definition
+  ansible.builtin.command:
+    argv:
+      - systemd-analyze
+      - verify
+      - webmin.service
+  changed_when: false
+- name: Permit the already configured Webmin service
+  ansible.builtin.copy:
+    dest: /etc/webmin/.installation-accepted
+    content: 'Loopback profile configured; retain the persistent first-start guard. '
+    owner: root
+    group: root
+    mode: '0600'
+- name: Start the source-restricted Webmin administration service
+  ansible.builtin.systemd_service:
+    name: webmin.service
+    state: started
+    enabled: true
+    daemon_reload: true

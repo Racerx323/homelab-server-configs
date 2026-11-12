@@ -1,0 +1,310 @@
+---
+- name: Verify the frozen Webmin diagnostic before target contact
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars_files:
+    - ../operations/http-diagnostic.yaml
+  tasks:
+    - name: Require the selected operation and qualified native engine
+      ansible.builtin.assert:
+        that:
+          - not ansible_check_mode
+          - ansible_version.full == diagnostic.ansible_core_version
+          - diagnostic.id == (lookup('file', playbook_dir + '/../../../../bundle.json') | from_json).operation
+    - name: Reject undeclared inputs and symlinks
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/python3
+          - -c
+          - "import pathlib,sys; r=pathlib.Path(sys.argv[1]).resolve(); paths=list(r.rglob('*')); expected={x.split('  ',1)[1] for x in (r/'INPUTS.sha256').read_text().splitlines()}; assert not any(p.is_symlink() for p in paths); assert {str(p.relative_to(r)) for p in paths if p.is_file() and p.name!='INPUTS.sha256'}==expected"
+          - '{{ playbook_dir }}/../../../..'
+      changed_when: false
+    - name: Verify all frozen file identities
+      ansible.builtin.command:
+        argv: [/usr/bin/sha256sum, --check, --status, INPUTS.sha256]
+        chdir: '{{ playbook_dir }}/../../../..'
+      changed_when: false
+    - name: Read the protected controller evidence directory
+      ansible.builtin.stat:
+        path: '{{ diagnostic.evidence_directory }}'
+        follow: false
+      register: webmin_diag_evidence
+    - name: Require private controller evidence storage
+      ansible.builtin.assert:
+        that:
+          - webmin_diag_evidence.stat.isdir | default(false)
+          - not (webmin_diag_evidence.stat.islnk | default(true))
+          - webmin_diag_evidence.stat.mode == '0700'
+  tags: [controller-preflight]
+- name: Observe Webmin briefly and restore its stopped containment
+  hosts: webmin_diagnostic
+  gather_facts: false
+  become: true
+  any_errors_fatal: true
+  vars_files:
+    - ../operations/http-diagnostic.yaml
+  tasks:
+    - name: Verify the target and bounded diagnostic parameters
+      ansible.builtin.assert:
+        that:
+          - not ansible_check_mode
+          - inventory_hostname == diagnostic.hostname
+          - ansible_host == diagnostic.ipv4
+          - ansible_user == diagnostic.ssh_user
+          - diagnostic.duration_seconds == 180
+          - diagnostic.request_timeout_seconds == 75
+          - diagnostic.containment_seconds == 240
+      tags: [diagnostic-preflight]
+    - name: Read actual platform and package identity
+      ansible.builtin.command:
+        argv: '{{ item }}'
+      loop:
+        - [/usr/bin/hostname]
+        - [/usr/bin/uname, -m]
+        - [/usr/bin/dpkg-query, --show, '--showformat=${Version}', webmin]
+        - [/usr/bin/cat, /sys/fs/cgroup/cgroup.controllers]
+        - [/usr/bin/awk, '/^MemAvailable:/ {print $2}', /proc/meminfo]
+      changed_when: false
+      register: webmin_diag_identity
+      tags: [diagnostic-preflight]
+    - name: Read current Webmin state and unchanged hard limits
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - show
+          - webmin.service
+          - --property=LoadState,ActiveState,MainPID,UnitFileState,MemoryHigh,MemoryMax,MemorySwapMax,KillMode,OOMPolicy
+      changed_when: false
+      register: webmin_diag_before
+      tags: [diagnostic-preflight]
+    - name: Inspect the persistent guard and absent start permit
+      ansible.builtin.stat:
+        path: '{{ item }}'
+        follow: false
+        checksum_algorithm: sha256
+        get_mime: false
+      loop:
+        - /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
+        - /etc/webmin/.installation-accepted
+        - '{{ diagnostic.work_directory }}'
+        - /run/dbus/system_bus_socket
+      register: webmin_diag_paths
+      tags: [diagnostic-preflight]
+    - name: Read Webmin listeners before any change
+      ansible.builtin.command:
+        argv: '{{ item }}'
+      loop:
+        - [ss, -H, -lnt, 'sport = :10000']
+        - [ss, -H, -lnu, 'sport = :10000']
+      changed_when: false
+      register: webmin_diag_listeners_before
+      tags: [diagnostic-preflight]
+    - name: Refuse existing diagnostic units
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ item }}', --property=LoadState]
+      loop:
+        - webmin-http-diagnostic-containment.timer
+        - webmin-http-diagnostic-containment.service
+        - webmin-http-diagnostic-observer.service
+      changed_when: false
+      register: webmin_diag_existing_units
+      tags: [diagnostic-preflight]
+    - name: Require the reviewed stopped baseline without relaxing limits
+      ansible.builtin.assert:
+        that:
+          - webmin_diag_identity.results[0].stdout == diagnostic.hostname
+          - webmin_diag_identity.results[1].stdout == diagnostic.architecture
+          - webmin_diag_identity.results[2].stdout == diagnostic.webmin_version
+          - "'memory' in webmin_diag_identity.results[3].stdout.split()"
+          - webmin_diag_identity.results[4].stdout | int >= 344064
+          - "'LoadState=loaded' in webmin_diag_before.stdout_lines"
+          - "'ActiveState=inactive' in webmin_diag_before.stdout_lines or 'ActiveState=failed' in webmin_diag_before.stdout_lines"
+          - "'MainPID=0' in webmin_diag_before.stdout_lines"
+          - "'UnitFileState=disabled' in webmin_diag_before.stdout_lines"
+          - "'MemoryHigh=134217728' in webmin_diag_before.stdout_lines"
+          - "'MemoryMax=201326592' in webmin_diag_before.stdout_lines"
+          - "'MemorySwapMax=0' in webmin_diag_before.stdout_lines"
+          - "'KillMode=control-group' in webmin_diag_before.stdout_lines"
+          - "'OOMPolicy=stop' in webmin_diag_before.stdout_lines"
+          - webmin_diag_paths.results[0].stat.isreg | default(false)
+          - not (webmin_diag_paths.results[0].stat.islnk | default(true))
+          - webmin_diag_paths.results[0].stat.uid == 0
+          - webmin_diag_paths.results[0].stat.gid == 0
+          - webmin_diag_paths.results[0].stat.mode == '0644'
+          - webmin_diag_paths.results[0].stat.checksum == diagnostic.guard_sha256
+          - not webmin_diag_paths.results[1].stat.exists
+          - not webmin_diag_paths.results[2].stat.exists
+          - webmin_diag_paths.results[3].stat.issock | default(false)
+          - (webmin_diag_listeners_before.results | map(attribute='stdout') | list) == ['', '']
+          - (webmin_diag_existing_units.results | map(attribute='stdout') | unique | list) == ['LoadState=not-found']
+      tags: [diagnostic-preflight]
+    - name: Run the bounded diagnostic with independent disconnect containment
+      block:
+        - name: Create the private diagnostic staging directory
+          ansible.builtin.file:
+            path: '{{ diagnostic.work_directory }}'
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+        - name: Stage the exact observer and read-only settings profile
+          ansible.builtin.copy:
+            src: '{{ item.src }}'
+            dest: '{{ diagnostic.work_directory }}/{{ item.dest }}'
+            owner: root
+            group: root
+            mode: '0600'
+          loop:
+            - {src: '../scripts/diagnose-http.py', dest: observer.py}
+            - {src: '../configs/profiles/ssh-loopback.json', dest: profile.json}
+        - name: Verify managed configuration without exposing unmanaged settings
+          ansible.builtin.command:
+            argv: [python3, '{{ diagnostic.work_directory }}/observer.py', --verify-profile,
+                   /etc/webmin/miniserv.conf, --policy, '{{ diagnostic.work_directory }}/profile.json']
+          changed_when: false
+        - name: Arm native containment before permitting any service start
+          ansible.builtin.command:
+            argv:
+              - systemd-run
+              - --collect
+              - --unit=webmin-http-diagnostic-containment
+              - '--on-active={{ diagnostic.containment_seconds }}s'
+              - --timer-property=AccuracySec=1s
+              - --property=Type=oneshot
+              - --property=TimeoutStartSec=15s
+              - --property=TimeoutStopSec=30s
+              - '--property=ExecStopPost=/usr/bin/systemctl disable --now webmin.service'
+              - /usr/bin/rm
+              - -f
+              - --
+              - /etc/webmin/.installation-accepted
+          changed_when: true
+          register: webmin_diag_armed
+        - name: Independently require the active containment deadline
+          ansible.builtin.command:
+            argv: [systemctl, show, webmin-http-diagnostic-containment.timer,
+                   '--property=ActiveState,NextElapseUSecMonotonic']
+          changed_when: false
+          register: webmin_diag_timer
+        - name: Refuse a start without an armed timer
+          ansible.builtin.assert:
+            that:
+              - "'ActiveState=active' in webmin_diag_timer.stdout_lines"
+              - webmin_diag_timer.stdout is search('NextElapseUSecMonotonic=[1-9]')
+        - name: Create the owned temporary start permit
+          ansible.builtin.copy:
+            content: '{{ diagnostic.permit_content }}'
+            dest: /etc/webmin/.installation-accepted
+            owner: root
+            group: root
+            mode: '0600'
+        - name: Start Webmin without enabling future boot startup
+          ansible.builtin.command:
+            argv: [systemctl, start, webmin.service]
+          changed_when: true
+        - name: Capture bounded timing and cgroup evidence under a separate small budget
+          ansible.builtin.command:
+            argv:
+              - systemd-run
+              - --wait
+              - --pipe
+              - --collect
+              - --unit=webmin-http-diagnostic-observer
+              - --property=RuntimeMaxSec=190s
+              - --property=TimeoutStopSec=5s
+              - --property=MemoryMax=48M
+              - --property=MemorySwapMax=0
+              - --property=CPUQuota=20%
+              - /usr/bin/python3
+              - '{{ diagnostic.work_directory }}/observer.py'
+              - --duration
+              - '{{ diagnostic.duration_seconds | string }}'
+              - --request-timeout
+              - '{{ diagnostic.request_timeout_seconds | string }}'
+          register: webmin_diag_observation
+          changed_when: false
+          failed_when: false
+        - name: Preserve the grouped observation in protected controller storage
+          ansible.builtin.copy:
+            content: '{{ webmin_diag_observation | to_nice_json }}'
+            dest: '{{ diagnostic.evidence_directory }}/observation.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+      always:
+        - name: Inspect the temporary permit before removing it
+          ansible.builtin.stat:
+            path: /etc/webmin/.installation-accepted
+            follow: false
+            checksum_algorithm: sha256
+            get_mime: false
+          register: webmin_diag_permit
+          failed_when: false
+        - name: Remove only the matching owned permit
+          ansible.builtin.file:
+            path: /etc/webmin/.installation-accepted
+            state: absent
+          when:
+            - webmin_diag_permit.stat.isreg | default(false)
+            - webmin_diag_permit.stat.uid | default(-1) == 0
+            - webmin_diag_permit.stat.checksum | default('') == (diagnostic.permit_content | hash('sha256'))
+          failed_when: false
+        - name: Stop and disable Webmin even if observation failed
+          ansible.builtin.command:
+            argv: [systemctl, disable, --now, webmin.service]
+          changed_when: true
+          failed_when: false
+        - name: Independently inspect actual containment before cancelling fallback
+          ansible.builtin.command:
+            argv: '{{ item }}'
+          loop:
+            - [systemctl, show, webmin.service, '--property=ActiveState,MainPID,UnitFileState']
+            - [ss, -H, -lnt, 'sport = :10000']
+            - [ss, -H, -lnu, 'sport = :10000']
+          register: webmin_diag_after
+          changed_when: false
+        - name: Independently check the permit is absent
+          ansible.builtin.stat:
+            path: /etc/webmin/.installation-accepted
+            follow: false
+          register: webmin_diag_permit_after
+        - name: Preserve actual containment evidence even if it fails acceptance
+          ansible.builtin.copy:
+            content: '{{ {"service_and_sockets": webmin_diag_after, "permit": webmin_diag_permit_after} | to_nice_json }}'
+            dest: '{{ diagnostic.evidence_directory }}/containment.json'
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+        - name: Require actual stop before cancelling the independent fallback
+          ansible.builtin.assert:
+            that:
+              - "'MainPID=0' in webmin_diag_after.results[0].stdout_lines"
+              - "'UnitFileState=disabled' in webmin_diag_after.results[0].stdout_lines"
+              - "'ActiveState=inactive' in webmin_diag_after.results[0].stdout_lines or 'ActiveState=failed' in webmin_diag_after.results[0].stdout_lines"
+              - webmin_diag_after.results[1].stdout | trim == ''
+              - webmin_diag_after.results[2].stdout | trim == ''
+              - not webmin_diag_permit_after.stat.exists
+        - name: Cancel only this operation's armed fallback after verified containment
+          ansible.builtin.command:
+            argv: [systemctl, stop, webmin-http-diagnostic-containment.timer,
+                   webmin-http-diagnostic-containment.service]
+          when: webmin_diag_armed is defined and webmin_diag_armed.rc | default(-1) == 0
+          changed_when: true
+          failed_when: false
+        - name: Read the final fallback state
+          ansible.builtin.command:
+            argv: [systemctl, is-active, webmin-http-diagnostic-containment.timer]
+          register: webmin_diag_final_timer
+          changed_when: false
+          failed_when: false
+        - name: Require no armed fallback after successful containment
+          ansible.builtin.assert:
+            that: webmin_diag_final_timer.stdout | trim in ['inactive', 'failed', 'unknown']
+    - name: Require a complete bounded diagnostic receipt without claiming service acceptance
+      ansible.builtin.assert:
+        that:
+          - webmin_diag_observation.rc == 0
+          - (webmin_diag_observation.stdout | from_json).format == 'webmin-http-diagnostic-v1'
+          - (webmin_diag_observation.stdout | from_json).completed

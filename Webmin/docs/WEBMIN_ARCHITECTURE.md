@@ -87,3 +87,20 @@ Nautobot and other Restic consumers retain workload/storage acceptance and
 backup/restore criteria. Transport convergence does not clear those gates.
 Historical Nautobot remediation definitions and evidence remain retained; future
 transport operations use the shared component without modifying active observers.
+
+## Initial host administration profiles
+
+The proposed `ssh-loopback` profile provides initial administration through an
+operator-owned SSH tunnel, without another LAN listener or Caddy/DNS change.
+HTTP is confined to `127.0.0.1` and `::1`; SSH protects the remote transport.
+Disable automatic local-peer authentication (`localauth`); require existing
+`ama` sudo/PAM authentication and explicit private operator login
+acceptance. Do not create accounts or collect passwords as part of qualification.
+
+Native [foundation tasks](../../foundation/README.md) install the persistent
+first-start condition before package configuration, apply only managed miniserv
+settings, then permit startup. The owner helper preserves other keys and file
+metadata and refuses duplicate managed assignments. A failed operation removes
+the permit and contains the listener while retaining packages/configuration for
+review. No drive-temperature override, USB source patch or Nautobot-specific
+state is selected by this profile.

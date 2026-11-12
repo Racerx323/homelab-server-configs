@@ -1,0 +1,17 @@
+diagnostic:
+  id: webmin-http-diagnostic-20261110
+  ansible_core_version: 2.21.3
+  hostname: j2-svpi3bmf
+  ipv4: 10.1.3.75
+  ssh_user: ama
+  architecture: aarch64
+  webmin_version: '2.670'
+  guard_sha256: 2cf5ef73617a668b7f39bd8f75da0694735c9dfefa763661de3bd08a61c9071b
+  work_directory: /var/lib/webmin-http-diagnostic
+  evidence_directory: /home/aaron/code/.local-evidence/uptime-kuma/webmin-diagnostic-20261110-m2m4zwre/execution
+  duration_seconds: 180
+  request_timeout_seconds: 75
+  containment_seconds: 240
+  permit_content: 'webmin-http-diagnostic-20261110
+
+    '

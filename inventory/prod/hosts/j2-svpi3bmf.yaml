@@ -1,0 +1,51 @@
+---
+display_name: Uptime Kuma availability monitoring host
+
+functions:
+  - monitoring
+
+components:
+  - uptime_kuma
+  - needrestart
+  - webmin
+  - msmtp
+  - watchdog
+
+hardware:
+  platform: raspberry_pi_3b_plus
+  architecture: arm64
+  memory_mib: 1024
+  power:
+    source: poe
+
+storage:
+  root:
+    medium: microsd
+    raw_capacity_gb: 32
+    filesystem: ext4
+
+foundation:
+  deployment_status: selected_not_deployed
+  configuration_authority: homelab-server-configs
+  mail_configuration_authority: homelab-dns/msmtp
+  watchdog_backend_status: observed_vendor_systemd_pending_adoption
+  webmin_profile: ssh-loopback
+  needrestart_profile: rpi-v8-list-only
+
+application:
+  configuration_authority: homelab-monitoring-observability/uptime-kuma
+  deployment_status: selected_not_deployed
+
+notification:
+  configuration_authority: homelab-notification/apprise-api
+  deployment_status: existing_shared_services_not_selected_for_local_install
+
+component_runtime:
+  uptime_kuma: podman
+  needrestart: native
+  webmin: native
+  msmtp: native
+
+high_availability:
+  role: none
+  owns_virtual_ips: false

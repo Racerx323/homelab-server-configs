@@ -1,0 +1,59 @@
+- name: Remove only this initial operation's notification schedule
+  ansible.builtin.file:
+    path: /etc/cron.d/needrestart_check
+    state: absent
+- name: Request Webmin shutdown and disable automatic start
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - disable
+      - --now
+      - webmin.service
+  register: fleet_webmin_stop
+  failed_when: false
+  changed_when: fleet_webmin_stop.rc == 0
+- name: Remove the owned first-start permit while retaining the persistent guard
+  ansible.builtin.file:
+    path: /etc/webmin/.installation-accepted
+    state: absent
+- name: Observe actual Webmin TCP containment
+  ansible.builtin.command:
+    argv:
+      - ss
+      - -H
+      - -lnt
+      - sport = :10000
+  changed_when: false
+  register: fleet_webmin_contained
+- name: Require no remaining TCP listener after the stop request
+  ansible.builtin.assert:
+    that: fleet_webmin_contained.stdout | trim == ''
+- name: Independently verify service, UDP and permit containment
+  ansible.builtin.command:
+    argv: '{{ item }}'
+  loop:
+    - [systemctl, show, webmin.service, '--property=ActiveState,MainPID,UnitFileState']
+    - [ss, -H, -lnu, 'sport = :10000']
+  changed_when: false
+  register: fleet_webmin_containment_state
+- name: Require actual stopped and disabled state before cancelling fallback
+  ansible.builtin.assert:
+    that:
+      - "'MainPID=0' in fleet_webmin_containment_state.results[0].stdout_lines"
+      - "'UnitFileState=disabled' in fleet_webmin_containment_state.results[0].stdout_lines"
+      - "'ActiveState=inactive' in fleet_webmin_containment_state.results[0].stdout_lines or 'ActiveState=failed' in fleet_webmin_containment_state.results[0].stdout_lines"
+      - fleet_webmin_containment_state.results[1].stdout | trim == ''
+- name: Independently require the start permit is absent
+  ansible.builtin.stat:
+    path: /etc/webmin/.installation-accepted
+    follow: false
+  register: fleet_webmin_permit_after_stop
+- name: Require no remaining start permit
+  ansible.builtin.assert:
+    that: not fleet_webmin_permit_after_stop.stat.exists
+- name: Cancel owned correction fallback after proven containment
+  ansible.builtin.command:
+    argv: [systemctl, stop, webmin-foundation-containment.timer, webmin-foundation-containment.service]
+  when: preserve_installed_foundation | default(false)
+  changed_when: true
+  failed_when: false

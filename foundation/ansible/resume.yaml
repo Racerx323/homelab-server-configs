@@ -1,0 +1,77 @@
+- name: Guard corrected Webmin startup independently
+  tags: [webmin-startup-guard]
+  block:
+    - name: Require absent native correction fallback units
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ item }}', --property=LoadState, --value]
+      loop: [webmin-foundation-containment.timer, webmin-foundation-containment.service]
+      register: fleet_fallback_before
+      changed_when: false
+      failed_when: false
+    - name: Refuse a concurrent or consumed correction fallback
+      ansible.builtin.assert:
+        that: item.stdout == 'not-found'
+      loop: '{{ fleet_fallback_before.results }}'
+    - name: Arm an independent stop before permitting corrected Webmin startup
+      ansible.builtin.command:
+        argv:
+          - systemd-run
+          - --collect
+          - --unit=webmin-foundation-containment
+          - --on-active=300s
+          - --timer-property=AccuracySec=1s
+          - --property=Type=oneshot
+          - --property=TimeoutStopSec=30s
+          - --property=ExecStopPost=/usr/bin/systemctl disable --now webmin.service
+          - /usr/bin/rm
+          - -f
+          - --
+          - /etc/webmin/.installation-accepted
+      changed_when: true
+    - name: Read the independently armed correction deadline
+      ansible.builtin.command:
+        argv: [systemctl, show, webmin-foundation-containment.timer, '--property=ActiveState,NextElapseUSecMonotonic']
+      changed_when: false
+      register: fleet_fallback_armed
+    - name: Refuse service start without the independent fallback
+      ansible.builtin.assert:
+        that:
+          - "'ActiveState=active' in fleet_fallback_armed.stdout_lines"
+          - "'NextElapseUSecMonotonic=0' not in fleet_fallback_armed.stdout_lines"
+          - fleet_fallback_armed.stdout is search('NextElapseUSecMonotonic=.+')
+- name: Apply the selected owner Webmin profiles
+  ansible.builtin.import_tasks: '{{ fleet_server_root }}/Webmin/ansible/configure.yaml'
+  tags: [webmin-profile]
+- name: Accept the corrected foundation before application installation
+  ansible.builtin.import_tasks: accept.yaml
+- name: Preserve the adopted watchdog ownership
+  ansible.builtin.import_tasks: accept-watchdog.yaml
+- name: Release startup containment after acceptance
+  tags: [webmin-startup-release]
+  block:
+    - name: Disarm the correction fallback only after foundation acceptance
+      ansible.builtin.command:
+        argv: [systemctl, stop, webmin-foundation-containment.timer, webmin-foundation-containment.service]
+      changed_when: true
+      failed_when: false
+    - name: Independently read the released native fallback units
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ item }}', --property=ActiveState, --value]
+      loop: [webmin-foundation-containment.timer, webmin-foundation-containment.service]
+      changed_when: false
+      failed_when: false
+      register: fleet_fallback_released
+    - name: Require neither fallback unit to remain armed or running
+      ansible.builtin.assert:
+        that: item.stdout in ['', 'inactive', 'failed']
+      loop: '{{ fleet_fallback_released.results }}'
+    - name: Verify the accepted Webmin service survived fallback cancellation
+      ansible.builtin.command:
+        argv: [systemctl, show, webmin.service, '--property=ActiveState,MainPID']
+      changed_when: false
+      register: fleet_webmin_after_fallback
+    - name: Require accepted running state after timer cancellation
+      ansible.builtin.assert:
+        that:
+          - "'ActiveState=active' in fleet_webmin_after_fallback.stdout_lines"
+          - fleet_webmin_after_fallback.stdout is search('(?m)^MainPID=[1-9][0-9]*$')

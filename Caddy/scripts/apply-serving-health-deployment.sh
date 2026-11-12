@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=cdf09e9fdc99626f7278af0bd15e291f4093ce30eafa45ede4f92ffd7b24d315
+readonly certificate_inputs_sha256=38596e6469b6b21ba75786074c9cf6bb48c33fa734e2993e320a1ac652b2eef3
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision

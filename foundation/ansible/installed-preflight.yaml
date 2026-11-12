@@ -1,0 +1,117 @@
+---
+- name: Require the installed-foundation continuation mode
+  ansible.builtin.assert:
+    that:
+      - preserve_accepted_prerequisites
+      - preserve_installed_foundation
+      - operation.kind == 'continuation'
+      - continuation.predecessor_bundle_sha256 is match('^[0-9a-f]{64}$')
+      - continuation.diagnostic_bundle_sha256 is match('^[0-9a-f]{64}$')
+- name: Verify the unchanged adopted watchdog before correction
+  ansible.builtin.import_tasks: accept-watchdog.yaml
+- name: Inspect the preserved vendor needrestart policy
+  ansible.builtin.stat:
+    path: /etc/needrestart/conf.d/rpi-kernel.conf
+    follow: false
+    checksum_algorithm: sha256
+    get_mime: false
+  register: fleet_installed_vendor_needrestart
+- name: Refuse vendor needrestart policy drift
+  ansible.builtin.assert:
+    that:
+      - fleet_installed_vendor_needrestart.stat.isreg | default(false)
+      - not (fleet_installed_vendor_needrestart.stat.islnk | default(true))
+      - fleet_installed_vendor_needrestart.stat.checksum == foundation.needrestart_vendor_sha256
+- name: Read every accepted installed package pin
+  ansible.builtin.command:
+    argv: '{{ ["dpkg-query", "--show", "--showformat=${Package}=${Version}\n"] + (installation.packages | map("regex_replace", "=.*$", "") | list) }}'
+  changed_when: false
+  register: fleet_installed_pins
+- name: Require all accepted package versions without package actions
+  ansible.builtin.assert:
+    that: fleet_installed_pins.stdout_lines | sort == installation.packages | sort
+- name: Read package consistency without acquisition or changes
+  ansible.builtin.command:
+    argv: [/usr/bin/dpkg, --audit]
+  changed_when: false
+  register: fleet_package_audit
+- name: Refuse incomplete package configuration
+  ansible.builtin.assert:
+    that: fleet_package_audit.stdout | trim == ''
+- name: Read stopped Webmin state and limits
+  ansible.builtin.command:
+    argv: [systemctl, show, webmin.service, '--property=ActiveState,MainPID,UnitFileState,MemoryHigh,MemoryMax,MemorySwapMax,KillMode,OOMPolicy']
+  changed_when: false
+  register: fleet_installed_webmin
+- name: Require the contained reviewed Webmin baseline
+  ansible.builtin.assert:
+    that:
+      - "'MainPID=0' in fleet_installed_webmin.stdout_lines"
+      - "'ActiveState=inactive' in fleet_installed_webmin.stdout_lines or 'ActiveState=failed' in fleet_installed_webmin.stdout_lines"
+      - "'UnitFileState=disabled' in fleet_installed_webmin.stdout_lines"
+      - "'MemoryHigh=134217728' in fleet_installed_webmin.stdout_lines"
+      - "'MemoryMax=201326592' in fleet_installed_webmin.stdout_lines"
+      - "'MemorySwapMax=0' in fleet_installed_webmin.stdout_lines"
+      - "'KillMode=control-group' in fleet_installed_webmin.stdout_lines"
+      - "'OOMPolicy=stop' in fleet_installed_webmin.stdout_lines"
+- name: Read bounded absence and socket preconditions
+  ansible.builtin.command:
+    argv: '{{ item }}'
+  loop:
+    - [ss, -H, -lnt, 'sport = :10000']
+    - [ss, -H, -lnu, 'sport = :10000']
+  changed_when: false
+  register: fleet_installed_sockets
+- name: Require no Webmin listener before correction
+  ansible.builtin.assert:
+    that: item.stdout | trim == ''
+  loop: '{{ fleet_installed_sockets.results }}'
+- name: Inspect paths that must still be absent
+  ansible.builtin.stat:
+    path: '{{ item }}'
+    follow: false
+  loop:
+    - /etc/webmin/.installation-accepted
+    - /usr/sbin/policy-rc.d
+    - /etc/cron.d/needrestart_check
+    - /usr/local/sbin/needrestart.sh
+  register: fleet_installed_absence
+- name: Refuse unmanaged permits or a partially enabled schedule
+  ansible.builtin.assert:
+    that: not item.stat.exists
+  loop: '{{ fleet_installed_absence.results }}'
+- name: Read accepted foundation file identities without their contents
+  ansible.builtin.stat:
+    path: '{{ item.path }}'
+    follow: false
+    checksum_algorithm: sha256
+    get_mime: false
+  loop:
+    - path: /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
+      sha256: '{{ continuation.webmin_guard_sha256 }}'
+    - path: /etc/msmtprc
+      sha256: '{{ lookup("file", fleet_mail_root + "/msmtp/configs/msmtprc", rstrip=false) | hash("sha256") }}'
+    - path: /etc/aliases
+      sha256: '{{ lookup("file", fleet_mail_root + "/msmtp/configs/msmtp_aliases", rstrip=false) | hash("sha256") }}'
+    - path: /etc/needrestart/conf.d/zzz-fleet-rpi-v8.conf
+      sha256: '{{ lookup("file", fleet_server_root + "/Needrestart/configs/profiles/rpi-v8-list-only.conf", rstrip=false) | hash("sha256") }}'
+  register: fleet_installed_files
+- name: Require unchanged regular root-owned foundation inputs
+  ansible.builtin.assert:
+    that:
+      - item.stat.isreg | default(false)
+      - not (item.stat.islnk | default(true))
+      - item.stat.uid == 0
+      - item.stat.gid == 0
+      - item.stat.mode == '0644'
+      - item.stat.checksum == item.item.sha256
+  loop: '{{ fleet_installed_files.results }}'
+  loop_control:
+    label: '{{ item.item.path }}'
+- name: Retain grouped read-only package and service residue acceptance
+  ansible.builtin.copy:
+    content: '{{ {"installed_pins": fleet_installed_pins.stdout_lines, "webmin": fleet_installed_webmin.stdout_lines, "package_audit_empty": true, "foundation_files_unchanged": true} | to_nice_json }}'
+    dest: '{{ operation_evidence_directory }}/installed-foundation-preflight.json'
+    mode: '0600'
+  delegate_to: localhost
+  become: false

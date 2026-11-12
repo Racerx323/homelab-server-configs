@@ -1,0 +1,3 @@
+#!/bin/sh
+# Temporary reviewed package-install control; original path must be absent.
+exit 101
