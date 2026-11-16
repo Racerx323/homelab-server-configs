@@ -22,7 +22,7 @@ class ParentFlow(unittest.TestCase):
     def test_owner_failure_and_cleanup_order(self):
         original = yaml.safe_load((ROOT / 'Webmin/ansible/proxy-combined-trial.yaml').read_text())[0]
         parent = next(t for t in original['tasks'] if t.get('name') == 'Run the temporary owner stages')
-        for scenario in ('success', 'diagnostic-success', 'diagnostic-caddy-fail', 'snapshot-fail', 'paths-fail', 'workload-fail', 'caddy-fail', 'cleanup-unverified'):
+        for scenario in ('success', 'diagnostic-success', 'diagnostic-caddy-fail', 'diagnostic-clock-before-fail', 'diagnostic-clock-after-fail', 'diagnostic-coverage-fail', 'snapshot-fail', 'paths-fail', 'workload-fail', 'caddy-fail', 'cleanup-unverified'):
             with self.subTest(scenario=scenario), tempfile.TemporaryDirectory(prefix='webmin-parent-flow-') as name:
                 directory = Path(name); directory.chmod(0o700)
                 trace = directory / 'trace'; fixture = directory / 'adapter.py'
@@ -30,6 +30,10 @@ class ParentFlow(unittest.TestCase):
 os.umask(0o077)
 root=pathlib.Path(sys.argv[1]); scenario=sys.argv[2]; phase=sys.argv[3]
 with (root/'trace').open('a') as f:f.write(phase+'\\n')
+if scenario=='diagnostic-'+phase+'-fail':raise SystemExit(1)
+if phase=='resource':
+ (root/'resource-ready').write_text('ready')
+ (root/'resource-samples.jsonl').write_text('{}')
 if phase=='snapshot' and scenario=='snapshot-fail':raise SystemExit(1)
 if phase=='workload':
  (root/'workload-result.json').write_text(json.dumps({'browser_cleanup':{'group_gone':scenario!='cleanup-unverified'}}))
@@ -57,6 +61,13 @@ if phase=='caddy':
                             tasks[index] = command(replacements[task['ansible.builtin.import_tasks']]); continue
                         if task.get('name') == 'Retain bounded backend resource evidence before native restoration':
                             task['block'][0]['ansible.builtin.command'] = command('snapshot')['ansible.builtin.command']
+                        clock_phases = {'Capture bounded pre-operation clock uncertainty on all three hosts': 'clock-before',
+                                        'Capture bounded post-operation clock uncertainty': 'clock-after',
+                                        'Require request coverage within the observed resource interval': 'coverage'}
+                        if task.get('name') in clock_phases:
+                            task['ansible.builtin.command'] = command(clock_phases[task['name']])['ansible.builtin.command']
+                        if task.get('name') == 'Start bounded diagnostic resource sampling before Caddy activation':
+                            task['ansible.builtin.command'] = command('resource')['ansible.builtin.command']
                         if task.get('name') == 'Supervise the single observer and private statistics client':
                             task['ansible.builtin.command'] = command('workload')['ansible.builtin.command']
                         for key in ('block', 'always', 'rescue'):
@@ -65,11 +76,14 @@ if phase=='caddy':
                 caddy = directory / 'caddy.sh'
                 caddy.write_text('#!/bin/bash\nexec /usr/bin/python3 '+str(fixture)+' '+name+' '+scenario+' caddy\n')
                 variables = {'fleet_server_root': str(ROOT), 'operation_evidence_directory': name,
-                             'proxy_trial': {'diagnostic_only': scenario.startswith('diagnostic-'), 'workload_result': str(directory/'workload-result.json')},
+                             'proxy_trial': {'work_directory': name, 'diagnostic_only': scenario.startswith('diagnostic-'), 'workload_result': str(directory/'workload-result.json')},
                              'proxy_caddy': {'argv': ['/bin/bash', str(caddy)], 'environment': {}},
                              'ansible_async_dir': str(directory/'async')}
+                acceptance = copy.deepcopy(next(t for t in original['tasks'] if t.get('name') == 'Require paired Caddy completion and unchanged boot continuity'))
+                acceptance['block'][0] = {'ansible.builtin.set_fact': {'proxy_trial_boot_after': {'content': 'fixture'}}}
+                variables['proxy_trial_boot'] = {'content': 'fixture'}
                 play = [{'hosts': 'localhost', 'connection': 'local', 'become': False, 'gather_facts': False,
-                         'vars': variables, 'tasks': [block]}]
+                         'vars': variables, 'tasks': [block, acceptance]}]
                 path = directory / 'play.yaml'; path.write_text(yaml.safe_dump(play, sort_keys=False))
                 run = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
                                       'ansible-playbook', '-i', 'localhost,', str(path)], cwd=ROOT,
@@ -82,6 +96,7 @@ if phase=='caddy':
                 self.assertLess(observed.index('snapshot'), observed.index('backend-restore'))
                 self.assertTrue((directory/'backend-before-restoration.json').is_file())
                 if scenario.startswith('diagnostic-'): self.assertNotIn('workload', observed)
+                if scenario == 'diagnostic-clock-before-fail': self.assertNotIn('caddy', observed)
                 if scenario == 'paths-fail': self.assertNotIn('caddy', observed)
                 if scenario in ('success', 'snapshot-fail', 'workload-fail', 'cleanup-unverified'):
                     self.assertLess(observed.index('workload'), observed.index('caddy-restored'))

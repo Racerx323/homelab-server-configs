@@ -4,6 +4,27 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 16 notifier source correction (not deployed)
+
+The replication notifier preserves observed service state and query exit status
+separately, including inactive/failed states. Transition history and VIP movement
+are explicitly unobserved. Existing producer tests cover valid, missing and unsafe
+responses without live notification delivery. Source-candidate hashes advance;
+accepted installed hashes and the neutral operation remain unchanged. W-157 in
+the Uptime Kuma change record tracks qualification; rollout requires separate
+owner authorization. This is not an accepted production update.
+
+## November 16 trial recovery monitor acceptance (not deployed)
+
+The existing trial transaction records pre-resume monitor identity, sender state
+and monotonic time. The outer resumes both nodes before observing a fresh
+successful natural health cycle, bounded to 150 seconds from each resume. Monitor
+failure preserves restored service and both readbacks without replaying recovery.
+Host failure-path tests and all 16 offline application cases pass; no host capacity
+claim follows. Neutral operation/transaction pins are refreshed with no successor.
+W-166 in the Uptime Kuma record retains qualification and the initial fixture
+output mismatch. No live operation or installed-state change is represented.
+
 ## Action 35 terminal index
 
 | Action | Terminal result | Annotated tag |
@@ -465,3 +486,59 @@ with hash `4659dde5e93786ab144cb5a4f31b40de99faece7500303fcbde9ac65968158d9`.
 Caddy inventory now distinguishes those identities and cites the accepted DNS
 operation; this corrects stale August bookkeeping, not deployed configuration.
 The serving-health test verifies source and accepted hashes separately.
+
+### November 16 diagnostic evidence preparation (not deployed)
+
+The neutral application probe retains random per-request correlation IDs and
+safe native upstream timing from marked Webmin access records. The Webmin owner
+retains bounded resource-event intervals through its existing diagnostic parent.
+Focused local contract/native logging tests pass. Existing recovery-monitor
+integration remains; aggregate deadlines and cross-host clock uncertainty still
+require binding before any successor is sealed. No live action or publication.
+
+### November 16 diagnostic deadline bindings (not deployed)
+
+The neutral application owner supports hash-selected diagnostic forward/recovery
+budgets with bounded remote commands, SSH and uploads. It retains per-request
+clock evidence for the Webmin owner's private correlation verifier. Existing
+natural monitor recovery remains integrated. Focused contracts and all native
+offline owner scenarios pass; the operation remains inactive and no live
+acceptance, successor or publication is claimed.
+
+### November 16 bounded Webmin timing diagnostic defined (not executed)
+
+Operation `20261116-webmin-proxy-timing-diagnostic` uses the existing primary-first
+application owner and diagnostic-only Webmin parent. It binds the current Webmin
+fragment, unchanged accepted release/installed identities, marked upstream timing
+and the 240-second forward/840-second aggregate recovery budget. Post-resume
+natural monitor observation remains inside that budget. No notifier installation,
+browser/scan workload, permanent promotion or publication is included.
+
+The previous diagnostic remains in
+`caddy-webmin-proxy-diagnostic-terminal-2026-11-16`. The Uptime Kuma change ledger
+(W-169) owns local qualification, the exact parent seal and separate live review.
+Definition grants no target contact or replay authority.
+
+### November 16 Webmin timing diagnostic failed; both owners restored
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-proxy-timing-diagnostic-terminal-2026-11-16` (planned, unpublished)
+
+Operation `20261116-webmin-proxy-timing-diagnostic` ran once under exact approval.
+The primary HTTPS client timed out; parent exit 2 and owner exit 1 are retained.
+All four direct login paths and denial checks passed. Paired original selections
+and outbound inventories were restored; both post-resume natural monitor cycles
+passed with stable senders. Native Webmin loopback restoration passed.
+
+The parent correlation check failed because the failed owner path omitted its
+evidence-directory marker. A separate local correlation from hash-verified
+readbacks preserves the failure and identifies overlapping memory.high increments,
+without establishing the timeout cause. Browser/scan acceptance did not start.
+The reported replication alert occurred during this attempt; later health passed.
+W-157 remains uninstalled.
+
+The stream is terminal-pending. Exact executed inputs and sanitized terminal
+hashes are retained for planned tag
+`caddy-webmin-proxy-timing-diagnostic-terminal-2026-11-16`; no commit/tag/push is
+authorized. Do not clean or replace consumed inputs before that archive.

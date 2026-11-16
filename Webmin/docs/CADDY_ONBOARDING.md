@@ -583,3 +583,66 @@ browser/scan supervisor. After the owner readiness receipt, signal finish
 immediately and verify both restorations. Keep backend identity, resource controls,
 source/denial checks and recovery timers intact. A successful diagnostic does not
 satisfy native browser, authenticated WebSocket or scan-overlap acceptance.
+
+## Bounded diagnostic evidence
+
+When a route trial needs timeout diagnosis, use the existing diagnostic-only
+parent. Keep direct and proxied request paths identical. Correlate each proxy
+probe with an explicit request ID and native upstream timing; omit cookies,
+authentication, request/response headers and bodies from retained records. The
+proposed fragment enables access records only for marked diagnostic requests.
+This observes proxy-to-Webmin timing, not internal CGI phases; cancellation can
+leave upstream timings unavailable.
+
+Collect target resource counters before exposure and over the request interval,
+with boot/cgroup identity and timestamped deltas. A reset or missing counter is
+unknown, not zero. Record clock uncertainty before comparing different hosts;
+nearby memory events alone do not establish causation. Stop and collect the owned
+sampler before backend restoration, retaining collection failure independently
+of recovery. Do not extend sampling or proxy timeouts to manufacture a pass.
+
+Before sealing, account for the complete owner path, including stalled commands,
+restoration, natural post-resume monitor observation and evidence readback inside
+the existing parent deadlines. SSH keepalives are not a remote-command deadline.
+The sampler's finite interval must cover the compared requests. Local contract
+tests qualify evidence handling only; actual target capacity remains a separately
+authorized observation on that host.
+
+### Diagnostic deadlines and clock correlation
+
+A diagnostic-only parent requires the owner input
+`application_diagnostic_seconds` to be `240`, alongside the existing 660-second
+trial backstop. The Caddy owner starts one forward deadline before transport and
+an aggregate recovery deadline 840 seconds after that start. Recovery does not
+reset either deadline. It uses the remaining reserve for containment, restoration,
+W-166 natural monitor observation and readback. Normal readiness still ends the
+diagnostic immediately. The 1200-second child, 900-retry terminal wait and
+1800-second backend recovery timer are unchanged.
+
+The existing SSH path bounds both the remote process group and its local SSH
+client. Ordinary remote calls allow at most 90 seconds and monitor calls 170,
+further reduced by remaining phase time. Twenty seconds are reserved around each
+call for remote termination, transport and local termination; uploads are bounded
+as well. An expired forward phase cannot launch further work. Exhausted recovery,
+lost transport or missing receipts reports incomplete recovery/manual intervention;
+a timeout alone never proves that a systemd job or remote mutation stopped.
+The reserve is a stop boundary, not a promise that every stalled recovery succeeds.
+
+Bind a private `diagnostic_spec` containing `clock_ssh_prefixes` for `backend`,
+`node-a` and `node-b` in the same input manifest. Prefixes retain the selected
+hosts' existing SSH key checks; the helper appends only its fixed read-only clock
+query. Capture before sampling and after collection, with a five-second limit per
+host. Use Linux boottime consistently for proxy request times, target samples and
+clock replies; boot continuity remains operation-scoped. Keep controller round-trip
+bounds and observed offset changes instead of assuming NTP equality.
+
+The existing handoff helper verifies hashes in Caddy readbacks and deduplicates
+request IDs without accepting changed records. It rejects missing clock brackets,
+boot changes, uncertainty over five seconds, sample gaps over two seconds,
+unknown event deltas and requests outside the finite sampled interval. Reports
+retain the estimated controller interval and all possibly overlapping resource
+events. This is an envelope of measured pre/post offsets; intervening drift is
+unobserved. It never identifies a request as the cause of an OOM event. A failed
+correlation check retains a failure receipt and still permits mandatory backend
+restoration. These gates qualify diagnostic evidence, not browser acceptance or
+host capacity.

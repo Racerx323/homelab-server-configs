@@ -594,3 +594,60 @@ The offline application suite exercises normal onboarding plus temporary trial
 completion, deadline, lost exposure reply, secondary non-convergence, restoration
 failure, incomplete transfer and late exposure rejection. These are protocol and
 recovery tests, not target capacity evidence.
+
+### Post-restoration monitor acceptance
+
+For future temporary trials, distinguish restored configuration/transport from
+completed monitor acceptance. The local transaction records a pre-resume health identity and monotonic resume
+time in `application_trial_resume`. The outer resumes both nodes, then calls
+`application-trial-monitor` for each and retains both readbacks. This source
+integration is locally qualified; every live use still requires its exact owner
+authorization.
+
+Keep the existing health timer and failure reporting active. Intentional sender
+containment can cause a scheduled check to fail; retain that event and correlate
+it with the operation rather than suppressing it or treating it as proof of
+persistent failure. No reset-failed, forced health invocation, notification
+suppression or additional restart is implied.
+
+After both nodes are restored, retain a baseline invocation/exit timestamp before
+resuming each node's transport. Within 150 seconds of each node's resume, require a new
+health invocation that starts after resume and finishes with Result=success and
+ExecMainStatus=0. Verify boot continuity, active timer/sender, stable sender PID
+and restart count, and the existing release/inventory/route restoration checks.
+Retain bounded systemctl stdout, stderr and status on failure. Queries have
+five-second limits; sampling sleeps two seconds. The second node does not get a
+new deadline when its observation begins: only completion within its original
+150-second window can pass. The parent retains its existing 1200-second child
+limit and 900-retry terminal wait; every future candidate must account for
+activation, exposure, restoration, observation and readback within those limits.
+No timeout increase follows from this change. Qualify success, failed or missing
+cycles, old-success reuse, and boot changes through the existing tests.
+
+If restoration passes but monitor acceptance does not, report those outcomes
+separately and stop for owner review. Preserve restored service and receipts; do
+not automatically repeat restoration, restart transport or recontain solely to
+obtain a passing cycle. If restoration itself fails, retain the existing containment
+and recovery-incomplete handling. Observation alone never proves new replication
+traffic or secondary receipt; those remain the release lifecycle's own checks.
+
+The Lsyncd status file is a report, not a periodic heartbeat. In upstream 2.2.3,
+`StatusFile.write` limits write frequency and is called from the event loop; an
+idle report can remain unchanged. Do not add an mtime-age gate from
+`statusInterval` alone. The installed health worker checks safe report structure
+and sender state. Its success does not assert that report data was freshly
+produced or that a new release transferred. Consult the versioned upstream
+`lsyncd.lua`, `StatusFile` and `runner.cycle` implementations when changing that
+contract. Repository package intent does not prove the installed binary version.
+
+For Webmin diagnostic-only trials, the hash-bound owner input
+`application_diagnostic_seconds=240` selects the existing runner's forward and
+aggregate recovery deadlines. Forward work ends at 240 seconds; recovery,
+natural monitor observation and readback share the remaining time up to 840
+seconds from the same start. Remote commands and the SSH client are separately
+bounded, with termination/transport margin; uploads are bounded too. Expiry does
+not renew the reserve or authorize replay. Missing remote termination/recovery
+receipts remain incomplete/manual intervention, even if the local SSH client
+has exited. Ordinary application onboarding is unchanged when this input is
+absent. Follow the Webmin owner's diagnostic clock/resource procedure for
+correlation; no clock or memory observation grants live authority.

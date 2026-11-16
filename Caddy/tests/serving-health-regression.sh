@@ -315,6 +315,10 @@ while IFS=$'\t' read -r health_repository health_source health_target \
         health_source_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $6 }' "$caddy_root/manifests/production-artifacts.tsv")
         health_deployed_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $7 }' "$caddy_root/manifests/production-artifacts.tsv")
         [[ "$health_deployed_hash" = "$health_hash" ]]
+    elif [[ "$health_source" = Caddy/scripts/lsyncd-sync-failure-notify.sh ]]; then
+        health_source_hash=$(awk -F '\t' '$1 == "node_a_sync_failure_notifier" { print $6 }' "$caddy_root/manifests/production-artifacts.tsv")
+        health_deployed_hash=$(awk -F '\t' '$1 == "node_a_sync_failure_notifier" { print $7 }' "$caddy_root/manifests/production-artifacts.tsv")
+        [[ "$health_deployed_hash" = "$health_hash" ]]
     else
         health_source_hash=$health_hash
     fi

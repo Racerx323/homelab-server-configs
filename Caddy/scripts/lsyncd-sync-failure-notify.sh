@@ -37,12 +37,21 @@ case "$unit_name" in
         impact='certificate-expiry validation failed; current proxy service unchanged'
         ;;
 esac
-unit_result=$("$systemctl_command" show "$unit_name" --property=Result --value 2>/dev/null || printf unknown)
+unit_result_status=0
+unit_result=$("$systemctl_command" show "$unit_name" --property=Result --value 2>/dev/null) || unit_result_status=$?
 [[ "$unit_result" =~ ^[A-Za-z0-9_-]{1,64}$ ]] || unit_result=unknown
-lsyncd_state=$("$systemctl_command" is-active caddy-lsyncd.service 2>/dev/null || printf unknown)
-caddy_state=$("$systemctl_command" is-active caddy.service 2>/dev/null || printf unknown)
-[[ "$lsyncd_state" =~ ^[a-z-]{1,32}$ ]] || lsyncd_state=unknown
-[[ "$caddy_state" =~ ^[a-z-]{1,32}$ ]] || caddy_state=unknown
+lsyncd_status=0
+lsyncd_state=$("$systemctl_command" is-active caddy-lsyncd.service 2>/dev/null) || lsyncd_status=$?
+caddy_status=0
+caddy_state=$("$systemctl_command" is-active caddy.service 2>/dev/null) || caddy_status=$?
+case "$lsyncd_state" in
+    active | reloading | inactive | failed | activating | deactivating | maintenance | refreshing) ;;
+    *) lsyncd_state=unknown ;;
+esac
+case "$caddy_state" in
+    active | reloading | inactive | failed | activating | deactivating | maintenance | refreshing) ;;
+    *) caddy_state=unknown ;;
+esac
 observed_at=$("$date_command" -u +%Y-%m-%dT%H:%M:%SZ)
 correlation_value="${unit_name%.service}-$("$date_command" -u +%Y%m%dT%H%M)"
 
@@ -52,13 +61,13 @@ if "$enqueue" --source caddy-sync --severity failure \
     --component "$component" \
     --check "$check_name" \
     --event failure \
-    --state 'active -> failed' \
+    --state 'failure reported; prior state not observed' \
     --impact "$impact" \
     --failure-class systemd-unit-failed \
     --network-context 'not applicable' \
-    --ha-context 'VIP movement: none; VRRP dependency: no' \
-    --status "unit=$unit_name result=$unit_result lsyncd=$lsyncd_state caddy=$caddy_state" \
-    --timing "first observed: $observed_at" \
+    --ha-context 'VIP movement: not observed; VRRP dependency: no' \
+    --status "unit=$unit_name result=$unit_result result_query_exit=$unit_result_status lsyncd=$lsyncd_state lsyncd_query_exit=$lsyncd_status caddy=$caddy_state caddy_query_exit=$caddy_status" \
+    --timing "notification observed: $observed_at" \
     --correlation "$correlation_value" \
     --evidence "journalctl -u $unit_name" \
     --first-check "$first_check"; then

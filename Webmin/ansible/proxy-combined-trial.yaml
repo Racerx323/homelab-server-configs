@@ -17,6 +17,11 @@
           - proxy_trial.operator_ready | bool
           - proxy_caddy.argv | length == 2
           - "'CADDY_CERTIFICATE_TEST_SCOPE' not in proxy_caddy.environment"
+    - name: Bind diagnostic-only work to the Caddy owner aggregate deadline
+      when: proxy_trial.diagnostic_only | default(false) | bool
+      ansible.builtin.assert:
+        that:
+          - "'application_diagnostic_seconds\t240' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines()"
     - name: Require Caddy authorization-ready source bindings before backend exposure
       ansible.builtin.command:
         argv: [/bin/bash, '{{ fleet_server_root }}/Caddy/tests/deployable-successor-policy.sh', --authorization-ready]
@@ -75,6 +80,31 @@
           ansible.builtin.set_fact: {proxy_trial_backend_entered: true}
         - ansible.builtin.import_tasks: proxy-trial.yaml
         - ansible.builtin.import_tasks: proxy-path-trial.yaml
+        - name: Capture bounded pre-operation clock uncertainty on all three hosts
+          when: proxy_trial.diagnostic_only | default(false) | bool
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', clock,
+                   '{{ proxy_trial.diagnostic_spec }}', '{{ operation_evidence_directory }}/clock-before.json']
+          delegate_to: localhost
+          become: false
+          changed_when: false
+        - name: Start bounded diagnostic resource sampling before Caddy activation
+          when: proxy_trial.diagnostic_only | default(false) | bool
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py',
+                   --observe-directory, '{{ proxy_trial.work_directory }}']
+          async: 310
+          poll: 0
+          register: proxy_trial_resource_job
+          changed_when: false
+        - name: Require a usable resource baseline before Caddy activation
+          when: proxy_trial.diagnostic_only | default(false) | bool
+          ansible.builtin.stat:
+            path: '{{ proxy_trial.work_directory }}/resource-ready'
+          register: proxy_trial_resource_ready
+          until: proxy_trial_resource_ready.stat.exists
+          retries: 5
+          delay: 1
         - name: Start the exact Caddy owner command with private separate logs
           ansible.builtin.shell: |
             umask 077
@@ -148,6 +178,60 @@
           delay: 1
           failed_when: false
           ignore_errors: true
+        - name: Finish diagnostic sampling and retain its bounded event intervals
+          when: proxy_trial_resource_job is defined and proxy_trial_resource_job.ansible_job_id is defined
+          block:
+            - ansible.builtin.copy:
+                content: 'stop'
+                dest: '{{ proxy_trial.work_directory }}/resource-stop'
+                mode: '0600'
+            - ansible.builtin.async_status:
+                jid: '{{ proxy_trial_resource_job.ansible_job_id }}'
+              register: proxy_trial_resource_terminal
+              until: proxy_trial_resource_terminal.finished | default(false)
+              retries: 5
+              delay: 1
+              failed_when: false
+            - ansible.builtin.fetch:
+                src: '{{ proxy_trial.work_directory }}/resource-samples.jsonl'
+                dest: '{{ operation_evidence_directory }}/backend-resource-samples.jsonl'
+                flat: true
+            - ansible.builtin.file:
+                path: '{{ operation_evidence_directory }}/backend-resource-samples.jsonl'
+                mode: '0600'
+              delegate_to: localhost
+              become: false
+            - ansible.builtin.assert:
+                that:
+                  - proxy_trial_resource_terminal.finished
+                  - proxy_trial_resource_terminal.rc == 0
+          rescue:
+            - ansible.builtin.debug:
+                msg: Diagnostic resource evidence incomplete; retain failure and continue mandatory restoration.
+        - name: Retain clock and resource coverage independently of owner restoration
+          when: proxy_trial_resource_job is defined and proxy_trial_resource_job.ansible_job_id is defined
+          block:
+            - name: Capture bounded post-operation clock uncertainty
+              ansible.builtin.command:
+                argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', clock,
+                       '{{ proxy_trial.diagnostic_spec }}', '{{ operation_evidence_directory }}/clock-after.json']
+              delegate_to: localhost
+              become: false
+              changed_when: false
+            - name: Require request coverage within the observed resource interval
+              ansible.builtin.command:
+                argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', diagnostic-coverage,
+                       '{{ operation_evidence_directory }}/clock-before.json', '{{ operation_evidence_directory }}/diagnostic-coverage.json',
+                       --after, '{{ operation_evidence_directory }}/clock-after.json',
+                       --samples, '{{ operation_evidence_directory }}/backend-resource-samples.jsonl',
+                       --requests, '{{ operation_evidence_directory }}/caddy.stdout', --owner-log]
+              delegate_to: localhost
+              become: false
+              changed_when: false
+              register: proxy_trial_diagnostic_coverage
+          rescue:
+            - ansible.builtin.debug:
+                msg: Diagnostic correlation incomplete; retain unknown result and continue mandatory backend restoration.
         - name: Retain bounded backend resource evidence before native restoration
           when: proxy_trial_backend_entered | default(false)
           block:
@@ -175,7 +259,9 @@
                 content: >-
                   {{ {'caddy': proxy_trial_caddy_terminal | default({'not_started': true}),
                       'workload_exit': (proxy_trial_workload | default({})).get('rc'),
-                      'caddy_finish': (proxy_trial_caddy_finish | default({})).get('rc')} | to_nice_json }}
+                      'caddy_finish': (proxy_trial_caddy_finish | default({})).get('rc'),
+                      'diagnostic_coverage': proxy_trial_diagnostic_coverage | default({'not_started': true}),
+                      'resource_observer': proxy_trial_resource_terminal | default({'not_started': true})} | to_nice_json }}
                 dest: '{{ operation_evidence_directory }}/parent-owner-outcomes.json'
                 mode: '0600'
               delegate_to: localhost
@@ -190,4 +276,6 @@
               - proxy_trial_caddy_terminal.finished
               - proxy_trial_caddy_terminal.rc == 0
               - proxy_trial_caddy_finish.rc == 0
+              - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_diagnostic_coverage | default({})).get("rc", 1) == 0
+              - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_resource_terminal.finished and proxy_trial_resource_terminal.rc == 0)
               - (proxy_trial.diagnostic_only | default(false) | bool) or proxy_trial_workload.rc == 0

@@ -90,6 +90,8 @@ def definition_check():
     assert recipe['release_kind'] == 'application'
     if 'application_trial_seconds' in recipe:
         assert recipe['application_trial_seconds'] == '660'
+    if 'application_diagnostic_seconds' in recipe:
+        assert recipe.get('application_trial_seconds') == '660' and recipe['application_diagnostic_seconds'] == '240'
     assert recipe['publisher_candidate_sha256'] == release.digest(REPO/'Caddy/scripts/publish-release-v2.sh')
     assert recipe['reconciler_installed_sha256'] == release.accepted_hash('protocol_v2_reconciler')
     assert recipe['finalizer_sha256'] == release.accepted_hash('protocol_v2_finalizer')
@@ -149,7 +151,115 @@ application_routes
         result = subprocess.run(['bash', '-c', script, 'probe', str(unavailable), str(journal), str(curl)], capture_output=True, text=True)
         assert result.returncode == 22
         assert (unavailable/'application-node-ipv4-journal.status').read_text() != '0\n'
+        token = 'a'*32
+        message = {'diagnostic_id': token, 'status': 200, 'duration': .4,
+                   'upstream_host': '10.1.3.75:10000', 'upstream_duration_ms': '390',
+                   'upstream_latency_ms': '380', 'request': {'headers': {'Cookie': 'PRIVATE'}},
+                   'resp_headers': {'Set-Cookie': 'PRIVATE'}}
+        journal.write_text("#!/bin/sh\nprintf '%s\\n' " + shlex.quote(json.dumps(
+            {'__REALTIME_TIMESTAMP': '1234', 'MESSAGE': json.dumps(message)})) + '\n')
+        run = subprocess.run(['bash', '-c', functions + '\njournalctl_command=$1; application_failure_journal 1 "$2"',
+                              'journal', str(journal), token], capture_output=True, text=True)
+        assert run.returncode == 0, run.stderr
+        record = json.loads(run.stdout)[0]
+        assert record['request_id'] == token and record['upstream_duration_ms'] == 390
+        assert record['upstream_latency_ms'] == 380 and record['status'] == 200
+        assert 'PRIVATE' not in run.stdout and 'request' not in record and 'resp_headers' not in record
+        mismatch = subprocess.run(['bash', '-c', functions + '\njournalctl_command=$1; application_failure_journal 1 "$2"',
+                                   'journal', str(journal), 'b'*32], capture_output=True, text=True)
+        assert json.loads(mismatch.stdout) == [{'epoch_us': '1234', 'category': 'other'}]
     print('application_probe_diagnostic_contract=true')
+
+
+def budget_contract_tests():
+    """Real timeout/process groups and OpenSSH-style remote shell serialization."""
+    source = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
+    functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', source, re.M|re.S)[0]
+                          for name in ('application_budget_seconds', 'application_budget_copy', 'ssh_stream'))
+    with tempfile.TemporaryDirectory(prefix='caddy-budget-contract-') as name:
+        root = Path(name); ssh = root/'ssh'; program = root/'remote'
+        ssh.write_text("#!/usr/bin/python3\nimport os,sys\ncommand=sys.argv[-1]\nassert command.startswith('cd / && sudo -n /usr/bin/timeout --signal=TERM --kill-after=5 ')\nassert '/bin/bash -s --' in command\nos.execv('/bin/bash',['bash','-c',command.replace('sudo -n ','',1)])\n")
+        ssh.chmod(0o700)
+        prelude = functions + "\nset -Eeuo pipefail\nssh_command=$1; program=$2\napplication_forward_deadline=$(awk '{printf \"%.0f\\n\", $1+22}' /proc/uptime)\napplication_recovery_deadline=$((application_forward_deadline+600))\n"
+        program.write_text('printf \"%s\\n\" \"$1\"\n')
+        run = subprocess.run(['bash', '-c', prelude+'ssh_stream fixture "$program" "argument with spaces"', 'budget', str(ssh), str(program)], capture_output=True, text=True, timeout=15)
+        assert run.returncode == 0 and run.stdout.strip() == 'argument with spaces', run.stderr
+        program.write_text('sleep 30\n')
+        run = subprocess.run(['bash', '-c', prelude+'ssh_stream fixture "$program" test', 'budget', str(ssh), str(program)], capture_output=True, text=True, timeout=15)
+        assert run.returncode == 124, (run.returncode, run.stderr)
+        # Expired forward phase cannot execute, but reserve is not consumed/reset.
+        script = prelude + "application_forward_deadline=1\nset +e\napplication_budget_seconds 90\nstatus=$?\nset -e\n[[ $status = 124 ]]\napplication_budget_phase=recovery\n[[ $(application_budget_seconds 170) = 170 ]]\n"
+        run = subprocess.run(['bash', '-c', script, 'budget', str(ssh), str(program)], capture_output=True, text=True, timeout=5)
+        assert run.returncode == 0, run.stderr
+        script += "application_recovery_deadline=1\napplication_budget_seconds 90\n"
+        run = subprocess.run(['bash', '-c', script, 'budget', str(ssh), str(program)], capture_output=True, text=True, timeout=5)
+        assert run.returncode == 124, run.stderr
+        run = subprocess.run(['bash', '-c', prelude+'application_budget_copy sleep 30', 'budget', str(ssh), str(program)], capture_output=True, text=True, timeout=15)
+        assert run.returncode == 124, run.stderr
+    print('application_diagnostic_budget_contract=true')
+
+
+def monitor_contract_tests():
+    """Exercise the actual observer and pair coordinator without live commands."""
+    source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
+    functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', source, re.M|re.S)[0]
+                          for name in ('capture_command', 'application_monitor_value', 'application_trial_monitor'))
+    cases = ['success', 'failed', 'missing', 'stale', 'boot-change', 'restart', 'timer-off', 'late', 'command-error']
+    with tempfile.TemporaryDirectory(prefix='caddy-monitor-contract-') as name:
+        root = Path(name)
+        ctl = root/'systemctl'
+        ctl.write_text("""#!/usr/bin/env python3
+import os,sys
+case=os.environ['MONITOR_CASE']; unit=sys.argv[2]
+if case=='command-error': sys.exit(1)
+if sys.argv[1]=='is-active':
+ print('inactive' if case=='timer-off' else 'active');sys.exit(3 if case=='timer-off' else 0)
+if unit=='caddy-lsyncd.service':
+ print('MainPID=99\\nNRestarts='+('1' if case=='restart' else '0')+'\\nActiveState=active\\nSubState=running');sys.exit()
+start,end,iid='200','300','b'*32
+if case in ('missing','stale'): start,end,iid='10','20','a'*32
+if case=='late': end='150000101'
+print('InvocationID='+iid+'\\nExecMainStartTimestampMonotonic='+start+'\\nExecMainExitTimestampMonotonic='+end)
+print('Result='+('exit-code' if case=='failed' else 'success'))
+print('ExecMainStatus='+('1' if case=='failed' else '0')+'\\nActiveState='+('failed' if case=='failed' else 'inactive'))
+""")
+        ctl.chmod(0o700)
+        for case in cases:
+            evidence=root/case; evidence.mkdir()
+            for file, value in {'application-trial-resumed.tsv':'resumed', 'application-monitor-resume-us.tsv':'100',
+                                'application-trial-boot.tsv':'boot', 'application-monitor-before.stdout':'InvocationID='+('a'*32)+'\nExecMainExitTimestampMonotonic=20',
+                                'application-monitor-sender-before.stdout':'MainPID=99\nNRestarts=0'}.items():
+                (evidence/file).write_text(value+'\n')
+            script=functions+"""
+set -Eeuo pipefail
+evidence_root=$1; systemctl_command=$2; sleep_command=false
+require_equal() { [[ "$2" = "$3" ]] || { printf '%s expected=%s observed=%s\n' "$1" "$2" "$3" >&2; return 1; }; }
+cat() { if [[ "$1" = /proc/sys/kernel/random/boot_id ]]; then [[ "$MONITOR_CASE" != boot-change ]] && echo boot || echo changed; else command cat "$@"; fi; }
+awk() { if [[ "${*: -1}" = /proc/uptime ]]; then echo 150000101; else command awk "$@"; fi; }
+application_trial_monitor
+"""
+            result=subprocess.run(['bash','-c',script,'monitor',str(evidence),str(ctl)],env=dict(os.environ,MONITOR_CASE=case),capture_output=True,text=True)
+            assert (result.returncode==0)==(case=='success'), (case,result.stderr)
+            assert (evidence/'application-trial-monitor.tsv').read_text()==('passed\n' if case=='success' else 'pending\n')
+        outer=(REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
+        pair=re.search(r'^application_trial_recover_pair\(\) \{\n.*?^\}',outer,re.M|re.S)[0]
+        # Explicit command recording proves an observation failure does not recontain/restart.
+        script=pair+"""
+set -Eeuo pipefail
+node_a_host=a; node_b_host=b; node_a_payload=pa; node_b_payload=pb; node_a_evidence=ea; node_b_evidence=eb
+remote_transaction() { echo "$1" >>"$CALL_LOG"; [[ "$1" != application-monitor-b ]]; }
+readback() { echo "$1" >>"$CALL_LOG"; }
+application_trial_recover_pair candidate
+"""
+        calls=root/'calls'
+        result=subprocess.run(['bash','-c',script],env=dict(os.environ,CALL_LOG=str(calls)),capture_output=True,text=True)
+        assert result.returncode==125,result.stderr
+        values=calls.read_text().splitlines()
+        assert values[-4:]==['application-monitor-b','application-monitor-a','application-restored-a','application-restored-b']
+        assert values.count('application-contain-a')==values.count('application-contain-b')==1
+        assert values.index('application-resume-a')<values.index('application-monitor-b')
+        assert 'restoration=passed monitor_acceptance=incomplete' in result.stderr
+    print('application_trial_monitor_contract=true')
 
 
 def payload_tests():
@@ -255,6 +365,7 @@ def case_observation(root, case):
                 records = release.decode_stream(stream); read(str(stream.relative_to(root)))
                 assert records['application-trial-restored.tsv'] == 'restored\n'
                 assert records['application-trial-resumed.tsv'] == 'resumed\n'
+                assert records['application-trial-monitor.tsv'] == 'passed\n'
                 assert records['application-trial-outbound.tsv'] == records['application-trial-outbound-after.tsv'] == records['application-trial-resume-inventory.tsv']
             else:
                 assert not state['lsyncd'] and not state['reconcile_path']
@@ -513,8 +624,24 @@ def adapter(name, args):
         release.save(value)
         release.event('systemctl ' + ' '.join(args))
         return 0
+    if name == 'systemctl' and args == ['is-active', 'caddy-sync-health.timer']:
+        print('active')
+        return 0
+    if name == 'systemctl' and args[:2] == ['show', 'caddy-sync-health.service']:
+        now = int(time.monotonic()*1_000_000)
+        fields = dict(InvocationID=hashlib.sha256(str(now).encode()).hexdigest()[:32],
+                      ExecMainStartTimestampMonotonic=now-1000, ExecMainExitTimestampMonotonic=now,
+                      Result='success', ExecMainStatus=0, ActiveState='inactive')
+        wanted = next(a.split('=',1)[1].split(',') for a in args if a.startswith('--property='))
+        print('\n'.join(k+'='+str(fields[k]) for k in wanted))
+        return 0
     if name == 'systemctl' and args[:2] == ['show', 'caddy-sync-reconcile.service']:
         print(0)
+        return 0
+    if name == 'systemctl' and args[:2] == ['show', 'caddy-lsyncd.service'] and any(a.startswith('--property=') for a in args):
+        fields = dict(MainPID=123, NRestarts=0, ActiveState='active', SubState='running')
+        wanted = next(a.split('=',1)[1].split(',') for a in args if a.startswith('--property='))
+        print('\n'.join(k+'='+str(fields[k]) for k in wanted))
         return 0
     if name == 'systemctl' and args == ['reload', 'caddy.service']:
         state = release.state()
@@ -598,7 +725,7 @@ def suite():
         host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS else ('uptime.local.theama.co', 'dashboard')
         recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
         if scenario in TRIALS:
-            recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\n')
+            recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\napplication_diagnostic_seconds\t240\n')
         env.update(CADDY_CERTIFICATE_TEST_SCOPE='application', CADDY_CERTIFICATE_TEST_INPUTS_SHA256=release.digest(recipe), PRIMARY_CASE=scenario)
         os.environ.update(env)
         switch('node-a')
@@ -722,6 +849,8 @@ if __name__ == '__main__':
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
     elif sys.argv[1:] == ['--payload-tests']:
         probe_diagnostic_tests()
+        monitor_contract_tests()
+        budget_contract_tests()
         payload_tests()
     elif sys.argv[1:] == ['--definition-check']:
         definition_check()

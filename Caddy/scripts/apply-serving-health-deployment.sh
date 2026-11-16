@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=56537337b6e0ddb5b3c013d6788d0ac33d9742f8543324a65446248b2b39dd69
+readonly certificate_inputs_sha256=c2d11ea2c758bdcb257b1c606323636d12e084a1d1e179b50d9fe0fdb3e37368
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1009,18 +1009,31 @@ application_baseline() {
 # Journal messages are classified in memory; never retain headers, URLs or bodies.
 application_failure_journal() {
     /usr/bin/timeout 3 "$journalctl_command" --quiet --no-pager -u caddy.service \
-        --since "@$1" -n 32 -o json 2>/dev/null |
+        --since "@$1" -n 128 -o json 2>/dev/null |
         head -c 65536 |
-        jq -sc '[.[] | {epoch_us: (.__REALTIME_TIMESTAMP | select(test("^[0-9]+$"))),
-          category: (if ((.MESSAGE // "") | test("timeout|deadline"; "i")) then "timeout"
-            elif ((.MESSAGE // "") | test("no upstream|unhealthy"; "i")) then "upstream-unavailable"
-            elif ((.MESSAGE // "") | test("connect|dial"; "i")) then "connect"
-            else "other" end)}]' 2>/dev/null
+        jq -sc --arg request_id "$2" '
+          def number_or_null: try tonumber catch null;
+          [.[] | . as $entry | ((try (.MESSAGE | fromjson) catch {}) // {}) as $message |
+            if $message.diagnostic_id == $request_id then
+              {epoch_us: $entry.__REALTIME_TIMESTAMP,
+               request_id: $request_id, category: "request",
+               status: ($message.status | number_or_null),
+               duration_seconds: ($message.duration | number_or_null),
+               upstream: (if (($message.upstream_host // "") | test("^([0-9.]{7,15}|\\[[0-9a-f:]{2,39}\\]):[0-9]{1,5}$"))
+                 then $message.upstream_host else null end),
+               upstream_duration_ms: ($message.upstream_duration_ms | number_or_null),
+               upstream_latency_ms: ($message.upstream_latency_ms | number_or_null)}
+            else {epoch_us: $entry.__REALTIME_TIMESTAMP,
+              category: (if (($entry.MESSAGE // "") | test("timeout|deadline"; "i")) then "timeout"
+                elif (($entry.MESSAGE // "") | test("no upstream|unhealthy"; "i")) then "upstream-unavailable"
+                elif (($entry.MESSAGE // "") | test("connect|dial"; "i")) then "connect"
+                else "other" end)} end |
+            select(.epoch_us | test("^[0-9]+$"))]' 2>/dev/null
 }
 
 application_routes() {
     local app_address app_family app_host app_code app_endpoint=${1:-node}
-    local app_probe_rc app_probe_epoch app_label
+    local app_probe_rc app_probe_epoch app_label app_request_id
     app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
         if [[ "$app_endpoint" = shared ]]; then
@@ -1035,22 +1048,33 @@ application_routes() {
         fi
         app_label=application-$app_endpoint-ipv$app_family
         app_probe_epoch=$(date +%s)
+        app_request_id=$(tr -d '-' </proc/sys/kernel/random/uuid)
+        [[ "$app_request_id" =~ ^[0-9a-f]{32}$ ]] || return 1
+        printf '%s\n' "$app_request_id" >"$evidence_root/$app_label.request-id.tsv"
         printf '%s\n' "$app_probe_epoch" >"$evidence_root/$app_label.started.tsv"
+        cat /proc/sys/kernel/random/boot_id >"$evidence_root/$app_label.boot.tsv"
+        awk '{print $1}' /proc/uptime >"$evidence_root/$app_label.monotonic-start.tsv"
         app_probe_rc=0
         capture_command "$app_label" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
             --noproxy '*' "-$app_family" --silent --show-error --fail \
             --connect-timeout 3 --max-time 5 --resolve "$app_host:443:$app_address" \
+            --header "X-Homelab-Diagnostic: $app_request_id" \
             -o /dev/null -w '%{http_code}\nconnect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total} remote_ip=%{remote_ip} remote_port=%{remote_port}\n' "https://$app_host/$(certificate_setting application_probe_path)" || app_probe_rc=$?
+        awk '{print $1}' /proc/uptime >"$evidence_root/$app_label.monotonic-end.tsv"
+        printf '%s\t%s\t%s\t%s\t%s\n' "$app_request_id" "$node_role" \
+            "$(<"$evidence_root/$app_label.boot.tsv")" "$(<"$evidence_root/$app_label.monotonic-start.tsv")" \
+            "$(<"$evidence_root/$app_label.monotonic-end.tsv")" >>"$evidence_root/application-requests.tsv"
         sed -n '2p' "$evidence_root/$app_label.stdout" >"$evidence_root/$app_label.timing.tsv"
         app_code=$(head -n 1 "$evidence_root/$app_label.stdout")
         printf '%s\n' "$app_code" >"$evidence_root/$app_label.stdout"
         if [[ "$app_probe_rc" != 0 || "$app_code" != "$(certificate_setting application_http_status)" ]]; then
-            capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" || true
+            capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" "$app_request_id" || true
             printf 'application_probe_failure endpoint=%s family=%s expected=%s observed=%s curl_exit=%s\n' \
                 "$app_endpoint" "$app_family" "$(certificate_setting application_http_status)" "$app_code" "$app_probe_rc" >&2
             [[ "$app_probe_rc" != 0 ]] || app_probe_rc=1
             return "$app_probe_rc"
         fi
+        capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" "$app_request_id" || true
         require_equal "application_${app_endpoint}_ipv${app_family}" "$(certificate_setting application_http_status)" "$app_code"
     done
     certificate_serving_check
@@ -1163,11 +1187,72 @@ application_trial_resume() {
     require_equal trial_restored_receipt restored "$(<"$evidence_root/application-trial-restored.tsv")"
     application_trial_inventory >"$evidence_root/application-trial-resume-inventory.tsv"
     cmp -s "$evidence_root/application-trial-outbound.tsv" "$evidence_root/application-trial-resume-inventory.tsv"
-    "$systemctl_command" start caddy-sync-reconcile.path caddy-lsyncd.service
+    capture_command application-monitor-before /usr/bin/timeout 5 "$systemctl_command" show caddy-sync-health.service \
+        --property=InvocationID,ExecMainExitTimestampMonotonic || return 1
+    "$systemctl_command" start caddy-sync-reconcile.path caddy-lsyncd.service || return 1
+    awk '{printf "%.0f\n", $1 * 1000000}' /proc/uptime >"$evidence_root/application-monitor-resume-us.tsv"
+    capture_command application-monitor-sender-before /usr/bin/timeout 5 "$systemctl_command" show caddy-lsyncd.service \
+        --property=MainPID,NRestarts || return 1
     application_baseline
     path_absent "$outgoing_root/$target_revision_argument"
     path_absent "$incoming_root/node-a/$target_revision_argument"
     printf 'resumed\n' >"$evidence_root/application-trial-resumed.tsv"
+}
+
+application_monitor_value() {
+    awk -F= -v key="$2" '$1 == key {n++; value=substr($0,length(key)+2)} END {if(n!=1) exit 1; print value}' "$1"
+}
+
+application_trial_monitor() {
+    local app_monitor_resume app_monitor_deadline app_monitor_now app_monitor_start app_monitor_exit
+    local app_monitor_id app_monitor_before_id app_monitor_before_exit app_monitor_pid app_monitor_restarts
+    require_equal monitor_resumed resumed "$(<"$evidence_root/application-trial-resumed.tsv")" || return 1
+    printf 'pending\n' >"$evidence_root/application-trial-monitor.tsv"
+    app_monitor_resume=$(<"$evidence_root/application-monitor-resume-us.tsv")
+    [[ "$app_monitor_resume" =~ ^[0-9]+$ ]] || return 1
+    app_monitor_deadline=$((app_monitor_resume + 150000000))
+    app_monitor_before_id=$(application_monitor_value "$evidence_root/application-monitor-before.stdout" InvocationID) || return 1
+    app_monitor_before_exit=$(application_monitor_value "$evidence_root/application-monitor-before.stdout" ExecMainExitTimestampMonotonic) || return 1
+    [[ "$app_monitor_before_exit" =~ ^[0-9]+$ ]] || return 1
+    app_monitor_pid=$(application_monitor_value "$evidence_root/application-monitor-sender-before.stdout" MainPID) || return 1
+    app_monitor_restarts=$(application_monitor_value "$evidence_root/application-monitor-sender-before.stdout" NRestarts) || return 1
+    [[ "$app_monitor_pid" =~ ^[1-9][0-9]*$ && "$app_monitor_restarts" =~ ^[0-9]+$ ]] || return 1
+    while :; do
+        require_equal monitor_boot "$(<"$evidence_root/application-trial-boot.tsv")" "$(cat /proc/sys/kernel/random/boot_id)" || return 1
+        capture_command application-monitor-health /usr/bin/timeout 5 "$systemctl_command" show caddy-sync-health.service \
+            --property=InvocationID,ExecMainStartTimestampMonotonic,ExecMainExitTimestampMonotonic,Result,ExecMainStatus,ActiveState || return 1
+        capture_command application-monitor-sender /usr/bin/timeout 5 "$systemctl_command" show caddy-lsyncd.service \
+            --property=MainPID,NRestarts,ActiveState,SubState || return 1
+        capture_command application-monitor-timer /usr/bin/timeout 5 "$systemctl_command" is-active caddy-sync-health.timer || return 1
+        require_equal monitor_timer active "$(<"$evidence_root/application-monitor-timer.stdout")" || return 1
+        require_equal monitor_sender active "$(application_monitor_value "$evidence_root/application-monitor-sender.stdout" ActiveState)" || return 1
+        require_equal monitor_sender_substate running "$(application_monitor_value "$evidence_root/application-monitor-sender.stdout" SubState)" || return 1
+        require_equal monitor_sender_pid "$app_monitor_pid" "$(application_monitor_value "$evidence_root/application-monitor-sender.stdout" MainPID)" || return 1
+        require_equal monitor_sender_restarts "$app_monitor_restarts" "$(application_monitor_value "$evidence_root/application-monitor-sender.stdout" NRestarts)" || return 1
+        app_monitor_start=$(application_monitor_value "$evidence_root/application-monitor-health.stdout" ExecMainStartTimestampMonotonic) || return 1
+        app_monitor_exit=$(application_monitor_value "$evidence_root/application-monitor-health.stdout" ExecMainExitTimestampMonotonic) || return 1
+        app_monitor_id=$(application_monitor_value "$evidence_root/application-monitor-health.stdout" InvocationID) || return 1
+        [[ "$app_monitor_start" =~ ^[0-9]+$ && "$app_monitor_exit" =~ ^[0-9]+$ && "$app_monitor_id" =~ ^[0-9a-f]{32}$ ]] || return 1
+        if [[ "$app_monitor_id" != "$app_monitor_before_id" ]] &&
+            ((app_monitor_start >= app_monitor_resume && app_monitor_exit >= app_monitor_start && app_monitor_exit > app_monitor_before_exit)); then
+            require_equal monitor_result success "$(application_monitor_value "$evidence_root/application-monitor-health.stdout" Result)" || return 1
+            require_equal monitor_exit_status 0 "$(application_monitor_value "$evidence_root/application-monitor-health.stdout" ExecMainStatus)" || return 1
+            require_equal monitor_completed inactive "$(application_monitor_value "$evidence_root/application-monitor-health.stdout" ActiveState)" || return 1
+            ((app_monitor_exit <= app_monitor_deadline)) || {
+                printf 'monitor_deadline expected_exit_le=%s observed=%s\n' "$app_monitor_deadline" "$app_monitor_exit" >&2
+                return 1
+            }
+            require_equal monitor_final_boot "$(<"$evidence_root/application-trial-boot.tsv")" "$(cat /proc/sys/kernel/random/boot_id)" || return 1
+            printf 'passed\n' >"$evidence_root/application-trial-monitor.tsv"
+            return 0
+        fi
+        app_monitor_now=$(awk '{printf "%.0f\n", $1 * 1000000}' /proc/uptime)
+        if ((app_monitor_now >= app_monitor_deadline)); then
+            printf 'monitor_cycle expected=fresh-completed-within-150s observed_start=%s observed_exit=%s observed_invocation=%s\n' "$app_monitor_start" "$app_monitor_exit" "$app_monitor_id" >&2
+            return 1
+        fi
+        "$sleep_command" 2
+    done
 }
 
 application_primary() (
@@ -5982,7 +6067,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|application-primary|application-secondary-ready|application-expose|application-secondary|application-final|application-shared|application-trial-admit|application-trial-contain|application-trial-quiesce|application-trial-restore|application-trial-resume)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|application-primary|application-secondary-ready|application-expose|application-secondary|application-final|application-shared|application-trial-admit|application-trial-contain|application-trial-quiesce|application-trial-restore|application-trial-resume|application-trial-monitor)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -6017,6 +6102,7 @@ if [[ "$mode" = application-* ]]; then
         application-trial-quiesce) application_trial_quiesce ;;
         application-trial-restore) application_trial_restore ;;
         application-trial-resume) application_trial_resume ;;
+        application-trial-monitor) application_trial_monitor ;;
         application-primary) application_primary ;;
         application-secondary-ready) application_baseline ;;
         application-expose) application_expose ;;

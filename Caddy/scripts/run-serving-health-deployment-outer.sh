@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=8ff2b1d7de2eac08be309d1e51dfe8784b9e92533e5a25491f25feda90d11306
-readonly operation_sha256=0653a3199fcf0c83d9fde16aa7193c5d31f66d371142bdaa993d745163c29883
+readonly transaction_sha256=7490494779d5c64478af33de48047282f98e1d1951cd76de0597ee88acd89971
+readonly operation_sha256=3e9cbc55119637a96cacb86ad50f696f3c83bd7ca4140c055377b30bd40ccfb8
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -285,11 +285,46 @@ PROGRAM
         "$external_cleanup_program"
 }
 
+# Diagnostic-only limits are selected by the hash-bound owner input, never an env override.
+application_budget_seconds() {
+    local app_budget_cap=$1 app_budget_now app_budget_remaining app_budget_limit
+    app_budget_now=$(awk '{printf "%.0f\n", $1}' /proc/uptime)
+    app_budget_limit=$application_forward_deadline
+    [[ "${application_budget_phase:-forward}" != recovery ]] || app_budget_limit=$application_recovery_deadline
+    app_budget_remaining=$((app_budget_limit - app_budget_now - 20))
+    if ((app_budget_remaining <= 0)); then
+        printf 'application_budget phase=%s remaining=%s result=expired\n' "${application_budget_phase:-forward}" "$app_budget_remaining" >&2
+        return 124
+    fi
+    ((app_budget_remaining >= app_budget_cap)) || app_budget_cap=$app_budget_remaining
+    printf '%s\n' "$app_budget_cap"
+}
+
+application_budget_copy() {
+    local app_copy_seconds
+    if [[ -n "${application_forward_deadline:-}" ]]; then
+        app_copy_seconds=$(application_budget_seconds 60) || return $?
+        /usr/bin/timeout --signal=TERM --kill-after=5 "$app_copy_seconds" "$@"
+    else
+        "$@"
+    fi
+}
+
 ssh_stream() {
     local serving_health_host=$1
     local serving_health_program=$2
     shift 2
-    if release_operation; then
+    if [[ -n "${application_forward_deadline:-}" ]]; then
+        local app_remote_seconds app_remote_cap=90
+        [[ "${1:-}" != application-trial-monitor ]] || app_remote_cap=170
+        app_remote_seconds=$(application_budget_seconds "$app_remote_cap") || return $?
+        # Bound the remote process group as well as SSH. A local timeout alone
+        # cannot prove remote mutation stopped. Missing receipts remain incomplete.
+        /usr/bin/timeout --signal=TERM --kill-after=5 "$((app_remote_seconds + 10))" \
+            "$ssh_command" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o ServerAliveInterval=5 -o ServerAliveCountMax=3 "$serving_health_host" \
+            "cd / && sudo -n /usr/bin/timeout --signal=TERM --kill-after=5 $app_remote_seconds /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
+    elif release_operation; then
         "$ssh_command" -o BatchMode=yes -o ConnectTimeout=10 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=3 "$serving_health_host" \
             "cd / && sudo -n /bin/bash -s --$(printf ' %q' "$@")" <"$serving_health_program"
@@ -310,7 +345,7 @@ upload_payload() {
     capture "$serving_health_role-upload-prepare" ssh_stream "$serving_health_host" \
         "$prepare_program" "$serving_health_remote_root" "$serving_health_remote_archive" || return 1
     if release_operation; then
-        capture "$serving_health_role-upload-copy" "$scp_command" -o BatchMode=yes -o ConnectTimeout=10 \
+        capture "$serving_health_role-upload-copy" application_budget_copy "$scp_command" -o BatchMode=yes -o ConnectTimeout=10 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p -- \
             "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
     else
@@ -982,6 +1017,9 @@ application_trial_wait() {
             [[ "$app_wait_value" = "$app_wait_revision"$'\tcomplete' ]]
             return
         fi
+        if [[ -n "${application_forward_deadline:-}" ]]; then
+            application_budget_seconds 1 >/dev/null || return 1
+        fi
         sleep 1
     done
     printf 'application_trial_deadline expected=parent-finish observed=missing\n' >&2
@@ -990,6 +1028,7 @@ application_trial_wait() {
 
 application_trial_recover_pair() {
     local app_recovery_target=$1 app_recovery_status=0
+    application_budget_phase=recovery
     # Contain both senders before checking for receiver/finalizer quiescence.
     remote_transaction application-contain-a "$node_a_host" application-trial-contain node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || app_recovery_status=125
     remote_transaction application-contain-b "$node_b_host" application-trial-contain node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
@@ -1000,8 +1039,15 @@ application_trial_recover_pair() {
     remote_transaction application-restore-a "$node_a_host" application-trial-restore node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
     remote_transaction application-resume-b "$node_b_host" application-trial-resume node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
     remote_transaction application-resume-a "$node_a_host" application-trial-resume node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
-    readback application-restored-a "$node_a_host" "$node_a_evidence" || return 125
-    readback application-restored-b "$node_b_host" "$node_b_evidence" || return 125
+    # Both transports are resumed before observation. Failure never replays recovery.
+    remote_transaction application-monitor-b "$node_b_host" application-trial-monitor node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    remote_transaction application-monitor-a "$node_a_host" application-trial-monitor node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || app_recovery_status=125
+    readback application-restored-a "$node_a_host" "$node_a_evidence" || app_recovery_status=125
+    readback application-restored-b "$node_b_host" "$node_b_evidence" || app_recovery_status=125
+    if [[ "$app_recovery_status" != 0 ]]; then
+        printf 'application_trial_restoration=passed monitor_acceptance=incomplete evidence_readback=review-required\n' >&2
+        return 125
+    fi
     printf 'application_trial_recovery=restored revision=%s application_acceptance=separate\n' "$app_recovery_target"
 }
 
@@ -1013,6 +1059,14 @@ run_application_onboarding_live() {
         [[ "$(awk -F '\t' '$1 == "application_trial_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv")" = 660 ]] || return 1
         app_is_trial=true
     fi
+    if grep -q '^application_diagnostic_seconds' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+        [[ "$app_is_trial" = true ]] || return 1
+        [[ "$(awk -F '\t' '$1 == "application_diagnostic_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv")" = 240 ]] || return 1
+        application_forward_deadline=$(awk '{printf "%.0f\n", $1 + 240}' /proc/uptime)
+        application_recovery_deadline=$((application_forward_deadline + 600))
+        application_budget_phase=forward
+        printf 'application_budget forward=240 total=840 parent_child=1200 parent_wait=900\n'
+    fi
     # Payload transport and evidence readback retain the shared, qualified SSH
     # implementation. The application sequence never enters certificate repair.
     upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
@@ -1023,6 +1077,7 @@ run_application_onboarding_live() {
     fi
     remote_transaction application-primary-a "$node_a_host" application-primary \
         node-a "$node_a_payload" "$node_a_evidence" || app_outer_status=$?
+    [[ "$app_outer_status" = 0 ]] || application_budget_phase=recovery
     readback application-primary-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
     if [[ "$app_outer_status" != 0 || "$app_readback_status" != 0 ]]; then
         printf 'application_stage=primary expected=0 observed=%s readback=%s result=stopped\n' "$app_outer_status" "$app_readback_status" >&2
@@ -1064,6 +1119,7 @@ run_application_onboarding_live() {
         remote_transaction application-shared-a "$node_a_host" application-shared \
             node-a "$node_a_payload" "$node_a_evidence" "$app_target" || app_outer_status=$?
     fi
+    [[ "$app_outer_status" = 0 ]] || application_budget_phase=recovery
     readback application-result-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
     readback application-result-b "$node_b_host" "$node_b_evidence" || app_readback_status=$?
     if [[ "$app_is_trial" = true ]]; then

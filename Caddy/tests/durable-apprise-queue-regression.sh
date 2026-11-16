@@ -59,8 +59,8 @@ LOGGER
 cat >"$mock_systemctl" <<'SYSTEMCTL'
 #!/usr/bin/env bash
 case "$1" in
-    show) printf 'exit-code\n' ;;
-    is-active) printf 'active\n' ;;
+    show) printf '%s\n' "${NOTIFIER_TEST_RESULT:-exit-code}"; exit "${NOTIFIER_TEST_RESULT_EXIT:-0}" ;;
+    is-active) printf '%s\n' "${NOTIFIER_TEST_STATE-active}"; exit "${NOTIFIER_TEST_EXIT:-0}" ;;
     *) exit 64 ;;
 esac
 SYSTEMCTL
@@ -530,6 +530,43 @@ jq -e '
     contains("received releases cannot activate") and
     contains("VRRP dependency: no"))
 ' "$replication_record" >/dev/null || fail replication_contract
+# Exercise the real producer without sending or queueing a live notification.
+notifier_capture=$fixture_root/notifier-capture
+cat >"$notifier_capture" <<'CAPTURE'
+#!/usr/bin/env bash
+printf '%s\n' "$@" >"${NOTIFIER_TEST_CAPTURE:?}"
+CAPTURE
+chmod 0755 "$notifier_capture"
+while IFS='|' read -r notifier_case notifier_output notifier_exit notifier_expected; do
+    NOTIFIER_TEST_STATE=$notifier_output NOTIFIER_TEST_EXIT=$notifier_exit \
+        NOTIFIER_TEST_CAPTURE=$fixture_root/notifier-args \
+        CADDY_SYNC_FAILURE_ENQUEUE_COMMAND=$notifier_capture \
+        CADDY_SYNC_FAILURE_SYSTEMCTL_COMMAND=$mock_systemctl \
+        CADDY_SYNC_FAILURE_LOGGER_COMMAND=$mock_logger \
+        /bin/bash "$replication_producer" 'systemd unit failed: caddy-sync-health.service'
+    grep -Fq "lsyncd=$notifier_expected lsyncd_query_exit=$notifier_exit caddy=$notifier_expected caddy_query_exit=$notifier_exit" \
+        "$fixture_root/notifier-args" || fail "notifier_state_$notifier_case"
+    grep -Fxq 'failure reported; prior state not observed' "$fixture_root/notifier-args" || fail notifier_transition
+    grep -Fxq 'VIP movement: not observed; VRRP dependency: no' "$fixture_root/notifier-args" || fail notifier_vip
+    grep -Fq 'result=exit-code result_query_exit=0' "$fixture_root/notifier-args" || fail notifier_result_status
+done <<'CASES'
+active|active|0|active
+inactive|inactive|3|inactive
+failed|failed|3|failed
+empty||4|unknown
+malformed|unsafe state|1|unknown
+mismatch|active|3|active
+CASES
+NOTIFIER_TEST_STATE=$'active\nfailed' NOTIFIER_TEST_EXIT=3 \
+    NOTIFIER_TEST_RESULT='unsafe result' NOTIFIER_TEST_RESULT_EXIT=1 \
+    NOTIFIER_TEST_CAPTURE=$fixture_root/notifier-args \
+    CADDY_SYNC_FAILURE_ENQUEUE_COMMAND=$notifier_capture \
+    CADDY_SYNC_FAILURE_SYSTEMCTL_COMMAND=$mock_systemctl \
+    CADDY_SYNC_FAILURE_LOGGER_COMMAND=$mock_logger \
+    /bin/bash "$replication_producer" 'systemd unit failed: caddy-sync-health.service'
+grep -Fq 'result=unknown result_query_exit=1 lsyncd=unknown lsyncd_query_exit=3 caddy=unknown caddy_query_exit=3' \
+    "$fixture_root/notifier-args" || fail notifier_unsafe_output
+printf '%s_check_notifier_observed_state=true\n' "$prefix"
 grep -Fq -- "failure) severity_icon='🚨'" "$enqueue" || fail failure_icon
 grep -Fq -- "warning) severity_icon='⚠️'" "$enqueue" || fail warning_icon
 grep -Fq -- "info) severity_icon='ℹ️'" "$enqueue" || fail info_icon

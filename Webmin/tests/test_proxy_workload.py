@@ -78,6 +78,70 @@ class Acceptance(unittest.TestCase):
             summary = {'resource_scan_accepted': True, 'profile': {'workload_token': TOKEN}}
             self.assertTrue(w.accept(browser, scan, summary, {'accepted': True}, clocks, TOKEN)['accepted'])
 
+    def test_diagnostic_clock_envelope_and_resource_coverage(self):
+        import copy
+        boot = 'a'*8+'-'+ 'b'*4+'-'+ 'c'*4+'-'+ 'd'*4+'-'+ 'e'*12
+        before = {host: dict(clock='linux-boottime', monotonic=1000, controller_begin=10, controller_end=10.1, boot_id=boot)
+                  for host in ('backend', 'node-a', 'node-b')}
+        after = {host: dict(clock='linux-boottime', monotonic=1030, controller_begin=40, controller_end=40.1, boot_id=boot) for host in before}
+        samples = [dict(clock='linux-boottime', monotonic=1001+i, boot_id=boot, event_delta={unit: {'status': 'comparable', 'events': {'oom_kill': 0}}
+                   for unit in ('webmin.service', 'uptime-kuma.service')}) for i in range(25)] + [{'terminal': True}]
+        request = [dict(request_id='a'*32, node='node-a', boot_id=boot, start=1010, end=1015)]
+        for case in ('pass', 'late', 'boot', 'gap', 'missing', 'uncertain', 'reset'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
+                root = Path(name); b, a, rows, req = map(copy.deepcopy, (before, after, samples, request))
+                if case == 'late': req[0]['end'] = 1028
+                if case == 'boot': a['backend']['boot_id'] = 'different'
+                if case == 'gap': del rows[10:14]
+                if case == 'missing': rows.pop()
+                if case == 'uncertain': a['node-a']['controller_end'] += 6
+                if case == 'reset': rows[12]['event_delta']['webmin.service']['status'] = 'unavailable-or-reset'
+                for key, value in [('before', b), ('after', a), ('requests', req)]: w.write(root/key, value)
+                (root/'samples').write_text(''.join(json.dumps(row)+'\n' for row in rows)); (root/'samples').chmod(0o600)
+                if case == 'pass':
+                    h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'requests', root/'receipt')
+                    accepted = json.loads((root/'receipt').read_text())
+                    self.assertTrue(accepted['coverage_accepted']); self.assertFalse(accepted['causal_attribution'])
+                else:
+                    with self.assertRaises(ValueError): h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'requests', root/'receipt')
+                    self.assertFalse((root/'receipt').exists())
+
+    def test_request_index_checks_real_readback_encoding_and_node_identity(self):
+        import base64, hashlib
+        with tempfile.TemporaryDirectory(prefix='caddy-ssh-evidence-serving_health.') as name:
+            directory = Path(name)
+            w.atomic_text(directory/'owner.log', 'evidence_directory='+name+'\n')
+            record = 'a'*32+'\tnode-a\taaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\t1001\t1002\n'
+            def stream(text):
+                raw = text.encode()
+                return 'file=application-requests.tsv bytes='+str(len(raw))+' sha256='+hashlib.sha256(raw).hexdigest()+'\n'+base64.b64encode(raw).decode()+'\n'
+            w.atomic_text(directory/'application-primary-a-readback.stdout', stream(record))
+            self.assertEqual(h.request_records(directory/'owner.log')[0]['start'], 1001)
+            w.atomic_text(directory/'application-result-a-readback.stdout', stream(record))
+            self.assertEqual(len(h.request_records(directory/'owner.log')), 1)
+            path = directory/'application-result-a-readback.stdout'
+            path.write_text(stream(record.replace('1002', '1003')))
+            with self.assertRaisesRegex(ValueError, 'changed_request'): h.request_records(directory/'owner.log')
+            path.write_text(stream(record.replace('node-a', 'node-b')))
+            with self.assertRaisesRegex(ValueError, 'request_node'): h.request_records(directory/'owner.log')
+            path.write_text(stream(record).replace('sha256=', 'sha256=0'))
+            with self.assertRaisesRegex(ValueError, 'readback_metadata'): h.request_records(directory/'owner.log')
+
+    def test_clock_capture_uses_fixed_read_only_command_and_retains_failure(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        boot = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name); w.write(root/'spec', {'clock_ssh_prefixes': {host: ['/usr/bin/ssh', 'fixture'] for host in ('backend', 'node-a', 'node-b')}})
+            with patch.object(h.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout=json.dumps({'clock': 'linux-boottime', 'boot_id': boot, 'monotonic': 1}))) as run:
+                h.clock_capture(root/'spec', root/'clocks')
+                self.assertEqual(run.call_count, 3)
+                self.assertEqual(run.call_args.kwargs['timeout'], 5)
+                self.assertIn('/proc/sys/kernel/random/boot_id', run.call_args.args[0][-1])
+            with patch.object(h.subprocess, 'run', side_effect=subprocess.TimeoutExpired('PRIVATE', 5)):
+                with self.assertRaises(ValueError): h.clock_capture(root/'spec', root/'failed')
+                self.assertNotIn('PRIVATE', (root/'failed').read_text())
+
     def test_private_atomic_receipt_is_exclusive(self):
         with tempfile.TemporaryDirectory() as name:
             path = Path(name) / 'receipt.json'

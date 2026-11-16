@@ -2,6 +2,9 @@
 import http.server
 import importlib.util
 import json
+import http.client
+import shutil
+import subprocess
 from pathlib import Path
 import tempfile
 import threading
@@ -59,6 +62,101 @@ class DiagnosticTests(unittest.TestCase):
             self.assertNotIn('PRIVATE', json.dumps(result))
             if failure: self.assertEqual(result['phase'], 'headers')
             connection.close.assert_called_once()
+
+    def test_resource_intervals_reject_resets_and_replaced_groups(self):
+        import copy
+        row = {'boot_id': 'boot', 'cgroups': {unit: {'identity': [1, 2],
+               'memory.events': 'low 0\nhigh 2\nmax 0\noom 0\noom_kill 0\n'}
+               for unit in ('webmin.service', 'uptime-kuma.service')}}
+        after = copy.deepcopy(row)
+        after['cgroups']['webmin.service']['memory.events'] = 'low 0\nhigh 3\nmax 1\noom 1\noom_kill 1\n'
+        self.assertEqual(path_probe.event_delta(row, after)['webmin.service']['events']['oom_kill'], 1)
+        for field, value in [('identity', [1, 3]), ('memory.events', 'unavailable'),
+                             ('memory.events', 'low 0\nhigh 1\nmax 0\noom 0\noom_kill 0\n')]:
+            bad = copy.deepcopy(after); bad['cgroups']['webmin.service'][field] = value
+            self.assertEqual(path_probe.event_delta(row, bad)['webmin.service']['status'], 'unavailable-or-reset')
+        after['boot_id'] = 'new'
+        self.assertEqual(path_probe.event_delta(row, after)['webmin.service']['status'], 'unavailable-or-reset')
+
+    def test_resource_sampler_is_bounded_private_and_not_replayed(self):
+        row = {'boot_id': 'boot', 'epoch': 1, 'monotonic': 1, 'cgroups': {unit:
+               {'identity': [1, 2], 'memory.events': 'low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n'}
+               for unit in ('webmin.service', 'uptime-kuma.service')}}
+        for stop in (False, True):
+            with tempfile.TemporaryDirectory() as name, patch.object(path_probe, 'snapshot', return_value=row):
+                root = Path(name)
+                if stop: (root/'resource-stop').touch()
+                path_probe.observe(root, seconds=.01)
+                rows = [json.loads(line) for line in (root/'resource-samples.jsonl').read_text().splitlines()]
+                self.assertEqual(rows[-1]['reason'], 'stop' if stop else 'deadline')
+                self.assertEqual((root/'resource-samples.jsonl').stat().st_mode & 0o777, 0o600)
+                self.assertTrue((root/'resource-ready').exists())
+                with self.assertRaises(FileExistsError): path_probe.observe(root, seconds=.01)
+                root.chmod(0o755)
+                with self.assertRaises(ValueError): path_probe.observe(root, seconds=.01)
+
+    @unittest.skipUnless(shutil.which('caddy'), 'native Caddy required for log contract')
+    def test_native_caddy_correlates_safe_upstream_timing(self):
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), SlowHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        import socket
+        with socket.socket() as reservation:
+            reservation.bind(('127.0.0.1', 0)); port = reservation.getsockname()[1]
+        try:
+            with tempfile.TemporaryDirectory() as name:
+                root = Path(name)
+                source = (Path(__file__).parents[1]/'proposals/30-webmin-j2-svpi3bmf.caddy').read_text()
+                source = source.replace('https://webmin-j2-svpi3bmf.local.theama.co {', 'http://127.0.0.1:'+str(port)+' {')
+                source = source.replace('    bind 10.1.0.56 fd36:5aa8:6971:1::56 {$NODE_IPV4} {$NODE_IPV6}\n', '')
+                source = source.replace('    import local_tls\n', '')
+                source = source.replace('remote_ip 10.1.0.0/22 fd36:5aa8:6971:1::/64', 'remote_ip 127.0.0.1')
+                source = source.replace('10.1.3.75:10000 [fd36:5aa8:6971:1::75]:10000', '127.0.0.1:'+str(server.server_port))
+                (root/'Caddyfile').write_text('{\n admin off\n}\n'+source)
+                adapted = subprocess.run(['caddy', 'adapt', '--config', str(root/'Caddyfile'), '--adapter', 'caddyfile'], capture_output=True, text=True, timeout=10)
+                self.assertEqual(adapted.returncode, 0, adapted.stderr)
+                with (root/'log').open('w') as log:
+                    child = subprocess.Popen(['caddy', 'run', '--config', str(root/'Caddyfile'), '--adapter', 'caddyfile'], stdout=log, stderr=log)
+                    try:
+                        for _ in range(50):
+                            try:
+                                with socket.create_connection(('127.0.0.1', port), timeout=.1): break
+                            except OSError: time.sleep(.1)
+                        else: self.fail('native Caddy readiness exit='+str(child.poll())+' log='+repr((root/'log').read_text()))
+                        for request_id, timeout in [(None, 2), ('a'*32, 2), ('b'*32, .05)]:
+                            client = http.client.HTTPConnection('127.0.0.1', port, timeout=timeout)
+                            headers = {'Cookie': 'PRIVATE-CANARY', 'Authorization': 'PRIVATE-CANARY'}
+                            if request_id: headers['X-Homelab-Diagnostic'] = request_id
+                            try:
+                                client.request('GET', '/session_login.cgi', headers=headers)
+                                response = client.getresponse(); response.read()
+                                self.assertEqual(response.status, 200)
+                            except TimeoutError:
+                                self.assertEqual(request_id, 'b'*32)
+                            finally: client.close()
+                        for _ in range(40):
+                            records = []
+                            for line in (root/'log').read_text().splitlines():
+                                try: entry = json.loads(line)
+                                except ValueError: continue
+                                if 'diagnostic_id' in entry: records.append(entry)
+                            if len(records) >= 2: break
+                            time.sleep(.1)
+                        self.assertEqual({r['diagnostic_id'] for r in records}, {'a'*32, 'b'*32})
+                        self.assertEqual(len(records), 2)
+                        self.assertNotIn('PRIVATE', json.dumps(records))
+                        for entry in records:
+                            self.assertNotIn('request', entry); self.assertNotIn('resp_headers', entry)
+                        success = next(r for r in records if r['diagnostic_id'] == 'a'*32)
+                        self.assertEqual(success['status'], 200)
+                        self.assertGreater(float(success['upstream_latency_ms']), 0)
+                        self.assertGreater(float(success['upstream_duration_ms']), 0)
+                        self.assertEqual(success['upstream_host'], '127.0.0.1:'+str(server.server_port))
+                    finally:
+                        child.terminate()
+                        try: child.wait(timeout=5)
+                        except subprocess.TimeoutExpired: child.kill(); child.wait()
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
 
     def request(self, handler, timeout=2):
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
