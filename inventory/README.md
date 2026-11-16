@@ -175,7 +175,13 @@ belong to `homelab-monitoring-observability/uptime-kuma`. Fleet components retai
 their current owners. Mailrise is the mail owner's desired default; notification
 services remain shared and are not selected for installation on this Pi.
 
-`selected_not_deployed` establishes no installation or live acceptance. Watchdog
-backend/device ownership still requires host qualification. This host's monitoring
+Retained November 11 acceptance establishes the installed foundation, including
+adoption of the vendor systemd watchdog at 60/120 seconds. November 12 acceptance
+establishes the service and dual-stack dashboard. The
+[accepted result](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/RESULT.md)
+retains evidence and the approved deferred follow-up. The added standard-browser Webmin
+requirement keeps expanded closeout pending; these metadata updates are not a
+fresh inspection. The `webmin_access` block distinguishes the approved hostname
+and desired Caddy profile from the installed loopback profile. This host's monitoring
 function does not select a Munin plugin profile or a Munin master role. Inventory
 selection does not authorize package/service, DNS, networking or proxy changes.
