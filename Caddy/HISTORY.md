@@ -418,3 +418,35 @@ The private parent bundle retains all 236 executed inputs, original coverage and
 raw receipts. `manifests/serving-health-terminal-result.yaml` records sanitized
 outcomes and evidence hashes. The successor and coverage registries are cleared;
 no replay or successor is authorized. Archive commit/tag/push remains unapproved.
+
+## Webmin bounded proxy diagnostic, November 16, 2026
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-proxy-diagnostic-terminal-2026-11-16` (planned, unpublished).
+
+Operation `20261116-webmin-proxy-diagnostic` is failed-consumed. Four direct
+login-path probes passed. The primary HTTPS request connected and completed TLS
+in 0.052676 seconds but received no HTTP response before its five-second timeout.
+The candidate was not exposed to managed replication; no browser or scan ran.
+Both Caddy restoration/resume commands and readbacks passed, including original
+outbound inventories. The parent verified Webmin loopback restoration and stopped
+the owned recovery timer. The later Webmin snapshot contains an OOM kill counter,
+but no baseline delta or event timestamp establishes when it occurred.
+
+Aaron reported a replication-health service failure at 17:53:23 UTC during
+recovery. Subsequent monitor health is unverified; restoration success does not
+close this finding. The diagnostic cause remains unconfirmed.
+
+All 230 executed inputs and raw receipts are preserved privately. The terminal
+manifest records their hashes and limitations. Executed operation/recipe/runner
+bytes remain unchanged; successor and coverage registries are cleared. Separate
+terminal archive publication is required before neutral cleanup or replacement.
+
+Retained-source reconciliation identifies a possible monitor/recovery race: the
+owner stops the sender while its health timer remains active. The notification
+can collapse an inactive sender into `unknown`; its transition and VIP labels
+are static, not independent observations. No retained monitor result proves the
+precise failing predicate or subsequent recovery. Sequential direct probes also
+do not reproduce the activated route's health-probe/proxy concurrency. Neither
+this comparison nor untimed OOM counters establish the timeout cause.

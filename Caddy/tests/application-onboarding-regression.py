@@ -108,6 +108,50 @@ def definition_check():
     assert actual == list(coverage_rows()), 'primary-first coverage contract'
 
 
+def probe_diagnostic_tests():
+    """Check the real shell probe's evidence/exit contract, not host capacity."""
+    source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
+    functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', source, re.M|re.S)[0]
+                          for name in ('capture_command', 'application_failure_journal', 'application_routes'))
+    with tempfile.TemporaryDirectory(prefix='caddy-probe-contract-') as name:
+        root = Path(name)
+        journal = root/'journal'
+        journal.write_text("#!/bin/sh\nprintf '%s\\n' " + shlex.quote(json.dumps({'__REALTIME_TIMESTAMP': '1234', 'MESSAGE': 'timeout password=PRIVATE cookie=PRIVATE'})) + '\n')
+        journal.chmod(0o700)
+        curl = root/'curl'
+        for code, status in [(0, '200'), (28, '000'), (22, '503')]:
+            evidence = root/str(code); evidence.mkdir()
+            curl.write_text("#!/bin/sh\nprintf '%s\\n' " + shlex.quote(status) + ' ' +
+                            shlex.quote('connect=0.01 tls=0.02 first_byte=0 total=5 remote_ip=10.1.0.53 remote_port=443') + '\nexit '+str(code)+'\n')
+            curl.chmod(0o700)
+            script = functions + '\n' + """
+set -Eeuo pipefail
+umask 077
+evidence_root=$1; journalctl_command=$2; export CADDY_SERVING_HEALTH_CURL_COMMAND=$3
+node_role=node-a
+certificate_setting() { case "$1" in application_fqdn) echo webmin.example;; application_probe_path) echo session_login.cgi;; application_http_status) echo 200;; esac; }
+require_equal() { [[ "$2" = "$3" ]]; }
+certificate_serving_check() { :; }
+application_routes
+"""
+            result = subprocess.run(['bash', '-c', script, 'probe', str(evidence), str(journal), str(curl)], capture_output=True, text=True)
+            assert result.returncode == code, result.stderr
+            assert (evidence/'application-node-ipv4.stdout').read_text() == status+'\n'
+            assert 'total=5' in (evidence/'application-node-ipv4.timing.tsv').read_text()
+            if code:
+                retained = (evidence/'application-node-ipv4-journal.stdout').read_text()
+                assert json.loads(retained) == [{'epoch_us':'1234','category':'timeout'}]
+                assert 'PRIVATE' not in ''.join(p.read_text() for p in evidence.iterdir())
+                assert not (evidence/'application-node-ipv6.stdout').exists()
+        # Diagnostic failure must not replace the original failure or prevent recovery.
+        journal.write_text('#!/bin/sh\nexit 1\n')
+        unavailable = root/'unavailable'; unavailable.mkdir()
+        result = subprocess.run(['bash', '-c', script, 'probe', str(unavailable), str(journal), str(curl)], capture_output=True, text=True)
+        assert result.returncode == 22
+        assert (unavailable/'application-node-ipv4-journal.status').read_text() != '0\n'
+    print('application_probe_diagnostic_contract=true')
+
+
 def payload_tests():
     """Execute the actual builder with local files; no SSH or target fixtures."""
     outer = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
@@ -677,6 +721,7 @@ if __name__ == '__main__':
     elif sys.argv[1:2] == ['--backend']:
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
     elif sys.argv[1:] == ['--payload-tests']:
+        probe_diagnostic_tests()
         payload_tests()
     elif sys.argv[1:] == ['--definition-check']:
         definition_check()

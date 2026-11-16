@@ -1005,8 +1005,22 @@ application_baseline() {
     certificate_serving_check
 }
 
+# Failure-only metadata is captured before the caller's restoration trap.
+# Journal messages are classified in memory; never retain headers, URLs or bodies.
+application_failure_journal() {
+    /usr/bin/timeout 3 "$journalctl_command" --quiet --no-pager -u caddy.service \
+        --since "@$1" -n 32 -o json 2>/dev/null |
+        head -c 65536 |
+        jq -sc '[.[] | {epoch_us: (.__REALTIME_TIMESTAMP | select(test("^[0-9]+$"))),
+          category: (if ((.MESSAGE // "") | test("timeout|deadline"; "i")) then "timeout"
+            elif ((.MESSAGE // "") | test("no upstream|unhealthy"; "i")) then "upstream-unavailable"
+            elif ((.MESSAGE // "") | test("connect|dial"; "i")) then "connect"
+            else "other" end)}]' 2>/dev/null
+}
+
 application_routes() {
     local app_address app_family app_host app_code app_endpoint=${1:-node}
+    local app_probe_rc app_probe_epoch app_label
     app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
         if [[ "$app_endpoint" = shared ]]; then
@@ -1019,11 +1033,24 @@ application_routes() {
             app_address=10.1.0.54
             [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::54]'
         fi
-        capture_command "application-$app_endpoint-ipv$app_family" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
+        app_label=application-$app_endpoint-ipv$app_family
+        app_probe_epoch=$(date +%s)
+        printf '%s\n' "$app_probe_epoch" >"$evidence_root/$app_label.started.tsv"
+        app_probe_rc=0
+        capture_command "$app_label" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
             --noproxy '*' "-$app_family" --silent --show-error --fail \
             --connect-timeout 3 --max-time 5 --resolve "$app_host:443:$app_address" \
-            -o /dev/null -w '%{http_code}\n' "https://$app_host/$(certificate_setting application_probe_path)"
-        app_code=$(<"$evidence_root/application-$app_endpoint-ipv$app_family.stdout")
+            -o /dev/null -w '%{http_code}\nconnect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total} remote_ip=%{remote_ip} remote_port=%{remote_port}\n' "https://$app_host/$(certificate_setting application_probe_path)" || app_probe_rc=$?
+        sed -n '2p' "$evidence_root/$app_label.stdout" >"$evidence_root/$app_label.timing.tsv"
+        app_code=$(head -n 1 "$evidence_root/$app_label.stdout")
+        printf '%s\n' "$app_code" >"$evidence_root/$app_label.stdout"
+        if [[ "$app_probe_rc" != 0 || "$app_code" != "$(certificate_setting application_http_status)" ]]; then
+            capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" || true
+            printf 'application_probe_failure endpoint=%s family=%s expected=%s observed=%s curl_exit=%s\n' \
+                "$app_endpoint" "$app_family" "$(certificate_setting application_http_status)" "$app_code" "$app_probe_rc" >&2
+            [[ "$app_probe_rc" != 0 ]] || app_probe_rc=1
+            return "$app_probe_rc"
+        fi
         require_equal "application_${app_endpoint}_ipv${app_family}" "$(certificate_setting application_http_status)" "$app_code"
     done
     certificate_serving_check

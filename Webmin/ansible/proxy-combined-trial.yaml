@@ -31,6 +31,7 @@
       become: false
       changed_when: false
     - name: Check private client source and installed runtime without launching a browser
+      when: not (proxy_trial.diagnostic_only | default(false) | bool)
       ansible.builtin.command:
         argv: '{{ proxy_trial.client_preflight_argv }}'
       delegate_to: localhost
@@ -105,7 +106,9 @@
         - ansible.builtin.assert:
             that: [proxy_trial_caddy_ready.rc == 0]
         - ansible.builtin.set_fact: {proxy_trial_workload_entered: true}
+          when: not (proxy_trial.diagnostic_only | default(false) | bool)
         - name: Supervise the single observer and private statistics client
+          when: not (proxy_trial.diagnostic_only | default(false) | bool)
           ansible.builtin.command:
             argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/supervise-proxy-workload.py',
                    --spec, '{{ proxy_trial.workload_spec }}']
@@ -117,6 +120,7 @@
           register: proxy_trial_workload
           failed_when: false
         - name: Require browser, path and resource acceptance before a passing verdict
+          when: not (proxy_trial.diagnostic_only | default(false) | bool)
           ansible.builtin.assert:
             that: [proxy_trial_workload.rc == 0]
       always:
@@ -144,6 +148,23 @@
           delay: 1
           failed_when: false
           ignore_errors: true
+        - name: Retain bounded backend resource evidence before native restoration
+          when: proxy_trial_backend_entered | default(false)
+          block:
+            - ansible.builtin.command:
+                argv: [/usr/bin/timeout, '3', /usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py', --snapshot]
+              changed_when: false
+              failed_when: false
+              register: proxy_trial_failure_snapshot
+            - ansible.builtin.copy:
+                content: '{{ proxy_trial_failure_snapshot | to_nice_json }}'
+                dest: '{{ operation_evidence_directory }}/backend-before-restoration.json'
+                mode: '0600'
+              delegate_to: localhost
+              become: false
+          rescue:
+            - ansible.builtin.debug:
+                msg: Backend evidence unavailable; continue mandatory restoration.
         - name: Restore the native backend even if paired Caddy restoration is incomplete
           when: proxy_trial_backend_entered | default(false)
           block:
@@ -169,4 +190,4 @@
               - proxy_trial_caddy_terminal.finished
               - proxy_trial_caddy_terminal.rc == 0
               - proxy_trial_caddy_finish.rc == 0
-              - proxy_trial_workload.rc == 0
+              - (proxy_trial.diagnostic_only | default(false) | bool) or proxy_trial_workload.rc == 0

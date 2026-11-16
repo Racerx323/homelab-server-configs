@@ -554,3 +554,32 @@ and remove only the file created for that invocation after the parent exits.
 An explicit operator launch confirms readiness for the bounded automated run;
 it does not replace exact-bundle authorization. Preserve the one-attempt marker
 and both recovery receipts before considering any further operation.
+
+## Failed activation evidence
+
+Use `/session_login.cgi` for the unauthenticated direct-backend and proxy probes.
+Keep the reviewed timeouts unchanged. Direct probes retain the request path,
+start epoch, connection/header timings and fixed failure phase; response bodies,
+cookies and exception text are not retained.
+
+Before Caddy restores a failed route, retain the probe start epoch, curl exit and
+HTTP status, connection/TLS/first-byte/total timings and remote endpoint. The
+failure-only journal capture is limited to three seconds, 32 entries and 64 KiB
+of input. Only numeric event timestamps and fixed error categories leave the
+filter; raw messages, request headers and URLs do not. A missing or failed
+journal capture is evidence unavailable, not a healthy result, and must not
+replace the original probe failure or prevent restoration.
+
+The parent takes one bounded numeric backend cgroup snapshot before Webmin
+restoration, after Caddy's owner has ended. Its timestamp distinguishes it from
+the earlier proxy failure: it is not a simultaneous sample or capacity acceptance.
+Unavailable evidence never suppresses native recovery. Preserve both owner
+outcomes. These diagnostics require binding into the next reviewed operation;
+source changes alone authorize no target access or retry.
+
+For a route-diagnostic attempt, bind `proxy_trial.diagnostic_only: true` in the
+reviewed parent inputs. This skips browser preflight, credential lookup and the
+browser/scan supervisor. After the owner readiness receipt, signal finish
+immediately and verify both restorations. Keep backend identity, resource controls,
+source/denial checks and recovery timers intact. A successful diagnostic does not
+satisfy native browser, authenticated WebSocket or scan-overlap acceptance.

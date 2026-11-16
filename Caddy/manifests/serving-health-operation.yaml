@@ -1,9 +1,9 @@
 schema_version: 2
-action: 20261116-webmin-first-host-trial
+action: 20261116-webmin-proxy-diagnostic
 status: defined-unexecuted
 scope: application-onboarding
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 58070814da2f0e05acff6db7a012fd2acd6bd7a7c98cb4756466c9952c01894a
+transaction_sha256: 8ff2b1d7de2eac08be309d1e51dfe8784b9e92533e5a25491f25feda90d11306
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_contract_sha256: f627cc80164434da0b0977ff8b3195becc48e8310c171d0d090c88b611453034
@@ -13,7 +13,7 @@ certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
 certificate_inputs_sha256: 56537337b6e0ddb5b3c013d6788d0ac33d9742f8543324a65446248b2b39dd69
 coverage_sha256: dd5ba48e3a91990e3cfb3e0dba15035004e53b789c9943aaa3c7e45c2d7e5bf0
 regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: 5452037bcbf2717bbce8c7cb3a5c57afb70c5113a1da7095ce16cbf637152bba
+fixture_sha256: 13dd6a086fd325df155778df706ca38ca76cf14c23dafac135d53c00b4200e4c
 qualification_launcher_sha256: b04724afb96d42df69b5fc4ef4ae7e3da66a72fa2dc5357f6edf08107aeefde2
 authorization_policy_sha256: 66973fe7040da0c978e7a264f06a1d2b100968c87ad9b0ade08ac5560caba2fc
 implementation:
@@ -35,7 +35,7 @@ acceptance:
   - bounded secondary convergence through the existing owner path
   - stop exposure after the parent finish signal or 660-second deadline
   - prove paired original selections and outgoing inventories restored before transport resumes
-  - browser and resource acceptance belongs to the combined Webmin parent, not the finish signal
+  - diagnostic parent sends finish immediately after route readiness; no browser or scan acceptance
 recovery:
   - contain the exact child on both nodes and stop managed transport and reconciliation
   - quiesce receivers, restore secondary then primary, verify inventories, then resume transport

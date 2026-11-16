@@ -7,11 +7,18 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch, MagicMock
 
 spec = importlib.util.spec_from_file_location(
     "diagnostic", Path(__file__).parents[1] / "scripts/diagnose-http.py")
 diagnostic = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(diagnostic)
+
+
+path_spec = importlib.util.spec_from_file_location(
+    "path_probe", Path(__file__).parents[1] / "scripts/probe-proxy-path.py")
+path_probe = importlib.util.module_from_spec(path_spec)
+path_spec.loader.exec_module(path_probe)
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -35,6 +42,24 @@ class SlowHandler(Handler):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_backend_path_and_safe_phase_evidence(self):
+        for failure in (None, TimeoutError('PRIVATE response')):
+            connection = MagicMock()
+            connection.sock.getsockname.return_value = ('10.1.0.53', 1234)
+            connection.sock.getpeername.return_value = ('10.1.3.75', 10000)
+            response = connection.getresponse.return_value
+            response.status = 200
+            response.read.return_value = b'<input name="pass"> PRIVATE'
+            if failure: connection.getresponse.side_effect = failure
+            with patch.object(path_probe.subprocess, 'run', return_value=MagicMock(stdout='[{"prefsrc":"10.1.0.53"}]')), patch.object(path_probe.http.client, 'HTTPConnection', return_value=connection):
+                result = path_probe.probe('10.1.3.75', 'webmin.example', '10.1.0.53')
+            self.assertEqual(connection.request.call_args.args[:2], ('GET', '/session_login.cgi'))
+            self.assertEqual(result['accepted'], failure is None)
+            self.assertIn('connect_seconds', result['timing'])
+            self.assertNotIn('PRIVATE', json.dumps(result))
+            if failure: self.assertEqual(result['phase'], 'headers')
+            connection.close.assert_called_once()
+
     def request(self, handler, timeout=2):
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
