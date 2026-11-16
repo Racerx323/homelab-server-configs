@@ -1,5 +1,5 @@
 schema_version	scope	key	value	evidence
-1	cluster	accepted-live-artifacts-sha256	0e58c734fb72cba5e268913941eea697540918ee106eeda4e5c5d01661b0a5eb	accepted-live-artifacts.tsv
+1	cluster	accepted-live-artifacts-sha256	115005e0f02438bd7cb575b13823026d1d7b0f3c6120fb7180e7923a9e941213	accepted-live-artifacts.tsv
 1	cluster	runtime-production-sha256	495fcabc6640bf93d4e06b3c02f457911f352509df862731cccfecb72be401a7	runtime-production.tsv
 1	cluster	reproducibility-production-sha256	1f050df2c2454aaadfbecc560699f77dbd03b0ed7fc792414d091fe640d03a5f	reproducibility-production.yaml
 1	cluster	durable-apprise-evidence	tag:caddy-action35al-terminal-2026-08-23	accepted-action35al

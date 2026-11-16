@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: Racerx323/homelab-dns
-          ref: 9ae13d0b03a4cec4124d411dd86b273462370129
+          ref: 2ce710544c96479da2d79ab058a023646dd33c92
           path: homelab-dns
       - name: Install focused-validation dependencies
         run: sudo apt-get update && sudo apt-get install -y jq shellcheck shfmt

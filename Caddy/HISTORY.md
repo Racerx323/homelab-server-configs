@@ -450,3 +450,18 @@ are static, not independent observations. No retained monitor result proves the
 precise failing predicate or subsequent recovery. Sequential direct probes also
 do not reproduce the activated route's health-probe/proxy concurrency. Neither
 this comparison nor untimed OOM counters establish the timeout cause.
+
+### Diagnostic archive reconciliation and DNS inventory correction
+
+The diagnostic terminal tag is published and remote-verified at commit
+`4e6b3d5a016e03d4ee2101d9fe745f7d63702de7`. Local neutral cleanup preserves that
+archive, clears the consumed definition/recipe/terminal record and rebinds the
+inactive operation. No live command ran.
+
+The DNS owner's accepted November 12 deployment receipts independently establish
+installed zone hash `2df1be44a9ea39a35df1e75db16d72a4138b4ab3048fdc7bcf58bd7ff1a959dc`
+on both nodes. Repository source at DNS commit 2ce7105 preserves different ordering,
+with hash `4659dde5e93786ab144cb5a4f31b40de99faece7500303fcbde9ac65968158d9`.
+Caddy inventory now distinguishes those identities and cites the accepted DNS
+operation; this corrects stale August bookkeeping, not deployed configuration.
+The serving-health test verifies source and accepted hashes separately.

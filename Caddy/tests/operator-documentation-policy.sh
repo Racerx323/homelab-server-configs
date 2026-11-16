@@ -34,6 +34,7 @@ readonly script_lifecycle=$repository_root/Caddy/manifests/script-lifecycle.tsv
 readonly template_readme=$repository_root/Caddy/templates/README.md
 readonly reverse_proxy_template=$repository_root/Caddy/templates/reverse-proxy.caddy.example
 self_test_root=
+self_test_workspace=
 
 required_documents=(
     APPLICATION_ONBOARDING.md
@@ -396,7 +397,11 @@ run_self_test() {
     local operator_documentation_generator_backup
     local operator_documentation_handoff_backup
 
-    self_test_root=$(mktemp -d /tmp/caddy-operator-docs.XXXXXX)
+    self_test_workspace=$(mktemp -d /tmp/caddy-operator-docs.XXXXXX)
+    self_test_root=$self_test_workspace/homelab-server-configs
+    mkdir -p "$self_test_workspace/homelab-dns/Unbound/docs"
+    cp "$default_repository_root/../homelab-dns/Unbound/docs/host-record-deployment.md" \
+        "$self_test_workspace/homelab-dns/Unbound/docs/"
     mkdir -p "$self_test_root/Caddy/tests"
     cp "$default_repository_root/Caddy/tests/README.md" \
         "$self_test_root/Caddy/tests/README.md"
@@ -415,6 +420,16 @@ run_self_test() {
 
     /bin/bash "$0" --check --repository-root \
         "$self_test_root" >/dev/null
+
+    # Exercise the real cross-owner link, including missing-dependency rejection.
+    mv "$self_test_workspace/homelab-dns/Unbound/docs/host-record-deployment.md" \
+        "$self_test_workspace/dns-document.backup"
+    if /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >/dev/null 2>&1; then
+        fail self_test_missing_dns_dependency_accepted
+    fi
+    mv "$self_test_workspace/dns-document.backup" \
+        "$self_test_workspace/homelab-dns/Unbound/docs/host-record-deployment.md"
 
     operator_documentation_backup=$self_test_root/QUICK_START.backup
     cp "$self_test_root/Caddy/docs/QUICK_START.md" \
@@ -477,10 +492,10 @@ run_self_test() {
 }
 
 cleanup() {
-    if [[ "$self_test_root" == /tmp/caddy-operator-docs.* &&
-        -d "$self_test_root" && ! -L "$self_test_root" ]]; then
-        find "$self_test_root" -depth -mindepth 1 -delete
-        rmdir "$self_test_root"
+    if [[ "$self_test_workspace" == /tmp/caddy-operator-docs.* &&
+        -d "$self_test_workspace" && ! -L "$self_test_workspace" ]]; then
+        find "$self_test_workspace" -depth -mindepth 1 -delete
+        rmdir "$self_test_workspace"
     fi
 }
 trap cleanup EXIT INT TERM

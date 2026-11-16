@@ -305,7 +305,12 @@ while IFS=$'\t' read -r health_repository health_source health_target \
     health_root=$server_root
     [[ "$health_repository" = homelab-server-configs ]] || health_root=$dns_root
     [[ -f "$health_root/$health_source" && ! -L "$health_root/$health_source" ]]
-    if [[ "$health_source" = Caddy/scripts/check-pihole-web-health.sh ]]; then
+    if [[ "$health_source" = Unbound/configs/pihole-local-zone.conf ]]; then
+        # DNS source preserves repository ordering; accepted deployed bytes differ.
+        health_source_hash=$(awk -F '\t' '$1 == "node_a_unbound_local_zone" { print $6 }' "$caddy_root/manifests/production-artifacts.tsv")
+        health_deployed_hash=$(awk -F '\t' '$1 == "node_a_unbound_local_zone" { print $7 }' "$caddy_root/manifests/production-artifacts.tsv")
+        [[ "$health_deployed_hash" = "$health_hash" ]]
+    elif [[ "$health_source" = Caddy/scripts/check-pihole-web-health.sh ]]; then
         # Source may advance before deployment; accepted identities stay pinned.
         health_source_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $6 }' "$caddy_root/manifests/production-artifacts.tsv")
         health_deployed_hash=$(awk -F '\t' '$1 == "node_a_pihole_web_health_helper" { print $7 }' "$caddy_root/manifests/production-artifacts.tsv")
