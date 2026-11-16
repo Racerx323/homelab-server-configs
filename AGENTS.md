@@ -41,6 +41,10 @@ ownership, evidence, and safety boundaries below.
   directly mutate DNS, networking, Caddy, HA ownership, or another existing
   production deployment.
 
+All fleet DNS changes enter through the
+[DNS owner procedure](../homelab-dns/Unbound/docs/host-record-deployment.md),
+including changes requested by application or host onboarding.
+
 ## Repository state and history
 
 - Keep the main branch limited to current production artifacts, reusable

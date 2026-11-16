@@ -122,3 +122,44 @@ cleanup; failed cleanup retains it. No production qualification is claimed by so
 `--admit-mib` is a read-only fresh admission helper for the 416 MiB restore stage
 and 160 MiB ingress stage. It emits exact host/finite-parent readings before the
 caller evaluates the result. These stages do not overlap the scan observer.
+
+### Combined workload observation without changing the installed guard
+
+For a reviewed temporary trial, `ansible/guarded-scan.yaml` accepts
+`fleet_scan_trial` with `installed_sha256`, `source_sha256`, `profile_file` and
+`profile_sha256`. It verifies the installed root-owned guard before and after,
+stages the reviewed observer and profile privately in a separate input directory,
+and skips guard installation. The installed schedule remains unchanged. Evidence
+is fetched before owned directories are removed; failed cleanup retains evidence.
+
+The JSON profile contains `duration_seconds` (150–600), `scan_after_seconds`
+(at least 30 and at least 100 seconds before the end), and `services`. Each service
+maps to its reviewed absolute `cgroup`, `memory.high`, `memory.max` and
+`memory.swap.max` strings. Require finite caps and zero swap. Bind actual installed
+service/cgroup identities in the parent; do not infer them from a fixture.
+
+The same 32 MiB observer and existing exclusive scan lock cover baseline, workload,
+one list-only scan and the remaining observation interval. Admission remains
+224 MiB before the observer and 192 MiB before the scan, rechecked after baseline;
+96 MiB host/ancestor reserve remains required throughout. Service restart/cgroup
+changes, control drift, new hard-limit/OOM events, swap, missing evidence or sample
+gaps above one second fail acceptance. Observer cost stays included.
+
+`trial-ready.json` marks completion of the 30-second baseline. Private
+`trial-samples.jsonl` retains monotonic and wall timestamps, host/ancestor headroom,
+service controls/events/pressure and observer memory. The resource summary is not
+application acceptance: the parent must prove actual browser/path activity and
+scan overlap from separately retained receipts, stop owned load on failure, and
+coordinate backend and paired Caddy restoration. The observer never opens a
+browser, changes ACLs or submits a scheduled notification. Unit tests qualify
+these controls; only the authorized target trial can establish host headroom.
+
+For Webmin's combined trial, the application parent uses the optional reviewed
+`workload_token` profile and private trial directory. After baseline, it supplies
+`workload-ready.json` only when both selected browser clients are active;
+`scan_after_seconds` bounds this wait rather than forcing a scan before readiness.
+`workload-cancelled.json` stops progression. The observer publishes failure
+before cleanup so the parent can promptly stop owned browser load. These control
+receipts do not add a sampler or replace the unchanged 224/192/96 MiB gates.
+See [the Webmin parent contract](../Webmin/docs/CADDY_ONBOARDING.md#combined-parent-and-browser-receipt-contract)
+for clock brackets, browser acceptance and independent owner recovery outcomes.

@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=df154b7b8c444285a2f0d6a97d8ab71fb14535f31b9acc2654ce1ec4c669db7c
-readonly operation_sha256=da07735d06ce5e84740cc0c2232d8ed9422d7ca077d6049f15551655807e843d
+readonly transaction_sha256=58070814da2f0e05acff6db7a012fd2acd6bd7a7c98cb4756466c9952c01894a
+readonly operation_sha256=1a0862b2c171a26db7cec77ad9e09da76f77248ff43c9663a13268002001c00e
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -60,6 +60,22 @@ capture() {
     return "$serving_health_rc"
 }
 
+application_payload_fragment() {
+    local app_input=$1 app_source app_name app_hash app_path
+    app_source=$(awk -F '\t' '$1 == "application_fragment_source" {print $2; n++} END {if (n != 1) exit 1}' "$app_input") || return 1
+    app_name=$(awk -F '\t' '$1 == "application_fragment_name" {print $2; n++} END {if (n != 1) exit 1}' "$app_input") || return 1
+    app_hash=$(awk -F '\t' '$1 == "application_fragment_sha256" {print $2; n++} END {if (n != 1) exit 1}' "$app_input") || return 1
+    [[ "$app_source" =~ ^homelab-[a-z0-9-]+/([A-Za-z0-9_-]+/)+[2-7][0-9]-[a-z0-9-]+\.caddy$ ]] || return 1
+    [[ "$app_name" =~ ^[2-7][0-9]-[a-z0-9-]+\.caddy$ && "${app_source##*/}" = "$app_name" ]] || return 1
+    [[ "$app_hash" =~ ^[0-9a-f]{64}$ ]] || return 1
+    app_path=$workspace_root/$app_source
+    regular_file "$app_path" || return 1
+    [[ "$(realpath -e -- "$app_path")" = "$app_path" ]] || return 1
+    [[ "$(sha256sum "$app_path" | awk '{print $1}')" = "$app_hash" ]] || return 1
+    install -m 0600 "$app_path" "$payload_stage/manifests/application.caddy" || return 1
+    [[ "$(sha256sum "$payload_stage/manifests/application.caddy" | awk '{print $1}')" = "$app_hash" ]]
+}
+
 build_payload() {
     local serving_health_repository serving_health_source serving_health_target serving_health_mode
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
@@ -69,10 +85,7 @@ build_payload() {
         install -m 0600 "${CADDY_CERTIFICATE_TEST_INPUTS:-$repository_root/Caddy/manifests/certificate-release-inputs.tsv}" \
             "$payload_stage/manifests/certificate-release-inputs.tsv"
         if grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
-            install -m 0600 \
-                "$workspace_root/homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy" \
-                "$payload_stage/manifests/application.caddy"
-
+            application_payload_fragment "$payload_stage/manifests/certificate-release-inputs.tsv"
         fi
         install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
             "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh"
@@ -951,13 +964,63 @@ certificate_collect_manual_evidence() {
     printf 'Certificate repair requires manual intervention; evidence_directory=%s\n' "$workstation_evidence" >&2
 }
 
+application_trial_wait() {
+    local app_wait_revision=$1 app_wait_seconds app_wait_tick app_wait_value
+    app_wait_seconds=$(awk -F '\t' '$1 == "application_trial_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv") || return 1
+    [[ "$app_wait_seconds" = 660 ]] || return 1
+    # Only the existing offline entrypoint may accelerate the machine deadline.
+    [[ "${CADDY_CERTIFICATE_TEST_SCOPE:-}" != application ]] || app_wait_seconds=2
+    [[ ! -e "$workstation_evidence/application-trial-finish.tsv" && ! -L "$workstation_evidence/application-trial-finish.tsv" ]] || return 1
+    printf '%s\n' "$app_wait_revision" >"$workstation_evidence/application-trial-ready.tsv"
+    printf 'application_trial_ready=%s\n' "$workstation_evidence/application-trial-ready.tsv"
+    for ((app_wait_tick = 0; app_wait_tick < app_wait_seconds; app_wait_tick++)); do
+        if [[ -e "$workstation_evidence/application-trial-finish.tsv" || -L "$workstation_evidence/application-trial-finish.tsv" ]]; then
+            regular_file "$workstation_evidence/application-trial-finish.tsv" || return 1
+            [[ "$(stat -c '%u:%a' "$workstation_evidence/application-trial-finish.tsv")" = "$(id -u):600" ]] || return 1
+            [[ "$(stat -c %s "$workstation_evidence/application-trial-finish.tsv")" -le 256 ]] || return 1
+            app_wait_value=$(<"$workstation_evidence/application-trial-finish.tsv")
+            [[ "$app_wait_value" = "$app_wait_revision"$'\tcomplete' ]]
+            return
+        fi
+        sleep 1
+    done
+    printf 'application_trial_deadline expected=parent-finish observed=missing\n' >&2
+    return 1
+}
+
+application_trial_recover_pair() {
+    local app_recovery_target=$1 app_recovery_status=0
+    # Contain both senders before checking for receiver/finalizer quiescence.
+    remote_transaction application-contain-a "$node_a_host" application-trial-contain node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || app_recovery_status=125
+    remote_transaction application-contain-b "$node_b_host" application-trial-contain node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    [[ "$app_recovery_status" = 0 ]] || return 125
+    remote_transaction application-quiesce-a "$node_a_host" application-trial-quiesce node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
+    remote_transaction application-quiesce-b "$node_b_host" application-trial-quiesce node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    remote_transaction application-restore-b "$node_b_host" application-trial-restore node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    remote_transaction application-restore-a "$node_a_host" application-trial-restore node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
+    remote_transaction application-resume-b "$node_b_host" application-trial-resume node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    remote_transaction application-resume-a "$node_a_host" application-trial-resume node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
+    readback application-restored-a "$node_a_host" "$node_a_evidence" || return 125
+    readback application-restored-b "$node_b_host" "$node_b_evidence" || return 125
+    printf 'application_trial_recovery=restored revision=%s application_acceptance=separate\n' "$app_recovery_target"
+}
+
 run_application_onboarding_live() {
     local app_outer_status=0 app_target app_role app_readback_status=0
     local app_target_file=$workstation_evidence/application-target.tsv
+    local app_is_trial=false
+    if grep -q '^application_trial_seconds' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+        [[ "$(awk -F '\t' '$1 == "application_trial_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv")" = 660 ]] || return 1
+        app_is_trial=true
+    fi
     # Payload transport and evidence readback retain the shared, qualified SSH
     # implementation. The application sequence never enters certificate repair.
     upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
     upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
+    if [[ "$app_is_trial" = true ]]; then
+        remote_transaction application-admit-a "$node_a_host" application-trial-admit node-a "$node_a_payload" "$node_a_evidence" || return 1
+        remote_transaction application-admit-b "$node_b_host" application-trial-admit node-b "$node_b_payload" "$node_b_evidence" || return 1
+    fi
     remote_transaction application-primary-a "$node_a_host" application-primary \
         node-a "$node_a_payload" "$node_a_evidence" || app_outer_status=$?
     readback application-primary-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
@@ -965,6 +1028,15 @@ run_application_onboarding_live() {
         printf 'application_stage=primary expected=0 observed=%s readback=%s result=stopped\n' "$app_outer_status" "$app_readback_status" >&2
         # No exposure command was issued. Retain evidence and prepared state;
         # a lost SSH response cannot establish whether local recovery finished.
+        if [[ "$app_is_trial" = true ]]; then
+            # Recover only an independently read exact child, even after a lost reply.
+            [[ "$app_readback_status" = 0 ]] || return 125
+            extract_readback_file "$workstation_evidence/application-primary-a-readback.stdout" application-target.tsv "$app_target_file" || return 125
+            app_target=$(<"$app_target_file")
+            [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
+            application_trial_recover_pair "$app_target" || return 125
+            return 1
+        fi
         [[ "$app_outer_status" -lt 125 && "$app_readback_status" = 0 ]] || return 125
         cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
         cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
@@ -994,6 +1066,24 @@ run_application_onboarding_live() {
     fi
     readback application-result-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
     readback application-result-b "$node_b_host" "$node_b_evidence" || app_readback_status=$?
+    if [[ "$app_is_trial" = true ]]; then
+        if [[ "$app_outer_status" = 0 && "$app_readback_status" = 0 ]]; then
+            for app_role in a b; do
+                extract_readback_file "$workstation_evidence/application-result-$app_role-readback.stdout" \
+                    application-manifest.tsv "$workstation_evidence/application-manifest-$app_role.tsv" || app_outer_status=1
+            done
+            cmp -s "$workstation_evidence/application-manifest-a.tsv" "$workstation_evidence/application-manifest-b.tsv" || app_outer_status=1
+            if [[ "$app_outer_status" = 0 ]]; then
+                application_trial_wait "$app_target" || app_outer_status=1
+            fi
+        else
+            app_outer_status=1
+        fi
+        application_trial_recover_pair "$app_target" || return 125
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+        return "$app_outer_status"
+    fi
     [[ "$app_readback_status" = 0 && "$app_outer_status" != 125 && "$app_outer_status" != 255 ]] || return 125
     if [[ "$app_outer_status" != 0 ]]; then
         printf 'application_stage=replication-or-acceptance expected=0 observed=%s revision=%s result=partial dns=pending\n' "$app_outer_status" "$app_target" >&2

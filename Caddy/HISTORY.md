@@ -395,3 +395,26 @@ hash bindings. The consumed terminal manifest remains in the archive; accepted
 release state links that tag. Accepted production configuration and installed
 identities are unchanged. Cleanup is uncommitted and grants no live authority.
 Private login/WebSocket acceptance and DNS remain pending.
+
+## Webmin first-host temporary trial, November 16, 2026
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-first-host-trial-terminal-2026-11-16` (planned, unpublished).
+
+Operation `20261116-webmin-first-host-trial` is failed-consumed. Primary preparation,
+finalization and reconciliation completed, but the first new-route IPv4 HTTPS
+request timed out after 5001 ms with zero bytes received (curl 28; HTTP 000).
+The candidate was not exposed to managed replication. No browser or scan workload
+started; the timeout's cause is unconfirmed.
+
+The approved recovery restored both Caddy nodes, verified the original outgoing
+inventories and resumed managed transport. Existing serving checks passed over
+both families. The Webmin parent separately restored its exact loopback baseline,
+verified its restored-state assertion and stopped its recovery timer.
+
+The exact executed operation, recipe, transaction and outer runner remain intact.
+The private parent bundle retains all 236 executed inputs, original coverage and
+raw receipts. `manifests/serving-health-terminal-result.yaml` records sanitized
+outcomes and evidence hashes. The successor and coverage registries are cleared;
+no replay or successor is authorized. Archive commit/tag/push remains unapproved.

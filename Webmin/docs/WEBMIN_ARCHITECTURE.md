@@ -104,3 +104,29 @@ metadata and refuses duplicate managed assignments. A failed operation removes
 the permit and contains the listener while retaining packages/configuration for
 review. No drive-temperature override, USB source patch or Nautobot-specific
 state is selected by this profile.
+
+## Fleet browser-access requirement
+
+Normal fleet administration uses a dedicated HTTPS hostname through Caddy on
+port 443, without a workstation tunnel. The initial `ssh-loopback` profile remains
+an installed bootstrap/recovery baseline, not the final fleet access policy.
+[Operations](OPERATIONS.md) clearly separates normal browser use from optional
+SSH recovery; [onboarding](CADDY_ONBOARDING.md) reuses the existing Caddy and DNS
+owner workflows for one selected host at a time.
+
+Preserve existing Webmin authentication, unrelated settings and resource limits.
+Restrict backend ingress to reviewed proxy identities plus loopback; retain
+Caddy's intended-client allowlist and trusted frontend TLS. Backend transport,
+referers, redirects, cookies and WebSocket behavior require pinned-version
+qualification before exposure. Never disable authentication, global referer
+checks or backend TLS verification as a shortcut. A host's private login and
+browser-path acceptance remain distinct from Caddy configuration validity.
+
+The browser profile explicitly enables native referrer checks (`referer=0`),
+preserves the host's missing-referrer policy (`referers_none`, where `1` rejects
+missing referrers on protected actions), and adds only the selected trusted browser
+hostname. These are separate controls. Native login/index exceptions remain.
+Host ingress uses a Webmin-owned nftables table alongside existing application
+and runtime tables; no full-ruleset replacement or shared firewall takeover.
+Backend listener exposure requires verified ingress before startup, with the
+same bound source list in miniserv. Host recovery restores exact prior settings.

@@ -53,21 +53,38 @@ def probe(host, port, path, timeout):
     return result
 
 
-def sample(cgroup, started):
+def sample(cgroup, started, proc_root=Path("/proc")):
     result = {"elapsed_seconds": round(time.monotonic() - started, 3)}
-    for name in ("memory.current", "memory.peak", "memory.events", "memory.events.local",
+    for name in ("memory.current", "memory.peak", "memory.high", "memory.max",
+                 "memory.swap.current", "memory.swap.max", "memory.events", "memory.events.local",
                  "memory.pressure", "cpu.stat", "cpu.pressure", "io.pressure", "pids.current"):
         result[name] = read_small(cgroup / name, 2048).strip()
+    # Cgroup usage includes charges that per-process RSS/PSS cannot explain alone.
+    result["memory.stat"] = read_small(cgroup / "memory.stat", 8192).strip()
     processes = []
-    for pid in read_small(cgroup / "cgroup.procs").split()[:16]:
+    inventory = read_small(cgroup / "cgroup.procs").split()
+    valid_inventory = all(pid.isdecimal() for pid in inventory)
+    result["process_inventory_complete"] = valid_inventory and len(inventory) <= 16
+    result["processes_omitted"] = max(0, len(inventory) - 16) if valid_inventory else None
+    for pid in inventory[:16]:
         if not pid.isdecimal():
             continue
         fields = {"pid": int(pid)}
-        for line in read_small(Path("/proc") / pid / "status").splitlines():
+        for line in read_small(proc_root / pid / "status").splitlines():
             key, _, value = line.partition(":")
-            if key in ("Name", "State", "VmRSS", "Threads"):
+            if key in ("Name", "State", "PPid", "VmRSS", "VmSwap", "Threads"):
                 fields[key] = value.strip()[:64]
-        fields["wchan"] = read_small(Path("/proc") / pid / "wchan", 128).strip()
+        fields["wchan"] = read_small(proc_root / pid / "wchan", 128).strip()
+        # Whitelist numeric aggregate memory fields; never retain maps, command
+        # lines, environments, open files, page bodies or credentials.
+        rollup = read_small(proc_root / pid / "smaps_rollup", 8192)
+        fields["rollup_available"] = not rollup.startswith("unavailable")
+        for line in rollup.splitlines():
+            key, _, value = line.partition(":")
+            parts = value.split()
+            if (key in ("Pss", "Pss_Anon", "Pss_File", "Pss_Shmem", "Private_Dirty", "Swap")
+                    and len(parts) == 2 and parts[0].isdecimal() and parts[1] == "kB"):
+                fields[key + "_kib"] = int(parts[0])
         processes.append(fields)
     result["processes"] = processes
     return result

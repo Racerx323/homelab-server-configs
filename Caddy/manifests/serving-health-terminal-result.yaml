@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "action": "20261116-webmin-first-host-trial",
+  "result": "failed-consumed",
+  "outer_sha256": "d7b1d9ca0e8464286138f7c4c9954153bb7678cbc964f3753fa4fcae7889b754",
+  "transaction_sha256": "58070814da2f0e05acff6db7a012fd2acd6bd7a7c98cb4756466c9952c01894a",
+  "operation_sha256": "1a0862b2c171a26db7cec77ad9e09da76f77248ff43c9663a13268002001c00e",
+  "parent_manifest_sha256": "b15710ed9209ac6e47e0e796798e2c4956d0514d797f106394cf30857ee4ef8d",
+  "executed_coverage_sha256": "dd5ba48e3a91990e3cfb3e0dba15035004e53b789c9943aaa3c7e45c2d7e5bf0",
+  "parent_exit": 2,
+  "outer_exit": 1,
+  "failure": {
+    "stage": "primary application IPv4 HTTPS",
+    "expected_http_status": 200,
+    "observed_http_status": "000",
+    "curl_exit": 28,
+    "timeout_ms": 5001,
+    "received_bytes": 0,
+    "cause": "unconfirmed"
+  },
+  "recovery": {
+    "paired_caddy": "restored and resumed; original outgoing inventories verified",
+    "webmin": "parent restore and restored-state assertion passed; timer stopped"
+  },
+  "application_acceptance": "not_started",
+  "scan_acceptance": "not_started",
+  "archive_tag": "caddy-webmin-first-host-trial-terminal-2026-11-16",
+  "archive_status": "planned-unpublished",
+  "evidence_sha256": {
+    "parent.log": "36f07d60f1d453ee008926a5648875c47cf0d9383002bf4507b416160bd574a5",
+    "parent.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "inputs/evidence/parent-owner-outcomes.json": "e04034a774fc3c93d79b1d9153f65f11569aba836688e969ce42a3e8eff0628f",
+    "decoded-caddy-readbacks.json": "98142ee77c4cc2eab2d985b71886df23a5ba1436f7cd87f5c2ba67e597f17277",
+    "terminal-summary.json": "3bef91d526422e6f8dd65acb7e5730725b7ae982a75bbbf9f4e12c080261fdf8"
+  }
+}

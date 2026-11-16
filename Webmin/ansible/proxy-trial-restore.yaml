@@ -1,0 +1,26 @@
+# Finish the bounded trial; never treat a timer cancellation as acceptance.
+- name: Restore and verify the exact loopback baseline
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - '{{ proxy_trial.work_directory }}/recover-proxy.py'
+      - restore
+      - --work-directory
+      - '{{ proxy_trial.work_directory }}'
+  changed_when: true
+- name: Read the private terminal recovery state
+  ansible.builtin.slurp:
+    src: '{{ proxy_trial.work_directory }}/state.json'
+  register: proxy_trial_terminal
+  no_log: true
+- name: Require completed restoration before disarming the timer
+  ansible.builtin.assert:
+    that:
+      - (proxy_trial_terminal.content | b64decode | from_json).phase == 'restored'
+    fail_msg: Recovery is not proven complete; retain the timer, guard and private evidence.
+- name: Stop the completed native recovery timer
+  ansible.builtin.systemd_service:
+    name: webmin-proxy-recovery.timer
+    state: stopped
+# Retain backups, state and service receipts for owner review; do not delete them.
+# The parent must still complete Caddy owner recovery and record its disposition.

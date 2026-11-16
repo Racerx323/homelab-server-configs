@@ -1,0 +1,111 @@
+# Tasks included by one sealed parent operation, never a standalone entrypoint.
+# Parent supplies exact inputs, fresh host/route/control gates and operator readiness.
+# Caddy, DNS, browser workload and acceptance remain with their existing owners.
+- name: Require explicit parent gates and the bounded private trial directory
+  ansible.builtin.assert:
+    that:
+      - proxy_trial.work_directory is match('^/run/webmin-proxy-trial/[A-Za-z0-9]+$')
+      - proxy_trial.readiness_accepted | bool
+      - proxy_trial.operator_ready | bool
+      - proxy_trial.recovery_seconds == 1800
+- name: Refuse a reused trial directory before copying any input
+  ansible.builtin.stat:
+    path: '{{ proxy_trial.work_directory }}'
+    follow: false
+  register: proxy_trial_existing
+- name: Require a fresh operation directory
+  ansible.builtin.assert:
+    that:
+      - not proxy_trial_existing.stat.exists
+- name: Prepare private host trial storage
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  loop:
+    - /run/webmin-proxy-trial
+    - '{{ proxy_trial.work_directory }}'
+- name: Stage all exact backend inputs before arming recovery
+  ansible.builtin.copy:
+    src: '{{ item.src }}'
+    dest: '{{ proxy_trial.work_directory }}/{{ item.name }}'
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - {src: '{{ fleet_server_root }}/Webmin/scripts/recover-proxy.py', name: recover-proxy.py}
+    - {src: '{{ fleet_server_root }}/Webmin/scripts/configure-miniserv.py', name: configure-miniserv.py}
+    - {src: '{{ fleet_server_root }}/Webmin/systemd/webmin-firewall.service', name: webmin-firewall.service}
+    - {src: '{{ fleet_server_root }}/Webmin/systemd/webmin.service.d/30-proxy-ingress.conf', name: 30-proxy-ingress.conf}
+    - {src: '{{ proxy_trial.binding_file }}', name: binding.json}
+    - {src: '{{ proxy_trial.rendered_directory }}/ingress.nft', name: ingress.nft}
+    - {src: '{{ proxy_trial.rendered_directory }}/miniserv.json', name: miniserv.json}
+    - {src: '{{ proxy_trial.rendered_directory }}/webmin.json', name: webmin.json}
+- name: Save the exact active loopback baseline before mutation
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - '{{ proxy_trial.work_directory }}/recover-proxy.py'
+      - snapshot
+      - --work-directory
+      - '{{ proxy_trial.work_directory }}'
+      - --binding
+      - '{{ proxy_trial.work_directory }}/binding.json'
+  changed_when: true
+- name: Arm independent native recovery before the first backend change
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemd-run
+      - --unit=webmin-proxy-recovery
+      - --on-active=1800s
+      - --timer-property=AccuracySec=1s
+      - --property=Type=oneshot
+      - --property=TimeoutStartSec=300s
+      - --property=MemoryMax=48M
+      - --property=MemorySwapMax=0
+      - --property=TasksMax=64
+      - /usr/bin/python3
+      - '{{ proxy_trial.work_directory }}/recover-proxy.py'
+      - restore
+      - --work-directory
+      - '{{ proxy_trial.work_directory }}'
+  changed_when: true
+- name: Execute all backend writes in one bounded host-side service
+  block:
+    - name: Apply through the native service that recovery can stop
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemd-run
+          - --unit=webmin-proxy-apply
+          - --wait
+          - --pipe
+          - --property=Type=oneshot
+          - --property=TimeoutStartSec=180s
+          - --property=TimeoutStopSec=15s
+          - --property=KillMode=control-group
+          - --property=MemoryMax=48M
+          - --property=MemorySwapMax=0
+          - --property=TasksMax=64
+          - /usr/bin/python3
+          - '{{ proxy_trial.work_directory }}/recover-proxy.py'
+          - apply
+          - --work-directory
+          - '{{ proxy_trial.work_directory }}'
+      changed_when: true
+  rescue:
+    - name: Restore the exact baseline and retain the independent timer
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/python3
+          - '{{ proxy_trial.work_directory }}/recover-proxy.py'
+          - restore
+          - --work-directory
+          - '{{ proxy_trial.work_directory }}'
+      changed_when: true
+    - name: Stop the parent operation after a failed backend change
+      ansible.builtin.fail:
+        msg: Backend change failed; inspect the private recovery state before further work.
+# Parent runs the bounded trial, then restore. It verifies phase=restored before
+# stopping the recovery timer. This trial never auto-promotes a browser profile.

@@ -1,0 +1,49 @@
+---
+- name: Allocate only owned proxy probe storage
+  ansible.builtin.tempfile:
+    state: directory
+    path: /run
+    prefix: webmin-path-trial-
+  delegate_to: '{{ proxy_path.node }}'
+  register: proxy_probe_directory
+- name: Exercise one actual backend path
+  block:
+    - ansible.builtin.copy:
+        src: '{{ fleet_server_root }}/Webmin/scripts/probe-proxy-path.py'
+        dest: '{{ proxy_probe_directory.path }}/probe.py'
+        owner: root
+        group: root
+        mode: '0600'
+      delegate_to: '{{ proxy_path.node }}'
+    - ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py', --counters]
+      changed_when: false
+      register: proxy_counter_before
+    - ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ proxy_probe_directory.path }}/probe.py', --address, '{{ proxy_path.address }}',
+               --hostname, '{{ proxy_trial.browser_hostname }}', --source, '{{ proxy_path.source }}']
+      delegate_to: '{{ proxy_path.node }}'
+      register: proxy_actual_path
+      changed_when: false
+      failed_when: false
+    - ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py', --counters]
+      changed_when: false
+      register: proxy_counter_after
+    - ansible.builtin.copy:
+        content: '{{ {"expected": proxy_path, "before": proxy_counter_before, "client": proxy_actual_path, "after": proxy_counter_after} | to_nice_json }}'
+        dest: '{{ operation_evidence_directory }}/backend-path-{{ proxy_path.id }}.json'
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+    - ansible.builtin.assert:
+        that:
+          - proxy_actual_path.rc == 0
+          - (proxy_actual_path.stdout | from_json).accepted
+          - (proxy_counter_after.stdout | from_json)[proxy_path.counter] > (proxy_counter_before.stdout | from_json)[proxy_path.counter]
+  always:
+    - name: Remove only the allocated proxy probe directory
+      ansible.builtin.file:
+        path: '{{ proxy_probe_directory.path }}'
+        state: absent
+      delegate_to: '{{ proxy_path.node }}'

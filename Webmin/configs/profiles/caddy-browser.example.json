@@ -1,0 +1,25 @@
+{
+  "browser_hostname": "webmin-host.example.test",
+  "backend_addresses": [
+    "192.0.2.75",
+    "fd00::75"
+  ],
+  "proxy_sources": [
+    "192.0.2.53",
+    "192.0.2.54",
+    "fd00::53",
+    "fd00::54"
+  ],
+  "backend_transport": "http",
+  "miniserv": {
+    "port": "10000",
+    "ssl": "0",
+    "session": "1",
+    "localauth": "",
+    "allow": "127.0.0.1 ::1"
+  },
+  "webmin": {
+    "referers": "existing.example.test",
+    "referers_none": "0"
+  }
+}

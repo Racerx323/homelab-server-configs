@@ -1,14 +1,49 @@
 schema_version: 2
-action: none
-status: inactive
+action: 20261116-webmin-first-host-trial
+status: defined-unexecuted
+scope: application-onboarding
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: df154b7b8c444285a2f0d6a97d8ab71fb14535f31b9acc2654ce1ec4c669db7c
+transaction_sha256: 58070814da2f0e05acff6db7a012fd2acd6bd7a7c98cb4756466c9952c01894a
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_contract_sha256: f627cc80164434da0b0977ff8b3195becc48e8310c171d0d090c88b611453034
 production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 240fa27811c6383f1b1548aa462f9a37a13b2ad3bfd4a755f7d793ca2a6c3532
+certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
+certificate_inputs_sha256: 56537337b6e0ddb5b3c013d6788d0ac33d9742f8543324a65446248b2b39dd69
+coverage_sha256: dd5ba48e3a91990e3cfb3e0dba15035004e53b789c9943aaa3c7e45c2d7e5bf0
+regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
+fixture_sha256: 5452037bcbf2717bbce8c7cb3a5c57afb70c5113a1da7095ce16cbf637152bba
+qualification_launcher_sha256: b04724afb96d42df69b5fc4ef4ae7e3da66a72fa2dc5357f6edf08107aeefde2
+authorization_policy_sha256: 66973fe7040da0c978e7a264f06a1d2b100968c87ad9b0ade08ac5560caba2fc
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
-live_execution: no-operation-defined
+targets:
+  - pi@10.1.0.53
+  - pi@10.1.0.54
+mutation:
+  - stage one protected payload and retain original release inventories on both nodes
+  - use the pinned payload publisher without replacing installed tools
+  - append only the bound Webmin fragment while preserving Kuma, unrelated routes and TLS
+  - verify primary activation before exposing the exact release to managed replication
+  - independently validate and activate the same candidate on the secondary
+  - allow one bounded temporary exposure for the separately bound parent workload
+acceptance:
+  - fresh operation boot continuity and exact original release and installed runtime identities
+  - trusted dual-stack new-route and existing health-route responses on both nodes and VIPs
+  - bounded secondary convergence through the existing owner path
+  - stop exposure after the parent finish signal or 660-second deadline
+  - prove paired original selections and outgoing inventories restored before transport resumes
+  - browser and resource acceptance belongs to the combined Webmin parent, not the finish signal
+recovery:
+  - contain the exact child on both nodes and stop managed transport and reconciliation
+  - quiesce receivers, restore secondary then primary, verify inventories, then resume transport
+  - retain guarded partial state and report 125 when paired restoration is unproved
+  - controller loss may require manual Caddy recovery; native Webmin deadline recovery is independent
+excluded:
+  - DNS, reboot, forced failover, certificate replacement and installed-tool replacement
+  - backend mutation outside the separately bound Webmin parent
+  - account creation, ACL changes, terminals, monitors, alerts and synthetic notifications
+  - unrelated route or radio changes and Git publication
+live_execution: requires-exact-outer-sha256-approval-with-combined-parent

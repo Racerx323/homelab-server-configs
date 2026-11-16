@@ -1,26 +1,102 @@
 ---
 - ansible.builtin.import_tasks: install-scan-guard.yaml
+  when: fleet_scan_trial is not defined
+- name: Bind the installed guard without reinstalling it for a combined trial
+  when: fleet_scan_trial is defined
+  block:
+    - name: Read installed guard identity and metadata
+      ansible.builtin.stat:
+        path: /usr/local/libexec/fleet/observe-needrestart.py
+        follow: false
+        checksum_algorithm: sha256
+      register: fleet_scan_installed
+    - name: Require the reviewed installed identity
+      ansible.builtin.assert:
+        that:
+          - fleet_scan_installed.stat.isreg | default(false)
+          - not (fleet_scan_installed.stat.islnk | default(true))
+          - fleet_scan_installed.stat.uid == 0
+          - fleet_scan_installed.stat.mode == '0755'
+          - fleet_scan_installed.stat.checksum == fleet_scan_trial.installed_sha256
+          - fleet_scan_trial.source_sha256 is match('^[0-9a-f]{64}$')
+          - fleet_scan_trial.profile_sha256 is match('^[0-9a-f]{64}$')
 - name: Allocate protected scan evidence
+  when: fleet_scan_trial is not defined or fleet_scan_trial.directory is not defined
   ansible.builtin.tempfile:
     state: directory
     path: /run
     prefix: needrestart-acceptance-
   register: fleet_scan_directory
+- name: Allocate a parent-bound trial evidence directory exactly once
+  when: fleet_scan_trial is defined and fleet_scan_trial.directory is defined
+  block:
+    - ansible.builtin.assert:
+        that:
+          - fleet_scan_trial.directory is match('^/run/needrestart-acceptance-[a-z0-9]{16,64}$')
+    - ansible.builtin.stat:
+        path: '{{ fleet_scan_trial.directory }}'
+        follow: false
+      register: fleet_scan_parent_directory
+    - ansible.builtin.assert:
+        that: [not fleet_scan_parent_directory.stat.exists]
+    - ansible.builtin.file:
+        path: '{{ fleet_scan_trial.directory }}'
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+    - ansible.builtin.set_fact:
+        fleet_scan_directory: {path: '{{ fleet_scan_trial.directory }}'}
+- name: Stage the reviewed observer and resource bindings privately
+  when: fleet_scan_trial is defined
+  block:
+    - name: Allocate private trial inputs separately from empty evidence
+      ansible.builtin.tempfile:
+        state: directory
+        path: /run
+        prefix: needrestart-trial-inputs-
+      register: fleet_scan_input_directory
+    - name: Copy trial-only owner inputs
+      ansible.builtin.copy:
+        src: '{{ item.src }}'
+        dest: '{{ fleet_scan_input_directory.path }}/{{ item.name }}'
+        owner: root
+        group: root
+        mode: '0600'
+      loop:
+        - {src: '{{ fleet_server_root }}/foundation/scripts/observe-needrestart.py', name: observe-needrestart.py}
+        - {src: '{{ fleet_scan_trial.profile_file }}', name: trial-profile.json}
+    - name: Read staged observer identity
+      ansible.builtin.stat:
+        path: '{{ fleet_scan_input_directory.path }}/observe-needrestart.py'
+        follow: false
+        checksum_algorithm: sha256
+      register: fleet_scan_staged
+    - name: Read staged resource profile identity
+      ansible.builtin.stat:
+        path: '{{ fleet_scan_input_directory.path }}/trial-profile.json'
+        follow: false
+        checksum_algorithm: sha256
+      register: fleet_scan_profile
+    - name: Require the exact separately qualified trial observer
+      ansible.builtin.assert:
+        that:
+          - fleet_scan_staged.stat.checksum == fleet_scan_trial.source_sha256
+          - fleet_scan_profile.stat.checksum == fleet_scan_trial.profile_sha256
+- name: Select the owner command without changing the installed schedule
+  ansible.builtin.set_fact:
+    fleet_scan_command: >-
+      {{ ['/usr/bin/timeout', '--signal=TERM', '--kill-after=5s',
+          '675s' if fleet_scan_trial is defined else '160s', '/usr/bin/python3', '-I', '-B',
+          fleet_scan_input_directory.path ~ '/observe-needrestart.py' if fleet_scan_trial is defined
+          else '/usr/local/libexec/fleet/observe-needrestart.py', '--guard', fleet_scan_directory.path]
+         + (['--trial-profile', fleet_scan_input_directory.path ~ '/trial-profile.json']
+            if fleet_scan_trial is defined else []) }}
 - name: Run one guarded list-only scan and retain failures
   block:
     - name: Apply staged admission and observe the actual scan
       ansible.builtin.command:
-        argv:
-          - /usr/bin/timeout
-          - --signal=TERM
-          - --kill-after=5s
-          - 160s
-          - /usr/bin/python3
-          - -I
-          - -B
-          - /usr/local/libexec/fleet/observe-needrestart.py
-          - --guard
-          - '{{ fleet_scan_directory.path }}'
+        argv: '{{ fleet_scan_command }}'
       register: fleet_scan_guard
       changed_when: true
       failed_when: false
@@ -41,7 +117,7 @@
     - name: Locate retained scan evidence
       ansible.builtin.stat:
         path: '{{ fleet_scan_directory.path }}/{{ item }}'
-      loop: [admission.json, observation.json, guard.json, scan.stdout, scan.stderr]
+      loop: [admission.json, observation.json, guard.json, scan.stdout, scan.stderr, trial-summary.json, trial-samples.jsonl, trial-ready.json]
       register: fleet_scan_receipts
     - name: Retain existing scan receipts on the protected controller
       ansible.builtin.fetch:
@@ -50,14 +126,43 @@
         flat: true
       loop: '{{ fleet_scan_receipts.results }}'
       when: item.stat.exists
+    - name: Keep fetched receipts private for the parent verifier
+      ansible.builtin.file:
+        path: '{{ operation_evidence_directory }}/scan-{{ foundation_observation_label | default("foundation-configured") }}-{{ item.item }}'
+        mode: '0600'
+      loop: '{{ fleet_scan_receipts.results }}'
+      when: item.stat.exists
+      delegate_to: localhost
+      become: false
     - name: Require a guard receipt with verified owned cleanup
       ansible.builtin.assert:
         that:
           - fleet_scan_guard.stdout is defined
           - "'cleanup_error' not in (fleet_scan_guard.stdout | from_json)"
+    - name: Read installed guard identity after a trial
+      when: fleet_scan_trial is defined
+      ansible.builtin.stat:
+        path: /usr/local/libexec/fleet/observe-needrestart.py
+        follow: false
+        checksum_algorithm: sha256
+      register: fleet_scan_installed_after
+    - name: Require the installed guard to remain unchanged
+      when: fleet_scan_trial is defined
+      ansible.builtin.assert:
+        that:
+          - fleet_scan_installed_after.stat.isreg | default(false)
+          - not (fleet_scan_installed_after.stat.islnk | default(true))
+          - fleet_scan_installed_after.stat.uid == 0
+          - fleet_scan_installed_after.stat.mode == '0755'
+          - fleet_scan_installed_after.stat.checksum == fleet_scan_trial.installed_sha256
     - name: Remove only the allocated scan directory after evidence retention
       ansible.builtin.file:
         path: '{{ fleet_scan_directory.path }}'
+        state: absent
+    - name: Remove only owned trial inputs after verified cleanup
+      when: fleet_scan_trial is defined
+      ansible.builtin.file:
+        path: '{{ fleet_scan_input_directory.path }}'
         state: absent
 - name: Require staged admission and scan acceptance
   ansible.builtin.assert:

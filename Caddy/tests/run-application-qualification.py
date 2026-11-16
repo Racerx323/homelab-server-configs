@@ -21,6 +21,7 @@ def main():
     result = dict(status='failed', network='none', evidence=str(evidence))
     sources = [REPO/'Caddy/scripts'/name for name in ['publish-release-v2.sh', 'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh']]
     sources += [Path(__file__), REPO/'Caddy/tests/application-onboarding-regression.py', REPO/'Caddy/tests/certificate-release-regression.py', REPO.parent/'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy']
+    sources.append(REPO/'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy')
     result['inputs'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}
     result['accepted_reconciler_sha256'] = hashlib.sha256(fixture.read_bytes()).hexdigest()
     print(evidence, flush=True)

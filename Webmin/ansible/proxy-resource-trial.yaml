@@ -1,0 +1,13 @@
+---
+# Launched by the parent workload supervisor with its exact private inventory/vars.
+- name: Observe one guarded combined workload without reinstalling the guard
+  hosts: webmin_trial
+  become: true
+  gather_facts: false
+  tasks:
+    - ansible.builtin.assert:
+        that:
+          - ansible_play_hosts_all | length == 1
+          - fleet_scan_trial is defined
+          - fleet_scan_trial.directory is defined
+    - ansible.builtin.import_tasks: ../../foundation/ansible/guarded-scan.yaml

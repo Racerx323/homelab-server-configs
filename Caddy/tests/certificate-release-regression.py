@@ -298,6 +298,10 @@ def setup(root):
         for revision in ['tls-source', 'baseline']:
             release = releases / revision
             shutil.copytree(REPO / 'Caddy/configs/caddy', release)
+            # Model an application addition, even after that application's real
+            # production inventory has advanced. Webmin keeps accepted Kuma.
+            if os.environ.get('CERT_APPLICATION') == '1' and os.environ.get('PRIMARY_CASE') != 'webmin-source' and not os.environ.get('PRIMARY_CASE', '').startswith('trial-'):
+                (release/'conf.d/20-uptime-kuma.caddy').unlink(missing_ok=True)
             shutil.copytree(cert, release / 'tls')
             if revision == 'baseline' and os.environ.get('CERT_APPLICATION') != '1':
                 for name in ['leaf.pem', 'intermediates.pem', 'certificate-manifest.json']:
@@ -330,11 +334,14 @@ def setup(root):
     values.update(finalizer_sha256=digest(REPO/'Caddy/scripts/finalize-incoming-release-v2.sh'), reconciler_installed_sha256=accepted_hash('protocol_v2_reconciler'), checker_unit_sha256=digest(REPO/'Caddy/systemd/caddy-cert-expiry.service'), reconcile_unit_sha256=digest(REPO/'Caddy/systemd/caddy-sync-reconcile.service'))
     if os.environ.get('CERT_APPLICATION') == '1':
         fragment = REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy'
+        if os.environ.get('PRIMARY_CASE') == 'webmin-source' or os.environ.get('PRIMARY_CASE', '').startswith('trial-'):
+            fragment = REPO/'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'
         values.update(release_kind='application', tls_source_revision='baseline',
                       tls_source_manifest_sha256=hashes['baseline'],
                       application_fragment_name=fragment.name, application_fragment_sha256=digest(fragment),
-                      application_operator_sha256=digest(fragment.parent.parent/'scripts/private-proxy-login.py'),
-                      application_client_sha256=digest(fragment.parent.parent/'scripts/verify-proxy-login.cjs'))
+                      application_fragment_source=str(fragment.relative_to(REPO.parent)),
+                      application_operator_sha256=digest(REPO.parent/'homelab-monitoring-observability/uptime-kuma/scripts/private-proxy-login.py'),
+                      application_client_sha256=digest(REPO.parent/'homelab-monitoring-observability/uptime-kuma/scripts/verify-proxy-login.cjs'))
     for unit in ['caddy-cert-expiry.service', 'caddy-sync-reconcile.service']:
         shutil.copy2(REPO/'Caddy/systemd'/unit, Path('/etc/systemd/system')/unit)
     recipe.write_text('key\tvalue\n' + ''.join(k+'\t'+v+'\n' for k,v in values.items()))

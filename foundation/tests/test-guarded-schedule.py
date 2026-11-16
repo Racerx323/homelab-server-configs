@@ -37,5 +37,36 @@ class ScheduleTests(unittest.TestCase):
             self.assertIn('exit "$needrestart_cron_status"', text)
 
 
+class TrialCommandTests(unittest.TestCase):
+    def test_real_default_and_trial_command_rendering(self):
+        tasks = yaml.safe_load((ROOT / 'foundation/ansible/guarded-scan.yaml').read_text())
+        select = next(t for t in tasks if 'ansible.builtin.set_fact' in t)
+        for trial in (False, True):
+            with self.subTest(trial=trial), tempfile.TemporaryDirectory(prefix='guarded-trial-') as name:
+                root = Path(name); output = root / 'argv.json'
+                variables = {'fleet_scan_directory': {'path': '/run/fixture-output'}}
+                if trial:
+                    variables.update(fleet_scan_trial={}, fleet_scan_input_directory={'path': '/run/fixture-input'})
+                play = [{'hosts': 'localhost', 'connection': 'local', 'gather_facts': False, 'vars': variables,
+                         'tasks': [select, {'ansible.builtin.copy': {'content': '{{ fleet_scan_command | to_json }}',
+                         'dest': str(output), 'mode': '0600'}}]}]
+                path = root / 'render.yaml'; path.write_text(yaml.safe_dump(play))
+                run = subprocess.run(['/bin/bash', str(ROOT / 'tests/repository/run-with-ansible-local-temp.sh'),
+                                      'ansible-playbook', '-i', 'localhost,', str(path)],
+                                     cwd=ROOT, capture_output=True, text=True, timeout=60)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+                import json
+                argv = json.loads(output.read_text())
+                self.assertIn('/run/fixture-output', argv)
+                if trial:
+                    self.assertIn('/run/fixture-input/observe-needrestart.py', argv)
+                    self.assertEqual(argv[-2:], ['--trial-profile', '/run/fixture-input/trial-profile.json'])
+                    self.assertIn('675s', argv)
+                else:
+                    self.assertIn('/usr/local/libexec/fleet/observe-needrestart.py', argv)
+                    self.assertNotIn('--trial-profile', argv)
+                    self.assertIn('160s', argv)
+
+
 if __name__ == '__main__':
     unittest.main()

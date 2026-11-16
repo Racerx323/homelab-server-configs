@@ -75,5 +75,46 @@ class DiagnosticTests(unittest.TestCase):
                     diagnostic.verify_profile(config, policy)
 
 
+    def test_memory_attribution_retains_numeric_rollup_not_private_process_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            group, proc = root / "group", root / "proc"
+            group.mkdir()
+            (proc / "42").mkdir(parents=True)
+            (group / "cgroup.procs").write_text("42\n")
+            (group / "memory.stat").write_text("anon 8192\nfile 4096\n")
+            (group / "memory.max").write_text("201326592\n")
+            (proc / "42/status").write_text("Name:\tperl\nPPid:\t1\nVmRSS:\t16 kB\nSecret: private-canary\n")
+            (proc / "42/smaps_rollup").write_text(
+                "0000-ffff private-canary\nPss: 12 kB\nPss_Anon: 8 kB\n"
+                "Pss_File: 4 kB\nPrivate_Dirty: 8 kB\nSwap: invalid\n")
+            (proc / "42/cmdline").write_text("private-canary")
+            (proc / "42/environ").write_text("private-canary")
+            result = diagnostic.sample(group, time.monotonic(), proc)
+            process = result["processes"][0]
+            self.assertEqual(process["Pss_kib"], 12)
+            self.assertEqual(process["Pss_Anon_kib"], 8)
+            self.assertNotIn("Swap_kib", process)
+            self.assertEqual(result["memory.stat"], "anon 8192\nfile 4096")
+            self.assertTrue(result["process_inventory_complete"])
+            self.assertEqual(result["memory.max"], "201326592")
+            self.assertNotIn("private-canary", json.dumps(result))
+
+    def test_disappeared_process_and_truncated_inventory_are_explicit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "cgroup.procs").write_text("\n".join(str(n) for n in range(1, 19)))
+            result = diagnostic.sample(root, time.monotonic(), root / "absent")
+            self.assertEqual(len(result["processes"]), 16)
+            self.assertEqual(result["processes_omitted"], 2)
+            self.assertFalse(result["process_inventory_complete"])
+            self.assertFalse(result["processes"][0]["rollup_available"])
+            (root / "cgroup.procs").write_text("1" * 9000)
+            result = diagnostic.sample(root, time.monotonic(), root / "absent")
+            self.assertFalse(result["process_inventory_complete"])
+            self.assertIsNone(result["processes_omitted"])
+            self.assertEqual(result["processes"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,172 @@
+---
+# One reviewed parent: existing backend, Caddy and scan owners retain their work.
+# Vars and inventory are private exact-bundle inputs. This file grants no authority.
+- name: Qualify temporary Webmin browser exposure and restore both owners
+  hosts: webmin_trial
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Require one host and the selected owner entrypoints
+      ansible.builtin.assert:
+        that:
+          - ansible_play_hosts_all | length == 1
+          - proxy_caddy.argv[0] == '/bin/bash'
+          - proxy_caddy.argv[1] == fleet_server_root ~ '/Caddy/scripts/run-serving-health-deployment-outer.sh'
+          - proxy_trial.workload_token is match('^[0-9a-f]{64}$')
+          - fleet_scan_trial.directory is match('^/run/needrestart-acceptance-[a-z0-9]{16,64}$')
+          - proxy_trial.operator_ready | bool
+          - proxy_caddy.argv | length == 2
+          - "'CADDY_CERTIFICATE_TEST_SCOPE' not in proxy_caddy.environment"
+    - name: Require Caddy authorization-ready source bindings before backend exposure
+      ansible.builtin.command:
+        argv: [/bin/bash, '{{ fleet_server_root }}/Caddy/tests/deployable-successor-policy.sh', --authorization-ready]
+      environment: '{{ proxy_caddy.environment }}'
+      delegate_to: localhost
+      become: false
+      changed_when: false
+    - name: Verify the exact non-secret parent manifest before any mutation
+      ansible.builtin.command:
+        argv: [/usr/bin/sha256sum, --check, --strict, '{{ proxy_trial.inputs_manifest }}']
+      delegate_to: localhost
+      become: false
+      changed_when: false
+    - name: Check private client source and installed runtime without launching a browser
+      ansible.builtin.command:
+        argv: '{{ proxy_trial.client_preflight_argv }}'
+      delegate_to: localhost
+      become: false
+      changed_when: false
+    - name: Check native host identity without accepting historical boot IDs
+      ansible.builtin.command: {argv: [/usr/bin/hostname]}
+      register: proxy_trial_hostname
+      changed_when: false
+    - ansible.builtin.assert:
+        that: [proxy_trial_hostname.stdout == proxy_trial.native_hostname]
+    - name: Capture this operation's boot identity
+      ansible.builtin.slurp: {src: /proc/sys/kernel/random/boot_id}
+      register: proxy_trial_boot
+    - name: Bind the same reviewed resource profile before any exposure
+      ansible.builtin.set_fact:
+        proxy_trial_resource: '{{ lookup("ansible.builtin.file", fleet_scan_trial.profile_file) | from_json }}'
+    - ansible.builtin.assert:
+        that:
+          - proxy_trial_resource.workload_token == proxy_trial.workload_token
+          - proxy_trial_resource.duration_seconds <= 600
+          - proxy_trial_resource.scan_after_seconds <= proxy_trial_resource.duration_seconds - 100
+    - name: Read actual service/cgroup controls for the selected units
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, show, '{{ item.key }}', '--property=ActiveState,ControlGroup,MemoryHigh,MemoryMax,MemorySwapMax']
+      loop: '{{ proxy_trial_resource.services | dict2items }}'
+      register: proxy_trial_service_admission
+      changed_when: false
+    - name: Reject changed service/cgroup identities and controls before backend mutation
+      ansible.builtin.assert:
+        that:
+          - "'ActiveState=active' in item.stdout_lines"
+          - "('ControlGroup=' ~ item.item.value.cgroup) in item.stdout_lines"
+          - "('MemoryHigh=' ~ ('infinity' if item.item.value['memory.high'] == 'max' else item.item.value['memory.high'])) in item.stdout_lines"
+          - "('MemoryMax=' ~ item.item.value['memory.max']) in item.stdout_lines"
+          - "'MemorySwapMax=0' in item.stdout_lines"
+      loop: '{{ proxy_trial_service_admission.results }}'
+    - name: Run the temporary owner stages
+      block:
+        - name: Record that backend preparation is entering its owner boundary
+          ansible.builtin.set_fact: {proxy_trial_backend_entered: true}
+        - ansible.builtin.import_tasks: proxy-trial.yaml
+        - ansible.builtin.import_tasks: proxy-path-trial.yaml
+        - name: Start the exact Caddy owner command with private separate logs
+          ansible.builtin.shell: |
+            umask 077
+            set +e
+            {{ proxy_caddy.argv | map('quote') | join(' ') }} > {{ (operation_evidence_directory ~ '/caddy.stdout') | quote }} 2> {{ (operation_evidence_directory ~ '/caddy.stderr') | quote }}
+            caddy_owner_status=$?
+            printf '%s\n' "$caddy_owner_status" > {{ (operation_evidence_directory ~ '/caddy.exit.partial') | quote }}
+            mv -- {{ (operation_evidence_directory ~ '/caddy.exit.partial') | quote }} {{ (operation_evidence_directory ~ '/caddy.exit') | quote }}
+            exit "$caddy_owner_status"
+          args: {executable: /bin/bash}
+          environment: '{{ proxy_caddy.environment }}'
+          delegate_to: localhost
+          become: false
+          async: 1200
+          poll: 0
+          register: proxy_trial_caddy_job
+        - name: Wait for the Caddy owner's exact temporary exposure receipt
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', ready,
+                   '{{ operation_evidence_directory }}/caddy.stdout', '{{ operation_evidence_directory }}/caddy-ready.json',
+                   --owner-exit, '{{ operation_evidence_directory }}/caddy.exit']
+          delegate_to: localhost
+          become: false
+          register: proxy_trial_caddy_ready
+          changed_when: false
+          until: proxy_trial_caddy_ready.rc in [0, 2]
+          retries: 150
+          delay: 2
+        - ansible.builtin.assert:
+            that: [proxy_trial_caddy_ready.rc == 0]
+        - ansible.builtin.set_fact: {proxy_trial_workload_entered: true}
+        - name: Supervise the single observer and private statistics client
+          ansible.builtin.command:
+            argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/supervise-proxy-workload.py',
+                   --spec, '{{ proxy_trial.workload_spec }}']
+            stdin: '{{ lookup("ansible.builtin.file", proxy_trial.credentials_file) }}'
+            stdin_add_newline: false
+          delegate_to: localhost
+          become: false
+          no_log: true
+          register: proxy_trial_workload
+          failed_when: false
+        - name: Require browser, path and resource acceptance before a passing verdict
+          ansible.builtin.assert:
+            that: [proxy_trial_workload.rc == 0]
+      always:
+        - name: Signal the existing Caddy owner only after workload child cleanup
+          ansible.builtin.command:
+            argv: >-
+              {{ ['/usr/bin/python3', fleet_server_root ~ '/Webmin/scripts/proxy-trial-handoff.py',
+                  'finish', operation_evidence_directory ~ '/caddy-ready.json']
+                 + (['--workload-result', proxy_trial.workload_result]
+                    if proxy_trial_workload_entered | default(false) else []) }}
+          delegate_to: localhost
+          become: false
+          when: proxy_trial_caddy_ready is defined and proxy_trial_caddy_ready.rc == 0
+          register: proxy_trial_caddy_finish
+          failed_when: false
+        - name: Retain the Caddy restoration result without suppressing backend recovery
+          ansible.builtin.async_status:
+            jid: '{{ proxy_trial_caddy_job.ansible_job_id }}'
+          delegate_to: localhost
+          become: false
+          when: proxy_trial_caddy_job is defined and proxy_trial_caddy_job.ansible_job_id is defined
+          register: proxy_trial_caddy_terminal
+          until: proxy_trial_caddy_terminal.finished | default(false)
+          retries: 900
+          delay: 1
+          failed_when: false
+          ignore_errors: true
+        - name: Restore the native backend even if paired Caddy restoration is incomplete
+          when: proxy_trial_backend_entered | default(false)
+          block:
+            - ansible.builtin.import_tasks: proxy-trial-restore.yaml
+          always:
+            - name: Retain independent owner outcomes without private login data
+              ansible.builtin.copy:
+                content: >-
+                  {{ {'caddy': proxy_trial_caddy_terminal | default({'not_started': true}),
+                      'workload_exit': (proxy_trial_workload | default({})).get('rc'),
+                      'caddy_finish': (proxy_trial_caddy_finish | default({})).get('rc')} | to_nice_json }}
+                dest: '{{ operation_evidence_directory }}/parent-owner-outcomes.json'
+                mode: '0600'
+              delegate_to: localhost
+              become: false
+    - name: Require paired Caddy completion and unchanged boot continuity
+      block:
+        - ansible.builtin.slurp: {src: /proc/sys/kernel/random/boot_id}
+          register: proxy_trial_boot_after
+        - ansible.builtin.assert:
+            that:
+              - proxy_trial_boot_after.content == proxy_trial_boot.content
+              - proxy_trial_caddy_terminal.finished
+              - proxy_trial_caddy_terminal.rc == 0
+              - proxy_trial_caddy_finish.rc == 0
+              - proxy_trial_workload.rc == 0

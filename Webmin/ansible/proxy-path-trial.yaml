@@ -1,0 +1,51 @@
+---
+- name: Require exactly both proxy nodes and both backend families
+  ansible.builtin.assert:
+    that:
+      - proxy_trial.paths | length == 4
+      - proxy_trial.paths | map(attribute='id') | sort | list == ['a-ipv4', 'a-ipv6', 'b-ipv4', 'b-ipv6']
+- name: Stage the exact non-secret path collector on the selected backend
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Webmin/scripts/probe-proxy-path.py'
+    dest: '{{ proxy_trial.work_directory }}/probe-proxy-path.py'
+    owner: root
+    group: root
+    mode: '0600'
+- name: Verify each real route/socket source against target-side allow counters
+  ansible.builtin.include_tasks: proxy-one-path.yaml
+  loop: '{{ proxy_trial.paths }}'
+  loop_control: {loop_var: proxy_path}
+- name: Capture the drop counter before the unlisted workstation check
+  ansible.builtin.command:
+    argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py', --counters]
+  changed_when: false
+  register: proxy_deny_before
+- name: Require denial from the workstation over both backend families
+  ansible.builtin.command:
+    argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/probe-proxy-path.py', --deny,
+           --address, '{{ item }}']
+  delegate_to: localhost
+  become: false
+  loop: '{{ proxy_trial.backend_addresses }}'
+  register: proxy_denied
+  changed_when: false
+  failed_when: false
+- name: Capture the target's actual drop count afterward
+  ansible.builtin.command:
+    argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py', --counters]
+  changed_when: false
+  register: proxy_deny_after
+- name: Retain denial evidence before asserting
+  ansible.builtin.copy:
+    content: '{{ {"before": proxy_deny_before, "clients": proxy_denied, "after": proxy_deny_after} | to_nice_json }}'
+    dest: '{{ operation_evidence_directory }}/backend-denial.json'
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+- name: Require client timeouts and target drop evidence
+  ansible.builtin.assert:
+    that:
+      - proxy_trial.backend_addresses | length == 2
+      - proxy_denied.results | map(attribute='rc') | list == [0, 0]
+      - (proxy_deny_after.stdout | from_json)['webmin-denied-4'] > (proxy_deny_before.stdout | from_json)['webmin-denied-4']
+      - (proxy_deny_after.stdout | from_json)['webmin-denied-6'] > (proxy_deny_before.stdout | from_json)['webmin-denied-6']

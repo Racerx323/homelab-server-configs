@@ -11,8 +11,9 @@ certificate repair and HA maintenance have separate procedures in
 proxy-target onboarding procedure.
 
 The repository implementation follows the primary-first sequence below and has
-local offline qualification. Installed production still uses the earlier publisher;
-operation status and authority are recorded in the stream registry and change ledger. Consumed attempts remain in their terminal tags.
+local offline qualification. Installed identities come from the accepted-live
+manifests; repository source identity alone does not establish installed behavior.
+Operation status and authority are recorded in the stream registry and change ledger. Consumed attempts remain in their terminal tags.
 Use the current stream and change ledger for deployment authority. See the
 [implementation boundary](#implementation-boundary).
 
@@ -26,7 +27,7 @@ than a separate approval for each field.
 | --- | --- |
 | Application | Exact application and service owner |
 | Public FQDN | One approved hostname served through the Proxy VIPs |
-| Fragment | `conf.d/20-<application>.caddy` with a unique application name |
+| Fragment | Unique `conf.d/20-79` application fragment; exact owner source, destination basename and SHA-256 |
 | Backend protocol | `http` or verified `https` |
 | Backend upstreams | Exact host or IP and port for each upstream |
 | Backend TLS | Certificate name, SNI, and system or release-local CA source |
@@ -72,6 +73,7 @@ The current production fragment inventory is:
 | --- | --- |
 | `00-health.caddy` | Local and shared Proxy-VIP health endpoints |
 | `10-pihole-admin.caddy` | Pi-hole administration proxy and node health |
+| `20-uptime-kuma.caddy` | Accepted Uptime Kuma dashboard proxy |
 | `90-default-deny.caddy` | Default HTTP and HTTPS `421` response |
 | `91-exact-listener-default-deny.caddy` | Exact node, Proxy-VIP, and loopback HTTPS `421` response |
 
@@ -82,6 +84,17 @@ also requires updating that registry in the same change. The
 `Caddy/configs/caddy` tree represents accepted production configuration; stage
 and validate a proposed fragment outside that tree until a reviewed production
 change is defined.
+
+The application recipe binds `application_fragment_source` as a workspace-relative
+owner path, `application_fragment_name` as its exact basename, and
+`application_fragment_sha256`. The payload builder rejects duplicate/missing
+bindings, traversal, symlinked files or ancestors, non-application prefixes and
+hash drift. It verifies the copied payload before transport. Choose the reviewed
+owner proposal; never substitute the previous application's fragment. The current
+offline regression covers both Kuma and Webmin inputs. Application authorization
+checks the selected source and probe contract, rather than requiring Kuma's name
+or dashboard path. A fixture baseline for adding an application excludes that
+application only; the Webmin case preserves the accepted Kuma route.
 
 `Caddy/manifests/caddy-release-source.tsv` records the exact sources and hashes
 of the accepted immutable Caddy release. Do not add a proposed fragment to that
@@ -231,6 +244,11 @@ for transport and health policy and [HISTORY.md](../HISTORY.md) for accepted liv
 results. Repository tests do not authorize new live login tests or deployment.
 
 ## DNS record gate
+
+Every DNS addition, update or deletion starts with the
+[fleet DNS change procedure](../../../homelab-dns/Unbound/docs/host-record-deployment.md).
+Use its current owner transaction and query matrix; this application runbook
+does not define an alternative DNS execution path.
 
 Each application FQDN requires exactly these forward records:
 
@@ -544,3 +562,35 @@ routine application authorization does not invoke certificate workers, monitor
 cycles or timed private login receipts. Private application acceptance remains
 separate completion work. These commands validate local evidence and grant no
 live execution authority.
+
+### Temporary application trials
+
+The existing application outer accepts `application_trial_seconds: 660` in the
+owner recipe. Omit it for normal onboarding. A trial keeps the exact per-node
+payload, fresh boot receipt and outgoing-release inventory until restoration.
+After normal primary-first acceptance it writes `application-trial-ready.tsv`
+in its private workstation evidence directory. The parent stops its owned load
+and writes `application-trial-finish.tsv`: the exact child ID, a tab, `complete`
+and a newline, in a regular owner-owned mode-0600 file. This signals the end of
+exposure; it does not assert browser or capacity acceptance. A missing, malformed
+or late signal fails the trial and invokes restoration within the same operation.
+
+The application owner first cancels further publication on both nodes, stops
+lsyncd and reconciliation, and waits for the sync account's receivers to exit.
+It validates the exact child before removing its copies, restores secondary then
+primary, compares the outgoing inventory and requires empty incoming namespaces.
+Only after both restorations does it resume synchronization and verify both prior
+selections. A per-payload lock and cancellation marker reject late exposure.
+Boot continuity remains operation-scoped. No certificate worker runs.
+
+Incomplete transfers, unavailable nodes or failed restoration remain contained
+with retained inputs and an incomplete recovery result (125); do not resume
+transport or retry blindly. The controller performs paired Caddy restoration;
+controller loss does not provide autonomous Caddy recovery. The parent must retain
+these recovery bindings and report that gap independently of the Webmin backend's
+native deadline recovery. Backend restoration alone is not paired proxy recovery.
+
+The offline application suite exercises normal onboarding plus temporary trial
+completion, deadline, lost exposure reply, secondary non-convergence, restoration
+failure, incomplete transfer and late exposure rejection. These are protocol and
+recovery tests, not target capacity evidence.

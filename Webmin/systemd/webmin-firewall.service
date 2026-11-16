@@ -1,0 +1,14 @@
+[Unit]
+Description=Webmin backend ingress guard
+Before=webmin.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/usr/sbin/nft --check -f /etc/webmin/ingress.nft
+ExecStart=/usr/sbin/nft -f /etc/webmin/ingress.nft
+ExecReload=/usr/sbin/nft -f /etc/webmin/ingress.nft
+# Deliberately retain rules on stop; recovery removes them after loopback verification.
+
+[Install]
+WantedBy=multi-user.target

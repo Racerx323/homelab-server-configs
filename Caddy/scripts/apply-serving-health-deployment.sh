@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=38596e6469b6b21ba75786074c9cf6bb48c33fa734e2993e320a1ac652b2eef3
+readonly certificate_inputs_sha256=56537337b6e0ddb5b3c013d6788d0ac33d9742f8543324a65446248b2b39dd69
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -987,7 +987,7 @@ application_release() {
 application_fragment() {
     local app_fragment
     app_fragment=$(certificate_setting application_fragment_name) || return 1
-    [[ "$app_fragment" =~ ^20-[a-z0-9-]+\.caddy$ ]] || return 1
+    [[ "$app_fragment" =~ ^[2-7][0-9]-[a-z0-9-]+\.caddy$ ]] || return 1
     printf '%s\n' "$app_fragment"
 }
 
@@ -1060,6 +1060,87 @@ application_restore() {
     require_equal application_restored "$app_restore_base" "$(readlink -f /etc/caddy/current)" || return 1
     certificate_serving_check || return 1
     printf 'restored\n' >"$evidence_root/application-recovery.tsv"
+}
+
+application_trial_inventory() {
+    local app_inventory_path app_inventory_revision
+    if [[ -d "$outgoing_root" && ! -L "$outgoing_root" ]]; then
+        while IFS= read -r app_inventory_path; do
+            app_inventory_revision=${app_inventory_path##*/}
+            release_identifier "$app_inventory_revision" || return 1
+            certificate_release_integrity "$app_inventory_path" || return 1
+            printf '%s\t%s\n' "$app_inventory_revision" "$(sha256sum "$app_inventory_path/manifest.sha256" | awk '{print $1}')"
+        done < <(find "$outgoing_root" -mindepth 1 -maxdepth 1 -print | LC_ALL=C sort)
+    else
+        path_absent "$outgoing_root"
+    fi
+}
+
+application_trial_admit() {
+    application_baseline
+    require_empty_or_absent_sync_directory trial_incoming_a "$incoming_root/node-a"
+    require_empty_or_absent_sync_directory trial_incoming_b "$incoming_root/node-b"
+    path_absent "$payload_root/application-trial-cancelled"
+    path_absent "$evidence_root/application-trial-boot.tsv"
+    cat /proc/sys/kernel/random/boot_id >"$evidence_root/application-trial-boot.tsv"
+    application_trial_inventory >"$evidence_root/application-trial-outbound.tsv"
+}
+
+application_trial_contain() {
+    # This marker also rejects a delayed activation/exposure invocation.
+    : >"$payload_root/application-trial-cancelled"
+    "$systemctl_command" stop caddy-lsyncd.service
+    require_equal trial_sender_stopped 0 "$("$systemctl_command" show caddy-lsyncd.service -p MainPID --value)"
+}
+
+application_trial_quiesce() {
+    local app_quiet_attempt app_quiet_status
+    regular_file "$payload_root/application-trial-cancelled"
+    "$systemctl_command" stop caddy-sync-reconcile.path caddy-sync-reconcile.service
+    require_equal trial_reconciler_stopped 0 "$("$systemctl_command" show caddy-sync-reconcile.service -p MainPID --value)"
+    # Sender shutdown does not prove the remote rsync/finalizer has exited.
+    # Never kill an unrelated process to make this predicate pass.
+    for ((app_quiet_attempt = 0; app_quiet_attempt < 60; app_quiet_attempt++)); do
+        app_quiet_status=0
+        /usr/bin/pgrep -u "$sync_user" >/dev/null || app_quiet_status=$?
+        [[ "$app_quiet_status" != 1 ]] || return 0
+        [[ "$app_quiet_status" = 0 ]] || return 1
+        "$sleep_command" 1
+    done
+    printf 'application_trial_receiver_idle expected=no-sync-user-process observed=busy\n' >&2
+    return 1
+}
+
+application_trial_restore() {
+    local app_trial_path
+    release_identifier "$target_revision_argument"
+    regular_file "$payload_root/application-trial-cancelled"
+    # Complete or absent copies are supported. An incomplete/foreign copy is
+    # retained with transport stopped, never silently deleted as our candidate.
+    for app_trial_path in "$outgoing_root/$target_revision_argument" \
+        "/var/lib/caddy-sync/prepared/$target_revision_argument"; do
+        if [[ -e "$app_trial_path" || -L "$app_trial_path" ]]; then
+            certificate_verify_candidate "$app_trial_path" || return 1
+            rm -rf -- "$app_trial_path" || return 1
+        fi
+    done
+    application_restore "$target_revision_argument" || return 1
+    application_trial_inventory >"$evidence_root/application-trial-outbound-after.tsv" || return 1
+    cmp -s "$evidence_root/application-trial-outbound.tsv" "$evidence_root/application-trial-outbound-after.tsv" || return 1
+    require_empty_or_absent_sync_directory trial_restored_incoming_a "$incoming_root/node-a" || return 1
+    require_empty_or_absent_sync_directory trial_restored_incoming_b "$incoming_root/node-b" || return 1
+    printf 'restored\n' >"$evidence_root/application-trial-restored.tsv"
+}
+
+application_trial_resume() {
+    require_equal trial_restored_receipt restored "$(<"$evidence_root/application-trial-restored.tsv")"
+    application_trial_inventory >"$evidence_root/application-trial-resume-inventory.tsv"
+    cmp -s "$evidence_root/application-trial-outbound.tsv" "$evidence_root/application-trial-resume-inventory.tsv"
+    "$systemctl_command" start caddy-sync-reconcile.path caddy-lsyncd.service
+    application_baseline
+    path_absent "$outgoing_root/$target_revision_argument"
+    path_absent "$incoming_root/node-a/$target_revision_argument"
+    printf 'resumed\n' >"$evidence_root/application-trial-resumed.tsv"
 }
 
 application_primary() (
@@ -1327,27 +1408,27 @@ certificate_discover_target() {
 
 certificate_verify_candidate() {
     local cert_candidate=$1 cert_base cert_old cert_name
-    cert_base=$releases_root/$(certificate_setting baseline_revision)
-    cert_old=$releases_root/$(certificate_setting tls_source_revision)
-    certificate_release_integrity "$cert_candidate"
-    cmp -s "$cert_base/Caddyfile" "$cert_candidate/Caddyfile"
+    cert_base=$releases_root/$(certificate_setting baseline_revision) || return 1
+    cert_old=$releases_root/$(certificate_setting tls_source_revision) || return 1
+    certificate_release_integrity "$cert_candidate" || return 1
+    cmp -s "$cert_base/Caddyfile" "$cert_candidate/Caddyfile" || return 1
     if application_release; then
-        cert_name=$(application_fragment)
-        path_absent "$cert_base/conf.d/$cert_name"
+        cert_name=$(application_fragment) || return 1
+        path_absent "$cert_base/conf.d/$cert_name" || return 1
         certificate_hash "$cert_candidate/conf.d/$cert_name" \
-            "$(certificate_setting application_fragment_sha256)"
-        diff -qr --exclude="$cert_name" "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
-        [[ "$(find "$cert_candidate/conf.d" -name "$cert_name" | wc -l)" = 1 ]]
+            "$(certificate_setting application_fragment_sha256)" || return 1
+        diff -qr --exclude="$cert_name" "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null || return 1
+        [[ "$(find "$cert_candidate/conf.d" -name "$cert_name" | wc -l)" = 1 ]] || return 1
     else
-        diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null
+        diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null || return 1
     fi
     for cert_name in fullchain.pem privkey.pem; do
-        cmp -s "$cert_base/tls/$cert_name" "$cert_candidate/tls/$cert_name"
+        cmp -s "$cert_base/tls/$cert_name" "$cert_candidate/tls/$cert_name" || return 1
     done
     for cert_name in leaf.pem intermediates.pem certificate-manifest.json; do
-        cmp -s "$cert_old/tls/$cert_name" "$cert_candidate/tls/$cert_name"
+        cmp -s "$cert_old/tls/$cert_name" "$cert_candidate/tls/$cert_name" || return 1
     done
-    [[ "$(find "$cert_candidate/tls" -mindepth 1 -maxdepth 1 -type f | wc -l)" = 5 ]]
+    [[ "$(find "$cert_candidate/tls" -mindepth 1 -maxdepth 1 -type f | wc -l)" = 5 ]] || return 1
 }
 
 certificate_promote() {
@@ -5874,7 +5955,7 @@ readonly node_role=$2
 readonly payload_root=$3
 readonly evidence_root=$4
 readonly target_revision_argument=${5:-}
-[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|application-primary|application-secondary-ready|application-expose|application-secondary|application-final|application-shared)$ ]]
+[[ "$mode" =~ ^(preflight|candidate-check|quarantine-check|node-a-quarantine-check|node-a-quarantine-disposition|node-a-quarantine-rollback|retained-check|retained-disposition|retained-rollback|legacy-check|legacy-remove|legacy-rollback|install|promote|publish|record-target|wait-target|promote-target|accept|rollback|ownership|journal-cursor|journal-capture|sampler-start|sampler-scenario|sampler-stop|consume|consume-target|final-residue|evidence-probe|web-unit-preflight|web-unit-install|web-unit-accept|web-unit-rollback|notification-preflight|notification-install|notification-accept|notification-rollback|exercise-preflight|exercise-service|exercise-ownership|exercise-cursor|exercise-observe|exercise-journal|exercise-final-residue|certificate-preflight|certificate-install-publisher|certificate-publish|certificate-discover-target|certificate-promote|certificate-accept|certificate-contain-publication|certificate-rollback|certificate-resume-publication|application-primary|application-secondary-ready|application-expose|application-secondary|application-final|application-shared|application-trial-admit|application-trial-contain|application-trial-quiesce|application-trial-restore|application-trial-resume)$ ]]
 [[ "$node_role" =~ ^(node-[ab]|external-apprise)$ ]]
 safe_root "$payload_root"
 safe_root "$evidence_root"
@@ -5889,7 +5970,26 @@ if [[ "$mode" = application-* ]]; then
     trap 'app_failed_status=$?; printf "application_failure node=%s phase=%s expected=0 observed=%s line=%s\n" "$node_role" "$mode" "$app_failed_status" "$LINENO" >&2; exit "$app_failed_status"' ERR
     certificate_payload
     application_release
+    if [[ "$mode" = application-trial-* || -f "$evidence_root/application-trial-boot.tsv" ]]; then
+        # One native lock serializes a late command with restoration on this node.
+        [[ "$mode" != application-trial-contain ]] || : >"$payload_root/application-trial-cancelled"
+        exec 9>"$payload_root/application-trial.lock"
+        /usr/bin/flock -w 60 9 || exit 125
+        if [[ "$mode" != application-trial-admit ]]; then
+            require_equal trial_boot_continuity "$(<"$evidence_root/application-trial-boot.tsv")" "$(cat /proc/sys/kernel/random/boot_id)"
+        fi
+        case "$mode" in
+            application-primary | application-expose | application-secondary)
+                path_absent "$payload_root/application-trial-cancelled"
+                ;;
+        esac
+    fi
     case "$mode" in
+        application-trial-admit) application_trial_admit ;;
+        application-trial-contain) application_trial_contain ;;
+        application-trial-quiesce) application_trial_quiesce ;;
+        application-trial-restore) application_trial_restore ;;
+        application-trial-resume) application_trial_resume ;;
         application-primary) application_primary ;;
         application-secondary-ready) application_baseline ;;
         application-expose) application_expose ;;

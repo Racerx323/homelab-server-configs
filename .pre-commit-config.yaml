@@ -6,6 +6,41 @@ exclude: (?:^|/)(?:\.vexp|\.agents)/
 repos:
   - repo: local
     hooks:
+      - id: webmin-proxy-workload
+        name: Webmin combined workload receipts and owned cleanup
+        entry: python3 -I -B Webmin/tests/test_proxy_workload.py
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/(supervise-proxy-workload|proxy-trial-handoff)\.py|tests/test_proxy_workload\.py)$
+
+      - id: webmin-proxy-statistics-client
+        name: Webmin statistics browser contract without target contact
+        entry: node Webmin/tests/test_proxy_statistics_client.cjs
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/proxy-statistics-client|tests/test_proxy_statistics_client)\.cjs$
+
+      - id: webmin-proxy-profile
+        name: Webmin proxy profile preservation and restriction contracts
+        entry: python3 -I -B Webmin/tests/test_proxy_profile.py
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/(render-proxy-profile|configure-miniserv)\.py|tests/test_proxy_profile\.py|configs/(hosts/[^/]+|profiles/caddy-browser\.example)\.json)$
+
+      - id: webmin-proxy-recovery
+        name: Webmin trial recovery failure-ordering contracts
+        entry: python3 -I -B Webmin/tests/test_proxy_recovery.py
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/recover-proxy\.py|ansible/proxy-trial(?:-restore)?\.yaml|tests/(test_proxy_recovery|qualify-proxy-recovery)\.py)$
+
+      - id: webmin-proxy-readiness
+        name: Webmin read-only proxy readiness contracts
+        entry: python3 -I -B Webmin/tests/test_proxy_readiness.py
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/inspect-proxy-readiness\.py|tests/test_proxy_readiness\.py)$
+
       - id: watchdog-panic-guards
         name: Watchdog one-use panic guard contracts (offline)
         entry: python3 watchdog/tests/test_panic_recovery.py

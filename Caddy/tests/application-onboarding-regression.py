@@ -16,6 +16,7 @@ import sys
 import time
 import re
 import shlex
+import tempfile
 
 sys.dont_write_bytecode = True
 SOURCE = Path(__file__).resolve()
@@ -24,8 +25,11 @@ spec = importlib.util.spec_from_file_location('release_fixture', SOURCE.with_nam
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
 BASE_SWITCH = release.switch
-CASES = ['publisher-boundaries', 'success', 'primary-reload', 'primary-http', 'secondary-drift', 'secondary-http', 'timeout', 'recovery-failure', 'exposure-tamper']
-EXPECTED_STATUS = dict(zip(CASES, [0, 0, 1, 22, 2, 2, 2, 125, 2]))
+CASES = ['publisher-boundaries', 'success', 'primary-reload', 'primary-http', 'secondary-drift', 'secondary-http', 'timeout', 'recovery-failure', 'exposure-tamper', 'webmin-source']
+EXPECTED_STATUS = dict(zip(CASES, [0, 0, 1, 22, 2, 2, 2, 125, 2, 0]))
+TRIALS = {'trial-success': 0, 'trial-timeout': 1, 'trial-lost-reply': 1, 'trial-secondary-timeout': 1, 'trial-recovery-failure': 125, 'trial-incomplete': 125}
+CASES += list(TRIALS)
+EXPECTED_STATUS.update(TRIALS)
 GRAPH_FILES = [
     'Caddy/scripts/' + name for name in ['publish-release-v2.sh',
     'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh']]
@@ -36,11 +40,16 @@ GRAPH_FILES += ['Caddy/manifests/' + name for name in ['serving-health-operation
     'certificate-release-inputs.tsv', 'deployable-successor.tsv',
     'deployable-successor-coverage.tsv', 'current-live-state.tsv',
     'serving-health-production.tsv', 'accepted-live-artifacts.tsv', 'production-artifacts.tsv']]
-GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy']
+GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy',
+                'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy']
 
 
 def source_graph():
-    return {name: release.digest(REPO/name) for name in GRAPH_FILES}
+    paths = set(GRAPH_FILES)
+    recipe = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+    if recipe.get('release_kind') == 'application':
+        paths.add('../' + recipe['application_fragment_source'])
+    return {name: release.digest(REPO/name) for name in sorted(paths)}
 
 
 def coverage_rows():
@@ -48,9 +57,9 @@ def coverage_rows():
         phase = ('pre-mutation' if case == 'publisher-boundaries' else
                  'pre-exposure' if case == 'exposure-tamper' else
                  'convergence' if case.startswith('secondary-') or case == 'timeout' else
-                 'accepted-path' if case == 'success' else 'recovery')
+                 'accepted-path' if case in ('success', 'webmin-source') else 'recovery')
         entrypoint = 'outer' if case in ['publisher-boundaries', 'timeout'] else 'transaction'
-        expectation = 'reach' if case == 'publisher-boundaries' else 'accept' if case == 'success' else 'reject'
+        expectation = 'reach' if case == 'publisher-boundaries' else 'accept' if EXPECTED_STATUS[case] == 0 else 'reject'
         yield ['application-' + case, phase, entrypoint, expectation,
                'decisions/application-' + case + '.tsv', 'raw/application-' + case + '.json']
 
@@ -79,16 +88,73 @@ def definition_check():
     recipe = dict(recipe_entries)
     assert len(recipe) == len(recipe_entries)
     assert recipe['release_kind'] == 'application'
+    if 'application_trial_seconds' in recipe:
+        assert recipe['application_trial_seconds'] == '660'
     assert recipe['publisher_candidate_sha256'] == release.digest(REPO/'Caddy/scripts/publish-release-v2.sh')
     assert recipe['reconciler_installed_sha256'] == release.accepted_hash('protocol_v2_reconciler')
     assert recipe['finalizer_sha256'] == release.accepted_hash('protocol_v2_finalizer')
-    assert recipe['application_fragment_sha256'] == release.digest(REPO/GRAPH_FILES[-1])
+    source = recipe['application_fragment_source']
+    assert re.fullmatch(r'homelab-[a-z0-9-]+/(?:[A-Za-z0-9_-]+/)+[2-7][0-9]-[a-z0-9-]+\.caddy', source)
+    path = REPO.parent/source
+    assert path.resolve() == path and path.name == recipe['application_fragment_name']
+    assert recipe['application_fragment_sha256'] == release.digest(path)
     assert recipe['baseline_revision'] == recipe['tls_source_revision']
     assert recipe['baseline_manifest_sha256'] == recipe['tls_source_manifest_sha256']
-    assert recipe['application_fqdn'] == 'uptime.local.theama.co'
-    assert recipe['application_probe_path'] == 'dashboard' and recipe['application_http_status'] == '200'
+    assert re.fullmatch(r'[a-z0-9-]+\.local\.theama\.co', recipe['application_fqdn'])
+    assert re.fullmatch(r'[A-Za-z0-9_./-]*', recipe['application_probe_path'])
+    assert '..' not in recipe['application_probe_path'].split('/')
+    assert re.fullmatch(r'[234][0-9]{2}', recipe['application_http_status'])
     actual = [line.split('\t') for line in (REPO/'Caddy/manifests/deployable-successor-coverage.tsv').read_text().splitlines()[1:]]
     assert actual == list(coverage_rows()), 'primary-first coverage contract'
+
+
+def payload_tests():
+    """Execute the actual builder with local files; no SSH or target fixtures."""
+    outer = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
+    functions = '\n'.join(re.search(r'^' + name + r'\(\) \{\n.*?^\}', outer, re.M | re.S)[0]
+                          for name in ('regular_file', 'application_payload_fragment'))
+    with tempfile.TemporaryDirectory(prefix='caddy-fragment-') as temporary:
+        root = Path(temporary)
+        stage = root/'payload'
+        (stage/'manifests').mkdir(parents=True)
+        workspace = root/'workspace'
+        for source in ('homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy',
+                       'homelab-server-configs/Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'):
+            target = workspace/source
+            target.parent.mkdir(parents=True)
+            target.write_bytes((REPO.parent/source).read_bytes())
+            recipe = root/'inputs.tsv'
+            fields = dict(application_fragment_source=source, application_fragment_name=target.name,
+                          application_fragment_sha256=release.digest(target))
+            def run(overrides=None, duplicate=False):
+                values = fields | (overrides or {})
+                recipe.write_text('key\tvalue\n' + ''.join(k+'\t'+v+'\n' for k,v in values.items()) +
+                                  ('application_fragment_source\t'+source+'\n' if duplicate else ''))
+                output = stage/'manifests/application.caddy'
+                output.unlink(missing_ok=True)
+                script = functions + '\nworkspace_root=$1; payload_stage=$2; application_payload_fragment "$3"\n'
+                result = subprocess.run(['/bin/bash', '-euc', script, 'payload-test', str(workspace), str(stage), str(recipe)],
+                                        capture_output=True, timeout=10)
+                return result.returncode, output
+            status, output = run()
+            assert status == 0 and output.read_bytes() == target.read_bytes()
+            assert output.stat().st_mode & 0o777 == 0o600
+            for overrides in ({'application_fragment_sha256': '0'*64},
+                              {'application_fragment_source': '../'+source},
+                              {'application_fragment_source': source.replace('/proposals/', '/proposals/../proposals/')},
+                              {'application_fragment_name': '20-other.caddy'},
+                              {'application_fragment_source': source.replace(target.name, '90-default.caddy'),
+                               'application_fragment_name': '90-default.caddy'}):
+                status, output = run(overrides)
+                assert status != 0 and not output.exists(), overrides
+            assert run(duplicate=True)[0] != 0
+            saved = target.with_suffix('.saved'); target.rename(saved); target.symlink_to(saved)
+            assert run()[0] != 0
+            target.unlink(); saved.rename(target)
+            saved_directory = target.parent.with_name('saved-directory')
+            target.parent.rename(saved_directory); target.parent.symlink_to(saved_directory)
+            assert run()[0] != 0
+        print('application payload: both owners, exact identity, mode and unsafe-input rejection passed')
 
 
 def read_evidence(path, limit=1048576):
@@ -124,6 +190,38 @@ def case_observation(root, case):
     tx_hash = release.digest(REPO/'Caddy/scripts/apply-serving-health-deployment.sh')
     commands = [shlex.split(c['command']) for c in calls if c['stdin_sha256'] == tx_hash]
     modes = [next(t for t in c if t.startswith('application-')) for c in commands]
+    if case in TRIALS:
+        assert modes[:2] == ['application-trial-admit', 'application-trial-admit']
+        assert modes.index('application-primary') < modes.index('application-expose')
+        assert modes.count('application-trial-contain') == 2
+        assert modes.index('application-trial-quiesce') > modes.index('application-trial-contain')
+        assert int(read('outer.status')) == TRIALS[case]
+        for role in ['node-a', 'node-b']:
+            node = root/'nodes'/role
+            selected = Path(os.readlink(node/'caddy/current')).name
+            state = json.loads(read(f'nodes/{role}/state.json'))
+            assert state['checker_runs'] == 0
+            if TRIALS[case] != 125:
+                assert selected == 'baseline' and state['lsyncd'] and state['reconcile_path']
+                assert not list((node/'sync/incoming/node-a').iterdir())
+                expected_out = ['baseline'] if role == 'node-a' else []
+                assert sorted(p.name for p in (node/'sync/outbound').iterdir()) == expected_out if (node/'sync/outbound').exists() else not expected_out
+                label = 'a' if role == 'node-a' else 'b'
+                stream = root/f'runner-evidence/application-restored-{label}-readback.stdout'
+                records = release.decode_stream(stream); read(str(stream.relative_to(root)))
+                assert records['application-trial-restored.tsv'] == 'restored\n'
+                assert records['application-trial-resumed.tsv'] == 'resumed\n'
+                assert records['application-trial-outbound.tsv'] == records['application-trial-outbound-after.tsv'] == records['application-trial-resume-inventory.tsv']
+            else:
+                assert not state['lsyncd'] and not state['reconcile_path']
+        if case == 'trial-success':
+            assert int(read('late-expose.status')) != 0
+            read('late-expose.stderr')
+        if TRIALS[case] != 125:
+            restore_commands = [c for c in commands if 'application-trial-restore' in c]
+            assert 'node-b' in restore_commands[0] and 'node-a' in restore_commands[1]
+        return {'case': case, 'status': TRIALS[case], 'expected': 'contained' if TRIALS[case] == 125 else 'restored',
+                'observed': 'contained' if TRIALS[case] == 125 else 'restored', 'evidence': evidence_hashes}
     assert modes and modes[0] == 'application-primary'
     assert not any('certificate-' in ' '.join(c) for c in commands)
     runner = root/'runner-evidence'
@@ -171,7 +269,7 @@ def case_observation(root, case):
                 assert file.is_file() and not file.is_symlink() and release.digest(file) == sha
             for name in ['fullchain.pem', 'privkey.pem']:
                 assert (release_root/'tls'/name).read_bytes() == (node/'releases/baseline/tls'/name).read_bytes()
-    if case == 'success':
+    if case in ('success', 'webmin-source'):
         assert modes == ['application-primary', 'application-secondary-ready', 'application-expose',
                          'application-secondary', 'application-final', 'application-final', 'application-shared']
         assert observed['nodes']['node-a']['selection'] == observed['nodes']['node-b']['selection']
@@ -234,7 +332,6 @@ def verify_evidence(evidence):
 
 
 def verification_tests(evidence):
-    import tempfile
     verify_evidence(evidence)
     defined = 'status: defined-unexecuted\n' in (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     def check(path):
@@ -313,7 +410,7 @@ def transfer():
     assert os.readlink('/etc/caddy/current') == '/etc/caddy/releases/' + child.name
     assert json.loads((child/'release-manifest.json').read_text())['parent_revision'] == 'baseline'
     (root/'exposure.json').write_text(json.dumps({'revision': child.name, 'manifest': release.digest(child/'manifest.sha256'), 'primary': os.readlink('/etc/caddy/current')}))
-    if os.environ['PRIMARY_CASE'] == 'timeout':
+    if os.environ['PRIMARY_CASE'] in ('timeout', 'trial-secondary-timeout'):
         return
     stage = root/'transport'
     subprocess.run(['cp', '-a', str(child), str(stage)], check=True)
@@ -328,6 +425,10 @@ def transfer():
     dest = Path('/var/lib/caddy-sync/incoming/node-a')/child.name
     subprocess.run(['cp', '-a', str(stage), str(dest)], check=True)
     subprocess.run(['chown', '-R', 'caddy-sync:caddy-sync', str(dest)], check=True)
+    if os.environ['PRIMARY_CASE'] == 'trial-incomplete':
+        (dest/'manifest.sha256').unlink()
+        switch('node-a')
+        return
     with (root/'transport.log').open('w') as log:
         finalized = subprocess.run(['/usr/sbin/runuser', '-u', 'caddy-sync', '--', '/usr/local/libexec/finalize-incoming-release-v2.sh', '--source-role', 'node-a'], stdout=log, stderr=log)
         reconciled = subprocess.run(['/bin/bash', '/usr/local/libexec/reconcile-release.sh'], stdout=log, stderr=log) if finalized.returncode == 0 else finalized
@@ -344,9 +445,33 @@ def adapter(name, args):
         if ' application-primary ' in command:
             # At the actual return boundary no transport-visible child may exist.
             assert sorted(p.name for p in Path('/var/lib/caddy-sync/outbound').iterdir()) == ['baseline']
+        if scenario == 'trial-success' and ' application-trial-restore node-a ' in command and rc == 0:
+            words = shlex.split(command)
+            index = words.index('application-trial-restore')
+            arguments = words[index + 1:index + 5]
+            late = subprocess.run(['/bin/bash', str(REPO/'Caddy/scripts/apply-serving-health-deployment.sh'),
+                                   'application-expose', *arguments], capture_output=True, text=True)
+            root = release.fixture_root()
+            (root/'late-expose.status').write_text(str(late.returncode)+'\n')
+            (root/'late-expose.stderr').write_text(late.stderr)
+            assert late.returncode != 0
+            assert not (Path('/var/lib/caddy-sync/outbound')/arguments[-1]).exists()
         if ' application-expose ' in command and rc == 0:
             transfer()
+            if scenario == 'trial-lost-reply':
+                return 255
         return rc
+    if name == 'systemctl' and args[0] in ('start', 'stop') and 'caddy-sync-reconcile.path' in args:
+        value = release.state()
+        value['reconcile_path'] = args[0] == 'start'
+        if 'caddy-lsyncd.service' in args:
+            value['lsyncd'] = args[0] == 'start'
+        release.save(value)
+        release.event('systemctl ' + ' '.join(args))
+        return 0
+    if name == 'systemctl' and args[:2] == ['show', 'caddy-sync-reconcile.service']:
+        print(0)
+        return 0
     if name == 'systemctl' and args == ['reload', 'caddy.service']:
         state = release.state()
         state['reloads'] += 1
@@ -355,6 +480,8 @@ def adapter(name, args):
         if release.active_role() == 'node-a' and scenario in ['primary-reload', 'recovery-failure']:
             if selected != 'baseline' or scenario == 'recovery-failure':
                 return 1
+        if scenario == 'trial-recovery-failure' and release.active_role() == 'node-b' and selected == 'baseline':
+            return 1
         return native_reload()
     if name == 'curl':
         # Use the requested real family, destination, SNI, trust and selected route.
@@ -424,7 +551,10 @@ def suite():
         rows = dict(line.split('\t') for line in recipe.read_text().splitlines()[1:])
         rows.update(baseline_manifest_sha256=baseline_hash, tls_source_manifest_sha256=baseline_hash)
         recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
-        recipe.write_text(recipe.read_text()+'application_fqdn\tuptime.local.theama.co\napplication_probe_path\tdashboard\napplication_http_status\t200\n')
+        host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS else ('uptime.local.theama.co', 'dashboard')
+        recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
+        if scenario in TRIALS:
+            recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\n')
         env.update(CADDY_CERTIFICATE_TEST_SCOPE='application', CADDY_CERTIFICATE_TEST_INPUTS_SHA256=release.digest(recipe), PRIMARY_CASE=scenario)
         os.environ.update(env)
         switch('node-a')
@@ -432,7 +562,7 @@ def suite():
         children = []
         with (root/'native.log').open('wb') as native_log:
             children.append(subprocess.Popen(['/usr/bin/caddy', 'run', '--config', '/etc/caddy/current/Caddyfile'], env=native_env, stdout=native_log, stderr=native_log))
-            for port in ['3001', '8080']:
+            for port in ['3001', '8080', '10000']:
                 children.append(subprocess.Popen([sys.executable, str(SOURCE), '--backend', port, str(root)], stdout=native_log, stderr=native_log))
             try:
                 for _ in range(50):
@@ -466,16 +596,18 @@ def suite():
                     (root/'publisher.json').write_text(json.dumps({'prepared_status':prepared.returncode, 'early_exposure_status':rejected.returncode, 'legacy_status':legacy.returncode, 'early_exposure_stderr':rejected.stderr, 'published_revision':published[0].name, 'primary_selection':os.readlink('/etc/caddy/current')}, indent=2)+'\n')
                     print(scenario+': passed', flush=True)
                     continue
+                if scenario in TRIALS and scenario != 'trial-timeout':
+                    children.append(subprocess.Popen([sys.executable, str(SOURCE), '--finish-trial'], stdout=native_log, stderr=native_log))
                 outer = REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh'
                 with (root/'outer.stdout').open('wb') as stdout, (root/'outer.stderr').open('wb') as stderr:
                     result = subprocess.run(['/bin/bash', str(outer), '--production-path-test'], env=env, stdout=stdout, stderr=stderr, timeout=180)
                 (root/'outer.status').write_text(str(result.returncode)+'\n')
-                expected = 0 if scenario == 'success' else 22 if scenario == 'primary-http' else 125 if scenario == 'recovery-failure' else 2 if scenario in ['secondary-drift', 'secondary-http', 'timeout', 'exposure-tamper'] else 1
-                assert result.returncode == expected, (scenario, result.returncode, (root/'outer.stderr').read_text())
+                expected = EXPECTED_STATUS[scenario]
                 calls = [json.loads(line) for line in (root/'ssh.jsonl').read_text().splitlines()]
                 runner_roots = sorted(Path('/tmp').glob('caddy-serving-health-outer-test.*'), key=lambda p:p.stat().st_mtime)
                 shutil.copytree(runner_roots[-1], root/'runner-evidence')
-                if scenario == 'recovery-failure':
+                assert result.returncode == expected, (scenario, result.returncode, (root/'outer.stderr').read_text())
+                if expected == 125:
                     import shlex
                     remote_paths = [token for call in calls for token in shlex.split(call['command']) if token.startswith('/tmp/caddy-serving-health-')]
                     assert any(Path(token).exists() for token in remote_paths)
@@ -485,12 +617,14 @@ def suite():
                         for token in shlex.split(call['command']):
                             if token.startswith('/tmp/caddy-serving-health-'):
                                 assert not Path(token).exists(), token
-                (root/'cleanup.json').write_text(json.dumps({'staging_retained': scenario == 'recovery-failure'})+'\n')
+                (root/'cleanup.json').write_text(json.dumps({'staging_retained': expected == 125})+'\n')
                 observed = {}
                 for role in ['node-a', 'node-b']:
                     switch(role)
                     selected = Path(os.readlink('/etc/caddy/current')).name
                     expected_selection = 'drift' if role == 'node-b' and scenario == 'secondary-drift' else 'baseline' if scenario in ['primary-reload', 'primary-http', 'recovery-failure', 'exposure-tamper'] or role == 'node-b' and scenario in ['timeout', 'secondary-http', 'exposure-tamper'] else None
+                    if scenario in TRIALS:
+                        expected_selection = 'baseline' if expected != 125 or scenario == 'trial-recovery-failure' and role == 'node-b' or scenario == 'trial-incomplete' and role == 'node-b' else None
                     if expected_selection:
                         assert selected == expected_selection, (scenario, role, selected)
                     else:
@@ -499,7 +633,7 @@ def suite():
                     state = release.state()
                     assert state['checker_runs'] == 0
                     observed[role] = dict(selection=selected, reloads=state['reloads'], checker_runs=state['checker_runs'])
-                if scenario == 'success':
+                if scenario in ('success', 'webmin-source'):
                     assert observed['node-a']['selection'] == observed['node-b']['selection']
                 if scenario in ['primary-reload', 'primary-http', 'recovery-failure', 'exposure-tamper']:
                     assert not (root/'exposure.json').exists()
@@ -527,8 +661,23 @@ def suite():
 if __name__ == '__main__':
     if sys.argv[1:2] == ['--adapter']:
         raise SystemExit(adapter(sys.argv[2], sys.argv[3:]))
+    elif sys.argv[1:] == ['--finish-trial']:
+        # A separate parent produces only the finish signal after actual readiness.
+        start = time.time()
+        while time.time() - start < 120:
+            for path in Path('/tmp').glob('caddy-serving-health-outer-test.*/application-trial-ready.tsv'):
+                if path.stat().st_mtime >= start:
+                    finish = path.with_name('application-trial-finish.tsv')
+                    with finish.open('x') as stream:
+                        os.chmod(finish, 0o600)
+                        stream.write(path.read_text().strip()+'\tcomplete\n')
+                    raise SystemExit(0)
+            time.sleep(.05)
+        raise SystemExit(1)
     elif sys.argv[1:2] == ['--backend']:
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
+    elif sys.argv[1:] == ['--payload-tests']:
+        payload_tests()
     elif sys.argv[1:] == ['--definition-check']:
         definition_check()
     elif sys.argv[1:2] == ['--verify-evidence'] and len(sys.argv) == 3:
