@@ -1,7 +1,7 @@
 schema_version	scope	key	value	evidence
 1	cluster	accepted-live-artifacts-sha256	115005e0f02438bd7cb575b13823026d1d7b0f3c6120fb7180e7923a9e941213	accepted-live-artifacts.tsv
-1	cluster	runtime-production-sha256	495fcabc6640bf93d4e06b3c02f457911f352509df862731cccfecb72be401a7	runtime-production.tsv
-1	cluster	reproducibility-production-sha256	1f050df2c2454aaadfbecc560699f77dbd03b0ed7fc792414d091fe640d03a5f	reproducibility-production.yaml
+1	cluster	runtime-production-sha256	fd91302891c653c604f8eeccbbc45c1f88b8272ee6961f986e183eedc9126af0	runtime-production.tsv
+1	cluster	reproducibility-production-sha256	e887d5a3ceee482ba55549349f2eb4f1994993009d393291231fbb4c87d2da21	reproducibility-production.yaml
 1	cluster	durable-apprise-evidence	tag:caddy-action35al-terminal-2026-08-23	accepted-action35al
 1	cluster	notification-standardization	multiline-rendering,durable-transition-state,planned-maintenance,conservative-fault-attribution	accepted-action35al
 1	node-a	ownership	ipv4-master,ipv6-master,shared-vips=4,stable-samples=3	tag:caddy-certificate-repair-terminal-2026-09-15
@@ -20,3 +20,4 @@ schema_version	scope	key	value	evidence
 1	node-a	certificate-validation	complete-tls-inventory,service-result=success,exit-status=0,ipv4-http=204,ipv6-http=204	tag:caddy-certificate-repair-terminal-2026-09-15
 1	node-b	certificate-validation	complete-tls-inventory,service-result=success,exit-status=0,ipv4-http=204,ipv6-http=204	tag:caddy-certificate-repair-terminal-2026-09-15
 1	cluster	uptime-kuma-route	nodes-and-shared-ipv4-ipv6=200,existing-health=204,private-login-websocket=pending,dns=pending	tag:caddy-uptime-kuma-primary-first-terminal-2026-11-11
+1	cluster	caddy-version	2.11.9,fleet=operator-confirmed,node-a-cli=observed,running-process=not-captured	Caddy/HISTORY.md#november-17-production-caddy-version-reconciliation

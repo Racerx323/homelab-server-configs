@@ -4,6 +4,105 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 17 retained diagnostic reconciliation and archive preparation
+
+W-203 reconciles one direct/proxied comparison: retained foreground headers match;
+two health requests preceded the proxied request by about 177 ms. Backend payload
+appeared roughly 7.5 seconds after arrival for all three concurrent flows, after
+client deadlines. No complete proxied HTTP response or internal CGI timing was
+captured. No sampled memory-high/max/OOM event explains this attempt; concurrency
+is a next question, not established causation. W-204 prepares the terminal archive
+without publication or further live authority.
+
+## November 17 isolated-validation primary diagnostic — failed-consumed
+
+Status: terminal-pending
+Tag: `caddy-webmin-isolated-validation-terminal-2026-11-17`
+
+W-202 ran once under exact parent approval. Temporary validation tools and primary
+route were exercised; the HTTPS probe timed out (curl 28, no response within five
+seconds). The original callers/helper state, release selection and outbound
+inventory were restored, and a fresh natural primary monitor cycle passed. The
+parent restored Webmin loopback and retained its terminal outcomes. No secondary
+contact, permanent promotion or publication occurred. Exact operation inputs remain
+for separate terminal archive review. W-203 records request evidence; W-204 owns
+archive preparation. Timeout cause and browser acceptance remain unresolved.
+
+## November 17 unexecuted child retained for fresh parent review
+
+W-201's parent failed before the Caddy child launched. The existing single child
+definition and its graph remain unchanged and unexecuted; no Caddy terminal archive
+is claimed. W-202 binds a fresh private parent with controller storage admission.
+The original exact-graph qualification passes again without relabeling evidence.
+The failed parent is preserved. No new live authority or installed-state change
+follows; WORK.md owns the new bundle and command for separate review.
+
+## November 17 primary/Pi diagnostic sealed for review (not executed)
+
+The exact W-200 qualified definition is registered locally. The private frozen
+bundle binds parent execution and owner evidence; WORK.md in the Uptime Kuma
+change record owns its hash, command and one-attempt review scope. The defined
+stream has no terminal archive tag; prior archives remain preserved. Final owner,
+window and lifecycle checks pass. No installed identity changed and no live
+execution or publication is authorized by this preparation.
+
+## November 17 diagnostic authorization bindings (not deployed)
+
+The owner gate now selects an explicit, strictly bound primary-validation-diagnostic
+profile for the approved narrow Webmin trial. Fresh exact-candidate execution and
+negative evidence tests pass through the existing authorization gate. Previous
+focused summaries cannot authorize it; paired onboarding retains full coverage.
+The definition exists only in a private review projection. The main stream remains
+clean/inactive, with no live authority or production identity change. W-200 records
+the parent bindings, retained evidence and remaining sealing boundary.
+
+## November 17 primary-only tool-delivery qualification (not deployed)
+
+The existing owner qualification now selects the validation-tool option for three
+primary-only whole-path cases: request success, HTTP failure and installation
+failure before a release ID. Actual payload, command dispatch, file replacement
+and restoration passed with current sources. Explicit transport/service/namespace
+substitutes limit this to orchestration correctness; W-197 retains target capability
+provenance. Focused evidence has its own verifier and cannot satisfy the full
+successor gate. No production code, installed identity or operation state changed
+in this qualification step. W-200 retains the private evidence and limitations.
+
+## November 17 validation-tool trial delivery and recovery (not deployed)
+
+The existing application payload/transaction can temporarily deliver the isolated
+validator and two installed callers to the primary for a specifically bound
+primary/IPv4 diagnostic. The publisher stays in the payload. Verified originals
+precede mutation; helper installation precedes caller replacement, and callers
+are restored before helper removal. Recovery handles an explicit empty release-ID
+receipt and rejects unknown release/tool state. Existing aggregate deadlines,
+normal health checks and service restrictions remain unchanged. Focused local
+file/dispatch qualification does not accept writable host execution. The stream
+remains clean/inactive with no successor or installed-identity change. W-199 in
+the application change record retains the local qualification boundary.
+
+## November 17 validation-isolation caller integration (not deployed)
+
+Publisher, finalizer and reconciler source now call the shared isolation helper
+at its fixed owner-installed path. Existing caller failure behavior, full
+configuration arguments, environment and runtime reload/health behavior remain.
+The primary capability check passed in all three read-only contexts on 2.11.9;
+local caller-contract tests cover invocation and error propagation only. The helper
+is still a future installation requirement. No production caller or installed
+hash is updated, and no live operation is defined. Deployment must include helper
+identity, installation order and prior-state recovery before caller activation.
+
+## November 17 production Caddy version reconciliation
+
+Aaron confirmed Caddy was updated on the production hosts and requested inventory
+reconciliation to 2.11.9. The W-195 primary-only capture independently returned
+that CLI version with status 0; it stopped against the old 2.11.4 prerequisite.
+Node B and package-version attribution use Aaron's confirmation. No new capture,
+upgrade, reload or acceptance run occurred. Running-process identity and namespace
+capability remain unverified. The inventory preserves its August 24 provenance
+and historical package-set digest without presenting that digest as current.
+Current-state inventory hash is refreshed; consumed bundles remain unchanged.
+W-196 in the Uptime Kuma change record tracks this local reconciliation.
+
 ## November 16 notifier source correction (not deployed)
 
 The replication notifier preserves observed service state and query exit status
@@ -606,3 +705,14 @@ Aaron authorized committing and pushing all pending changes after this outcome.
 The required annotated terminal tag is included in that publication; the stream
 remains terminal-pending until separately requested local cleanup. Publication
 does not install the notifier or authorize another host diagnostic.
+
+## 2026-11-17: published primary diagnostic archive reconciled to neutral
+
+The annotated tag `caddy-webmin-primary-login-diagnostic-terminal-2026-11-16`
+preserves terminal commit `bda63a46f88620f177d01e527644625b5eb27ab2`; retained
+publication receipts verify its remote tag and peeled commit. Local cleanup
+removes the consumed terminal manifest and recipe, resets the operation to
+inactive and refreshes the neutral outer binding. The stream is clean, with
+no successor. Private sealed inputs and failed receipts remain unchanged.
+W-188 in the monitoring ledger records qualification. No live execution, source
+installation or publication is included.

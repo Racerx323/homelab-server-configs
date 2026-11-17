@@ -23,6 +23,14 @@ TOKEN = 'a' * 64
 
 
 class Acceptance(unittest.TestCase):
+    def test_evidence_admission_propagates_write_failure(self):
+        with tempfile.TemporaryDirectory() as name:
+            directory = Path(name)
+            with patch.object(h.workload, 'write', side_effect=OSError('disk full')):
+                with self.assertRaises(OSError): h.admit_evidence(directory)
+            self.assertEqual(list(directory.iterdir()), [])
+
+
     def evidence(self):
         browser = []
         for identity in ['a-ipv4', 'a-ipv6', 'b-ipv4', 'b-ipv6', 'vip-ipv4', 'vip-ipv6']:
@@ -49,6 +57,9 @@ class Acceptance(unittest.TestCase):
                      row('request-headers', flow, 1.1, request_id=marker, kind=kind, headers={'host': 'webmin.example'})]
         rows += [row('response-headers', 1, 2, status=200), row('response-close', 1, 2.1, kind='fin'),
                  row('request-close', 2, 6, kind='reset'),
+                 row('request-close', 4, 1.2, kind='fin'),
+                 row('response-close', 4, 6.1, kind='fin'),
+                 row('request-close', 5, 1.3, kind='reset'),
                  {'terminal': True, 'issues': [], 'kernel_drops': 0}]
         requests = [{'request_id': v*32} for v in 'ab']
         with tempfile.TemporaryDirectory() as name:
@@ -61,8 +72,30 @@ class Acceptance(unittest.TestCase):
             self.assertEqual(result['requests'][0]['response_status'], 200)
             self.assertIsNone(result['requests'][1]['response_status'])
             self.assertTrue(result['requests'][1]['possibly_overlapping_health'])
+            self.assertEqual([v['flow'] for v in result['no_payload_connections']], [4, 5])
+            self.assertTrue(all(v['classification'] == 'no-observed-payload'
+                                for v in result['no_payload_connections']))
+            self.assertEqual(result['no_payload_connections'][0]['capture_events'], rows[-4:-2])
             with self.assertRaisesRegex(ValueError, 'request_ids'):
                 h.backend_wire_evidence(path, requests[:1])
+            for extra in [row('request-first-byte', 4, 1),
+                          row('response-first-byte', 4, 1),
+                          row('response-headers', 4, 1, status=200),
+                          row('unknown', 4, 1),
+                          row('unknown', 1, 1),
+                          row('request-close', 4, 1.4, kind='fin')]:
+                with self.subTest(event=extra['event']):
+                    write(rows[:-1] + [extra, rows[-1]])
+                    with self.assertRaises(ValueError): h.backend_wire_evidence(path, requests)
+            for changes in [{'kind': 'unknown'}, {'request_id': 'a'*32}]:
+                malformed = copy.deepcopy(rows); malformed[-4].update(changes); write(malformed)
+                with self.assertRaisesRegex(ValueError, 'close_invalid'):
+                    h.backend_wire_evidence(path, requests)
+            duplicate = copy.deepcopy(rows); duplicate.insert(2, copy.deepcopy(rows[1])); write(duplicate)
+            with self.assertRaisesRegex(ValueError, 'headers_incomplete'):
+                h.backend_wire_evidence(path, requests)
+            damaged = copy.deepcopy(rows); damaged[-1]['issues'] = ['tcp_gap_or_reordering']; write(damaged)
+            with self.assertRaisesRegex(ValueError, 'incomplete'): h.backend_wire_evidence(path, requests)
             write(rows[:-1])
             with self.assertRaisesRegex(ValueError, 'incomplete'): h.backend_wire_evidence(path, requests)
             rows[-1]['kernel_drops'] = 1; write(rows)
@@ -153,8 +186,9 @@ class Acceptance(unittest.TestCase):
             for event in ('request-first-byte', 'request-headers'):
                 wire.append(dict(event=event, flow=flow, kernel_epoch=request['start'], observed_boottime=request['start'],
                                  request_id=request['request_id'], kind='marked', headers={'host': 'webmin.example'}))
-        wire.append({'terminal': True, 'issues': [], 'kernel_drops': 0})
-        for case in ('pass', 'missing-wire', 'missing-direct', 'outside-resource'):
+        wire += [dict(event='request-close', flow=3, kernel_epoch=1012, observed_boottime=1012, kind='fin'),
+                 {'terminal': True, 'issues': [], 'kernel_drops': 0}]
+        for case in ('pass', 'missing-wire', 'missing-direct', 'outside-resource', 'close-outside-resource'):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
                 root = Path(name)
                 for key, value in [('before', before), ('after', after)]: w.write(root/key, value)
@@ -162,6 +196,7 @@ class Acceptance(unittest.TestCase):
                     w.write(root/'backend-path-a-ipv4.json', {'client': {'stdout': json.dumps({'timing': direct})}})
                 rows = copy.deepcopy(wire)
                 if case == 'outside-resource': rows[0]['observed_boottime'] = 1035
+                if case == 'close-outside-resource': rows[-2]['observed_boottime'] = 1035
                 for filename, data in [('samples', samples), ('backend-wire.jsonl', rows)]:
                     if case == 'missing-wire' and filename == 'backend-wire.jsonl': continue
                     path = root/filename; path.write_text(''.join(json.dumps(r)+'\n' for r in data)); path.chmod(0o600)

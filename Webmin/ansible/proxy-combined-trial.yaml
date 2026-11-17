@@ -52,6 +52,13 @@
       delegate_to: localhost
       become: false
       changed_when: false
+    - name: Admit private controller evidence storage before any target contact
+      ansible.builtin.command:
+        argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py',
+               admit-evidence, '{{ operation_evidence_directory }}']
+      delegate_to: localhost
+      become: false
+      changed_when: false
     - name: Check private client source and installed runtime without launching a browser
       when: not (proxy_trial.diagnostic_only | default(false) | bool)
       ansible.builtin.command:

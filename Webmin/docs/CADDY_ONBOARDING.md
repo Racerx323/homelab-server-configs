@@ -644,6 +644,16 @@ lost transport or missing receipts reports incomplete recovery/manual interventi
 a timeout alone never proves that a systemd job or remote mutation stopped.
 The reserve is a stop boundary, not a promise that every stalled recovery succeeds.
 
+Prepare `operation_evidence_directory` as an existing controller-owned directory
+with mode `0700`, beneath the private operation store, before sealing. Bind its
+absolute path in the parent inputs. The parent admits it before any target contact:
+reject missing, non-directory, symlinked or non-private paths, then exercise the
+same exclusive receipt writer and private readback used by the operation. Remove
+only the disposable admission probe. Never repair a consumed operation's output
+path and replay it. This proves current storage access, not immunity to later disk
+or permission failures; preserve the parent log if terminal receipt persistence
+fails, and always let native recovery proceed.
+
 Bind a private `diagnostic_spec` containing `clock_ssh_prefixes` for `backend`,
 `node-a` and `node-b` in the same input manifest. Prefixes retain the selected
 hosts' existing SSH key checks; the helper appends only its fixed read-only clock
@@ -703,6 +713,25 @@ not prove complete HTTP-body delivery. Preserve missing response/completion as
 unknown. Require both foreground markers and resource coverage, and retain possible
 health overlap. Do not attribute resource counters to a request merely because
 intervals overlap. Do not enable broad debug logging to fill a gap.
+
+Keep fresh connections with only valid FIN/reset events as `no-observed-payload`
+connections. They are not HTTP requests or successful health checks. Require
+their observation times to remain inside resource coverage. Partial request
+headers, response data without a request, duplicate/missing foreground markers,
+unknown events and capture issues still reject completeness. Preserve the original
+receipt when reprocessing retained evidence with a corrected parser; a derived
+analysis does not replace the failed operation or accept the application.
+
+Review startup probe load as well as the configured health interval. Caddy's
+[`validate` command](https://caddyserver.com/docs/command-line#caddy-validate)
+provisions modules. In the reviewed 2.11.4 source, reverse-proxy provisioning
+starts an active-health worker, which checks immediately before waiting for its
+interval. Publisher, finalizer and reconciler validation can therefore contact
+the backend before normal serving acceptance. Trace the selected installed tools
+and reload path; do not assume validation is network-silent or that sequential
+foreground probes serialize backend work. Preserve full validation and runtime
+health checks unless an owner-reviewed correction explicitly changes that contract.
+Do not attribute a captured connection to a particular process without evidence.
 
 A successful isolated IPv4 request cannot accept the production dual-stack route
 or prove the historical timeout cause. Existing limits and recovery deadlines

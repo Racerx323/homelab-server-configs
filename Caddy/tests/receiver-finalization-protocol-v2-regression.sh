@@ -42,6 +42,8 @@ for data_artifact in \
     [[ ! -L "$data_artifact" ]]
 done
 
+python3 -I -B "$script_dir/validation-network-isolation.py" --caller-contracts >/dev/null
+
 "$receiver" --self-test >/dev/null
 "$finalizer" --self-test >/dev/null
 trigger_output=$("$finalizer" --reconciliation-trigger-self-test)

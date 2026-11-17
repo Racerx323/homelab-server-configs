@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=541d014677d1fd1cb08dc3b2d962ce9f7dad501b08395bc35e01b4972af99647
-readonly operation_sha256=88f71f662120db48b517b0dd9e324f0ebe4bc14ae4efab2529e94fc80eab00b6
+readonly transaction_sha256=f4a5c495b1fe15c32760cb688a582c3cfd47ba1548e9126d40b14bfdaf49dad6
+readonly operation_sha256=583a7d9643aaba83bea0ae8790bb85298cef3f982c4c903d4fad04cf5eed0a16
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -76,6 +76,28 @@ application_payload_fragment() {
     [[ "$(sha256sum "$payload_stage/manifests/application.caddy" | awk '{print $1}')" = "$app_hash" ]]
 }
 
+application_payload_validation_tools() {
+    local avt_input=$payload_stage/manifests/certificate-release-inputs.tsv avt_source avt_key avt_hash
+    grep -q '^validation_tools_trial' "$avt_input" || return 0
+    [[ "$(awk -F '\t' '$1 == "validation_tools_trial" {print $2; n++} END {if(n!=1) exit 1}' "$avt_input")" = primary ]] || return 1
+    grep -Fxq $'application_diagnostic_scope\tprimary-ipv4' "$avt_input" || return 1
+    grep -Fxq $'application_diagnostic_seconds\t240' "$avt_input" || return 1
+    grep -Fxq $'application_trial_seconds\t660' "$avt_input" || return 1
+    while read -r avt_source avt_key; do
+        avt_hash=$(awk -F '\t' -v key="$avt_key" '$1 == key {print $2; n++} END {if(n!=1) exit 1}' "$avt_input") || return 1
+        [[ "$avt_hash" =~ ^[0-9a-f]{64}$ ]] || return 1
+        regular_file "$repository_root/Caddy/scripts/$avt_source" || return 1
+        [[ "$(sha256sum "$repository_root/Caddy/scripts/$avt_source" | awk '{print $1}')" = "$avt_hash" ]] || return 1
+        install -D -m 0600 "$repository_root/Caddy/scripts/$avt_source" \
+            "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/$avt_source" || return 1
+        [[ "$(sha256sum "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/$avt_source" | awk '{print $1}')" = "$avt_hash" ]] || return 1
+    done <<'TOOLS'
+validate-caddy-isolated.sh validation_helper_sha256
+finalize-incoming-release-v2.sh validation_finalizer_sha256
+reconcile-release-v2.sh validation_reconciler_sha256
+TOOLS
+}
+
 build_payload() {
     local serving_health_repository serving_health_source serving_health_target serving_health_mode
     local serving_health_hash serving_health_lifecycle serving_health_source_path serving_health_destination
@@ -86,6 +108,7 @@ build_payload() {
             "$payload_stage/manifests/certificate-release-inputs.tsv"
         if grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
             application_payload_fragment "$payload_stage/manifests/certificate-release-inputs.tsv"
+            application_payload_validation_tools
         fi
         install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
             "$payload_stage/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh"
@@ -1121,7 +1144,13 @@ run_application_onboarding_live() {
             [[ "$app_readback_status" = 0 ]] || return 125
             extract_readback_file "$workstation_evidence/application-primary-a-readback.stdout" application-target.tsv "$app_target_file" || return 125
             app_target=$(<"$app_target_file")
-            [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
+            if [[ -z "$app_target" ]]; then
+                # An explicit empty receipt permits tool-only recovery, never an invented revision.
+                [[ "$app_diagnostic_scope" = primary-ipv4 ]] || return 125
+                grep -Fxq $'validation_tools_trial\tprimary' "$payload_stage/manifests/certificate-release-inputs.tsv" || return 125
+            else
+                [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
+            fi
             application_trial_recover_pair "$app_target" "$app_diagnostic_scope" || return 125
             if [[ "$app_diagnostic_scope" = primary-ipv4 ]]; then
                 cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125

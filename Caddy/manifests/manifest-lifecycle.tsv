@@ -23,5 +23,5 @@ Caddy/manifests/template-lifecycle.tsv	production-current	yes	Caddy/manifests/RE
 Caddy/manifests/manifest-lifecycle.tsv	production-current	yes	Caddy/manifests/README.md
 Caddy/manifests/serving-health-quarantine-baseline.tsv	production-current	yes	Caddy/manifests/current-live-state.tsv
 Caddy/manifests/serving-health-operation.yaml	failed-consumed	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
-Caddy/manifests/certificate-release-inputs.tsv	failed-consumed	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
+Caddy/manifests/certificate-release-inputs.tsv	workstation-only	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md
 Caddy/manifests/serving-health-terminal-result.yaml	failed-consumed	no	Caddy/docs/DEPLOYMENT_LIFECYCLE.md

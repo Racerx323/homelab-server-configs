@@ -495,8 +495,7 @@ require_check manifest_hashes_valid \
     _ "$candidate"
 require_check caddy_configuration_valid \
     env CADDY_CONFIG_ROOT="$candidate" \
-    caddy validate --config "$candidate/Caddyfile" \
-    --adapter caddyfile
+    /usr/local/libexec/validate-caddy-isolated.sh "$candidate/Caddyfile"
 
 if [[ -n "$active_revision" && "$revision" = "$active_revision" ]]; then
     require_check active_destination_exact \

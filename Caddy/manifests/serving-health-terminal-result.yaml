@@ -1,33 +1,16 @@
 {
   "schema_version": 1,
-  "action": "20261116-webmin-primary-login-diagnostic",
+  "action": "20261117-webmin-isolated-validation-diagnostic",
   "result": "failed-consumed",
-  "outer_sha256": "2a2d7df7c6464fed9f9b8cf16a83dc574e1e93594e72e90eddb81fa64b40bfaf",
-  "transaction_sha256": "541d014677d1fd1cb08dc3b2d962ce9f7dad501b08395bc35e01b4972af99647",
-  "operation_sha256": "88f71f662120db48b517b0dd9e324f0ebe4bc14ae4efab2529e94fc80eab00b6",
-  "parent_manifest_sha256": "323cb347b16f1279d2b36756e26c732a435d67ec2bb4f5143778ab244fd65c81",
-  "executed_coverage_sha256": "019c0dc67536899c1f2711a9944fdabbab9e9cac07896fe76f6b3f35916987eb",
+  "outer_sha256": "f300aa0dcd4dd7bcb0dad87231ace2ecec7779e91e5ba85bc37bcbf1aeded424",
+  "transaction_sha256": "f4a5c495b1fe15c32760cb688a582c3cfd47ba1548e9126d40b14bfdaf49dad6",
+  "operation_sha256": "583a7d9643aaba83bea0ae8790bb85298cef3f982c4c903d4fad04cf5eed0a16",
+  "parent_manifest_sha256": "3c7a91105fcdb02f551dc15fd2b65c3227dd3592fe6b689c16a56d1667e2b88c",
   "parent_exit": 2,
-  "outer_exit": 1,
-  "cause": "unconfirmed; observed Webmin memory pressure and later OOM kill",
-  "recovery": {
-    "primary": "restore and independent readback passed",
-    "primary_monitor": "natural completed cycle passed",
-    "backend": "exact loopback restore and terminal assertion passed; timer disarmed"
-  },
-  "diagnostic_correlation": "aggregate rejected; both marked header records retained",
-  "application_acceptance": "not_started",
-  "scan_acceptance": "not_started",
-  "archive_tag": "caddy-webmin-primary-login-diagnostic-terminal-2026-11-16",
-  "archive_status": "planned-unpublished",
-  "evidence_sha256": {
-    "execution-summary.json": "01eeb075ec1c15abc9395cd0593afb6fa421d184e8e76b78a19e60e7d2d7b9e7",
-    "RECEIPTS.SHA256SUMS": "97613fdb6db58536e7fe554f592ad2be98a7949202a563a76aa04357d2464bad",
-    "sealed-inputs-index.json": "34996b8374a938e2feb34be2b64a8f52bda954500a1f6d988715b8759c41062a",
-    "parent.log": "d93192e370cb0f6c414ca83ac28c4c64a4621f812eac4ba387e97d14b614943e",
-    "parent.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
-    "inputs/evidence/backend-wire.jsonl": "406de9bcb9ebe570c58f209896f847ad605b85eb39b846895c48e0ecb40fd85b",
-    "inputs/evidence/backend-resource-samples.jsonl": "f6600939dc38b69ee21173d513a6f2cc8b1cdf716e9722077600c912bb736e16",
-    "inputs/evidence/diagnostic-coverage.json": "c22dd49560a02087277d5d2e349f9dd79f78dfa0eb299b41d3ca850e4e7146a2"
-  }
+  "owner_exit": 1,
+  "primary_probe_exit": 28,
+  "restoration": "primary tools/release and backend loopback passed",
+  "monitor": "fresh natural primary cycle passed",
+  "coverage": "passed; causation not established",
+  "archive_tag": "caddy-webmin-isolated-validation-terminal-2026-11-17"
 }

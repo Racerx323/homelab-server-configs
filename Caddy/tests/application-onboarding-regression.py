@@ -31,12 +31,13 @@ EXPECTED_STATUS = dict(zip(CASES, [0, 0, 1, 22, 2, 2, 2, 125, 2, 0]))
 TRIALS = {'trial-success': 0, 'trial-timeout': 1, 'trial-lost-reply': 1, 'trial-secondary-timeout': 1, 'trial-recovery-failure': 125, 'trial-incomplete': 125}
 CASES += list(TRIALS)
 EXPECTED_STATUS.update(TRIALS)
-NARROW = {"trial-primary-only-success": 0, "trial-primary-only-http": 1}
+NARROW = {"trial-primary-only-success": 0, "trial-primary-only-http": 1, "trial-primary-only-install-failure": 1}
 CASES += list(NARROW)
 EXPECTED_STATUS.update(NARROW)
 GRAPH_FILES = [
     'Caddy/scripts/' + name for name in ['publish-release-v2.sh',
-    'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh']]
+    'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh',
+    'validate-caddy-isolated.sh', 'finalize-incoming-release-v2.sh', 'reconcile-release-v2.sh']]
 GRAPH_FILES += ['Caddy/tests/' + name for name in ['application-onboarding-regression.py',
     'application-onboarding-regression.sh', 'certificate-release-regression.py',
     'run-application-qualification.py', 'deployable-successor-policy.sh']]
@@ -56,13 +57,39 @@ def source_graph():
     return {name: release.digest(REPO/name) for name in sorted(paths)}
 
 
+def qualification_cases():
+    operation = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
+    fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation, re.M))
+    profile = fields.get('qualification_profile', 'paired-application')
+    if profile == 'paired-application':
+        return CASES
+    assert profile == 'primary-validation-diagnostic', 'unknown qualification profile'
+    assert fields.get('status') == 'defined-unexecuted' and fields.get('scope') == 'application-onboarding'
+    targets = re.search(r'^targets:\n(.*?)(?=^[a-z_]+:|\Z)', operation, re.M|re.S)
+    assert targets and targets[1].splitlines() == ['- pi@10.1.0.53'], 'primary-only target binding'
+    entries = [line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:]]
+    recipe = dict(entries)
+    assert len(recipe) == len(entries), 'duplicate recipe binding'
+    required = {'release_kind': 'application', 'validation_tools_trial': 'primary',
+                'application_diagnostic_scope': 'primary-ipv4', 'application_trial_seconds': '660',
+                'application_diagnostic_seconds': '240', 'application_http_status': '200',
+                'application_probe_path': 'session_login.cgi',
+                'application_fqdn': 'webmin-j2-svpi3bmf.local.theama.co',
+                'application_fragment_source': 'homelab-server-configs/Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'}
+    for key, expected in required.items():
+        assert recipe.get(key) == expected, 'diagnostic binding: '+key
+    for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release-v2.sh')]:
+        assert recipe.get('validation_'+key+'_sha256') == release.digest(REPO/'Caddy/scripts'/filename), key
+    return list(NARROW)
+
+
 def coverage_rows():
-    for case in CASES:
+    for case in qualification_cases():
         phase = ('pre-mutation' if case == 'publisher-boundaries' else
                  'pre-exposure' if case == 'exposure-tamper' else
                  'convergence' if case.startswith('secondary-') or case == 'timeout' else
                  'accepted-path' if case in ('success', 'webmin-source') else 'recovery')
-        entrypoint = 'outer' if case in ['publisher-boundaries', 'timeout'] else 'transaction'
+        entrypoint = 'outer' if case in ['publisher-boundaries', 'timeout', 'trial-primary-only-install-failure'] else 'transaction'
         expectation = 'reach' if case == 'publisher-boundaries' else 'accept' if EXPECTED_STATUS[case] == 0 else 'reject'
         yield ['application-' + case, phase, entrypoint, expectation,
                'decisions/application-' + case + '.tsv', 'raw/application-' + case + '.json']
@@ -114,6 +141,160 @@ def definition_check():
     assert actual == list(coverage_rows()), 'primary-first coverage contract'
 
 
+def validation_tools_tests():
+    """Real file/payload/recovery functions; map privileged paths/ownership locally.
+
+    Service control and process lookup are stand-ins. This proves no target
+    capability, writable systemd context or capacity result.
+    """
+    source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
+    outer = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
+    names = re.findall(r'^(application_validation_[a-z_]+)\(\) \{', source, re.M)
+    names += ['regular_file', 'path_absent', 'release_identifier', 'require', 'require_equal',
+              'certificate_setting', 'certificate_hash', 'certificate_release_integrity',
+              'application_fragment', 'application_baseline', 'application_restore', 'application_trial_inventory',
+              'application_trial_wait_idle', 'application_trial_contain', 'application_trial_quiesce',
+              'application_trial_restore', 'application_trial_resume', 'capture_command',
+              'require_exact_directory_inventory', 'require_empty_or_absent_sync_directory']
+    functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', source, re.M|re.S)[0] for name in names)
+    primary = re.search(r'^application_primary\(\) \(\n.*?^\)', source, re.M|re.S)[0]
+    payload_functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', outer, re.M|re.S)[0]
+                                  for name in ['build_payload', 'application_payload_validation_tools'])
+    cases = ['success', 'publisher-failure', 'install-helper', 'install-finalizer',
+             'install-reconciler', 'interrupt', 'backup-failure', 'unexpected-helper',
+             'bad-payload', 'restore-failure', 'unknown-current', 'unknown-prepared', 'xattr', 'request-failure', 'absent-prepared']
+    for case in cases:
+        with tempfile.TemporaryDirectory(prefix='caddy-tool-contract-') as temporary:
+            root = Path(temporary); payload = root/'payload'; evidence = root/'evidence'
+            scripts = root/'repository/Caddy/scripts'; scripts.mkdir(parents=True)
+            libexec = root/'libexec'; libexec.mkdir(); evidence.mkdir()
+            (payload/'manifests').mkdir(parents=True)
+            prepared = root/'prepared'; prepared.mkdir()
+            baseline = root/'releases/baseline'; (baseline/'conf.d').mkdir(parents=True)
+            (baseline/'Caddyfile').write_text('fixture configuration\n')
+            (baseline/'manifest.sha256').write_text(hashlib.sha256((baseline/'Caddyfile').read_bytes()).hexdigest()+'  ./Caddyfile\n')
+            (root/'current').symlink_to(baseline)
+            if case == 'absent-prepared':
+                prepared.rmdir()
+            original = {}
+            recipe = dict(validation_tools_trial='primary', application_diagnostic_scope='primary-ipv4',
+                          application_diagnostic_seconds='240', application_trial_seconds='660',
+                          release_kind='application', baseline_revision='baseline',
+                          baseline_manifest_sha256=hashlib.sha256((baseline/'manifest.sha256').read_bytes()).hexdigest(),
+                          application_fragment_name='30-test.caddy')
+            for filename, destination, old, new in [
+                ('validate-caddy-isolated.sh', 'validate-caddy-isolated.sh', None, 'validation_helper_sha256'),
+                ('finalize-incoming-release-v2.sh', 'finalize-incoming-release-v2.sh', 'finalizer_sha256', 'validation_finalizer_sha256'),
+                ('reconcile-release-v2.sh', 'reconcile-release.sh', 'reconciler_installed_sha256', 'validation_reconciler_sha256')]:
+                data = ('#!/bin/bash\n# '+filename+'\nexit 0\n').encode()
+                (scripts/filename).write_bytes(data); recipe[new] = hashlib.sha256(data).hexdigest()
+                if old:
+                    original[destination] = ('#!/bin/bash\n# original '+filename+'\n').encode()
+                    (libexec/destination).write_bytes(original[destination]); (libexec/destination).chmod(0o750)
+                    recipe[old] = hashlib.sha256(original[destination]).hexdigest()
+            (scripts/'publish-release-v2.sh').write_text('#!/bin/bash\nexit 28\n')
+            (payload/'manifests/certificate-release-inputs.tsv').write_text(''.join(k+'\t'+v+'\n' for k,v in recipe.items()))
+            (scripts.parent/'manifests').mkdir()
+            shutil.copy2(payload/'manifests/certificate-release-inputs.tsv', scripts.parent/'manifests/certificate-release-inputs.tsv')
+            controller = root/'systemctl'
+            controller.write_text('#!/bin/bash\nprintf "%s\\n" "$*" >>"$CALLS"\nif [[ $1 = show ]]; then echo 0; fi\n')
+            controller.chmod(0o700)
+            lookup = root/'pgrep'; lookup.write_text('#!/bin/bash\nexit 1\n'); lookup.chmod(0o700)
+            prelude = f'''set -Eeuo pipefail
+prefix=test
+payload_root={shlex.quote(str(payload))}
+evidence_root={shlex.quote(str(evidence))}
+payload_stage=$payload_root
+payload_archive={root}/payload.tar
+repository_root={root}/repository
+workstation_evidence=$evidence_root
+node_role=node-a
+systemctl_command={controller}
+sleep_command=/bin/sleep
+sync_user=fixture
+incoming_root={root}/incoming
+outgoing_root={root}/outgoing
+releases_root={root}/releases
+finalizer_command={libexec}/finalize-incoming-release-v2.sh
+target_revision_argument=''
+certificate_serving_check() {{ :; }}
+release_operation() {{ return 0; }}
+application_payload_fragment() {{ printf 'fragment\\n' >"$payload_root/manifests/application.caddy"; }}
+'''
+            mapped = functions+'\n'+primary
+            for old, new in [('/usr/local/libexec', str(libexec)),
+                             ('/var/lib/caddy-sync/prepared', str(prepared)),
+                             ('/etc/caddy/current', str(root/'current')),
+                             ('/usr/bin/pgrep', str(lookup)),
+                             ('s.st_uid == 0', f's.st_uid == {os.getuid()}'),
+                             ('0:0:755', f'{os.getuid()}:{os.getgid()}:755'),
+                             ('-o root -g root', f'-o {os.getuid()} -g {os.getgid()}')]:
+                mapped = mapped.replace(old, new)
+            env = dict(os.environ, CALLS=str(root/'calls'))
+            def run(code):
+                return subprocess.run(['/bin/bash','-c',prelude+'\n'+mapped+'\n'+payload_functions+'\n'+code],
+                                      env=env,capture_output=True,text=True,timeout=10)
+            # Execute the real builder; the application fragment is outside this tool test.
+            result = run('build_payload'); assert result.returncode == 0, result.stderr
+            with tarfile.open(root/'payload.tar') as archive:
+                assert all(any(n.endswith('/'+f) for n in archive.getnames()) for f in
+                           ['validate-caddy-isolated.sh','finalize-incoming-release-v2.sh','reconcile-release-v2.sh'])
+            with tarfile.open(evidence/'secondary-control.tar') as archive:
+                assert archive.getnames() == ['manifests/certificate-release-inputs.tsv']
+            if case == 'unexpected-helper':
+                (libexec/'validate-caddy-isolated.sh').symlink_to(root/'absent')
+            if case == 'bad-payload':
+                (payload/'repositories/homelab-server-configs/Caddy/scripts/validate-caddy-isolated.sh').write_text('tampered')
+            if case == 'xattr':
+                os.setxattr(libexec/'reconcile-release.sh', 'user.fixture', b'preserve')
+            injection = ''
+            if case.startswith('install-') or case == 'interrupt':
+                number = {'install-helper':1, 'install-finalizer':2, 'install-reconciler':3, 'interrupt':2}[case]
+                action = 'kill -TERM $$' if case == 'interrupt' else 'return 23'
+                injection = f'moves=0; mv() {{ moves=$((moves+1)); if ((moves=={number})); then {action}; fi; command mv "$@"; }}\n'
+            if case == 'backup-failure':
+                injection = 'cp() { return 23; }\n'
+            action = 'application_primary' if case == 'publisher-failure' else 'application_validation_install'
+            result = run(injection+action)
+            failed = case in ['publisher-failure','install-helper','install-finalizer','install-reconciler',
+                              'interrupt','backup-failure','unexpected-helper','bad-payload','xattr']
+            assert (result.returncode != 0) == failed, (case,result.returncode,result.stderr)
+            if case == 'publisher-failure':
+                assert (evidence/'application-target.tsv').read_bytes() == b''
+            if case in ['unexpected-helper','bad-payload','xattr']:
+                assert not (root/'calls').exists()
+                assert not (payload/'validation-tools').exists()
+                continue
+            if case == 'unknown-current':
+                (libexec/'reconcile-release.sh').write_text('foreign change')
+            if case == 'unknown-prepared':
+                (prepared/'unknown').mkdir()
+            (evidence/'application-trial-outbound.tsv').write_text('')
+            if case == 'request-failure':
+                (root/'releases/candidate').mkdir()
+                (root/'current').unlink(); (root/'current').symlink_to(root/'releases/candidate')
+                prelude += "target_revision_argument=candidate\n"
+            recovery = 'application_trial_contain\napplication_trial_quiesce\napplication_trial_restore\napplication_trial_resume\n'
+            if case == 'restore-failure':
+                recovery = 'cp() { return 23; }\n'+recovery
+            result = run(recovery)
+            rejected = case in ['restore-failure','unknown-current','unknown-prepared']
+            assert (result.returncode != 0) == rejected, (case,result.returncode,result.stderr)
+            calls = (root/'calls').read_text() if (root/'calls').exists() else ''
+            if rejected:
+                assert 'start ' not in calls
+                assert (payload/'validation-tools/ready').exists()
+            else:
+                assert all((libexec/name).read_bytes() == data for name,data in original.items()), case
+                assert all((libexec/name).stat().st_mode & 0o777 == 0o750 for name in original)
+                assert not (libexec/'validate-caddy-isolated.sh').exists()
+                assert not list(libexec.glob('*.caddy-validation-stage'))
+                assert (evidence/'application-trial-restored.tsv').read_text().strip() == 'restored'
+                if case == 'backup-failure':
+                    assert not any(line.startswith(('stop ','start ')) for line in calls.splitlines())
+    print('application_validation_tools_contract=true cases='+str(len(cases)))
+
+
 def primary_diagnostic_contract_tests():
     """Exercise actual outer dispatch, recovery scope and failed evidence emission."""
     outer = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
@@ -135,7 +316,7 @@ record() { printf '%s\n' "$*" >>"$workstation_evidence/calls"; [[ "$*" != *FORBI
 upload_payload() { record upload "$@"; }
 remote_transaction() { record remote "$@" || return 99; if [[ "$1" = application-primary-a ]]; then return "$PRIMARY_STATUS"; fi; }
 readback() { record readback "$@"; }
-extract_readback_file() { printf 'candidate\n' >"$3"; }
+extract_readback_file() { printf '%s' "${TARGET_TEXT-candidate}" >"$3"; }
 cleanup_remote() { record cleanup "$@"; }
 '''
         for status in (0, 28):
@@ -147,6 +328,16 @@ cleanup_remote() { record cleanup "$@"; }
             assert 'FORBIDDEN_SECONDARY' not in commands and 'application-expose' not in commands
             assert 'application-monitor-a' in commands and 'application-restored-a' in commands
             assert commands.rstrip().endswith('cleanup node-a primary a a.tar')
+        for opt_in in (False, True):
+            if opt_in:
+                recipe.write_text(recipe.read_text()+'validation_tools_trial\tprimary\n')
+            calls.unlink()
+            run = subprocess.run(['bash','-c',setup+'\n'+functions+'\nrun_application_onboarding_live','test',str(root)],
+                                 env=dict(os.environ, PRIMARY_STATUS='28', TARGET_TEXT=''),capture_output=True,text=True)
+            assert run.returncode == (1 if opt_in else 125), run.stderr
+            commands = calls.read_text()
+            assert 'FORBIDDEN_SECONDARY' not in commands
+            assert ('application-restore-a' in commands) == opt_in
         recipe.write_text(recipe.read_text().replace('primary-ipv4','invalid'))
         calls.unlink()
         run=subprocess.run(['bash','-c',setup+'\n'+functions+'\nrun_application_onboarding_live','test',str(root)],capture_output=True,text=True)
@@ -428,6 +619,31 @@ def case_observation(root, case):
         for role in ('node-a', 'node-b'):
             assert observed['nodes'][role]['selection'] == 'baseline'
         assert observed['nodes']['node-b']['reloads'] == 0
+        recipe = dict(line.split('\t') for line in read('inputs.tsv').splitlines()[1:])
+        assert recipe['validation_tools_trial'] == 'primary'
+        primary = release.decode_stream(root/'runner-evidence/application-primary-a-readback.stdout')
+        read('runner-evidence/application-primary-a-readback.stdout')
+        assert records['application-validation-restored.tsv'] == 'restored\n'
+        if case == 'trial-primary-only-install-failure':
+            fault = json.loads(read('install-fault.json'))
+            assert fault['helper_sha256'] == recipe['validation_helper_sha256']
+            assert primary['application-target.tsv'] == ''
+            assert not (root/'validation-dispatch.jsonl').exists()
+        else:
+            assert primary['application-target.tsv'].strip()
+            dispatch = [json.loads(line) for line in read('validation-dispatch.jsonl').splitlines()]
+            assert dispatch
+            for call in dispatch:
+                for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release.sh')]:
+                    assert call['installed'][filename] == recipe['validation_'+key+'_sha256']
+        for role in ('node-a', 'node-b'):
+            directory = root/'nodes'/role/'libexec'
+            assert not (directory/'validate-caddy-isolated.sh').exists()
+            assert not list(directory.glob('*.caddy-validation-stage'))
+            for filename, key in [('finalize-incoming-release-v2.sh', 'finalizer_sha256'), ('reconcile-release.sh', 'reconciler_installed_sha256'), ('publish-release-v2.sh', 'publisher_baseline_sha256')]:
+                read(f'nodes/{role}/libexec/{filename}')
+                assert release.digest(directory/filename) == recipe[key]
+                assert (directory/filename).stat().st_mode & 0o777 == 0o755
         return {'case': case, 'status': NARROW[case], 'expected': 'primary-only-restored',
                 'observed': 'primary-only-restored', 'evidence': evidence_hashes}
     if case in TRIALS:
@@ -554,14 +770,27 @@ def write_qualification(evidence, graph):
         decision.write_text('scenario\texpectation\tstatus\texpected\tobserved\traw-sha256\n' +
             '\t'.join([row[0], row[3], str(record['status']), record['expected'], record['observed'], release.digest(raw)])+'\n')
         decision.chmod(0o600)
-    (evidence/'qualification-summary.json').write_text(json.dumps({'source_graph': graph, 'cases': CASES}, indent=2)+'\n')
+    (evidence/'qualification-summary.json').write_text(json.dumps({'source_graph': graph, 'cases': qualification_cases()}, indent=2)+'\n')
+
+
+def primary_tools_observation(evidence):
+    return {'source_graph': source_graph(),
+            'cases': {case: case_observation(evidence/case, case) for case in NARROW},
+            'namespace_primitive': 'substituted; target capability belongs to W-197',
+            'scope': 'primary-only owner delivery and recovery; not full authorization coverage'}
+
+
+def verify_primary_tools(evidence):
+    definition_check()
+    actual = json.loads(read_evidence(evidence/'primary-tools-summary.json'))
+    assert actual == primary_tools_observation(evidence), 'stale or altered primary tool evidence'
 
 
 def verify_evidence(evidence):
     definition_check()
     assert evidence.is_dir() and not evidence.is_symlink()
     summary = json.loads(read_evidence(evidence/'qualification-summary.json'))
-    assert summary == {'source_graph': source_graph(), 'cases': CASES}, 'stale or incomplete graph'
+    assert summary == {'source_graph': source_graph(), 'cases': qualification_cases()}, 'stale or incomplete graph'
     for row in coverage_rows():
         case = row[0].removeprefix('application-')
         actual = case_observation(evidence/case, case)
@@ -599,6 +828,17 @@ def verification_tests(evidence):
             ('missing-command', 'success/ssh.jsonl', lambda data: b'\n'.join(line for line in data.splitlines() if b' application-expose ' not in line)+b'\n'),
             ('missing-decision', 'decisions/application-timeout.tsv', lambda data: b''),
         ]
+        control_case = 'success'
+        if qualification_cases() == list(NARROW):
+            control_case = 'trial-primary-only-success'
+            mutations = [
+                ('stale-graph', 'qualification-summary.json', lambda data: data.replace(b'"source_graph":', b'"stale_source_graph":')),
+                ('wrong-command-status', control_case+'/outer.status', lambda data: b'1\n'),
+                ('missing-tool-option', control_case+'/inputs.tsv', lambda data: data.replace(b'validation_tools_trial\tprimary', b'validation_tools_trial\tmissing')),
+                ('missing-dispatch', control_case+'/validation-dispatch.jsonl', lambda data: b''),
+                ('altered-restored-caller', control_case+'/nodes/node-a/libexec/reconcile-release.sh', lambda data: data+b'\n# changed\n'),
+                ('missing-decision', 'decisions/application-'+control_case+'.tsv', lambda data: b''),
+            ]
         for name, relative, mutate in mutations:
             path = trial/relative; original = path.read_bytes()
             try:
@@ -607,8 +847,8 @@ def verification_tests(evidence):
             finally:
                 path.write_bytes(original)
             print('application_evidence_reject=' + name)
-        path = trial/'success/outer.status'; original = path.read_bytes()
-        path.unlink(); path.symlink_to(evidence/'success/outer.status')
+        path = trial/control_case/'outer.status'; original = path.read_bytes()
+        path.unlink(); path.symlink_to(evidence/control_case/'outer.status')
         assert not check(trial), 'symlinked evidence'
         path.unlink(); path.write_bytes(original)
         print('application_evidence_reject=symlinked-evidence')
@@ -617,7 +857,7 @@ def verification_tests(evidence):
         assert not check(trial), 'symlinked evidence directory'
         directory.unlink(); saved.rename(directory)
         print('application_evidence_reject=symlinked-directory')
-        path = trial/'success/runner-evidence/application-primary-a-readback.stdout'
+        path = trial/control_case/'runner-evidence/application-primary-a-readback.stdout'
         original = path.read_bytes(); path.unlink()
         assert not check(trial), 'missing causal readback'
         path.write_bytes(original)
@@ -678,8 +918,31 @@ def transfer():
 
 
 def adapter(name, args):
-    release.require_container()
     scenario = os.environ['PRIMARY_CASE']
+    if name == 'unshare':
+        assert os.environ.get('CADDY_VALIDATION_CONTAINER') == '1' and Path('/run/.containerenv').is_file()
+        expected_prefix = ['--net', '--'] if os.geteuid() == 0 else ['--user', '--map-current-user', '--net', '--']
+        assert scenario in NARROW and args[:len(expected_prefix)] == expected_prefix
+        command = args[len(expected_prefix):]
+        assert command[:2] == ['/usr/bin/caddy', 'validate']
+        installed = {p.name: release.digest(p) for p in Path('/usr/local/libexec').glob('*.sh')}
+        record = {'arguments': args, 'installed': installed, 'uid': os.geteuid()}
+        if os.geteuid() == 0:
+            with (release.fixture_root()/'validation-dispatch.jsonl').open('a') as log:
+                log.write(json.dumps(record)+'\n')
+        else:
+            # Retained by the actual finalizer capture; do not relax evidence modes.
+            print('fixture_namespace_dispatch='+json.dumps(record), file=sys.stderr)
+        return subprocess.run(command).returncode
+    if name == 'mv':
+        assert os.environ.get('CADDY_VALIDATION_CONTAINER') == '1' and Path('/run/.containerenv').is_file()
+        if scenario == 'trial-primary-only-install-failure' and args[-1] == '/usr/local/libexec/finalize-incoming-release-v2.sh' and args[-2].endswith('.caddy-validation-stage'):
+            marker = release.fixture_root()/'install-fault.json'
+            if not marker.exists():
+                marker.write_text(json.dumps({'arguments': args, 'helper_sha256': release.digest('/usr/local/libexec/validate-caddy-isolated.sh')}))
+                return 73
+        return subprocess.run(['/usr/bin/mv.fixture-original', *args]).returncode
+    release.require_container()
     if name == 'ssh':
         command = ' '.join(args)
         rc = release.adapter(name, args)
@@ -780,7 +1043,7 @@ def serve_backend(port, root):
     DualStackServer(('::', port), Handler).serve_forever()
 
 
-def suite():
+def suite(primary_tools_only=False):
     definition_check()
     graph = source_graph()
     release.require_container()
@@ -788,16 +1051,24 @@ def suite():
     evidence.mkdir(exist_ok=True)
     for address in ['10.1.0.53/32', '10.1.0.54/32', '10.1.0.56/32', '10.1.3.75/32', 'fd36:5aa8:6971:1::53/128', 'fd36:5aa8:6971:1::54/128', 'fd36:5aa8:6971:1::56/128', 'fd36:5aa8:6971:1::75/128']:
         subprocess.run(['ip', 'address', 'add', address, 'dev', 'lo'], check=True)
-    for scenario in CASES:
+    for scenario in (NARROW if primary_tools_only else qualification_cases()):
         root = evidence/scenario
         root.mkdir(mode=0o700)
         os.environ.update(CERT_APPLICATION='1', PRIMARY_CASE=scenario)
         env = release.setup(root)
+        if scenario in NARROW:
+            (root/'bin/mv').touch()
         # Route every substitute through this native-HTTP adapter.
         for script in (root/'bin').iterdir():
-            script.write_text('#!/bin/bash\nexec /usr/bin/python3 '+str(SOURCE)+' --adapter '+script.name+' "$@"\n')
+            script.write_text('#!/bin/bash\n'+
+                ('if (( EUID != 0 )); then exec /usr/bin/mv.fixture-original "$@"; fi\n' if script.name == 'mv' else '')+
+                'exec /usr/bin/python3 '+str(SOURCE)+' --adapter '+script.name+' "$@"\n')
             script.chmod(0o755)
         shutil.copy2(root/'bin/systemctl', '/usr/bin/systemctl')
+        if scenario in NARROW:
+            if not Path('/usr/bin/mv.fixture-original').exists():
+                shutil.copy2('/usr/bin/mv', '/usr/bin/mv.fixture-original')
+            shutil.copy2(root/'bin/mv', '/usr/bin/mv')
         # Keep real configuration parsing/reload while avoiding production's
         # graceful delay in each synthetic node-view switch.
         for role in ['node-a', 'node-b']:
@@ -816,6 +1087,27 @@ def suite():
             recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\napplication_diagnostic_seconds\t240\n')
         if scenario in NARROW:
             recipe.write_text(recipe.read_text()+'application_diagnostic_scope\tprimary-ipv4\n')
+        if scenario in NARROW:
+            # Exercise actual tool delivery, not preinstalled candidate tools.
+            # A distinct old finalizer makes replacement/restoration observable.
+            for role in ('node-a', 'node-b'):
+                old = root/'nodes'/role/'libexec/finalize-incoming-release-v2.sh'
+                old.write_text(old.read_text()+'\n# fixture prior installed identity\n')
+            rows = dict(line.split('\t') for line in recipe.read_text().splitlines()[1:])
+            rows.update(validation_tools_trial='primary',
+                        finalizer_sha256=release.digest(root/'nodes/node-a/libexec/finalize-incoming-release-v2.sh'))
+            for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release-v2.sh')]:
+                rows['validation_'+key+'_sha256'] = release.digest(REPO/'Caddy/scripts'/filename)
+            recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
+            # Only the unavailable namespace primitive is substituted. The exact
+            # delivered helper and native Caddy validator still execute. W-197
+            # owns isolation capability; this fixture cannot accept isolation.
+            Path('/usr/bin/unshare').write_text('#!/bin/bash\n'+
+                'if (( EUID != 0 )); then\n'+
+                '  [[ $# == 10 && $1 == --user && $2 == --map-current-user && $3 == --net && $4 == -- && $5 == /usr/bin/caddy && $6 == validate ]] || exit 64\n'+
+                '  shift 4; exec "$@"\nfi\n'+
+                'exec /usr/bin/python3 '+str(SOURCE)+' --adapter unshare "$@"\n')
+            Path('/usr/bin/unshare').chmod(0o755)
         env.update(CADDY_CERTIFICATE_TEST_SCOPE='application', CADDY_CERTIFICATE_TEST_INPUTS_SHA256=release.digest(recipe), PRIMARY_CASE=scenario)
         os.environ.update(env)
         switch('node-a')
@@ -917,8 +1209,15 @@ def suite():
                         if path.exists():
                             release.move_tree(path, root/'nodes'/role/name)
                     (root/'active').unlink()
-    write_qualification(evidence, graph)
-    verify_evidence(evidence)
+    if primary_tools_only:
+        assert graph == source_graph(), 'source changed during qualification'
+        (evidence/'primary-tools-summary.json').write_text(json.dumps(primary_tools_observation(evidence), indent=2)+'\n')
+        verify_primary_tools(evidence)
+    else:
+        write_qualification(evidence, graph)
+        verify_evidence(evidence)
+        if qualification_cases() == list(NARROW):
+            verification_tests(evidence)
 
 
 if __name__ == '__main__':
@@ -939,14 +1238,23 @@ if __name__ == '__main__':
         raise SystemExit(1)
     elif sys.argv[1:2] == ['--backend']:
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
+    elif sys.argv[1:] == ['--primary-validation-tools']:
+        suite(primary_tools_only=True)
+    elif sys.argv[1:] == ['--validation-tools-tests']:
+        validation_tools_tests()
     elif sys.argv[1:] == ['--payload-tests']:
+        validation_tools_tests()
         primary_diagnostic_contract_tests()
         probe_diagnostic_tests()
         monitor_contract_tests()
         budget_contract_tests()
         payload_tests()
+    elif sys.argv[1:] == ['--coverage-scenarios']:
+        print(' '.join('application-'+case for case in qualification_cases()))
     elif sys.argv[1:] == ['--definition-check']:
         definition_check()
+    elif sys.argv[1:2] == ['--verify-primary-validation-tools'] and len(sys.argv) == 3:
+        verify_primary_tools(Path(sys.argv[2]))
     elif sys.argv[1:2] == ['--verify-evidence'] and len(sys.argv) == 3:
         verify_evidence(Path(sys.argv[2]))
     elif sys.argv[1:2] == ['--verification-tests'] and len(sys.argv) == 3:

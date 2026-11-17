@@ -2,6 +2,18 @@
 schema_version: 1
 captured_at: "2026-08-24"
 capture_mode: bounded_read_only_dual_node
+# captured_at/capture_mode describe the original inventory, not this update.
+caddy_version_reconciliation:
+  recorded_at: "2026-11-17"
+  version: "2.11.9"
+  previous_version: "2.11.4"
+  fleet_basis: Aaron confirmed production hosts were updated
+  node_a_cli_observation: "v2.11.9"
+  node_a_cli_command_status: 0
+  node_b_basis: operator_confirmation_not_fresh_capture
+  package_versions_basis: operator_confirmation_not_fresh_dpkg_capture
+  running_process_identity: not_captured
+  record: homelab-monitoring-observability W-195/W-196
 
 platform:
   os: Debian
@@ -11,13 +23,17 @@ platform:
   kernel_release: 6.12.96+rpt-rpi-2712
 
 package_set:
-  nodes_identical: true
-  canonical_sha256: e05f57e90344d93549d20ba59a6632c5eab1c7906c88dbdc57abf1fc716bb195
+  # No complete package-set recapture accompanied the Caddy update.
+  nodes_identical: null
+  canonical_sha256: null
+  historical_nodes_identical: true
+  historical_canonical_sha256: e05f57e90344d93549d20ba59a6632c5eab1c7906c88dbdc57abf1fc716bb195
+  historical_capture_date: "2026-08-24"
   packages:
     apt-transport-https: "2.6.1"
     bash: "5.2.15-2+b13"
     ca-certificates: "20250419~deb12u1"
-    caddy: "2.11.4"
+    caddy: "2.11.9"
     coreutils: "9.1-1"
     curl: "7.88.1-10+deb12u15"
     debian-archive-keyring: "2023.3+deb12u2"

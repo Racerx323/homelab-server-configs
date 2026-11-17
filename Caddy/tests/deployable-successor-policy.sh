@@ -206,7 +206,9 @@ successor_policy_coverage_valid() {
             successor_policy_required_scenarios='certificate-preflight certificate-success certificate-namespace-absent certificate-worker-failure certificate-primary-worker-failure certificate-readback-failure certificate-standby-readback-failure certificate-reload-failure certificate-rollback-failure certificate-ownership-transition certificate-stale-baseline certificate-baseline-extra certificate-namespace-symlink certificate-namespace-mode certificate-namespace-owner certificate-namespace-nonempty certificate-namespace-file'
             ;;
         application-onboarding)
-            successor_policy_required_scenarios='application-publisher-boundaries application-success application-primary-reload application-primary-http application-secondary-drift application-secondary-http application-timeout application-recovery-failure application-exposure-tamper'
+            successor_policy_required_scenarios=$(python3 -I \
+                "$successor_policy_repository_root/Caddy/tests/application-onboarding-regression.py" \
+                --coverage-scenarios) || return 1
             ;;
         pihole-web-health-unit-only)
             successor_policy_required_scenarios='outer-preflight web-unit-service-identity web-unit-candidate-tamper web-unit-accept outer-standby-first outer-reverse-rollback outer-evidence-readback outer-zero-residue'

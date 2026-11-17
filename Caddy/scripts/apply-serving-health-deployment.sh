@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=58a8886a8548dd9da2dfcd70a742eb040e154b1359b1f8a0f77f5137ace73904
+readonly certificate_inputs_sha256=385e97b58e25a27f2d866f306761c9a8ad1cd2b15403047557a4fa2a2acf95d1
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -993,6 +993,174 @@ application_fragment() {
 
 # Routine application onboarding uses the release protocol without certificate
 # workers, historical platform inventories or a timed operator acknowledgement.
+# Opt-in only through the hash-bound primary diagnostic recipe.
+application_validation_enabled() {
+    grep -Fxq $'validation_tools_trial\tprimary' "$payload_root/manifests/certificate-release-inputs.tsv"
+}
+
+application_validation_records() {
+    printf '%s\n' \
+        'validate-caddy-isolated.sh validate-caddy-isolated.sh - validation_helper_sha256' \
+        'finalize-incoming-release-v2.sh finalize-incoming-release-v2.sh finalizer_sha256 validation_finalizer_sha256' \
+        'reconcile-release-v2.sh reconcile-release.sh reconciler_installed_sha256 validation_reconciler_sha256'
+}
+
+application_validation_metadata() {
+    # Reject unsupported metadata before mutation; do not silently lose ACLs/xattrs.
+    /usr/bin/python3 -I -B - "$1" <<'PY'
+import os, stat, sys
+p = sys.argv[1]
+s = os.lstat(p)
+assert stat.S_ISREG(s.st_mode) and s.st_nlink == 1 and s.st_uid == 0
+assert not (stat.S_IMODE(s.st_mode) & 0o7022) and not os.listxattr(p, follow_symlinks=False)
+print(f'{s.st_uid}:{s.st_gid}:{stat.S_IMODE(s.st_mode):o}')
+PY
+}
+
+application_validation_payload() {
+    local avt_source avt_name avt_old avt_new
+    [[ "$(certificate_setting validation_tools_trial)" = primary && "$node_role" = node-a ]] || return 1
+    [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]] || return 1
+    [[ "$(certificate_setting application_diagnostic_seconds)" = 240 && "$(certificate_setting application_trial_seconds)" = 660 ]] || return 1
+    while read -r avt_source avt_name avt_old avt_new; do
+        certificate_hash "$payload_root/repositories/homelab-server-configs/Caddy/scripts/$avt_source" \
+            "$(certificate_setting "$avt_new")" || return 1
+    done < <(application_validation_records)
+}
+
+application_validation_admit() {
+    local avt_source avt_name avt_old avt_new avt_path
+    application_validation_payload || return 1
+    path_absent "$payload_root/validation-tools" || return 1
+    while read -r avt_source avt_name avt_old avt_new; do
+        avt_path=/usr/local/libexec/$avt_name
+        path_absent "$avt_path.caddy-validation-stage" || return 1
+        if [[ "$avt_old" = - ]]; then
+            path_absent "$avt_path" || return 1
+        else
+            certificate_hash "$avt_path" "$(certificate_setting "$avt_old")" || return 1
+            application_validation_metadata "$avt_path" >/dev/null || return 1
+        fi
+    done < <(application_validation_records)
+}
+
+application_validation_prepared_inventory() {
+    local avt_prepared=/var/lib/caddy-sync/prepared
+    [[ ! -L "$avt_prepared" ]] || return 1
+    if [[ -d "$avt_prepared" ]]; then
+        find "$avt_prepared" -mindepth 1 -maxdepth 1 -printf '%f\n' | LC_ALL=C sort
+    else
+        path_absent "$avt_prepared"
+    fi
+}
+
+application_validation_install() {
+    local avt_source avt_name avt_old avt_new avt_path avt_store=$payload_root/validation-tools
+    application_validation_admit || return 1
+    install -d -m 0700 "$avt_store" || return 1
+    # Backups are complete and checked before either service or file mutation.
+    while read -r avt_source avt_name avt_old avt_new; do
+        [[ "$avt_old" != - ]] || continue
+        avt_path=/usr/local/libexec/$avt_name
+        application_validation_metadata "$avt_path" >"$avt_store/$avt_name.metadata" || return 1
+        cp --preserve=all -- "$avt_path" "$avt_store/$avt_name" || return 1
+        certificate_hash "$avt_store/$avt_name" "$(certificate_setting "$avt_old")" || return 1
+        require_equal validation_backup_metadata "$(<"$avt_store/$avt_name.metadata")" \
+            "$(application_validation_metadata "$avt_store/$avt_name")" || return 1
+    done < <(application_validation_records)
+    # Enumerate prepared state so a lost publisher result cannot masquerade as no mutation.
+    application_validation_prepared_inventory >"$avt_store/prepared.before" || return 1
+    : >"$avt_store/ready"
+    "$systemctl_command" stop caddy-lsyncd.service caddy-sync-reconcile.path caddy-sync-reconcile.service || return 1
+    require_equal validation_sender_stopped 0 "$("$systemctl_command" show caddy-lsyncd.service -p MainPID --value)" || return 1
+    require_equal validation_reconciler_stopped 0 "$("$systemctl_command" show caddy-sync-reconcile.service -p MainPID --value)" || return 1
+    application_trial_wait_idle || return 1
+    while read -r avt_source avt_name avt_old avt_new; do
+        avt_path=/usr/local/libexec/$avt_name
+        if [[ "$avt_old" = - ]]; then
+            path_absent "$avt_path" || return 1
+        else
+            certificate_hash "$avt_path" "$(certificate_setting "$avt_old")" || return 1
+            require_equal validation_install_metadata "$(<"$avt_store/$avt_name.metadata")" \
+                "$(application_validation_metadata "$avt_path")" || return 1
+        fi
+        path_absent "$avt_path.caddy-validation-stage" || return 1
+        install -o root -g root -m 0755 \
+            "$payload_root/repositories/homelab-server-configs/Caddy/scripts/$avt_source" \
+            "$avt_path.caddy-validation-stage" || return 1
+        if [[ "$avt_old" != - ]]; then
+            cp --attributes-only --preserve=all -- "$avt_store/$avt_name" "$avt_path.caddy-validation-stage" || return 1
+        fi
+        certificate_hash "$avt_path.caddy-validation-stage" "$(certificate_setting "$avt_new")" || return 1
+        mv -T -- "$avt_path.caddy-validation-stage" "$avt_path" || return 1
+    done < <(application_validation_records)
+    application_validation_candidates
+}
+
+application_validation_candidates() {
+    local avt_source avt_name avt_old avt_new
+    while read -r avt_source avt_name avt_old avt_new; do
+        certificate_hash "/usr/local/libexec/$avt_name" "$(certificate_setting "$avt_new")" || return 1
+        if [[ "$avt_old" = - ]]; then
+            require_equal validation_candidate_metadata 0:0:755 \
+                "$(application_validation_metadata "/usr/local/libexec/$avt_name")" || return 1
+        else
+            require_equal validation_candidate_metadata "$(<"$payload_root/validation-tools/$avt_name.metadata")" \
+                "$(application_validation_metadata "/usr/local/libexec/$avt_name")" || return 1
+        fi
+    done < <(application_validation_records)
+}
+
+application_validation_restore() {
+    local avt_source avt_name avt_old avt_new avt_path avt_observed avt_store=$payload_root/validation-tools
+    # No ready marker means installation did not start. Baseline checks still follow.
+    [[ -f "$avt_store/ready" ]] || return 0
+    regular_file "$avt_store/ready" || return 1
+    # Restore callers first, retaining the helper until neither caller requires it.
+    while read -r avt_source avt_name avt_old avt_new; do
+        [[ "$avt_old" != - ]] || continue
+        avt_path=/usr/local/libexec/$avt_name
+        certificate_hash "$avt_store/$avt_name" "$(certificate_setting "$avt_old")" || return 1
+        require_equal validation_backup_metadata "$(<"$avt_store/$avt_name.metadata")" \
+            "$(application_validation_metadata "$avt_store/$avt_name")" || return 1
+        application_validation_metadata "$avt_path" >/dev/null || return 1
+        avt_observed=$(sha256sum "$avt_path" | awk '{print $1}') || return 1
+        [[ "$avt_observed" = "$(certificate_setting "$avt_old")" || "$avt_observed" = "$(certificate_setting "$avt_new")" ]] || return 1
+        if [[ -e "$avt_path.caddy-validation-stage" || -L "$avt_path.caddy-validation-stage" ]]; then
+            application_validation_metadata "$avt_path.caddy-validation-stage" >/dev/null || return 1
+            rm -- "$avt_path.caddy-validation-stage" || return 1
+        fi
+        cp --preserve=all -- "$avt_store/$avt_name" "$avt_path.caddy-validation-stage" || return 1
+        mv -T -- "$avt_path.caddy-validation-stage" "$avt_path" || return 1
+        certificate_hash "$avt_path" "$(certificate_setting "$avt_old")" || return 1
+        require_equal validation_restored_metadata "$(<"$avt_store/$avt_name.metadata")" \
+            "$(application_validation_metadata "$avt_path")" || return 1
+    done < <(application_validation_records)
+    avt_path=/usr/local/libexec/validate-caddy-isolated.sh
+    if [[ -e "$avt_path" || -L "$avt_path" ]]; then
+        certificate_hash "$avt_path" "$(certificate_setting validation_helper_sha256)" || return 1
+        require_equal validation_helper_metadata 0:0:755 "$(application_validation_metadata "$avt_path")" || return 1
+        rm -- "$avt_path" || return 1
+    fi
+    if [[ -e "$avt_path.caddy-validation-stage" || -L "$avt_path.caddy-validation-stage" ]]; then
+        application_validation_metadata "$avt_path.caddy-validation-stage" >/dev/null || return 1
+        rm -- "$avt_path.caddy-validation-stage" || return 1
+    fi
+    path_absent "$avt_path" || return 1
+    printf 'restored\n' >"$evidence_root/application-validation-restored.tsv"
+}
+
+application_validation_no_target() {
+    # A missing target receipt alone proves nothing. Preserve any unknown prepared state.
+    require_equal validation_unchanged_release "$releases_root/$(certificate_setting baseline_revision)" "$(readlink -f /etc/caddy/current)" || return 1
+    certificate_hash "$releases_root/$(certificate_setting baseline_revision)/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)" || return 1
+    certificate_release_integrity "$releases_root/$(certificate_setting baseline_revision)" || return 1
+    if [[ -f "$payload_root/validation-tools/ready" ]]; then
+        application_validation_prepared_inventory >"$payload_root/validation-tools/prepared.after" || return 1
+        cmp -s "$payload_root/validation-tools/prepared.before" "$payload_root/validation-tools/prepared.after" || return 1
+    fi
+}
+
 application_baseline() {
     local app_base
     app_base=$releases_root/$(certificate_setting baseline_revision)
@@ -1134,6 +1302,7 @@ application_trial_inventory() {
 
 application_trial_admit() {
     application_baseline
+    if application_validation_enabled; then application_validation_admit; fi
     require_empty_or_absent_sync_directory trial_incoming_a "$incoming_root/node-a"
     require_empty_or_absent_sync_directory trial_incoming_b "$incoming_root/node-b"
     path_absent "$payload_root/application-trial-cancelled"
@@ -1145,15 +1314,21 @@ application_trial_admit() {
 application_trial_contain() {
     # This marker also rejects a delayed activation/exposure invocation.
     : >"$payload_root/application-trial-cancelled"
+    if application_validation_enabled && [[ -z "$target_revision_argument" && ! -f "$payload_root/validation-tools/ready" ]]; then return 0; fi
     "$systemctl_command" stop caddy-lsyncd.service
     require_equal trial_sender_stopped 0 "$("$systemctl_command" show caddy-lsyncd.service -p MainPID --value)"
 }
 
 application_trial_quiesce() {
-    local app_quiet_attempt app_quiet_status
     regular_file "$payload_root/application-trial-cancelled"
+    if application_validation_enabled && [[ -z "$target_revision_argument" && ! -f "$payload_root/validation-tools/ready" ]]; then return 0; fi
     "$systemctl_command" stop caddy-sync-reconcile.path caddy-sync-reconcile.service
     require_equal trial_reconciler_stopped 0 "$("$systemctl_command" show caddy-sync-reconcile.service -p MainPID --value)"
+    application_trial_wait_idle
+}
+
+application_trial_wait_idle() {
+    local app_quiet_attempt app_quiet_status
     # Sender shutdown does not prove the remote rsync/finalizer has exited.
     # Never kill an unrelated process to make this predicate pass.
     for ((app_quiet_attempt = 0; app_quiet_attempt < 60; app_quiet_attempt++)); do
@@ -1169,18 +1344,25 @@ application_trial_quiesce() {
 
 application_trial_restore() {
     local app_trial_path
-    release_identifier "$target_revision_argument"
     regular_file "$payload_root/application-trial-cancelled"
-    # Complete or absent copies are supported. An incomplete/foreign copy is
-    # retained with transport stopped, never silently deleted as our candidate.
-    for app_trial_path in "$outgoing_root/$target_revision_argument" \
-        "/var/lib/caddy-sync/prepared/$target_revision_argument"; do
-        if [[ -e "$app_trial_path" || -L "$app_trial_path" ]]; then
-            certificate_verify_candidate "$app_trial_path" || return 1
-            rm -rf -- "$app_trial_path" || return 1
-        fi
-    done
-    application_restore "$target_revision_argument" || return 1
+    if [[ -z "$target_revision_argument" ]]; then
+        application_validation_enabled || return 1
+        application_validation_restore || return 1
+        application_validation_no_target || return 1
+    else
+        release_identifier "$target_revision_argument"
+        # Complete or absent copies are supported. An incomplete/foreign copy is
+        # retained with transport stopped, never silently deleted as our candidate.
+        for app_trial_path in "$outgoing_root/$target_revision_argument" \
+            "/var/lib/caddy-sync/prepared/$target_revision_argument"; do
+            if [[ -e "$app_trial_path" || -L "$app_trial_path" ]]; then
+                certificate_verify_candidate "$app_trial_path" || return 1
+                rm -rf -- "$app_trial_path" || return 1
+            fi
+        done
+        application_restore "$target_revision_argument" || return 1
+        if application_validation_enabled; then application_validation_restore || return 1; fi
+    fi
     application_trial_inventory >"$evidence_root/application-trial-outbound-after.tsv" || return 1
     cmp -s "$evidence_root/application-trial-outbound.tsv" "$evidence_root/application-trial-outbound-after.tsv" || return 1
     require_empty_or_absent_sync_directory trial_restored_incoming_a "$incoming_root/node-a" || return 1
@@ -1192,15 +1374,24 @@ application_trial_resume() {
     require_equal trial_restored_receipt restored "$(<"$evidence_root/application-trial-restored.tsv")"
     application_trial_inventory >"$evidence_root/application-trial-resume-inventory.tsv"
     cmp -s "$evidence_root/application-trial-outbound.tsv" "$evidence_root/application-trial-resume-inventory.tsv"
+    if application_validation_enabled; then
+        certificate_hash "$finalizer_command" "$(certificate_setting finalizer_sha256)" || return 1
+        certificate_hash /usr/local/libexec/reconcile-release.sh "$(certificate_setting reconciler_installed_sha256)" || return 1
+        path_absent /usr/local/libexec/validate-caddy-isolated.sh || return 1
+    fi
     capture_command application-monitor-before /usr/bin/timeout 5 "$systemctl_command" show caddy-sync-health.service \
         --property=InvocationID,ExecMainExitTimestampMonotonic || return 1
-    "$systemctl_command" start caddy-sync-reconcile.path caddy-lsyncd.service || return 1
+    if ! application_validation_enabled || [[ -n "$target_revision_argument" || -f "$payload_root/validation-tools/ready" ]]; then
+        "$systemctl_command" start caddy-sync-reconcile.path caddy-lsyncd.service || return 1
+    fi
     awk '{printf "%.0f\n", $1 * 1000000}' /proc/uptime >"$evidence_root/application-monitor-resume-us.tsv"
     capture_command application-monitor-sender-before /usr/bin/timeout 5 "$systemctl_command" show caddy-lsyncd.service \
         --property=MainPID,NRestarts || return 1
     application_baseline
-    path_absent "$outgoing_root/$target_revision_argument"
-    path_absent "$incoming_root/node-a/$target_revision_argument"
+    if [[ -n "$target_revision_argument" ]]; then
+        path_absent "$outgoing_root/$target_revision_argument"
+        path_absent "$incoming_root/node-a/$target_revision_argument"
+    fi
     printf 'resumed\n' >"$evidence_root/application-trial-resumed.tsv"
 }
 
@@ -1274,6 +1465,10 @@ application_primary() (
     chmod -R u+rwX "$app_stage"
     path_absent "$app_stage/conf.d/$(application_fragment)"
     install -m 0600 "$payload_root/manifests/application.caddy" "$app_stage/conf.d/$(application_fragment)"
+    if application_validation_enabled; then
+        : >"$evidence_root/application-target.tsv"
+        application_validation_install
+    fi
     capture_command application-prepare /bin/bash \
         "$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh" \
         --source "$app_stage" --node-role node-a --prepare-only
@@ -1363,6 +1558,9 @@ certificate_payload() {
         if [[ "$node_role" != node-b ]]; then
             certificate_hash "$payload_root/manifests/application.caddy" \
                 "$(certificate_setting application_fragment_sha256)"
+        fi
+        if grep -q '^validation_tools_trial' "$cert_contract"; then
+            application_validation_payload || return 1
         fi
         if grep -q '^application_diagnostic_scope' "$cert_contract"; then
             [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]]

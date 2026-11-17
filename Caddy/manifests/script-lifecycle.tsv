@@ -19,3 +19,4 @@ Caddy/scripts/validate-sync-health.sh	production-current	yes	/usr/local/libexec/
 Caddy/scripts/apply-serving-health-deployment.sh	production-current	no	-	-	Caddy/manifests/serving-health-operation.yaml
 Caddy/scripts/run-serving-health-deployment-outer.sh	production-current	no	-	-	Caddy/manifests/serving-health-operation.yaml
 Caddy/scripts/validate-pihole-authentication.py	production-current	no	-	-	Caddy/docs/APPLICATION_ONBOARDING.md
+Caddy/scripts/validate-caddy-isolated.sh	future-task	no	-	-	Caddy/docs/APPLICATION_ONBOARDING.md

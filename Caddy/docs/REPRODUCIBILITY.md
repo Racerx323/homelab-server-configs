@@ -18,7 +18,8 @@ The current Caddy HA layer is defined by these contracts:
   external-input dependencies.
 - `Caddy/manifests/reproducibility-production.yaml` records the exact package,
   Pi-hole application, lighttpd-tree, Unbound, and public SSH identities
-  observed on both nodes on 2026-08-24.
+  originally observed on both nodes on 2026-08-24, with explicitly attributed
+  later updates.
 - `homelab-dns` owns Keepalived, Pi-hole, DNS health, notifier, and Unbound
   source files. Paths used by this deployment are listed in
   `dependencies.yaml`.
@@ -36,8 +37,15 @@ This repository owns only the listed drop-ins and HA-specific files. Restore
 package-owned files from their packages and Pi-hole-owned files through the
 Pi-hole application; do not copy either class into this repository.
 
-The platform is Debian 12 on arm64. Exact installed package versions are pinned
-in `reproducibility-production.yaml` and were identical on both nodes. Pi-hole
+The retained platform inventory is Debian 12 on arm64. Package versions in
+`reproducibility-production.yaml` originate from the identical August 24 captures.
+On November 17 Aaron confirmed Caddy was updated on the production hosts; the
+current Caddy inventory is 2.11.9. W-195 independently observed that CLI version
+on Node A. Node B and the package version rely on operator confirmation, not a
+fresh paired package capture. Other package rows remain historical observations.
+The original complete-package hash and equality result are retained as historical
+fields; current complete-set hash/equality are unknown. Neither the update nor
+the CLI observation proves running-process identity or validation compatibility. Pi-hole
 FTL is managed by the Pi-hole application rather than dpkg; its application
 versions and binary identity are recorded separately from Debian packages.
 

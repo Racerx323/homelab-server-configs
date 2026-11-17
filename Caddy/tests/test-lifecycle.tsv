@@ -47,3 +47,4 @@ Caddy/tests/application-onboarding-regression.sh	production-current	current-focu
 Caddy/tests/application-onboarding-regression.py	production-current	support	native-application-onboarding-gates
 Caddy/tests/Containerfile.application	production-current	support	offline-native-application-image
 Caddy/tests/run-application-qualification.py	production-current	support	offline-native-application-launcher
+Caddy/tests/validation-network-isolation.py	production-current	support	validation-isolation-permission-and-containment

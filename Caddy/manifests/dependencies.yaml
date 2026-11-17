@@ -36,6 +36,7 @@ packages:
       - openssl
       - passwd
       - procps
+      - python3
       - systemd
       - tcpdump
       - util-linux
@@ -82,6 +83,7 @@ commands:
     - logger
     - lsyncd
     - openssl
+    - python3
     - rsync
     - rrsync
     - runuser
@@ -93,6 +95,7 @@ commands:
     - systemd-tmpfiles
     - systemctl
     - unbound-checkconf
+    - unshare
     - useradd
     - uuidgen
   operator_workstation_required:

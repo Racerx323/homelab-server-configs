@@ -11,6 +11,8 @@ import re
 import math
 import shlex
 import subprocess
+import stat
+import tempfile
 import time
 
 spec = importlib.util.spec_from_file_location('workload', Path(__file__).with_name('supervise-proxy-workload.py'))
@@ -47,6 +49,25 @@ def finish(receipt, workload_result=None):
     if workload.private(path, 256).strip() != value['child']: raise ValueError('changed_child')
     workload.atomic_text(path.with_name('application-trial-finish.tsv'), value['child'] + '\tcomplete\n')
 
+
+
+def admit_evidence(directory):
+    """Require prepared private storage and exercise the actual receipt writer."""
+    if not directory.is_absolute() or any(p.is_symlink() for p in (directory, *directory.parents)):
+        raise ValueError('evidence_directory_unsafe')
+    try:
+        info = directory.lstat()
+    except FileNotFoundError:
+        raise ValueError('evidence_directory_missing') from None
+    if (not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid() or
+            stat.S_IMODE(info.st_mode) != 0o700):
+        raise ValueError('evidence_directory_private_required')
+    # The disposable child cannot overwrite a prior operation's receipts.
+    with tempfile.TemporaryDirectory(prefix='.admission-', dir=directory) as name:
+        receipt = Path(name) / 'receipt.json'
+        workload.write(receipt, {'storage_ready': True})
+        if json.loads(workload.private(receipt)) != {'storage_ready': True}:
+            raise ValueError('evidence_directory_readback_failed')
 
 
 def clock_capture(spec_path, receipt):
@@ -135,13 +156,27 @@ def backend_wire_evidence(path, requests):
         raise ValueError('backend_wire_incomplete')
     flows = {}
     for row in rows[:-1]:
+        if row.get('event') not in ('request-first-byte', 'request-headers', 'request-close',
+                                    'response-first-byte', 'response-headers', 'response-close'):
+            raise ValueError('backend_wire_event_unknown')
         if not isinstance(row.get('kernel_epoch'), (float, int)) or not math.isfinite(row['kernel_epoch']):
             raise ValueError('backend_wire_timestamp')
         flows.setdefault(row['flow'], []).append(row)
     marked = {}
     health = []
+    no_payload = []
     for flow in flows.values():
         heads = [r for r in flow if r.get('event') == 'request-headers']
+        if not heads and all(r.get('event') in ('request-close', 'response-close') for r in flow):
+            # Fresh TCP connections can close without sending HTTP. Keep that
+            # evidence distinct; partial HTTP and unknown events still reject.
+            if (len({r['event'] for r in flow}) != len(flow) or
+                    any(set(r) != {'event', 'flow', 'kernel_epoch', 'observed_boottime', 'kind'} or
+                        r['kind'] not in ('fin', 'reset') for r in flow)):
+                raise ValueError('backend_wire_close_invalid')
+            no_payload.append({'flow': flow[0]['flow'], 'classification': 'no-observed-payload',
+                               'capture_events': flow})
+            continue
         if len(heads) != 1:
             raise ValueError('backend_wire_headers_incomplete')
         head = heads[0]
@@ -168,7 +203,8 @@ def backend_wire_evidence(path, requests):
         record['possibly_overlapping_health'] = [r['interval'] for r in health
             if (end is None or r['interval'][0] <= end) and (r['interval'][1] is None or start <= r['interval'][1])]
     return {'boundary': 'backend interface; CGI execution/completion not established',
-            'requests': list(marked.values()), 'health_connections': len(health)}
+            'requests': list(marked.values()), 'health_connections': len(health),
+            'no_payload_connections': no_payload}
 
 
 def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False):
@@ -197,7 +233,8 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
     if any(not 0 < right-left <= 2 for left, right in zip(times, times[1:])):
         raise ValueError('resource_sample_gap')
     if wire and any(not times[0] <= event['observed_boottime'] <= times[-1]
-                    for request in wire['requests'] for event in request['capture_events']):
+                    for request in wire['requests'] + wire['no_payload_connections']
+                    for event in request['capture_events']):
         raise ValueError('backend_wire_outside_resource_coverage')
     mapped = [clock_interval(row['monotonic'], boot, before['backend'], after['backend']) for row in readings]
     result = []
@@ -229,14 +266,15 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
 if __name__ == '__main__':
     os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['ready', 'finish', 'clock', 'diagnostic-coverage']); parser.add_argument('path', type=Path)
+    parser.add_argument('action', choices=['ready', 'finish', 'clock', 'diagnostic-coverage', 'admit-evidence']); parser.add_argument('path', type=Path)
     parser.add_argument('receipt', type=Path, nargs='?')
     parser.add_argument('--owner-log', action='store_true')
     parser.add_argument('--after', type=Path); parser.add_argument('--samples', type=Path); parser.add_argument('--requests', type=Path)
     parser.add_argument('--owner-exit', type=Path)
     parser.add_argument('--workload-result', type=Path); args = parser.parse_args()
     try:
-        if args.action == 'clock': clock_capture(args.path, args.receipt)
+        if args.action == 'admit-evidence': admit_evidence(args.path)
+        elif args.action == 'clock': clock_capture(args.path, args.receipt)
         elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log)
         elif args.action == 'ready': ready(args.path, args.receipt, args.owner_exit)
         else: finish(args.path, args.workload_result)

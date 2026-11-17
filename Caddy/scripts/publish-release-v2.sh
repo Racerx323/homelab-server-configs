@@ -189,8 +189,7 @@ require_check source_pending_marker_absent \
     test ! -e "$source_dir/.complete.pending"
 require_check source_caddy_configuration_valid \
     env CADDY_CONFIG_ROOT="$source_dir" \
-    caddy validate --config "$source_dir/Caddyfile" \
-    --adapter caddyfile >/dev/null
+    /usr/local/libexec/validate-caddy-isolated.sh "$source_dir/Caddyfile" >/dev/null
 require_check source_certificate_parse \
     openssl x509 -in "$source_dir/tls/fullchain.pem" -noout
 require_check source_monitored_certificate_matches \

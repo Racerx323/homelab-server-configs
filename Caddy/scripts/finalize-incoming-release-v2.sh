@@ -58,8 +58,7 @@ validate_caddy_configuration() {
         NODE_FQDN="$NODE_FQDN" \
         NODE_IPV4="$NODE_IPV4" \
         NODE_IPV6="$NODE_IPV6" \
-        caddy validate --config "$validation_release_path/Caddyfile" \
-        --adapter caddyfile >/dev/null 2>"$validation_error"; then
+        /usr/local/libexec/validate-caddy-isolated.sh "$validation_release_path/Caddyfile" >/dev/null 2>"$validation_error"; then
         rm -f -- "$validation_error"
         return 0
     else

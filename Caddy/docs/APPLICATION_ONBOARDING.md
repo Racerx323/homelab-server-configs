@@ -394,6 +394,70 @@ health contract. Do not commit health credentials.
 
 ## Repository validation
 
+Run provisioning validation only inside the existing network-disabled local
+qualification environment. Both `caddy validate` and `caddy adapt --validate`
+can send active-health requests during provisioning; a temporary configuration
+directory does not isolate networking. Do not run the commands below directly
+on a network-connected workstation against fleet backend addresses. This
+restriction does not replace the separately authorized production validation path.
+
+The repository publisher, finalizer and reconciler now invoke
+`/usr/local/libexec/validate-caddy-isolated.sh` for full configuration validation.
+This is source integration only; the helper and changed callers are not deployed.
+A separately reviewed owner rollout must install the exact helper as
+`root:root:0755` at that path before activating any changed caller, bind its
+identity and util-linux `unshare` dependency, and cover restoration of the prior
+caller/helper state. Missing helper, isolation failure or failed validation stops
+progression; there is no networked fallback. Do not deploy a caller alone.
+
+Root uses network-only isolation and retains its user namespace; caddy-sync uses
+current-user mapping plus network isolation with its existing groups. The bounded
+primary capability check passed on Caddy 2.11.9 under these identities and the
+installed reconciler restrictions. It proves read-only validation compatibility,
+not writable owner execution or the cause of a backend timeout. Root user mapping
+remains prohibited because it can remove receiver-file access. No additional
+capabilities, sudo rights or relaxed service controls are permitted.
+
+`python3 -I -B Caddy/tests/validation-network-isolation.py --caller-contracts`
+checks extracted caller boundaries with a private validator stand-in: exact
+configuration/environment, success, failure, timeout status, missing helper and
+finalizer error-file cleanup. It does not run namespaces, real Caddy or complete
+release transactions. The existing protocol regression includes this host check.
+Runtime reload and active health configuration are unchanged. Deployment payload,
+installation order, recovery and aggregate deadline bindings remain prerequisites
+to a separately reviewed target comparison; source integration grants no live
+execution authority.
+
+For a diagnostic that temporarily changes validation tools, keep their delivery
+in the existing owner payload and their restoration in the existing transaction.
+Send application tooling to the primary only; replication carries configuration
+releases, not an extra copy of the installation payload. A staged publisher does
+not replace its installed copy. Bind every changed installed caller and the
+helper separately from the accepted production hashes.
+
+Quiesce affected callers before replacement, preserve verified originals and
+metadata, install the helper before callers, and check candidate identities before
+execution. Restore callers before removing a trial-only helper. Recovery must also
+work before a candidate release ID exists: validation can fail after tool changes
+but before preparation returns an ID. Missing evidence is not proof of no mutation.
+Keep tool restoration inside the same aggregate recovery deadline and verify the
+baseline before resuming services and natural monitor observation. Preserve backups
+when recovery is incomplete. A diagnostic does not accept permanent tool rollout.
+The transaction implements this temporary boundary only for a hash-bound
+`validation_tools_trial=primary` recipe with the primary/IPv4 diagnostic scope and
+unchanged 240/840-second budgets. Bind `validation_helper_sha256`,
+`validation_finalizer_sha256` and `validation_reconciler_sha256` in addition to the
+original installed-tool hashes. The helper must be absent at admission. Python 3
+checks file metadata; unsupported ACLs/xattrs, unsafe files or missing dependencies
+stop before installation. No package installation is included.
+
+An explicit empty target receipt supports recovery before publisher preparation
+returns an ID. The transaction independently checks baseline release and prepared/
+sync inventories before resuming; a missing receipt or an unknown prepared release
+is not accepted as no mutation. Partial tool installation is restored first, and
+failed recovery retains backups with services contained. These paths have focused
+local file/dispatch tests; they are not deployed or accepted writable host execution.
+
 Create a complete prepared release in a temporary directory. Include the
 current `Caddyfile`, all accepted `conf.d` fragments, TLS inputs, the new
 fragment, and any private backend CA. Set the three protected node values to
@@ -418,8 +482,9 @@ Caddy/tests/run-focused.sh --profile current-repository-policies \
     --phase host --container never
 ```
 
-These commands validate files on the workstation. They do not publish a
-release or authorize node contact.
+These commands validate files in that isolated environment. They do not publish
+a release or authorize node contact. Successful provisioning validation is not
+backend health acceptance; the normal activated service still requires its checks.
 
 ## Production change and acceptance
 
@@ -435,6 +500,12 @@ distinguishes installed behavior from the locally qualified preparation/exposure
    the complete configuration, certificate coverage, changed inputs and exact
    parent/revision/manifest. Keep the candidate outside transport-visible outbound
    state. Record the previous release for recovery.
+   Validation provisions modules and can send immediate active-health probes;
+   the configured interval does not bound startup probes across validation
+   processes. Include publisher/finalizer/reconciler validation and reload in
+   the backend workload review. Do not remove validation or change health policy
+   without an owner-reviewed correction. The Webmin procedure records the
+   [request-evidence boundary](../../Webmin/docs/CADDY_ONBOARDING.md#narrow-primary-ipv4-diagnostic).
    Upload the application fragment and publisher only to Node A. Node B receives
    only the control recipe for expected identities, admission and recovery; its
    application files arrive through managed replication after Node A passes.
@@ -546,6 +617,36 @@ rejection. It never emits contents or follows a symlink. Preserve the outer
 preflight stderr/status with the execution evidence. Source-byte drift,
 tampering, missing files and symlinks must reject before publication, with
 staging disposition verified.
+
+For the primary-only validation-tool trial, add `--primary-validation-tools` to
+that launcher. It selects the real tool-delivery recipe and runs only successful
+request, HTTP failure and partial installation before a release ID. The actual
+outer/payload/transaction and restoration execute; SSH, scheduling and the
+namespace primitive are explicit substitutes. Native Caddy validation and HTTPS
+still run. This covers owner orchestration, not target isolation, writable service
+restrictions, timeout attribution or capacity. Reuse separately accepted target
+capability evidence for those environment boundaries.
+
+Recheck this focused result with
+`application-onboarding-regression.py --verify-primary-validation-tools DIRECTORY`.
+Its separate summary binds current sources and raw effects; it cannot replace the
+complete authorization evidence below or make an inactive operation executable.
+Preserve prior receipts; never rename the focused summary as full qualification.
+
+A defined operation may explicitly select
+`qualification_profile: primary-validation-diagnostic` for the bound primary/IPv4
+Webmin validation-tool trial. The definition must match the one primary target,
+selected fragment/login path, tool hashes and 240/660-second recipe bounds.
+Unknown profiles or broadened targets/recipes reject. The normal launcher then
+runs the three relevant whole-path cases and produces fresh authorization evidence
+bound to that exact operation/source graph. It also tests the actual authorization
+gate against altered evidence. This profile excludes replication and secondary
+exposure; paired onboarding retains its complete case set.
+
+A previous `primary-tools-summary.json` never becomes authorization evidence.
+Changing the operation, recipe or tested implementation requires fresh qualification;
+keep earlier receipts unchanged. Namespace/transport/service substitutes remain
+explicit and do not qualify target capacity or writable service restrictions.
 
 ### Primary-first authorization evidence
 

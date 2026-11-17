@@ -19,6 +19,31 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ParentFlow(unittest.TestCase):
+    def test_evidence_admission_before_target_contact(self):
+        original = yaml.safe_load((ROOT / 'Webmin/ansible/proxy-combined-trial.yaml').read_text())[0]
+        tasks = original['tasks']
+        admission = next(t for t in tasks if t.get('name') == 'Admit private controller evidence storage before any target contact')
+        self.assertLess(tasks.index(admission), next(i for i, t in enumerate(tasks) if t.get('name') == 'Check native host identity without accepting historical boot IDs'))
+        for case in ('missing', 'file', 'symlink', 'public', 'read-only', 'valid'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory(prefix='webmin-admission-') as name:
+                root = Path(name); evidence = root / 'evidence'; reached = root / 'target-reached'
+                if case == 'file': evidence.write_text('preserve')
+                elif case == 'symlink': evidence.symlink_to(root, target_is_directory=True)
+                elif case != 'missing': evidence.mkdir(mode={'public': 0o755, 'read-only': 0o500}.get(case, 0o700))
+                play = [{'hosts': 'localhost', 'connection': 'local', 'become': False, 'gather_facts': False,
+                         'vars': {'fleet_server_root': str(ROOT), 'operation_evidence_directory': str(evidence)},
+                         'tasks': [admission, {'ansible.builtin.copy': {'dest': str(reached), 'content': 'reached', 'mode': '0600'}}]}]
+                path = root / 'play.yaml'; path.write_text(yaml.safe_dump(play, sort_keys=False))
+                run = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
+                                      'ansible-playbook', '-i', 'localhost,', str(path)], cwd=ROOT,
+                                     capture_output=True, text=True, timeout=30)
+                self.assertIn('TASK [Admit private controller evidence storage', run.stdout, run.stdout + run.stderr)
+                self.assertEqual(run.returncode == 0, case == 'valid', run.stdout + run.stderr)
+                self.assertEqual(reached.exists(), case == 'valid')
+                if case == 'valid': self.assertEqual(list(evidence.iterdir()), [])
+                if case == 'missing': self.assertFalse(evidence.exists())
+                if case == 'file': self.assertEqual(evidence.read_text(), 'preserve')
+
     def test_primary_only_success_and_failure(self):
         self.check_scenarios(('diagnostic-primary-success', 'diagnostic-primary-caddy-fail', 'diagnostic-primary-paths-fail'))
 
@@ -95,7 +120,7 @@ if phase=='caddy':
                 acceptance['block'][0] = {'ansible.builtin.set_fact': {'proxy_trial_boot_after': {'content': 'fixture'}}}
                 variables['proxy_trial_boot'] = {'content': 'fixture'}
                 play = [{'hosts': 'localhost', 'connection': 'local', 'become': False, 'gather_facts': False,
-                         'vars': variables, 'tasks': [block, acceptance]}]
+                         'vars': variables, 'tasks': [copy.deepcopy(next(t for t in original['tasks'] if t.get('name') == 'Admit private controller evidence storage before any target contact')), block, acceptance]}]
                 path = directory / 'play.yaml'; path.write_text(yaml.safe_dump(play, sort_keys=False))
                 run = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
                                       'ansible-playbook', '-i', 'localhost,', str(path)], cwd=ROOT,
