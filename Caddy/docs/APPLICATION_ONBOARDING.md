@@ -435,6 +435,9 @@ distinguishes installed behavior from the locally qualified preparation/exposure
    the complete configuration, certificate coverage, changed inputs and exact
    parent/revision/manifest. Keep the candidate outside transport-visible outbound
    state. Record the previous release for recovery.
+   Upload the application fragment and publisher only to Node A. Node B receives
+   only the control recipe for expected identities, admission and recovery; its
+   application files arrive through managed replication after Node A passes.
 2. **Activate and check Node A.** Use the existing immutable-release activation
    mechanism. Verify the selected revision, successful reload, trusted HTTPS to
    the new route and representative existing routes over IPv4 and IPv6. Use
@@ -651,3 +654,23 @@ receipts remain incomplete/manual intervention, even if the local SSH client
 has exited. Ordinary application onboarding is unchanged when this input is
 absent. Follow the Webmin owner's diagnostic clock/resource procedure for
 correlation; no clock or memory observation grants live authority.
+
+### Primary-only application diagnosis
+
+The existing trial coordinator supports the explicit recipe setting
+`application_diagnostic_scope` = `primary-ipv4`, with its unchanged trial and
+aggregate diagnostic deadlines. This is a temporary diagnostic scope, not a
+production route acceptance mode. It uploads/admit/probes only Node A, skips
+secondary readiness and exposure even after success, and restores Node A through
+the existing recovery/readback path. The selected application fragment must bind
+one IPv4 backend. Ordinary application onboarding remains paired.
+
+The outer runner emits its protected evidence-directory location before payload
+construction or execution. Consumers must retain that location on nonzero exit;
+the marker is an evidence location, never a success receipt. Original command
+status and independent recovery results remain authoritative.
+
+Use the application's owner procedure for its equivalent direct request, backend
+observation, resource evidence and cleanup. Do not treat this mode's local
+control-flow tests as target diagnosis or capacity acceptance. A concrete
+successor still needs exact bindings and the normal live authority.

@@ -1,5 +1,9 @@
 """Neutral tests use real local HTTP; they do not stand in for Pi acceptance."""
 import http.server
+import io
+import os
+import socket
+import struct
 import importlib.util
 import json
 import http.client
@@ -46,18 +50,25 @@ class SlowHandler(Handler):
 
 class DiagnosticTests(unittest.TestCase):
     def test_backend_path_and_safe_phase_evidence(self):
-        for failure in (None, TimeoutError('PRIVATE response')):
+        for status, failure in ((200, None), (401, None), (200, TimeoutError('PRIVATE response'))):
             connection = MagicMock()
             connection.sock.getsockname.return_value = ('10.1.0.53', 1234)
             connection.sock.getpeername.return_value = ('10.1.3.75', 10000)
             response = connection.getresponse.return_value
-            response.status = 200
+            response.status = status
             response.read.return_value = b'<input name="pass"> PRIVATE'
             if failure: connection.getresponse.side_effect = failure
             with patch.object(path_probe.subprocess, 'run', return_value=MagicMock(stdout='[{"prefsrc":"10.1.0.53"}]')), patch.object(path_probe.http.client, 'HTTPConnection', return_value=connection):
                 result = path_probe.probe('10.1.3.75', 'webmin.example', '10.1.0.53')
             self.assertEqual(connection.request.call_args.args[:2], ('GET', '/session_login.cgi'))
-            self.assertEqual(result['accepted'], failure is None)
+            self.assertEqual(connection.request.call_args.kwargs['headers']['X-Forwarded-Host'], 'webmin.example')
+            self.assertEqual(connection.request.call_args.kwargs['headers']['X-Forwarded-For'], '10.1.0.53')
+            agent = connection.request.call_args.kwargs['headers']['User-Agent']
+            self.assertEqual(agent, 'homelab-proxy-diagnostic')
+            self.assertNotIn('webmin', agent.lower())
+            owner = Path(__file__).parents[2] / 'Caddy/scripts/apply-serving-health-deployment.sh'
+            self.assertIn('--user-agent ' + agent, owner.read_text())
+            self.assertEqual(result['accepted'], status == 200 and failure is None)
             self.assertIn('connect_seconds', result['timing'])
             self.assertNotIn('PRIVATE', json.dumps(result))
             if failure: self.assertEqual(result['phase'], 'headers')
@@ -95,6 +106,90 @@ class DiagnosticTests(unittest.TestCase):
                 root.chmod(0o755)
                 with self.assertRaises(ValueError): path_probe.observe(root, seconds=.01)
 
+    def test_backend_wire_segmented_headers_and_privacy(self):
+        out = io.StringIO()
+        observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')
+        def packet(inbound, seq, flags, data=b''):
+            src, dst = ('10.1.0.53', '10.1.3.75') if inbound else ('10.1.3.75', '10.1.0.53')
+            ports = (32100, 10000) if inbound else (10000, 32100)
+            ip = struct.pack('!BBHHHBBH4s4s', 0x45, 0, 40+len(data), 0, 0, 64, 6, 0,
+                             socket.inet_aton(src), socket.inet_aton(dst))
+            tcp = struct.pack('!HHIIBBHHH', *ports, seq, 0, 0x50, flags, 65535, 0, 0)
+            return ip+tcp+data
+        observer.packet(packet(True, 100, 2), 1.0)
+        observer.packet(packet(False, 200, 18), 1.01)
+        request = (b'GET /session_login.cgi HTTP/1.1\r\nHost: webmin.example\r\n'
+                   b'X-Homelab-Diagnostic: '+b'a'*32+b'\r\nCookie: SECRET_COOKIE\r\n'
+                   b'Authorization: SECRET_AUTH\r\nUser-Agent: SECRET_AGENT\r\n\r\n')
+        observer.packet(packet(True, 101, 24, request[:35]), 1.02)
+        observer.packet(packet(True, 136, 24, request[35:]), 1.03)
+        # Duplicate TCP delivery must not produce a second request receipt.
+        observer.packet(packet(True, 136, 24, request[35:]), 1.04)
+        response = b'HTTP/1.1 200 OK\r\nSet-Cookie: SECRET_RESPONSE\r\n\r\nSECRET_BODY'
+        observer.packet(packet(False, 201, 24, response), 1.05)
+        observer.packet(packet(False, 201+len(response), 17), 1.06)
+        observer.finish(0)
+        rows = [json.loads(line) for line in out.getvalue().splitlines()]
+        self.assertNotIn('SECRET', out.getvalue())
+        heads = [r for r in rows if r.get('event') == 'request-headers']
+        self.assertEqual(len(heads), 1)
+        self.assertEqual(heads[0]['request_id'], 'a'*32)
+        self.assertEqual(heads[0]['headers']['host'], 'webmin.example')
+        self.assertEqual(heads[0]['headers']['user-agent'], 'unexpected')
+        self.assertEqual([r['status'] for r in rows if r.get('event') == 'response-headers'], [200])
+        self.assertEqual(rows[-2]['kind'], 'fin')
+        self.assertFalse(rows[-1]['issues'])
+        # Loss and out-of-order data are never interpreted as absence of requests.
+        bad = path_probe.BackendWire(io.StringIO(), '10.1.0.53', '10.1.3.75', 'webmin.example')
+        bad.packet(packet(True, 100, 2), 1)
+        bad.packet(packet(True, 102, 24, request), 2)
+        self.assertIn('tcp_gap_or_reordering', bad.issues)
+        bad.finish(1)
+        self.assertIn('kernel_packet_drops', bad.issues)
+
+    @unittest.skipUnless(os.environ.get('WEBMIN_WIRE_NATIVE_TEST') == '1', 'isolated CAP_NET_RAW test only')
+    def test_native_packet_socket_receives_request_and_response(self):
+        # Run only in --network none: actual Linux packet socket, disposable HTTP server.
+        class WireHandler(Handler):
+            protocol_version = 'HTTP/1.1'
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header('Content-Length', '6')
+                self.send_header('Connection', 'close')
+                self.send_header('Set-Cookie', 'SECRET_NATIVE_COOKIE')
+                self.end_headers(); self.wfile.write(b'SECRET')
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 10000), WireHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        row = {'boot_id': 'test', 'epoch': 1, 'monotonic': 1, 'cgroups': {unit:
+               {'identity': [1, 2], 'memory.events': 'low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n'}
+               for unit in ('webmin.service', 'uptime-kuma.service')}}
+        errors = []
+        try:
+            with tempfile.TemporaryDirectory() as name, patch.object(path_probe, 'snapshot', return_value=row):
+                root = Path(name)
+                def collect():
+                    try: path_probe.observe(root, seconds=.5, wire=('127.0.0.2', '127.0.0.1', 'webmin.example'), interface='lo')
+                    except Exception as error: errors.append(error)
+                worker = threading.Thread(target=collect); worker.start()
+                deadline = time.monotonic()+1
+                while not (root/'resource-ready').exists() and time.monotonic() < deadline and not errors:
+                    time.sleep(.005)
+                self.assertTrue((root/'resource-ready').exists(), errors)
+                connection = http.client.HTTPConnection('127.0.0.1', 10000, timeout=1, source_address=('127.0.0.2', 0))
+                connection.request('GET', '/session_login.cgi', headers={'Host': 'webmin.example', 'X-Homelab-Diagnostic': 'd'*32})
+                response = connection.getresponse(); response.read(); connection.close()
+                worker.join(2); self.assertFalse(worker.is_alive()); self.assertFalse(errors)
+                captured = (root/'backend-wire.jsonl').read_text()
+                self.assertEqual((root/'backend-wire.jsonl').stat().st_mode & 0o777, 0o600)
+            rows = [json.loads(line) for line in captured.splitlines()]
+            self.assertFalse(rows[-1]['issues'])
+            self.assertEqual([r['request_id'] for r in rows if r.get('event') == 'request-headers'], ['d'*32])
+            self.assertEqual([r['status'] for r in rows if r.get('event') == 'response-headers'], [200])
+            self.assertTrue(any(r.get('event') == 'response-close' for r in rows))
+            self.assertNotIn('SECRET', captured)
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
     @unittest.skipUnless(shutil.which('caddy'), 'native Caddy required for log contract')
     def test_native_caddy_correlates_safe_upstream_timing(self):
         server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), SlowHandler)
@@ -110,7 +205,7 @@ class DiagnosticTests(unittest.TestCase):
                 source = source.replace('    bind 10.1.0.56 fd36:5aa8:6971:1::56 {$NODE_IPV4} {$NODE_IPV6}\n', '')
                 source = source.replace('    import local_tls\n', '')
                 source = source.replace('remote_ip 10.1.0.0/22 fd36:5aa8:6971:1::/64', 'remote_ip 127.0.0.1')
-                source = source.replace('10.1.3.75:10000 [fd36:5aa8:6971:1::75]:10000', '127.0.0.1:'+str(server.server_port))
+                source = source.replace('10.1.3.75:10000', '127.0.0.1:'+str(server.server_port))
                 (root/'Caddyfile').write_text('{\n admin off\n}\n'+source)
                 adapted = subprocess.run(['caddy', 'adapt', '--config', str(root/'Caddyfile'), '--adapter', 'caddyfile'], capture_output=True, text=True, timeout=10)
                 self.assertEqual(adapted.returncode, 0, adapted.stderr)

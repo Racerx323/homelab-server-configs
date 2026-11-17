@@ -205,7 +205,7 @@ repos:
 
       - id: yamllint
         name: yamllint
-        entry: yamllint --strict
+        entry: /bin/bash tests/repository/yamllint-canonical.sh
         language: system
         types: [yaml]
 

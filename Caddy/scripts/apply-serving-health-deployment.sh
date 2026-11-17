@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=c2d11ea2c758bdcb257b1c606323636d12e084a1d1e179b50d9fe0fdb3e37368
+readonly certificate_inputs_sha256=58a8886a8548dd9da2dfcd70a742eb040e154b1359b1f8a0f77f5137ace73904
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1036,6 +1036,10 @@ application_routes() {
     local app_probe_rc app_probe_epoch app_label app_request_id
     app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
+        if [[ "$(certificate_setting application_diagnostic_scope 2>/dev/null)" = primary-ipv4 ]]; then
+            [[ "$node_role" = node-a && "$app_endpoint" = node ]] || return 1
+            [[ "$app_family" = 4 ]] || continue
+        fi
         if [[ "$app_endpoint" = shared ]]; then
             app_address=10.1.0.56
             [[ "$app_family" != 6 ]] || app_address='[fd36:5aa8:6971:1::56]'
@@ -1059,6 +1063,7 @@ application_routes() {
             --noproxy '*' "-$app_family" --silent --show-error --fail \
             --connect-timeout 3 --max-time 5 --resolve "$app_host:443:$app_address" \
             --header "X-Homelab-Diagnostic: $app_request_id" \
+            --header "Accept-Encoding: identity" --user-agent homelab-proxy-diagnostic \
             -o /dev/null -w '%{http_code}\nconnect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total} remote_ip=%{remote_ip} remote_port=%{remote_port}\n' "https://$app_host/$(certificate_setting application_probe_path)" || app_probe_rc=$?
         awk '{print $1}' /proc/uptime >"$evidence_root/$app_label.monotonic-end.tsv"
         printf '%s\t%s\t%s\t%s\t%s\n' "$app_request_id" "$node_role" \
@@ -1346,12 +1351,24 @@ certificate_payload() {
     fi
     certificate_hash "$cert_contract" "$cert_contract_hash" || return 1
     local cert_source=$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh
-    certificate_hash "$cert_source" "$(certificate_setting publisher_candidate_sha256)"
+    if [[ "$node_role" != node-b ]] || ! application_release; then
+        certificate_hash "$cert_source" "$(certificate_setting publisher_candidate_sha256)"
+    else
+        path_absent "$cert_source"
+        path_absent "$payload_root/manifests/application.caddy"
+    fi
     if grep -q $'^release_kind\t' "$cert_contract"; then
         [[ "$(certificate_setting release_kind)" = application ]]
         application_fragment >/dev/null
-        certificate_hash "$payload_root/manifests/application.caddy" \
-            "$(certificate_setting application_fragment_sha256)"
+        if [[ "$node_role" != node-b ]]; then
+            certificate_hash "$payload_root/manifests/application.caddy" \
+                "$(certificate_setting application_fragment_sha256)"
+        fi
+        if grep -q '^application_diagnostic_scope' "$cert_contract"; then
+            [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]]
+            [[ "$(certificate_setting application_diagnostic_seconds)" = 240 ]]
+            [[ "$(certificate_setting application_trial_seconds)" = 660 ]]
+        fi
         certificate_setting application_fqdn >/dev/null
         certificate_setting application_probe_path >/dev/null
         [[ "$(certificate_setting application_http_status)" =~ ^[23][0-9][0-9]$ ]]

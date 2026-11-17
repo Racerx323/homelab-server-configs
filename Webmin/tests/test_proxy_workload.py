@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline contracts and real owned-process cleanup; no browser or live target."""
 import copy
+import contextlib
+import shutil
 import importlib.util
 import json
 import os
@@ -37,6 +39,34 @@ class Acceptance(unittest.TestCase):
                   {'host_monotonic_seconds': 10051, 'controller_begin': 51, 'controller_end': 51.1}]
         for row in clocks: row.update(token=TOKEN, boot_id='fixture-boot')
         return [browser, samples, summary, {'accepted': True}, clocks, TOKEN]
+
+    def test_backend_wire_requires_both_markers_and_preserves_timeout_unknown(self):
+        def row(event, flow, stamp, **extra):
+            return dict(event=event, flow=flow, kernel_epoch=stamp, observed_boottime=stamp, **extra)
+        rows = []
+        for flow, marker, kind in [(1, 'a'*32, 'marked'), (2, 'b'*32, 'marked'), (3, None, 'health')]:
+            rows += [row('request-first-byte', flow, 1),
+                     row('request-headers', flow, 1.1, request_id=marker, kind=kind, headers={'host': 'webmin.example'})]
+        rows += [row('response-headers', 1, 2, status=200), row('response-close', 1, 2.1, kind='fin'),
+                 row('request-close', 2, 6, kind='reset'),
+                 {'terminal': True, 'issues': [], 'kernel_drops': 0}]
+        requests = [{'request_id': v*32} for v in 'ab']
+        with tempfile.TemporaryDirectory() as name:
+            path = Path(name)/'wire.jsonl'
+            def write(records):
+                path.write_text(''.join(json.dumps(r)+'\n' for r in records)); path.chmod(0o600)
+            write(rows)
+            result = h.backend_wire_evidence(path, requests)
+            self.assertEqual(result['health_connections'], 1)
+            self.assertEqual(result['requests'][0]['response_status'], 200)
+            self.assertIsNone(result['requests'][1]['response_status'])
+            self.assertTrue(result['requests'][1]['possibly_overlapping_health'])
+            with self.assertRaisesRegex(ValueError, 'request_ids'):
+                h.backend_wire_evidence(path, requests[:1])
+            write(rows[:-1])
+            with self.assertRaisesRegex(ValueError, 'incomplete'): h.backend_wire_evidence(path, requests)
+            rows[-1]['kernel_drops'] = 1; write(rows)
+            with self.assertRaisesRegex(ValueError, 'incomplete'): h.backend_wire_evidence(path, requests)
 
     def test_unrelated_clock_origins_are_bracketed(self):
         self.assertTrue(w.accept(*self.evidence())['accepted'])
@@ -87,9 +117,12 @@ class Acceptance(unittest.TestCase):
         samples = [dict(clock='linux-boottime', monotonic=1001+i, boot_id=boot, event_delta={unit: {'status': 'comparable', 'events': {'oom_kill': 0}}
                    for unit in ('webmin.service', 'uptime-kuma.service')}) for i in range(25)] + [{'terminal': True}]
         request = [dict(request_id='a'*32, node='node-a', boot_id=boot, start=1010, end=1015)]
-        for case in ('pass', 'late', 'boot', 'gap', 'missing', 'uncertain', 'reset'):
+        for case in ('primary-pass', 'primary-wrong-node', 'pass', 'late', 'boot', 'gap', 'missing', 'uncertain', 'reset'):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
                 root = Path(name); b, a, rows, req = map(copy.deepcopy, (before, after, samples, request))
+                if case.startswith('primary-'):
+                    b.pop('node-b'); a.pop('node-b')
+                    if case == 'primary-wrong-node': req[0]['node'] = 'node-b'
                 if case == 'late': req[0]['end'] = 1028
                 if case == 'boot': a['backend']['boot_id'] = 'different'
                 if case == 'gap': del rows[10:14]
@@ -98,7 +131,7 @@ class Acceptance(unittest.TestCase):
                 if case == 'reset': rows[12]['event_delta']['webmin.service']['status'] = 'unavailable-or-reset'
                 for key, value in [('before', b), ('after', a), ('requests', req)]: w.write(root/key, value)
                 (root/'samples').write_text(''.join(json.dumps(row)+'\n' for row in rows)); (root/'samples').chmod(0o600)
-                if case == 'pass':
+                if case in ('pass', 'primary-pass'):
                     h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'requests', root/'receipt')
                     accepted = json.loads((root/'receipt').read_text())
                     self.assertTrue(accepted['coverage_accepted']); self.assertFalse(accepted['causal_attribution'])
@@ -106,9 +139,48 @@ class Acceptance(unittest.TestCase):
                     with self.assertRaises(ValueError): h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'requests', root/'receipt')
                     self.assertFalse((root/'receipt').exists())
 
+    def test_primary_coverage_requires_direct_and_proxy_wire_receipts(self):
+        boot = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        before = {host: dict(clock='linux-boottime', monotonic=1000, controller_begin=10, controller_end=10.1, boot_id=boot)
+                  for host in ('backend', 'node-a')}
+        after = {host: dict(clock='linux-boottime', monotonic=1030, controller_begin=40, controller_end=40.1, boot_id=boot) for host in before}
+        samples = [dict(clock='linux-boottime', monotonic=1001+i, boot_id=boot, event_delta={unit: {'status': 'comparable', 'events': {'oom_kill': 0}}
+                   for unit in ('webmin.service', 'uptime-kuma.service')}) for i in range(25)] + [{'terminal': True}]
+        proxy = dict(request_id='a'*32, node='node-a', boot_id=boot, start=1010, end=1015)
+        direct = dict(request_id='b'*32, boot_id=boot, start=1003, end=1005)
+        wire = []
+        for flow, request in enumerate((proxy, direct)):
+            for event in ('request-first-byte', 'request-headers'):
+                wire.append(dict(event=event, flow=flow, kernel_epoch=request['start'], observed_boottime=request['start'],
+                                 request_id=request['request_id'], kind='marked', headers={'host': 'webmin.example'}))
+        wire.append({'terminal': True, 'issues': [], 'kernel_drops': 0})
+        for case in ('pass', 'missing-wire', 'missing-direct', 'outside-resource'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
+                root = Path(name)
+                for key, value in [('before', before), ('after', after)]: w.write(root/key, value)
+                if case != 'missing-direct':
+                    w.write(root/'backend-path-a-ipv4.json', {'client': {'stdout': json.dumps({'timing': direct})}})
+                rows = copy.deepcopy(wire)
+                if case == 'outside-resource': rows[0]['observed_boottime'] = 1035
+                for filename, data in [('samples', samples), ('backend-wire.jsonl', rows)]:
+                    if case == 'missing-wire' and filename == 'backend-wire.jsonl': continue
+                    path = root/filename; path.write_text(''.join(json.dumps(r)+'\n' for r in data)); path.chmod(0o600)
+                with patch.object(h, 'request_records', return_value=[dict(proxy)]):
+                    if case == 'pass':
+                        h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'owner', root/'receipt', True)
+                        result = json.loads((root/'receipt').read_text())
+                        self.assertEqual(len(result['requests']), 2)
+                        self.assertEqual(len(result['backend_wire']['requests']), 2)
+                    else:
+                        with self.assertRaises((ValueError, FileNotFoundError)):
+                            h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'owner', root/'receipt', True)
+                        self.assertFalse((root/'receipt').exists())
+
     def test_request_index_checks_real_readback_encoding_and_node_identity(self):
         import base64, hashlib
-        with tempfile.TemporaryDirectory(prefix='caddy-ssh-evidence-serving_health.') as name:
+        with contextlib.ExitStack() as cleanup:
+            name = subprocess.check_output(['mktemp', '-d', '/tmp/caddy-ssh-evidence-serving_health.XXXXXXXX'], text=True).strip()
+            cleanup.callback(shutil.rmtree, name)
             directory = Path(name)
             w.atomic_text(directory/'owner.log', 'evidence_directory='+name+'\n')
             record = 'a'*32+'\tnode-a\taaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\t1001\t1002\n'
@@ -141,6 +213,23 @@ class Acceptance(unittest.TestCase):
             with patch.object(h.subprocess, 'run', side_effect=subprocess.TimeoutExpired('PRIVATE', 5)):
                 with self.assertRaises(ValueError): h.clock_capture(root/'spec', root/'failed')
                 self.assertNotIn('PRIVATE', (root/'failed').read_text())
+
+    def test_primary_clock_capture_never_contacts_secondary(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        boot = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            spec = {'scope': 'primary-ipv4', 'clock_ssh_prefixes': {host: ['/usr/bin/ssh', host] for host in ('backend', 'node-a')}}
+            w.write(root/'spec', spec)
+            with patch.object(h.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout=json.dumps({'clock': 'linux-boottime', 'boot_id': boot, 'monotonic': 1}))) as run:
+                h.clock_capture(root/'spec', root/'receipt')
+                self.assertEqual([call.args[0][1] for call in run.call_args_list], ['backend', 'node-a'])
+                spec['clock_ssh_prefixes']['node-b'] = ['/usr/bin/ssh', 'node-b']
+                w.write(root/'wrong', spec)
+                run.reset_mock()
+                with self.assertRaises(ValueError): h.clock_capture(root/'wrong', root/'rejected')
+                run.assert_not_called()
 
     def test_private_atomic_receipt_is_exclusive(self):
         with tempfile.TemporaryDirectory() as name:

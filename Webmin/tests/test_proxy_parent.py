@@ -19,10 +19,16 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ParentFlow(unittest.TestCase):
+    def test_primary_only_success_and_failure(self):
+        self.check_scenarios(('diagnostic-primary-success', 'diagnostic-primary-caddy-fail', 'diagnostic-primary-paths-fail'))
+
     def test_owner_failure_and_cleanup_order(self):
+        self.check_scenarios(('success', 'diagnostic-success', 'diagnostic-caddy-fail', 'diagnostic-clock-before-fail', 'diagnostic-clock-after-fail', 'diagnostic-coverage-fail', 'snapshot-fail', 'paths-fail', 'workload-fail', 'caddy-fail', 'cleanup-unverified'))
+
+    def check_scenarios(self, scenarios):
         original = yaml.safe_load((ROOT / 'Webmin/ansible/proxy-combined-trial.yaml').read_text())[0]
         parent = next(t for t in original['tasks'] if t.get('name') == 'Run the temporary owner stages')
-        for scenario in ('success', 'diagnostic-success', 'diagnostic-caddy-fail', 'diagnostic-clock-before-fail', 'diagnostic-clock-after-fail', 'diagnostic-coverage-fail', 'snapshot-fail', 'paths-fail', 'workload-fail', 'caddy-fail', 'cleanup-unverified'):
+        for scenario in scenarios:
             with self.subTest(scenario=scenario), tempfile.TemporaryDirectory(prefix='webmin-parent-flow-') as name:
                 directory = Path(name); directory.chmod(0o700)
                 trace = directory / 'trace'; fixture = directory / 'adapter.py'
@@ -34,12 +40,16 @@ if scenario=='diagnostic-'+phase+'-fail':raise SystemExit(1)
 if phase=='resource':
  (root/'resource-ready').write_text('ready')
  (root/'resource-samples.jsonl').write_text('{}')
+ (root/'backend-wire.jsonl').write_text('{}')
 if phase=='snapshot' and scenario=='snapshot-fail':raise SystemExit(1)
 if phase=='workload':
  (root/'workload-result.json').write_text(json.dumps({'browser_cleanup':{'group_gone':scenario!='cleanup-unverified'}}))
  raise SystemExit(1 if scenario in ('workload-fail','cleanup-unverified') else 0)
-if phase=='paths' and scenario=='paths-fail':raise SystemExit(1)
+if phase=='paths' and scenario in ('paths-fail','diagnostic-primary-paths-fail'):raise SystemExit(1)
 if phase=='caddy':
+ if scenario.startswith('diagnostic-primary-'):
+  with (root/'trace').open('a') as f:f.write('caddy-restored\\n')
+  raise SystemExit(1 if scenario.endswith('-fail') else 0)
  if scenario in ('caddy-fail', 'diagnostic-caddy-fail'):raise SystemExit(1)
  target=pathlib.Path(__import__('subprocess').check_output(['mktemp','-d','/tmp/caddy-ssh-evidence-serving_health.XXXXXX'],text=True).strip())
  try:
@@ -59,9 +69,11 @@ if phase=='caddy':
                     for index, task in enumerate(tasks):
                         if 'ansible.builtin.import_tasks' in task:
                             tasks[index] = command(replacements[task['ansible.builtin.import_tasks']]); continue
+                        if task.get('name') == 'Stage the existing collector before the diagnostic observation':
+                            tasks[index] = command('stage-collector'); continue
                         if task.get('name') == 'Retain bounded backend resource evidence before native restoration':
                             task['block'][0]['ansible.builtin.command'] = command('snapshot')['ansible.builtin.command']
-                        clock_phases = {'Capture bounded pre-operation clock uncertainty on all three hosts': 'clock-before',
+                        clock_phases = {'Capture bounded pre-operation clock uncertainty on the selected hosts': 'clock-before',
                                         'Capture bounded post-operation clock uncertainty': 'clock-after',
                                         'Require request coverage within the observed resource interval': 'coverage'}
                         if task.get('name') in clock_phases:
@@ -76,7 +88,7 @@ if phase=='caddy':
                 caddy = directory / 'caddy.sh'
                 caddy.write_text('#!/bin/bash\nexec /usr/bin/python3 '+str(fixture)+' '+name+' '+scenario+' caddy\n')
                 variables = {'fleet_server_root': str(ROOT), 'operation_evidence_directory': name,
-                             'proxy_trial': {'work_directory': name, 'diagnostic_only': scenario.startswith('diagnostic-'), 'workload_result': str(directory/'workload-result.json')},
+                             'proxy_trial': {'work_directory': name, 'diagnostic_only': scenario.startswith('diagnostic-'), 'primary_ipv4': scenario.startswith('diagnostic-primary-'), 'workload_result': str(directory/'workload-result.json')},
                              'proxy_caddy': {'argv': ['/bin/bash', str(caddy)], 'environment': {}},
                              'ansible_async_dir': str(directory/'async')}
                 acceptance = copy.deepcopy(next(t for t in original['tasks'] if t.get('name') == 'Require paired Caddy completion and unchanged boot continuity'))
@@ -90,7 +102,7 @@ if phase=='caddy':
                                      capture_output=True, text=True, timeout=60)
                 self.assertTrue(trace.exists(), run.stdout + run.stderr)
                 observed = trace.read_text().splitlines()
-                self.assertEqual(run.returncode == 0, scenario in ('success', 'diagnostic-success', 'snapshot-fail'), run.stdout + run.stderr)
+                self.assertEqual(run.returncode == 0, scenario in ('diagnostic-primary-success', 'success', 'diagnostic-success', 'snapshot-fail'), run.stdout + run.stderr)
                 self.assertEqual(observed[0], 'backend')
                 self.assertEqual(observed[-1], 'backend-restore', run.stdout + run.stderr)
                 self.assertLess(observed.index('snapshot'), observed.index('backend-restore'))
@@ -103,6 +115,12 @@ if phase=='caddy':
                     self.assertLess(observed.index('caddy-restored'), observed.index('backend-restore'))
                 outcomes = json.loads((directory/'parent-owner-outcomes.json').read_text())
                 if scenario == 'cleanup-unverified': self.assertNotEqual(outcomes['caddy_finish'], 0)
+                if scenario == 'diagnostic-primary-paths-fail':
+                    self.assertNotIn('caddy', observed)
+                    self.assertNotIn('coverage', observed)
+                    expected = {'coverage_accepted': False, 'proxy_request': 'not-run', 'reason': 'caddy-not-started'}
+                    self.assertEqual(outcomes['diagnostic_coverage'], expected)
+                    self.assertEqual(json.loads((directory/'diagnostic-coverage.json').read_text()), expected)
 
 
 if __name__ == '__main__': unittest.main()

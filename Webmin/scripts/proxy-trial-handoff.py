@@ -50,10 +50,11 @@ def finish(receipt, workload_result=None):
 
 
 def clock_capture(spec_path, receipt):
-    """Three fixed read-only clock queries through the reviewed SSH prefixes."""
+    """Fixed read-only clock queries for only the reviewed diagnostic hosts."""
     settings = json.loads(workload.private(spec_path, 65536))
     prefixes = settings['clock_ssh_prefixes']
-    if set(prefixes) != {'backend', 'node-a', 'node-b'}:
+    expected_hosts = {'backend', 'node-a'} if settings.get('scope') == 'primary-ipv4' else {'backend', 'node-a', 'node-b'}
+    if set(prefixes) != expected_hosts:
         raise ValueError('clock_hosts')
     program = "import json,time;from pathlib import Path;print(json.dumps({'monotonic':float(Path('/proc/uptime').read_text().split()[0]),'clock':'linux-boottime','boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip()}))"
     remote = shlex.join(['/usr/bin/python3', '-I', '-B', '-c', program])
@@ -127,13 +128,64 @@ def request_records(owner_log):
     return list(records.values())
 
 
+
+def backend_wire_evidence(path, requests):
+    rows = workload.rows(path)
+    if not rows or not rows[-1].get('terminal') or rows[-1].get('issues') or rows[-1].get('kernel_drops') != 0:
+        raise ValueError('backend_wire_incomplete')
+    flows = {}
+    for row in rows[:-1]:
+        if not isinstance(row.get('kernel_epoch'), (float, int)) or not math.isfinite(row['kernel_epoch']):
+            raise ValueError('backend_wire_timestamp')
+        flows.setdefault(row['flow'], []).append(row)
+    marked = {}
+    health = []
+    for flow in flows.values():
+        heads = [r for r in flow if r.get('event') == 'request-headers']
+        if len(heads) != 1:
+            raise ValueError('backend_wire_headers_incomplete')
+        head = heads[0]
+        first = [r for r in flow if r.get('event') == 'request-first-byte']
+        if len(first) != 1:
+            raise ValueError('backend_wire_arrival_incomplete')
+        end = [r for r in flow if r.get('event') in ('response-close', 'request-close') and
+               (r.get('kind') == 'reset' or r['event'] == 'response-close')]
+        statuses = [r['status'] for r in flow if r.get('event') == 'response-headers']
+        record = {'request_id': head['request_id'], 'received_headers': head['headers'],
+                  'arrival_kernel_epoch': first[0]['kernel_epoch'],
+                  'capture_events': flow, 'response_status': statuses[0] if len(statuses) == 1 else None,
+                  'completion': 'connection-ended' if end else 'unobserved',
+                  'interval': [first[0]['kernel_epoch'], max(r['kernel_epoch'] for r in end) if end else None]}
+        if head['kind'] == 'marked':
+            if head['request_id'] in marked: raise ValueError('duplicate_backend_marker')
+            marked[head['request_id']] = record
+        elif head['kind'] == 'health':
+            health.append(record)
+    if set(marked) != {r['request_id'] for r in requests}:
+        raise ValueError('backend_wire_request_ids')
+    for record in marked.values():
+        start, end = record['interval']
+        record['possibly_overlapping_health'] = [r['interval'] for r in health
+            if (end is None or r['interval'][0] <= end) and (r['interval'][1] is None or start <= r['interval'][1])]
+    return {'boundary': 'backend interface; CGI execution/completion not established',
+            'requests': list(marked.values()), 'health_connections': len(health)}
+
+
 def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False):
     """No causal attribution: prove coverage and report ambiguous event association."""
     before, after = (json.loads(workload.private(path, 65536)) for path in (before_path, after_path))
     samples = workload.rows(samples_path)
+    wire = None
     requests = request_records(requests_path) if owner_log else json.loads(workload.private(requests_path))
-    if set(before) != {'backend', 'node-a', 'node-b'} or set(after) != set(before):
+    if set(before) not in ({'backend', 'node-a'}, {'backend', 'node-a', 'node-b'}) or set(after) != set(before):
         raise ValueError('clock_hosts')
+    if owner_log and set(before) == {'backend', 'node-a'}:
+        directory = samples_path.parent
+        direct = json.loads(workload.private(directory / 'backend-path-a-ipv4.json'))
+        timing = json.loads(direct['client']['stdout'])['timing']
+        requests.append(dict(request_id=timing['request_id'], node='node-a', boot_id=timing['boot_id'],
+                             start=timing['start'], end=timing['end']))
+        wire = backend_wire_evidence(directory / 'backend-wire.jsonl', requests)
     if not samples or not samples[-1].get('terminal') or not requests:
         raise ValueError('diagnostic_incomplete')
     readings = samples[:-1]
@@ -144,12 +196,15 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
     times = [row['monotonic'] for row in readings]
     if any(not 0 < right-left <= 2 for left, right in zip(times, times[1:])):
         raise ValueError('resource_sample_gap')
+    if wire and any(not times[0] <= event['observed_boottime'] <= times[-1]
+                    for request in wire['requests'] for event in request['capture_events']):
+        raise ValueError('backend_wire_outside_resource_coverage')
     mapped = [clock_interval(row['monotonic'], boot, before['backend'], after['backend']) for row in readings]
     result = []
     seen = set()
     for request in requests:
         identity = request['request_id']; host = request['node']
-        if not re.fullmatch('[0-9a-f]{32}', identity) or identity in seen or host not in ('node-a', 'node-b'):
+        if not re.fullmatch('[0-9a-f]{32}', identity) or identity in seen or host not in before or host not in ('node-a', 'node-b'):
             raise ValueError('request_identity')
         seen.add(identity)
         start = clock_interval(request['start'], request['boot_id'], before[host], after[host])
@@ -169,7 +224,7 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
                        'possible_event_intervals': overlaps})
     workload.write(receipt, {'coverage_accepted': True, 'causal_attribution': False,
                             'clock_model': 'envelope of measured pre/post offsets; intervening drift unobserved',
-                            'requests': result})
+                            'requests': result, 'backend_wire': wire})
 
 if __name__ == '__main__':
     os.umask(0o077)

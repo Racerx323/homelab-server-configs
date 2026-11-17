@@ -17,6 +17,7 @@ import time
 import re
 import shlex
 import tempfile
+import tarfile
 
 sys.dont_write_bytecode = True
 SOURCE = Path(__file__).resolve()
@@ -30,6 +31,9 @@ EXPECTED_STATUS = dict(zip(CASES, [0, 0, 1, 22, 2, 2, 2, 125, 2, 0]))
 TRIALS = {'trial-success': 0, 'trial-timeout': 1, 'trial-lost-reply': 1, 'trial-secondary-timeout': 1, 'trial-recovery-failure': 125, 'trial-incomplete': 125}
 CASES += list(TRIALS)
 EXPECTED_STATUS.update(TRIALS)
+NARROW = {"trial-primary-only-success": 0, "trial-primary-only-http": 1}
+CASES += list(NARROW)
+EXPECTED_STATUS.update(NARROW)
 GRAPH_FILES = [
     'Caddy/scripts/' + name for name in ['publish-release-v2.sh',
     'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh']]
@@ -110,6 +114,62 @@ def definition_check():
     assert actual == list(coverage_rows()), 'primary-first coverage contract'
 
 
+def primary_diagnostic_contract_tests():
+    """Exercise actual outer dispatch, recovery scope and failed evidence emission."""
+    outer = (REPO/'Caddy/scripts/run-serving-health-deployment-outer.sh').read_text()
+    functions = '\n'.join(re.search(r'^'+name+r'\(\) \{\n.*?^\}', outer, re.M|re.S)[0]
+                          for name in ('application_trial_recover_pair', 'run_application_onboarding_live'))
+    with tempfile.TemporaryDirectory(prefix='caddy-primary-diagnostic-') as name:
+        root = Path(name); payload = root/'payload'; (payload/'manifests').mkdir(parents=True)
+        recipe = payload/'manifests/certificate-release-inputs.tsv'
+        recipe.write_text('application_trial_seconds\t660\napplication_diagnostic_seconds\t240\napplication_diagnostic_scope\tprimary-ipv4\n')
+        setup = r'''
+set -Eeuo pipefail
+workstation_evidence=$1
+payload_stage=$1/payload
+node_a_host=primary; node_b_host=FORBIDDEN_SECONDARY
+node_a_payload=a; node_a_archive=a.tar; node_a_evidence=a-evidence
+node_b_payload=b; node_b_archive=b.tar; node_b_evidence=b-evidence
+application_forward_deadline=''; application_recovery_deadline=''; application_budget_phase=''
+record() { printf '%s\n' "$*" >>"$workstation_evidence/calls"; [[ "$*" != *FORBIDDEN_SECONDARY* ]]; }
+upload_payload() { record upload "$@"; }
+remote_transaction() { record remote "$@" || return 99; if [[ "$1" = application-primary-a ]]; then return "$PRIMARY_STATUS"; fi; }
+readback() { record readback "$@"; }
+extract_readback_file() { printf 'candidate\n' >"$3"; }
+cleanup_remote() { record cleanup "$@"; }
+'''
+        for status in (0, 28):
+            calls=root/'calls'; calls.unlink(missing_ok=True)
+            run=subprocess.run(['bash','-c',setup+'\n'+functions+'\nrun_application_onboarding_live', 'test',str(root)],
+                               env=dict(os.environ, PRIMARY_STATUS=str(status)),capture_output=True,text=True)
+            assert run.returncode == (0 if status == 0 else 1), run.stderr
+            commands=calls.read_text()
+            assert 'FORBIDDEN_SECONDARY' not in commands and 'application-expose' not in commands
+            assert 'application-monitor-a' in commands and 'application-restored-a' in commands
+            assert commands.rstrip().endswith('cleanup node-a primary a a.tar')
+        recipe.write_text(recipe.read_text().replace('primary-ipv4','invalid'))
+        calls.unlink()
+        run=subprocess.run(['bash','-c',setup+'\n'+functions+'\nrun_application_onboarding_live','test',str(root)],capture_output=True,text=True)
+        assert run.returncode != 0 and not calls.exists()
+    # Execute the actual bottom-level dispatch; substitute only payload and live work.
+    start=outer.index('if [[ "$invocation_mode" = --production-path-test ]]; then\n    workstation_evidence=')
+    for status in (0, 28, 125):
+        preamble=f'''set -Eeuo pipefail
+umask 077
+invocation_mode=live
+build_payload() {{ :; }}
+write_remote_programs() {{ :; }}
+run_live() {{ return {status}; }}
+'''
+        run=subprocess.run(['bash','-c',preamble+outer[start:]],capture_output=True,text=True)
+        assert run.returncode==status,run.stderr
+        match=re.fullmatch(r'evidence_directory=(/tmp/caddy-ssh-evidence-serving_health\.[A-Za-z0-9]+)\n',run.stdout)
+        assert match,run.stdout
+        directory=Path(match[1]);assert directory.is_dir() and directory.stat().st_mode & 0o777==0o700
+        directory.rmdir()
+    print('application_primary_diagnostic_contract=true')
+
+
 def probe_diagnostic_tests():
     """Check the real shell probe's evidence/exit contract, not host capacity."""
     source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
@@ -139,6 +199,13 @@ application_routes
             result = subprocess.run(['bash', '-c', script, 'probe', str(evidence), str(journal), str(curl)], capture_output=True, text=True)
             assert result.returncode == code, result.stderr
             assert (evidence/'application-node-ipv4.stdout').read_text() == status+'\n'
+            if code == 0:
+                narrow = root/'primary-ipv4'; narrow.mkdir()
+                narrow_script = script.replace('in application_fqdn)', 'in application_diagnostic_scope) echo primary-ipv4;; application_fqdn)')
+                narrow_run = subprocess.run(['bash', '-c', narrow_script, 'probe', str(narrow), str(journal), str(curl)], capture_output=True, text=True)
+                assert narrow_run.returncode == 0, narrow_run.stderr
+                assert (narrow/'application-node-ipv4.stdout').read_text() == '200\n'
+                assert not (narrow/'application-node-ipv6.stdout').exists()
             assert 'total=5' in (evidence/'application-node-ipv4.timing.tsv').read_text()
             if code:
                 retained = (evidence/'application-node-ipv4-journal.stdout').read_text()
@@ -344,6 +411,25 @@ def case_observation(root, case):
     tx_hash = release.digest(REPO/'Caddy/scripts/apply-serving-health-deployment.sh')
     commands = [shlex.split(c['command']) for c in calls if c['stdin_sha256'] == tx_hash]
     modes = [next(t for t in c if t.startswith('application-')) for c in commands]
+    # Independently inspect what the real builder made available for transfer.
+    control = root/'runner-evidence/secondary-control.tar'
+    with tarfile.open(control) as archive:
+        assert archive.getnames() == ['manifests/certificate-release-inputs.tsv']
+    evidence_hashes['runner-evidence/secondary-control.tar'] = release.digest(control)
+    if case in NARROW:
+        assert all(c['role'] == 'node-a' for c in calls)
+        assert 'application-expose' not in modes and 'application-secondary' not in modes
+        assert modes.count('application-trial-admit') == modes.count('application-trial-restore') == 1
+        assert not (root/'exposure.json').exists()
+        records = release.decode_stream(root/'runner-evidence/application-restored-a-readback.stdout')
+        read('runner-evidence/application-restored-a-readback.stdout')
+        for key in ('application-trial-restored.tsv', 'application-trial-resumed.tsv', 'application-trial-monitor.tsv'):
+            assert key in records
+        for role in ('node-a', 'node-b'):
+            assert observed['nodes'][role]['selection'] == 'baseline'
+        assert observed['nodes']['node-b']['reloads'] == 0
+        return {'case': case, 'status': NARROW[case], 'expected': 'primary-only-restored',
+                'observed': 'primary-only-restored', 'evidence': evidence_hashes}
     if case in TRIALS:
         assert modes[:2] == ['application-trial-admit', 'application-trial-admit']
         assert modes.index('application-primary') < modes.index('application-expose')
@@ -664,6 +750,8 @@ def adapter(name, args):
         should_fail = selected != 'baseline' and endpoint.endswith('/dashboard') and (
             scenario == 'primary-http' and release.active_role() == 'node-a' or
             scenario == 'secondary-http' and release.active_role() == 'node-b')
+        if scenario == 'trial-primary-only-http' and selected != 'baseline' and endpoint.endswith('/session_login.cgi'):
+            should_fail = True
         if should_fail:
             marker.touch()
         else:
@@ -722,10 +810,12 @@ def suite():
         rows = dict(line.split('\t') for line in recipe.read_text().splitlines()[1:])
         rows.update(baseline_manifest_sha256=baseline_hash, tls_source_manifest_sha256=baseline_hash)
         recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
-        host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS else ('uptime.local.theama.co', 'dashboard')
+        host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS or scenario in NARROW else ('uptime.local.theama.co', 'dashboard')
         recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
-        if scenario in TRIALS:
+        if scenario in TRIALS or scenario in NARROW:
             recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\napplication_diagnostic_seconds\t240\n')
+        if scenario in NARROW:
+            recipe.write_text(recipe.read_text()+'application_diagnostic_scope\tprimary-ipv4\n')
         env.update(CADDY_CERTIFICATE_TEST_SCOPE='application', CADDY_CERTIFICATE_TEST_INPUTS_SHA256=release.digest(recipe), PRIMARY_CASE=scenario)
         os.environ.update(env)
         switch('node-a')
@@ -794,6 +884,8 @@ def suite():
                     switch(role)
                     selected = Path(os.readlink('/etc/caddy/current')).name
                     expected_selection = 'drift' if role == 'node-b' and scenario == 'secondary-drift' else 'baseline' if scenario in ['primary-reload', 'primary-http', 'recovery-failure', 'exposure-tamper'] or role == 'node-b' and scenario in ['timeout', 'secondary-http', 'exposure-tamper'] else None
+                    if scenario in NARROW:
+                        expected_selection = 'baseline'
                     if scenario in TRIALS:
                         expected_selection = 'baseline' if expected != 125 or scenario == 'trial-recovery-failure' and role == 'node-b' or scenario == 'trial-incomplete' and role == 'node-b' else None
                     if expected_selection:
@@ -848,6 +940,7 @@ if __name__ == '__main__':
     elif sys.argv[1:2] == ['--backend']:
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
     elif sys.argv[1:] == ['--payload-tests']:
+        primary_diagnostic_contract_tests()
         probe_diagnostic_tests()
         monitor_contract_tests()
         budget_contract_tests()

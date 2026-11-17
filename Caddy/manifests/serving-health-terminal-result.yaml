@@ -1,55 +1,33 @@
 {
   "schema_version": 1,
-  "action": "20261116-webmin-proxy-timing-diagnostic",
+  "action": "20261116-webmin-primary-login-diagnostic",
   "result": "failed-consumed",
-  "outer_sha256": "c5dbd379752cc1d1f4721c1dad5db079201022dbabd62f5f6c397e62e9e7321f",
-  "transaction_sha256": "7490494779d5c64478af33de48047282f98e1d1951cd76de0597ee88acd89971",
-  "operation_sha256": "3e9cbc55119637a96cacb86ad50f696f3c83bd7ca4140c055377b30bd40ccfb8",
-  "parent_manifest_sha256": "63f873cb63bacacfd2c5d05d2585ff6483b8476ff8eacbe21291d05c989123d7",
-  "executed_coverage_sha256": "dd5ba48e3a91990e3cfb3e0dba15035004e53b789c9943aaa3c7e45c2d7e5bf0",
+  "outer_sha256": "2a2d7df7c6464fed9f9b8cf16a83dc574e1e93594e72e90eddb81fa64b40bfaf",
+  "transaction_sha256": "541d014677d1fd1cb08dc3b2d962ce9f7dad501b08395bc35e01b4972af99647",
+  "operation_sha256": "88f71f662120db48b517b0dd9e324f0ebe4bc14ae4efab2529e94fc80eab00b6",
+  "parent_manifest_sha256": "323cb347b16f1279d2b36756e26c732a435d67ec2bb4f5143778ab244fd65c81",
+  "executed_coverage_sha256": "019c0dc67536899c1f2711a9944fdabbab9e9cac07896fe76f6b3f35916987eb",
   "parent_exit": 2,
   "outer_exit": 1,
-  "cause": "unconfirmed",
+  "cause": "unconfirmed; observed Webmin memory pressure and later OOM kill",
   "recovery": {
-    "caddy": "both original selections/outbound inventories restored; independent readbacks verified",
-    "monitors": {
-      "a": {
-        "fresh_completed_cycle": true,
-        "seconds_after_resume": 66.719221,
-        "sender_stable": true,
-        "timer_active": true
-      },
-      "b": {
-        "fresh_completed_cycle": true,
-        "seconds_after_resume": 40.996616,
-        "sender_stable": true,
-        "timer_active": true
-      }
-    },
-    "webmin": "native restore and restored-state assertion passed; recovery timer stopped"
+    "primary": "restore and independent readback passed",
+    "primary_monitor": "natural completed cycle passed",
+    "backend": "exact loopback restore and terminal assertion passed; timer disarmed"
   },
-  "diagnostic_correlation": "original failed; separate local recovery retained",
+  "diagnostic_correlation": "aggregate rejected; both marked header records retained",
   "application_acceptance": "not_started",
   "scan_acceptance": "not_started",
-  "archive_tag": "caddy-webmin-proxy-timing-diagnostic-terminal-2026-11-16",
+  "archive_tag": "caddy-webmin-primary-login-diagnostic-terminal-2026-11-16",
   "archive_status": "planned-unpublished",
   "evidence_sha256": {
-    "parent.log": "e6d5f5487a858006eacf3d6d7357442961c7040eff981f1e75b013edbdbca2a3",
+    "execution-summary.json": "01eeb075ec1c15abc9395cd0593afb6fa421d184e8e76b78a19e60e7d2d7b9e7",
+    "RECEIPTS.SHA256SUMS": "97613fdb6db58536e7fe554f592ad2be98a7949202a563a76aa04357d2464bad",
+    "sealed-inputs-index.json": "34996b8374a938e2feb34be2b64a8f52bda954500a1f6d988715b8759c41062a",
+    "parent.log": "d93192e370cb0f6c414ca83ac28c4c64a4621f812eac4ba387e97d14b614943e",
     "parent.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
-    "approval.json": "0e96a213b2ab3bcc6694ab59f5e196b3d45cbcbed0a936e264e1328acff60d87",
-    "terminal-summary.json": "780bf29cbd5313e59f97e6cae6aa940a0dc3918c30a3dd6ba43c550f2cac7aa9",
-    "executed-inputs-index.json": "608ba303d23bd7a54a1402f4f5c81d468113cbf5e29a9b27b9959ebf0ecf7317",
-    "owner-evidence-binding.json": "207f241d05868b6deb12e35fb1c2e1462bf053edda2785f7ed9f16457dd38d54",
-    "decoded-index.json": "2401e68a4e4dc8fd0c00c9dc1c0891059d40cd9cb68095b63a24350a0f4d2194",
-    "operator-replication-alert.json": "75bd2268cc74aa4f9692e5c3e7572ae2803b63c7e3a43b9371062d18bc71f025",
-    "inputs/evidence/parent-owner-outcomes.json": "7e3bdafc454f88cfcf081dd5a184594ac1232eaeecc377065f3726d0d9e97a23",
-    "inputs/evidence/diagnostic-coverage.json": "61055103199bda5f7c3043b502f09e8c453f11e91e05bee240d41ffec3d39128",
-    "supplemental-local-coverage.json": "365d7ea092932ae2c4522b758d68e1147a9d31643cba913f2cb0af1d66ac047d",
-    "inputs/evidence/backend-resource-samples.jsonl": "86fdd22bda35486c5c348a5e125d83906914c5b18b7a2d91514e5d1ceb926c0a",
-    "inputs/evidence/clock-before.json": "230b59d36365e80f6bbf042f345eefa84e5ad2d05077b65a7631cae812a2bd4c",
-    "inputs/evidence/clock-after.json": "ade15add44ff605622b117afe6f42e7768fe86d381060c8959d24d2e8dbff0f1",
-    "owner-execution/application-primary-a-readback.stdout": "735835c5caa96a6364e10e74c07a9280fd828012d4fafb6f903f10567f310e23",
-    "owner-execution/application-restored-a-readback.stdout": "386b6d03f16c9fefab6d6373779e2e495ffe4bdfd712ef59354f6f38e001cb21",
-    "owner-execution/application-restored-b-readback.stdout": "9fd95ab0760b39bc6f20570b2f6f049df2c4638596cde362a52ee85c4a0db39f"
+    "inputs/evidence/backend-wire.jsonl": "406de9bcb9ebe570c58f209896f847ad605b85eb39b846895c48e0ecb40fd85b",
+    "inputs/evidence/backend-resource-samples.jsonl": "f6600939dc38b69ee21173d513a6f2cc8b1cdf716e9722077600c912bb736e16",
+    "inputs/evidence/diagnostic-coverage.json": "c22dd49560a02087277d5d2e349f9dd79f78dfa0eb299b41d3ca850e4e7146a2"
   }
 }

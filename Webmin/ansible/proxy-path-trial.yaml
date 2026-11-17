@@ -1,9 +1,9 @@
 ---
-- name: Require exactly both proxy nodes and both backend families
+- name: Require exactly the approved proxy paths
   ansible.builtin.assert:
     that:
-      - proxy_trial.paths | length == 4
-      - proxy_trial.paths | map(attribute='id') | sort | list == ['a-ipv4', 'a-ipv6', 'b-ipv4', 'b-ipv6']
+      - proxy_trial.paths | map(attribute='id') | sort | list == (['a-ipv4'] if proxy_trial.primary_ipv4 | default(false) | bool else ['a-ipv4', 'a-ipv6', 'b-ipv4', 'b-ipv6'])
+      - not (proxy_trial.primary_ipv4 | default(false) | bool) or (proxy_trial.paths[0].node == 'proxy-a' and proxy_trial.paths[0].address == '10.1.3.75' and proxy_trial.paths[0].source == '10.1.0.53' and proxy_trial.backend_addresses == ['10.1.3.75'])
 - name: Stage the exact non-secret path collector on the selected backend
   ansible.builtin.copy:
     src: '{{ fleet_server_root }}/Webmin/scripts/probe-proxy-path.py'
@@ -45,7 +45,7 @@
 - name: Require client timeouts and target drop evidence
   ansible.builtin.assert:
     that:
-      - proxy_trial.backend_addresses | length == 2
-      - proxy_denied.results | map(attribute='rc') | list == [0, 0]
+      - proxy_trial.backend_addresses | length == (1 if proxy_trial.primary_ipv4 | default(false) | bool else 2)
+      - proxy_denied.results | map(attribute='rc') | list == ([0] if proxy_trial.primary_ipv4 | default(false) | bool else [0, 0])
       - (proxy_deny_after.stdout | from_json)['webmin-denied-4'] > (proxy_deny_before.stdout | from_json)['webmin-denied-4']
-      - (proxy_deny_after.stdout | from_json)['webmin-denied-6'] > (proxy_deny_before.stdout | from_json)['webmin-denied-6']
+      - (proxy_trial.primary_ipv4 | default(false) | bool) or (proxy_deny_after.stdout | from_json)['webmin-denied-6'] > (proxy_deny_before.stdout | from_json)['webmin-denied-6']

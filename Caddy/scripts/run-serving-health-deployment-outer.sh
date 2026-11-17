@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=7490494779d5c64478af33de48047282f98e1d1951cd76de0597ee88acd89971
-readonly operation_sha256=3e9cbc55119637a96cacb86ad50f696f3c83bd7ca4140c055377b30bd40ccfb8
+readonly transaction_sha256=541d014677d1fd1cb08dc3b2d962ce9f7dad501b08395bc35e01b4972af99647
+readonly operation_sha256=88f71f662120db48b517b0dd9e324f0ebe4bc14ae4efab2529e94fc80eab00b6
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -94,6 +94,14 @@ build_payload() {
         chmod 0600 "$payload_archive"
         sha256sum "$payload_archive" >"$workstation_evidence/payload.sha256"
         chmod 0600 "$workstation_evidence/payload.sha256"
+        if grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+            # Node B receives control metadata only. Its application files arrive
+            # through managed replication after primary activation succeeds.
+            tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+                -C "$payload_stage" -cf "$workstation_evidence/secondary-control.tar" \
+                manifests/certificate-release-inputs.tsv
+            chmod 0600 "$workstation_evidence/secondary-control.tar"
+        fi
         return
     fi
     if [[ "$operation_scope" = external-notification-attribution-read-only ]]; then
@@ -339,18 +347,23 @@ upload_payload() {
     local serving_health_host=$2
     local serving_health_remote_root=$3
     local serving_health_remote_archive=$4
-    local serving_health_hash
+    local serving_health_hash serving_health_upload_archive=$payload_archive
 
-    serving_health_hash=$(awk '{ print $1 }' "$workstation_evidence/payload.sha256")
+    if [[ "$serving_health_role" = node-b ]] && release_operation &&
+        grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+        serving_health_upload_archive=$workstation_evidence/secondary-control.tar
+    fi
+    regular_file "$serving_health_upload_archive"
+    serving_health_hash=$(sha256sum "$serving_health_upload_archive" | awk '{ print $1 }')
     capture "$serving_health_role-upload-prepare" ssh_stream "$serving_health_host" \
         "$prepare_program" "$serving_health_remote_root" "$serving_health_remote_archive" || return 1
     if release_operation; then
         capture "$serving_health_role-upload-copy" application_budget_copy "$scp_command" -o BatchMode=yes -o ConnectTimeout=10 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p -- \
-            "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
+            "$serving_health_upload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
     else
         capture "$serving_health_role-upload-copy" "$scp_command" -p -- \
-            "$payload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
+            "$serving_health_upload_archive" "$serving_health_host:$serving_health_remote_archive" || return 1
     fi
     capture "$serving_health_role-upload-accept" ssh_stream "$serving_health_host" \
         "$accept_program" "$serving_health_remote_root" "$serving_health_remote_archive" \
@@ -1027,23 +1040,35 @@ application_trial_wait() {
 }
 
 application_trial_recover_pair() {
-    local app_recovery_target=$1 app_recovery_status=0
+    local app_recovery_target=$1 app_recovery_status=0 app_recovery_scope=${2:-paired}
     application_budget_phase=recovery
     # Contain both senders before checking for receiver/finalizer quiescence.
     remote_transaction application-contain-a "$node_a_host" application-trial-contain node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || app_recovery_status=125
-    remote_transaction application-contain-b "$node_b_host" application-trial-contain node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        remote_transaction application-contain-b "$node_b_host" application-trial-contain node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    fi
     [[ "$app_recovery_status" = 0 ]] || return 125
     remote_transaction application-quiesce-a "$node_a_host" application-trial-quiesce node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
-    remote_transaction application-quiesce-b "$node_b_host" application-trial-quiesce node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
-    remote_transaction application-restore-b "$node_b_host" application-trial-restore node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        remote_transaction application-quiesce-b "$node_b_host" application-trial-quiesce node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    fi
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        remote_transaction application-restore-b "$node_b_host" application-trial-restore node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    fi
     remote_transaction application-restore-a "$node_a_host" application-trial-restore node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
-    remote_transaction application-resume-b "$node_b_host" application-trial-resume node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        remote_transaction application-resume-b "$node_b_host" application-trial-resume node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || return 125
+    fi
     remote_transaction application-resume-a "$node_a_host" application-trial-resume node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || return 125
     # Both transports are resumed before observation. Failure never replays recovery.
-    remote_transaction application-monitor-b "$node_b_host" application-trial-monitor node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        remote_transaction application-monitor-b "$node_b_host" application-trial-monitor node-b "$node_b_payload" "$node_b_evidence" "$app_recovery_target" || app_recovery_status=125
+    fi
     remote_transaction application-monitor-a "$node_a_host" application-trial-monitor node-a "$node_a_payload" "$node_a_evidence" "$app_recovery_target" || app_recovery_status=125
     readback application-restored-a "$node_a_host" "$node_a_evidence" || app_recovery_status=125
-    readback application-restored-b "$node_b_host" "$node_b_evidence" || app_recovery_status=125
+    if [[ "$app_recovery_scope" != primary-ipv4 ]]; then
+        readback application-restored-b "$node_b_host" "$node_b_evidence" || app_recovery_status=125
+    fi
     if [[ "$app_recovery_status" != 0 ]]; then
         printf 'application_trial_restoration=passed monitor_acceptance=incomplete evidence_readback=review-required\n' >&2
         return 125
@@ -1054,7 +1079,7 @@ application_trial_recover_pair() {
 run_application_onboarding_live() {
     local app_outer_status=0 app_target app_role app_readback_status=0
     local app_target_file=$workstation_evidence/application-target.tsv
-    local app_is_trial=false
+    local app_is_trial=false app_diagnostic_scope=paired
     if grep -q '^application_trial_seconds' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
         [[ "$(awk -F '\t' '$1 == "application_trial_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv")" = 660 ]] || return 1
         app_is_trial=true
@@ -1067,13 +1092,21 @@ run_application_onboarding_live() {
         application_budget_phase=forward
         printf 'application_budget forward=240 total=840 parent_child=1200 parent_wait=900\n'
     fi
+    if grep -q '^application_diagnostic_scope' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+        app_diagnostic_scope=$(awk -F '\t' '$1 == "application_diagnostic_scope" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv") || return 1
+        [[ "$app_diagnostic_scope" = primary-ipv4 && "$app_is_trial" = true && -n "$application_forward_deadline" ]] || return 1
+    fi
     # Payload transport and evidence readback retain the shared, qualified SSH
     # implementation. The application sequence never enters certificate repair.
     upload_payload node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 1
-    upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
+    if [[ "$app_diagnostic_scope" != primary-ipv4 ]]; then
+        upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
+    fi
     if [[ "$app_is_trial" = true ]]; then
         remote_transaction application-admit-a "$node_a_host" application-trial-admit node-a "$node_a_payload" "$node_a_evidence" || return 1
-        remote_transaction application-admit-b "$node_b_host" application-trial-admit node-b "$node_b_payload" "$node_b_evidence" || return 1
+        if [[ "$app_diagnostic_scope" != primary-ipv4 ]]; then
+            remote_transaction application-admit-b "$node_b_host" application-trial-admit node-b "$node_b_payload" "$node_b_evidence" || return 1
+        fi
     fi
     remote_transaction application-primary-a "$node_a_host" application-primary \
         node-a "$node_a_payload" "$node_a_evidence" || app_outer_status=$?
@@ -1089,7 +1122,10 @@ run_application_onboarding_live() {
             extract_readback_file "$workstation_evidence/application-primary-a-readback.stdout" application-target.tsv "$app_target_file" || return 125
             app_target=$(<"$app_target_file")
             [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
-            application_trial_recover_pair "$app_target" || return 125
+            application_trial_recover_pair "$app_target" "$app_diagnostic_scope" || return 125
+            if [[ "$app_diagnostic_scope" = primary-ipv4 ]]; then
+                cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+            fi
             return 1
         fi
         [[ "$app_outer_status" -lt 125 && "$app_readback_status" = 0 ]] || return 125
@@ -1101,6 +1137,13 @@ run_application_onboarding_live() {
         application-target.tsv "$app_target_file" || return 125
     app_target=$(<"$app_target_file")
     [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
+    if [[ "$app_diagnostic_scope" = primary-ipv4 ]]; then
+        # A successful diagnostic must never publish or advance to Node B.
+        application_trial_recover_pair "$app_target" primary-ipv4 || return 125
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+        printf 'application_primary_diagnostic=completed-restored acceptance=not-performed\n'
+        return 0
+    fi
     remote_transaction application-ready-b "$node_b_host" application-secondary-ready \
         node-b "$node_b_payload" "$node_b_evidence" || app_outer_status=$?
     if [[ "$app_outer_status" = 0 ]]; then
@@ -3196,6 +3239,8 @@ else
 fi
 readonly workstation_evidence
 chmod 0700 "$workstation_evidence"
+# Emit the owned evidence location before any fallible execution phase.
+printf 'evidence_directory=%s\n' "$workstation_evidence"
 payload_stage=$workstation_evidence/payload
 payload_archive=$workstation_evidence/serving-health-payload.tar
 prepare_program=$workstation_evidence/remote-prepare.sh
@@ -3237,4 +3282,3 @@ elif [[ "$invocation_mode" = --production-path-test ]]; then
 else
     run_live
 fi
-printf 'evidence_directory=%s\n' "$workstation_evidence"

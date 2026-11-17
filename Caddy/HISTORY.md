@@ -542,3 +542,67 @@ The stream is terminal-pending. Exact executed inputs and sanitized terminal
 hashes are retained for planned tag
 `caddy-webmin-proxy-timing-diagnostic-terminal-2026-11-16`; no commit/tag/push is
 authorized. Do not clean or replace consumed inputs before that archive.
+
+## November 16 timing diagnostic archive cleanup
+
+The exact terminal commit `a6491d0795e4493e000f3afe81be09d01514fffd` and annotated
+tag `caddy-webmin-proxy-timing-diagnostic-terminal-2026-11-16` are published and
+remote-verified. Consumed operation/recipe bindings and the terminal manifest
+are removed locally; neutral implementations remain. No successor is defined.
+The failed diagnostic and its recovery evidence remain preserved in the tag.
+
+## November 16 primary-only diagnostic definition (not executed)
+
+`20261116-webmin-primary-ipv4-diagnostic` binds the existing owner path to one
+primary IPv4 request and mandatory primary restoration, stopping before replication.
+The parent owns the Pi's temporary backend profile and exact loopback restoration.
+Routine onboarding now stages application content only on the primary; secondary
+staging contains only the control recipe. All 18 offline application cases pass,
+including both primary-only outcomes. The W-178 review in the Uptime Kuma ledger
+owns the exact private parent bundle. Definition and qualification grant no live
+authority, and the preceding published terminal archive remains unchanged.
+
+## November 16 unexecuted primary diagnostic withdrawal
+
+The Webmin parent stopped at its direct-backend prerequisite before launching
+`20261116-webmin-primary-ipv4-diagnostic`. No Caddy transaction, activation or
+replication occurred. W-179 retains the failed parent and successful backend
+restoration; W-180 identified the diagnostic User-Agent authentication conflict.
+W-181 integrates the neutral header locally and withdraws the unexecuted child,
+returning the stream to clean/inactive with refreshed neutral hashes. The consumed
+parent's sealed inputs/receipts remain private and unchanged. The last published
+W-173 terminal archive remains the Caddy archive boundary; no new terminal tag,
+publication or live authority is created by this withdrawal.
+
+## 2026-11-16: corrected primary login diagnostic defined locally
+
+Defined `20261116-webmin-primary-login-diagnostic` from the neutral stream after
+withdrawal of the unexecuted prior child. Current probes and wire comparison use
+the neutral User-Agent; HTTP-200/login acceptance remains required. This candidate
+is limited to the primary/Pi IPv4 path, stops before replication exposure, and
+restores both owners. The consumed parent inputs and receipts are preserved in
+private evidence. Current qualification and the exact combined review are recorded
+under W-182 in the monitoring change ledger. No live execution is authorized.
+
+## 2026-11-16: primary login diagnostic failed and restored
+
+- Operation: `20261116-webmin-primary-login-diagnostic`.
+- Status: terminal-pending; result: failed-consumed.
+- Tag: `caddy-webmin-primary-login-diagnostic-terminal-2026-11-16` (planned, unpublished).
+
+One approved parent attempt exited 2; Caddy exited 1 after primary HTTPS timed
+out. The direct IPv4 login-page request passed. Both marked requests reached the
+backend with matching recorded headers; the proxied flow has no captured response
+bytes. Webmin samples show memory pressure and a later OOM kill; causation remains
+unconfirmed. Aggregate correlation rejected close-only flows and is not accepted.
+Primary restoration/readback, natural monitor acceptance and exact Webmin loopback
+restoration passed. No secondary contact, replication exposure, browser/scan or
+DNS work occurred. Executed operation/recipe/runtime bytes remain unchanged;
+registrations are cleared and private inputs/receipts preserved. W-183 through
+W-185 track the outcome, evidence gap and required archive in the monitoring ledger.
+No replay, new live work or publication is authorized.
+
+Aaron authorized committing and pushing all pending changes after this outcome.
+The required annotated terminal tag is included in that publication; the stream
+remains terminal-pending until separately requested local cleanup. Publication
+does not install the notifier or authorize another host diagnostic.

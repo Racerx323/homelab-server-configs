@@ -1,53 +1,47 @@
 schema_version: 2
-action: 20261116-webmin-proxy-timing-diagnostic
+action: 20261116-webmin-primary-login-diagnostic
 status: defined-unexecuted
 scope: application-onboarding
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 7490494779d5c64478af33de48047282f98e1d1951cd76de0597ee88acd89971
+transaction_sha256: 541d014677d1fd1cb08dc3b2d962ce9f7dad501b08395bc35e01b4972af99647
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_contract_sha256: 5d3061f317049c503f3567974b4a074eebadab104e5930694f857d29f043deae
 production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e5621ab970aa9131
 certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
-certificate_inputs_sha256: c2d11ea2c758bdcb257b1c606323636d12e084a1d1e179b50d9fe0fdb3e37368
-coverage_sha256: dd5ba48e3a91990e3cfb3e0dba15035004e53b789c9943aaa3c7e45c2d7e5bf0
+certificate_inputs_sha256: 58a8886a8548dd9da2dfcd70a742eb040e154b1359b1f8a0f77f5137ace73904
+coverage_sha256: 019c0dc67536899c1f2711a9944fdabbab9e9cac07896fe76f6b3f35916987eb
 regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: 2f64f55e1a5c772f51b41242ed29dbde8de1c9414401e38b03ceadc6e6c3665c
+fixture_sha256: 8d6921e28cdeee74b3bcf6bb08497674be5d3328c8765ad2fb82f45b405a7a64
 qualification_launcher_sha256: b04724afb96d42df69b5fc4ef4ae7e3da66a72fa2dc5357f6edf08107aeefde2
 authorization_policy_sha256: 66973fe7040da0c978e7a264f06a1d2b100968c87ad9b0ade08ac5560caba2fc
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
 targets:
-  - pi@10.1.0.53
-  - pi@10.1.0.54
+- pi@10.1.0.53
 mutation:
-  - stage one protected payload and retain original release inventories on both nodes
-  - use the pinned payload publisher without replacing installed tools
-  - append only the bound Webmin fragment while preserving Kuma, unrelated routes and TLS
-  - verify primary activation before exposing the exact release to managed replication
-  - independently validate and activate the same candidate on the secondary
-  - allow one bounded temporary exposure for the separately bound parent workload
+- stage the application payload only on the primary; no secondary contact
+- append the bound Webmin fragment using one IPv4 upstream and the existing temporary backend profile
+- activate and probe locally; stop before replication exposure on success or failure
 acceptance:
-  - fresh operation boot continuity and exact original release and installed runtime identities
-  - trusted dual-stack new-route and existing health-route responses on both nodes and VIPs
-  - bounded secondary convergence through the existing owner path
-  - end exposure immediately on diagnostic readiness or forward expiry; retain the 660-second backstop
-  - use one 240-second forward deadline and aggregate 840-second recovery cutoff without renewal
-  - retain marked upstream timing, request indices, and safe bounded failure evidence before recovery
-  - prove paired original selections and outgoing inventories restored before transport resumes
-  - diagnostic parent sends finish immediately after route readiness; no browser or scan acceptance
+- fresh operation boot continuity and exact host/configuration/installed-tool identities
+- one primary IPv4 application request and existing serving-route checks
+- retain direct/proxy request markers, backend-interface header comparisons and native timestamps
+- retain bounded resource intervals and possible marked health-probe overlap without causal attribution
+- one 240-second forward budget; recovery and readback share the unchanged aggregate 840-second cutoff
+- no application acceptance claim; restore after either probe result
 recovery:
-  - contain the exact child on both nodes and stop managed transport and reconciliation
-  - quiesce receivers, restore secondary then primary, verify inventories, then resume transport
-  - retain guarded partial state and report 125 when paired restoration is unproved
-  - observe fresh natural monitor cycles after both resumes, retaining independent readbacks
-  - exhausted recovery budget or missing receipts requires manual intervention; timeout does not prove quiescence
-  - controller loss may require manual Caddy recovery; native Webmin deadline recovery is independent
+- contain the unexposed child on the primary; quiesce and restore its exact original selection and outbound inventory
+- resume primary transport and observe fresh natural monitor cycles before readback
+- report 125 if recovery or monitor acceptance is unproved; do not replay
+- native Webmin loopback restoration remains independently governed by the parent and 1800-second timer
 excluded:
-  - DNS, reboot, forced failover, certificate replacement and installed-tool replacement
-  - backend mutation outside the separately bound Webmin parent
-  - account creation, ACL changes, terminals, monitors, alerts and synthetic notifications
-  - unrelated route or radio changes and Git publication
+- DNS, reboot, forced failover, certificate replacement and installed-tool replacement
+- backend mutation outside the separately bound Webmin parent
+- account creation, ACL changes, terminals, monitors, alerts and synthetic notifications
+- unrelated route or radio changes and Git publication
+- secondary SSH/upload/admission/activation/recovery, release exposure and replication progression
+- passwords, browser/graphs/WebSocket workload, needrestart scan and permanent promotion
 live_execution: requires-exact-outer-sha256-approval-with-combined-parent

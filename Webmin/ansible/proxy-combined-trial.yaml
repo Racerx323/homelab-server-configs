@@ -22,6 +22,23 @@
       ansible.builtin.assert:
         that:
           - "'application_diagnostic_seconds\t240' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines()"
+    - name: Require the parent and owner to select the same diagnostic scope
+      ansible.builtin.assert:
+        that:
+          - (proxy_trial.primary_ipv4 | default(false) | bool) == ('application_diagnostic_scope\tprimary-ipv4' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines())
+    - name: Bind the primary-only diagnostic before any target command
+      when: proxy_trial.primary_ipv4 | default(false) | bool
+      ansible.builtin.assert:
+        that:
+          - proxy_trial.diagnostic_only | default(false) | bool
+          - "'application_diagnostic_scope\tprimary-ipv4' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines()"
+          - (lookup('ansible.builtin.file', proxy_trial.diagnostic_spec) | from_json).scope == 'primary-ipv4'
+          - proxy_trial.paths | map(attribute='id') | list == ['a-ipv4']
+          - proxy_trial.paths[0].node == 'proxy-a'
+          - proxy_trial.paths[0].address == '10.1.3.75'
+          - proxy_trial.paths[0].source == '10.1.0.53'
+          - proxy_trial.backend_addresses == ['10.1.3.75']
+          - (lookup('ansible.builtin.file', proxy_trial.diagnostic_spec) | from_json).clock_ssh_prefixes.keys() | sort | list == ['backend', 'node-a']
     - name: Require Caddy authorization-ready source bindings before backend exposure
       ansible.builtin.command:
         argv: [/bin/bash, '{{ fleet_server_root }}/Caddy/tests/deployable-successor-policy.sh', --authorization-ready]
@@ -79,8 +96,14 @@
         - name: Record that backend preparation is entering its owner boundary
           ansible.builtin.set_fact: {proxy_trial_backend_entered: true}
         - ansible.builtin.import_tasks: proxy-trial.yaml
-        - ansible.builtin.import_tasks: proxy-path-trial.yaml
-        - name: Capture bounded pre-operation clock uncertainty on all three hosts
+        - name: Stage the existing collector before the diagnostic observation
+          ansible.builtin.copy:
+            src: '{{ fleet_server_root }}/Webmin/scripts/probe-proxy-path.py'
+            dest: '{{ proxy_trial.work_directory }}/probe-proxy-path.py'
+            owner: root
+            group: root
+            mode: '0600'
+        - name: Capture bounded pre-operation clock uncertainty on the selected hosts
           when: proxy_trial.diagnostic_only | default(false) | bool
           ansible.builtin.command:
             argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', clock,
@@ -91,8 +114,11 @@
         - name: Start bounded diagnostic resource sampling before Caddy activation
           when: proxy_trial.diagnostic_only | default(false) | bool
           ansible.builtin.command:
-            argv: [/usr/bin/python3, '{{ proxy_trial.work_directory }}/probe-proxy-path.py',
-                   --observe-directory, '{{ proxy_trial.work_directory }}']
+            argv: >-
+              {{ ['/usr/bin/python3', proxy_trial.work_directory ~ '/probe-proxy-path.py',
+                  '--observe-directory', proxy_trial.work_directory] +
+                 (['--wire-peer', proxy_trial.paths[0].source, '--wire-backend', proxy_trial.paths[0].address,
+                   '--wire-hostname', proxy_trial.browser_hostname] if proxy_trial.primary_ipv4 | default(false) | bool else []) }}
           async: 310
           poll: 0
           register: proxy_trial_resource_job
@@ -105,6 +131,7 @@
           until: proxy_trial_resource_ready.stat.exists
           retries: 5
           delay: 1
+        - ansible.builtin.import_tasks: proxy-path-trial.yaml
         - name: Start the exact Caddy owner command with private separate logs
           ansible.builtin.shell: |
             umask 077
@@ -122,6 +149,7 @@
           poll: 0
           register: proxy_trial_caddy_job
         - name: Wait for the Caddy owner's exact temporary exposure receipt
+          when: not (proxy_trial.primary_ipv4 | default(false) | bool)
           ansible.builtin.command:
             argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', ready,
                    '{{ operation_evidence_directory }}/caddy.stdout', '{{ operation_evidence_directory }}/caddy-ready.json',
@@ -135,6 +163,7 @@
           delay: 2
         - ansible.builtin.assert:
             that: [proxy_trial_caddy_ready.rc == 0]
+          when: not (proxy_trial.primary_ipv4 | default(false) | bool)
         - ansible.builtin.set_fact: {proxy_trial_workload_entered: true}
           when: not (proxy_trial.diagnostic_only | default(false) | bool)
         - name: Supervise the single observer and private statistics client
@@ -163,7 +192,7 @@
                     if proxy_trial_workload_entered | default(false) else []) }}
           delegate_to: localhost
           become: false
-          when: proxy_trial_caddy_ready is defined and proxy_trial_caddy_ready.rc == 0
+          when: proxy_trial_caddy_ready is defined and proxy_trial_caddy_ready.get("rc", 1) == 0
           register: proxy_trial_caddy_finish
           failed_when: false
         - name: Retain the Caddy restoration result without suppressing backend recovery
@@ -201,6 +230,19 @@
                 mode: '0600'
               delegate_to: localhost
               become: false
+            - name: Retain bounded backend wire evidence for the primary diagnostic
+              when: proxy_trial.primary_ipv4 | default(false) | bool
+              ansible.builtin.fetch:
+                src: '{{ proxy_trial.work_directory }}/backend-wire.jsonl'
+                dest: '{{ operation_evidence_directory }}/backend-wire.jsonl'
+                flat: true
+            - name: Protect the retained wire receipt
+              when: proxy_trial.primary_ipv4 | default(false) | bool
+              ansible.builtin.file:
+                path: '{{ operation_evidence_directory }}/backend-wire.jsonl'
+                mode: '0600'
+              delegate_to: localhost
+              become: false
             - ansible.builtin.assert:
                 that:
                   - proxy_trial_resource_terminal.finished
@@ -219,6 +261,7 @@
               become: false
               changed_when: false
             - name: Require request coverage within the observed resource interval
+              when: proxy_trial_caddy_job is defined and proxy_trial_caddy_job.ansible_job_id is defined
               ansible.builtin.command:
                 argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', diagnostic-coverage,
                        '{{ operation_evidence_directory }}/clock-before.json', '{{ operation_evidence_directory }}/diagnostic-coverage.json',
@@ -229,6 +272,21 @@
               become: false
               changed_when: false
               register: proxy_trial_diagnostic_coverage
+            - name: Classify a pre-Caddy exit without opening absent proxy evidence
+              when: proxy_trial_caddy_job is not defined or proxy_trial_caddy_job.ansible_job_id is not defined
+              ansible.builtin.set_fact:
+                proxy_trial_diagnostic_coverage:
+                  coverage_accepted: false
+                  proxy_request: not-run
+                  reason: caddy-not-started
+            - name: Retain the explicit not-run comparison result
+              when: proxy_trial_caddy_job is not defined or proxy_trial_caddy_job.ansible_job_id is not defined
+              ansible.builtin.copy:
+                content: '{{ proxy_trial_diagnostic_coverage | to_nice_json }}'
+                dest: '{{ operation_evidence_directory }}/diagnostic-coverage.json'
+                mode: '0600'
+              delegate_to: localhost
+              become: false
           rescue:
             - ansible.builtin.debug:
                 msg: Diagnostic correlation incomplete; retain unknown result and continue mandatory backend restoration.
@@ -275,7 +333,7 @@
               - proxy_trial_boot_after.content == proxy_trial_boot.content
               - proxy_trial_caddy_terminal.finished
               - proxy_trial_caddy_terminal.rc == 0
-              - proxy_trial_caddy_finish.rc == 0
+              - (proxy_trial.primary_ipv4 | default(false) | bool) or proxy_trial_caddy_finish.rc == 0
               - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_diagnostic_coverage | default({})).get("rc", 1) == 0
               - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_resource_terminal.finished and proxy_trial_resource_terminal.rc == 0)
               - (proxy_trial.diagnostic_only | default(false) | bool) or proxy_trial_workload.rc == 0

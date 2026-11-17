@@ -558,6 +558,22 @@ and both recovery receipts before considering any further operation.
 ## Failed activation evidence
 
 Use `/session_login.cgi` for the unauthenticated direct-backend and proxy probes.
+Use a neutral diagnostic User-Agent, `homelab-proxy-diagnostic`, consistently
+in both probes and the backend header comparison. Webmin 2.670's
+`miniserv-lib.pl` disables session authentication when the User-Agent matches
+`/webmin/i`; a diagnostic name containing that word requests HTTP authentication
+and can produce a Basic-auth 401 instead of the browser login form. Check any
+configured `agents_nosession` pattern as part of the request contract too.
+
+Retain the HTTP-200/login-form requirement for session-login access. Do not accept
+a 401 as browser readiness, add credentials to a health probe, or alter server
+authentication to accommodate the diagnostic. Qualify authentication-mode selection
+against the pinned native Webmin handler; a generic HTTP-200 fixture cannot check
+it. A single request comparison is sufficient for this contract question.
+If preparation stops before Caddy launch, record the proxied request as not run;
+missing Caddy evidence is not an additional transport failure. Restore the backend
+and preserve the original failure.
+
 Keep the reviewed timeouts unchanged. Direct probes retain the request path,
 start epoch, connection/header timings and fixed failure phase; response bodies,
 cookies and exception text are not retained.
@@ -646,3 +662,48 @@ unobserved. It never identifies a request as the cause of an OOM event. A failed
 correlation check retains a failure receipt and still permits mandatory backend
 restoration. These gates qualify diagnostic evidence, not browser acceptance or
 host capacity.
+
+### Narrow primary IPv4 diagnostic
+
+When the open question is a single HTTP response, use the existing parent with
+`diagnostic_only: true` and `primary_ipv4: true`, bound to the owner recipe's
+`application_diagnostic_scope` value `primary-ipv4`. Parent and owner selection
+must agree before target commands. Bind exactly `a-ipv4` through inventory alias
+`proxy-a`, backend `10.1.3.75` and admitted source `10.1.0.53`; the private clock
+specification has scope `primary-ipv4` and only `backend`/`node-a` prefixes.
+
+The collector starts before the sequential direct/proxied login-page requests.
+The proposed diagnostic fragment has one IPv4 upstream, retaining the existing
+health-check interval and timeout. The primary-only Caddy path never uploads to,
+admits or probes the secondary, never exposes its candidate to replication, and
+restores after either primary success or failure. It uses the existing recovery
+and observes the primary's natural monitor cycle after resume. There is no ready/
+finish handshake, password, browser or scan workload in this diagnostic mode.
+Ordinary onboarding retains its paired path and acceptance requirements.
+
+The existing collector's primary-only mode opens a native Linux packet socket on
+`eth0` before either request. Bind the exact admitted primary/backend IPv4 pair;
+root packet-socket access and nanosecond kernel timestamps must initialize before
+readiness. No package installation or Webmin debug logging is implied. Direct and
+proxied requests carry distinct random markers; the temporary health probe carries
+`X-Homelab-Health: webmin-primary-diagnostic`. This marker identifies observations;
+it does not change the health interval, timeout or fleet health policy.
+
+Only safe header comparisons, kernel timestamps, response status and FIN/reset
+are retained. No packet file, body, credentials or arbitrary header values are
+written. Capture shares the existing bounded resource process. Its limits are
+64 connections, 8 KiB of header assembly per stream and 512 records within the
+300-second observation. Missing data, packet loss, unsupported/reused streams,
+clock/timestamp anomalies and out-of-window evidence prevent completeness; they
+never prevent mandatory restoration. Review these bounds with the exact candidate.
+
+Distinguish client send, backend-interface arrival, response headers and connection
+close. Interface arrival does not prove execution inside Webmin; a FIN/reset does
+not prove complete HTTP-body delivery. Preserve missing response/completion as
+unknown. Require both foreground markers and resource coverage, and retain possible
+health overlap. Do not attribute resource counters to a request merely because
+intervals overlap. Do not enable broad debug logging to fill a gap.
+
+A successful isolated IPv4 request cannot accept the production dual-stack route
+or prove the historical timeout cause. Existing limits and recovery deadlines
+remain unchanged; no automatic retry or follow-up workload is implied.
