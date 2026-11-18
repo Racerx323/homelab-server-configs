@@ -130,21 +130,31 @@ def clock_interval(stamp, boot, before, after):
     return [stamp+lo, stamp+hi]
 
 
-def request_records(owner_log):
+def request_records(owner_log, frontend=4):
     text = workload.private(owner_log)
     matches = re.findall(rf'^evidence_directory=({owner_directory_pattern(owner_log)})$', text, re.M)
     if len(matches) != 1: raise ValueError('owner_evidence_directory')
     directory = Path(matches[0]); records = {}
+    verified_marker = None
+    recovery = {}; total = None; primary_failed = None
     for stream in sorted(directory.glob('application-*-readback.stdout')):
         if not re.fullmatch(r'application-(primary|result|restored)-[ab]-readback.stdout', stream.name): continue
         lines = workload.private(stream).splitlines()
         if len(lines) % 2: raise ValueError('readback_pairs')
-        names = set()
+        names = set(); selected = {}
         for metadata, encoded in zip(lines[::2], lines[1::2]):
             match = re.fullmatch(r'file=([A-Za-z0-9._-]+) bytes=([0-9]+) sha256=([0-9a-f]{64})', metadata)
             if not match or match[1] in names or int(match[2]) > 1048576: raise ValueError('readback_metadata')
             names.add(match[1]); raw = base64.b64decode(encoded, validate=True)
             if len(raw) != int(match[2]) or hashlib.sha256(raw).hexdigest() != match[3]: raise ValueError('readback_hash')
+            if frontend == 6 and match[1] == 'application-recovery-clock.tsv' and '-a-readback' in stream.name:
+                recovery[stream.name] = raw.decode().splitlines()
+            if (frontend == 6 and stream.name == 'application-primary-a-readback.stdout' and
+                    match[1] in ('application-node-ipv6.request-id.tsv', 'application-node-ipv6.timing.tsv',
+                                 'application-node-ipv6-journal.stdout', 'application-node-ipv6-journal.status',
+                                 'application-node-ipv6.status',
+                                 'application-node-ipv6.stdout')):
+                selected[match[1]] = raw
             if match[1] != 'application-requests.tsv': continue
             for line in raw.decode().splitlines():
                 identity, node, boot, start, end = line.split('\t')
@@ -152,7 +162,53 @@ def request_records(owner_log):
                 row = dict(request_id=identity, node=node, boot_id=boot, start=float(start), end=float(end))
                 if identity in records and records[identity] != row: raise ValueError('changed_request')
                 records[identity] = row
+        if frontend == 6 and stream.name == 'application-primary-a-readback.stdout':
+            prefix = 'application-node-ipv6'
+            marker = selected.get(prefix+'.request-id.tsv', b'').decode().strip()
+            timing = selected.get(prefix+'.timing.tsv', b'').decode().split()
+            status = selected.get(prefix+'-journal.status')
+            if status is None: raise ValueError('primary_journal_status_missing')
+            if not re.fullmatch(rb'(?:0|[1-9][0-9]{0,2})\n', status) or int(status) > 255:
+                raise ValueError('primary_journal_status_invalid')
+            if int(status): raise ValueError(f'primary_journal_exit_{int(status)}')
+            body = selected.get(prefix+'-journal.stdout')
+            if body is None: raise ValueError('primary_journal_output_missing')
+            try:
+                logs = json.loads(body)
+            except (ValueError, UnicodeError):
+                raise ValueError('primary_journal_output_invalid') from None
+            if not isinstance(logs, list) or not all(isinstance(row, dict) for row in logs):
+                raise ValueError('primary_journal_output_invalid')
+            upstream = [r.get('upstream') for r in logs if r.get('request_id') == marker]
+            if not upstream: raise ValueError('primary_journal_marker_missing')
+            if (not re.fullmatch('[0-9a-f]{32}', marker) or set(records) != {marker} or
+                    'remote_ip=fd36:5aa8:6971:1::53' not in timing or 'remote_port=443' not in timing or
+                    upstream != ['10.1.3.75:10000']):
+                raise ValueError('primary_ipv6_pi_ipv4_path_unconfirmed')
+            totals = [v[6:] for v in timing if re.fullmatch(r'total=[0-9]+(?:\.[0-9]+)?', v)]
+            total = float(totals[0]) if len(totals) == 1 else None
+            primary_failed = 'application-recovery.tsv' in names or not (selected.get(prefix+'.status', b'').strip() == b'0' and
+                                  selected.get(prefix+'.stdout', b'').strip() == b'200')
+            verified_marker = marker
     if not records: raise ValueError('request_receipts_missing')
+    if frontend == 6:
+        if set(records) != {verified_marker}: raise ValueError('primary_ipv6_pi_ipv4_path_unconfirmed')
+        # Inline failure restoration runs in the primary EXIT trap before readback.
+        # A successful probe can still fail later in that transaction; prefer
+        # any inline evidence, never substitute a later outer restore for it.
+        inline = recovery.get('application-primary-a-readback.stdout', [])
+        if inline or primary_failed:
+            lines, phases = inline, ('application-primary:start', 'application-primary:end')
+        else:
+            lines = recovery.get('application-restored-a-readback.stdout', [])
+            phases = ('application-trial-contain:start', 'application-trial-restore:end')
+            if any(line.startswith('application-primary:') for line in lines): lines = []
+        bounds = []
+        for phase in phases:
+            values = [line.split()[1] for line in lines if re.fullmatch(re.escape(phase)+r' [0-9]+\.[0-9]+', line)]
+            if len(values) == 1: bounds.append(float(values[0]))
+        records[verified_marker].update(verified_path='primary-ipv6/pi-ipv4', journal_exit=0, curl_total=total,
+                                        recovery_window=bounds if len(bounds) == 2 else None)
     return list(records.values())
 
 
@@ -214,12 +270,62 @@ def backend_wire_evidence(path, requests):
             'no_payload_connections': no_payload}
 
 
-def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False):
+def boundary_timing(req, flow, samples, before, after):
+    """Compare intervals, never userspace dequeue time directly to curl exit."""
+    def mapped(host, stamp):
+        return clock_interval(stamp, before[host]['boot_id'], before[host], after[host])
+    def band(host, lo, hi):
+        # Remote sync readings and /proc/uptime stamps have centisecond precision.
+        return [mapped(host, lo)[0]-.011, mapped(host, hi)[1]+.011]
+    total = req.get('curl_total')
+    exit_band = None
+    if isinstance(total, (float, int)) and 0 <= total <= req['end']-req['start']+.011:
+        # curl started after the shell start stamp and exited before its end stamp.
+        exit_band = band('node-a', req['start']+max(0, total-.000001), req['end']+.01)
+    window = req.get('recovery_window')
+    recovery = None
+    if (window and req['end'] <= window[0] <= window[1] and
+            window[1]+.01 <= after['node-a']['monotonic']):
+        recovery = [band('node-a', t, t+.01) for t in window]
+    out = {'client_exit': exit_band, 'primary_recovery_window': recovery}
+    for label, name in [('arrival', 'request-first-byte'), ('first_response', 'response-first-byte')]:
+        events = [r for r in flow['capture_events'] if r['event'] == name]
+        result = out[label] = {'relative_to_exit': 'inconclusive', 'recovery': 'unknown'}
+        if len(events) != 1:
+            result['reason'] = 'not-observed' if not events else 'ambiguous-event'; continue
+        event = events[0]
+        # Snapshots read realtime THEN boottime. A prior snapshot's uptime is
+        # a lower bound only when the NEXT realtime read still precedes the packet.
+        epochs = [r['epoch'] for r in samples]
+        if any(not math.isfinite(t) for t in epochs) or any(a >= b for a,b in zip(epochs,epochs[1:])):
+            result['reason'] = 'realtime-discontinuity'; continue
+        earlier = [a['monotonic'] for a,b in zip(samples,samples[1:]) if b['epoch'] < event['kernel_epoch']]
+        later = [r['monotonic']+.01 for r in samples if r['epoch'] > event['kernel_epoch']]
+        if not earlier or not later: result['reason'] = 'packet-not-bracketed'; continue
+        lo, hi = earlier[-1], min(later[0], event['observed_boottime'])
+        if hi < lo: result['reason'] = 'conflicting-clocks'; continue
+        low, high = result['controller_interval'] = band('backend', lo, hi)
+        if exit_band:
+            if high < exit_band[0]: result['relative_to_exit'] = 'before'
+            if low > exit_band[1]: result['relative_to_exit'] = 'after'
+        if recovery:
+            start, end = recovery
+            result['recovery'] = ('before' if high < start[0] else 'after' if low > end[1] else
+                                  'during' if low > start[1] and high < end[0] else 'overlap')
+        elif result['relative_to_exit'] == 'before': result['recovery'] = 'before'
+    response = out['first_response']
+    out['unchanged_route_verdict'] = (response['relative_to_exit']
+        if response['recovery'] == 'before' and out['arrival']['relative_to_exit'] == 'before'
+        else 'inconclusive')
+    return out
+
+
+def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False, frontend=4):
     """No causal attribution: prove coverage and report ambiguous event association."""
     before, after = (json.loads(workload.private(path, 65536)) for path in (before_path, after_path))
     samples = workload.rows(samples_path)
     wire = None
-    requests = request_records(requests_path) if owner_log else json.loads(workload.private(requests_path))
+    requests = request_records(requests_path, frontend) if owner_log else json.loads(workload.private(requests_path))
     if set(before) not in ({'backend', 'node-a'}, {'backend', 'node-a', 'node-b'}) or set(after) != set(before):
         raise ValueError('clock_hosts')
     if owner_log and set(before) == {'backend', 'node-a'}:
@@ -255,6 +361,8 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
         end = clock_interval(request['end'], request['boot_id'], before[host], after[host])
         if request['end'] < request['start'] or not mapped[0][1] <= start[0] <= end[1] <= mapped[-1][0]:
             raise ValueError('request_outside_resource_coverage')
+        if request.get('verified_path') and mapped[-1][0] < end[1] + 5:
+            raise ValueError('primary_response_tail_incomplete')
         overlaps = []
         for index, row in enumerate(readings[1:], 1):
             if mapped[index][1] >= start[0] and mapped[index-1][0] <= end[1]:
@@ -266,15 +374,20 @@ def diagnostic_coverage(before_path, after_path, samples_path, requests_path, re
         result.append({'request_id': identity, 'estimated_controller_interval': [start[0], end[1]],
                        'clock_uncertainty_seconds': max(start[1]-start[0], end[1]-end[0]),
                        'possible_event_intervals': overlaps})
+        if wire and request.get('verified_path'):
+            flow = next(f for f in wire['requests'] if f['request_id'] == identity)
+            result[-1]['boundary_timing'] = boundary_timing(request, flow, readings, before, after)
     workload.write(receipt, {'coverage_accepted': True, 'causal_attribution': False,
                             'clock_model': 'envelope of measured pre/post offsets; intervening drift unobserved',
-                            'requests': result, 'backend_wire': wire})
+                            'requests': result, 'backend_wire': wire,
+                            'verified_paths': {r['request_id']: r['verified_path'] for r in requests if 'verified_path' in r}})
 
 if __name__ == '__main__':
     os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['ready', 'finish', 'clock', 'diagnostic-coverage', 'admit-evidence']); parser.add_argument('path', type=Path)
     parser.add_argument('receipt', type=Path, nargs='?')
+    parser.add_argument('--frontend-family', type=int, choices=(4, 6), default=4)
     parser.add_argument('--owner-log', action='store_true')
     parser.add_argument('--after', type=Path); parser.add_argument('--samples', type=Path); parser.add_argument('--requests', type=Path)
     parser.add_argument('--owner-exit', type=Path)
@@ -282,13 +395,13 @@ if __name__ == '__main__':
     try:
         if args.action == 'admit-evidence': admit_evidence(args.path)
         elif args.action == 'clock': clock_capture(args.path, args.receipt)
-        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log)
+        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log, args.frontend_family)
         elif args.action == 'ready': ready(args.path, args.receipt, args.owner_exit)
         else: finish(args.path, args.workload_result)
     except OwnerExited:
         print('owner_already_ended'); raise SystemExit(2)
     except Exception as error:
-        code = str(error) if re.fullmatch('[a-z_]{1,64}', str(error)) else 'unavailable'
+        code = str(error) if re.fullmatch(r'(?:[a-z_]{1,64}|primary_journal_exit_[0-9]{1,3})', str(error)) else 'unavailable'
         if args.action == 'diagnostic-coverage' and args.receipt and not args.receipt.exists():
             workload.write(args.receipt, {'coverage_accepted': False, 'failure': code})
         print(json.dumps({'failure_type': type(error).__name__, 'code': code})); raise SystemExit(1)

@@ -207,13 +207,14 @@ class BackendWire:
                 self.issues.add('response_header_format'); return
             self.emit({'event': 'response-headers', 'flow': flow['id'], 'status': int(match[1])})
             return
-        if lines[0] != b'GET /session_login.cgi HTTP/1.1':
+        static = lines[0] == b'GET /robots.txt HTTP/1.1'
+        if not static and lines[0] != b'GET /session_login.cgi HTTP/1.1':
             self.issues.add('unexpected_request'); return
         allowed = {'host': self.hostname, 'x-forwarded-host': self.hostname,
                    'x-forwarded-proto': 'https', 'x-forwarded-for': self.peer,
                    'accept': '*/*', 'accept-encoding': 'identity',
                    'user-agent': 'homelab-proxy-diagnostic', 'connection': 'close',
-                   'x-homelab-health': 'webmin-primary-diagnostic'}
+                   'x-homelab-health': 'webmin-browser-health' if static else 'webmin-primary-diagnostic'}
         values = {}; seen = set(); marker = None
         for line in lines[1:]:
             name, sep, value = line.partition(b':')
@@ -232,8 +233,12 @@ class BackendWire:
             if name in allowed:
                 # Retain expected constants only; arbitrary input never reaches evidence.
                 values[name] = allowed[name] if value == allowed[name].encode() else 'unexpected'
+        health = values.get('x-homelab-health') == allowed['x-homelab-health']
+        if ((static and not health) or ('x-homelab-health' in seen and
+                (not health or 'x-homelab-diagnostic' in seen))):
+            self.issues.add('ambiguous_request_contract'); return
         self.emit({'event': 'request-headers', 'flow': flow['id'], 'request_id': marker,
-                   'kind': 'marked' if marker else 'health' if values.get('x-homelab-health') == 'webmin-primary-diagnostic' else 'unmarked-login', 'headers': values})
+                   'kind': 'marked' if marker else 'health' if health else 'unmarked-login', 'headers': values})
 
     def finish(self, drops):
         if drops:

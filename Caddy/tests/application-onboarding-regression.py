@@ -152,7 +152,7 @@ def validation_tools_tests():
     names = re.findall(r'^(application_validation_[a-z_]+)\(\) \{', source, re.M)
     names += ['regular_file', 'path_absent', 'release_identifier', 'require', 'require_equal',
               'certificate_setting', 'certificate_hash', 'certificate_release_integrity',
-              'application_fragment', 'application_baseline', 'application_restore', 'application_trial_inventory',
+              'application_fragment', 'application_baseline', 'application_recovery_clock', 'application_restore', 'application_trial_inventory',
               'application_trial_wait_idle', 'application_trial_contain', 'application_trial_quiesce',
               'application_trial_restore', 'application_trial_resume', 'capture_command',
               'require_exact_directory_inventory', 'require_empty_or_absent_sync_directory']
@@ -439,6 +439,19 @@ application_routes
                 assert narrow_run.returncode == 0, narrow_run.stderr
                 assert (narrow/'application-node-ipv4.stdout').read_text() == '200\n'
                 assert not (narrow/'application-node-ipv6.stdout').exists()
+                mixed = root/'primary-v6-pi-v4'; mixed.mkdir()
+                mixed_script = narrow_script.replace('in application_diagnostic_scope)', 'in application_diagnostic_frontend_family) echo 6;; application_diagnostic_scope)')
+                argv = root/'curl.argv'
+                with_trace = curl.read_text().replace('#!/bin/sh', '#!/bin/sh\nprintf "%s\\n" "$@" >> '+shlex.quote(str(argv)))
+                curl.write_text(with_trace)
+                run = subprocess.run(['bash', '-c', mixed_script, 'probe', str(mixed), str(journal), str(curl)], capture_output=True, text=True)
+                assert run.returncode == 0, run.stderr
+                args = argv.read_text().splitlines()
+                assert args.count('-6') == 1 and '-4' not in args
+                assert args[args.index('--resolve')+1] == 'webmin.example:443:[fd36:5aa8:6971:1::53]'
+                assert args[args.index('--max-time')+1] == '5' and args[-1] == 'https://webmin.example/session_login.cgi'
+                assert 'X-Homelab-Diagnostic: '+(mixed/'application-node-ipv6.request-id.tsv').read_text().strip() in args
+                assert not (mixed/'application-node-ipv4.stdout').exists()
             assert 'total=5' in (evidence/'application-node-ipv4.timing.tsv').read_text()
             if code:
                 retained = (evidence/'application-node-ipv4-journal.stdout').read_text()
@@ -1190,6 +1203,9 @@ def suite(primary_tools_only=False):
             recipe.write_text(recipe.read_text()+'application_diagnostic_seconds\t240\n')
         if scenario in NARROW:
             recipe.write_text(recipe.read_text()+'application_diagnostic_scope\tprimary-ipv4\n')
+            owner_recipe = (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()
+            if 'application_diagnostic_frontend_family\t6' in owner_recipe:
+                recipe.write_text(recipe.read_text()+'application_diagnostic_frontend_family\t6\n')
         if scenario in TRIALS or scenario in NARROW:
             # Exercise actual tool delivery, not preinstalled candidate tools.
             # A distinct old finalizer makes replacement/restoration observable.

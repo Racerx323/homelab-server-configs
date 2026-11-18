@@ -174,6 +174,20 @@ class DiagnosticTests(unittest.TestCase):
                 root.chmod(0o755)
                 with self.assertRaises(ValueError): path_probe.observe(root, seconds=.01)
 
+    def test_static_health_is_never_a_foreground_marker(self):
+        out = io.StringIO()
+        observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')
+        observer.packet_epoch = 1
+        health = b'GET /robots.txt HTTP/1.1\r\nX-Homelab-Health: webmin-browser-health'
+        marker = b'X-Homelab-Diagnostic: '+b'a'*32
+        observer.headers({'id': 1}, 'request', health)
+        observer.headers({'id': 2}, 'request', b'GET /session_login.cgi HTTP/1.1\r\n'+marker)
+        self.assertFalse(observer.issues)
+        observer.headers({'id': 3}, 'request', health+b'\r\n'+marker)
+        self.assertIn('ambiguous_request_contract', observer.issues)
+        self.assertEqual([(r['kind'], r['request_id']) for r in map(json.loads, out.getvalue().splitlines())],
+                         [('health', None), ('marked', 'a'*32)])
+
     def test_backend_wire_segmented_headers_and_privacy(self):
         out = io.StringIO()
         observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')

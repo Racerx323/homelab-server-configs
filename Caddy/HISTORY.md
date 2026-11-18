@@ -4,6 +4,18 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 18 primary IPv6 Webmin measurement
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-primary-v6-measurement-terminal-2026-11-18`
+
+The marked primary IPv6 request reached the Pi over IPv4 and returned HTTP
+200 in 2.357 seconds. The primary and Pi restored their baselines; the
+primary monitor passed. This accepts only the measurement. Secondary
+convergence and browser acceptance were outside scope; the earlier timeout
+remains unexplained.
+
 ## November 18 Webmin sender handoff browser trial
 
 Status: terminal-pending

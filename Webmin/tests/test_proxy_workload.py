@@ -150,11 +150,13 @@ class Acceptance(unittest.TestCase):
         samples = [dict(clock='linux-boottime', monotonic=1001+i, boot_id=boot, event_delta={unit: {'status': 'comparable', 'events': {'oom_kill': 0}}
                    for unit in ('webmin.service', 'uptime-kuma.service')}) for i in range(25)] + [{'terminal': True}]
         request = [dict(request_id='a'*32, node='node-a', boot_id=boot, start=1010, end=1015)]
-        for case in ('primary-pass', 'primary-wrong-node', 'pass', 'late', 'boot', 'gap', 'missing', 'uncertain', 'reset'):
+        for case in ('primary-pass', 'primary-wrong-node', 'primary-short-tail', 'pass', 'late', 'boot', 'gap', 'missing', 'uncertain', 'reset'):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
                 root = Path(name); b, a, rows, req = map(copy.deepcopy, (before, after, samples, request))
                 if case.startswith('primary-'):
                     b.pop('node-b'); a.pop('node-b')
+                    if case in ('primary-pass', 'primary-short-tail'): req[0]['verified_path'] = 'primary-ipv6/pi-ipv4'
+                    if case == 'primary-short-tail': req[0]['end'] = 1023
                     if case == 'primary-wrong-node': req[0]['node'] = 'node-b'
                 if case == 'late': req[0]['end'] = 1028
                 if case == 'boot': a['backend']['boot_id'] = 'different'
@@ -211,6 +213,24 @@ class Acceptance(unittest.TestCase):
                             h.diagnostic_coverage(root/'before', root/'after', root/'samples', root/'owner', root/'receipt', True)
                         self.assertFalse((root/'receipt').exists())
 
+    def test_packet_order_and_primary_restoration(self):
+        clocks = lambda t: {host: dict(clock='linux-boottime', monotonic=t, controller_begin=t,
+            controller_end=t+.1, boot_id='boot') for host in ('node-a', 'backend')}
+        samples = [dict(epoch=1000+t, monotonic=t) for t in range(30)]
+        req = dict(start=5, end=10.1, curl_total=5, recovery_window=[15, 21])
+        def event(name, t):
+            return dict(event=name+'-first-byte', kernel_epoch=1000+t, observed_boottime=t+.05)
+        for t, relation, recovery, verdict in [(8,'before','before','before'), (10.2,'inconclusive','before','inconclusive'),
+                (13,'after','before','after'), (16,'after','overlap','inconclusive'),
+                (19,'after','during','inconclusive'), (25,'after','after','inconclusive')]:
+            flow = {'capture_events': [event('request', 6), event('response', t)]}
+            row = h.boundary_timing(req, flow, samples, clocks(0), clocks(30))
+            self.assertEqual((row['first_response']['relative_to_exit'], row['first_response']['recovery'],
+                              row['unchanged_route_verdict']), (relation, recovery, verdict))
+        row = h.boundary_timing(req, {'capture_events':[event('request', 6)]}, samples, clocks(0), clocks(30))
+        self.assertEqual(row['first_response']['reason'], 'not-observed')
+        self.assertEqual(row['unchanged_route_verdict'], 'inconclusive')
+
     def test_request_index_checks_real_readback_encoding_and_node_identity(self):
         import base64, hashlib
         with contextlib.ExitStack() as cleanup:
@@ -224,6 +244,30 @@ class Acceptance(unittest.TestCase):
                 return 'file=application-requests.tsv bytes='+str(len(raw))+' sha256='+hashlib.sha256(raw).hexdigest()+'\n'+base64.b64encode(raw).decode()+'\n'
             w.atomic_text(directory/'application-primary-a-readback.stdout', stream(record))
             self.assertEqual(h.request_records(directory/'owner.log')[0]['start'], 1001)
+            marker = 'a'*32
+            def field(name, value):
+                return stream(value).replace('file=application-requests.tsv ', 'file='+name+' ', 1)
+            primary = directory/'application-primary-a-readback.stdout'
+            base = stream(record)+field('application-node-ipv6.request-id.tsv', marker)+field(
+                'application-node-ipv6.timing.tsv', 'total=0.98 remote_ip=fd36:5aa8:6971:1::53 remote_port=443')+field(
+                'application-recovery-clock.tsv', 'application-primary:start 1002.12\napplication-primary:end 1004.03\n')
+            for upstream in ['10.1.3.75:10000', '[fd36:5aa8:6971:1::75]:10000']:
+                primary.write_text(base+field('application-node-ipv6-journal.status', '0\n')+field('application-node-ipv6-journal.stdout', json.dumps([
+                    {'request_id': marker, 'upstream': upstream}])))
+                if upstream.startswith('['):
+                    with self.assertRaisesRegex(ValueError, 'path_unconfirmed'): h.request_records(directory/'owner.log', 6)
+                else:
+                    parsed = h.request_records(directory/'owner.log', 6)[0]
+                    self.assertEqual((parsed['verified_path'], parsed['curl_total'], parsed['recovery_window']),
+                                     ('primary-ipv6/pi-ipv4', .98, [1002.12, 1004.03]))
+            journal = field('application-node-ipv6-journal.stdout', json.dumps([
+                {'request_id': marker, 'upstream': '10.1.3.75:10000'}]))
+            for status, error in [(None, 'status_missing'), ('invalid', 'status_invalid'), ('1\n', 'exit_1')]:
+                with self.subTest(status=status):
+                    primary.write_text(base+journal+(field('application-node-ipv6-journal.status', status) if status else ''))
+                    with self.assertRaisesRegex(ValueError, '^primary_journal_'+error+'$'):
+                        h.request_records(directory/'owner.log', 6)
+            primary.write_text(stream(record))
             w.atomic_text(directory/'application-result-a-readback.stdout', stream(record))
             self.assertEqual(len(h.request_records(directory/'owner.log')), 1)
             path = directory/'application-result-a-readback.stdout'

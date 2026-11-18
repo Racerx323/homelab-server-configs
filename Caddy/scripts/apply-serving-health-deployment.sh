@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=7beb9a0c1145dd58742f892cf1fc0cacaf1d1976ab13cbbd9342e03e12687884
+readonly certificate_inputs_sha256=b2d37750be8c67bc4d5cf1d7a7b1686cd31f69b32262e7fdaf043f6c6d61677c
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1214,12 +1214,13 @@ application_failure_journal() {
 
 application_routes() {
     local app_address app_family app_host app_code app_endpoint=${1:-node}
-    local app_probe_rc app_probe_epoch app_label app_request_id
+    local app_probe_rc app_probe_epoch app_label app_request_id app_frontend
+    app_frontend=$(certificate_setting application_diagnostic_frontend_family 2>/dev/null) || app_frontend=
     app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
         if [[ "$(certificate_setting application_diagnostic_scope 2>/dev/null)" = primary-ipv4 ]]; then
             [[ "$node_role" = node-a && "$app_endpoint" = node ]] || return 1
-            [[ "$app_family" = 4 ]] || continue
+            [[ "$app_family" = "${app_frontend:-4}" ]] || continue
         fi
         if [[ "$app_endpoint" = shared ]]; then
             app_address=10.1.0.56
@@ -1277,8 +1278,15 @@ application_selected() {
     sha256sum "$releases_root/$app_selected/manifest.sha256" | awk '{print $1}' >"$evidence_root/application-manifest.tsv"
 }
 
+# Timing is observational: a missing receipt must never prevent restoration.
+application_recovery_clock() {
+    [[ "$node_role" = node-a && "$(certificate_setting application_diagnostic_frontend_family 2>/dev/null)" = 6 ]] || return 0
+    awk -v phase="$mode:$1" '{print phase, $1}' /proc/uptime >>"$evidence_root/application-recovery-clock.tsv" || :
+}
+
 application_restore() {
     local app_restore_revision=$1 app_restore_base app_restore_current app_restore_pending
+    application_recovery_clock start
     app_restore_base=$releases_root/$(certificate_setting baseline_revision) || return 1
     app_restore_current=$(readlink -f /etc/caddy/current) || return 1
     [[ "$app_restore_current" = "$app_restore_base" || "$app_restore_current" = "$releases_root/$app_restore_revision" ]] || return 1
@@ -1296,6 +1304,7 @@ application_restore() {
     capture_command application-restore-reload "$systemctl_command" reload caddy.service || return 1
     require_equal application_restored "$app_restore_base" "$(readlink -f /etc/caddy/current)" || return 1
     certificate_serving_check || return 1
+    application_recovery_clock end
     printf 'restored\n' >"$evidence_root/application-recovery.tsv"
 }
 
@@ -1325,6 +1334,7 @@ application_trial_admit() {
 }
 
 application_trial_contain() {
+    application_recovery_clock start
     # This marker also rejects a delayed activation/exposure invocation.
     : >"$payload_root/application-trial-cancelled"
     if application_validation_enabled && [[ -z "$target_revision_argument" && ! -f "$payload_root/validation-tools/ready" ]]; then return 0; fi
@@ -1588,6 +1598,10 @@ certificate_payload() {
         fi
         if grep -q '^validation_tools_trial' "$cert_contract"; then
             application_validation_payload || return 1
+        fi
+        if grep -q '^application_diagnostic_frontend_family' "$cert_contract"; then
+            [[ "$(certificate_setting application_diagnostic_frontend_family)" = 6 &&
+            "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]] || return 1
         fi
         if grep -q '^application_diagnostic_scope' "$cert_contract"; then
             [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]]

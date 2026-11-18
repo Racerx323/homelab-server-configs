@@ -26,6 +26,9 @@
       ansible.builtin.assert:
         that:
           - (proxy_trial.primary_ipv4 | default(false) | bool) == ('application_diagnostic_scope\tprimary-ipv4' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines())
+          - (proxy_trial.diagnostic_frontend_family | default(4)) in [4, 6]
+          - (proxy_trial.diagnostic_frontend_family | default(4) == 6) == ('application_diagnostic_frontend_family\t6' in lookup('ansible.builtin.file', fleet_server_root ~ '/Caddy/manifests/certificate-release-inputs.tsv').splitlines())
+          - (proxy_trial.diagnostic_frontend_family | default(4) != 6) or (proxy_trial.primary_ipv4 | default(false) | bool)
     - name: Bind the primary-only diagnostic before any target command
       when: proxy_trial.primary_ipv4 | default(false) | bool
       ansible.builtin.assert:
@@ -274,7 +277,7 @@
                        '{{ operation_evidence_directory }}/clock-before.json', '{{ operation_evidence_directory }}/diagnostic-coverage.json',
                        --after, '{{ operation_evidence_directory }}/clock-after.json',
                        --samples, '{{ operation_evidence_directory }}/backend-resource-samples.jsonl',
-                       --requests, '{{ operation_evidence_directory }}/caddy.stdout', --owner-log]
+                       --requests, '{{ operation_evidence_directory }}/caddy.stdout', --owner-log, --frontend-family, '{{ proxy_trial.diagnostic_frontend_family | default(4) }}']
               delegate_to: localhost
               become: false
               changed_when: false

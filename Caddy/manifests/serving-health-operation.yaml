@@ -1,20 +1,20 @@
 schema_version: 2
-action: 20261118-webmin-sender-handoff-browser-trial
+action: 20261118-webmin-primary-v6-pi-v4-measurement
 status: defined-unexecuted
 scope: application-onboarding
-qualification_profile: paired-application
+qualification_profile: primary-validation-diagnostic
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: ca5b10e0c00658ef629415c140987770eb1ca7ce69014fd7a72a6b8cd02d7ac5
+transaction_sha256: f21fb7ccbb78a8232c135222811f22ac73d0c3df02dc563eed8e12ac113755a8
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-production_contract: Caddy/manifests/serving-health-production.tsv
-certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
 state_contract_sha256: 30bb88e35955d346c87e41025501b057fac7277377cdd790c90bada2da191ef3
+production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e5621ab970aa9131
-certificate_inputs_sha256: 7beb9a0c1145dd58742f892cf1fc0cacaf1d1976ab13cbbd9342e03e12687884
-coverage_sha256: f36061fe41dab2b715d769d5e9511a707adace0e68386b506bca0f288e52d2e0
+certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
+certificate_inputs_sha256: b2d37750be8c67bc4d5cf1d7a7b1686cd31f69b32262e7fdaf043f6c6d61677c
+coverage_sha256: 2eca8c8377fc46ad9e7025c6f74d5b83d6fd068e5ecf792b0ce08819b4c04ce7
 regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: fc04caa93d1e811f68feb08514340cb9dd56c30e234fb670a6f78280a941470e
+fixture_sha256: 75aa92e71840d0efded6fd1fb0998bac9f691c3d1748b2a7941a8fb4fc3183f0
 qualification_launcher_sha256: 675311714d48d7230032e99e6f9912721b9547caa79cbaebad49f35e43b63616
 authorization_policy_sha256: 6c1f687ef421a88d463f26b4fe446535452caa954e069cc73076c6257e7128e6
 implementation:
@@ -22,34 +22,43 @@ implementation:
   copy_per_action: prohibited
 targets:
 - pi@10.1.0.53
-- pi@10.1.0.54
 mutation:
-- deliver application and temporary validator tools to primary only; secondary receives
-  control metadata
-- preserve primary installed callers; install helper first with exact source and prior
-  identities
-- activate and verify on primary, resume and verify sender before exposure; independently
-  accept secondary
-- retain existing TLS and unrelated routes; expose temporary paired browser route
+- stage the application payload and bound validation tools only on the primary; no
+  secondary contact
+- preserve installed callers before helper-first temporary installation; keep publisher
+  payload-local
+- append the bound Webmin fragment using one IPv4 upstream and the existing temporary
+  backend profile; use host-specific temporary CPU200 profile
+- activate and probe locally; stop before replication exposure on success or failure
 acceptance:
-- exact host/configuration/tool identities and fresh per-operation boot continuity
-- paired dual-stack HTTP and existing route checks
-- parent governs six browser paths, existing ama statistics WebSockets, prior-session
-  denial and guarded scan overlap
-- 660-second owner exposure; unchanged browser parent and recovery limits
-- restore after either acceptance or failure; trial does not permanently promote route
+- fresh operation boot continuity and exact host/configuration/installed-tool identities
+- One marked primary IPv6 HTTPS login request and existing serving-route checks; confirm
+  selected Pi IPv4 upstream.
+- retain direct/proxy request markers, backend-interface header comparisons and native
+  timestamps
+- retain bounded resource intervals and possible marked health-probe overlap without
+  causal attribution
+- one 240-second forward budget; recovery and readback share the unchanged aggregate
+  840-second cutoff
+- no application acceptance claim; restore after either probe result
+- Five-second client deadline; separate static health, direct admission, Pi arrival/first
+  response and primary recovery timing.
 recovery:
-- explicit empty-ID primary tool restoration and both payload cleanup before exposure
-- 'after release ID: contain and quiesce both nodes, restore B then A and admitted
-  outbound inventories'
-- restore primary callers before removing helper; secondary callers remain unchanged
-- resume transport and observe natural monitor acceptance on both nodes; report 125
-  when unproved
-- independent Webmin owner restores backend and original CPU profile within its existing
-  1800-second timer
+- restore original callers before removing the temporary helper, including failure
+  before a release ID
+- contain the unexposed child on the primary; quiesce and restore its exact original
+  selection and outbound inventory
+- resume primary transport and observe fresh natural monitor cycles before readback
+- report 125 if recovery or monitor acceptance is unproved; do not replay
+- native Webmin loopback restoration remains independently governed by the parent
+  and 1800-second timer
 excluded:
-- DNS, reboot, forced failover, certificate replacement, unrelated tool changes and
-  publication
-- new accounts, ACL changes, terminal workloads, monitors and alerts
-- permanent route, CPU or validator promotion
+- DNS, reboot, forced failover, certificate replacement and unrelated installed-tool
+  replacement
+- backend mutation outside the separately bound Webmin parent
+- account creation, ACL changes, terminals, monitors, alerts and synthetic notifications
+- unrelated route or radio changes and Git publication
+- secondary SSH/upload/admission/activation/recovery, release exposure and replication
+  progression
+- passwords, browser/graphs/WebSocket workload, needrestart scan and permanent promotion
 live_execution: requires-exact-outer-sha256-approval-with-combined-parent
