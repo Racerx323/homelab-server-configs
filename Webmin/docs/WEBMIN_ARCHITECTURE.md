@@ -122,6 +122,31 @@ qualification before exposure. Never disable authentication, global referer
 checks or backend TLS verification as a shortcut. A host's private login and
 browser-path acceptance remain distinct from Caddy configuration validity.
 
+### TLS on both connections
+
+The workstation connects to the cluster VIP on port 443 and verifies Caddy's
+certificate for the browser hostname. Caddy terminates that TLS session so it
+can proxy the HTTP request or WebSocket upgrade. The serving Caddy node then
+acts as a TLS client: it connects directly to the selected Webmin host on port
+10000 and verifies the certificate presented by Webmin's native HTTPS listener.
+This keeps administrator passwords and sessions encrypted on the LAN. Caddy
+remains a trusted endpoint that can read the requests.
+
+Webmin holds its own server private key. Do not distribute the frontend TLS
+key to fleet hosts. Both Caddy nodes must trust the backend issuer and verify
+the expected certificate identity. When dialing a fixed IP with a DNS-name
+certificate, set the upstream TLS server name to a DNS subject alternative
+name on that certificate; this does not require another browser DNS record.
+Keep the external hostname for Webmin redirects and referrer checks. Never
+dial the frontend VIP as the upstream, disable verification, or fall back to
+HTTP. Source restrictions still apply.
+
+For each host, identify the certificate issuer, identity, renewal owner and
+how both proxies receive any required public CA certificate before activation.
+The first Pi's issuer and backend certificate have not been established.
+See [Caddy upstream TLS](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#the-http-transport)
+and [Webmin SSL encryption](https://webmin.com/docs/modules/webmin-configuration/#ssl-encryption).
+
 The browser profile explicitly enables native referrer checks (`referer=0`),
 preserves the host's missing-referrer policy (`referers_none`, where `1` rejects
 missing referrers on protected actions), and adds only the selected trusted browser

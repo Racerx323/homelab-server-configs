@@ -1,57 +1,14 @@
 schema_version: 2
-action: 20261118-webmin-paired-final-timing-trial
-status: defined-unexecuted
-scope: application-onboarding
-qualification_profile: paired-application
+action: none
+status: inactive
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: d1d7a41f8b54f5aac4cabfcd1e7511111b53bf3205529a6b8198eacb9c625d56
+transaction_sha256: afa26f57ccfe87dc63fb766ca2cd80f865bf068b8aa1781ffbee2f848d3b78f6
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
-production_contract: Caddy/manifests/serving-health-production.tsv
-certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
 state_contract_sha256: 30bb88e35955d346c87e41025501b057fac7277377cdd790c90bada2da191ef3
+production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e5621ab970aa9131
-certificate_inputs_sha256: 7beb9a0c1145dd58742f892cf1fc0cacaf1d1976ab13cbbd9342e03e12687884
-coverage_sha256: f36061fe41dab2b715d769d5e9511a707adace0e68386b506bca0f288e52d2e0
-regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: 75aa92e71840d0efded6fd1fb0998bac9f691c3d1748b2a7941a8fb4fc3183f0
-qualification_launcher_sha256: 675311714d48d7230032e99e6f9912721b9547caa79cbaebad49f35e43b63616
-authorization_policy_sha256: 6c1f687ef421a88d463f26b4fe446535452caa954e069cc73076c6257e7128e6
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
-targets:
-- pi@10.1.0.53
-- pi@10.1.0.54
-mutation:
-- deliver application and temporary validator tools to primary only; secondary receives
-  control metadata
-- preserve primary installed callers; install helper first with exact source and prior
-  identities
-- activate and verify on primary, resume and verify sender before exposure; independently
-  accept secondary
-- retain existing TLS and unrelated routes; expose temporary paired browser route
-acceptance:
-- exact host/configuration/tool identities and fresh per-operation boot continuity
-- paired dual-stack HTTP and existing route checks
-- correlate only the final primary IPv6 marker with its journal-selected Pi upstream
-  and packet timing before private browser workload
-- parent governs six browser paths, existing ama statistics WebSockets, prior-session
-  denial and guarded scan overlap
-- 660-second owner exposure; unchanged browser parent and recovery limits
-- restore after either acceptance or failure; trial does not permanently promote route
-recovery:
-- explicit empty-ID primary tool restoration and both payload cleanup before exposure
-- 'after release ID: contain and quiesce both nodes, restore B then A and admitted
-  outbound inventories'
-- restore primary callers before removing helper; secondary callers remain unchanged
-- resume transport and observe natural monitor acceptance on both nodes; report 125
-  when unproved
-- independent Webmin owner restores backend and original CPU profile within its existing
-  1800-second timer
-excluded:
-- DNS, reboot, forced failover, certificate replacement, unrelated tool changes and
-  publication
-- new accounts, ACL changes, terminal workloads, monitors and alerts
-- permanent route, CPU or validator promotion
-live_execution: requires-exact-outer-sha256-approval-with-combined-parent
+live_execution: no-operation-defined

@@ -16,18 +16,23 @@ change record for its inputs, decisions and results.
 1. Select the host and approved browser name. Collect the [per-host inputs](#shared-contract-and-per-host-inputs)
    and [readiness evidence](#required-readiness-evidence-for-every-host), including
    the installed service controls and each proxy's route-selected source addresses.
-2. Prepare guarded ingress, one route fragment, a cheap unauthenticated health
-   request and a separate foreground login check. Select a
-   [safe WebSocket method](#safe-websocket-method-for-each-host) for the existing account.
-   Bind the host's acceptance and restoration criteria before exposure.
-3. Follow [the owner execution sequence](#execute-through-existing-owners).
-   For a temporary trial, restore and verify both owner baselines even on success.
-   A restored trial is not a deployed route. Permanent activation needs its own
-   authority and an accepted serving route before DNS progression.
-4. Close only after ordinary-name browser acceptance from an intended client.
-   Record the accepted host, name, and recovery path in inventory and operations.
-   If a gate fails, record the last observed state and follow [recovery](#failure-and-recovery).
-   The diagnostic sections below apply only to the specific failure under review.
+2. Select one upstream address for the Webmin instance unless the host has a
+   documented need for two. Client IPv4/IPv6 access at the VIP is independent
+   of the upstream family. Select verified backend TLS for the first Pi;
+   establish certificate identity and trust before exposing login.
+3. Use the [existing owners](#execute-through-existing-owners) to deliver
+   persistent changes. Define what makes each step safe to leave in place and
+   which failure requires withdrawal. Keep verified steps if a later step is
+   pending and their security, health and recovery conditions still hold.
+4. Accept the user path with one ordinary workstation browser session through
+   the VIP. Keep resource/scan coexistence as a separate promotion decision.
+   If a check repeatedly prevents reaching the browser, review whether it
+   belongs in the onboarding contract before building another test.
+
+The first-Pi trial material below records diagnostic methods. Its paired
+launcher, six browser paths, timed scan and unconditional restoration are
+not prerequisites for routine onboarding. A temporary diagnostic still
+expires and restores exactly as authorized.
 
 ## Shared contract and per-host inputs
 
@@ -41,7 +46,7 @@ backend pool across unrelated hosts. Preserve unrelated Caddy routes and TLS.
 | Target identity | Existing SSH key pin and exact native hostname from accepted evidence; keep the DNS FQDN separate. One explicitly selected host per operation. |
 | Browser hostname | Approved per-host hostname; `webmin-j2-svpi3bmf.local.theama.co` is approved for the first host. |
 | Backend addresses/port | Explicit target addresses and observed Webmin listener; never infer the target from another application's DNS alias. |
-| Backend transport | Bind the reviewed HTTP or verified HTTPS contract. Keep the existing fleet LAN trust boundary explicit; never use `tls_insecure_skip_verify` or silently replace certificates. |
+| Backend transport | Use [verified upstream HTTPS](WEBMIN_ARCHITECTURE.md#tls-on-both-connections). Record the backend certificate identity, issuer, renewal owner and trust on both proxies. |
 | Allowed sources | Exact Caddy node/active-VIP source identities observed for this host, plus loopback recovery; client-network allowlist belongs at Caddy. |
 | Account policy | Existing host Webmin/Unix authentication; no new accounts, password collection, root-login assumption or auth bypass. |
 | Baseline and recovery | Current selected settings, file identities, service/resource controls, accepted parent release and exact per-host backups. |
@@ -174,21 +179,27 @@ capture and are included in the reviewed change's acceptance and recovery scope.
 3. Verify trusted HTTPS to both nodes and the shared endpoint before DNS using
    the approved name for TLS/Host. Preserve existing route checks and bounded
    convergence. Require useful expected/observed failure reports.
-4. Complete private operator login, application/session and applicable WebSocket
-   acceptance outside a timed human-attendance window. No password/token appears
-   in command arguments, evidence or chat. Do not start a root terminal command
-   merely to prove a WebSocket; qualify transport without administrative side effects.
-5. Deploy DNS through its existing owner sequence. Finish with ordinary-name
-   HTTPS and browser access from intended client networks over both families,
-   without a tunnel. Record only the actual host/route acceptance in inventory.
+4. Satisfy the DNS owner's pre-publication checks using the approved hostname
+   and a workstation-only VIP mapping if needed. Publish through the fleet DNS
+   procedure only when its prerequisites pass. Confirm normal DNS, trusted HTTPS
+   and reachability from intended IPv4 and IPv6 clients.
+5. In one ordinary workstation session through the named VIP, log in with the
+   existing account, use the approved feature (on the Pi: System Information
+   live graphs), log out, and verify the protected page requires login again.
+   Record the first failing step; never retain credentials or session tokens.
 
 ## Failure and recovery
 
-A failed prerequisite stops before mutation. A backend change requires exact
-saved configuration and native service recovery; preserve data/accounts and
-verify the previous access path. Caddy failure follows its existing primary-first
-recovery/partial-state rules. DNS proceeds only after application acceptance.
-Do not restore other hosts or the accepted Kuma route as a Webmin recovery step.
+Stop progression on a failed prerequisite. A later DNS or browser problem does
+not by itself require reverting a healthy, source-restricted backend with working
+recovery access. Keep completed steps in inventory with their actual status.
+Contain unsafe exposure immediately. Loss of recovery access, damage to
+existing routes, failed convergence, or host instability requires the affected
+owner's containment or rollback; verify the resulting state. On an OOM or
+service restart during ordinary use, stop the trial and withhold promotion.
+Preserve unrelated services. If a step cannot safely stand alone, include its
+dependency in the same change or defer that step. Never retain a trial-only
+listener, quota override or route beyond its authorization.
 
 When writes, identity or recovery are uncertain, stop and retain precise evidence.
 Do not replay consumed operations, force failover or automatically weaken source,
