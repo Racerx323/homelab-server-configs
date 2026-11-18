@@ -4,6 +4,18 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 18 paired Webmin final-request timing trial
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-paired-final-timing-terminal-2026-11-18`
+
+The release converged before the final HTTPS checks timed out. The marked
+primary request reached the Pi over IPv4; the capture saw no response payload
+on that connection. Both proxies passed restoration and monitor checks, and
+the Pi restored its loopback baseline. Browser and scan did not start.
+AC-013 remains pending. The timeout cause is unconfirmed.
+
 ## November 18 primary IPv6 Webmin measurement
 
 Status: terminal-pending

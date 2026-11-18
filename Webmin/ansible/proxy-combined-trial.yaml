@@ -17,6 +17,17 @@
           - proxy_trial.operator_ready | bool
           - proxy_caddy.argv | length == 2
           - "'CADDY_CERTIFICATE_TEST_SCOPE' not in proxy_caddy.environment"
+    - name: Bind paired timing to the browser trial and both real primary backends
+      when: proxy_trial.paired_final_timing | default(false) | bool
+      ansible.builtin.assert:
+        that:
+          - not (proxy_trial.diagnostic_only | default(false) | bool)
+          - not (proxy_trial.primary_ipv4 | default(false) | bool)
+          - proxy_trial.paths[0].id == 'a-ipv4' and proxy_trial.paths[0].address == '10.1.3.75'
+          - (proxy_trial.paths | selectattr('id', 'equalto', 'a-ipv6') | list | first).address == 'fd36:5aa8:6971:1::75'
+          - (proxy_trial.paths | selectattr('id', 'equalto', 'a-ipv4') | list | first).source == '10.1.0.53'
+          - (proxy_trial.paths | selectattr('id', 'equalto', 'a-ipv6') | list | first).source == 'fd36:5aa8:6971:1::56'
+          - (lookup('ansible.builtin.file', proxy_trial.diagnostic_spec) | from_json).scope == 'paired-final'
     - name: Bind diagnostic-only work to the Caddy owner aggregate deadline
       when: proxy_trial.diagnostic_only | default(false) | bool
       ansible.builtin.assert:
@@ -114,7 +125,7 @@
             group: root
             mode: '0600'
         - name: Capture bounded pre-operation clock uncertainty on the selected hosts
-          when: proxy_trial.diagnostic_only | default(false) | bool
+          when: (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial.paired_final_timing | default(false) | bool)
           ansible.builtin.command:
             argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', clock,
                    '{{ proxy_trial.diagnostic_spec }}', '{{ operation_evidence_directory }}/clock-before.json']
@@ -122,19 +133,20 @@
           become: false
           changed_when: false
         - name: Start bounded diagnostic resource sampling before Caddy activation
-          when: proxy_trial.diagnostic_only | default(false) | bool
+          when: (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial.paired_final_timing | default(false) | bool)
           ansible.builtin.command:
             argv: >-
               {{ ['/usr/bin/python3', proxy_trial.work_directory ~ '/probe-proxy-path.py',
                   '--observe-directory', proxy_trial.work_directory] +
                  (['--wire-peer', proxy_trial.paths[0].source, '--wire-backend', proxy_trial.paths[0].address,
-                   '--wire-hostname', proxy_trial.browser_hostname] if proxy_trial.primary_ipv4 | default(false) | bool else []) }}
+                   '--wire-hostname', proxy_trial.browser_hostname] if (proxy_trial.primary_ipv4 | default(false) | bool or proxy_trial.paired_final_timing | default(false) | bool) else []) +
+                 (['--wire6', 'fd36:5aa8:6971:1::56', 'fd36:5aa8:6971:1::75'] if proxy_trial.paired_final_timing | default(false) | bool else []) }}
           async: 310
           poll: 0
           register: proxy_trial_resource_job
           changed_when: false
         - name: Require a usable resource baseline before Caddy activation
-          when: proxy_trial.diagnostic_only | default(false) | bool
+          when: (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial.paired_final_timing | default(false) | bool)
           ansible.builtin.stat:
             path: '{{ proxy_trial.work_directory }}/resource-ready'
           register: proxy_trial_resource_ready
@@ -174,6 +186,24 @@
         - ansible.builtin.assert:
             that: [proxy_trial_caddy_ready.rc == 0]
           when: not (proxy_trial.primary_ipv4 | default(false) | bool)
+        - name: Close the paired timing capture before submitting private credentials
+          when: proxy_trial.paired_final_timing | default(false) | bool
+          block:
+            - name: Allow five seconds of packet coverage beyond final readback
+              ansible.builtin.pause:
+                seconds: 5
+            - ansible.builtin.copy:
+                content: stop
+                dest: '{{ proxy_trial.work_directory }}/resource-stop'
+                mode: '0600'
+            - ansible.builtin.async_status:
+                jid: '{{ proxy_trial_resource_job.ansible_job_id }}'
+              register: proxy_trial_prebrowser_capture
+              until: proxy_trial_prebrowser_capture.finished | default(false)
+              retries: 5
+              delay: 1
+            - ansible.builtin.assert:
+                that: [proxy_trial_prebrowser_capture.rc == 0]
         - ansible.builtin.set_fact: {proxy_trial_workload_entered: true}
           when: not (proxy_trial.diagnostic_only | default(false) | bool)
         - name: Supervise the single observer and private statistics client
@@ -241,16 +271,23 @@
               delegate_to: localhost
               become: false
             - name: Retain bounded backend wire evidence for the primary diagnostic
-              when: proxy_trial.primary_ipv4 | default(false) | bool
+              when: (proxy_trial.primary_ipv4 | default(false) | bool) or (proxy_trial.paired_final_timing | default(false) | bool)
               ansible.builtin.fetch:
                 src: '{{ proxy_trial.work_directory }}/backend-wire.jsonl'
                 dest: '{{ operation_evidence_directory }}/backend-wire.jsonl'
                 flat: true
-            - name: Protect the retained wire receipt
-              when: proxy_trial.primary_ipv4 | default(false) | bool
+            - name: Retain the primary IPv6 backend timing for paired selection
+              when: proxy_trial.paired_final_timing | default(false) | bool
+              ansible.builtin.fetch:
+                src: '{{ proxy_trial.work_directory }}/backend-wire6.jsonl'
+                dest: '{{ operation_evidence_directory }}/backend-wire6.jsonl'
+                flat: true
+            - name: Protect each retained wire receipt
+              when: (proxy_trial.primary_ipv4 | default(false) | bool) or (proxy_trial.paired_final_timing | default(false) | bool)
               ansible.builtin.file:
-                path: '{{ operation_evidence_directory }}/backend-wire.jsonl'
+                path: '{{ operation_evidence_directory }}/{{ item }}'
                 mode: '0600'
+              loop: "{{ ['backend-wire.jsonl'] + (['backend-wire6.jsonl'] if proxy_trial.paired_final_timing | default(false) | bool else []) }}"
               delegate_to: localhost
               become: false
             - ansible.builtin.assert:
@@ -273,11 +310,13 @@
             - name: Require request coverage within the observed resource interval
               when: proxy_trial_caddy_job is defined and proxy_trial_caddy_job.ansible_job_id is defined
               ansible.builtin.command:
-                argv: [/usr/bin/python3, '{{ fleet_server_root }}/Webmin/scripts/proxy-trial-handoff.py', diagnostic-coverage,
-                       '{{ operation_evidence_directory }}/clock-before.json', '{{ operation_evidence_directory }}/diagnostic-coverage.json',
-                       --after, '{{ operation_evidence_directory }}/clock-after.json',
-                       --samples, '{{ operation_evidence_directory }}/backend-resource-samples.jsonl',
-                       --requests, '{{ operation_evidence_directory }}/caddy.stdout', --owner-log, --frontend-family, '{{ proxy_trial.diagnostic_frontend_family | default(4) }}']
+                argv: >-
+                  {{ ['/usr/bin/python3', fleet_server_root ~ '/Webmin/scripts/proxy-trial-handoff.py', 'diagnostic-coverage',
+                      operation_evidence_directory ~ '/clock-before.json', operation_evidence_directory ~ '/diagnostic-coverage.json',
+                      '--after', operation_evidence_directory ~ '/clock-after.json', '--samples', operation_evidence_directory ~ '/backend-resource-samples.jsonl',
+                      '--requests', operation_evidence_directory ~ '/caddy.stdout', '--owner-log', '--frontend-family',
+                      ('6' if proxy_trial.paired_final_timing | default(false) | bool else proxy_trial.diagnostic_frontend_family | default(4) | string)] +
+                     (['--paired-final'] if proxy_trial.paired_final_timing | default(false) | bool else []) }}
               delegate_to: localhost
               become: false
               changed_when: false
@@ -344,6 +383,6 @@
               - proxy_trial_caddy_terminal.finished
               - proxy_trial_caddy_terminal.rc == 0
               - (proxy_trial.primary_ipv4 | default(false) | bool) or proxy_trial_caddy_finish.rc == 0
-              - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_diagnostic_coverage | default({})).get("rc", 1) == 0
+              - not (proxy_trial.diagnostic_only | default(false) | bool or proxy_trial.paired_final_timing | default(false) | bool) or (proxy_trial_diagnostic_coverage | default({})).get("rc", 1) == 0
               - not (proxy_trial.diagnostic_only | default(false) | bool) or (proxy_trial_resource_terminal.finished and proxy_trial_resource_terminal.rc == 0)
               - (proxy_trial.diagnostic_only | default(false) | bool) or proxy_trial_workload.rc == 0

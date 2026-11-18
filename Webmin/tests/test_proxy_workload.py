@@ -267,6 +267,22 @@ class Acceptance(unittest.TestCase):
                     primary.write_text(base+journal+(field('application-node-ipv6-journal.status', status) if status else ''))
                     with self.assertRaisesRegex(ValueError, '^primary_journal_'+error+'$'):
                         h.request_records(directory/'owner.log', 6)
+            # A paired result contains other real requests. Only the new marker
+            # in the *final* A readback can identify the post-convergence flow.
+            w.atomic_text(directory/'application-secondary-b.status', '0\n')
+            w.atomic_text(directory/'application-final-a.status', '1\n')
+            standby = 'b'*32
+            primary.write_text(stream(record.replace(marker, standby))+field('application-node-ipv6.request-id.tsv', standby))
+            final = directory/'application-result-a-readback.stdout'
+            w.atomic_text(final, base+field('application-node-ipv6-journal.status','0\n')+
+                          field('application-node-ipv6-journal.stdout', json.dumps([
+                              {'request_id':marker,'upstream':'[fd36:5aa8:6971:1::75]:10000'}])))
+            parsed, = h.request_records(directory/'owner.log', 6, paired=True)
+            self.assertEqual((parsed['request_id'], parsed['verified_path']), (marker,'primary-ipv6/pi-ipv6'))
+            primary.write_text(stream(record)+field('application-node-ipv6.request-id.tsv', marker))
+            with self.assertRaisesRegex(ValueError, 'paired_final_marker_missing'):
+                h.request_records(directory/'owner.log', 6, paired=True)
+            final.unlink()
             primary.write_text(stream(record))
             w.atomic_text(directory/'application-result-a-readback.stdout', stream(record))
             self.assertEqual(len(h.request_records(directory/'owner.log')), 1)

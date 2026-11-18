@@ -188,6 +188,29 @@ class DiagnosticTests(unittest.TestCase):
         self.assertEqual([(r['kind'], r['request_id']) for r in map(json.loads, out.getvalue().splitlines())],
                          [('health', None), ('marked', 'a'*32)])
 
+    def test_paired_ipv6_wire_selects_primary_source_and_first_response(self):
+        peer, backend = 'fd36:5aa8:6971:1::56', 'fd36:5aa8:6971:1::75'
+        out = io.StringIO()
+        obs = path_probe.BackendWire(out, peer, backend, 'webmin.example')
+        def packet(src, dst, ports, seq, flags, payload=b''):
+            tcp = struct.pack('!HHIIBBHHH', *ports, seq, 0, 0x50, flags, 65535, 0, 0) + payload
+            return (struct.pack('!IHBB', 6 << 28, len(tcp), 6, 64) +
+                    b''.join(socket.inet_pton(socket.AF_INET6, ip) for ip in (src, dst)) + tcp)
+        ports = (12345, 10000)
+        obs.packet(packet('fd36:5aa8:6971:1::54', backend, ports, 5, 2), 1)
+        self.assertFalse(obs.flows)
+        obs.packet(packet(peer, backend, ports, 10, 2), 2)
+        obs.packet(packet(backend, peer, ports[::-1], 20, 18), 3)
+        obs.packet(packet(peer, backend, ports, 11, 24,
+                          b'GET /session_login.cgi HTTP/1.1\r\nX-Homelab-Diagnostic: '+b'a'*32+b'\r\n\r\n'), 4)
+        obs.packet(packet(backend, peer, ports[::-1], 21, 24, b'HTTP/1.1 200 OK\r\n\r\n'), 5)
+        rows = [json.loads(line) for line in out.getvalue().splitlines()]
+        self.assertEqual([(r['event'], r['kernel_epoch']) for r in rows],
+                         [('request-first-byte', 4), ('request-headers', 4),
+                          ('response-first-byte', 5), ('response-headers', 5)])
+        self.assertEqual(rows[1]['request_id'], 'a'*32)
+        self.assertFalse(obs.issues)
+
     def test_backend_wire_segmented_headers_and_privacy(self):
         out = io.StringIO()
         observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')

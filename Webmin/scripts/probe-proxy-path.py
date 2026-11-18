@@ -135,21 +135,30 @@ class BackendWire:
 
     def packet(self, data, kernel_epoch=None):
         self.packet_epoch = kernel_epoch
-        if len(data) < 40 or data[0] >> 4 != 4 or data[9] != 6:
-            return
-        src, dst = socket.inet_ntoa(data[12:16]), socket.inet_ntoa(data[16:20])
+        if len(data) < 40: return
+        version = data[0] >> 4
+        if version == 4 and data[9] == 6:
+            src, dst = socket.inet_ntoa(data[12:16]), socket.inet_ntoa(data[16:20])
+            ihl = (data[0] & 15)*4
+            total = struct.unpack('!H', data[2:4])[0]
+        elif version == 6 and ':' in self.peer:
+            src, dst = (socket.inet_ntop(socket.AF_INET6, data[i:i+16]) for i in (8, 24))
+            if (src, dst) not in ((self.peer, self.backend), (self.backend, self.peer)): return
+            if data[6] != 6:
+                if data[6] in (0, 43, 44, 50, 51, 60): self.issues.add('ipv6_extension_unobserved')
+                return
+            ihl, total = 40, 40+struct.unpack('!H', data[4:6])[0]
+        else: return
         inbound = (src, dst) == (self.peer, self.backend)
         if not inbound and (src, dst) != (self.backend, self.peer):
             return
-        ihl = (data[0] & 15)*4
         if ihl < 20 or len(data) < ihl+20:
             self.issues.add('short_ip'); return
         sport, dport, seq = struct.unpack('!HHI', data[ihl:ihl+8])
         if (dport if inbound else sport) != 10000:
             return
-        if struct.unpack('!H', data[6:8])[0] & 0x3fff:
+        if version == 4 and struct.unpack('!H', data[6:8])[0] & 0x3fff:
             self.issues.add('fragment'); return
-        total = struct.unpack('!H', data[2:4])[0]
         thl = (data[ihl+12] >> 4)*4
         if thl < 20 or total < ihl+thl or total > len(data):
             self.issues.add('truncated_packet'); return
@@ -247,7 +256,7 @@ class BackendWire:
                    'boundary': 'backend-interface; not proof of CGI execution or completion'})
 
 
-def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=None):
+def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=None, wire6=None):
     """One bounded numeric sampler in the existing root-private trial directory."""
     directory = Path(directory)
     metadata = directory.lstat()
@@ -265,6 +274,10 @@ def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=No
             if ipaddress.ip_address(address).version != 4: raise ValueError('wire_ipv4')
         wire_output = (directory / 'backend-wire.jsonl').open('x')
         observer = BackendWire(wire_output, peer, backend, hostname)
+        if wire6:
+            peer6, backend6 = (str(ipaddress.IPv6Address(addr)) for addr in wire6)
+            wire6_output = (directory / 'backend-wire6.jsonl').open('x')
+            observer6 = BackendWire(wire6_output, peer6, backend6, hostname)
         capture = socket.socket(socket.AF_PACKET, socket.SOCK_DGRAM, socket.htons(3))
         capture.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 262144)
         capture.setsockopt(socket.SOL_SOCKET, 35, 1)  # SO_TIMESTAMPNS on the selected 64-bit Linux hosts
@@ -289,12 +302,13 @@ def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=No
                     data, ancillary, flags, _ = capture.recvmsg(65535, socket.CMSG_SPACE(16))
                     stamps = [struct.unpack('ll', value) for level, kind, value in ancillary
                               if level == socket.SOL_SOCKET and kind == 35 and len(value) == 16]
+                    decoder = observer6 if wire6 and data and data[0] >> 4 == 6 else observer
                     if flags & (socket.MSG_TRUNC | socket.MSG_CTRUNC) or len(stamps) != 1:
-                        observer.issues.add('packet_timestamp_or_truncation')
+                        decoder.issues.add('packet_timestamp_or_truncation')
                     packet_epoch = stamps[0][0]+stamps[0][1]/1e9 if len(stamps) == 1 else None
                     if packet_epoch is not None and not 0 <= time.time()-packet_epoch <= 2:
-                        observer.issues.add('kernel_delivery_lag_or_clock_change')
-                    observer.packet(data, packet_epoch)
+                        decoder.issues.add('kernel_delivery_lag_or_clock_change')
+                    decoder.packet(data, packet_epoch)
             else:
                 time.sleep(max(0, next_sample-time.monotonic()))
             current = snapshot()
@@ -311,6 +325,8 @@ def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=No
         # SOL_PACKET/PACKET_STATISTICS: packet and drop counters, reset on read.
         _, drops = struct.unpack('II', capture.getsockopt(263, 6, 8))
         observer.finish(drops)
+        if wire6:
+            observer6.finish(drops); wire6_output.close()
         capture.close(); wire_output.close()
     return {'observer_exited': True}
 
@@ -349,13 +365,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--snapshot', action='store_true')
     parser.add_argument('--observe-directory')
+    parser.add_argument('--wire6', nargs=2)
     parser.add_argument('--wire-peer'); parser.add_argument('--wire-backend'); parser.add_argument('--wire-hostname')
     parser.add_argument('--counters', action='store_true')
     parser.add_argument('--deny', action='store_true')
     parser.add_argument('--address'); parser.add_argument('--hostname'); parser.add_argument('--source')
     args = parser.parse_args()
     try:
-        row = observe(args.observe_directory, wire=(args.wire_peer, args.wire_backend, args.wire_hostname) if args.wire_peer else None) if args.observe_directory else snapshot() if args.snapshot else counters() if args.counters else denied(args.address) if args.deny else probe(args.address, args.hostname, args.source)
+        row = observe(args.observe_directory, wire6=args.wire6, wire=(args.wire_peer, args.wire_backend, args.wire_hostname) if args.wire_peer else None) if args.observe_directory else snapshot() if args.snapshot else counters() if args.counters else denied(args.address) if args.deny else probe(args.address, args.hostname, args.source)
         print(json.dumps(row)); raise SystemExit(0 if args.observe_directory or args.snapshot or args.counters or row['accepted'] else 1)
     except Exception as error:
         # Fixed classification only; no response bodies or exceptions with private data.

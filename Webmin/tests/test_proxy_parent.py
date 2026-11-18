@@ -51,6 +51,9 @@ class ParentFlow(unittest.TestCase):
     def test_primary_only_success_and_failure(self):
         self.check_scenarios(('diagnostic-primary-success', 'diagnostic-primary-caddy-fail', 'diagnostic-primary-paths-fail'))
 
+    def test_paired_capture_ends_before_login_or_blocks_login(self):
+        self.check_scenarios(('paired-success', 'paired-capture-fail'))
+
     def test_owner_failure_and_cleanup_order(self):
         self.check_scenarios(('success', 'diagnostic-success', 'diagnostic-caddy-fail', 'diagnostic-clock-before-fail', 'diagnostic-clock-after-fail', 'diagnostic-coverage-fail', 'snapshot-fail', 'paths-fail', 'workload-fail', 'caddy-fail', 'cleanup-unverified'))
 
@@ -70,6 +73,12 @@ if phase=='resource':
  (root/'resource-ready').write_text('ready')
  (root/'resource-samples.jsonl').write_text('{}')
  (root/'backend-wire.jsonl').write_text('{}')
+ (root/'backend-wire6.jsonl').write_text('{}')
+ if scenario.startswith('paired-'):
+  until=time.monotonic()+35
+  while not (root/'resource-stop').exists() and time.monotonic()<until: time.sleep(.1)
+  with (root/'trace').open('a') as f:f.write('capture-ended\\n')
+  raise SystemExit(0 if scenario=='paired-success' and (root/'resource-stop').exists() else 1)
 if phase=='snapshot' and scenario=='snapshot-fail':raise SystemExit(1)
 if phase=='workload':
  (root/'workload-result.json').write_text(json.dumps({'browser_cleanup':{'group_gone':scenario!='cleanup-unverified'}}))
@@ -84,7 +93,7 @@ if phase=='caddy':
  try:
   (target/'application-trial-ready.tsv').write_text('fixture-child\\n')
   print('application_trial_ready='+str(target/'application-trial-ready.tsv'),flush=True)
-  until=time.monotonic()+12
+  until=time.monotonic()+(30 if scenario.startswith('paired-') else 12)
   while time.monotonic()<until and not (target/'application-trial-finish.tsv').exists():time.sleep(.1)
   with (root/'trace').open('a') as f:f.write('caddy-restored\\n')
   raise SystemExit(0 if (target/'application-trial-finish.tsv').exists() else 1)
@@ -117,7 +126,7 @@ if phase=='caddy':
                 caddy = directory / 'caddy.sh'
                 caddy.write_text('#!/bin/bash\nexec /usr/bin/python3 '+str(fixture)+' '+name+' '+scenario+' caddy\n')
                 variables = {'fleet_server_root': str(ROOT), 'operation_evidence_directory': name,
-                             'proxy_trial': {'work_directory': name, 'diagnostic_only': scenario.startswith('diagnostic-'), 'primary_ipv4': scenario.startswith('diagnostic-primary-'), 'workload_result': str(directory/'workload-result.json')},
+                             'proxy_trial': {'work_directory': name, 'paired_final_timing':scenario.startswith('paired-'), 'diagnostic_only': scenario.startswith('diagnostic-'), 'primary_ipv4': scenario.startswith('diagnostic-primary-'), 'workload_result': str(directory/'workload-result.json')},
                              'proxy_caddy': {'argv': ['/bin/bash', str(caddy)], 'environment': {}},
                              'ansible_async_dir': str(directory/'async')}
                 acceptance = copy.deepcopy(next(t for t in original['tasks'] if t.get('name') == 'Require paired Caddy completion and unchanged boot continuity'))
@@ -131,11 +140,13 @@ if phase=='caddy':
                                      capture_output=True, text=True, timeout=60)
                 self.assertTrue(trace.exists(), run.stdout + run.stderr)
                 observed = trace.read_text().splitlines()
-                self.assertEqual(run.returncode == 0, scenario in ('diagnostic-primary-success', 'success', 'diagnostic-success', 'snapshot-fail'), run.stdout + run.stderr)
+                self.assertEqual(run.returncode == 0, scenario in ('paired-success', 'diagnostic-primary-success', 'success', 'diagnostic-success', 'snapshot-fail'), run.stdout + run.stderr)
                 self.assertEqual(observed[0], 'backend')
                 self.assertEqual(observed[-1], 'backend-restore', run.stdout + run.stderr)
                 self.assertLess(observed.index('snapshot'), observed.index('backend-restore'))
                 self.assertTrue((directory/'backend-before-restoration.json').is_file())
+                if scenario == 'paired-success': self.assertLess(observed.index('capture-ended'), observed.index('workload'))
+                if scenario == 'paired-capture-fail': self.assertNotIn('workload', observed)
                 if scenario.startswith('diagnostic-'): self.assertNotIn('workload', observed)
                 if scenario == 'diagnostic-clock-before-fail': self.assertNotIn('caddy', observed)
                 if scenario == 'paths-fail': self.assertNotIn('caddy', observed)

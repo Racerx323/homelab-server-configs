@@ -130,11 +130,18 @@ def clock_interval(stamp, boot, before, after):
     return [stamp+lo, stamp+hi]
 
 
-def request_records(owner_log, frontend=4):
+def request_records(owner_log, frontend=4, paired=False):
     text = workload.private(owner_log)
     matches = re.findall(rf'^evidence_directory=({owner_directory_pattern(owner_log)})$', text, re.M)
     if len(matches) != 1: raise ValueError('owner_evidence_directory')
     directory = Path(matches[0]); records = {}
+    if paired:
+        if workload.private(directory/'application-secondary-b.status').strip() != '0':
+            raise ValueError('secondary_convergence_unconfirmed')
+        if not re.fullmatch(r'[0-9]{1,3}', workload.private(directory/'application-final-a.status').strip()):
+            raise ValueError('primary_final_status_missing')
+    focus = "application-result-a-readback.stdout" if paired else "application-primary-a-readback.stdout"
+    initial_marker = None
     verified_marker = None
     recovery = {}; total = None; primary_failed = None
     for stream in sorted(directory.glob('application-*-readback.stdout')):
@@ -149,7 +156,9 @@ def request_records(owner_log, frontend=4):
             if len(raw) != int(match[2]) or hashlib.sha256(raw).hexdigest() != match[3]: raise ValueError('readback_hash')
             if frontend == 6 and match[1] == 'application-recovery-clock.tsv' and '-a-readback' in stream.name:
                 recovery[stream.name] = raw.decode().splitlines()
-            if (frontend == 6 and stream.name == 'application-primary-a-readback.stdout' and
+            if paired and stream.name == 'application-primary-a-readback.stdout' and match[1] == 'application-node-ipv6.request-id.tsv':
+                initial_marker = raw.decode().strip()
+            if (frontend == 6 and stream.name == focus and
                     match[1] in ('application-node-ipv6.request-id.tsv', 'application-node-ipv6.timing.tsv',
                                  'application-node-ipv6-journal.stdout', 'application-node-ipv6-journal.status',
                                  'application-node-ipv6.status',
@@ -162,7 +171,7 @@ def request_records(owner_log, frontend=4):
                 row = dict(request_id=identity, node=node, boot_id=boot, start=float(start), end=float(end))
                 if identity in records and records[identity] != row: raise ValueError('changed_request')
                 records[identity] = row
-        if frontend == 6 and stream.name == 'application-primary-a-readback.stdout':
+        if frontend == 6 and stream.name == focus:
             prefix = 'application-node-ipv6'
             marker = selected.get(prefix+'.request-id.tsv', b'').decode().strip()
             timing = selected.get(prefix+'.timing.tsv', b'').decode().split()
@@ -181,23 +190,27 @@ def request_records(owner_log, frontend=4):
                 raise ValueError('primary_journal_output_invalid')
             upstream = [r.get('upstream') for r in logs if r.get('request_id') == marker]
             if not upstream: raise ValueError('primary_journal_marker_missing')
-            if (not re.fullmatch('[0-9a-f]{32}', marker) or set(records) != {marker} or
+            if (not re.fullmatch('[0-9a-f]{32}', marker) or (marker not in records if paired else set(records) != {marker}) or
                     'remote_ip=fd36:5aa8:6971:1::53' not in timing or 'remote_port=443' not in timing or
-                    upstream != ['10.1.3.75:10000']):
+                    upstream not in ([['10.1.3.75:10000'], ['[fd36:5aa8:6971:1::75]:10000']] if paired else [['10.1.3.75:10000']])):
                 raise ValueError('primary_ipv6_pi_ipv4_path_unconfirmed')
             totals = [v[6:] for v in timing if re.fullmatch(r'total=[0-9]+(?:\.[0-9]+)?', v)]
             total = float(totals[0]) if len(totals) == 1 else None
             primary_failed = 'application-recovery.tsv' in names or not (selected.get(prefix+'.status', b'').strip() == b'0' and
                                   selected.get(prefix+'.stdout', b'').strip() == b'200')
             verified_marker = marker
+            verified_family = 6 if upstream[0].startswith("[") else 4
     if not records: raise ValueError('request_receipts_missing')
     if frontend == 6:
+        if paired:
+            if not re.fullmatch('[0-9a-f]{32}', initial_marker or '') or verified_marker is None or verified_marker == initial_marker: raise ValueError('paired_final_marker_missing')
+            records = {verified_marker: records[verified_marker]}
         if set(records) != {verified_marker}: raise ValueError('primary_ipv6_pi_ipv4_path_unconfirmed')
         # Inline failure restoration runs in the primary EXIT trap before readback.
         # A successful probe can still fail later in that transaction; prefer
         # any inline evidence, never substitute a later outer restore for it.
         inline = recovery.get('application-primary-a-readback.stdout', [])
-        if inline or primary_failed:
+        if not paired and (inline or primary_failed):
             lines, phases = inline, ('application-primary:start', 'application-primary:end')
         else:
             lines = recovery.get('application-restored-a-readback.stdout', [])
@@ -207,13 +220,13 @@ def request_records(owner_log, frontend=4):
         for phase in phases:
             values = [line.split()[1] for line in lines if re.fullmatch(re.escape(phase)+r' [0-9]+\.[0-9]+', line)]
             if len(values) == 1: bounds.append(float(values[0]))
-        records[verified_marker].update(verified_path='primary-ipv6/pi-ipv4', journal_exit=0, curl_total=total,
+        records[verified_marker].update(verified_path=f'primary-ipv6/pi-ipv{verified_family}', journal_exit=0, curl_total=total,
                                         recovery_window=bounds if len(bounds) == 2 else None)
     return list(records.values())
 
 
 
-def backend_wire_evidence(path, requests):
+def backend_wire_evidence(path, requests, focus_only=False):
     rows = workload.rows(path)
     if not rows or not rows[-1].get('terminal') or rows[-1].get('issues') or rows[-1].get('kernel_drops') != 0:
         raise ValueError('backend_wire_incomplete')
@@ -259,6 +272,8 @@ def backend_wire_evidence(path, requests):
             marked[head['request_id']] = record
         elif head['kind'] == 'health':
             health.append(record)
+    if focus_only:
+        marked = {r['request_id']: marked[r['request_id']] for r in requests if r['request_id'] in marked}
     if set(marked) != {r['request_id'] for r in requests}:
         raise ValueError('backend_wire_request_ids')
     for record in marked.values():
@@ -320,15 +335,19 @@ def boundary_timing(req, flow, samples, before, after):
     return out
 
 
-def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False, frontend=4):
+def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False, frontend=4, paired=False):
     """No causal attribution: prove coverage and report ambiguous event association."""
     before, after = (json.loads(workload.private(path, 65536)) for path in (before_path, after_path))
     samples = workload.rows(samples_path)
     wire = None
-    requests = request_records(requests_path, frontend) if owner_log else json.loads(workload.private(requests_path))
+    requests = request_records(requests_path, frontend, paired) if owner_log else json.loads(workload.private(requests_path))
     if set(before) not in ({'backend', 'node-a'}, {'backend', 'node-a', 'node-b'}) or set(after) != set(before):
         raise ValueError('clock_hosts')
-    if owner_log and set(before) == {'backend', 'node-a'}:
+    if paired:
+        if not owner_log or frontend != 6 or len(requests) != 1: raise ValueError('paired_scope')
+        name = 'backend-wire6.jsonl' if requests[0]['verified_path'].endswith('ipv6') else 'backend-wire.jsonl'
+        wire = backend_wire_evidence(samples_path.parent / name, requests, focus_only=True)
+    elif owner_log and set(before) == {'backend', 'node-a'}:
         directory = samples_path.parent
         direct = json.loads(workload.private(directory / 'backend-path-a-ipv4.json'))
         timing = json.loads(direct['client']['stdout'])['timing']
@@ -388,6 +407,7 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['ready', 'finish', 'clock', 'diagnostic-coverage', 'admit-evidence']); parser.add_argument('path', type=Path)
     parser.add_argument('receipt', type=Path, nargs='?')
     parser.add_argument('--frontend-family', type=int, choices=(4, 6), default=4)
+    parser.add_argument('--paired-final', action='store_true')
     parser.add_argument('--owner-log', action='store_true')
     parser.add_argument('--after', type=Path); parser.add_argument('--samples', type=Path); parser.add_argument('--requests', type=Path)
     parser.add_argument('--owner-exit', type=Path)
@@ -395,7 +415,7 @@ if __name__ == '__main__':
     try:
         if args.action == 'admit-evidence': admit_evidence(args.path)
         elif args.action == 'clock': clock_capture(args.path, args.receipt)
-        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log, args.frontend_family)
+        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log, args.frontend_family, args.paired_final)
         elif args.action == 'ready': ready(args.path, args.receipt, args.owner_exit)
         else: finish(args.path, args.workload_result)
     except OwnerExited:

@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=b2d37750be8c67bc4d5cf1d7a7b1686cd31f69b32262e7fdaf043f6c6d61677c
+readonly certificate_inputs_sha256=7beb9a0c1145dd58742f892cf1fc0cacaf1d1976ab13cbbd9342e03e12687884
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1280,7 +1280,10 @@ application_selected() {
 
 # Timing is observational: a missing receipt must never prevent restoration.
 application_recovery_clock() {
-    [[ "$node_role" = node-a && "$(certificate_setting application_diagnostic_frontend_family 2>/dev/null)" = 6 ]] || return 0
+    [[ "$node_role" = node-a ]] || return 0
+    if [[ "$(certificate_setting application_diagnostic_frontend_family 2>/dev/null)" != 6 ]]; then
+        [[ "$(certificate_setting application_trial_seconds 2>/dev/null)" = 660 ]] || return 0
+    fi
     awk -v phase="$mode:$1" '{print phase, $1}' /proc/uptime >>"$evidence_root/application-recovery-clock.tsv" || :
 }
 
