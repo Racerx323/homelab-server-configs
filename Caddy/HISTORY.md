@@ -4,6 +4,18 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 18 Webmin static-health browser trial
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-static-health-browser-terminal-2026-11-18`
+
+Primary IPv4 and IPv6 returned HTTP 200. The publisher exposed the accepted
+release, but the paired tool-install path had stopped the replication sender
+and did not restart it before waiting on the secondary. The secondary stayed
+on its predecessor. Both owners restored their baselines; both monitor checks
+passed. Browser and scan workloads never started.
+
 ## November 18 paired Webmin browser trial
 
 Status: terminal-pending

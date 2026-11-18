@@ -29,7 +29,7 @@ https://webmin-j2-svpi3bmf.local.theama.co {
             lb_policy first
 
             health_method GET
-            health_uri /session_login.cgi
+            health_uri /robots.txt
             health_status 200
             health_interval 30s
             health_timeout 5s
