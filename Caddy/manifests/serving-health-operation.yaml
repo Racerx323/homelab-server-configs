@@ -1,10 +1,10 @@
 schema_version: 2
-action: 20261118-webmin-static-health-browser-trial
+action: 20261118-webmin-sender-handoff-browser-trial
 status: defined-unexecuted
 scope: application-onboarding
 qualification_profile: paired-application
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: 88ccd217986569728eba16730bd70fa284dd3e221300e348da70b23b5029becf
+transaction_sha256: ca5b10e0c00658ef629415c140987770eb1ca7ce69014fd7a72a6b8cd02d7ac5
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 production_contract: Caddy/manifests/serving-health-production.tsv
@@ -14,7 +14,7 @@ production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e562
 certificate_inputs_sha256: 7beb9a0c1145dd58742f892cf1fc0cacaf1d1976ab13cbbd9342e03e12687884
 coverage_sha256: f36061fe41dab2b715d769d5e9511a707adace0e68386b506bca0f288e52d2e0
 regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: d2bf13ecfb80cc7f2280a0b3bfac4181e1b428d35772537eb623b020f8c37759
+fixture_sha256: fc04caa93d1e811f68feb08514340cb9dd56c30e234fb670a6f78280a941470e
 qualification_launcher_sha256: 675311714d48d7230032e99e6f9912721b9547caa79cbaebad49f35e43b63616
 authorization_policy_sha256: 6c1f687ef421a88d463f26b4fe446535452caa954e069cc73076c6257e7128e6
 implementation:
@@ -28,8 +28,8 @@ mutation:
   control metadata
 - preserve primary installed callers; install helper first with exact source and prior
   identities
-- activate and verify on primary before managed replication and secondary independent
-  acceptance
+- activate and verify on primary, resume and verify sender before exposure; independently
+  accept secondary
 - retain existing TLS and unrelated routes; expose temporary paired browser route
 acceptance:
 - exact host/configuration/tool identities and fresh per-operation boot continuity

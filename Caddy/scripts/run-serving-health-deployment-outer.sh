@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=88ccd217986569728eba16730bd70fa284dd3e221300e348da70b23b5029becf
-readonly operation_sha256=e32be69253a8a406219a29e9bbd2ccc389d680052e30b69e1557a7e6eed8ade5
+readonly transaction_sha256=ca5b10e0c00658ef629415c140987770eb1ca7ce69014fd7a72a6b8cd02d7ac5
+readonly operation_sha256=1bf596f38e17e9a57aef15cd4d8ed38c45b5a65b8ad1d87fc1b2ddf87eb41552
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -3273,6 +3273,12 @@ fi
 
 if [[ "$invocation_mode" = --production-path-test ]]; then
     workstation_evidence=$(mktemp -d /tmp/caddy-serving-health-outer-test.XXXXXX)
+elif [[ -n "${CADDY_PAIRED_EVIDENCE_PARENT:-}" ]]; then
+    [[ "$operation_scope" = application-onboarding ]]
+    [[ "$CADDY_PAIRED_EVIDENCE_PARENT" = /* && "$(realpath -e -- "$CADDY_PAIRED_EVIDENCE_PARENT")" = "$CADDY_PAIRED_EVIDENCE_PARENT" ]]
+    [[ "$(stat -c '%u:%a' "$CADDY_PAIRED_EVIDENCE_PARENT")" = "$(id -u):700" ]]
+    workstation_evidence=$CADDY_PAIRED_EVIDENCE_PARENT/caddy-owner
+    mkdir -m 0700 -- "$workstation_evidence"
 else
     workstation_evidence=$(mktemp -d /tmp/caddy-ssh-evidence-serving_health.XXXXXX)
 fi

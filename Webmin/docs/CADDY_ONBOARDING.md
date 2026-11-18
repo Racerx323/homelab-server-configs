@@ -7,6 +7,28 @@ primary activation, replication and secondary acceptance;
 [Fleet DNS change entry point](../../../homelab-dns/Unbound/docs/host-record-deployment.md) owns
 all DNS additions, updates and deletions. Reuse those implementations. This document grants no live authority.
 
+## Start here for each fleet host
+
+Use this guide for a new host and when changing an existing Webmin route.
+The Webmin, Caddy and DNS owners execute their respective steps. Keep one host
+change record for its inputs, decisions and results.
+
+1. Select the host and approved browser name. Collect the [per-host inputs](#shared-contract-and-per-host-inputs)
+   and [readiness evidence](#required-readiness-evidence-for-every-host), including
+   the installed service controls and each proxy's route-selected source addresses.
+2. Prepare guarded ingress, one route fragment, a cheap unauthenticated health
+   request and a separate foreground login check. Select a
+   [safe WebSocket method](#safe-websocket-method-for-each-host) for the existing account.
+   Bind the host's acceptance and restoration criteria before exposure.
+3. Follow [the owner execution sequence](#execute-through-existing-owners).
+   For a temporary trial, restore and verify both owner baselines even on success.
+   A restored trial is not a deployed route. Permanent activation needs its own
+   authority and an accepted serving route before DNS progression.
+4. Close only after ordinary-name browser acceptance from an intended client.
+   Record the accepted host, name, and recovery path in inventory and operations.
+   If a gate fails, record the last observed state and follow [recovery](#failure-and-recovery).
+   The diagnostic sections below apply only to the specific failure under review.
+
 ## Shared contract and per-host inputs
 
 Normal access is `https://webmin-<hostname>.local.theama.co` on port 443. Each
@@ -89,13 +111,13 @@ Bind the profile, helper, source hashes and prior installed identities in the
 parent before live review. This is the existing Webmin owner path, not permission
 to edit foundation defaults or runtime properties independently.
 
-The selected Caddy proposal uses GET `/session_login.cgi`, exact HTTP 200,
+The selected Caddy proposal uses GET `/robots.txt` for active health, exact HTTP 200,
 health_timeout=5s, interval=30s, fails=3 and passes=1. Explicit health headers are
 Host/X-Forwarded-Host = the approved browser name, X-Forwarded-Proto=https,
 User-Agent=homelab-proxy-diagnostic, Accept=*/*, Accept-Encoding=identity and
 Connection=close, plus the non-secret diagnostic health marker. No credentials,
-cookies or fabricated client identity are sent. Foreground acceptance stays at
-five seconds. W-224's three concurrent requests support this policy choice but
+cookies or fabricated client identity are sent. The foreground check still requires the login form at
+`/session_login.cgi` within five seconds. W-224's three concurrent requests support this policy choice but
 do not qualify sustained browser or paired health-check demand.
 
 The current fragment proposes both backend address families for paired browser
@@ -142,8 +164,12 @@ capture and are included in the reviewed change's acceptance and recovery scope.
 1. Apply and verify the reviewed backend restriction/settings on the selected host;
    preserve its authentication, loopback recovery and ordinary service controls.
 2. Use Caddy's existing primary-first application flow: prepare the immutable
-   child, activate and verify the primary, then expose that same child to managed
-   replication. Accept the secondary's manifest, activation and route independently.
+   child, activate and verify the primary, then confirm the primary replication sender
+   (`caddy-lsyncd.service`) is active with a running main process before exposing
+   that same child. If tool installation stopped the sender, the Caddy owner
+   starts it here and checks its active state and positive main PID. A failed
+   start or readiness check stops the paired trial before exposure. A successful publisher exit proves
+   local exposure only. Accept the secondary's manifest, activation and route independently.
    Do not add a separate replicator or revive certificate-deployment orchestration.
 3. Verify trusted HTTPS to both nodes and the shared endpoint before DNS using
    the approved name for TLS/Host. Preserve existing route checks and bounded
@@ -228,9 +254,9 @@ those remain required in the full onboarding candidate.
 ## Current implementation boundary
 
 The existing atomic Webmin configuration helper and Caddy/DNS owner procedures
-are reusable. The shared browser backend policy renderer is locally qualified. First-host
-binding, health/authentication qualification and live change remain pending. The installed Pi remains on its
-previous SSH-loopback profile until the reviewed onboarding operation succeeds.
+are reusable. The shared browser backend policy renderer is locally qualified. The first-host trial verified direct paths and primary HTTPS over both address
+families; secondary convergence failed before browser acceptance. Both owners
+restored their baselines. The Pi's permanent browser route remains pending.
 The owning Uptime Kuma ledger tracks the first-host work; onboarding another host
 must bind that host's own baseline and outcome without duplicating this procedure.
 
@@ -311,8 +337,11 @@ authorize an ACL change or a silent not-applicable result.
 ### Route and browser checks
 
 The [first-host fragment proposal](../proposals/30-webmin-j2-svpi3bmf.caddy) remains
-outside Caddy's accepted configuration tree. It uses the native login-page health
-contract, preserves Host, and follows the existing primary-first owner flow.
+outside Caddy's accepted configuration tree. For this Pi the active probe requests Webmin's static
+`/robots.txt` from each backend address. This checks listener and HTTP service
+availability. The foreground probe still requires the login page, and browser
+acceptance requires authenticated use. Preserve Host throughout the existing
+primary-first flow.
 The isolated proxy fragment substitutes only hostname, addresses/client ranges and
 its private test CA; fixture setup also supplies synthetic accounts and an explicit
 native service unit. The browser test requires real Chromium and native Webmin/Caddy,
@@ -685,7 +714,10 @@ a timeout alone never proves that a systemd job or remote mutation stopped.
 The reserve is a stop boundary, not a promise that every stalled recovery succeeds.
 
 Prepare `operation_evidence_directory` as an existing controller-owned directory
-with mode `0700`, beneath the private operation store, before sealing. Bind its
+with mode `0700` beneath the workspace's `.local-evidence` before sealing.
+Bind the parent log, terminal receipts and Caddy readbacks there too. Keep Git
+metadata and executable staging outside evidence storage; verify retained outputs
+before retiring staging. Bind its
 absolute path in the parent inputs. The parent admits it before any target contact:
 reject missing, non-directory, symlinked or non-private paths, then exercise the
 same exclusive receipt writer and private readback used by the operation. Remove

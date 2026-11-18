@@ -1509,6 +1509,20 @@ application_expose() (
     trap 'app_expose_rc=$?; trap - EXIT; if [[ "$app_expose_rc" != 0 ]]; then path_absent "$outgoing_root/$target_revision_argument" || exit 125; application_restore "$target_revision_argument" || exit 125; fi; exit "$app_expose_rc"' EXIT
     require_equal application_target "$target_revision_argument" "$(<"$evidence_root/application-target.tsv")"
     application_selected "$target_revision_argument"
+    # The primary tool installer stopped the sender. Restore transport only
+    # after primary acceptance and before anything enters its outbound tree.
+    if application_validation_enabled; then
+        local handoff_rc=0 handoff_pid
+        "$systemctl_command" start caddy-lsyncd.service || handoff_rc=$?
+        require_equal handoff_sender_start_status 0 "$handoff_rc"
+        capture_command handoff-sender-state "$systemctl_command" show caddy-lsyncd.service \
+            --property=ActiveState,MainPID || handoff_rc=$?
+        require_equal handoff_sender_query_status 0 "$handoff_rc"
+        require_equal handoff_sender_state active "$(application_monitor_value "$evidence_root/handoff-sender-state.stdout" ActiveState)"
+        handoff_pid=$(application_monitor_value "$evidence_root/handoff-sender-state.stdout" MainPID) || handoff_pid=missing
+        printf '%s_expected_handoff_sender_pid=positive_integer\n%s_observed_handoff_sender_pid=%s\n' "$prefix" "$prefix" "$handoff_pid"
+        [[ "$handoff_pid" =~ ^[1-9][0-9]*$ ]]
+    fi
     capture_command application-expose /bin/bash \
         "$payload_root/repositories/homelab-server-configs/Caddy/scripts/publish-release-v2.sh" \
         --node-role node-a --expose "$target_revision_argument" \

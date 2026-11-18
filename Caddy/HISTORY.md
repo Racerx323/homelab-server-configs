@@ -4,6 +4,16 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 18 Webmin sender handoff browser trial
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-sender-handoff-browser-terminal-2026-11-18`
+
+The primary exposed the release and the secondary selected it. The final
+primary IPv6 HTTPS probe timed out after TLS. Browser and scan did not start.
+Both proxies and the Pi restored their baselines; both monitor checks passed.
+
 ## November 18 Webmin static-health browser trial
 
 Status: terminal-pending

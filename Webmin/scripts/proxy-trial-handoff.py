@@ -24,12 +24,19 @@ class OwnerExited(Exception):
     pass
 
 
+def owner_directory_pattern(receipt):
+    # For fleet trials the private controller receipt fixes the sibling owner directory.
+    if receipt.is_relative_to(Path('/home/aaron/code/.local-evidence')):
+        return re.escape(str(receipt.parent/'caddy-owner'))
+    return r'/tmp/caddy-ssh-evidence-serving_health\.[A-Za-z0-9]+'
+
+
 def ready(log, receipt, owner_exit=None):
     if owner_exit is not None and owner_exit.exists():
         if not re.fullmatch(r'[0-9]{1,3}\n', workload.private(owner_exit, 4)): raise ValueError('invalid_owner_exit')
         raise OwnerExited('owner_already_ended')
     text = workload.private(log)
-    matches = re.findall(r'^application_trial_ready=(/tmp/caddy-ssh-evidence-serving_health\.[A-Za-z0-9]+/application-trial-ready.tsv)$', text, re.M)
+    matches = re.findall(rf'^application_trial_ready=({owner_directory_pattern(receipt)}/application-trial-ready\.tsv)$', text, re.M)
     if len(matches) != 1: raise ValueError('one_owner_ready_required')
     path = Path(matches[0]); child = workload.private(path, 256).strip()
     if not re.fullmatch(r'[A-Za-z0-9-]{1,160}', child): raise ValueError('child_identity')
@@ -44,7 +51,7 @@ def finish(receipt, workload_result=None):
         raise ValueError('browser_cleanup_unverified')
     value = json.loads(workload.private(receipt, 1024))
     path = Path(value['ready_path'])
-    if not re.fullmatch(r'/tmp/caddy-ssh-evidence-serving_health\.[A-Za-z0-9]+/application-trial-ready.tsv', str(path)):
+    if not re.fullmatch(rf'{owner_directory_pattern(receipt)}/application-trial-ready\.tsv', str(path)):
         raise ValueError('owner_path')
     if workload.private(path, 256).strip() != value['child']: raise ValueError('changed_child')
     workload.atomic_text(path.with_name('application-trial-finish.tsv'), value['child'] + '\tcomplete\n')
@@ -125,7 +132,7 @@ def clock_interval(stamp, boot, before, after):
 
 def request_records(owner_log):
     text = workload.private(owner_log)
-    matches = re.findall(r'^evidence_directory=(/tmp/caddy-ssh-evidence-serving_health\.[A-Za-z0-9]+)$', text, re.M)
+    matches = re.findall(rf'^evidence_directory=({owner_directory_pattern(owner_log)})$', text, re.M)
     if len(matches) != 1: raise ValueError('owner_evidence_directory')
     directory = Path(matches[0]); records = {}
     for stream in sorted(directory.glob('application-*-readback.stdout')):

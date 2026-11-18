@@ -499,6 +499,46 @@ def budget_contract_tests():
     print('application_diagnostic_budget_contract=true')
 
 
+def sender_handoff_tests():
+    """Run the actual exposure branch; only external owners and systemd are substituted."""
+    source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
+    expose = re.search(r'^application_expose\(\) \(\n.*?^\)', source, re.M|re.S)[0]
+    funcs = '\n'.join(re.search(r'^'+n+r'\(\) \{\n.*?^\}', source, re.M|re.S)[0]
+                      for n in ('application_monitor_value', 'require_equal', 'require'))
+    for case in ('success', 'start-error', 'zero-pid', 'ordinary'):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            script = funcs+'\n'+expose+"""
+set -Eeuo pipefail
+prefix=test; node_role=node-a; target_revision_argument=child; evidence_root=$1
+payload_root=$1; outgoing_root=$1/out; systemctl_command=ctl; scenario=$2
+echo child >"$1/application-target.tsv"; echo digest >"$1/application-manifest.tsv"
+release_identifier() { :; }
+application_selected() { echo selected >>"$1.trace"; }
+application_validation_enabled() { [[ $scenario != ordinary ]]; }
+path_absent() { [[ ! -e $1 ]]; }
+application_restore() { echo restore >>child.trace; }
+ctl() {
+    echo "$1" >>child.trace
+    if [[ $1 = start ]]; then [[ $scenario != start-error ]] || return 7
+    else printf 'ActiveState=active\nMainPID=%s\n' "$([[ $scenario = zero-pid ]] && echo 0 || echo 23)"; fi
+}
+capture_command() {
+    local label=$1; shift
+    if [[ $label = application-expose ]]; then echo expose >>child.trace
+    else "$@" >"$evidence_root/$label.stdout"; fi
+}
+application_expose
+"""
+            run = subprocess.run(['bash','-c',script,'test',tmp,case], cwd=root, capture_output=True, text=True)
+            trace = (root/'child.trace').read_text().splitlines()
+            expected = {'success':['selected','start','show','expose'], 'ordinary':['selected','expose'],
+                        'zero-pid':['selected','start','show','restore'], 'start-error':['selected','start','restore']}
+            assert trace == expected[case] and (run.returncode == 0) == ('expose' in trace), (case, trace, run.stderr)
+            if case == 'start-error': assert 'observed_handoff_sender_start_status=7' in run.stdout
+            if case == 'zero-pid': assert 'observed_handoff_sender_pid=0' in run.stdout
+
+
 def monitor_contract_tests():
     """Exercise the actual observer and pair coordinator without live commands."""
     source = (REPO/'Caddy/scripts/apply-serving-health-deployment.sh').read_text()
@@ -941,6 +981,8 @@ release.switch = switch
 
 
 def transfer():
+    if not release.state()['lsyncd']:
+        return  # An exposed directory cannot replicate without its sender.
     root = release.fixture_root()
     children = [p for p in Path('/var/lib/caddy-sync/outbound').iterdir() if p.name != 'baseline']
     assert len(children) == 1
@@ -1046,7 +1088,8 @@ def adapter(name, args):
         print(0)
         return 0
     if name == 'systemctl' and args[:2] == ['show', 'caddy-lsyncd.service'] and any(a.startswith('--property=') for a in args):
-        fields = dict(MainPID=123, NRestarts=0, ActiveState='active', SubState='running')
+        running = release.state()['lsyncd']
+        fields = dict(MainPID=123 if running else 0, NRestarts=0, ActiveState='active' if running else 'inactive', SubState='running' if running else 'dead')
         wanted = next(a.split('=',1)[1].split(',') for a in args if a.startswith('--property='))
         print('\n'.join(k+'='+str(fields[k]) for k in wanted))
         return 0
@@ -1307,9 +1350,12 @@ if __name__ == '__main__':
         serve_backend(int(sys.argv[2]), Path(sys.argv[3]))
     elif sys.argv[1:] == ['--primary-validation-tools']:
         suite(primary_tools_only=True)
+    elif sys.argv[1:] == ['--sender-handoff-tests']:
+        sender_handoff_tests()
     elif sys.argv[1:] == ['--validation-tools-tests']:
         validation_tools_tests()
     elif sys.argv[1:] == ['--payload-tests']:
+        sender_handoff_tests()
         validation_tools_tests()
         primary_diagnostic_contract_tests()
         probe_diagnostic_tests()
