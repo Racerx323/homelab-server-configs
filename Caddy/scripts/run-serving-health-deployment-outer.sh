@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=f4a5c495b1fe15c32760cb688a582c3cfd47ba1548e9126d40b14bfdaf49dad6
-readonly operation_sha256=583a7d9643aaba83bea0ae8790bb85298cef3f982c4c903d4fad04cf5eed0a16
+readonly transaction_sha256=67d183c82503e781162f90519fe320ab3cb997effb0ca6ed94be80453f2a59cf
+readonly operation_sha256=0d99764820c030fbcaa832c49dd16a03303f4524cba9bc532cbbec440cd7da93
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -80,8 +80,10 @@ application_payload_validation_tools() {
     local avt_input=$payload_stage/manifests/certificate-release-inputs.tsv avt_source avt_key avt_hash
     grep -q '^validation_tools_trial' "$avt_input" || return 0
     [[ "$(awk -F '\t' '$1 == "validation_tools_trial" {print $2; n++} END {if(n!=1) exit 1}' "$avt_input")" = primary ]] || return 1
-    grep -Fxq $'application_diagnostic_scope\tprimary-ipv4' "$avt_input" || return 1
-    grep -Fxq $'application_diagnostic_seconds\t240' "$avt_input" || return 1
+    if grep -Eq '^application_diagnostic_(scope|seconds)' "$avt_input"; then
+        grep -Fxq $'application_diagnostic_scope\tprimary-ipv4' "$avt_input" || return 1
+        grep -Fxq $'application_diagnostic_seconds\t240' "$avt_input" || return 1
+    fi
     grep -Fxq $'application_trial_seconds\t660' "$avt_input" || return 1
     while read -r avt_source avt_key; do
         avt_hash=$(awk -F '\t' -v key="$avt_key" '$1 == key {print $2; n++} END {if(n!=1) exit 1}' "$avt_input") || return 1
@@ -1146,8 +1148,16 @@ run_application_onboarding_live() {
             app_target=$(<"$app_target_file")
             if [[ -z "$app_target" ]]; then
                 # An explicit empty receipt permits tool-only recovery, never an invented revision.
-                [[ "$app_diagnostic_scope" = primary-ipv4 ]] || return 125
                 grep -Fxq $'validation_tools_trial\tprimary' "$payload_stage/manifests/certificate-release-inputs.tsv" || return 125
+                # No expose command has run and Node B has only admitted metadata.
+                # Recover the primary's tools without inventing a release ID or
+                # invoking secondary release restoration with an empty ID.
+                application_trial_recover_pair "" primary-ipv4 || return 125
+                cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+                if [[ "$app_diagnostic_scope" != primary-ipv4 ]]; then
+                    cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+                fi
+                return 1
             else
                 [[ "$app_target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || return 125
             fi

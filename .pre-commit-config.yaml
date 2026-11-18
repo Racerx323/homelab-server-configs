@@ -6,6 +6,13 @@ exclude: (?:^|/)(?:\.vexp|\.agents)/
 repos:
   - repo: local
     hooks:
+      - id: webmin-backend-comparison
+        name: Webmin backend comparison deadlines and recovery
+        entry: python3 -I -B Webmin/tests/test_backend_comparison.py
+        language: system
+        pass_filenames: false
+        files: ^Webmin/(scripts/(compare-backend|probe-proxy-path|recover-proxy)\.py|ansible/(backend-comparison(?:-phase)?|proxy-trial(?:-restore)?)\.yaml|tests/test_backend_comparison\.py)$
+
       - id: webmin-proxy-workload
         name: Webmin combined workload receipts and owned cleanup
         entry: python3 -I -B Webmin/tests/test_proxy_workload.py

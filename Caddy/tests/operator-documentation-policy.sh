@@ -402,6 +402,9 @@ run_self_test() {
     mkdir -p "$self_test_workspace/homelab-dns/Unbound/docs"
     cp "$default_repository_root/../homelab-dns/Unbound/docs/host-record-deployment.md" \
         "$self_test_workspace/homelab-dns/Unbound/docs/"
+    mkdir -p "$self_test_root/Webmin/docs"
+    cp "$default_repository_root/Webmin/docs/CADDY_ONBOARDING.md" \
+        "$self_test_root/Webmin/docs/"
     mkdir -p "$self_test_root/Caddy/tests"
     cp "$default_repository_root/Caddy/tests/README.md" \
         "$self_test_root/Caddy/tests/README.md"
@@ -430,6 +433,20 @@ run_self_test() {
     fi
     mv "$self_test_workspace/dns-document.backup" \
         "$self_test_workspace/homelab-dns/Unbound/docs/host-record-deployment.md"
+
+    mv "$self_test_root/Webmin/docs/CADDY_ONBOARDING.md" \
+        "$self_test_workspace/webmin-document.backup"
+    if /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >"$self_test_workspace/missing-webmin.log" 2>&1; then
+        fail self_test_missing_webmin_dependency_accepted
+    fi
+    grep -Fxq 'operator_documentation_policy_failure=relative_link_broken' \
+        "$self_test_workspace/missing-webmin.log" ||
+        fail self_test_missing_webmin_dependency_wrong_failure
+    mv "$self_test_workspace/webmin-document.backup" \
+        "$self_test_root/Webmin/docs/CADDY_ONBOARDING.md"
+    /bin/bash "$0" --check --repository-root \
+        "$self_test_root" >/dev/null
 
     operator_documentation_backup=$self_test_root/QUICK_START.backup
     cp "$self_test_root/Caddy/docs/QUICK_START.md" \

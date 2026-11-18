@@ -993,8 +993,9 @@ application_fragment() {
 
 # Routine application onboarding uses the release protocol without certificate
 # workers, historical platform inventories or a timed operator acknowledgement.
-# Opt-in only through the hash-bound primary diagnostic recipe.
+# Tool changes stay primary-only, including during a paired browser trial.
 application_validation_enabled() {
+    [[ "$node_role" = node-a ]] || return 1
     grep -Fxq $'validation_tools_trial\tprimary' "$payload_root/manifests/certificate-release-inputs.tsv"
 }
 
@@ -1019,9 +1020,21 @@ PY
 
 application_validation_payload() {
     local avt_source avt_name avt_old avt_new
-    [[ "$(certificate_setting validation_tools_trial)" = primary && "$node_role" = node-a ]] || return 1
-    [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]] || return 1
-    [[ "$(certificate_setting application_diagnostic_seconds)" = 240 && "$(certificate_setting application_trial_seconds)" = 660 ]] || return 1
+    [[ "$(certificate_setting validation_tools_trial)" = primary ]] || return 1
+    [[ "$(certificate_setting application_trial_seconds)" = 660 ]] || return 1
+    if grep -Eq '^application_diagnostic_(scope|seconds)' "$payload_root/manifests/certificate-release-inputs.tsv"; then
+        [[ "$(certificate_setting application_diagnostic_scope)" = primary-ipv4 ]] || return 1
+        [[ "$(certificate_setting application_diagnostic_seconds)" = 240 ]] || return 1
+        [[ "$node_role" = node-a ]] || return 1
+    fi
+    if [[ "$node_role" = node-b ]]; then
+        # Control metadata arrives directly; configuration arrives by replication.
+        # Never deliver or install the primary's validation tools on the secondary.
+        path_absent "$payload_root/repositories" || return 1
+        path_absent "$payload_root/validation-tools" || return 1
+        return 0
+    fi
+    [[ "$node_role" = node-a ]] || return 1
     while read -r avt_source avt_name avt_old avt_new; do
         certificate_hash "$payload_root/repositories/homelab-server-configs/Caddy/scripts/$avt_source" \
             "$(certificate_setting "$avt_new")" || return 1

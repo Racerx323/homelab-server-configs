@@ -1,50 +1,14 @@
 schema_version: 2
-action: 20261117-webmin-isolated-validation-diagnostic
-status: defined-unexecuted
-scope: application-onboarding
-qualification_profile: primary-validation-diagnostic
+action: none
+status: inactive
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: f4a5c495b1fe15c32760cb688a582c3cfd47ba1548e9126d40b14bfdaf49dad6
+transaction_sha256: 67d183c82503e781162f90519fe320ab3cb997effb0ca6ed94be80453f2a59cf
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 state_contract_sha256: 30bb88e35955d346c87e41025501b057fac7277377cdd790c90bada2da191ef3
 production_contract: Caddy/manifests/serving-health-production.tsv
 production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e5621ab970aa9131
-certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
-certificate_inputs_sha256: 385e97b58e25a27f2d866f306761c9a8ad1cd2b15403047557a4fa2a2acf95d1
-coverage_sha256: 2eca8c8377fc46ad9e7025c6f74d5b83d6fd068e5ecf792b0ce08819b4c04ce7
-regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: 376860179647c8d9c86d6c6b3104cdaf2ecdb30f29cb649c9a47c46243bcb909
-qualification_launcher_sha256: 7f52026de72ece878a6a3906cad2d115821f1c2253bdcc69759e842cfe8c5555
-authorization_policy_sha256: 6c1f687ef421a88d463f26b4fe446535452caa954e069cc73076c6257e7128e6
 implementation:
   lifecycle: neutral-reusable
   copy_per_action: prohibited
-targets:
-- pi@10.1.0.53
-mutation:
-- stage the application payload and bound validation tools only on the primary; no secondary contact
-- preserve installed callers before helper-first temporary installation; keep publisher payload-local
-- append the bound Webmin fragment using one IPv4 upstream and the existing temporary backend profile
-- activate and probe locally; stop before replication exposure on success or failure
-acceptance:
-- fresh operation boot continuity and exact host/configuration/installed-tool identities
-- one primary IPv4 application request and existing serving-route checks
-- retain direct/proxy request markers, backend-interface header comparisons and native timestamps
-- retain bounded resource intervals and possible marked health-probe overlap without causal attribution
-- one 240-second forward budget; recovery and readback share the unchanged aggregate 840-second cutoff
-- no application acceptance claim; restore after either probe result
-recovery:
-- restore original callers before removing the temporary helper, including failure before a release ID
-- contain the unexposed child on the primary; quiesce and restore its exact original selection and outbound inventory
-- resume primary transport and observe fresh natural monitor cycles before readback
-- report 125 if recovery or monitor acceptance is unproved; do not replay
-- native Webmin loopback restoration remains independently governed by the parent and 1800-second timer
-excluded:
-- DNS, reboot, forced failover, certificate replacement and unrelated installed-tool replacement
-- backend mutation outside the separately bound Webmin parent
-- account creation, ACL changes, terminals, monitors, alerts and synthetic notifications
-- unrelated route or radio changes and Git publication
-- secondary SSH/upload/admission/activation/recovery, release exposure and replication progression
-- passwords, browser/graphs/WebSocket workload, needrestart scan and permanent promotion
-live_execution: requires-exact-outer-sha256-approval-with-combined-parent
+live_execution: no-operation-defined

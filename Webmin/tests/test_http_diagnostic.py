@@ -49,6 +49,74 @@ class SlowHandler(Handler):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_loopback_curl_deadline_and_private_output(self):
+        class Delayed(Handler):
+            def do_GET(self):
+                time.sleep(6)
+                super().do_GET()
+        for handler, expected in ((Handler, 0), (Delayed, 28)):
+            server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                argv = diagnostic.loopback_curl()
+                argv[-1] = f"http://127.0.0.1:{server.server_port}/session_login.cgi"
+                began = time.monotonic()
+                row = subprocess.run(argv, capture_output=True, text=True, timeout=7)
+                self.assertEqual(row.returncode, expected)
+                self.assertLess(time.monotonic()-began, 6)
+                self.assertEqual(len(row.stdout.split()), 4)
+                self.assertNotIn("private", row.stdout + row.stderr)
+            finally:
+                server.shutdown(); server.server_close(); thread.join()
+
+    def test_loopback_stream_preserves_two_process_baseline_and_failure(self):
+        # This tests orchestration/privacy only. The HTTP endpoint is not Webmin;
+        # proc/cgroup reads are substituted, never evidence of target capacity.
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        argv = diagnostic.loopback_curl(); argv[-1] = f"http://127.0.0.1:{server.server_port}/session_login.cgi"
+        real_read = Path.read_text
+        def read_text(path, *a, **kw):
+            if str(path) == "/proc/meminfo": return "MemAvailable: 200000 kB\n"
+            if str(path) in ("/proc/net/tcp", "/proc/net/tcp6"): return "header\n"
+            return real_read(path, *a, **kw)
+        def read_small(path, *args):
+            if path.name == "boot_id": return "same-boot"
+            if path.name == "cpu.max": return f"{cpus*100000} 100000"
+            if path.name == "memory.events": return "high 0\nmax 0\noom 0\noom_kill 0\n"
+            return {"memory.high":"268435456", "memory.max":"335544320", "memory.swap.max":"0"}.get(path.name, "")
+        try:
+            for fail, cpus in ((False, 1), (True, 1), (False, 2)):
+                count = 0
+                def sample(*args, **kwargs):
+                    nonlocal count
+                    count += 1
+                    processes = [{"pid":10,"start_ticks":1}]
+                    processes += ([{"pid":11,"start_ticks":2}] if count < 4 else [{"pid":12,"vanished":True}])
+                    return {"processes":processes,
+                            "process_inventory_complete":True,"memory.high":"134217728",
+                            "memory.max":"201326592","memory.swap.max":"0",
+                            "cpu.stat":"usage_usec 1\nthrottled_usec 0\n",
+                            "memory.events":f"high {int(fail and count >= 4)}\nmax 0\noom 0\noom_kill 0\n"}
+                output = io.StringIO()
+                with patch.object(diagnostic, "sample", sample), patch.object(diagnostic, "read_small", read_small), \
+                     patch.object(Path, "read_text", read_text), patch.object(diagnostic.socket, "gethostname", return_value="j2-svpi3bmf"), \
+                     patch.object(diagnostic.subprocess, "run", return_value=MagicMock(stdout="10\n")), \
+                     patch.object(diagnostic, "loopback_curl", return_value=argv), patch("sys.stdout", output):
+                    status = diagnostic.compare_loopback(expected_cpus=cpus)
+                rows = [json.loads(x) for x in output.getvalue().splitlines()]
+                self.assertEqual(status, int(fail))
+                self.assertEqual([x['count'] for x in rows if x['kind']=='batch_start'], [1] if fail else [1,3])
+                self.assertTrue(rows[-1]['owned_clients_reaped'])
+                self.assertNotIn("private", output.getvalue())
+                if fail:
+                    stop = next(x for x in rows if x['kind']=='stop')
+                    self.assertEqual((stop['check'],stop['expected'],stop['observed']), ('memory.events.high','0','1'))
+                    self.assertTrue(any(x['kind']=='sample' for x in rows[:rows.index(stop)]))
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
     def test_backend_path_and_safe_phase_evidence(self):
         for status, failure in ((200, None), (401, None), (200, TimeoutError('PRIVATE response'))):
             connection = MagicMock()

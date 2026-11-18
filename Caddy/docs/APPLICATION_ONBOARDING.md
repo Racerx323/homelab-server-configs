@@ -443,9 +443,15 @@ but before preparation returns an ID. Missing evidence is not proof of no mutati
 Keep tool restoration inside the same aggregate recovery deadline and verify the
 baseline before resuming services and natural monitor observation. Preserve backups
 when recovery is incomplete. A diagnostic does not accept permanent tool rollout.
-The transaction implements this temporary boundary only for a hash-bound
-`validation_tools_trial=primary` recipe with the primary/IPv4 diagnostic scope and
-unchanged 240/840-second budgets. Bind `validation_helper_sha256`,
+The transaction implements this temporary boundary for a hash-bound
+`validation_tools_trial=primary` recipe with `application_trial_seconds=660`.
+A primary/IPv4 diagnostic additionally requires its scope and 240-second forward
+budget; its aggregate recovery cutoff remains 840 seconds. A paired browser trial
+omits both diagnostic fields and retains its existing browser/recovery deadlines.
+Only Node A receives and installs the tools. Node B receives control metadata,
+gets the application through replication and retains its accepted installed
+callers; this does not establish isolated validation on Node B.
+Bind `validation_helper_sha256`,
 `validation_finalizer_sha256` and `validation_reconciler_sha256` in addition to the
 original installed-tool hashes. The helper must be absent at admission. Python 3
 checks file metadata; unsupported ACLs/xattrs, unsafe files or missing dependencies
@@ -455,8 +461,14 @@ An explicit empty target receipt supports recovery before publisher preparation
 returns an ID. The transaction independently checks baseline release and prepared/
 sync inventories before resuming; a missing receipt or an unknown prepared release
 is not accepted as no mutation. Partial tool installation is restored first, and
-failed recovery retains backups with services contained. These paths have focused
-local file/dispatch tests; they are not deployed or accepted writable host execution.
+failed recovery retains backups with services contained. Before a release ID
+exists, recover primary tools and remove both staged payloads; secondary admission
+has made no service or release change. Once an ID exists, preserve paired
+B-before-A restoration and natural monitor acceptance. Missing ID evidence still
+stops recovery progression rather than being treated as an empty receipt.
+These paths have focused local file/dispatch tests; they are not deployed or
+accepted writable host execution. Qualify the exact candidate and authorization
+bindings separately before sealing.
 
 Create a complete prepared release in a temporary directory. Include the
 current `Caddyfile`, all accepted `conf.d` fragments, TLS inputs, the new
@@ -605,9 +617,16 @@ Release and application fixtures require `CADDY_ACCEPTED_RECONCILER_FIXTURE`
 to name an absolute regular file containing independently retained accepted
 reconciler bytes. Both container launchers mount that file read-only; the
 fixture checks its SHA-256 against both nodes' accepted owner records before
-using it. The primary-first suite runs through
-`python3 Caddy/tests/run-application-qualification.py` with that environment
-variable set. Run it separately from the `certificate-release` focused profile,
+using it. Application qualification also requires
+`CADDY_ACCEPTED_FINALIZER_FIXTURE` with independently retained finalizer bytes;
+the launcher mounts them read-only and trial cases check the accepted hash before
+seeding either node. Paired trials deliver candidate tools only to the primary
+and verify that secondary tools remain unchanged. Non-trial route cases model an
+already-installed validator; they do not prove trial installation or target
+namespace capability.
+The primary-first suite runs through
+`python3 Caddy/tests/run-application-qualification.py` with both environment
+variables set. Run it separately from the `certificate-release` focused profile,
 which covers platform repair and retains its standby-first ordering. Keep these retained runtime bytes outside the repository. Do not
 substitute repository source or update the expected hash to make a test pass.
 

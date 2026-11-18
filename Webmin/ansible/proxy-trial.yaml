@@ -43,6 +43,14 @@
     - {src: '{{ proxy_trial.rendered_directory }}/ingress.nft', name: ingress.nft}
     - {src: '{{ proxy_trial.rendered_directory }}/miniserv.json', name: miniserv.json}
     - {src: '{{ proxy_trial.rendered_directory }}/webmin.json', name: webmin.json}
+- name: Stage the explicit selected-host CPU profile without changing fleet defaults
+  when: (lookup('ansible.builtin.file', proxy_trial.binding_file) | from_json).resource_profile | default('') == 'j2-svpi3bmf-cpu200'
+  ansible.builtin.copy:
+    src: '{{ fleet_server_root }}/Webmin/configs/hosts/j2-svpi3bmf/70-browser-cpu.conf'
+    dest: '{{ proxy_trial.work_directory }}/70-browser-cpu.conf'
+    owner: root
+    group: root
+    mode: '0600'
 - name: Save the exact active loopback baseline before mutation
   ansible.builtin.command:
     argv:

@@ -162,7 +162,8 @@ def validation_tools_tests():
                                   for name in ['build_payload', 'application_payload_validation_tools'])
     cases = ['success', 'publisher-failure', 'install-helper', 'install-finalizer',
              'install-reconciler', 'interrupt', 'backup-failure', 'unexpected-helper',
-             'bad-payload', 'restore-failure', 'unknown-current', 'unknown-prepared', 'xattr', 'request-failure', 'absent-prepared']
+             'bad-payload', 'restore-failure', 'unknown-current', 'unknown-prepared', 'xattr', 'request-failure', 'absent-prepared',
+             'paired-success', 'paired-publisher-failure', 'paired-request-failure']
     for case in cases:
         with tempfile.TemporaryDirectory(prefix='caddy-tool-contract-') as temporary:
             root = Path(temporary); payload = root/'payload'; evidence = root/'evidence'
@@ -182,6 +183,9 @@ def validation_tools_tests():
                           release_kind='application', baseline_revision='baseline',
                           baseline_manifest_sha256=hashlib.sha256((baseline/'manifest.sha256').read_bytes()).hexdigest(),
                           application_fragment_name='30-test.caddy')
+            if case.startswith('paired-'):
+                recipe.pop('application_diagnostic_scope')
+                recipe.pop('application_diagnostic_seconds')
             for filename, destination, old, new in [
                 ('validate-caddy-isolated.sh', 'validate-caddy-isolated.sh', None, 'validation_helper_sha256'),
                 ('finalize-incoming-release-v2.sh', 'finalize-incoming-release-v2.sh', 'finalizer_sha256', 'validation_finalizer_sha256'),
@@ -241,6 +245,22 @@ application_payload_fragment() {{ printf 'fragment\\n' >"$payload_root/manifests
                            ['validate-caddy-isolated.sh','finalize-incoming-release-v2.sh','reconcile-release-v2.sh'])
             with tarfile.open(evidence/'secondary-control.tar') as archive:
                 assert archive.getnames() == ['manifests/certificate-release-inputs.tsv']
+            if case == 'paired-success':
+                # Exercise the secondary control payload with the real validator.
+                secondary = root/'secondary'; secondary.mkdir()
+                with tarfile.open(evidence/'secondary-control.tar') as archive:
+                    archive.extractall(secondary, filter='data')
+                child = f'node_role=node-b; payload_root={shlex.quote(str(secondary))}; '
+                result = run(child+'application_validation_payload; ! application_validation_enabled')
+                assert result.returncode == 0, result.stderr
+                (secondary/'repositories').mkdir()
+                result = run(child+'application_validation_payload')
+                assert result.returncode != 0, 'secondary must reject tool payload'
+                (secondary/'repositories').rmdir()
+                path = secondary/'manifests/certificate-release-inputs.tsv'
+                path.write_text(path.read_text()+'application_diagnostic_seconds\t240\n')
+                result = run(child+'application_validation_payload')
+                assert result.returncode != 0, 'incomplete diagnostic recipe must reject'
             if case == 'unexpected-helper':
                 (libexec/'validate-caddy-isolated.sh').symlink_to(root/'absent')
             if case == 'bad-payload':
@@ -254,12 +274,12 @@ application_payload_fragment() {{ printf 'fragment\\n' >"$payload_root/manifests
                 injection = f'moves=0; mv() {{ moves=$((moves+1)); if ((moves=={number})); then {action}; fi; command mv "$@"; }}\n'
             if case == 'backup-failure':
                 injection = 'cp() { return 23; }\n'
-            action = 'application_primary' if case == 'publisher-failure' else 'application_validation_install'
+            action = 'application_primary' if case in ('publisher-failure', 'paired-publisher-failure') else 'application_validation_install'
             result = run(injection+action)
-            failed = case in ['publisher-failure','install-helper','install-finalizer','install-reconciler',
+            failed = case in ['publisher-failure','paired-publisher-failure','install-helper','install-finalizer','install-reconciler',
                               'interrupt','backup-failure','unexpected-helper','bad-payload','xattr']
             assert (result.returncode != 0) == failed, (case,result.returncode,result.stderr)
-            if case == 'publisher-failure':
+            if case in ('publisher-failure', 'paired-publisher-failure'):
                 assert (evidence/'application-target.tsv').read_bytes() == b''
             if case in ['unexpected-helper','bad-payload','xattr']:
                 assert not (root/'calls').exists()
@@ -270,7 +290,7 @@ application_payload_fragment() {{ printf 'fragment\\n' >"$payload_root/manifests
             if case == 'unknown-prepared':
                 (prepared/'unknown').mkdir()
             (evidence/'application-trial-outbound.tsv').write_text('')
-            if case == 'request-failure':
+            if case in ('request-failure', 'paired-request-failure'):
                 (root/'releases/candidate').mkdir()
                 (root/'current').unlink(); (root/'current').symlink_to(root/'releases/candidate')
                 prelude += "target_revision_argument=candidate\n"
@@ -338,6 +358,28 @@ cleanup_remote() { record cleanup "$@"; }
             commands = calls.read_text()
             assert 'FORBIDDEN_SECONDARY' not in commands
             assert ('application-restore-a' in commands) == opt_in
+        # Paired trial: before publication only A's tools can have changed.
+        paired_setup = setup.replace('FORBIDDEN_SECONDARY', 'secondary').replace(
+            '[[ "$*" != *secondary* ]]', 'true')
+        recipe.write_text('application_trial_seconds\t660\nvalidation_tools_trial\tprimary\n')
+        calls.unlink()
+        run = subprocess.run(['bash','-c',paired_setup+'\n'+functions+'\nrun_application_onboarding_live','test',str(root)],
+                             env=dict(os.environ, PRIMARY_STATUS='28', TARGET_TEXT=''),capture_output=True,text=True)
+        assert run.returncode == 1, run.stderr
+        commands = calls.read_text().splitlines()
+        assert any('application-admit-b' in c for c in commands)
+        assert any('application-restore-a' in c for c in commands)
+        assert not any('application-restore-b' in c or 'application-expose' in c for c in commands)
+        assert commands[-2:] == ['cleanup node-a primary a a.tar','cleanup node-b secondary b b.tar']
+        # After a release exists, retain B-before-A restoration and both monitors.
+        calls.unlink()
+        run = subprocess.run(['bash','-c',paired_setup+'\n'+functions+'\napplication_trial_recover_pair candidate paired','test',str(root)],
+                             env=dict(os.environ, PRIMARY_STATUS='0'),capture_output=True,text=True)
+        assert run.returncode == 0, run.stderr
+        commands = calls.read_text()
+        assert commands.index('application-restore-b') < commands.index('application-restore-a')
+        assert 'application-monitor-a' in commands and 'application-monitor-b' in commands
+        recipe.write_text('application_trial_seconds\t660\napplication_diagnostic_seconds\t240\napplication_diagnostic_scope\tprimary-ipv4\n')
         recipe.write_text(recipe.read_text().replace('primary-ipv4','invalid'))
         calls.unlink()
         run=subprocess.run(['bash','-c',setup+'\n'+functions+'\nrun_application_onboarding_live','test',str(root)],capture_output=True,text=True)
@@ -668,6 +710,22 @@ def case_observation(root, case):
                 assert records['application-trial-restored.tsv'] == 'restored\n'
                 assert records['application-trial-resumed.tsv'] == 'resumed\n'
                 assert records['application-trial-monitor.tsv'] == 'passed\n'
+                recipe = dict(line.split('\t') for line in read('inputs.tsv').splitlines()[1:])
+                assert recipe['validation_tools_trial'] == 'primary'
+                assert 'application_diagnostic_scope' not in recipe and 'application_diagnostic_seconds' not in recipe
+                if role == 'node-a':
+                    assert records['application-validation-restored.tsv'] == 'restored\n'
+                    dispatch = [json.loads(line) for line in read('validation-dispatch.jsonl').splitlines()]
+                    assert dispatch
+                    for call in dispatch:
+                        for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release.sh')]:
+                            assert call['installed'][filename] == recipe['validation_'+key+'_sha256']
+                else:
+                    assert not any(key.startswith('application-validation-') for key in records)
+                assert not (node/'libexec/validate-caddy-isolated.sh').exists()
+                for filename, key in [('finalize-incoming-release-v2.sh', 'finalizer_sha256'), ('reconcile-release.sh', 'reconciler_installed_sha256')]:
+                    read(f'nodes/{role}/libexec/{filename}')
+                    assert release.digest(node/'libexec'/filename) == recipe[key]
                 assert records['application-trial-outbound.tsv'] == records['application-trial-outbound-after.tsv'] == records['application-trial-resume-inventory.tsv']
             else:
                 assert not state['lsyncd'] and not state['reconcile_path']
@@ -922,7 +980,7 @@ def adapter(name, args):
     if name == 'unshare':
         assert os.environ.get('CADDY_VALIDATION_CONTAINER') == '1' and Path('/run/.containerenv').is_file()
         expected_prefix = ['--net', '--'] if os.geteuid() == 0 else ['--user', '--map-current-user', '--net', '--']
-        assert scenario in NARROW and args[:len(expected_prefix)] == expected_prefix
+        assert args[:len(expected_prefix)] == expected_prefix
         command = args[len(expected_prefix):]
         assert command[:2] == ['/usr/bin/caddy', 'validate']
         installed = {p.name: release.digest(p) for p in Path('/usr/local/libexec').glob('*.sh')}
@@ -1084,30 +1142,39 @@ def suite(primary_tools_only=False):
         host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS or scenario in NARROW else ('uptime.local.theama.co', 'dashboard')
         recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
         if scenario in TRIALS or scenario in NARROW:
-            recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\napplication_diagnostic_seconds\t240\n')
+            recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\n')
+        if scenario in NARROW:
+            recipe.write_text(recipe.read_text()+'application_diagnostic_seconds\t240\n')
         if scenario in NARROW:
             recipe.write_text(recipe.read_text()+'application_diagnostic_scope\tprimary-ipv4\n')
-        if scenario in NARROW:
+        if scenario in TRIALS or scenario in NARROW:
             # Exercise actual tool delivery, not preinstalled candidate tools.
             # A distinct old finalizer makes replacement/restoration observable.
             for role in ('node-a', 'node-b'):
                 old = root/'nodes'/role/'libexec/finalize-incoming-release-v2.sh'
-                old.write_text(old.read_text()+'\n# fixture prior installed identity\n')
+                accepted_finalizer = Path(os.environ['CADDY_ACCEPTED_FINALIZER_FIXTURE'])
+                assert accepted_finalizer.is_file() and not accepted_finalizer.is_symlink()
+                assert release.digest(accepted_finalizer) == release.accepted_hash('protocol_v2_finalizer')
+                shutil.copyfile(accepted_finalizer, old)
             rows = dict(line.split('\t') for line in recipe.read_text().splitlines()[1:])
             rows.update(validation_tools_trial='primary',
                         finalizer_sha256=release.digest(root/'nodes/node-a/libexec/finalize-incoming-release-v2.sh'))
             for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release-v2.sh')]:
                 rows['validation_'+key+'_sha256'] = release.digest(REPO/'Caddy/scripts'/filename)
             recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
-            # Only the unavailable namespace primitive is substituted. The exact
-            # delivered helper and native Caddy validator still execute. W-197
-            # owns isolation capability; this fixture cannot accept isolation.
-            Path('/usr/bin/unshare').write_text('#!/bin/bash\n'+
-                'if (( EUID != 0 )); then\n'+
-                '  [[ $# == 10 && $1 == --user && $2 == --map-current-user && $3 == --net && $4 == -- && $5 == /usr/bin/caddy && $6 == validate ]] || exit 64\n'+
-                '  shift 4; exec "$@"\nfi\n'+
-                'exec /usr/bin/python3 '+str(SOURCE)+' --adapter unshare "$@"\n')
-            Path('/usr/bin/unshare').chmod(0o755)
+        else:
+            for role in ('node-a', 'node-b'):
+                shutil.copy2(REPO/'Caddy/scripts/validate-caddy-isolated.sh',
+                             root/'nodes'/role/'libexec/validate-caddy-isolated.sh')
+        # Only the unavailable namespace primitive is substituted. The exact
+        # delivered helper and native Caddy validator still execute. W-197
+        # owns isolation capability; this fixture cannot accept isolation.
+        Path('/usr/bin/unshare').write_text('#!/bin/bash\n'+
+            'if (( EUID != 0 )); then\n'+
+            '  [[ $# == 10 && $1 == --user && $2 == --map-current-user && $3 == --net && $4 == -- && $5 == /usr/bin/caddy && $6 == validate ]] || exit 64\n'+
+            '  shift 4; exec "$@"\nfi\n'+
+            'exec /usr/bin/python3 '+str(SOURCE)+' --adapter unshare "$@"\n')
+        Path('/usr/bin/unshare').chmod(0o755)
         env.update(CADDY_CERTIFICATE_TEST_SCOPE='application', CADDY_CERTIFICATE_TEST_INPUTS_SHA256=release.digest(recipe), PRIMARY_CASE=scenario)
         os.environ.update(env)
         switch('node-a')

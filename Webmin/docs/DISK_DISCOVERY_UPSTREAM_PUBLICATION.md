@@ -34,3 +34,24 @@ separate proposal preserving newer upstream RAID-model detection behavior.
 It has not been installed. Publication did not alter Webmin, monitoring or the
 qualified production patch. Future changes follow the
 [upgrade procedure](DISK_DISCOVERY_UPGRADES.md).
+
+## November 17 repository reconciliation
+
+The former evidence-only checkout's combined review branch contained commits
+`90393cf9cb102d1a7b77033e21548dad1c457a34` and
+`414a60eacd3dd88153a42f842d1fd850ae756f9b`. Its final changes are confined to the
+three modules below. Each complete module tree matches its separate fork branch
+byte-for-byte; read-only remote ref verification confirmed these branch heads on
+November 17, 2026:
+
+| Module | Branch in Racerx323/webmin | Verified commit |
+| --- | --- | --- |
+| fdisk | fix/fdisk-disk-only-discovery | 74298f01d8f63e6b395415ce80e5d485727a1687 |
+| smart-status | fix/smart-status-disk-only-discovery | 1e2ae0a16501dca9c4c98198542226ec3ba5e611 |
+| system-status | fix/system-status-disk-only-discovery | 1d3115d4cea6274728c742b105463606309f60f4 |
+
+The combined branch has no additional implementation to migrate into this
+configuration repository. The fork branches are the source home for these
+changes. This comparison does not assert upstream merge, CI or deployment status.
+The redundant local Git retirement archive was deleted after this reconciliation;
+original source snapshots and diagnostic evidence remain in place.

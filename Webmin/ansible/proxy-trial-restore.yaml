@@ -16,7 +16,7 @@
 - name: Require completed restoration before disarming the timer
   ansible.builtin.assert:
     that:
-      - (proxy_trial_terminal.content | b64decode | from_json).phase == 'restored'
+      - (proxy_trial_terminal.content | b64decode | from_json).phase in ['restored', 'cancelled']
     fail_msg: Recovery is not proven complete; retain the timer, guard and private evidence.
 - name: Stop the completed native recovery timer
   ansible.builtin.systemd_service:

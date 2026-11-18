@@ -29,7 +29,11 @@ class ParentFlow(unittest.TestCase):
                 root = Path(name); evidence = root / 'evidence'; reached = root / 'target-reached'
                 if case == 'file': evidence.write_text('preserve')
                 elif case == 'symlink': evidence.symlink_to(root, target_is_directory=True)
-                elif case != 'missing': evidence.mkdir(mode={'public': 0o755, 'read-only': 0o500}.get(case, 0o700))
+                elif case != 'missing':
+                    mode = {'public': 0o755, 'read-only': 0o500}.get(case, 0o700)
+                    evidence.mkdir(mode=mode)
+                    # The private test wrapper's umask must not erase this test input.
+                    evidence.chmod(mode)
                 play = [{'hosts': 'localhost', 'connection': 'local', 'become': False, 'gather_facts': False,
                          'vars': {'fleet_server_root': str(ROOT), 'operation_evidence_directory': str(evidence)},
                          'tasks': [admission, {'ansible.builtin.copy': {'dest': str(reached), 'content': 'reached', 'mode': '0600'}}]}]

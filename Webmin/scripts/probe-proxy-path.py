@@ -242,7 +242,7 @@ class BackendWire:
                    'boundary': 'backend-interface; not proof of CGI execution or completion'})
 
 
-def observe(directory, seconds=300, wire=None, interface="eth0"):
+def observe(directory, seconds=300, wire=None, interface="eth0", sample_check=None):
     """One bounded numeric sampler in the existing root-private trial directory."""
     directory = Path(directory)
     metadata = directory.lstat()
@@ -271,6 +271,7 @@ def observe(directory, seconds=300, wire=None, interface="eth0"):
         initial = event_delta(previous, previous)
         if any(row['status'] != 'comparable' for row in initial.values()):
             raise ValueError('resource_baseline_unavailable')
+        if sample_check is not None: sample_check(previous)
         output.write(json.dumps(previous)+'\n'); output.flush()
         with (directory / 'resource-ready').open('x') as ready:
             ready.write('ready\n')
@@ -293,6 +294,7 @@ def observe(directory, seconds=300, wire=None, interface="eth0"):
                 time.sleep(max(0, next_sample-time.monotonic()))
             current = snapshot()
             current['event_delta'] = event_delta(previous, current)
+            if sample_check is not None: sample_check(current)
             encoded = json.dumps(current)+'\n'
             if output.tell() + len(encoded) > 1048000:
                 raise ValueError('resource_evidence_limit')

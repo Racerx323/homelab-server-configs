@@ -71,6 +71,46 @@ be checked against the installed version and actual native response behavior;
 they are not a ready-to-deploy profile by themselves. See the upstream
 [hostname proxy guide](https://webmin.com/docs/tutorials/proxying-to-webmin-with-nginx/).
 
+## Selected-host CPU and health policy
+
+W-225 approves local preparation of `j2-svpi3bmf-cpu200` for the first Pi;
+this profile is not installed or accepted for production. The fleet foundation
+still defaults to 100%. Select the profile explicitly in the existing trial
+binding as `resource_profile: j2-svpi3bmf-cpu200`, with native hostname
+`j2-svpi3bmf` and the exact admitted 100% baseline controls/files. The existing
+backend tasks stage `configs/hosts/j2-svpi3bmf/70-browser-cpu.conf`. Their native
+apply installs that CPU-only drop-in and checks the effective 200% quota;
+recovery removes it before restarting and verifies the original controls.
+An existing drop-in at that path or changed payload requires reconciliation.
+Do not reuse this initial-transition binding after permanent acceptance.
+
+Keep MemoryHigh=128M, MemoryMax=192M, swap=0 and all other accepted controls.
+Bind the profile, helper, source hashes and prior installed identities in the
+parent before live review. This is the existing Webmin owner path, not permission
+to edit foundation defaults or runtime properties independently.
+
+The selected Caddy proposal uses GET `/session_login.cgi`, exact HTTP 200,
+health_timeout=5s, interval=30s, fails=3 and passes=1. Explicit health headers are
+Host/X-Forwarded-Host = the approved browser name, X-Forwarded-Proto=https,
+User-Agent=homelab-proxy-diagnostic, Accept=*/*, Accept-Encoding=identity and
+Connection=close, plus the non-secret diagnostic health marker. No credentials,
+cookies or fabricated client identity are sent. Foreground acceptance stays at
+five seconds. W-224's three concurrent requests support this policy choice but
+do not qualify sustained browser or paired health-check demand.
+
+The current fragment proposes both backend address families for paired browser
+onboarding. Before sealing, reconcile the Caddy owner candidate and combined
+workload/recovery bindings. The locally qualified Caddy contract supports
+primary-only isolated-validator tool delivery for the paired trial. The secondary
+receives control metadata and the replicated application, retaining its accepted
+installed callers. Pre-release-ID failure restores primary tools and cleans both
+payloads; later failures retain paired restoration and monitor acceptance. Exact
+candidate qualification and live authorization remain separate; no tool is
+installed by this preparation. Listing both backend addresses does not serialize
+health checks; both reach one Webmin process. Do not repeat the quota
+comparison or build a capacity fixture. Actual browser, real-path and combined
+resource acceptance remain required, under separately approved live authority.
+
 ## Required readiness evidence for every host
 
 Before sealing a Webmin backend change, capture and reconcile both prerequisites
