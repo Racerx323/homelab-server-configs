@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "action": "20261117-webmin-paired-browser-trial",
+  "result": "failed-consumed",
+  "archive_tag": "caddy-webmin-paired-browser-terminal-2026-11-18",
+  "parent_manifest_sha256": "5882ccd50b39811effadfdf509c0364b7517cdb707f3395bf4dbf923f3730fcc",
+  "operation_sha256": "840b08a9d03fea634f4dd030301648ad38d20ee4e3c1f46c15e9124676ab9ef0",
+  "transaction_sha256": "7f1aee701b52a5c849247ff365323f78692c65d6a2b841cb0dfadc1e048aff7d",
+  "outer_sha256": "a941984cc716546f4f371bbca1f2b214c6d581ea193088011411fe1c5918f291",
+  "parent_exit": 2,
+  "owner_exit": 1,
+  "primary_probe_exit": 28,
+  "workload": "not started",
+  "restoration": "both Caddy nodes and Webmin baseline passed",
+  "monitor": "both nodes passed"
+}

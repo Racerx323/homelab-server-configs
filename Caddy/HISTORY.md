@@ -4,6 +4,17 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 18 paired Webmin browser trial
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-paired-browser-terminal-2026-11-18`
+
+W-227 stopped at primary IPv4 HTTPS after TLS with no response bytes before
+the five-second deadline. Browser and scan never started. Both proxy restore,
+readback and monitor checks passed. The Pi verified loopback restoration.
+The terminal result binds the exact parent and executed owner hashes.
+
 ## November 17 retained diagnostic reconciliation and archive preparation
 
 W-203 reconciles one direct/proxied comparison: retained foreground headers match;
