@@ -3,6 +3,7 @@
 - name: Verify the owner Webmin loopback and resource profile
   ansible.builtin.import_tasks: '{{ fleet_server_root }}/Webmin/ansible/accept.yaml'
   tags: [webmin-accept]
+  when: "'webmin' in foundation.host_components"
 - name: Check mail transport availability without sending a message
   ansible.builtin.command:
     argv:
@@ -24,8 +25,8 @@
   ansible.builtin.copy:
     content: '{{ {''label'': foundation_observation_label | default(''foundation-configured''), ''watchdog_vendor_sha256'':
       fleet_watchdog_vendor.stat.checksum, ''watchdog_manager'': fleet_watchdog_manager.stdout_lines, ''webmin_listeners'':
-      fleet_webmin_listeners.stdout_lines, ''webmin_service'': fleet_webmin_unit.stdout_lines, ''webmin_cgroup'':
-      fleet_webmin_cgroup.stdout | from_json, ''memory_available_kib'': (fleet_scan_guard.stdout | from_json).before_observer.host_available_kib, ''needrestart_report'':
+      fleet_webmin_listeners.stdout_lines | default([]), ''webmin_service'': fleet_webmin_unit.stdout_lines | default([]), ''webmin_cgroup'':
+      fleet_webmin_cgroup.stdout | default(''{}'') | from_json, ''memory_available_kib'': (fleet_scan_guard.stdout | from_json).before_observer.host_available_kib, ''needrestart_report'':
       fleet_needrestart_report.stdout_lines, ''smtp_greeting_quit'': fleet_mail_connectivity.stdout, ''messages_sent'':
       false} | to_nice_json }}'
     dest: '{{ operation_evidence_directory }}/{{ foundation_observation_label | default("foundation-configured")

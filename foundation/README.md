@@ -9,6 +9,8 @@ Uptime Kuma's [change record](../../homelab-monitoring-observability/changes/202
 owns its current candidate and approval. The application coordinator imports this
 phase; no second transaction runner or parallel project ledger is introduced.
 
+Select optional host services through `foundation.host_components`. Package payloads and installed controls must match the selected host inventory.
+
 ## Ownership and selected profiles
 
 - [Needrestart](../Needrestart/README.md) owns the producer and daily 05:30 cron
@@ -161,5 +163,5 @@ For Webmin's combined trial, the application parent uses the optional reviewed
 `workload-cancelled.json` stops progression. The observer publishes failure
 before cleanup so the parent can promptly stop owned browser load. These control
 receipts do not add a sampler or replace the unchanged 224/192/96 MiB gates.
-See [the Webmin parent contract](../Webmin/docs/CADDY_ONBOARDING.md#combined-parent-and-browser-receipt-contract)
+See [the Webmin parent contract](../Webmin/docs/CADDY_ONBOARDING.md#execute-through-existing-owners)
 for clock brackets, browser acceptance and independent owner recovery outcomes.

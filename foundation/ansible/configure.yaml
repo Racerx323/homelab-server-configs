@@ -57,6 +57,7 @@
   no_log: true
 - name: Configure and start the selected owner Webmin profiles
   ansible.builtin.import_tasks: '{{ fleet_server_root }}/Webmin/ansible/configure.yaml'
+  when: "'webmin' in foundation.host_components"
 - name: Verify ownership of the temporary global package-start policy before removal
   ansible.builtin.stat:
     path: /usr/sbin/policy-rc.d

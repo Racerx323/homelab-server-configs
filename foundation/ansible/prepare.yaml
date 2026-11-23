@@ -13,6 +13,7 @@
     owner: root
     group: root
     mode: '0755'
+  when: "'webmin' in foundation.host_components"
 - name: Contain Webmin before its package postinst can request a direct start
   ansible.builtin.copy:
     dest: /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
@@ -50,6 +51,7 @@
     owner: root
     group: root
     mode: '0644'
+  when: "'webmin' in foundation.host_components"
 - name: Install temporary package-start denial
   ansible.builtin.copy:
     src: '{{ fleet_server_root }}/foundation/templates/deny-package-starts'

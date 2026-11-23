@@ -58,7 +58,7 @@ def main():
     # Preserve a real loopback baseline for the recovery test, distinct from image defaults.
     for name in ['miniserv.conf', 'config']:
         shutil.copy2('/etc/webmin/' + name, baseline / ('loopback-' + name))
-    review = json.loads((root / 'configs/hosts/j2-svpi3bmf-proxy.json').read_text())
+    review = json.loads((root / 'configs/hosts/example-proxy.json').read_text())
     review['browser_hostname'] = 'webmin-host.example.test'
     review['backend_addresses'] = ['127.0.0.1', '::1']
     review['proxy_sources'] = ['127.0.0.1', '::1']
@@ -106,11 +106,11 @@ def main():
     nss.mkdir(parents=True, exist_ok=True)
     run('certutil', '-N', '--empty-password', '-d', 'sql:' + str(nss))
     run('certutil', '-A', '-n', 'Webmin fixture CA', '-t', 'C,,', '-i', str(tls/'ca.crt'), '-d', 'sql:' + str(nss))
-    fragment = (root / 'proposals/30-webmin-j2-svpi3bmf.caddy').read_text()
-    fragment = fragment.replace('webmin-j2-svpi3bmf.local.theama.co', 'webmin-host.example.test')
+    fragment = (root / 'proposals/30-webmin-example.caddy').read_text()
+    fragment = fragment.replace('webmin-example.local.theama.co', 'webmin-host.example.test')
     fragment = fragment.replace('10.1.0.56 fd36:5aa8:6971:1::56 {$NODE_IPV4} {$NODE_IPV6}', '127.0.0.1 ::1')
     fragment = fragment.replace('10.1.0.0/22 fd36:5aa8:6971:1::/64', '127.0.0.1/32 ::1/128')
-    fragment = fragment.replace('10.1.3.75:10000', '127.0.0.1:10000').replace('[fd36:5aa8:6971:1::75]:10000', '[::1]:10000')
+    fragment = fragment.replace('192.0.2.75:10000', '127.0.0.1:10000').replace('[2001:db8::75]:10000', '[::1]:10000')
     fragment = fragment.replace('import local_tls', 'tls /evidence/tls/server.crt /evidence/tls/server.key')
     nodes = {'a': '127.0.0.1 ::1', 'b': '127.0.0.2 fd00::2'} if paired else {'a': '127.0.0.1 ::1'}
     units = []

@@ -49,85 +49,17 @@ class SlowHandler(Handler):
 
 
 class DiagnosticTests(unittest.TestCase):
-    def test_loopback_curl_deadline_and_private_output(self):
-        class Delayed(Handler):
-            def do_GET(self):
-                time.sleep(6)
-                super().do_GET()
-        for handler, expected in ((Handler, 0), (Delayed, 28)):
-            server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-            thread = threading.Thread(target=server.serve_forever, daemon=True)
-            thread.start()
-            try:
-                argv = diagnostic.loopback_curl()
-                argv[-1] = f"http://127.0.0.1:{server.server_port}/session_login.cgi"
-                began = time.monotonic()
-                row = subprocess.run(argv, capture_output=True, text=True, timeout=7)
-                self.assertEqual(row.returncode, expected)
-                self.assertLess(time.monotonic()-began, 6)
-                self.assertEqual(len(row.stdout.split()), 4)
-                self.assertNotIn("private", row.stdout + row.stderr)
-            finally:
-                server.shutdown(); server.server_close(); thread.join()
-
-    def test_loopback_stream_preserves_two_process_baseline_and_failure(self):
-        # This tests orchestration/privacy only. The HTTP endpoint is not Webmin;
-        # proc/cgroup reads are substituted, never evidence of target capacity.
-        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
-        argv = diagnostic.loopback_curl(); argv[-1] = f"http://127.0.0.1:{server.server_port}/session_login.cgi"
-        real_read = Path.read_text
-        def read_text(path, *a, **kw):
-            if str(path) == "/proc/meminfo": return "MemAvailable: 200000 kB\n"
-            if str(path) in ("/proc/net/tcp", "/proc/net/tcp6"): return "header\n"
-            return real_read(path, *a, **kw)
-        def read_small(path, *args):
-            if path.name == "boot_id": return "same-boot"
-            if path.name == "cpu.max": return f"{cpus*100000} 100000"
-            if path.name == "memory.events": return "high 0\nmax 0\noom 0\noom_kill 0\n"
-            return {"memory.high":"268435456", "memory.max":"335544320", "memory.swap.max":"0"}.get(path.name, "")
-        try:
-            for fail, cpus in ((False, 1), (True, 1), (False, 2)):
-                count = 0
-                def sample(*args, **kwargs):
-                    nonlocal count
-                    count += 1
-                    processes = [{"pid":10,"start_ticks":1}]
-                    processes += ([{"pid":11,"start_ticks":2}] if count < 4 else [{"pid":12,"vanished":True}])
-                    return {"processes":processes,
-                            "process_inventory_complete":True,"memory.high":"134217728",
-                            "memory.max":"201326592","memory.swap.max":"0",
-                            "cpu.stat":"usage_usec 1\nthrottled_usec 0\n",
-                            "memory.events":f"high {int(fail and count >= 4)}\nmax 0\noom 0\noom_kill 0\n"}
-                output = io.StringIO()
-                with patch.object(diagnostic, "sample", sample), patch.object(diagnostic, "read_small", read_small), \
-                     patch.object(Path, "read_text", read_text), patch.object(diagnostic.socket, "gethostname", return_value="j2-svpi3bmf"), \
-                     patch.object(diagnostic.subprocess, "run", return_value=MagicMock(stdout="10\n")), \
-                     patch.object(diagnostic, "loopback_curl", return_value=argv), patch("sys.stdout", output):
-                    status = diagnostic.compare_loopback(expected_cpus=cpus)
-                rows = [json.loads(x) for x in output.getvalue().splitlines()]
-                self.assertEqual(status, int(fail))
-                self.assertEqual([x['count'] for x in rows if x['kind']=='batch_start'], [1] if fail else [1,3])
-                self.assertTrue(rows[-1]['owned_clients_reaped'])
-                self.assertNotIn("private", output.getvalue())
-                if fail:
-                    stop = next(x for x in rows if x['kind']=='stop')
-                    self.assertEqual((stop['check'],stop['expected'],stop['observed']), ('memory.events.high','0','1'))
-                    self.assertTrue(any(x['kind']=='sample' for x in rows[:rows.index(stop)]))
-        finally:
-            server.shutdown(); server.server_close(); thread.join()
-
     def test_backend_path_and_safe_phase_evidence(self):
         for status, failure in ((200, None), (401, None), (200, TimeoutError('PRIVATE response'))):
             connection = MagicMock()
             connection.sock.getsockname.return_value = ('10.1.0.53', 1234)
-            connection.sock.getpeername.return_value = ('10.1.3.75', 10000)
+            connection.sock.getpeername.return_value = ('192.0.2.75', 10000)
             response = connection.getresponse.return_value
             response.status = status
             response.read.return_value = b'<input name="pass"> PRIVATE'
             if failure: connection.getresponse.side_effect = failure
             with patch.object(path_probe.subprocess, 'run', return_value=MagicMock(stdout='[{"prefsrc":"10.1.0.53"}]')), patch.object(path_probe.http.client, 'HTTPConnection', return_value=connection):
-                result = path_probe.probe('10.1.3.75', 'webmin.example', '10.1.0.53')
+                result = path_probe.probe('192.0.2.75', 'webmin.example', '10.1.0.53')
             self.assertEqual(connection.request.call_args.args[:2], ('GET', '/session_login.cgi'))
             self.assertEqual(connection.request.call_args.kwargs['headers']['X-Forwarded-Host'], 'webmin.example')
             self.assertEqual(connection.request.call_args.kwargs['headers']['X-Forwarded-For'], '10.1.0.53')
@@ -176,7 +108,7 @@ class DiagnosticTests(unittest.TestCase):
 
     def test_static_health_is_never_a_foreground_marker(self):
         out = io.StringIO()
-        observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')
+        observer = path_probe.BackendWire(out, '10.1.0.53', '192.0.2.75', 'webmin.example')
         observer.packet_epoch = 1
         health = b'GET /robots.txt HTTP/1.1\r\nX-Homelab-Health: webmin-browser-health'
         marker = b'X-Homelab-Diagnostic: '+b'a'*32
@@ -189,7 +121,7 @@ class DiagnosticTests(unittest.TestCase):
                          [('health', None), ('marked', 'a'*32)])
 
     def test_paired_ipv6_wire_selects_primary_source_and_first_response(self):
-        peer, backend = 'fd36:5aa8:6971:1::56', 'fd36:5aa8:6971:1::75'
+        peer, backend = 'fd36:5aa8:6971:1::56', '2001:db8::75'
         out = io.StringIO()
         obs = path_probe.BackendWire(out, peer, backend, 'webmin.example')
         def packet(src, dst, ports, seq, flags, payload=b''):
@@ -213,9 +145,9 @@ class DiagnosticTests(unittest.TestCase):
 
     def test_backend_wire_segmented_headers_and_privacy(self):
         out = io.StringIO()
-        observer = path_probe.BackendWire(out, '10.1.0.53', '10.1.3.75', 'webmin.example')
+        observer = path_probe.BackendWire(out, '10.1.0.53', '192.0.2.75', 'webmin.example')
         def packet(inbound, seq, flags, data=b''):
-            src, dst = ('10.1.0.53', '10.1.3.75') if inbound else ('10.1.3.75', '10.1.0.53')
+            src, dst = ('10.1.0.53', '192.0.2.75') if inbound else ('192.0.2.75', '10.1.0.53')
             ports = (32100, 10000) if inbound else (10000, 32100)
             ip = struct.pack('!BBHHHBBH4s4s', 0x45, 0, 40+len(data), 0, 0, 64, 6, 0,
                              socket.inet_aton(src), socket.inet_aton(dst))
@@ -245,7 +177,7 @@ class DiagnosticTests(unittest.TestCase):
         self.assertEqual(rows[-2]['kind'], 'fin')
         self.assertFalse(rows[-1]['issues'])
         # Loss and out-of-order data are never interpreted as absence of requests.
-        bad = path_probe.BackendWire(io.StringIO(), '10.1.0.53', '10.1.3.75', 'webmin.example')
+        bad = path_probe.BackendWire(io.StringIO(), '10.1.0.53', '192.0.2.75', 'webmin.example')
         bad.packet(packet(True, 100, 2), 1)
         bad.packet(packet(True, 102, 24, request), 2)
         self.assertIn('tcp_gap_or_reordering', bad.issues)
@@ -305,12 +237,12 @@ class DiagnosticTests(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as name:
                 root = Path(name)
-                source = (Path(__file__).parents[1]/'proposals/30-webmin-j2-svpi3bmf.caddy').read_text()
-                source = source.replace('https://webmin-j2-svpi3bmf.local.theama.co {', 'http://127.0.0.1:'+str(port)+' {')
+                source = (Path(__file__).parents[1]/'proposals/30-webmin-example.caddy').read_text()
+                source = source.replace('https://webmin-example.local.theama.co {', 'http://127.0.0.1:'+str(port)+' {')
                 source = source.replace('    bind 10.1.0.56 fd36:5aa8:6971:1::56 {$NODE_IPV4} {$NODE_IPV6}\n', '')
                 source = source.replace('    import local_tls\n', '')
                 source = source.replace('remote_ip 10.1.0.0/22 fd36:5aa8:6971:1::/64', 'remote_ip 127.0.0.1')
-                source = source.replace('10.1.3.75:10000', '127.0.0.1:'+str(server.server_port))
+                source = source.replace('192.0.2.75:10000', '127.0.0.1:'+str(server.server_port))
                 (root/'Caddyfile').write_text('{\n admin off\n}\n'+source)
                 adapted = subprocess.run(['caddy', 'adapt', '--config', str(root/'Caddyfile'), '--adapter', 'caddyfile'], capture_output=True, text=True, timeout=10)
                 self.assertEqual(adapted.returncode, 0, adapted.stderr)

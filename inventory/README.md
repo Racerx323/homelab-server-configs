@@ -168,20 +168,6 @@ producers have independent reviews. Address allocation remains in `homelab-netwo
 
 ## Uptime Kuma host foundation
 
-`prod/hosts/j2-svpi3bmf.yaml` selects the Uptime Kuma host and requested
-needrestart, Webmin, msmtp and watchdog coverage as desired configuration.
-Application sources and the [initial change record](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/PLAN.md)
-belong to `homelab-monitoring-observability/uptime-kuma`. Fleet components retain
-their current owners. Mailrise is the mail owner's desired default; notification
-services remain shared and are not selected for installation on this Pi.
+The [production host record](prod/hosts/j2-svpi3bmf.yaml) identifies the Pi, its hardware, the native fleet foundation, the Podman service, its dashboard and data location. The [deployment manifest](../../homelab-monitoring-observability/uptime-kuma/manifests/deployment.yaml) owns the application release, service interface and limits. Address allocation belongs to the network owner.
 
-Retained November 11 acceptance establishes the installed foundation, including
-adoption of the vendor systemd watchdog at 60/120 seconds. November 12 acceptance
-establishes the service and dual-stack dashboard. The
-[accepted result](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/RESULT.md)
-retains evidence and the approved deferred follow-up. The added standard-browser Webmin
-requirement keeps expanded closeout pending; these metadata updates are not a
-fresh inspection. The `webmin_access` block distinguishes the approved hostname
-and desired Caddy profile from the installed loopback profile. This host's monitoring
-function does not select a Munin plugin profile or a Munin master role. Inventory
-selection does not authorize package/service, DNS, networking or proxy changes.
+See the [installation and operations guide](../../homelab-monitoring-observability/uptime-kuma/docs/OPERATIONS.md) for rebuilding or maintaining the service and the [accepted result](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/RESULT.md) for workload limits. This host uses the shared notification services.

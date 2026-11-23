@@ -7,18 +7,7 @@ port 443. Operators must not need an SSH session, tunnel, custom browser proxy
 or manually selected port for normal administration. Webmin retains application
 login; Caddy owns frontend TLS and client-network restrictions.
 
-Use the host's accepted Webmin URL in inventory. The approved first hostname is
-`https://webmin-j2-svpi3bmf.local.theama.co` for `j2-svpi3bmf` (`10.1.3.75`).
-**That hostname is approved but not yet deployed.** Its implementation and
-acceptance are tracked in
-[W-128](../../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/WORK.md).
-Approval of a hostname is not evidence that DNS, Caddy or backend access works.
-
-Log in with the account selected by that host's Webmin policy. For the Pi, this
-is `ama` using its existing Unix account password, not the separate Kuma account.
-Other hosts retain their reviewed account policy; do not assume every host uses
-`ama`, enable root login fleet-wide, or reset passwords during proxy onboarding.
-Credentials, cookies and session tokens stay out of chat, source and evidence.
+Use the accepted URL and account policy in the host inventory. Keep credentials, cookies and session tokens private.
 
 Do not append `:10000` to an application's Caddy hostname. A name resolving to a
 Proxy VIP addresses that proxy node at port 10000, not the intended backend host.
@@ -50,38 +39,27 @@ mechanism, or a certificate-repair workflow for routine proxy target additions.
 
 ## Optional recovery access: SSH tunnel
 
+When a host uses fixed external redirect settings, a successful login through
+the localhost tunnel sends the browser back to the fleet HTTPS name. For an
+unavailable proxy, use administrative SSH on the backend host. To recover independent
+browser access, use the approved Webmin recovery procedure to restore the
+pre-change miniserv and Webmin configuration files, preserving ownership and
+mode, then restart Webmin and verify its loopback listeners before using the
+tunnel below. Keep an administrative shell open during that change. A successful
+loopback login should then redirect to the workstation tunnel origin.
+
 SSH tunneling is a fallback for an unavailable or not-yet-onboarded proxy path,
 not the normal access method or final browser acceptance. It is optional after
 browser onboarding. It does not repair Caddy/DNS, authorize a restart, or replace
 ordinary-name HTTPS verification.
 
-For the currently installed loopback HTTP profile on `j2-svpi3bmf`, run this in
-**WSL/Ubuntu on the workstation running your browser**, not inside a Pi SSH session:
+For a host with an approved loopback HTTP recovery profile, run this on the workstation, substituting its inventory SSH identity and address.
 
-```bash
-ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:11000:127.0.0.1:10000 ama@10.1.3.75
+```sh
+ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:11000:127.0.0.1:10000 USER@HOST
 ```
 
-Keep that terminal open, then visit `http://127.0.0.1:11000/` on the workstation.
-Log in as `ama` with the Pi's Unix account password. The local browser leg is HTTP;
-SSH encrypts transport to the Pi. The headless Pi needs no browser. `127.0.0.1:11000`
-in this URL means the workstation, while forwarded `127.0.0.1:10000` means the Pi.
-Stop the tunnel with Ctrl+C when finished. A port-binding error means the local
-forward did not start; do not assume an already-open localhost page is this tunnel.
-
-For another host, use its reviewed SSH identity, backend port and HTTP/HTTPS
-scheme. Do not copy this host's username or turn off certificate validation to
-work around a different profile. Never bind the workstation forward to `0.0.0.0`.
-Existing key authentication to SSH does not replace Webmin's password check.
-
-After the browser profile is installed, canonical redirects can send a tunneled
-request back to the public HTTPS name. The tunnel alone is therefore not a
-qualified independent login path during a proxy outage. Use SSH command-line
-administration to diagnose or follow the host's approved recovery operation to
-restore its saved loopback profile and verify service health. Do not improvise
-redirect/authentication changes or describe this fallback as tested browser recovery.
-The command above applies to the currently accepted loopback profile; reconcile
-this section with the first host's actual recovery acceptance before deployment.
+Keep the terminal open and visit <http://127.0.0.1:11000/> on that workstation. Use the host’s configured backend scheme and port. Close the tunnel after recovery.
 
 ## Failure and maintenance boundaries
 

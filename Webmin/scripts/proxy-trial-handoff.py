@@ -130,7 +130,7 @@ def clock_interval(stamp, boot, before, after):
     return [stamp+lo, stamp+hi]
 
 
-def request_records(owner_log, frontend=4, paired=False):
+def request_records(owner_log, frontend=4, paired=False, backend_addresses=()):
     text = workload.private(owner_log)
     matches = re.findall(rf'^evidence_directory=({owner_directory_pattern(owner_log)})$', text, re.M)
     if len(matches) != 1: raise ValueError('owner_evidence_directory')
@@ -192,7 +192,7 @@ def request_records(owner_log, frontend=4, paired=False):
             if not upstream: raise ValueError('primary_journal_marker_missing')
             if (not re.fullmatch('[0-9a-f]{32}', marker) or (marker not in records if paired else set(records) != {marker}) or
                     'remote_ip=fd36:5aa8:6971:1::53' not in timing or 'remote_port=443' not in timing or
-                    upstream not in ([['10.1.3.75:10000'], ['[fd36:5aa8:6971:1::75]:10000']] if paired else [['10.1.3.75:10000']])):
+                    len(upstream) != 1 or upstream[0] not in {f'[{addr}]:10000' if ':' in addr else f'{addr}:10000' for addr in backend_addresses}):
                 raise ValueError('primary_ipv6_pi_ipv4_path_unconfirmed')
             totals = [v[6:] for v in timing if re.fullmatch(r'total=[0-9]+(?:\.[0-9]+)?', v)]
             total = float(totals[0]) if len(totals) == 1 else None
@@ -335,12 +335,12 @@ def boundary_timing(req, flow, samples, before, after):
     return out
 
 
-def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False, frontend=4, paired=False):
+def diagnostic_coverage(before_path, after_path, samples_path, requests_path, receipt, owner_log=False, frontend=4, paired=False, backend_addresses=()):
     """No causal attribution: prove coverage and report ambiguous event association."""
     before, after = (json.loads(workload.private(path, 65536)) for path in (before_path, after_path))
     samples = workload.rows(samples_path)
     wire = None
-    requests = request_records(requests_path, frontend, paired) if owner_log else json.loads(workload.private(requests_path))
+    requests = request_records(requests_path, frontend, paired, backend_addresses) if owner_log else json.loads(workload.private(requests_path))
     if set(before) not in ({'backend', 'node-a'}, {'backend', 'node-a', 'node-b'}) or set(after) != set(before):
         raise ValueError('clock_hosts')
     if paired:
@@ -407,6 +407,7 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['ready', 'finish', 'clock', 'diagnostic-coverage', 'admit-evidence']); parser.add_argument('path', type=Path)
     parser.add_argument('receipt', type=Path, nargs='?')
     parser.add_argument('--frontend-family', type=int, choices=(4, 6), default=4)
+    parser.add_argument('--backend-address', action='append', default=[])
     parser.add_argument('--paired-final', action='store_true')
     parser.add_argument('--owner-log', action='store_true')
     parser.add_argument('--after', type=Path); parser.add_argument('--samples', type=Path); parser.add_argument('--requests', type=Path)
@@ -415,7 +416,7 @@ if __name__ == '__main__':
     try:
         if args.action == 'admit-evidence': admit_evidence(args.path)
         elif args.action == 'clock': clock_capture(args.path, args.receipt)
-        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log, args.frontend_family, args.paired_final)
+        elif args.action == 'diagnostic-coverage': diagnostic_coverage(args.path, args.after, args.samples, args.requests, args.receipt, args.owner_log, args.frontend_family, args.paired_final, args.backend_address)
         elif args.action == 'ready': ready(args.path, args.receipt, args.owner_exit)
         else: finish(args.path, args.workload_result)
     except OwnerExited:

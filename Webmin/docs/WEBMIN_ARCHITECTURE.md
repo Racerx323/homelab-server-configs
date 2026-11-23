@@ -122,17 +122,9 @@ qualification before exposure. Never disable authentication, global referer
 checks or backend TLS verification as a shortcut. A host's private login and
 browser-path acceptance remain distinct from Caddy configuration validity.
 
-### First Pi: SSH transport pilot
+### Proxy-managed SSH transport
 
-The browser uses HTTPS to the Caddy VIP. On each proxy a supervised SSH
-client will bind a proxy-local endpoint and forward it to Webmin on the Pi at
-127.0.0.1:10000. The proxy verifies the Pi host key; the Pi authorizes a
-dedicated identity for that proxy, restricted to local forwarding to that
-destination, without a shell, command execution or other forwarding privileges.
-Keep Webmin on loopback. Do not use the administrator account for forwarding.
-The operator opens only the browser. Both proxies run `webmin-pi-forward.service` on
-`127.0.0.1:18075`, each forwarding to the Pi's `127.0.0.1:10000` with its
-own restricted key. Fleet URL browser acceptance remains pending.
+Each proxy runs a supervised SSH client with a dedicated key and a verified backend host key. Bind a proxy-local loopback port and forward it to Webmin’s loopback listener. Restrict the backend SSH identity to local forwarding to that one destination. Disable shell sessions, agent and X11 forwarding, and other destinations. Use the same loopback upstream in the replicated Caddy route. The workstation needs only the fleet HTTPS URL.
 
 ### TLS on both connections
 

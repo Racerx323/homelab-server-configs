@@ -25,95 +25,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Webmin/tests -v
 git diff --check
 ```
 
-## Host installation profile
+## Fleet browser onboarding
 
-The [foundation tasks](../foundation/README.md) coordinate the proposed initial
-Uptime Kuma host installation. `configs/profiles/ssh-loopback.json` keeps Webmin
-on dual-stack loopback for SSH-tunnel administration; it is distinct from the
-Nautobot storage diagnostic. `scripts/configure-miniserv.py` atomically applies
-only reviewed settings while preserving unmanaged options and rejecting duplicate
-managed keys. First-start containment persists across reboot until configuration
-has been checked. No generic fleet deployment or live acceptance is implied.
-
-Run `python3 -I -B Webmin/tests/test_miniserv_configuration.py` for its focused
-configuration-boundary regressions.
-
-Browser-onboarding trial preparation uses the existing profile renderer and
-`ansible/proxy-trial.yaml`, with exact loopback restoration through
-`ansible/proxy-trial-restore.yaml`. Follow the
-[native trial contract](docs/CADDY_ONBOARDING.md#native-backend-trial-and-recovery).
-These includes require a separately sealed parent operation; they grant no live
-authority. `tests/test_proxy_recovery.py` covers failure ordering, and
-`tests/qualify-proxy-recovery.py` checks native timer/service/firewall recovery
-with a dummy HTTP service in an isolated container. Neither test accepts host
-capacity or actual Webmin browser behavior.
-
-The approved Pi-specific CPU/health policy is implemented locally in the
-[selected-host onboarding profile](docs/CADDY_ONBOARDING.md#selected-host-cpu-and-health-policy).
-It is not installed. Explicit selection keeps the fleet CPU default unchanged;
-the existing trial recovery restores the admitted baseline.
-
-## Bounded HTTP diagnosis
-
-For the selected Pi's workload question, `scripts/diagnose-http.py
---compare-loopback` uses its existing loopback listener without a deployment or
-service restart. It is explicitly scoped to `j2-svpi3bmf`, not a fleet acceptance
-gate. The reviewed command streams the script through SSH; no target file is
-installed. It runs one five-second curl request, then at most three together
-after settling. It emits CPU/throttling, memory, process/wait and request timing
-before stop checks, including on failure. Expected standing helpers are permitted;
-unresolved new process/socket activity stops progression. No response bodies,
-cookies, credentials, command lines or environments are retained. Local checks
-qualify measurement/control behavior only. The change ledger owns exact approval,
-limits and interpretation; a loopback pass cannot accept proxy/browser behavior.
-
-`ansible/diagnose-http.yaml` diagnoses a stopped, disabled service under its
-existing settings and limits. The selected operation defines the target and
-private evidence paths. It arms a transient systemd containment timer before
-creating a temporary start permit, performs unauthenticated loopback GETs, then
-stops/disables the service and verifies no listeners or permit remain before
-cancelling the fallback. No reboot, package action or authenticated request is
-part of this diagnostic.
-
-`scripts/diagnose-http.py` records HTTP status/timing with cgroup memory events,
-CPU/I/O pressure and process state. Samples include memory charge categories,
-limits/swap usage and numeric per-process PSS aggregates. Missing rollups and
-truncated process inventories remain explicit; RSS totals alone are not a
-cgroup memory attribution. It omits response bodies, cookies, command
-lines and environments. A slow or failed request is evidence; successful
-collection and containment do not accept the service or establish the cause.
-The Uptime Kuma [work ledger](../../homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/WORK.md)
-owns the exact sealed command, authorization and outcome.
-
-Run `python3 -I -B Webmin/tests/test_http_diagnostic.py` for the neutral
-local-loopback regressions; socket tests need execution outside the filesystem
-sandbox. Native service/timer qualification uses disposable Podman containers.
-
-A backend-only concurrency comparison uses `scripts/compare-backend.py` with
-`ansible/backend-comparison.yaml` and the native apply/restore includes. It is an
-optional diagnosis for a reviewed hypothesis, not a routine onboarding gate.
-The sealed launcher must use the supervisor's `run` action: forward work has a
-240-second controller budget; the separate recovery invocation has 840 seconds,
-including evidence retrieval and readback. Direct playbook execution omits these
-aggregate bounds. A controller cutoff is a failed operation, not proof of remote
-restoration; keep the independent native fallback and report manual intervention
-when restoration cannot be verified.
-
-At most five comparison requests run (one, three together, one conditional
-control), each with a five-second total deadline. Existing owner loopback
-readbacks are separate. Client locking/stop latching prevents late dispatch;
-the private primary directory remains as evidence. Final acceptance requires
-observer exit, resource coverage, equivalent received headers, observed overlap,
-unchanged boot identity and verified native restoration. A resource stop blocks
-later phases; already-running requests remain bounded by their five-second
-limit. No Caddy publication, authentication or browser workload is included.
-
-Run `python3 -I -B Webmin/tests/test_backend_comparison.py` for deadline, cleanup,
-evidence and localhost Ansible recovery checks. Run it outside a sandbox that
-blocks Ansible's local RPC socket. Native service actions are substituted in the
-control-flow cases; these tests do not qualify target capacity or live recovery.
-Exact inventory, controls, source hashes and live authority belong to the
-separately reviewed operation.
+Use the [fleet Webmin onboarding procedure](docs/CADDY_ONBOARDING.md) for backend selection, transport, Caddy publication, DNS and browser acceptance. The loopback profile and managed-settings editor preserve settings outside the selected keys.
 
 ## Small-host dashboard collection
 
@@ -128,8 +42,7 @@ Manual package actions remain separately reviewed maintenance.
 `ansible/configure.yaml` uses the same atomic owner helper for miniserv and
 module configuration. `ansible/accept.yaml` checks the effective collection
 setting, both loopback login paths and the unchanged 128/192 MiB/no-swap limits.
-The combined Pi resource budget remains subject to actual ARM64 acceptance.
-Local fixture success does not accept the Pi correction.
+Confirm capacity on each selected host under its intended workload.
 
 ## Read-only proxy readiness
 
@@ -151,13 +64,3 @@ The shared Caddy backend renderer and fictional input are documented in
 [onboarding](docs/CADDY_ONBOARDING.md#render-the-backend-profile). Its local
 qualification does not deploy a host or replace native browser acceptance.
 The readiness collector requires an explicit `--interface` alongside hostname.
-
-The selected-host CPU comparison uses `scripts/compare-loopback-quota.py` around
-the same loopback measurement. It admits the existing 100% ceiling, temporarily
-sets 200% with `systemctl set-property --runtime`, and uses a bounded transient
-unit's ExecStopPost to restore 100% and the prior runtime override bytes/mode or
-absence. The manager is reloaded to reconcile that restored configuration; no
-Webmin restart is requested. Ancestor limits and effective CPUs are observed
-before workload. A failed cleanup is reported separately from HTTP failure.
-This is a separately authorized diagnostic, not a fleet CPU-default change.
-Use only its sealed launcher; do not run worker/restore phases independently.

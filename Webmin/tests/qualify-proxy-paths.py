@@ -25,7 +25,7 @@ def main():
     assert Path('/run/.containerenv').exists()
     assert {x['ifname'] for x in json.loads(run('ip', '-j', 'link').stdout)} == {'lo'}
     profile, probe = load('render-proxy-profile'), load('probe-proxy-path')
-    review = json.loads((ROOT / 'configs/hosts/j2-svpi3bmf-proxy.json').read_text())
+    review = json.loads((ROOT / 'configs/hosts/example-proxy.json').read_text())
     review.update(browser_hostname='webmin.example.test', backend_addresses=['192.0.2.75', 'fd00::75'],
                   proxy_sources=['192.0.2.53', '192.0.2.54', 'fd00::53', 'fd00::54'])
     servers = []; namespaces = []

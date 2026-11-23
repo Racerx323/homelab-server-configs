@@ -23,17 +23,8 @@ CONFIGS = ('/etc/webmin/miniserv.conf', '/etc/webmin/config')
 ADDED = ('/etc/webmin/ingress.nft', '/etc/systemd/system/webmin-firewall.service',
          '/etc/systemd/system/webmin.service.d/30-proxy-ingress.conf')
 PRESERVED_CONFIG = '/etc/webmin/system-status/config'
-CPU_DROPIN = '/etc/systemd/system/webmin.service.d/70-browser-cpu.conf'
 
 
-def selected_cpu_profile(binding):
-    profile = binding.get('resource_profile')
-    if profile is None:
-        return False
-    if (profile != 'j2-svpi3bmf-cpu200' or binding['hostname'] != 'j2-svpi3bmf'
-            or binding['controls'].get('CPUQuotaPerSecUSec') != '1s'):
-        raise ValueError('unapproved_host_cpu_profile')
-    return True
 
 
 class NativeFailure(RuntimeError):
@@ -201,13 +192,8 @@ def snapshot(work, binding):
         raise ValueError('snapshot_already_exists')
     if socket.gethostname() != binding['hostname']:
         raise ValueError('hostname_mismatch')
-    if selected_cpu_profile(binding):
-        safe_path(Path(CPU_DROPIN))
-        if Path(CPU_DROPIN).exists():
-            raise ValueError('preexisting_browser_cpu_dropin')
-        identity(work / '70-browser-cpu.conf')
-        if (work / '70-browser-cpu.conf').read_bytes() != b'[Service]\nCPUQuota=200%\n':
-            raise ValueError('browser_cpu_profile_content')
+    if binding.get('resource_profile') is not None:
+        raise ValueError('unsupported_resource_profile')
     if set(binding['files']) != (set(CONFIGS) | preserved_paths(binding)):
         raise ValueError('binding_file_set')
     unchanged(binding['files'])
@@ -243,17 +229,8 @@ def apply(work):
     # All mutations execute in one bounded native service. The recovery service
     # stops that service before taking this lock, so late controller writes cannot
     # reopen listeners after restoration.
-    if selected_cpu_profile(state):
-        safe_path(Path(CPU_DROPIN))
-        if Path(CPU_DROPIN).exists():
-            raise ValueError('preexisting_browser_cpu_dropin')
-        raw = (work / '70-browser-cpu.conf').read_bytes()
-        if raw != b'[Service]\nCPUQuota=200%\n':
-            raise ValueError('browser_cpu_profile_content')
     state['phase'] = 'mutating'
     save(work / 'state.json', state)
-    if selected_cpu_profile(state):
-        put(Path(CPU_DROPIN), raw, {'uid': 0, 'gid': 0, 'mode': 0o644})
     for source, target, mode in zip(
             ('ingress.nft', 'webmin-firewall.service', '30-proxy-ingress.conf'), ADDED,
             (0o600, 0o644, 0o644)):
@@ -268,20 +245,12 @@ def apply(work):
         identity(work / policy)
         producer.configure(Path(name), json.loads((work / policy).read_text()))
     run('/usr/bin/systemctl', 'restart', 'webmin.service', timeout=90)
-    if selected_cpu_profile(state):
-        quota = run('/usr/bin/systemctl', 'show', 'webmin.service', '-p', 'CPUQuotaPerSecUSec', '--value').strip()
-        if quota != '2s':
-            raise ValueError('browser_cpu_quota_not_applied')
     state['phase'] = 'applied'
     save(work / 'state.json', state)
 
 
 def restore(work):
     state = json.loads((work / 'state.json').read_text())
-    if state['phase'] in ('prepared', 'cancelled', 'restored') and selected_cpu_profile(state):
-        safe_path(Path(CPU_DROPIN))
-        if Path(CPU_DROPIN).exists():
-            raise ValueError('unexpected_browser_cpu_dropin')
     if state['phase'] in ('prepared', 'cancelled'):
         if state['hostname'] != socket.gethostname():
             raise ValueError('recovery_binding_mismatch')
@@ -321,13 +290,6 @@ def restore(work):
         dropin = Path(ADDED[2])
         safe_path(dropin)
         dropin.unlink(missing_ok=True)
-        if selected_cpu_profile(state):
-            cpu = Path(CPU_DROPIN)
-            safe_path(cpu)
-            if cpu.exists():
-                if cpu.read_bytes() != b'[Service]\nCPUQuota=200%\n':
-                    raise ValueError('browser_cpu_dropin_drift')
-                cpu.unlink()
         run('/usr/bin/systemctl', 'daemon-reload', timeout=30)
         # Reset only this service's exhausted start-rate budget for exact recovery.
         run('/usr/bin/systemctl', 'reset-failed', 'webmin.service')

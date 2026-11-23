@@ -7,7 +7,6 @@ functions:
 components:
   - uptime_kuma
   - needrestart
-  - webmin
   - msmtp
   - watchdog
 
@@ -29,13 +28,15 @@ foundation:
   configuration_authority: homelab-server-configs
   mail_configuration_authority: homelab-dns/msmtp
   watchdog_backend_status: accepted_vendor_systemd_60s_120s
-  webmin_profile: ssh-loopback
   needrestart_profile: rpi-v8-list-only
 
 application:
+  dashboard_url: https://uptime.local.theama.co
+  data_directory: /var/lib/uptime-kuma/data
+  deployment_manifest: homelab-monitoring-observability/uptime-kuma/manifests/deployment.yaml
   configuration_authority: homelab-monitoring-observability/uptime-kuma
   deployment_status: service_and_dashboard_accepted_20261112
-  project_closeout: pending_webmin_browser_access
+  project_closeout: accepted_kuma_service
   acceptance_record: homelab-monitoring-observability/changes/2026-11-09-uptime-kuma/RESULT.md
 
 notification:
@@ -45,17 +46,8 @@ notification:
 component_runtime:
   uptime_kuma: podman
   needrestart: native
-  webmin: native
   msmtp: native
 
 high_availability:
   role: none
   owns_virtual_ips: false
-
-webmin_access:
-  desired_profile: caddy_browser
-  browser_url: https://webmin-j2-svpi3bmf.local.theama.co
-  deployment_status: hostname_approved_onboarding_pending
-  accepted_profile: ssh-loopback
-  ssh_tunnel_role: optional_recovery
-  procedure: Webmin/docs/CADDY_ONBOARDING.md

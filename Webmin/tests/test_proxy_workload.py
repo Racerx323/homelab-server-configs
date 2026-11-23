@@ -251,22 +251,22 @@ class Acceptance(unittest.TestCase):
             base = stream(record)+field('application-node-ipv6.request-id.tsv', marker)+field(
                 'application-node-ipv6.timing.tsv', 'total=0.98 remote_ip=fd36:5aa8:6971:1::53 remote_port=443')+field(
                 'application-recovery-clock.tsv', 'application-primary:start 1002.12\napplication-primary:end 1004.03\n')
-            for upstream in ['10.1.3.75:10000', '[fd36:5aa8:6971:1::75]:10000']:
+            for upstream in ['192.0.2.75:10000', '[2001:db8::75]:10000']:
                 primary.write_text(base+field('application-node-ipv6-journal.status', '0\n')+field('application-node-ipv6-journal.stdout', json.dumps([
                     {'request_id': marker, 'upstream': upstream}])))
                 if upstream.startswith('['):
-                    with self.assertRaisesRegex(ValueError, 'path_unconfirmed'): h.request_records(directory/'owner.log', 6)
+                    with self.assertRaisesRegex(ValueError, 'path_unconfirmed'): h.request_records(directory/'owner.log', 6, backend_addresses=['192.0.2.75'])
                 else:
-                    parsed = h.request_records(directory/'owner.log', 6)[0]
+                    parsed = h.request_records(directory/'owner.log', 6, backend_addresses=['192.0.2.75'])[0]
                     self.assertEqual((parsed['verified_path'], parsed['curl_total'], parsed['recovery_window']),
                                      ('primary-ipv6/pi-ipv4', .98, [1002.12, 1004.03]))
             journal = field('application-node-ipv6-journal.stdout', json.dumps([
-                {'request_id': marker, 'upstream': '10.1.3.75:10000'}]))
+                {'request_id': marker, 'upstream': '192.0.2.75:10000'}]))
             for status, error in [(None, 'status_missing'), ('invalid', 'status_invalid'), ('1\n', 'exit_1')]:
                 with self.subTest(status=status):
                     primary.write_text(base+journal+(field('application-node-ipv6-journal.status', status) if status else ''))
                     with self.assertRaisesRegex(ValueError, '^primary_journal_'+error+'$'):
-                        h.request_records(directory/'owner.log', 6)
+                        h.request_records(directory/'owner.log', 6, backend_addresses=['192.0.2.75'])
             # A paired result contains other real requests. Only the new marker
             # in the *final* A readback can identify the post-convergence flow.
             w.atomic_text(directory/'application-secondary-b.status', '0\n')
@@ -276,12 +276,12 @@ class Acceptance(unittest.TestCase):
             final = directory/'application-result-a-readback.stdout'
             w.atomic_text(final, base+field('application-node-ipv6-journal.status','0\n')+
                           field('application-node-ipv6-journal.stdout', json.dumps([
-                              {'request_id':marker,'upstream':'[fd36:5aa8:6971:1::75]:10000'}])))
-            parsed, = h.request_records(directory/'owner.log', 6, paired=True)
+                              {'request_id':marker,'upstream':'[2001:db8::75]:10000'}])))
+            parsed, = h.request_records(directory/'owner.log', 6, paired=True, backend_addresses=['192.0.2.75', '2001:db8::75'])
             self.assertEqual((parsed['request_id'], parsed['verified_path']), (marker,'primary-ipv6/pi-ipv6'))
             primary.write_text(stream(record)+field('application-node-ipv6.request-id.tsv', marker))
             with self.assertRaisesRegex(ValueError, 'paired_final_marker_missing'):
-                h.request_records(directory/'owner.log', 6, paired=True)
+                h.request_records(directory/'owner.log', 6, paired=True, backend_addresses=['192.0.2.75', '2001:db8::75'])
             final.unlink()
             primary.write_text(stream(record))
             w.atomic_text(directory/'application-result-a-readback.stdout', stream(record))

@@ -43,6 +43,7 @@
     argv: [systemctl, show, webmin.service, '--property=ActiveState,MainPID,UnitFileState,MemoryHigh,MemoryMax,MemorySwapMax,KillMode,OOMPolicy']
   changed_when: false
   register: fleet_installed_webmin
+  when: "'webmin' in foundation.host_components"
 - name: Require the contained reviewed Webmin baseline
   ansible.builtin.assert:
     that:
@@ -54,6 +55,7 @@
       - "'MemorySwapMax=0' in fleet_installed_webmin.stdout_lines"
       - "'KillMode=control-group' in fleet_installed_webmin.stdout_lines"
       - "'OOMPolicy=stop' in fleet_installed_webmin.stdout_lines"
+  when: "'webmin' in foundation.host_components"
 - name: Read bounded absence and socket preconditions
   ansible.builtin.command:
     argv: '{{ item }}'
@@ -62,10 +64,12 @@
     - [ss, -H, -lnu, 'sport = :10000']
   changed_when: false
   register: fleet_installed_sockets
+  when: "'webmin' in foundation.host_components"
 - name: Require no Webmin listener before correction
   ansible.builtin.assert:
     that: item.stdout | trim == ''
   loop: '{{ fleet_installed_sockets.results }}'
+  when: "'webmin' in foundation.host_components"
 - name: Inspect paths that must still be absent
   ansible.builtin.stat:
     path: '{{ item }}'
@@ -80,6 +84,20 @@
   ansible.builtin.assert:
     that: not item.stat.exists
   loop: '{{ fleet_installed_absence.results }}'
+- name: Verify the selected Webmin guard identity
+  when: "'webmin' in foundation.host_components"
+  block:
+    - ansible.builtin.stat:
+        path: /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
+        follow: false
+        checksum_algorithm: sha256
+      register: fleet_selected_guard
+    - ansible.builtin.assert:
+        that:
+          - fleet_selected_guard.stat.isreg
+          - fleet_selected_guard.stat.uid == 0 and fleet_selected_guard.stat.gid == 0
+          - fleet_selected_guard.stat.mode == '0644'
+          - fleet_selected_guard.stat.checksum == continuation.webmin_guard_sha256
 - name: Read accepted foundation file identities without their contents
   ansible.builtin.stat:
     path: '{{ item.path }}'
@@ -87,8 +105,6 @@
     checksum_algorithm: sha256
     get_mime: false
   loop:
-    - path: /etc/systemd/system/webmin.service.d/10-fleet-foundation.conf
-      sha256: '{{ continuation.webmin_guard_sha256 }}'
     - path: /etc/msmtprc
       sha256: '{{ lookup("file", fleet_mail_root + "/msmtp/configs/msmtprc", rstrip=false) | hash("sha256") }}'
     - path: /etc/aliases
@@ -110,7 +126,7 @@
     label: '{{ item.item.path }}'
 - name: Retain grouped read-only package and service residue acceptance
   ansible.builtin.copy:
-    content: '{{ {"installed_pins": fleet_installed_pins.stdout_lines, "webmin": fleet_installed_webmin.stdout_lines, "package_audit_empty": true, "foundation_files_unchanged": true} | to_nice_json }}'
+    content: '{{ {"installed_pins": fleet_installed_pins.stdout_lines, "webmin": fleet_installed_webmin.stdout_lines | default([]), "package_audit_empty": true, "foundation_files_unchanged": true} | to_nice_json }}'
     dest: '{{ operation_evidence_directory }}/installed-foundation-preflight.json'
     mode: '0600'
   delegate_to: localhost
