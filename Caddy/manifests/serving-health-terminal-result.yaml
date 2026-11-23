@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "action": "20261123-webmin-ssh-forward-route",
+  "result": "accepted",
+  "exit_status": 0,
+  "attempts": 1,
+  "release": "20261123T164945Z-33bab0b3-a689-4007-922b-01b94415ca02",
+  "parent": "20261111T213048Z-71b7deb8-bc71-45d5-8f33-98270af79d3b",
+  "payload_manifest_sha256": "739538b4c4bb14f1df40d2f872b53a1a8990e68b876ef8ac728d5df7d5044f5a",
+  "fragment_sha256": "7d39ff4cf8ca9dd939aecdf7ca1e9a898a7790cf4b5651a115217facbaed64e3",
+  "operation_sha256": "75c2b6c2c6d1b2e68cb84c2712e2c3d43f866e5d981929c50385e8291219f9e2",
+  "outer_sha256": "c5b13227ec22664a216636cfbc57d60c4ec414181980d215941663781f57231f",
+  "transaction_sha256": "e52181579b1143b311203036f655719b1e6076f1c5dd520c85ff0e79bb13e445",
+  "recipe_sha256": "8de3fb1daf572e7d8e1d32295ddd7b34d03576483067dab4ca319dfd1f2e864a",
+  "archive_snapshot_sha256": "3c9ea620d6d5d6160ac02de611782d0959b7761904446b7630a2698945bc36d6",
+  "node_and_shared_http": {
+    "ipv4": 200,
+    "ipv6": 200
+  },
+  "dns": "pending",
+  "browser_acceptance": "pending",
+  "planned_tag": "caddy-webmin-ssh-forward-terminal-2026-11-23"
+}

@@ -336,6 +336,11 @@ def setup(root):
         fragment = REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy'
         if os.environ.get('PRIMARY_CASE') == 'webmin-source' or os.environ.get('PRIMARY_CASE', '').startswith('trial-'):
             fragment = REPO/'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'
+            if os.environ.get('PRIMARY_CASE') == 'webmin-source':
+                owner_recipe = dict(row.split('\t') for row in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+                if owner_recipe.get('application_installed_validator_sha256'):
+                    fragment = REPO.parent/owner_recipe['application_fragment_source']
+                    values['application_installed_validator_sha256'] = owner_recipe['application_installed_validator_sha256']
         values.update(release_kind='application', tls_source_revision='baseline',
                       tls_source_manifest_sha256=hashes['baseline'],
                       application_fragment_name=fragment.name, application_fragment_sha256=digest(fragment),

@@ -4,6 +4,16 @@ The current branch contains accepted production state and neutral reusable
 tools. Annotated Git tags preserve consumed operation definitions, hashes, and
 terminal provenance. Inspect a tag when you need the full record.
 
+## November 23 persistent Webmin route
+
+Status: terminal-pending
+
+Tag: `caddy-webmin-ssh-forward-terminal-2026-11-23`
+
+Node A accepted the route before replication. Both nodes retained revision
+`20261123T164945Z-33bab0b3-a689-4007-922b-01b94415ca02` and verified the shared endpoint.
+Fleet DNS and browser acceptance remain pending.
+
 ## November 18 paired Webmin final-request timing trial
 
 Status: terminal-pending

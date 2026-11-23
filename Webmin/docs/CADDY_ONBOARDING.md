@@ -18,8 +18,15 @@ change record for its inputs, decisions and results.
    the installed service controls and each proxy's route-selected source addresses.
 2. Select one upstream address for the Webmin instance unless the host has a
    documented need for two. Client IPv4/IPv6 access at the VIP is independent
-   of the upstream family. Select verified backend TLS for the first Pi;
-   establish certificate identity and trust before exposing login.
+   of the upstream family. For the first Pi, use the
+   [proxy-managed SSH pilot](WEBMIN_ARCHITECTURE.md#first-pi-ssh-transport-pilot).
+   Keep port 10000 on loopback; verify the primary forward before adding
+   the secondary, then use the existing Caddy and DNS publication procedures.
+   For this Pi, select the [SSH-forward route fragment](../proposals/ssh-forward/30-webmin-j2-svpi3bmf.caddy).
+   Both replicas receive the same fragment. Each connects to the SSH listener
+   on its own loopback. The older direct-to-Pi fragment below belongs to the
+   diagnostic trials. Use the Caddy owner's primary-first release procedure
+   and check each node's route through its own forward before DNS progression.
 3. Use the [existing owners](#execute-through-existing-owners) to deliver
    persistent changes. Define what makes each step safe to leave in place and
    which failure requires withdrawal. Keep verified steps if a later step is
@@ -46,7 +53,7 @@ backend pool across unrelated hosts. Preserve unrelated Caddy routes and TLS.
 | Target identity | Existing SSH key pin and exact native hostname from accepted evidence; keep the DNS FQDN separate. One explicitly selected host per operation. |
 | Browser hostname | Approved per-host hostname; `webmin-j2-svpi3bmf.local.theama.co` is approved for the first host. |
 | Backend addresses/port | Explicit target addresses and observed Webmin listener; never infer the target from another application's DNS alias. |
-| Backend transport | Use [verified upstream HTTPS](WEBMIN_ARCHITECTURE.md#tls-on-both-connections). Record the backend certificate identity, issuer, renewal owner and trust on both proxies. |
+| Backend transport | For the first Pi use the SSH pilot above. For direct TLS use [verified upstream HTTPS](WEBMIN_ARCHITECTURE.md#tls-on-both-connections). Record the backend certificate identity, issuer, renewal owner and trust on both proxies. |
 | Allowed sources | Exact Caddy node/active-VIP source identities observed for this host, plus loopback recovery; client-network allowlist belongs at Caddy. |
 | Account policy | Existing host Webmin/Unix authentication; no new accounts, password collection, root-login assumption or auth bypass. |
 | Baseline and recovery | Current selected settings, file identities, service/resource controls, accepted parent release and exact per-host backups. |

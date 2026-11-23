@@ -234,6 +234,7 @@ readonly -a expected_installable_scripts=(
     Caddy/scripts/lsyncd-sync-failure-notify.sh
     Caddy/scripts/publish-release-v2.sh
     Caddy/scripts/reconcile-release-v2.sh
+    Caddy/scripts/validate-caddy-isolated.sh
     Caddy/scripts/validate-sync-health.sh
 )
 diff -u \
@@ -304,6 +305,17 @@ validate_node_inventory_pair() {
     local inventory_target=$2
     local inventory_authority=$3
 
+    # The persistent validator was accepted on the primary only.
+    if [[ "$inventory_source" = Caddy/scripts/validate-caddy-isolated.sh ]]; then
+        awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
+            $2 == "homelab-server-configs" && $3 == source {
+                total++
+                if ($4 == target && $5 == "node-a") primary++
+            }
+            END { exit(total == 1 && primary == 1 ? 0 : 1) }
+        ' "$production_inventory"
+        return
+    fi
     awk -F '\t' -v source="$inventory_source" -v target="$inventory_target" '
         /^[[:space:]]*(#|$)/ { next }
         $2 == "homelab-server-configs" && $3 == source {

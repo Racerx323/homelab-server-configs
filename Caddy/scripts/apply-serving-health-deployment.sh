@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=38596e6469b6b21ba75786074c9cf6bb48c33fa734e2993e320a1ac652b2eef3
+readonly certificate_inputs_sha256=8de3fb1daf572e7d8e1d32295ddd7b34d03576483067dab4ca319dfd1f2e864a
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1482,6 +1482,12 @@ application_primary() (
     trap 'app_primary_rc=$?; trap - EXIT; if [[ "$app_primary_rc" != 0 && "$app_mutated" = true ]]; then application_restore "$app_revision" || exit 125; fi; exit "$app_primary_rc"' EXIT
     [[ "$node_role" = node-a ]]
     application_baseline
+    if grep -q '^application_installed_validator_sha256' "$payload_root/manifests/certificate-release-inputs.tsv"; then
+        local app_validator
+        app_validator=$(effective_path /usr/local/libexec/validate-caddy-isolated.sh)
+        certificate_hash "$app_validator" "$(certificate_setting application_installed_validator_sha256)"
+        require_equal application_validator_metadata 0:0:755 "$(application_validation_metadata "$app_validator")"
+    fi
     # One reviewed change at a time; absent and protected-empty namespaces are
     # equivalent. No historical outgoing inventory or certificate worker gate.
     require_empty_or_absent_sync_directory application_incoming_a "$incoming_root/node-a"

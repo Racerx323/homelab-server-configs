@@ -1241,7 +1241,7 @@ def suite(primary_tools_only=False):
         children = []
         with (root/'native.log').open('wb') as native_log:
             children.append(subprocess.Popen(['/usr/bin/caddy', 'run', '--config', '/etc/caddy/current/Caddyfile'], env=native_env, stdout=native_log, stderr=native_log))
-            for port in ['3001', '8080', '10000']:
+            for port in ['3001', '8080', '10000', '18075']:
                 children.append(subprocess.Popen([sys.executable, str(SOURCE), '--backend', port, str(root)], stdout=native_log, stderr=native_log))
             try:
                 for _ in range(50):

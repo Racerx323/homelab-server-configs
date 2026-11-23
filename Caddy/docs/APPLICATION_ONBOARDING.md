@@ -74,6 +74,7 @@ The current production fragment inventory is:
 | `00-health.caddy` | Local and shared Proxy-VIP health endpoints |
 | `10-pihole-admin.caddy` | Pi-hole administration proxy and node health |
 | `20-uptime-kuma.caddy` | Accepted Uptime Kuma dashboard proxy |
+| `30-webmin-j2-svpi3bmf.caddy` | Accepted Webmin proxy through each node’s loopback SSH forward |
 | `90-default-deny.caddy` | Default HTTP and HTTPS `421` response |
 | `91-exact-listener-default-deny.caddy` | Exact node, Proxy-VIP, and loopback HTTPS `421` response |
 
@@ -403,7 +404,8 @@ restriction does not replace the separately authorized production validation pat
 
 The repository publisher, finalizer and reconciler now invoke
 `/usr/local/libexec/validate-caddy-isolated.sh` for full configuration validation.
-This is source integration only; the helper and changed callers are not deployed.
+Node A has the accepted persistent helper recorded in the installed artifact inventory.
+The installed finalizer and reconciler retain their previously accepted versions.
 A separately reviewed owner rollout must install the exact helper as
 `root:root:0755` at that path before activating any changed caller, bind its
 identity and util-linux `unshare` dependency, and cover restoration of the prior
@@ -427,6 +429,24 @@ Runtime reload and active health configuration are unchanged. Deployment payload
 installation order, recovery and aggregate deadline bindings remain prerequisites
 to a separately reviewed target comparison; source integration grants no live
 execution authority.
+
+**Persistent application releases.** The outer runner stages the repository
+publisher on Node A. Its prepare step needs the fixed-path validator on that
+node. Bind the publisher and helper digests separately from installed tool
+inventory. Admit an existing helper only after checking its regular-file
+identity, root ownership, mode 0755 and protected path. If absent, prepare an
+independently approved persistent helper installation. Stop on a conflicting
+file or symlink. Verify the staged publisher's root validation context using
+the accepted configuration, release environment and existing isolation controls.
+Keep the verified helper available across application releases. Withdrawal
+requires an ownership/hash check and confirmation that no installed or active
+caller depends on it.
+
+Review finalizer and reconciler dependencies from their **installed** digests.
+Record which validation steps actually run in isolation. Deploying changed
+callers is a separate owner change. A release using previously accepted callers
+retains their existing validation and associated backend health traffic.
+Node B receives the replicated release and uses its installed callers.
 
 For a diagnostic that temporarily changes validation tools, keep their delivery
 in the existing owner payload and their restoration in the existing transaction.
