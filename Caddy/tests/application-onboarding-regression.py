@@ -34,6 +34,8 @@ EXPECTED_STATUS.update(TRIALS)
 NARROW = {"trial-primary-only-success": 0, "trial-primary-only-http": 1, "trial-primary-only-install-failure": 1}
 CASES += list(NARROW)
 EXPECTED_STATUS.update(NARROW)
+WITHDRAW = {'withdraw-success': 0, 'withdraw-secondary-failure': 1}
+EXPECTED_STATUS.update(WITHDRAW)
 GRAPH_FILES = [
     'Caddy/scripts/' + name for name in ['publish-release-v2.sh',
     'apply-serving-health-deployment.sh', 'run-serving-health-deployment-outer.sh',
@@ -46,13 +48,13 @@ GRAPH_FILES += ['Caddy/manifests/' + name for name in ['serving-health-operation
     'deployable-successor-coverage.tsv', 'current-live-state.tsv',
     'serving-health-production.tsv', 'accepted-live-artifacts.tsv', 'production-artifacts.tsv']]
 GRAPH_FILES += ['../homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy',
-                'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy']
+                'Webmin/proposals/30-webmin-example.caddy']
 
 
 def source_graph():
     paths = set(GRAPH_FILES)
     recipe = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
-    if recipe.get('release_kind') == 'application':
+    if recipe.get('release_kind') == 'application' and recipe.get('application_action') != 'withdraw':
         paths.add('../' + recipe['application_fragment_source'])
     return {name: release.digest(REPO/name) for name in sorted(paths)}
 
@@ -61,6 +63,10 @@ def qualification_cases():
     operation = (REPO/'Caddy/manifests/serving-health-operation.yaml').read_text()
     fields = dict(re.findall(r'^([a-z0-9_]+): (\S+)$', operation, re.M))
     profile = fields.get('qualification_profile', 'paired-application')
+    if profile == 'paired-withdrawal':
+        recipe = (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()
+        assert 'application_action\twithdraw' in recipe
+        return list(WITHDRAW)
     if profile == 'paired-application':
         return CASES
     assert profile == 'primary-validation-diagnostic', 'unknown qualification profile'
@@ -74,8 +80,8 @@ def qualification_cases():
                 'application_diagnostic_scope': 'primary-ipv4', 'application_trial_seconds': '660',
                 'application_diagnostic_seconds': '240', 'application_http_status': '200',
                 'application_probe_path': 'session_login.cgi',
-                'application_fqdn': 'webmin-j2-svpi3bmf.local.theama.co',
-                'application_fragment_source': 'homelab-server-configs/Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'}
+                'application_fqdn': 'webmin-example.local.theama.co',
+                'application_fragment_source': 'homelab-server-configs/Webmin/proposals/30-webmin-example.caddy'}
     for key, expected in required.items():
         assert recipe.get(key) == expected, 'diagnostic binding: '+key
     for key, filename in [('helper', 'validate-caddy-isolated.sh'), ('finalizer', 'finalize-incoming-release-v2.sh'), ('reconciler', 'reconcile-release-v2.sh')]:
@@ -88,8 +94,8 @@ def coverage_rows():
         phase = ('pre-mutation' if case == 'publisher-boundaries' else
                  'pre-exposure' if case == 'exposure-tamper' else
                  'convergence' if case.startswith('secondary-') or case == 'timeout' else
-                 'accepted-path' if case in ('success', 'webmin-source') else 'recovery')
-        entrypoint = 'outer' if case in ['publisher-boundaries', 'timeout', 'trial-primary-only-install-failure'] else 'transaction'
+                 'accepted-path' if case in ('success', 'webmin-source', 'withdraw-success') else 'recovery')
+        entrypoint = 'outer' if case in ['publisher-boundaries', 'timeout', 'trial-primary-only-install-failure', 'withdraw-secondary-failure'] else 'transaction'
         expectation = 'reach' if case == 'publisher-boundaries' else 'accept' if EXPECTED_STATUS[case] == 0 else 'reject'
         yield ['application-' + case, phase, entrypoint, expectation,
                'decisions/application-' + case + '.tsv', 'raw/application-' + case + '.json']
@@ -126,11 +132,17 @@ def definition_check():
     assert recipe['publisher_candidate_sha256'] == release.digest(REPO/'Caddy/scripts/publish-release-v2.sh')
     assert recipe['reconciler_installed_sha256'] == release.accepted_hash('protocol_v2_reconciler')
     assert recipe['finalizer_sha256'] == release.accepted_hash('protocol_v2_finalizer')
-    source = recipe['application_fragment_source']
-    assert re.fullmatch(r'homelab-[a-z0-9-]+/(?:[A-Za-z0-9_-]+/)+[2-7][0-9]-[a-z0-9-]+\.caddy', source)
-    path = REPO.parent/source
-    assert path.resolve() == path and path.name == recipe['application_fragment_name']
-    assert recipe['application_fragment_sha256'] == release.digest(path)
+    if 'application_action' in recipe:
+        assert recipe['application_action'] == 'withdraw' and 'application_fragment_source' not in recipe
+        assert recipe['application_http_status'] == '421'
+        assert re.fullmatch(r'[2-7][0-9]-[a-z0-9-]+\.caddy', recipe['application_fragment_name'])
+        assert re.fullmatch(r'[0-9a-f]{64}', recipe['application_fragment_sha256'])
+    else:
+        source = recipe['application_fragment_source']
+        assert re.fullmatch(r'homelab-[a-z0-9-]+/(?:[A-Za-z0-9_-]+/)+[2-7][0-9]-[a-z0-9-]+\.caddy', source)
+        path = REPO.parent/source
+        assert path.resolve() == path and path.name == recipe['application_fragment_name']
+        assert recipe['application_fragment_sha256'] == release.digest(path)
     assert recipe['baseline_revision'] == recipe['tls_source_revision']
     assert recipe['baseline_manifest_sha256'] == recipe['tls_source_manifest_sha256']
     assert re.fullmatch(r'[a-z0-9-]+\.local\.theama\.co', recipe['application_fqdn'])
@@ -294,7 +306,8 @@ application_payload_fragment() {{ printf 'fragment\\n' >"$payload_root/manifests
                 (root/'releases/candidate').mkdir()
                 (root/'current').unlink(); (root/'current').symlink_to(root/'releases/candidate')
                 prelude += "target_revision_argument=candidate\n"
-            recovery = 'application_trial_contain\napplication_trial_quiesce\napplication_trial_restore\napplication_trial_resume\n'
+            phases = ('contain', 'quiesce', 'restore', 'resume')
+            recovery = ''.join(f'mode=application-trial-{phase}; application_trial_{phase}\n' for phase in phases)
             if case == 'restore-failure':
                 recovery = 'cp() { return 23; }\n'+recovery
             result = run(recovery)
@@ -466,7 +479,7 @@ application_routes
         assert (unavailable/'application-node-ipv4-journal.status').read_text() != '0\n'
         token = 'a'*32
         message = {'diagnostic_id': token, 'status': 200, 'duration': .4,
-                   'upstream_host': '10.1.3.75:10000', 'upstream_duration_ms': '390',
+                   'upstream_host': '192.0.2.75:10000', 'upstream_duration_ms': '390',
                    'upstream_latency_ms': '380', 'request': {'headers': {'Cookie': 'PRIVATE'}},
                    'resp_headers': {'Set-Cookie': 'PRIVATE'}}
         journal.write_text("#!/bin/sh\nprintf '%s\\n' " + shlex.quote(json.dumps(
@@ -626,7 +639,7 @@ def payload_tests():
         (stage/'manifests').mkdir(parents=True)
         workspace = root/'workspace'
         for source in ('homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy',
-                       'homelab-server-configs/Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'):
+                       'homelab-server-configs/Webmin/proposals/30-webmin-example.caddy'):
             target = workspace/source
             target.parent.mkdir(parents=True)
             target.write_bytes((REPO.parent/source).read_bytes())
@@ -702,6 +715,41 @@ def case_observation(root, case):
     with tarfile.open(control) as archive:
         assert archive.getnames() == ['manifests/certificate-release-inputs.tsv']
     evidence_hashes['runner-evidence/secondary-control.tar'] = release.digest(control)
+    if case in WITHDRAW:
+        exposed = json.loads(read('exposure.json'))
+        assert exposed['revision'] != 'baseline' and exposed['primary'].endswith('/'+exposed['revision'])
+        assert modes.index('application-primary') < modes.index('application-expose') < modes.index('application-secondary')
+        assert read('transport.status') == '0'
+        restored = case == 'withdraw-secondary-failure'
+        tested = dict(line.split('\t') for line in read('inputs.tsv').splitlines()[1:])
+        owner = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+        for key, value in owner.items():
+            if key not in ('baseline_revision','tls_source_revision','baseline_manifest_sha256','tls_source_manifest_sha256'):
+                assert tested[key] == value, key
+        for role, suffix in [('node-a', 'a'), ('node-b', 'b')]:
+            assert observed['nodes'][role]['selection'] == ('baseline' if restored else exposed['revision'])
+            path = 'runner-evidence/application-' + ('restored-' if restored else 'result-') + suffix + '-readback.stdout'
+            read(path)
+            records = release.decode_stream(root/path)
+            assert records['application-trial-monitor.tsv'].strip() == 'passed'
+            if restored:
+                assert records['application-trial-restored.tsv'].strip() == 'restored'
+            else:
+                assert records['application-manifest.tsv'].strip() == exposed['manifest']
+            for endpoint in (['node','shared'] if role == 'node-a' else ['node']):
+                for family in [4,6]:
+                    label = ('monitor' if endpoint == 'shared' else 'restore') if restored else ('shared' if endpoint == 'shared' else 'final')
+                    command = read(f'runner-evidence/application-{label}-{suffix}.stdout')
+                    assert f'serving_health_deployment_observed_retained_dashboard_{endpoint}_ipv{family}=200' in command.splitlines()
+                    assert records[f'application-{endpoint}-ipv{family}.stdout'].strip() == ('200' if restored else '421')
+        if restored:
+            assert modes.count('application-trial-restore') == 2
+            failed = read('runner-evidence/application-secondary-b.stderr')
+            assert 'retained_dashboard_node_ipv4' in failed, failed
+        else:
+            assert 'application-trial-restore' not in modes
+        return dict(case=case, status=EXPECTED_STATUS[case], expected='verified-'+case,
+                    observed='verified-'+case, evidence=evidence_hashes)
     if case in NARROW:
         assert all(c['role'] == 'node-a' for c in calls)
         assert 'application-expose' not in modes and 'application-secondary' not in modes
@@ -1126,7 +1174,7 @@ def adapter(name, args):
         marker = release.fixture_root()/'backend-fail'
         should_fail = selected != 'baseline' and endpoint.endswith('/dashboard') and (
             scenario == 'primary-http' and release.active_role() == 'node-a' or
-            scenario == 'secondary-http' and release.active_role() == 'node-b')
+            scenario in ('secondary-http', 'withdraw-secondary-failure') and release.active_role() == 'node-b')
         if scenario == 'trial-primary-only-http' and selected != 'baseline' and endpoint.endswith('/session_login.cgi'):
             should_fail = True
         if should_fail:
@@ -1163,8 +1211,12 @@ def suite(primary_tools_only=False):
     release.require_container()
     evidence = Path('/evidence')
     evidence.mkdir(exist_ok=True)
-    for address in ['10.1.0.53/32', '10.1.0.54/32', '10.1.0.56/32', '10.1.3.75/32', 'fd36:5aa8:6971:1::53/128', 'fd36:5aa8:6971:1::54/128', 'fd36:5aa8:6971:1::56/128', 'fd36:5aa8:6971:1::75/128']:
+    for address in ['10.1.0.53/32', '10.1.0.54/32', '10.1.0.56/32', '192.0.2.75/32', 'fd36:5aa8:6971:1::53/128', 'fd36:5aa8:6971:1::54/128', 'fd36:5aa8:6971:1::56/128', '2001:db8::75/128']:
         subprocess.run(['ip', 'address', 'add', address, 'dev', 'lo'], check=True)
+    if qualification_cases() == list(WITHDRAW):
+        # Reach the unchanged Kuma upstreams entirely inside the offline network namespace.
+        for address in ['10.1.3.75/32', 'fd36:5aa8:6971:1::75/128']:
+            subprocess.run(['ip', 'address', 'add', address, 'dev', 'lo'], check=True)
     for scenario in (NARROW if primary_tools_only else qualification_cases()):
         root = evidence/scenario
         root.mkdir(mode=0o700)
@@ -1195,8 +1247,22 @@ def suite(primary_tools_only=False):
         rows = dict(line.split('\t') for line in recipe.read_text().splitlines()[1:])
         rows.update(baseline_manifest_sha256=baseline_hash, tls_source_manifest_sha256=baseline_hash)
         recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
-        host, probe = ('webmin-j2-svpi3bmf.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS or scenario in NARROW else ('uptime.local.theama.co', 'dashboard')
-        recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
+        if scenario in WITHDRAW:
+            owner_recipe = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+            installed_finalizer = Path(os.environ['CADDY_ACCEPTED_FINALIZER_FIXTURE'])
+            assert release.digest(installed_finalizer) == owner_recipe['finalizer_sha256']
+            for role in ['node-a', 'node-b']:
+                shutil.copyfile(installed_finalizer, root/'nodes'/role/'libexec/finalize-incoming-release-v2.sh')
+            rows['finalizer_sha256'] = owner_recipe['finalizer_sha256']
+            for key in ['application_fragment_source','application_operator_sha256','application_client_sha256']:
+                rows.pop(key, None)
+            for key in ['application_action','application_fragment_name','application_fragment_sha256','application_fqdn',
+                        'application_probe_path','application_http_status','application_installed_validator_sha256']:
+                rows[key] = owner_recipe[key]
+            recipe.write_text('key\tvalue\n'+''.join(k+'\t'+v+'\n' for k,v in rows.items()))
+        else:
+            host, probe = ('webmin-example.local.theama.co', 'session_login.cgi') if scenario == 'webmin-source' or scenario in TRIALS or scenario in NARROW else ('uptime.local.theama.co', 'dashboard')
+            recipe.write_text(recipe.read_text()+f'application_fqdn\t{host}\napplication_probe_path\t{probe}\napplication_http_status\t200\n')
         if scenario in TRIALS or scenario in NARROW:
             recipe.write_text(recipe.read_text()+'application_trial_seconds\t660\n')
         if scenario in NARROW:
@@ -1306,6 +1372,8 @@ def suite(primary_tools_only=False):
                         expected_selection = 'baseline'
                     if scenario in TRIALS:
                         expected_selection = 'baseline' if expected != 125 or scenario == 'trial-recovery-failure' and role == 'node-b' or scenario == 'trial-incomplete' and role == 'node-b' else None
+                    if scenario == 'withdraw-secondary-failure':
+                        expected_selection = 'baseline'
                     if expected_selection:
                         assert selected == expected_selection, (scenario, role, selected)
                     else:

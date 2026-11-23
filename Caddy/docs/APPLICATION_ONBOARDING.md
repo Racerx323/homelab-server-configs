@@ -74,7 +74,6 @@ The current production fragment inventory is:
 | `00-health.caddy` | Local and shared Proxy-VIP health endpoints |
 | `10-pihole-admin.caddy` | Pi-hole administration proxy and node health |
 | `20-uptime-kuma.caddy` | Accepted Uptime Kuma dashboard proxy |
-| `30-webmin-j2-svpi3bmf.caddy` | Accepted Webmin proxy through each node’s loopback SSH forward |
 | `90-default-deny.caddy` | Default HTTP and HTTPS `421` response |
 | `91-exact-listener-default-deny.caddy` | Exact node, Proxy-VIP, and loopback HTTPS `421` response |
 
@@ -537,7 +536,7 @@ distinguishes installed behavior from the locally qualified preparation/exposure
    processes. Include publisher/finalizer/reconciler validation and reload in
    the backend workload review. Do not remove validation or change health policy
    without an owner-reviewed correction. The Webmin procedure records the
-   [request-evidence boundary](../../Webmin/docs/CADDY_ONBOARDING.md#narrow-primary-ipv4-diagnostic).
+   [request-evidence boundary](../../Webmin/docs/CADDY_ONBOARDING.md#execute-through-existing-owners).
    Upload the application fragment and publisher only to Node A. Node B receives
    only the control recipe for expected identities, admission and recovery; its
    application files arrive through managed replication after Node A passes.

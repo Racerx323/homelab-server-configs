@@ -9,8 +9,8 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment_outer
-readonly transaction_sha256=e52181579b1143b311203036f655719b1e6076f1c5dd520c85ff0e79bb13e445
-readonly operation_sha256=75c2b6c2c6d1b2e68cb84c2712e2c3d43f866e5d981929c50385e8291219f9e2
+readonly transaction_sha256=2cd84157107f9e660d471a531edaac3421f112ae0d0c020ca262e1f18f0208a7
+readonly operation_sha256=03e056b753757fe1b554a09463f876721a3e45230a6f2e630eaf4a8159ceef8b
 node_a_host=pi@10.1.0.53
 node_b_host=pi@10.1.0.54
 apprise_host=pi@10.1.3.83
@@ -109,7 +109,9 @@ build_payload() {
         install -m 0600 "${CADDY_CERTIFICATE_TEST_INPUTS:-$repository_root/Caddy/manifests/certificate-release-inputs.tsv}" \
             "$payload_stage/manifests/certificate-release-inputs.tsv"
         if grep -Fxq $'release_kind\tapplication' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
-            application_payload_fragment "$payload_stage/manifests/certificate-release-inputs.tsv"
+            if ! grep -Fxq $'application_action\twithdraw' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+                application_payload_fragment "$payload_stage/manifests/certificate-release-inputs.tsv"
+            fi
             application_payload_validation_tools
         fi
         install -D -m 0600 "$repository_root/Caddy/scripts/publish-release-v2.sh" \
@@ -1104,7 +1106,10 @@ application_trial_recover_pair() {
 run_application_onboarding_live() {
     local app_outer_status=0 app_target app_role app_readback_status=0
     local app_target_file=$workstation_evidence/application-target.tsv
-    local app_is_trial=false app_diagnostic_scope=paired
+    local app_is_trial=false app_diagnostic_scope=paired app_withdraw=false
+    if grep -Fxq $'application_action\twithdraw' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
+        app_withdraw=true
+    fi
     if grep -q '^application_trial_seconds' "$payload_stage/manifests/certificate-release-inputs.tsv"; then
         [[ "$(awk -F '\t' '$1 == "application_trial_seconds" {print $2; n++} END {if (n != 1) exit 1}' "$payload_stage/manifests/certificate-release-inputs.tsv")" = 660 ]] || return 1
         app_is_trial=true
@@ -1127,7 +1132,7 @@ run_application_onboarding_live() {
     if [[ "$app_diagnostic_scope" != primary-ipv4 ]]; then
         upload_payload node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 1
     fi
-    if [[ "$app_is_trial" = true ]]; then
+    if [[ "$app_is_trial" = true || "$app_withdraw" = true ]]; then
         remote_transaction application-admit-a "$node_a_host" application-trial-admit node-a "$node_a_payload" "$node_a_evidence" || return 1
         if [[ "$app_diagnostic_scope" != primary-ipv4 ]]; then
             remote_transaction application-admit-b "$node_b_host" application-trial-admit node-b "$node_b_payload" "$node_b_evidence" || return 1
@@ -1141,7 +1146,7 @@ run_application_onboarding_live() {
         printf 'application_stage=primary expected=0 observed=%s readback=%s result=stopped\n' "$app_outer_status" "$app_readback_status" >&2
         # No exposure command was issued. Retain evidence and prepared state;
         # a lost SSH response cannot establish whether local recovery finished.
-        if [[ "$app_is_trial" = true ]]; then
+        if [[ "$app_is_trial" = true || "$app_withdraw" = true ]]; then
             # Recover only an independently read exact child, even after a lost reply.
             [[ "$app_readback_status" = 0 ]] || return 125
             extract_readback_file "$workstation_evidence/application-primary-a-readback.stdout" application-target.tsv "$app_target_file" || return 125
@@ -1204,6 +1209,23 @@ run_application_onboarding_live() {
     [[ "$app_outer_status" = 0 ]] || application_budget_phase=recovery
     readback application-result-a "$node_a_host" "$node_a_evidence" || app_readback_status=$?
     readback application-result-b "$node_b_host" "$node_b_evidence" || app_readback_status=$?
+    if [[ "$app_withdraw" = true ]]; then
+        if [[ "$app_outer_status" = 0 && "$app_readback_status" = 0 ]]; then
+            for app_role in a b; do
+                extract_readback_file "$workstation_evidence/application-result-$app_role-readback.stdout" \
+                    application-manifest.tsv "$workstation_evidence/withdraw-manifest-$app_role.tsv" || app_outer_status=1
+            done
+            cmp -s "$workstation_evidence/withdraw-manifest-a.tsv" "$workstation_evidence/withdraw-manifest-b.tsv" || app_outer_status=1
+        fi
+        if [[ "$app_outer_status" != 0 || "$app_readback_status" != 0 ]]; then
+            application_trial_recover_pair "$app_target" || return 125
+            app_outer_status=1
+        fi
+        cleanup_remote node-a "$node_a_host" "$node_a_payload" "$node_a_archive" || return 125
+        cleanup_remote node-b "$node_b_host" "$node_b_payload" "$node_b_archive" || return 125
+        printf 'withdrawal_revision=%s result=%s\n' "$app_target" "$app_outer_status"
+        return "$app_outer_status"
+    fi
     if [[ "$app_is_trial" = true ]]; then
         if [[ "$app_outer_status" = 0 && "$app_readback_status" = 0 ]]; then
             for app_role in a b; do

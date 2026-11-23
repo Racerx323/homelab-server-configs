@@ -28,7 +28,7 @@ def main():
     sources += [Path(__file__), REPO/'Caddy/tests/application-onboarding-regression.py', REPO/'Caddy/tests/certificate-release-regression.py', REPO.parent/'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy']
     sources += [REPO/'Caddy/scripts'/name for name in ['validate-caddy-isolated.sh', 'finalize-incoming-release-v2.sh', 'reconcile-release-v2.sh']]
     result['mode'] = 'primary-validation-tools' if sys.argv[1:] else 'complete'
-    sources.append(REPO/'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy')
+    sources.append(REPO/'Webmin/proposals/30-webmin-example.caddy')
     result['inputs'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}
     result['accepted_finalizer_sha256'] = hashlib.sha256(finalizer.read_bytes()).hexdigest()
     result['accepted_reconciler_sha256'] = hashlib.sha256(fixture.read_bytes()).hexdigest()

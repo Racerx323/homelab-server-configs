@@ -8,7 +8,7 @@ export PATH
 readonly PATH
 
 readonly prefix=serving_health_deployment
-readonly certificate_inputs_sha256=8de3fb1daf572e7d8e1d32295ddd7b34d03576483067dab4ca319dfd1f2e864a
+readonly certificate_inputs_sha256=25962d72e15d799731b301f60081005acc02984924ad7568fa401ce799a825ff
 readonly node_a_revision=20260811T180754Z-d7816a72-48c7-461c-a86f-451027f5de04
 readonly serving_revision=20260817T160328Z-472d68b9-2bfb-40f1-8563-0754067182ca
 readonly serving_parent=$node_a_revision
@@ -1212,9 +1212,21 @@ application_failure_journal() {
             select(.epoch_us | test("^[0-9]+$"))]' 2>/dev/null
 }
 
+application_withdrawal() {
+    grep -Fxq $'application_action\twithdraw' "$payload_root/manifests/certificate-release-inputs.tsv"
+}
+
 application_routes() {
     local app_address app_family app_host app_code app_endpoint=${1:-node}
     local app_probe_rc app_probe_epoch app_label app_request_id app_frontend
+    local app_status app_path app_kuma_code
+    local -a app_http_options=(--fail)
+    app_status=$(certificate_setting application_http_status)
+    app_path=$(certificate_setting application_probe_path)
+    if application_withdrawal; then
+        app_http_options=()
+        if [[ ${2:-} = restored ]]; then app_status=200; fi
+    fi
     app_frontend=$(certificate_setting application_diagnostic_frontend_family 2>/dev/null) || app_frontend=
     app_host=$(certificate_setting application_fqdn)
     for app_family in 4 6; do
@@ -1242,11 +1254,11 @@ application_routes() {
         awk '{print $1}' /proc/uptime >"$evidence_root/$app_label.monotonic-start.tsv"
         app_probe_rc=0
         capture_command "$app_label" "${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
-            --noproxy '*' "-$app_family" --silent --show-error --fail \
+            --noproxy '*' "-$app_family" --silent --show-error "${app_http_options[@]}" \
             --connect-timeout 3 --max-time 5 --resolve "$app_host:443:$app_address" \
             --header "X-Homelab-Diagnostic: $app_request_id" \
             --header "Accept-Encoding: identity" --user-agent homelab-proxy-diagnostic \
-            -o /dev/null -w '%{http_code}\nconnect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total} remote_ip=%{remote_ip} remote_port=%{remote_port}\n' "https://$app_host/$(certificate_setting application_probe_path)" || app_probe_rc=$?
+            -o /dev/null -w '%{http_code}\nconnect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total} remote_ip=%{remote_ip} remote_port=%{remote_port}\n' "https://$app_host/$app_path" || app_probe_rc=$?
         awk '{print $1}' /proc/uptime >"$evidence_root/$app_label.monotonic-end.tsv"
         printf '%s\t%s\t%s\t%s\t%s\n' "$app_request_id" "$node_role" \
             "$(<"$evidence_root/$app_label.boot.tsv")" "$(<"$evidence_root/$app_label.monotonic-start.tsv")" \
@@ -1254,15 +1266,22 @@ application_routes() {
         sed -n '2p' "$evidence_root/$app_label.stdout" >"$evidence_root/$app_label.timing.tsv"
         app_code=$(head -n 1 "$evidence_root/$app_label.stdout")
         printf '%s\n' "$app_code" >"$evidence_root/$app_label.stdout"
-        if [[ "$app_probe_rc" != 0 || "$app_code" != "$(certificate_setting application_http_status)" ]]; then
+        if [[ "$app_probe_rc" != 0 || "$app_code" != "$app_status" ]]; then
             capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" "$app_request_id" || true
             printf 'application_probe_failure endpoint=%s family=%s expected=%s observed=%s curl_exit=%s\n' \
-                "$app_endpoint" "$app_family" "$(certificate_setting application_http_status)" "$app_code" "$app_probe_rc" >&2
+                "$app_endpoint" "$app_family" "$app_status" "$app_code" "$app_probe_rc" >&2
             [[ "$app_probe_rc" != 0 ]] || app_probe_rc=1
             return "$app_probe_rc"
         fi
         capture_command "$app_label-journal" application_failure_journal "$app_probe_epoch" "$app_request_id" || true
-        require_equal "application_${app_endpoint}_ipv${app_family}" "$(certificate_setting application_http_status)" "$app_code"
+        require_equal "application_${app_endpoint}_ipv${app_family}" "$app_status" "$app_code"
+        if application_withdrawal; then
+            app_kuma_code=$("${CADDY_SERVING_HEALTH_CURL_COMMAND:-/usr/bin/curl}" \
+                --noproxy '*' "-$app_family" --silent --show-error --connect-timeout 3 --max-time 5 \
+                --resolve "uptime.local.theama.co:443:$app_address" -o /dev/null -w '%{http_code}' \
+                https://uptime.local.theama.co/dashboard) || return 1
+            require_equal "retained_dashboard_${app_endpoint}_ipv$app_family" 200 "$app_kuma_code" || return 1
+        fi
     done
     certificate_serving_check
 }
@@ -1307,6 +1326,7 @@ application_restore() {
     capture_command application-restore-reload "$systemctl_command" reload caddy.service || return 1
     require_equal application_restored "$app_restore_base" "$(readlink -f /etc/caddy/current)" || return 1
     certificate_serving_check || return 1
+    if application_withdrawal; then application_routes node restored || return 1; fi
     application_recovery_clock end
     printf 'restored\n' >"$evidence_root/application-recovery.tsv"
 }
@@ -1428,7 +1448,15 @@ application_monitor_value() {
 application_trial_monitor() {
     local app_monitor_resume app_monitor_deadline app_monitor_now app_monitor_start app_monitor_exit
     local app_monitor_id app_monitor_before_id app_monitor_before_exit app_monitor_pid app_monitor_restarts
-    require_equal monitor_resumed resumed "$(<"$evidence_root/application-trial-resumed.tsv")" || return 1
+    if [[ "${mode:-}" = application-final ]] && application_withdrawal; then
+        capture_command application-monitor-before /usr/bin/timeout 5 "$systemctl_command" show caddy-sync-health.service \
+            --property=InvocationID,ExecMainExitTimestampMonotonic || return 1
+        awk '{printf "%.0f\n", $1 * 1000000}' /proc/uptime >"$evidence_root/application-monitor-resume-us.tsv"
+        capture_command application-monitor-sender-before /usr/bin/timeout 5 "$systemctl_command" show caddy-lsyncd.service \
+            --property=MainPID,NRestarts || return 1
+    else
+        require_equal monitor_resumed resumed "$(<"$evidence_root/application-trial-resumed.tsv")" || return 1
+    fi
     printf 'pending\n' >"$evidence_root/application-trial-monitor.tsv"
     app_monitor_resume=$(<"$evidence_root/application-monitor-resume-us.tsv")
     [[ "$app_monitor_resume" =~ ^[0-9]+$ ]] || return 1
@@ -1465,6 +1493,9 @@ application_trial_monitor() {
                 return 1
             }
             require_equal monitor_final_boot "$(<"$evidence_root/application-trial-boot.tsv")" "$(cat /proc/sys/kernel/random/boot_id)" || return 1
+            if [[ "${mode:-}" = application-trial-monitor && "$node_role" = node-a ]] && application_withdrawal; then
+                application_routes shared restored || return 1
+            fi
             printf 'passed\n' >"$evidence_root/application-trial-monitor.tsv"
             return 0
         fi
@@ -1495,8 +1526,13 @@ application_primary() (
     path_absent "$app_stage"
     cp -a "$releases_root/$(certificate_setting baseline_revision)" "$app_stage"
     chmod -R u+rwX "$app_stage"
-    path_absent "$app_stage/conf.d/$(application_fragment)"
-    install -m 0600 "$payload_root/manifests/application.caddy" "$app_stage/conf.d/$(application_fragment)"
+    if application_withdrawal; then
+        certificate_hash "$app_stage/conf.d/$(application_fragment)" "$(certificate_setting application_fragment_sha256)"
+        rm -- "$app_stage/conf.d/$(application_fragment)"
+    else
+        path_absent "$app_stage/conf.d/$(application_fragment)"
+        install -m 0600 "$payload_root/manifests/application.caddy" "$app_stage/conf.d/$(application_fragment)"
+    fi
     if application_validation_enabled; then
         : >"$evidence_root/application-target.tsv"
         application_validation_install
@@ -1598,10 +1634,19 @@ certificate_payload() {
         path_absent "$cert_source"
         path_absent "$payload_root/manifests/application.caddy"
     fi
+    if grep -q $'^application_action\t' "$cert_contract"; then
+        [[ "$(certificate_setting application_action)" = withdraw && "$(certificate_setting release_kind)" = application && "$mode" = application-* ]] || return 1
+    fi
     if grep -q $'^release_kind\t' "$cert_contract"; then
         [[ "$(certificate_setting release_kind)" = application ]]
         application_fragment >/dev/null
-        if [[ "$node_role" != node-b ]]; then
+        if application_withdrawal; then
+            path_absent "$payload_root/manifests/application.caddy"
+            [[ "$(certificate_setting application_action)" = withdraw ]]
+            [[ "$(certificate_setting application_http_status)" = 421 ]]
+            [[ "$(certificate_setting application_fragment_sha256)" =~ ^[0-9a-f]{64}$ ]]
+            ! grep -Eq '^(application_diagnostic_|application_trial_seconds|validation_tools_trial|application_fragment_source)' "$cert_contract" || return 1
+        elif [[ "$node_role" != node-b ]]; then
             certificate_hash "$payload_root/manifests/application.caddy" \
                 "$(certificate_setting application_fragment_sha256)"
         fi
@@ -1619,7 +1664,7 @@ certificate_payload() {
         fi
         certificate_setting application_fqdn >/dev/null
         certificate_setting application_probe_path >/dev/null
-        [[ "$(certificate_setting application_http_status)" =~ ^[23][0-9][0-9]$ ]]
+        application_withdrawal || [[ "$(certificate_setting application_http_status)" =~ ^[23][0-9][0-9]$ ]]
         [[ "$(certificate_setting tls_source_revision)" = "$(certificate_setting baseline_revision)" ]]
         [[ "$(certificate_setting tls_source_manifest_sha256)" = "$(certificate_setting baseline_manifest_sha256)" ]]
     fi
@@ -1791,11 +1836,25 @@ certificate_verify_candidate() {
     cmp -s "$cert_base/Caddyfile" "$cert_candidate/Caddyfile" || return 1
     if application_release; then
         cert_name=$(application_fragment) || return 1
-        path_absent "$cert_base/conf.d/$cert_name" || return 1
-        certificate_hash "$cert_candidate/conf.d/$cert_name" \
-            "$(certificate_setting application_fragment_sha256)" || return 1
+        if application_withdrawal; then
+            local child_name=${cert_candidate##*/}
+            release_identifier "$child_name" || return 1
+            [[ "$child_name" != "${cert_base##*/}" ]] || return 1
+            jq -e --arg child "$child_name" --arg parent "${cert_base##*/}" \
+                '.revision == $child and .parent_revision == $parent and .source_node == "node-a"' \
+                "$cert_candidate/release-manifest.json" >/dev/null || return 1
+            certificate_hash "$cert_base/conf.d/$cert_name" "$(certificate_setting application_fragment_sha256)" || return 1
+            path_absent "$cert_candidate/conf.d/$cert_name" || return 1
+            certificate_hash "$cert_base/manifest.sha256" "$(certificate_setting baseline_manifest_sha256)" || return 1
+            # Every payload record other than the one withdrawn and the generated release identity must survive byte-for-byte.
+            diff -u <(awk -v removed="./conf.d/$cert_name" 'substr($0,67) != removed && substr($0,67) != "./release-manifest.json"' "$cert_base/manifest.sha256" | LC_ALL=C sort) \
+                <(awk 'substr($0,67) != "./release-manifest.json"' "$cert_candidate/manifest.sha256" | LC_ALL=C sort) || return 1
+        else
+            path_absent "$cert_base/conf.d/$cert_name" || return 1
+            certificate_hash "$cert_candidate/conf.d/$cert_name" "$(certificate_setting application_fragment_sha256)" || return 1
+            [[ "$(find "$cert_candidate/conf.d" -name "$cert_name" | wc -l)" = 1 ]] || return 1
+        fi
         diff -qr --exclude="$cert_name" "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null || return 1
-        [[ "$(find "$cert_candidate/conf.d" -name "$cert_name" | wc -l)" = 1 ]] || return 1
     else
         diff -qr "$cert_base/conf.d" "$cert_candidate/conf.d" >/dev/null || return 1
     fi
@@ -6372,7 +6431,10 @@ if [[ "$mode" = application-* ]]; then
         application-secondary-ready) application_baseline ;;
         application-expose) application_expose ;;
         application-secondary) application_secondary ;;
-        application-final) application_selected "$target_revision_argument" ;;
+        application-final)
+            application_selected "$target_revision_argument"
+            if application_withdrawal; then application_trial_monitor; fi
+            ;;
         application-shared) application_routes shared ;;
         *) exit 64 ;;
     esac

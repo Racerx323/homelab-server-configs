@@ -1,21 +1,21 @@
 schema_version: 2
-action: 20261123-webmin-ssh-forward-route
+action: 20261123-webmin-route-withdrawal
 status: defined-unexecuted
 scope: application-onboarding
-qualification_profile: paired-application
+qualification_profile: paired-withdrawal
 transaction: Caddy/scripts/apply-serving-health-deployment.sh
-transaction_sha256: e52181579b1143b311203036f655719b1e6076f1c5dd520c85ff0e79bb13e445
+transaction_sha256: 2cd84157107f9e660d471a531edaac3421f112ae0d0c020ca262e1f18f0208a7
 outer_runner: Caddy/scripts/run-serving-health-deployment-outer.sh
 state_contract: Caddy/manifests/current-live-state.tsv
 production_contract: Caddy/manifests/serving-health-production.tsv
 certificate_inputs: Caddy/manifests/certificate-release-inputs.tsv
-state_contract_sha256: 46a7f27545a8f3944569726c346cb6fdbae9160635a7f221c2a8e553fe5005d7
+state_contract_sha256: e962a70683dd602aba6d5018f90fde5bcf8074c1e1f79ba956549dfa5d02dbe7
 production_contract_sha256: 547265b780b8c8a09a7e39b913bd871bc4d842cfea6acd14e5621ab970aa9131
-certificate_inputs_sha256: 8de3fb1daf572e7d8e1d32295ddd7b34d03576483067dab4ca319dfd1f2e864a
-coverage_sha256: f36061fe41dab2b715d769d5e9511a707adace0e68386b506bca0f288e52d2e0
+certificate_inputs_sha256: 25962d72e15d799731b301f60081005acc02984924ad7568fa401ce799a825ff
+coverage_sha256: cf99904d6930067360744483ef133c4b5f9207020f18f2c7fdabab63d9823962
 regression_sha256: c7ce9405cdeaf2c23cf4cd4c9cf6d0e7dc3d0619dd9f0e617ff1c12920f277dd
-fixture_sha256: 40247dedf770e9ef5f73d0d0dd1859565bfc858efc31f558949f91e63c3eb6d3
-qualification_launcher_sha256: 675311714d48d7230032e99e6f9912721b9547caa79cbaebad49f35e43b63616
+fixture_sha256: 0bce929ad22599086725bdc2d1d4564b028b3be234b18a685eaa62dda1507f20
+qualification_launcher_sha256: e59f4f1e3d67477a51a77f79e0f16c41129e6905fcc853048d154e34b8630bbf
 authorization_policy_sha256: 6c1f687ef421a88d463f26b4fe446535452caa954e069cc73076c6257e7128e6
 implementation:
   lifecycle: neutral-reusable
@@ -24,18 +24,15 @@ targets:
 - pi@10.1.0.53
 - pi@10.1.0.54
 mutation:
-- Prepare the accepted parent plus the single Webmin SSH-forward fragment on Node A.
-- Verify the installed primary validator before preparation. Keep both forward services and all installed callers.
-- Activate Node A, verify its route, then expose the exact revision to managed replication.
-- Send only control metadata to Node B. Verify replicated selection, manifest and routes.
+- Admit both proxies at the exact W-290 revision and manifest. Preserve both SSH forwards until Caddy acceptance.
+- Prepare a child from W-290 on primary, remove the one hash-bound fragment, validate, activate and test primary before managed replication.
 acceptance:
-- Retain existing TLS and unrelated routes. Require HTTP 200 for the login page on both nodes and the VIP over IPv4 and IPv6.
-- Keep both accepted selections. Operator login and DNS are separate.
+- Require the same child and manifest on both nodes. Probe the retired name for 421 and Kuma dashboard for 200 on both nodes and the VIP, over IPv4 and IPv6 using trusted TLS and pinned addresses.
+- Require a fresh successful natural replication-health cycle on each node. Keep the child selected on success.
 recovery:
-- Before exposure restore a mutated primary selection to its verified parent. If exposure is uncertain stop for reconciliation.
-- Restore a known failed secondary selection locally. Retain an accepted primary on secondary rejection or timeout.
-- On partial convergence, shared endpoint failure or missing readback stop progression. Report each known selection and reserve any cross-node withdrawal for owner review.
-- Preserve existing SSH forwards and validator throughout. No automatic replay.
+- If the primary child identity cannot be established, stop for reconciliation. Do not guess a revision or remove an unknown copy.
+- For a known child, contain senders, quiesce receivers, restore W-290 on secondary then primary, verify both outgoing inventories, resume transport and check fresh monitor cycles.
+- Require the restored Webmin login and Kuma dashboard on both nodes and the shared endpoint. Leave both forwards and the backend available throughout.
 excluded:
-- DNS changes, Pi changes, credential collection, browser workload, forced failover, certificate changes and Git publication.
-live_execution: requires-exact-outer-sha256-approval
+- DNS, SSH key or forward changes, package or data removal, certificate replacement and Git publication.
+live_execution: separate-review-required

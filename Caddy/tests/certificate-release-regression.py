@@ -300,8 +300,16 @@ def setup(root):
             shutil.copytree(REPO / 'Caddy/configs/caddy', release)
             # Model an application addition, even after that application's real
             # production inventory has advanced. Webmin keeps accepted Kuma.
-            if os.environ.get('CERT_APPLICATION') == '1' and os.environ.get('PRIMARY_CASE') != 'webmin-source' and not os.environ.get('PRIMARY_CASE', '').startswith('trial-'):
-                (release/'conf.d/20-uptime-kuma.caddy').unlink(missing_ok=True)
+            if os.environ.get('CERT_APPLICATION') == '1':
+                case = os.environ.get('PRIMARY_CASE', '')
+                added = ('30-webmin-example.caddy' if case == 'webmin-source' or case.startswith('trial-')
+                         else '20-uptime-kuma.caddy')
+                if case.startswith('withdraw-'):
+                    owner = dict(line.split('\t') for line in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
+                    installed = release/'conf.d'/owner['application_fragment_name']
+                    assert digest(installed) == owner['application_fragment_sha256']
+                else:
+                    (release/'conf.d'/added).unlink(missing_ok=True)
             shutil.copytree(cert, release / 'tls')
             if revision == 'baseline' and os.environ.get('CERT_APPLICATION') != '1':
                 for name in ['leaf.pem', 'intermediates.pem', 'certificate-manifest.json']:
@@ -335,7 +343,7 @@ def setup(root):
     if os.environ.get('CERT_APPLICATION') == '1':
         fragment = REPO.parent / 'homelab-monitoring-observability/uptime-kuma/proposals/20-uptime-kuma.caddy'
         if os.environ.get('PRIMARY_CASE') == 'webmin-source' or os.environ.get('PRIMARY_CASE', '').startswith('trial-'):
-            fragment = REPO/'Webmin/proposals/30-webmin-j2-svpi3bmf.caddy'
+            fragment = REPO/'Webmin/proposals/30-webmin-example.caddy'
             if os.environ.get('PRIMARY_CASE') == 'webmin-source':
                 owner_recipe = dict(row.split('\t') for row in (REPO/'Caddy/manifests/certificate-release-inputs.tsv').read_text().splitlines()[1:])
                 if owner_recipe.get('application_installed_validator_sha256'):
