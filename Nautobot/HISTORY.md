@@ -812,7 +812,10 @@ retained-payload disposition remain separate. Never replay the consumed claim.
 ## Monthly recurring-snapshot restore
 
 `nautobot-application-restore-v3`: accepted November 24, 2026; directory-only media.
-Intended tag: `nautobot-application-restore-v3-accepted`; commit/tag/push pending.
-The exact definition and sanitized result are in `terminal/application-restore`;
-raw baseline, logical reference and source readback remain hash-bound outside Git.
+Published tag: `nautobot-application-restore-v3-accepted`, archive commit
+`d0722eabcea32fb7a6f38da664ff84414e65a477`, tag object
+`89fe6d9be399b9faf21f6251e8c5fa82c4f45823`. Independent remote fetch verified all 39
+publication files and 33 bundle members before clearing the consumed operation.
+The tag retains the exact definition and sanitized result; raw baseline, logical
+reference and source readback remain hash-bound outside Git.
 Accepted identity: `monthly_restore` in `manifests/accepted-live-state.yaml`.

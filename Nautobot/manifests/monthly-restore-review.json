@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "accepted_pending_terminal_archival",
+  "status": "accepted_archived",
   "execution_authorized": true,
   "record_roles": {
     "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md; docs/OPERATIONS.md monthly restore contract",
@@ -74,7 +74,7 @@
     "fresh_target_observation": false
   },
   "private_preparation": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124",
-  "next_action": "Authorize scoped terminal commit/tag/push, then clear the consumed operation after independent archive verification. Retained-payload disposal remains separate.",
+  "next_action": "No restore replay is needed. Retained-payload disposal, future monthly restores and remaining pilot acceptance require separately scoped preparation and authorization.",
   "work_items": [
     {
       "id": "W-001",
@@ -135,10 +135,10 @@
     },
     {
       "id": "W-009",
-      "state": "Open",
+      "state": "Resolved",
       "issue": "Terminal publication and consumed operation reconciliation",
       "closure": "Separately authorize commit/tag/push; verify archive bytes remotely before clearing operation",
-      "next_action": "Authorize /home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/terminal/PUBLICATION.md for scoped commit/tag/push and post-verification operation reconciliation."
+      "evidence": "Approved archive commit/tag pushed; independent remote fetch verified all 39 publication files and 33 bundle members before clearing operation."
     }
   ],
   "operation_id": "nautobot-application-restore-v3",
@@ -209,7 +209,7 @@
     "populated_media_accepted": false,
     "production_failover_accepted": false,
     "full_stage_5_accepted": false,
-    "terminal_archive": "pending",
+    "terminal_archive": "published",
     "private_evidence": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/execution",
     "native_isolation_and_effective_limits": "passed by frozen restore_node.py reading kernel state; successful task outcomes retained",
     "additional_container_spotcheck": "unavailable: attempted after cleanup started; not counted as container measurement",
@@ -218,13 +218,32 @@
       "Native restore checks read effective kernel cgroup limits and isolated network namespaces; their successful task outcomes are retained. The additional controller spot-check returned 125 after cleanup had started and is not counted as independent container measurement.",
       "The guard receipt is its final sample, not a retained peak-capacity series. Acceptance is bounded to this completed restore with continuous stop-condition monitoring.",
       "No populated-media, browser-serving, production-failover, workload-capacity or seven-day pilot acceptance."
-    ]
+    ],
+    "terminal_tag": "nautobot-application-restore-v3-accepted",
+    "archive_commit": "d0722eabcea32fb7a6f38da664ff84414e65a477",
+    "tag_object": "89fe6d9be399b9faf21f6251e8c5fa82c4f45823"
   },
   "terminal_preparation": {
     "publication_request": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/terminal/PUBLICATION.md",
     "archive_directory": "Nautobot/terminal/application-restore",
     "intended_tag": "nautobot-application-restore-v3-accepted",
     "validation": "operation/documentation contracts, accepted/operation schemas, archive secret scan and whitespace check passed",
-    "published": false
+    "published": true
+  },
+  "operation_state": "clean",
+  "terminal_publication": {
+    "verified_at": "2026-11-24T23:17:51.560308+00:00",
+    "tag": "nautobot-application-restore-v3-accepted",
+    "tag_object": "89fe6d9be399b9faf21f6251e8c5fa82c4f45823",
+    "archive_commit": "d0722eabcea32fb7a6f38da664ff84414e65a477",
+    "publication_files_verified": 39,
+    "bundle_members_verified": 33,
+    "private_members_retained_outside_git": [
+      "baseline.json",
+      "logical-reference.json",
+      "source-evidence.json"
+    ],
+    "scratch_retired": true,
+    "verification_sha256": "400da50f300b6d3aad0a2e37bbba384b4ddc5feb91ca8880bf434f00badd9f69"
   }
 }

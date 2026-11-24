@@ -130,9 +130,10 @@ Production identities, artifacts and the recurring schedule are unchanged. Owned
 containers, volume, guards, controller link and transient credentials are removed;
 fetched payloads remain retained. Kernel limits and network isolation were checked
 by the frozen native restore path; the additional container spot-check arrived
-after cleanup and is not counted as container measurement. Next: separately
-authorize terminal commit/tag/push, verify the archive, then clear the consumed
-operation. See `manifests/monthly-restore-review.json`.
+after cleanup and is not counted as container measurement. The terminal archive
+is published and independently verified; the consumed operation is cleared.
+Next: separately scope retained-payload disposal or remaining pilot work; no restore
+replay is needed. See `manifests/monthly-restore-review.json`.
 See `manifests/logical-promotion-review.json` and `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
@@ -221,7 +222,7 @@ scheduled-cycle acceptance. Earlier stage observations retain their original sco
 | Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Preserve the archived acceptance and keep directory-only media, the writer window and approved schedule unchanged. |
 | Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial and all five accepted nightly cycles. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
-| Monthly restore | The November 24 isolated restore of the accepted November 10 snapshot/reference pair passed all 78 acceptance checks, including logical data, native checks, cleanup and production continuity. No monthly timer is installed. | Authorize terminal archival and reconcile the consumed operation. Retained-payload disposal and future monthly restores remain separate. |
+| Monthly restore | The November 24 isolated restore of the accepted November 10 snapshot/reference pair passed all 78 acceptance checks, including logical data, native checks, cleanup and production continuity. No monthly timer is installed. | Terminal archive verified and consumed operation cleared. Retained-payload disposal and future monthly restores remain separate. |
 | Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The integrated missed/recovery messages reached all three destinations without duplicates. Aaron owns existing host/user-manager monitoring. | Preserve the accepted delivery evidence. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 

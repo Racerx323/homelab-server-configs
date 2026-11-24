@@ -790,4 +790,7 @@ monthly_restore:
   populated_media_accepted: false
   production_failover_accepted: false
   full_stage_5_accepted: false
-  terminal_archive: pending
+  terminal_archive: published
+  terminal_tag: nautobot-application-restore-v3-accepted
+  archive_commit: d0722eabcea32fb7a6f38da664ff84414e65a477
+  tag_object: 89fe6d9be399b9faf21f6251e8c5fa82c4f45823
