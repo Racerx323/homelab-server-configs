@@ -122,15 +122,22 @@ Accepted live state now records the promoted runtime and exact snapshot/referenc
 The annotated terminal archive is published and independently byte-verified; the
 consumed promotion operation is cleared. Monthly restore preparation now binds the
 accepted November 10 snapshot/reference pair. Authorized November 24 read-only
-host and B2 readbacks passed; the production calendar remains 03:20 CST. The new
-restore operation is inactive. Next: publish the qualified monthly admission and
-provenance changes, review CI, then seal one execution approval. No restore is
-authorized. See `manifests/monthly-restore-review.json`.
+host and B2 readbacks passed; the production calendar remains 03:20 CST.
+The November 24 monthly isolated restore is accepted: all 78 acceptance
+comparisons passed for the selected snapshot, six section hashes, 245-table logical
+reference, 481 migrations, native application checks and directory-only media.
+Production identities, artifacts and the recurring schedule are unchanged. Owned
+containers, volume, guards, controller link and transient credentials are removed;
+fetched payloads remain retained. Kernel limits and network isolation were checked
+by the frozen native restore path; the additional container spot-check arrived
+after cleanup and is not counted as container measurement. Next: separately
+authorize terminal commit/tag/push, verify the archive, then clear the consumed
+operation. See `manifests/monthly-restore-review.json`.
 See `manifests/logical-promotion-review.json` and `manifests/logical-capture-review.json`.
 Aaron owns existing host/user-manager monitoring and credential rotation.
 
-Remote deletion/prune, older-payload disposal, monthly isolated restore, populated-media
-recovery, seven-day pilot acceptance remain separate scopes.
+Remote deletion/prune, retained-payload disposal, future monthly restores, populated-media
+recovery and seven-day pilot acceptance remain separate scopes.
 
 Monthly restore consumption is locally qualified against a disposable recurring
 snapshot. The extractor now binds embedded logical metadata to the separately
@@ -143,13 +150,12 @@ All 35 focused regressions passed, with 14 independent resource-absence/inactivi
 checks. Private evidence: `nautobot-restore-local-monthly-20261109/`.
 These are local x86_64 results using synthetic data and a local database-probe
 adapter, not production snapshot, ARM64 timing, host-monitor or monthly acceptance.
-The November 10 production snapshot/reference pair is selected for the separate
-monthly restore definition. Promotion archival is complete. The restore definition
-remains disabled pending source publication, CI and exact execution approval;
-November 24 observations do not accept restore capacity or recovery.
+The November 10 production snapshot/reference pair subsequently passed the
+November 24 attended monthly restore described above. Its target result is separate
+from this historical local qualification.
 
-The exact accepted preservation snapshot was retrieved and imported into isolated
-ARM64 containers. Complete pre-start logical equality, the 481-entry migration
+The September 26 historical preservation snapshot was retrieved and imported into
+isolated ARM64 containers. Complete pre-start logical equality, the 481-entry migration
 ledger, native configuration/migration checks, Django health, repeatable exports
 and directory-only media checks passed. Nine fetched receipts matched independent
 node hashes. Controller and Ansible exited zero.
@@ -215,7 +221,7 @@ scheduled-cycle acceptance. Earlier stage observations retain their original sco
 | Nightly backup | Separate prerequisite trials and local repeated-cycle qualification passed. The approved durable schedule was installed November 4; five November 5–9 cycles passed independent acceptance. | Preserve the archived acceptance and keep directory-only media, the writer window and approved schedule unchanged. |
 | Weekly integrity | Aaron selected the existing full check after every nightly upload on November 4. Full integrity passed in the separate upload trial and all five accepted nightly cycles. | Keep this path intact; successful nightly checks cover the weekly cadence. A failed or missed backup must not be counted as an integrity check. Independent weekly scheduling is outside this first scope. |
 | Retention | The accepted November 3 remote dry run used 7 daily, 5 weekly and 12 monthly, grouped by stable host/tag: one recurring snapshot kept, four historical snapshots excluded, no removal candidates and unchanged inventory. | Refresh exact selection before any future deletion request. Snapshot deletion and prune require their own authorization. |
-| Monthly restore | Bounded historical restore is accepted. The monthly contract is defined in OPERATIONS. Logical-reference promotion and its November 10 scheduled snapshot/reference pair are accepted; terminal archival is complete. An inactive monthly operation is prepared; no monthly timer is installed. | Publish the qualified admission/provenance changes, review CI and seal the exact execution approval. Retained-payload disposal remains separate. |
+| Monthly restore | The November 24 isolated restore of the accepted November 10 snapshot/reference pair passed all 78 acceptance checks, including logical data, native checks, cleanup and production continuity. No monthly timer is installed. | Authorize terminal archival and reconcile the consumed operation. Retained-payload disposal and future monthly restores remain separate. |
 | Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The integrated missed/recovery messages reached all three destinations without duplicates. Aaron owns existing host/user-manager monitoring. | Preserve the accepted delivery evidence. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 
@@ -407,8 +413,9 @@ remains. Private evidence: `nautobot-logical-capture-preparation-20261109/accept
 The capture-only operation is archived and its consumed definition is cleared.
 Its payload and logical receipts remain retained; no upload, disposal or durable
 update occurred during that trial. The separately approved five-file durable update
-and its first scheduled cycle are independently accepted; terminal archival remains pending.
-Accept a newly captured snapshot/reference pair before monthly restore approval.
+and its first scheduled cycle are independently accepted and archived. The accepted
+pair passed the November 24 monthly restore. Future restores must select an accepted
+snapshot/reference pair before approval.
 Existing snapshots cannot acquire an independent reference retrospectively.
 
 ## Evidence limits carried forward

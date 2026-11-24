@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "status": "qualified_definition_awaiting_publication",
-  "execution_authorized": false,
+  "status": "accepted_pending_terminal_archival",
+  "execution_authorized": true,
   "record_roles": {
     "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md; docs/OPERATIONS.md monthly restore contract",
     "work_ledger": "manifests/monthly-restore-review.json",
@@ -74,7 +74,7 @@
     "fresh_target_observation": false
   },
   "private_preparation": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124",
-  "next_action": "Authorize publication of the qualified source changes, review CI, then freeze one exact restore execution request. No target restore is authorized.",
+  "next_action": "Authorize scoped terminal commit/tag/push, then clear the consumed operation after independent archive verification. Retained-payload disposal remains separate.",
   "work_items": [
     {
       "id": "W-001",
@@ -113,10 +113,10 @@
     },
     {
       "id": "W-006",
-      "state": "Blocked",
+      "state": "Resolved",
       "issue": "Final execution bundle and approval",
       "closure": "Resolve preparation gaps, freeze exact inputs and command, keep execution disabled pending approval",
-      "next_action": "Publication authority is required; launcher checks committed FILES and reviewed CI before rendering/execution. Rebind source commit and freeze once after publication. Refresh baseline/window if expired."
+      "evidence": "Published source and CI verified; one exact candidate frozen and independently checked. Repository execution verification refuses the disabled operation."
     },
     {
       "id": "W-007",
@@ -124,6 +124,21 @@
       "issue": "Initial local readiness comparison used the smaller captured-file map and refused six existing service helpers",
       "closure": "Use full accepted deployment artifact map, independently bound to the accepted historical restore bundle",
       "evidence": "No changed capture-file hashes; full map recovered from accepted bundle 6c4f210822e7c34b44c68f1a29934b952ab5bf7375afe3a8beb6d078f1b02156. YAML indentation and duplicate blank line corrected."
+    },
+    {
+      "id": "W-008",
+      "state": "Resolved",
+      "issue": "Live monthly restore authorization and acceptance",
+      "closure": "Exact bundle approval, attendance, fresh admission and independent restore/cleanup acceptance",
+      "authorization": "Exact APPROVAL.md approved in conversation; private execution-authorization.json records its hash.",
+      "evidence": "One approved controller invocation completed; all 78 acceptance comparisons passed. Production, timer and retained source identities preserved; owned resources and credentials removed."
+    },
+    {
+      "id": "W-009",
+      "state": "Open",
+      "issue": "Terminal publication and consumed operation reconciliation",
+      "closure": "Separately authorize commit/tag/push; verify archive bytes remotely before clearing operation",
+      "next_action": "Authorize /home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/terminal/PUBLICATION.md for scoped commit/tag/push and post-verification operation reconciliation."
     }
   ],
   "operation_id": "nautobot-application-restore-v3",
@@ -149,12 +164,67 @@
     "documentation_contracts_passed": 5,
     "ansible_syntax": "passed via repository temporary-directory wrapper",
     "vexp": "unavailable: parent workspace is not a Git repository; direct validation used",
-    "production_restore": "not_run",
-    "capacity_acceptance": "not_claimed",
+    "production_restore": "passed_native_target_and_independent_readback",
+    "capacity_acceptance": "bounded_completed_restore_only",
     "historical_qualification_reused": "nautobot-restore-local-monthly-20261109; native restore/comparison/negative-reference/guard-cleanup evidence remains historical and does not accept this ARM64 trial",
     "repository_hooks_passed": 40,
     "repository_hooks_exit_code": 0,
     "private_evidence_secret_scan": "passed",
     "qualification_log_sha256": "1556ddf6d93129b99e7e299f284b468e626c516ed9af621cbc6f78ca1ed46ca6"
+  },
+  "candidate": {
+    "bundle_sha256": "f37297914e353e8b304b3ee4dbf417c7dcd51e41d6ea63ce387495672ed580fb",
+    "source_commit": "f319ff657598773726ae4aa964385f3b2e61a47e",
+    "ci_run": 45502755233,
+    "files_verified": 33,
+    "committed_sources_verified": 24,
+    "repository_operation_disabled": false,
+    "execution_verify_refused": "operation_not_ready",
+    "unit": "nautobot-workload-f37297914e353e8b304b3ee4.service"
+  },
+  "publication": {
+    "authorized": true,
+    "commit": "f319ff657598773726ae4aa964385f3b2e61a47e",
+    "ci_run": 45502755233,
+    "status": "published_ci_passed"
+  },
+  "result": {
+    "state": "accepted",
+    "scope": "monthly_isolated_recurring_snapshot_restore_directory_only_media",
+    "month": "2026-11",
+    "operation": "nautobot-application-restore-v3",
+    "reviewed_at": "2026-11-24T23:09:24.568166+00:00",
+    "bundle_sha256": "f37297914e353e8b304b3ee4dbf417c7dcd51e41d6ea63ce387495672ed580fb",
+    "snapshot_id": "f00e4515a6b285f0fdffcef0745e6bb029202ac4d4da22c5804b368bf3787db7",
+    "logical_reference_sha256": "df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270",
+    "acceptance_evidence_sha256": "88b0cda4f9e78fd2f1d807e1a7a40946a614e7267a22efa1a3f3e23d4ce6e2e8",
+    "independent_acceptance_checks": 78,
+    "logical_identity_equal": true,
+    "native_checks_passed": true,
+    "directory_only_media_verified": true,
+    "production_continuity_preserved": true,
+    "recurring_schedule_unchanged": true,
+    "resource_and_credential_cleanup_passed": true,
+    "payload_retained": true,
+    "populated_media_accepted": false,
+    "production_failover_accepted": false,
+    "full_stage_5_accepted": false,
+    "terminal_archive": "pending",
+    "private_evidence": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/execution",
+    "native_isolation_and_effective_limits": "passed by frozen restore_node.py reading kernel state; successful task outcomes retained",
+    "additional_container_spotcheck": "unavailable: attempted after cleanup started; not counted as container measurement",
+    "retained_payload_root": "/var/lib/nautobot/restore-tests/nautobot-restore-a4a94adc6954aebdee7e459d",
+    "evidence_limits": [
+      "Native restore checks read effective kernel cgroup limits and isolated network namespaces; their successful task outcomes are retained. The additional controller spot-check returned 125 after cleanup had started and is not counted as independent container measurement.",
+      "The guard receipt is its final sample, not a retained peak-capacity series. Acceptance is bounded to this completed restore with continuous stop-condition monitoring.",
+      "No populated-media, browser-serving, production-failover, workload-capacity or seven-day pilot acceptance."
+    ]
+  },
+  "terminal_preparation": {
+    "publication_request": "/home/aaron/code/.local-evidence/nautobot-monthly-restore-preparation-20261124/terminal/PUBLICATION.md",
+    "archive_directory": "Nautobot/terminal/application-restore",
+    "intended_tag": "nautobot-application-restore-v3-accepted",
+    "validation": "operation/documentation contracts, accepted/operation schemas, archive secret scan and whitespace check passed",
+    "published": false
   }
 }

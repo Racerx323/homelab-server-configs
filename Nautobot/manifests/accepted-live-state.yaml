@@ -769,3 +769,25 @@ recurring_logical_promotion:
   terminal_tag: nautobot-recurring-logical-promotion-v1-accepted
   archive_commit: 20a8c936763ec250ed2cd5eea31a9be61c418cff
   tag_object: 8bf2fd82382bd8e86a0c3fd611eefff35b8f9974
+monthly_restore:
+  state: accepted
+  scope: monthly_isolated_recurring_snapshot_restore_directory_only_media
+  month: 2026-11
+  operation: nautobot-application-restore-v3
+  reviewed_at: '2026-11-24T23:09:24.568166+00:00'
+  bundle_sha256: f37297914e353e8b304b3ee4dbf417c7dcd51e41d6ea63ce387495672ed580fb
+  snapshot_id: f00e4515a6b285f0fdffcef0745e6bb029202ac4d4da22c5804b368bf3787db7
+  logical_reference_sha256: df7b2b4f10f13b373eb8b6ec0291411ae79343431477b21d60de6086c3fa5270
+  acceptance_evidence_sha256: 88b0cda4f9e78fd2f1d807e1a7a40946a614e7267a22efa1a3f3e23d4ce6e2e8
+  independent_acceptance_checks: 78
+  logical_identity_equal: true
+  native_checks_passed: true
+  directory_only_media_verified: true
+  production_continuity_preserved: true
+  recurring_schedule_unchanged: true
+  resource_and_credential_cleanup_passed: true
+  payload_retained: true
+  populated_media_accepted: false
+  production_failover_accepted: false
+  full_stage_5_accepted: false
+  terminal_archive: pending

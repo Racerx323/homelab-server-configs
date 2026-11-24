@@ -2442,6 +2442,121 @@
           "const": true
         }
       }
+    },
+    "monthly_restore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "month",
+        "operation",
+        "reviewed_at",
+        "bundle_sha256",
+        "snapshot_id",
+        "logical_reference_sha256",
+        "acceptance_evidence_sha256",
+        "independent_acceptance_checks",
+        "logical_identity_equal",
+        "native_checks_passed",
+        "directory_only_media_verified",
+        "production_continuity_preserved",
+        "recurring_schedule_unchanged",
+        "resource_and_credential_cleanup_passed",
+        "payload_retained",
+        "populated_media_accepted",
+        "production_failover_accepted",
+        "full_stage_5_accepted",
+        "terminal_archive"
+      ],
+      "properties": {
+        "state": {
+          "const": "accepted"
+        },
+        "scope": {
+          "const": "monthly_isolated_recurring_snapshot_restore_directory_only_media"
+        },
+        "month": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "logical_reference_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "acceptance_evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "independent_acceptance_checks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "logical_identity_equal": {
+          "const": true
+        },
+        "native_checks_passed": {
+          "const": true
+        },
+        "directory_only_media_verified": {
+          "const": true
+        },
+        "production_continuity_preserved": {
+          "const": true
+        },
+        "recurring_schedule_unchanged": {
+          "const": true
+        },
+        "resource_and_credential_cleanup_passed": {
+          "const": true
+        },
+        "payload_retained": {
+          "const": true
+        },
+        "populated_media_accepted": {
+          "const": false
+        },
+        "production_failover_accepted": {
+          "const": false
+        },
+        "full_stage_5_accepted": {
+          "const": false
+        },
+        "terminal_archive": {
+          "enum": [
+            "pending",
+            "published"
+          ]
+        },
+        "terminal_tag": {
+          "type": "string",
+          "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"
+        },
+        "archive_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag_object": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
     }
   }
 }

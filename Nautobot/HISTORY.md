@@ -808,3 +808,11 @@ Published annotated tag: `nautobot-recurring-logical-promotion-v1-accepted`; arc
 `20a8c936763ec250ed2cd5eea31a9be61c418cff`. Independent remote fetch verified the exact archive
 and all 32 members before clearing the consumed operation. Monthly restore and
 retained-payload disposition remain separate. Never replay the consumed claim.
+
+## Monthly recurring-snapshot restore
+
+`nautobot-application-restore-v3`: accepted November 24, 2026; directory-only media.
+Intended tag: `nautobot-application-restore-v3-accepted`; commit/tag/push pending.
+The exact definition and sanitized result are in `terminal/application-restore`;
+raw baseline, logical reference and source readback remain hash-bound outside Git.
+Accepted identity: `monthly_restore` in `manifests/accepted-live-state.yaml`.
