@@ -107,6 +107,17 @@ class NodeTests(unittest.TestCase):
         with patch.object(Path, 'is_symlink', return_value=False), patch.object(Path, 'stat', return_value=Info()), patch.object(Path, 'exists', return_value=False), patch.object(Path, 'read_text', return_value=json.dumps({'passed':True,'monotonic':0})):
             with self.assertRaisesRegex(node.Blocked, 'host_monitor_stale'): runtime.host_health()
 
+    def test_resume_or_cleanup_after_reboot_requires_manual_reconciliation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = object.__new__(node.Restore)
+            runtime.root = Path(directory);runtime.spec = {'context':'target'}
+            boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+            node.save(runtime.root/'admitted-boot.json', {'boot_id':boot})
+            runtime.continuity()
+            node.save(runtime.root/'admitted-boot.json', {'boot_id':'different'})
+            with self.assertRaisesRegex(node.Blocked,'boot_changed_manual_reconciliation'):
+                runtime.continuity()
+
     def test_container_caps_sum_to_approved_budget(self):
         self.assertEqual(sum(node.CPU.values()), 2)
         self.assertEqual(sum(node.MEMORY.values()), 1920)

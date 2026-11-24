@@ -1717,10 +1717,24 @@ monitoring and production noninterference still require the approved live run.
 `--baseline`, `--members` and `--logical` paths. The destination must be new.
 It includes the operation, all execution sources, plan, procedures, accepted and
 preparation manifests, private baseline/reference and exact member map. It binds
-accepted preservation provenance and deterministically generates runtime,
+accepted preservation or archived recurring-promotion provenance and deterministically generates runtime,
 retrieval and inventory inputs. Secret values are never frozen or hashed.
 `verify --bundle DIRECTORY --approve SHA256` additionally checks current operation
 identity, committed execution sources, reviewed CI and baseline freshness.
+For a recurring snapshot, supply `--source-evidence` with the exact independently
+accepted readback. The verifier checks its accepted hash, specification identity,
+capture/upload section hashes, full-integrity result and reference/dump binding.
+Keep historical bundles unchanged.
+
+Bind `attended_window.start` and `attended_window.end` as timezone-aware timestamps.
+Admission requires at least 4,500 seconds remaining, idle primary/recovery services,
+an enabled backup timer and more than 4,500 seconds before its next trigger.
+Preparation boot IDs and service invocations remain historical evidence. Recheck
+host identity, approved artifacts and healthy service state, then record the current
+boot and service invocations in the root-owned admission receipt. The host monitor
+pins those observations throughout execution. Node phases, including cleanup,
+refuse a changed admitted boot for manual reconciliation; never replay a consumed
+trial after reboot. Wrong-host or configuration drift still refuses admission.
 
 `render-controller --bundle DIRECTORY --approve SHA256 --evidence DIRECTORY
 --ssh-socket PATH` renders the bounded user service; it does not install or start

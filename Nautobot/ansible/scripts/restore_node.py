@@ -129,6 +129,7 @@ class Restore:
         require(not (root/'failure.json').exists(), 'host_monitor_failed')
         value = json.loads(path.read_text())
         require(value['passed'] is True and 0 <= time.monotonic()-value['monotonic'] < 15, 'host_monitor_stale')
+        require(value['boot_id'] == Path('/proc/sys/kernel/random/boot_id').read_text().strip(), 'boot_changed')
 
     def sample(self):
         self.host_health()
@@ -151,9 +152,19 @@ class Restore:
         require(used < 4*1024**3, 'working_set_stop')
         return {'monotonic': time.monotonic(), 'available_kib': memory['MemAvailable'], 'allocated_bytes': used}
 
+    def continuity(self):
+        if self.spec['context'] != 'target': return
+        path = self.root/'admitted-boot.json'
+        protected(path)
+        require(json.loads(path.read_text())['boot_id'] == Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                'boot_changed_manual_reconciliation')
+
     def arm(self):
         require(not (self.root/'guard.json').exists() and not (self.root/'stopped.json').exists(), 'already_started')
         self.sample()
+        if self.spec.get('context') == 'target':
+            require(not (self.root/'admitted-boot.json').exists(), 'already_admitted')
+            save(self.root/'admitted-boot.json', {'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip()})
         save(self.root/'production-before.json', self.production())
         script = str(Path(__file__).resolve())
         # Constrained root names contain no systemd command parsing metacharacters.
@@ -371,6 +382,7 @@ def main():
     args = parser.parse_args()
     runtime = Restore(args.root)
     try:
+        if args.phase != 'arm': runtime.continuity()
         if args.phase == 'host-health': runtime.host_health()
         elif args.phase in ('arm', 'guard', 'cleanup'): getattr(runtime, args.phase)()
         elif args.phase == 'finish':

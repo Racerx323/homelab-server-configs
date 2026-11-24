@@ -15,7 +15,8 @@
     "ci_success_commit",
     "restic_version",
     "baseline",
-    "boundaries"
+    "boundaries",
+    "attended_window"
   ],
   "properties": {
     "schema_version": {
@@ -162,6 +163,24 @@
         "snapshot_deletion": false,
         "worker_or_scheduler_start": false,
         "isolated_restore": true
+      }
+    },
+    "attended_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     }
   }

@@ -97,6 +97,8 @@ class FrozenTests(unittest.TestCase):
             for name,value in (('baseline.json',baseline),('members.json',{}),('logical.json',{})):
                 (inputs/name).write_text(json.dumps(value))
             prep_path=root/bundle.FILES['preparation.yaml'];prep=yaml.safe_load(prep_path.read_text())
+            historical = yaml.safe_load((root/bundle.FILES['accepted-state.yaml']).read_text())['recovery_preservation']
+            prep['source'].update(kind='recovery_preservation', **{k:historical[k] for k in ('snapshot_id','terminal_tag','archive_commit')})
             prep['baseline'].update(sha256=bundle.sha(inputs/'baseline.json'),collected_at=baseline['collected_at'])
             prep['source']['logical_reference_sha256']=bundle.sha(inputs/'logical.json')
             prep['configuration']['archive_member_map_sha256']=bundle.sha(inputs/'members.json')
@@ -108,6 +110,7 @@ class FrozenTests(unittest.TestCase):
             op={'schema_version':1,'operation':{'state':'definition','stage':'isolated_application_restore',
                 'id':'nautobot-application-restore-v1','target':'j2-svpi4mf','authorization_ready':False,'source_commit':'a'*40},
                 'token':token,'root':'/var/lib/nautobot/restore-tests/'+token,'monitor_root':'/tmp/nautobot-restore-monitor-'+'a'*24,
+                'attended_window':{'start':'2026-11-24T17:00:00-06:00','end':'2026-11-24T19:00:00-06:00'},
                 'ci_success_commit':None,'restic_version':schema['properties']['restic_version']['const'],
                 'boundaries':schema['properties']['boundaries']['const'],
                 'baseline':{'collected_at':baseline['collected_at'],'sha256':bundle.sha(inputs/'baseline.json'),
@@ -129,6 +132,88 @@ class FrozenTests(unittest.TestCase):
                 (dest/'bundle.json').write_text(json.dumps(manifest))
                 with self.assertRaisesRegex(ValueError,'runtime_contract'):
                     bundle.verify(dest,bundle.sha(dest/'bundle.json'),executing=False)
+
+
+class MonthlyTests(unittest.TestCase):
+    def test_recurring_source_binds_accepted_receipts_and_rejects_wrong_dump(self):
+        import copy
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root/'logical-reference.json').write_text('{}\n')
+            reference = bundle.sha(root/'logical-reference.json')
+            spec = {'repository_id':'r'}
+            identity = hashlib.sha256(json.dumps(spec,sort_keys=True,separators=(',', ':')).encode()).hexdigest()
+            capture = {'specification_sha256':identity,'capture_passed':True,'content_sha256':{'postgresql_custom_dump':'a'*64}}
+            upload = dict(capture,upload_passed=True,integrity_passed=True,integrity_exit_status=0,backup_exit_status=0,snapshot_id='s')
+            logical = {'specification_sha256':identity,'reference_sha256':reference,'dump_sha256':'a'*64,
+                       'comparison':{'equal':True,'changed_sections':[]}}
+            receipts = {'application-backup.json':spec,'application-capture-result.json':capture,
+                        'application-backup-result.json':upload,'logical-capture.json':logical,'logical-reference.json':{}}
+            (root/'source-evidence.json').write_text(json.dumps({'receipts':receipts}))
+            source = {'kind':'recurring_logical_promotion','snapshot_id':'s','repository_id':'r','terminal_tag':'tag',
+                      'archive_commit':'commit','content_sha256':capture['content_sha256']}
+            record = dict(source,status='first_scheduled_cycle_accepted',terminal_archival='published_verified',
+                          independent_acceptance=True,logical_reference_sha256=reference,
+                          evidence_sha256={'independent-readback.json':bundle.sha(root/'source-evidence.json')})
+            accepted = {'recurring_logical_promotion':record}
+            bundle.verify_source(root,{'source':source},{'logical_sha256':reference},accepted)
+            wrong = copy.deepcopy(source); wrong['snapshot_id']='other'
+            with self.assertRaisesRegex(ValueError,'archive_source'):
+                bundle.verify_source(root,{'source':wrong},{'logical_sha256':reference},accepted)
+            wrong = copy.deepcopy(source); wrong['content_sha256']['postgresql_custom_dump']='b'*64
+            with self.assertRaisesRegex(ValueError,'source_sections'):
+                bundle.verify_source(root,{'source':wrong},{'logical_sha256':reference},accepted)
+            (root/'source-evidence.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError,'source_evidence_identity'):
+                bundle.verify_source(root,{'source':source},{'logical_sha256':reference},accepted)
+
+    def test_pre_admission_reboot_allowed_but_continuity_and_drift_fail(self):
+        import copy
+        preflight = bundle.module(SCRIPTS/'restore_preflight.py','monthly_preflight')
+        services = {role:{'ActiveState':'active','SubState':'running','Result':'success','InvocationID':'new',
+                          'NRestarts':'0','MainPID':'20'} for role in ('postgresql','redis','web','worker','scheduler')}
+        current = {'host':'j2-svpi4mf','boot_id':'new','persistence_user':{'UID':'999','Linger':'yes'},
+                   'persistence_services':services,'guard':{'verified':True},'runtime_files':{},'quadlets':{}}
+        expected = {'boot_id':'old','services':copy.deepcopy(services),'artifact_sha256':{}}
+        for row in expected['services'].values(): row.update(InvocationID='old',MainPID='10')
+        preflight.assess(current,expected)
+        with self.assertRaisesRegex(ValueError,'boot_changed'): preflight.assess(current,expected,continuity=True)
+        admitted = dict(expected,boot_id='new',services=services)
+        preflight.assess(current,admitted,continuity=True)
+        wrong = dict(current,host='wrong')
+        with self.assertRaisesRegex(ValueError,'baseline_identity'): preflight.assess(wrong,expected)
+        with self.assertRaisesRegex(ValueError,'artifact_drift'): preflight.assess(current,dict(expected,artifact_sha256={'missing':'a'*64}))
+
+    def test_monitor_pins_admitted_boot_and_service_invocation(self):
+        import copy
+        monitor = bundle.module(SCRIPTS/'restore_host_monitor.py','monthly_monitor')
+        admission = {'boot_id':'admitted','services':{'web':{'InvocationID':'i','NRestarts':'0'}}}
+        sample = {'boot_id':'admitted','services':{'web':{'unit':{'InvocationID':'i','NRestarts':'0'}}}}
+        monitor.assess_admission(sample,admission)
+        with self.assertRaisesRegex(ValueError,'boot_changed'):
+            monitor.assess_admission(dict(sample,boot_id='rebooted'),admission)
+        changed = copy.deepcopy(sample);changed['services']['web']['unit']['InvocationID']='other'
+        with self.assertRaisesRegex(ValueError,'admission_service_changed'):
+            monitor.assess_admission(changed,admission)
+
+    def test_attended_window_and_backup_overlap_are_enforced(self):
+        import copy
+        from datetime import datetime
+        preflight = bundle.module(SCRIPTS/'restore_preflight.py','monthly_window')
+        window = {'start':'2026-11-24T17:00:00-06:00','end':'2026-11-24T19:00:00-06:00'}
+        now = datetime.fromisoformat(window['start'])
+        units = {name:{'ActiveState':'inactive','Result':'success'} for name in
+                 ('nautobot-protection.service','nautobot-protection-recovery.service')}
+        units['nautobot-protection.timer']={'ActiveState':'active','UnitFileState':'enabled'}
+        preflight.admit_window(window,units,now.timestamp()+20000,now)
+        with self.assertRaisesRegex(ValueError,'protection_overlap'):
+            preflight.admit_window(window,units,now.timestamp()+100,now)
+        with self.assertRaisesRegex(ValueError,'attended_window'):
+            preflight.admit_window(window,units,now.timestamp()+20000,datetime.fromisoformat(window['end']))
+        active = copy.deepcopy(units);active['nautobot-protection.service']['ActiveState']='active'
+        with self.assertRaisesRegex(ValueError,'protection_not_idle'):
+            preflight.admit_window(window,active,now.timestamp()+20000,now)
 
 
 if __name__=='__main__': unittest.main()

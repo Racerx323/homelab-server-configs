@@ -79,6 +79,8 @@
               - '{{ restore_monitor_scripts }}/restore_host_monitor.py'
               - --token
               - '{{ restore_token }}'
+              - --admission
+              - '{{ restore_monitor_scripts }}/admission.json'
           become: true
           become_user: root
           when: restore_context == 'target'

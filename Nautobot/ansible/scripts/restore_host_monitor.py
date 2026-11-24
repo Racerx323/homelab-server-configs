@@ -13,12 +13,22 @@ import time
 import workload_sampler as sampler
 
 
+def assess_admission(sample, admission):
+    sampler.require(sample['boot_id'] == admission['boot_id'], 'boot_changed')
+    for role, expected in admission['services'].items():
+        observed = sample['services'][role]['unit']
+        sampler.require(all(observed.get(k) == expected[k] for k in ('InvocationID', 'NRestarts')),
+                        'admission_service_changed')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--token', required=True)
+    parser.add_argument('--admission', type=Path, required=True)
     args = parser.parse_args()
     if os.getuid() != 0 or not re.fullmatch('nautobot-restore-[a-f0-9]{24}', args.token):
         raise ValueError('monitor_scope')
+    admission = json.loads(args.admission.read_text())
     root = Path('/run')/(args.token+'-monitor')
     root.mkdir(mode=0o755)  # Refuse retained state; parent /run is root-owned.
     cursor = sampler.run(['/usr/bin/journalctl', '-n', '0', '--show-cursor', '--no-pager']).strip().split('-- cursor: ')[-1]
@@ -30,6 +40,7 @@ def main():
     try:
         while time.monotonic()-started < 4200:
             sample = reader.sample()
+            assess_admission(sample, admission)
             if first is None: first = sample
             sampler.validate(sample, first, previous, contract)
             previous = sample

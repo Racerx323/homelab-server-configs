@@ -38,8 +38,8 @@ FILES.update({
     'ansible-temp.sh': 'tests/repository/run-with-ansible-local-temp.sh',
 })
 GENERATED = {'operation.json', 'baseline.json', 'members.json', 'logical-reference.json',
-             'runtime.json', 'restore.json', 'repository', 'inventory.ini'}
-RECEIPTS = ['credential-delivery.json', 'production-before.json', 'guard.json', 'guard-failure.json',
+             'runtime.json', 'restore.json', 'repository', 'inventory.ini', 'source-evidence.json'}
+RECEIPTS = ['admitted-boot.json', 'credential-delivery.json', 'production-before.json', 'guard.json', 'guard-failure.json',
             'stopped.json', 'cleanup-result.json', 'logical-result.json', 'check-result.json',
             'checks-complete.json', 'retrieval/retrieval-result.json'] + [phase+'-failure.json' for phase in
             ('arm', 'inject', 'retrieve', 'start', 'import', 'logical', 'check', 'finish', 'host-health')]
@@ -76,7 +76,7 @@ def validate(op, schema):
     require(op['monitor_root'] == '/tmp/nautobot-restore-monitor-'+op['token'].removeprefix('nautobot-restore-'), 'monitor_token')
 
 
-def freeze(operation, destination, baseline, members, logical):
+def freeze(operation, destination, baseline, members, logical, source_evidence=None):
     import yaml
     op = json.loads(operation.read_text())
     validate(op, json.loads((ROOT/FILES['schema.json']).read_text()))
@@ -84,6 +84,10 @@ def freeze(operation, destination, baseline, members, logical):
     for name, source in FILES.items(): shutil.copyfile(ROOT/source, destination/name)
     for name, source in (('operation.json',operation),('baseline.json',baseline),('members.json',members),('logical-reference.json',logical)):
         shutil.copyfile(source, destination/name)
+    if source_evidence is None:
+        (destination/'source-evidence.json').write_text('{}\n')
+    else:
+        shutil.copyfile(source_evidence, destination/'source-evidence.json')
     prep = yaml.safe_load((destination/'preparation.yaml').read_text())
     runtime, contract = generated(op, prep)
     for name, value in (('runtime.json',runtime),('restore.json',contract)):
@@ -97,6 +101,42 @@ def freeze(operation, destination, baseline, members, logical):
     approval = sha(destination/'bundle.json')
     verify(destination, approval, executing=False)
     return approval
+
+
+def verify_source(bundle, prep, op, accepted):
+    """Select only an archived accepted source; recurring receipts bind the full chain."""
+    source = prep['source']
+    kind = source.get('kind', 'recovery_preservation')
+    require(kind in ('recovery_preservation', 'recurring_logical_promotion'), 'source_kind')
+    record = accepted[kind]
+    for field in ('snapshot_id', 'terminal_tag', 'archive_commit'):
+        require(record[field] == source[field], 'archive_source')
+    if kind == 'recovery_preservation':
+        require(record['state'] == 'accepted', 'source_not_accepted')
+        require(record['logical_before_sha256'] == op['logical_sha256'], 'accepted_logical_reference')
+        return
+    require(record['status'] == 'first_scheduled_cycle_accepted'
+            and record['terminal_archival'] == 'published_verified'
+            and record['independent_acceptance'] is True, 'source_not_accepted')
+    require(record['repository_id'] == source['repository_id'], 'source_repository')
+    require(record['logical_reference_sha256'] == op['logical_sha256'], 'accepted_logical_reference')
+    require(sha(bundle/'source-evidence.json') == record['evidence_sha256']['independent-readback.json'],
+            'source_evidence_identity')
+    receipts = json.loads((bundle/'source-evidence.json').read_text())['receipts']
+    spec = receipts['application-backup.json']
+    capture, upload = (receipts[n] for n in ('application-capture-result.json', 'application-backup-result.json'))
+    logical = receipts['logical-capture.json']
+    identity = hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    require(all(r['specification_sha256'] == identity for r in (capture, upload, logical)), 'source_specification')
+    require(capture['capture_passed'] is True and upload['upload_passed'] is True
+            and upload['integrity_passed'] is True and upload['integrity_exit_status'] == 0
+            and upload['backup_exit_status'] == 0 and upload['snapshot_id'] == source['snapshot_id'], 'source_receipts')
+    require(capture['content_sha256'] == upload['content_sha256'] == source['content_sha256'], 'source_sections')
+    require(receipts['logical-reference.json'] == json.loads((bundle/'logical-reference.json').read_text())
+            and logical['reference_sha256'] == op['logical_sha256']
+            and logical['dump_sha256'] == source['content_sha256']['postgresql_custom_dump']
+            and logical['comparison']['equal'] is True and logical['comparison']['changed_sections'] == [],
+            'source_logical_binding')
 
 
 def verify(bundle, approval, executing=True):
@@ -117,11 +157,8 @@ def verify(bundle, approval, executing=True):
     prep = yaml.safe_load((bundle/'preparation.yaml').read_text())
     require(op['logical_sha256'] == prep['source']['logical_reference_sha256'], 'logical_reference')
     require(op['members_sha256'] == prep['configuration']['archive_member_map_sha256'], 'member_reference')
-    accepted = yaml.safe_load((bundle/'accepted-state.yaml').read_text())['recovery_preservation']
-    require(accepted['state'] == 'accepted', 'source_not_accepted')
-    for field in ('snapshot_id','terminal_tag','archive_commit'):
-        require(accepted[field] == prep['source'][field], 'archive_source')
-    require(accepted['logical_before_sha256'] == op['logical_sha256'], 'accepted_logical_reference')
+    accepted = yaml.safe_load((bundle/'accepted-state.yaml').read_text())
+    verify_source(bundle, prep, op, accepted)
     expected = json.loads((bundle/'baseline.json').read_text())
     require(sha(bundle/'baseline.json') == op['baseline']['sha256'] == prep['baseline']['sha256'], 'baseline_hash')
     require(op['baseline']['collected_at'] == expected['collected_at'] == prep['baseline']['collected_at'], 'baseline_date')
@@ -236,12 +273,13 @@ def main():
     p=argparse.ArgumentParser(); sub=p.add_subparsers(dest='action',required=True)
     f=sub.add_parser('freeze')
     for name in ('operation','destination','baseline','members','logical'): f.add_argument('--'+name,type=Path,required=True)
+    f.add_argument('--source-evidence',type=Path)
     for action in ('verify','render-controller','execute'):
         command=sub.add_parser(action); command.add_argument('--bundle',type=Path,required=True);command.add_argument('--approve',required=True)
         if action!='verify': command.add_argument('--evidence',type=Path,required=True)
         if action=='render-controller':command.add_argument('--ssh-socket',type=Path,required=True)
     a=p.parse_args()
-    if a.action=='freeze': print(freeze(a.operation,a.destination,a.baseline,a.members,a.logical))
+    if a.action=='freeze': print(freeze(a.operation,a.destination,a.baseline,a.members,a.logical,a.source_evidence))
     elif a.action=='verify': verify(a.bundle,a.approve); print('verified')
     elif a.action=='render-controller': print(render(a.bundle,a.approve,a.evidence,a.ssh_socket),end='')
     else: return execute(a.bundle,a.approve,a.evidence)
