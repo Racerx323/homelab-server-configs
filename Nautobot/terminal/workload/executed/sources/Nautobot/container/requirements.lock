@@ -1,0 +1,4 @@
+# DNS Models is the only application added to the pinned Nautobot base image.
+# Its sole runtime dependency is Nautobot >=3.1,<4, supplied by that base.
+nautobot-dns-models==2.3.0 \
+    --hash=sha256:0f518fddd89c4636065bca082d4f10beba981f06e8229d4b0c20490d88c625c3

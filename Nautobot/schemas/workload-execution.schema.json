@@ -7,10 +7,10 @@
     "execution_authorized",
     "operation_id",
     "root",
-    "boot_id",
-    "journal_cursor",
     "baseline_review",
-    "backup"
+    "backup",
+    "attended_window",
+    "controller_ansible"
   ],
   "properties": {
     "schema_version": {
@@ -32,11 +32,13 @@
     },
     "boot_id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Legacy preparation evidence only; live continuity uses the admission receipt."
     },
     "journal_cursor": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Legacy preparation evidence only; live continuity uses the admission receipt."
     },
     "baseline_review": {
       "type": "object",
@@ -46,7 +48,8 @@
         "boot_id",
         "services",
         "reviewed_at",
-        "evidence_sha256"
+        "evidence_sha256",
+        "artifact_sha256"
       ],
       "properties": {
         "passed": {
@@ -166,6 +169,14 @@
         "evidence_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        },
+        "artifact_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
         }
       }
     },
@@ -237,8 +248,97 @@
           }
         }
       }
+    },
+    "attended_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "replacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_operation",
+        "ownership_sha256",
+        "registration",
+        "dataset_sha256"
+      ],
+      "properties": {
+        "source_operation": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+        },
+        "ownership_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "registration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "PilotImport",
+            "PilotExport",
+            "PilotAudit"
+          ],
+          "properties": {
+            "PilotImport": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "PilotExport": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "PilotAudit": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "dataset_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "controller_ansible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/[A-Za-z0-9_./-]+$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Reviewed workload execution input; exact bundle authorization required"
+  "title": "Reviewed workload execution input; exact bundle authorization required",
+  "not": {
+    "required": [
+      "resume",
+      "replacement"
+    ]
+  }
 }

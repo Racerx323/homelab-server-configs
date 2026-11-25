@@ -176,6 +176,18 @@ def apply(dataset, store, receipt=None, write=False):
             'counts': {m: sum(n['model'] == m for n in nodes) for m in sorted({n['model'] for n in nodes})}}
 
 
+def replace(dataset, store, replacement):
+    """Replace a receipt-owned fixture atomically; never adopt matching names."""
+    require(set(replacement) == {'dataset', 'ownership'}, 'replacement_shape')
+    old, receipt = replacement['dataset'], replacement['ownership']
+    require(old != dataset, 'replacement_unchanged')
+    with store.transaction(True):
+        store.lock_owned(plan(old), receipt)
+        apply(old, store, receipt=receipt)
+        store.delete_owned(plan(old), receipt)
+        return apply(dataset, store, write=True)
+
+
 class DjangoStore:
     def __init__(self):
         import nautobot
@@ -201,6 +213,71 @@ class DjangoStore:
 
     def find(self, model, lookup):
         return list(self.model(model).objects.filter(**lookup)[:2])
+
+    def lock_owned(self, nodes, receipt):
+        require(set(receipt.get('objects', {})) == {n['key'] for n in nodes}, 'ownership_receipt')
+        for node in nodes:
+            list(self.model(node['model']).objects.select_for_update().filter(pk=receipt['objects'][node['key']]))
+
+    def delete_owned(self, nodes, receipt):
+        from django.db.models.deletion import Collector, ProtectedError, RestrictedError
+        from nautobot.core.models.fields import NaturalOrderingField
+        allowed = {}
+        owned = []
+        for node in nodes:
+            model = self.model(node['model'])
+            allowed.setdefault(model, set()).add(receipt['objects'][node['key']])
+            obj = model.objects.get(pk=receipt['objects'][node['key']])
+            owned.append(obj)
+            controlled = set(node['lookup']) | set(node['fields'])
+            defaults = model(**{name: getattr(obj, name) for name in controlled})
+            if node['model'] == 'ipam.prefix':
+                defaults.prefix = str(obj.network) + '/' + str(obj.prefix_length)
+            elif node['model'] == 'ipam.ipaddress':
+                defaults.address = str(obj.host) + '/' + str(obj.mask_length)
+            for field in model._meta.concrete_fields:
+                if field.primary_key or field.name in controlled:
+                    continue
+                if not field.editable and field.get_internal_type() not in ('JSONField', 'TextField'):
+                    continue
+                expected = field.pre_save(defaults, True) if isinstance(field, NaturalOrderingField) else getattr(defaults, field.attname)
+                require(field.to_python(getattr(obj, field.attname)) == field.to_python(expected),
+                        'owned_extra_field_drift:' + model._meta.label_lower + '.' + field.name)
+            if node['content_types'] is not None:
+                through = obj.content_types.through
+                field = next(f for f in through._meta.fields if f.is_relation and f.related_model == model)
+                allowed.setdefault(through, set()).update(str(x) for x in through.objects.filter(**{field.name: obj}).values_list('pk', flat=True))
+        def check(model, rows):
+            require({str(o.pk) for o in rows} <= allowed.get(model, set()), 'unowned_delete_closure')
+        # Check every reverse FK/M2M and generic relation before the first
+        # deletion, including SET_NULL relations outside Collector.data.
+        for obj in owned:
+            for relation in obj._meta.get_fields(include_hidden=True):
+                if relation.auto_created and not relation.concrete and (relation.one_to_many or relation.one_to_one):
+                    rows = relation.related_model._base_manager.filter(**{relation.field.name: obj})
+                    check(relation.related_model, rows)
+            for field in obj._meta.private_fields:
+                if hasattr(field, 'bulk_related_objects'):
+                    rows = field.bulk_related_objects([obj], 'default')
+                    check(rows.model, rows)
+        # Reverse dependency order avoids PROTECT between owned objects. Every
+        # collector includes generic relations and native deletion signals.
+        # Any later refusal rolls back earlier deletes in the outer transaction.
+        for node in reversed(nodes):
+            model = self.model(node['model'])
+            collector = Collector(using='default')
+            try:
+                collector.collect(model.objects.filter(pk=receipt['objects'][node['key']]))
+            except (ProtectedError, RestrictedError):
+                raise ValueError('unowned_delete_closure') from None
+            for related, rows in collector.data.items():
+                check(related, rows)
+            for rows in collector.fast_deletes:
+                check(rows.model, rows)
+            for (field, _), groups in collector.field_updates.items():
+                for rows in groups:
+                    check(field.model, rows)
+            collector.delete()
 
     def create(self, model, fields, content_types):
         values = dict(fields)

@@ -28,6 +28,7 @@ def main():
     profile.add_argument('--expanded', action='store_true', help='One site, 200 devices, 2000 IPs and synthetic A records')
     profile.add_argument('--small', action='store_true', help='Small fixture for native bridge regression')
     profile.add_argument('--pilot', action='store_true', help='Agreed mixed DNS and uneven-interface profile')
+    profile.add_argument('--replacement', action='store_true', help='Small native atomic replacement and rollback checks')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--app-image', required=True, help='Locally built image ID, not production image')
     parser.add_argument('--postgres-image', required=True)
@@ -47,11 +48,11 @@ def main():
         for name in ('workload_adapter.py', 'workload_jobs.py'):
             shutil.copyfile(ROOT/'Nautobot/ansible/scripts'/name, work/'jobs'/name)
         shutil.copyfile(ROOT/'Nautobot/ansible/scripts/workload_control.py', work/'workload_control.py')
-        shutil.copyfile(Path(__file__).with_name('workload_native.py'), work/'native.py')
+        shutil.copyfile(Path(__file__).with_name('workload_replacement_native.py' if args.replacement else 'workload_native.py'), work/'native.py')
         spec = importlib.util.spec_from_file_location('fixture', ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         contract = None
-        if args.small or args.expanded:
+        if args.small or args.expanded or args.replacement:
             import yaml
             contract = yaml.safe_load((ROOT/'Nautobot/manifests/workload-test.yaml').read_text())
             contract['fixture'].update(locations=2, devices=3, interfaces_per_device=2, ip_assignments=3)
@@ -64,6 +65,9 @@ def main():
         env = work/'test.env'
         env.write_text('NAUTOBOT_SECRET_KEY='+secrets.token_hex(40)+'\nNAUTOBOT_DB_HOST=postgresql\nNAUTOBOT_DB_USER=nautobot\nNAUTOBOT_DB_NAME=workload_disposable\nNAUTOBOT_REDIS_HOST=redis\nNAUTOBOT_CONFIG=/work/nautobot_config.py\nPYTHONDONTWRITEBYTECODE=1\n')
         env.chmod(0o600)
+        (work/'jobs').chmod(0o755)
+        for path in work.rglob('*'):
+            if path.is_file() and path != env: path.chmod(0o644)
         try:
             command(['podman', 'network', 'create', '--internal', network]); created_network = True
             for role, image, options in (

@@ -13,14 +13,34 @@ relationships or additional nonempty fields/references. The new profile's 200 De
 name collisions all belong to that retained fixture. Host health, application
 artifacts and protection readiness passed; this is not target workload acceptance.
 
-Next prepare atomic replacement of the exact owned synthetic fixture through the
-existing importer, with transactional rollback and refusal of unowned cascade
-closure. Qualify that changed behavior locally, fix preparation-time boot pinning,
-and add attended-window/recurring-schedule exclusion to the existing workload
-preflight. Do not weaken ownership checks or create new orchestration. Then seal
-one workload execution request; no deletion, import or trial is authorized yet.
-Keep `operation.yaml` clean and disabled. The existing 12,000-second controller
-ceiling requires a window longer than the minimum measured workload phases.
+The revised November 25 trial passed live admission at 13:01 CST, then failed
+on its first replacement-import Job with `SoftTimeLimitExceeded` after 840 seconds.
+Independent readback confirms all 3,518 retained objects and controlled fields are
+unchanged. The owned Job is terminal and absent from the worker, registrations are
+disabled, temporary credentials/modules are absent, and application health,
+artifact identity, service continuity and the existing timer passed readback.
+No exports, audit batch or backup ran. The 364 collected samples passed individual
+resource guards; this incomplete interval does not accept the full workload.
+
+The explicit executable binding worked through the real controller service.
+Its earlier pre-target failure, both consumed claims and exact source bundles
+remain preserved. The operation is now terminal-pending; accepted live state is
+unchanged. No retry, timeout increase, disposal or publication is authorized.
+
+The worker traceback locates the timeout in per-object retained-fixture deletion
+checks, before creating the new profile. Exact time per substage was not recorded.
+This is a fixture-preparation bottleneck, not proof that the host cannot run the
+agreed workload. The process audit rejects further capacity fixtures or added
+orchestration as the next step; retain the existing safety controls and focus any
+later repair on the replacement data path.
+
+Next approve the scoped terminal publication request at
+`nautobot-workload-preparation-20261124/controller-binding/terminal/PUBLICATION.md`.
+The prepared archive is `Nautobot/terminal/workload`; it preserves both claims and
+exact nonsecret sources. Raw evidence remains private. After archival, review a
+focused replacement change that preserves native validation, ownership refusal
+and atomic rollback. No new trial, timeout increase or workload-scope change is
+prepared. Detailed findings and remaining gaps are in `workload-review.json`.
 
 The preparation ledger is `manifests/workload-review.json`; private comparison
 receipts are in `nautobot-workload-preparation-20261124/read-only-result.json`.

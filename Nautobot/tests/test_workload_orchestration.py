@@ -47,6 +47,50 @@ def batch_client(client):
 
 
 class WorkloadOrchestrationTests(unittest.TestCase):
+    def test_admission_window_and_protection_exclusion(self):
+        from datetime import datetime
+        now = datetime.fromisoformat('2026-11-25T10:00:00-06:00')
+        window = {'start': now.isoformat(), 'end': '2026-11-25T14:00:00-06:00'}
+        units = {name: {'ActiveState':'inactive', 'Result':'success'} for name in (
+            'nautobot-protection.service', 'nautobot-protection-recovery.service')}
+        units['nautobot-protection.timer'] = {'ActiveState':'active', 'UnitFileState':'enabled'}
+        session.admit_window(window, units, now.timestamp()+60000, now)
+        with self.assertRaisesRegex(ValueError, 'protection_overlap'):
+            session.admit_window(window, units, now.timestamp()+12000, now)
+        with self.assertRaisesRegex(ValueError, 'attended_window'):
+            session.admit_window(window, units, now.timestamp()+60000, datetime.fromisoformat('2026-11-25T11:00:00-06:00'))
+        units['nautobot-protection.service']['ActiveState'] = 'activating'
+        with self.assertRaisesRegex(ValueError, 'protection_not_idle'):
+            session.admit_window(window, units, now.timestamp()+60000, now)
+
+    def test_fresh_admission_and_operation_continuity(self):
+        expected = {'boot_id':'historical', 'artifact_sha256':{'file':'hash'},
+                    'services':{'web':{'memory_max':1024, 'invocation':'historical'}}}
+        current = {'host':'j2-svpi4mf', 'artifacts':{'file':'hash'},
+                   'sample':{'boot_id':'fresh', 'services':{'web':{'memory_max':1024, 'unit':{'InvocationID':'fresh'}}}}}
+        session.check_identity(current, expected)
+        admitted = copy.deepcopy(current)
+        session.check_identity(current, expected, admitted)
+        for mutation, reason in [('boot', 'boot_changed'), ('service','service_changed'), ('host','host_identity'), ('artifact','artifact_drift')]:
+            changed = copy.deepcopy(current)
+            if mutation == 'boot': changed['sample']['boot_id'] = 'unexpected'
+            if mutation == 'service': changed['sample']['services']['web']['unit']['InvocationID'] = 'unexpected'
+            if mutation == 'host': changed['host'] = 'other'
+            if mutation == 'artifact': changed['artifacts']['file'] = 'different'
+            with self.assertRaisesRegex(ValueError, reason): session.check_identity(changed, expected, admitted)
+
+    def test_replacement_only_sent_to_first_import(self):
+        with tempfile.TemporaryDirectory() as directory:
+            requests = []
+            runner = session.Session(Path(directory), CONTRACT, requests.append, backup,
+                                     replacement={'dataset':{}, 'ownership':{}})
+            runner.submit('import', {})
+            self.assertIn('replacement', requests[-1]['requests'][0]['kwargs'])
+            runner.ownership = {'receipt':'new'}
+            runner.submit('import', {})
+            self.assertNotIn('replacement', requests[-1]['requests'][0]['kwargs'])
+            self.assertEqual(requests[-1]['requests'][0]['kwargs']['ownership'], runner.ownership)
+
     def test_backup_requires_real_content_identity_success_and_actual_overlap(self):
         jobs = [{'started': 1, 'done': 2}]
         session.verify_backup(backup(), jobs, 'test')
@@ -321,10 +365,13 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             for name in launcher.REQUIRED - {'execution.json', 'contract.json', 'dataset.json', 'application-backup.json', 'backup-sources.json'}:
                 source = ROOT/launcher.DATA_FILES[name] if name in launcher.DATA_FILES else ROOT/'restic/scripts'/name if name == 'application-backup.py' else (ROOT/'Nautobot/ansible/playbooks'/name if name.endswith('.yaml') else SCRIPTS/name)
                 shutil.copyfile(source, root/name)
+            ansible = Path(shutil.which('ansible-playbook')).resolve()
             execution = {'schema_version': 1, 'stage': 'workload_qualification', 'execution_authorized': True,
+                'controller_ansible': {'path':str(ansible),'sha256':hashlib.sha256(ansible.read_bytes()).hexdigest()},
+                'attended_window': {'start':'2026-11-25T10:00:00-06:00','end':'2026-11-25T14:00:00-06:00'},
                 'operation_id': 'offline-fixture', 'root': '/tmp/nautobot-workload.'+'a'*32,
                 'boot_id': '00000000-0000-0000-0000-000000000000', 'journal_cursor': 'offline-only',
-                'baseline_review': {'passed': True, 'reviewed_at':'2026-09-24T00:00:00Z', 'evidence_sha256':'b'*64, 'boot_id': '00000000-0000-0000-0000-000000000000',
+                'baseline_review': {'artifact_sha256':{'/var/lib/nautobot/runtime/example':'c'*64}, 'passed': True, 'reviewed_at':'2026-09-24T00:00:00Z', 'evidence_sha256':'b'*64, 'boot_id': '00000000-0000-0000-0000-000000000000',
                     'services': {r: {'memory_max': 1024, 'invocation': 'a'*32} for r in workload_sampler.ROLES}},
                 'backup': {'authorized': True, 'argv': ['/usr/bin/python3', '/tmp/nautobot-workload.'+'a'*32+'/application-backup.py', '--root', '/tmp/nautobot-workload.'+'a'*32],
                            'receipt': '/tmp/nautobot-workload.'+'a'*32+'/application-backup-result.json'}}
@@ -370,6 +417,26 @@ class WorkloadOrchestrationTests(unittest.TestCase):
             (root/'retained-ownership.json').write_text('{}')
             with self.assertRaisesRegex(ValueError,'input_identity'):launcher.verify(root,approval)
             (root/'retained-ownership.json').write_text(json.dumps(retained))
+
+            # A replacement binds a different old dataset and the exact UUID receipt.
+            old_contract = copy.deepcopy(CONTRACT)
+            old_contract['fixture'].update(locations=1, devices=2, interfaces_per_device=1, ip_assignments=2)
+            old_dataset = generator.dataset(old_contract)
+            (root/'retained-dataset.json').write_bytes(generator.canonical(old_dataset))
+            retained['fixture_sha256'] = hashlib.sha256(generator.canonical(old_dataset)).hexdigest()
+            retained['objects'] = {n['key']:str(__import__('uuid').uuid4()) for n in workload_adapter.plan(old_dataset)}
+            (root/'retained-ownership.json').write_text(json.dumps(retained))
+            execution['replacement'] = execution.pop('resume')
+            execution['replacement']['ownership_sha256'] = hashlib.sha256((root/'retained-ownership.json').read_bytes()).hexdigest()
+            execution['replacement']['dataset_sha256'] = hashlib.sha256((root/'retained-dataset.json').read_bytes()).hexdigest()
+            (root/'execution.json').write_text(json.dumps(execution))
+            for name in ('execution.json', 'retained-ownership.json', 'retained-dataset.json'):
+                manifest['files'][name] = hashlib.sha256((root/name).read_bytes()).hexdigest()
+            raw = json.dumps(manifest).encode(); (root/'bundle.json').write_bytes(raw); approval = hashlib.sha256(raw).hexdigest()
+            with patch.object(launcher, 'load_operation', return_value=operation): launcher.verify(root, approval)
+            (root/'retained-dataset.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError, 'input_identity'): launcher.verify(root, approval)
+            (root/'retained-dataset.json').write_bytes(generator.canonical(old_dataset))
 
             (root/'workload_session.py').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'input_identity'): launcher.verify(root, approval)

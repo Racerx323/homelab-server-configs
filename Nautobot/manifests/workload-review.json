@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "status": "read_only_baseline_complete_trial_definition_pending",
+  "status": "failed_trial_diagnosed_publication_ready",
   "execution_authorized": false,
   "record_roles": {
     "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md",
     "procedure": "docs/OPERATIONS.md#pilot-workload-profile-and-seven-day-observation",
     "work_ledger": "manifests/workload-review.json",
-    "result": "private preparation evidence; target acceptance not claimed"
+    "result": "terminal/workload/executed/result.json and terminal/workload/diagnosis.json; private raw evidence remains hash-bound"
   },
   "source_revision": "7904a66de939ea6fa59207fced1767c685d99cd6",
   "private_preparation": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124",
-  "next_action": "Implement and locally qualify exact owned-fixture replacement, admission-time continuity and schedule exclusion in the existing workload path; then seal one separately approved target trial.",
+  "next_action": "Approve the exact terminal publication request. Keep the failed operation terminal-pending until remote archive verification. Then review a focused fixture-replacement repair; no new trial, limit increase or capacity fixture is authorized.",
   "work_items": [
     {
       "id": "W-001",
@@ -35,11 +35,11 @@
     },
     {
       "id": "W-004",
-      "state": "Open",
+      "state": "In progress",
       "issue": "Agreed-profile target resource and duration acceptance",
       "closure": "Resolve transition, review existing launcher/control compatibility, qualify changed behavior only, then freeze and separately approve one actual-target trial",
       "evidence": "No substitute-fixture capacity gate; preserve two workers and existing phase/stop limits.",
-      "next_action": "Add a narrow receipt-bound transactional replacement before the existing importer. Qualify rollback and refusal of drift/unowned cascade closure using the pinned native runtime; preserve failed payloads and do not expand capacity fixtures."
+      "next_action": "Full workload remains unaccepted. Repair the diagnosed fixture replacement bottleneck after terminal archival; no new execution candidate now."
     },
     {
       "id": "W-005",
@@ -61,17 +61,52 @@
     },
     {
       "id": "W-007",
-      "state": "Open",
+      "state": "Resolved",
       "issue": "Workload session pins preparation-time boot/service invocations at admission",
       "closure": "Capture fresh admission identities after host/configuration/health validation; reject unexpected continuity changes during work",
-      "evidence": "workload_session.py:248 and :303 compare to frozen specification boot_id; initial service invocations at :251 are also preparation-bound."
+      "evidence": "Admission captures fresh boot/cursor/services after hostname, artifact and health checks; local regressions allow pre-admission reboot and refuse subsequent boot/service changes, wrong host and artifact drift. Target acceptance pending."
     },
     {
       "id": "W-008",
-      "state": "Open",
+      "state": "Resolved",
       "issue": "Existing workload path predates accepted recurring schedule and has no timer/window exclusion",
       "closure": "Use existing Ansible preflight to bind a fresh attended window, require idle protection and next trigger beyond controller ceiling; keep installed timer unchanged",
-      "evidence": "No protection/calendar/window admission in run-workload.py, workload_session.py, workload_controller.py, run-workload.yaml or workload-execution.schema.json. Existing controller ceiling is 12000 seconds."
+      "evidence": "Existing privileged preflight refuses short/out-of-daytime windows, non-idle protection, disabled timer and a next trigger within 12000 seconds. Local boundary tests and Ansible syntax passed; installed schedule unchanged."
+    },
+    {
+      "id": "W-009",
+      "state": "Resolved",
+      "issue": "Controller service could not find ansible-playbook; interactive-path qualification missed the real service environment",
+      "closure": "Bind a reviewed absolute Ansible executable and prove actual systemd-service launch with localhost-only qualification; preserve this consumed attempt and obtain exact approval for a fresh trial",
+      "evidence": "Absolute executable and SHA-256 are checked before credentials and launch. Real local user-systemd with restricted PATH passed native Ansible success/failure, hash drift refusal, stop receipts, disposable input/runtime removal and unit unlinking. Target admission remains unexecuted; exact revised approval required. Revised live execution reached native Ansible and passed target admission; controller binding is now demonstrated on the approved path."
+    },
+    {
+      "id": "W-010",
+      "state": "Resolved",
+      "issue": "First actual-target replacement import exceeded the existing 840-second Job soft limit",
+      "closure": "Diagnose retained task-level evidence and replacement costs before any separately approved trial; do not raise limits or create substitute capacity fixtures by default",
+      "evidence": "Job SoftTimeLimitExceeded after 840.035597 seconds. Exact 3518 retained objects/fields unchanged; owned work stopped and cleanup verified. Full workload and backup overlap were not reached. Cursor-bounded worker traceback pinpoints delete_owned field-update ownership validation before new fixture creation. Substage time allocation remains unknown; tracked repair follows in W-012."
+    },
+    {
+      "id": "W-011",
+      "state": "Resolved",
+      "issue": "Determine whether fixture engineering and orchestration have displaced workload acceptance",
+      "closure": "Audit current control ownership, native tests and actual failure evidence without adding a test framework",
+      "evidence": "Fixture replacement has become the blocking project work; no blanket simplicity claim. Keep one playbook and existing safety controls, target only the measured data-path boundary, and stop substitute capacity qualification."
+    },
+    {
+      "id": "W-012",
+      "state": "Open",
+      "issue": "Object-at-a-time retained-fixture replacement exhausts the native Job budget before new-profile creation",
+      "closure": "Propose a focused model/relation-batched data-path change with preserved native validation, closure refusal and atomic rollback; reuse current correctness tests and measure any later authorized actual-target run",
+      "evidence": "840-second soft timeout at delete_owned/check field-update QuerySet; new profile not reached. No implementation change or new trial authorized by this audit."
+    },
+    {
+      "id": "W-013",
+      "state": "In progress",
+      "issue": "Archive failed live workload and earlier controller-only attempt",
+      "closure": "Prepare exact nonsecret archive and scoped publication request; publish only after approval; preserve raw evidence privately and keep operation terminal-pending until remote tag verification",
+      "evidence": "Exact nonsecret bundles/source snapshots for both consumed claims, sanitized terminal results, diagnosis and private-input hashes prepared in terminal/workload. Required publication and remote tag verification remain pending."
     }
   ],
   "audit": {
@@ -118,5 +153,260 @@
       "No real-inventory representativeness, workload headroom, seven-day stability or future trial acceptance."
     ],
     "result_sha256": "3131b47c03539116b176bc1dc775e53c4c80670aa89b3d4f32086e3128f1e502"
+  },
+  "attended_window_preference": {
+    "selection": "next available four-hour daytime window",
+    "timezone": "America/Chicago",
+    "bind_after": "local qualification completes",
+    "controller_ceiling_seconds": 12000,
+    "execution_authorized": false
+  },
+  "qualification_question": "Can the existing native import transaction replace only receipt-owned rows, roll back on failure and refuse unrelated deletion; can admission allow a pre-operation reboot while rejecting in-operation discontinuity and scheduled-backup overlap? Small native correctness checks only; no substitute capacity acceptance.",
+  "local_qualification": {
+    "native_replacement_initial": {
+      "status": "failed",
+      "phase": "unowned-reference refusal test",
+      "reason": "native ProtectedError instead of expected ValueError; rollback and drift checks passed before this case",
+      "evidence": "replacement-native-20261125",
+      "cleanup": "all disposable containers and network removed"
+    },
+    "native_replacement_guard": {
+      "status": "failed",
+      "evidence": "replacement-native-guard-20261125",
+      "reason": "extra-field guard rejected Nautobot computed natural-order name; derived projection comparison corrected using pinned native fields",
+      "cleanup": "all disposable containers and network removed"
+    },
+    "orchestration": "25 tests passed on final implementation",
+    "ownership_sampling": "19 tests passed on final implementation",
+    "native_replacement_projection": {
+      "status": "failed",
+      "evidence": "replacement-native-projection-20261125",
+      "reason": "native empty MAC address reads as None but its model default is an empty string; comparator now uses each pinned field to_python conversion",
+      "cleanup": "all disposable containers and network removed"
+    },
+    "controller": "7 tests passed",
+    "documentation": "5 tests passed",
+    "operation_contracts": "20 tests passed",
+    "capture": "7 tests passed",
+    "ansible_syntax": "passed; no target contact",
+    "vexp": "unavailable: workspace is not a Git repository; direct checks used",
+    "native_replacement_normalized": {
+      "status": "passed",
+      "evidence": "replacement-native-normalized-20261125",
+      "checks": [
+        "atomic replacement",
+        "rollback after deletion",
+        "controlled-field drift refusal",
+        "unowned foreign-key closure refusal",
+        "generic relationship refusal",
+        "extra metadata refusal",
+        "unrelated rows preserved",
+        "real synchronous JobResult",
+        "disabled registration reuse",
+        "repeat without writes"
+      ],
+      "cleanup": "all disposable containers and network removed",
+      "source_hashes": "current adapter, Jobs and native test match qualified input hashes",
+      "limits": "Small native correctness fixture on x86_64; no ARM64 host capacity or target acceptance claim."
+    },
+    "qualification_manifest_sha256": "bde22b853ff689aee181c350a0c8f534f7b847488490ab43f02e5d6a0d2d0f97",
+    "qualification_manifest": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/QUALIFICATION.json",
+    "bundle_verification": "passed against current prospective operation and exact source hashes; no execution",
+    "secret_scan": "passed",
+    "controller_unit_parser": "passed"
+  },
+  "controller_preparation": {
+    "observed_on": "2026-11-25",
+    "linger": true,
+    "ssh_agent_key_available": true,
+    "target_contact": false,
+    "external_requirement": "Reviewed SSH agent/socket must remain available throughout attended window; exact socket is private approval input.",
+    "ssh_agent_detached_session_verified": true,
+    "evidence_filesystem": "ext4"
+  },
+  "pending_trial": {
+    "id": "nautobot-mixed-workload-v1",
+    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/APPROVAL.md",
+    "attended_window": {
+      "start": "2026-11-25T13:00:00-06:00",
+      "end": "2026-11-25T17:00:00-06:00"
+    },
+    "latest_admission": "2026-11-25T13:40:00-06:00",
+    "authorization": "Consumed by approved live execution; failed first import; no replay",
+    "source_publication": "not authorized"
+  },
+  "authorization_consumed": true,
+  "execution_result": {
+    "schema_version": 1,
+    "operation_id": "nautobot-mixed-workload-v1",
+    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
+    "recorded_at": "2026-11-25T19:37:20.134429+00:00",
+    "result": "failed_first_import_rolled_back",
+    "accepted": false,
+    "controller_exit_status": 2,
+    "admission_passed": true,
+    "job_id": "095a9f64-3642-4704-bda5-add4ffac1806",
+    "failure": {
+      "exception": "SoftTimeLimitExceeded",
+      "module": "billiard.exceptions",
+      "job_duration_seconds": 840.035597
+    },
+    "rollback": {
+      "exact_prior_owned_rows_and_fields_unchanged": true,
+      "owned_object_count": 3518,
+      "evidence": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/rollback-comparison.json"
+    },
+    "cleanup": {
+      "owned_job_terminal_and_worker_absent": true,
+      "registrations_disabled": true,
+      "node_credentials_absent": true,
+      "job_modules_absent": true,
+      "controller_credentials_removed": true,
+      "controller_runtime_absent": true
+    },
+    "service_continuity_passed": true,
+    "application_health_http": 200,
+    "artifact_identity_unchanged": true,
+    "recurring_timer_unchanged": true,
+    "backup_started": false,
+    "exports_and_audits_started": false,
+    "resources": {
+      "sample_count": 364,
+      "observed_seconds": 1815.4051827993244,
+      "sample_guards_passed": true,
+      "minimum_available_bytes": 6056755200,
+      "maximum_temperature_celsius": 58.913,
+      "maximum_sample_gap_seconds": 5.003859140910208,
+      "scope": "Incomplete baseline and first-import interval only; no full workload capacity acceptance."
+    },
+    "publication_authorized": false,
+    "replay_authorized": false,
+    "next_action": "Prepare terminal archival; diagnose first-import time spent before designing any separately approved trial. Preserve existing Job limits and schedule.",
+    "private_terminal_record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/RESULT.json",
+    "terminal_record_sha256": "ed55d3830c664571df2e7e01d68d54fee1df3db1cb180e485b89ad4263f70cb9"
+  },
+  "controller_binding_question": "Does the real systemd service reach the production launcher execute function, repository temporary-directory wrapper and native Ansible with an explicit binary binding when PATH excludes user tools? Test one localhost success, one native Ansible failure and binary drift refusal; no production contact.",
+  "prior_controller_attempt": {
+    "id": "nautobot-mixed-workload-v1",
+    "bundle_sha256": "07c711af363d3f5f2f6d6b6fe0e6f9bc9527ade060981e1d96912f75064587bf",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/APPROVAL.md",
+    "attended_window": {
+      "end": "2026-11-25T16:00:00-06:00",
+      "start": "2026-11-25T12:00:00-06:00"
+    },
+    "latest_admission": "2026-11-25T12:40:00-06:00",
+    "authorization": "Direct exact execution approval consumed by failed controller attempt; replay not authorized",
+    "source_publication": "not authorized"
+  },
+  "controller_binding_qualification": {
+    "record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/QUALIFICATION.json",
+    "sha256": "469e6244141de235397a5019ad861cbddf179add1822ce3014c547f4ad65bfec",
+    "target_contact": false,
+    "temporary_units_removed": true,
+    "runtime_removed": true
+  },
+  "prior_controller_result": {
+    "operation_id": "nautobot-mixed-workload-v1",
+    "bundle_sha256": "07c711af363d3f5f2f6d6b6fe0e6f9bc9527ade060981e1d96912f75064587bf",
+    "result": "failed_before_target_contact",
+    "recorded_at": "2026-11-25T18:35:00.521221+00:00",
+    "controller_exit_status": 127,
+    "reason": "ansible-playbook not found in systemd controller service environment",
+    "target_contact": false,
+    "admission_completed": false,
+    "fixture_replacement_started": false,
+    "jobs_started": false,
+    "backup_started": false,
+    "credential_cleanup_passed": true,
+    "controller_runtime_removed": true,
+    "controller_unit": "failed, linked, Restart=no; retained for terminal review",
+    "authorization_consumed": true,
+    "replay_authorized": false,
+    "publication_authorized": false,
+    "authorization_sha256": "118bf7dc5cb57e09549dd76c9c92c0487efdc124b145ab4354acdf097a68c9bf",
+    "next_action": "Fix the unexecuted implementation in place, qualify real controller service startup, and recompute the same operation definition for exact approval; do not replay the consumed controller claim.",
+    "private_terminal_record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/terminal/RESULT.json",
+    "terminal_record_sha256": "9d5ceedc7d48034c9038b1317c209cfd27fde27955cf00fc769a581919dbdbd9",
+    "terminal_scope": "controller attempt only; target operation remains unexecuted"
+  },
+  "diagnosis": {
+    "verdict": "Fixture replacement preparation blocked the intended workload; not evidence of general host incapacity.",
+    "confirmed": {
+      "exception": "SoftTimeLimitExceeded",
+      "job_seconds": 840.035597,
+      "interrupted_path": [
+        "PilotImport.run",
+        "replace",
+        "delete_owned",
+        "check(field.model, rows)",
+        "Django QuerySet evaluation / SQL compilation"
+      ],
+      "source_lines": {
+        "Nautobot/ansible/scripts/workload_adapter.py": [
+          187,
+          251,
+          279
+        ]
+      },
+      "new_fixture_creation_reached": false,
+      "old_objects": 3518,
+      "new_fixture_objects": 7016,
+      "exact_old_rows_unchanged": true,
+      "journal_sha256": "cff80f02668ed8b8421ce3381d445198a6fa7de1b17c2b55708b126d64225f95"
+    },
+    "cost_evidence": "Current source takes separate per-object locks, validates old rows, reads them again for extra-field checks, traverses reverse/generic relations, and constructs a native deletion Collector per object. At interruption it was materializing a field-update QuerySet for the deletion ownership check. This confirms the active stage, not the fraction of 840 seconds spent in each substage.",
+    "historical_context": "September 24 first creation took 817.678 seconds under the same 840-second soft limit, on a different 3518-object profile. It is risk evidence, not a timing estimate for the 7016-object agreed profile.",
+    "unknown": [
+      "Time split between locking, old-data validation, closure traversal and individual deletes",
+      "How much time new-profile creation would need; that branch never ran",
+      "SQL counts, plans and individual slow queries were not recorded"
+    ],
+    "decision": "Stop expanding fixtures and controller machinery. Review a focused model/relation-batched replacement implementation preserving native validation, signals, ownership refusal and atomic rollback; reuse current correctness regressions. Do not raise limits, replay, weaken deletion checks or claim target capacity from disposable tests."
+  },
+  "process_audit": {
+    "verdict": "Cannot certify absence of over-engineering. The synthetic fixture replacement is now a prerequisite bottleneck; prior controller-only qualification missed the real service path. Keep useful safety controls but stop growing the harness.",
+    "retain": [
+      "One Ansible playbook for staging/preflight/cleanup",
+      "Bounded systemd controller for logout survival, deadline and credential cleanup",
+      "Node-local stop/sampling while controller connectivity is absent",
+      "Native transaction/ownership/cascade refusal regressions and real user-systemd entrypoint check"
+    ],
+    "findings": [
+      {
+        "finding": "Per-object retained-fixture lifecycle blocked the actual workload",
+        "evidence": "Live traceback stops in delete_owned field-update ownership check before new fixture creation.",
+        "action": "Fix this data path, not a new orchestrator or capacity fixture."
+      },
+      {
+        "finding": "Qualification did not cover initial service executable resolution",
+        "evidence": "Earlier exit 127 occurred before SSH; later real service test and live admission closed it.",
+        "action": "Keep the now-proven service-path check; no additional service simulator."
+      },
+      {
+        "finding": "Timing evidence lacks replacement substages",
+        "evidence": "Only Job wall time and interruption stack are available.",
+        "action": "If implementation changes, use bounded stage counters/timestamps in the existing Job; no profiling platform."
+      },
+      {
+        "finding": "Native shell bootstrap repeated for Job status/stop adds overhead",
+        "evidence": "workload_session.py client invokes nautobot-server shell per batched request.",
+        "action": "Deferred optimization; cannot explain the separately measured 840-second worker Job failure."
+      },
+      {
+        "finding": "Private preparation notes accumulate superseded next steps",
+        "evidence": "NEXT-TRIAL.md contains historical preparation plus current disposition.",
+        "action": "Use ROADMAP and workload-review as current authority; freeze consumed bundles/receipts instead of adding successor plans."
+      }
+    ],
+    "test_stopping_rule": "Existing native replacement tests address real rollback, controlled/unowned/generic-relation refusal and idempotence. They do not prove ARM64 runtime. No new tests or fixture execution in this audit; run structural checks for archival metadata only.",
+    "architecture_scope": "The prescribed phase durations, workload counts and two-worker limits remain unchanged; changing which setup counts as workload requires an explicit plan decision."
+  },
+  "terminal_archival": {
+    "state": "prepared_not_published",
+    "archive": "Nautobot/terminal/workload",
+    "proposed_tag": "nautobot-mixed-workload-v1-failed",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/PUBLICATION.md",
+    "accepted_live_state_changed": false
   }
 }

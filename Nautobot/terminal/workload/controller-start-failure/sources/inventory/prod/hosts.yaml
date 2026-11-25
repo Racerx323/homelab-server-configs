@@ -1,0 +1,35 @@
+---
+all:
+  children:
+    dns:
+      hosts:
+        pihole0:
+          management_fqdn: pihole0.local.theama.co
+        pihole00:
+          management_fqdn: pihole00.local.theama.co
+
+    reverse_proxy:
+      hosts:
+        pihole0: {}
+        pihole00: {}
+
+    ntp_servers:
+      hosts:
+        j2-svntp1:
+          management_fqdn: ntp1.local.theama.co
+
+    monitoring_hosts:
+      hosts:
+        svmf:
+          management_fqdn: svmf.local.theama.co
+        j2-svpi3bmf:
+          management_fqdn: j2-svpi3bmf.local.theama.co
+
+    notification_hosts:
+      hosts:
+        svmf: {}
+
+    inventory_automation:
+      hosts:
+        j2-svpi4mf:
+          management_fqdn: j2-svpi4mf.local.theama.co

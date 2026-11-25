@@ -9,11 +9,14 @@ import json
 import os
 from pathlib import Path
 import signal
+import stat
 import threading
 import subprocess
 import tempfile
 import time
 import uuid
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from concurrent.futures import ThreadPoolExecutor
 
 import workload_sampler as sampler
@@ -33,6 +36,78 @@ def save(path, value):
     os.replace(temporary, path)
 
 
+def admit_window(window, units, next_trigger, now):
+    start, end = (datetime.fromisoformat(window[k]) for k in ('start', 'end'))
+    require(start.tzinfo is not None and end.tzinfo is not None, 'window_timezone')
+    require(start <= now and (end-now).total_seconds() >= 12000, 'attended_window')
+    local = now.astimezone(ZoneInfo('America/Chicago'))
+    finish = datetime.fromtimestamp(now.timestamp()+12000, timezone.utc).astimezone(ZoneInfo('America/Chicago'))
+    require(local.date() == finish.date() and 5 <= local.hour and finish.hour < 23, 'daytime_window')
+    for name in ('nautobot-protection.service', 'nautobot-protection-recovery.service'):
+        require(units[name]['ActiveState'] == 'inactive' and units[name]['Result'] == 'success', 'protection_not_idle')
+    timer = units['nautobot-protection.timer']
+    require(timer['ActiveState'] == 'active' and timer['UnitFileState'] == 'enabled', 'protection_timer')
+    require(next_trigger-now.timestamp() > 12000, 'protection_overlap')
+
+
+def check_identity(current, expected, admission=None):
+    require(current['host'] == 'j2-svpi4mf', 'host_identity')
+    require(current['artifacts'] == expected['artifact_sha256'], 'artifact_drift')
+    for role, service in expected['services'].items():
+        require(current['sample']['services'][role]['memory_max'] == service['memory_max'], 'baseline_service_changed')
+    if admission is not None:
+        require(current['sample']['boot_id'] == admission['sample']['boot_id'], 'boot_changed')
+        for role, service in admission['sample']['services'].items():
+            require(current['sample']['services'][role]['unit']['InvocationID'] == service['unit']['InvocationID'], 'service_changed')
+
+
+def admission(root, specification, contract, preflight):
+    """Existing privileged Ansible preflight owns the cursor and admission receipt."""
+    admitted = None if preflight else json.loads((root/'admission.json').read_text())
+    if preflight:
+        require(not (root/'admission.json').exists(), 'admission_exists')
+        boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        raw = sampler.run(['/usr/bin/journalctl', '--show-cursor', '-n', '0', '--no-pager'])
+        cursors = [line.removeprefix('-- cursor: ') for line in raw.splitlines() if line.startswith('-- cursor: ')]
+        require(len(cursors) == 1, 'journal_cursor')
+        cursor = cursors[0]
+    else:
+        boot, cursor = admitted['sample']['boot_id'], admitted['journal_cursor']
+    observation = {'phase': 'admission' if preflight else 'continuity', 'journal_cursor': cursor,
+                   'host': sampler.run(['/usr/bin/hostname', '-s']).strip(), 'artifacts': {}, 'units': {}}
+    try:
+        for name in specification['baseline_review']['artifact_sha256']:
+            path = Path(name)
+            require(str(path.parent) in ('/var/lib/nautobot/runtime', '/var/lib/nautobot/.config/containers/systemd')
+                    and path.suffix in ('.py', '.container', '.volume', '.network')
+                    and path.is_file() and not any(p.is_symlink() for p in (path, *path.parents)), 'artifact_path')
+            info = path.stat()
+            require(info.st_uid == 999 and stat.S_IMODE(info.st_mode) == (0o644 if '/runtime/' in name else 0o600)
+                    and info.st_size <= 1048576, 'artifact_metadata')
+            observation['artifacts'][name] = hashlib.sha256(path.read_bytes()).hexdigest()
+        observation['sample'] = sampler.Reader(cursor).sample()
+        for name in ('nautobot-protection.service', 'nautobot-protection-recovery.service', 'nautobot-protection.timer'):
+            raw = sampler.run(sampler.USER+['/usr/bin/systemctl', '--user', 'show', name,
+                '--property=ActiveState,Result,UnitFileState,NextElapseUSecRealtime'])
+            observation['units'][name] = dict(line.split('=', 1) for line in raw.splitlines())
+        observation['next_trigger'] = float(sampler.run(['/usr/bin/date', '--date',
+            observation['units']['nautobot-protection.timer']['NextElapseUSecRealtime'], '+%s']).strip())
+        now = datetime.now(timezone.utc)
+        observation['observed_at'] = now.isoformat()
+        save(root/(observation['phase']+'-observation.json'), observation)
+        require(observation['sample']['boot_id'] == boot, 'boot_changed')
+        sampler.validate(observation['sample'], observation['sample'], None, contract)
+        check_identity(observation, specification['baseline_review'], admitted)
+        admit_window(specification['attended_window'], observation['units'], observation['next_trigger'], now)
+        if preflight: save(root/'admission.json', observation)
+        return admitted or observation
+    except Exception as error:
+        observation['failure'] = sampler.failure_receipt(error)
+        observation['reason'] = str(error) if isinstance(error, ValueError) else type(error).__name__
+        save(root/(observation['phase']+'-observation.json'), observation)
+        raise
+
+
 def verify_backup(receipt, jobs, operation):
     """A verified owner receipt is required; no canary or enqueue-time overlap."""
     require(receipt['kind'] == 'application_backup' and receipt['operation_id'] == operation, 'backup_identity')
@@ -47,7 +122,7 @@ def verify_backup(receipt, jobs, operation):
 
 
 class Session:
-    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep, ownership=None):
+    def __init__(self, root, contract, client, backup, clock=time.monotonic, sleep=time.sleep, ownership=None, replacement=None):
         self.root, self.contract, self.client, self.backup = root, contract, client, backup
         self.clock, self.sleep = clock, sleep
         self.owned, self.jobs, self.phases, self.ownership = [], [], [], ownership
@@ -59,6 +134,7 @@ class Session:
         self.timing = []
         self.timing_lock = threading.Lock()
         self.started = clock()
+        self.replacement = replacement
 
     def healthy(self):
         require(not self.failure.is_set(), 'monitor_failed')
@@ -80,6 +156,7 @@ class Session:
         save(self.root/'owned-jobs.json', self.owned)
         kwargs = {'dataset': dataset}
         if self.ownership is not None: kwargs['ownership'] = self.ownership
+        elif kind == 'import' and self.replacement is not None: kwargs['replacement'] = self.replacement
         self.healthy()
         requests = [{'action': 'submit', 'kind': kind, 'id': identity, 'kwargs': kwargs} for identity in identities]
         batch = {'action': 'submit_batch', 'requests': requests}
@@ -243,18 +320,14 @@ def main():
     contract = json.loads((root/'contract.json').read_text())
     require(specification['execution_authorized'] is True and specification['backup']['authorized'] is True, 'not_authorized')
     require(not (root/'owned-jobs.json').exists(), 'already_consumed')
-    initial = sampler.Reader(specification['journal_cursor']).sample()
-    sampler.validate(initial, initial, None, contract)
-    require(initial['boot_id'] == specification['boot_id'], 'baseline_boot_changed')
-    for role, expected in specification['baseline_review']['services'].items():
-        require(initial['services'][role]['memory_max'] == expected['memory_max']
-                and initial['services'][role]['unit']['InvocationID'] == expected['invocation'], 'baseline_service_changed')
+    admitted = admission(root, specification, contract, args.preflight)
     if args.preflight:
         print(json.dumps({'baseline_passed': True})); return
     dataset = json.loads((root/'dataset.json').read_text())
     bridge = (root/'workload_control.py').read_text()
 
     def client(request):
+        require(Path('/proc/sys/kernel/random/boot_id').read_text().strip() == admitted['sample']['boot_id'], 'boot_changed')
         source = "__name__='__main__'\nREQUEST=" + repr(request) + '\n' + bridge
         command = sampler.USER + ['/usr/bin/podman', 'exec', '-i', 'nautobot-web', 'nautobot-server', 'shell', '--interface', 'python', '--command', 'import sys;exec(sys.stdin.read())']
         raw = native_command(command, source.encode(), timeout=300 if request['action'] == 'cancel_batch' else 60)
@@ -284,37 +357,42 @@ def main():
         return json.loads(Path(owner['receipt']).read_text())
 
     resume = specification.get('resume')
+    replacement = specification.get('replacement')
     ownership = None
-    if resume:
+    if resume or replacement:
         raw = (root/'retained-ownership.json').read_bytes()
-        require(hashlib.sha256(raw).hexdigest() == resume['ownership_sha256'], 'retained_ownership_identity')
+        require(hashlib.sha256(raw).hexdigest() == (resume or replacement)['ownership_sha256'], 'retained_ownership_identity')
         ownership = json.loads(raw)
-    session = Session(root, contract, client, backup, ownership=ownership)
+    replacement_input = None
+    if replacement:
+        raw = (root/'retained-dataset.json').read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == replacement['dataset_sha256'], 'retained_dataset_identity')
+        replacement_input = {'dataset': json.loads(raw), 'ownership': ownership}
+        ownership = None
+    session = Session(root, contract, client, backup, ownership=ownership, replacement=replacement_input)
     stop = threading.Event()
-    registration = resume['registration'] if resume else {name: str(uuid.uuid4()) for name in ('PilotImport', 'PilotExport', 'PilotAudit')}
+    registration = (resume or replacement)['registration'] if (resume or replacement) else {name: str(uuid.uuid4()) for name in ('PilotImport', 'PilotExport', 'PilotAudit')}
     save(root/'registration.json', registration)
     def monitor():
-        reader = sampler.Reader(specification['journal_cursor'])
+        reader = sampler.Reader(admitted['journal_cursor'])
         first, previous, size = None, None, 0
         with (root/'samples.jsonl').open('xb') as out:
             os.chmod(root/'samples.jsonl', 0o600)
             while not stop.is_set():
                 row = reader.sample()
-                require(row['boot_id'] == specification['boot_id'], 'baseline_boot_changed')
-                if first is None:
-                    for role, expected in specification['baseline_review']['services'].items():
-                        require(row['services'][role]['memory_max'] == expected['memory_max']
-                                and row['services'][role]['unit']['InvocationID'] == expected['invocation'], 'baseline_service_changed')
                 first = first or row
                 data = json.dumps(row, separators=(',', ':')).encode()+b'\n'; size += len(data)
                 require(size <= contract['limits']['collection_stream_bytes'], 'sample_output_limit')
                 out.write(data); out.flush()
+                require(row['boot_id'] == admitted['sample']['boot_id'], 'boot_changed')
+                for role, expected in admitted['sample']['services'].items():
+                    require(row['services'][role]['unit']['InvocationID'] == expected['unit']['InvocationID'], 'service_changed')
                 sampler.validate(row, first, previous, contract); previous = row
                 stop.wait(max(0, row['start'] + contract['sampling']['interval_seconds'] - time.monotonic()))
     try:
-        client({'action': 'register', 'registration': registration, 'reuse_disabled': bool(resume)})
+        client({'action': 'register', 'registration': registration, 'reuse_disabled': bool(resume or replacement)})
     except BaseException:
-        if not resume: client({'action': 'disable', 'registration': registration})
+        if not (resume or replacement): client({'action': 'disable', 'registration': registration})
         # Reused rows may have failed the disabled-state check. Never change an
         # unexpectedly enabled registration during cleanup of failed activation.
         raise
@@ -331,7 +409,7 @@ def main():
             stop.set(); session.monitor.result(timeout=60)
             samples = [json.loads(x) for x in (root/'samples.jsonl').read_text().splitlines()]
             result['resources'] = sampler.review_samples(samples, session.phases, contract)
-            result['import_mode'] = 'retained_fixture_repeat' if resume else 'new_fixture'
+            result['import_mode'] = 'owned_fixture_replacement' if replacement else 'retained_fixture_repeat' if resume else 'new_fixture'
             result['accepted'] = False  # Operator reviews representativeness and all receipts.
             save(root/'result.json', result)
         except BaseException:

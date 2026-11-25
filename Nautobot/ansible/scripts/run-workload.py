@@ -51,8 +51,10 @@ def verify(bundle, approved):
     execution = json.loads((bundle/'execution.json').read_text())
     from jsonschema import Draft202012Validator, FormatChecker
     Draft202012Validator(json.loads((ROOT/'Nautobot/schemas/workload-execution.schema.json').read_text()), format_checker=FormatChecker()).validate(execution)
+    controller.ansible_executable(execution['controller_ansible'])
     if execution['stage'] != 'workload_qualification' or execution['execution_authorized'] is not True: raise ValueError('inactive')
-    if execution['baseline_review']['passed'] is not True or execution['baseline_review']['boot_id'] != execution['boot_id']: raise ValueError('baseline')
+    if execution['baseline_review']['passed'] is not True: raise ValueError('baseline')
+    if 'boot_id' in execution and execution['baseline_review']['boot_id'] != execution['boot_id']: raise ValueError('baseline')
     if set(execution['baseline_review']['services']) != {'postgresql', 'redis', 'web', 'worker', 'scheduler'}: raise ValueError('baseline_services')
     if execution['backup']['authorized'] is not True: raise ValueError('backup_not_authorized')
     if not re.fullmatch(r'/tmp/nautobot-workload\.[0-9a-f]{32}', execution['root']): raise ValueError('operation_path')
@@ -85,22 +87,28 @@ def verify(bundle, approved):
     spec = importlib.util.spec_from_file_location('generator', ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
     generator = importlib.util.module_from_spec(spec); spec.loader.exec_module(generator)
     if json.loads((bundle/'dataset.json').read_text()) != generator.dataset(contract): raise ValueError('fixture_mismatch')
-    if execution.get('resume'):
-        if execution['resume']['source_operation'] == execution['operation_id']: raise ValueError('retained_source_operation')
-        if 'retained-ownership.json' not in files or files['retained-ownership.json'] != execution['resume']['ownership_sha256']:
+    retained = execution.get('resume') or execution.get('replacement')
+    if retained:
+        if retained['source_operation'] == execution['operation_id']: raise ValueError('retained_source_operation')
+        if 'retained-ownership.json' not in files or files['retained-ownership.json'] != retained['ownership_sha256']:
             raise ValueError('retained_ownership_identity')
         ownership = json.loads((bundle/'retained-ownership.json').read_text())
-        if ownership.get('fixture_sha256') != hashlib.sha256(generator.canonical(generator.dataset(contract))).hexdigest():
+        retained_dataset = generator.dataset(contract)
+        if execution.get('replacement'):
+            if files.get('retained-dataset.json') != retained['dataset_sha256']: raise ValueError('retained_dataset_identity')
+            retained_dataset = json.loads((bundle/'retained-dataset.json').read_text())
+            if retained_dataset == generator.dataset(contract): raise ValueError('replacement_unchanged')
+        if ownership.get('fixture_sha256') != hashlib.sha256(generator.canonical(retained_dataset)).hexdigest():
             raise ValueError('retained_fixture_identity')
         adapter_spec = importlib.util.spec_from_file_location('retained_adapter', ROOT/'Nautobot/ansible/scripts/workload_adapter.py')
         adapter = importlib.util.module_from_spec(adapter_spec); adapter_spec.loader.exec_module(adapter)
         if (set(ownership) != {'schema_version','fixture_sha256','objects'} or ownership['schema_version'] != 1
-                or set(ownership['objects']) != {n['key'] for n in adapter.plan(generator.dataset(contract))}):
+                or set(ownership['objects']) != {n['key'] for n in adapter.plan(retained_dataset)}):
             raise ValueError('retained_ownership_shape')
         import uuid
         for identity in ownership['objects'].values(): uuid.UUID(identity)
-        if len(set(execution['resume']['registration'].values())) != 3: raise ValueError('retained_registration_identity')
-    elif 'retained-ownership.json' in files:
+        if len(set(retained['registration'].values())) != 3: raise ValueError('retained_registration_identity')
+    elif 'retained-ownership.json' in files or 'retained-dataset.json' in files:
         raise ValueError('unreviewed_retained_ownership')
     verify_operation(execution, load_operation())
     return manifest, execution
@@ -202,6 +210,7 @@ def main():
 
 def execute(args, manifest, execution):
     import stat
+    ansible = controller.ansible_executable(execution['controller_ansible'])
     for p, mode in [(args.backup_secrets, 0o700), *((args.backup_secrets/n, 0o600) for n in ('repository', 'password', 'credentials.json'))]:
         info=p.lstat()
         if p.is_symlink() or any(parent.is_symlink() for parent in p.parents) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != mode or not (stat.S_ISDIR(info.st_mode) if mode == 0o700 else stat.S_ISREG(info.st_mode)): raise ValueError('backup_secret_metadata')
@@ -219,7 +228,7 @@ def execute(args, manifest, execution):
         os.fchmod(out.fileno(), 0o600); os.fchmod(err.fileno(), 0o600)
         result = subprocess.run(['/usr/bin/prlimit', '--fsize=16777216:16777216', '--',
             '/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
-            'ansible-playbook','--limit','j2-svpi4mf','--user','ama','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(args.bundle/'run-workload.yaml'),
+            ansible,'--limit','j2-svpi4mf','--user','ama','-i',str(ROOT/'inventory/prod/hosts.yaml'),str(args.bundle/'run-workload.yaml'),
             '--extra-vars','@'+str(inputs)],cwd=ROOT,env=environment,stdin=subprocess.DEVNULL,
             stdout=out,stderr=err,timeout=11700)
         if out.tell() >= 16777216 or err.tell() >= 16777216:

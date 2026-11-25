@@ -327,6 +327,30 @@ never silently replace the historical fixture or relax ownership checks. Reuse t
 existing Ansible/controller path, actual-target sampling and unchanged limits.
 Preparation creates no pending live operation before its inputs are resolved.
 
+For an approved replacement, bind `replacement.dataset_sha256`,
+`replacement.ownership_sha256`, the source operation and its three disabled Job
+registration UUIDs. Freeze `retained-dataset.json` and `retained-ownership.json`
+alongside the new dataset. The first import locks and revalidates the old owned
+rows, rejects extra metadata and unrelated FK/generic deletion relationships,
+then deletes and imports in one transaction. Failure rolls back that transaction.
+After it commits, a later workload failure retains the new fixture; recovery must
+not automatically restore or delete it. Repeat import uses the new UUID receipt.
+
+Bind a timezone-aware attended window with at least 12,000 seconds remaining at
+admission and before Job registration. The privileged Ansible preflight collects
+a fresh journal cursor, hostname, boot ID, runtime artifact hashes, limits and
+service health into `admission.json`. Preparation-time boot IDs and service
+invocations remain historical evidence. Require continuity with admission during
+execution; an unexpected reboot blocks further Job commands and requires manual
+state reconciliation. Preserve admission/refusal observations even when the
+preflight fails.
+
+The window must fit within daytime outside nightly protection. Both protection
+services must be inactive with a successful result, and the enabled, active timer's
+next trigger must be more than 12,000 seconds away. Refuse late admission or an
+active/failed protection run; never stop protection or disable its timer to make
+the trial fit. Scheduling preference alone does not authorize execution.
+
 Start the seven-day observation only after reviewing stage-5 readiness and recording
 the pilot's exact fixture, images/configuration, recovery reference and start time.
 Record seven consecutive 24-hour periods with daily read-only checks of application
@@ -435,6 +459,23 @@ An agent tied to the disappearing login session is insufficient. Doppler must
 work noninteractively through the existing local authentication context; do not
 put tokens in the unit or manager environment. The target's service-account
 linger is a separate persistence prerequisite.
+
+Bind `execution.controller_ansible` to the resolved absolute `ansible-playbook`
+path and its SHA-256. The launcher checks its identity, executable mode and
+ownership before resolving credentials, and again before invoking it through the
+repository temporary-directory wrapper. Do not rely on the interactive shell's
+PATH or modify the user manager's global environment. A changed binary requires
+review and a recomputed bundle.
+
+Qualify this boundary through the actual local user-systemd service with
+`NAUTOBOT_CONTROLLER_SYSTEMD_TEST=1` and a new persistent mode-0700 evidence parent
+specified by `NAUTOBOT_CONTROLLER_EVIDENCE`, running
+`test_controller_persistence.py Controller.test_real_service_wrapper_and_ansible`
+through the repository Ansible wrapper. The test uses only a local-connection
+inventory, disposable inputs and a restricted PATH; it exercises native Ansible
+success/failure, executable drift refusal, exit receipts and runtime removal.
+Its temporary units are unlinked on exit. This proves controller launch behavior,
+not target admission or workload capacity.
 
 Render with the reviewed approval digest and absolute paths:
 
@@ -986,7 +1027,7 @@ interactive execution and caller-owned credential files are no longer supported.
 strict `workload-execution.schema.json`, validated contract, deterministic
 dataset, Ansible playbook and helpers.
 The launcher rechecks source hashes, schema, backup authorization, fixture and
-paths before invoking Ansible. No executable workload instance is supplied now.
+paths before invoking Ansible. Execution requires approval of that exact bundle.
 
 The Restic owner must supply a separately reviewed, frozen
 `application-backup.py` entrypoint and its dependencies. It writes a fresh
@@ -1001,7 +1042,8 @@ remain Restic-owned inputs; secret values never enter bundle arguments or JSON.
 
 The node boundary enforces phase and Job deadlines independently of the Ansible
 connection, records Job IDs before dispatch and checks sampler failure while
-Jobs run. Audit pairs are enqueued together. On failure it cancels only recorded
+Jobs run. Audit submission follows the frozen contract: one batch for the agreed
+profile, pairs for the historical default. On failure it cancels only recorded
 IDs and distinguishes terminal database state from confirmed worker absence.
 Unknown cancellation means manual review, not successful cleanup. Interrupted
 backup processes retain uploaded snapshots and evidence; no automatic unlock,

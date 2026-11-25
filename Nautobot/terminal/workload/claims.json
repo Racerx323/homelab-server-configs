@@ -1,0 +1,14 @@
+{
+  "controller-start-failure": {
+    "approval_request_sha256": "dc16379a69cb79e8f8380eea3dbd161462f8ea474e617cb1be26d15734d96bec",
+    "authorization_receipt_sha256": "118bf7dc5cb57e09549dd76c9c92c0487efdc124b145ab4354acdf097a68c9bf",
+    "bundle_sha256": "07c711af363d3f5f2f6d6b6fe0e6f9bc9527ade060981e1d96912f75064587bf",
+    "result_sha256": "9d5ceedc7d48034c9038b1317c209cfd27fde27955cf00fc769a581919dbdbd9"
+  },
+  "executed": {
+    "approval_request_sha256": "1faade1da0f333af4d7a9cb755da6023490ebc15cc88c7e9e92e8436406d90bb",
+    "authorization_receipt_sha256": "704d82d7661119189e5c0521d9af3605dbfabde799ee9c5e8334ec39d58e7b2c",
+    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
+    "result_sha256": "ed55d3830c664571df2e7e01d68d54fee1df3db1cb180e485b89ad4263f70cb9"
+  }
+}

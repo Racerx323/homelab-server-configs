@@ -57,15 +57,15 @@
           - not item.stat.islnk
           - item.stat.checksum == item.item.sha256
       loop: '{{ workload_staged.results }}'
-    - name: Read current boot and service identity before installing Jobs
-      ansible.builtin.command:
-        argv: ['/usr/bin/python3', '{{ workload_root }}/workload_session.py', --root, '{{ workload_root }}', --preflight]
-        chdir: /
-      become: true
-      changed_when: false
   tasks:
     - name: Run qualification with unconditional evidence retention
       block:
+        - name: Read current boot and service identity before installing Jobs
+          ansible.builtin.command:
+            argv: ['/usr/bin/python3', '{{ workload_root }}/workload_session.py', --root, '{{ workload_root }}', --preflight]
+            chdir: /
+          become: true
+          changed_when: false
         - name: Stage separately resolved transient backup credentials
           ansible.builtin.copy:
             src: '{{ workload_backup_secrets }}/{{ item }}'
@@ -137,7 +137,7 @@
             src: '{{ workload_root }}/{{ item }}'
             dest: '{{ workload_local_evidence }}/'
             flat: true
-          loop: [result.json, timing.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-capture-started.json, application-snapshots-before.json, application-snapshots-after.json]
+          loop: [admission.json, admission-observation.json, continuity-observation.json, result.json, timing.json, samples.jsonl, phases.json, owned-jobs.json, job-results.json, ownership.json, backup-result.json, registration.json, stop-results.json, application-backup-result.json, application-capture-started.json, application-snapshots-before.json, application-snapshots-after.json]
           become: true
           failed_when: false
           register: workload_fetch

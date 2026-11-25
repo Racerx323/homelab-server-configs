@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Render a bounded controller service; never install, start, or retry it."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,17 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def ansible_executable(binding):
+    """Use the reviewed controller executable, independent of the manager PATH."""
+    path = safe_path(binding['path'])
+    info = path.stat()
+    if (not stat.S_ISREG(info.st_mode) or info.st_uid not in (0, os.getuid())
+            or info.st_mode & 0o022 or not os.access(path, os.X_OK)
+            or hashlib.sha256(path.read_bytes()).hexdigest() != binding['sha256']):
+        raise ValueError('controller_ansible_identity')
+    return str(path)
 
 
 def identity(approval):

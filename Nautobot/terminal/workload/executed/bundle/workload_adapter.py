@@ -1,0 +1,334 @@
+"""Nautobot 3.2.3 fixture operations, invoked only by a reviewed workload stage.
+
+No module-level Django setup, registration, deletion, or network operations.
+"""
+import hashlib
+import ipaddress
+import json
+import re
+
+
+def canonical(value):
+    return (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode()
+
+
+def require(value, code):
+    if not value:
+        raise ValueError(code)
+
+
+def plan(dataset):
+    require(set(dataset) in ({'schema_version', 'namespace', 'locations', 'devices', 'ip_assignments'},
+                            {'schema_version', 'namespace', 'locations', 'devices', 'ip_assignments', 'dns_records'})
+            and dataset['schema_version'] == 1 and dataset['namespace'] == 'pilot-synthetic', 'fixture_shape')
+    require(0 < len(dataset['locations']) <= len(dataset['devices']) <= 64000
+            and 0 < len(dataset['ip_assignments']) <= 64000, 'fixture_counts')
+    nodes, keys = [], set()
+
+    def add(key, model, lookup, fields=None, content_types=None):
+        require(key not in keys, 'duplicate_key')
+        keys.add(key)
+        nodes.append(dict(key=key, model=model, lookup=lookup, fields=fields or {}, content_types=content_types))
+
+    def ref(key):
+        return {'ref': key}
+
+    name = dataset['namespace']
+    add('namespace', 'ipam.namespace', {'name': name}, {'tenant': None, 'location': None})
+    add('status', 'extras.status', {'name': name}, {'color': '9e9e9e'},
+        ['dcim.location', 'dcim.device', 'dcim.interface', 'ipam.prefix', 'ipam.ipaddress'])
+    add('role', 'extras.role', {'name': name}, {'color': '9e9e9e'}, ['dcim.device'])
+    add('location_type', 'dcim.locationtype', {'name': name}, fields={'parent': None, 'nestable': False}, content_types=['dcim.device'])
+    add('manufacturer', 'dcim.manufacturer', {'name': name})
+    add('device_type', 'dcim.devicetype', {'manufacturer': ref('manufacturer'), 'model': name},
+        {'u_height': 0, 'is_full_depth': False})
+    locations = set()
+    for row in dataset['locations']:
+        require(set(row) == {'key', 'description'} and re.fullmatch(r'pilot-location-\d{2,5}', row['key'])
+                and row['description'] == 'Synthetic acceptance fixture', 'location_shape')
+        locations.add(row['key'])
+        add(row['key'], 'dcim.location', {'name': row['key']},
+            {'location_type': ref('location_type'), 'status': ref('status'), 'description': row['description'], 'parent': None})
+    interfaces = set()
+    for row in dataset['devices']:
+        require(set(row) == {'key', 'location', 'interfaces'} and re.fullmatch(r'pilot-device-\d{4,5}', row['key'])
+                and row['location'] in locations and 0 < len(row['interfaces']) <= 65000, 'device_shape')
+        # Global name lookup refuses collisions even in a different Location.
+        add(row['key'], 'dcim.device', {'name': row['key']},
+            {'device_type': ref('device_type'), 'role': ref('role'), 'status': ref('status'), 'location': ref(row['location'])})
+        for interface in row['interfaces']:
+            require(set(interface) == {'name', 'enabled'} and re.fullmatch(r'eth\d{1,5}', interface['name'])
+                    and interface['enabled'] is True, 'interface_shape')
+            key = row['key'] + '/' + interface['name']
+            interfaces.add(key)
+            add(key, 'dcim.interface', {'device': ref(row['key']), 'name': interface['name']},
+                {'type': 'virtual', 'enabled': True, 'status': ref('status')})
+    prefixes, assigned = set(), set()
+    for row in dataset['ip_assignments']:
+        require(set(row) == {'device', 'interface', 'address'}, 'assignment_shape')
+        key = row['device'] + '/' + row['interface']
+        address = ipaddress.ip_interface(row['address'])
+        allowed = (address.version == 4 and address.network.prefixlen == 24
+                   and address.ip in ipaddress.ip_network('198.18.0.0/15')) or (
+                   address.version == 6 and address.network.prefixlen == 64
+                   and address.ip in ipaddress.ip_network('2001:2::/48'))
+        require(key in interfaces and row['address'] not in assigned and allowed
+                and str(address) == row['address'], 'assignment_scope')
+        assigned.add(row['address'])
+        prefix = str(address.network)
+        if prefix not in prefixes:
+            add(prefix, 'ipam.prefix', {'namespace': ref('namespace'), 'network': str(address.network.network_address), 'prefix_length': address.network.prefixlen},
+                {'status': ref('status'), 'type': 'network'})
+            prefixes.add(prefix)
+        add(row['address'], 'ipam.ipaddress', {'parent': ref(prefix), 'host': str(address.ip)},
+            {'mask_length': address.network.prefixlen, 'status': ref('status'), 'type': 'host'})
+        add('assignment/' + key + ('/' + row['address'] if 'dns_records' in dataset or len(dataset['ip_assignments']) > len(dataset['devices']) else ''), 'ipam.ipaddresstointerface', {'ip_address': ref(row['address']), 'interface': ref(key)})
+    if dataset.get('dns_records'):
+        require(len(dataset['dns_records']) <= 64000, 'dns_count')
+        add('dns-view', 'nautobot_dns_models.dnsview', {'name': name})
+        add('dns-zone', 'nautobot_dns_models.dnszone',
+            {'name': 'pilot-synthetic.invalid', 'dns_view': ref('dns-view')},
+            {'filename': 'pilot-synthetic.invalid', 'soa_mname': 'ns.pilot-synthetic.invalid',
+             'soa_rname': 'hostmaster@pilot-synthetic.invalid', 'auto_create_ptr': False, 'enabled': False})
+        forward = {row['name']+'.pilot-synthetic.invalid' for row in dataset['dns_records']
+                   if row.get('type', 'A') in ('A', 'AAAA')}
+        if any(row.get('type') == 'PTR' for row in dataset['dns_records']):
+            add('dns-reverse-zone', 'nautobot_dns_models.dnszone',
+                {'name': '0.18.198.in-addr.arpa', 'dns_view': ref('dns-view')},
+                {'filename': '0.18.198.in-addr.arpa', 'soa_mname': 'ns.pilot-synthetic.invalid',
+                 'soa_rname': 'hostmaster@pilot-synthetic.invalid', 'auto_create_ptr': False, 'enabled': False})
+        for row in dataset['dns_records']:
+            if 'type' in row:
+                kind = row['type']
+                shapes = {'A': {'address'}, 'AAAA': {'address'}, 'PTR': {'address', 'target'},
+                          'CNAME': {'target'}, 'TXT': {'text'}, 'SRV': {'target', 'priority', 'weight', 'port'}}
+                require(kind in shapes and set(row) == {'type', 'name'} | shapes[kind], 'dns_shape')
+                fields = {'enabled': False, 'ttl': 3600}
+                zone = 'dns-zone'
+                if kind in ('A', 'AAAA'):
+                    require(re.fullmatch(r'host-\d{4,5}', row['name']) and row['address'] in assigned
+                            and ipaddress.ip_interface(row['address']).version == (4 if kind == 'A' else 6), 'dns_address_family')
+                    fields['ip_address'] = ref(row['address'])
+                elif kind == 'PTR':
+                    require(row['address'] in assigned and row['target'] in forward
+                            and re.fullmatch(r'\d{1,3}', row['name'])
+                            and ipaddress.ip_interface(row['address']).ip.reverse_pointer == row['name']+'.0.18.198.in-addr.arpa'
+                            and any(r.get('type') == 'A' and r['address'] == row['address']
+                                    and r['name']+'.pilot-synthetic.invalid' == row['target'] for r in dataset['dns_records']), 'dns_ptr_scope')
+                    fields['ptrdname'] = row['target']; zone = 'dns-reverse-zone'
+                elif kind == 'CNAME':
+                    require(re.fullmatch(r'alias-\d{4,5}', row['name']) and row['target'] in forward, 'dns_target')
+                    fields['alias'] = row['target']
+                elif kind == 'TXT':
+                    require(re.fullmatch(r'text-\d{4,5}', row['name'])
+                            and re.fullmatch(r'synthetic-pilot-\d{4,5}', row['text']), 'dns_text')
+                    fields['text'] = row['text']
+                else:
+                    require(re.fullmatch(r'_pilot\d{2}\._tcp', row['name']) and row['target'] in forward
+                            and all(type(row[k]) is int and 0 <= row[k] <= 65535 for k in ('priority', 'weight', 'port')), 'dns_srv_scope')
+                    fields.update({k: row[k] for k in ('target', 'priority', 'weight', 'port')})
+                add('dns/'+kind+'/'+row['name'], 'nautobot_dns_models.'+kind.lower()+'record',
+                    {'zone': ref(zone), 'name': row['name']}, fields)
+                continue
+            require(set(row) == {'name', 'address'} and re.fullmatch(r'host-\d{4,5}', row['name'])
+                    and row['address'] in assigned, 'dns_scope')
+            add('dns/' + row['name'], 'nautobot_dns_models.arecord',
+                {'zone': ref('dns-zone'), 'name': row['name']},
+                {'ip_address': ref(row['address']), 'enabled': False, 'ttl': 3600})
+    return nodes
+
+
+def apply(dataset, store, receipt=None, write=False):
+    """Atomic initial import or strict verification; repeat imports never repair drift.
+
+    The returned UUID receipt must be preserved and reviewed before a second run.
+    A lost receipt blocks adoption of existing objects, even with matching names.
+    """
+    require(len(canonical(dataset)) <= 4194304, 'fixture_size')
+    nodes = plan(dataset)
+    digest = hashlib.sha256(canonical(dataset)).hexdigest()
+    if receipt is not None:
+        require(set(receipt) == {'schema_version', 'fixture_sha256', 'objects'} and receipt['schema_version'] == 1
+                and receipt['fixture_sha256'] == digest and set(receipt['objects']) == {n['key'] for n in nodes}, 'ownership_receipt')
+    require(write or receipt is not None, 'ownership_required')
+    objects, ids, observed = {}, {}, []
+    with store.transaction(write):
+        for node in nodes:
+            def resolve(fields):
+                return {k: objects[v['ref']] if isinstance(v, dict) else v for k, v in fields.items()}
+            lookup, fields = resolve(node['lookup']), resolve(node['fields'])
+            found = store.find(node['model'], lookup)
+            require(len(found) <= 1, 'ambiguous_object')
+            if found:
+                obj = found[0]
+                require(receipt is not None and receipt['objects'][node['key']] == store.identity(obj), 'unowned_object')
+            else:
+                require(write and receipt is None, 'owned_object_missing')
+                obj = store.create(node['model'], {**lookup, **fields}, node['content_types'])
+            require(store.matches(obj, {**lookup, **fields}, node['content_types']), 'owned_object_drift')
+            objects[node['key']], ids[node['key']] = obj, store.identity(obj)
+            # The normalized projection is emitted only after field readback.
+            observed.append(node)
+        store.check_membership(objects, nodes)
+    normalized = sorted(observed, key=lambda x: x['key'])
+    return {'receipt': {'schema_version': 1, 'fixture_sha256': digest, 'objects': ids},
+            'normalized': normalized, 'sha256': hashlib.sha256(canonical(normalized)).hexdigest(),
+            'counts': {m: sum(n['model'] == m for n in nodes) for m in sorted({n['model'] for n in nodes})}}
+
+
+def replace(dataset, store, replacement):
+    """Replace a receipt-owned fixture atomically; never adopt matching names."""
+    require(set(replacement) == {'dataset', 'ownership'}, 'replacement_shape')
+    old, receipt = replacement['dataset'], replacement['ownership']
+    require(old != dataset, 'replacement_unchanged')
+    with store.transaction(True):
+        store.lock_owned(plan(old), receipt)
+        apply(old, store, receipt=receipt)
+        store.delete_owned(plan(old), receipt)
+        return apply(dataset, store, write=True)
+
+
+class DjangoStore:
+    def __init__(self):
+        import nautobot
+        require(nautobot.__version__ == '3.2.3', 'nautobot_version')
+        from importlib.metadata import version
+        require(version('nautobot-dns-models') == '2.3.0', 'dns_models_version')
+        from django.apps import apps
+        self.model = apps.get_model
+
+    def transaction(self, write):
+        from contextlib import contextmanager
+        from django.db import connection, transaction
+
+        @contextmanager
+        def scope():
+            with transaction.atomic():
+                with connection.cursor() as cursor:
+                    cursor.execute("SET LOCAL lock_timeout = '5s'")
+                    cursor.execute("SET LOCAL statement_timeout = '60s'")
+                    cursor.execute('SELECT pg_advisory_xact_lock' + ('' if write else '_shared') + '(78310923)')
+                yield
+        return scope()
+
+    def find(self, model, lookup):
+        return list(self.model(model).objects.filter(**lookup)[:2])
+
+    def lock_owned(self, nodes, receipt):
+        require(set(receipt.get('objects', {})) == {n['key'] for n in nodes}, 'ownership_receipt')
+        for node in nodes:
+            list(self.model(node['model']).objects.select_for_update().filter(pk=receipt['objects'][node['key']]))
+
+    def delete_owned(self, nodes, receipt):
+        from django.db.models.deletion import Collector, ProtectedError, RestrictedError
+        from nautobot.core.models.fields import NaturalOrderingField
+        allowed = {}
+        owned = []
+        for node in nodes:
+            model = self.model(node['model'])
+            allowed.setdefault(model, set()).add(receipt['objects'][node['key']])
+            obj = model.objects.get(pk=receipt['objects'][node['key']])
+            owned.append(obj)
+            controlled = set(node['lookup']) | set(node['fields'])
+            defaults = model(**{name: getattr(obj, name) for name in controlled})
+            if node['model'] == 'ipam.prefix':
+                defaults.prefix = str(obj.network) + '/' + str(obj.prefix_length)
+            elif node['model'] == 'ipam.ipaddress':
+                defaults.address = str(obj.host) + '/' + str(obj.mask_length)
+            for field in model._meta.concrete_fields:
+                if field.primary_key or field.name in controlled:
+                    continue
+                if not field.editable and field.get_internal_type() not in ('JSONField', 'TextField'):
+                    continue
+                expected = field.pre_save(defaults, True) if isinstance(field, NaturalOrderingField) else getattr(defaults, field.attname)
+                require(field.to_python(getattr(obj, field.attname)) == field.to_python(expected),
+                        'owned_extra_field_drift:' + model._meta.label_lower + '.' + field.name)
+            if node['content_types'] is not None:
+                through = obj.content_types.through
+                field = next(f for f in through._meta.fields if f.is_relation and f.related_model == model)
+                allowed.setdefault(through, set()).update(str(x) for x in through.objects.filter(**{field.name: obj}).values_list('pk', flat=True))
+        def check(model, rows):
+            require({str(o.pk) for o in rows} <= allowed.get(model, set()), 'unowned_delete_closure')
+        # Check every reverse FK/M2M and generic relation before the first
+        # deletion, including SET_NULL relations outside Collector.data.
+        for obj in owned:
+            for relation in obj._meta.get_fields(include_hidden=True):
+                if relation.auto_created and not relation.concrete and (relation.one_to_many or relation.one_to_one):
+                    rows = relation.related_model._base_manager.filter(**{relation.field.name: obj})
+                    check(relation.related_model, rows)
+            for field in obj._meta.private_fields:
+                if hasattr(field, 'bulk_related_objects'):
+                    rows = field.bulk_related_objects([obj], 'default')
+                    check(rows.model, rows)
+        # Reverse dependency order avoids PROTECT between owned objects. Every
+        # collector includes generic relations and native deletion signals.
+        # Any later refusal rolls back earlier deletes in the outer transaction.
+        for node in reversed(nodes):
+            model = self.model(node['model'])
+            collector = Collector(using='default')
+            try:
+                collector.collect(model.objects.filter(pk=receipt['objects'][node['key']]))
+            except (ProtectedError, RestrictedError):
+                raise ValueError('unowned_delete_closure') from None
+            for related, rows in collector.data.items():
+                check(related, rows)
+            for rows in collector.fast_deletes:
+                check(rows.model, rows)
+            for (field, _), groups in collector.field_updates.items():
+                for rows in groups:
+                    check(field.model, rows)
+            collector.delete()
+
+    def create(self, model, fields, content_types):
+        values = dict(fields)
+        if model == 'ipam.prefix':
+            values['prefix'] = str(values.pop('network')) + '/' + str(values.pop('prefix_length'))
+        elif model == 'ipam.ipaddress':
+            values['address'] = str(values.pop('host')) + '/' + str(values.pop('mask_length'))
+        obj = self.model(model)(**values)
+        obj.validated_save()
+        if content_types is not None:
+            from django.contrib.contenttypes.models import ContentType
+            obj.content_types.set([ContentType.objects.get_for_model(self.model(m)) for m in content_types])
+        return obj
+
+    @staticmethod
+    def identity(obj):
+        return str(obj.pk)
+
+    def matches(self, obj, fields, content_types):
+        obj.refresh_from_db()
+        for name, expected in fields.items():
+            actual = getattr(obj, name)
+            if hasattr(expected, 'pk'):
+                if actual != expected:
+                    return False
+            elif str(actual) != str(expected):
+                return False
+        if content_types is not None:
+            actual = {f'{ct.app_label}.{ct.model}' for ct in obj.content_types.all()}
+            if actual != set(content_types):
+                return False
+        return True
+
+    def check_membership(self, objects, nodes):
+        scopes = {
+            'dcim.location': {'location_type': objects['location_type']},
+            'dcim.device': {'device_type': objects['device_type']},
+            'dcim.interface': {'device__device_type': objects['device_type']},
+            'ipam.prefix': {'namespace': objects['namespace']},
+            'ipam.ipaddress': {'parent__namespace': objects['namespace']},
+            'ipam.ipaddresstointerface': {'ip_address__parent__namespace': objects['namespace']},
+        }
+        if 'dns-view' in objects:
+            scopes['nautobot_dns_models.dnszone'] = {'dns_view': objects['dns-view']}
+            for record in ('arecord', 'aaaarecord', 'cnamerecord', 'ptrrecord', 'nsrecord', 'mxrecord', 'txtrecord', 'srvrecord'):
+                scopes['nautobot_dns_models.' + record] = {'zone__dns_view': objects['dns-view']}
+        for model, lookup in scopes.items():
+            from django.db.models import Q
+            scope = Q(**lookup)
+            if model == 'ipam.ipaddresstointerface':
+                scope |= Q(interface__device__device_type=objects['device_type'])
+            actual = {str(pk) for pk in self.model(model).objects.filter(scope).values_list('pk', flat=True)}
+            expected = {str(objects[n['key']].pk) for n in nodes if n['model'] == model}
+            require(actual == expected, 'fixture_membership')

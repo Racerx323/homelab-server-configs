@@ -1,0 +1,12 @@
+{
+  "controller-start-failure/retained-ownership.json": {
+    "reason": "Raw ownership UUID receipt remains private",
+    "retained_at": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/trial-bundle/retained-ownership.json",
+    "sha256": "988c44d81a7cbf1fefb176edfe6c54cc37c1cfb3ab04a158e3d5c04b3bcf8e66"
+  },
+  "executed/retained-ownership.json": {
+    "reason": "Raw ownership UUID receipt remains private",
+    "retained_at": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/trial-bundle/retained-ownership.json",
+    "sha256": "988c44d81a7cbf1fefb176edfe6c54cc37c1cfb3ab04a158e3d5c04b3bcf8e66"
+  }
+}

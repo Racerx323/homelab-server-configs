@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Offline controller lifecycle and logout-preparation boundaries."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import shutil
+import time
+import uuid
 import unittest
 from unittest.mock import patch
 
@@ -27,6 +31,101 @@ persistence = load('persistence', 'persistence-preflight.py')
 
 
 class Controller(unittest.TestCase):
+    def test_explicit_ansible_identity_and_drift(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            executable = Path(temporary)/'executable'
+            executable.write_text('#!/bin/sh\nexit 0\n'); executable.chmod(0o700)
+            binding = {'path':str(executable), 'sha256':hashlib.sha256(executable.read_bytes()).hexdigest()}
+            self.assertEqual(controller.ansible_executable(binding), str(executable))
+            with self.assertRaisesRegex(ValueError, 'controller_ansible_identity'):
+                controller.ansible_executable(dict(binding, sha256='0'*64))
+
+    @unittest.skipUnless(os.environ.get('NAUTOBOT_CONTROLLER_SYSTEMD_TEST') == '1',
+                         'opt-in local user-systemd qualification; no target contact')
+    def test_real_service_wrapper_and_ansible(self):
+        evidence_root = Path(os.environ['NAUTOBOT_CONTROLLER_EVIDENCE'])
+        evidence_root.mkdir(mode=0o700, exist_ok=False)
+        executable = Path(shutil.which('ansible-playbook')).resolve()
+        binding = {'path':str(executable), 'sha256':hashlib.sha256(executable.read_bytes()).hexdigest()}
+        for case, expected in [('success', 0), ('ansible_failure', 2), ('binary_drift', 43)]:
+            with self.subTest(case=case), tempfile.TemporaryDirectory(prefix='nautobot-controller-local-') as temporary:
+                work = Path(temporary)
+                approval = hashlib.sha256(uuid.uuid4().bytes).hexdigest()
+                name = controller.identity(approval)+'.service'
+                evidence = evidence_root/case
+                tree = work/'tree'
+                (tree/'inventory/prod').mkdir(parents=True)
+                (tree/'inventory/prod/hosts.yaml').write_text('all:\n  hosts:\n    j2-svpi4mf:\n      ansible_connection: local\n      ansible_python_interpreter: /usr/bin/python3\n')
+                (tree/'Nautobot/ansible').mkdir(parents=True)
+                shutil.copyfile(ROOT/'Nautobot/ansible/ansible.cfg', tree/'Nautobot/ansible/ansible.cfg')
+                (tree/'tests/repository').mkdir(parents=True)
+                shutil.copyfile(ROOT/'tests/repository/run-with-ansible-local-temp.sh', tree/'tests/repository/run-with-ansible-local-temp.sh')
+                bundle = work/'bundle'; bundle.mkdir()
+                task = ('ansible.builtin.fail:\n        msg: qualification_expected_failure' if case == 'ansible_failure'
+                        else "ansible.builtin.command:\n        argv: ['/usr/bin/true']")
+                (bundle/'run-workload.yaml').write_text('- hosts: all\n  gather_facts: false\n  tasks:\n    - ansible.builtin.assert:\n        that: ansible_connection == "local"\n    - '+task+'\n')
+                selected = dict(binding, sha256='0'*64) if case == 'binary_drift' else binding
+                probe = work/'probe.py'
+                probe.write_text(f'''import sys, os, json, importlib.util
+from pathlib import Path
+from types import SimpleNamespace
+sys.path.insert(0, {str(SCRIPTS)!r})
+import workload_controller as controller
+spec = importlib.util.spec_from_file_location('launcher', {str(SCRIPTS/'run-workload.py')!r})
+launcher = importlib.util.module_from_spec(spec); spec.loader.exec_module(launcher)
+launcher.ROOT = Path({str(tree)!r})
+evidence = Path({str(evidence)!r}); evidence.mkdir(mode=0o700)
+runtime = controller.runtime({approval!r})
+controller.receipt(evidence/'controller-started.json', {{'approval':{approval!r}, 'invocation_id':os.environ['INVOCATION_ID']}})
+secrets = runtime/'disposable'; secrets.mkdir(mode=0o700)
+for name in ('repository','password','credentials.json'):
+    path=secrets/name; path.write_text('disposable-local-input'); path.chmod(0o600)
+code = 43
+try:
+    code = launcher.execute(SimpleNamespace(bundle=Path({str(bundle)!r}), evidence=evidence, backup_secrets=secrets),
+        {{'files':{{}}}}, {{'root':'/tmp/localhost-only', 'execution_authorized':False, 'controller_ansible':{selected!r}}})
+except ValueError as error:
+    controller.receipt(evidence/'refusal.json', {{'reason':str(error)}})
+finally:
+    for path in secrets.iterdir(): path.unlink()
+    secrets.rmdir()
+    controller.receipt(evidence/'qualification.json', {{'status':code, 'fixture_credentials_removed':not secrets.exists(), 'path':os.environ['PATH']}})
+raise SystemExit(code)
+''')
+                unit = controller.render(bundle, approval, evidence, work/'unused-agent')
+                unit = '\n'.join('ExecStart=/usr/bin/python3 '+str(probe) if line.startswith('ExecStart=') else line for line in unit.splitlines())+'\n'
+                unit = unit.replace('RuntimeMaxSec=12000', 'RuntimeMaxSec=60').replace('UMask=0077', 'UMask=0077\nEnvironment=PATH=/usr/bin:/bin')
+                path = work/name; path.write_text(unit)
+                (evidence_root/(case+'.service')).write_text(unit)
+                try:
+                    subprocess.run(['systemctl','--user','link',str(path)], check=True, capture_output=True)
+                    subprocess.run(['systemctl','--user','start',name], check=True, capture_output=True)
+                    deadline = time.monotonic()+90
+                    while time.monotonic() < deadline:
+                        show = subprocess.run(['systemctl','--user','show',name,'--property=ActiveState,Result,ExecMainStatus'], check=True, capture_output=True, text=True)
+                        state = dict(line.split('=',1) for line in show.stdout.splitlines())
+                        if state['ActiveState'] in ('inactive','failed'): break
+                        time.sleep(1)
+                    else: self.fail('local_service_timeout')
+                    (evidence/'service-state.json').write_text(json.dumps(state))
+                    self.assertEqual(int(state['ExecMainStatus']), expected)
+                    self.assertTrue(json.loads((evidence/'qualification.json').read_text())['fixture_credentials_removed'])
+                    self.assertTrue((evidence/'controller-stop.json').is_file())
+                    self.assertFalse((Path('/run/user')/str(os.getuid())/controller.identity(approval)).exists())
+                    if case == 'binary_drift':
+                        self.assertFalse((evidence/'ansible.stdout').exists())
+                        self.assertEqual(json.loads((evidence/'refusal.json').read_text())['reason'], 'controller_ansible_identity')
+                    else:
+                        output = (evidence/'ansible.stdout').read_text()
+                        self.assertIn('PLAY RECAP', output)
+                        self.assertIn('j2-svpi4mf', output)
+                        self.assertNotIn('disposable-local-input', output)
+                finally:
+                    subprocess.run(['systemctl','--user','stop',name], capture_output=True)
+                    subprocess.run(['systemctl','--user','disable',name], check=True, capture_output=True)
+                    subprocess.run(['systemctl','--user','reset-failed',name], capture_output=True)
+                    self.assertFalse((Path.home()/'.config/systemd/user'/name).is_symlink())
+
     def test_unit_parser_and_no_automatic_replay(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
