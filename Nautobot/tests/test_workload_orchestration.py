@@ -360,12 +360,16 @@ class WorkloadOrchestrationTests(unittest.TestCase):
     def test_complete_bundle_validation_and_input_drift(self):
         import workload_sampler
         import jsonschema
-        with tempfile.TemporaryDirectory() as d:
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as binaries:
             root = Path(d)
             for name in launcher.REQUIRED - {'execution.json', 'contract.json', 'dataset.json', 'application-backup.json', 'backup-sources.json'}:
                 source = ROOT/launcher.DATA_FILES[name] if name in launcher.DATA_FILES else ROOT/'restic/scripts'/name if name == 'application-backup.py' else (ROOT/'Nautobot/ansible/playbooks'/name if name.endswith('.yaml') else SCRIPTS/name)
                 shutil.copyfile(source, root/name)
-            ansible = Path(shutil.which('ansible-playbook')).resolve()
+            # Bind real entrypoint bytes with controlled ownership/mode, independent
+            # of the runner's package-install permissions. Keep the guard active.
+            ansible = Path(binaries)/'ansible-playbook'
+            shutil.copyfile(Path(shutil.which('ansible-playbook')).resolve(), ansible)
+            ansible.chmod(0o700)
             execution = {'schema_version': 1, 'stage': 'workload_qualification', 'execution_authorized': True,
                 'controller_ansible': {'path':str(ansible),'sha256':hashlib.sha256(ansible.read_bytes()).hexdigest()},
                 'attended_window': {'start':'2026-11-25T10:00:00-06:00','end':'2026-11-25T14:00:00-06:00'},
@@ -398,6 +402,10 @@ class WorkloadOrchestrationTests(unittest.TestCase):
                 'source_commit':'a'*40,'execution':execution,'scope':operation_schema['properties']['scope']['const']}
             with patch.object(launcher, 'load_operation', return_value=operation):
                 _, actual = launcher.verify(root, approval)
+                ansible.chmod(0o770)
+                with self.assertRaisesRegex(ValueError, 'controller_ansible_identity'):
+                    launcher.verify(root, approval)
+                ansible.chmod(0o700)
             broken = copy.deepcopy(operation); broken['operation']['authorization_ready'] = False
             with self.assertRaisesRegex(ValueError, 'operation_inactive'): launcher.verify_operation(execution, broken)
             broken = copy.deepcopy(operation); broken['execution']['operation_id'] = 'wrong-operation'
