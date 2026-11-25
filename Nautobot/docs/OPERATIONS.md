@@ -274,8 +274,9 @@ guard, cleanup and acceptance requirements.
 ## Workload and persistence qualification
 
 The [master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification)
-owns the sequence and acceptance criteria. Workload parameters remain in
-`manifests/workload-test.yaml`; progress and qualification results are recorded in
+owns the sequence and acceptance criteria. The default historical workload contract remains in
+`manifests/workload-test.yaml`; the agreed profile is generated with `--pilot`.
+Progress and qualification results are recorded in
 [ROADMAP.md](ROADMAP.md). This procedure is not a live authorization.
 
 ### Pilot workload profile and seven-day observation
@@ -301,14 +302,30 @@ the first 250 IPv4 addresses back to their forward names. CNAME and SRV targets
 reference fixture-owned forward records. The disabled reverse zone is
 `0.18.198.in-addr.arpa`; forward records use `pilot-synthetic.invalid`.
 
-Run both existing local qualification paths with `--pilot` before defining a live
-workload operation. Native validation checks transaction rollback, ownership/drift
+Before defining a live workload operation, verify applicable retained evidence for
+both local qualification paths with `--pilot`. Reuse unchanged native qualification;
+rerun only for changed inputs or a demonstrated unresolved defect. Native validation checks transaction rollback, ownership/drift
 refusal, repeat imports, exports and audit row equality. The session path checks
 real ten-Job Celery dispatch at concurrency two and backup/full-integrity overlap,
 including native fixture-row fingerprints before repeat import and after the Jobs.
 These compare all selected model rows, including timestamps; JobResult/log writes
 are expected and excluded. Retain the default and `--expanded` fixtures unchanged.
 Real inventory/model comparison and target resource acceptance remain separate.
+
+Before a live fixture transition, compare the retained ownership receipt and dataset
+with the intended profile. A changed fixture digest is not permission to adopt
+existing objects, even when names or Namespace match. Use a separately authorized
+bounded read-only inspection of current object IDs, fixture fields and unexpected
+relationships to determine drift and collisions. Query PostgreSQL in a read-only
+transaction with statement/lock deadlines; do not submit Jobs or initialize Django
+merely to collect this inventory. Retain only fixture-scoped fields and counts,
+never credentials, unrelated records or raw environment output.
+
+Bind the resulting transition explicitly into the later workload approval. Preserve
+old objects unless exact owned-object mutation/disposal is included in that scope;
+never silently replace the historical fixture or relax ownership checks. Reuse the
+existing Ansible/controller path, actual-target sampling and unchanged limits.
+Preparation creates no pending live operation before its inputs are resolved.
 
 Start the seven-day observation only after reviewing stage-5 readiness and recording
 the pilot's exact fixture, images/configuration, recovery reference and start time.

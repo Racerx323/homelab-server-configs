@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "status": "read_only_baseline_complete_trial_definition_pending",
+  "execution_authorized": false,
+  "record_roles": {
+    "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md",
+    "procedure": "docs/OPERATIONS.md#pilot-workload-profile-and-seven-day-observation",
+    "work_ledger": "manifests/workload-review.json",
+    "result": "private preparation evidence; target acceptance not claimed"
+  },
+  "source_revision": "7904a66de939ea6fa59207fced1767c685d99cd6",
+  "private_preparation": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124",
+  "next_action": "Implement and locally qualify exact owned-fixture replacement, admission-time continuity and schedule exclusion in the existing workload path; then seal one separately approved target trial.",
+  "work_items": [
+    {
+      "id": "W-001",
+      "state": "Resolved",
+      "issue": "ROADMAP current wording contradicts accepted protection and logical-reference records",
+      "closure": "Reconcile with accepted ledgers without rewriting historical evidence",
+      "evidence": "Marked September/November preparation observations historical; updated restore gate and current next action."
+    },
+    {
+      "id": "W-002",
+      "state": "Resolved",
+      "issue": "Distinguish historical default contract from agreed mixed pilot profile",
+      "closure": "Generate exact --pilot inputs and verify retained native evidence",
+      "evidence": "Fixture SHA-256 72c21dd4b22a57dddcd9c1fa45d5a1a1b44e3192e8db9974a6a0cc2695c4cac7 matches; all 12 qualification evidence hashes verify. No target result inferred."
+    },
+    {
+      "id": "W-003",
+      "state": "Resolved",
+      "issue": "New profile collides with retained historical fixture; ownership digest differs",
+      "closure": "Authorized read-only target comparison of exact IDs, owned fields and relationships; explicitly select transition without inferred deletion authority",
+      "evidence": "All 3518 owned objects, controlled fields and content-type bindings match. No unexpected inbound FK relationships or additional nonempty fields/references; all 200 collisions belong to retained fixture. Selected atomic owned replacement for later approval, not deletion now."
+    },
+    {
+      "id": "W-004",
+      "state": "Open",
+      "issue": "Agreed-profile target resource and duration acceptance",
+      "closure": "Resolve transition, review existing launcher/control compatibility, qualify changed behavior only, then freeze and separately approve one actual-target trial",
+      "evidence": "No substitute-fixture capacity gate; preserve two workers and existing phase/stop limits.",
+      "next_action": "Add a narrow receipt-bound transactional replacement before the existing importer. Qualify rollback and refusal of drift/unowned cascade closure using the pinned native runtime; preserve failed payloads and do not expand capacity fixtures."
+    },
+    {
+      "id": "W-005",
+      "state": "Deferred",
+      "issue": "Retained payload disposal and remote retention deletion",
+      "closure": "Separate owned-selection review and approval",
+      "owner": "Aaron",
+      "reason": "Not a stage-5 workload prerequisite; no current capacity finding requires deletion.",
+      "follow_up": "docs/OPERATIONS.md recurring disposal/retention procedures"
+    },
+    {
+      "id": "W-006",
+      "state": "Deferred",
+      "issue": "Caddy onboarding, seven-day pilot and real-inventory authority coverage",
+      "closure": "Stage-5 readiness review, owner-controlled stage-6 approval and a recorded seven-day interval; compare actual inventory before authority migration",
+      "owner": "Aaron",
+      "reason": "Separate acceptance scopes; elapsed scheduled-backup uptime and synthetic counts are insufficient.",
+      "follow_up": "docs/ROADMAP.md stage-5 gap review; docs/OPERATIONS.md pilot workload profile and seven-day observation"
+    },
+    {
+      "id": "W-007",
+      "state": "Open",
+      "issue": "Workload session pins preparation-time boot/service invocations at admission",
+      "closure": "Capture fresh admission identities after host/configuration/health validation; reject unexpected continuity changes during work",
+      "evidence": "workload_session.py:248 and :303 compare to frozen specification boot_id; initial service invocations at :251 are also preparation-bound."
+    },
+    {
+      "id": "W-008",
+      "state": "Open",
+      "issue": "Existing workload path predates accepted recurring schedule and has no timer/window exclusion",
+      "closure": "Use existing Ansible preflight to bind a fresh attended window, require idle protection and next trigger beyond controller ceiling; keep installed timer unchanged",
+      "evidence": "No protection/calendar/window admission in run-workload.py, workload_session.py, workload_controller.py, run-workload.yaml or workload-execution.schema.json. Existing controller ceiling is 12000 seconds."
+    }
+  ],
+  "audit": {
+    "plan": "No architecture change required; acceptance criteria retained.",
+    "operations": "Clarified profile selection, retained qualification reuse and ownership-transition procedure.",
+    "roadmap": "Reconciled stale current-status statements and prioritized target workload preparation.",
+    "checkpoint": "Navigation-only ownership and links remain correct; unchanged."
+  },
+  "validation": {
+    "documentation_contracts": "passed: 5 tests",
+    "operation_contracts": "passed: 20 tests",
+    "whitespace": "passed",
+    "generated_profile": "matches retained qualified fixture hash",
+    "retained_evidence": "12 hashes verified; historical observations only",
+    "vexp": "unavailable: session workspace is not a Git repository; direct repository checks used",
+    "target_contact": "Authorized bounded SELECT-only/read-only inspection completed; no mutation",
+    "publication": "not authorized or performed"
+  },
+  "read_only_authorized": true,
+  "read_only_result": {
+    "verdict": "Read-only baseline complete; workload execution not authorized",
+    "observed_at": "2026-11-24T23:39:31.397101+00:00",
+    "reviewed_at": "2026-11-24T23:44:53.473735+00:00",
+    "host": "j2-svpi4mf",
+    "owned_objects_present": 3518,
+    "missing_owned_objects": 0,
+    "controlled_field_differences": 0,
+    "content_type_bindings_match": true,
+    "inbound_foreign_key_constraints_reviewed": 150,
+    "unexpected_inbound_foreign_key_relationships": 0,
+    "additional_nonempty_fields_or_references": 0,
+    "new_profile_device_collisions": 200,
+    "collisions_owned_by_historical_fixture": true,
+    "current_artifacts_match": true,
+    "health_http_status": 200,
+    "failed_units": 0,
+    "mem_available_kib": 6295516,
+    "free_bytes": 935758753792,
+    "target_capacity_accepted": false,
+    "selection": "Prepare atomic replacement of the exactly receipt-owned synthetic fixture through the existing native importer; do not adopt or patch ownership hashes.",
+    "limits": [
+      "SELECT-only snapshot of fixture-controlled fields, foreign-key relationships and extra nonempty-field flags; not authorization to delete.",
+      "ORM deletion closure, generic relationships, signals and transactional rollback still require focused local qualification and execution-time revalidation.",
+      "No real-inventory representativeness, workload headroom, seven-day stability or future trial acceptance."
+    ],
+    "result_sha256": "3131b47c03539116b176bc1dc775e53c4c80670aa89b3d4f32086e3128f1e502"
+  }
+}

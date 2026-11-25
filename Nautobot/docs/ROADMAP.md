@@ -2,6 +2,33 @@
 
 ## Current next action
 
+Prepare the agreed mixed-profile workload qualification on `j2-svpi4mf` under the
+existing stage-5 limits. Monthly restore and its terminal archive are accepted;
+no restore replay or prerequisite reinstallation is needed. Retained-payload
+cleanup is separate and is not a prerequisite for this preparation.
+
+The authorized November 24 read-only comparison found all 3,518 receipt-owned
+objects and controlled fields unchanged, with no unexpected inbound foreign-key
+relationships or additional nonempty fields/references. The new profile's 200 Device
+name collisions all belong to that retained fixture. Host health, application
+artifacts and protection readiness passed; this is not target workload acceptance.
+
+Next prepare atomic replacement of the exact owned synthetic fixture through the
+existing importer, with transactional rollback and refusal of unowned cascade
+closure. Qualify that changed behavior locally, fix preparation-time boot pinning,
+and add attended-window/recurring-schedule exclusion to the existing workload
+preflight. Do not weaken ownership checks or create new orchestration. Then seal
+one workload execution request; no deletion, import or trial is authorized yet.
+Keep `operation.yaml` clean and disabled. The existing 12,000-second controller
+ceiling requires a window longer than the minimum measured workload phases.
+
+The preparation ledger is `manifests/workload-review.json`; private comparison
+receipts are in `nautobot-workload-preparation-20261124/read-only-result.json`.
+Caddy onboarding remains owner-controlled stage 6; seven-day acceptance needs a
+recorded observation interval. Existing backup uptime alone does not establish it.
+
+## Accepted milestones
+
 Recurring prerequisite installation is accepted and archived. Credential-only
 provisioning is now accepted: the three canonical references, one config-scoped
 read-only token and protected service-owned delivery passed independent readback.
@@ -206,15 +233,15 @@ copies remain private; no host cleanup or restore was performed during reconcili
 | Synthetic workload | Accepted only for repeat-fixture workload, 15 Jobs and application-backup overlap/integrity | [Synthetic acceptance](../manifests/accepted-live-state.yaml) |
 | Real-inventory representativeness | Open; compare scale and operation mix with intended inventory | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#stage-5-workload-and-persistence-qualification) |
 | Logout and reboot persistence | Bounded PAM logout archived; bounded reboot archived with reporting defect | [Procedures](OPERATIONS.md#persistence-procedure) |
-| Application restore | Bounded historical restore passed; archived and reconciled; populated media remains unqualified | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
+| Application restore | Historical and November 24 monthly recurring-snapshot restores accepted and archived; directory-only media, populated media remains unqualified | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#backups-and-recovery) |
 | Stage 6 Caddy onboarding | Open; owner lifecycle applies | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#caddy-application-onboarding) |
 | Stable pilot, authority migration, Semaphore | Open; seven-day criterion and separate domain acceptance remain | [Master plan](NAUTOBOT_DEPLOYMENT_PLAN.md#validation-and-acceptance) |
 
 ## Stage-5 gap review
 
 The September 26 repository review established this gap list. Rows below now include
-the separately accepted November 3 trials, November 4 installation and November 9
-scheduled-cycle acceptance. Earlier stage observations retain their original scope.
+the separately accepted November trials, scheduled-cycle acceptance and November 24
+monthly restore. Earlier stage observations retain their original scope.
 
 | Area | Evidence and gap | Next decision or work |
 | --- | --- | --- |
@@ -226,12 +253,9 @@ scheduled-cycle acceptance. Earlier stage observations retain their original sco
 | Monitoring | Separate failure/recovery delivery is accepted; finite retry exhaustion is locally qualified. The integrated missed/recovery messages reached all three destinations without duplicates. Aaron owns existing host/user-manager monitoring. | Preserve the accepted delivery evidence. Keep existing monitoring unchanged; local notification cannot report while its host/user manager is offline. |
 | Stable pilot and Caddy | Caddy onboarding remains stage 6; seven-day stable-pilot acceptance is not recorded. | Prepare the owner-controlled Caddy route after reviewing stage-5 readiness. Define and record the seven-day observation before authority migration or Semaphore. |
 
-The immediate implementation candidate is the recurring application-backup
-contract, reusing the qualified capture/Restic primitives after the consistency
-and unattended-credential decisions above. The schedule is now installed under its
-separate approval. The agreed synthetic workload below defines the remaining
-comparison; this documentation work grants no additional live execution, retention
-deletion or Caddy publication.
+Recurring application protection is installed and accepted. The next stage-5
+preparation is the agreed mixed workload and its target resource observation.
+It grants no additional live execution, retention deletion or Caddy publication.
 
 ## Recurring protection definition
 
@@ -257,9 +281,9 @@ The existing accepted one-shot behavior must remain covered by regression tests.
 | Weekly integrity | Keep the qualified full check after every nightly upload, as selected November 4. No subset waiver or separate weekly job is proposed. |
 | Retention | Plan's 7 daily/5 weekly/12 monthly policy; one exact dry run is accepted. Refresh selection before separate deletion approval. Historical recovery snapshots remain excluded; no delete/prune timer is proposed. |
 | Monitoring | Persistent endpoint `http://10.1.3.83:8000/notify/apprise`, saved configuration `apprise`; separate failure/recovery delivery is accepted. Finite retry exhaustion passed local qualification; the integrated missed/recovery path reached all three destinations without duplicates. Aaron owns existing external monitoring; preparation authorizes no additional messages or monitoring changes. |
-| Workload comparison | Agreed synthetic profile: one site, 200 devices, 800 unevenly distributed interfaces, 2,000 IPs and 2,000 mixed DNS records; ten consistency audits queued at concurrency two; no media uploads. Qualify the mixed fixture before claiming coverage. |
+| Workload comparison | Agreed synthetic profile: one site, 200 devices, 800 unevenly distributed interfaces, 2,000 IPs and 2,000 mixed DNS records; ten consistency audits queued at concurrency two; no media uploads. Native mixed-fixture qualification passed; target resource coverage remains open. |
 
-Local implementation now includes the Ansible capture/resume/upload task include,
+The retained September 28 local qualification covered the Ansible capture/resume/upload task include,
 multiple IPs per Interface, native disabled A records in a fixture-owned `.invalid`
 zone, and a ten-Job single-batch mode using two worker slots. The default historical
 fixture and paired submission behavior remain available. The original default
@@ -279,10 +303,11 @@ fixture remains byte-identical. Local qualification passed the following checks:
 
 Private evidence is under `nautobot-recurring-local-20260928/`. Active cancellation,
 retained-fixture/registration checks and owned container/network cleanup passed.
-No live state has changed; production watchdog, host staging and ARM64 sampling
-remain unqualified by these local tests.
+Those local tests did not change live state or qualify target sampling. Later
+production protection acceptance is recorded above; mixed-profile target resource
+observation remains outstanding.
 
-Node-local supervision now has review-only nightly/freshness units, an exclusive
+The September 28 node-local supervision candidate had review-only nightly/freshness units, an exclusive
 run lock and an independent recovery timer. Ten supervisor regressions and four
 real disposable user-systemd cases passed: normal completion, killed primary,
 capture deadline and the real recurring Ansible playbook with harmless adapters. The failure cases quiesced the backup service, resumed the test
@@ -293,7 +318,9 @@ interim direct Apprise delivery now have local implementations. The user deferre
 the shared durable client; the current Caddy queue does not accept Nautobot.
 Ten binding regressions additionally cover credentials, rootless ordering, external
 database clients, standardized local HTTP alerts and independent notification
-units. The candidate remains inactive and provider entities have not been created.
+units. At that preparation stage the candidate was inactive and provider entities
+had not been created. Later credential provisioning and schedule installation are
+accepted; this historical paragraph is not a current deployment blocker.
 
 The September 28 read-only target baseline found all five application services
 running, HTTP 200, passing backend guard and enabled linger. All 15 artifacts in
@@ -301,7 +328,7 @@ the accepted startup/boot-readiness registry matched. Podman is 5.4.2, Restic 0.
 systemd 257 and Python 3.13.5; application versions remain Nautobot 3.2.3 and DNS
 Models 2.3.0. This is an observation, not recurring deployment acceptance.
 
-Deployment blockers and remaining review:
+Historical September 28 findings (resolved by later accepted stages above):
 
 - Ansible and Doppler were absent from the service account PATH and the checked
   `/usr/bin` and `/usr/local/bin` installation paths.
@@ -393,8 +420,8 @@ fixed the local qualifier, while its credential file remains protected. The fail
 and successful rerun are both retained. Private evidence:
 `nautobot-mixed-workload-20261104/qualification.json`.
 
-The installed recurring capture still lacks an independent full logical reference.
-The opt-in candidate now compares pre-dump and post-capture identities, binds the
+The November 4 local candidate added the independent full logical reference later
+deployed and accepted on November 10. It compares pre-dump and post-capture identities, binds the
 reference to the dump/specification and retains it after verified disposal. Local
 qualification on the agreed workload compared 245 tables: six-section capture took
 7.0 seconds, including probes of 1.47 and 1.52 seconds. Upload/full integrity and an
