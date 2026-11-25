@@ -4,16 +4,20 @@ This file is the concise terminal-operation index for the Nautobot deployment.
 Raw evidence remains outside Git. Annotated tags preserve each terminal
 operation definition and its sanitized evidence manifest.
 
-## Prepared workload failure archive (not yet published)
+## Published mixed-workload failure
 
 `nautobot-mixed-workload-v1`: November 25 live admission passed; the first
 replacement Job failed after 840 seconds in retained-fixture deletion checks,
 before creating the new profile. Independent readback verified all 3,518 retained
 objects/controlled fields unchanged and complete transient cleanup. No full
 workload or backup-overlap acceptance is claimed. The earlier controller-only
-failure is preserved with it in `terminal/workload`.
-Proposed annotated tag: `nautobot-mixed-workload-v1-failed`. Publication and remote
-verification remain pending; the operation slot is terminal-pending.
+failure is preserved with it in `terminal/workload` at annotated tag
+`nautobot-mixed-workload-v1-failed`. Archive commit:
+`caf675f567a9ae9507cde5aff3a5154eaef4228c`; tag object:
+`3556be9c099ca5a44c55b24a8a47e5a5b3e4b359`. Independent remote fetch verified all archive,
+bundle and source hashes, including privately retained inputs. Accepted live state
+is unchanged; the operation slot is clean and disabled. Both inactive controller
+links were removed; their unit files and receipts remain retained.
 
 ## Published baseline operations
 

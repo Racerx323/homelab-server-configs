@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "status": "failed_trial_diagnosed_publication_ready",
+  "status": "failed_trial_archived_replacement_repair_pending",
   "execution_authorized": false,
   "record_roles": {
     "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md",
     "procedure": "docs/OPERATIONS.md#pilot-workload-profile-and-seven-day-observation",
     "work_ledger": "manifests/workload-review.json",
-    "result": "terminal/workload/executed/result.json and terminal/workload/diagnosis.json; private raw evidence remains hash-bound"
+    "result": "nautobot-mixed-workload-v1-failed:Nautobot/terminal/workload; private raw evidence remains hash-bound"
   },
   "source_revision": "7904a66de939ea6fa59207fced1767c685d99cd6",
   "private_preparation": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124",
-  "next_action": "Approve the exact terminal publication request. Keep the failed operation terminal-pending until remote archive verification. Then review a focused fixture-replacement repair; no new trial, limit increase or capacity fixture is authorized.",
+  "next_action": "Review focused fixture-replacement repair preserving native validation, ownership refusal and atomic rollback; reuse existing correctness tests. No new trial, limit increase or capacity fixture is authorized.",
   "work_items": [
     {
       "id": "W-001",
@@ -103,10 +103,10 @@
     },
     {
       "id": "W-013",
-      "state": "In progress",
+      "state": "Resolved",
       "issue": "Archive failed live workload and earlier controller-only attempt",
       "closure": "Prepare exact nonsecret archive and scoped publication request; publish only after approval; preserve raw evidence privately and keep operation terminal-pending until remote tag verification",
-      "evidence": "Exact nonsecret bundles/source snapshots for both consumed claims, sanitized terminal results, diagnosis and private-input hashes prepared in terminal/workload. Required publication and remote tag verification remain pending."
+      "evidence": "Published nautobot-mixed-workload-v1-failed at caf675f567a9ae9507cde5aff3a5154eaef4228c; independently fetched tag and verified all 111 publication files, 92 archive members, both bundle/source manifests and private inputs. Local inactive controller links removed; retained unit files verified. Operation clean and disabled."
     }
   ],
   "audit": {
@@ -224,18 +224,6 @@
     "ssh_agent_detached_session_verified": true,
     "evidence_filesystem": "ext4"
   },
-  "pending_trial": {
-    "id": "nautobot-mixed-workload-v1",
-    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
-    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/APPROVAL.md",
-    "attended_window": {
-      "start": "2026-11-25T13:00:00-06:00",
-      "end": "2026-11-25T17:00:00-06:00"
-    },
-    "latest_admission": "2026-11-25T13:40:00-06:00",
-    "authorization": "Consumed by approved live execution; failed first import; no replay",
-    "source_publication": "not authorized"
-  },
   "authorization_consumed": true,
   "execution_result": {
     "schema_version": 1,
@@ -297,7 +285,7 @@
     },
     "latest_admission": "2026-11-25T12:40:00-06:00",
     "authorization": "Direct exact execution approval consumed by failed controller attempt; replay not authorized",
-    "source_publication": "not authorized"
+    "source_publication": "Published under approved terminal publication and YAML-policy addendum"
   },
   "controller_binding_qualification": {
     "record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/QUALIFICATION.json",
@@ -403,10 +391,29 @@
     "architecture_scope": "The prescribed phase durations, workload counts and two-worker limits remain unchanged; changing which setup counts as workload requires an explicit plan decision."
   },
   "terminal_archival": {
-    "state": "prepared_not_published",
+    "state": "published_verified",
     "archive": "Nautobot/terminal/workload",
-    "proposed_tag": "nautobot-mixed-workload-v1-failed",
     "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/PUBLICATION.md",
-    "accepted_live_state_changed": false
+    "accepted_live_state_changed": false,
+    "tag": "nautobot-mixed-workload-v1-failed",
+    "archive_commit": "caf675f567a9ae9507cde5aff3a5154eaef4228c",
+    "tag_object": "3556be9c099ca5a44c55b24a8a47e5a5b3e4b359",
+    "remote_verification": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/remote-archive-verification.json",
+    "remote_verification_sha256": "a7441688bb49464d53c4178c0206e94678da0751a2103b6d4807dbb4a87e94a6",
+    "controller_cleanup": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/controller-unit-cleanup.json",
+    "controller_cleanup_sha256": "4b2bc636e530b013e1788282ab74f7cdf59168cfb1afbdb09b0e0456b1eec9d8",
+    "operation_state": "clean_disabled"
+  },
+  "last_trial": {
+    "id": "nautobot-mixed-workload-v1",
+    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
+    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/APPROVAL.md",
+    "attended_window": {
+      "start": "2026-11-25T13:00:00-06:00",
+      "end": "2026-11-25T17:00:00-06:00"
+    },
+    "latest_admission": "2026-11-25T13:40:00-06:00",
+    "authorization": "Consumed by approved live execution; failed first import; no replay",
+    "source_publication": "Published under approved terminal publication and YAML-policy addendum"
   }
 }

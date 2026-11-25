@@ -24,8 +24,9 @@ resource guards; this incomplete interval does not accept the full workload.
 
 The explicit executable binding worked through the real controller service.
 Its earlier pre-target failure, both consumed claims and exact source bundles
-remain preserved. The operation is now terminal-pending; accepted live state is
-unchanged. No retry, timeout increase, disposal or publication is authorized.
+remain preserved in the published terminal tag. The operation is clean and
+disabled; accepted live state is unchanged. No retry, timeout increase or disposal
+is authorized.
 
 The worker traceback locates the timeout in per-object retained-fixture deletion
 checks, before creating the new profile. Exact time per substage was not recorded.
@@ -34,13 +35,15 @@ agreed workload. The process audit rejects further capacity fixtures or added
 orchestration as the next step; retain the existing safety controls and focus any
 later repair on the replacement data path.
 
-Next approve the scoped terminal publication request at
-`nautobot-workload-preparation-20261124/controller-binding/terminal/PUBLICATION.md`.
-The prepared archive is `Nautobot/terminal/workload`; it preserves both claims and
-exact nonsecret sources. Raw evidence remains private. After archival, review a
-focused replacement change that preserves native validation, ownership refusal
-and atomic rollback. No new trial, timeout increase or workload-scope change is
-prepared. Detailed findings and remaining gaps are in `workload-review.json`.
+Next review a focused replacement change that preserves native validation,
+ownership refusal and atomic rollback. Reuse existing correctness tests; do not
+add orchestration or substitute capacity fixtures. No new trial, timeout increase
+or workload-scope change is prepared.
+
+Terminal archival is complete: `nautobot-mixed-workload-v1-failed` preserves both
+claims and exact nonsecret sources; independent remote verification passed.
+See HISTORY for commit identities and `workload-review.json` for findings. Raw
+evidence remains private. The two inactive controller links are removed.
 
 The preparation ledger is `manifests/workload-review.json`; private comparison
 receipts are in `nautobot-workload-preparation-20261124/read-only-result.json`.
