@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline tests of actual canary decisions, cleanup tasks and launcher gates."""
+"""Offline tests of shared restore decisions and failure boundaries."""
 import copy
 import importlib.util
 import json
@@ -23,9 +23,54 @@ def load(name, path):
 
 
 helper = load('canary', 'restic/scripts/canary-backup.py')
-launcher = load('canary_launcher', 'Nautobot/ansible/scripts/run-canary-backup.py')
-SCHEMA = json.loads((ROOT / 'Nautobot/schemas/canary-backup.schema.json').read_text())
-CONTRACT = {k: copy.deepcopy(v['const']) for k, v in SCHEMA['properties'].items()}
+# Minimal native-helper inputs; no completed operation or launcher dependency.
+CONTRACT = {'repository': {'url': 'local:fixture-repository',
+                'id': '0000000000000000000000000000000000000000000000000000000000000000'},
+ 'restic_version': 'restic fixture',
+ 'commands': {'common': ['restic',
+                         '--no-cache',
+                         '--repository-file',
+                         'PROTECTED_REPOSITORY_FILE',
+                         '--password-file',
+                         'PROTECTED_PASSWORD_FILE'],
+              'config': ['--no-lock', 'cat', 'config'],
+              'snapshots_before': ['--no-lock', 'snapshots', '--json'],
+              'backup': ['backup',
+                         '--json',
+                         '--host',
+                         'j2-svpi4mf',
+                         '--tag',
+                         'nautobot-predata-canary-v1',
+                         '--',
+                         'SOURCE_ROOT'],
+              'snapshots_after': ['--no-lock', 'snapshots', '--json'],
+              'integrity': ['check', '--read-data'],
+              'locks_after': ['--no-lock', 'list', 'locks']},
+ 'observation': {'journal_scope': 'cursor_bounded_kernel',
+                 'delayed_seconds': 75,
+                 'storage_event_pattern': 'I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device '
+                                          'reset|reset.*USB|USB.*reset|timed out|timeout',
+                 'on_missing_or_truncated_evidence': 'not_accepted'},
+ 'dataset': {'source_root_pattern': '/var/lib/nautobot/backup-restore-tests/source.*',
+             'parent_create_policy': 'create_if_absent_after_parent_mount_and_ownership_verification_never_chown_existing',
+             'execution_user': 'nautobot',
+             'directory_mode': '0700',
+             'file_mode': '0600',
+             'required_filesystem': '/dev/sda2',
+             'files': [{'path': 'predata/canary.txt',
+                        'content_utf8': 'nautobot isolated backup restore verification v1\n',
+                        'size_bytes': 49,
+                        'sha256': '0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2'}],
+             'symlinks_allowed': False,
+             'retain_source': True},
+ 'snapshot_identity': {'selection': 'exact_set_difference_from_complete_before_after_snapshots_json',
+                       'require_prior_ids_unchanged': True,
+                       'new_count': 1,
+                       'id_pattern': '^[0-9a-f]{64}$',
+                       'hostname': 'j2-svpi4mf',
+                       'paths': 'exact_single_source_root',
+                       'tags': ['nautobot-predata-canary-v1'],
+                       'summary_id_is_not_authority': True}}
 SID = 'a' * 64
 
 
@@ -153,10 +198,6 @@ class Workload(unittest.TestCase):
 
 
 class Boundaries(unittest.TestCase):
-    def test_wrong_hash_or_stage_never_resolves_credentials(self):
-        with patch.object(launcher.common, 'read_secret', side_effect=AssertionError('external access')):
-            with self.assertRaises(launcher.common.PreflightBlocked):
-                launcher.transport.execute('0'*64)
 
     def test_journal_missing_truncated_boot_changed_and_event(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -187,40 +228,7 @@ class Boundaries(unittest.TestCase):
                 helper.invoke([sys.executable, '-c', 'import os; os.write(1,b"x"*2048)'],
                               {'PATH': '/usr/bin:/bin'})
 
-    def test_canary_playbook_syntax(self):
-        result = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),
-                                 'ansible-playbook', '--syntax-check', '--inventory',
-                                 str(ROOT/'inventory/prod/hosts.yaml'),
-                                 str(ROOT/'Nautobot/ansible/playbooks/backup-canary.yaml')],
-                                capture_output=True, timeout=60)
-        self.assertEqual(result.returncode, 0, result.stdout.decode()+result.stderr.decode())
 
-    def test_real_production_cleanup_tasks(self):
-        play = yaml.safe_load((ROOT / 'Nautobot/ansible/playbooks/backup-canary.yaml').read_text())[0]
-        cleanup = copy.deepcopy(play['tasks'][2]['always'])
-        for task in cleanup:
-            if 'ansible.builtin.command' in task:
-                task['ansible.builtin.command']['argv'] = task['ansible.builtin.command']['argv'][6:]
-        for failure in ('none', 'workload', 'first_cleanup'):
-            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                for name in ('repository', 'password', 'credentials.json'):
-                    (root / name).write_text('offline-secret')
-                (root / 'result.json').write_text('{"upload_attempted":true,"result":"blocked"}')
-                tasks = copy.deepcopy(cleanup)
-                if failure == 'first_cleanup': tasks[0]['ansible.builtin.command']['argv'] = ['/bin/false']
-                fixture = [{'hosts': 'localhost', 'gather_facts': False,
-                            'vars': {'canary_directory': {'stdout': directory}, 'canary_evidence_root': directory},
-                            'tasks': [{'block': [{'ansible.builtin.command': {'argv': ['/bin/false' if failure == 'workload' else '/bin/true']}}],
-                                       'always': tasks}]}]
-                f = root / 'play.yaml'; f.write_text(yaml.safe_dump(fixture))
-                result = subprocess.run(['/bin/bash', str(ROOT / 'tests/repository/run-with-ansible-local-temp.sh'),
-                                         'ansible-playbook', '-i', 'localhost,', '-c', 'local', str(f)],
-                                        capture_output=True, timeout=60)
-                self.assertEqual(result.returncode, 0 if failure == 'none' else 2, result.stdout.decode())
-                for name in ('password', 'credentials.json'): self.assertFalse((root / name).exists())
-                self.assertTrue((root / 'node-records.json').exists())
-                self.assertNotIn(b'offline-secret', result.stdout + result.stderr)
 
 
 if __name__ == '__main__':

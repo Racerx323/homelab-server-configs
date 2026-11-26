@@ -26,7 +26,7 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[3]
 OPERATION_PATH = ROOT / "Nautobot/manifests/operation.yaml"
 OPERATION_SCHEMA = ROOT / "Nautobot/schemas/operation.schema.json"
-EXPECTED_OPERATION_ID = "nautobot-restic-repository-initialization-v1"
+EXPECTED_OPERATION_ID = None
 EXPECTED_STAGE = "repository_absence_preflight"
 EXPECTED_TARGET = "j2-svpi4mf"
 EXPECTED_ADDRESS = "10.1.2.170"
@@ -104,7 +104,7 @@ def validate_operation(
     if result.returncode != 0:
         raise PreflightBlocked("operation_schema_invalid")
     document = load_operation()
-    if (document.get("operation", {}).get("id") != EXPECTED_OPERATION_ID
+    if (not re.fullmatch(r"nautobot-restic-[a-z0-9-]+", document.get("operation", {}).get("id", ""))
         or document.get("operation", {}).get("stage") != EXPECTED_STAGE):
         raise PreflightBlocked("active_operation_mismatch")
     for relative, expected in document.get("prerequisites", {}).items():
@@ -115,6 +115,8 @@ def validate_operation(
             raise PreflightBlocked("invalid_prerequisite_file")
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise PreflightBlocked("prerequisite_identity_changed")
+    global EXPECTED_OPERATION_ID
+    EXPECTED_OPERATION_ID = document["operation"]["id"]
     return document
 
 

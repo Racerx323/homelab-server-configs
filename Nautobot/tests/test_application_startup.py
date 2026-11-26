@@ -51,8 +51,6 @@ launcher = load('startup_launcher', 'run-startup.py')
 preflight = load('startup_preflight', 'startup-preflight.py')
 browser = load('startup_browser', 'startup-browser-probe.py')
 network = load('startup_network', 'startup-network-probe.py')
-freeze_preservation = load('freeze_preservation', 'freeze-preservation.py')
-preservation_runner = load('preservation_runner', 'run-preservation.py')
 
 
 class Startup(unittest.TestCase):
@@ -246,27 +244,7 @@ class Startup(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Draft202012Validator(schema).validate(value)
 
-    def test_preservation_bundle_detects_tampering_and_wrong_authorization(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)/'bundle'
-            freeze_preservation.freeze(root)
-            digest = (root/'SHA256').read_text().strip()
-            self.assertEqual(preservation_runner.verify(root, digest)['stage'], 'startup_database_preservation')
-            with self.assertRaisesRegex(ValueError, 'authorization_hash'):
-                preservation_runner.verify(root, '0'*64)
-            (root/'scripts/inspect-retained-database.py').write_text('changed')
-            with self.assertRaisesRegex(ValueError, 'bundle_file'):
-                preservation_runner.verify(root, digest)
 
-    def test_preservation_playbook_has_no_service_start_or_restore(self):
-        path = ROOT/'Nautobot/ansible/playbooks/preserve-startup-database.yaml'
-        play = yaml.safe_load(path.read_text())[0]
-        commands = [task['ansible.builtin.command']['argv'] for task in play['pre_tasks'] + play['tasks'] if 'ansible.builtin.command' in task]
-        self.assertEqual(len(commands), 2)
-        self.assertIn('preserve', commands[-1])
-        self.assertNotIn('systemctl', str(commands))
-        result = subprocess.run(['/bin/bash', str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'), 'ansible-playbook', '--syntax-check', '-i', 'j2-svpi4mf,', str(path)], capture_output=True, timeout=30)
-        self.assertEqual(result.returncode, 0, result.stderr.decode())
 
     def test_network_denial_requires_timeout_source_and_family_counter(self):
         before = {'deny-v4': 4, 'deny-v6': 8}
@@ -551,6 +529,27 @@ class Startup(unittest.TestCase):
         for role in ('migration','postgresql','redis'):
             self.assertFalse(node.baseline_stopped(role,state))
 
+    def test_assembly_uses_verified_bootstrap_images_without_cold_copy_definition(self):
+        assembly = load('startup_assembly', 'assemble-startup.py')
+        original_load = assembly.load
+        def local_load(name):
+            if name == 'run-startup':
+                return types.SimpleNamespace(prepare=lambda path: (None, None, None, 'a' * 64))
+            return original_load(name)
+        with tempfile.TemporaryDirectory() as directory, patch.object(assembly, 'load', side_effect=local_load):
+            root = Path(directory)
+            baseline = root/'baseline.json'
+            baseline.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf',
+                                            'boot_id': 'current-admission', 'journal_cursor': '-- cursor: s=current'}))
+            recovery = root/'recovery.json'
+            recovery.write_text(json.dumps({'accepted': True, 'host': 'j2-svpi4mf'}))
+            assembly.assemble(root/'prepared', baseline, recovery)
+            settings = json.loads((root/'prepared/runtime-expectations.json').read_text())
+            review = json.loads((root/'prepared/artifacts/STARTUP_REVIEW.json').read_text())
+            desired = yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
+            self.assertEqual(settings['images'], {role: review['runtime_images'][role if role in ('postgresql', 'redis') else 'custom']['id'] for role in desired['services']})
+            self.assertEqual(settings['boot_id'], 'current-admission')
+
     def test_cursor_parser_rejects_ambiguous_or_missing_cursor(self):
         assemble=load('startup_assembly','assemble-startup.py')
         self.assertEqual(assemble.parse_cursor('-- No entries --\n-- cursor: s=abc;i=1\n'),'s=abc;i=1')
@@ -746,6 +745,8 @@ class Startup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.object(Path, 'read_text', fixture_read):
             report = preparation.prepare(Path(directory)/'rendered')
             self.assertFalse(report['execution_authorized'])
+            archived = yaml.safe_load(subprocess.check_output(['git', '-C', str(ROOT), 'show', report['bootstrap_tag'] + ':Nautobot/manifests/operation.yaml']))
+            self.assertEqual(report['runtime_images'], archived['runtime']['images'])
             for name in ('nautobot-postgresql.container', 'nautobot-redis.container'):
                 delta=report['artifact_changes'][name]
                 rendered=(Path(directory)/'rendered'/name).read_text()

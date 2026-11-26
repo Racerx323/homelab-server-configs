@@ -217,6 +217,28 @@ def health(root, boot, initial_errors, cursor):
             'free_bytes':free, 'work_bytes':size, 'ext4_errors':errors}
 
 
+def admitted_boot(root, admit=False):
+    """Bind continuity at live admission, never to a previous operation's boot."""
+    import socket
+    import stat
+    import uuid
+    if socket.gethostname() not in ('j2-svpi4mf', 'j2-svpi4mf.local.theama.co'):
+        raise RuntimeError('wrong_host')
+    current = str(uuid.UUID(Path('/proc/sys/kernel/random/boot_id').read_text().strip()))
+    path = root/'admitted-boot.json'
+    if admit and not path.exists() and not path.is_symlink():
+        with path.open('x') as stream:
+            os.chmod(path, 0o600)
+            json.dump({'boot_id': current}, stream)
+    info = path.lstat()
+    if (not stat.S_ISREG(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o600
+            or info.st_uid != os.geteuid() or info.st_size > 128):
+        raise RuntimeError('admission_metadata')
+    if json.loads(path.read_text()) != {'boot_id': current}:
+        raise RuntimeError('boot_drift')
+    return current
+
+
 def watch(root, spec):
     if os.getuid() != 0:
         raise RuntimeError('watchdog_requires_root')
@@ -224,9 +246,7 @@ def watch(root, spec):
     started = False
     passed = False
     reason = None
-    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
-    if boot != spec['boot_id']:
-        raise RuntimeError('baseline_boot_drift')
+    boot = admitted_boot(root, admit=True)
     cursor_text = capture(['journalctl', '-k', '-b', '-n', '0', '--show-cursor', '--no-pager'])
     match = re.search(r'^-- cursor: (.+)$', cursor_text, re.M)
     if not match:

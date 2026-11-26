@@ -25,12 +25,108 @@ application=load('application','Nautobot/ansible/scripts/initialize-application.
 node=load('node','Nautobot/ansible/scripts/runtime-initialization-node.py')
 launcher=load('launcher','Nautobot/ansible/scripts/run-runtime.py')
 
+def schema_sample(field):
+    if 'const' in field: return copy.deepcopy(field['const'])
+    if 'default' in field: return copy.deepcopy(field['default'])
+    if field.get('type') == 'object': return {k: schema_sample(v) for k, v in field['properties'].items()}
+    if field.get('type') == 'array': return [schema_sample(v) for v in field.get('prefixItems', [])]
+    if field.get('type') == 'integer': return field.get('minimum', 0)
+    if '{64}' in field.get('pattern', ''): return '0' * 64
+    if '{40}' in field.get('pattern', ''): return '0' * 40
+    if 'recovery/' in field.get('pattern', ''): return '/var/lib/nautobot/recovery/fixture'
+    return 'fixture'
+
+
 class Initialization(unittest.TestCase):
     def setUp(self):
         schema=json.loads((ROOT/'Nautobot/schemas/runtime-initialization.schema.json').read_text())
-        self.op={k:copy.deepcopy(v['const']) for k,v in schema['properties'].items()}
+        self.op=schema_sample(schema)
         self.desired=yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
         self.inputs=json.loads((ROOT/'Nautobot/manifests/runtime-inputs.json').read_text())
+
+    def test_boot_is_bound_at_admission_and_rechecked(self):
+        from contextlib import redirect_stderr
+        import io
+        original = Path.read_text
+        boot = ['00000000-0000-4000-8000-000000000001']
+        host = ['j2-svpi4mf']
+        def read(path, *args, **kwargs):
+            if str(path) == '/proc/sys/kernel/random/boot_id': return boot[0]
+            if str(path) == '/proc/sys/kernel/hostname': return host[0]
+            return original(path, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(Path, 'read_text', read):
+            root = Path(tmp)
+            with self.assertRaisesRegex(ValueError, 'admission_missing'):
+                node.check_boot(root, self.op)
+            # A different boot since preparation is normal for a new operation.
+            boot[0] = '00000000-0000-4000-8000-000000000002'
+            admitted = node.check_boot(root, self.op, admit=True)
+            self.assertEqual(node.check_boot(root, self.op), admitted)
+            host[0] = 'wrong-host'
+            with self.assertRaisesRegex(ValueError, 'wrong_host'):
+                node.check_boot(root, self.op, admit=True)
+            host[0] = 'j2-svpi4mf'
+            changed = copy.deepcopy(self.op)
+            changed['runtime']['configuration_sha256'] = 'f'*64
+            with redirect_stderr(io.StringIO()), self.assertRaisesRegex(ValueError, 'boot_drift'):
+                node.check_boot(root, changed, admit=True)
+            boot[0] = '00000000-0000-4000-8000-000000000003'
+            diagnostic = io.StringIO()
+            with redirect_stderr(diagnostic), self.assertRaisesRegex(ValueError, 'boot_drift'):
+                node.check_boot(root, self.op, admit=True)
+            self.assertIn(admitted['boot_id'], diagnostic.getvalue())
+            self.assertIn(boot[0], diagnostic.getvalue())
+            self.assertEqual(json.loads((root/'admitted-boot.json').read_text()), admitted)
+
+    def test_prerequisite_uses_exact_archive_without_main_copy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            def git(*args):
+                return subprocess.check_output(['git', '-C', str(root),
+                    '-c', 'user.name=Qualification', '-c', 'user.email=fixture@example.invalid',
+                    *args], stderr=subprocess.DEVNULL).decode().strip()
+            git('init', '-q')
+            raw = json.dumps({'accepted': True, 'outcome': 'accepted'}).encode()
+            (root/'receipt.json').write_bytes(raw)
+            git('add', 'receipt.json'); git('commit', '-qm', 'Qualification receipt')
+            git('tag', '-a', 'accepted', '-m', 'Qualification archive')
+            proof = {'path': 'receipt.json', 'sha256': hashlib.sha256(raw).hexdigest(),
+                     'tag': 'accepted', 'commit': git('rev-parse', 'HEAD'), 'outcome': 'accepted'}
+            (root/'receipt.json').unlink()
+            with patch.object(launcher, 'ROOT', root):
+                self.assertEqual(launcher.archived_prerequisite(proof), raw)
+                with self.assertRaisesRegex(launcher.bounded.PreflightBlocked, 'prerequisite_identity'):
+                    launcher.archived_prerequisite({**proof, 'sha256': '0'*64})
+                git('tag', 'lightweight')
+                with self.assertRaisesRegex(launcher.bounded.PreflightBlocked, 'prerequisite_identity'):
+                    launcher.archived_prerequisite({**proof, 'tag': 'lightweight'})
+
+    def test_source_hashes_are_operation_inputs_and_drift_still_refused(self):
+        from jsonschema import Draft202012Validator, ValidationError
+        for stage in ('runtime-initialization', 'runtime-continuation',
+                      'administrator-bootstrap', 'database-inspection'):
+            schema = json.loads((ROOT/'Nautobot/schemas'/f'{stage}.schema.json').read_text())
+            contract = schema['properties']['input_sha256']
+            values = {name: 'a'*64 for name in contract['required']}
+            Draft202012Validator(contract).validate(values)
+            values[next(iter(values))] = 'b'*64
+            Draft202012Validator(contract).validate(values)
+            with self.assertRaises(ValidationError):
+                Draft202012Validator(contract).validate({})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); (root/'input').write_bytes(b'current')
+            operation = {'prerequisites': [], 'input_sha256': {'input': hashlib.sha256(b'current').hexdigest()}}
+            with patch.object(launcher, 'ROOT', root):
+                launcher.verify_prerequisites(operation, require_clean=False)
+                (root/'input').write_bytes(b'drift')
+                with self.assertRaisesRegex(launcher.bounded.PreflightBlocked, 'accepted_input_drift'):
+                    launcher.verify_prerequisites(operation, require_clean=False)
+
+    def test_runtime_contracts_do_not_pin_historical_boots(self):
+        for stage in ('runtime-initialization', 'runtime-continuation',
+                      'administrator-bootstrap', 'database-inspection'):
+            schema = json.loads((ROOT/'Nautobot/schemas'/f'{stage}.schema.json').read_text())
+            self.assertNotIn('expected_boot_id', schema['properties']['runtime']['properties'])
 
     def test_selected_units_and_real_generator(self):
         files=renderer.render(self.desired,self.inputs,True)
@@ -118,35 +214,11 @@ class Initialization(unittest.TestCase):
             # Synthetic current-render fixture; preserve consumed historical hashes.
             op['runtime']['artifact_sha256']={n:hashlib.sha256(t.encode()).hexdigest() for n,t in files.items()}
             for n,t in files.items():(Path(tmp)/n).write_text(t)
-            with patch.object(launcher,'validate',return_value=op), patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('must not execute')):
+            with patch.object(launcher,'validate',return_value=op), patch.object(launcher,'archived_prerequisite',return_value=b'fixture'), patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('must not execute')):
                 with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bundle_hash_mismatch'):launcher.execute('0'*64)
             (Path(tmp)/'nautobot-migration.container').write_text('tampered')
-            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'artifact_hash_mismatch'):launcher.bundle_rows(op)
+            with patch.object(launcher,'archived_prerequisite',return_value=b'fixture'), self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'artifact_hash_mismatch'):launcher.bundle_rows(op)
 
-    def test_archived_prerequisites_without_live_git_dependency(self):
-        def git(argv,**kwargs):
-            args=argv[3:]
-            if args[0]=='status':return b''
-            for proof in self.op['prerequisites']:
-                if proof['tag'] in ' '.join(args):
-                    if args[0]=='cat-file':return b'tag'
-                    if args[0]=='rev-parse':return proof['commit'].encode()
-                    if args[0]=='show':return (ROOT/proof['path']).read_bytes()
-            raise AssertionError(args)
-        # Exercise prerequisite mechanics against explicit current fixture hashes;
-        # consumed initialization inputs must not track evolving desired state.
-        op=copy.deepcopy(self.op)
-        op['input_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
-                            for name in op['input_sha256']}
-        with patch.object(launcher.subprocess,'check_output',side_effect=git):
-            launcher.verify_prerequisites(op)
-            op['input_sha256']['Nautobot/manifests/desired-state.yaml']='0'*64
-            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'accepted_input_drift'):
-                launcher.verify_prerequisites(op)
-
-    def test_prerequisite_record_drift(self):
-        op=copy.deepcopy(self.op);op['prerequisites'][0]['sha256']='0'*64
-        with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'prerequisite_identity'):launcher.verify_prerequisites(op)
 
     def test_actual_startup_failure_and_independent_stops(self):
         play=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
@@ -196,7 +268,10 @@ class Initialization(unittest.TestCase):
     def test_node_main_recovers_inaccessible_inherited_directory(self):
         original=os.getcwd()
         with tempfile.TemporaryDirectory(prefix='nautobot-runtime.') as tmp:
-            root=Path(tmp);(root/'operation.json').write_text('{}')
+            root=Path(tmp)
+            op=copy.deepcopy(self.op)
+            op['operation']['target']['host']=Path('/proc/sys/kernel/hostname').read_text().strip()
+            (root/'operation.json').write_text(json.dumps(op))
             private=root/'private';private.mkdir();os.chdir(private);private.chmod(0)
             try:
                 def probe(*_):

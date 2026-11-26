@@ -98,7 +98,7 @@ Its peeled commit preserves the consumed definition and sanitized
 All four bounded steps passed at least 75 seconds of delayed observation; host,
 credential metadata and network configuration continuity passed. No application
 containers, administrator, database initialization or Restic stage ran. The earlier
-preflight failure is retained in `manifests/image-load-preflight-result.json`.
+preflight failure is retained in `nautobot-mixed-workload-v1-failed:Nautobot/manifests/image-load-preflight-result.json`.
 
 Image-store archival reconciliation: published tag `nautobot-image-load-v1-ready`
 peels to `0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b`. Durable store provenance is
@@ -111,7 +111,7 @@ authentication qualification remains a separate, inactive preparation.
 retained. All three disposable containers and the private network were removed.
 Configuration continuity and 77.733 seconds of delayed observation passed.
 Terminal tag: `nautobot-configuration-auth-v1-failed`; its peeled commit preserves
-the consumed definition, executable inputs and `manifests/authentication-trial-result.json`.
+the consumed definition, executable inputs and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/authentication-trial-result.json`.
 Bundle: `fda654ad9614e022ecbe9c5f27e7930a9cae21c8ec33fefd44f3680ac5028f04`.
 Authentication and production runtime remain unaccepted; baseline and image-store
 identities are unchanged.
@@ -127,7 +127,7 @@ accepted host and runtime identities remain unchanged.
 before application authentication. All trial containers and the private network
 were removed; continuity and 77.778 seconds of delayed observation passed.
 Terminal tag: `nautobot-configuration-auth-v2-failed`; its peeled commit retains
-the exact consumed inputs and `manifests/authentication-trial-retry-result.json`.
+the exact consumed inputs and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/authentication-trial-retry-result.json`.
 Bundle: `ab01aacd5616c0c13a98766d0feb16b9dbc5c34a92e639c9a9bed41dd5abb426`.
 Host baseline and image-store identities remain unchanged; authentication remains
 unaccepted.
@@ -145,7 +145,7 @@ claimed.
 shell exited 1 without a valid probe result. All disposable objects were removed,
 continuity passed and 77.743 seconds of delayed observation were quiet. Terminal
 tag: `nautobot-configuration-auth-v3-failed`; its peeled commit retains the exact
-consumed inputs and `manifests/authentication-trial-canonical-result.json`. Bundle:
+consumed inputs and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/authentication-trial-canonical-result.json`. Bundle:
 `98f25b29939fa8a2282374429986f1150ff7039fc8a9f8f46f9b3a87298e22e0`.
 Authentication remains unaccepted; baseline and image-store identities unchanged.
 
@@ -160,7 +160,7 @@ with bounded disposable startup-directory mounts and sanitized startup diagnosti
 settings phase without retaining the specific assertion. Cleanup and continuity
 passed with 77.769 seconds of quiet delayed observation. Terminal tag:
 `nautobot-configuration-auth-v4-failed`; its peeled commit preserves all consumed
-source inputs and `manifests/authentication-trial-startup-result.json`. Bundle:
+source inputs and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/authentication-trial-startup-result.json`. Bundle:
 `55c31c6b7531bbc66d9aa5a8961c3ff9238124433218f37aa45075e9186329cd`.
 Authentication remains unaccepted; accepted host/image-store identities unchanged.
 
@@ -177,7 +177,7 @@ with `postgres_unexpected_failure`. The failed attempt and underlying cause rema
 unproven; Redis checks were not reached. All disposable objects were removed,
 continuity passed and 77.774 seconds of delayed observation were quiet. Terminal
 tag: `nautobot-configuration-auth-v5-failed`; its peeled commit retains all consumed
-source inputs and `manifests/authentication-trial-settings-result.json`. Bundle:
+source inputs and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/authentication-trial-settings-result.json`. Bundle:
 `a3abb94558e035ae7c6cd1cd56a053e5e8e3c0a05239a8f8378651293acbd808`.
 Authentication remains unaccepted; accepted host/image-store identities unchanged.
 
@@ -251,7 +251,7 @@ credential cleanup. Terminal tag: `nautobot-canary-restore-v1-accepted`, archive
 commit `01bb9660fb4f30dcd275fe6301e0a06a92dc6f75` (published and read back).
 Bundle: `0260d585cdcd54e90f96e6a6a0b0de6c4f884c1eef25fcd662aa0fdcc402d606`.
 The tag preserves the exact consumed definition and
-`manifests/canary-restore-result.json`; its archival-pending field describes the
+`nautobot-mixed-workload-v1-failed:Nautobot/manifests/canary-restore-result.json`; its archival-pending field describes the
 pre-archive review. Source, snapshot and restored tree remain retained. The
 pre-data canary gate is satisfied; application recovery and runtime remain
 unaccepted. The active operation slot was cleared after remote tag verification.
@@ -289,7 +289,7 @@ Terminal tag `nautobot-database-inspection-v1-accepted`, archive commit
 `16835ade6b92376d12b9834286fa57f0a81cbb17` (published and read back).
 All 53 consumed input identities were verified, including six bound rendered
 artifacts. Bundle `4976dfe6bb7bd005a8e425468a9149eda3f52848a0e32868ac9c35a88588defd`.
-The tag preserves the exact operation and `manifests/database-inspection-result.json`;
+The tag preserves the exact operation and `nautobot-mixed-workload-v1-failed:Nautobot/manifests/database-inspection-result.json`;
 its pending-archival field is historical. Ledger: 423 applied migrations; static
 comparison found 16 core and 10 DNS Models files unrecorded. Initialization and
 runtime acceptance did not advance. Originals and protected host copies remain;
@@ -353,7 +353,7 @@ remain unperformed; stage-3/stage-4 accepted identities are unchanged.
 Bundle `eabbf6cdb678acb38e38019b280ccdc0e310bc1fc54f3c0be2af7333739de074`;
 PostgreSQL 3218 entries and Redis 6 entries matched source-before, source-after
 and copy content/metadata. Final stopped-state and installed-identity checks
-passed. `manifests/startup-preservation-result.json` records sanitized evidence;
+passed. `nautobot-mixed-workload-v1-failed:Nautobot/manifests/startup-preservation-result.json` records sanitized evidence;
 `terminal/startup-preservation/` retains the exact consumed bundle. Published annotated tag
 `nautobot-startup-preservation-v1-accepted` resolves to
 `42b6b18ae476ce3467c9f51f04f515d1b7337fde`; remote identity verified. The tagged pending-publication

@@ -208,6 +208,7 @@ def main():
         bounded.limits(Path('/sys/fs/cgroup'+row[3:]))
         os.execve('/usr/bin/podman',['podman',*command(spec,a.step)],ENV)
     require(os.geteuid()==0,'root_monitor_required')
+    spec['boot_id'] = bounded.admitted_boot(root, admit=a.mode == 'before')
     if a.mode=='before':
         journal(full=True);cursor=journal()
         before=inventory(spec);require(before['images']==[],'existing_images')

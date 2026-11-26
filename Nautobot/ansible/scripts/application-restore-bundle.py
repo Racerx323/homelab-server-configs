@@ -29,7 +29,6 @@ FILES.update({
     'playbook.yaml': 'Nautobot/ansible/playbooks/restore-application.yaml',
     'restore-stage.yaml': 'Nautobot/ansible/playbooks/restore-stage.yaml',
     'schema.json': 'Nautobot/schemas/application-restore.schema.json',
-    'preparation.yaml': 'Nautobot/manifests/application-restore-preparation.yaml',
     'accepted-state.yaml': 'Nautobot/manifests/accepted-live-state.yaml',
     'desired-state.yaml': 'Nautobot/manifests/desired-state.yaml',
     'PLAN.md': 'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
@@ -37,7 +36,7 @@ FILES.update({
     'ansible.cfg': 'Nautobot/ansible/ansible.cfg',
     'ansible-temp.sh': 'tests/repository/run-with-ansible-local-temp.sh',
 })
-GENERATED = {'operation.json', 'baseline.json', 'members.json', 'logical-reference.json',
+GENERATED = {'preparation.yaml', 'operation.json', 'baseline.json', 'members.json', 'logical-reference.json',
              'runtime.json', 'restore.json', 'repository', 'inventory.ini', 'source-evidence.json'}
 RECEIPTS = ['admitted-boot.json', 'credential-delivery.json', 'production-before.json', 'guard.json', 'guard-failure.json',
             'stopped.json', 'cleanup-result.json', 'logical-result.json', 'check-result.json',
@@ -76,13 +75,15 @@ def validate(op, schema):
     require(op['monitor_root'] == '/tmp/nautobot-restore-monitor-'+op['token'].removeprefix('nautobot-restore-'), 'monitor_token')
 
 
-def freeze(operation, destination, baseline, members, logical, source_evidence=None):
+def freeze(operation, destination, baseline, members, logical, source_evidence=None, *, preparation):
     import yaml
     op = json.loads(operation.read_text())
     validate(op, json.loads((ROOT/FILES['schema.json']).read_text()))
+    require(preparation.is_file() and not preparation.is_symlink(), 'preparation_file')
+    require(sha(preparation) == op['preparation_sha256'], 'preparation_identity')
     destination.mkdir(mode=0o700, exist_ok=False)
     for name, source in FILES.items(): shutil.copyfile(ROOT/source, destination/name)
-    for name, source in (('operation.json',operation),('baseline.json',baseline),('members.json',members),('logical-reference.json',logical)):
+    for name, source in (('preparation.yaml',preparation),('operation.json',operation),('baseline.json',baseline),('members.json',members),('logical-reference.json',logical)):
         shutil.copyfile(source, destination/name)
     if source_evidence is None:
         (destination/'source-evidence.json').write_text('{}\n')
@@ -272,14 +273,14 @@ def main():
     os.umask(0o077)
     p=argparse.ArgumentParser(); sub=p.add_subparsers(dest='action',required=True)
     f=sub.add_parser('freeze')
-    for name in ('operation','destination','baseline','members','logical'): f.add_argument('--'+name,type=Path,required=True)
+    for name in ('operation','destination','baseline','members','logical','preparation'): f.add_argument('--'+name,type=Path,required=True)
     f.add_argument('--source-evidence',type=Path)
     for action in ('verify','render-controller','execute'):
         command=sub.add_parser(action); command.add_argument('--bundle',type=Path,required=True);command.add_argument('--approve',required=True)
         if action!='verify': command.add_argument('--evidence',type=Path,required=True)
         if action=='render-controller':command.add_argument('--ssh-socket',type=Path,required=True)
     a=p.parse_args()
-    if a.action=='freeze': print(freeze(a.operation,a.destination,a.baseline,a.members,a.logical,a.source_evidence))
+    if a.action=='freeze': print(freeze(a.operation,a.destination,a.baseline,a.members,a.logical,a.source_evidence,preparation=a.preparation))
     elif a.action=='verify': verify(a.bundle,a.approve); print('verified')
     elif a.action=='render-controller': print(render(a.bundle,a.approve,a.evidence,a.ssh_socket),end='')
     else: return execute(a.bundle,a.approve,a.evidence)

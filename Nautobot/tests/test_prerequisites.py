@@ -32,7 +32,7 @@ spec.loader.exec_module(bundle)
 def fixture_repository(root):
     """Use current inputs with synthetic operation data, independent of archives."""
     for name, source in bundle.FILES.items():
-        if name in ('operation.yaml', 'qualification.json'):
+        if name == 'operation.yaml':
             continue
         target = root / source
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -74,7 +74,6 @@ def fixture_repository(root):
     for key in ('acceptance', 'rollback', 'external_inputs', 'unresolved_prerequisites', 'later_stages'):
         op[key] = ['fixture only']
     (root / bundle.FILES['operation.yaml']).write_text(yaml.safe_dump(op))
-    (root / bundle.FILES['qualification.json']).write_text('{}\n')
     return op
 
 

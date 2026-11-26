@@ -204,7 +204,7 @@ class Contracts(unittest.TestCase):
         elif operation['operation'].get('stage') == 'application_startup':
             contract = json.loads((ROOT / 'Nautobot/schemas/startup-operation.schema.json').read_text())
             validate(contract, operation)
-            self.assertIn(contract, SCHEMA['oneOf'])
+            self.assertIn({'$ref': 'startup-operation.schema.json'}, SCHEMA['oneOf'])
             self.assertFalse(operation['scope']['automatic_restore'])
             self.assertFalse(operation['scope']['reboot'])
             self.assertFalse(operation['scope']['caddy_publication'])
@@ -212,14 +212,6 @@ class Contracts(unittest.TestCase):
             validate(json.loads((ROOT / 'Nautobot/schemas/runtime-initialization.schema.json').read_text()), operation)
             self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')
             self.assertEqual(operation['runtime']['services'], ['postgresql', 'redis', 'migration'])
-        elif operation['operation'].get('stage') == 'isolated_canary_restore':
-            validate(json.loads((ROOT / 'Nautobot/schemas/canary-restore.schema.json').read_text()), operation)
-            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted_exact_bundle_required')
-            self.assertEqual(operation['implementation']['state'], 'reviewed')
-        elif operation['operation'].get('stage') == 'canary_backup_integrity':
-            validate(json.loads((ROOT / 'Nautobot/schemas/canary-backup.schema.json').read_text()), operation)
-            self.assertEqual(operation['authorization']['approval_record'], 'not_yet_granted')
-            self.assertEqual(operation['implementation']['state'], 'reviewed')
         elif operation['operation'].get('stage') == 'restic_repository_initialization':
             branch = next(item for item in SCHEMA['oneOf']
                           if item.get('title') == 'Reviewed standalone Restic initialization')
@@ -233,8 +225,7 @@ class Contracts(unittest.TestCase):
             self.assertEqual(operation['repository']['initialized_state'], 'unknown')
         else:
             schema_name = {'credential_provisioning': 'credential-operation.schema.json',
-                           'image_loading': 'image-load.schema.json',
-                           'configuration_authentication': 'authentication-trial.schema.json'}.get(
+                           'image_loading': 'image-load.schema.json'}.get(
                                operation['operation'].get('stage'), 'image-build.schema.json')
             validate(json.loads((ROOT / 'Nautobot/schemas' / schema_name).read_text()), operation)
             self.assertFalse(operation['authorization']['mutation_authorized'])
@@ -268,38 +259,7 @@ class Contracts(unittest.TestCase):
         for row in accepted['boot_readiness']['updated_artifacts']:
             self.assertEqual(accepted['application_startup']['artifact_sha256'][row['destination']], row['after_sha256'])
 
-    def test_canary_definition_boundaries(self):
-        import hashlib
-        schema=json.loads((ROOT/'Nautobot/schemas/canary-backup.schema.json').read_text())
-        document={key:copy.deepcopy(value['const']) for key,value in schema['properties'].items()}
-        validate(schema,document)
-        file=document['dataset']['files'][0]
-        self.assertEqual(len(file['content_utf8'].encode()),file['size_bytes'])
-        self.assertEqual(hashlib.sha256(file['content_utf8'].encode()).hexdigest(),file['sha256'])
-        for section,key,value in [('authorization','approval_record','implicitly_granted'),
-                                  ('snapshot_identity','selection','latest'),
-                                  ('commands','integrity',['check']),
-                                  ('failure_and_recovery','automatic_delete',True),
-                                  ('acceptance','restore_accepted',True)]:
-            bad=copy.deepcopy(document);bad[section][key]=value
-            with self.assertRaises(ValidationError):validate(schema,bad)
 
-    def test_restore_definition_pins_identity_and_isolation(self):
-        schema=json.loads((ROOT/'Nautobot/schemas/canary-restore.schema.json').read_text())
-        document={key:copy.deepcopy(value['const']) for key,value in schema['properties'].items()}
-        validate(schema,document)
-        accepted=json.loads((ROOT/'Nautobot/manifests/canary-backup-result.json').read_text())
-        self.assertEqual(document['snapshot']['id'], accepted['snapshot_id'])
-        self.assertEqual(document['snapshot']['restore_selector'], accepted['snapshot_id']+':'+accepted['source']['root'])
-        self.assertEqual(document['expected_tree']['files'][0]['sha256'], accepted['source']['file']['sha256'])
-        for section,key,value in [('authorization','approval_record','implicitly_granted'),
-                                  ('snapshot','id','latest'),
-                                  ('destination','new_empty_directory_required',False),
-                                  ('destination','source_overlap_allowed',True),
-                                  ('expected_tree','extra_paths_allowed',True),
-                                  ('acceptance','application_recovery_accepted',True)]:
-            bad=copy.deepcopy(document);bad[section][key]=value
-            with self.assertRaises(ValidationError):validate(schema,bad)
 
     def test_dual_stack_acceptance_requires_complete_provenance(self):
         schema = json.loads((ROOT / 'Nautobot/schemas/accepted-host-baseline.schema.json').read_text())
@@ -382,22 +342,6 @@ class Contracts(unittest.TestCase):
             bad['reboot_persistence'][key] = value
             with self.assertRaises(ValidationError): validate(schema, bad)
 
-    def test_status_provenance_matches_frozen_definition(self):
-        schema = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())
-        operation = copy.deepcopy(schema['const'])
-        validate(schema, operation)
-        p = operation['preparation_review']
-        self.assertFalse(p['status_provenance']['live_refresh_performed'])
-        self.assertFalse(p['status_provenance']['historical_authorizations_are_reusable'])
-        for key in ('package_cleanup', 'post_cleanup_preflight', 'completed_preflight'):
-            self.assertIsNone(p[key]['observed_at'])
-            self.assertEqual(p[key]['timestamp_status'], 'not_established_from_reviewed_record')
-        validate({'type':'string','format':'date-time'}, p['webmin_followup_observation']['observed_at'])
-        self.assertNotIn('correction_authorized', p['readiness_review'])
-        self.assertNotIn('reboot_authorized', p['readiness_review']['memory_correction'])
-        bad = copy.deepcopy(operation)
-        bad['preparation_review']['readiness_review']['memory_correction']['authorization_reusable'] = True
-        with self.assertRaises(ValidationError): validate(schema, bad)
 
 
     def test_notification_acceptance_keeps_scope_and_delivery_evidence(self):

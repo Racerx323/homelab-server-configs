@@ -68,7 +68,7 @@ def spec_from(root):
         item=desired['images'][name]
         require(item['reference'].endswith('@'+item['manifest_digest']) and item['platform']=='linux/arm64/v8','dependency_identity')
         images[name]={'reference':item['reference'],'digest':item['manifest_digest']}
-    return {'boot_id':accepted['host_baseline']['boot_id'],'images':images,
+    return {'images':images,
             'archive':op['archive'],'archive_sha256':qualified['archive_sha256'],'archive_bytes':qualified['archive_bytes'],
             'settings_sha256':sha(root/'settings.py'), 'min_available_bytes':1610612736,'min_free_bytes':21474836480}
 

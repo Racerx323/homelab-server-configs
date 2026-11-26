@@ -15,6 +15,23 @@ import restore_node as node
 
 
 class NodeTests(unittest.TestCase):
+    def test_disposable_workspace_outside_evidence_and_target_refusal(self):
+        with tempfile.TemporaryDirectory(prefix='nautobot-restore-local-') as directory:
+            parent = Path(directory)
+            root = parent / ('nautobot-restore-' + 'a'*24)
+            root.mkdir(mode=0o700)
+            spec = {'token':root.name, 'uid':os.getuid(), 'context':'disposable',
+                    'images':{role:'b'*64 for role in node.ROLES}}
+            node.save(root/'runtime.json', spec)
+            self.assertEqual(node.Restore(root).root, root)
+            parent.chmod(0o755)
+            with self.assertRaisesRegex(node.Blocked, 'ownership_mode'):
+                node.Restore(root)
+            parent.chmod(0o700)
+            node.save(root/'runtime.json', {**spec, 'context':'target'})
+            with self.assertRaisesRegex(node.Blocked, 'target_root'):
+                node.Restore(root)
+
     def test_command_timeout_and_output_bound(self):
         with self.assertRaisesRegex(node.Blocked, 'command_timeout'):
             node.bounded(['/usr/bin/sleep', '30'], timeout=.1)

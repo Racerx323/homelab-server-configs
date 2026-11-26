@@ -185,7 +185,7 @@ def evaluate(document, results):
           and isinstance(validation['evidence_reference'], str) and bool(validation['evidence_reference'])
           and outputs['boot_start'] == outputs['boot_end'] == validation['boot_id'])
     check('reviewed_storage_window_boot', lambda: outputs['boot_start']
-          == document['preparation_review']['probe_review']['storage_window_boot_id'])
+          == document['storage_evidence']['storage_window_boot_id'])
     return {'result': 'preflight_passed_review_required' if all(checks.values()) else 'blocked',
             'checks': checks, 'accepted_live_state_written': False, 'mutation_attempted': False}
 

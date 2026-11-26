@@ -42,7 +42,8 @@ def require_preflight(document):
         or result['bundle_sha256'] != proof['bundle_sha256']
         or result['result'] != 'passed'
         or result['observations']['config_exit_status'] != 10
-        or result['observations']['restic_version_output'] != document['preflight']['last_result']['restic_version']
+        or not result['observations']['version_supported']
+        or result['observations']['execution_user'] != 'nautobot'
         or not result['remote_secret_cleanup_passed']
         or not result['controller_secret_file_absent']
         or not result['ansible_local_temp_absent']
@@ -71,6 +72,8 @@ def require_ready(document):
         or provider['bucket']['s3_endpoint'] != 'https://' + repo['endpoint']
         or provider['bucket']['repository_prefix'] != repo['prefix']
         or provider['provenance']['transport_bundle_sha256'] != document['provider_acceptance']['bundle_sha256']
+        or provider['provenance']['transport_acceptance_tag'] != document['provider_acceptance']['terminal_tag']
+        or provider['provenance']['transport_acceptance_commit'] != document['provider_acceptance']['archive_commit']
         or policy['bucket_scope'] != 'exact_bucket'
         or policy['name_prefix_readback'] is not None
         or set(policy['capabilities']) != {'listAllBucketNames', 'listBuckets', 'readBuckets', 'listFiles', 'readFiles', 'writeFiles', 'deleteFiles'}):

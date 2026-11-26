@@ -50,7 +50,7 @@ class ImageLoad(unittest.TestCase):
 
     def test_clean_slot_and_weakened_operation_rejected(self):
         schema=json.loads((ROOT/'Nautobot/schemas/image-load.schema.json').read_text())
-        op=copy.deepcopy(schema['const'])
+        op=yaml.safe_load((ROOT/'Nautobot/tests/fixtures/image-load-operation.yaml').read_text())
         for section,key,value in [('limits','post_exit_seconds',30),('authorization','mutation_authorized',True),('boundaries','runtime_deployment',True)]:
             bad=copy.deepcopy(op);bad[section][key]=value
             with self.assertRaises(ValidationError):Draft202012Validator(schema).validate(bad)

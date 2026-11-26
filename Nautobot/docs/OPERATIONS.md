@@ -15,7 +15,7 @@ a second operation. Read accepted records by stage and observation date:
 
 - `accepted-live-state.yaml` retains stage-3 boundaries and stage-specific acceptance;
   the newer synthetic-workload section does not retroactively rewrite older receipts.
-- `deferred-restic-initialization.yaml` is an inactive historical template. Its old
+- `tests/fixtures/restic-initialization-operation.yaml` is a historical test input. Its old
   repository-absence and implementation fields must not be read as current state.
   Its old document paths, and matching legacy schema constants, resolve at the
   pre-consolidation snapshot indexed in HISTORY. The preservation regression
@@ -24,8 +24,21 @@ a second operation. Read accepted records by stage and observation date:
   blockers after a separately accepted successor. The terminal tags in HISTORY
   establish their order. Keep them until a separately reviewed archive cleanup
   proves every dependent reference and original byte identity.
-- `startup-preservation-result.json` is a verified-copy receipt, not proof of a
+- `nautobot-mixed-workload-v1-failed:Nautobot/manifests/startup-preservation-result.json`
+  is a verified-copy receipt, not proof of a
   current or exercised application restore.
+
+Runtime initialization, continuation, database inspection and administrator
+bootstrap capture the current host boot ID in the operation's protected
+`admitted-boot.json`. A reboot before admission is allowed; an unexpected change
+after admission stops progression. Host, configuration, image and service checks
+remain independent. Historical boot IDs belong to archived observations.
+
+For these runtime definitions, fill every required `input_sha256` entry from the
+reviewed current source. Schema defaults are invalid placeholder hashes, not
+accepted inputs. The launcher checks the actual bytes and exact approved bundle.
+Completed prerequisite receipts are read from their annotated tag, with the
+recorded commit, hash and accepted outcome checked; no main-branch copy is needed.
 
 Offline CI covers schemas, bundle references, renderers and failure-path contracts.
 The native uWSGI test (`test_startup_server.py`), bounded metrics tmpfs test
@@ -39,7 +52,54 @@ For long operations, use the [controller supervision procedure](#workload-contro
 A manager exit receipt is not remote acceptance. Controller restart never grants
 permission to replay a workload; retain node evidence and review cleanup first.
 
+## Required inputs and evidence storage
+
+`.local-evidence` is an optional historical evidence store, not an input store or
+runtime workspace. Documentation, deployment and routine operations must remain
+usable without it. Keep reusable source, schemas and nonsecret intended inputs in
+the repository. Keep secret values in the approved secrets system. Required private
+identity/ownership inputs and recovery references need protected, durable,
+owner-controlled storage with an explicit input path, content identity and recovery
+procedure. Retain a separately captured logical reference; deriving it from the
+restored dump does not establish independence. Hashes alone cannot replace files.
+
+Use owned temporary workspaces for disposable runtime state, with scoped cleanup;
+retain only needed receipts/logs in evidence storage. Preserve consumed bundles and
+raw evidence byte-for-byte. Removing a dependency means supplying and verifying its
+replacement before retiring a required copy, not deleting the historical record.
+Do not publish private identity or ownership payloads to make a checkout portable.
+
+Bootstrap takes an explicit protected identity path from the reviewed operation;
+image retry provenance belongs to the reviewed operation; rendered directories are operation inputs.
+These interfaces reject `.local-evidence` as an operational input store. Historical
+receipts may still refer to it, but new commands must not depend on its layout.
+Disposable restore qualification uses protected `/tmp/nautobot-restore-local-*`
+workspaces, not evidence directories, and preserves the target-only UID/path guards.
+
+Fixture ownership receipts serve only retained-test-data replacement/disposal.
+Keep the exact original receipt and archived hash until that scope is resolved;
+matching object names cannot establish ownership. Recurring backup metadata already
+contains the independently captured logical reference. Use its accepted provenance
+and hash when selecting restore inputs; do not recompute a comparison reference from
+the restored database. No separate permanent workstation store is required by this
+contract. Retrieving protected target or backup inputs still requires the applicable
+operation authority; repository preparation alone grants no such access.
+
 ## Procedure index
+
+Routine operation and the next workload stage:
+
+- [Workload and persistence](#workload-and-persistence-qualification)
+- [Monthly restore](#monthly-restore-contract)
+- [Recurring supervision](#node-local-recurring-supervision)
+- [Schedule and readback](#schedule-enablement-preparation-and-acceptance)
+- [Credentials and rotation](#recurring-credential-provisioning)
+- [Disposal and retention](#successful-local-disposal-and-remote-retention-analysis)
+
+The following bootstrap and diagnostic procedures describe separate lifecycle
+stages. Their historical failure/readiness statements are not today's acceptance
+status. Use ROADMAP and accepted records before selecting a procedure; do not rerun
+a completed stage merely because it appears in this index.
 
 - [Retained host-baseline convergence and acceptance](#retained-host-baseline-convergence-and-acceptance)
 - [Raspberry Pi memory-controller correction](#raspberry-pi-memory-controller-correction)
@@ -590,7 +650,7 @@ verify CI before requesting execution approval.
 
 Use the existing owning paths: `restic/scripts/application-backup.py` for capture,
 upload and full integrity checking, and `ansible/scripts/workload_capture.py` for
-qualified pilot capture sections. Do not reactivate `startup-preservation.yaml`:
+qualified pilot capture sections. Do not reactivate the archived startup cold-copy operation:
 its cold-copy procedure was designed for stopped services and historical artifact
 identities. Copying the running PostgreSQL volume is not this recovery method.
 
@@ -661,11 +721,11 @@ acceptance record for the selected snapshot and scope. Preserve prior cold copie
 
 #### Application preservation bundle preparation
 
-`manifests/recovery-preservation.yaml` and its schema define the reviewed,
-**inactive** preparation scope. `ansible/playbooks/preserve-application.yaml`
-contains the candidate stop/capture/resume path. This is not an executable approved
-operation, and `manifests/operation.yaml` stays clean until the execution contract
-and prerequisites are qualified.
+`ansible/playbooks/preserve-application.yaml` implements stop/capture/resume.
+`schemas/preservation-execution.schema.json` validates its operation inputs;
+`preservation-bundle.py` binds them to the reviewed sources and approval.
+Preparation alone grants no execution authority. Keep `manifests/operation.yaml`
+clean until a separately approved operation is defined.
 
 The outage sequence is: verify current artifacts/images and healthy services;
 record selected image/package metadata before containers are removed; stage
@@ -1595,8 +1655,9 @@ full stage 5, real-inventory representativeness or the seven-day pilot.
 
 #### Target restore isolation and inputs
 
-The inactive target definition is
-`manifests/application-restore-preparation.yaml`. It binds archive provenance,
+Supply the target preparation explicitly with `--preparation PREPARATION.yaml`.
+Select its values for this operation; do not reuse a completed trial by default.
+It binds archive provenance,
 full snapshot and repository identities, the six payload hashes, private logical
 reference hash, installed ARM64 image IDs, credential references and candidate
 resource/time limits. Neither this definition nor a successful baseline activates
@@ -1772,8 +1833,10 @@ monitoring and production noninterference still require the approved live run.
 
 #### Freezing and executing the isolated restore bundle
 
-`application-restore-bundle.py freeze` takes `--operation`, `--destination`,
+`application-restore-bundle.py freeze` takes `--operation`, `--preparation`, `--destination`,
 `--baseline`, `--members` and `--logical` paths. The destination must be new.
+The operation must bind the preparation file through `preparation_sha256`;
+freeze refuses a mismatch before creating the destination.
 It includes the operation, all execution sources, plan, procedures, accepted and
 preparation manifests, private baseline/reference and exact member map. It binds
 accepted preservation or archived recurring-promotion provenance and deterministically generates runtime,
@@ -1823,7 +1886,7 @@ review; never retry against the same directory. Retain the downloaded database,
 recovered configuration and logical reference privately until an explicit disposal
 decision. Do not publish raw receipts containing recovered application data.
 
-`tests/qualify_restore_delivery.py` prepares disposable inputs for the same staging
+`tests/qualify_restore_target.py --delivery` prepares disposable inputs for the same staging
 and delivery tasks; it uses the hash-bound synthetic fixture, not production data
 or credentials. Run the generated inventory/extra-vars with the target playbook
 through the Ansible wrapper outside the sandbox. Check returned receipts and
@@ -2304,21 +2367,16 @@ must pass its real kernel/delegation checks before starting the build.
 
 ### Bounded ARM64 image qualification — Retrying a mutation-bearing failure
 
-Preserve the consumed operation definition and its evidence. `prepare-retry`
-produces a private, unactivated candidate with fresh operation paths; it does not
-replace the active manifest or authorize host contact:
+Prepare a new reviewed operation after reconciling the failed state. If it needs
+predecessor handling, set `build.predecessor` to the exact archive and evidence
+identities in that operation, then use the ordinary `prepare` command. Preparation
+never invents a successor ID or rewrites a consumed operation. The historical
+`prepare-retry` interface is retired.
 
-```text
-python3 Nautobot/ansible/scripts/prepare-image-build.py prepare-retry /tmp/NEW_RETRY_BUNDLE
-```
-
-The retained predecessor inputs and stopped-failure result are hash-checked during
-preparation. The candidate carries that provenance and its own exact schema.
-Before execution can stage anything, its launcher requires the annotated,
-published `nautobot-image-qualification-v1-failed` tag containing the exact
-consumed operation definition. Terminal archival also requires the sanitized
-execution evidence manifest under the repository lifecycle. Git publication is
-a separate authorization; preparation does not create or push a tag.
+Before execution stages anything, the launcher verifies the selected annotated,
+published archive, operation hash and terminal-evidence hash. The operation's
+predecessor result hash is checked on the host before failed-state cleanup.
+No raw predecessor directory is a controller preparation prerequisite.
 
 The retry playbook verifies the predecessor result hash, both failed unit states,
 zero main PIDs, exit status 1 and absence of both old control groups before new
@@ -2521,10 +2579,13 @@ runtime, administrator bootstrap and Restic remain separate stages.
 | Secret source | Doppler `homelab-dev/prd_nautobot`; reference names in `credential-preparation.json`. No values or value hashes in bundles/evidence. |
 | Settings and runtime definitions | `ansible/templates/runtime/nautobot_config.py`, runtime templates and `ansible/scripts/render-runtime.py`. |
 
-The qualified OCI archive is currently retained at
+The September image-loading operation retained its qualified OCI archive at
 `/var/tmp/nautobot-image-fac478c529ba/work/image.oci.tar` on the target, with a
 controller copy under
-`/home/aaron/code/.local-evidence/nautobot-image-retry-20260921/execution/`.
+the private September image-build execution record. That controller record is
+historical provenance, not a required source for a new build/load operation. Use
+the repository image definition and qualified-image identity; require an explicit,
+verified archive location for any future authorized load.
 Its expected size is 348927488 bytes; obtain its expected digest from the
 qualified-image manifest rather than duplicating it in an execution script.
 Neither archive presence nor the isolated build store proves runtime-store loading.
@@ -2629,302 +2690,11 @@ Preflight failures retain a bounded error-code record without raw private output
 
 ## Disposable configuration and authentication qualification
 
-This stage follows archived image-store readiness and qualifies native
-configuration plus positive PostgreSQL/Redis connections in a disposable scope.
-It requires separate exact-bundle authorization. Negative security checks do not
-gate positive readiness and remain separately scoped. Current outcomes and their
-terminal identities belong in manifests and HISTORY, not this procedure.
-
-### Disposable configuration and authentication qualification — Prepared checks and provenance
-
-The candidate in-container probe is
-`ansible/scripts/configuration-auth-probe.py`; its offline suite is
-`tests/test_configuration_auth.py`, wired into pre-commit and the existing CI
-validation runner. The probe runs only after Nautobot initializes Django and
-requires an explicitly mounted disposable-trial marker. The marker is an
-accidental-invocation guard, not authorization or proof of isolation.
-
-Bind these inputs when preparing the execution bundle:
-
-- `runtime-image-store.json`: published image-load tag, peeled commit and result
-  hash. Resolve all three immutable references from the archived result and
-  compare fresh local-store inspection before starting any container.
-- `qualified-image.json`, `runtime-inputs.json` and `desired-state.yaml`: original
-  image qualification, application/recovery identity, version and service policy.
-- `provisioned-credentials.json` and archived credential result: existing injection
-  identity. Do not create, retrieve bootstrap credentials, rotate or overwrite.
-- The exact seven protected runtime inputs, the Redis Podman secret metadata,
-  non-secret settings template and accepted host/boot identity. Compare metadata
-  and the settings hash before and after; do not hash secret values into evidence.
-
-The image-store tag is `nautobot-image-load-v1-ready`, peeled commit
-`0dd657bc6f7c1a5c742bc8e07e64e3ab6d50d27b`. Its readiness result does not prove
-application settings, authentication or successful startup.
-
-### Disposable configuration and authentication qualification — Isolated execution design
-
-The implementation uses `ansible/playbooks/authentication-trial.yaml`, the frozen
-launcher `ansible/scripts/authentication-trial.py`, and private node adapters in
-`ansible/scripts/auth-trial-node.py`. Ansible sequences creation, readiness and the
-probe. The node helper suppresses secret-bearing Podman output and independently
-guards health, deadline and cleanup.
-Use a unique operation-owned private network and three disposable containers.
-Require absence of all selected names before creation and record exact object IDs.
-Never attach to `nautobot-private` or use production container/volume names.
-
-Use only already-loaded images with pulling disabled, no published ports, no host
-networking, and no production data mounts. Provide network aliases `postgresql`
-and `redis` for the disposable services. PostgreSQL uses an explicitly sized
-512 MiB tmpfs at its data path; Redis uses 128 MiB tmpfs at `/data`. No named or
-anonymous persistent data volume is allowed: inspect the actual mounts before
-running the probe. Fail if image-declared volumes create unreviewed durable storage.
-PostgreSQL initializes a disposable database with the intended user/database and
-password; this is an authorized-test prerequisite only after bundle approval,
-not production database initialization or a Nautobot schema migration.
-
-Enforced ceilings: PostgreSQL 768 MiB, Redis 512 MiB, probe 1536 MiB, two CPUs per
-container, no swap, a 15-minute active-trial deadline, followed by bounded teardown and observation. The orchestrator must
-prove effective per-container cgroup limits before tests, guard host memory at
-1.5 GiB available, temperature below 80 C, zero throttling and quiet storage.
-A node-local systemd watchdog starts before runtime objects exist and performs
-cleanup on deadline or health failure without the controller. Its 1500-second
-RuntimeMaxSec and 360-second stop-handler timeout bound the watchdog; ExecStopPost
-attempts cleanup after a killed watchdog. Each container also has a 900-second
-Podman timeout. Live deadline enforcement remains a target qualification concern;
-a failed teardown requires explicit residue review, never an acceptance claim.
-
-The watchdog samples every five seconds and rejects gaps over 15 seconds, including
-teardown. Limits are read from each running container's actual cgroup and ancestors;
-missing/unlimited controls fail. No fallback silently removes resource limits.
-
-Mount existing scoped environment files privately: PostgreSQL gets only its own
-file plus non-secret user/database settings; Redis gets its existing configuration
-secret and health environment; the probe gets one existing application environment
-and read-only `nautobot_config.py`. Redis mounts its configuration secret as
-container UID/GID 999, mode 0400. The idle probe overrides the image entrypoint with
-`/bin/sleep infinity`; only the explicit Django shell probe may execute application
-code. Do not distribute the initial-admin credential.
-Start no application web, worker, scheduler, Job or production migration.
-
-Use the installed Nautobot command path to initialize settings and Django, then
-invoke the probe through the Python shell. Candidate command inside the reviewed
-probe container (not a workstation or host execution command):
-
-```text
-nautobot-server shell --interface python --command "exec(compile(open('/run/nautobot-qualification/probe.py').read(), '/run/nautobot-qualification/probe.py', 'exec'), {'__name__': '__main__'})"
-```
-
-Set `NAUTOBOT_CONFIG=/opt/nautobot/nautobot_config.py` and mount the read-only marker
-`/run/nautobot-qualification/isolated-trial` with content
-`disposable-configuration-authentication`. The pinned OCI archive's CLI and Django shell source confirm these options and
-command dispatch. Explicit `__name__` is necessary because Django executes the
-command in its own module namespace. Actual settings and authentication behavior
-remain live qualification checks. See
-[Nautobot configuration guidance](https://docs.nautobot.com/projects/core/en/stable/user-guide/administration/configuration/).
-
-### Disposable configuration and authentication qualification — Acceptance matrix
-
-| Check | Required result |
-| --- | --- |
-| Configuration | Exact mounted settings path, DEBUG/installation metrics off, approved hosts/CSRF/proxy header, injected secret matches in memory only, no bootstrap credential. |
-| Native configuration | Nautobot-initialized Django management `check` completes without an error; invoked through `call_command`. This is the same command as `nautobot-server check`, not a migration or deployment-security audit. |
-| Plugin | DNS Models registered in Django; actual installed Nautobot and plugin versions match the pinned inputs. |
-| PostgreSQL | Explicit TCP connection using the application backend/settings succeeds; `SELECT current_user, current_database(), inet_server_port()` matches intended identities and port 5432. Connection or query failure prevents readiness acceptance. Negative password testing is separate. |
-| Redis cache | Clone the actual Django cache connection parameters with five-second socket/connect timeouts. Correct application credentials return PONG on database 1; connection, authentication or cleanup failures prevent acceptance. |
-| Redis broker | The actual Celery broker connection returns PONG using its configured credentials on database 0. Failures prevent acceptance. |
-| Cleanup | Close/disconnect every probe connection. Stop and remove only operation-owned container IDs and network; attempt remaining cleanup after any failure. No persistent trial volume or worker may remain. |
-| Host continuity | Accepted boot, effective limits, unchanged credential metadata/settings and no kernel/storage/OOM event; at least 75 seconds of sampled observation after teardown. |
-
-The pinned settings default the database port to an empty string, which Django
-omits from its connection parameters. Accept that default or explicit 5432, reject
-conflicting `PGPORT`, and independently verify the connected server port. An empty
-setting alone is not evidence of the endpoint actually reached.
-
-Probe output contains only acceptance, fixed check names, categorical failed
-phase, allowlisted `failure_code` and `exception_category`. Exception messages,
-settings, environment dumps, connection URLs and passwords must
-remain out of reports. Capture all container/CLI streams privately with output and
-time limits: framework startup itself can emit errors before the probe runs.
-Parse the final JSON result strictly; require successful exit status, all five
-check names and no missing phase. Probe acceptance alone cannot override failed
-or missing cleanup, host observation or isolation evidence.
-
-PostgreSQL clients may omit SQLSTATE on connection-establishment failures. The
-previous wrong-password contract required `28P01`; v6 could not establish it. That
-negative-test result stays inconclusive. Readiness now verifies the actual positive
-application connection independently; it does not claim password rejection is
-proven. Effective authentication policy and private network requirements remain.
-
-Negative PostgreSQL and Redis tests are retained only behind explicit
-`include_negative=True` helper calls for separately reviewed testing. The live
-readiness entrypoint never enables them. No server-log correlation is a prerequisite
-for the positive readiness stage. The native `check` uses its default error threshold;
-passing it is not a claim that deployment warnings or all production checks are clear.
-Raw command output is discarded to avoid exposing configuration values; a fixed
-native-check failure code identifies that step. Review failures before proceeding.
-
-Tests cover native-command invocation/failure, the five-check readiness entrypoint,
-positive-only connection selection, positive errors, cleanup failures, diagnostic
-redaction and retained separately invoked negative semantics. Offline mocks establish
-orchestration contracts, not actual driver/server behavior. The isolated Ansible
-suite exercises partial startup, always-cleanup, ownership, guard and limit failures.
-Authoritative ARM64 application behavior is verified only in the approved live stage.
-
-### Disposable configuration and authentication qualification — Completion and recovery boundary
-
-On a failed check, stop later provocative tests and tear down only proven owned
-objects. Keep bounded sanitized evidence. If object ownership is ambiguous, stop
-with explicit manual intervention; never prune, remove shared images, delete
-production volumes or rotate credentials. Attempt all independent cleanup steps
-and report each residue. A failed cleanup prevents acceptance even if every probe
-passed. Temporary PostgreSQL/Redis data is discarded only within the reviewed
-explicitly disposable scope.
-
-On success, archive this qualification before starting another operation. Runtime
-command startup, migrations, administrator bootstrap, firewall/backend exposure,
-Restic pre-data gates, deployment persistence, workload, application recovery and
-pilot soak remain separate. This check does not bypass the Restic gate before
-entrusting production application data to storage.
-
-### Disposable configuration and authentication qualification — Freeze, review and execute
-
-Prepare and verify locally (no target contact):
-
-```bash
-python3 Nautobot/ansible/scripts/authentication-trial.py prepare /tmp/nautobot-authentication-trial-bundle-YYYYMMDD
-python3 /tmp/nautobot-authentication-trial-bundle-YYYYMMDD/launcher.py verify /tmp/nautobot-authentication-trial-bundle-YYYYMMDD SHA256
-```
-
-After explicit approval of the emitted SHA-256, execute only that frozen launcher:
-
-```bash
-python3 /tmp/nautobot-authentication-trial-bundle-YYYYMMDD/launcher.py execute /tmp/nautobot-authentication-trial-bundle-YYYYMMDD SHA256
-```
-
-Target: `ama@j2-svpi4mf.local.theama.co`, strict host-key alias `10.1.2.170`.
-The rootless account is `nautobot`; systemd hosts only the privileged health and
-teardown guard. The controller records private evidence beneath `/tmp`; node
-sources and sanitized evidence remain in an owned `/var/tmp/nautobot-auth-*`
-directory for recovery. Do not remove that directory while the guard or any
-trial object exists. It contains no staged credential values.
-
-Review `controller-result.json`, node `result.json`, `cleanup.json`, the five probe
-checks, per-container limits, sample history, execution trace and retained node
-location. Ansible failure, missing records, a coverage gap, cleanup residue or
-configuration drift prevents acceptance. Inspect the recorded systemd unit and
-owned IDs when recovery is needed; reuse the frozen node helper's `emergency`
-action only within the authorized trial scope. No broad prune is permitted.
-
-Podman options and inspection expectations follow the official
-[create reference](https://docs.podman.io/en/latest/markdown/podman-create.1.html).
-The bundle includes the exact code, schema, plan, provenance and non-secret inputs;
-changes require a new bundle identity before execution.
-
-### Disposable configuration and authentication qualification — Failure diagnostics and retry preparation
-
-The node writes `diagnostic.json` before each probe substep: guard, inspect,
-validate, effective limits, probe identity resolution, Django shell, result parsing
-and final guard. It records the container role and only exact allowlisted assertion
-categories; unknown exceptions become `unclassified_failure`. The bounded capture
-helper can deliver exit status and streams to an in-memory observer even on a
-nonzero exit, timeout or output-limit failure. Only strict probe JSON categories
-and completed fixed check names are persisted. Raw streams and exception messages
-are discarded. A diagnostic report never substitutes for acceptance evidence.
-
-A failure before the probe starts therefore retains its validation stage; a
-structured probe rejection retains its settings/PostgreSQL/Redis phase and exact
-allowlisted assertion code. Database engine, host, name, user, password and port
-checks have separate codes without exposing their values. Unknown errors use
-`unclassified_failure`; the node rejects codes outside the shared vocabulary.
-Tests exercise the actual probe entrypoint and node parser, including secret
-suppression and vocabulary parity. An
-unstructured framework error retains the Django-shell stage and command status,
-not an inferred cause. Credentials remain absent from diagnostics and tests include
-secret-bearing synthetic output to enforce that boundary.
-
-Prepare a retry candidate outside the active manifest with:
-
-```bash
-python3 Nautobot/ansible/scripts/authentication-trial.py prepare /tmp/RETRY_BUNDLE --operation /absolute/private/operation.yaml
-```
-
-The retry binds the prior failed result hash. Before any host contact, execution
-requires that exact result in an annotated Git tag and verifies the same tag object
-on origin. Until terminal archival is authorized and completed, the candidate is
-reviewable but blocked from execution. Preserve the active executed definition;
-do not replace it with the candidate merely to prepare a bundle.
-
-### Disposable configuration and authentication qualification — PostgreSQL socket mount and Podman inspect
-
-Use the canonical `/run/postgresql` destination for the 16 MiB socket tmpfs,
-mode 3775. The pinned PostgreSQL filesystem links `/var/run` to `/run`.
-Requesting `/var/run/postgresql` can produce an inspect key before startup that
-is absent afterward: Podman matches configured user-volume paths to runtime
-specification destinations by exact spelling. See the version-specific
-[volume selection source](https://github.com/containers/podman/blob/v5.4.2/libpod/container_internal.go#L2566)
-and [inspect source](https://github.com/containers/podman/blob/v5.4.2/libpod/container_inspect.go#L605).
-
-Local bounded rootless tests reproduced the disappearance and confirmed stable
-metadata with the canonical path. Captured before/after metadata is retained in
-`tests/fixtures/tmpfs-symlink.json` and `tmpfs-canonical.json`; the authentication
-trial suite consumes both. Exact mount-set and size checks remain enforced, with
-regressions for missing, extra and oversized tmpfs mounts. The failed host trial's
-individual mount keys were not captured; corrected target acceptance remains a
-separate live stage. Do not accept arbitrary additional or missing mounts as a
-compatibility workaround.
-
-### Disposable configuration and authentication qualification — Initialization prerequisites and safe startup diagnostics
-
-The pinned Nautobot CLI calls `_preprocess_settings()` before handing off to
-Django. This creates GIT_ROOT, JOBS_ROOT, MEDIA_ROOT (and two subdirectories),
-and STATIC_ROOT. Those default directories under `/opt/nautobot` are absent from
-the pinned image. A read-only container root requires the bounded disposable mounts described below;
-do not introduce production volumes or cover the entire application home, including
-its user-installed dependencies, with an empty mount.
-
-This is a source-established prerequisite. [Django initialization](https://docs.djangoproject.com/en/5.2/ref/applications/#initialization-process)
-then loads settings/logging and populates the application registry before shell
-execution. Successful container readiness does not prove those stages completed.
-
-The stderr observer retains only allowlisted exception classes, fixed traceback
-source labels with line numbers, and fixed filesystem errno categories. Unknown
-paths, source lines and exception messages are discarded. Output remains bounded;
-no traceback locals, credentials, connection URLs or arbitrary exception text
-are saved. The diagnostics distinguish framework startup from structured probe
-rejection but never substitute for authentication or cleanup acceptance.
-
-### Disposable configuration and authentication qualification — Bounded startup-directory mounts
-
-The trial mounts `/opt/nautobot/git`, `/opt/nautobot/jobs`,
-`/opt/nautobot/media` and `/opt/nautobot/static` as four separate 16 MiB tmpfs
-filesystems. Mode 1777 permits the non-root application user to create the required
-subdirectories without a privileged initialization command. These directories are
-private to the disposable container and disappear at teardown. Its 1536 MiB
-memory and zero-swap limits still bound aggregate usage. No Jobs, media imports or
-static collection are performed by this authentication trial.
-
-The application home and `.local` dependencies remain visible; settings retain
-their existing read-only bind. Exact destination, size and writable sticky-mode
-checks fail closed. Local rootless tests exercise the same generated mount options
-with a non-root UID, directory creation, read-only settings and dependency visibility.
-Target ARM64 framework initialization and authentication remain live acceptance
-checks, not outcomes of that local filesystem fixture.
-
-### Disposable configuration and authentication qualification — PostgreSQL attempt diagnostics
-
-A PostgreSQL rejection includes a strictly validated `postgres_diagnostic` with
-`attempt` (positive/negative), `step` (construct/cursor/query/fetch/close),
-allowlisted `exception_category` and `sqlstate`. Absent SQLSTATE is `absent`;
-unknown values become `other`. Raw messages and connection values are excluded.
-Distinct assertion codes identify positive failures, negative missing/unexpected
-SQLSTATE and cleanup failures. A cleanup failure is fatal even after otherwise
-successful authentication. Tests exercise producer JSON and node readback.
-
-Django's cursor acquisition includes driver connection and backend initialization;
-a cursor-stage error does not by itself establish password rejection. Retain the
-strict SQLSTATE `28P01` criterion only within separately invoked negative tests.
-It no longer gates positive readiness. Current diagnostics do not establish the
-cause of a previously recorded aggregate rejection.
+The seven historical authentication trials are retired. Their exact definitions and
+results remain in the annotated archives indexed in HISTORY. Use the current
+startup native configuration, database/cache authentication and browser checks
+for a newly approved operation; do not replay an old trial. The shared
+`configuration-auth-probe.py` and its native-contract tests remain available.
 
 ## Isolated pre-data backup and restore verification
 
@@ -2999,239 +2769,16 @@ or authority acceptance.
 
 ## Canary backup and full integrity check
 
-### Canary backup and full integrity check — Prepared scope
-
-The active operation defines the upload/integrity portion of
-[isolated pre-data verification](OPERATIONS.md#isolated-pre-data-backup-and-restore-verification). Initialization
-is accepted and archived; this definition binds its exact repository ID and
-terminal result. It does not initialize a repository or exercise application data.
-
-The Ansible execution path is implemented and locally validated. The operation
-is eligible for exact-bundle approval; its readiness booleans do not grant live
-authorization. Existing initialization and absence launchers reject its stage.
-
-- Launcher: `Nautobot/ansible/scripts/run-canary-backup.py`.
-- Playbook: `Nautobot/ansible/playbooks/backup-canary.yaml`.
-- Node boundary: `restic/scripts/canary-backup.py`.
-- Tests: `restic/tests/test_canary_backup.py`, run by CI and pre-commit.
-
-The launcher reuses protected credential delivery, bounded capture and cleanup.
-It verifies archived initialization bytes and tag, baseline/provider hashes,
-clean source and exact approval hash before resolving credentials. Use `show-hash`
-to obtain the frozen identity, then `execute APPROVED_SHA256` only after approval.
-The private approval packet records the exact reviewed hash and command.
-
-### Canary backup and full integrity check — Execution
-
-Use the existing protected credential-delivery and bounded-output utilities.
-Ansible owns target preflight, staging, ordered commands, evidence retention and
-independent cleanup attempts. The node helper retains durable upload intent and status across controller
-interruption; it never retries upload or deletes repository data.
-
-Target `ama@10.1.2.170`; run Restic as `nautobot`, with the exact accepted version
-and existing Doppler references. Verify accepted repository ID/format before any
-upload. Verify the source root is on `/dev/sda2`, with no symlink ancestors, and
-check existing parent ownership/modes rather than silently changing them.
-
-Create one unique `source.*` directory under
-`/var/lib/nautobot/backup-restore-tests/`. Parent creation, when absent, belongs
-in the reviewed operation after topology validation. Directories use `0700` and
-the sole file uses `0600`. `predata/canary.txt` is exactly 49 bytes, including the
-terminal newline; the manifest holds its fixed content and independent SHA-256.
-Keep credentials, markers and evidence outside the uploaded source tree.
-
-All Restic commands use `--no-cache` and protected repository/password files.
-The command arrays in `manifests/operation.yaml` define the exact CLI shape:
-
-1. Verify config, user/version, source mount and boot ID; capture a kernel journal
-   cursor before source creation or workload commands.
-2. Create the exact source tree; record independent path, size, mode and hash checks.
-3. Capture the complete `snapshots --json` result before backup.
-4. Record upload intent, then run one `backup --json --host j2-svpi4mf` with tag
-   `nautobot-predata-canary-v1` and the exact source root. Keep normal locking.
-5. Persist exit status before assertions. Capture the after snapshot set, including
-   after an unsuccessful upload when read-only classification remains possible.
-6. Require exit 0, preservation of prior IDs, exactly one new full 64-character ID,
-   and matching hostname, exact source path and tag. Backup summary/display order
-   is not authoritative. Exit 3 means incomplete backup and blocks acceptance.
-7. Run `check --read-data` with normal locking and require exit 0. A default or
-   subset check cannot satisfy this gate.
-8. Recheck the source tree and boot ID; retain a 75-second delayed observation
-   window. Review the complete cursor-bounded kernel storage events. Missing,
-   truncated or ambiguous evidence prevents acceptance.
-9. Verify empty lock listing and no cache; attempt all credential removals
-   independently, verify absence, and retain sanitized evidence.
-
-Command bounds are 600 seconds and 4 MiB per stream, with a 1500-second node
-workload deadline and an 1800-second controller limit. Do not increase bounds or retry upload silently. A timeout requires retained
-state review, including potentially still-running remote work and cleanup status.
-
-### Canary backup and full integrity check — Acceptance and recovery
-
-Record upload attempted/result, exact new snapshot ID, full integrity result,
-storage observations and cleanup separately. Retain source and snapshot for the
-next stage. There is no automatic rollback of uploaded repository objects.
-Any upload or integrity failure retains evidence; do not delete, forget, prune,
-unlock, repair or rerun backup automatically. Do not run integrity checking after
-an unsuccessful upload until that outcome has been reviewed.
-
-This stage cannot accept restoration or application recovery. Its successor uses
-the accepted full snapshot ID and a new empty `restore.*` directory under the
-same approved parent, with separately reviewed authorization and tree comparison.
-
-### Canary backup and full integrity check — Implementation validation
-
-The offline suite exercises the actual helper, launcher gates and Ansible cleanup:
-
-- Reject identity, version, source topology, file-content and bundle mismatch
-  before upload or credential access where applicable.
-- Handle zero/multiple new snapshots, missing prior IDs, wrong host/path/tag,
-  malformed JSON and shortened IDs without selecting a snapshot.
-- Treat upload status 3, interrupted upload and failed full check as unaccepted;
-  preserve attempted mutation and never retry or delete automatically.
-- Exercise cleanup on success, early failure, failure after upload and first-file
-  removal failure; later secret removals and evidence retention must still run.
-- Reject missing/truncated journal evidence, boot changes, storage errors and
-  unavailable cleanup proof. Test delayed-window and command timeout handling.
-
-Tests run through the existing local validation entry point and CI hooks.
-Ansible syntax, schemas and secret scanning are checked before freezing inputs.
-No live backup or target inspection occurred during implementation. ARM64 Restic
-behavior, source-parent permissions and kernel journal access remain live checks
-under the approved execution path. Missing evidence cannot be accepted.
-
-CLI references: [snapshot JSON and scripting](https://github.com/restic/restic/blob/master/doc/075_scripting.rst),
-[backup flags and exit statuses](https://github.com/restic/restic/blob/master/doc/manual_rest.rst),
-[full-data check implementation](https://github.com/restic/restic/blob/master/cmd/restic/cmd_check.go).
-The target's accepted 0.18.0 help is the final authority during authorized preflight.
+The pre-data canary operation is retired. Use the current application backup and
+upload/integrity procedures for ongoing protection. The consumed definition and
+result remain in the terminal archive indexed in HISTORY; the shared Restic
+helpers remain for their current consumers.
 
 ## Isolated canary restore
 
-### Isolated canary restore — Prepared scope
-
-This is the restore portion of [pre-data verification](OPERATIONS.md#isolated-pre-data-backup-and-restore-verification).
-The single active operation binds the accepted canary archive, repository ID and
-full snapshot ID. The implementation is locally qualified; live execution still requires the
-exact frozen bundle hash. No live restore has run.
-
-The operation uses the recorded full snapshot ID and its exact source directory,
-never `latest`, a shortened ID or a tag filter as a substitute for identity.
-Before restoration, read repository config and exact snapshot metadata; compare
-repository ID/format, hostname, paths and tags with the archived acceptance.
-Use existing credential references, with no secret creation or rotation.
-
-### Isolated canary restore — Destination and command
-
-Ansible will create a new empty directory named `restore.*` beneath the existing
-`/var/lib/nautobot/backup-restore-tests/` parent. Require `nautobot` ownership,
-mode `0700`, no symlink ancestors and filesystem `/dev/sda2`. Verify resolved
-paths cannot overlap the original source or any live-data path. Never reuse an
-existing destination, even after a failed attempt.
-
-The command is defined as an argument array in `manifests/operation.yaml`:
-
-```text
-restic --no-cache --repository-file PROTECTED_REPOSITORY_FILE \
-  --password-file PROTECTED_PASSWORD_FILE \
-  restore FULL_SNAPSHOT_ID:EXACT_ARCHIVED_SOURCE_ROOT \
-  --target NEW_EMPTY_RESTORE_ROOT
-```
-
-`FULL_SNAPSHOT_ID` and `EXACT_ARCHIVED_SOURCE_ROOT` are immutable operation values;
-only the unique destination is allocated during execution. The subdirectory
-selector restores its contents directly beneath the destination, avoiding an
-extra absolute-path hierarchy. It selects the entire backed-up canary source;
-no include/exclude filters are needed. Keep ordinary restore locking enabled.
-
-Record restore intent before invocation and exit status before comparison.
-Do not pass `--delete`, restore into the original source, or clean up repository
-objects. An earlier successful backup/integrity check does not prove restoration.
-
-### Isolated canary restore — Independent comparison and observation
-
-Require exactly this destination tree:
-
-| Relative path | Type | Mode | Size/content |
-| --- | --- | --- | --- |
-| `predata` | Directory | `0700` | No extra descendants |
-| `predata/canary.txt` | Regular file | `0600` | 49 bytes including the final newline |
-
-All restored objects must belong to `nautobot`; reject extra paths, symlinks and
-special files. The file must equal the fixed manifest content and SHA-256
-`0b8fefbdc586f053d6e69ee230d119d668e2dc7f4739fe61a334227d61142de2`.
-Derive these expectations from the reviewed definition, not the restored output.
-Also verify the retained original source before and after; source equality alone
-is insufficient if both copies differ from the independent fixture.
-
-Capture the boot ID and kernel journal cursor before the workload. Preserve the
-existing 75-second delayed storage observation, cursor availability and complete
-bounded event review. Require no storage errors, unchanged boot/source, empty
-final locks and no cache. Reuse the canary journal and protected-file routines
-where practical; do not duplicate another deployment framework.
-
-### Isolated canary restore — Failure, cleanup and acceptance
-
-Use Ansible for staging, commands, evidence and cleanup. A small helper may own
-durable restore-attempt/status and exact tree comparison. Bound commands to
-600 seconds, streams to 4 MiB and controller work to 1800 seconds. The helper
-limits its command sequence to 1500 seconds; a command timeout terminates and
-waits for that child. A controller interruption cannot prove remote termination:
-retain the intent and node evidence, classify the outcome as unknown, and inspect
-the remote process before any separately authorized retry.
-
-Remove each transient credential independently on success or failure and verify
-absence. Retain the source, snapshot, partial or complete restore directory and
-sanitized records. Failed restore/comparison, interruption or unknown cleanup
-requires review; never retry automatically into the same or a new destination.
-No rollback deletes repository objects or live data.
-
-Acceptance requires successful restore, exact independent tree comparison,
-source/boot continuity, quiet storage observation and proven credential cleanup.
-Combined with the archived upload/full-data check, it can satisfy the pre-data
-canary gate. It cannot accept application recovery, PostgreSQL restore, runtime
-persistence, resource headroom or authority migration.
-
-### Isolated canary restore — Implementation and local validation
-
-The reusable playbook is `../ansible/playbooks/restore-canary.yaml`; its launcher
-is `../ansible/scripts/run-canary-restore.py`. The launcher verifies both terminal
-archives, source cleanliness and the approved hash before secret resolution.
-`restic/scripts/restore-canary.py` reuses the existing canary journal, protected
-file and comparison routines. Offline tests exercise:
-
-- Wrong repository/snapshot identity, missing predecessor or unapproved hash.
-- Existing/nonempty targets, symlink ancestors, source overlap and wrong mount,
-  owner or modes; each must stop before restore.
-- Failed/interrupted restore and missing exit evidence, retaining partial data.
-- Missing/extra paths, corrupt bytes, wrong modes, owners, symlinks and special
-  files; no comparison may derive expectations from its own output.
-- First credential-removal failure, later cleanup continuation, evidence retention,
-  journal gaps/truncation, boot changes, storage errors and timeout handling.
-
-Tests are wired into the existing validation entry point and pre-commit hooks. Validate target
-Restic CLI behavior through the separately authorized execution preflight.
-No target contact, restore or repository mutation occurred during preparation.
-
-Reference: [Restic subdirectory restore](https://github.com/restic/restic/blob/master/doc/050_restore.rst).
-
-### Isolated canary restore — Execution approval
-
-From the server repository, the separate live command is:
-
-```sh
-python3 Nautobot/ansible/scripts/run-canary-restore.py execute APPROVED_SHA256
-```
-
-`show-hash` checks the clean definition and predecessor archives without remote
-access. Manifest readiness and `mutation_authorized: true` describe the eligible
-execution path; `approval_record` remains ungranted until the operator approves
-that exact digest. Neither field grants authorization on its own.
-
-The authorized mutation is one isolated restore plus ordinary transient Restic
-locks and protected evidence/credential staging on the single target. No backup,
-repository initialization, destructive cleanup or application deployment is
-included. Success still requires review of node records, delayed storage review
-and controller/remote credential absence before recording acceptance.
+The fixed-snapshot pre-data restore trial is retired. Use the isolated application
+restore procedure with an explicitly selected accepted snapshot/reference pair.
+The historical snapshot and result remain recorded in HISTORY and its archive.
 
 ## Private runtime initialization
 
@@ -3637,8 +3184,12 @@ migration service as an implicit dependency of bootstrap.
 
 Resolve `NAUTOBOT_INITIAL_ADMIN_PASSWORD` from Doppler project `homelab-dev`,
 config `prd_nautobot` only during authorized execution. The approved username is
-`admin`; the approved email is in the protected existing bootstrap input,
-`/home/aaron/code/.local-evidence/nautobot-runtime-preparation-20260921/bootstrap-inputs.json`.
+`admin`; its email belongs in a protected, explicitly selected identity input.
+Select its absolute path in `bootstrap.identity_reference`; the launcher binds its
+hash and passes that same path to the resolver. The file must be owner-private,
+regular and outside `.local-evidence`, with no symlink ancestry. Do not rerun
+bootstrap on the accepted account. The old September path is historical provenance,
+not a permanent deployment prerequisite.
 Use references only in Git and public review. Do not fetch or print credential
 values during preparation. Never hash passwords into evidence.
 
@@ -3809,7 +3360,7 @@ The reviewed recovery receipt includes `host`, `boot_id`, `accepted`, `verified`
 and exact recovery location. The operation reviewer must establish that no database
 writes occurred between capture and startup. The startup launcher requires the
 scope, verification and matching boot; it does not independently qualify a restore.
-Application-aware Restic backup and isolated restore remain later owner stages.
+Application-aware backup and isolated restore have separate acceptance records; startup preservation alone does not establish either result.
 
 ### Startup baseline and recovery preparation — Startup execution inputs and evidence
 
@@ -3848,7 +3399,7 @@ Job probes listed below. Assemble their frozen paths and expected fields with th
 runtime/resource/storage checks through `assemble-startup.py`. No receipt may be
 substituted with a hand-authored success value or old packet-trial result.
 
-The workload manifest's import/export/audit adapters remain unqualified. A startup
+Startup acceptance alone does not qualify workload import/export/audit adapters. A startup
 smoke Job can prove worker dispatch but must not be called representative workload
 acceptance. Select and review harmless inputs before execution; retain workload
 qualification as its existing later gate.
@@ -3895,37 +3446,16 @@ See [startup execution](#application-startup-execution) for the assembled contra
 
 ## Startup database preservation
 
-This separate operation prepares recovery for the initialized database and admin.
-It never starts PostgreSQL, Redis, migration or application services.
+The September 22 cold-copy operation is retired. Its definition, schema,
+launcher and playbook remain in the annotated tag
+`nautobot-startup-preservation-v1-accepted`; see
+[the terminal record](../HISTORY.md#accepted-startup-database-preservation).
+Do not replay it against the running application. Use the application backup
+and isolated restore procedures for current recovery preparation.
 
-Target: `ama@10.1.2.170`. Source volumes are the rootless Nautobot PostgreSQL and
-Redis volumes below `/var/lib/nautobot/.local/share/containers/storage/volumes/`.
-The new copy is `/var/lib/nautobot/recovery/nautobot-startup-database-preservation-v1/`.
-A partial or existing destination stops execution; it is not overwritten or reused.
-
-The playbook stages the existing preservation helpers into a new root-owned
-mode-0700 `/tmp/nautobot-inspection.*` directory. The helper verifies boot, image,
-configuration, Quadlet and account identities; stopped services; absent containers;
-fixed volume paths; no nested mounts or external links; PostgreSQL 17 and no
-postmaster PID; and sufficient capacity. It copies both trees preserving metadata,
-then compares source-before, source-after and destination manifests including
-content hashes, ownership, permissions, timestamps, xattrs and hard-link topology.
-It rechecks stopped state and identities before producing a success record.
-
-No deletion, service start, data restore, package update, network change or reboot
-is included. Failure retains the incomplete private destination and evidence for
-review. Recovery means retaining the original untouched volumes; never delete them
-to undo a failed copy. Restoring a preserved copy is a separate reviewed action,
-with all services stopped and the existing volume preserved before replacement.
-A verified copy is not an exercised restore and does not replace Restic acceptance.
-
-The reviewed definition is `manifests/startup-preservation.yaml`; freeze with
-`python3 Nautobot/ansible/scripts/freeze-preservation.py /tmp/NEW_BUNDLE_DIRECTORY`.
-The output hash covers the exact playbook, helpers, operation, inventory and review.
-After explicit hash approval, execute the frozen `run-preservation.py HASH`.
-Keep the preservation result and remote private evidence; archive before advancing
-the active operation. Refresh the startup baseline after preservation and before
-startup, since the launcher enforces freshness. Startup itself remains unauthorized.
+Startup assembly obtains image identities from the bootstrap archive already
+verified by startup preparation. Shared inspection and recovery helpers remain
+available through their owning, separately authorized procedures.
 
 ## Application startup execution
 
@@ -4292,8 +3822,11 @@ message. Record scheduler installation and scheduled-cycle acceptance separately
 
 #### First scheduled-cycle readback
 
-Read after the selected day's 04:05 America/Chicago freshness check has completed.
-Use `ansible/scripts/inspect-recurring-cycle.py` as UID 999 on the reviewed host,
+This procedure accepts the first cycle of a new schedule installation or promotion;
+it is not an outstanding wait for an already accepted installation. Read after the
+selected day's 04:05 America/Chicago freshness check has completed. The original
+installation-to-cycle boot continuity is specific to that operation, not a permanent
+host identity for future operations. Use `ansible/scripts/inspect-recurring-cycle.py` as UID 999 on the reviewed host,
 with `--day YYYY-MM-DD` and `--expected-json` containing the approved
 `runtime_sha256` map, baseline `boot_id` and PostgreSQL/Redis
 `data_service_invocations` map. Supply these from the frozen installation evidence,
@@ -4493,7 +4026,7 @@ credential provisioning and directory creation require scoped live authorization
 Do not enable schedules as part of prerequisite installation. Review the Sunday
 filesystem-scrub overlap before selecting the final trigger.
 
-Run `tests/test_recurring_media.py`, `tests/test_recurring_bindings.py` and
+Run `tests/test_recurring_payload.py`, `tests/test_recurring_bindings.py` and
 `tests/test_recurring_protection.py` locally. Target acceptance must additionally
 prove namespace media access, staging filesystem/ownership/capacity, installed
 command identities, and independent writer recovery. A local mapped-permission
@@ -4536,7 +4069,7 @@ It verifies all files before deletion and uses directory-relative, no-follow acc
 rejecting hard links and changed identities. The empty payload directory and receipts
 remain. Any disposal failure latches manual intervention, including an interrupted
 partial disposal; do not automatically retry deletion. Target qualification remains
-required before unattended deployment. Run `tests/test_recurring_disposal.py` and
+required before unattended deployment. Run `tests/test_recurring_payload.py` and
 `tests/test_recurring_protection.py` for these boundaries.
 
 ### Successful local disposal and remote retention analysis
@@ -4610,10 +4143,9 @@ bounded rollback. Internal checks and ordinary OS session notices do not require
 additional approval stages. Credentials, capture/resume, notification tests and
 schedule enablement remain separately authorized work.
 
-For a new installation, `manifests/operation.yaml` owns the pending definition;
-create its sanitized qualification record at
-`manifests/recurring-prerequisite-review.json`. Keep its repository gates false
-during preparation. A clean operation refuses freezing before creating a bundle.
+For a new installation, `manifests/operation.yaml` owns the pending definition.
+Record qualification in the existing work ledger; it is not a bundle input.
+Keep the operation's repository gates false during preparation. A clean operation refuses freezing before creating a bundle.
 Terminal definitions and review records are indexed in HISTORY and retained in
 annotated pushed tags; they are not inputs for a new operation.
 `ansible/scripts/prerequisite-bundle.py freeze` produces
@@ -4719,8 +4251,8 @@ podman unshare /bin/bash tests/repository/run-with-ansible-local-temp.sh python3
 It exercises real staging, node preflight, APT simulation refusal and failure-receipt
 collection with synthetic packages and host probes. It never installs a package.
 The remaining fixtures cover convergence, idempotence, drift and rollback. Reuse
-`test_recurring_media.py`, `test_recurring_bindings.py`,
-`test_recurring_protection.py` and `test_recurring_disposal.py` when relevant to
+`test_recurring_payload.py`, `test_recurring_bindings.py`,
+`test_recurring_protection.py` when relevant to
 changed behavior. Local tests do not establish target or native ARM64 acceptance.
 
 Credential provisioning is separate: only the three canonical references in
@@ -4737,9 +4269,9 @@ evidence before later schedule enablement.
 
 Use `ansible/scripts/recurring-credential-bundle.py` to freeze one definition and
 execute one approved bundle through `provision-recurring-credentials.yaml`.
-Prepare the stage operation and sanitized `manifests/recurring-credential-review.json`
-before freezing. These consumed records are archived and removed after acceptance;
-the launcher refuses a clean operation slot. Keep the repository operation gates
+Prepare the stage operation and record qualification in the existing work ledger
+before freezing. Historical review records are not bundle inputs. The consumed
+operation is archived after acceptance; the launcher refuses a clean operation slot. Keep the repository operation gates
 false. The accepted prerequisite archive is
 an input identity, not permission to create credentials. The source config and
 canonical Restic/B2 secret values remain unchanged; only reference expressions

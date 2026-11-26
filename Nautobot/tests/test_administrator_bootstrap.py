@@ -35,6 +35,18 @@ secret = load('bootstrap_secret', 'bootstrap-secret.py')
 DATA = {'username': 'admin', 'email': 'fixture@example.invalid', 'password': 'a'*64}
 
 
+def schema_sample(field):
+    if 'const' in field: return copy.deepcopy(field['const'])
+    if 'default' in field: return copy.deepcopy(field['default'])
+    if field.get('type') == 'object': return {k: schema_sample(v) for k, v in field['properties'].items()}
+    if field.get('type') == 'array': return [schema_sample(v) for v in field.get('prefixItems', [])]
+    if field.get('type') == 'integer': return field.get('minimum', 0)
+    if '{64}' in field.get('pattern', ''): return '0' * 64
+    if '{40}' in field.get('pattern', ''): return '0' * 40
+    if 'recovery/' in field.get('pattern', ''): return '/var/lib/nautobot/recovery/fixture'
+    return 'fixture'
+
+
 class Bootstrap(unittest.TestCase):
     def parse_native_cli(self, argv):
         fixture=json.loads((ROOT/'Nautobot/tests/fixtures/nautobot-cli-parser.json').read_text())
@@ -83,7 +95,7 @@ class Bootstrap(unittest.TestCase):
 
     def operation(self):
         schema = json.loads((ROOT/'Nautobot/schemas/administrator-bootstrap.schema.json').read_text())
-        return {k: copy.deepcopy(v['const']) for k, v in schema['properties'].items()}
+        return schema_sample(schema)
 
     def test_native_order_secret_environment_and_no_migration(self):
         calls = []
@@ -146,10 +158,10 @@ class Bootstrap(unittest.TestCase):
             root=Path(tmp);identity=root/'identity.json'
             identity.write_text(json.dumps({k:DATA[k] for k in ('username','email')}));identity.chmod(0o600)
             digest=hashlib.sha256(identity.read_bytes()).hexdigest()
-            with patch.object(secret,'IDENTITY',identity),patch.object(secret.provider,'doppler',return_value=DATA['password']) as provider:
-                with self.assertRaisesRegex(ValueError,'identity_changed'):secret.resolve(root,'0'*64)
+            with patch.object(secret.provider,'doppler',return_value=DATA['password']) as provider:
+                with self.assertRaisesRegex(ValueError,'identity_changed'):secret.resolve(root,'0'*64,identity)
                 provider.assert_not_called()
-                secret.resolve(root,digest)
+                secret.resolve(root,digest,identity)
                 self.assertEqual(json.loads((root/'input.json').read_text()),DATA)
                 self.assertEqual((root/'input.json').stat().st_mode & 0o777,0o600)
                 provider.assert_called_once_with('secrets','get','NAUTOBOT_INITIAL_ADMIN_PASSWORD','--plain','--config','prd_nautobot')
@@ -216,6 +228,12 @@ class Bootstrap(unittest.TestCase):
         for section,key,val in [('runtime','first_install_only',True),('runtime','services',['postgresql','redis','web']),('bootstrap','guard_seconds',3600),('failure','automatic_retry',True)]:
             bad=copy.deepcopy(op);bad[section][key]=val
             with self.assertRaises(ValidationError):validator.validate(bad)
+        for section, key in [('runtime','rendered_directory'), ('bootstrap','identity_reference')]:
+            portable = copy.deepcopy(op); portable[section][key] = '/tmp/protected-input'
+            validator.validate(portable)
+            for path in ['relative/input', '/tmp/../input', '/home/aaron/code/.local-evidence/input']:
+                portable[section][key] = path
+                with self.assertRaises(ValidationError): validator.validate(portable)
 
     def test_bad_hash_cannot_fetch_credentials_or_contact_host(self):
         with patch.object(launcher,'validate',return_value=self.operation()),patch.object(launcher,'bundle_rows',return_value=[('a'*64,'fixture')]),patch.object(launcher,'verify_prerequisites',side_effect=AssertionError('must stop first')),patch.object(launcher.bounded,'drain_process',side_effect=AssertionError('no execute')):
@@ -225,7 +243,7 @@ class Bootstrap(unittest.TestCase):
         operation=self.operation()
         with tempfile.TemporaryDirectory() as tmp:
             operation['bootstrap']['identity_reference']=str(Path(tmp)/'absent.json')
-            with self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bootstrap_identity_metadata'):
+            with patch.object(launcher, 'archived_prerequisite', return_value=b'fixture'), self.assertRaisesRegex(launcher.bounded.PreflightBlocked,'bootstrap_identity_metadata'):
                 launcher.bundle_rows(operation)
 
     def test_interrupted_controller_removes_private_input(self):

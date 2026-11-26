@@ -3,53 +3,21 @@
   "title": "Accepted host and stage identities (not full runtime acceptance)",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "host_baseline",
-    "provenance",
-    "boundaries"
-  ],
+  "required": ["schema_version", "host_baseline", "provenance", "boundaries"],
   "properties": {
-    "schema_version": {
-      "const": 1
-    },
+    "schema_version": {"const": 1},
     "host_baseline": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "state",
-        "host",
-        "address",
-        "service_account",
-        "semantic_sha256",
-        "observations_sha256",
-        "boot_id"
-      ],
+      "required": ["state", "host", "address", "service_account", "semantic_sha256", "observations_sha256", "boot_id"],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "host": {
-          "const": "j2-svpi4mf"
-        },
-        "address": {
-          "const": "10.1.2.170"
-        },
-        "service_account": {
-          "const": "nautobot"
-        },
-        "semantic_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "observations_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "boot_id": {
-          "type": "string",
-          "format": "uuid"
-        }
+        "state": {"const": "accepted"},
+        "host": {"const": "j2-svpi4mf"},
+        "address": {"const": "10.1.2.170"},
+        "service_account": {"const": "nautobot"},
+        "semantic_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "observations_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "boot_id": {"type": "string", "format": "uuid"}
       }
     },
     "provenance": {
@@ -66,35 +34,14 @@
         "operator_review_accepted"
       ],
       "properties": {
-        "operation": {
-          "type": "string",
-          "minLength": 1
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "definition_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "terminal_evidence_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "all_preflight_checks_passed": {
-          "const": true
-        },
-        "cleanup_passed": {
-          "const": true
-        },
-        "operator_review_accepted": {
-          "const": true
-        }
+        "operation": {"type": "string", "minLength": 1},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "terminal_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "all_preflight_checks_passed": {"const": true},
+        "cleanup_passed": {"const": true},
+        "operator_review_accepted": {"const": true}
       }
     },
     "boundaries": {
@@ -126,53 +73,20 @@
         "limitations"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "stage": {
-          "const": 4
-        },
-        "host": {
-          "const": "j2-svpi4mf"
-        },
-        "fqdn": {
-          "const": "j2-svpi4mf.local.theama.co"
-        },
-        "ipv4": {
-          "const": "10.1.2.170"
-        },
-        "ipv6": {
-          "const": "fd36:5aa8:6971:1::170"
-        },
-        "operation": {
-          "const": "nautobot-dual-stack-identity-v1"
-        },
-        "terminal_tag": {
-          "const": "nautobot-dual-stack-identity-v1-accepted"
-        },
-        "definition_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "definition_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "terminal_evidence_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "dns_terminal_tag": {
-          "const": "nautobot-host-dns-20260921-accepted"
-        },
-        "dns_definition_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "dns_bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
+        "state": {"const": "accepted"},
+        "stage": {"const": 4},
+        "host": {"const": "j2-svpi4mf"},
+        "fqdn": {"const": "j2-svpi4mf.local.theama.co"},
+        "ipv4": {"const": "10.1.2.170"},
+        "ipv6": {"const": "fd36:5aa8:6971:1::170"},
+        "operation": {"const": "nautobot-dual-stack-identity-v1"},
+        "terminal_tag": {"const": "nautobot-dual-stack-identity-v1-accepted"},
+        "definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "definition_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "terminal_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "dns_terminal_tag": {"const": "nautobot-host-dns-20260921-accepted"},
+        "dns_definition_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "dns_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "limitations": {
           "const": [
             "external_ipv6_denial_not_tested_approved_gateway_rule_alternative",
@@ -201,49 +115,21 @@
         "remaining_gates"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "running_pending_workload_acceptance"
-        },
-        "operation": {
-          "type": "string",
-          "pattern": "^nautobot-application-startup-v[1-9][0-9]*$"
-        },
+        "state": {"const": "accepted"},
+        "scope": {"const": "running_pending_workload_acceptance"},
+        "operation": {"type": "string", "pattern": "^nautobot-application-startup-v[1-9][0-9]*$"},
         "reviewed_at": {
           "type": "string",
           "format": "date-time",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
         },
-        "source_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "boot_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "terminal_tag": {
-          "type": "string",
-          "pattern": "^nautobot-application-startup-v[1-9][0-9]*-accepted$"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
+        "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "boot_id": {"type": "string", "format": "uuid"},
+        "terminal_tag": {"type": "string", "pattern": "^nautobot-application-startup-v[1-9][0-9]*-accepted$"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
         "artifact_sha256": {
           "type": "object",
           "additionalProperties": false,
@@ -265,66 +151,21 @@
             "/var/lib/nautobot/runtime/startup-job.py"
           ],
           "properties": {
-            "/var/lib/nautobot/runtime/initialize-application.py": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/runtime/startup-application.py": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/runtime/startup-command.py": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/runtime/startup-job-probe.py": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "/var/lib/nautobot/runtime/startup-job.py": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
+            "/var/lib/nautobot/runtime/initialize-application.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-private.network": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-web.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/.config/containers/systemd/nautobot-worker.container": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/runtime/startup-application.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/runtime/startup-command.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/runtime/startup-job-probe.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "/var/lib/nautobot/runtime/startup-job.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
           }
         },
         "remaining_gates": {
@@ -359,74 +200,22 @@
         "remaining_gates"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "synthetic_pilot_repeat_fixture_workload_only"
-        },
-        "operation": {
-          "type": "string",
-          "minLength": 1
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "controller_outcome": {
-          "const": "interrupted_cause_unproven"
-        },
-        "cleanup": {
-          "const": "recovered_and_independently_verified"
-        },
-        "full_stage_5_accepted": {
-          "const": false
-        },
-        "application_restore_verified": {
-          "const": false
-        },
-        "limitations": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "remaining_gates": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "synthetic_pilot_repeat_fixture_workload_only"},
+        "operation": {"type": "string", "minLength": 1},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "controller_outcome": {"const": "interrupted_cause_unproven"},
+        "cleanup": {"const": "recovered_and_independently_verified"},
+        "full_stage_5_accepted": {"const": false},
+        "application_restore_verified": {"const": false},
+        "limitations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "remaining_gates": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       }
     },
     "logout_persistence": {
@@ -449,53 +238,20 @@
         "application_restore_accepted"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "PAM_session_logout_only"
-        },
-        "operation": {
-          "const": "nautobot-logout-persistence-v1"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_tag": {
-          "const": "nautobot-logout-persistence-v1-accepted"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "orchestration_exit_status": {
-          "const": 2
-        },
-        "cleanup_discrepancy": {
-          "const": "redundant_stop_of_unloaded_unit"
-        },
-        "reboot_accepted": {
-          "const": false
-        },
-        "interactive_ssh_logout_accepted": {
-          "const": false
-        },
-        "application_restore_accepted": {
-          "const": false
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "PAM_session_logout_only"},
+        "operation": {"const": "nautobot-logout-persistence-v1"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_tag": {"const": "nautobot-logout-persistence-v1-accepted"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "orchestration_exit_status": {"const": 2},
+        "cleanup_discrepancy": {"const": "redundant_stop_of_unloaded_unit"},
+        "reboot_accepted": {"const": false},
+        "interactive_ssh_logout_accepted": {"const": false},
+        "application_restore_accepted": {"const": false}
       }
     },
     "boot_readiness": {
@@ -517,38 +273,15 @@
         "recovery_backups_retained"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "two_artifact_installation_and_daemon_reload_only"
-        },
-        "operation": {
-          "const": "nautobot-boot-readiness-v1"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_tag": {
-          "const": "nautobot-boot-readiness-v1-accepted"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
+        "state": {"const": "accepted"},
+        "scope": {"const": "two_artifact_installation_and_daemon_reload_only"},
+        "operation": {"const": "nautobot-boot-readiness-v1"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_tag": {"const": "nautobot-boot-readiness-v1-accepted"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "updated_artifacts": {
           "type": "array",
           "minItems": 2,
@@ -556,40 +289,18 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "destination",
-              "before_sha256",
-              "after_sha256"
-            ],
+            "required": ["name", "destination", "before_sha256", "after_sha256"],
             "properties": {
-              "name": {
-                "type": "string"
-              },
-              "destination": {
-                "type": "string"
-              },
-              "before_sha256": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{64}$"
-              },
-              "after_sha256": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{64}$"
-              }
+              "name": {"type": "string"},
+              "destination": {"type": "string"},
+              "before_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "after_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
             }
           }
         },
-        "new_gate_executed": {
-          "const": false
-        },
-        "reboot_persistence_accepted": {
-          "const": false
-        },
-        "recovery_backups_retained": {
-          "type": "string",
-          "pattern": "^/var/lib/nautobot/boot-readiness\\.[0-9a-f]{32}$"
-        }
+        "new_gate_executed": {"const": false},
+        "reboot_persistence_accepted": {"const": false},
+        "recovery_backups_retained": {"type": "string", "pattern": "^/var/lib/nautobot/boot-readiness\\.[0-9a-f]{32}$"}
       }
     },
     "recovery_preservation": {
@@ -617,71 +328,25 @@
         "current_data_identity_rechecked"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "quiesced_application_backup_and_logical_continuity"
-        },
-        "operation": {
-          "const": "nautobot-recovery-preservation-v2"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_tag": {
-          "const": "nautobot-recovery-preservation-v2-accepted"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "logical_before_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "logical_after_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "logical_identity_equal": {
-          "const": true
-        },
-        "full_integrity_passed": {
-          "const": true
-        },
-        "writer_recovery_passed": {
-          "const": true
-        },
-        "credential_cleanup_passed": {
-          "const": true
-        },
-        "restore_verified": {
-          "const": false
-        },
-        "reboot_persistence_accepted": {
-          "const": false
-        },
-        "current_data_identity_rechecked": {
-          "const": false
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "quiesced_application_backup_and_logical_continuity"},
+        "operation": {"const": "nautobot-recovery-preservation-v2"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_tag": {"const": "nautobot-recovery-preservation-v2-accepted"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "logical_before_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "logical_after_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "logical_identity_equal": {"const": true},
+        "full_integrity_passed": {"const": true},
+        "writer_recovery_passed": {"const": true},
+        "credential_cleanup_passed": {"const": true},
+        "restore_verified": {"const": false},
+        "reboot_persistence_accepted": {"const": false},
+        "current_data_identity_rechecked": {"const": false}
       }
     },
     "reboot_persistence": {
@@ -710,72 +375,26 @@
         "full_stage_5_accepted"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "single_host_bounded_reboot_persistence"
-        },
-        "operation": {
-          "const": "nautobot-reboot-persistence-v1"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_tag": {
-          "const": "nautobot-reboot-persistence-v1-accepted"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "decision": {
-          "const": "accepted_with_collection_reporting_defect"
-        },
-        "boot_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "controller_exit_status": {
-          "const": 2
-        },
-        "controller_success": {
-          "const": false
-        },
-        "native_boot_gate_executed": {
-          "const": true
-        },
-        "logical_identity_equal": {
-          "const": true
-        },
-        "writer_recovery_passed": {
-          "const": true
-        },
-        "effective_resource_review_passed": {
-          "const": true
-        },
-        "reporting_correction_deployed": {
-          "const": false
-        },
-        "full_application_restore_verified": {
-          "const": false
-        },
-        "full_stage_5_accepted": {
-          "const": false
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "single_host_bounded_reboot_persistence"},
+        "operation": {"const": "nautobot-reboot-persistence-v1"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_tag": {"const": "nautobot-reboot-persistence-v1-accepted"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "decision": {"const": "accepted_with_collection_reporting_defect"},
+        "boot_id": {"type": "string", "format": "uuid"},
+        "controller_exit_status": {"const": 2},
+        "controller_success": {"const": false},
+        "native_boot_gate_executed": {"const": true},
+        "logical_identity_equal": {"const": true},
+        "writer_recovery_passed": {"const": true},
+        "effective_resource_review_passed": {"const": true},
+        "reporting_correction_deployed": {"const": false},
+        "full_application_restore_verified": {"const": false},
+        "full_stage_5_accepted": {"const": false}
       }
     },
     "application_restore": {
@@ -806,80 +425,28 @@
         "full_stage_5_accepted"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "isolated_historical_application_restore_directory_only_media"
-        },
-        "operation": {
-          "type": "string",
-          "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_tag": {
-          "type": "string",
-          "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "result_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "controller_exit_status": {
-          "const": 0
-        },
-        "ansible_exit_status": {
-          "const": 0
-        },
-        "logical_identity_equal": {
-          "const": true
-        },
-        "native_checks_passed": {
-          "const": true
-        },
-        "directory_only_media_verified": {
-          "const": true
-        },
-        "independent_receipt_matches": {
-          "const": 9
-        },
-        "resource_and_credential_cleanup_passed": {
-          "const": true
-        },
-        "production_continuity_passed": {
-          "const": true
-        },
-        "populated_media_recovery_qualified": {
-          "const": false
-        },
-        "restored_uwsgi_browser_qualified": {
-          "const": false
-        },
-        "current_data_disaster_recovery_qualified": {
-          "const": false
-        },
-        "full_stage_5_accepted": {
-          "const": false
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "isolated_historical_application_restore_directory_only_media"},
+        "operation": {"type": "string", "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "terminal_tag": {"type": "string", "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "controller_exit_status": {"const": 0},
+        "ansible_exit_status": {"const": 0},
+        "logical_identity_equal": {"const": true},
+        "native_checks_passed": {"const": true},
+        "directory_only_media_verified": {"const": true},
+        "independent_receipt_matches": {"const": 9},
+        "resource_and_credential_cleanup_passed": {"const": true},
+        "production_continuity_passed": {"const": true},
+        "populated_media_recovery_qualified": {"const": false},
+        "restored_uwsgi_browser_qualified": {"const": false},
+        "current_data_disaster_recovery_qualified": {"const": false},
+        "full_stage_5_accepted": {"const": false}
       }
     },
     "recurring_prerequisites": {
@@ -908,65 +475,23 @@
         "directories"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "nine_pinned_packages_and_two_protected_directories_only"
-        },
-        "filesystem": {
-          "const": "ext4"
-        },
-        "minimum_free_bytes": {
-          "const": 17179869184
-        },
-        "independent_acceptance": {
-          "const": true
-        },
-        "application_continuity_preserved": {
-          "const": true
-        },
-        "mapped_media_preserved": {
-          "const": true
-        },
-        "system_timer_set_preserved": {
-          "const": true
-        },
-        "credentials_provisioned": {
-          "const": false
-        },
-        "recurring_units_enabled": {
-          "const": false
-        },
-        "target_rollback_qualified": {
-          "const": false
-        },
-        "operation": {
-          "type": "string",
-          "minLength": 1
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "evidence_directory": {
-          "type": "string",
-          "minLength": 1
-        },
-        "execution_review_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "archive_state": {
-          "enum": [
-            "pending_commit_tag_push_authorization",
-            "archived"
-          ]
-        },
+        "state": {"const": "accepted"},
+        "scope": {"const": "nine_pinned_packages_and_two_protected_directories_only"},
+        "filesystem": {"const": "ext4"},
+        "minimum_free_bytes": {"const": 17179869184},
+        "independent_acceptance": {"const": true},
+        "application_continuity_preserved": {"const": true},
+        "mapped_media_preserved": {"const": true},
+        "system_timer_set_preserved": {"const": true},
+        "credentials_provisioned": {"const": false},
+        "recurring_units_enabled": {"const": false},
+        "target_rollback_qualified": {"const": false},
+        "operation": {"type": "string", "minLength": 1},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evidence_directory": {"type": "string", "minLength": 1},
+        "execution_review_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "archive_state": {"enum": ["pending_commit_tag_push_authorization", "archived"]},
         "packages": {
           "type": "array",
           "minItems": 9,
@@ -975,11 +500,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "version",
-              "architecture"
-            ],
+            "required": ["name", "version", "architecture"],
             "properties": {
               "name": {
                 "enum": [
@@ -994,124 +515,39 @@
                   "doppler"
                 ]
               },
-              "version": {
-                "type": "string",
-                "minLength": 1
-              },
-              "architecture": {
-                "enum": [
-                  "all",
-                  "arm64"
-                ]
-              }
+              "version": {"type": "string", "minLength": 1},
+              "architecture": {"enum": ["all", "arm64"]}
             }
           }
         },
         "service_commands": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "ansible_playbook",
-            "ansible_version",
-            "doppler",
-            "doppler_version"
-          ],
+          "required": ["ansible_playbook", "ansible_version", "doppler", "doppler_version"],
           "properties": {
-            "ansible_playbook": {
-              "const": "/usr/bin/ansible-playbook"
-            },
-            "ansible_version": {
-              "type": "string",
-              "minLength": 1
-            },
-            "doppler": {
-              "const": "/usr/bin/doppler"
-            },
-            "doppler_version": {
-              "type": "string",
-              "minLength": 1
-            }
+            "ansible_playbook": {"const": "/usr/bin/ansible-playbook"},
+            "ansible_version": {"type": "string", "minLength": 1},
+            "doppler": {"const": "/usr/bin/doppler"},
+            "doppler_version": {"type": "string", "minLength": 1}
           }
         },
         "directories": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "/var/lib/nautobot/protection",
-            "/var/lib/nautobot/protection/staging"
-          ],
+          "required": ["/var/lib/nautobot/protection", "/var/lib/nautobot/protection/staging"],
           "properties": {
-            "/var/lib/nautobot/protection": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "uid",
-                "gid",
-                "mode"
-              ],
-              "properties": {
-                "uid": {
-                  "const": 999
-                },
-                "gid": {
-                  "const": 985
-                },
-                "mode": {
-                  "const": "0700"
-                }
-              }
-            },
-            "/var/lib/nautobot/protection/staging": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "uid",
-                "gid",
-                "mode"
-              ],
-              "properties": {
-                "uid": {
-                  "const": 999
-                },
-                "gid": {
-                  "const": 985
-                },
-                "mode": {
-                  "const": "0700"
-                }
-              }
-            }
+            "/var/lib/nautobot/protection": {"$ref": "#/$defs/fileMetadata"},
+            "/var/lib/nautobot/protection/staging": {"$ref": "#/$defs/fileMetadata"}
           }
         },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "archive_state": {
-                "const": "archived"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "terminal_tag",
-              "archive_commit",
-              "tag_object"
-            ]
-          }
+          "if": {"properties": {"archive_state": {"const": "archived"}}},
+          "then": {"required": ["terminal_tag", "archive_commit", "tag_object"]}
         }
       ]
     },
@@ -1136,38 +572,14 @@
         "recurring_units_enabled"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "three_canonical_references_and_read_only_service_token_only"
-        },
-        "operation": {
-          "type": "string",
-          "minLength": 1
-        },
-        "reviewed_at": {
-          "type": "string",
-          "minLength": 1
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "evidence_directory": {
-          "type": "string",
-          "minLength": 1
-        },
-        "execution_review_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "archive_state": {
-          "enum": [
-            "pending",
-            "archived"
-          ]
-        },
+        "state": {"const": "accepted"},
+        "scope": {"const": "three_canonical_references_and_read_only_service_token_only"},
+        "operation": {"type": "string", "minLength": 1},
+        "reviewed_at": {"type": "string", "minLength": 1},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evidence_directory": {"type": "string", "minLength": 1},
+        "execution_review_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "archive_state": {"enum": ["pending", "archived"]},
         "metadata": {
           "type": "object",
           "additionalProperties": false,
@@ -1183,86 +595,31 @@
             "token_file"
           ],
           "properties": {
-            "config": {
-              "const": "prd_nautobot_backup"
-            },
-            "created_at": {
-              "type": "string",
-              "minLength": 1
-            },
-            "doppler": {
-              "const": "/usr/bin/doppler"
-            },
-            "expires_at": {
-              "type": "string",
-              "minLength": 1
-            },
-            "project": {
-              "const": "homelab-dev"
-            },
-            "read_only": {
-              "const": true
-            },
-            "rotation_due_at": {
-              "type": "string",
-              "minLength": 1
-            },
-            "rotation_owner": {
-              "type": "string",
-              "minLength": 1
-            },
-            "token_file": {
-              "const": "/var/lib/nautobot/protection/credentials/doppler-service-token"
-            }
+            "config": {"const": "prd_nautobot_backup"},
+            "created_at": {"type": "string", "minLength": 1},
+            "doppler": {"const": "/usr/bin/doppler"},
+            "expires_at": {"type": "string", "minLength": 1},
+            "project": {"const": "homelab-dev"},
+            "read_only": {"const": true},
+            "rotation_due_at": {"type": "string", "minLength": 1},
+            "rotation_owner": {"type": "string", "minLength": 1},
+            "token_file": {"const": "/var/lib/nautobot/protection/credentials/doppler-service-token"}
           }
         },
-        "independent_acceptance": {
-          "const": true
-        },
-        "application_continuity_preserved": {
-          "const": true
-        },
-        "temporary_values_removed": {
-          "const": true
-        },
-        "capture_resume_qualified": {
-          "const": false
-        },
-        "notifications_qualified": {
-          "const": false
-        },
-        "recurring_units_enabled": {
-          "const": false
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "independent_acceptance": {"const": true},
+        "application_continuity_preserved": {"const": true},
+        "temporary_values_removed": {"const": true},
+        "capture_resume_qualified": {"const": false},
+        "notifications_qualified": {"const": false},
+        "recurring_units_enabled": {"const": false},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "archive_state": {
-                "const": "archived"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "terminal_tag",
-              "archive_commit",
-              "tag_object"
-            ]
-          }
+          "if": {"properties": {"archive_state": {"const": "archived"}}},
+          "then": {"required": ["terminal_tag", "archive_commit", "tag_object"]}
         }
       ]
     },
@@ -1296,87 +653,30 @@
         "terminal_tag"
       ],
       "properties": {
-        "operation_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "status": {
-          "const": "capture_only_accepted"
-        },
-        "accepted_at": {
-          "type": "string",
-          "minLength": 1
-        },
-        "normal_completion": {
-          "const": true
-        },
-        "capture_seconds": {
-          "type": "number",
-          "minimum": 0
-        },
-        "preflight_plus_pause_upper_bound_seconds": {
-          "type": "number",
-          "minimum": 0
-        },
-        "readiness_limit_seconds": {
-          "type": "number",
-          "minimum": 0
-        },
-        "health_wait_seconds": {
-          "type": "number",
-          "minimum": 0
-        },
-        "task_results": {
-          "type": "object"
-        },
-        "resume_verification": {
-          "type": "object"
-        },
-        "payload_path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "payload_content_sha256": {
-          "type": "object"
-        },
-        "retained_state_unchanged": {
-          "const": true
-        },
-        "transient_credentials_removed": {
-          "const": true
-        },
-        "runtime_links_removed": {
-          "const": true
-        },
-        "upload_qualified": {
-          "const": false
-        },
-        "independent_failure_recovery_qualified": {
-          "const": false
-        },
-        "notifications_qualified": {
-          "const": false
-        },
-        "disposal_qualified": {
-          "const": false
-        },
-        "recurring_schedule_enabled": {
-          "const": false
-        },
-        "media_scope": {
-          "const": "empty_directories_only"
-        },
-        "evidence_sha256": {
-          "type": "object"
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        }
+        "operation_id": {"type": "string", "minLength": 1},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"const": "capture_only_accepted"},
+        "accepted_at": {"type": "string", "minLength": 1},
+        "normal_completion": {"const": true},
+        "capture_seconds": {"type": "number", "minimum": 0},
+        "preflight_plus_pause_upper_bound_seconds": {"type": "number", "minimum": 0},
+        "readiness_limit_seconds": {"type": "number", "minimum": 0},
+        "health_wait_seconds": {"type": "number", "minimum": 0},
+        "task_results": {"type": "object"},
+        "resume_verification": {"type": "object"},
+        "payload_path": {"type": "string", "minLength": 1},
+        "payload_content_sha256": {"type": "object"},
+        "retained_state_unchanged": {"const": true},
+        "transient_credentials_removed": {"const": true},
+        "runtime_links_removed": {"const": true},
+        "upload_qualified": {"const": false},
+        "independent_failure_recovery_qualified": {"const": false},
+        "notifications_qualified": {"const": false},
+        "disposal_qualified": {"const": false},
+        "recurring_schedule_enabled": {"const": false},
+        "media_scope": {"const": "empty_directories_only"},
+        "evidence_sha256": {"type": "object"},
+        "terminal_tag": {"type": "string", "minLength": 1}
       }
     },
     "recurring_upload_integrity": {
@@ -1411,110 +711,33 @@
         "evidence_sha256"
       ],
       "properties": {
-        "operation_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "status": {
-          "const": "upload_integrity_accepted"
-        },
-        "accepted_at": {
-          "type": "string",
-          "minLength": 1
-        },
-        "capture_bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "payload_path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "payload_content_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "repository_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "producer_elapsed_seconds": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 300
-        },
-        "producer_deadline_seconds": {
-          "const": 300
-        },
-        "backup_exit_status": {
-          "const": 0
-        },
-        "integrity_exit_status": {
-          "const": 0
-        },
-        "full_repository_integrity": {
-          "const": true
-        },
-        "transient_credentials_removed": {
-          "const": true
-        },
-        "services_unchanged": {
-          "const": true
-        },
-        "retained_state_unchanged": {
-          "const": true
-        },
-        "transient_unit_inactive": {
-          "const": true
-        },
-        "restore_verified": {
-          "const": false
-        },
-        "notifications_qualified": {
-          "const": false
-        },
-        "disposal_qualified": {
-          "const": false
-        },
-        "retention_qualified": {
-          "const": false
-        },
-        "recurring_schedule_enabled": {
-          "const": false
-        },
-        "media_scope": {
-          "const": "empty_directories_only"
-        },
-        "terminal_archival": {
-          "enum": [
-            "pending",
-            "published_verified"
-          ]
-        },
-        "evidence_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        }
+        "operation_id": {"type": "string", "minLength": 1},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"const": "upload_integrity_accepted"},
+        "accepted_at": {"type": "string", "minLength": 1},
+        "capture_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload_path": {"type": "string", "minLength": 1},
+        "payload_content_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "repository_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "producer_elapsed_seconds": {"type": "number", "minimum": 0, "maximum": 300},
+        "producer_deadline_seconds": {"const": 300},
+        "backup_exit_status": {"const": 0},
+        "integrity_exit_status": {"const": 0},
+        "full_repository_integrity": {"const": true},
+        "transient_credentials_removed": {"const": true},
+        "services_unchanged": {"const": true},
+        "retained_state_unchanged": {"const": true},
+        "transient_unit_inactive": {"const": true},
+        "restore_verified": {"const": false},
+        "notifications_qualified": {"const": false},
+        "disposal_qualified": {"const": false},
+        "retention_qualified": {"const": false},
+        "recurring_schedule_enabled": {"const": false},
+        "media_scope": {"const": "empty_directories_only"},
+        "terminal_archival": {"enum": ["pending", "published_verified"]},
+        "evidence_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "terminal_tag": {"type": "string", "minLength": 1}
       }
     },
     "recurring_notifications": {
@@ -1547,140 +770,49 @@
         "evidence_sha256"
       ],
       "properties": {
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-notification-[a-z0-9-]+$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "status": {
-          "const": "notification_delivery_accepted"
-        },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "endpoint": {
-          "const": "http://10.1.3.83:8000/notify/apprise"
-        },
-        "persistent_configuration": {
-          "const": "apprise"
-        },
-        "destinations": {
-          "const": [
-            "email",
-            "Discord",
-            "Pushover"
-          ]
-        },
-        "receipt_witness": {
-          "const": "Aaron"
-        },
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-notification-[a-z0-9-]+$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"const": "notification_delivery_accepted"},
+        "accepted_at": {"type": "string", "format": "date-time"},
+        "endpoint": {"const": "http://10.1.3.83:8000/notify/apprise"},
+        "persistent_configuration": {"const": "apprise"},
+        "destinations": {"const": ["email", "Discord", "Pushover"]},
+        "receipt_witness": {"const": "Aaron"},
         "correlations": {
           "type": "object",
-          "required": [
-            "failure",
-            "recovery"
-          ],
+          "required": ["failure", "recovery"],
           "additionalProperties": false,
           "properties": {
-            "failure": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "recovery": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
+            "failure": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "recovery": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
           }
         },
         "http_attempts": {
           "type": "object",
-          "required": [
-            "failure",
-            "recovery"
-          ],
+          "required": ["failure", "recovery"],
           "additionalProperties": false,
           "properties": {
-            "failure": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 2
-            },
-            "recovery": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 2
-            }
+            "failure": {"type": "integer", "minimum": 1, "maximum": 2},
+            "recovery": {"type": "integer", "minimum": 1, "maximum": 2}
           }
         },
-        "retries_used": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 2
-        },
-        "all_six_receipts_confirmed_within_seconds": {
-          "const": 600
-        },
-        "receipt_time_precision": {
-          "const": "upper_bounds_from_displayed_minute_and_user_confirmation"
-        },
-        "duplicates": {
-          "type": "string",
-          "minLength": 1
-        },
-        "exactly_once_delivery_claimed": {
-          "const": false
-        },
-        "services_unchanged": {
-          "const": true
-        },
-        "retained_state_unchanged": {
-          "const": true
-        },
-        "timer_identities_unchanged": {
-          "const": true
-        },
-        "transient_unit_inactive": {
-          "const": true
-        },
-        "routing_changed": {
-          "const": false
-        },
-        "recurring_schedule_enabled": {
-          "const": false
-        },
-        "scope": {
-          "const": "attended_simulated_failure_and_recovery_delivery_only"
-        },
-        "terminal_archival": {
-          "enum": [
-            "pending_publication",
-            "published_verified"
-          ]
-        },
-        "evidence_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "terminal_tag": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-notification-[a-z0-9-]+-accepted$"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "retries_used": {"type": "integer", "minimum": 0, "maximum": 2},
+        "all_six_receipts_confirmed_within_seconds": {"const": 600},
+        "receipt_time_precision": {"const": "upper_bounds_from_displayed_minute_and_user_confirmation"},
+        "duplicates": {"type": "string", "minLength": 1},
+        "exactly_once_delivery_claimed": {"const": false},
+        "services_unchanged": {"const": true},
+        "retained_state_unchanged": {"const": true},
+        "timer_identities_unchanged": {"const": true},
+        "transient_unit_inactive": {"const": true},
+        "routing_changed": {"const": false},
+        "recurring_schedule_enabled": {"const": false},
+        "scope": {"const": "attended_simulated_failure_and_recovery_delivery_only"},
+        "terminal_archival": {"enum": ["pending_publication", "published_verified"]},
+        "evidence_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "terminal_tag": {"type": "string", "pattern": "^nautobot-recurring-notification-[a-z0-9-]+-accepted$"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
     },
     "recurring_disposal": {
@@ -1714,21 +846,10 @@
         "evidence_sha256"
       ],
       "properties": {
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "status": {
-          "const": "local_disposal_and_retention_analysis_accepted"
-        },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time"
-        },
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"const": "local_disposal_and_retention_analysis_accepted"},
+        "accepted_at": {"type": "string", "format": "date-time"},
         "payload_path": {
           "type": "string",
           "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9]+/payload$"
@@ -1743,101 +864,28 @@
             "versions_migrations"
           ]
         },
-        "removed_bytes": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "repository_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "keep": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "would_remove": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "excluded": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "remote_inventory_unchanged": {
-          "const": true
-        },
-        "remote_snapshots_deleted": {
-          "const": false
-        },
-        "prune_executed": {
-          "const": false
-        },
-        "receipts_and_empty_directory_retained": {
-          "const": true
-        },
-        "other_payloads_unchanged": {
-          "const": true
-        },
-        "services_unchanged": {
-          "const": true
-        },
-        "timer_identities_unchanged": {
-          "const": true
-        },
-        "transient_unit_inactive": {
-          "const": true
-        },
-        "transient_credentials_removed": {
-          "const": true
-        },
-        "recurring_schedule_enabled": {
-          "const": false
-        },
-        "scope": {
-          "const": "one_successful_local_payload_and_remote_retention_dry_run_only"
-        },
-        "terminal_archival": {
-          "enum": [
-            "pending_publication",
-            "published_verified"
-          ]
-        },
-        "evidence_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "removed_bytes": {"type": "integer", "minimum": 1},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "repository_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "keep": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "would_remove": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "excluded": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "remote_inventory_unchanged": {"const": true},
+        "remote_snapshots_deleted": {"const": false},
+        "prune_executed": {"const": false},
+        "receipts_and_empty_directory_retained": {"const": true},
+        "other_payloads_unchanged": {"const": true},
+        "services_unchanged": {"const": true},
+        "timer_identities_unchanged": {"const": true},
+        "transient_unit_inactive": {"const": true},
+        "transient_credentials_removed": {"const": true},
+        "recurring_schedule_enabled": {"const": false},
+        "scope": {"const": "one_successful_local_payload_and_remote_retention_dry_run_only"},
+        "terminal_archival": {"enum": ["pending_publication", "published_verified"]},
+        "evidence_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
     },
     "recurring_recovery_timer": {
@@ -1869,116 +917,40 @@
         "evidence_sha256"
       ],
       "properties": {
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "terminal_archival": {
-          "enum": [
-            "pending_publication",
-            "published_verified"
-          ]
-        },
-        "evidence_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-recovery-timer-v[1-9][0-9]*$"
-        },
-        "status": {
-          "const": "independent_failure_recovery_timer_accepted"
-        },
-        "scope": {
-          "const": "attended_two_faults_and_marker_timer_only"
-        },
-        "boot_id": {
-          "type": "string",
-          "format": "uuid"
-        },
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "accepted_at": {"type": "string", "format": "date-time"},
+        "terminal_archival": {"enum": ["pending_publication", "published_verified"]},
+        "evidence_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-recovery-timer-v[1-9][0-9]*$"},
+        "status": {"const": "independent_failure_recovery_timer_accepted"},
+        "scope": {"const": "attended_two_faults_and_marker_timer_only"},
+        "boot_id": {"type": "string", "format": "uuid"},
         "recovery_seconds": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "killed",
-            "deadline"
-          ],
+          "required": ["killed", "deadline"],
           "properties": {
-            "killed": {
-              "type": "number",
-              "exclusiveMinimum": 0,
-              "maximum": 240
-            },
-            "deadline": {
-              "type": "number",
-              "exclusiveMinimum": 0,
-              "maximum": 240
-            }
+            "killed": {"type": "number", "exclusiveMinimum": 0, "maximum": 240},
+            "deadline": {"type": "number", "exclusiveMinimum": 0, "maximum": 240}
           }
         },
-        "recovery_budget_seconds": {
-          "const": 240
-        },
-        "calendar_cases": {
-          "const": 4
-        },
-        "retained_tree_preserved": {
-          "const": true
-        },
-        "data_service_invocations_unchanged": {
-          "const": true
-        },
-        "original_staging_unchanged": {
-          "const": true
-        },
-        "timer_identities_unchanged": {
-          "const": true
-        },
-        "runtime_links_removed": {
-          "const": true
-        },
-        "credentials_removed": {
-          "const": true
-        },
-        "marker_timer_dispatched": {
-          "const": true
-        },
-        "controller_recovery_used": {
-          "const": false
-        },
-        "recurring_schedule_enabled": {
-          "const": false
-        },
-        "remote_repository_accessed": {
-          "const": false
-        },
-        "notifications_sent": {
-          "const": false
-        },
-        "capture_payload_created": {
-          "const": false
-        }
+        "recovery_budget_seconds": {"const": 240},
+        "calendar_cases": {"const": 4},
+        "retained_tree_preserved": {"const": true},
+        "data_service_invocations_unchanged": {"const": true},
+        "original_staging_unchanged": {"const": true},
+        "timer_identities_unchanged": {"const": true},
+        "runtime_links_removed": {"const": true},
+        "credentials_removed": {"const": true},
+        "marker_timer_dispatched": {"const": true},
+        "controller_recovery_used": {"const": false},
+        "recurring_schedule_enabled": {"const": false},
+        "remote_repository_accessed": {"const": false},
+        "notifications_sent": {"const": false},
+        "capture_payload_created": {"const": false}
       }
     },
     "recurring_schedule": {
@@ -2018,120 +990,41 @@
         "evidence_sha256"
       ],
       "properties": {
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "boot_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "terminal_archival": {
-          "enum": [
-            "pending_publication",
-            "published_verified"
-          ]
-        },
-        "evidence_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "terminal_tag": {
-          "type": "string",
-          "minLength": 1
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-schedule-v[1-9][0-9]*$"
-        },
-        "runtime_sha256": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
-          }
-        },
-        "repository_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "accepted_at": {"type": "string", "format": "date-time"},
+        "boot_id": {"type": "string", "format": "uuid"},
+        "terminal_archival": {"enum": ["pending_publication", "published_verified"]},
+        "evidence_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "terminal_tag": {"type": "string", "minLength": 1},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-schedule-v[1-9][0-9]*$"},
+        "runtime_sha256": {"$ref": "#/$defs/artifactDigests"},
+        "repository_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "observed_cycles": {
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "date",
-              "snapshot_id",
-              "manager_started_at",
-              "manager_finished_at"
-            ],
+            "required": ["date", "snapshot_id", "manager_started_at", "manager_finished_at"],
             "properties": {
-              "date": {
-                "type": "string",
-                "format": "date"
-              },
-              "snapshot_id": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{64}$"
-              },
-              "manager_started_at": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "manager_finished_at": {
-                "type": "string",
-                "format": "date-time"
-              }
+              "date": {"type": "string", "format": "date"},
+              "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "manager_started_at": {"type": "string", "format": "date-time"},
+              "manager_finished_at": {"type": "string", "format": "date-time"}
             }
           }
         },
-        "monitoring_owner": {
-          "type": "string",
-          "minLength": 1
-        },
-        "status": {
-          "const": "scheduled_cycles_accepted"
-        },
-        "scope": {
-          "const": "nightly_capture_resume_upload_full_integrity_and_successful_payload_disposal"
-        },
-        "timezone": {
-          "const": "America/Chicago"
-        },
-        "backup_time": {
-          "const": "03:20"
-        },
-        "latest_start": {
-          "const": "03:22"
-        },
-        "freshness_time": {
-          "const": "04:05"
-        },
-        "full_integrity_each_upload": {
-          "const": true
-        },
-        "recurring_schedule_enabled": {
-          "const": true
-        },
+        "monitoring_owner": {"type": "string", "minLength": 1},
+        "status": {"const": "scheduled_cycles_accepted"},
+        "scope": {"const": "nightly_capture_resume_upload_full_integrity_and_successful_payload_disposal"},
+        "timezone": {"const": "America/Chicago"},
+        "backup_time": {"const": "03:20"},
+        "latest_start": {"const": "03:22"},
+        "freshness_time": {"const": "04:05"},
+        "full_integrity_each_upload": {"const": true},
+        "recurring_schedule_enabled": {"const": true},
         "enabled_timers": {
           "const": [
             "nautobot-protection.timer",
@@ -2139,46 +1032,18 @@
             "nautobot-protection-notification.timer"
           ]
         },
-        "data_service_invocations_unchanged": {
-          "const": true
-        },
-        "older_retained_state_preserved": {
-          "const": true
-        },
-        "independent_snapshot_inventory_verified": {
-          "const": true
-        },
-        "transient_credentials_removed": {
-          "const": true
-        },
-        "successful_payload_disposal_verified": {
-          "const": true
-        },
-        "recovery_delivery_destinations": {
-          "const": [
-            "email",
-            "Discord",
-            "Pushover"
-          ]
-        },
-        "notification_duplicates_reported": {
-          "const": false
-        },
-        "monthly_restore_accepted": {
-          "const": false
-        },
-        "populated_media_accepted": {
-          "const": false
-        },
-        "seven_day_pilot_accepted": {
-          "const": false
-        },
-        "remote_retention_deletion_enabled": {
-          "const": false
-        },
-        "logical_reference_capture_deployed": {
-          "const": false
-        }
+        "data_service_invocations_unchanged": {"const": true},
+        "older_retained_state_preserved": {"const": true},
+        "independent_snapshot_inventory_verified": {"const": true},
+        "transient_credentials_removed": {"const": true},
+        "successful_payload_disposal_verified": {"const": true},
+        "recovery_delivery_destinations": {"const": ["email", "Discord", "Pushover"]},
+        "notification_duplicates_reported": {"const": false},
+        "monthly_restore_accepted": {"const": false},
+        "populated_media_accepted": {"const": false},
+        "seven_day_pilot_accepted": {"const": false},
+        "remote_retention_deletion_enabled": {"const": false},
+        "logical_reference_capture_deployed": {"const": false}
       }
     },
     "recurring_logical_capture": {
@@ -2215,149 +1080,54 @@
         "upload_attempted"
       ],
       "properties": {
-        "acceptance_checks_passed": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "accepted_schedule_unchanged": {
-          "const": true
-        },
-        "bundle_sha256": {
-          "$ref": "#/properties/recurring_capture_resume/properties/bundle_sha256"
-        },
-        "capture_deadline_seconds": {
-          "const": 450
-        },
-        "capture_seconds": {
-          "$ref": "#/properties/recurring_capture_resume/properties/capture_seconds"
-        },
-        "durable_logical_capture_deployed": {
-          "const": false
-        },
-        "evidence_sha256": {
-          "$ref": "#/properties/recurring_capture_resume/properties/evidence_sha256"
-        },
-        "independent_acceptance": {
-          "const": true
-        },
-        "logical_helpers_absent": {
-          "const": true
-        },
+        "acceptance_checks_passed": {"type": "integer", "minimum": 1},
+        "accepted_at": {"type": "string", "format": "date-time"},
+        "accepted_schedule_unchanged": {"const": true},
+        "bundle_sha256": {"$ref": "#/properties/recurring_capture_resume/properties/bundle_sha256"},
+        "capture_deadline_seconds": {"const": 450},
+        "capture_seconds": {"$ref": "#/properties/recurring_capture_resume/properties/capture_seconds"},
+        "durable_logical_capture_deployed": {"const": false},
+        "evidence_sha256": {"$ref": "#/properties/recurring_capture_resume/properties/evidence_sha256"},
+        "independent_acceptance": {"const": true},
+        "logical_helpers_absent": {"const": true},
         "logical_probe_seconds": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "before_seconds",
-            "after_seconds"
-          ],
+          "required": ["before_seconds", "after_seconds"],
           "properties": {
-            "before_seconds": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 35
-            },
-            "after_seconds": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 35
-            }
+            "before_seconds": {"type": "number", "minimum": 0, "maximum": 35},
+            "after_seconds": {"type": "number", "minimum": 0, "maximum": 35}
           }
         },
         "logical_receipt_sha256": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "logical-before.json",
-            "logical-reference.json",
-            "logical-capture.json"
-          ],
+          "required": ["logical-before.json", "logical-reference.json", "logical-capture.json"],
           "properties": {
-            "logical-before.json": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "logical-reference.json": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "logical-capture.json": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
+            "logical-before.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "logical-reference.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "logical-capture.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
           }
         },
-        "logical_table_count": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "old_tree_comparisons": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*$"
-        },
-        "payload_content_sha256": {
-          "$ref": "#/properties/recurring_capture_resume/properties/payload_content_sha256"
-        },
-        "payload_path": {
-          "$ref": "#/properties/recurring_capture_resume/properties/payload_path"
-        },
-        "payload_retained": {
-          "const": true
-        },
-        "prepare_through_resume_seconds": {
-          "type": "number",
-          "exclusiveMinimum": 0,
-          "maximum": 450
-        },
-        "recovery_deadline_seconds": {
-          "const": 240
-        },
-        "resume_verification": {
-          "$ref": "#/properties/recurring_capture_resume/properties/resume_verification"
-        },
-        "retained_state_unchanged": {
-          "$ref": "#/properties/recurring_capture_resume/properties/retained_state_unchanged"
-        },
-        "runtime_links_removed": {
-          "$ref": "#/properties/recurring_capture_resume/properties/runtime_links_removed"
-        },
-        "status": {
-          "$ref": "#/properties/recurring_capture_resume/properties/status"
-        },
-        "task_results": {
-          "$ref": "#/properties/recurring_capture_resume/properties/task_results"
-        },
-        "terminal_publication": {
-          "enum": [
-            "pending_separate_authorization",
-            "published_verified"
-          ]
-        },
-        "transient_credentials_removed": {
-          "$ref": "#/properties/recurring_capture_resume/properties/transient_credentials_removed"
-        },
-        "upload_attempted": {
-          "const": false
-        },
-        "terminal_tag": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*-accepted$"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "logical_table_count": {"type": "integer", "minimum": 1},
+        "old_tree_comparisons": {"type": "integer", "minimum": 1},
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*$"},
+        "payload_content_sha256": {"$ref": "#/properties/recurring_capture_resume/properties/payload_content_sha256"},
+        "payload_path": {"$ref": "#/properties/recurring_capture_resume/properties/payload_path"},
+        "payload_retained": {"const": true},
+        "prepare_through_resume_seconds": {"type": "number", "exclusiveMinimum": 0, "maximum": 450},
+        "recovery_deadline_seconds": {"const": 240},
+        "resume_verification": {"$ref": "#/properties/recurring_capture_resume/properties/resume_verification"},
+        "retained_state_unchanged": {"$ref": "#/properties/recurring_capture_resume/properties/retained_state_unchanged"},
+        "runtime_links_removed": {"$ref": "#/properties/recurring_capture_resume/properties/runtime_links_removed"},
+        "status": {"$ref": "#/properties/recurring_capture_resume/properties/status"},
+        "task_results": {"$ref": "#/properties/recurring_capture_resume/properties/task_results"},
+        "terminal_publication": {"enum": ["pending_separate_authorization", "published_verified"]},
+        "transient_credentials_removed": {"$ref": "#/properties/recurring_capture_resume/properties/transient_credentials_removed"},
+        "upload_attempted": {"const": false},
+        "terminal_tag": {"type": "string", "pattern": "^nautobot-recurring-logical-capture-v[1-9][0-9]*-accepted$"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
     },
     "recurring_logical_promotion": {
@@ -2382,65 +1152,25 @@
         "evidence_sha256"
       ],
       "properties": {
-        "bundle_sha256": {
-          "$ref": "#/properties/recurring_schedule/properties/bundle_sha256"
-        },
-        "accepted_at": {
-          "$ref": "#/properties/recurring_schedule/properties/accepted_at"
-        },
-        "runtime_sha256": {
-          "$ref": "#/properties/recurring_schedule/properties/runtime_sha256"
-        },
-        "repository_id": {
-          "$ref": "#/properties/recurring_schedule/properties/repository_id"
-        },
-        "full_integrity_each_upload": {
-          "$ref": "#/properties/recurring_schedule/properties/full_integrity_each_upload"
-        },
-        "monthly_restore_accepted": {
-          "$ref": "#/properties/recurring_schedule/properties/monthly_restore_accepted"
-        },
-        "terminal_archival": {
-          "$ref": "#/properties/recurring_schedule/properties/terminal_archival"
-        },
-        "evidence_sha256": {
-          "$ref": "#/properties/recurring_schedule/properties/evidence_sha256"
-        },
-        "terminal_tag": {
-          "$ref": "#/properties/recurring_schedule/properties/terminal_tag"
-        },
-        "archive_commit": {
-          "$ref": "#/properties/recurring_schedule/properties/archive_commit"
-        },
-        "tag_object": {
-          "$ref": "#/properties/recurring_schedule/properties/tag_object"
-        },
-        "operation_id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-logical-promotion-v[1-9][0-9]*$"
-        },
-        "status": {
-          "const": "first_scheduled_cycle_accepted"
-        },
-        "scope": {
-          "const": "durable_logical_reference_capture_resume_upload_integrity_disposal"
-        },
-        "snapshot_id": {
-          "$ref": "#/properties/recurring_schedule/properties/repository_id"
-        },
-        "cycle_date": {
-          "type": "string",
-          "format": "date"
-        },
-        "logical_reference_sha256": {
-          "$ref": "#/properties/recurring_schedule/properties/repository_id"
-        },
-        "logical_reference_capture_deployed": {
-          "const": true
-        },
-        "independent_acceptance": {
-          "const": true
-        }
+        "bundle_sha256": {"$ref": "#/properties/recurring_schedule/properties/bundle_sha256"},
+        "accepted_at": {"$ref": "#/properties/recurring_schedule/properties/accepted_at"},
+        "runtime_sha256": {"$ref": "#/properties/recurring_schedule/properties/runtime_sha256"},
+        "repository_id": {"$ref": "#/properties/recurring_schedule/properties/repository_id"},
+        "full_integrity_each_upload": {"$ref": "#/properties/recurring_schedule/properties/full_integrity_each_upload"},
+        "monthly_restore_accepted": {"$ref": "#/properties/recurring_schedule/properties/monthly_restore_accepted"},
+        "terminal_archival": {"$ref": "#/properties/recurring_schedule/properties/terminal_archival"},
+        "evidence_sha256": {"$ref": "#/properties/recurring_schedule/properties/evidence_sha256"},
+        "terminal_tag": {"$ref": "#/properties/recurring_schedule/properties/terminal_tag"},
+        "archive_commit": {"$ref": "#/properties/recurring_schedule/properties/archive_commit"},
+        "tag_object": {"$ref": "#/properties/recurring_schedule/properties/tag_object"},
+        "operation_id": {"type": "string", "pattern": "^nautobot-recurring-logical-promotion-v[1-9][0-9]*$"},
+        "status": {"const": "first_scheduled_cycle_accepted"},
+        "scope": {"const": "durable_logical_reference_capture_resume_upload_integrity_disposal"},
+        "snapshot_id": {"$ref": "#/properties/recurring_schedule/properties/repository_id"},
+        "cycle_date": {"type": "string", "format": "date"},
+        "logical_reference_sha256": {"$ref": "#/properties/recurring_schedule/properties/repository_id"},
+        "logical_reference_capture_deployed": {"const": true},
+        "independent_acceptance": {"const": true}
       }
     },
     "monthly_restore": {
@@ -2470,93 +1200,44 @@
         "terminal_archive"
       ],
       "properties": {
-        "state": {
-          "const": "accepted"
-        },
-        "scope": {
-          "const": "monthly_isolated_recurring_snapshot_restore_directory_only_media"
-        },
-        "month": {
-          "type": "string",
-          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-        },
-        "operation": {
-          "type": "string",
-          "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"
-        },
-        "reviewed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "bundle_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "snapshot_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "logical_reference_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "acceptance_evidence_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "independent_acceptance_checks": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "logical_identity_equal": {
-          "const": true
-        },
-        "native_checks_passed": {
-          "const": true
-        },
-        "directory_only_media_verified": {
-          "const": true
-        },
-        "production_continuity_preserved": {
-          "const": true
-        },
-        "recurring_schedule_unchanged": {
-          "const": true
-        },
-        "resource_and_credential_cleanup_passed": {
-          "const": true
-        },
-        "payload_retained": {
-          "const": true
-        },
-        "populated_media_accepted": {
-          "const": false
-        },
-        "production_failover_accepted": {
-          "const": false
-        },
-        "full_stage_5_accepted": {
-          "const": false
-        },
-        "terminal_archive": {
-          "enum": [
-            "pending",
-            "published"
-          ]
-        },
-        "terminal_tag": {
-          "type": "string",
-          "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"
-        },
-        "archive_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "tag_object": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "state": {"const": "accepted"},
+        "scope": {"const": "monthly_isolated_recurring_snapshot_restore_directory_only_media"},
+        "month": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"},
+        "operation": {"type": "string", "pattern": "^nautobot-application-restore-v[1-9][0-9]*$"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "logical_reference_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "acceptance_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "independent_acceptance_checks": {"type": "integer", "minimum": 1},
+        "logical_identity_equal": {"const": true},
+        "native_checks_passed": {"const": true},
+        "directory_only_media_verified": {"const": true},
+        "production_continuity_preserved": {"const": true},
+        "recurring_schedule_unchanged": {"const": true},
+        "resource_and_credential_cleanup_passed": {"const": true},
+        "payload_retained": {"const": true},
+        "populated_media_accepted": {"const": false},
+        "production_failover_accepted": {"const": false},
+        "full_stage_5_accepted": {"const": false},
+        "terminal_archive": {"enum": ["pending", "published"]},
+        "terminal_tag": {"type": "string", "pattern": "^nautobot-application-restore-v[1-9][0-9]*-accepted$"},
+        "archive_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag_object": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
+    }
+  },
+  "$defs": {
+    "fileMetadata": {
+      "additionalProperties": false,
+      "properties": {"gid": {"const": 985}, "mode": {"const": "0700"}, "uid": {"const": 999}},
+      "required": ["uid", "gid", "mode"],
+      "type": "object"
+    },
+    "artifactDigests": {
+      "additionalProperties": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+      "minProperties": 1,
+      "type": "object"
     }
   }
 }

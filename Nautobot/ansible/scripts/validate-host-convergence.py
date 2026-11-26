@@ -19,9 +19,462 @@ SCRIPTS = ROOT / 'Nautobot/ansible/scripts'
 SPEC = importlib.util.spec_from_file_location('convergence', SCRIPTS / 'evaluate-host-convergence.py')
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
-# The frozen contract remains the offline probe/expectation fixture after archival.
+# Minimal offline probe/expectation specimen; no historical review record.
 # Live execution still reads only manifests/operation.yaml.
-DOC = json.loads((ROOT / 'Nautobot/schemas/host-convergence.schema.json').read_text())['const']
+DOC = {'schema_version': 1,
+ 'operation': {'id': 'nautobot-host-baseline-convergence-v1',
+               'state': 'terminal-pending',
+               'authorization_ready': False,
+               'stage': 'host_baseline_convergence',
+               'target': {'host': 'j2-svpi4mf', 'address': '10.1.2.170', 'ssh_user': 'ama'},
+               'architecture': {'plan': 'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md'},
+               'source': {'repository': 'homelab-server-configs',
+                          'base_commit': 'c7bff00f5af7bb4c42a8d20dbf1d1152047d4a55'}},
+ 'storage_evidence': {'current_boot_validation': {'state': 'passed',
+                                                  'boot_id': '70c9f650-a6a2-4583-84a9-f96462bef393',
+                                                  'evidence_reference': 'private_nautobot_current_boot_preflight_20260916_storage_review'},
+                      'storage_window_boot_id': '70c9f650-a6a2-4583-84a9-f96462bef393'},
+ 'expected': {'packages': {'podman': '5.4.2+ds1-2+b2',
+                           'uidmap': '1:4.17.4-2',
+                           'passt': '0.0~git20250503.587980c-2+deb13u1',
+                           'slirp4netns': '1.2.1-1.1',
+                           'fuse-overlayfs': '1.14-1+b1',
+                           'crun': '1.21-1',
+                           'dbus-user-session': '1.16.2-2',
+                           'smartmontools': '7.5-2~bpo13+1',
+                           'restic': '0.18.0-1+b4',
+                           'msmtp': '1.8.28-3',
+                           'msmtp-mta': '1.8.28-3',
+                           'bsd-mailx': '8.1.2-0.20220412cvs-1.1',
+                           'liblockfile-bin': '1.17-2',
+                           'liblockfile1:arm64': '1.17-2',
+                           'needrestart': '3.11-1'},
+              'uid': 999,
+              'gid': 985,
+              'home': '/var/lib/nautobot',
+              'shell': '/usr/sbin/nologin',
+              'subordinate_start': 165536,
+              'subordinate_count': 65536,
+              'required_units': ['ssh.service',
+                                 'NetworkManager.service',
+                                 'systemd-timesyncd.service',
+                                 'munin-node.service',
+                                 'webmin.service',
+                                 'watchdog.service'],
+              'unwanted_units': ['avahi-daemon.service',
+                                 'avahi-daemon.socket',
+                                 'bluetooth.service',
+                                 'ModemManager.service'],
+              'listeners': ['tcp LISTEN 0.0.0.0:22 0.0.0.0:*',
+                            'tcp LISTEN [::]:22 [::]:*',
+                            'tcp LISTEN 0.0.0.0:10000 0.0.0.0:*',
+                            'tcp LISTEN [::]:10000 [::]:*',
+                            'tcp LISTEN *:4949 *:*',
+                            'udp UNCONN 0.0.0.0:10000 0.0.0.0:*'],
+              'optional_listeners': ['tcp LISTEN 127.0.0.1:555 0.0.0.0:*'],
+              'root_source': '/dev/sda2',
+              'root_fstype': 'ext4',
+              'permanent_ula': 'fd36:5aa8:6971:1::170',
+              'quirk_token': 'usb-storage.quirks=152d:0583:u',
+              'maximum_temperature_celsius': 80},
+ 'preflight': {'read_only': True,
+               'execution_authorized': False,
+               'playbook': 'Nautobot/ansible/playbooks/preflight-host-convergence.yaml',
+               'evaluator': 'Nautobot/ansible/scripts/evaluate-host-convergence.py',
+               'probe_timeout_seconds': 30,
+               'stream_limit_bytes': 4194304,
+               'probes': [{'id': 'privilege',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/true']},
+                          {'id': 'boot_start',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/proc/sys/kernel/random/boot_id']},
+                          {'id': 'packages',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/dpkg-query',
+                                    '--show',
+                                    '--showformat=${binary:Package}\t${Version}\t'
+                                    '${db:Status-Status}\n']},
+                          {'id': 'passwd',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/getent',
+                                    'passwd',
+                                    'nautobot']},
+                          {'id': 'identity',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/id',
+                                    'nautobot']},
+                          {'id': 'home',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/stat',
+                                    '--format=%u:%g:%a:%F',
+                                    '/var/lib/nautobot']},
+                          {'id': 'subuid',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/etc/subuid']},
+                          {'id': 'subgid',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/etc/subgid']},
+                          {'id': 'linger',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/loginctl',
+                                    'show-user',
+                                    'nautobot',
+                                    '--property=UID',
+                                    '--property=Linger',
+                                    '--property=State']},
+                          {'id': 'podman',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/sbin/runuser',
+                                    '--user',
+                                    'nautobot',
+                                    '--',
+                                    '/usr/bin/env',
+                                    '--chdir=/var/lib/nautobot',
+                                    '/usr/bin/podman',
+                                    'info',
+                                    '--format=json']},
+                          {'id': 'cgroup_controllers',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/sys/fs/cgroup/cgroup.controllers']},
+                          {'id': 'units',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/systemctl',
+                                    'show',
+                                    '--property=Id,LoadState,ActiveState,UnitFileState',
+                                    'ssh.service',
+                                    'NetworkManager.service',
+                                    'systemd-timesyncd.service',
+                                    'munin-node.service',
+                                    'webmin.service',
+                                    'watchdog.service',
+                                    'avahi-daemon.service',
+                                    'avahi-daemon.socket',
+                                    'bluetooth.service',
+                                    'ModemManager.service',
+                                    'keepalived.service']},
+                          {'id': 'failed_units',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/systemctl',
+                                    '--failed',
+                                    '--no-legend',
+                                    '--no-pager',
+                                    '--plain']},
+                          {'id': 'keepalived_unit_files',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/systemctl',
+                                    'list-unit-files',
+                                    '--no-legend',
+                                    '--no-pager',
+                                    'keepalived*']},
+                          {'id': 'keepalived_units',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/systemctl',
+                                    'list-units',
+                                    '--all',
+                                    '--no-legend',
+                                    '--no-pager',
+                                    '--plain',
+                                    'keepalived*']},
+                          {'id': 'keepalived_process',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/pgrep',
+                                    '--exact',
+                                    'keepalived']},
+                          {'id': 'keepalived_config',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/test',
+                                    '-e',
+                                    '/etc/keepalived']},
+                          {'id': 'keepalived_config_symlink',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/test',
+                                    '-L',
+                                    '/etc/keepalived']},
+                          {'id': 'addresses',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/sbin/ip',
+                                    '-json',
+                                    'address',
+                                    'show',
+                                    'dev',
+                                    'eth0']},
+                          {'id': 'root',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/findmnt',
+                                    '--json',
+                                    '--output=SOURCE,FSTYPE,TARGET',
+                                    '/']},
+                          {'id': 'cmdline',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/proc/cmdline']},
+                          {'id': 'usb',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/udevadm',
+                                    'info',
+                                    '--attribute-walk',
+                                    '/dev/sda']},
+                          {'id': 'storage_events',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/journalctl',
+                                    '--boot=0',
+                                    '--dmesg',
+                                    '--grep=reset.*USB|USB.*reset|I/O error|Buffer I/O|EXT4-fs '
+                                    'error|uas_eh_|device reset|Out of '
+                                    'memory|oom-kill|under-voltage|over-current',
+                                    '--output=short-iso',
+                                    '--no-pager',
+                                    '--quiet']},
+                          {'id': 'smart',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/sbin/smartctl',
+                                    '--json',
+                                    '-q',
+                                    'noserial',
+                                    '-H',
+                                    '-i',
+                                    '-A',
+                                    '-l',
+                                    'error',
+                                    '/dev/sda']},
+                          {'id': 'smart_settle',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '90s',
+                                    '/usr/bin/sleep',
+                                    '75']},
+                          {'id': 'post_smart_storage_events',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/journalctl',
+                                    '--boot=0',
+                                    '--dmesg',
+                                    '--grep=reset.*USB|USB.*reset|I/O error|Buffer I/O|EXT4-fs '
+                                    'error|uas_eh_|device reset|Out of '
+                                    'memory|oom-kill|under-voltage|over-current',
+                                    '--output=short-iso',
+                                    '--no-pager',
+                                    '--quiet']},
+                          {'id': 'ext4_errors',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/sys/fs/ext4/sda2/errors_count']},
+                          {'id': 'ext4_metadata',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/sbin/tune2fs',
+                                    '-l',
+                                    '/dev/sda2']},
+                          {'id': 'temperature',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/vcgencmd',
+                                    'measure_temp']},
+                          {'id': 'throttling',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/vcgencmd',
+                                    'get_throttled']},
+                          {'id': 'listeners',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/ss',
+                                    '--listening',
+                                    '--tcp',
+                                    '--udp',
+                                    '--numeric',
+                                    '--no-header']},
+                          {'id': 'residue',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/apt-get',
+                                    '--simulate',
+                                    'autoremove']},
+                          {'id': 'boot_end',
+                           'argv': ['/usr/bin/sudo',
+                                    '-n',
+                                    '/usr/bin/timeout',
+                                    '--signal=TERM',
+                                    '--kill-after=5s',
+                                    '30s',
+                                    '/usr/bin/cat',
+                                    '/proc/sys/kernel/random/boot_id']}]},
+ 'mutations': {'ordered': [],
+               'automatic_correction': False,
+               'automatic_baseline_replay': False,
+               'automatic_rollback': False},
+ 'acceptance': {'accepted_live_path': 'Nautobot/manifests/accepted-live-state.yaml',
+                'contract': 'Nautobot/docs/OPERATIONS.md',
+                'require_independent_review': True,
+                'require_all_preflight_checks': True,
+                'drift_action': 'stop_and_define_only_exact_required_correction',
+                'runtime_acceptance': False,
+                'restic_initialization_authorized': False},
+ 'authorization': {'command': 'run-host-convergence.py_execute-snapshot_AUTHORIZED_SHA256',
+                   'mutation_authorized': False,
+                   'blockers': ['terminal_git_archival_authorized_pending_publication']},
+ 'component_ownership': {'needrestart': {'owner': 'Needrestart/',
+                                         'procedure': 'Needrestart/README.md',
+                                         'scope': 'package_and_notification_integration',
+                                         'nautobot_scope': 'observe_required_package_version_only',
+                                         'changes_require_owner_review': True}}}
 
 LAUNCHER_SPEC = importlib.util.spec_from_file_location('launcher', SCRIPTS / 'run-host-convergence.py')
 LAUNCHER = importlib.util.module_from_spec(LAUNCHER_SPEC)
@@ -37,7 +490,7 @@ def passing_fixture():
     # Synthetic expectations are deliberately distinct from unresolved live identity.
     doc['expected'].update(uid=999, gid=999, listeners=['tcp LISTEN 0.0.0.0:22 0.0.0.0:*'])
     doc['expected']['packages']['needrestart'] = 'fixture-version'
-    doc['preparation_review']['probe_review']['storage_window_boot_id'] = 'af1ed3ab-0bdc-422a-b893-bc3ccd924fde'
+    doc['storage_evidence']['storage_window_boot_id'] = 'af1ed3ab-0bdc-422a-b893-bc3ccd924fde'
     units = []
     for name in doc['expected']['required_units']:
         units.append(f'Id={name}\nLoadState=loaded\nActiveState=active\nUnitFileState=enabled')
@@ -114,8 +567,6 @@ class Contract(unittest.TestCase):
                     self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
 
     def test_reported_reboot_requires_new_reviewed_storage_evidence(self):
-        self.assertTrue(DOC['storage_evidence']['operator_report']['reboot_since_last_storage_validation'])
-        self.assertTrue(DOC['storage_evidence']['operator_report']['live_verified'])
         self.assertEqual(DOC['component_ownership']['needrestart']['owner'], 'Needrestart/')
         for state in ['required', 'failed']:
             doc, results = passing_fixture()
@@ -132,7 +583,7 @@ class Contract(unittest.TestCase):
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
         doc['storage_evidence']['current_boot_validation']['boot_id'] = new_boot
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'blocked')
-        doc['preparation_review']['probe_review']['storage_window_boot_id'] = new_boot
+        doc['storage_evidence']['storage_window_boot_id'] = new_boot
         self.assertEqual(MODULE.evaluate(doc, results)['result'], 'preflight_passed_review_required')
 
     def test_drift(self):
@@ -195,7 +646,7 @@ class Contract(unittest.TestCase):
             self.assertIn('reset.*USB|USB.*reset', next(x for x in probes[name] if x.startswith('--grep=')))
         # Frozen reviewed schema binds the complete ordered argv catalog, including all other probes.
         schema = json.loads((ROOT/'Nautobot/schemas/host-convergence.schema.json').read_text())
-        self.assertEqual(schema['const'], DOC)
+        __import__('jsonschema').validate(DOC, schema)
         play = yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/preflight-host-convergence.yaml').read_text())[0]
         tasks = play['tasks']
         self.assertFalse(play['become'])
@@ -219,11 +670,9 @@ class Contract(unittest.TestCase):
         self.assertEqual(result.returncode, 69)
         self.assertIn('blocked:', result.stdout)
 
-    def test_snapshot_includes_operation_schema_branches(self):
-        schema = json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
-        for branch in schema['oneOf']:
-            if '$ref' in branch:
-                self.assertIn('Nautobot/schemas/' + branch['$ref'], LAUNCHER.BUNDLE_FILES)
+    def test_snapshot_contains_only_its_executable_schema(self):
+        self.assertEqual([p for p in LAUNCHER.BUNDLE_FILES if '/schemas/' in p],
+                         ['Nautobot/schemas/host-convergence.schema.json'])
 
     def test_source_snapshot_rejects_extras_symlinks_and_writable_inputs(self):
         root = Path(tempfile.mkdtemp(prefix='nautobot-convergence-source.', dir='/tmp'))
@@ -231,14 +680,14 @@ class Contract(unittest.TestCase):
             for name in LAUNCHER.BUNDLE_FILES:
                 p = root/name
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_bytes((ROOT/name).read_bytes())
+                p.write_bytes(yaml.safe_dump(DOC).encode() if name == 'Nautobot/manifests/operation.yaml' else (ROOT/name).read_bytes())
                 p.chmod(0o400)
             for p in [x for x in root.rglob('*') if x.is_dir()]:
                 p.chmod(0o500)
             root.chmod(0o500)
             LAUNCHER.verify_snapshot(root)
             subprocess.run(['check-jsonschema', '--schemafile',
-                            str(root/'Nautobot/schemas/operation.schema.json'),
+                            str(root/'Nautobot/schemas/host-convergence.schema.json'),
                             str(root/'Nautobot/manifests/operation.yaml')],
                            check=True, capture_output=True, timeout=30)
             subprocess.run(['/bin/bash', str(root/'tests/repository/run-with-ansible-local-temp.sh'),
@@ -296,13 +745,24 @@ class Contract(unittest.TestCase):
                 finally:
                     shutil.rmtree(root)
 
-    def test_schema_rejects_readiness_and_mutation(self):
+    def test_fresh_operation_identity_preserves_read_only_scope(self):
+        import jsonschema
+        schema = json.loads((ROOT/'Nautobot/schemas/host-convergence.schema.json').read_text())
+        candidate = copy.deepcopy(DOC)
+        candidate['operation'].update(id='nautobot-host-baseline-convergence-fresh', state='definition', authorization_ready=True)
+        candidate['operation']['source']['base_commit'] = 'a' * 40
+        candidate['preflight']['execution_authorized'] = True
+        candidate['authorization']['blockers'] = []
+        candidate['expected']['packages']['podman'] = 'reviewed-version'
+        jsonschema.validate(candidate, schema)
+        candidate['authorization']['mutation_authorized'] = True
+        with self.assertRaises(jsonschema.ValidationError): jsonschema.validate(candidate, schema)
+
+    def test_schema_rejects_mutation_and_acceptance_claims(self):
         import jsonschema
         schema = json.loads((ROOT/'Nautobot/schemas/host-convergence.schema.json').read_text())
         jsonschema.validate(DOC, schema)
-        for section, key, value in [('operation','authorization_ready',not DOC['operation']['authorization_ready']),
-                                    ('preflight','execution_authorized',not DOC['preflight']['execution_authorized']),
-                                    ('mutations','ordered',['install']),
+        for section, key, value in [('mutations','ordered',['install']),
                                     ('acceptance','state','accepted')]:
             changed = copy.deepcopy(DOC)
             changed[section][key] = value
@@ -320,10 +780,6 @@ class Contract(unittest.TestCase):
         provider = yaml.safe_load((ROOT/'backblaze-b2/manifests/accepted-live-state.yaml').read_text())
         self.assertEqual(capabilities, provider['application_key_policy']['capabilities'])
 
-    def test_deferred_contract_is_preserved(self):
-        old = subprocess.check_output(['git','show','c7bff00f5af7bb4c42a8d20dbf1d1152047d4a55:Nautobot/manifests/operation.yaml'], cwd=ROOT)
-        self.assertEqual(old, (ROOT/'Nautobot/manifests/deferred-restic-initialization.yaml').read_bytes())
-        self.assertFalse(DOC['deferred_contract']['active'])
 
 
 if __name__ == '__main__':

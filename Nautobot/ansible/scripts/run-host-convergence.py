@@ -19,22 +19,6 @@ ROOT = Path(__file__).resolve().parents[3]
 PREFIX = 'nautobot-host-convergence.'
 BUNDLE_FILES = (
     'Nautobot/manifests/operation.yaml',
-    'Nautobot/schemas/operation.schema.json',
-    'Nautobot/schemas/application-restore.schema.json',
-    'Nautobot/schemas/recurring-prerequisites.schema.json',
-    'Nautobot/schemas/recurring-credentials.schema.json',
-    'Nautobot/schemas/capture-resume.schema.json',
-    'Nautobot/schemas/upload-integrity.schema.json',
-    'Nautobot/schemas/notification-qualification.schema.json',
-    'Nautobot/schemas/disposal-qualification.schema.json',
-    'Nautobot/schemas/recovery-timer-qualification.schema.json',
-    'Nautobot/schemas/recurring-schedule.schema.json',
-    'Nautobot/schemas/workload-operation.schema.json',
-    'Nautobot/schemas/logout-persistence.schema.json',
-    'Nautobot/schemas/boot-readiness.schema.json',
-    'Nautobot/schemas/preservation-execution.schema.json',
-    'Nautobot/schemas/reboot-execution.schema.json',
-    'Nautobot/schemas/workload-execution.schema.json',
     'Nautobot/schemas/host-convergence.schema.json',
     'Nautobot/ansible/playbooks/preflight-host-convergence.yaml',
     'Nautobot/ansible/scripts/run-host-convergence.py',
@@ -46,13 +30,6 @@ BUNDLE_FILES = (
     'inventory/prod/groups/inventory_automation.yaml',
     'inventory/prod/hosts/j2-svpi4mf.yaml',
     'tests/repository/run-with-ansible-local-temp.sh',
-    'Nautobot/schemas/repository-initialization.schema.json',
-    'Nautobot/schemas/canary-backup.schema.json',
-    'Nautobot/schemas/canary-restore.schema.json',
-    'Nautobot/schemas/runtime-initialization.schema.json',
-    'Nautobot/schemas/database-inspection.schema.json',
-    'Nautobot/schemas/runtime-continuation.schema.json',
-    'Nautobot/schemas/administrator-bootstrap.schema.json',
     'Nautobot/ansible/ansible.cfg',
 )
 
@@ -173,7 +150,7 @@ def verify_snapshot(root):
 def execute(authorized_hash, snapshot=False):
     document = yaml.safe_load((ROOT/BUNDLE_FILES[0]).read_text())
     # Readiness rejection precedes hashes, local evidence creation and transport.
-    if (document['operation'].get('id') != 'nautobot-host-baseline-convergence-v1'
+    if (document['operation'].get('stage') != 'host_baseline_convergence'
             or document['operation']['authorization_ready'] is not True
             or document['preflight']['execution_authorized'] is not True
             or document['authorization']['mutation_authorized'] is not False

@@ -203,6 +203,7 @@ def main():
     require(root.parent==Path('/tmp') and re.fullmatch(r'nautobot-runtime\.[A-Za-z0-9_]+',root.name),'root_boundary')
     op=json.loads((root/'operation.json').read_text())
     try:
+        runtime.check_boot(root, op, admit=mode in ('preflight', 'journal-baseline'))
         if mode=='preflight':v=preflight(root,op)
         elif mode=='installed':v=installed(op)
         elif mode=='ready':v=ready(root,op)
@@ -211,9 +212,10 @@ def main():
         elif mode=='guard-stop':v=guard_stop(root)
         elif mode=='stopped':v={'passed':True,'services':inspection.stopped(),'cold_copies_verified':copied_trees(op)}
         else:v=runtime.storage.journal(mode,root,op)
+        runtime.check_boot(root, op)
         print(json.dumps(v));return 0 if v.get('passed',True) else 75
     except Exception as exc:
-        allowed={'cold_copy_changed','copy_boundary','copy_parent','initializer_drift','continuation_residue','existing_guard','disk_headroom','memory_headroom','stale_service','stale_migration','migration_failed','native_not_complete','progress_incomplete','receipt_identity','installed_file_drift','evidence_metadata','configuration_drift','boot_drift','unit_drift','container_residue'}
+        allowed={'wrong_host','admission_missing','admission_metadata','boot_identity','cold_copy_changed','copy_boundary','copy_parent','initializer_drift','continuation_residue','existing_guard','disk_headroom','memory_headroom','stale_service','stale_migration','migration_failed','native_not_complete','progress_incomplete','receipt_identity','installed_file_drift','evidence_metadata','configuration_drift','boot_drift','unit_drift','container_residue'}
         code=str(exc) if isinstance(exc,ValueError) and str(exc) in allowed else 'continuation_boundary_failed'
         print(json.dumps({'passed':False,'error':code}));return 69
 

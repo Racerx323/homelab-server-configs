@@ -87,7 +87,8 @@ class Restore:
         if self.spec['context'] == 'target':
             require(os.getuid() == 999 and root.parent == Path('/var/lib/nautobot/restore-tests'), 'target_root')
         else:
-            require(root.parent.is_relative_to('/home/aaron/code/.local-evidence'), 'disposable_root')
+            require(re.fullmatch(r'/tmp/nautobot-restore-local-[A-Za-z0-9_-]+(?:/run-[a-f0-9]{8})?', str(root.parent)), 'disposable_root')
+            protected(root.parent, True)
         self.volume = self.token+'-data'
         self.unit = self.token+'-guard.service'
 

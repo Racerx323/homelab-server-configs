@@ -23,7 +23,6 @@ FILES = {
     'recurring_protection.py': 'Nautobot/ansible/scripts/recurring_protection.py',
     'playbook.yaml': 'Nautobot/ansible/playbooks/provision-recurring-credentials.yaml',
     'delivery.yaml': 'Nautobot/ansible/tasks/deliver-recurring-token.yaml',
-    'qualification.json': 'Nautobot/manifests/recurring-credential-review.json',
     'schema.json': 'Nautobot/schemas/recurring-credentials.schema.json',
     'operation.yaml': 'Nautobot/manifests/operation.yaml',
     'accepted.yaml': 'Nautobot/manifests/accepted-live-state.yaml',

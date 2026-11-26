@@ -65,36 +65,22 @@ class ImageBuildTests(unittest.TestCase):
             (root/'input/requirements.lock').write_text('tampered')
             with self.assertRaises(ValueError): launcher.verify(root, digest)
 
-    def test_retry_candidate_preserves_consumed_definition_and_blocks_unarchived_execution(self):
-        original=(ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_bytes()
+    def test_explicit_predecessor_refuses_unarchived_execution(self):
         with tempfile.TemporaryDirectory() as tmp:
             bundle=Path(tmp)/'candidate'
-            previous=Path(tmp)/'previous'; (previous/'approved-bundle').mkdir(parents=True)
-            (previous/'execution').mkdir()
-            (previous/'approved-bundle/operation.yaml').write_bytes(original)
-            (previous/'approved-bundle/SHA256SUMS.json').write_text(json.dumps({'operation.yaml':hashlib.sha256(original).hexdigest()}))
-            (previous/'execution/result.json').write_text(json.dumps({'passed':False,'reason':'failed_unit','stop_confirmed':True,'artifacts_retained':True,'runtime_accepted':False}))
-            priorhash=launcher.sha(previous/'approved-bundle/SHA256SUMS.json')
-            with patch.object(launcher,'PREVIOUS_EVIDENCE',previous),patch.object(launcher,'PREVIOUS_BUNDLE_SHA256',priorhash):
-                digest=launcher.prepare(bundle,retry=True)
-            launcher.verify(bundle,digest)
-            self.assertEqual(original,(ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_bytes())
-            candidate=yaml.safe_load((bundle/'operation.yaml').read_text())
-            old=yaml.safe_load(original)
-            self.assertNotEqual(candidate['build']['id'],old['build']['id'])
-            self.assertEqual(candidate['build']['input_sha256'],old['build']['input_sha256'])
-            self.assertEqual(candidate['boundaries'],old['boundaries'])
-            with patch.object(launcher.subprocess,'check_output',side_effect=subprocess.CalledProcessError(128,['git'])), \
-                 patch.object(launcher.tempfile,'TemporaryDirectory') as stage:
+            digest=launcher.prepare(bundle)
+            prior=json.loads((bundle/'predecessor.json').read_text())
+            with patch.object(launcher.subprocess,'check_output',side_effect=subprocess.CalledProcessError(128,['git'])), patch.object(launcher.tempfile,'TemporaryDirectory') as stage:
                 with self.assertRaises(subprocess.CalledProcessError):launcher.execute(bundle,digest)
                 stage.assert_not_called()
-            prior=json.loads((bundle/'predecessor.json').read_text())
-            terminal=(bundle/'failure-evidence.json').read_bytes()
-            with patch.object(launcher.subprocess,'check_output',side_effect=[b'tag',original,terminal,b'abc\n',b'abc refs/tags/'+prior['tag'].encode()+b'\n']):
+            definition=b'operation';terminal=b'evidence'
+            prior.update(operation_sha256=hashlib.sha256(definition).hexdigest(), terminal_evidence_sha256=hashlib.sha256(terminal).hexdigest())
+            (bundle/'predecessor.json').write_text(json.dumps(prior))
+            with patch.object(launcher.subprocess,'check_output',side_effect=[b'tag',definition,terminal,b'abc\n',b'abc refs/tags/'+prior['tag'].encode()+b'\n']):
                 launcher.require_predecessor_archive(bundle)
-            for outputs in [[b'commit'],[b'tag',b'wrong'],[b'tag',original,b'wrong-evidence'],[b'tag',original,terminal,b'abc',b'']]:
-                with patch.object(launcher.subprocess,'check_output',side_effect=outputs):
-                    with self.assertRaises(ValueError):launcher.require_predecessor_archive(bundle)
+            for outputs in [[b'commit'],[b'tag',b'wrong'],[b'tag',definition,b'wrong-evidence'],[b'tag',definition,terminal,b'abc',b'']]:
+                with patch.object(launcher.subprocess,'check_output',side_effect=outputs), self.assertRaises(ValueError):
+                    launcher.require_predecessor_archive(bundle)
 
     def test_extra_bundle_content_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -118,7 +104,7 @@ class ImageBuildTests(unittest.TestCase):
         op = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/image-build-operation.yaml').read_text())
         Draft202012Validator(schema).validate(op)
         outer=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
-        self.assertEqual(sum(branch.get('const') == schema['const'] for branch in outer['oneOf']), 1)
+        self.assertIn({'$ref': 'image-build.schema.json'}, outer['oneOf'])
         for category, key, value in [('authorization','mutation_authorized',True),
                                       ('build','host','other-host'),
                                       ('boundaries','production_store_load',True)]:
@@ -205,9 +191,28 @@ class ImageBuildTests(unittest.TestCase):
                  patch.object(node,'Path',side_effect=paths), patch.object(node.os,'getuid',return_value=0), \
                  patch.object(node.time,'sleep'), patch.object(node.time,'monotonic',side_effect=lambda:next(times)):
                 if health_error or stop_error or missing_result or gap or start_error or states[0]=='failed':
-                    with self.assertRaises(RuntimeError):node.watch(root,{'id':'abc','boot_id':'boot'})
-                else:node.watch(root,{'id':'abc','boot_id':'boot'})
+                    with patch.object(node, 'admitted_boot', return_value='boot'), self.assertRaises(RuntimeError):node.watch(root,{'id':'abc'})
+                else:
+                    with patch.object(node, 'admitted_boot', return_value='boot'):node.watch(root,{'id':'abc'})
             return json.loads((root/'evidence/result.json').read_text()),calls,samples[0]
+
+    def test_admission_accepts_current_boot_and_refuses_reboot_wrong_host_and_metadata(self):
+        original = Path.read_text
+        boot = ['00000000-0000-4000-8000-000000000001']
+        def read(path, *args, **kwargs):
+            if str(path) == '/proc/sys/kernel/random/boot_id': return boot[0]
+            return original(path, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as tmp, patch('socket.gethostname', return_value='j2-svpi4mf'), patch.object(Path, 'read_text', read):
+            root = Path(tmp)
+            with self.assertRaises(FileNotFoundError): node.admitted_boot(root)
+            self.assertEqual(node.admitted_boot(root, admit=True), boot[0])
+            self.assertEqual(node.admitted_boot(root), boot[0])
+            with patch('socket.gethostname', return_value='wrong-host'), self.assertRaisesRegex(RuntimeError, 'wrong_host'):
+                node.admitted_boot(root)
+            boot[0] = '00000000-0000-4000-8000-000000000002'
+            with self.assertRaisesRegex(RuntimeError, 'boot_drift'): node.admitted_boot(root, admit=True)
+            (root/'admitted-boot.json').chmod(0o644)
+            with self.assertRaisesRegex(RuntimeError, 'admission_metadata'): node.admitted_boot(root)
 
     def test_watchdog_success_requires_delayed_coverage(self):
         result,calls,samples=self.watchdog(['inactive'])

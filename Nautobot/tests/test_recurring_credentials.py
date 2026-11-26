@@ -28,12 +28,11 @@ SCHEMA = json.loads((ROOT / 'Nautobot/schemas/recurring-credentials.schema.json'
 
 def fixture(root):
     for name, source in bundle.FILES.items():
-        if name in ('operation.yaml', 'qualification.json'):
+        if name == 'operation.yaml':
             continue
         path = root / source
         path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / source, path)
-    (root / bundle.FILES['qualification.json']).write_text(json.dumps({'fixture_only': True}))
     props = SCHEMA['properties']
     op = {k: copy.deepcopy(v['const']) for k, v in props.items() if 'const' in v}
     accepted = yaml.safe_load((ROOT / bundle.FILES['accepted.yaml']).read_text())

@@ -95,7 +95,6 @@ def identities(op):
     runtime.protected(home/'nautobot_config.py', 0o644)
     runtime.environments(home)
     require(file_hash(home/'nautobot_config.py') == op['runtime']['configuration_sha256'], 'configuration_drift')
-    require(Path('/proc/sys/kernel/random/boot_id').read_text().strip() == op['runtime']['expected_boot_id'], 'boot_drift')
     units = Path('/var/lib/nautobot/.config/containers/systemd')
     require({p.name for p in units.iterdir()} == set(op['runtime']['artifact_sha256']), 'unit_set')
     for name, digest in op['runtime']['artifact_sha256'].items():
@@ -216,11 +215,13 @@ def main():
     require(root.parent == Path('/tmp') and re.fullmatch(r'nautobot-inspection\.[A-Za-z0-9_]+', root.name), 'root_boundary')
     op = json.loads((root/'operation.json').read_text())
     try:
+        runtime.check_boot(root, op, admit=mode == 'journal-baseline')
         if mode == 'preserve': result = preserve(root, op)
         elif mode == 'ready': result = ready(root, op)
         elif mode == 'ledger': result = ledger(root, op)
         elif mode == 'stopped': result = {'passed': True, 'services': stopped()}
         else: result = runtime.storage.journal(mode, root, op)
+        runtime.check_boot(root, op)
         print(json.dumps(result)); return 0 if result.get('passed', True) else 69
     except Exception as exc:
         code = str(exc) if isinstance(exc, ValueError) and re.fullmatch('[a-z_]+', str(exc)) else 'boundary_or_command_failed'

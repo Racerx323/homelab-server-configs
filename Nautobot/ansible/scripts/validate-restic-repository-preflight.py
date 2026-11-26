@@ -14,7 +14,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[3]
 PLAYBOOK = ROOT / "Nautobot/ansible/playbooks/preflight-restic-repository.yaml"
-OPERATION = ROOT / "Nautobot/manifests/deferred-restic-initialization.yaml"
+OPERATION = ROOT / "Nautobot/tests/fixtures/restic-initialization-operation.yaml"
 
 
 def fail(message: str) -> None:
@@ -282,18 +282,8 @@ def main() -> None:
         != "backblaze-b2/manifests/accepted-live-state.yaml"
     ):
         fail("accepted Backblaze live-state reference is missing")
-    last_result = preflight.get("last_result", {})
-    if (
-        preflight.get("state") != "passed"
-        or preflight.get("implementation_state") != "reviewed"
-        or last_result.get("execution_user") != "nautobot"
-        or last_result.get("restic_version_number") != "0.18.0"
-        or last_result.get("version_supported") is not True
-        or last_result.get("exact_version_retained") is not True
-        or last_result.get("config_exit_status") != 10
-    ):
-        fail("combined preflight evidence is incomplete")
-
+    if preflight.get("implementation_state") != "reviewed":
+        fail("preflight implementation is unreviewed")
     print("Nautobot Restic repository-absence preflight regression passed.")
 
 

@@ -18,8 +18,12 @@ ROOT = bounded.ROOT
 
 
 def validate():
+    operation = bounded.yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
+    stage = operation.get('operation', {}).get('stage')
+    if stage not in ('runtime_initialization', 'runtime_continuation', 'administrator_bootstrap'):
+        raise bounded.PreflightBlocked('runtime_not_ready')
     try:
-        subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/'Nautobot/schemas/operation.schema.json'),
+        subprocess.run(['check-jsonschema', '--schemafile', str(ROOT/('Nautobot/schemas/' + stage.replace('_', '-') + '.schema.json')),
                         str(ROOT/'Nautobot/manifests/operation.yaml')], check=True, timeout=30,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError as exc:
@@ -32,32 +36,47 @@ def validate():
     return operation
 
 
-def verify_prerequisites(operation, require_clean=True):
+def archived_prerequisite(proof):
+    """Read consumed evidence from its exact annotated archive, not main."""
     def git(*args):
-        try:return subprocess.check_output(['git','-C',str(ROOT),*args],stderr=subprocess.DEVNULL,timeout=30)
-        except (OSError,subprocess.SubprocessError) as exc:raise bounded.PreflightBlocked('archive_unavailable') from exc
+        try:
+            return subprocess.check_output(['git', '-C', str(ROOT), *args],
+                                           stderr=subprocess.DEVNULL, timeout=30)
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise bounded.PreflightBlocked('archive_unavailable') from exc
+    raw = git('show', proof['tag'] + ':' + proof['path'])
+    result = json.loads(raw)
+    if (hashlib.sha256(raw).hexdigest() != proof['sha256'] or result.get('accepted') is not True
+            or result.get('result', result.get('outcome', result.get('phase'))) != proof['outcome']
+            or git('cat-file', '-t', proof['tag']).strip() != b'tag'
+            or git('rev-parse', proof['tag'] + '^{}').decode().strip() != proof['commit']):
+        raise bounded.PreflightBlocked('prerequisite_identity')
+    return raw
+
+
+def verify_prerequisites(operation, require_clean=True):
     for proof in operation['prerequisites']:
-        raw=(ROOT/proof['path']).read_bytes(); result=json.loads(raw)
-        if (hashlib.sha256(raw).hexdigest()!=proof['sha256'] or result.get('accepted') is not True
-                or result.get('result',result.get('outcome',result.get('phase')))!=proof['outcome']
-                or git('cat-file','-t',proof['tag']).strip()!=b'tag'
-                or git('rev-parse',proof['tag']+'^{}').decode().strip()!=proof['commit']
-                or git('show',proof['tag']+':'+proof['path'])!=raw):
-            raise bounded.PreflightBlocked('prerequisite_identity')
-    for name,digest in operation['input_sha256'].items():
-        if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest:
+        archived_prerequisite(proof)
+    for name, digest in operation['input_sha256'].items():
+        if hashlib.sha256((ROOT/name).read_bytes()).hexdigest() != digest:
             raise bounded.PreflightBlocked('accepted_input_drift')
-    if require_clean and git('status','--porcelain'):raise bounded.PreflightBlocked('clean_source_required')
+    if require_clean:
+        try:
+            dirty = subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain'], timeout=30)
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise bounded.PreflightBlocked('archive_unavailable') from exc
+        if dirty:
+            raise bounded.PreflightBlocked('clean_source_required')
 
 
 def bundle_rows(operation):
     sources = [
         'Nautobot/manifests/operation.yaml', 'Nautobot/manifests/desired-state.yaml',
-        'Nautobot/manifests/accepted-live-state.yaml', 'Nautobot/schemas/operation.schema.json', 'Nautobot/schemas/runtime-initialization.schema.json',
-        'Nautobot/schemas/host-convergence.schema.json', 'Nautobot/schemas/repository-initialization.schema.json',
+        'Nautobot/manifests/accepted-live-state.yaml',
+
         'Nautobot/schemas/accepted-host-baseline.schema.json',
-        'Nautobot/schemas/runtime-continuation.schema.json',
-        'Nautobot/schemas/administrator-bootstrap.schema.json',
+
+
         'Nautobot/ansible/playbooks/continue-runtime-tasks.yaml',
         'Nautobot/ansible/scripts/continuation-node.py',
         'Nautobot/ansible/scripts/inspect-retained-database.py',
@@ -86,14 +105,20 @@ def bundle_rows(operation):
                     'Nautobot/tests/fixtures/nautobot-cli-parser.json',
                     'Nautobot/tests/fixtures/CLI_PARSER_PROVENANCE.md',
                     'Nautobot/tests/fixtures/DJANGO-LICENSE.txt']
-    sources += [p['path'] for p in operation['prerequisites']] + list(operation['input_sha256'])
+    sources += ['Nautobot/schemas/' + ('database-inspection' if operation['operation']['stage'] == 'retained_database_inspection' else operation['operation']['stage'].replace('_', '-')) + '.schema.json']
+    sources += list(operation['input_sha256'])
     rows=[]
+    for proof in operation['prerequisites']:
+        rows.append((hashlib.sha256(archived_prerequisite(proof)).hexdigest(),
+                     'archive/' + proof['commit'] + '/' + proof['path']))
     for name in dict.fromkeys(sources):
         path=ROOT/name
         if path.is_symlink() or not path.is_file():raise bounded.PreflightBlocked('unsafe_source')
         rows.append((hashlib.sha256(path.read_bytes()).hexdigest(), name))
     if operation['operation']['stage'] == 'administrator_bootstrap':
         identity = Path(operation['bootstrap']['identity_reference'])
+        if not identity.is_absolute() or '..' in identity.parts or any(p.is_symlink() for p in (identity, *identity.parents)) or '.local-evidence' in identity.resolve().parts:
+            raise bounded.PreflightBlocked('bootstrap_identity_path')
         try:
             info = identity.lstat()
         except OSError as exc:
@@ -110,7 +135,7 @@ def bundle_rows(operation):
         # private bundle manifest, never the public operation definition.
         rows.append((hashlib.sha256(raw).hexdigest(), 'private/bootstrap-identity.json'))
     rendered=Path(operation['runtime']['rendered_directory'])
-    if not rendered.is_absolute() or rendered.is_symlink():raise bounded.PreflightBlocked('unsafe_rendered_directory')
+    if not rendered.is_absolute() or rendered.is_symlink() or '.local-evidence' in rendered.resolve().parts:raise bounded.PreflightBlocked('unsafe_rendered_directory')
     for name,digest in sorted(operation['runtime']['artifact_sha256'].items()):
         if Path(name).name != name:raise bounded.PreflightBlocked('unsafe_artifact_name')
         path=rendered/name
@@ -147,6 +172,7 @@ def execute(authorized_hash):
           json.dumps({'ansible_host':'10.1.2.170','runtime_bundle_verified':True,
                       'runtime_rendered_directory':str(rendered),'runtime_evidence_root':str(root),
                       'runtime_secret_directory':secret_directory,
+                      'runtime_bootstrap_identity_reference':operation.get('bootstrap', {}).get('identity_reference'),
                       'runtime_bootstrap_identity_sha256':dict((name, digest) for digest, name in rows).get('private/bootstrap-identity.json')}),
           str(ROOT/'Nautobot/ansible/playbooks'/('bootstrap-administrator.yaml' if bootstrap else 'deploy-runtime.yaml')))
     result={'accepted':False,'mutation_status':'unknown_until_review','bundle_sha256':digest}

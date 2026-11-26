@@ -17,6 +17,18 @@ bundle=importlib.util.module_from_spec(spec);spec.loader.exec_module(bundle)
 import restore_node as node
 
 
+def preparation():
+    # Minimal operation input; no completed production trial is a test default.
+    sections = ('postgresql_custom_dump', 'media', 'configuration',
+                'image_dependency_manifest', 'quadlet_config_hashes', 'versions_migrations')
+    return {'source': {'snapshot_id': 'a'*64, 'repository_id': 'b'*64,
+                      'repository_url': '/fixture/repository', 'hostname': 'fixture',
+                      'tags': ['fixture'], 'payload_path': '/fixture/payload',
+                      'content_sha256': {name: 'c'*64 for name in sections}},
+            'runtime': {'image_ids': {role: 'd'*64 for role in ('application', 'postgresql', 'redis')}},
+            'baseline': {}, 'configuration': {}}
+
+
 class DeliveryTests(unittest.TestCase):
     def test_provider_partial_failure_erases_buffers_and_files(self):
         with tempfile.TemporaryDirectory() as d:
@@ -71,7 +83,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_generated_retrieval_pins_all_source_fields(self):
         import yaml
-        prep=yaml.safe_load((ROOT/bundle.FILES['preparation.yaml']).read_text())
+        prep=preparation()
         runtime, contract=bundle.generated({'root':'/var/lib/nautobot/restore-tests/nautobot-restore-'+'a'*24,
             'token':'nautobot-restore-'+'a'*24,'restic_version':'pinned'},prep)
         self.assertEqual(contract['snapshot_id'],prep['source']['snapshot_id'])
@@ -96,7 +108,7 @@ class FrozenTests(unittest.TestCase):
                 'runtime_files':{'nautobot_config.py':{'regular':True,'uid':999,'mode':'0o644','sha256':'a'*64}}}
             for name,value in (('baseline.json',baseline),('members.json',{}),('logical.json',{})):
                 (inputs/name).write_text(json.dumps(value))
-            prep_path=root/bundle.FILES['preparation.yaml'];prep=yaml.safe_load(prep_path.read_text())
+            prep_path=inputs/'preparation.yaml';prep=preparation()
             historical = yaml.safe_load((root/bundle.FILES['accepted-state.yaml']).read_text())['recovery_preservation']
             prep['source'].update(kind='recovery_preservation', **{k:historical[k] for k in ('snapshot_id','terminal_tag','archive_commit')})
             prep['baseline'].update(sha256=bundle.sha(inputs/'baseline.json'),collected_at=baseline['collected_at'])
@@ -116,12 +128,18 @@ class FrozenTests(unittest.TestCase):
                 'baseline':{'collected_at':baseline['collected_at'],'sha256':bundle.sha(inputs/'baseline.json'),
                     'boot_id':baseline['boot_id'],'services':services,'artifact_sha256':{'/var/lib/nautobot/runtime/nautobot_config.py':'a'*64}}}
             for name,field in (('PLAN.md','plan_sha256'),('accepted-state.yaml','accepted_state_sha256'),('preparation.yaml','preparation_sha256')):
-                op[field]=bundle.sha(root/bundle.FILES[name])
+                op[field]=bundle.sha(prep_path if name == 'preparation.yaml' else root/bundle.FILES[name])
             op.update(members_sha256=bundle.sha(inputs/'members.json'),logical_sha256=bundle.sha(inputs/'logical.json'))
             (inputs/'operation.json').write_text(json.dumps(op))
             with patch.object(bundle,'ROOT',root):
                 dest=Path(d)/'bundle'
-                approval=bundle.freeze(inputs/'operation.json',dest,inputs/'baseline.json',inputs/'members.json',inputs/'logical.json')
+                saved = prep_path.read_bytes()
+                prep_path.write_bytes(saved + b'\n')
+                with self.assertRaisesRegex(ValueError, 'preparation_identity'):
+                    bundle.freeze(inputs/'operation.json', dest, inputs/'baseline.json', inputs/'members.json', inputs/'logical.json', preparation=prep_path)
+                self.assertFalse(dest.exists())
+                prep_path.write_bytes(saved)
+                approval=bundle.freeze(inputs/'operation.json',dest,inputs/'baseline.json',inputs/'members.json',inputs/'logical.json',preparation=prep_path)
                 bundle.verify(dest,approval,executing=False)
                 (dest/'extra').write_text('unexpected')
                 with self.assertRaisesRegex(ValueError,'bundle_file_set'):bundle.verify(dest,approval,executing=False)

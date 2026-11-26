@@ -23,7 +23,7 @@ OPT_IN_TESTS = {
 # historical contracts. Resolve their document paths at the documented snapshot,
 # never treat those strings as current bundle inputs.
 HISTORICAL_DOCUMENT_REFERENCES = {
-    ('manifests/deferred-restic-initialization.yaml', 'ISOLATED_BACKUP_RESTORE.md'),
+    ('tests/fixtures/restic-initialization-operation.yaml', 'ISOLATED_BACKUP_RESTORE.md'),
     ('schemas/repository-initialization.schema.json', 'ISOLATED_BACKUP_RESTORE.md'),
     ('schemas/operation.schema.json', 'ISOLATED_BACKUP_RESTORE.md'),
     ('schemas/host-convergence.schema.json', 'HOST_BASELINE_CONVERGENCE.md'),
@@ -49,6 +49,20 @@ def headings(text):
 
 
 class DocumentationContracts(unittest.TestCase):
+    def test_local_hook_selection_separates_docs_from_behavior(self):
+        import yaml
+        config = yaml.safe_load((ROOT/'.pre-commit-config.yaml').read_text())
+        hooks = [h for repository in config['repos'] for h in repository['hooks']
+                 if h['id'].startswith(('nautobot-', 'restic-'))]
+        def selected(path):
+            return {h['id'] for h in hooks if re.search(h.get('files', ''), path)}
+        self.assertEqual(selected('Nautobot/docs/ROADMAP.md'), {'nautobot-documentation-contracts'})
+        self.assertIn('nautobot-workload-orchestration', selected('Nautobot/ansible/scripts/workload_adapter.py'))
+        self.assertNotIn('nautobot-reboot-persistence', selected('Nautobot/tests/test_workload_orchestration.py'))
+        for hook in hooks:
+            for path in re.findall(r'(?:Nautobot|restic)/tests/test_[A-Za-z0-9_]+\.py', hook['entry']):
+                self.assertIn(hook['id'], selected(path), path)
+
     def test_document_responsibilities_stay_consolidated(self):
         self.assertEqual({p.name for p in (COMPONENT/'docs').glob('*.md')}, {
             'NAUTOBOT_DEPLOYMENT_PLAN.md', 'OPERATIONS.md', 'ROADMAP.md', 'CHECKPOINT.md'})

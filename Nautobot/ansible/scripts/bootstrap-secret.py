@@ -12,19 +12,23 @@ import sys
 spec = importlib.util.spec_from_file_location('credentials', Path(__file__).with_name('provision-credentials.py'))
 provider = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(provider)
-IDENTITY = Path('/home/aaron/code/.local-evidence/nautobot-runtime-preparation-20260921/bootstrap-inputs.json')
 
 
-def resolve(directory, expected_identity_hash):
+def resolve(directory, expected_identity_hash, identity_path):
+    identity_path = Path(identity_path)
+    if (not identity_path.is_absolute() or ".." in identity_path.parts
+            or any(p.is_symlink() for p in (identity_path, *identity_path.parents))
+            or ".local-evidence" in identity_path.resolve().parts):
+        raise ValueError("identity_path")
     root = Path(directory)
     s = root.lstat()
     if (root.parent != Path('/dev/shm') or not re.fullmatch(r'nautobot-bootstrap\.[A-Za-z0-9_]+', root.name)
             or not stat.S_ISDIR(s.st_mode) or s.st_uid != os.getuid() or stat.S_IMODE(s.st_mode) != 0o700):
         raise ValueError('private_root')
-    s = IDENTITY.lstat()
+    s = identity_path.lstat()
     if not stat.S_ISREG(s.st_mode) or s.st_uid != os.getuid() or stat.S_IMODE(s.st_mode) != 0o600 or s.st_size > 4096:
         raise ValueError('identity_metadata')
-    raw = IDENTITY.read_bytes()
+    raw = identity_path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected_identity_hash:
         raise ValueError('identity_changed')
     identity = json.loads(raw)
@@ -39,7 +43,7 @@ def resolve(directory, expected_identity_hash):
 if __name__ == '__main__':
     os.umask(0o077)
     try:
-        resolve(sys.argv[1], sys.argv[2])
+        resolve(sys.argv[1], sys.argv[2], sys.argv[3])
     except Exception:
         print('bootstrap_input_resolution_failed')
         raise SystemExit(69)

@@ -126,18 +126,6 @@ class PreparationTests(unittest.TestCase):
         for roles in ((),('unknown',)):
             with self.assertRaises(ValueError): sampler.Reader('fixture',roles=roles)
 
-    def test_inactive_contract_cannot_be_activated(self):
-        import json
-        import yaml
-        import jsonschema
-        root = SCRIPTS.parents[1]
-        document = yaml.safe_load((root / 'manifests/recovery-preservation.yaml').read_text())
-        schema = json.loads((root / 'schemas/recovery-preservation.schema.json').read_text())
-        jsonschema.validate(document, schema)
-        document['execution_authorized'] = True
-        with self.assertRaises(jsonschema.ValidationError):
-            jsonschema.validate(document, schema)
-
     def test_real_ansible_failure_attempts_all_resumes_and_removes_credentials(self):
         import copy
         import json

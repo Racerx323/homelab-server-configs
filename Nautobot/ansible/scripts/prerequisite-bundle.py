@@ -26,7 +26,6 @@ FILES = {
     'accepted-state.yaml': 'Nautobot/manifests/accepted-live-state.yaml',
     'recurring-protection.yaml': 'Nautobot/manifests/recurring-protection.yaml',
     'operation.yaml': 'Nautobot/manifests/operation.yaml',
-    'qualification.json': 'Nautobot/manifests/recurring-prerequisite-review.json',
     'schema.json': 'Nautobot/schemas/recurring-prerequisites.schema.json',
     'PLAN.md': 'Nautobot/docs/NAUTOBOT_DEPLOYMENT_PLAN.md',
     'OPERATIONS.md': 'Nautobot/docs/OPERATIONS.md',

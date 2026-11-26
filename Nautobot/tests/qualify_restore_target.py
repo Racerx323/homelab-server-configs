@@ -7,7 +7,6 @@ Never use a production recovery directory with this qualification helper.
 import argparse
 import hashlib
 import importlib.util
-import io
 import json
 import os
 import re
@@ -15,7 +14,6 @@ from pathlib import Path
 import secrets
 import subprocess
 import sys
-import tarfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'Nautobot/tests'))
@@ -24,21 +22,16 @@ spec = importlib.util.spec_from_file_location('capture', ROOT/'Nautobot/ansible/
 capture = importlib.util.module_from_spec(spec); spec.loader.exec_module(capture)
 
 
-def main():
+def prepare(fixture, dump_sha256, parent):
     os.umask(0o077)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--fixture', type=Path, required=True)
-    parser.add_argument('--dump-sha256', required=True)
-    parser.add_argument('--parent', type=Path, required=True)
-    args = parser.parse_args()
-    fixture = args.fixture.resolve()
-    if not re.fullmatch(r'/home/aaron/code/\.local-evidence/nautobot-restore-local-[A-Za-z0-9_-]+/run-[a-f0-9]{8}', str(fixture)):
+    fixture = fixture.resolve()
+    if not re.fullmatch(r'/tmp/nautobot-restore-local-[A-Za-z0-9_-]+/run-[a-f0-9]{8}', str(fixture)):
         raise ValueError('synthetic_fixture_only')
     source = json.loads((fixture/'qualification.json').read_text())
     dump = fixture/'payload/postgresql_custom_dump'
-    if digest(dump) != args.dump_sha256: raise ValueError('fixture_hash')
+    if digest(dump) != dump_sha256: raise ValueError('fixture_hash')
     token = 'nautobot-restore-'+secrets.token_hex(12)
-    root = args.parent/token; root.mkdir(mode=0o700, parents=True)
+    root = parent/token; root.mkdir(mode=0o700, parents=True)
     images = dict(source['images']); images['application'] = images.pop('app')
     save(root/'runtime.json', {'token': token, 'uid': os.getuid(), 'context': 'disposable',
                              'images': images, 'production_containers': [],
@@ -87,7 +80,55 @@ def main():
     save(root/'ansible.json', {'restore_verified':True,'restore_execution_authorized':True,'restore_context':'disposable',
         'restore_root':str(root),'restore_token':token,'restore_scripts':str(ROOT/'Nautobot/ansible/scripts'),
         'restore_restic_helper':str(ROOT/'restic/scripts/application-restore.py')})
-    print(root)
+    return root
+
+
+def delivery(fixture, dump_sha256, parent, reject_snapshot=False):
+    os.umask(0o077)
+    spec = importlib.util.spec_from_file_location('restore_bundle', ROOT/'Nautobot/ansible/scripts/application-restore-bundle.py')
+    bundle = importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
+    parent.mkdir(mode=0o700, exist_ok=False)
+    source = prepare(fixture, dump_sha256, parent/'sources')
+    token=source.name;root=parent/'runtime'/token;monitor=parent/'monitor';inputs=parent/'inputs';inputs.mkdir(mode=0o700)
+    runtime=json.loads((source/'runtime.json').read_text());runtime['restic_helper']=str(root/'scripts/application-restore.py')
+    (inputs/'runtime.json').write_text(json.dumps(runtime))
+    files=[]
+    def add(path,destination): files.append({'source':str(path),'destination':str(destination),'uid':os.getuid(),'sha256':bundle.sha(path)})
+    for name in bundle.SCRIPTS+('application-restore.py','application-backup.py'):add(ROOT/bundle.FILES[name],root/'scripts'/name)
+    add(inputs/'runtime.json',root/'runtime.json')
+    for name in ('members.json','logical-reference.json'):add(source/name,root/name)
+    if reject_snapshot:
+        contract=json.loads((source/'retrieval/restore.json').read_text());contract['snapshot_id']='0'*64
+        (source/'retrieval/restore.json').write_text(json.dumps(contract))
+    for name in ('restore.json','repository'):add(source/'retrieval'/name,root/'retrieval'/name)
+    secret=inputs/'credentials.json'
+    secret.write_text(json.dumps({'django':(source/'django-secret').read_text(),
+        'password':(source/'retrieval/password').read_text(),'id':'synthetic','key':'synthetic'}));secret.chmod(0o600)
+    for path in (source/'django-secret',source/'retrieval/password',source/'retrieval/credentials.json'):path.unlink()
+    evidence=parent/'receipts';evidence.mkdir(mode=0o700)
+    extra={'restore_verified':True,'restore_execution_authorized':True,'restore_stage':True,'restore_context':'disposable',
+           'restore_root':str(root),'restore_token':token,'restore_scripts':str(root/'scripts'),
+           'restore_monitor_scripts':str(monitor),'restore_stage_uid':os.getuid(),'restore_files':files,
+           'restore_credentials_file':str(secret),'restore_receipts':bundle.RECEIPTS,'restore_evidence':str(evidence)}
+    (parent/'ansible.json').write_text(json.dumps(extra))
+    (parent/'inventory.ini').write_text('[restore_target]\nlocalhost ansible_connection=local\n')
+    return parent/'ansible.json'
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--fixture', type=Path, required=True)
+    parser.add_argument('--dump-sha256', required=True)
+    parser.add_argument('--parent', type=Path, required=True)
+    parser.add_argument('--delivery', action='store_true', help='Prepare the real staging and credential-delivery inputs')
+    parser.add_argument('--reject-snapshot', action='store_true', help='Delivery failure case using an invalid snapshot')
+    args = parser.parse_args()
+    if args.reject_snapshot and not args.delivery:
+        parser.error('--reject-snapshot requires --delivery')
+    if args.delivery:
+        print(delivery(args.fixture, args.dump_sha256, args.parent, args.reject_snapshot))
+    else:
+        print(prepare(args.fixture, args.dump_sha256, args.parent))
 
 
 if __name__ == '__main__': main()

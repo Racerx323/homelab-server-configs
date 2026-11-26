@@ -38,13 +38,12 @@ def assemble(output, baseline, recovery):
         if value.get('accepted') is not True or value.get('host') != 'j2-svpi4mf':
             raise ValueError('unreviewed_prerequisite')
         shutil.copyfile(source, output/(name+'.json'))
-    load('prepare-startup').prepare(output/'artifacts')
+    review = load('prepare-startup').prepare(output/'artifacts')
     desired = yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
     before = json.loads((output/'baseline.json').read_text())
-    accepted = yaml.safe_load((ROOT/'Nautobot/manifests/startup-preservation.yaml').read_text())
     settings = {'boot_id':before['boot_id'], 'journal_cursor':parse_cursor(before['journal_cursor']),
                 'limits_mib':{r:v['memory_limit_mib'] for r,v in desired['services'].items()},
-                'images':{r:accepted['runtime']['images'][r if r in ('postgresql','redis') else 'custom']['id'] for r in desired['services']},
+                'images':{r:review['runtime_images'][r if r in ('postgresql','redis') else 'custom']['id'] for r in desired['services']},
                 'storage_pattern':r'reset.*USB device|I/O error|Buffer I/O|EXT4-fs error|uas_eh|device offline|timing out command|blk_update_request|out of memory|oom-kill'}
     settings_path=output/'runtime-expectations.json';settings_path.write_text(json.dumps(settings,indent=2)+'\n')
     probes=output/'probes';probes.mkdir(mode=0o700)

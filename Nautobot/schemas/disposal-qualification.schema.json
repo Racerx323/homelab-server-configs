@@ -16,7 +16,6 @@
     "snapshot_ids",
     "eligible_snapshot_ids",
     "protected_snapshot_ids",
-    "remote_snapshot_inventory_basis",
     "remote_inventory_accepted_at",
     "content_sha256",
     "payload_file_metadata",
@@ -33,9 +32,7 @@
     "acceptance"
   ],
   "properties": {
-    "schema_version": {
-      "const": 1
-    },
+    "schema_version": {"const": 1},
     "target": {
       "const": {
         "name": "j2-svpi4mf",
@@ -46,12 +43,8 @@
         "home": "/var/lib/nautobot"
       }
     },
-    "capture_root": {
-      "const": "/var/lib/nautobot/protection/qualification"
-    },
-    "evidence_root": {
-      "const": "/var/lib/nautobot/protection/disposal-qualification"
-    },
+    "capture_root": {"const": "/var/lib/nautobot/protection/qualification"},
+    "evidence_root": {"const": "/var/lib/nautobot/protection/disposal-qualification"},
     "retention": {
       "const": {
         "dry_run": true,
@@ -94,97 +87,37 @@
         "no_automatic_retry_after_interruption"
       ]
     },
-    "remote_snapshot_inventory_basis": {
-      "const": "historical_accepted_upload_receipt_refresh_required_before_disposal"
-    },
     "operation": {
       "type": "object",
-      "required": [
-        "id",
-        "stage",
-        "state",
-        "execution_enabled",
-        "authorization_ready",
-        "source_commit"
-      ],
+      "required": ["id", "stage", "state", "execution_enabled", "authorization_ready", "source_commit"],
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"
-        },
-        "stage": {
-          "const": "recurring_disposal_retention_qualification"
-        },
-        "state": {
-          "const": "pending"
-        },
-        "execution_enabled": {
-          "type": "boolean"
-        },
-        "authorization_ready": {
-          "type": "boolean"
-        },
-        "source_commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
+        "id": {"type": "string", "pattern": "^nautobot-recurring-disposal-[a-z0-9-]+$"},
+        "stage": {"const": "recurring_disposal_retention_qualification"},
+        "state": {"const": "pending"},
+        "execution_enabled": {"type": "boolean"},
+        "authorization_ready": {"type": "boolean"},
+        "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
     },
-    "baseline_collected_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "boot_id": {
-      "type": "string",
-      "format": "uuid"
-    },
-    "payload_root": {
-      "type": "string",
-      "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9_]+$"
-    },
-    "snapshot_id": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
+    "baseline_collected_at": {"type": "string", "format": "date-time"},
+    "boot_id": {"type": "string", "format": "uuid"},
+    "payload_root": {"type": "string", "pattern": "^/var/lib/nautobot/protection/staging/nautobot-recurring\\.[a-z0-9_]+$"},
+    "snapshot_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "snapshot_ids": {
       "type": "array",
       "uniqueItems": true,
       "minItems": 1,
       "maxItems": 256,
-      "items": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      }
+      "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
     },
-    "eligible_snapshot_ids": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 1,
-      "items": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      }
-    },
-    "protected_snapshot_ids": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      }
-    },
-    "remote_inventory_accepted_at": {
-      "type": "string",
-      "format": "date-time"
-    },
+    "eligible_snapshot_ids": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "protected_snapshot_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "remote_inventory_accepted_at": {"type": "string", "format": "date-time"},
     "content_sha256": {
       "type": "object",
       "minProperties": 1,
-      "additionalProperties": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      }
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
     },
     "payload_file_metadata": {
       "type": "object",
@@ -192,63 +125,27 @@
       "maxProperties": 6,
       "additionalProperties": {
         "type": "object",
-        "required": [
-          "bytes",
-          "nlink",
-          "device",
-          "inode"
-        ],
+        "required": ["bytes", "nlink", "device", "inode"],
         "additionalProperties": false,
         "properties": {
-          "bytes": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "nlink": {
-            "const": 1
-          },
-          "device": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "inode": {
-            "type": "integer",
-            "minimum": 1
-          }
+          "bytes": {"type": "integer", "minimum": 1},
+          "nlink": {"const": 1},
+          "device": {"type": "integer", "minimum": 1},
+          "inode": {"type": "integer", "minimum": 1}
         }
       }
     },
     "payload_tree": {
       "type": "object",
-      "required": [
-        "directories",
-        "files"
-      ],
+      "required": ["directories", "files"],
       "additionalProperties": false,
-      "properties": {
-        "directories": {
-          "type": "object"
-        },
-        "files": {
-          "type": "object"
-        }
-      }
+      "properties": {"directories": {"type": "object"}, "files": {"type": "object"}}
     },
     "qualification_tree": {
       "type": "object",
-      "required": [
-        "directories",
-        "files"
-      ],
+      "required": ["directories", "files"],
       "additionalProperties": false,
-      "properties": {
-        "directories": {
-          "type": "object"
-        },
-        "files": {
-          "type": "object"
-        }
-      }
+      "properties": {"directories": {"type": "object"}, "files": {"type": "object"}}
     },
     "services": {
       "type": "object",
@@ -259,41 +156,21 @@
         "nautobot-web.service",
         "nautobot-worker.service"
       ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      "additionalProperties": {"type": "object"}
     },
     "restic": {
       "type": "object",
-      "required": [
-        "path",
-        "version",
-        "sha256"
-      ],
+      "required": ["path", "version", "sha256"],
       "additionalProperties": false,
       "properties": {
-        "path": {
-          "const": "/usr/bin/restic"
-        },
-        "version": {
-          "const": "restic 0.18.0 compiled with go1.24.4 on linux/arm64"
-        },
-        "sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        }
+        "path": {"const": "/usr/bin/restic"},
+        "version": {"const": "restic 0.18.0 compiled with go1.24.4 on linux/arm64"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     },
-    "doppler_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "credentials": {
-      "type": "object"
-    },
-    "repository": {
-      "type": "object"
-    },
+    "doppler_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "credentials": {"type": "object"},
+    "repository": {"type": "object"},
     "source_sha256": {
       "type": "object",
       "additionalProperties": false,
@@ -307,34 +184,13 @@
         "RESTIC_ARCHITECTURE.md"
       ],
       "properties": {
-        "accepted.yaml": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "desired.yaml": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "recurring.yaml": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "provider.yaml": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "repository.json": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "PLAN.md": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "RESTIC_ARCHITECTURE.md": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        }
+        "accepted.yaml": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "desired.yaml": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "recurring.yaml": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "provider.yaml": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "repository.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "PLAN.md": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "RESTIC_ARCHITECTURE.md": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     }
   }

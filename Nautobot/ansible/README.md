@@ -44,7 +44,7 @@ python3 Nautobot/ansible/scripts/run-host-convergence.py show-command
 ```
 
 The reviewed Restic initialization definition is preserved unchanged in
-[the inactive contract](../manifests/deferred-restic-initialization.yaml).
+[the historical test contract](../tests/fixtures/restic-initialization-operation.yaml).
 The Restic launcher still loads only the active manifest and therefore rejects
 execution while convergence occupies the stream. A passed historical absence
 check is retained evidence, not permission to initialize or replay it.

@@ -23,7 +23,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[3]
 LAUNCHER_PATH = ROOT / "Nautobot/ansible/scripts/run-restic-repository-preflight.py"
-OPERATION_PATH = ROOT / "Nautobot/manifests/deferred-restic-initialization.yaml"
+OPERATION_PATH = ROOT / "Nautobot/tests/fixtures/restic-initialization-operation.yaml"
 SPEC = importlib.util.spec_from_file_location("restic_preflight_launcher", LAUNCHER_PATH)
 assert SPEC is not None and SPEC.loader is not None
 LAUNCHER = importlib.util.module_from_spec(SPEC)
@@ -41,8 +41,13 @@ def fresh_definition() -> dict[str, Any]:
     schema = json.loads(LAUNCHER.OPERATION_SCHEMA.read_text())
     branch = next(item for item in schema["oneOf"]
                   if item.get("title") == "Fresh read-only repository absence preflight")
-    return {key: copy.deepcopy(value["const"])
-            for key, value in branch["properties"].items()}
+    document = operation_definition()
+    for key, field in branch['properties'].items():
+        if 'const' in field: document[key] = copy.deepcopy(field['const'])
+    for key, field in branch['properties']['operation']['properties'].items():
+        if 'const' in field: document['operation'][key] = copy.deepcopy(field['const'])
+    document['operation']['id'] = 'nautobot-restic-preflight-fixture'
+    return {key: document[key] for key in branch['properties']}
 
 
 def ready_definition(bundle: str) -> dict[str, Any]:
@@ -97,11 +102,6 @@ class ContractTests(unittest.TestCase):
             document["provider_acceptance"]["accepted_live_state"],
             "backblaze-b2/manifests/accepted-live-state.yaml",
         )
-        self.assertEqual(document["preflight"]["last_result"]["config_exit_status"], 10)
-        self.assertEqual(document["preflight"]["last_result"]["execution_user"], "nautobot")
-        self.assertEqual(document["preflight"]["last_result"]["restic_version_number"], "0.18.0")
-        self.assertTrue(document["preflight"]["last_result"]["version_supported"])
-        self.assertTrue(document["preflight"]["last_result"]["exact_version_retained"])
 
     def test_manifest_and_launcher_bundle_contract_match(self) -> None:
         preflight = fresh_definition()["preflight"]

@@ -9,7 +9,7 @@
         that:
           - restore_local_root is defined
           - restore_local_adapter is defined
-          - restore_local_root is match('^/home/aaron/code/\.local-evidence/nautobot-restore-local-[A-Za-z0-9_/-]+$')
+          - restore_local_root is match('^/tmp/nautobot-restore-local-[A-Za-z0-9_/-]+$')
     - name: Exercise native restore with independent final cleanup
       block:
         - name: Qualify setup

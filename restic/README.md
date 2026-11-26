@@ -16,7 +16,7 @@ transport. Repository initialization remains a separate, unimplemented
 operation. The reviewed initialization boundary is documented in
 [docs/REPOSITORY_INITIALIZATION.md](docs/REPOSITORY_INITIALIZATION.md). Its
 inactive consumer contract at
-`Nautobot/manifests/deferred-restic-initialization.yaml` records the confirmed password and independent
+`Nautobot/tests/fixtures/restic-initialization-operation.yaml` preserves historical password-reference and independent
 recovery references plus a passed repository-absence preflight. It remains
 unready until the host baseline is accepted, the initialization implementation
 is reviewed and checkpointed, a final bundle is calculated, and explicit live

@@ -50,6 +50,7 @@ def prepare(output):
         (output/name).chmod(0o600)
     report = {'execution_authorized': False, 'bootstrap_tag': tag,
               'bootstrap_commit': git('rev-parse', tag+'^{}').decode().strip(),
+              'runtime_images': archived_op['runtime']['images'],
               'artifact_changes': changes,
               'unchanged_existing_units': sorted(name for name, value in changes.items()
                                                   if value['before_sha256'] == value['after_sha256']),

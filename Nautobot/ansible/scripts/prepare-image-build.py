@@ -16,10 +16,7 @@ import yaml
 
 ROOT = next((p for p in Path(__file__).resolve().parents
              if (p/'Nautobot/container/Containerfile').is_file()), None)
-PREVIOUS_EVIDENCE = Path('/home/aaron/code/.local-evidence/nautobot-image-build-20260921')
-PREVIOUS_BUNDLE_SHA256 = '21c15632af42c3e7d1aeb689889a0538a58e58a6b00b2a2f5024ca243f7c06a4'
 FILES = {
-    'failure-evidence.json':'Nautobot/manifests/image-qualification-failure.json',
     'image-build-node.py':'Nautobot/ansible/scripts/image-build-node.py',
     'qualify-image.yaml':'Nautobot/ansible/playbooks/qualify-image.yaml',
     'build.service.j2':'Nautobot/ansible/templates/image-build/build.service.j2',
@@ -64,7 +61,7 @@ def verify(bundle, expected):
     return rows
 
 
-def prepare(destination, retry=False):
+def prepare(destination):
     if ROOT is None:
         raise ValueError('prepare_requires_repository_checkout')
     from jsonschema import Draft202012Validator
@@ -84,8 +81,6 @@ def prepare(destination, retry=False):
         raise ValueError('baseline_provenance')
     if hashlib.sha256(git('show', baseline['terminal_tag']+':Nautobot/manifests/terminal-evidence.yaml')).hexdigest() != baseline['terminal_evidence_sha256']:
         raise ValueError('baseline_evidence')
-    if operation['build']['boot_id'] != accepted['host_baseline']['boot_id']:
-        raise ValueError('boot_identity')
     for name, digest in operation['build']['input_sha256'].items():
         if sha(ROOT/'Nautobot/container'/name) != digest:
             raise ValueError('stale_build_input')
@@ -99,34 +94,7 @@ def prepare(destination, retry=False):
         raise ValueError('registry_platform')
     if evidence['validation_test_sha256'] != sha(ROOT/FILES['test_image_build.py']):
         raise ValueError('validation_test_drift')
-    predecessor = None
-    if retry:
-        # Preserve the active consumed definition; this is an unactivated candidate.
-        old = PREVIOUS_EVIDENCE
-        approved = old/'approved-bundle'
-        old_hash = PREVIOUS_BUNDLE_SHA256
-        index = json.loads((approved/'SHA256SUMS.json').read_text())
-        if sha(approved/'SHA256SUMS.json') != old_hash:
-            raise ValueError('predecessor_bundle_hash')
-        for name, digest in index.items():
-            if sha(approved/name) != digest:
-                raise ValueError('predecessor_member_hash')
-        if (approved/'operation.yaml').read_bytes() != (ROOT/FILES['operation.yaml']).read_bytes():
-            raise ValueError('consumed_definition_changed')
-        result_path = old/'execution/result.json'
-        result = json.loads(result_path.read_text())
-        if result != {'passed':False,'reason':'failed_unit','stop_confirmed':True,
-                      'artifacts_retained':True,'runtime_accepted':False}:
-            raise ValueError('predecessor_not_stopped_failure')
-        predecessor = {'repository':str(ROOT), 'tag':'nautobot-image-qualification-v1-failed',
-                       'operation_sha256':sha(approved/'operation.yaml'),
-                       'bundle_sha256':old_hash, 'id':operation['build']['id'],
-                       'result_sha256':sha(result_path),
-                       'terminal_evidence_sha256':sha(ROOT/FILES['failure-evidence.json'])}
-        operation['operation']['id'] = 'nautobot-image-qualification-v2'
-        operation['build']['id'] = hashlib.sha256((old_hash+sha(ROOT/FILES['image-build-node.py'])).encode()).hexdigest()[:12]
-        operation['build']['predecessor'] = predecessor
-        schema['const'] = operation
+    predecessor = operation['build'].get('predecessor')
     destination.mkdir(mode=0o700)
     for name, source in FILES.items():
         p = ROOT/source
@@ -135,9 +103,6 @@ def prepare(destination, retry=False):
         target = destination/name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(p, target)
-    if retry:
-        (destination/'operation.yaml').write_text(yaml.safe_dump(operation, sort_keys=False))
-        (destination/'operation.schema.json').write_text(json.dumps(schema, indent=2)+'\n')
     (destination/'predecessor.json').write_text(json.dumps(predecessor, indent=2)+'\n')
     spec = operation['build']
     (destination/'spec.json').write_text(json.dumps(spec, indent=2)+'\n')
@@ -208,12 +173,12 @@ def execute(bundle, digest):
 def main():
     os.umask(0o077)
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['prepare','prepare-retry','verify','execute'])
+    p.add_argument('mode', choices=['prepare','verify','execute'])
     p.add_argument('bundle', type=Path)
     p.add_argument('hash', nargs='?')
     a = p.parse_args()
-    if a.mode in ['prepare','prepare-retry']:
-        prepare(a.bundle.resolve(), retry=a.mode == 'prepare-retry')
+    if a.mode == 'prepare':
+        prepare(a.bundle.resolve())
     else:
         if not a.hash or not re.fullmatch('[0-9a-f]{64}', a.hash):
             p.error('exact SHA-256 authorization required')

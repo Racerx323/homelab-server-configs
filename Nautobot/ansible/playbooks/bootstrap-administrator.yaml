@@ -161,6 +161,7 @@
               - '{{ playbook_dir }}/../scripts/bootstrap-secret.py'
               - '{{ runtime_secret_directory }}'
               - '{{ runtime_bootstrap_identity_sha256 }}'
+              - '{{ runtime_bootstrap_identity_reference }}'
           delegate_to: localhost
           changed_when: false
           no_log: true

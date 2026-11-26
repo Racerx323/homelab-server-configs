@@ -216,19 +216,24 @@ class DjangoStore:
 
     def lock_owned(self, nodes, receipt):
         require(set(receipt.get('objects', {})) == {n['key'] for n in nodes}, 'ownership_receipt')
+        groups = {}
         for node in nodes:
-            list(self.model(node['model']).objects.select_for_update().filter(pk=receipt['objects'][node['key']]))
+            groups.setdefault(node['model'], []).append(receipt['objects'][node['key']])
+        for name, ids in groups.items():
+            locked = list(self.model(name).objects.select_for_update().filter(pk__in=ids).order_by('pk'))
+            require(len(locked) == len(ids), 'owned_object_missing')
 
     def delete_owned(self, nodes, receipt):
         from django.db.models.deletion import Collector, ProtectedError, RestrictedError
         from nautobot.core.models.fields import NaturalOrderingField
         allowed = {}
-        owned = []
+        for node in nodes:
+            allowed.setdefault(self.model(node['model']), set()).add(receipt['objects'][node['key']])
+        owned = {model: list(model.objects.filter(pk__in=ids)) for model, ids in allowed.items()}
+        objects = {(model, str(obj.pk)): obj for model, rows in owned.items() for obj in rows}
         for node in nodes:
             model = self.model(node['model'])
-            allowed.setdefault(model, set()).add(receipt['objects'][node['key']])
-            obj = model.objects.get(pk=receipt['objects'][node['key']])
-            owned.append(obj)
+            obj = objects[(model, receipt['objects'][node['key']])]
             controlled = set(node['lookup']) | set(node['fields'])
             defaults = model(**{name: getattr(obj, name) for name in controlled})
             if node['model'] == 'ipam.prefix':
@@ -243,40 +248,45 @@ class DjangoStore:
                 expected = field.pre_save(defaults, True) if isinstance(field, NaturalOrderingField) else getattr(defaults, field.attname)
                 require(field.to_python(getattr(obj, field.attname)) == field.to_python(expected),
                         'owned_extra_field_drift:' + model._meta.label_lower + '.' + field.name)
-            if node['content_types'] is not None:
-                through = obj.content_types.through
-                field = next(f for f in through._meta.fields if f.is_relation and f.related_model == model)
-                allowed.setdefault(through, set()).update(str(x) for x in through.objects.filter(**{field.name: obj}).values_list('pk', flat=True))
+        # Only the explicitly owned content-type bindings may join the closure.
+        for model, rows in owned.items():
+            if not any(n['content_types'] is not None and self.model(n['model']) == model for n in nodes):
+                continue
+            through = model.content_types.through
+            field = next(f for f in through._meta.fields if f.is_relation and f.related_model == model)
+            allowed.setdefault(through, set()).update(str(x) for x in through.objects.filter(
+                **{field.name + '__in': rows}).values_list('pk', flat=True))
+
         def check(model, rows):
-            require({str(o.pk) for o in rows} <= allowed.get(model, set()), 'unowned_delete_closure')
-        # Check every reverse FK/M2M and generic relation before the first
-        # deletion, including SET_NULL relations outside Collector.data.
-        for obj in owned:
-            for relation in obj._meta.get_fields(include_hidden=True):
+            ids = rows.values_list('pk', flat=True) if hasattr(rows, 'values_list') else (o.pk for o in rows)
+            require({str(pk) for pk in ids} <= allowed.get(model, set()), 'unowned_delete_closure')
+
+        # One query per model/relation, including SET_NULL and generic relations.
+        # Do this before deleting anything; a prefix or matching name is not ownership.
+        for model, rows in owned.items():
+            for relation in model._meta.get_fields(include_hidden=True):
                 if relation.auto_created and not relation.concrete and (relation.one_to_many or relation.one_to_one):
-                    rows = relation.related_model._base_manager.filter(**{relation.field.name: obj})
-                    check(relation.related_model, rows)
-            for field in obj._meta.private_fields:
+                    check(relation.related_model, relation.related_model._base_manager.filter(
+                        **{relation.field.name + '__in': rows}))
+            for field in model._meta.private_fields:
                 if hasattr(field, 'bulk_related_objects'):
-                    rows = field.bulk_related_objects([obj], 'default')
-                    check(rows.model, rows)
-        # Reverse dependency order avoids PROTECT between owned objects. Every
-        # collector includes generic relations and native deletion signals.
-        # Any later refusal rolls back earlier deletes in the outer transaction.
-        for node in reversed(nodes):
-            model = self.model(node['model'])
+                    related = field.bulk_related_objects(rows, 'default')
+                    check(related.model, related)
+        # Plan model order follows dependencies. Native Collector preserves signals;
+        # the outer transaction rolls back every group if a later group is refused.
+        for model, rows in reversed(list(owned.items())):
             collector = Collector(using='default')
             try:
-                collector.collect(model.objects.filter(pk=receipt['objects'][node['key']]))
+                collector.collect(rows)
             except (ProtectedError, RestrictedError):
                 raise ValueError('unowned_delete_closure') from None
-            for related, rows in collector.data.items():
-                check(related, rows)
-            for rows in collector.fast_deletes:
-                check(rows.model, rows)
+            for related, collected in collector.data.items():
+                check(related, collected)
+            for collected in collector.fast_deletes:
+                check(collected.model, collected)
             for (field, _), groups in collector.field_updates.items():
-                for rows in groups:
-                    check(field.model, rows)
+                for collected in groups:
+                    check(field.model, collected)
             collector.delete()
 
     def create(self, model, fields, content_types):

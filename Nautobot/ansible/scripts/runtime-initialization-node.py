@@ -60,9 +60,39 @@ def environments(home):
             and m.get('NAUTOBOT_REDIS_HOST') == 'redis', 'environment_consistency')
 
 
+def check_boot(root, op, admit=False):
+    """Bind continuity to this operation's admission, never a historical boot."""
+    host = Path('/proc/sys/kernel/hostname').read_text().strip()
+    expected_host = op['operation']['target']['host']
+    require(host in (expected_host, expected_host + '.local.theama.co'), 'wrong_host')
+    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    require(re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot), 'boot_identity')
+    observed = {'host': expected_host, 'boot_id': boot,
+                'operation_sha256': hashlib.sha256(json.dumps(op, sort_keys=True).encode()).hexdigest()}
+    path = root/'admitted-boot.json'
+    if not path.exists() and not path.is_symlink():
+        require(admit, 'admission_missing')
+        storage.record(root, path.name, observed)
+    else:
+        info = path.lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.geteuid()
+                and stat.S_IMODE(info.st_mode) == 0o600 and info.st_size < 4096, 'admission_metadata')
+        expected = json.loads(path.read_text())
+        require(isinstance(expected, dict) and set(expected) == set(observed)
+                and expected['host'] == expected_host
+                and isinstance(expected['boot_id'], str)
+                and re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', expected['boot_id'])
+                and isinstance(expected['operation_sha256'], str)
+                and re.fullmatch(r'[0-9a-f]{64}', expected['operation_sha256']), 'admission_metadata')
+        if expected != observed:
+            print(json.dumps({'phase': 'boot_continuity', 'expected': expected,
+                              'observed': observed}), file=sys.stderr)
+            raise ValueError('boot_drift')
+    return observed
+
+
 def preflight(root, op):
     require(os.geteuid()==0,'root_required')
-    require(Path('/proc/sys/kernel/random/boot_id').read_text().strip()==op['runtime']['expected_boot_id'],'boot_drift')
     home=Path('/var/lib/nautobot/runtime');storage.ancestry(home)
     require(home.stat().st_uid==999 and stat.S_IMODE(home.stat().st_mode)==0o700,'runtime_directory')
     environments(home)
@@ -175,10 +205,12 @@ def main():
     require(root.parent==Path('/tmp') and re.fullmatch(r'nautobot-runtime\.[A-Za-z0-9_]+',root.name),'root_boundary')
     op=json.loads((root/'operation.json').read_text())
     try:
+        check_boot(root, op, admit=mode in ('preflight', 'journal-baseline'))
         if mode=='preflight': result=preflight(root,op)
         elif mode=='postflight': result=postflight(root,op)
         elif mode=='migration-evidence': result=read_migration(root,False)
         else:result=storage.journal(mode,root,op)
+        check_boot(root, op)
         print(json.dumps(result));return 0 if result.get('passed',True) else 69
     except Exception as exc:
         allowed=str(exc) if isinstance(exc,ValueError) and re.fullmatch('[a-z_]+',str(exc)) else 'boundary_or_command_failed'

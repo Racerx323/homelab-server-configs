@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "failed_trial_archived_replacement_repair_pending",
+  "status": "local_simplification_qualified_no_live_operation",
   "execution_authorized": false,
   "record_roles": {
     "plan": "docs/NAUTOBOT_DEPLOYMENT_PLAN.md",
@@ -8,9 +8,7 @@
     "work_ledger": "manifests/workload-review.json",
     "result": "nautobot-mixed-workload-v1-failed:Nautobot/terminal/workload; private raw evidence remains hash-bound"
   },
-  "source_revision": "7904a66de939ea6fa59207fced1767c685d99cd6",
-  "private_preparation": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124",
-  "next_action": "Review focused fixture-replacement repair preserving native validation, ownership refusal and atomic rollback; reuse existing correctness tests. No new trial, limit increase or capacity fixture is authorized.",
+  "next_action": "Review current code changes for publication; retain clean operation and accepted schedule. Any later workload trial needs fresh scoped preparation and the exact ownership input, not a new permanent controller store.",
   "work_items": [
     {
       "id": "W-001",
@@ -39,7 +37,7 @@
       "issue": "Agreed-profile target resource and duration acceptance",
       "closure": "Resolve transition, review existing launcher/control compatibility, qualify changed behavior only, then freeze and separately approve one actual-target trial",
       "evidence": "No substitute-fixture capacity gate; preserve two workers and existing phase/stop limits.",
-      "next_action": "Full workload remains unaccepted. Repair the diagnosed fixture replacement bottleneck after terminal archival; no new execution candidate now."
+      "next_action": "Full target workload timing remains unaccepted. The replacement correctness fix is qualified locally; any further actual-target trial requires separate exact approval."
     },
     {
       "id": "W-005",
@@ -48,7 +46,18 @@
       "closure": "Separate owned-selection review and approval",
       "owner": "Aaron",
       "reason": "Not a stage-5 workload prerequisite; no current capacity finding requires deletion.",
-      "follow_up": "docs/OPERATIONS.md recurring disposal/retention procedures"
+      "follow_up": "docs/OPERATIONS.md recurring disposal/retention procedures",
+      "archive_lookup": {
+        "tag": "nautobot-mixed-workload-v1-failed",
+        "paths": [
+          "Nautobot/manifests/capture-resume-review.json",
+          "Nautobot/manifests/logical-capture-review.json",
+          "Nautobot/manifests/monthly-restore-review.json",
+          "Nautobot/manifests/recurring-recovery-review.json",
+          "Nautobot/manifests/recurring-disposal-review.json"
+        ],
+        "use": "Historical payload roots, hashes and disposition evidence remain accessible with git show TAG:PATH. Recheck target ownership/content before any future cleanup; no deletion authority is implied."
+      }
     },
     {
       "id": "W-006",
@@ -96,10 +105,10 @@
     },
     {
       "id": "W-012",
-      "state": "Open",
+      "state": "Resolved",
       "issue": "Object-at-a-time retained-fixture replacement exhausts the native Job budget before new-profile creation",
       "closure": "Propose a focused model/relation-batched data-path change with preserved native validation, closure refusal and atomic rollback; reuse current correctness tests and measure any later authorized actual-target run",
-      "evidence": "840-second soft timeout at delete_owned/check field-update QuerySet; new profile not reached. No implementation change or new trial authorized by this audit."
+      "evidence": "Model-batched row locks, reverse/generic relation checks and native deletion Collectors replace object-at-a-time queries. Existing small native replacement suite passed, including rollback and ownership refusal. Target timing remains W-004; no timeout change."
     },
     {
       "id": "W-013",
@@ -107,313 +116,703 @@
       "issue": "Archive failed live workload and earlier controller-only attempt",
       "closure": "Prepare exact nonsecret archive and scoped publication request; publish only after approval; preserve raw evidence privately and keep operation terminal-pending until remote tag verification",
       "evidence": "Published nautobot-mixed-workload-v1-failed at caf675f567a9ae9507cde5aff3a5154eaef4228c; independently fetched tag and verified all 111 publication files, 92 archive members, both bundle/source manifests and private inputs. Local inactive controller links removed; retained unit files verified. Operation clean and disabled."
+    },
+    {
+      "id": "W-014",
+      "state": "Resolved",
+      "issue": "Current documents contradict newer accepted stages and retain obsolete next-step statements",
+      "closure": "Reconcile roadmap and affected runbook statements against accepted manifests/HISTORY, keeping dated evidence distinct.",
+      "acceptance": "AC-A01",
+      "evidence": "Reconciled ROADMAP and affected OPERATIONS statements with accepted-live-state and HISTORY; historical records preserved in Git. No live health claim."
+    },
+    {
+      "id": "W-015",
+      "state": "Resolved",
+      "issue": "Bootstrap and image preparation consume hard-coded private evidence paths; schemas freeze historical rendered directories",
+      "closure": "Inventory each executable dependency; replace with explicit protected inputs or committed nonsecret definitions before claiming portable preparation.",
+      "acceptance": "AC-A02",
+      "evidence": "Bootstrap identity and rendered directories are explicit protected inputs; image retry takes explicit predecessor root. No fixed evidence-store path remains in these execution interfaces. Existing schemas and bootstrap/image regressions passed; consumed bundles unchanged."
+    },
+    {
+      "id": "W-016",
+      "state": "Resolved",
+      "issue": "Disposable restore qualification requires .local-evidence as its runtime workspace",
+      "closure": "Move runtime/scratch requirement to owned temporary workspaces with bounded cleanup; preserve raw evidence outside runtime.",
+      "acceptance": "AC-A02",
+      "evidence": "Disposable restore uses protected /tmp/nautobot-restore-local-* workspaces with target guards unchanged. Existing restore suites and new constructor path/mode/target-refusal case passed."
+    },
+    {
+      "id": "W-017",
+      "state": "Open",
+      "issue": "Retained fixture ownership and restore logical-reference data are operational inputs as well as evidence",
+      "closure": "At the next applicable operation, verify recoverable ownership/reference inputs against recorded hashes through existing target/backup sources; do not create a workstation-only store or infer ownership from names.",
+      "acceptance": "AC-A02",
+      "evidence": "Not a deployment prerequisite: exact UUID ownership is conditional on retained fixture replacement/disposal. No new permanent controller store; original evidence preserved. Recurring reference is embedded in accepted backup metadata. Verify the exact ownership input and restore provenance during their next scoped operation; no target availability claim."
+    },
+    {
+      "id": "W-018",
+      "state": "Deferred",
+      "issue": "Main-branch records and OPERATIONS mix historical attempts with reusable procedures; source inventories bind broad documentation and test trees",
+      "closure": "Classify retained definitions, reusable sources and evidence; propose targeted archival/consolidation without breaking consumed identities.",
+      "acceptance": "AC-A03",
+      "evidence": "See documentation_audit.findings for exact consumers, evidence limits and smallest remediation.",
+      "owner": "Aaron",
+      "reason": "Current exact-bundle rules bind governing/manual source; removing historical executable schemas or changing bundle provenance needs a bounded consumer review beyond the portable-input and trigger fixes. No active operation needs replay.",
+      "follow_up": "docs/ROADMAP.md operational follow-ups; retain tagged historical identities."
+    },
+    {
+      "id": "W-019",
+      "state": "Resolved",
+      "issue": "Validation fan-out runs broad suites for narrow metadata/test changes; local fixtures do not establish target capacity",
+      "closure": "Record trigger/source binding costs; propose impact-scoped local checks with full CI and existing safety regressions retained.",
+      "acceptance": "AC-A03",
+      "evidence": "Narrowed 16 broad local hook selectors without removing tests or full CI. ROADMAP matches one hook instead of 17; isolated workload-test edit matches three instead of 19. Existing documentation selection regression passed."
+    },
+    {
+      "id": "W-020",
+      "state": "Resolved",
+      "issue": "Repository tests may retain stale, unnecessary or conflicting policies",
+      "closure": "Audit all tests/repository scripts and consumers; remove confirmed obsolete exceptions, reconcile ownership and invocation docs, run existing policy self-tests.",
+      "evidence": "Audited all nine repository helpers and their consumers; retired three obsolete workload YAML path exceptions, documented accurate scope/limits and explicit shell invocation. Existing policy regressions, canonical shfmt, ShellCheck and collision policy passed."
+    },
+    {
+      "id": "W-021",
+      "state": "Resolved",
+      "issue": "Historical Nautobot work product in .local-evidence needs a bounded purge selection without losing deployment/acceptance inputs",
+      "closure": "Audit and execute the exact user-approved duplicate/bytecode selection; preserve all other material and explain its conditional purpose.",
+      "evidence": "543 selected files deleted (190713423 apparent bytes); 10066 kept/held files hash-verified unchanged. Original audit preserved; initial partial and completion receipts retained. No directories removed. See evidence_purge_audit."
+    },
+    {
+      "id": "W-022",
+      "state": "Resolved",
+      "issue": "Broad historical evidence hold lacks a current acceptance or recovery purpose; empty directories remain after purge",
+      "closure": "Narrow to exact decision-linked files, identify remaining files for deletion and remove empty directories without deleting unapproved regular files.",
+      "evidence": "52 retained files plus the selection record; 10017 files (907273374 bytes) proposed for deletion. 8104 empty directories removed; zero remain across audited roots. Seven old bare Git verification repositories found and their files proposed for deletion. No target contact, new storage directory or publication. User subsequently approved and execution deleted all 10017 proposed files; 1934 additional empty directories removed. The 52 retained files hash-verified unchanged. Five excluded generated symlinks now dangle; they are historical local output, not live service enablement. Subsequently authorized symlink cleanup removed all five excluded links and their empty parent directories; absence verified."
+    },
+    {
+      "id": "W-023",
+      "state": "Resolved",
+      "issue": "Stale completed-stage manifest duplicates remain on main",
+      "closure": "Reconcile remaining payload/archive references, then remove the 16 exact-tagged historical duplicates listed in artifact_retention_audit.",
+      "evidence": "Removed 16 exact-tag-verified duplicate manifests (2664 lines). HISTORY/OPERATIONS now use archive-qualified receipt paths; W-005 retains exact payload-disposition archive lookups. Documentation and operation-contract tests passed."
+    },
+    {
+      "id": "W-024",
+      "state": "Resolved",
+      "issue": "Historical operation-specific manifests and schemas remain coupled to executable launchers",
+      "closure": "Retire obsolete entrypoints with their contracts, or parameterize reusable operation inputs; preserve exact archived definitions and current safety checks.",
+      "evidence": "Four runtime contracts no longer pin historical boot IDs or source-input hashes. Shared admission receipt binds host, operation and boot across each node-helper phase; current account/configuration/image/unit checks remain. Prerequisites load exact annotated Git archives, so canary-restore and database-inspection duplicate receipts were removed after exact tag verification. Restore freeze now requires explicit preparation bound by operation SHA-256; completed November preparation removed. Historical Restic absence definition moved byte-for-byte to existing test fixtures; validators, schema references, hook selectors and docs reconciled. 131 affected tests and syntax/policy checks passed; no target contact or live acceptance."
+    },
+    {
+      "id": "W-025",
+      "state": "Resolved",
+      "issue": "Preparation-only recovery manifest/schema pair is maintained by a self-validation test",
+      "closure": "Retire pair and test_inactive_contract_cannot_be_activated plus stale procedure reference; retain actual preservation execution and recovery regressions.",
+      "evidence": "Removed preparation-only manifest/schema and one self-validation test. OPERATIONS names the actual preservation execution contract. Existing 12 recovery tests passed, including real localhost Ansible failure/resume/credential cleanup; no live execution."
+    },
+    {
+      "id": "W-026",
+      "state": "Open",
+      "issue": "Two useful manual recovery qualification helpers have no documented entrypoint",
+      "closure": "Document explicit opt-in invocation/prerequisites and decision supported, or retire only if equivalent native coverage is demonstrated.",
+      "evidence": "qualify-recurring-logical-local.py and qualify_restore_workdir.py are not automatically called; both exercise concrete current recovery behavior."
+    },
+    {
+      "id": "W-027",
+      "state": "Resolved",
+      "issue": "Generated Python bytecode remains in audited source directories",
+      "closure": "Remove the 24 ignored .pyc artifacts when cleanup is authorized; preserve tracked tests and fixtures.",
+      "evidence": "Removed 24 ignored Python bytecode files under Nautobot/tests and their empty cache directories during authorized test simplification. No tracked source or retained evidence removed by this cleanup."
+    },
+    {
+      "id": "W-028",
+      "state": "Resolved",
+      "issue": "Tests accumulated as separate attempt-oriented entrypoints without a coverage-based consolidation decision",
+      "closure": "Consolidated three payload suites into one and restore-input preparation into one helper; updated CI/docs and preserved all 12 payload cases. Focused checks passed.",
+      "evidence": "Retention question: which current behavior is protected and would removal lose meaningful coverage? AST equality verifies all 12 payload test bodies survive consolidation; no new capacity fixture or generic test framework."
+    },
+    {
+      "id": "W-029",
+      "state": "Resolved",
+      "issue": "Two recurring bundle builders copy retired reviews; startup assembly depends on the historical cold-copy definition.",
+      "closure": "Remove obsolete review inputs, source startup image identities from its already verified bootstrap archive, retire cold-copy entrypoints/definition/schema and their dedicated tests; preserve shared helpers and prove affected paths locally.",
+      "evidence": "Both bundle freezes pass without retired reviews; existing hash-tamper and clean-operation refusal checks pass. Startup assembly uses images returned by its existing verified bootstrap archive path and retains supplied admission boot/cursor. Removed five historical cold-copy files and two dedicated tests; shared inspection/recovery helpers unchanged. 87 tests passed, one optional pinned producer-source test skipped; 34 schema meta-checks, Python parsing, Markdown and whitespace checks passed. No live contact or publication."
+    },
+    {
+      "id": "W-030",
+      "state": "Resolved",
+      "issue": "Necessity audit: duplicate operation branches, retired authentication/canary trials, and historical schema/launcher coupling.",
+      "closure": "Implement all approved retire/simplify/consolidate findings; preserve distinct mutation, authorization, recovery and validation boundaries; qualify current consumers without live contact.",
+      "evidence": "Retired 3 historical trial schemas and dedicated consumers; operation dispatcher uses references instead of 11 copied definitions. Variable operation/archive/cold-copy identities are validated structurally and checked against actual hashes/provenance by consumers. Image build/load bind boots at admission; historical prepare-retry generator retired. Host/runtime launchers validate and bundle only their selected schema. Shared recovery/authentication/Restic helpers remain. 339 tests passed, 10 skipped for absent pending operations or opt-in native/pinned-source prerequisites; 31 schemas and local refs validated; Python parse, Markdown, YAML and whitespace checks passed. No live contact, commit or push."
     }
   ],
-  "audit": {
-    "plan": "No architecture change required; acceptance criteria retained.",
-    "operations": "Clarified profile selection, retained qualification reuse and ownership-transition procedure.",
-    "roadmap": "Reconciled stale current-status statements and prioritized target workload preparation.",
-    "checkpoint": "Navigation-only ownership and links remain correct; unchanged."
-  },
-  "validation": {
-    "documentation_contracts": "passed: 5 tests",
-    "operation_contracts": "passed: 20 tests",
-    "whitespace": "passed",
-    "generated_profile": "matches retained qualified fixture hash",
-    "retained_evidence": "12 hashes verified; historical observations only",
-    "vexp": "unavailable: session workspace is not a Git repository; direct repository checks used",
-    "target_contact": "Authorized bounded SELECT-only/read-only inspection completed; no mutation",
-    "publication": "not authorized or performed"
-  },
-  "read_only_authorized": true,
-  "read_only_result": {
-    "verdict": "Read-only baseline complete; workload execution not authorized",
-    "observed_at": "2026-11-24T23:39:31.397101+00:00",
-    "reviewed_at": "2026-11-24T23:44:53.473735+00:00",
-    "host": "j2-svpi4mf",
-    "owned_objects_present": 3518,
-    "missing_owned_objects": 0,
-    "controlled_field_differences": 0,
-    "content_type_bindings_match": true,
-    "inbound_foreign_key_constraints_reviewed": 150,
-    "unexpected_inbound_foreign_key_relationships": 0,
-    "additional_nonempty_fields_or_references": 0,
-    "new_profile_device_collisions": 200,
-    "collisions_owned_by_historical_fixture": true,
-    "current_artifacts_match": true,
-    "health_http_status": 200,
-    "failed_units": 0,
-    "mem_available_kib": 6295516,
-    "free_bytes": 935758753792,
-    "target_capacity_accepted": false,
-    "selection": "Prepare atomic replacement of the exactly receipt-owned synthetic fixture through the existing native importer; do not adopt or patch ownership hashes.",
-    "limits": [
-      "SELECT-only snapshot of fixture-controlled fields, foreign-key relationships and extra nonempty-field flags; not authorization to delete.",
-      "ORM deletion closure, generic relationships, signals and transactional rollback still require focused local qualification and execution-time revalidation.",
-      "No real-inventory representativeness, workload headroom, seven-day stability or future trial acceptance."
-    ],
-    "result_sha256": "3131b47c03539116b176bc1dc775e53c4c80670aa89b3d4f32086e3128f1e502"
-  },
-  "attended_window_preference": {
-    "selection": "next available four-hour daytime window",
-    "timezone": "America/Chicago",
-    "bind_after": "local qualification completes",
-    "controller_ceiling_seconds": 12000,
-    "execution_authorized": false
-  },
-  "qualification_question": "Can the existing native import transaction replace only receipt-owned rows, roll back on failure and refuse unrelated deletion; can admission allow a pre-operation reboot while rejecting in-operation discontinuity and scheduled-backup overlap? Small native correctness checks only; no substitute capacity acceptance.",
-  "local_qualification": {
-    "native_replacement_initial": {
-      "status": "failed",
-      "phase": "unowned-reference refusal test",
-      "reason": "native ProtectedError instead of expected ValueError; rollback and drift checks passed before this case",
-      "evidence": "replacement-native-20261125",
-      "cleanup": "all disposable containers and network removed"
+  "documentation_audit": {
+    "scope": "Repository docs, accepted records, implementation dependencies and validation footprint; no live contact or publication.",
+    "baseline_commit": "7617734038b1b4b8c2420c7d9253e114f2897ab0",
+    "storage_requirement": "User requires .local-evidence to contain no artifacts or data required for Nautobot documentation, deployment or operations. Historical raw evidence may remain; it must not be the sole required input.",
+    "acceptance": {
+      "AC-A01": "Current documentation agrees with accepted stage records and archived failure; no unobserved current target claim.",
+      "AC-A02": "Enumerate required .local-evidence inputs and their consumers; record safe removal of dependencies without deleting consumed evidence or publishing private values.",
+      "AC-A03": "Identify concrete complexity costs and smallest remediation sequence; no new harness or substitute capacity gate."
     },
-    "native_replacement_guard": {
-      "status": "failed",
-      "evidence": "replacement-native-guard-20261125",
-      "reason": "extra-field guard rejected Nautobot computed natural-order name; derived projection comparison corrected using pinned native fields",
-      "cleanup": "all disposable containers and network removed"
-    },
-    "orchestration": "25 tests passed on final implementation",
-    "ownership_sampling": "19 tests passed on final implementation",
-    "native_replacement_projection": {
-      "status": "failed",
-      "evidence": "replacement-native-projection-20261125",
-      "reason": "native empty MAC address reads as None but its model default is an empty string; comparator now uses each pinned field to_python conversion",
-      "cleanup": "all disposable containers and network removed"
-    },
-    "controller": "7 tests passed",
-    "documentation": "5 tests passed",
-    "operation_contracts": "20 tests passed",
-    "capture": "7 tests passed",
-    "ansible_syntax": "passed; no target contact",
-    "vexp": "unavailable: workspace is not a Git repository; direct checks used",
-    "native_replacement_normalized": {
-      "status": "passed",
-      "evidence": "replacement-native-normalized-20261125",
-      "checks": [
-        "atomic replacement",
-        "rollback after deletion",
-        "controlled-field drift refusal",
-        "unowned foreign-key closure refusal",
-        "generic relationship refusal",
-        "extra metadata refusal",
-        "unrelated rows preserved",
-        "real synchronous JobResult",
-        "disabled registration reuse",
-        "repeat without writes"
-      ],
-      "cleanup": "all disposable containers and network removed",
-      "source_hashes": "current adapter, Jobs and native test match qualified input hashes",
-      "limits": "Small native correctness fixture on x86_64; no ARM64 host capacity or target acceptance claim."
-    },
-    "qualification_manifest_sha256": "bde22b853ff689aee181c350a0c8f534f7b847488490ab43f02e5d6a0d2d0f97",
-    "qualification_manifest": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/QUALIFICATION.json",
-    "bundle_verification": "passed against current prospective operation and exact source hashes; no execution",
-    "secret_scan": "passed",
-    "controller_unit_parser": "passed"
-  },
-  "controller_preparation": {
-    "observed_on": "2026-11-25",
-    "linger": true,
-    "ssh_agent_key_available": true,
-    "target_contact": false,
-    "external_requirement": "Reviewed SSH agent/socket must remain available throughout attended window; exact socket is private approval input.",
-    "ssh_agent_detached_session_verified": true,
-    "evidence_filesystem": "ext4"
-  },
-  "authorization_consumed": true,
-  "execution_result": {
-    "schema_version": 1,
-    "operation_id": "nautobot-mixed-workload-v1",
-    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
-    "recorded_at": "2026-11-25T19:37:20.134429+00:00",
-    "result": "failed_first_import_rolled_back",
-    "accepted": false,
-    "controller_exit_status": 2,
-    "admission_passed": true,
-    "job_id": "095a9f64-3642-4704-bda5-add4ffac1806",
-    "failure": {
-      "exception": "SoftTimeLimitExceeded",
-      "module": "billiard.exceptions",
-      "job_duration_seconds": 840.035597
-    },
-    "rollback": {
-      "exact_prior_owned_rows_and_fields_unchanged": true,
-      "owned_object_count": 3518,
-      "evidence": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/rollback-comparison.json"
-    },
-    "cleanup": {
-      "owned_job_terminal_and_worker_absent": true,
-      "registrations_disabled": true,
-      "node_credentials_absent": true,
-      "job_modules_absent": true,
-      "controller_credentials_removed": true,
-      "controller_runtime_absent": true
-    },
-    "service_continuity_passed": true,
-    "application_health_http": 200,
-    "artifact_identity_unchanged": true,
-    "recurring_timer_unchanged": true,
-    "backup_started": false,
-    "exports_and_audits_started": false,
-    "resources": {
-      "sample_count": 364,
-      "observed_seconds": 1815.4051827993244,
-      "sample_guards_passed": true,
-      "minimum_available_bytes": 6056755200,
-      "maximum_temperature_celsius": 58.913,
-      "maximum_sample_gap_seconds": 5.003859140910208,
-      "scope": "Incomplete baseline and first-import interval only; no full workload capacity acceptance."
-    },
-    "publication_authorized": false,
-    "replay_authorized": false,
-    "next_action": "Prepare terminal archival; diagnose first-import time spent before designing any separately approved trial. Preserve existing Job limits and schedule.",
-    "private_terminal_record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/RESULT.json",
-    "terminal_record_sha256": "ed55d3830c664571df2e7e01d68d54fee1df3db1cb180e485b89ad4263f70cb9"
-  },
-  "controller_binding_question": "Does the real systemd service reach the production launcher execute function, repository temporary-directory wrapper and native Ansible with an explicit binary binding when PATH excludes user tools? Test one localhost success, one native Ansible failure and binary drift refusal; no production contact.",
-  "prior_controller_attempt": {
-    "id": "nautobot-mixed-workload-v1",
-    "bundle_sha256": "07c711af363d3f5f2f6d6b6fe0e6f9bc9527ade060981e1d96912f75064587bf",
-    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/APPROVAL.md",
-    "attended_window": {
-      "end": "2026-11-25T16:00:00-06:00",
-      "start": "2026-11-25T12:00:00-06:00"
-    },
-    "latest_admission": "2026-11-25T12:40:00-06:00",
-    "authorization": "Direct exact execution approval consumed by failed controller attempt; replay not authorized",
-    "source_publication": "Published under approved terminal publication and YAML-policy addendum"
-  },
-  "controller_binding_qualification": {
-    "record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/QUALIFICATION.json",
-    "sha256": "469e6244141de235397a5019ad861cbddf179add1822ce3014c547f4ad65bfec",
-    "target_contact": false,
-    "temporary_units_removed": true,
-    "runtime_removed": true
-  },
-  "prior_controller_result": {
-    "operation_id": "nautobot-mixed-workload-v1",
-    "bundle_sha256": "07c711af363d3f5f2f6d6b6fe0e6f9bc9527ade060981e1d96912f75064587bf",
-    "result": "failed_before_target_contact",
-    "recorded_at": "2026-11-25T18:35:00.521221+00:00",
-    "controller_exit_status": 127,
-    "reason": "ansible-playbook not found in systemd controller service environment",
-    "target_contact": false,
-    "admission_completed": false,
-    "fixture_replacement_started": false,
-    "jobs_started": false,
-    "backup_started": false,
-    "credential_cleanup_passed": true,
-    "controller_runtime_removed": true,
-    "controller_unit": "failed, linked, Restart=no; retained for terminal review",
-    "authorization_consumed": true,
-    "replay_authorized": false,
-    "publication_authorized": false,
-    "authorization_sha256": "118bf7dc5cb57e09549dd76c9c92c0487efdc124b145ab4354acdf097a68c9bf",
-    "next_action": "Fix the unexecuted implementation in place, qualify real controller service startup, and recompute the same operation definition for exact approval; do not replay the consumed controller claim.",
-    "private_terminal_record": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/terminal/RESULT.json",
-    "terminal_record_sha256": "9d5ceedc7d48034c9038b1317c209cfd27fde27955cf00fc769a581919dbdbd9",
-    "terminal_scope": "controller attempt only; target operation remains unexecuted"
-  },
-  "diagnosis": {
-    "verdict": "Fixture replacement preparation blocked the intended workload; not evidence of general host incapacity.",
-    "confirmed": {
-      "exception": "SoftTimeLimitExceeded",
-      "job_seconds": 840.035597,
-      "interrupted_path": [
-        "PilotImport.run",
-        "replace",
-        "delete_owned",
-        "check(field.model, rows)",
-        "Django QuerySet evaluation / SQL compilation"
-      ],
-      "source_lines": {
-        "Nautobot/ansible/scripts/workload_adapter.py": [
-          187,
-          251,
-          279
-        ]
+    "result": "Documentation audit reconciled; hard-coded input/workspace dependencies and broad triggers corrected locally. W-017 is conditional input verification for future operations, not a new deployment gate; W-018 deferred.",
+    "baseline_footprint": {
+      "docs": {
+        "tracked_files": 4,
+        "baseline_lines": 6225
       },
-      "new_fixture_creation_reached": false,
-      "old_objects": 3518,
-      "new_fixture_objects": 7016,
-      "exact_old_rows_unchanged": true,
-      "journal_sha256": "cff80f02668ed8b8421ce3381d445198a6fa7de1b17c2b55708b126d64225f95"
+      "ansible/scripts": {
+        "tracked_files": 116,
+        "baseline_lines": 18785
+      },
+      "ansible/playbooks": {
+        "tracked_files": 49,
+        "baseline_lines": 9691
+      },
+      "schemas": {
+        "tracked_files": 36,
+        "baseline_lines": 13886
+      },
+      "manifests": {
+        "tracked_files": 51,
+        "baseline_lines": 11405
+      },
+      "tests": {
+        "tracked_files": 81,
+        "baseline_lines": 12592
+      }
     },
-    "cost_evidence": "Current source takes separate per-object locks, validates old rows, reads them again for extra-field checks, traverses reverse/generic relations, and constructs a native deletion Collector per object. At interruption it was materializing a field-update QuerySet for the deletion ownership check. This confirms the active stage, not the fraction of 840 seconds spent in each substage.",
-    "historical_context": "September 24 first creation took 817.678 seconds under the same 840-second soft limit, on a different 3518-object profile. It is risk evidence, not a timing estimate for the 7016-object agreed profile.",
-    "unknown": [
-      "Time split between locking, old-data validation, closure traversal and individual deletes",
-      "How much time new-profile creation would need; that branch never ran",
-      "SQL counts, plans and individual slow queries were not recorded"
-    ],
-    "decision": "Stop expanding fixtures and controller machinery. Review a focused model/relation-batched replacement implementation preserving native validation, signals, ownership refusal and atomic rollback; reuse current correctness regressions. Do not raise limits, replay, weaken deletion checks or claim target capacity from disposable tests."
-  },
-  "process_audit": {
-    "verdict": "Cannot certify absence of over-engineering. The synthetic fixture replacement is now a prerequisite bottleneck; prior controller-only qualification missed the real service path. Keep useful safety controls but stop growing the harness.",
-    "retain": [
-      "One Ansible playbook for staging/preflight/cleanup",
-      "Bounded systemd controller for logout survival, deadline and credential cleanup",
-      "Node-local stop/sampling while controller connectivity is absent",
-      "Native transaction/ownership/cascade refusal regressions and real user-systemd entrypoint check"
-    ],
+    "hook_path_matches": {
+      "Nautobot/docs/ROADMAP.md": 17,
+      "Nautobot/docs/OPERATIONS.md": 21,
+      "Nautobot/tests/test_workload_orchestration.py": 19
+    },
+    "hook_path_match_limit": "Static filename-regex matches before hook type filters; not measured test durations.",
     "findings": [
       {
-        "finding": "Per-object retained-fixture lifecycle blocked the actual workload",
-        "evidence": "Live traceback stops in delete_owned field-update ownership check before new fixture creation.",
-        "action": "Fix this data path, not a new orchestrator or capacity fixture."
+        "id": "W-014",
+        "priority": "high",
+        "evidence": [
+          "pre-audit ROADMAP recurring prerequisite/credential/capture sections called accepted later stages pending",
+          "pre-audit OPERATIONS startup handoff called all workload adapters unqualified",
+          "accepted-live-state has separate accepted recurring schedule, logical promotion and November 24 monthly restore records"
+        ],
+        "disposition": "Replaced repeated roadmap history with dated acceptance/gap table; removed obsolete first-cycle wait and qualified historical runbook statements. Governing acceptance requirements unchanged."
       },
       {
-        "finding": "Qualification did not cover initial service executable resolution",
-        "evidence": "Earlier exit 127 occurred before SSH; later real service test and live admission closed it.",
-        "action": "Keep the now-proven service-path check; no additional service simulator."
+        "id": "W-015",
+        "priority": "high",
+        "evidence": [
+          "ansible/scripts/bootstrap-secret.py:15,24-32 reads fixed private bootstrap identity",
+          "ansible/scripts/prepare-image-build.py:105-126 reads predecessor bundle/result from fixed evidence directory only in historical retry branch",
+          "schemas/administrator-bootstrap.schema.json:114,231; runtime-initialization.schema.json:96; database-inspection.schema.json:98; runtime-continuation.schema.json:106 freeze evidence paths"
+        ],
+        "action": "Bootstrap: explicit protected identity input and matching schema; image retry: consume archived predecessor identities or retire completed retry branch after consumer review; active rendered directories must be operation inputs. Preserve old schemas/bundles in terminal tags."
       },
       {
-        "finding": "Timing evidence lacks replacement substages",
-        "evidence": "Only Job wall time and interruption stack are available.",
-        "action": "If implementation changes, use bounded stage counters/timestamps in the existing Job; no profiling platform."
+        "id": "W-016",
+        "priority": "medium",
+        "evidence": [
+          "ansible/scripts/restore_node.py:90 constrains disposable context to evidence tree",
+          "ansible/playbooks/qualify-application-restore.yaml:12 and tests/qualify_restore_target.py:35 enforce evidence workspace paths"
+        ],
+        "action": "Use a protected temporary workspace outside evidence for disposable execution, keep target UID/path restrictions unchanged, and reuse existing restore containment/cleanup regressions. No new fixture platform."
       },
       {
-        "finding": "Native shell bootstrap repeated for Job status/stop adds overhead",
-        "evidence": "workload_session.py client invokes nautobot-server shell per batched request.",
-        "action": "Deferred optimization; cannot explain the separately measured 840-second worker Job failure."
+        "id": "W-017",
+        "priority": "high",
+        "evidence": [
+          "workload runner requires exact retained-ownership.json when replacing prior fixture; tagged private-inputs.json retains external path/hash only",
+          "monthly restore requires independent logical-reference.json and capture/source-map inputs; accepted state stores hashes, not recoverable bytes",
+          "workload_session.py retains node ownership.json; recurring captures retain independent references on target as well as archived metadata"
+        ],
+        "action": "Inventory protected durable owner copies and verify recoverability before relocating any sole copy. References/ownership cannot be invented from names or restored dump. Existing node copies were not freshly verified; no data loss or absence is claimed."
       },
       {
-        "finding": "Private preparation notes accumulate superseded next steps",
-        "evidence": "NEXT-TRIAL.md contains historical preparation plus current disposition.",
-        "action": "Use ROADMAP and workload-review as current authority; freeze consumed bundles/receipts instead of adding successor plans."
+        "id": "W-018",
+        "priority": "medium",
+        "evidence": [
+          "run-workload.py SOURCE_FILES hashes all of OPERATIONS.md and full accepted-live-state.yaml",
+          "prepare-image-build.py FILES and input evidence bind test_image_build.py as build qualification input",
+          "OPERATIONS contains historical attempt-specific startup/migration diagnostics; main holds completed-stage schemas/results with consumer references"
+        ],
+        "action": "Separate historical provenance from reusable execution dependencies. Retain exact tags; remove legacy main-branch definitions only after checking current readers. Review reducing whole-document bundle invalidation to the actual governing/executable inputs; do not loosen current verification during audit."
+      },
+      {
+        "id": "W-019",
+        "priority": "medium",
+        "evidence": [
+          ".pre-commit-config.yaml broad ^(?:Nautobot/|restic/) triggers run behavioral suites on roadmap edits and isolated test changes",
+          "recent archive/reconciliation/test-only commits each ran multi-minute broad hooks; CI all-files remains separate",
+          "25-test workload suite used native Ansible install permissions until 7617734 isolated the identity input"
+        ],
+        "action": "Narrow pre-commit triggers by actual source/contract dependency; retain full CI and native correctness/recovery tests. Do not build new substitute capacity fixtures or remove tests by count."
       }
     ],
-    "test_stopping_rule": "Existing native replacement tests address real rollback, controlled/unowned/generic-relation refusal and idempotence. They do not prove ARM64 runtime. No new tests or fixture execution in this audit; run structural checks for archival metadata only.",
-    "architecture_scope": "The prescribed phase durations, workload counts and two-worker limits remain unchanged; changing which setup counts as workload requires an explicit plan decision."
-  },
-  "terminal_archival": {
-    "state": "published_verified",
-    "archive": "Nautobot/terminal/workload",
-    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/PUBLICATION.md",
-    "accepted_live_state_changed": false,
-    "tag": "nautobot-mixed-workload-v1-failed",
-    "archive_commit": "caf675f567a9ae9507cde5aff3a5154eaef4228c",
-    "tag_object": "3556be9c099ca5a44c55b24a8a47e5a5b3e4b359",
-    "remote_verification": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/remote-archive-verification.json",
-    "remote_verification_sha256": "a7441688bb49464d53c4178c0206e94678da0751a2103b6d4807dbb4a87e94a6",
-    "controller_cleanup": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/controller-unit-cleanup.json",
-    "controller_cleanup_sha256": "4b2bc636e530b013e1788282ab74f7cdf59168cfb1afbdb09b0e0456b1eec9d8",
-    "operation_state": "clean_disabled"
-  },
-  "last_trial": {
-    "id": "nautobot-mixed-workload-v1",
-    "bundle_sha256": "57535ad01666751104f62351fb9e4b1c021268a37061a510654b145b0baf47a5",
-    "approval_request": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/APPROVAL.md",
-    "attended_window": {
-      "start": "2026-11-25T13:00:00-06:00",
-      "end": "2026-11-25T17:00:00-06:00"
+    "storage_inventory": {
+      "required_or_executable_dependencies": [
+        "protected bootstrap username/email input",
+        "historical image retry predecessor bundle/result",
+        "schema-selected historical rendered directories",
+        "disposable restore workspace",
+        "exact retained-fixture ownership receipt for replacement",
+        "independent logical reference and capture/source maps for selected restores"
+      ],
+      "provenance_only_examples": [
+        "consumed approval paths",
+        "raw logs and bounded readback records",
+        "terminal review receipt hashes"
+      ],
+      "rule": "Do not infer every evidence reference is a runtime dependency; a hash-only record does not make a required private input recoverable."
     },
-    "latest_admission": "2026-11-25T13:40:00-06:00",
-    "authorization": "Consumed by approved live execution; failed first import; no replay",
-    "source_publication": "Published under approved terminal publication and YAML-policy addendum"
+    "acceptance_results": {
+      "AC-A01": "Pass for repository-record reconciliation; current host state not tested.",
+      "AC-A02": "Hard-coded evidence-store execution dependencies removed. No permanent replacement local store retained. Current target availability and conditional future ownership input not freshly verified.",
+      "AC-A03": "Pass for concrete cost/consumer findings and ordered remediation; no runtime/schema/hook changes made."
+    },
+    "validation": {
+      "documentation_contracts": "5 passed",
+      "operation_contracts": "20 passed through repository Ansible temporary-directory wrapper",
+      "whitespace": "git diff --check passed",
+      "published_ci_fix": "7617734 Repository validation run 45692968249 succeeded",
+      "discovery_limits": "vexp selected parent workspace and historical snapshots; Codebase Memory index is November 4 and not watched for this session. Direct current source used; no stale graph absence treated as evidence. vexp completion unavailable in parent workspace, as already established.",
+      "target_contact": false,
+      "new_fixtures_or_tests": false,
+      "publication": false,
+      "markdown": "markdownlint-cli2 passed for both changed documents"
+    },
+    "documentation_reduction": {
+      "roadmap_before_lines": 556,
+      "roadmap_after_lines": 126
+    }
+  },
+  "implementation_scope": {
+    "question": "Can required inputs be independent of historical evidence storage and replacement closure checks be model-batched without weakening ownership/rollback?",
+    "tests": "Existing bootstrap/image/restore containment tests, small native replacement correctness suite, repository policy self-tests; no capacity qualification.",
+    "authority": "Repository edits and local qualification only. No SSH, target mutation, publication or consumed-bundle changes."
+  },
+  "private_input_storage_decision": {
+    "status": "Workstation-copy approach withdrawn on user correction",
+    "new_copies_removed": 28,
+    "originals_verified_unchanged": true,
+    "decision": "No new permanent controller store. Bootstrap/image retry are completed-stage inputs, fixture ownership is needed only for exact retained-test-data replacement/disposal, and restore reference is recovery validation data already embedded in recurring snapshots with accepted hashes. None is a new runtime installation prerequisite.",
+    "open_item": "W-017",
+    "temporary_exception": "Retired: test results hash-verified into the existing task evidence record; the entire newly created .local-state/nautobot directory is gone."
+  },
+  "repository_test_audit": {
+    "scope": "All nine tracked files in tests/repository plus root hook and CI consumers",
+    "findings": [
+      {
+        "finding": "Three yaml formatting exceptions referenced terminal workload paths removed from main",
+        "resolution": "Removed exact retired paths; two current operation exceptions retained; no global YAML relaxation."
+      },
+      {
+        "finding": "README implied all helpers were component-neutral shell policies and all were covered by the self-test runner",
+        "resolution": "Documented formatter exceptions, wrapper ownership, actual self-test coverage and static-analysis limits; explicit /bin/bash usage."
+      },
+      {
+        "finding": "Broad component regexes ran behavior tests on documentation and unrelated tests",
+        "resolution": "Narrowed 16 selectors; retained conservative executable/schema/shared-helper coverage and full CI; added selection regression to existing documentation tests."
+      },
+      {
+        "finding": "Static shell policies are conservative and incomplete parsers",
+        "resolution": "Retained known failure guards and documented limits; no claim they validate Python-generated commands or every grep form. Existing self-tests passed."
+      }
+    ],
+    "no_new_framework": true,
+    "no_capacity_fixtures": true
+  },
+  "implementation_validation": {
+    "existing_native_replacement": "Passed small native rollback/drift/unowned FK/generic/metadata refusal and actual synchronous Job replacement/repeat checks; all owned containers/network removed. No ARM64 performance claim.",
+    "affected_regressions": {
+      "test_runtime_initialization": 0,
+      "test_runtime_continuation": 0,
+      "test_database_inspection": 0,
+      "test_administrator_bootstrap": 0,
+      "test_image_build": 0,
+      "test_restore_node": 0,
+      "test_restore_bundle": 0,
+      "test_application_restore": 0,
+      "test_workload_orchestration": 0,
+      "test_documentation_contracts": 0,
+      "test_operation_contracts": 0
+    },
+    "optional_evidence": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/simplification-qualification",
+    "new_input_store_removed": true,
+    "independent_cleanup": "Four owned Podman resources independently absent; no .local-state/nautobot directory remains."
+  },
+  "archived_workload": {
+    "tag": "nautobot-mixed-workload-v1-failed",
+    "review": "Nautobot/manifests/workload-review.json",
+    "results": "Nautobot/terminal/workload",
+    "accepted": false,
+    "summary": "First replacement import timed out; exact retained fixture rollback and cleanup verified. Both claims consumed; no replay. Detailed baseline, qualification, execution and diagnosis preserved in the tag."
+  },
+  "evidence_purge_audit": {
+    "scope": "Audit followed by user-authorized deletion of exactly the 543 listed purge candidates.",
+    "baseline": "170 top-level Nautobot-named entries, 10609 regular files, 1448568903 apparent bytes before this audit report.",
+    "next_action": "Follow-on 10017-file purge completed; see evidence_retention_review.",
+    "result": "543 approved files deleted (190713423 apparent bytes). Subsequent cleanup removed 70 empty purge ancestors and 8034 preexisting empty directories; zero empty directories remain in the audited Nautobot roots.",
+    "manifest": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/evidence-purge-audit.json",
+    "manifest_sha256": "30fe03a43b5b6fd50206b7474aec879cad55f7c975ddf59217b90f4ab12c5ef3",
+    "summary": {
+      "keep_current": {
+        "files": 316,
+        "bytes": 15850214
+      },
+      "purge_candidates": {
+        "files": 543,
+        "bytes": 190713423
+      },
+      "hold": {
+        "files": 9750,
+        "bytes": 1242005266
+      }
+    },
+    "required_kept": [
+      "Exact retained-fixture ownership receipt and dataset",
+      "Accepted monthly restore snapshot/reference source maps",
+      "Current unpublished native replacement and regression results",
+      "Exact qualified OCI image archive until alternate recovery availability is verified"
+    ],
+    "historical_hold": "Superseded by exact evidence_retention_review: completed-stage and superseded raw history is proposed for deletion, not retained merely because a bundle was frozen.",
+    "shared_exclusions": 14,
+    "verification": "All candidate hashes reread; repository copies matched published 7617734; package/index duplicates matched retained unselected copies; ownership/reference/current qualification hashes independently matched recorded identities.",
+    "deletion_authorized": true,
+    "completion_receipt": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/evidence-purge-completion.json",
+    "completion_receipt_sha256": "aaa08ac13d9408da98b2c7045b32d13b043c92093d214d7550f28537dcdd7b50",
+    "execution_note": "Initial unlink stopped at read-only parent permissions after 305 files. Remaining 238 were reverified and deleted with immediate parent modes restored. Both receipts retained.",
+    "retention_interpretation": "Keep/hold is not a claim that these files are deployment prerequisites. Ownership is needed only for retained-fixture mutation; restore references support independent comparison; unpublished results support current review; the qualified OCI archive supports recovery until another exact copy is verified. Historical frozen bundles and raw logs are provenance, not runtime inputs. Source, configuration and sanitized acceptance belong in Git; raw private data and OCI binaries do not."
+  },
+  "evidence_retention_review": {
+    "manifest": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/evidence-retention-review.json",
+    "manifest_sha256": "85fe650adc4e492d09599cfa1e26c91d35cd7f0ea3c442efd442c70a0ed67cee",
+    "summary": {
+      "retained_files": 52,
+      "retained_bytes": 354796213,
+      "proposed_deletion_files": 10017,
+      "proposed_deletion_bytes": 907273374,
+      "empty_directories_removed": 70,
+      "remaining_empty_directories": 0,
+      "symlinks_excluded": 5,
+      "preexisting_empty_directories_removed": 8034
+    },
+    "status": "User-approved exact selection deleted; 10017 files / 907273374 apparent bytes. Removed 1934 newly empty directories; no empty directories remain in scoped roots.",
+    "retained_purposes": {
+      "fixture_ownership": 2,
+      "open_workload_failure": 16,
+      "unpublished_qualification": 25,
+      "restore_provenance": 4,
+      "retained_payload_inventory": 1,
+      "qualified_recovery_image": 1,
+      "cleanup_receipts": 3
+    },
+    "retirement": "Each retained file has an explicit decision and retirement trigger in the selection. The selection itself is one additional cleanup-review record, not a deployment prerequisite.",
+    "historical_loss": "Deletion would discard unique raw historical traces as well as duplicates. Sanitized accepted state and terminal definitions remain in repository/tag history; no claim that Git contains all raw evidence.",
+    "bare_git_correction": "Original no-Git-metadata check missed seven bare Git repositories (no .git child). Their regular files are in deletion_candidates; no new Git workspace was created.",
+    "remaining_regular_files_authorized_for_deletion": false,
+    "verification": "All selected hashes/types rechecked before unlink; 52 retained hashes verified unchanged afterward. Exact selection paths absent; five symlinks preserved; parent permissions restored. No target contact or publication.",
+    "next_action": "Cleanup complete. Retained files retain their recorded acceptance/recovery purpose and retirement conditions.",
+    "completion_receipt": "/home/aaron/code/.local-evidence/nautobot-workload-preparation-20261124/controller-binding/terminal/evidence-retention-purge-result.json",
+    "completion_receipt_sha256": "8f48042bd22e560f49d0ba232f48e0a122b02c10a09678bb6a18cb97ef45f436",
+    "symlink_purpose": "Five obsolete September 22 generated service links deleted after explicit user approval; no live service links changed.",
+    "symlink_cleanup": {
+      "authorized": true,
+      "deleted": [
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants/nautobot-redis.service",
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants/nautobot-scheduler.service",
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants/nautobot-worker.service",
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants/nautobot-postgresql.service",
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants/nautobot-web.service"
+      ],
+      "removed_empty_directories": [
+        "nautobot-bootstrap-startup-preparation-20260922/generated/default.target.wants",
+        "nautobot-bootstrap-startup-preparation-20260922/generated",
+        "nautobot-bootstrap-startup-preparation-20260922"
+      ],
+      "verified_absent": true
+    }
+  },
+  "artifact_retention_audit": {
+    "scope": "Repository-only audit of Nautobot/manifests, schemas and tests; no source/artifact deletion, execution, live contact or publication.",
+    "source_commit": "7617734038b1b4b8c2420c7d9253e114f2897ab0",
+    "input_state": "Current working tree, including previously qualified unpublished simplification; not clean HEAD alone.",
+    "inventory": {
+      "tracked_files": 168,
+      "manifests": 51,
+      "schemas": 36,
+      "test_files_including_fixtures": 81,
+      "test_modules": 42,
+      "ignored_bytecode_files": 24
+    },
+    "method": "Tracked-file inventory; repository-wide filename and Python import-name references; dynamic fixture-name and source-bundle checks; actual entrypoint/schema/test reads; exact tagged blob comparison. vexp returned historical workspace copies and Codebase Memory was unrefreshed since November 4, so current source was authoritative. Static consumer findings do not prove target acceptance or that every historical launcher deserves retention.",
+    "manifest_decisions": {
+      "archive_only_candidates": [
+        "capture-resume-review.json",
+        "logical-capture-review.json",
+        "logical-promotion-review.json",
+        "monthly-restore-review.json",
+        "recurring-disposal-review.json",
+        "recurring-notification-review.json",
+        "recurring-recovery-review.json",
+        "recurring-schedule-review.json",
+        "recurring-upload-review.json",
+        "authentication-trial-canonical-result.json",
+        "authentication-trial-result.json",
+        "authentication-trial-retry-result.json",
+        "authentication-trial-settings-result.json",
+        "authentication-trial-startup-result.json",
+        "image-load-preflight-result.json",
+        "startup-preservation-result.json"
+      ],
+      "candidate_lines": 2664,
+      "exact_content_archive": "nautobot-mixed-workload-v1-failed",
+      "archive_verification": "All 16 current file bytes equal their corresponding paths in the existing local annotated archive tag. No fresh remote-ref check in this audit.",
+      "removal_conditions": "Update HISTORY/OPERATIONS references to tag-qualified paths; preserve any deferred retained-payload identifiers through exact archive pointers in W-005 before removing main-branch duplicates. Keep accepted-live-state authoritative. Terminal records are history, not replay instructions.",
+      "retain_active_ledger": [
+        "workload-review.json"
+      ],
+      "retain_pending_consumer_retirement": [
+        "accepted-live-state.yaml",
+        "administrator-bootstrap-result.json",
+        "application-restore-preparation.yaml",
+        "authentication-trial-postgresql-result.json",
+        "canary-backup-result.json",
+        "canary-restore-result.json",
+        "configuration-readiness-result.json",
+        "configuration-readiness.json",
+        "credential-operation.json",
+        "credential-preparation.json",
+        "credential-result.json",
+        "database-inspection-result.json",
+        "deferred-restic-initialization.yaml",
+        "desired-state.yaml",
+        "image-build-input-evidence.json",
+        "image-load-result.json",
+        "image-qualification-failure.json",
+        "image-qualification-result.json",
+        "migration-continuation-inputs.json",
+        "operation.yaml",
+        "provisioned-credentials.json",
+        "qualified-image.json",
+        "recurring-protection.yaml",
+        "restic-initialization-result.json",
+        "restic-preflight-result.json",
+        "runtime-image-store.json",
+        "runtime-initialization-result.json",
+        "runtime-inputs.json",
+        "startup-network-handoff.yaml",
+        "startup-policy.yaml",
+        "startup-preservation.yaml",
+        "workload-capture-result.json",
+        "workload-test.yaml"
+      ],
+      "conditional_retirement_pair": [
+        "manifests/recovery-preservation.yaml",
+        "schemas/recovery-preservation.schema.json"
+      ],
+      "pair_consumer": "tests/test_recovery_preservation.py:130 test_inactive_contract_cannot_be_activated; OPERATIONS documentation. No named executable consumer found; real preservation bundle validates preservation-execution.schema.json.",
+      "pair_action": "Retire the preparation-only pair together with that one preparation-document test and stale procedure reference. Preserve real drain, rollback, resume, credential-cleanup and runtime authorization tests."
+    },
+    "schema_decisions": {
+      "retain_while_consumed": 35,
+      "retire_with_preparation_document": 1,
+      "coupling_examples": [
+        "schemas/runtime-continuation.schema.json:182 pins a September boot ID; operation metadata and historical prerequisite identities are also constants.",
+        "manifests/deferred-restic-initialization.yaml still describes absent_verified/null repository state; validators and tests consume it despite accepted initialization.",
+        "manifests/application-restore-preparation.yaml contains the completed November snapshot/window/baseline and is read by application-restore-bundle.py.",
+        "Historical image/auth/bootstrap/runtime manifests are included or read by their existing launchers; deletion alone breaks those paths."
+      ],
+      "action": "Do not bulk-delete consumed schemas or weaken assertions. Retire obsolete launcher branches with their records/tests, or turn genuinely reusable inputs into explicit future operation definitions. Preserve accepted image/dependency constraints and admission/continuity checks. Historical constants must not become permanent future-host prerequisites.",
+      "follow_up_result": "W-024 resolved by launcher_refactor; earlier inventory describes pre-refactor state."
+    },
+    "test_decisions": {
+      "confirmed_dead_tracked_test_modules": [],
+      "hook_selected_modules": 39,
+      "documented_opt_in_modules": [
+        "test_startup_server.py",
+        "test_metrics_tmpfs.py",
+        "test_startup_journal.py"
+      ],
+      "manual_helpers_missing_documented_entrypoint": [
+        "qualify-recurring-logical-local.py",
+        "qualify_restore_workdir.py"
+      ],
+      "helper_purpose": "The logical helper exercises actual capture/Restic/restore and client-loss cleanup; the workdir helper tests runuser from an inaccessible directory using the actual playbook prefix. No named callers found, but both support concrete current recovery defects/contracts; absence from CI is not dead-code proof.",
+      "historical_fixture_coupling": "fixtures/historical-plan.md is consumed by test_authentication_trial.py and test_image_load.py. Their matching operation fixtures preserve fixed historical bundle contracts. Retire/minimize together with the corresponding historical launchers, not independently.",
+      "production_bundle_inputs": [
+        "fixtures/nautobot-cli-parser.json",
+        "fixtures/CLI_PARSER_PROVENANCE.md",
+        "fixtures/DJANGO-LICENSE.txt",
+        "fixtures/tmpfs-canonical.json",
+        "fixtures/tmpfs-symlink.json"
+      ],
+      "bundle_input_limit": "These are referenced by runtime/authentication launchers; keep parser provenance/license and regression evidence while consumed. Consider separating execution inputs from test-only inputs when those launchers are simplified.",
+      "bytecode_decision": "24 ignored .pyc files are generated disposable artifacts, not deployment or acceptance work product. Not deleted by this audit.",
+      "capacity_boundary": "No new fixtures or capacity tests. Existing native/safety tests remain; repeated scenarios require a distinct defect or boundary."
+    },
+    "stale_status_examples": [
+      "capture-resume-review.json:2 says recovered_failure_awaiting_archival despite later accepted capture/schedule history.",
+      "logical-capture-review.json:155 calls for promotion already accepted.",
+      "logical-promotion-review.json:143 retains an expired November 10 first-cycle action; line 249 calls for monthly restore already accepted.",
+      "Completed review records contain execution_authorized:true and deleted private-evidence links; these describe consumed historical scope, not current authority or available raw evidence."
+    ],
+    "validation": "All 51 manifests parse; all 36 schemas pass Draft 2020-12 meta-validation; all Python under tests parses. Existing tags provide exact recovery for 16 candidate manifests. No behavioral tests needed for audit-only ledger metadata.",
+    "next_action": "W-023/W-024/W-025 resolved. Remaining W-026 manual helper documentation and W-027 bytecode cleanup are separate housekeeping; current operation remains clean and disabled.",
+    "implementation": {
+      "status": "qualified_local_removal_complete",
+      "removed_paths": [
+        "Nautobot/manifests/capture-resume-review.json",
+        "Nautobot/manifests/logical-capture-review.json",
+        "Nautobot/manifests/logical-promotion-review.json",
+        "Nautobot/manifests/monthly-restore-review.json",
+        "Nautobot/manifests/recurring-disposal-review.json",
+        "Nautobot/manifests/recurring-notification-review.json",
+        "Nautobot/manifests/recurring-recovery-review.json",
+        "Nautobot/manifests/recurring-schedule-review.json",
+        "Nautobot/manifests/recurring-upload-review.json",
+        "Nautobot/manifests/authentication-trial-canonical-result.json",
+        "Nautobot/manifests/authentication-trial-result.json",
+        "Nautobot/manifests/authentication-trial-retry-result.json",
+        "Nautobot/manifests/authentication-trial-settings-result.json",
+        "Nautobot/manifests/authentication-trial-startup-result.json",
+        "Nautobot/manifests/image-load-preflight-result.json",
+        "Nautobot/manifests/startup-preservation-result.json",
+        "Nautobot/manifests/recovery-preservation.yaml",
+        "Nautobot/schemas/recovery-preservation.schema.json"
+      ],
+      "archive": "nautobot-mixed-workload-v1-failed",
+      "consumer_changes": [
+        "HISTORY references resolve to the exact archive tag",
+        "OPERATIONS names the real preservation execution contract",
+        "Removed only preparation-document self-validation method",
+        "W-005 retains tag-qualified payload disposition sources"
+      ],
+      "live_changes": false,
+      "validation": {
+        "recovery_preservation_tests": 12,
+        "operation_contract_tests": 20,
+        "documentation_contract_tests": 6,
+        "markdownlint": "passed",
+        "removed_file_reference_sweep": "passed",
+        "diff_check": "passed",
+        "target_acceptance": "not applicable; no live changes"
+      }
+    }
+  },
+  "launcher_refactor": {
+    "scope": "Admission boot continuity for four runtime entrypoints; explicit per-operation restore preparation; move inactive Restic absence template out of current manifests into existing test fixtures. Preserve archived executed bytes and current service/configuration/image checks.",
+    "validation_question": "Does a reboot before admission pass with unchanged host/configuration, while wrong host, operation drift and reboot after admission refuse progression? Does explicit restore preparation remain hash-bound and reject drift? Do historical preflight tests retain their original contract without a current-state manifest?",
+    "authority": "Repository edits and local qualification only; operation remains disabled.",
+    "status": "qualified_local_complete",
+    "changes": [
+      "runtime-initialization-node.py records/rechecks admitted host, boot ID and operation digest; initialization, continuation, bootstrap and inspection dispatch enforce it before and after phases",
+      "Four runtime schemas require per-operation hashes for the same closed set of source inputs; zero defaults are placeholders that byte verification refuses",
+      "run-runtime.py reads consumed prerequisite evidence from annotated tags, with hash/commit/outcome verification and archive-labelled bundle rows",
+      "application-restore-bundle.py freeze requires --preparation and validates preparation_sha256 before creating its destination",
+      "Removed three completed main-branch records: application-restore-preparation.yaml, canary-restore-result.json and database-inspection-result.json; exact bytes verified in nautobot-mixed-workload-v1-failed",
+      "Moved deferred-restic-initialization.yaml unchanged to tests/fixtures/restic-initialization-operation.yaml; no additional capacity fixture created",
+      "Replaced a duplicate mocked-Git regression with actual disposable Git archive verification; preserved recovery/failure tests"
+    ],
+    "validation": {
+      "runtime_initialization": 16,
+      "runtime_continuation": 15,
+      "administrator_bootstrap": 19,
+      "database_inspection": 10,
+      "host_convergence": 17,
+      "restore_bundle": 11,
+      "operation_contracts": 20,
+      "documentation_contracts": 6,
+      "restic_preflight_launcher": 17,
+      "total_tests": 131,
+      "restic_preflight_static_contract": "passed",
+      "historical_fixture_schema": "passed",
+      "schema_meta_validation": "passed",
+      "python_parse": "passed",
+      "hook_patterns": "passed",
+      "yaml": "passed",
+      "markdown": "passed",
+      "diff_check": "passed",
+      "vexp": "Unavailable: tool uses non-Git parent workspace; direct source/reference checks and repository regressions used instead."
+    },
+    "limits": [
+      "Local qualification only; no live target contact, mutation, acceptance, commit or push.",
+      "Other schemas remain where current entrypoints consume them. Accepted artifact/version and mutation-scope constraints were preserved; no indiscriminate schema deletion.",
+      "Existing frozen bundles/tags were not rewritten. Future execution requires a new exact bundle and operation authorization under normal rules."
+    ],
+    "next_action": "Review accumulated qualified repository changes for publication. No new live operation or additional fixture capacity work is needed for this refactor."
+  },
+  "test_simplification": {
+    "scope": "One payload suite/CI entrypoint replacing three; restore delivery calls shared preparation directly instead of spawning a second Python script. Preserve distinct authorization, recovery, native systemd and resource-enforcement checks.",
+    "status": "complete",
+    "payload_classes_ast_equal": true,
+    "new_capacity_fixtures": false,
+    "removed_bytecode_files": 24,
+    "retained_behavior": {
+      "payload": "All 12 original MediaTests, LogicalCaptureTests and DisposalTests bodies match their pre-consolidation AST; no assertions discarded.",
+      "restore": "Shared preparation function replaces Python subprocess handoff. Existing default CLI and delivery negative-snapshot option remain available through one entrypoint.",
+      "native_helpers": "Keep separate runtime/server/journal, privilege-transition, guard-loss, controller-loss and real restore qualifiers because each exercises a different concrete boundary; CI references alone were not used to justify retention.",
+      "small_duplicates": "Do not introduce a test framework or base-class layer to deduplicate trivial imports/loaders."
+    },
+    "result": {
+      "python_entrypoints_before": 68,
+      "python_entrypoints_after": 65,
+      "ci_invocations_removed": 2,
+      "focused_tests_passed": 41,
+      "checks": "Consolidated payload hook, both helper modes reject production paths, CLI help, Python AST parsing, Markdown/YAML hooks and git diff --check passed. No stale executable/documentation filename references.",
+      "limits": "Full native Restic/Podman restore qualification was not rerun for the preparation consolidation; no target contact, capacity qualification or publication."
+    }
+  },
+  "preservation_retirement": {
+    "archive": "nautobot-startup-preservation-v1-accepted",
+    "archive_verification": "Four retired files match the annotated archive byte-for-byte. The freeze helper differs only by the later documentation consolidation from STARTUP_PRESERVATION.md to OPERATIONS.md; consumed implementation remains archived.",
+    "removed": [
+      "ansible/scripts/freeze-preservation.py",
+      "ansible/scripts/run-preservation.py",
+      "ansible/playbooks/preserve-startup-database.yaml",
+      "schemas/startup-preservation.schema.json",
+      "manifests/startup-preservation.yaml"
+    ],
+    "retained": "inspect-retained-database.py, runtime-initialization-node.py, reusable preservation/recovery paths and archived terminal definitions",
+    "qualification_limit": "Local startup assembly test runs real archive reading/rendering and substitutes only final startup-launcher preparation; no production acceptance implied."
+  },
+  "schema_necessity_implementation": {
+    "status": "local_qualification_complete_no_live_acceptance",
+    "retired": [
+      "canary-backup.schema.json",
+      "canary-restore.schema.json",
+      "authentication-trial.schema.json"
+    ],
+    "archive": "nautobot-mixed-workload-v1-failed; annotated archive presence verified before retirement; original stage tags remain indexed by HISTORY",
+    "simplified": {
+      "accepted-host-baseline": "Repeated file metadata and artifact-digest structures use local definitions; acceptance separation unchanged.",
+      "administrator-bootstrap": "Operation, archive and cold-copy identities are supplied per operation; account, cleanup and no-retry boundaries remain fixed.",
+      "credential-operation": "Closed structural contract replaces whole historical operation constant; provider and mutation scope remain fixed.",
+      "database-inspection": "Reviewed predecessor outcome/tag/commit/hash replace one hard-coded failed attempt; native stopped-writer checks remain.",
+      "host-convergence": "Historical preparation/cleanup/monitoring records removed from schema; selected current storage evidence and package versions are inputs; exact probe catalog and no-mutation rules retained.",
+      "image-build": "Variable build/source/predecessor identities; no accepted historical boot comparison; first-admission continuity enforced and retried admission cannot adopt a reboot. Ordinary preparation handles explicit predecessor records.",
+      "image-load": "Variable operation/archive/source identities; current admitted boot used in health monitoring; no-runtime-start constraints unchanged.",
+      "repository-initialization": "Historical embedded last_result removed; actual archived absence proof and current provider provenance independently checked; selected operation ID reaches receipts.",
+      "runtime-continuation": "Operation-specific cold-copy paths/counts/hashes and prior artifacts; native content/metadata and migration boundary checks remain.",
+      "runtime-initialization": "Operation-specific identity and archive proofs; exact source hashes, host and admitted boot checks remain.",
+      "startup-policy": "Services reuse the authoritative start-order definition; deadlines/order/acceptance safeguards unchanged.",
+      "workload-test": "Reusable cardinality definition and explicit namespace input; agreed profile and target workload were not changed or rerun.",
+      "disposal-qualification": "Removed unused historical inventory-basis label; payload/snapshot selection and no-remote-deletion controls remain."
+    },
+    "consolidation": {
+      "operation": "Four standalone contract references replace copies; seven retired authentication attempts and two canary branches removed.",
+      "capture_resume_and_schedule": "Kept self-contained after comparing the shared properties: cross-file extraction adds frozen-bundle resolver/copy dependencies without sufficient maintenance reduction. This follows the approved instruction to defer extraction until it demonstrates benefit."
+    },
+    "shared_test_retention": "Restic native-helper tests use minimal inputs in existing suites; only retired launcher/playbook cases removed. No capacity fixtures or new test framework.",
+    "validation": {
+      "passed": 339,
+      "skipped": 10,
+      "skipped_reason": "No pending schedule/disposal operation, RESTIC_BINARY/native opt-ins or optional pinned producer source. These cases were not claimed as qualified.",
+      "schemas": 31,
+      "ansible": "Localhost-only/syntax checks through repository private-temp wrapper outside sandbox. One initial image-load suite hit sandbox RPC failure; its subsequent outside-sandbox run passed.",
+      "scratch": "Four registered /tmp/nautobot-schema-tests-* directories retired automatically and absence verified.",
+      "vexp": "Previously unavailable at parent workspace; current source/reference checks and direct tests used."
+    },
+    "authority": "Repository implementation only; live operation remains clean and disabled; accepted schedule and data unchanged."
   }
 }

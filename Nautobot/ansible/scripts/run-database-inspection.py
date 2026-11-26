@@ -41,7 +41,7 @@ def verify(op):
     kind = subprocess.check_output(['git','-C',str(ROOT),'cat-file','-t',old['tag']],timeout=30).strip()
     commit = subprocess.check_output(['git','-C',str(ROOT),'rev-parse',old['tag']+'^{}'],timeout=30).decode().strip()
     if (hashlib.sha256(raw).hexdigest()!=old['result_sha256'] or kind!=b'tag' or commit!=old['commit']
-            or json.loads(raw)['outcome']!='native_post_upgrade_timeout_partial_initialization_retained'):
+            or json.loads(raw)['outcome']!=old['outcome']):
         raise bounded.PreflightBlocked('predecessor_identity')
 
 

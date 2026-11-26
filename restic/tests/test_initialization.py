@@ -73,17 +73,17 @@ class Tests(unittest.TestCase):
         with patch.object(launcher.common,'read_secret',side_effect=AssertionError('must not resolve')):
             with self.assertRaises(launcher.common.PreflightBlocked):launcher.execute('0'*64)
     def test_archived_absence_binding(self):
-        import copy
-        import yaml
-        schema=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
-        branch=next(b for b in schema['oneOf'] if b.get('title')=='Reviewed standalone Restic initialization')
-        document={key:copy.deepcopy(value['const']) for key,value in branch['properties'].items()}
-        proof=document['preflight']['terminal_proof']
+        import hashlib
         raw=(ROOT/'Nautobot/manifests/restic-preflight-result.json').read_bytes()
+        result=json.loads(raw)
+        proof={'result_sha256': hashlib.sha256(raw).hexdigest(),
+               'bundle_sha256': result['bundle_sha256'],
+               'terminal_tag': 'fixture-absence', 'archive_commit': 'a'*40}
+        document={'preflight': {'terminal_proof': proof}}
         with patch.object(launcher.subprocess,'check_output',side_effect=[
-            b'tag\n', (proof['archive_commit']+'\n').encode(), raw]):
+                b'tag\n', (proof['archive_commit']+'\n').encode(), raw]):
             launcher.require_preflight(document)
-        document['preflight']['terminal_proof']['result_sha256']='0'*64
+        proof['result_sha256']='0'*64
         with self.assertRaisesRegex(launcher.common.PreflightBlocked,'fresh_absence_proof_invalid'):
             launcher.require_preflight(document)
 
@@ -92,14 +92,16 @@ class Tests(unittest.TestCase):
         from jsonschema import Draft202012Validator
         schema=json.loads((ROOT/'Nautobot/schemas/operation.schema.json').read_text())
         branch=next(b for b in schema['oneOf'] if b.get('title')=='Reviewed standalone Restic initialization')
-        document={key:copy.deepcopy(value['const']) for key,value in branch['properties'].items()}
-        validator=Draft202012Validator(branch)
-        validator.validate(document)
         for section,key,value in [('repository','bucket','other'),
-                                  ('preflight','state','pending'),
                                   ('failure_and_recovery','automatic_init_retry',True)]:
-            changed=copy.deepcopy(document);changed[section][key]=value
-            self.assertFalse(validator.is_valid(changed))
+            contract=branch['properties'][section]
+            document=copy.deepcopy(contract['const'])
+            validator=Draft202012Validator(contract)
+            validator.validate(document)
+            document[key]=value
+            self.assertFalse(validator.is_valid(document))
+        state=branch['properties']['preflight']['properties']['state']
+        self.assertFalse(Draft202012Validator(state).is_valid('pending'))
 
     def test_production_always_cleanup_with_local_ansible(self):
         import copy

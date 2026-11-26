@@ -170,6 +170,7 @@ def main():
     require(root.parent == Path('/tmp') and re.fullmatch(r'nautobot-runtime\.[A-Za-z0-9_]+', root.name), 'root_boundary')
     op = json.loads((root/'operation.json').read_text())
     try:
+        r.check_boot(root, op, admit=mode in ('preflight', 'journal-baseline'))
         if mode == 'preflight': value = preflight(root, op)
         elif mode == 'ready': value = c.ready(root, op)
         elif mode == 'run': value = run_probe(root, op)
@@ -177,10 +178,11 @@ def main():
         elif mode == 'stopped': value = stopped(root, op)
         elif mode == 'evidence': value = receipt((root/'native.json').read_text())
         else: value = r.storage.journal(mode, root, op)
+        r.check_boot(root, op)
         print(json.dumps(value))
         return 0 if value.get('passed', True) else 69
     except Exception as exc:
-        allowed = {'boot_drift','unit_drift','configuration_drift','cold_copy_changed','existing_guard',
+        allowed = {'wrong_host','admission_missing','admission_metadata','boot_identity','boot_drift','unit_drift','configuration_drift','cold_copy_changed','existing_guard',
                    'bootstrap_residue','native_bootstrap_failed','container_residue','stale_service','probe_drift'}
         code = str(exc) if isinstance(exc, ValueError) and str(exc) in allowed else 'bootstrap_boundary_failed'
         print(json.dumps({'passed': False, 'error': code}))

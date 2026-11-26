@@ -387,7 +387,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^Nautobot/(?:manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity|notification-qualification|disposal-qualification|recovery-timer-qualification|recurring-schedule)\.schema\.json)$
+          ^Nautobot/(?:(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)|schemas/(?:operation|repository-initialization|host-convergence|canary-backup|canary-restore|runtime-initialization|runtime-continuation|database-inspection|logout-persistence|application-restore|recurring-prerequisites|recurring-credentials|capture-resume|upload-integrity|notification-qualification|disposal-qualification|recovery-timer-qualification|recurring-schedule)\.schema\.json)$
 
       - id: nautobot-host-convergence
         name: Validate Nautobot host convergence definition and offline regressions
@@ -396,16 +396,16 @@ repos:
           python3 Nautobot/ansible/scripts/validate-host-convergence.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/ansible/scripts/validate\-host\-convergence\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
 
       - id: nautobot-deferred-restic-schema
-        name: Validate inactive Nautobot Restic initialization contract
+        name: Validate historical Restic initialization test fixture
         entry: >-
           check-jsonschema --schemafile Nautobot/schemas/repository-initialization.schema.json
-          Nautobot/manifests/deferred-restic-initialization.yaml
+          Nautobot/tests/fixtures/restic-initialization-operation.yaml
         language: system
         pass_filenames: false
-        files: ^Nautobot/(?:manifests/deferred-restic-initialization\.yaml|schemas/repository-initialization\.schema\.json)$
+        files: ^Nautobot/(?:tests/fixtures/restic-initialization-operation\.yaml|schemas/repository-initialization\.schema\.json)$
 
       - id: nautobot-restic-repository-preflight
         name: Validate Nautobot Restic repository-absence preflight
@@ -414,7 +414,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/validate-restic-repository-preflight\.py)|(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/(?:READ_ONLY_PREFLIGHT|REPOSITORY_INITIALIZATION)\.md|inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-restic-repository-preflight-launcher
         name: Validate Nautobot Restic preflight launcher
@@ -423,7 +423,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/(?:run|validate)-restic-repository-preflight(?:-launcher)?\.py)|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/READ_ONLY_PREFLIGHT\.md|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:ansible/(?:playbooks/preflight-restic-repository\.yaml|scripts/(?:run|validate)-restic-repository-preflight(?:-launcher)?\.py)|(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)|schemas/(?:operation|repository-initialization|host-convergence)\.schema\.json)|restic/docs/READ_ONLY_PREFLIGHT\.md|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-host-baseline-launcher
         name: Validate Nautobot host-baseline operation
@@ -446,7 +446,7 @@ repos:
           (?x)^(?:
           \.pre-commit-config\.yaml
           |Nautobot/ansible/(?:README\.md|playbooks/diagnose-storage\.yaml|scripts/run-storage-diagnostic\.sh)
-          |Nautobot/manifests/(?:operation|deferred-restic-initialization)\.yaml
+          |Nautobot/(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)
           |Nautobot/schemas/operation\.schema\.json
           |inventory/prod/(?:groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml)
           )$
@@ -459,7 +459,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|OPERATIONS)\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/(?:NAUTOBOT_DEPLOYMENT_PLAN|OPERATIONS)\.md|(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/rollback-host-baseline\.yaml|scripts/run-host-baseline-rollback\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: nautobot-uas-quirk-launcher
         name: Validate Nautobot JMicron UAS-quirk operation
@@ -469,7 +469,7 @@ repos:
         language: system
         pass_filenames: false
         files: >-
-          ^(?:Nautobot/(?:docs/OPERATIONS\.md|manifests/(?:operation|deferred-restic-initialization)\.yaml|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
+          ^(?:Nautobot/(?:docs/OPERATIONS\.md|(?:manifests/operation\.yaml|tests/fixtures/restic-initialization-operation\.yaml)|schemas/operation\.schema\.json|ansible/(?:README\.md|playbooks/apply-uas-quirk\.yaml|scripts/run-uas-quirk\.sh))|inventory/prod/(?:hosts\.yaml|groups/inventory_automation\.yaml|hosts/j2-svpi4mf\.yaml))$
 
       - id: check-json
         name: Validate JSON with jq
@@ -496,25 +496,25 @@ repos:
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime.py
         language: system
         pass_filenames: false
-        files: ^(?:Nautobot/|restic/)
+        files: ^(?:(?:Nautobot|restic)/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_runtime\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: restic-initialization-contracts
         name: Validate Restic initialization and cleanup failures
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_initialization.py
         language: system
         pass_filenames: false
-        files: ^(?:Nautobot/|restic/)
+        files: ^(?:(?:Nautobot|restic)/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|restic/tests/test_initialization\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: restic-canary-contracts
         name: Validate canary upload integrity and cleanup failures
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_canary_backup.py
         language: system
         pass_filenames: false
-        files: ^(?:Nautobot/|restic/)
+        files: ^(?:(?:Nautobot|restic)/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|restic/tests/test_canary_backup\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: restic-restore-contracts
         name: Validate isolated canary restore containment and cleanup
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 restic/tests/test_canary_restore.py
         language: system
         pass_filenames: false
-        files: ^(?:Nautobot/|restic/)
+        files: ^(?:(?:Nautobot|restic)/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|restic/tests/test_canary_restore\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-application-backup
         name: Nautobot application backup producer
         entry: python3 restic/tests/test_application_backup.py
@@ -526,7 +526,7 @@ repos:
         entry: tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_reboot_persistence.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_reboot_persistence\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-recovery-preservation
         name: Validate recovery preservation preparation
         entry: python3 Nautobot/tests/test_recovery_preservation.py
@@ -575,24 +575,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^Nautobot/(ansible/.*prerequisite.*|schemas/(recurring-prerequisites|operation)\.schema\.json|manifests/(operation|recurring-protection)\.yaml|tests/test_prerequisites\.py)
-      - id: nautobot-recurring-disposal
-        name: Validate verified successful-payload disposal
-        entry: python3 Nautobot/tests/test_recurring_disposal.py
+      - id: nautobot-recurring-payload
+        name: Validate capture payload integrity media and disposal
+        entry: python3 Nautobot/tests/test_recurring_payload.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
-      - id: nautobot-recurring-logical
-        name: Validate independent recurring logical-reference boundaries
-        entry: python3 Nautobot/tests/test_recurring_logical.py
-        language: system
-        pass_filenames: false
-        files: ^Nautobot/(ansible/scripts/(recurring_.*|logical_database|recovery_probe)\.py|tests/(test_recurring_logical|qualify-recurring-logical-local)\.py)
-      - id: nautobot-recurring-media
-        name: Validate recurring media and staging capacity
-        entry: python3 Nautobot/tests/test_recurring_media.py
-        language: system
-        pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_recurring_payload\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-recurring-bindings
         name: Validate recurring rootless commands credentials and notifications
         entry: python3 Nautobot/tests/test_recurring_bindings.py
@@ -664,7 +652,7 @@ repos:
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_database_inspection.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_database_inspection\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-administrator-bootstrap
         name: Validate administrator bootstrap and independent cleanup
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_administrator_bootstrap.py
@@ -676,19 +664,19 @@ repos:
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_application_startup.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_application_startup\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-runtime-continuation
         name: Validate retained migration continuation and guarded failure paths
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime_continuation.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_runtime_continuation\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-runtime-initialization
         name: Validate private runtime initialization and failure boundaries
         entry: /bin/bash tests/repository/run-with-ansible-local-temp.sh python3 Nautobot/tests/test_runtime_initialization.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_runtime_initialization\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
       - id: nautobot-operation-contract-regressions
         name: Validate inactive operation prerequisites and status provenance
         entry: python3 Nautobot/tests/test_operation_contracts.py
@@ -708,25 +696,18 @@ repos:
         entry: python3 Nautobot/tests/test_credentials.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_credentials\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
 
       - id: nautobot-image-load-contracts
         name: Validate image loading and guarded failure handling
         entry: python3 Nautobot/tests/test_image_load.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_image_load\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
 
       - id: nautobot-configuration-auth-contracts
         name: Validate inactive application authentication probe
         entry: python3 Nautobot/tests/test_configuration_auth.py
         language: system
         pass_filenames: false
-        files: ^Nautobot/
-
-      - id: nautobot-authentication-trial-contracts
-        name: Validate isolated authentication trial and teardown
-        entry: python3 Nautobot/tests/test_authentication_trial.py
-        language: system
-        pass_filenames: false
-        files: ^Nautobot/
+        files: ^(?:Nautobot/(?:ansible/|scripts/|schemas/|container/|tests/(?!test_[^/]+\.py$)|manifests/(?!.*(?:-review\.json$)))|Nautobot/tests/test_configuration_auth\.py$|tests/repository/run-with-ansible-local-temp\.sh$|\.pre-commit-config\.yaml$)
