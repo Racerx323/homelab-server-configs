@@ -11,6 +11,7 @@ import sys
 import unittest
 from unittest.mock import patch
 import yaml
+from jsonschema.exceptions import ValidationError
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,6 +85,27 @@ def sample(t=0):
 
 
 class AdapterTests(unittest.TestCase):
+
+    def test_fixture_counts_and_determinism(self):
+        data=generator.dataset()
+        self.assertEqual(generator.canonical(data),generator.canonical(generator.dataset()))
+        self.assertEqual(len(data['locations']),10)
+        self.assertEqual(len(data['devices']),500)
+        self.assertEqual(sum(len(d['interfaces']) for d in data['devices']),2000)
+        self.assertEqual(len({a['address'] for a in data['ip_assignments']}),500)
+        devices={d['key'] for d in data['devices']}
+        self.assertTrue(all(a['device'] in devices for a in data['ip_assignments']))
+
+
+    def test_workload_contract_drives_fixture(self):
+        contract=yaml.safe_load((ROOT/'Nautobot/manifests/workload-test.yaml').read_text())
+        contract['fixture'].update(locations=2,devices=7,interfaces_per_device=3,ip_assignments=5)
+        data=generator.dataset(contract)
+        self.assertEqual([len(data[k]) for k in ('locations','devices','ip_assignments')],[2,7,5])
+        self.assertTrue(all(len(d['interfaces'])==3 for d in data['devices']))
+        contract['execution_authorized']=True
+        with self.assertRaises(ValidationError):generator.dataset(contract)
+
     def test_default_dataset_plan_counts(self):
         nodes = adapter.plan(generator.dataset())
         self.assertEqual(sum(n['model'] == 'dcim.device' for n in nodes), CONTRACT['fixture']['devices'])

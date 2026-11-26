@@ -125,23 +125,20 @@ class Qualification(unittest.TestCase):
         self.assertEqual(self.requests, [])
 
     def test_real_transport_freeze_verify_and_drift(self):
-        current = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-        if current['operation'].get('stage') != 'recurring_notification_qualification':
-            self.skipTest('no pending notification operation')
+        from bundle_samples import definition
         spec = importlib.util.spec_from_file_location('notification_bundle', SCRIPTS/'notification-bundle.py')
         bundle = importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
-        candidate = self.root/'candidate'
-        accepted = yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text())
-        if accepted.get('recurring_notifications', {}).get('operation_id') == current['operation']['id']:
-            with self.assertRaisesRegex(ValueError, 'accepted_source_drift'):
-                bundle.transport.freeze(candidate)
-            return
-        bundle.transport.freeze(candidate)
-        digest = hashlib.sha256((candidate/'bundle.json').read_bytes()).hexdigest()
-        self.assertTrue(bundle.transport.verify(candidate, digest)['operation']['execution_enabled'])
-        (candidate/'runtime/scripts/recurring_delivery.py').write_text('changed')
-        with self.assertRaisesRegex(ValueError, 'input_drift'):
-            bundle.transport.verify(candidate, digest)
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            source = definition('notification', bundle, parent)
+            candidate = parent/'candidate'
+            bundle.transport.freeze(candidate, operation=source)
+            digest = bundle.transport.sha(candidate/'bundle.json')
+            self.assertTrue(bundle.transport.verify(candidate, digest)['operation']['execution_enabled'])
+            with self.assertRaises(ValueError): bundle.transport.verify(candidate, '0'*64)
+            (candidate/'runtime/scripts/recurring_delivery.py').write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'input_drift'):
+                bundle.transport.verify(candidate, digest)
 
     @unittest.skipUnless(os.environ.get('NAUTOBOT_NOTIFICATION_NATIVE') == '1', 'opt-in local Ansible/user-systemd run')
     def test_real_playbook_and_transient_service(self):

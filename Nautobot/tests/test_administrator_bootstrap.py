@@ -35,16 +35,6 @@ secret = load('bootstrap_secret', 'bootstrap-secret.py')
 DATA = {'username': 'admin', 'email': 'fixture@example.invalid', 'password': 'a'*64}
 
 
-def schema_sample(field):
-    if 'const' in field: return copy.deepcopy(field['const'])
-    if 'default' in field: return copy.deepcopy(field['default'])
-    if field.get('type') == 'object': return {k: schema_sample(v) for k, v in field['properties'].items()}
-    if field.get('type') == 'array': return [schema_sample(v) for v in field.get('prefixItems', [])]
-    if field.get('type') == 'integer': return field.get('minimum', 0)
-    if '{64}' in field.get('pattern', ''): return '0' * 64
-    if '{40}' in field.get('pattern', ''): return '0' * 40
-    if 'recovery/' in field.get('pattern', ''): return '/var/lib/nautobot/recovery/fixture'
-    return 'fixture'
 
 
 class Bootstrap(unittest.TestCase):
@@ -94,8 +84,8 @@ class Bootstrap(unittest.TestCase):
         visit(play['pre_tasks']+play['tasks'])
 
     def operation(self):
-        schema = json.loads((ROOT/'Nautobot/schemas/administrator-bootstrap.schema.json').read_text())
-        return schema_sample(schema)
+        sample = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/runtime-operation-inputs.yaml').read_text())['administrator-bootstrap']
+        return sample
 
     def test_native_order_secret_environment_and_no_migration(self):
         calls = []
@@ -223,7 +213,7 @@ class Bootstrap(unittest.TestCase):
             with self.assertRaises(ValueError):node.receipt(json.dumps(change))
 
     def test_schema_rejects_scope_expansion(self):
-        op=self.operation();schema=json.loads((ROOT/'Nautobot/schemas/administrator-bootstrap.schema.json').read_text())
+        op=self.operation();schema = json.loads((ROOT/'Nautobot/schemas/administrator-bootstrap.schema.json').read_text())
         validator=Draft202012Validator(schema);validator.validate(op)
         for section,key,val in [('runtime','first_install_only',True),('runtime','services',['postgresql','redis','web']),('bootstrap','guard_seconds',3600),('failure','automatic_retry',True)]:
             bad=copy.deepcopy(op);bad[section][key]=val

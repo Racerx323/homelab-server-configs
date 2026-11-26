@@ -27,14 +27,11 @@ class RecoveryQualification(unittest.TestCase):
                 qualification.configure(Path('/nonexistent'), 'killed', output)
 
     def test_bundle_freeze_and_tamper_refusal(self):
-        current=yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-        if current['operation'].get('stage')!='recurring_failure_recovery_timer_qualification':
-            self.skipTest('no pending recovery trial')
         spec=importlib.util.spec_from_file_location('recovery_bundle',SCRIPTS/'recovery-timer-bundle.py')
         bundle=importlib.util.module_from_spec(spec);spec.loader.exec_module(bundle)
         with tempfile.TemporaryDirectory() as temporary:
-            # Qualify a fresh local fixture without changing a consumed approval.
-            current['accepted_sha256']=hashlib.sha256((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_bytes()).hexdigest()
+            from bundle_samples import operation
+            current = operation('recovery', bundle)
             fixture=Path(temporary)/'operation.yaml';fixture.write_text(yaml.safe_dump(current))
             root=Path(temporary)/'candidate';bundle.transport.freeze(root,operation=fixture)
             digest=bundle.transport.sha(root/'bundle.json');bundle.transport.verify(root,digest)

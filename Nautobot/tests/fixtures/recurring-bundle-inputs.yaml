@@ -1,0 +1,315 @@
+# Local bundle examples only; no target observations or execution authority.
+---
+schedule:
+  schema_version: 1
+  operation: {id: nautobot-recurring-schedule-local-test, stage: recurring_schedule_enablement, state: pending, authorization_ready: false, execution_enabled: false, source_commit: '0000000000000000000000000000000000000000'}
+  target: &id003 {host: j2-svpi4mf, address: 10.1.2.170, ssh_user: ama, uid: 999, gid: 985}
+  plan_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  accepted_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  boot_id: 00000000-0000-4000-8000-000000000001
+  accepted_stage_bundles: &id001 {}
+  baseline:
+    collected_at: '2026-01-01T00:00:00+00:00'
+    artifact_sha256: {}
+    binding_artifact_sha256: {}
+  packages: &id002 []
+  credential_identity: *id001
+  binding:
+    execution_authorized: false
+    upload_enabled: true
+    media_policy: empty_directories_only
+    artifact_sha256: &id004 {/var/lib/nautobot/.config/containers/systemd/nautobot-migration.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-nautobot_media.volume: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-postgresql_data.volume: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-private.network: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-redis.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-redis_data.volume: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-scheduler.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-web.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/.config/containers/systemd/nautobot-worker.container: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, /var/lib/nautobot/runtime/nautobot_config.py: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+    image_ids: &id005 {postgresql: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, redis: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, scheduler: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, web: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, worker: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+    versions: &id006 {nautobot: 3.2.3, nautobot-dns-models: 2.3.0}
+    metadata_files:
+      desired-state.yaml: {path: /var/lib/nautobot/protection/runtime/metadata/desired-state.yaml, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+      requirements.lock: {path: /var/lib/nautobot/protection/runtime/metadata/requirements.lock, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+      qualified-image.json: {path: /var/lib/nautobot/protection/runtime/metadata/qualified-image.json, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+    minimum_free_bytes: 17179869184
+    maximum_retained_bytes: 8589934592
+    capture_limits: &id007 {postgresql_custom_dump: 1073741824, media: 16777216, configuration: 16777216, image_dependency_manifest: 16777216, quadlet_config_hashes: 16777216, versions_migrations: 16777216}
+    producer: /var/lib/nautobot/protection/runtime/scripts/application-backup.py
+    state_directory: /var/lib/nautobot/protection/state
+    supervisor_configuration: /var/lib/nautobot/protection/runtime/supervisor.json
+    credentials: &id008 {config: prd_nautobot_backup, created_at: '2026-10-29T21:17:53.180000+00:00', doppler: /usr/bin/doppler, expires_at: '2027-01-27T21:17:52+00:00', project: homelab-dev, read_only: true, rotation_due_at: '2027-01-13T21:17:52+00:00', rotation_owner: Aaron (homelab operator), token_file: /var/lib/nautobot/protection/credentials/doppler-service-token, metadata_file: /var/lib/nautobot/protection/credentials/metadata.json}
+    backup_template: &id009
+      schema_version: 1
+      operation_id: nautobot-recurring
+      authorized: false
+      repository_id: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      repository_url: s3:https://s3.us-west-002.backblazeb2.com/theama-homelab-nautobot-restic-prd/
+      restic: /usr/bin/restic
+      restic_version: restic 0.18.0 compiled with go1.24.4 on linux/arm64
+      hostname: j2-svpi4mf
+      source_consistency_reviewed: false
+      timeout_seconds: 300
+      execution_uid: 999
+      required_filesystem: /dev/sda2
+      captures: *id001
+      dump_validator: *id002
+    notification: {method: direct_apprise, endpoint: 'http://10.1.3.83:8000/notify/apprise', hostname: j2-svpi4mf, fqdn: j2-svpi4mf.local.theama.co, maximum_attempts: 2, retry_interval_seconds: 900}
+  supervisor:
+    schema_version: 1
+    execution_authorized: false
+    state_directory: /var/lib/nautobot/protection/state
+    unit_prefix: nautobot-protection
+    timezone: America/Chicago
+    start_hour: 3
+    end_hour: 4
+    capture_seconds: 450
+    recovery_seconds: 240
+    run_seconds: 1800
+    prepare_argv: [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, prepare]
+    ansible_argv: [/usr/bin/env, ANSIBLE_CONFIG=/var/lib/nautobot/protection/runtime/ansible.cfg, /bin/bash, /var/lib/nautobot/protection/runtime/ansible-temp.sh, /usr/bin/ansible-playbook, -i, 'localhost,', /var/lib/nautobot/protection/runtime/playbooks/recurring-capture.yaml, --extra-vars, '{"ansible_async_dir": "/var/lib/nautobot/protection/state/async", "ansible_remote_tmp": "/var/lib/nautobot/protection/state/tmp"}']
+    resume_commands:
+      - [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, start, worker]
+      - [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, start, web]
+      - [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, start, scheduler]
+    health_argv: [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, health]
+    notification_argv: [/usr/bin/python3, /var/lib/nautobot/protection/runtime/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/runtime/binding.json, notify]
+    dispose_successful_payload: true
+    staging_directory: /var/lib/nautobot/protection/staging
+    staging_filesystem: ext4
+    latest_start_minute: 202
+  unit_names: [nautobot-protection.service, nautobot-protection.timer, nautobot-protection-guard.timer, nautobot-protection-guard.service, nautobot-protection-recovery.service, nautobot-protection-freshness.service, nautobot-protection-freshness.timer, nautobot-protection-notification.service, nautobot-protection-notification.timer]
+  unit_paths: [/var/lib/nautobot/protection/runtime/units/nautobot-protection.service, /var/lib/nautobot/protection/runtime/units/nautobot-protection.timer, /var/lib/nautobot/protection/runtime/units/nautobot-protection-guard.timer, /var/lib/nautobot/protection/runtime/units/nautobot-protection-guard.service, /var/lib/nautobot/protection/runtime/units/nautobot-protection-recovery.service, /var/lib/nautobot/protection/runtime/units/nautobot-protection-freshness.service, /var/lib/nautobot/protection/runtime/units/nautobot-protection-freshness.timer, /var/lib/nautobot/protection/runtime/units/nautobot-protection-notification.service, /var/lib/nautobot/protection/runtime/units/nautobot-protection-notification.timer]
+  runtime_directory: /var/lib/nautobot/protection/runtime
+  state_directory: /var/lib/nautobot/protection/state
+  unit_directory: /var/lib/nautobot/.config/systemd/user
+  enabled_timers: [nautobot-protection.timer, nautobot-protection-freshness.timer, nautobot-protection-notification.timer]
+  controller_timeout_seconds: 600
+  mutation_boundary: [Local-only bundle test]
+  acceptance: [Local-only bundle validation]
+  rollback: [Local-only bundle test]
+  external_inputs: [Local-only bundle test]
+  unresolved_prerequisites: [Local-only bundle test]
+  later_stages: [remote snapshot deletion/prune, older or failed retained-payload disposal, monthly isolated restore operation and schedule, populated-media support, host reboot/outage recovery, workload/headroom and seven-day pilot acceptance, Caddy onboarding and authority migration]
+recovery:
+  schema_version: 1
+  controller_timeout_seconds: 1800
+  operation: {id: nautobot-recurring-recovery-timer-v999, stage: recurring_failure_recovery_timer_qualification, state: pending, execution_enabled: false, authorization_ready: false, source_commit: '0000000000000000000000000000000000000000'}
+  target: {host: j2-svpi4mf, address: 10.1.2.170, uid: 999, gid: 985}
+  boot_id: 00000000-0000-4000-8000-000000000001
+  accepted_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  baseline_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  trials:
+    killed:
+      schema_version: 1
+      operation: {id: nautobot-recurring-recovery-killed, stage: recurring_failure_recovery_timer_qualification, state: pending, authorization_ready: true, execution_enabled: true, source_commit: '0000000000000000000000000000000000000000'}
+      target: *id003
+      plan_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      baseline:
+        artifact_sha256: {}
+      packages: *id002
+      credential_identity: *id001
+      accepted_credential_bundle: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      binding:
+        execution_authorized: false
+        upload_enabled: false
+        media_policy: empty_directories_only
+        artifact_sha256: *id004
+        image_ids: *id005
+        versions: *id006
+        metadata_files: &id010
+          desired-state.yaml: {path: /var/lib/nautobot/protection/recovery-qualification/metadata/desired-state.yaml, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+          requirements.lock: {path: /var/lib/nautobot/protection/recovery-qualification/metadata/requirements.lock, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+          qualified-image.json: {path: /var/lib/nautobot/protection/recovery-qualification/metadata/qualified-image.json, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+        minimum_free_bytes: 17179869184
+        maximum_retained_bytes: 8589934592
+        capture_limits: *id007
+        producer: /var/lib/nautobot/protection/recovery-qualification/scripts/application-backup.py
+        state_directory: /var/lib/nautobot/protection/recovery-qualification/killed/state
+        supervisor_configuration: /var/lib/nautobot/protection/recovery-qualification/killed/supervisor.json
+        credentials: *id008
+        backup_template: *id009
+      supervisor:
+        schema_version: 1
+        execution_authorized: false
+        state_directory: /var/lib/nautobot/protection/recovery-qualification/killed/state
+        unit_prefix: nautobot-protection-killed
+        timezone: America/Chicago
+        window_date: '2026-11-03'
+        start_hour: 18
+        start_minute: 15
+        end_hour: 19
+        end_minute: 15
+        capture_seconds: 450
+        recovery_seconds: 240
+        run_seconds: 900
+        prepare_argv: [/usr/bin/python3, -B, /var/lib/nautobot/protection/recovery-qualification/scripts/recovery_qualification.py, prepare, /var/lib/nautobot/protection/recovery-qualification/killed]
+        ansible_argv: [/usr/bin/env, ANSIBLE_CONFIG=/var/lib/nautobot/protection/recovery-qualification/ansible.cfg, /bin/bash, /var/lib/nautobot/protection/recovery-qualification/ansible-temp.sh, /usr/bin/ansible-playbook, -i, 'localhost,', /var/lib/nautobot/protection/recovery-qualification/playbooks/recurring-capture.yaml, --extra-vars, '{"ansible_async_dir": "/var/lib/nautobot/protection/recovery-qualification/killed/state/async", "ansible_remote_tmp": "/var/lib/nautobot/protection/recovery-qualification/killed/state/tmp"}']
+        resume_commands:
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/killed/binding.json, start, worker]
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/killed/binding.json, start, web]
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/killed/binding.json, start, scheduler]
+        health_argv: [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/killed/binding.json, health]
+        dispose_successful_payload: false
+        staging_directory: /var/lib/nautobot/protection/staging
+        staging_filesystem: ext4
+      unit_names: [nautobot-protection-killed.service, nautobot-protection-killed-guard.timer, nautobot-protection-killed-guard.service, nautobot-protection-killed-recovery.service]
+      unit_paths: [/var/lib/nautobot/protection/recovery-qualification/killed/units/nautobot-protection-killed.service, /var/lib/nautobot/protection/recovery-qualification/killed/units/nautobot-protection-killed-guard.timer, /var/lib/nautobot/protection/recovery-qualification/killed/units/nautobot-protection-killed-guard.service, /var/lib/nautobot/protection/recovery-qualification/killed/units/nautobot-protection-killed-recovery.service]
+    deadline:
+      schema_version: 1
+      operation: {id: nautobot-recurring-recovery-deadline, stage: recurring_failure_recovery_timer_qualification, state: pending, authorization_ready: true, execution_enabled: true, source_commit: '0000000000000000000000000000000000000000'}
+      target: *id003
+      plan_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      baseline:
+        artifact_sha256: {}
+      packages: *id002
+      credential_identity: *id001
+      accepted_credential_bundle: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      binding:
+        execution_authorized: false
+        upload_enabled: false
+        media_policy: empty_directories_only
+        artifact_sha256: *id004
+        image_ids: *id005
+        versions: *id006
+        metadata_files: *id010
+        minimum_free_bytes: 17179869184
+        maximum_retained_bytes: 8589934592
+        capture_limits: *id007
+        producer: /var/lib/nautobot/protection/recovery-qualification/scripts/application-backup.py
+        state_directory: /var/lib/nautobot/protection/recovery-qualification/deadline/state
+        supervisor_configuration: /var/lib/nautobot/protection/recovery-qualification/deadline/supervisor.json
+        credentials: *id008
+        backup_template: *id009
+      supervisor:
+        schema_version: 1
+        execution_authorized: false
+        state_directory: /var/lib/nautobot/protection/recovery-qualification/deadline/state
+        unit_prefix: nautobot-protection-deadline
+        timezone: America/Chicago
+        window_date: '2026-11-03'
+        start_hour: 18
+        start_minute: 15
+        end_hour: 19
+        end_minute: 15
+        capture_seconds: 450
+        recovery_seconds: 240
+        run_seconds: 900
+        prepare_argv: [/usr/bin/python3, -B, /var/lib/nautobot/protection/recovery-qualification/scripts/recovery_qualification.py, prepare, /var/lib/nautobot/protection/recovery-qualification/deadline]
+        ansible_argv: [/usr/bin/env, ANSIBLE_CONFIG=/var/lib/nautobot/protection/recovery-qualification/ansible.cfg, /bin/bash, /var/lib/nautobot/protection/recovery-qualification/ansible-temp.sh, /usr/bin/ansible-playbook, -i, 'localhost,', /var/lib/nautobot/protection/recovery-qualification/playbooks/recurring-capture.yaml, --extra-vars, '{"ansible_async_dir": "/var/lib/nautobot/protection/recovery-qualification/deadline/state/async", "ansible_remote_tmp": "/var/lib/nautobot/protection/recovery-qualification/deadline/state/tmp"}']
+        resume_commands:
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/deadline/binding.json, start, worker]
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/deadline/binding.json, start, web]
+          - [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/deadline/binding.json, start, scheduler]
+        health_argv: [/usr/bin/python3, /var/lib/nautobot/protection/recovery-qualification/scripts/recurring_node.py, --binding, /var/lib/nautobot/protection/recovery-qualification/deadline/binding.json, health]
+        dispose_successful_payload: false
+        staging_directory: /var/lib/nautobot/protection/staging
+        staging_filesystem: ext4
+      unit_names: [nautobot-protection-deadline.service, nautobot-protection-deadline-guard.timer, nautobot-protection-deadline-guard.service, nautobot-protection-deadline-recovery.service]
+      unit_paths: [/var/lib/nautobot/protection/recovery-qualification/deadline/units/nautobot-protection-deadline.service, /var/lib/nautobot/protection/recovery-qualification/deadline/units/nautobot-protection-deadline-guard.timer, /var/lib/nautobot/protection/recovery-qualification/deadline/units/nautobot-protection-deadline-guard.service, /var/lib/nautobot/protection/recovery-qualification/deadline/units/nautobot-protection-deadline-recovery.service]
+  mutation_boundary: [Local-only bundle test]
+  acceptance: [Local-only bundle validation]
+  rollback: [Local-only bundle test]
+  external_inputs: [Local-only bundle test]
+  later_stages: [schedule_enablement, remote_deletion_prune, older_payload_disposal, populated_media_recovery, commit_tag_push]
+  retained_state:
+    kind: unstarted_recovery
+    bundle_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    boot_id: 00000000-0000-4000-8000-000000000001
+    directories:
+      .: &id011 {gid: 985, mode: 448, uid: 999}
+      killed: *id011
+      metadata: *id011
+      playbooks: *id011
+      scripts: *id011
+      tasks: *id011
+    files:
+      scripts/local-test.py: &id012 {uid: 999, gid: 985, mode: 384, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+    service_invocations: {nautobot-postgresql.service: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, nautobot-redis.service: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, nautobot-scheduler.service: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, nautobot-web.service: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, nautobot-worker.service: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+upload:
+  schema_version: 1
+  operation: {id: nautobot-recurring-upload-integrity-local-test, stage: recurring_upload_integrity_qualification, state: pending, execution_enabled: false, authorization_ready: false, source_commit: '0000000000000000000000000000000000000000'}
+  target: &id013 {name: j2-svpi4mf, address: 10.1.2.170, user: nautobot, uid: 999, gid: 985, home: /var/lib/nautobot}
+  baseline_collected_at: '2026-11-03T19:45:07.120972+00:00'
+  boot_id: 00000000-0000-4000-8000-000000000001
+  capture_root: /var/lib/nautobot/protection/qualification
+  evidence_root: /var/lib/nautobot/protection/upload-qualification
+  payload_root: /var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1
+  capture_bundle_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  content_sha256: *id001
+  payload_tree:
+    files:
+      configuration: *id012
+    directories:
+      .: {uid: 999, gid: 985, mode: 448}
+  qualification_tree:
+    files:
+      result.json: *id012
+    directories:
+      .: {uid: 999, gid: 985, mode: 448}
+  services: &id014
+    nautobot-postgresql.service: {ActiveState: active, Id: nautobot-postgresql.service, InvocationID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, SubState: running}
+    nautobot-redis.service: {ActiveState: active, Id: nautobot-redis.service, InvocationID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, SubState: running}
+    nautobot-scheduler.service: {ActiveState: active, Id: nautobot-scheduler.service, InvocationID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, SubState: running}
+    nautobot-web.service: {ActiveState: active, Id: nautobot-web.service, InvocationID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, SubState: running}
+    nautobot-worker.service: {ActiveState: active, Id: nautobot-worker.service, InvocationID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, SubState: running}
+  restic: &id016 {path: /usr/bin/restic, version: restic 0.18.0 compiled with go1.24.4 on linux/arm64, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+  repository: *id001
+  credentials: *id001
+  source_sha256: *id001
+  boundaries: {writer_pause: false, restore: false, notifications: false, disposal: false, retention: false, schedule_enablement: false, automatic_retry: false, repository_init_unlock_repair: false}
+  acceptance: {accepted: false, independent_readback_required: true, full_repository_check_required: true}
+  doppler_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+notification:
+  schema_version: 1
+  operation: {id: nautobot-recurring-notification-local-test, stage: recurring_notification_qualification, state: pending, authorization_ready: false, execution_enabled: false, source_commit: '0000000000000000000000000000000000000000'}
+  target: *id013
+  baseline_collected_at: '2026-11-03T20:41:49.652134+00:00'
+  boot_id: 00000000-0000-4000-8000-000000000001
+  evidence_root: /var/lib/nautobot/protection/notification-qualification
+  capture_root: /var/lib/nautobot/protection/qualification
+  notification: {method: direct_apprise, endpoint: 'http://10.1.3.83:8000/notify/apprise', hostname: j2-svpi4mf, fqdn: j2-svpi4mf.local.theama.co, qualification: true}
+  route_attestation:
+    owner: Aaron
+    persistent_configuration: apprise
+    destinations: [email, Discord, Pushover]
+    receipt_witness: Aaron
+    provider_configuration_read: false
+  observed: '2026-11-03T20:41:49.652134+00:00'
+  attempts_per_message: 2
+  retry_seconds: 15
+  services: *id014
+  preserved_trees: *id001
+  source_sha256: *id001
+  boundaries: {routing_changes: false, backup_execution: false, credential_access: false, writer_pause: false, schedule_enablement: false, payload_disposal: false, retention_changes: false}
+  acceptance: [two_http_200_submissions, Aaron_confirms_both_correlations_on_email_Discord_Pushover, unchanged_services_payloads_retained_state_timers, inactive_transient_unit, protected_bounded_receipts, no_automatic_replay]
+  messages: *id001
+  receipt_wait_seconds: 600
+disposal:
+  schema_version: 1
+  operation: {id: nautobot-recurring-disposal-local-test, stage: recurring_disposal_retention_qualification, state: pending, execution_enabled: false, authorization_ready: false, source_commit: '0000000000000000000000000000000000000000'}
+  target: *id013
+  baseline_collected_at: '2026-11-03T21:24:37.740374+00:00'
+  boot_id: 00000000-0000-4000-8000-000000000001
+  capture_root: /var/lib/nautobot/protection/qualification
+  evidence_root: /var/lib/nautobot/protection/disposal-qualification
+  payload_root: /var/lib/nautobot/protection/staging/nautobot-recurring.usiv2ym1
+  snapshot_id: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  snapshot_ids: [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+  eligible_snapshot_ids: [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+  protected_snapshot_ids: [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+  remote_inventory_accepted_at: '2026-11-03T20:15:18.448552+00:00'
+  content_sha256: *id001
+  payload_file_metadata:
+    configuration: {bytes: 20480, device: 2050, inode: 626323, nlink: 1}
+    image_dependency_manifest: {bytes: 20480, device: 2050, inode: 626324, nlink: 1}
+    media: {bytes: 10240, device: 2050, inode: 626273, nlink: 1}
+    postgresql_custom_dump: {bytes: 5127742, device: 2050, inode: 626270, nlink: 1}
+    quadlet_config_hashes: {bytes: 30720, device: 2050, inode: 626325, nlink: 1}
+    versions_migrations: {bytes: 53827, device: 2050, inode: 626326, nlink: 1}
+  payload_tree: &id015
+    files: *id001
+    directories: *id001
+  qualification_tree: *id015
+  services: *id014
+  restic: *id016
+  doppler_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  credentials: *id001
+  repository: *id001
+  source_sha256: *id001
+  retention: {dry_run: true, group_by: 'host,tags', hostname: j2-svpi4mf, tag: nautobot-recurring, keep_daily: 7, keep_weekly: 5, keep_monthly: 12, timezone: America/Chicago, no_lock: true, no_cache: true, prune: false}
+  boundaries: {remote_snapshot_deletion: false, prune: false, retag: false, repository_repair: false, failed_payload_disposal: false, credential_provisioning: false, writer_pause: false, service_restart: false, notifications: false, schedules: false}
+  acceptance: [exact_six_owned_payload_files_removed, empty_payload_directory_and_all_receipts_retained, historical_payloads_latches_and_evidence_unchanged, remote_inventory_unchanged_full_keep_remove_ids_recorded, no_remote_deletions_or_prune, unchanged_healthy_services_and_timers, transient_credentials_removed, inactive_transient_unit, no_automatic_retry_after_interruption]

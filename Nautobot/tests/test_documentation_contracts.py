@@ -26,7 +26,6 @@ HISTORICAL_DOCUMENT_REFERENCES = {
     ('tests/fixtures/restic-initialization-operation.yaml', 'ISOLATED_BACKUP_RESTORE.md'),
     ('schemas/repository-initialization.schema.json', 'ISOLATED_BACKUP_RESTORE.md'),
     ('schemas/operation.schema.json', 'ISOLATED_BACKUP_RESTORE.md'),
-    ('schemas/host-convergence.schema.json', 'HOST_BASELINE_CONVERGENCE.md'),
 }
 DOCUMENT_SNAPSHOT = '368f93a3286f15d0803ae783164fa78414d4b78f'
 

@@ -2,8 +2,9 @@
 
 ## Current next action
 
-Review and publish the locally qualified simplification before preparing another
-workload trial. Hard-coded evidence input paths are removed, retained-fixture
+Review and publish the locally validated test-necessity follow-up (W-031)
+before preparing another workload trial. The preceding
+simplification is published. Hard-coded evidence input paths are removed, retained-fixture
 closure checks are model-batched, and broad local validation triggers are narrowed.
 The existing small native correctness suite passed; this does not establish target
 runtime or capacity. The operation remains clean and disabled.

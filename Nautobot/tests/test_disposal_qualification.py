@@ -39,21 +39,18 @@ class Contracts(unittest.TestCase):
         self.assertEqual(node.POLICY[node.POLICY.index('--group-by')+1], 'host,tags')
 
     def test_real_transport_and_tamper_refusal(self):
-        op = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-        if op['operation'].get('stage') != 'recurring_disposal_retention_qualification':
-            self.skipTest('no pending disposal operation')
-        spec = importlib.util.spec_from_file_location('bundle', SCRIPTS/'disposal-bundle.py')
+        from bundle_samples import definition
+        spec = importlib.util.spec_from_file_location('disposal_bundle', SCRIPTS/'disposal-bundle.py')
         bundle = importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
-        with tempfile.TemporaryDirectory() as directory:
-            candidate = Path(directory)/'candidate'
-            accepted = yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text())
-            if accepted.get('recurring_disposal', {}).get('operation_id') == op['operation']['id']:
-                with self.assertRaisesRegex(ValueError, 'accepted_source_drift'):
-                    bundle.transport.freeze(candidate)
-                return
-            bundle.transport.freeze(candidate)
-            digest = bundle.transport.sha(candidate/'bundle.json'); bundle.transport.verify(candidate, digest)
-            (candidate/'runtime/scripts/recurring_disposal.py').write_text('changed')
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            source = definition('disposal', bundle, parent)
+            candidate = parent/'candidate'
+            bundle.transport.freeze(candidate, operation=source)
+            digest = bundle.transport.sha(candidate/'bundle.json')
+            self.assertTrue(bundle.transport.verify(candidate, digest)['operation']['execution_enabled'])
+            with self.assertRaises(ValueError): bundle.transport.verify(candidate, '0'*64)
+            (candidate/'runtime/scripts/recurring_delivery.py').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'input_drift'):
                 bundle.transport.verify(candidate, digest)
 

@@ -25,22 +25,12 @@ application=load('application','Nautobot/ansible/scripts/initialize-application.
 node=load('node','Nautobot/ansible/scripts/runtime-initialization-node.py')
 launcher=load('launcher','Nautobot/ansible/scripts/run-runtime.py')
 
-def schema_sample(field):
-    if 'const' in field: return copy.deepcopy(field['const'])
-    if 'default' in field: return copy.deepcopy(field['default'])
-    if field.get('type') == 'object': return {k: schema_sample(v) for k, v in field['properties'].items()}
-    if field.get('type') == 'array': return [schema_sample(v) for v in field.get('prefixItems', [])]
-    if field.get('type') == 'integer': return field.get('minimum', 0)
-    if '{64}' in field.get('pattern', ''): return '0' * 64
-    if '{40}' in field.get('pattern', ''): return '0' * 40
-    if 'recovery/' in field.get('pattern', ''): return '/var/lib/nautobot/recovery/fixture'
-    return 'fixture'
 
 
 class Initialization(unittest.TestCase):
     def setUp(self):
-        schema=json.loads((ROOT/'Nautobot/schemas/runtime-initialization.schema.json').read_text())
-        self.op=schema_sample(schema)
+        sample = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/runtime-operation-inputs.yaml').read_text())['runtime-initialization']
+        self.op=sample
         self.desired=yaml.safe_load((ROOT/'Nautobot/manifests/desired-state.yaml').read_text())
         self.inputs=json.loads((ROOT/'Nautobot/manifests/runtime-inputs.json').read_text())
 

@@ -62,17 +62,6 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError):renderer.render(self.desired,{**self.inputs,'recovery_host':'a\nb'})
         bad=copy.deepcopy(self.desired);bad['services']['postgresql']['published_endpoints']=[{'address':'0.0.0.0'}]
         with self.assertRaises((ValueError, ValidationError)):renderer.render(bad,self.inputs)
-    def test_fixture_counts_and_determinism(self):
-        fixture_spec=importlib.util.spec_from_file_location('fixture',ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
-        fixture=importlib.util.module_from_spec(fixture_spec);fixture_spec.loader.exec_module(fixture)
-        data=fixture.dataset()
-        self.assertEqual(fixture.canonical(data),fixture.canonical(fixture.dataset()))
-        self.assertEqual(len(data['locations']),10)
-        self.assertEqual(len(data['devices']),500)
-        self.assertEqual(sum(len(d['interfaces']) for d in data['devices']),2000)
-        self.assertEqual(len({a['address'] for a in data['ip_assignments']}),500)
-        devices={d['key'] for d in data['devices']}
-        self.assertTrue(all(a['device'] in devices for a in data['ip_assignments']))
 
     def test_inactive_playbook_gate_locally(self):
         production=yaml.safe_load((ROOT/'Nautobot/ansible/playbooks/deploy-runtime.yaml').read_text())[0]
@@ -130,16 +119,6 @@ class RuntimeTests(unittest.TestCase):
                 result=subprocess.run(['/bin/bash',str(ROOT/'tests/repository/run-with-ansible-local-temp.sh'),'ansible-playbook','-i','localhost,','-c','local',str(p)],capture_output=True,timeout=30)
                 self.assertEqual(result.returncode,2 if fail else 0,result.stdout.decode()+result.stderr.decode())
 
-    def test_workload_contract_drives_fixture(self):
-        fixture_spec=importlib.util.spec_from_file_location('fixture_contract',ROOT/'Nautobot/ansible/scripts/make-workload-fixture.py')
-        fixture=importlib.util.module_from_spec(fixture_spec);fixture_spec.loader.exec_module(fixture)
-        contract=yaml.safe_load((ROOT/'Nautobot/manifests/workload-test.yaml').read_text())
-        contract['fixture'].update(locations=2,devices=7,interfaces_per_device=3,ip_assignments=5)
-        data=fixture.dataset(contract)
-        self.assertEqual([len(data[k]) for k in ('locations','devices','ip_assignments')],[2,7,5])
-        self.assertTrue(all(len(d['interfaces'])==3 for d in data['devices']))
-        contract['execution_authorized']=True
-        with self.assertRaises(ValidationError):fixture.dataset(contract)
 
     def test_legacy_backup_gate_and_reset_matcher(self):
         import json,re

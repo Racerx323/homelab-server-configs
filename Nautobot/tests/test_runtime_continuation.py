@@ -21,22 +21,12 @@ def load(name,file):
 app=load('continuation','migration-continuation.py');node=load('continuation_node','continuation-node.py')
 launcher=load('runtime_launcher','run-runtime.py');renderer=load('render_continuation','render-runtime.py')
 
-def schema_sample(field):
-    if 'const' in field: return copy.deepcopy(field['const'])
-    if 'default' in field: return copy.deepcopy(field['default'])
-    if field.get('type') == 'object': return {k: schema_sample(v) for k, v in field['properties'].items()}
-    if field.get('type') == 'array': return [schema_sample(v) for v in field.get('prefixItems', [])]
-    if field.get('type') == 'integer': return field.get('minimum', 0)
-    if '{64}' in field.get('pattern', ''): return '0' * 64
-    if '{40}' in field.get('pattern', ''): return '0' * 40
-    if 'recovery/' in field.get('pattern', ''): return '/var/lib/nautobot/recovery/fixture'
-    return 'fixture'
 
 
 class Continuation(unittest.TestCase):
     def operation(self):
-        schema=json.loads((ROOT/'Nautobot/schemas/runtime-continuation.schema.json').read_text())
-        return schema_sample(schema)
+        sample = yaml.safe_load((ROOT/'Nautobot/tests/fixtures/runtime-operation-inputs.yaml').read_text())['runtime-continuation']
+        return sample
 
     def test_split_progress_and_secret_rejection(self):
         rows=[];p=app.Progress(lambda event,**v:rows.append({'event':event,**v}),[('users','0002_change')])

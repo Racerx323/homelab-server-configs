@@ -1,0 +1,154 @@
+# Explicit local runtime examples; invalid placeholder identities prevent live use.
+---
+administrator-bootstrap:
+  schema_version: 1
+  operation:
+    id: fixture
+    stage: administrator_bootstrap
+    state: definition
+    authorization_ready: true
+    target: &id002 {host: j2-svpi4mf, address: 10.1.2.170, ssh_user: ama, execution_user: nautobot}
+    source_commit: '0000000000000000000000000000000000000000'
+  prerequisites:
+    - &id003 {path: Nautobot/manifests/restic-initialization-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: repository_initialization_accepted}
+    - &id004 {path: Nautobot/manifests/canary-backup-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: canary_backup_integrity_accepted}
+    - &id005 {path: Nautobot/manifests/canary-restore-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: isolated_canary_restore_accepted}
+    - &id006 {path: Nautobot/manifests/configuration-readiness-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: disposable_configuration_and_positive_connection_readiness_passed}
+    - &id007 {path: Nautobot/manifests/image-load-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: image_store_readiness_passed}
+    - &id008 {path: Nautobot/manifests/credential-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: complete}
+    - &id013 {path: Nautobot/manifests/database-inspection-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: cold_preservation_and_ledger_inspection_accepted}
+    - {path: Nautobot/manifests/runtime-initialization-result.json, sha256: '0000000000000000000000000000000000000000000000000000000000000000', tag: fixture, commit: '0000000000000000000000000000000000000000', outcome: runtime_initialization_accepted}
+  input_sha256: &id014 {Nautobot/manifests/accepted-live-state.yaml: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/desired-state.yaml: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/runtime-inputs.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/qualified-image.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/provisioned-credentials.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/configuration-readiness.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/runtime-image-store.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/migration-continuation-inputs.json: '0000000000000000000000000000000000000000000000000000000000000000'}
+  runtime:
+    first_install_only: false
+    rendered_directory: /var/lib/nautobot-controller/rendered
+    artifact_sha256: &id015 {nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63, nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a, nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717, nautobot-postgresql.container: 463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905, nautobot-redis.container: 906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9, nautobot-migration.container: f1e96d625d4b11d299131e850bf1c39c84df831b3ce6576e95cf44421a98656c}
+    configuration_sha256: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+    images: &id009
+      custom: {reference: 'localhost/nautobot-homelab@sha256:ceb4d6dfa82db1e70d472c01260d980d9e7497d9c8185d6bd7716e5d377856bf', id: 808655787a970700a5d45aa3487f2b9072b3bba555f424eb9c91003da37160aa}
+      postgresql: {reference: 'docker.io/library/postgres@sha256:e2fddda1fea39c634dccdae58dba5448eb3efb85aaa4054cf45cbed28f35d296', id: 46b040d73e39b84f4a9d0ddd2bcea65bffd8ddfb94caaf2b1ea977ce3d292acf}
+      redis: {reference: 'docker.io/library/redis@sha256:f263147977eb1178e361aba3af435b45175eb59ba136ce28a9479b163b4f8323', id: 82899179477d3b2ff89eaba14d2a97b8a60bb233bb80fbf80681023bef052c93}
+    services: [postgresql, redis]
+    overall_timeout_seconds: 1200
+    persistent_volumes: &id010 [postgresql_data, redis_data]
+    secret_source: existing_protected_environment_files_and_redis_config_secret
+    recovery_host: j2-svpi4mf.local.theama.co
+  observation: &id011 {delayed_seconds: 75, storage_event_pattern: I/O error|Buffer I/O|EXT4-fs error|uas_eh_|device reset|reset.*USB|USB.*reset|timed out|timeout}
+  failure: {stop_data_services: true, remove_transient_input: true, retain_database: true, automatic_restore: false, automatic_account_delete: false, automatic_retry: false}
+  acceptance:
+    require: [native_configuration, no_pending_migrations, account_previously_absent, native_creation, exact_account_flags, positive_authentication, transient_input_removed, data_services_stopped, guard_not_fired, configuration_unchanged, quiet_delayed_storage]
+    application_accepted: false
+    browser_login_accepted: false
+  authorization:
+    mutation_authorized: true
+    approval_record: not_yet_granted_exact_bundle_required
+    blockers: &id012 []
+    command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+    excluded: [web, worker, scheduler, migrations, published_ports, Caddy, reboot, Restic, secret_rotation, volume_deletion, automatic_copy_restore]
+  guard_unit: fixture
+  continuation:
+    cold_copy: /var/lib/nautobot/recovery/fixture
+    cold_volumes: &id017
+      nautobot-postgresql_data: &id001 {verified: true, entries: 0, tree_sha256: '0000000000000000000000000000000000000000000000000000000000000000'}
+      nautobot-redis_data: *id001
+  bootstrap:
+    username: admin
+    identity_reference: /var/lib/nautobot-controller/bootstrap-identity.json
+    doppler: {project: homelab-dev, config: prd_nautobot, key: NAUTOBOT_INITIAL_ADMIN_PASSWORD}
+    native_timeout_seconds: 120
+    guard_seconds: 900
+    probe_sha256: {bootstrap-application.py: 004a99d632e3d0e1817d3f5078f38006702e875db3491d91d6376c5296022fe3, initialize-application.py: 4f7126411510e7d7a5d0abb940b4cca0f62ed0476b237700573e13974c0ca78b}
+runtime-initialization:
+  schema_version: 1
+  operation:
+    id: fixture
+    stage: runtime_initialization
+    state: definition
+    authorization_ready: true
+    target: *id002
+    source_commit: '0000000000000000000000000000000000000000'
+  prerequisites:
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+    - *id007
+    - *id008
+  input_sha256: {Nautobot/manifests/accepted-live-state.yaml: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/desired-state.yaml: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/runtime-inputs.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/qualified-image.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/provisioned-credentials.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/configuration-readiness.json: '0000000000000000000000000000000000000000000000000000000000000000', Nautobot/manifests/runtime-image-store.json: '0000000000000000000000000000000000000000000000000000000000000000'}
+  runtime:
+    first_install_only: true
+    rendered_directory: /var/lib/nautobot-controller/rendered
+    artifact_sha256: {nautobot-private.network: 0bbf16ca337942502efffc0adb6a8694671c16ee143ee83b7b6009cb753fbc63, nautobot-postgresql_data.volume: 0d570e4cc759483781ac5c4fa2162591d3a60c2978e0be7bfcdb6996ffbe3e7a, nautobot-redis_data.volume: b2a22985771b52cac95550657feea845252072a82ec3844f48bcda25666dd717, nautobot-postgresql.container: 463902d338977c13cf9b76949663868ad2822c3e3baa5c8bc37979b9aa204905, nautobot-redis.container: 906dc8bfe8741781a62ad01c82ec7f65603eadf425573e0c4f0f64d967e033a9, nautobot-migration.container: 5e30e123e2027a07957032e2d21b7a9decf9a02b543eecb20a03725df9660ea3}
+    configuration_sha256: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+    images: *id009
+    services: &id016 [postgresql, redis, migration]
+    migration_memory_mib: 1536
+    migration_timeout_seconds: 900
+    overall_timeout_seconds: 1800
+    native_steps: [check, post_upgrade, check, migrate --check]
+    persistent_volumes: *id010
+    static_output: derived_temporary_regenerate_before_web_start
+    secret_source: existing_protected_environment_files_and_redis_config_secret
+    recovery_host: j2-svpi4mf.local.theama.co
+  observation: *id011
+  failure: {stop_only_operation_owned_services: true, preserve_volumes: true, automatic_retry: false, reverse_migration: false, delete_data: false, controller_interrupt: remote_state_unknown_read_only_review_required}
+  acceptance: {native_checks_and_migration: true, healthy_private_data_services: true, effective_memory_limits: true, boot_and_storage_continuity: true, initialization_only: true, runtime_pilot_accepted: false}
+  authorization:
+    mutation_authorized: true
+    approval_record: not_yet_granted_exact_bundle_required
+    blockers: *id012
+    command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+    excluded: [web, worker, scheduler, administrator_bootstrap, published_ports, Caddy, reboot, Restic, secret_rotation, volume_deletion]
+runtime-continuation:
+  schema_version: 1
+  operation:
+    id: fixture
+    stage: runtime_continuation
+    state: definition
+    authorization_ready: true
+    target: *id002
+    source_commit: '0000000000000000000000000000000000000000'
+  prerequisites:
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+    - *id007
+    - *id008
+    - *id013
+  input_sha256: *id014
+  runtime:
+    first_install_only: false
+    rendered_directory: /var/lib/nautobot-controller/rendered
+    artifact_sha256: *id015
+    configuration_sha256: ec21369b4f7185c4c2a60e6614f2040c926704c8c0c90fb0700904197b86da90
+    images: *id009
+    services: *id016
+    overall_timeout_seconds: 2400
+    persistent_volumes: *id010
+    secret_source: existing_protected_environment_files_and_redis_config_secret
+    recovery_host: j2-svpi4mf.local.theama.co
+  observation: *id011
+  failure:
+    stop_services_independently: [migration, redis, postgresql]
+    retain_originals_and_copies: true
+    automatic_retry: false
+    automatic_restore: false
+  acceptance: {native_plan_verified: true, native_post_upgrade_passed: true, no_pending_migrations: true, all_services_stopped: true, cold_copies_unchanged: true, storage_quiet: true, application_accepted: false}
+  authorization:
+    mutation_authorized: true
+    approval_record: not_yet_granted_exact_bundle_required
+    blockers: *id012
+    command: python3 Nautobot/ansible/scripts/run-runtime.py execute APPROVED_SHA256
+    excluded: [web, worker, scheduler, administrator_bootstrap, published_ports, Caddy, reboot, Restic, secret_rotation, volume_deletion, automatic_copy_restore]
+  guard_unit: fixture
+  continuation:
+    cold_copy: /var/lib/nautobot/recovery/fixture
+    cold_volumes: *id017
+    previous_artifact_sha256: {nautobot-private.network: '0000000000000000000000000000000000000000000000000000000000000000', nautobot-postgresql_data.volume: '0000000000000000000000000000000000000000000000000000000000000000', nautobot-redis_data.volume: '0000000000000000000000000000000000000000000000000000000000000000', nautobot-postgresql.container: '0000000000000000000000000000000000000000000000000000000000000000', nautobot-redis.container: '0000000000000000000000000000000000000000000000000000000000000000', nautobot-migration.container: '0000000000000000000000000000000000000000000000000000000000000000'}
+    previous_initializer_sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+    native_timeout_seconds: 1800
+    unit_timeout_seconds: 1860
+    guard_seconds: 2100
+    installed_files: {migration-continuation.py: '0000000000000000000000000000000000000000000000000000000000000000', migration-continuation-inputs.json: '0000000000000000000000000000000000000000000000000000000000000000'}
+    invocation_nonce: '0000000000000000000000000000000000000000000000000000000000000000'

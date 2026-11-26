@@ -48,6 +48,49 @@ inputs and are not counted as passing live checks merely because CI passed.
 Likewise, disposable workload scripts require separate local container execution;
 CI does not establish ARM64 performance, reboot survival or successful restore.
 
+### Focused native regression entrypoints
+
+Use these only when changing the named boundary. They run disposable local
+containers, not production acceptance. Use already available images, run Podman
+outside the filesystem sandbox, and retain the result and cleanup receipts in a
+protected caller-selected temporary directory. Do not use these tests to decide
+`j2-svpi4mf` capacity or repeat them while awaiting target observation.
+
+- `tests/qualify-recurring-logical-local.py --app-image APP_ID --postgres-image
+  POSTGRES_ID --redis-image REDIS_ID --restic /absolute/path/to/restic --output
+  /tmp/UNIQUE_OUTPUT` tests logical capture, real dump/upload/full integrity,
+  isolated comparison, disposal refusal and probe cleanup after controller loss.
+  Image IDs must be immutable; output must not exist. The app image must contain
+  the pinned Nautobot/DNS dependencies. The qualifier imports the agreed pilot
+  for functional coverage; it does not measure target headroom.
+- `tests/qualify_restore_workdir.py --image IMAGE` tests the restore playbook's
+  actual `runuser` prefix from an inaccessible working directory. The already
+  available disposable image needs `/usr/local/bin/python3`, `runuser`, and the
+  Nautobot UID/account expected by that prefix. It publishes no ports, uses no
+  network and removes its container on exit. Use it after changes to privilege
+  transitions or command working directories.
+- `tests/qualify_schedule_promotion.py --image IMAGE --candidate CANDIDATE
+  --previous-runtime PREVIOUS --output /tmp/UNIQUE_OUTPUT` tests actual promotion,
+  idempotence, active-service/permission refusal, copy-failure rollback and
+  refusal to overwrite foreign bytes. Supply a prepared local promotion bundle
+  and its matching non-secret previous runtime tree; neither directory is read
+  from an evidence-store default. The existing disposable systemd image needs
+  SSH/sudo, the `operator` SSH account, and the Nautobot user manager (UID 999,
+  GID 985). Output must not exist. The helper exposes SSH only on localhost and
+  adapts application/media/filesystem probes; those remain target checks.
+
+Invoke each script with `python3 -B` from the repository root. Promotion invokes
+Ansible through `tests/repository/run-with-ansible-local-temp.sh`; the other two
+use Podman directly. These manual qualifiers remain separate because they
+exercise different failure boundaries; no combined qualification runner is needed.
+
+Offline bundle suites use explicit local examples from
+`tests/fixtures/recurring-bundle-inputs.yaml`, with current repository source
+hashes and accepted prerequisite bindings supplied by `tests/bundle_samples.py`.
+They freeze and verify candidates but never execute them or change the active
+operation slot. The examples are not deployment definitions or host observations.
+Native environment opt-ins remain separate from these always-running checks.
+
 For long operations, use the [controller supervision procedure](#workload-controller-supervision).
 A manager exit receipt is not remote acceptance. Controller restart never grants
 permission to replay a workload; retain node evidence and review cleanup first.

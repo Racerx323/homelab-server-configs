@@ -39,26 +39,20 @@ class UploadTests(unittest.TestCase):
             self.assertTrue(all(result[name] for name in node.SECRETS if name != 'password'))
 
     def test_bundle_integrity_and_accepted_bindings(self):
-        import yaml
-        current = yaml.safe_load((ROOT/'Nautobot/manifests/operation.yaml').read_text())
-        if current['operation'].get('stage') != bundle.transport.STAGE:
-            self.skipTest('no pending upload definition; native tests construct disposable inputs')
-        accepted = yaml.safe_load((ROOT/'Nautobot/manifests/accepted-live-state.yaml').read_text())
-        consumed = accepted.get('recurring_upload_integrity', {}).get('operation_id') == current['operation']['id']
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)/'bundle'
-            if consumed:
-                # Accepted-state reconciliation invalidates re-freezing the consumed inputs.
-                with self.assertRaisesRegex(ValueError, 'accepted_source_drift'):
-                    bundle.transport.freeze(root)
-                return
-            bundle.transport.freeze(root)
-            digest = bundle.transport.sha(root/'bundle.json')
-            op = bundle.transport.verify(root, digest)
-            self.assertTrue(op['operation']['execution_enabled'])
-            with self.assertRaises(ValueError): bundle.transport.verify(root, '0'*64)
-            (root/'runtime/scripts/upload_node.py').write_text('changed')
-            with self.assertRaises(ValueError): bundle.transport.verify(root, digest)
+        from bundle_samples import definition
+        spec = importlib.util.spec_from_file_location('upload_bundle', SCRIPTS/'upload-integrity-bundle.py')
+        bundle = importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            source = definition('upload', bundle, parent)
+            candidate = parent/'candidate'
+            bundle.transport.freeze(candidate, operation=source)
+            digest = bundle.transport.sha(candidate/'bundle.json')
+            self.assertTrue(bundle.transport.verify(candidate, digest)['operation']['execution_enabled'])
+            with self.assertRaises(ValueError): bundle.transport.verify(candidate, '0'*64)
+            (candidate/'runtime/scripts/recurring_delivery.py').write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'input_drift'):
+                bundle.transport.verify(candidate, digest)
 
 
 if __name__ == '__main__': unittest.main()
