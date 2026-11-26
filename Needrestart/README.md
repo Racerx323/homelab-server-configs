@@ -72,7 +72,7 @@ sudo install -o root -g root -m 644 \
 Files under `/etc/cron.d` must be owned by root and must not be group- or
 world-writable. They do not need to be executable.
 
-Raspberry Pi 5 hosts may also require a kernel-image filter to prevent false
+Raspberry Pi hosts may also require a kernel-image filter to prevent false
 upgrade reports. Follow [Configure the Raspberry Pi kernel filter](kernel-filter.md)
 before installing the supplied host-specific configuration.
 
@@ -163,11 +163,7 @@ variables in `/etc/crontab` are not inherited. Keep `MAILTO`, `RECIPIENT`, and
 
 ## Raspberry Pi v8 foundation profile
 
-`configs/profiles/rpi-v8-list-only.conf` selects only `*-v8` kernel images and
-list-only restart handling. It preserves the vendor kernelhints file; `-b` batch
-mode performs kernel checks independently of that hint setting. Do not select
-this profile for a 2712 kernel. The [foundation tasks](../foundation/README.md)
-require native reporting of the actual running kernel before schedule enablement.
+`configs/profiles/rpi-v8-list-only.conf` selects only `*-v8` kernel images, processor microcode checks are disabled, and list-only restart handling is enforced; -b batch mode is implied for kernel checks. Do not select this profile for a 2712 kernel. The [foundation tasks](../foundation/README.md) require native reporting of the actual running kernel before schedule enablement.
 
 `ansible/enable-schedule.yaml` uses the existing producer and daily schedule with
 the foundation staged guard and a 96 MiB/no-swap unit for the producer and its children. It is enabled only after combined

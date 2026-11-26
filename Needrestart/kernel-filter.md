@@ -3,9 +3,15 @@
 Raspberry Pi systems install multiple kernel image variants in parallel. Without
 a filter, needrestart can treat an unused image as a pending kernel upgrade.
 
-The supplied `configs/kernel.conf` is configured for a Raspberry Pi 5 that boots
-the 16 KB-page `*-2712` kernel. Do not install it unchanged on other hardware or
-Raspberry Pi models.
+The `configs/` directory contains the main configuration and example profiles for different kernel variants. Use the appropriate profile for your hardware and kernel variant.
+
+The supplied `configs/kernel.conf` is configured for the fleet Raspberry Pi hosts. Do not install it unchanged on other hardware or Raspberry Pi models.
+
+The supplied `configs/profiles/rpi-v8-list-only.conf` is an example configuration for the fleet Raspberry Pi hosts using the `-v8` kernel variant.
+
+For other kernel variants, create a similar profile under `configs/profiles/` and adjust the `kernelfilter` accordingly.
+
+The supplied `configs/kernel.conf` contains other fleet-standard settings, such as batch mode for kernel checks and disabling processor microcode checks on ARM architectures. Confirm that these settings are appropriate for your host before installation.
 
 ## Verify the kernel variant
 
